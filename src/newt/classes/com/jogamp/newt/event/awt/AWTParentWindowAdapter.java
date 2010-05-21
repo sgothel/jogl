@@ -52,11 +52,11 @@ public class AWTParentWindowAdapter extends AWTWindowAdapter
     }
 
     public void windowActivated(java.awt.event.WindowEvent e) {
-        // no propagation to NEWT child window ?? FIXME: Maybe yes in case of a 100% Opaque one ?
+        // no propagation to NEWT child window
     }
 
     public void windowDeactivated(java.awt.event.WindowEvent e) {
-        // no propagation to NEWT child window ?? FIXME: Maybe yes in case of a 100% Opaque one ?
+        // no propagation to NEWT child window
     }
 }
 

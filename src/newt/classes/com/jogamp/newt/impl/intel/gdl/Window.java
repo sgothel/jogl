@@ -45,7 +45,7 @@ public class Window extends com.jogamp.newt.Window {
 
     static long nextWindowHandle = 1;
 
-    protected void createNative(long parentWindowHandle, Capabilities caps) {
+    protected void createNativeImpl() {
         if(0!=parentWindowHandle) {
             throw new NativeWindowException("GDL Window does not support window parenting");
         }
@@ -59,6 +59,11 @@ public class Window extends com.jogamp.newt.Window {
 
         synchronized(Window.class) {
             windowHandle = nextWindowHandle++;
+
+            surfaceHandle = CreateSurface(aDevice.getHandle(), screen.getWidth(), screen.getHeight(), x, y, width, height);
+            if (surfaceHandle == 0) {
+                throw new NativeWindowException("Error creating window");
+            }
         }
     }
 
@@ -72,19 +77,9 @@ public class Window extends com.jogamp.newt.Window {
         }
     }
 
-    public void setVisible(boolean visible) {
-        if(this.visible!=visible) {
-            this.visible=visible;
-            if(visible && 0==surfaceHandle) {
-                synchronized(Window.class) {
-                    AbstractGraphicsDevice aDevice = screen.getDisplay().getGraphicsDevice();
-                    surfaceHandle = CreateSurface(aDevice.getHandle(), screen.getWidth(), screen.getHeight(), x, y, width, height);
-                }
-                if (surfaceHandle == 0) {
-                    throw new NativeWindowException("Error creating window");
-                }
-                ((Display)screen.getDisplay()).setFocus(this);
-            }
+    protected void setVisibleImpl() {
+        if(visible) {
+            ((Display)screen.getDisplay()).setFocus(this);
         }
     }
 

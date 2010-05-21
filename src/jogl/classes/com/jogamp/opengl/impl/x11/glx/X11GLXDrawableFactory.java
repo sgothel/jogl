@@ -67,16 +67,21 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
                                   new Object[] {});
     } catch (JogampRuntimeException jre) { /* n/a .. */ }
 
-    shareableResourceThread = new ShareableResourceThread(GLProfile.getDefault(), GLProfile.isAWTJOGLAvailable());
-    shareableResourceThread.start();
-    while (!shareableResourceThread.isInitialized()) {
-        synchronized(shareableResourceThread) {
-            try {
-                shareableResourceThread.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+    // init shared resources ..
+    long tlsDisplay = X11Util.createThreadLocalDisplay(null);
+    X11GraphicsDevice sharedDevice = new X11GraphicsDevice(tlsDisplay);
+    vendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
+    isVendorATI = GLXUtil.isVendorATI(vendorName);
+    isVendorNVIDIA = GLXUtil.isVendorNVIDIA(vendorName);
+    sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
+    X11Util.XLockDisplay(tlsDisplay);
+    try{
+        sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, GLProfile.getDefault());
+    } finally {
+        X11Util.XUnlockDisplay(tlsDisplay);
+    }
+    if(isVendorATI() && GLProfile.isAWTAvailable()) {
+        X11Util.markThreadLocalDisplayUncloseable(tlsDisplay); // failure to close with ATI and AWT usage
     }
     if(null==sharedScreen || null==sharedDrawable) {
         throw new GLException("Couldn't init shared screen("+sharedScreen+")/drawable("+sharedDrawable+")");
@@ -102,73 +107,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
       System.err.println("!!! SharedScreen: "+sharedScreen);
       System.err.println("!!! SharedContext: "+sharedContext);
     }
-  }
-
-  ShareableResourceThread shareableResourceThread;
-
-  class ShareableResourceThread extends Thread {
-        volatile boolean shutdown  = false;
-        volatile boolean initialized = false;
-        GLProfile glp;
-        boolean mayUseAWT;
-
-        final void shutdown() { shutdown = true; }
-        final boolean isInitialized() { return initialized; }
-
-        public ShareableResourceThread(GLProfile glp, boolean mayUseAWT) {
-            super("ShareableResourceThread-"+Thread.currentThread().getName());
-            this.glp = glp;
-            this.mayUseAWT = mayUseAWT;
-        }
-
-        public void run() {
-            synchronized(this) {
-                long tlsDisplay = X11Util.createThreadLocalDisplay(null);
-                X11GraphicsDevice sharedDevice = new X11GraphicsDevice(tlsDisplay);
-                vendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
-                isVendorATI = GLXUtil.isVendorATI(vendorName);
-                isVendorNVIDIA = GLXUtil.isVendorNVIDIA(vendorName);
-                sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
-                X11Util.XLockDisplay(sharedScreen.getDevice().getHandle());
-                try{
-                    sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, glp);
-                } finally {
-                    X11Util.XUnlockDisplay(sharedScreen.getDevice().getHandle());
-                }
-                if(isVendorATI() && mayUseAWT) {
-                    X11Util.markThreadLocalDisplayUncloseable(tlsDisplay); // failure to close with ATI and AWT usage
-                }
-                initialized = true;
-                this.notifyAll();
-
-                while (!shutdown) {
-                    synchronized(this) {
-                        try {
-                            this.wait();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-
-                // don't free native resources from this point on,
-                // since we might be in a critical shutdown hook sequence
-                if(null!=sharedDrawable) {
-                    // may cause deadlock: sharedDrawable.destroy();
-                    sharedDrawable=null;
-                }
-                if(null!=sharedScreen) {
-                     // may cause deadlock: X11Util.closeThreadLocalDisplay(null);
-                     sharedScreen = null;
-                     sharedDevice=null;
-                }
-                // don't close pending XDisplay, since they might be a different thread as the opener
-                X11Util.shutdown( false, DEBUG );
-
-                initialized = false;
-                this.notifyAll();
-            }
-        }
   }
 
   private X11GraphicsScreen sharedScreen;
@@ -202,20 +140,19 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
         sharedContext.destroy(); // implies release, if current
         sharedContext=null;
     }
-    synchronized(shareableResourceThread) {
-        if (shareableResourceThread.isInitialized()) {
-            shareableResourceThread.shutdown();
-            shareableResourceThread.notifyAll();
-            while (shareableResourceThread.isInitialized()) {
-                try {
-                    shareableResourceThread.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+
+    // don't free native resources from this point on,
+    // since we might be in a critical shutdown hook sequence
+    if(null!=sharedDrawable) {
+        // may cause deadlock: sharedDrawable.destroy();
+        sharedDrawable=null;
     }
-    shareableResourceThread = null;
+    if(null!=sharedScreen) {
+         // may cause deadlock: X11Util.closeThreadLocalDisplay(null);
+         sharedScreen = null;
+    }
+    // don't close pending XDisplay, since they might be a different thread as the opener
+    X11Util.shutdown( false, DEBUG );
   }
 
   public GLDrawableImpl createOnscreenDrawable(NativeWindow target) {

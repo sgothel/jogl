@@ -44,7 +44,7 @@ public class OffscreenWindow extends Window implements SurfaceChangeable {
 
     static long nextWindowHandle = 0x100; // start here - a marker
 
-    protected void createNative(long parentWindowHandle, Capabilities caps) {
+    protected void createNativeImpl() {
         if(0!=parentWindowHandle) {
             throw new NativeWindowException("OffscreenWindow does not support window parenting");
         }
@@ -83,10 +83,7 @@ public class OffscreenWindow extends Window implements SurfaceChangeable {
         return surfaceHandle;
     }
 
-    public void setVisible(boolean visible) {
-        if(!visible) {
-            this.visible = visible;
-        }
+    protected void setVisibleImpl() {
     }
 
     public void setSize(int width, int height) {

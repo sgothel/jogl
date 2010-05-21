@@ -82,49 +82,53 @@ public class GLWindow extends Window implements GLAutoDrawable {
         glwindows=newglw;
     }
 
-    /** Creates a new GLWindow on the local display, screen 0, with a
-        dummy visual ID, and with the default GLCapabilities. */
-    public static GLWindow create() {
-        return create(null, null, false);
-    }
-
-    public static GLWindow create(boolean undecorated) {
-        return create(null, null, undecorated);
-    }
-
-    /** Creates a new GLWindow referring to the given window. */
+    /** Creates a new GLWindow attaching the given window - not owning the Window. */
     public static GLWindow create(Window window) {
-        return create(window, null, false);
-    }
-    public static GLWindow create(GLCapabilities caps) {
-        return create(null, caps, false);
+        return create(null, window, null, false);
     }
 
-    /** Creates a new GLWindow on the local display, screen 0, with a
-        dummy visual ID, and with the given GLCapabilities. */
+    /** Creates a new GLWindow attaching a new native child Window of the given <code>parentWindowObject</code>
+        with the given GLCapabilities - owning the Window */
+    public static GLWindow create(Object parentWindowObject, GLCapabilities caps) {
+        return create(parentWindowObject, null, caps, true);
+    }
+
+    /** Creates a new GLWindow attaching a new decorated Window on the local display, screen 0, with a
+        dummy visual ID and given GLCapabilities - owning the window */
+    public static GLWindow create(GLCapabilities caps) {
+        return create(null, null, caps, false);
+    }
+
+    /** Creates a new GLWindow attaching a new Window on the local display, screen 0, with a
+        dummy visual ID and given GLCapabilities - owning the window */
     public static GLWindow create(GLCapabilities caps, boolean undecorated) {
-        return create(null, caps, undecorated);
+        return create(null, null, caps, undecorated);
     }
 
     /** Either or: window (prio), or caps and undecorated (2nd choice) */
-    private static GLWindow create(Window window, 
+    private static GLWindow create(Object parentWindowObject, Window window, 
                                    GLCapabilities caps,
                                    boolean undecorated) {
-        Display display;
         boolean ownerOfWinScrDpy=false;
         if (window == null) {
             if (caps == null) {
                 caps = new GLCapabilities(null); // default ..
             }
             ownerOfWinScrDpy = true;
-            display = NewtFactory.createDisplay(null); // local display
-            Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-            window = NewtFactory.createWindow(screen, caps, undecorated);
+            window = NewtFactory.createWindow(parentWindowObject, caps, undecorated);
         }
 
         return new GLWindow(window, ownerOfWinScrDpy);
     }
     
+    public boolean isDestroyed() {
+        return null == window ;
+    }
+
+    public Window getWindow() {
+        return window;
+    }
+
     /** 
      * EXPERIMENTAL<br> 
      * Enable or disables running the {@link Display#pumpMessages} in the {@link #display()} call.<br>
@@ -150,7 +154,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         runPumpMessages = onoff;
     }
 
-    protected void createNative(long parentWindowHandle, Capabilities caps) {
+    protected void createNativeImpl() {
         shouldNotCallThis();
     }
 
@@ -204,11 +208,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
     /** @param sendDisposeEvent should be false in a [time,reliable] critical shutdown */
     public synchronized void destroy(boolean sendDisposeEvent) {
-        if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            Exception e1 = new Exception("GLWindow.destroy "+Thread.currentThread()+", 1: "+this);
-            e1.printStackTrace();
-        }
-
         List newglw = (List) ((ArrayList) glwindows).clone();
         newglw.remove(this);
         glwindows=newglw;
@@ -224,10 +223,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
         drawable = null;
         context = null;
         window = null;
-
-        if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            System.out.println("GLWindow.destroy "+Thread.currentThread()+", fin: "+this);
-        }
     }
 
     public boolean getPerfLogEnabled() { return perfLog; }
@@ -236,13 +231,13 @@ public class GLWindow extends Window implements GLAutoDrawable {
         perfLog = v;
     }
 
-    public void setVisible(boolean visible) {
-        if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            System.out.println(Thread.currentThread()+" GLWindow.setVisible("+visible+") START ; isVisible "+this.visible+" ; has context "+(null!=context));
-        }
-        this.visible=visible;
+    protected void setVisibleImpl() {
+        shouldNotCallThis();
+    }
+
+    public void setVisible(final boolean visible) {
         window.setVisible(visible);
-        if (visible && context == null) {
+        if (visible && null == context && 0 != window.getWindowHandle()) {
             NativeWindow nw;
             if (window.getWrappedWindow() != null) {
                 nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow(), window.getGraphicsConfiguration());
@@ -255,9 +250,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
             drawable.setRealized(true);
             context = drawable.createContext(null);
             sendReshape = true; // ensure a reshape event is send ..
-        }
-        if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            System.out.println(Thread.currentThread()+" GLWindow.setVisible("+visible+") END  ; has context "+(null!=context));
         }
     }
 
@@ -438,7 +430,14 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     public void display(boolean forceReshape) {
-        if(window!=null && drawable!=null && context != null) {
+        if( null == window ) { return; }
+
+        if( null == context && window.isVisible() ) {
+            // retry native window and drawable/context creation 
+            setVisible(true);
+        }
+
+        if( null != context ) {
             if(runPumpMessages) {
                 window.getScreen().getDisplay().pumpMessages();
             }
@@ -448,7 +447,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
             if (sendDestroy) {
                 destroy();
                 sendDestroy=false;
-            } else {
+            } else if ( window.isVisible() ) {
                 if(forceReshape) {
                     sendReshape = true;
                 }
@@ -553,12 +552,8 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
 
     //----------------------------------------------------------------------
-    // GLDrawable methods
+    // NativeWindow/Window methods
     //
-
-    public NativeWindow getNativeWindow() {
-        return null!=drawable ? drawable.getNativeWindow() : null;
-    }
 
     public synchronized int lockSurface() throws NativeWindowException {
         if(null!=drawable) return drawable.getNativeWindow().lockSurface();
@@ -587,12 +582,25 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
     public long getWindowHandle() {
         if(null!=drawable) return drawable.getNativeWindow().getWindowHandle();
-        return super.getWindowHandle();
+        return window.getWindowHandle();
     }
 
     public long getSurfaceHandle() {
         if(null!=drawable) return drawable.getNativeWindow().getSurfaceHandle();
-        return super.getSurfaceHandle();
+        return window.getSurfaceHandle();
+    }
+
+    public AbstractGraphicsConfiguration getGraphicsConfiguration() {
+        if(null!=drawable) return drawable.getNativeWindow().getGraphicsConfiguration();
+        return window.getGraphicsConfiguration();
+    }
+
+    //----------------------------------------------------------------------
+    // GLDrawable methods
+    //
+
+    public NativeWindow getNativeWindow() {
+        return null!=drawable ? drawable.getNativeWindow() : null;
     }
 
     //----------------------------------------------------------------------

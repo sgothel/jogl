@@ -130,7 +130,6 @@ public class MacWindow extends Window {
     private static final int NSModeSwitchFunctionKey     = 0xF747;
 
     private volatile long surfaceHandle;
-    private long parentWindowHandle;
 
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
@@ -143,8 +142,7 @@ public class MacWindow extends Window {
     public MacWindow() {
     }
     
-    protected void createNative(long parentWindowHandle, Capabilities caps) {
-        this.parentWindowHandle=parentWindowHandle;
+    protected void createNativeImpl() {
         config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
@@ -193,7 +191,7 @@ public class MacWindow extends Window {
         public void run() {
             nsViewLock.lock();
             try {
-                createWindow(parentWindowHandle, false);
+                createWindow(false);
             } finally {
                 nsViewLock.unlock();
             }
@@ -237,13 +235,13 @@ public class MacWindow extends Window {
             try {
                 if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.VisibleAction "+visible+" "+Thread.currentThread().getName());
                 if (visible) {
-                    createWindow(parentWindowHandle, false);
+                    createWindow(false);
                     if (windowHandle != 0) {
-                        makeKeyAndOrderFront(windowHandle);
+                        makeKeyAndOrderFront0(windowHandle);
                     }
                 } else {
                     if (windowHandle != 0) {
-                        orderOut(windowHandle);
+                        orderOut0(windowHandle);
                     }
                 }
             } finally {
@@ -253,8 +251,7 @@ public class MacWindow extends Window {
     }
     private VisibleAction visibleAction = new VisibleAction();
 
-    public void setVisible(boolean visible) {
-        this.visible = visible;
+    protected void setVisibleImpl() {
         MainThread.invoke(true, visibleAction);
     }
 
@@ -282,7 +279,7 @@ public class MacWindow extends Window {
             nsViewLock.lock();
             try {
                 if (windowHandle != 0) {
-                    makeKey(windowHandle);
+                    makeKey0(windowHandle);
                 }
             } finally {
                 nsViewLock.unlock();
@@ -301,7 +298,7 @@ public class MacWindow extends Window {
             nsViewLock.lock();
             try {
                 if (windowHandle != 0) {
-                    setContentSize(windowHandle, width, height);
+                    setContentSize0(windowHandle, width, height);
                 }
             } finally {
                 nsViewLock.unlock();
@@ -311,13 +308,19 @@ public class MacWindow extends Window {
     private SizeAction sizeAction = new SizeAction();
 
     public void setSize(int width, int height) {
-        this.width=width;
-        this.height=height;
-        if(!fullscreen) {
-            nfs_width=width;
-            nfs_height=height;
+        if (width != this.width || this.height != height) {
+            if(!fullscreen) {
+                nfs_width=width;
+                nfs_height=height;
+                if (0 != windowHandle) {
+                    // this width/height will be set by sizeChanged, called by OSX
+                    MainThread.invoke(true, sizeAction);
+                } else {
+                    this.width=width;
+                    this.height=height;
+                }
+            }
         }
-        MainThread.invoke(true, sizeAction);
     }
     
     class PositionAction implements Runnable {
@@ -325,7 +328,7 @@ public class MacWindow extends Window {
             nsViewLock.lock();
             try {
                 if (windowHandle != 0) {
-                    setFrameTopLeftPoint(parentWindowHandle, windowHandle, x, y);
+                    setFrameTopLeftPoint0(parentWindowHandle, windowHandle, x, y);
                 }
             } finally {
                 nsViewLock.unlock();
@@ -335,13 +338,19 @@ public class MacWindow extends Window {
     private PositionAction positionAction = new PositionAction();
 
     public void setPosition(int x, int y) {
-        this.x=x;
-        this.y=y;
-        if(!fullscreen) {
-            nfs_x=x;
-            nfs_y=y;
+        if ( this.x != x || this.y != y ) {
+            if(!fullscreen) {
+                nfs_x=x;
+                nfs_y=y;
+                if (0 != windowHandle) {
+                    // this x/y will be set by positionChanged, called by OSX
+                    MainThread.invoke(true, positionAction);
+                } else {
+                    this.x=x;
+                    this.y=y;
+                }
+            }
         }
-        MainThread.invoke(true, positionAction);
     }
     
     class FullscreenAction implements Runnable {
@@ -351,9 +360,9 @@ public class MacWindow extends Window {
                 if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
                     System.err.println("MacWindow fs: "+fullscreen+" "+x+"/"+y+" "+width+"x"+height);
                 }
-                createWindow(parentWindowHandle, true);
+                createWindow(true);
                 if (windowHandle != 0) {
-                    makeKeyAndOrderFront(windowHandle);
+                    makeKeyAndOrderFront0(windowHandle);
                 }
             } finally {
                 nsViewLock.unlock();
@@ -382,19 +391,21 @@ public class MacWindow extends Window {
     }
     
     private void sizeChanged(int newWidth, int newHeight) {
-        if (DEBUG_IMPLEMENTATION) {
-            System.out.println(Thread.currentThread().getName()+" Size changed to " + newWidth + ", " + newHeight);
+        if(width != newWidth || height != newHeight) {
+            if (DEBUG_IMPLEMENTATION) {
+                System.out.println(Thread.currentThread().getName()+" Size changed to " + newWidth + ", " + newHeight);
+            }
+            width = newWidth;
+            height = newHeight;
+            if(!fullscreen) {
+                nfs_width=width;
+                nfs_height=height;
+            }
+            if (DEBUG_IMPLEMENTATION) {
+                System.out.println("  Posted WINDOW_RESIZED event");
+            }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
         }
-        width = newWidth;
-        height = newHeight;
-        if(!fullscreen) {
-            nfs_width=width;
-            nfs_height=height;
-        }
-        if (DEBUG_IMPLEMENTATION) {
-            System.out.println("  Posted WINDOW_RESIZED event");
-        }
-        sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
     }
 
     private void insetsChanged(int left, int top, int right, int bottom) {
@@ -411,19 +422,21 @@ public class MacWindow extends Window {
     }
 
     private void positionChanged(int newX, int newY) {
-        if (DEBUG_IMPLEMENTATION) {
-            System.out.println(Thread.currentThread().getName()+" Position changed to " + newX + ", " + newY);
+        if( 0==parentWindowHandle && ( x != newX || y != newY ) ) {
+            if (DEBUG_IMPLEMENTATION) {
+                System.out.println(Thread.currentThread().getName()+" Position changed to " + newX + ", " + newY);
+            }
+            x = newX;
+            y = newY;
+            if(!fullscreen) {
+                nfs_x=x;
+                nfs_y=y;
+            }
+            if (DEBUG_IMPLEMENTATION) {
+                System.out.println("  Posted WINDOW_MOVED event");
+            }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
         }
-        x = newX;
-        y = newY;
-        if(!fullscreen) {
-            nfs_x=x;
-            nfs_y=y;
-        }
-        if (DEBUG_IMPLEMENTATION) {
-            System.out.println("  Posted WINDOW_MOVED event");
-        }
-        sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
     }
 
     private void focusChanged(boolean focusGained) {
@@ -525,13 +538,13 @@ public class MacWindow extends Window {
         super.sendKeyEvent(eventType, modifiers, key, keyChar);
     }
 
-    private void createWindow(long parentWindowHandle, boolean recreate) {
+    private void createWindow(boolean recreate) {
         if(0!=windowHandle && !recreate) {
             return;
         }
         if(0!=windowHandle) {
             // save the view .. close the window
-            surfaceHandle = changeContentView(parentWindowHandle, windowHandle, 0);
+            surfaceHandle = changeContentView0(parentWindowHandle, windowHandle, 0);
             if(recreate && 0==surfaceHandle) {
                 throw new NativeWindowException("Internal Error - recreate, window but no view");
             }
@@ -550,27 +563,27 @@ public class MacWindow extends Window {
         if (windowHandle == 0) {
             throw new NativeWindowException("Could create native window "+Thread.currentThread().getName()+" "+this);
         }
-        surfaceHandle = contentView(windowHandle);
+        surfaceHandle = contentView0(windowHandle);
         setTitle0(windowHandle, getTitle());
         // don't make the window visible on window creation
-//        makeKeyAndOrderFront(windowHandle);
+//        makeKeyAndOrderFront0(windowHandle);
         sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
         sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
         sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
     }
     
-    protected static native boolean initIDs();
+    protected static native boolean initIDs0();
     private native long createWindow0(long parentWindowHandle, int x, int y, int w, int h,
                                      boolean fullscreen, int windowStyle,
                                      int backingStoreType,
                                      int screen_idx, long view);
-    private native void makeKeyAndOrderFront(long window);
-    private native void makeKey(long window);
-    private native void orderOut(long window);
+    private native void makeKeyAndOrderFront0(long window);
+    private native void makeKey0(long window);
+    private native void orderOut0(long window);
     private native void close0(long window);
     private native void setTitle0(long window, String title);
-    private native long contentView(long window);
-    private native long changeContentView(long parentWindowHandle, long window, long view);
-    private native void setContentSize(long window, int w, int h);
-    private native void setFrameTopLeftPoint(long parentWindowHandle, long window, int x, int y);
+    private native long contentView0(long window);
+    private native long changeContentView0(long parentWindowHandle, long window, long view);
+    private native void setContentSize0(long window, int w, int h);
+    private native void setFrameTopLeftPoint0(long parentWindowHandle, long window, int x, int y);
 }

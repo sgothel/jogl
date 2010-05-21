@@ -47,7 +47,7 @@ public class WindowsDisplay extends Display {
     static {
         NEWTJNILibLoader.loadNEWT();
 
-        if (!WindowsWindow.initIDs()) {
+        if (!WindowsWindow.initIDs0()) {
             throw new NativeWindowException("Failed to initialize WindowsWindow jmethodIDs");
         }
     }
@@ -60,22 +60,22 @@ public class WindowsDisplay extends Display {
     public WindowsDisplay() {
     }
 
-    protected void createNative() {
+    protected void createNative(long handle) {
         aDevice = new WindowsGraphicsDevice();
     }
 
     protected void closeNative() { 
         // Can't do .. only at application shutdown 
-        // UnregisterWindowClass(getWindowClassAtom(), getHInstance());
+        // UnregisterWindowClass0(getWindowClassAtom(), getHInstance());
     }
 
     protected void dispatchMessagesNative() {
-        DispatchMessages();
+        DispatchMessages0();
     }
 
     protected static synchronized int getWindowClassAtom() {
         if(0 == windowClassAtom) {
-            windowClassAtom = RegisterWindowClass(WINDOW_CLASS_NAME, getHInstance());
+            windowClassAtom = RegisterWindowClass0(WINDOW_CLASS_NAME, getHInstance());
             if (0 == windowClassAtom) {
                 throw new NativeWindowException("Error while registering window class");
             }
@@ -85,7 +85,7 @@ public class WindowsDisplay extends Display {
 
     protected static synchronized long getHInstance() {
         if(0 == hInstance) {
-            hInstance = LoadLibraryW("newt");
+            hInstance = LoadLibraryW0("newt");
             if (0 == hInstance) {
                 throw new NativeWindowException("Error finding HINSTANCE for \"newt\"");
             }
@@ -96,10 +96,10 @@ public class WindowsDisplay extends Display {
     //----------------------------------------------------------------------
     // Internals only
     //
-    private static native long LoadLibraryW(String libraryName);
-    private static native int  RegisterWindowClass(String windowClassName, long hInstance);
-    private static native void UnregisterWindowClass(int wndClassAtom, long hInstance);
+    private static native long LoadLibraryW0(String libraryName);
+    private static native int  RegisterWindowClass0(String windowClassName, long hInstance);
+    private static native void UnregisterWindowClass0(int wndClassAtom, long hInstance);
 
-    private static native void DispatchMessages();
+    private static native void DispatchMessages0();
 }
 

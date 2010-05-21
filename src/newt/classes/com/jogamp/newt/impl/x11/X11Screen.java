@@ -47,7 +47,7 @@ public class X11Screen extends Screen {
     }
 
     protected void createNative(int index) {
-        long handle = GetScreen(display.getHandle(), index);
+        long handle = GetScreen0(display.getHandle(), index);
         if (handle == 0 ) {
             throw new RuntimeException("Error creating screen: "+index);
         }
@@ -62,7 +62,7 @@ public class X11Screen extends Screen {
     // Internals only
     //
 
-    private native long GetScreen(long dpy, int scrn_idx);
+    private native long GetScreen0(long dpy, int scrn_idx);
     private native int  getWidth0(long display, int scrn_idx);
     private native int  getHeight0(long display, int scrn_idx);
 }

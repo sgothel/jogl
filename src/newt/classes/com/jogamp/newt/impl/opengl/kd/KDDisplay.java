@@ -57,9 +57,12 @@ public class KDDisplay extends Display {
     public KDDisplay() {
     }
 
-    protected void createNative() {
+    protected void createNative(long handle) {
         // FIXME: map name to EGL_*_DISPLAY
-        long handle = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
+        // FIXME: what do to with external handle ?
+        if(0==handle) {
+            handle = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
+        }
         if (handle == EGL.EGL_NO_DISPLAY) {
             throw new NativeWindowException("eglGetDisplay failed");
         }

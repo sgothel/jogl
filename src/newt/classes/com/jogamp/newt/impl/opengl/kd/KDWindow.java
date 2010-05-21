@@ -54,7 +54,7 @@ public class KDWindow extends Window {
     public KDWindow() {
     }
 
-    protected void createNative(long parentWindowHandle, Capabilities caps) {
+    protected void createNativeImpl() {
         if(0!=parentWindowHandle) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
@@ -66,12 +66,15 @@ public class KDWindow extends Window {
         GLCapabilities eglCaps = (GLCapabilities)config.getChosenCapabilities();
         int[] eglAttribs = EGLGraphicsConfiguration.GLCapabilities2AttribList(eglCaps);
 
-        windowHandle = 0;
         eglWindowHandle = CreateWindow(getDisplayHandle(), eglAttribs);
         if (eglWindowHandle == 0) {
             throw new NativeWindowException("Error creating egl window: "+config);
         }
         setVisible0(eglWindowHandle, false);
+        windowHandle = RealizeWindow(eglWindowHandle);
+        if (0 == windowHandle) {
+            throw new NativeWindowException("Error native Window Handle is null");
+        }
         windowHandleClose = eglWindowHandle;
     }
 
@@ -82,18 +85,9 @@ public class KDWindow extends Window {
         }
     }
 
-    public void setVisible(boolean visible) {
-        if(0!=eglWindowHandle && this.visible!=visible) {
-            this.visible=visible;
-            setVisible0(eglWindowHandle, visible);
-            if ( 0==windowHandle ) {
-                windowHandle = RealizeWindow(eglWindowHandle);
-                if (0 == windowHandle) {
-                    throw new NativeWindowException("Error native Window Handle is null");
-                }
-            }
-            clearEventMask();
-        }
+    protected void setVisibleImpl() {
+        setVisible0(eglWindowHandle, visible);
+        clearEventMask();
     }
 
     public void setSize(int width, int height) {

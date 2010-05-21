@@ -46,7 +46,7 @@ public class Window extends com.jogamp.newt.Window {
     public Window() {
     }
 
-    protected void createNative(long parentWindowHandle, Capabilities caps) {
+    protected void createNativeImpl() {
         if(0!=parentWindowHandle) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
@@ -57,6 +57,11 @@ public class Window extends com.jogamp.newt.Window {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
         setSizeImpl(getScreen().getWidth(), getScreen().getHeight());
+
+        windowHandle = realizeWindow(true, width, height);
+        if (0 == windowHandle) {
+            throw new NativeWindowException("Error native Window Handle is null");
+        }
     }
 
     protected void closeNative() {
@@ -65,18 +70,7 @@ public class Window extends com.jogamp.newt.Window {
         }
     }
 
-    public void setVisible(boolean visible) {
-        if(this.visible!=visible) {
-            this.visible=visible;
-            if ( 0==windowHandle ) {
-                windowHandle = realizeWindow(true, width, height);
-                if (0 == windowHandle) {
-                    throw new NativeWindowException("Error native Window Handle is null");
-                }
-            }
-            clearEventMask();
-        }
-    }
+    protected void setVisibleImpl() { }
 
     public void setSize(int width, int height) {
         System.err.println("setSize "+width+"x"+height+" n/a in BroadcomEGL");

@@ -36,7 +36,11 @@ uname -a | grep -i Darwin && MOSX=1
 # D_ARGS="-Dnativewindow.debug.X11Util=true -Djogl.debug.GLDrawableFactory=true"
 # D_ARGS="-Dnativewindow.debug.X11Util=true"
 # D_ARGS="-Dnewt.debug=all"
+# D_ARGS="-Dnewt.debug.Window"
 # D_ARGS="-Djogl.debug=all"
 
-echo java $X_ARGS $D_ARGS $* 2>&1 | tee java-run.log
+rm -f java-run.log
+
+echo LIBXCB_ALLOW_SLOPPY_LOCK: $LIBXCB_ALLOW_SLOPPY_LOCK 2>&1 | tee -a java-run.log
+echo java $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 java $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log

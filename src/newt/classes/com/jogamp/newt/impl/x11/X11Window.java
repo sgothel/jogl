@@ -48,7 +48,7 @@ public class X11Window extends Window {
     public X11Window() {
     }
 
-    protected void createNative(long parentWindowHandle, Capabilities caps) {
+    protected void createNativeImpl() {
         X11Screen screen = (X11Screen) getScreen();
         X11Display display = (X11Display) screen.getDisplay();
         config = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, screen.getGraphicsScreen());
@@ -58,14 +58,13 @@ public class X11Window extends Window {
         attachedToParent = 0 != parentWindowHandle ;
         X11GraphicsConfiguration x11config = (X11GraphicsConfiguration) config;
         long visualID = x11config.getVisualID();
-        long w = CreateWindow(parentWindowHandle, 
+        long w = CreateWindow0(parentWindowHandle, 
                               display.getHandle(), screen.getIndex(), visualID, 
                               display.getJavaObjectAtom(), display.getWindowDeleteAtom(), 
                               x, y, width, height, undecorated());
         if (w == 0 || w!=windowHandle) {
             throw new NativeWindowException("Error creating window: "+w);
         }
-        this.parentWindowHandle = parentWindowHandle;
         windowHandleClose = windowHandle;
         displayHandleClose = display.getHandle();
     }
@@ -73,7 +72,7 @@ public class X11Window extends Window {
     protected void closeNative() {
         if(0!=displayHandleClose && 0!=windowHandleClose && null!=getScreen() ) {
             X11Display display = (X11Display) getScreen().getDisplay();
-            CloseWindow(displayHandleClose, windowHandleClose, display.getJavaObjectAtom());
+            CloseWindow0(displayHandleClose, windowHandleClose, display.getJavaObjectAtom());
             windowHandleClose = 0;
             displayHandleClose = 0;
         }
@@ -85,15 +84,9 @@ public class X11Window extends Window {
         super.windowDestroyed();
     }
 
-    public void setVisible(boolean visible) {
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("X11Window setVisible: "+this.x+"/"+this.y+" "+this.width+"x"+this.height+", fs "+fullscreen+", windowHandle "+windowHandle);
-        }
-        if(0!=windowHandle && this.visible!=visible) {
-            this.visible=visible;
-            setVisible0(getDisplayHandle(), windowHandle, visible);
-            clearEventMask();
-        }
+    protected void setVisibleImpl() {
+        setVisible0(getDisplayHandle(), windowHandle, visible);
+        clearEventMask();
     }
 
     public void setSize(int width, int height) {
@@ -102,12 +95,14 @@ public class X11Window extends Window {
         }
         if (width != this.width || this.height != height) {
             if(!fullscreen) {
-                this.width = width;
-                this.height = height;
                 nfs_width=width;
                 nfs_height=height;
                 if(0!=windowHandle) {
+                    // this width/height will be set by windowChanged, called by X11
                     setSize0(getDisplayHandle(), windowHandle, width, height);
+                } else {
+                    this.width = width;
+                    this.height = height;
                 }
             }
         }
@@ -119,12 +114,14 @@ public class X11Window extends Window {
         }
         if ( this.x != x || this.y != y ) {
             if(!fullscreen) {
-                this.x = x;
-                this.y = y;
                 nfs_x=x;
                 nfs_y=y;
                 if(0!=windowHandle) {
+                    // this x/y will be set by windowChanged, called by X11
                     setPosition0(parentWindowHandle, getDisplayHandle(), windowHandle, x, y);
+                } else {
+                    this.x = x;
+                    this.y = y;
                 }
             }
         }
@@ -178,11 +175,11 @@ public class X11Window extends Window {
     // Internals only
     //
 
-    protected static native boolean initIDs();
-    private        native long CreateWindow(long parentWindowHandle, long display, int screen_index, 
+    protected static native boolean initIDs0();
+    private        native long CreateWindow0(long parentWindowHandle, long display, int screen_index, 
                                             long visualID, long javaObjectAtom, long windowDeleteAtom, 
                                             int x, int y, int width, int height, boolean undecorated);
-    private        native void CloseWindow(long display, long windowHandle, long javaObjectAtom);
+    private        native void CloseWindow0(long display, long windowHandle, long javaObjectAtom);
     private        native void setVisible0(long display, long windowHandle, boolean visible);
     private        native void setSize0(long display, long windowHandle, int width, int height);
     private        native void setPosSizeDecor0(long parentWindowHandle, long display, int screen_index, long windowHandle, 
@@ -235,7 +232,6 @@ public class X11Window extends Window {
 
     private long   windowHandleClose;
     private long   displayHandleClose;
-    private long   parentWindowHandle;
     private boolean attachedToParent;
 
     // non fullscreen dimensions ..

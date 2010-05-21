@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.security.*;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
+import javax.media.nativewindow.NativeWindowFactory;
 
 /**
  * Specifies the the OpenGL profile.
@@ -830,7 +831,6 @@ public class GLProfile implements Cloneable {
     private static final String GL2ES12 = "GL2ES12";
 
     private static /*final*/ boolean isAWTAvailable;
-    private static /*final*/ boolean isAWTJOGLAvailable;
 
     private static /*final*/ boolean hasGL234Impl;
     private static /*final*/ boolean hasGL4bcImpl;
@@ -862,12 +862,8 @@ public class GLProfile implements Cloneable {
 
         AccessControlContext acc = AccessController.getContext();
 
-        isAWTAvailable = !Debug.getBooleanProperty("java.awt.headless", true, acc) &&
-                          ReflectionUtil.isClassAvailable("java.awt.Component") ;
-
-        isAWTJOGLAvailable = isAWTAvailable &&
-                             ReflectionUtil.isClassAvailable("javax.media.nativewindow.awt.AWTGraphicsDevice") && // NativeWindow
-                             ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas") ; // JOGL
+        isAWTAvailable = NativeWindowFactory.isAWTAvailable() &&
+                         ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas") ; // JOGL
 
         boolean hasDesktopGL = false;
         boolean hasDesktopGLES12 = false;
@@ -1040,7 +1036,6 @@ public class GLProfile implements Cloneable {
 
         if (DEBUG) {
             System.err.println("GLProfile.static isAWTAvailable "+isAWTAvailable);
-            System.err.println("GLProfile.static isAWTJOGLAvailable "+isAWTJOGLAvailable);
             System.err.println("GLProfile.static hasNativeOSFactory "+hasNativeOSFactory);
             System.err.println("GLProfile.static hasDesktopGL "+hasDesktopGL);
             System.err.println("GLProfile.static hasDesktopGLES12 "+hasDesktopGLES12);
@@ -1156,8 +1151,9 @@ public class GLProfile implements Cloneable {
         return null;
     }
 
+    /** @return {@link javax.media.nativewindow.NativeWindowFactory#isAWTAvailable()} and
+        JOGL's AWT part */
     public static boolean isAWTAvailable() { return isAWTAvailable; }
-    public static boolean isAWTJOGLAvailable() { return isAWTJOGLAvailable; }
 
     public static String getGLTypeName(int type) {
         switch (type) {

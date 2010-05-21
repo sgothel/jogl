@@ -67,7 +67,9 @@ public abstract class Screen {
             if(usrWidth<0 || usrHeight<0) {
                 usrWidth  = Debug.getIntProperty("newt.ws.swidth", true, localACC);
                 usrHeight = Debug.getIntProperty("newt.ws.sheight", true, localACC);
-                System.out.println("User screen size "+usrWidth+"x"+usrHeight);
+                if(usrWidth>0 || usrHeight>0) {
+                    System.out.println("User screen size "+usrWidth+"x"+usrHeight);
+                }
             }
             Class screenClass = getScreenClass(type);
             Screen screen  = (Screen) screenClass.newInstance();
@@ -86,18 +88,6 @@ public abstract class Screen {
         closeNative();
         display = null;
         aScreen = null;
-    }
-
-    protected static Screen wrapHandle(String type, Display display, AbstractGraphicsScreen aScreen) {
-        try {
-            Class screenClass = getScreenClass(type);
-            Screen screen  = (Screen) screenClass.newInstance();
-            screen.display = display;
-            screen.aScreen = aScreen;
-            return screen;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     protected abstract void createNative(int index);

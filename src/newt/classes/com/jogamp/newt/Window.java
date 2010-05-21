@@ -88,8 +88,12 @@ public abstract class Window implements NativeWindow
         return windowClass;
     }
 
-    protected static Window create(String type, final long parentWindowHandle, Screen screen, final Capabilities caps, boolean undecorated) {
+    protected static Window create(String type, NativeWindow parentNativeWindow, long parentWindowHandle, Screen screen, Capabilities caps, boolean undecorated) {
         try {
+            if(null==screen) {
+                Display display = NewtFactory.createDisplay(type, null); // local display
+                screen  = NewtFactory.createScreen(type, display, 0); // screen 0
+            }
             Class windowClass;
             if(caps.isOnscreen()) {
                 windowClass = getWindowClass(type);
@@ -98,22 +102,11 @@ public abstract class Window implements NativeWindow
             }
             Window window = (Window) windowClass.newInstance();
             window.invalidate();
-            window.screen   = screen;
+            window.parentNativeWindow = parentNativeWindow;
+            window.parentWindowHandle = parentWindowHandle;
+            window.screen = screen;
+            window.caps = (Capabilities)caps.clone();
             window.setUndecorated(undecorated||0!=parentWindowHandle);
-            EDTUtil edtUtil = screen.getDisplay().getEDTUtil();
-            if(null!=edtUtil) {
-                final Window f_win = window;
-                edtUtil.invokeAndWait(new Runnable() {
-                    public void run() {
-                        f_win.createNative(parentWindowHandle, caps);
-                    }
-                } );
-            } else {
-                window.createNative(parentWindowHandle, caps);
-            }
-            if(DEBUG_WINDOW_EVENT) {
-                System.out.println("Window.create-1() done ("+Thread.currentThread()+", "+window+")");
-            }
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
@@ -121,7 +114,7 @@ public abstract class Window implements NativeWindow
         }
     }
 
-    protected static Window create(String type, Object[] cstrArguments, Screen screen, final Capabilities caps, boolean undecorated) {
+    protected static Window create(String type, Object[] cstrArguments, Screen screen, Capabilities caps, boolean undecorated) {
         try {
             Class windowClass = getWindowClass(type);
             Class[] cstrArgumentTypes = getCustomConstructorArgumentTypes(windowClass);
@@ -134,48 +127,11 @@ public abstract class Window implements NativeWindow
             }
             Window window = (Window) ReflectionUtil.createInstance( windowClass, cstrArgumentTypes, cstrArguments ) ;
             window.invalidate();
-            window.screen   = screen;
+            window.screen = screen;
+            window.caps = (Capabilities)caps.clone();
             window.setUndecorated(undecorated);
-            EDTUtil edtUtil = screen.getDisplay().getEDTUtil();
-            if(null!=edtUtil) {
-                final Window f_win = window;
-                edtUtil.invokeAndWait(new Runnable() {
-                    public void run() {
-                        f_win.createNative(0, caps);
-                    }
-                } );
-            } else {
-                window.createNative(0, caps);
-            }
-            if(DEBUG_WINDOW_EVENT) {
-                System.out.println("Window.create-2() done ("+Thread.currentThread()+", "+window+")");
-            }
             return window;
         } catch (Throwable t) {
-            throw new NativeWindowException(t);
-        }
-    }
-
-    protected static Window wrapHandle(String type, Screen screen, AbstractGraphicsConfiguration config, 
-                                 long windowHandle, boolean fullscreen, boolean visible, 
-                                 int x, int y, int width, int height) 
-    {
-        try {
-            Class windowClass = getWindowClass(type);
-            Window window = (Window) windowClass.newInstance();
-            window.invalidate();
-            window.screen   = screen;
-            window.config = config;
-            window.windowHandle = windowHandle;
-            window.fullscreen=fullscreen;
-            window.visible=visible;
-            window.x=x;
-            window.y=y;
-            window.width=width;
-            window.height=height;
-            return window;
-        } catch (Throwable t) {
-            t.printStackTrace();
             throw new NativeWindowException(t);
         }
     }
@@ -190,6 +146,10 @@ public abstract class Window implements NativeWindow
 
     protected Screen screen;
 
+    private NativeWindow parentNativeWindow;
+    protected long parentWindowHandle;
+
+    protected Capabilities caps;
     protected AbstractGraphicsConfiguration config;
     protected long   windowHandle;
     protected boolean fullscreen, visible;
@@ -199,16 +159,53 @@ public abstract class Window implements NativeWindow
     protected String title = "Newt Window";
     protected boolean undecorated = false;
 
+    private synchronized boolean createNative() {
+        if( null==screen || 0!=windowHandle || !visible ) {
+            // NOP .. or already done
+            return 0 != windowHandle ;
+        }
+        EDTUtil edtUtil = screen.getDisplay().getEDTUtil();
+        if( null != edtUtil && !edtUtil.isCurrentThreadEDT() ) {
+            throw new NativeWindowException("EDT enabled but not on EDT");
+        }
+
+        if(DEBUG_WINDOW_EVENT) {
+            System.out.println("Window.createNative() START ("+Thread.currentThread()+", "+this+")");
+        }
+        if(validateParentWindowHandle()) {
+            createNativeImpl();
+            setVisibleImpl();
+        }
+        if(DEBUG_WINDOW_EVENT) {
+            System.out.println("Window.createNative() END ("+Thread.currentThread()+", "+this+")");
+        }
+        return 0 != windowHandle ;
+    }
+
+    private boolean validateParentWindowHandle() {
+        boolean ok = true;
+        if(null!=parentNativeWindow) {
+            try {
+                parentNativeWindow.lockSurface();
+            } catch (NativeWindowException nwe) {
+                // parent native window not ready .. just skip action for now
+                ok = false;
+            }
+            if(ok) {
+                parentWindowHandle = parentNativeWindow.getWindowHandle();
+                parentNativeWindow.unlockSurface();
+                if(0==parentWindowHandle) {
+                    throw new NativeWindowException("Parent native window handle is NULL, after succesful locking: "+parentNativeWindow);
+                }
+            }
+        }
+        return ok;
+    }
+
     /**
      * Create native windowHandle, ie creates a new native invisible window.
-     *
-     * The parentWindowHandle may be null, in which case no window parenting 
-     * is requested.
-     *
-     * Shall use the capabilities to determine the graphics configuration
-     * and shall set the chosen capabilities.
      */
-    protected abstract void createNative(long parentWindowHandle, Capabilities caps);
+    protected abstract void createNativeImpl();
 
     protected abstract void closeNative();
 
@@ -371,16 +368,23 @@ public abstract class Window implements NativeWindow
             e.printStackTrace();
         }
         screen   = null;
+        parentNativeWindow = null;
+        parentWindowHandle = 0;
+        caps = null;
         windowHandle = 0;
         fullscreen=false;
         visible=false;
         eventMask = 0;
 
         // Default position and dimension will be re-set immediately by user
-        width  = 100;
-        height = 100;
+        width  = 128;
+        height = 128;
         x=0;
         y=0;
+    }
+
+    public boolean isDestroyed() {
+        return null == screen ;
     }
 
     public boolean surfaceSwap() { 
@@ -506,7 +510,62 @@ public abstract class Window implements NativeWindow
         }
     }
 
-    public abstract void    setVisible(boolean visible);
+    /**
+     * <p>
+     * <code>setVisible</code> makes the window visible if <code>visible</code> is true,
+     * otherwise the window becomes invisible.<br></p>
+     * <p>
+     * The <code>setVisible(true)</code> is responsible to actual create the native window.<br></p>
+     * <p>
+     * In case this window is a child window and a parent {@link javax.media.nativewindow.NativeWindow} is being used,<br>
+     * the parent's {@link javax.media.nativewindow.NativeWindow} handle is retrieved via {@link javax.media.nativewindow.NativeWindow#getWindowHandle()}.<br>
+     * If this action fails, ie if the parent {@link javax.media.nativewindow.NativeWindow} is not valid yet,<br>
+     * no native window is created yet and <code>setVisible(true)</code> shall be repeated when it is.<br></p>
+     */
+    public void setVisible(final boolean visible) {
+        setVisible(visible, false);
+    }
+
+    public void setVisible(final boolean visible, boolean deferred) {
+        if(!isDestroyed()) {
+            EDTUtil edtUtil = screen.getDisplay().getEDTUtil();
+            if(null!=edtUtil) {
+                edtUtil.invoke(deferred, new Runnable() {
+                    public void run() {
+                        setVisibleTask(visible);
+                    }
+                });
+            } else {
+                setVisibleTask(visible);
+            }
+        }
+    }
+
+    private synchronized void setVisibleTask(final boolean visible) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("setVisibleTask: START ("+Thread.currentThread()+") "+this.x+"/"+this.y+" "+this.width+"x"+this.height+", fs "+fullscreen+", windowHandle "+windowHandle+", visible: "+this.visible+" -> "+visible);
+        }
+        int didit = 0;
+        if(0==windowHandle && visible) {
+            this.visible = visible;
+            didit = 01;
+            if( createNative() ) {
+                didit = 11;
+            }
+        } else if(this.visible != visible) {
+            this.visible = visible;
+            didit = 2;
+            if(0 != windowHandle) {
+                setVisibleImpl();
+                didit = 22;
+            }
+        }
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("setVisibleTask: END ("+Thread.currentThread()+") didit "+didit+", "+this.x+"/"+this.y+" "+this.width+"x"+this.height+", fs "+fullscreen+", windowHandle "+windowHandle+", visible: "+visible);
+        }
+    }
+
+    protected abstract void setVisibleImpl();
 
     /**
      * Sets the size of the client area of the window, excluding decorations

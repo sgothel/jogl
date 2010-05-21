@@ -247,8 +247,18 @@ static void x11IOErrorHandlerEnable(int onoff, JNIEnv * env) {
 static int _initialized=0;
 
 JNIEXPORT void JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize(JNIEnv *env, jclass _unused) {
+Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize(JNIEnv *env, jclass _unused, jboolean initConcurrentThreadSupport) {
     if(0==_initialized) {
+        if( JNI_TRUE == initConcurrentThreadSupport ) {
+            if( 0 == XInitThreads() ) {
+                fprintf(stderr, "Warning: XInitThreads() failed\n");
+            } else {
+                fprintf(stderr, "Info: XInitThreads() called for concurrent Thread support\n");
+            }
+        } else {
+            fprintf(stderr, "Info: XInitThreads() _not_ called for concurrent Thread support\n");
+        }
+
         _initClazzAccess(env);
         x11ErrorHandlerEnable(1, env);
         x11IOErrorHandlerEnable(1, env);
@@ -349,7 +359,6 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XUnlockDisplay__J(JNIEnv *env, jcla
   }
   XUnlockDisplay((Display *) (intptr_t) display);
 }
-
 
 /*   Java->C glue code:
  *   Java package: com.jogamp.nativewindow.impl.x11.X11Lib

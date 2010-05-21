@@ -56,7 +56,17 @@ public class X11Util {
 
     static {
         NWJNILibLoader.loadNativeWindow("x11");
-        initialize();
+
+        // No concurrent threading support in case AWT could be used,
+        // Mixing AWT and X11/NEWT results in a segmentation fault:
+        //      C pthread_mutex_lock+0x4
+        //      J sun.awt.X11.XlibWrapper.XGetDefault
+        //      J sun.awt.X11.XToolkit.initializeMultiClickTime
+        //      J sun.awt.X11.XToolkit.getMultiClickTime
+        //
+        // It seems like (Oracle's) AWT's Display locking is buggy.
+        //
+        initialize( ! NativeWindowFactory.isAWTAvailable() ) ;
     }
 
     public static void initSingleton() {
@@ -142,6 +152,8 @@ public class X11Util {
             if(0==dpy) {
                 throw new NativeWindowException("X11Util.Display: Unable to create a display("+name+") connection in Thread "+Thread.currentThread().getName());
             }
+            // if you like to debug and synchronize X11 commands ..
+            // setSynchronizeDisplay(dpy, true);
             namedDpy = new NamedDisplay(name, dpy);
             addCurrentDisplay( namedDpy );
             synchronized(globalLock) {
@@ -205,6 +217,22 @@ public class X11Util {
             throw new RuntimeException("X11Util.Display: Display(0x"+Long.toHexString(handle)+") with given handle is not mapped, in thread "+Thread.currentThread().getName());
         }
         return closeThreadLocalDisplay(ndpy.getName());
+    }
+
+    public static boolean setSynchronizeDisplay(long handle, boolean onoff) {
+        String name;
+        XLockDisplay(handle);
+        boolean res = X11Lib.XSynchronize(handle, onoff);
+        XUnlockDisplay(handle);
+        return res;
+    }
+
+    public static String getNameOfDisplay(long handle) {
+        String name;
+        XLockDisplay(handle);
+        name = X11Lib.XDisplayString(handle);
+        XUnlockDisplay(handle);
+        return name;
     }
 
     public static void XLockDisplay(long handle) {
@@ -298,5 +326,5 @@ public class X11Util {
         return (NamedDisplay) displayMap.get(name);
     }
 
-    private static native void initialize();
+    private static native void initialize(boolean initConcurrentThreadSupport);
 }

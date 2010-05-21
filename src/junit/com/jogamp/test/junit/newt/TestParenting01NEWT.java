@@ -68,23 +68,17 @@ public class TestParenting01NEWT {
         height = 480;
     }
 
-    static Window createWindow(NativeWindow parent, Screen screen, Capabilities caps, int width, int height) {
+    static Window createWindow(Screen screen, Capabilities caps) {
         Assert.assertNotNull(caps);
-        Window window;
-        window = ( null == parent ) ? NewtFactory.createWindow(screen, caps, false) : NewtFactory.createWindow(parent, screen, caps, false) ;
+        Window window = NewtFactory.createWindow(screen, caps, false) ;
         Assert.assertNotNull(window);
-        window.setSize(width, height);
-        Assert.assertTrue(false==window.isVisible());
-        Assert.assertTrue(width==window.getWidth());
-        Assert.assertTrue(height==window.getHeight());
+        return window;
+    }
 
-        caps = window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    static Window createWindow(NativeWindow parent, Capabilities caps) {
         Assert.assertNotNull(caps);
-        Assert.assertTrue(caps.getGreenBits()>5);
-        Assert.assertTrue(caps.getBlueBits()>5);
-        Assert.assertTrue(caps.getRedBits()>5);
-        Assert.assertTrue(caps.isOnscreen()==true);
-
+        Window window = NewtFactory.createWindow(parent, caps, true);
+        Assert.assertNotNull(window);
         return window;
     }
 
@@ -117,30 +111,38 @@ public class TestParenting01NEWT {
 
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
-        Window window1 = createWindow( null, screen, caps, width, height );
+        Window window1 = createWindow(screen, caps);
         Assert.assertNotNull(window1);
         GLWindow glWindow1 = GLWindow.create(window1);
         Assert.assertNotNull(glWindow1);
-        Assert.assertTrue(width==glWindow1.getWidth());
-        Assert.assertTrue(height==glWindow1.getHeight());
+        glWindow1.setSize(width, height);
+        Assert.assertEquals(width,glWindow1.getWidth());
+        Assert.assertEquals(height,glWindow1.getHeight());
         glWindow1.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - PARENT");
         glWindow1.setPosition(x,y);
         glWindow1.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
         glWindow1.addWindowListener(new TraceWindowAdapter());
         glWindow1.setVisible(true);
+        Capabilities capsChosen = glWindow1.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        Assert.assertNotNull(capsChosen);
+        Assert.assertTrue(capsChosen.isOnscreen()==true);
 
-        Window window2 = createWindow(window1, screen, caps, width/2, height/2);
+        Window window2 = createWindow(window1, caps);
         Assert.assertNotNull(window2);
         GLWindow glWindow2 = GLWindow.create(window2);
         Assert.assertNotNull(glWindow2);
-        Assert.assertTrue(width/2==glWindow2.getWidth());
-        Assert.assertTrue(height/2==glWindow2.getHeight());
+        glWindow2.setSize(width/2, height/2);
+        //Assert.assertEquals(width/2,glWindow2.getWidth());
+        //Assert.assertEquals(height/2,glWindow2.getHeight());
         glWindow2.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - CHILD");
         glWindow2.setPosition(glWindow1.getWidth()/2, glWindow1.getHeight()/2);
         glWindow2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
         glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
         // glWindow2.addMouseListener(new TraceMouseAdapter());
         glWindow2.setVisible(true);
+        capsChosen = glWindow2.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        Assert.assertNotNull(capsChosen);
+        Assert.assertTrue(capsChosen.isOnscreen()==true);
 
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, window1, glWindow1, false);

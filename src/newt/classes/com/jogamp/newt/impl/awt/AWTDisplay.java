@@ -44,7 +44,7 @@ public class AWTDisplay extends Display {
     public AWTDisplay() {
     }
 
-    protected void createNative() {
+    protected void createNative(long handle) {
         aDevice = (AWTGraphicsDevice) AWTGraphicsDevice.createDevice(null); // default 
     }
 

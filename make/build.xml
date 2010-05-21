@@ -63,6 +63,8 @@
         </copy>
     </target>
 
+    <target name="one.dir" depends="one-lib-dir,one-jar-dir"/>
+
     <target name="repack-jars" depends="one-jar-dir">
         <!-- Re-pack jars we have the intent to compress later, after signing -->
         <mkdir dir="${jar}/orig" />

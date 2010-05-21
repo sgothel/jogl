@@ -47,11 +47,11 @@ public class WindowsScreen extends Screen {
 
     protected void createNative(int index) {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), index);
-        setScreenSize(getWidthImpl(getIndex()), getHeightImpl(getIndex()));
+        setScreenSize(getWidthImpl0(getIndex()), getHeightImpl0(getIndex()));
     }
 
     protected void closeNative() { }
 
-    private        native int getWidthImpl(int scrn_idx);
-    private        native int getHeightImpl(int scrn_idx);
+    private        native int getWidthImpl0(int scrn_idx);
+    private        native int getHeightImpl0(int scrn_idx);
 }

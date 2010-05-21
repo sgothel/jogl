@@ -105,9 +105,9 @@ public class TestDrawable01NEWT {
         Assert.assertTrue(glCaps.getGreenBits()>5);
         Assert.assertTrue(glCaps.getBlueBits()>5);
         Assert.assertTrue(glCaps.getRedBits()>5);
-        Assert.assertTrue(glCaps.isOnscreen()==onscreen);
+        Assert.assertEquals(glCaps.isOnscreen(),onscreen);
         Assert.assertTrue(onscreen || !pbuffer || glCaps.isPBuffer()); // pass if onscreen, or !pbuffer req. or have pbuffer
-        Assert.assertTrue(glCaps.getDoubleBuffered()==onscreen);
+        Assert.assertEquals(glCaps.getDoubleBuffered(),onscreen);
         Assert.assertTrue(glCaps.getDepthBits()>4);
 
         drawable = factory.createGLDrawable(window);
@@ -115,10 +115,10 @@ public class TestDrawable01NEWT {
         // System.out.println("Pre: "+drawable);
         //
         drawable.setRealized(true);
-        Assert.assertTrue(width==drawable.getWidth());
-        Assert.assertTrue(height==drawable.getHeight());
-        // Assert.assertTrue(glCaps==drawable.getChosenGLCapabilities());
-        Assert.assertTrue(window==drawable.getNativeWindow());
+        // Assert.assertEquals(width,drawable.getWidth());
+        // Assert.assertEquals(height,drawable.getHeight());
+        // Assert.assertEquals(glCaps,drawable.getChosenGLCapabilities());
+        Assert.assertEquals(window,drawable.getNativeWindow());
         // System.out.println("Post: "+drawable);
 
         context = drawable.createContext(null);

@@ -125,8 +125,11 @@ public abstract class Display {
     }
 
     /** Make sure to reuse a Display with the same name */
-    protected static Display create(String type, String name) {
+    protected static Display create(String type, String name, final long handle) {
         try {
+            if(null==name && 0!=handle) {
+                name="wrapping-0x"+Long.toHexString(handle); // may change within implementation ..
+            }
             if(DEBUG) {
                 dumpDisplayMap("Display.create("+getFQName(type, name)+") BEGIN");
             }
@@ -152,11 +155,11 @@ public abstract class Display {
                     display.edt = display.edtUtil.start();
                     display.edtUtil.invokeAndWait(new Runnable() {
                         public void run() {
-                            f_dpy.createNative();
+                            f_dpy.createNative(handle);
                         }
                     } );
                 } else {
-                    display.createNative();
+                    display.createNative(handle);
                 }
                 if(null==display.aDevice) {
                     throw new RuntimeException("Display.createNative() failed to instanciate an AbstractGraphicsDevice");
@@ -176,19 +179,6 @@ public abstract class Display {
             if(DEBUG) {
                 dumpDisplayMap("Display.create("+getFQName(type, name)+") END");
             }
-            return display;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    protected static Display wrapHandle(String type, String name, AbstractGraphicsDevice aDevice) {
-        try {
-            Class displayClass = getDisplayClass(type);
-            Display display = (Display) displayClass.newInstance();
-            display.name=name;
-            display.type=type;
-            display.aDevice=aDevice;
             return display;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -234,7 +224,7 @@ public abstract class Display {
         }
     }
 
-    protected abstract void createNative();
+    protected abstract void createNative(long handle);
     protected abstract void closeNative();
 
     public final String getType() {

@@ -40,7 +40,9 @@
 package javax.media.nativewindow.awt;
 
 import javax.media.nativewindow.*;
+import java.awt.Component;
 import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
 import java.awt.Transparency;
 import java.awt.image.ColorModel;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
@@ -65,6 +67,40 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     super(screen, capsChosen, capsRequested);
     this.config = config;
     this.encapsulated=null;
+  }
+
+  /**
+   * @param capsChosen if null, <code>capsRequested</code> is copied and aligned 
+   *        with the graphics capabilties of the AWT Component to produce the chosen Capabilties.
+   *        Otherwise the <code>capsChosen</code> is used.
+   */
+  public static AWTGraphicsConfiguration create(Component awtComp, Capabilities capsChosen, Capabilities capsRequested)
+  {
+      AWTGraphicsScreen awtScreen = null;
+      AWTGraphicsDevice awtDevice = null;
+      GraphicsDevice awtGraphicsDevice = null;
+      GraphicsConfiguration awtGfxConfig = awtComp.getGraphicsConfiguration();
+      if(null!=awtGfxConfig) {
+          awtGraphicsDevice = awtGfxConfig.getDevice();
+          if(null!=awtGraphicsDevice) {
+              // Create Device/Screen
+              awtDevice = new AWTGraphicsDevice(awtGraphicsDevice);
+              awtScreen = new AWTGraphicsScreen(awtDevice);
+          }
+      }
+      if(null==awtScreen) {
+          // use defaults since no native peer is available yet
+          awtScreen = (AWTGraphicsScreen) AWTGraphicsScreen.createScreenDevice(-1);
+          awtDevice = (AWTGraphicsDevice) awtScreen.getDevice();
+          awtGraphicsDevice = awtDevice.getGraphicsDevice();
+      }
+
+      if(null==capsChosen) {
+          capsChosen = (Capabilities) capsRequested.clone() ;
+          GraphicsConfiguration gc = awtGraphicsDevice.getDefaultConfiguration();
+          setupCapabilitiesRGBABits(capsChosen, gc);
+      }
+      return new AWTGraphicsConfiguration(awtScreen, capsChosen, capsRequested, awtGfxConfig);
   }
 
   public Object clone() {

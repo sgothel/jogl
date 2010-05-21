@@ -123,11 +123,17 @@ public class EDTUtil {
     }
 
     public void invokeAndWait(Runnable task) {
+        invoke(false, task);
+    }
+
+    public void invoke(boolean deferred, Runnable task) {
         if(task == null) {
             return;
         }
         invokeLater(task);
-        waitOnWorker();
+        if(!deferred) {
+            waitOnWorker();
+        }
     }
 
     public void waitOnWorker() {

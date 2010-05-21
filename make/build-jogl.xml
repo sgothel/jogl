@@ -1104,9 +1104,9 @@
       <!-- linker configuration -->
  
       <linker id="linker.cfg.linux.jogl.gl2" extends="linker.cfg.linux">
-        <syslibset dir="/usr/lib" libs="X11"/>
-        <syslibset dir="/usr/lib" libs="Xxf86vm" />
-        <syslibset dir="/usr/lib" libs="GL"/>
+        <syslibset libs="X11"/>
+        <syslibset libs="Xxf86vm" />
+        <syslibset libs="GL"/>
       </linker>
 
       <linker id="linker.cfg.linux.jogl.cg" extends="linker.cfg.linux.jogl.gl2">
@@ -1114,12 +1114,12 @@
       </linker>
 
       <linker id="linker.cfg.linux.amd64.jogl.x11" extends="linker.cfg.linux.amd64">
-        <syslibset dir="/usr/lib64" libs="X11"/>
-        <syslibset dir="/usr/lib64" libs="Xxf86vm" />
+        <syslibset libs="X11"/>
+        <syslibset libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.amd64.jogl.gl2" extends="linker.cfg.linux.amd64.jogl.x11">
-        <syslibset dir="/usr/lib64" libs="GL"/>
+        <syslibset libs="GL"/>
       </linker>
 
       <linker id="linker.cfg.linux.amd64.jogl.cg" extends="linker.cfg.linux.amd64.jogl.gl2">

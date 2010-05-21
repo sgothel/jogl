@@ -74,6 +74,8 @@ public abstract class NativeWindowFactory {
     private static String nativeOSNamePure;
     private static String nativeWindowingTypeCustom;
     private static String nativeOSNameCustom;
+    private static final boolean isAWTAvailable;
+    private static final String awtComponentClassName = "java.awt.Component" ;
 
     /** Creates a new NativeWindowFactory instance. End users do not
         need to call this method. */
@@ -123,21 +125,17 @@ public abstract class NativeWindowFactory {
         // We break compile-time dependencies on the AWT here to
         // make it easier to run this code on mobile devices
 
-        Class componentClass = null;
-        if ( ReflectionUtil.isClassAvailable("java.awt.Component") &&
-             ReflectionUtil.isClassAvailable("javax.media.nativewindow.awt.AWTGraphicsDevice") ) {
-            try {
-                componentClass = ReflectionUtil.getClass("java.awt.Component", false);
-            } catch (Exception e) { }
-        }
+        isAWTAvailable = !Debug.getBooleanProperty("java.awt.headless", true, acc) &&
+                          ReflectionUtil.isClassAvailable(awtComponentClassName) &&
+                          ReflectionUtil.isClassAvailable("javax.media.nativewindow.awt.AWTGraphicsDevice") ;
 
         boolean toolkitLockForced   = Debug.getBooleanProperty("nativewindow.locking", true, acc);
-        boolean awtToolkitLockDisabled = Debug.getBooleanProperty("java.awt.headless", true, acc) ||
+        boolean awtToolkitLockDisabled = !isAWTAvailable ||
                                          Debug.getBooleanProperty("nativewindow.nolocking", true, acc) ;
 
         NativeWindowFactory _factory = null;
         
-        if( !awtToolkitLockDisabled && null!=componentClass && TYPE_X11.equals(nativeWindowingTypeCustom) ) {
+        if( !awtToolkitLockDisabled && TYPE_X11.equals(nativeWindowingTypeCustom) ) {
             // There are certain operations that may be done by
             // user-level native code which must share the display
             // connection with the underlying window toolkit. In JOGL,
@@ -195,9 +193,9 @@ public abstract class NativeWindowFactory {
             factory = _factory;
         }
 
-        if(null!=componentClass) {
+        if ( isAWTAvailable ) {
             // register either our default factory or (if exist) the X11/AWT one -> AWT Component
-            registerFactory(componentClass, factory);
+            registerFactory(ReflectionUtil.getClass(awtComponentClassName, false), factory);
         }
         defaultFactory = factory;
 
@@ -206,6 +204,9 @@ public abstract class NativeWindowFactory {
                                ", awtToolkitLockDisabled "+awtToolkitLockDisabled+", defaultFactory "+factory);
         }
     }
+
+    /** @return true if not headless, AWT Component and NativeWindow's AWT part available */
+    public static boolean isAWTAvailable() { return isAWTAvailable; }
 
     public static String getNativeOSName(boolean useCustom) {
         return useCustom?nativeOSNameCustom:nativeOSNamePure;

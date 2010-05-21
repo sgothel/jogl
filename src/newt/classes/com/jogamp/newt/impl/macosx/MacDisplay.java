@@ -43,10 +43,10 @@ public class MacDisplay extends Display {
     static {
         NEWTJNILibLoader.loadNEWT();
 
-        if(!initNSApplication()) {
+        if(!initNSApplication0()) {
             throw new NativeWindowException("Failed to initialize native Application hook");
         }
-        if(!MacWindow.initIDs()) {
+        if(!MacWindow.initIDs0()) {
             throw new NativeWindowException("Failed to initialize jmethodIDs");
         }
         if(DEBUG) System.out.println("MacDisplay.init App and IDs OK "+Thread.currentThread().getName());
@@ -70,13 +70,13 @@ public class MacDisplay extends Display {
         MainThread.invoke(false, dispatchAction);
     }
     
-    protected void createNative() {
+    protected void createNative(long handle) {
         aDevice = new MacOSXGraphicsDevice();
     }
 
     protected void closeNative() { }
 
-    private static native boolean initNSApplication();
+    private static native boolean initNSApplication0();
     protected native void dispatchMessages0();
 }
 

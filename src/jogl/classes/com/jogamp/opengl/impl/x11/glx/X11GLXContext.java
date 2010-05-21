@@ -108,7 +108,13 @@ public abstract class X11GLXContext extends GLContextImpl {
     boolean res = false;
 
     try {
-        res = GLX.glXMakeContextCurrent(dpy, writeDrawable, readDrawable, ctx);
+        // at least on ATI we receive 'often' SEGV in case of 
+        // highly multithreaded MakeContextCurrent calls with writeDrawable==readDrawable
+        if(writeDrawable==readDrawable) {
+            res = GLX.glXMakeCurrent(dpy, writeDrawable, ctx);
+        } else {
+            res = GLX.glXMakeContextCurrent(dpy, writeDrawable, readDrawable, ctx);
+        }
     } catch (RuntimeException re) {
         if(DEBUG) {
           System.err.println("X11GLXContext.glXMakeContextCurrent failed: "+re+", with "+

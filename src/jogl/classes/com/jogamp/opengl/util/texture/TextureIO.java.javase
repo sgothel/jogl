@@ -729,7 +729,7 @@ public class TextureIO {
 
     static {
         // ImageIO provider, the fall-back, must be the first one added
-        if(GLProfile.isAWTJOGLAvailable()) {
+        if(GLProfile.isAWTAvailable()) {
             try {
                 // Use reflection to avoid compile-time dependencies on AWT-related classes
                 TextureProvider provider = (TextureProvider)
@@ -748,7 +748,7 @@ public class TextureIO {
         addTextureProvider(new TGATextureProvider());
 
         // ImageIO writer, the fall-back, must be the first one added
-        if(GLProfile.isAWTJOGLAvailable()) {
+        if(GLProfile.isAWTAvailable()) {
             try {
                 // Use reflection to avoid compile-time dependencies on AWT-related classes
                 TextureWriter writer = (TextureWriter)

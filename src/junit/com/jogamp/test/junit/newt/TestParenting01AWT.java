@@ -73,32 +73,27 @@ public class TestParenting01AWT {
         height = 480;
     }
 
-    static void destroyWindow(Display display, Screen screen, Window window, GLWindow glWindow) {
-        if(null!=glWindow) {
-            glWindow.destroy();
-        }
-        if(null!=window) {
-            window.destroy();
-        }
-        if(null!=screen) {
-            screen.destroy();
-        }
-        if(null!=display) {
-            display.destroy();
-        }
-    }
-
     @Test
     public void testWindowParenting01NewtChildOnAWTParentLayouted() throws InterruptedException {
-        runNewtChildOnAWTParent(true);
+        runNewtChildOnAWTParent(true, false);
     }
 
     @Test
-    public void testWindowParenting02NewtChildOnAWTParentDirect() throws InterruptedException {
-        runNewtChildOnAWTParent(false);
+    public void testWindowParenting02NewtChildOnAWTParentLayoutedDef() throws InterruptedException {
+        runNewtChildOnAWTParent(true, true);
     }
 
-    public void runNewtChildOnAWTParent(boolean useLayout) throws InterruptedException {
+    @Test
+    public void testWindowParenting03NewtChildOnAWTParentDirect() throws InterruptedException {
+        runNewtChildOnAWTParent(false, false);
+    }
+
+    @Test
+    public void testWindowParenting04NewtChildOnAWTParentDirectDef() throws InterruptedException {
+        runNewtChildOnAWTParent(false, true);
+    }
+
+    public void runNewtChildOnAWTParent(boolean useLayout, boolean deferredPeer) throws InterruptedException {
         Frame frame = new Frame("AWT Parent Frame");
         Assert.assertNotNull(frame);
         Component overlayedAWTComponent = null;
@@ -111,7 +106,9 @@ public class TestParenting01AWT {
             frame.add(new Button("South"), BorderLayout.SOUTH);
             frame.add(new Button("East"), BorderLayout.EAST);
             frame.add(new Button("West"), BorderLayout.WEST);
-            frame.add(overlayedAWTComponent, BorderLayout.CENTER);
+            if(!deferredPeer) {
+                frame.add(overlayedAWTComponent, BorderLayout.CENTER);
+            }
 
         } else {
             overlayedAWTComponent = frame;
@@ -119,57 +116,55 @@ public class TestParenting01AWT {
 
         Assert.assertNotNull(overlayedAWTComponent);
         frame.setSize(width, height);
-        frame.setVisible(true); // should have native peers after this!
-
-        GLCapabilities caps = new GLCapabilities(null);
-        Assert.assertNotNull(caps);
-        Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-        System.out.println("Display: "+display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
+        if(!deferredPeer) {
+            // ensure native peers are valid and component is displayable
+            frame.setVisible(true);
+        }
 
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
-        Window window2 = NewtFactory.createWindow(overlayedAWTComponent, screen, caps, false);
-        Assert.assertNotNull(window2);
+        GLCapabilities caps = new GLCapabilities(null);
+        Assert.assertNotNull(caps);
 
-        GLWindow glWindow2 = GLWindow.create(window2);
-        Assert.assertNotNull(glWindow2);
+        GLWindow glWindow = GLWindow.create(overlayedAWTComponent, caps);
+        Assert.assertNotNull(glWindow);
+        Assert.assertEquals(overlayedAWTComponent.isVisible(),glWindow.isVisible());
+        if(!deferredPeer) {
+            Assert.assertTrue(0!=glWindow.getWindowHandle());
+        } else {
+            Assert.assertTrue(0==glWindow.getWindowHandle());
+        }
+        glWindow.setTitle("NEWT - CHILD");
+        glWindow.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
+        glWindow.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
 
-        glWindow2.setSize(width, height);
-        Assert.assertTrue(false==glWindow2.isVisible());
-        Assert.assertTrue(width==glWindow2.getWidth());
-        Assert.assertTrue(height==glWindow2.getHeight());
+        if(deferredPeer) {
+            if(useLayout) {
+                frame.add(overlayedAWTComponent, BorderLayout.CENTER);
+            }
+            frame.setVisible(true); // should have native peers after this - and all childs shall be visible!
+        }
 
-        glWindow2.setTitle("NEWT - CHILD");
-        glWindow2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
-        glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
-        glWindow2.setVisible(true);
-
-        GLEventListener demo2 = new Gears();
-        setDemoFields(demo2, window2, glWindow2, false);
-        glWindow2.addGLEventListener(demo2);
+        GLEventListener demo = new Gears();
+        setDemoFields(demo, glWindow, false);
+        glWindow.addGLEventListener(demo);
 
         long duration = durationPerTest;
         long step = 20;
         NEWTEvent event;
-        boolean shouldQuit = false;
 
-        while (duration>0 && !shouldQuit) {
-            glWindow2.display();
+        while (duration>0 && !glWindow.isDestroyed()) {
+            glWindow.display();
             Thread.sleep(step);
             duration -= step;
 
             while( null != ( event = (NEWTEvent) eventFifo.get() ) ) {
                 Window source = (Window) event.getSource();
-                if(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY == event.getEventType()) {
-                    shouldQuit = true;
-                } else if(event instanceof KeyEvent) {
+                if(event instanceof KeyEvent) {
                     KeyEvent keyEvent = (KeyEvent) event;
                     switch(keyEvent.getKeyChar()) {
                         case 'q':
-                            shouldQuit = true;
+                            glWindow.destroy();
                             break;
                         case 'f':
                             source.setFullscreen(!source.isFullscreen());
@@ -178,13 +173,17 @@ public class TestParenting01AWT {
                 } 
             }
         }
-        destroyWindow(null, null, window2, glWindow2);
+        glWindow.destroy();
+        if(useLayout) {
+            frame.remove(overlayedAWTComponent);
+        }
         frame.dispose();
     }
 
-    public static void setDemoFields(GLEventListener demo, Window window, GLWindow glWindow, boolean debug) {
+    public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
         Assert.assertNotNull(demo);
-        Assert.assertNotNull(window);
+        Assert.assertNotNull(glWindow);
+        Window window = glWindow.getWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);

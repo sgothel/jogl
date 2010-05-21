@@ -46,7 +46,7 @@ import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.*;
 import java.io.IOException;
 
-public class TestGLProfile01CORE {
+public class TestGLProfile01NEWT {
     static GLProfile glp;
 
     @BeforeClass
@@ -120,9 +120,9 @@ public class TestGLProfile01CORE {
 
     protected void dumpVersion(GLProfile glp) {
         GLCapabilities caps = new GLCapabilities(glp);
-        GLWindow glWindow = GLWindow.create(caps);
+        GLWindow glWindow = GLWindow.create(caps, false);
         Assert.assertNotNull(glWindow);
-        glWindow.setTitle("TestGLProfile01CORE");
+        glWindow.setTitle("TestGLProfile01NEWT");
 
         glWindow.addGLEventListener(new DumpVersion());
 
@@ -133,7 +133,7 @@ public class TestGLProfile01CORE {
     }
 
     public static void main(String args[]) throws IOException {
-        String tstname = TestGLProfile01CORE.class.getName();
+        String tstname = TestGLProfile01NEWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

@@ -42,7 +42,6 @@ public class WindowsWindow extends Window {
     private long hmon;
     private long hdc;
     private long windowHandleClose;
-    private long parentWindowHandle;
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
     private final Insets insets = new Insets(0, 0, 0, 0);
@@ -62,8 +61,8 @@ public class WindowsWindow extends Window {
             if(hdc!=0) {
                 throw new NativeWindowException("NEWT Surface handle set HDC "+toHexString(hdc)+" - "+Thread.currentThread().getName()+" ; "+this);
             }
-            hdc = GetDC(windowHandle);
-            hmon = MonitorFromWindow(windowHandle);
+            hdc = GetDC0(windowHandle);
+            hmon = MonitorFromWindow0(windowHandle);
             hdcOwner = Thread.currentThread();
         }
         return res;
@@ -80,7 +79,7 @@ public class WindowsWindow extends Window {
             if(hdcOwner != cur) {
                 throw new NativeWindowException("NEWT Surface handle set HDC "+toHexString(hdc)+" by other thread "+hdcOwner+", this "+cur+" ; "+this);
             }
-            ReleaseDC(windowHandle, hdc);
+            ReleaseDC0(windowHandle, hdc);
             hdc=0;
             hdcOwner=null;
         }
@@ -93,7 +92,7 @@ public class WindowsWindow extends Window {
 
     public boolean hasDeviceChanged() {
         if(0!=windowHandle) {
-            long _hmon = MonitorFromWindow(windowHandle);
+            long _hmon = MonitorFromWindow0(windowHandle);
             if (hmon != _hmon) {
                 if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
                     Exception e = new Exception("!!! Window Device Changed "+Thread.currentThread().getName()+
@@ -107,20 +106,19 @@ public class WindowsWindow extends Window {
         return false;
     }
 
-    protected void createNative(long parentWindowHandle, Capabilities caps) {
+    protected void createNativeImpl() {
         WindowsScreen  screen = (WindowsScreen) getScreen();
         WindowsDisplay display = (WindowsDisplay) screen.getDisplay();
         config = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, screen.getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
-        windowHandle = CreateWindow(parentWindowHandle, 
+        windowHandle = CreateWindow0(parentWindowHandle, 
                                     display.getWindowClassAtom(), display.WINDOW_CLASS_NAME, display.getHInstance(), 
                                     0, undecorated, x, y, width, height);
         if (windowHandle == 0) {
             throw new NativeWindowException("Error creating window");
         }
-        this.parentWindowHandle = parentWindowHandle;
         windowHandleClose = windowHandle;
         if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
             Exception e = new Exception("!!! Window new window handle "+Thread.currentThread().getName()+
@@ -133,12 +131,12 @@ public class WindowsWindow extends Window {
     protected void closeNative() {
         if (hdc != 0) {
             if(windowHandleClose != 0) {
-                ReleaseDC(windowHandleClose, hdc);
+                ReleaseDC0(windowHandleClose, hdc);
             }
             hdc = 0;
         }
         if(windowHandleClose != 0) {
-            DestroyWindow(windowHandleClose);
+            DestroyWindow0(windowHandleClose);
             windowHandleClose = 0;
         }
     }
@@ -148,23 +146,22 @@ public class WindowsWindow extends Window {
         super.windowDestroyed();
     }
 
-    public void setVisible(boolean visible) {
-        if(this.visible!=visible && 0!=windowHandle) {
-            this.visible=visible;
-            setVisible0(windowHandle, visible);
-        }
+    protected void setVisibleImpl() {
+        setVisible0(windowHandle, visible);
     }
 
     // @Override
     public void setSize(int width, int height) {
         if (width != this.width || this.height != height) {
             if(!fullscreen) {
-                this.width=width;
-                this.height=height;
                 nfs_width=width;
                 nfs_height=height;
                 if(0!=windowHandle) {
+                    // this width/height will be set by sizeChanged, called by Windows
                     setSize0(parentWindowHandle, windowHandle, x, y, width, height);
+                } else {
+                    this.width=width;
+                    this.height=height;
                 }
             }
         }
@@ -174,12 +171,14 @@ public class WindowsWindow extends Window {
     public void setPosition(int x, int y) {
         if ( this.x != x || this.y != y ) {
             if(!fullscreen) {
-                this.x=x;
-                this.y=y;
                 nfs_x=x;
                 nfs_y=y;
                 if(0!=windowHandle) {
+                    // this x/y will be set by positionChanged, called by Windows
                     setPosition0(parentWindowHandle, windowHandle, x , y /*, width, height*/);
+                } else {
+                    this.x=x;
+                    this.y=y;
                 }
             }
         }
@@ -211,7 +210,7 @@ public class WindowsWindow extends Window {
     public void requestFocus() {
         super.requestFocus();
         if (windowHandle != 0L) {
-            requestFocus(windowHandle);
+            requestFocus0(windowHandle);
         }
     }
 
@@ -222,7 +221,7 @@ public class WindowsWindow extends Window {
         }
         if (0!=windowHandle && !title.equals(getTitle())) {
             super.setTitle(title);
-            setTitle(windowHandle, title);
+            setTitle0(windowHandle, title);
         }
     }
 
@@ -233,22 +232,22 @@ public class WindowsWindow extends Window {
     //----------------------------------------------------------------------
     // Internals only
     //
-    protected static native boolean initIDs();
-    private        native long CreateWindow(long parentWindowHandle, 
+    protected static native boolean initIDs0();
+    private        native long CreateWindow0(long parentWindowHandle, 
                                             int wndClassAtom, String wndName, 
                                             long hInstance, long visualID,
                                             boolean isUndecorated,
                                             int x, int y, int width, int height);
-    private        native void DestroyWindow(long windowHandle);
-    private        native long GetDC(long windowHandle);
-    private        native void ReleaseDC(long windowHandle, long hdc);
-    private        native long MonitorFromWindow(long windowHandle);
+    private        native void DestroyWindow0(long windowHandle);
+    private        native long GetDC0(long windowHandle);
+    private        native void ReleaseDC0(long windowHandle, long hdc);
+    private        native long MonitorFromWindow0(long windowHandle);
     private static native void setVisible0(long windowHandle, boolean visible);
     private        native void setSize0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height);
     private static native void setPosition0(long parentWindowHandle, long windowHandle, int x, int y /*, int width, int height*/);
     private        native void setFullscreen0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height, boolean isUndecorated, boolean on);
-    private static native void setTitle(long windowHandle, String title);
-    private static native void requestFocus(long windowHandle);
+    private static native void setTitle0(long windowHandle, String title);
+    private static native void requestFocus0(long windowHandle);
 
     private void insetsChanged(int left, int top, int right, int bottom) {
         if (left != -1 && top != -1 && right != -1 && bottom != -1) {
@@ -258,24 +257,29 @@ public class WindowsWindow extends Window {
             insets.bottom = bottom;
         }
     }
+
     private void sizeChanged(int newWidth, int newHeight) {
-        width = newWidth;
-        height = newHeight;
-        if(!fullscreen) {
-            nfs_width=width;
-            nfs_height=height;
+        if(width != newWidth || height != newHeight) {
+            width = newWidth;
+            height = newHeight;
+            if(!fullscreen) {
+                nfs_width=width;
+                nfs_height=height;
+            }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
         }
-        sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
     }
 
     private void positionChanged(int newX, int newY) {
-        x = newX;
-        y = newY;
-        if(!fullscreen) {
-            nfs_x=x;
-            nfs_y=y;
+        if( 0==parentWindowHandle && ( x != newX || y != newY ) ) {
+            x = newX;
+            y = newY;
+            if(!fullscreen) {
+                nfs_x=x;
+                nfs_y=y;
+            }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
         }
-        sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
     }
 
     /**

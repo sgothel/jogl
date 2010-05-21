@@ -37,6 +37,7 @@
 package com.jogamp.nativewindow.impl.jawt.x11;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.awt.*;
 import javax.media.nativewindow.x11.*;
 
 import com.jogamp.nativewindow.impl.x11.*;
@@ -53,6 +54,19 @@ public class X11JAWTWindow extends JAWTWindow {
   }
 
   protected void initNative() throws NativeWindowException {
+    if(0==config.getScreen().getDevice().getHandle()) {
+        AWTGraphicsDevice awtDevice = (AWTGraphicsDevice) config.getScreen().getDevice();
+        NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+        try {
+          long displayHandle = X11SunJDKReflection.graphicsDeviceGetDisplay(awtDevice.getGraphicsDevice());
+          if(0==displayHandle) {
+                displayHandle = X11Util.createThreadLocalDefaultDisplay();
+          }
+          awtDevice.setHandle(displayHandle);
+        } finally {
+          NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
+        }
+    }
   }
 
   public synchronized int lockSurface() throws NativeWindowException {

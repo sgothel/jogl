@@ -236,16 +236,12 @@ static void displayDispatchErrorHandlerEnable(int onoff, JNIEnv * env) {
 /*
  * Class:     com_jogamp_newt_impl_x11_X11Display
  * Method:    initIDs
- * Signature: ()Z
+ * Signature: (Z)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Display_initIDs
+JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Display_initIDs0
   (JNIEnv *env, jclass clazz)
 {
     jclass c;
-
-    if( 0 == XInitThreads() ) {
-        fprintf(stderr, "Warning: NEWT X11Window: XInitThreads() failed\n");
-    }
 
     displayCompletedID = (*env)->GetMethodID(env, clazz, "displayCompleted", "(JJ)V");
     if (displayCompletedID == NULL) {
@@ -284,7 +280,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Display_initIDs
  * Method:    CompleteDisplay
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_CompleteDisplay
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_CompleteDisplay0
   (JNIEnv *env, jobject obj, jlong display)
 {
     Display * dpy = (Display *)(intptr_t)display;
@@ -431,7 +427,7 @@ static void NewtWindows_setDecorations (Display *dpy, Window w, Bool val) {
  * Method:    DispatchMessages
  * Signature: (JIJJ)V
  */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages0
   (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong wmDeleteAtom)
 {
     Display * dpy = (Display *) (intptr_t) display;
@@ -597,7 +593,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
  * Method:    GetScreen
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_GetScreen
+JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_GetScreen0
   (JNIEnv *env, jobject obj, jlong display, jint screen_index)
 {
     Display * dpy = (Display *)(intptr_t)display;
@@ -643,7 +639,7 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getHeight0
  * Method:    initIDs
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs
+JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs0
   (JNIEnv *env, jclass clazz)
 {
     windowChangedID = (*env)->GetMethodID(env, clazz, "windowChanged", "(IIII)V");
@@ -671,7 +667,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs
  * Method:    CreateWindow
  * Signature: (JJIJIIII)J
  */
-JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow
+JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow0
   (JNIEnv *env, jobject obj, jlong parent, jlong display, jint screen_index, 
                              jlong visualID, 
                              jlong javaObjectAtom, jlong windowDeleteAtom, 
@@ -800,7 +796,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow
  * Method:    CloseWindow
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CloseWindow
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CloseWindow0
   (JNIEnv *env, jobject obj, jlong display, jlong window, jlong javaObjectAtom)
 {
     Display * dpy = (Display *) (intptr_t) display;

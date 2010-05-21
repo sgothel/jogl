@@ -34,6 +34,7 @@
 package com.jogamp.newt.impl.awt;
 
 import com.jogamp.newt.event.awt.*;
+import com.jogamp.newt.util.EDTUtil;
 
 import java.awt.BorderLayout;
 import java.awt.Canvas;
@@ -94,7 +95,7 @@ public class AWTWindow extends Window {
             });
     }
 
-    protected void createNative(long parentWindowHandle, final Capabilities caps) {
+    protected void createNativeImpl() {
 
         if(0!=parentWindowHandle) {
             throw new RuntimeException("Window parenting not supported in AWT, use AWTWindow(Frame) cstr for wrapping instead");
@@ -175,7 +176,7 @@ public class AWTWindow extends Window {
         return res;
     }
 
-    public void setVisible(final boolean visible) {
+    protected void setVisibleImpl() {
         runOnEDT(true, new Runnable() {
                 public void run() {
                     container.setVisible(visible);
@@ -209,14 +210,16 @@ public class AWTWindow extends Window {
             nfs_width=width;
             nfs_height=height;
         }
-        /** An AWT event on setSize() would bring us in a deadlock situation, hence invokeLater() */
-        runOnEDT(false, new Runnable() {
-                public void run() {
-                    Insets insets = container.getInsets();
-                    container.setSize(width + insets.left + insets.right,
-                                      height + insets.top + insets.bottom);
-                }
-            });
+        if(null!=container) {
+            /** An AWT event on setSize() would bring us in a deadlock situation, hence invokeLater() */
+            runOnEDT(false, new Runnable() {
+                    public void run() {
+                        Insets insets = container.getInsets();
+                        container.setSize(width + insets.left + insets.right,
+                                          height + insets.top + insets.bottom);
+                    }
+                });
+        }
     }
 
     public com.jogamp.newt.Insets getInsets() {
@@ -302,8 +305,9 @@ public class AWTWindow extends Window {
         super.sendMouseEvent(eventType, modifiers, x, y, button, rotation);
     }
 
-    private static void runOnEDT(boolean wait, Runnable r) {
-        if (EventQueue.isDispatchThread()) {
+    private void runOnEDT(boolean wait, Runnable r) {
+        EDTUtil edtUtil = screen.getDisplay().getEDTUtil();
+        if ( ( null != edtUtil && edtUtil.isCurrentThreadEDT() ) || EventQueue.isDispatchThread() ) {
             r.run();
         } else {
             try {

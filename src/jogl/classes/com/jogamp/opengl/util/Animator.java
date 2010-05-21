@@ -70,7 +70,7 @@ public class Animator {
     /** Creates a new, empty Animator. */
     public Animator(ThreadGroup tg) {
 
-        if(GLProfile.isAWTJOGLAvailable()) {
+        if(GLProfile.isAWTAvailable()) {
             try {
                 impl = (AnimatorImpl) Class.forName("com.jogamp.opengl.util.awt.AWTAnimatorImpl").newInstance();
             } catch (Exception e) { }

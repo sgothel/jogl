@@ -7,6 +7,13 @@
 #define _Xconst const
 #endif /* _Xconst */
 
+extern Bool XSynchronize(Display *display, Bool onoff);
+
+extern int XFlush(Display *display);
+extern int XSync(Display *display, Bool discard);
+
+extern char *XDisplayString(Display *display);
+
 extern Display *XOpenDisplay(
     _Xconst char*	/* display_name */
 );

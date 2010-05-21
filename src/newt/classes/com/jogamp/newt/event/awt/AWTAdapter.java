@@ -136,6 +136,7 @@ public abstract class AWTAdapter implements java.util.EventListener
     /** 
      * Create a pipeline adapter, AWT EventListener.<br>
      * Once attached to an AWT component, it sends the converted AWT events to the NEWT downstream window.<br>
+     * This is only supported with EDT enabled!
      */
     public AWTAdapter(com.jogamp.newt.Window downstream) {
         if(null==downstream) {
@@ -143,6 +144,9 @@ public abstract class AWTAdapter implements java.util.EventListener
         }
         this.newtListener = null;
         this.newtWindow = downstream;
+        if( null == newtWindow.getScreen().getDisplay().getEDTUtil() ) {
+            throw new RuntimeException("EDT not enabled");
+        }
     }
 
     /** 

@@ -31,8 +31,13 @@
  */
 package com.jogamp.newt.event.awt;
 
-public class AWTWindowAdapter extends AWTAdapter implements java.awt.event.ComponentListener, java.awt.event.WindowListener
+public class AWTWindowAdapter 
+    extends AWTAdapter 
+    implements java.awt.event.ComponentListener, java.awt.event.WindowListener, java.awt.event.HierarchyListener
 {
+    java.awt.Component awtComponent;
+    WindowClosingListener windowClosingListener;
+
     public AWTWindowAdapter(com.jogamp.newt.event.WindowListener newtListener) {
         super(newtListener);
     }
@@ -46,11 +51,33 @@ public class AWTWindowAdapter extends AWTAdapter implements java.awt.event.Compo
     }
 
     public AWTAdapter addTo(java.awt.Component awtComponent) {
+        this.awtComponent = awtComponent;
         awtComponent.addComponentListener(this);
+        awtComponent.addHierarchyListener(this);
+        addWindowClosingListenerTo(getWindow(awtComponent));
         if(awtComponent instanceof java.awt.Window) {
             ((java.awt.Window)awtComponent).addWindowListener(this);
         }
         return this;
+    }
+
+    static java.awt.Window getWindow(java.awt.Component comp) {
+        while( null != comp && !(comp instanceof java.awt.Window) ) {
+            comp = comp.getParent();
+        }
+        if(comp instanceof java.awt.Window) {
+            return (java.awt.Window) comp;
+        }
+        return null;
+    }
+
+    void addWindowClosingListenerTo(java.awt.Window win) {
+        if( null == windowClosingListener ) {
+            windowClosingListener = new WindowClosingListener();
+        }
+        if( null != win ) {
+            win.addWindowListener(windowClosingListener);
+        }
     }
 
     public void componentResized(java.awt.event.ComponentEvent e) {
@@ -72,11 +99,19 @@ public class AWTWindowAdapter extends AWTAdapter implements java.awt.event.Compo
     }
 
     public void componentShown(java.awt.event.ComponentEvent e) {
-        // n/a 
+        if(null==newtListener) {
+            if(!newtWindow.isDestroyed()) {
+                newtWindow.setVisible(true, true /* deferred */);
+            }
+        }
     }
 
     public void componentHidden(java.awt.event.ComponentEvent e) {
-        // n/a 
+        if(null==newtListener) {
+            if(!newtWindow.isDestroyed()) {
+                newtWindow.setVisible(false, true /* deferred */);
+            }
+        }
     }
 
     public void windowActivated(java.awt.event.WindowEvent e) {
@@ -88,18 +123,9 @@ public class AWTWindowAdapter extends AWTAdapter implements java.awt.event.Compo
         }
     }
 
-    public void windowClosed(java.awt.event.WindowEvent e) {
-        // n/a 
-    }
+    public void windowClosed(java.awt.event.WindowEvent e) { }
 
-    public void windowClosing(java.awt.event.WindowEvent e) {
-        com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
-        if(null!=newtListener) {
-            ((com.jogamp.newt.event.WindowListener)newtListener).windowDestroyNotify(event);
-        } else {
-            enqueueEvent(event);
-        }
-    }
+    public void windowClosing(java.awt.event.WindowEvent e) { }
 
     public void windowDeactivated(java.awt.event.WindowEvent e) {
         com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
@@ -110,17 +136,56 @@ public class AWTWindowAdapter extends AWTAdapter implements java.awt.event.Compo
         }
     }
 
-    public void windowDeiconified(java.awt.event.WindowEvent e) {
-        // n/a 
+    public void windowDeiconified(java.awt.event.WindowEvent e) { }
+
+    public void windowIconified(java.awt.event.WindowEvent e) { }
+
+    public void windowOpened(java.awt.event.WindowEvent e) { }
+
+    public void hierarchyChanged(java.awt.event.HierarchyEvent e) {
+        if( null == newtListener ) {
+            long bits = e.getChangeFlags();
+            java.awt.Component changed = e.getChanged();
+            if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & bits ) ) {
+                final boolean visible = changed.isVisible();
+                if(!newtWindow.isDestroyed()) {
+                    newtWindow.setVisible(visible, true /* deferred */);
+                }
+            } else if( 0 != ( java.awt.event.HierarchyEvent.PARENT_CHANGED & bits ) ) {
+                if(awtComponent == changed) {
+                    java.awt.Window win = getWindow(changed);
+                    if(null != win) {
+                        addWindowClosingListenerTo(win);
+                    } else {
+                        java.awt.Component parent = e.getChangedParent();
+                        if(parent instanceof java.awt.Window) {
+                            ((java.awt.Window)parent).removeWindowListener(this);
+                            if( null != windowClosingListener ) {
+                                ((java.awt.Window)parent).removeWindowListener(windowClosingListener);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    public void windowIconified(java.awt.event.WindowEvent e) {
-        // n/a 
-    }
+    class WindowClosingListener implements java.awt.event.WindowListener {
+        public void windowClosing(java.awt.event.WindowEvent e) {
+            com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
+            if(null!=newtListener) {
+                ((com.jogamp.newt.event.WindowListener)newtListener).windowDestroyNotify(event);
+            } else {
+                enqueueEvent(event);
+            }
+        }
 
-    public void windowOpened(java.awt.event.WindowEvent e) {
-        // n/a 
+        public void windowActivated(java.awt.event.WindowEvent e) { }
+        public void windowClosed(java.awt.event.WindowEvent e) { }
+        public void windowDeactivated(java.awt.event.WindowEvent e) { }
+        public void windowDeiconified(java.awt.event.WindowEvent e) { }
+        public void windowIconified(java.awt.event.WindowEvent e) { }
+        public void windowOpened(java.awt.event.WindowEvent e) { }
     }
-
 }
 

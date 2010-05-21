@@ -78,14 +78,14 @@ public abstract class NewtFactory {
      * Create a Display entity, incl native creation
      */
     public static Display createDisplay(String name) {
-      return Display.create(NativeWindowFactory.getNativeWindowType(true), name);
+      return Display.create(NativeWindowFactory.getNativeWindowType(true), name, 0);
     }
 
     /**
      * Create a Display entity using the given implementation type, incl native creation
      */
     public static Display createDisplay(String type, String name) {
-      return Display.create(type, name);
+      return Display.create(type, name, 0);
     }
 
     /**
@@ -106,77 +106,99 @@ public abstract class NewtFactory {
      * Create a top level Window entity, incl native creation
      */
     public static Window createWindow(Screen screen, Capabilities caps) {
-        return Window.create(NativeWindowFactory.getNativeWindowType(true), 0, screen, caps, false);
+        return Window.create(NativeWindowFactory.getNativeWindowType(true), null, 0, screen, caps, false);
     }
 
     /**
      * Create a top level Window entity, incl native creation
      */
     public static Window createWindow(Screen screen, Capabilities caps, boolean undecorated) {
-        return Window.create(NativeWindowFactory.getNativeWindowType(true), 0, screen, caps, undecorated);
+        return Window.create(NativeWindowFactory.getNativeWindowType(true), null, 0, screen, caps, undecorated);
     }
 
     /**
-     * Create a child Window entity attached to the given parent, incl native creation<br>
+     * Create a child Window entity attached to the given parent, incl native creation.<br>
+     * The Screen and Display information is regenrated utilizing the parents information.<br>
      * <p>
      * In case <code>parentWindowObject</code> is a {@link javax.media.nativewindow.NativeWindow},<br>
      * we create a child {@link com.jogamp.newt.Window},
-     * utilizing {@link com.jogamp.newt.NewtFactory#createWindow(long, com.jogamp.newt.Screen, javax.media.nativewindow.Capabilities, boolean)}
-     * passing the parent's native window handle retrieved via {@link javax.media.nativewindow.NativeWindow#getWindowHandle()}.<br></p>
+     * utilizing {@link com.jogamp.newt.NewtFactory#createWindowImpl(java.lang.String, javax.media.nativewindow.NativeWindow, com.jogamp.newt.Screen, javax.media.nativewindow.Capabilities, boolean)}<br></p>.
      * <p>
      * In case <code>parentWindowObject</code> is even a {@link com.jogamp.newt.Window}, the following applies:<br>
      * {@link com.jogamp.newt.event.WindowEvent#EVENT_WINDOW_RESIZED} is not propagated to the child window for e.g. layout<br>,
      * you have to add an appropriate {@link com.jogamp.newt.event.WindowListener} for this use case.<br>
      * However, {@link com.jogamp.newt.event.WindowEvent#EVENT_WINDOW_DESTROY_NOTIFY} is propagated to the child window, so it will be closed properly.<br>
-     * In case <code>parentWindowObject</code> is a different {@javax.media.nativewindow.NativeWindow} implementation,<br>
+     * The parents visibility is passed to the new Window<br></p>
+     * <p>
+     * In case <code>parentWindowObject</code> is a different {@link javax.media.nativewindow.NativeWindow} implementation,<br>
      * you have to handle all events appropriatly.<br></p>
      * <p>
      * In case <code>parentWindowObject</code> is a {@link java.awt.Component},<br>
-     * we utilize the {@link com.jogamp.newt.impl.awt.AWTNewtFactory#createNativeChildWindow(Object, com.jogamp.newt.Screen, com.jogamp.newt.Capabilities, boolean)}
+     * we utilize the {@link com.jogamp.newt.impl.awt.AWTNewtFactory#createNativeChildWindow(Object, com.jogamp.newt.Capabilities, boolean)}
      * factory method.<br>
      * The factory adds a {@link com.jogamp.newt.event.WindowListener} to propagate {@link com.jogamp.newt.event.WindowEvent}'s so
-     * your NEWT Window integrates into the AWT layout.<br></p>
+     * your NEWT Window integrates into the AWT layout.<br>
+     * The parents visibility is passed to the new Window<br></p>
      *
      * @param parentWindowObject either a NativeWindow or java.awt.Component 
      * @param undecorated only impacts if the window is in top-level state, while attached to a parent window it's rendered undecorated always
      *
      * @see com.jogamp.newt.NewtFactory#createWindow(long, com.jogamp.newt.Screen, javax.media.nativewindow.Capabilities, boolean)
-     * @see com.jogamp.newt.impl.awt.AWTNewtFactory#createNativeChildWindow(java.lang.Object, com.jogamp.newt.Screen, javax.media.nativewindow.Capabilities, boolean)
+     * @see com.jogamp.newt.impl.awt.AWTNewtFactory#createNativeChildWindow(java.lang.Object, javax.media.nativewindow.Capabilities, boolean)
      */
-    public static Window createWindow(Object parentWindowObject, Screen screen, Capabilities caps, boolean undecorated) {
+    public static Window createWindow(Object parentWindowObject, Capabilities caps, boolean undecorated) {
+        final String type = NativeWindowFactory.getNativeWindowType(true);
         if(null==parentWindowObject) {
-            throw new RuntimeException("Null parentWindowObject");
+            return createWindowImpl(type, null, null, caps, undecorated);
         }
         if(parentWindowObject instanceof NativeWindow) {
-            NativeWindow nativeParentWindow = (NativeWindow) parentWindowObject;
-            nativeParentWindow.lockSurface();
-            long parentWindowHandle = nativeParentWindow.getWindowHandle();
-            nativeParentWindow.unlockSurface();
-            final Window win = createWindow(parentWindowHandle, screen, caps, undecorated);
-            if ( nativeParentWindow instanceof Window) {
-                final Window f_nativeParentWindow = (Window) nativeParentWindow ;
-                f_nativeParentWindow.addWindowListener(new WindowAdapter() {
+            NativeWindow nParentWindow = (NativeWindow) parentWindowObject;
+
+            Display display=null;
+            Screen screen=null;
+            Window parentWindow=null;
+
+            if ( nParentWindow instanceof Window ) {
+                parentWindow = (Window) nParentWindow ;
+                Screen nParentScreen = parentWindow.getScreen();
+                Display nParentDisplay = nParentScreen.getDisplay();
+                display = NewtFactory.wrapDisplay(type, nParentDisplay.getHandle());
+                screen  = NewtFactory.createScreen(type, display, nParentScreen.getIndex());
+            } else {
+                AbstractGraphicsConfiguration nParentConfig = nParentWindow.getGraphicsConfiguration();
+                AbstractGraphicsScreen nParentScreen = nParentConfig.getScreen();
+                AbstractGraphicsDevice nParentDevice = nParentScreen.getDevice();
+                display = NewtFactory.wrapDisplay(type, nParentDevice.getHandle());
+                screen  = NewtFactory.createScreen(type, display, nParentScreen.getIndex());
+            }
+            final Window win = createWindowImpl(type, nParentWindow, screen, caps, undecorated);
+
+            win.setSize(nParentWindow.getWidth(), nParentWindow.getHeight());
+            if ( null != parentWindow ) {
+                parentWindow.addWindowListener(new WindowAdapter() {
                     public void windowDestroyNotify(WindowEvent e) {
                         win.sendEvent(e);
                     }
                 });
+                win.setVisible(parentWindow.isVisible());
             }
             return win;
         } else {
             if(ReflectionUtil.instanceOf(parentWindowObject, "java.awt.Component")) {
                 if(ReflectionUtil.isClassAvailable("com.jogamp.newt.impl.awt.AWTNewtFactory")) {
-                    return (Window) ReflectionUtil.callStaticMethod("com.jogamp.newt.impl.awt.AWTNewtFactory",
-                                                                    "createNativeChildWindow",
-                                                                    new Class[]  { Object.class, Screen.class, Capabilities.class, java.lang.Boolean.TYPE},
-                                                                    new Object[] { parentWindowObject, screen, caps, new Boolean(undecorated) } );
+                    return (Window) ReflectionUtil.callStaticMethod(
+                                            "com.jogamp.newt.impl.awt.AWTNewtFactory",
+                                            "createNativeChildWindow",
+                                            new Class[]  { Object.class, Capabilities.class, java.lang.Boolean.TYPE},
+                                            new Object[] { parentWindowObject, caps, new Boolean(undecorated) } );
                 }
             }
         }
         throw new RuntimeException("No NEWT child Window factory method for parent object: "+parentWindowObject);
     }
 
-    public static Window createWindow(Object parentWindowObject, Screen screen, Capabilities caps) {
-        return createWindow(parentWindowObject, screen, caps, false);
+    protected static Window createWindowImpl(String type, NativeWindow parentNativeWindow, Screen screen, Capabilities caps, boolean undecorated) {
+        return Window.create(type, parentNativeWindow, 0, screen, caps, undecorated);
     }
 
     /**
@@ -186,14 +208,7 @@ public abstract class NewtFactory {
      * @param undecorated only impacts if the window is in top-level state, while attached to a parent window it's rendered undecorated always
      */
     public static Window createWindow(long parentWindowHandle, Screen screen, Capabilities caps, boolean undecorated) {
-        if(0==parentWindowHandle) {
-            throw new RuntimeException("Null parentWindowHandle");
-        }
-        return Window.create(NativeWindowFactory.getNativeWindowType(true), parentWindowHandle, screen, caps, undecorated);
-    }
-
-    public static Window createWindow(long parentWindowHandle, Screen screen, Capabilities caps) {
-        return  createWindow(parentWindowHandle, screen, caps, false);
+        return Window.create(NativeWindowFactory.getNativeWindowType(true), null, parentWindowHandle, screen, caps, undecorated);
     }
 
     /**
@@ -213,7 +228,7 @@ public abstract class NewtFactory {
      * @param undecorated only impacts if the window is in top-level state, while attached to a parent window it's rendered undecorated always
      */
     public static Window createWindow(String type, Screen screen, Capabilities caps, boolean undecorated) {
-        return Window.create(type, 0, screen, caps, undecorated);
+        return Window.create(type, null, 0, screen, caps, undecorated);
     }
 
     public static Window createWindow(String type, Object[] cstrArguments, Screen screen, Capabilities caps, boolean undecorated) {
@@ -223,25 +238,8 @@ public abstract class NewtFactory {
     /**
      * Instantiate a Display entity using the native handle.
      */
-    public static Display wrapDisplay(String name, AbstractGraphicsDevice device) {
-      return Display.wrapHandle(NativeWindowFactory.getNativeWindowType(true), name, device);
-    }
-
-    /**
-     * Instantiate a Screen entity using the native handle.
-     */
-    public static Screen wrapScreen(Display display, AbstractGraphicsScreen screen) {
-      return Screen.wrapHandle(NativeWindowFactory.getNativeWindowType(true), display, screen);
-    }
-
-    /**
-     * Instantiate a Window entity using the native handle.
-     */
-    public static Window wrapWindow(Screen screen, AbstractGraphicsConfiguration config,
-                                    long windowHandle, boolean fullscreen, boolean visible, 
-                                    int x, int y, int width, int height) {
-      return Window.wrapHandle(NativeWindowFactory.getNativeWindowType(true), screen, config,
-                               windowHandle, fullscreen, visible, x, y, width, height);
+    public static Display wrapDisplay(String type, long handle) {
+      return Display.create(type, null, handle);
     }
 
     private static final boolean instanceOf(Object obj, String clazzName) {

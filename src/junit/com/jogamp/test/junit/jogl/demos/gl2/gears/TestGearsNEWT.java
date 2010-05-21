@@ -64,7 +64,7 @@ public class TestGearsNEWT {
     }
 
     protected void runTestGL(GLCapabilities caps) throws InterruptedException {
-        GLWindow glWindow = GLWindow.create(caps);
+        GLWindow glWindow = GLWindow.create(caps, false);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test");
 

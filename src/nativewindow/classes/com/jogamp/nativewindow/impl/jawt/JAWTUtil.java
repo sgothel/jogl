@@ -42,6 +42,7 @@ import javax.media.nativewindow.*;
 
 import java.awt.GraphicsEnvironment;
 import java.lang.reflect.*;
+import java.security.*;
 
 public class JAWTUtil {
 
@@ -52,6 +53,12 @@ public class JAWTUtil {
   private static final Class j2dClazz;
   private static final Method isQueueFlusherThread;
   private static final boolean j2dExist;
+
+  private static Class   sunToolkitClass;
+  private static Method  sunToolkitAWTLockMethod;
+  private static Method  sunToolkitAWTUnlockMethod;
+  private static final boolean hasSunToolkitAWTLock;
+  private static final boolean useSunToolkitAWTLock;
 
   static {
     JAWTJNILibLoader.loadAWTImpl();
@@ -73,6 +80,32 @@ public class JAWTUtil {
     j2dClazz = jC;
     isQueueFlusherThread = m;
     j2dExist = ok;
+
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          try {
+            sunToolkitClass = Class.forName("sun.awt.SunToolkit");
+            sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[] {});
+            sunToolkitAWTLockMethod.setAccessible(true);
+            sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[] {});
+            sunToolkitAWTUnlockMethod.setAccessible(true);
+          } catch (Exception e) {
+            // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
+          }
+          return null;
+        }
+      });
+      boolean _hasSunToolkitAWTLock = false;
+      if ( null!=sunToolkitAWTLockMethod && null!=sunToolkitAWTUnlockMethod ) {
+          try {
+                sunToolkitAWTLockMethod.invoke(null, null);
+                sunToolkitAWTUnlockMethod.invoke(null, null);
+                _hasSunToolkitAWTLock = true;
+          } catch (Exception e) {}
+      }
+      hasSunToolkitAWTLock = _hasSunToolkitAWTLock;
+      // useSunToolkitAWTLock = hasSunToolkitAWTLock;
+      useSunToolkitAWTLock = false;
   }
 
   private static Exception lockedStack;
@@ -99,6 +132,30 @@ public class JAWTUtil {
     return headlessMode;
   }
 
+  private static void awtLock() {
+    if(useSunToolkitAWTLock) {
+        try {
+            sunToolkitAWTLockMethod.invoke(null, null);
+        } catch (Exception e) {
+          throw new NativeWindowException("SunToolkit.awtLock failed", e);
+        }
+    } else {
+        JAWT.getJAWT().Lock();
+    }
+  }
+
+  private static void awtUnlock() {
+    if(useSunToolkitAWTLock) {
+        try {
+            sunToolkitAWTUnlockMethod.invoke(null, null);
+        } catch (Exception e) {
+          throw new NativeWindowException("SunToolkit.awtUnlock failed", e);
+        }
+    } else {
+        JAWT.getJAWT().Unlock();
+    }
+  }
+
   public static synchronized void lockToolkit() throws NativeWindowException {
     if (isJava2DQueueFlusherThread()) return;
 
@@ -115,7 +172,7 @@ public class JAWTUtil {
       return;
     }
 
-    JAWT.getJAWT().Lock();
+    awtLock();
   }
 
   public static synchronized void unlockToolkit() {
@@ -130,7 +187,7 @@ public class JAWTUtil {
           return;
         }
 
-        JAWT.getJAWT().Unlock();
+        awtUnlock();
     }
   }
 

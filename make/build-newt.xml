@@ -240,18 +240,18 @@
       <!-- linker configuration -->
 
       <linker id="linker.cfg.linux.newt.broadcom_egl" extends="linker.cfg.linux">
-        <syslibset dir="/nfsroot/lg/lib" libs="EGL"/>
-        <syslibset dir="/nfsroot/lg/lib" libs="GLES_CM"/>
+        <syslibset libs="EGL"/>
+        <syslibset libs="GLES_CM"/>
       </linker>
 
       <linker id="linker.cfg.linux.newt.x11" extends="linker.cfg.linux">
-        <syslibset dir="/usr/lib" libs="X11"/>
-        <syslibset dir="/usr/lib" libs="Xxf86vm" />
+        <syslibset libs="X11"/>
+        <syslibset libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.amd64.newt.x11" extends="linker.cfg.linux.amd64">
-        <syslibset dir="/usr/lib64" libs="X11"/>
-        <syslibset dir="/usr/lib64" libs="Xxf86vm" />
+        <syslibset libs="X11"/>
+        <syslibset libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.solaris.newt.x11" extends="linker.cfg.solaris">

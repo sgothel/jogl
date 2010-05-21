@@ -361,13 +361,13 @@
       <!-- linker configuration -->
  
       <linker id="linker.cfg.linux.nativewindow.x11" extends="linker.cfg.linux">
-        <syslibset dir="/usr/lib" libs="X11"/>
-        <syslibset dir="/usr/lib" libs="Xxf86vm" />
+        <syslibset libs="X11"/>
+        <syslibset libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.amd64.nativewindow.x11" extends="linker.cfg.linux.amd64">
-        <syslibset dir="/usr/lib64" libs="X11"/>
-        <syslibset dir="/usr/lib64" libs="Xxf86vm" />
+        <syslibset libs="X11"/>
+        <syslibset libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.solaris.nativewindow.x11" extends="linker.cfg.solaris">

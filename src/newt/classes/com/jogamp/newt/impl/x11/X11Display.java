@@ -43,11 +43,11 @@ public class X11Display extends Display {
     static {
         NEWTJNILibLoader.loadNEWT();
 
-        if (!initIDs()) {
+        if ( !initIDs0() ) {
             throw new NativeWindowException("Failed to initialize X11Display jmethodIDs");
         }
 
-        if (!X11Window.initIDs()) {
+        if (!X11Window.initIDs0()) {
             throw new NativeWindowException("Failed to initialize X11Window jmethodIDs");
         }
     }
@@ -60,13 +60,24 @@ public class X11Display extends Display {
     public X11Display() {
     }
 
-    protected void createNative() {
-        long handle= X11Util.createThreadLocalDisplay(name);
-        if (handle == 0 ) {
+    protected void createNative(long handle) {
+        if(0 != handle) {
+            // Can't use that Display handle directly,
+            // but we open up a new connection to the same Display by it's name
+            String newName = X11Util.getNameOfDisplay(handle);
+            if(DEBUG) {
+                System.out.println("Changing Display Name (provided handle): "+name+" -> 0x"+
+                    Long.toHexString(handle)+" : "+newName);
+            }
+            handle = 0;
+            name = newName;
+        }
+        handle= X11Util.createThreadLocalDisplay(name);
+        if( 0 == handle ) {
             throw new RuntimeException("Error creating display: "+name);
         }
         try {
-            CompleteDisplay(handle);
+            CompleteDisplay0(handle);
         } catch(RuntimeException e) {
             X11Util.closeThreadLocalDisplay(name);
             throw e;
@@ -82,7 +93,7 @@ public class X11Display extends Display {
         if(0==getHandle()) {
             throw new RuntimeException("display handle null");
         }
-        DispatchMessages(getHandle(), javaObjectAtom, windowDeleteAtom);
+        DispatchMessages0(getHandle(), javaObjectAtom, windowDeleteAtom);
     }
 
     protected void lockDisplay() {
@@ -101,11 +112,11 @@ public class X11Display extends Display {
     //----------------------------------------------------------------------
     // Internals only
     //
-    private static native boolean initIDs();
+    private static native boolean initIDs0();
 
-    private native void CompleteDisplay(long handle);
+    private native void CompleteDisplay0(long handle);
 
-    private native void DispatchMessages(long display, long javaObjectAtom, long windowDeleteAtom);
+    private native void DispatchMessages0(long display, long javaObjectAtom, long windowDeleteAtom);
 
     private void displayCompleted(long javaObjectAtom, long windowDeleteAtom) {
         this.javaObjectAtom=javaObjectAtom;
