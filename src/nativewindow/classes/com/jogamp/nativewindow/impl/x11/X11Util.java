@@ -54,6 +54,8 @@ public class X11Util {
     private static final boolean DEBUG = Debug.debug("X11Util");
     private static final boolean DEBUG_XDISPLAY_LOCK = false;
 
+    public static final String nullDisplayName;
+
     static {
         NWJNILibLoader.loadNativeWindow("x11");
 
@@ -67,6 +69,18 @@ public class X11Util {
         // It seems like (Oracle's) AWT's Display locking is buggy.
         //
         initialize( ! NativeWindowFactory.isAWTAvailable() ) ;
+
+        long dpy = X11Lib.XOpenDisplay(null);
+        XLockDisplay(dpy);
+        try {
+            nullDisplayName = X11Lib.XDisplayString(dpy);
+        } finally {
+            XUnlockDisplay(dpy);
+        }
+        X11Lib.XCloseDisplay(dpy);
+        if(DEBUG) {
+            System.out.println("X11 Display(NULL) <"+nullDisplayName+">");
+        }
     }
 
     public static void initSingleton() {
@@ -82,8 +96,6 @@ public class X11Util {
 
     private static ThreadLocal currentDisplayMap = new ThreadLocal();
 
-    public static final String nullDeviceName = "nil" ;
-
     public static class NamedDisplay extends RecursiveToolkitLock implements Cloneable {
         String name;
         long   handle;
@@ -98,7 +110,6 @@ public class X11Util {
         }
 
         public final String getName() { return name; }
-        public final String getNameSafe() { return null == name ? nullDeviceName : name; }
         public final long   getHandle() { return handle; }
         public final int    getRefCount() { return refCount; }
         public final boolean isUncloseable() { return unCloseable; }
@@ -134,6 +145,20 @@ public class X11Util {
         return num;
     }
 
+    /** 
+     * @return If name is null, it returns the previous queried NULL display name,
+     * otherwise the name. */
+    public static String validateDisplayName(String name) {
+        return ( null == name ) ? nullDisplayName : name ;
+    }
+
+    public static String validateDisplayName(String name, long handle) {
+        if(null==name && 0!=handle) {
+            name = getNameOfDisplay(handle);
+        }
+        return ( null == name ) ? nullDisplayName : name ;
+    }
+
     /** Returns a clone of the thread local display map, you may {@link Object#wait()} on it */
     public static Map getCurrentDisplayMap() {
         return (Map) ((HashMap)getCurrentDisplayMapImpl()).clone();
@@ -146,6 +171,7 @@ public class X11Util {
 
     /** Returns this thread named display. If it doesn not exist, it is being created, otherwise the reference count is increased */
     public static long createThreadLocalDisplay(String name) {
+        name = validateDisplayName(name);
         NamedDisplay namedDpy = getCurrentDisplay(name);
         if(null==namedDpy) {
             long dpy = X11Lib.XOpenDisplay(name);
@@ -179,6 +205,7 @@ public class X11Util {
         or the reference count goes below 0.
      */
     public static long closeThreadLocalDisplay(String name) {
+        name = validateDisplayName(name);
         NamedDisplay namedDpy = getCurrentDisplay(name);
         if(null==namedDpy) {
             throw new RuntimeException("X11Util.Display: Display("+name+") with given name is not mapped to TLS in thread "+Thread.currentThread().getName());
@@ -220,18 +247,24 @@ public class X11Util {
     }
 
     public static boolean setSynchronizeDisplay(long handle, boolean onoff) {
-        String name;
+        boolean res=false;
         XLockDisplay(handle);
-        boolean res = X11Lib.XSynchronize(handle, onoff);
-        XUnlockDisplay(handle);
+        try {
+            res = X11Lib.XSynchronize(handle, onoff);
+        } finally {
+            XUnlockDisplay(handle);
+        }
         return res;
     }
 
     public static String getNameOfDisplay(long handle) {
         String name;
         XLockDisplay(handle);
-        name = X11Lib.XDisplayString(handle);
-        XUnlockDisplay(handle);
+        try {
+            name = X11Lib.XDisplayString(handle);
+        } finally {
+            XUnlockDisplay(handle);
+        }
         return name;
     }
 
@@ -299,7 +332,7 @@ public class X11Util {
         Map displayMap = getCurrentDisplayMapImpl();
         NamedDisplay oldDisplay = null;
         synchronized(displayMap) {
-            oldDisplay = (NamedDisplay) displayMap.put(newDisplay.getNameSafe(), newDisplay);
+            oldDisplay = (NamedDisplay) displayMap.put(newDisplay.getName(), newDisplay);
             displayMap.notifyAll();
         }
         return oldDisplay;
@@ -310,7 +343,7 @@ public class X11Util {
     private static NamedDisplay removeCurrentDisplay(NamedDisplay ndpy) {
         Map displayMap = getCurrentDisplayMapImpl();
         synchronized(displayMap) {
-            NamedDisplay ndpyDel = (NamedDisplay) displayMap.remove(ndpy.getNameSafe());
+            NamedDisplay ndpyDel = (NamedDisplay) displayMap.remove(ndpy.getName());
             if(ndpyDel!=ndpy) {
                 throw new RuntimeException("Wrong mapping req: "+ndpy+", got "+ndpyDel);
             }
@@ -321,7 +354,6 @@ public class X11Util {
 
     /** Returns the thread local display mapped to the given name */
     private static NamedDisplay getCurrentDisplay(String name) {
-        if(null==name) name=nullDeviceName;
         Map displayMap = getCurrentDisplayMapImpl();
         return (NamedDisplay) displayMap.get(name);
     }

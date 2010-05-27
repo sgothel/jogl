@@ -58,10 +58,10 @@ public class Display extends com.jogamp.newt.Display {
     public Display() {
     }
 
-    protected void createNative(long handle) {
+    protected void createNative() {
         synchronized(Display.class) {
             if(0==initCounter) {
-                displayHandle = (0 == handle) ?  CreateDisplay() : handle;
+                displayHandle = CreateDisplay();
                 if(0==displayHandle) {
                     throw new NativeWindowException("Couldn't initialize GDL Display");
                 }

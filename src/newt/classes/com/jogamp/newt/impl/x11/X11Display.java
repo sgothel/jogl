@@ -60,19 +60,12 @@ public class X11Display extends Display {
     public X11Display() {
     }
 
-    protected void createNative(long handle) {
-        if(0 != handle) {
-            // Can't use that Display handle directly,
-            // but we open up a new connection to the same Display by it's name
-            String newName = X11Util.getNameOfDisplay(handle);
-            if(DEBUG) {
-                System.out.println("Changing Display Name (provided handle): "+name+" -> 0x"+
-                    Long.toHexString(handle)+" : "+newName);
-            }
-            handle = 0;
-            name = newName;
-        }
-        handle= X11Util.createThreadLocalDisplay(name);
+    protected String validateDisplayName(String name, long handle) {
+        return X11Util.validateDisplayName(name, handle);
+    }
+
+    protected void createNative() {
+        long handle= X11Util.createThreadLocalDisplay(name);
         if( 0 == handle ) {
             throw new RuntimeException("Error creating display: "+name);
         }
