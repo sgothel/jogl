@@ -57,20 +57,18 @@ public class MacOSXJAWTWindow extends JAWTWindow {
   protected void initNative() throws NativeWindowException {
   }
 
-  public int lockSurface() throws NativeWindowException {
-    int ret = super.lockSurface();
-    if(NativeWindow.LOCK_SUCCESS != ret) {
-        return ret;
-    }
+  protected int lockSurfaceImpl() throws NativeWindowException {
+    int ret = NativeWindow.LOCK_SUCCESS;
     ds = JAWT.getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
-      super.unlockSurface();
+      unlockSurface();
       return NativeWindow.LOCK_SURFACE_NOT_READY;
     }
     int res = ds.Lock();
-    if ((res & JAWTFactory.JAWT_LOCK_ERROR) != 0) {
-      super.unlockSurface();
+    dsLocked = ( 0 == ( res & JAWTFactory.JAWT_LOCK_ERROR ) ) ;
+    if (!dsLocked) {
+      unlockSurface();
       throw new NativeWindowException("Unable to lock surface");
     }
     // See whether the surface changed and if so destroy the old
@@ -92,56 +90,44 @@ public class MacOSXJAWTWindow extends JAWTWindow {
       dsi = ds.GetDrawingSurfaceInfo();
     }
     if (dsi == null) {
-      // Widget not yet realized
-      ds.Unlock();
-      JAWT.getJAWT().FreeDrawingSurface(ds);
-      ds = null;
-      super.unlockSurface();
+      unlockSurface();
       return NativeWindow.LOCK_SURFACE_NOT_READY;
     }
     firstLock = false;
     macosxdsi = (JAWT_MacOSXDrawingSurfaceInfo) dsi.platformInfo();
     if (macosxdsi == null) {
-      // Widget not yet realized
-      ds.FreeDrawingSurfaceInfo(dsi);
-      ds.Unlock();
-      JAWT.getJAWT().FreeDrawingSurface(ds);
-      ds = null;
-      dsi = null;
-      super.unlockSurface();
+      unlockSurface();
       return NativeWindow.LOCK_SURFACE_NOT_READY;
     }
     drawable = macosxdsi.getCocoaViewRef();
 
     if (drawable == 0) {
-      // Widget not yet realized
-      ds.FreeDrawingSurfaceInfo(dsi);
-      ds.Unlock();
-      JAWT.getJAWT().FreeDrawingSurface(ds);
-      ds = null;
-      dsi = null;
-      macosxdsi = null;
-      super.unlockSurface();
+      unlockSurface();
       return NativeWindow.LOCK_SURFACE_NOT_READY;
+    } else {
+      updateBounds(dsi.getBounds());
     }
     return ret;
   }
     
-  public void unlockSurface() throws NativeWindowException {
-    if(!isSurfaceLocked()) {
-        throw new RuntimeException("JAWTWindow not locked");
+  protected void unlockSurfaceImpl() throws NativeWindowException {
+    if(null!=ds) {
+        if (null!=dsi) {
+            ds.FreeDrawingSurfaceInfo(dsi);
+        }
+        if (dsLocked) {
+            ds.Unlock();
+        }
+        JAWT.getJAWT().FreeDrawingSurface(ds);
     }
-    ds.FreeDrawingSurfaceInfo(dsi);
-    ds.Unlock();
-    JAWT.getJAWT().FreeDrawingSurface(ds);
     ds = null;
     dsi = null;
     macosxdsi = null;
-    super.unlockSurface();
   }
 
   // Variables for lockSurface/unlockSurface
   private JAWT_DrawingSurface ds;
+  private boolean dsLocked;
   private JAWT_DrawingSurfaceInfo dsi;
   private JAWT_MacOSXDrawingSurfaceInfo macosxdsi;
 

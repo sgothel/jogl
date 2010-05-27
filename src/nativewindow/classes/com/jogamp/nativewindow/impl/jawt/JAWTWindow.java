@@ -37,6 +37,7 @@
 package com.jogamp.nativewindow.impl.jawt;
 
 import com.jogamp.nativewindow.impl.*;
+import com.jogamp.nativewindow.util.Rectangle;
 
 import java.awt.Component;
 import java.awt.Window;
@@ -60,6 +61,7 @@ public abstract class JAWTWindow implements NativeWindow {
 
   // lifetime: valid after lock, forever until invalidate
   protected long drawable;
+  protected Rectangle bounds;
 
   public JAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
     if (config == null) {
@@ -80,6 +82,7 @@ public abstract class JAWTWindow implements NativeWindow {
   public synchronized void invalidate() {
     component = null;
     drawable= 0;
+    bounds = new Rectangle();
   }
 
   public synchronized void destroy() {
@@ -91,9 +94,18 @@ public abstract class JAWTWindow implements NativeWindow {
     invalidate();
   }
 
+  protected void updateBounds(JAWT_Rectangle jawtBounds) {
+    bounds.setX(jawtBounds.getX());
+    bounds.setY(jawtBounds.getY());
+    bounds.setWidth(jawtBounds.getWidth());
+    bounds.setHeight(jawtBounds.getHeight());
+  }
+
   private volatile Exception lockedStack = null;
 
-  public synchronized int lockSurface() throws NativeWindowException {
+  protected abstract int lockSurfaceImpl() throws NativeWindowException;
+
+  public final synchronized int lockSurface() throws NativeWindowException {
     // We have to be the owner of the JAWT ToolkitLock 'lock' to benefit from it's
     // recursive and blocking lock capabitlites. 
     // Otherwise a followup ToolkitLock would deadlock, 
@@ -107,8 +119,10 @@ public abstract class JAWTWindow implements NativeWindow {
     }
     lockedStack = new Exception("JAWT Surface previously locked by "+Thread.currentThread().getName());
 
-    return LOCK_SUCCESS;
+    return lockSurfaceImpl();
   }
+
+  protected abstract void unlockSurfaceImpl() throws NativeWindowException;
 
   public synchronized void unlockSurface() {
     if (null!=lockedStack) {
@@ -116,6 +130,7 @@ public abstract class JAWTWindow implements NativeWindow {
     } else {
         throw new NativeWindowException("JAWT Surface not locked");
     }
+    unlockSurfaceImpl();
     NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
   }
 
@@ -165,12 +180,16 @@ public abstract class JAWTWindow implements NativeWindow {
     return component.getHeight();
   }
 
+  /** @return the JAWT_DrawingSurfaceInfo's (JAWT_Rectangle) bounds, updated with lock */
+  public Rectangle getBounds() { return bounds; }
+
   public String toString() {
     StringBuffer sb = new StringBuffer();
 
     sb.append("JAWT-Window["+
                 "windowHandle 0x"+Long.toHexString(getWindowHandle())+
-                ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle()));
+                ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
+                ", bounds "+bounds);
     if(null!=component) {
       sb.append(", pos "+component.getX()+"/"+component.getY()+", size "+getWidth()+"x"+getHeight()+
                 ", visible "+component.isVisible());
@@ -183,4 +202,5 @@ public abstract class JAWTWindow implements NativeWindow {
 
     return sb.toString();
   }
+
 }
