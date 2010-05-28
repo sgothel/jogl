@@ -124,7 +124,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
   protected abstract void setRealizedImpl();
 
-  public boolean getRealized() {
+  public boolean isRealized() {
     return realized;
   }
 
@@ -153,7 +153,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   public String toString() {
-    return getClass().getName()+"[Realized "+getRealized()+
+    return getClass().getName()+"[Realized "+isRealized()+
                 ",\n\tFactory   "+getFactory()+
                 ",\n\tWindow    "+getNativeWindow()+"]";
   }

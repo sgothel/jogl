@@ -35,6 +35,7 @@ uname -a | grep -i Darwin && MOSX=1
 # D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Djogl.debug.GLSLState"
 # D_ARGS="-Dnativewindow.debug.X11Util=true -Djogl.debug.GLDrawableFactory=true"
 # D_ARGS="-Dnativewindow.debug.X11Util=true"
+# D_ARGS="-Dnewt.debug=all -Dnativewindow.debug=all"
 # D_ARGS="-Dnewt.debug=all"
 # D_ARGS="-Dnewt.debug.Window"
 # D_ARGS="-Djogl.debug=all"

@@ -77,13 +77,13 @@ public class Window extends com.jogamp.newt.Window {
         }
     }
 
-    protected void setVisibleImpl() {
+    protected void setVisibleImpl(boolean visible) {
         if(visible) {
             ((Display)screen.getDisplay()).setFocus(this);
         }
     }
 
-    public void setSize(int width, int height) {
+    protected void setSizeImpl(int width, int height) {
         Screen  screen = (Screen) getScreen();
         if((x+width)>screen.getWidth()) {
             width=screen.getWidth()-x;
@@ -91,18 +91,12 @@ public class Window extends com.jogamp.newt.Window {
         if((y+height)>screen.getHeight()) {
             height=screen.getHeight()-y;
         }
-        this.width = width;
-        this.height = height;
-        if(!fullscreen) {
-            nfs_width=width;
-            nfs_height=height;
-        }
         if(0!=surfaceHandle) {
             SetBounds0(surfaceHandle, screen.getWidth(), screen.getHeight(), x, y, width, height);
         }
     }
 
-    public void setPosition(int x, int y) {
+    protected void setPositionImpl(int x, int y) {
         Screen  screen = (Screen) getScreen();
         if((x+width)>screen.getWidth()) {
             x=screen.getWidth()-width;
@@ -110,37 +104,14 @@ public class Window extends com.jogamp.newt.Window {
         if((y+height)>screen.getHeight()) {
             y=screen.getHeight()-height;
         }
-        this.x = x;
-        this.y = y;
-        if(!fullscreen) {
-            nfs_x=x;
-            nfs_y=y;
-        }
         if(0!=surfaceHandle) {
             SetBounds0(surfaceHandle, screen.getWidth(), screen.getHeight(), x, y, width, height);
         }
     }
 
-    public boolean setFullscreen(boolean fullscreen) {
-        if(this.fullscreen!=fullscreen) {
-            int x,y,w,h;
-            this.fullscreen=fullscreen;
-            if(fullscreen) {
-                x = 0; y = 0;
-                w = screen.getWidth();
-                h = screen.getHeight();
-            } else {
-                x = nfs_x;
-                y = nfs_y;
-                w = nfs_width;
-                h = nfs_height;
-            }
-            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                System.err.println("IntelGDL Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h);
-            }
-            if(0!=surfaceHandle) {
-                SetBounds0(surfaceHandle, screen.getWidth(), screen.getHeight(), x, y, w, h);
-            }
+    protected boolean setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
+        if(0!=surfaceHandle) {
+            SetBounds0(surfaceHandle, screen.getWidth(), screen.getHeight(), x, y, w, h);
         }
         return fullscreen;
     }

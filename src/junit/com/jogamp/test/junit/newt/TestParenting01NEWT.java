@@ -48,6 +48,7 @@ import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.*;
 
+import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
@@ -61,136 +62,202 @@ import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 public class TestParenting01NEWT {
     static int width, height;
     static long durationPerTest = 500;
+    static long waitReparent = 0;
+    static GLCapabilities glCaps;
 
     @BeforeClass
     public static void initClass() {
         width  = 640;
         height = 480;
-    }
-
-    static Window createWindow(Screen screen, Capabilities caps) {
-        Assert.assertNotNull(caps);
-        Window window = NewtFactory.createWindow(screen, caps, false) ;
-        Assert.assertNotNull(window);
-        return window;
-    }
-
-    static Window createWindow(NativeWindow parent, Capabilities caps) {
-        Assert.assertNotNull(caps);
-        Window window = NewtFactory.createWindow(parent, caps, true);
-        Assert.assertNotNull(window);
-        return window;
-    }
-
-    static void destroyWindow(Display display, Screen screen, Window window, GLWindow glWindow) {
-        if(null!=glWindow) {
-            glWindow.destroy();
-        }
-        if(null!=window) {
-            window.destroy();
-        }
-        if(null!=screen) {
-            screen.destroy();
-        }
-        if(null!=display) {
-            display.destroy();
-        }
+        glCaps = new GLCapabilities(null);
     }
 
     @Test
-    public void testWindowParenting01NewtOnNewtParentChildDraw() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(null);
-        Assert.assertNotNull(caps);
-        Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
-
-        int x = 1;
-        int y = 1;
+    public void testWindowParenting01CreateVisibleDestroy() throws InterruptedException {
+        int x = 0;
+        int y = 0;
 
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
-        Window window1 = createWindow(screen, caps);
-        Assert.assertNotNull(window1);
-        GLWindow glWindow1 = GLWindow.create(window1);
+        GLWindow glWindow1 = GLWindow.create(glCaps);
         Assert.assertNotNull(glWindow1);
-        glWindow1.setSize(width, height);
-        Assert.assertEquals(width,glWindow1.getWidth());
-        Assert.assertEquals(height,glWindow1.getHeight());
-        glWindow1.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - PARENT");
-        glWindow1.setPosition(x,y);
-        glWindow1.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
-        glWindow1.addWindowListener(new TraceWindowAdapter());
-        glWindow1.setVisible(true);
-        Capabilities capsChosen = glWindow1.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
-        Assert.assertNotNull(capsChosen);
-        Assert.assertTrue(capsChosen.isOnscreen()==true);
-
-        Window window2 = createWindow(window1, caps);
-        Assert.assertNotNull(window2);
-        GLWindow glWindow2 = GLWindow.create(window2);
-        Assert.assertNotNull(glWindow2);
-        glWindow2.setSize(width/2, height/2);
-        //Assert.assertEquals(width/2,glWindow2.getWidth());
-        //Assert.assertEquals(height/2,glWindow2.getHeight());
-        glWindow2.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - CHILD");
-        glWindow2.setPosition(glWindow1.getWidth()/2, glWindow1.getHeight()/2);
-        glWindow2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
-        glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
-        // glWindow2.addMouseListener(new TraceMouseAdapter());
-        glWindow2.setVisible(true);
-        capsChosen = glWindow2.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
-        Assert.assertNotNull(capsChosen);
-        Assert.assertTrue(capsChosen.isOnscreen()==true);
-
+        Assert.assertEquals(false, glWindow1.isVisible());
+        Assert.assertEquals(false, glWindow1.isNativeWindowValid());
+        Assert.assertNull(glWindow1.getParentNativeWindow());
+        glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
+        glWindow1.setSize(640, 480);
         GLEventListener demo1 = new RedSquare();
-        setDemoFields(demo1, window1, glWindow1, false);
+        setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
+        GLWindow glWindow2 = GLWindow.create(glWindow1, glCaps);
+        Assert.assertNotNull(glWindow2);
+        Assert.assertEquals(false, glWindow2.isVisible());
+        Assert.assertEquals(false, glWindow2.isNativeWindowValid());
+        Assert.assertEquals(glWindow1,glWindow2.getParentNativeWindow());
+        glWindow2.setSize(320, 240);
         GLEventListener demo2 = new Gears();
-        setDemoFields(demo2, window2, glWindow2, false);
+        setDemoFields(demo2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
 
-        boolean shouldQuit = false;
-        long duration = durationPerTest;
-        long step = 20;
-        NEWTEvent event;
+        // visible test
+        glWindow1.setVisible(true);
+        Assert.assertEquals(true, glWindow1.isVisible());
+        Assert.assertEquals(true, glWindow1.isNativeWindowValid());
+        Assert.assertEquals(true, glWindow2.isVisible());
+        Assert.assertEquals(true, glWindow2.isNativeWindowValid());
+        glWindow1.setVisible(false);
+        Assert.assertEquals(false, glWindow1.isVisible());
+        Assert.assertEquals(true, glWindow1.isNativeWindowValid());
+        Assert.assertEquals(false, glWindow2.isVisible());
+        Assert.assertEquals(true, glWindow2.isNativeWindowValid());
+        glWindow1.setVisible(true);
+        Assert.assertEquals(true, glWindow1.isVisible());
+        Assert.assertEquals(true, glWindow1.isNativeWindowValid());
+        Assert.assertEquals(true, glWindow2.isVisible());
+        Assert.assertEquals(true, glWindow2.isNativeWindowValid());
 
-        while (duration>0 && !shouldQuit) {
-            glWindow1.display();
-            glWindow2.display();
-            Thread.sleep(step);
-            duration -= step;
-            x += 1;
-            y += 1;
-            glWindow1.setPosition(x,y);
-            glWindow2.setPosition(glWindow1.getWidth()/2,glWindow1.getHeight()/2-y);
-
-            while( null != ( event = (NEWTEvent) eventFifo.get() ) ) {
-                Window source = (Window) event.getSource();
-                if(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY == event.getEventType()) {
-                    shouldQuit = true;
-                } else if(event instanceof KeyEvent) {
-                    KeyEvent keyEvent = (KeyEvent) event;
-                    switch(keyEvent.getKeyChar()) {
-                        case 'q':
-                            shouldQuit = true;
-                            break;
-                        case 'f':
-                            source.setFullscreen(!source.isFullscreen());
-                            break;
-                    }
-                } 
-            }
+        Animator animator1 = new Animator(glWindow1);
+        animator1.start();
+        Animator animator2 = new Animator(glWindow2);
+        animator2.start();
+        while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
+            Thread.sleep(100);
         }
-        destroyWindow(null, null, window2, glWindow2);
-        destroyWindow(display, screen, window1, glWindow1);
+        animator1.stop();
+        Assert.assertEquals(false, animator1.isAnimating());
+        animator2.stop();
+        Assert.assertEquals(false, animator2.isAnimating());
+
+        glWindow1.destroy(); // false
+
+        Assert.assertEquals(false, glWindow1.isVisible());
+        Assert.assertEquals(false, glWindow1.isNativeWindowValid());
+        Assert.assertEquals(false, glWindow1.isDestroyed());
+
+        Assert.assertEquals(false, glWindow2.isVisible());
+        Assert.assertEquals(false, glWindow2.isNativeWindowValid());
+        Assert.assertEquals(false, glWindow2.isDestroyed());
+
+        glWindow1.destroy(true);
+        Assert.assertEquals(true, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow2.isDestroyed());
+
+        // test double destroy ..
+        glWindow2.destroy(true);
+        Assert.assertEquals(true, glWindow2.isDestroyed());
     }
 
-    public static void setDemoFields(GLEventListener demo, Window window, GLWindow glWindow, boolean debug) {
+    @Test
+    public void testWindowParenting02ReparentTop2Win() throws InterruptedException {
+        int x = 0;
+        int y = 0;
+
+        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
+
+        GLWindow glWindow1 = GLWindow.create(glCaps);
+        glWindow1.setTitle("testWindowParenting02ReparentTop2Win");
+        glWindow1.setSize(640, 480);
+        GLEventListener demo1 = new RedSquare();
+        setDemoFields(demo1, glWindow1, false);
+        glWindow1.addGLEventListener(demo1);
+
+        GLWindow glWindow2 = GLWindow.create(glCaps);
+        glWindow2.setSize(320, 240);
+        GLEventListener demo2 = new Gears();
+        setDemoFields(demo2, glWindow2, false);
+        glWindow2.addGLEventListener(demo2);
+
+        glWindow1.setVisible(true);
+        glWindow2.setVisible(true);
+
+        Animator animator1 = new Animator(glWindow1);
+        animator1.start();
+        Animator animator2 = new Animator(glWindow2);
+        animator2.start();
+
+        int state = 0;
+        while(animator1.isAnimating() && animator1.getDuration()<3*durationPerTest) {
+            Thread.sleep(durationPerTest);
+            switch(state) {
+                case 0:
+                    glWindow2.reparentWindow(glWindow1, null);
+                    Assert.assertEquals(true, glWindow2.isVisible());
+                    Assert.assertEquals(true, glWindow2.isNativeWindowValid());
+                    Assert.assertEquals(glWindow1,glWindow2.getParentNativeWindow());
+                    break;
+                case 1:
+                    glWindow2.reparentWindow(null, null);
+                    Assert.assertEquals(true, glWindow2.isVisible());
+                    Assert.assertEquals(true, glWindow2.isNativeWindowValid());
+                    Assert.assertNull(glWindow2.getParentNativeWindow());
+                    break;
+            }
+            state++;
+        }
+        animator1.stop();
+        animator2.stop();
+
+        glWindow1.destroy(true);
+        glWindow2.destroy(true);
+    }
+
+    @Test
+    public void testWindowParenting03ReparentWin2Top() throws InterruptedException {
+        int x = 0;
+        int y = 0;
+
+        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
+
+        GLWindow glWindow1 = GLWindow.create(glCaps);
+        glWindow1.setTitle("testWindowParenting03ReparentWin2Top");
+        glWindow1.setSize(640, 480);
+        GLEventListener demo1 = new RedSquare();
+        setDemoFields(demo1, glWindow1, false);
+        glWindow1.addGLEventListener(demo1);
+
+        GLWindow glWindow2 = GLWindow.create(glWindow1, glCaps);
+        glWindow2.setSize(320, 240);
+        GLEventListener demo2 = new Gears();
+        setDemoFields(demo2, glWindow2, false);
+        glWindow2.addGLEventListener(demo2);
+
+        glWindow1.setVisible(true);
+
+        Animator animator1 = new Animator(glWindow1);
+        animator1.start();
+        Animator animator2 = new Animator(glWindow2);
+        animator2.start();
+
+        int state = 0;
+        while(animator1.isAnimating() && animator1.getDuration()<3*durationPerTest) {
+            Thread.sleep(durationPerTest);
+            switch(state) {
+                case 0:
+                    glWindow2.reparentWindow(null, null);
+                    Assert.assertEquals(true, glWindow2.isVisible());
+                    Assert.assertEquals(true, glWindow2.isNativeWindowValid());
+                    Assert.assertNull(glWindow2.getParentNativeWindow());
+                    break;
+                case 1:
+                    glWindow2.reparentWindow(glWindow1, null);
+                    Assert.assertEquals(true, glWindow2.isVisible());
+                    Assert.assertEquals(true, glWindow2.isNativeWindowValid());
+                    Assert.assertEquals(glWindow1,glWindow2.getParentNativeWindow());
+                    break;
+            }
+            state++;
+        }
+        animator1.stop();
+        animator2.stop();
+
+        glWindow1.destroy(true);
+    }
+
+    public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
         Assert.assertNotNull(demo);
-        Assert.assertNotNull(window);
+        Assert.assertNotNull(glWindow);
+        Window window = glWindow.getInnerWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);
@@ -200,8 +267,22 @@ public class TestParenting01NEWT {
         }
     }
 
+    static int atoi(String a) {
+        int i=0;
+        try {
+            durationPerTest = Integer.parseInt(a);
+        } catch (Exception ex) { ex.printStackTrace(); }
+        return i;
+    }
+
     public static void main(String args[]) throws IOException {
-        durationPerTest = 5000;
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-time")) {
+                durationPerTest = atoi(args[++i]);
+            } else if(args[i].equals("-wait")) {
+                waitReparent = atoi(args[++i]);
+            }
+        }
         String tstname = TestParenting01NEWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,

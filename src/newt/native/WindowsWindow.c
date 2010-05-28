@@ -1034,7 +1034,7 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_getHeight
 
 /*
  * Class:     com_jogamp_newt_impl_windows_WindowsWindow
- * Method:    initIDs
+ * Method:    initIDs0
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_initIDs0
@@ -1282,20 +1282,16 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setPositi
 /*
  * Class:     com_jogamp_newt_impl_windows_WindowsWindow
  * Method:    setFullscreen
- * Signature: (JIIIIZZ)V
+ * Signature: (JIIIIZ)V
  */
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setFullscreen0
-  (JNIEnv *env, jobject obj, jlong parent, jlong window, jint x, jint y, jint width, jint height, jboolean bIsUndecorated, jboolean on)
+  (JNIEnv *env, jobject obj, jlong parent, jlong window, jint x, jint y, jint width, jint height, jboolean bIsUndecorated)
 {
     UINT flags;
     HWND hwndP = (HWND) (intptr_t) parent;
     HWND hwnd = (HWND) (intptr_t) window;
     HWND hWndInsertAfter;
     DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
-
-    if ( JNI_TRUE == on ) {
-        hwndP = NULL; // full-screen is top level
-    }
 
     // order of call sequence: (MS documentation)
     //      SetParent(.., NULL),   SetWindowLong ( WS_POPUP )
@@ -1306,7 +1302,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setFullsc
 
     if(NULL!=hwndP) {
         windowStyle |= WS_CHILD ;
-    } else if (bIsUndecorated || on) {
+    } else if (bIsUndecorated) {
         windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
     } else {
         windowStyle |= WS_OVERLAPPEDWINDOW;
@@ -1317,7 +1313,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setFullsc
         SetParent(hwnd, hwndP );
     }
 
-    if(on==JNI_TRUE) {
+    if ( NULL == hwndP ) {
         flags = SWP_SHOWWINDOW;
         hWndInsertAfter = HWND_TOPMOST;
     } else {
@@ -1330,6 +1326,57 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setFullsc
     NewtWindows_requestFocus ( hwnd );
 
     (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
+}
+
+/*
+ * Class:     com_jogamp_newt_impl_windows_WindowsWindow
+ * Method:    reparentWindow0
+ * Signature: (JIIIIZ)V
+ */
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_reparentWindow0
+  (JNIEnv *env, jobject obj, jlong parent, jlong window, jint x, jint y, jint width, jint height, jboolean bIsUndecorated)
+{
+    UINT flags;
+    HWND hwndP = (HWND) (intptr_t) parent;
+    HWND hwnd = (HWND) (intptr_t) window;
+    HWND hWndInsertAfter;
+    DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
+
+    // order of call sequence: (MS documentation)
+    //      SetParent(.., NULL),   SetWindowLong ( WS_POPUP )
+    //      SetParent(.., PARENT), SetWindowLong ( WS_CHILD )
+    if ( NULL == hwndP ) {
+        SetParent(hwnd, NULL);
+    }
+
+    if(NULL!=hwndP) {
+        windowStyle |= WS_CHILD ;
+    } else if (bIsUndecorated) {
+        windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
+    } else {
+        windowStyle |= WS_OVERLAPPEDWINDOW;
+    }
+    SetWindowLong(hwnd, GWL_STYLE, windowStyle);
+
+    if ( NULL != hwndP ) {
+        SetParent(hwnd, hwndP );
+    }
+
+    /**
+    if ( NULL == hwndP ) {
+        flags = SWP_SHOWWINDOW;
+        hWndInsertAfter = HWND_TOPMOST;
+    } else {
+        flags = SWP_NOACTIVATE | SWP_NOZORDER;
+        hWndInsertAfter = 0;
+    }
+
+    SetWindowPos(hwnd, hWndInsertAfter, x, y, width, height, flags);
+    */
+
+    NewtWindows_requestFocus ( hwnd );
+
+    // (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
 }
 
 /*

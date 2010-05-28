@@ -117,10 +117,6 @@ public class NullWindow implements NativeWindow, SurfaceChangeable {
     return config;
   }
 
-  public Object getWrappedWindow() {
-    return null;
-  }
-
   public final boolean isTerminalObject() {
     return true;
   }

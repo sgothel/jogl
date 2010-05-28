@@ -60,15 +60,28 @@ void setFrameTopLeftPoint(NSWindow* pwin, NSWindow* win, jint x, jint y)
     NSRect visibleRect; // either screen or parent-window 
     NSPoint pt;
     int d_pty=0; // parent titlebar height
+    int d_ptx=0; 
     
     if(NULL==pwin) {
         visibleRect = [screen frame];
     } else {
         visibleRect = [pwin frame];
-
         NSView* pview = [pwin contentView];
         NSRect viewRect = [pview frame];
         d_pty = visibleRect.size.height - viewRect.size.height;
+        //d_pty = visibleRect.origin.y - viewRect.size.height;
+        //d_ptx = visibleRect.size.height - viewRect.size.height;
+        fprintf(stderr, "pwin %lf/%lf %lfx%lf, pview %lf/%lf %lfx%lf -> %d/%d\n", 
+            visibleRect.origin.x,
+            visibleRect.origin.y,
+            visibleRect.size.width,
+            visibleRect.size.height, 
+            viewRect.origin.x,
+            viewRect.origin.y,
+            viewRect.size.width,
+            viewRect.size.height, 
+            x, y);
+
     }
 
     pt = NSMakePoint(visibleRect.origin.x + x, visibleRect.origin.y + visibleRect.size.height - y - d_pty);
@@ -167,8 +180,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_macosx_MacDisplay_dispatchMessa
 
 NS_DURING
 
-    NSWindow* win = NULL;
-    NewtView* view = NULL;
     int num_events = 0;
 
     // Periodically take a break
@@ -287,7 +298,17 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_macosx_MacWindow_createWindow0
                                                backing: (NSBackingStoreType) bufferingType
                                                screen: screen] retain];
 
-    NSWindow* parentWindow = (NSWindow*) ((intptr_t) parent);
+    NSObject *nsParentObj = (NSObject*) ((intptr_t) parent);
+    NSWindow* parentWindow = NULL;
+    if( nsParentObj != NULL && [nsParentObj isKindOfClass:[NSWindow class]] ) {
+        parentWindow = (NSWindow*) nsParentObj;
+    } else if( nsParentObj != NULL && [nsParentObj isKindOfClass:[NSView class]] ) {
+        NSView* view = (NSView*) nsParentObj;
+        parentWindow = [view window];
+        fprintf(stderr, "createWindow0 - Parent is NSView : %p -> %p (win) \n", nsParentObj, parentWindow);
+    } else {
+        fprintf(stderr, "createWindow0 - Parent is neither NSWindow nor NSView : %p\n", nsParentObj);
+    }
     if(NULL!=parentWindow) {
         [parentWindow addChildWindow: window ordered: NSWindowAbove];
         [window setParentWindow: parentWindow];
@@ -448,7 +469,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_macosx_MacWindow_changeContent
 
     [pool release];
 
-    return oldView;
+    return (jlong) ((intptr_t) oldView);
 }
 
 /*

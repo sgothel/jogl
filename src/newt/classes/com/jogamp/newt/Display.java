@@ -127,17 +127,18 @@ public abstract class Display {
     /** Make sure to reuse a Display with the same name */
     protected static Display create(String type, String name, final long handle) {
         try {
-            if(null==name && 0!=handle) {
-                name="wrapping-0x"+Long.toHexString(handle); // may change within implementation ..
-            }
+            Class displayClass = getDisplayClass(type);
+            Display tmpDisplay = (Display) displayClass.newInstance();
+            name = tmpDisplay.validateDisplayName(name, handle);
+
             if(DEBUG) {
                 dumpDisplayMap("Display.create("+getFQName(type, name)+") BEGIN");
             }
             Display display = getCurrentDisplay(type, name);
             if(null==display) {
-                Class displayClass = getDisplayClass(type);
-                display = (Display) displayClass.newInstance();
-                display.name=name;
+                display = tmpDisplay;
+                tmpDisplay = null;
+                display.name = name;
                 display.type=type;
                 display.refCount=1;
 
@@ -145,7 +146,7 @@ public abstract class Display {
                     final Display f_dpy = display;
                     Thread current = Thread.currentThread();
                     display.edtUtil = new EDTUtil(current.getThreadGroup(), 
-                                                  "Display_"+display.getFQName()+"-"+current.getName(),
+                                                  "Display_"+display.getFQName(),
                                                   new Runnable() {
                                                     public void run() {
                                                         if(null!=f_dpy.getGraphicsDevice()) {
@@ -155,11 +156,11 @@ public abstract class Display {
                     display.edt = display.edtUtil.start();
                     display.edtUtil.invokeAndWait(new Runnable() {
                         public void run() {
-                            f_dpy.createNative(handle);
+                            f_dpy.createNative();
                         }
                     } );
                 } else {
-                    display.createNative(handle);
+                    display.createNative();
                 }
                 if(null==display.aDevice) {
                     throw new RuntimeException("Display.createNative() failed to instanciate an AbstractGraphicsDevice");
@@ -169,6 +170,7 @@ public abstract class Display {
                     System.err.println("Display.create("+getFQName(type, name)+") NEW: "+display+" "+Thread.currentThread());
                 }
             } else {
+                tmpDisplay = null;
                 synchronized(display) {
                     display.refCount++;
                     if(DEBUG) {
@@ -224,7 +226,7 @@ public abstract class Display {
         }
     }
 
-    protected abstract void createNative(long handle);
+    protected abstract void createNative();
     protected abstract void closeNative();
 
     public final String getType() {
@@ -241,10 +243,17 @@ public abstract class Display {
 
     static final String nilString = "nil" ;
 
+    protected String validateDisplayName(String name, long handle) {
+        if(null==name && 0!=handle) {
+            name="wrapping-0x"+Long.toHexString(handle);
+        }
+        return ( null == name ) ? nilString : name ;
+    }
+
     public static final String getFQName(String type, String name) {
         if(null==type) type=nilString;
         if(null==name) name=nilString;
-        return type+":"+name;
+        return type+"_"+name;
     }
 
     public long getHandle() {
@@ -268,7 +277,7 @@ public abstract class Display {
     }
 
     public String toString() {
-        return "NEWT-Display["+getFQName()+", refCount "+refCount+", "+aDevice+"]";
+        return "NEWT-Display["+getFQName()+", refCount "+refCount+", hasEDT "+(null!=edtUtil)+", "+aDevice+"]";
     }
 
     protected abstract void dispatchMessagesNative();
@@ -276,31 +285,48 @@ public abstract class Display {
     private LinkedList/*<NEWTEvent>*/ events = new LinkedList();
 
     protected void dispatchMessages() {
-        NEWTEvent e;
-        do {
+        if(!events.isEmpty()) {
             synchronized(events) {
-                if (!events.isEmpty()) {
-                    e = (NEWTEvent) events.removeFirst();
-                } else {
-                    e = null;
+                while (!events.isEmpty()) {
+                    NEWTEvent e = (NEWTEvent) events.removeFirst();
+                    Object source = e.getSource();
+                    if(source instanceof Window) {
+                        ((Window)source).sendEvent(e);
+                    } else {
+                        throw new RuntimeException("Event source not a NEWT Window: "+source.getClass().getName()+", "+source);
+                    }
                 }
+                events.notifyAll();
             }
-            if (e != null) {
-                Object source = e.getSource();
-                if(source instanceof Window) {
-                    ((Window)source).sendEvent(e);
-                } else {
-                    throw new RuntimeException("Event source not a NEWT Window: "+source.getClass().getName()+", "+source);
-                }
-            }
-        } while (e != null);
+        }
 
         dispatchMessagesNative();
     }
 
     public void enqueueEvent(NEWTEvent e) {
+        enqueueEvent(false, e);
+    }
+
+    public void enqueueEvent(boolean wait, NEWTEvent e) {
         synchronized(events) {
+            if(DEBUG) {
+                System.out.println("Display.enqueueEvent: START - wait "+wait+", "+e);
+            }
             events.addLast(e);
+        }
+        if(wait && !events.isEmpty()) {
+            synchronized(events) {
+                while(!events.isEmpty()) {
+                    try {
+                        events.wait();
+                    } catch (InterruptedException ie) {
+                        ie.printStackTrace();
+                    }
+                }
+            }
+        }
+        if(DEBUG) {
+            System.out.println("Display.enqueueEvent: END - wait "+wait+", "+e);
         }
     }
 

@@ -71,7 +71,7 @@ public class OffscreenWindow extends Window implements SurfaceChangeable {
         surfaceHandle = 0;
     }
 
-    public synchronized void destroy() {
+    public synchronized void destroy(boolean deep) {
         surfaceHandle = 0;
     }
 
@@ -83,7 +83,7 @@ public class OffscreenWindow extends Window implements SurfaceChangeable {
         return surfaceHandle;
     }
 
-    protected void setVisibleImpl() {
+    protected void setVisibleImpl(boolean visible) {
     }
 
     public void setSize(int width, int height) {
@@ -92,13 +92,23 @@ public class OffscreenWindow extends Window implements SurfaceChangeable {
             this.height = height;
         }
     }
+    protected void setSizeImpl(int width, int height) {
+        shouldNotCallThis();
+    }
 
     public void setPosition(int x, int y) {
         // nop
     }
+    protected void setPositionImpl(int x, int y) {
+        shouldNotCallThis();
+    }
 
     public boolean setFullscreen(boolean fullscreen) {
         // nop
+        return false;
+    }
+    protected boolean setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
+        shouldNotCallThis();
         return false;
     }
 }

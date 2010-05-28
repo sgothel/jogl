@@ -176,7 +176,7 @@ public class AWTWindow extends Window {
         return res;
     }
 
-    protected void setVisibleImpl() {
+    protected void setVisibleImpl(final boolean visible) {
         runOnEDT(true, new Runnable() {
                 public void run() {
                     container.setVisible(visible);
@@ -203,13 +203,7 @@ public class AWTWindow extends Window {
         ((AWTScreen)screen).setScreenSize(w, h);
     }
 
-    public void setSize(final int width, final int height) {
-        this.width = width;
-        this.height = height;
-        if(!fullscreen) {
-            nfs_width=width;
-            nfs_height=height;
-        }
+    protected void setSizeImpl(final int width, final int height) {
         if(null!=container) {
             /** An AWT event on setSize() would bring us in a deadlock situation, hence invokeLater() */
             runOnEDT(false, new Runnable() {
@@ -237,55 +231,34 @@ public class AWTWindow extends Window {
             Insets(insets[0],insets[1],insets[2],insets[3]);
     }
 
-    public void setPosition(final int x, final int y) {
-        this.x = x;
-        this.y = y;
-        if(!fullscreen) {
-            nfs_x=x;
-            nfs_y=y;
-        }
-        runOnEDT(true, new Runnable() {
-                public void run() {
-                    container.setLocation(x, y);
-                }
-            });
-    }
-
-    public boolean setFullscreen(final boolean fullscreen) {
-        if(this.fullscreen!=fullscreen) {
-            final int x,y,w,h;
-            this.fullscreen=fullscreen;
-            if(fullscreen) {
-                x = 0; y = 0;
-                w = screen.getWidth();
-                h = screen.getHeight();
-            } else {
-                x = nfs_x;
-                y = nfs_y;
-                w = nfs_width;
-                h = nfs_height;
-            }
-            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                System.err.println("AWTWindow fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h);
-            }
-            /** An AWT event on setSize() would bring us in a deadlock situation, hence invokeLater() */
-            runOnEDT(false, new Runnable() {
+    protected void setPositionImpl(final int x, final int y) {
+        if(null!=container) {
+            runOnEDT(true, new Runnable() {
                     public void run() {
-                        if(null!=frame) {
-                            if(!container.isDisplayable()) {
-                                frame.setUndecorated(undecorated||fullscreen);
-                            } else {
-                                if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                                    System.err.println("AWTWindow can't undecorate already created frame");
-                                }
-                            }
-                        }
                         container.setLocation(x, y);
-                        container.setSize(w, h);
                     }
                 });
         }
-        return true;
+    }
+
+    protected boolean setFullscreenImpl(final boolean fullscreen, final int x, final int y, final int w, final int h) {
+        /** An AWT event on setSize() would bring us in a deadlock situation, hence invokeLater() */
+        runOnEDT(false, new Runnable() {
+                public void run() {
+                    if(null!=frame) {
+                        if(!container.isDisplayable()) {
+                            frame.setUndecorated(isUndecorated(fullscreen));
+                        } else {
+                            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                                System.err.println("AWTWindow can't undecorate already created frame");
+                            }
+                        }
+                    }
+                    container.setLocation(x, y);
+                    container.setSize(w, h);
+                }
+            });
+        return fullscreen;
     }
 
     public Object getWrappedWindow() {

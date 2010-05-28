@@ -69,6 +69,7 @@
     #define DBG_PRINT6(str, arg1, arg2, arg3, arg4, arg5, arg6) fprintf(stderr, str, arg1, arg2, arg3, arg4, arg5, arg6);
     #define DBG_PRINT7(str, arg1, arg2, arg3, arg4, arg5, arg6, arg7) fprintf(stderr, str, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
     #define DBG_PRINT8(str, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) fprintf(stderr, str, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+    #define DBG_PRINT9(str, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) fprintf(stderr, str, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
 
     #define DUMP_VISUAL_INFO(a,b) _dumpVisualInfo((a),(b))
 
@@ -105,6 +106,7 @@
     #define DBG_PRINT6(str, arg1, arg2, arg3, arg4, arg5, arg6)
     #define DBG_PRINT7(str, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
     #define DBG_PRINT8(str, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+    #define DBG_PRINT9(str, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 
     #define DUMP_VISUAL_INFO(a,b)
 
@@ -173,6 +175,7 @@ static jclass    newtWindowClz=NULL;
 
 static jmethodID windowChangedID = NULL;
 static jmethodID focusChangedID = NULL;
+static jmethodID visibleChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowDestroyedID = NULL;
 static jmethodID windowCreatedID = NULL;
@@ -312,6 +315,13 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_CompleteDisplay0
     (*env)->CallVoidMethod(env, obj, displayCompletedID, javaObjectAtom, windowDeleteAtom);
 }
 
+/**
+ * Window
+ */
+
+// #define WINDOW_EVENT_MASK ( FocusChangeMask | StructureNotifyMask | ExposureMask | VisibilityNotify )
+#define WINDOW_EVENT_MASK ( FocusChangeMask | StructureNotifyMask | VisibilityNotify )
+
 static int putPtrIn32Long(unsigned long * dst, uintptr_t src) {
     int i=0;
         dst[i++] = (unsigned long) ( ( src >>  0 ) & 0xFFFFFFFF ) ;
@@ -344,7 +354,7 @@ static void setJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlon
                                      (unsigned char *)&jogl_java_object_data, nitems_32);
 }
 
-static jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom) {
+static jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom, Bool showWarning) {
     Atom actual_type_return;
     int actual_format_return;
     int nitems_32 = ( sizeof(uintptr_t) == 8 ) ? 2 : 1 ;
@@ -362,14 +372,18 @@ static jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, j
                                  &nitems_return, &bytes_after_return, &jogl_java_object_data_pp);
 
         if ( Success != res ) {
-            fprintf(stderr, "Warning: NEWT X11Window: Could not fetch Atom JOGL_JAVA_OBJECT window property (res %d) nitems_return %ld, bytes_after_return %ld, result 0!\n", res, nitems_return, bytes_after_return);
+            if(True==showWarning) {
+                fprintf(stderr, "Warning: NEWT X11Window: Could not fetch Atom JOGL_JAVA_OBJECT window property (res %d) nitems_return %ld, bytes_after_return %ld, result 0!\n", res, nitems_return, bytes_after_return);
+            }
             return NULL;
         }
 
         if(actual_type_return!=(Atom)javaObjectAtom || nitems_return<nitems_32 || NULL==jogl_java_object_data_pp) {
             XFree(jogl_java_object_data_pp);
-            fprintf(stderr, "Warning: NEWT X11Window: Fetched invalid Atom JOGL_JAVA_OBJECT window property (res %d) nitems_return %ld, bytes_after_return %ld, actual_type_return %ld, JOGL_JAVA_OBJECT %ld, result 0!\n", 
+            if(True==showWarning) {
+                fprintf(stderr, "Warning: NEWT X11Window: Fetched invalid Atom JOGL_JAVA_OBJECT window property (res %d) nitems_return %ld, bytes_after_return %ld, actual_type_return %ld, JOGL_JAVA_OBJECT %ld, result 0!\n", 
                 res, nitems_return, bytes_after_return, (long)actual_type_return, javaObjectAtom);
+            }
             return NULL;
         }
     }
@@ -385,29 +399,50 @@ static jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, j
     return jwindow;
 }
 
-static void NewtWindows_requestFocus (Display *dpy, Window w) {
-    XWindowAttributes attributes;
+static void NewtWindows_requestFocus0 (Display *dpy, Window w, XWindowAttributes *xwa) {
+    // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
+    if(xwa->map_state == IsViewable) {
+        XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
+    }
+}
+
+static void NewtWindows_requestFocus1 (Display *dpy, Window w) {
+    XWindowAttributes xwa;
 
     XLockDisplay(dpy) ;
 
-    // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
-    XGetWindowAttributes(dpy, w, &attributes);
-    if(attributes.map_state == IsViewable) {
-        XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
-        XSync(dpy, False);
-    }
+    XGetWindowAttributes(dpy, w, &xwa);
+    NewtWindows_requestFocus0 (dpy, w, &xwa);
+    XSync(dpy, False);
 
     XUnlockDisplay(dpy) ;
 }
 
-/** changing this attribute while a window is established,
-  * didn't impact the decoration - only at window creation time.
-static void NewtWindows_setOverrideRedirect (Display *dpy, Window w, Bool val) {
+/** 
+ * Changing this attribute while a window is established,
+ * returns the previous value.
+ */
+static Bool NewtWindows_setOverrideRedirect0 (Display *dpy, Window w, XWindowAttributes *xwa, Bool newVal) {
+    Bool oldVal = xwa->override_redirect;
     XSetWindowAttributes xswa;
-    memset(&xswa, 0, sizeof(XSetWindowAttributes));
-    xswa.override_redirect = val; 
-    XChangeWindowAttributes(dpy, w, CWOverrideRedirect, &xswa);
-} */
+
+    if(oldVal != newVal) {
+        memset(&xswa, 0, sizeof(XSetWindowAttributes));
+        xswa.override_redirect = newVal; 
+        XChangeWindowAttributes(dpy, w, CWOverrideRedirect, &xswa);
+    }
+    return oldVal;
+}
+
+static Bool NewtWindows_setOverrideRedirect1 (Display *dpy, Window w, Bool newVal) {
+    XWindowAttributes xwa;
+    Bool oldVal;
+
+    XSync(dpy, False);
+    XGetWindowAttributes(dpy, w, &xwa);
+
+    return NewtWindows_setOverrideRedirect0 (dpy, w, &xwa, newVal);
+}
 
 #define MWM_HINTS_DECORATIONS   (1L << 1)
 #define PROP_MWM_HINTS_ELEMENTS 5
@@ -469,18 +504,26 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
             return ;
         }
 
+        DBG_PRINT3( "X11: DispatchMessages dpy %p, win %p, Event %d\n", (void*)dpy, (void*)evt.xany.window, evt.type);
+
         displayDispatchErrorHandlerEnable(1, env);
 
-        jwindow = getJavaWindowProperty(env, dpy, evt.xany.window, javaObjectAtom);
+        jwindow = getJavaWindowProperty(env, dpy, evt.xany.window, javaObjectAtom,
+        #ifdef VERBOSE_ON
+                True
+        #else
+                False
+        #endif
+            );
 
         displayDispatchErrorHandlerEnable(0, env);
 
         if(NULL==jwindow) {
-            fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for invalid X11 window %p\n", 
+            fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for X11 window %p\n", 
                 (void*)dpy, evt.type, (void*)evt.xany.window);
+
             XUnlockDisplay(dpy) ;
-            // DBG_PRINT1( "X11: DispatchMessages 0x%X - Leave 2\n", dpy); 
-            return;
+            continue;
         }
  
         switch(evt.type) {
@@ -497,11 +540,10 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
         }
 
         XUnlockDisplay(dpy) ;
-        // DBG_PRINT3( "X11: DispatchMessages 0x%X - Window %p, Event %d\n", dpy, jwindow, evt.type); 
 
         switch(evt.type) {
             case ButtonPress:
-                NewtWindows_requestFocus ( dpy, evt.xany.window );
+                NewtWindows_requestFocus1 ( dpy, evt.xany.window );
                 (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
                                       (jint) evt.xbutton.state, 
                                       (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
@@ -565,6 +607,16 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
                 (*env)->CallVoidMethod(env, jwindow, focusChangedID, JNI_FALSE);
                 break;
 
+            case MapNotify:
+                DBG_PRINT1( "X11: event . MapNotify call 0x%X\n", (unsigned int)evt.xunmap.window);
+                // FIXME (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_TRUE);
+                break;
+
+            case UnmapNotify:
+                DBG_PRINT1( "X11: event . UnmapNotify call 0x%X\n", (unsigned int)evt.xunmap.window);
+                // FIXME (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_FALSE);
+                break;
+
             // unhandled events .. yet ..
 
             case VisibilityNotify:
@@ -573,9 +625,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
             case Expose:
                 DBG_PRINT1( "X11: event . Expose call 0x%X\n", (unsigned int)evt.xexpose.window);
                 /* FIXME: Might want to send a repaint event .. */
-                break;
-            case UnmapNotify:
-                DBG_PRINT1( "X11: event . UnmapNotify call 0x%X\n", (unsigned int)evt.xunmap.window);
                 break;
             default:
                 DBG_PRINT3("X11: event . unhandled %d 0x%X call 0x%X\n", evt.type, evt.type, (unsigned int)evt.xunmap.window);
@@ -644,6 +693,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs0
 {
     windowChangedID = (*env)->GetMethodID(env, clazz, "windowChanged", "(IIII)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(Z)V");
+    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(J)V");
@@ -652,6 +702,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs0
 
     if (windowChangedID == NULL ||
         focusChangedID == NULL ||
+        visibleChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowDestroyedID == NULL ||
         windowCreatedID == NULL ||
@@ -691,8 +742,6 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow0
     Screen* scrn;
     Atom wm_delete_atom;
 
-    DBG_PRINT5( "X11: CreateWindow %x/%d %dx%d, undeco %d\n", x, y, width, height, undecorated);
-
     if(dpy==NULL) {
         _FatalError(env, "invalid display connection..");
     }
@@ -707,6 +756,11 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow0
     XSync(dpy, False);
 
     scrn = ScreenOfDisplay(dpy, scrn_idx);
+    if(0==windowParent) {
+        windowParent = XRootWindowOfScreen(scrn);
+    }
+    DBG_PRINT7( "X11: CreateWindow dpy %p, parent %p, %x/%d %dx%d, undeco %d\n", 
+        (void*)dpy, (void*)windowParent, x, y, width, height, undecorated);
 
     // try given VisualID on screen
     memset(&visualTemplate, 0, sizeof(XVisualInfo));
@@ -721,8 +775,8 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow0
         XFree(pVisualQuery);
         pVisualQuery=NULL;
     }
-    DBG_PRINT5( "X11: [CreateWindow] trying given (dpy %p, screen %d, visualID: %d, parent 0x%X) found: %p\n", 
-        dpy, scrn_idx, (int)visualID, (unsigned int)windowParent, visual);
+    DBG_PRINT5( "X11: [CreateWindow] trying given (dpy %p, screen %d, visualID: %d, parent %p) found: %p\n", 
+        dpy, scrn_idx, (int)visualID, (void*)windowParent, visual);
 
     if (visual==NULL)
     { 
@@ -735,17 +789,12 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow0
         pVisualQuery=NULL;
     }
 
-    if(0==windowParent) {
-        windowParent = XRootWindowOfScreen(scrn);
-    }
-
-    attrMask  = ( CWBackPixel | CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect ) ;
+    attrMask  = ( CWBackPixel | CWBorderPixel | CWColormap | CWOverrideRedirect ) ;
 
     memset(&xswa, 0, sizeof(xswa));
-    xswa.override_redirect = ( JNI_TRUE == undecorated || 0 != parent ) ? True : False ;
+    xswa.override_redirect = ( 0 != parent ) ? True : False ;
     xswa.border_pixel = 0;
     xswa.background_pixel = 0;
-    xswa.event_mask = FocusChangeMask | ExposureMask | StructureNotifyMask | KeyPressMask | KeyReleaseMask;
     xswa.colormap = XCreateColormap(dpy,
                                     windowParent, // XRootWindow(dpy, scrn_idx),
                                     visual,
@@ -778,9 +827,11 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow0
         long xevent_mask = 0;
         xevent_mask |= ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
         xevent_mask |= KeyPressMask | KeyReleaseMask;
-        xevent_mask |= FocusChangeMask | ExposureMask | StructureNotifyMask | VisibilityNotify ;
+        xevent_mask |= WINDOW_EVENT_MASK ;
         XSelectInput(dpy, window, xevent_mask);
     }
+
+    NewtWindows_setDecorations (dpy, window, ( JNI_TRUE == undecorated ) ? False : True );
 
     XSync(dpy, False);
     XUnlockDisplay(dpy) ;
@@ -808,7 +859,9 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CloseWindow0
     }
     XLockDisplay(dpy) ;
 
-    jwindow = getJavaWindowProperty(env, dpy, w, javaObjectAtom);
+    DBG_PRINT2( "X11: CloseWindow START dpy %p, win %p\n", (void*)dpy, (void*)w);
+
+    jwindow = getJavaWindowProperty(env, dpy, w, javaObjectAtom, True);
     if(NULL==jwindow) {
         _throwNewRuntimeException(dpy, env, "could not fetch Java Window object, bail out!");
         return;
@@ -825,6 +878,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CloseWindow0
     XDestroyWindow(dpy, w);
     XSync(dpy, False);
 
+    DBG_PRINT0( "X11: CloseWindow END\n");
     XUnlockDisplay(dpy) ;
 
     (*env)->CallVoidMethod(env, obj, windowDestroyedID);
@@ -886,48 +940,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setSize0
 
 /*
  * Class:     com_jogamp_newt_impl_x11_X11Window
- * Method:    setPosSizeDecor0
- * Signature: (JIJIIIIIZ)V
- */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setPosSizeDecor0
-  (JNIEnv *env, jobject obj, jlong jparent, jlong display, jint screen_index, jlong window, 
-   jint x, jint y, jint width, jint height, jboolean undecorated) 
-{
-    Display * dpy = (Display *) (intptr_t) display;
-    Window w = (Window)window;
-    Screen * scrn = ScreenOfDisplay(dpy, (int)screen_index);
-    Window parent = (0!=jparent)?(Window)jparent:XRootWindowOfScreen(scrn);
-
-    XWindowChanges xwc;
-
-    DBG_PRINT5( "X11: setPosSizeDecor0 %d/%d %dx%d, undec %d\n", x, y, width, height, undecorated);
-
-    if(dpy==NULL) {
-        _FatalError(env, "invalid display connection..");
-    }
-    XLockDisplay(dpy) ;
-
-    // we need to reparent the window,
-    // to allow a child window to go fullscreen and back.
-    XReparentWindow( dpy, w, parent, x, y );
-    XRaiseWindow(dpy, w);
-
-    NewtWindows_setDecorations (dpy, w, ( JNI_TRUE == undecorated ) ? False : True );
-
-    memset(&xwc, 0, sizeof(XWindowChanges));
-    xwc.x=x;
-    xwc.y=y;
-    xwc.width=width;
-    xwc.height=height;
-    XConfigureWindow(dpy, w, CWX|CWY|CWWidth|CWHeight, &xwc);
-    XSync(dpy, False);
-
-    NewtWindows_requestFocus ( dpy, w );
-    XUnlockDisplay(dpy) ;
-}
-
-/*
- * Class:     com_jogamp_newt_impl_x11_X11Window
  * Method:    setPosition0
  * Signature: (JJII)V
  */
@@ -951,6 +963,106 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setPosition0
     XSync(dpy, False);
 
     XUnlockDisplay(dpy) ;
+}
+
+static void NewtWindows_reparentWindow
+  (Display * dpy, Screen * scrn, Window w, XWindowAttributes *xwa, jlong jparent, jint x, jint y, jboolean undecorated)
+{
+    Window parent = (0!=jparent)?(Window)jparent:XRootWindowOfScreen(scrn);
+
+    DBG_PRINT7( "X11: reparentWindow dpy %p, parent %p/%p, win %p, %d/%d undec %d\n", 
+        (void*)dpy, (void*) jparent, (void*)parent, (void*)w, x, y, undecorated);
+
+    // let parent ignore reparent request
+    NewtWindows_setOverrideRedirect0 (dpy, w, xwa, True);
+    if(JNI_TRUE == undecorated) {
+        NewtWindows_setDecorations (dpy, w, False);
+    }
+    XSync(dpy, False);
+
+    XReparentWindow( dpy, w, parent, x, y );
+    XRaiseWindow(dpy, w);
+    XSync(dpy, False);
+
+    NewtWindows_setOverrideRedirect0 (dpy, w, xwa, ( 0 != jparent ) ? True : False );
+    if(JNI_FALSE == undecorated) {
+        NewtWindows_setDecorations (dpy, w, True);
+    }
+    XSync(dpy, False);
+
+    DBG_PRINT0( "X11: reparentWindow X\n");
+}
+
+/*
+ * Class:     com_jogamp_newt_impl_x11_X11Window
+ * Method:    setPosSizeDecor0
+ * Signature: (JJIJIIIIZ)V
+ */
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setPosSizeDecor0
+  (JNIEnv *env, jobject obj, jlong jparent, jlong display, jint screen_index, jlong window, 
+   jint x, jint y, jint width, jint height, jboolean undecorated) 
+{
+    Display * dpy = (Display *) (intptr_t) display;
+    Window w = (Window)window;
+    Screen * scrn = ScreenOfDisplay(dpy, (int)screen_index);
+
+    XWindowChanges xwc;
+    XWindowAttributes xwa;
+
+    DBG_PRINT8( "X11: setPosSizeDecor0 dpy %p, parent %p, win %p, %d/%d %dx%d undec %d\n", 
+        (void*)dpy, (void*) jparent, (void*)w, x, y, width, height, undecorated);
+
+    if(dpy==NULL) {
+        _FatalError(env, "invalid display connection..");
+    }
+    XLockDisplay(dpy) ;
+
+    XSync(dpy, False);
+    XGetWindowAttributes(dpy, w, &xwa);
+
+    NewtWindows_reparentWindow(dpy, scrn, w, &xwa, jparent, x, y, undecorated);
+
+    memset(&xwc, 0, sizeof(XWindowChanges));
+    xwc.x=x;
+    xwc.y=y;
+    xwc.width=width;
+    xwc.height=height;
+    XConfigureWindow(dpy, w, CWX|CWY|CWWidth|CWHeight, &xwc);
+    XSync(dpy, False);
+
+    NewtWindows_requestFocus0 ( dpy, w, &xwa );
+    XSync(dpy, False);
+    XUnlockDisplay(dpy) ;
+}
+
+/*
+ * Class:     com_jogamp_newt_impl_x11_X11Window
+ * Method:    reparentWindow0
+ * Signature: (JJIJIIZ)V
+ */
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_reparentWindow0
+  (JNIEnv *env, jobject obj, jlong jparent, jlong display, jint screen_index, jlong window, jint x, jint y, jboolean undecorated)
+{
+    Display * dpy = (Display *) (intptr_t) display;
+    Window w = (Window)window;
+    Screen * scrn = ScreenOfDisplay(dpy, (int)screen_index);
+    XWindowAttributes xwa;
+
+    DBG_PRINT6( "X11: reparentWindow0 dpy %p, parent %p, win %p, %d/%d undec %d\n", 
+        (void*)dpy, (void*) jparent, (void*)w, x, y, undecorated);
+
+    if(dpy==NULL) {
+        _FatalError(env, "invalid display connection..");
+    }
+    XLockDisplay(dpy) ;
+
+    XSync(dpy, False);
+    XGetWindowAttributes(dpy, w, &xwa);
+
+    NewtWindows_reparentWindow(dpy, scrn, w, &xwa, jparent, x, y, undecorated);
+
+    XUnlockDisplay(dpy) ;
+    DBG_PRINT0( "X11: reparentWindow0 X\n");
 }
 
 /*

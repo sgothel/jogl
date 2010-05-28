@@ -56,10 +56,8 @@ public class Display extends com.jogamp.newt.Display {
     public Display() {
     }
 
-    protected void createNative(long handle) {
-        if( 0 == handle ) {
-            handle = CreateDisplay(Screen.fixedWidth, Screen.fixedHeight);
-        }
+    protected void createNative() {
+        long handle = CreateDisplay(Screen.fixedWidth, Screen.fixedHeight);
         if (handle == EGL.EGL_NO_DISPLAY) {
             throw new NativeWindowException("BC EGL CreateDisplay failed");
         }

@@ -60,7 +60,7 @@ public class WindowsDisplay extends Display {
     public WindowsDisplay() {
     }
 
-    protected void createNative(long handle) {
+    protected void createNative() {
         aDevice = new WindowsGraphicsDevice();
     }
 

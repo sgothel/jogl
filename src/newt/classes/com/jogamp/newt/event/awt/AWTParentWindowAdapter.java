@@ -42,9 +42,18 @@ public class AWTParentWindowAdapter extends AWTWindowAdapter
     }
 
     public void componentResized(java.awt.event.ComponentEvent e) {
-        // need to really resize the NEWT child window
-        java.awt.Component comp = e.getComponent();
-        newtWindow.setSize(comp.getWidth(), comp.getHeight());
+        // Need to resize the NEWT child window
+        // the resized event will be send via the native window feedback.
+        final java.awt.Component comp = e.getComponent();
+        newtWindow.runOnEDTIfAvail(false, new Runnable() {
+            public void run() {
+                if( 0 < comp.getWidth() * comp.getHeight() ) {
+                    newtWindow.setSize(comp.getWidth(), comp.getHeight());
+                    newtWindow.setVisible(comp.isVisible());
+                } else {
+                    newtWindow.setVisible(false);
+                }
+            }});
     }
 
     public void componentMoved(java.awt.event.ComponentEvent e) {

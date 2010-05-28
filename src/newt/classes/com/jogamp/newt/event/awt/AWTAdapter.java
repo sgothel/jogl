@@ -31,6 +31,9 @@
  */
 package com.jogamp.newt.event.awt;
 
+import com.jogamp.newt.util.EDTUtil;
+import com.jogamp.newt.impl.Debug;
+
 /**
  * Convenient adapter forwarding AWT events to NEWT via the event listener model.<br>
  * <p>
@@ -102,6 +105,8 @@ package com.jogamp.newt.event.awt;
  */
 public abstract class AWTAdapter implements java.util.EventListener
 {
+    public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
+
     com.jogamp.newt.event.NEWTEventListener newtListener;
     com.jogamp.newt.Window newtWindow;
 
@@ -157,9 +162,16 @@ public abstract class AWTAdapter implements java.util.EventListener
      */
     public abstract AWTAdapter addTo(java.awt.Component awtComponent);
 
+    /** @see #addTo(java.awt.Component) */
+    public abstract AWTAdapter removeFrom(java.awt.Component awtComponent);
+
     void enqueueEvent(com.jogamp.newt.event.NEWTEvent event) {
+        enqueueEvent(false, event);
+    }
+
+    void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
         try {
-            newtWindow.getScreen().getDisplay().enqueueEvent(event);
+            newtWindow.getScreen().getDisplay().enqueueEvent(wait, event);
         } catch (NullPointerException npe) {
             /* that's ok .. window might be down already */
         }

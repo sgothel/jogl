@@ -73,7 +73,7 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="javax/media/nativewindow/*, javax/media/nativewindow/egl/*, javax/media/nativewindow/macosx/*, javax/media/nativewindow/windows/*, com/jogamp/nativewindow/impl/*, com/jogamp/nativewindow/impl/jvm/*"/>
+                  value="javax/media/nativewindow/*, javax/media/nativewindow/egl/*, javax/media/nativewindow/macosx/*, javax/media/nativewindow/windows/*, com/jogamp/nativewindow/util/*, com/jogamp/nativewindow/impl/*, com/jogamp/nativewindow/impl/jvm/*"/>
 
         <property name="java.part.awt"
                   value="javax/media/nativewindow/awt/*, com/jogamp/nativewindow/impl/jawt/**, com/jogamp/nativewindow/impl/**/awt/**"/>
@@ -155,7 +155,7 @@
 
         <property name="javadoc.packagenames" value="${javadoc.spec.packagenames}" />
 
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.nativewindow.impl.*,com.sun.gluegen,com.jogamp.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.nativewindow.util.*,com.jogamp.nativewindow.impl.*,com.sun.gluegen,com.jogamp.gluegen.runtime" />
     <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
     

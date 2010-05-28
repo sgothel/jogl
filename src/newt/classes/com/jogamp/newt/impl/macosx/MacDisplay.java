@@ -70,7 +70,7 @@ public class MacDisplay extends Display {
         MainThread.invoke(false, dispatchAction);
     }
     
-    protected void createNative(long handle) {
+    protected void createNative() {
         aDevice = new MacOSXGraphicsDevice();
     }
 

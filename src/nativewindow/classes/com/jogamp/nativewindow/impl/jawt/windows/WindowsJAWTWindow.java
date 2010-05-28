@@ -61,12 +61,8 @@ public class WindowsJAWTWindow extends JAWTWindow {
     windowHandle = 0;
   }
 
-  public int lockSurface() throws NativeWindowException {
-    int ret = super.lockSurface();
-    if(LOCK_SUCCESS != ret) {
-      return ret;
-    }
-
+  protected int lockSurfaceImpl() throws NativeWindowException {
+    int ret = NativeWindow.LOCK_SUCCESS;
     long startTime;
     if (PROFILING) {
       startTime = System.currentTimeMillis();
@@ -74,12 +70,13 @@ public class WindowsJAWTWindow extends JAWTWindow {
     ds = JAWT.getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
-      super.unlockSurface();
+      unlockSurface();
       return LOCK_SURFACE_NOT_READY;
     }
     int res = ds.Lock();
-    if ((res & JAWTFactory.JAWT_LOCK_ERROR) != 0) {
-      super.unlockSurface();
+    dsLocked = ( 0 == ( res & JAWTFactory.JAWT_LOCK_ERROR ) ) ;
+    if (!dsLocked) {
+      unlockSurface();
       throw new NativeWindowException("Unable to lock surface");
     }
     // See whether the surface changed and if so destroy the old
@@ -92,36 +89,21 @@ public class WindowsJAWTWindow extends JAWTWindow {
     }
     dsi = ds.GetDrawingSurfaceInfo();
     if (dsi == null) {
-      // Widget not yet realized
-      ds.Unlock();
-      JAWT.getJAWT().FreeDrawingSurface(ds);
-      ds = null;
-      super.unlockSurface();
+      unlockSurface();
       return LOCK_SURFACE_NOT_READY;
     }
     win32dsi = (JAWT_Win32DrawingSurfaceInfo) dsi.platformInfo();
     if (win32dsi == null) {
-      // Widget not yet realized
-      ds.FreeDrawingSurfaceInfo(dsi);
-      ds.Unlock();
-      JAWT.getJAWT().FreeDrawingSurface(ds);
-      ds = null;
-      dsi = null;
-      super.unlockSurface();
+      unlockSurface();
       return LOCK_SURFACE_NOT_READY;
     }
     windowHandle = win32dsi.getHandle();
     drawable = win32dsi.getHdc();
     if (windowHandle == 0 || drawable == 0) {
-      // Widget not yet realized
-      ds.FreeDrawingSurfaceInfo(dsi);
-      ds.Unlock();
-      JAWT.getJAWT().FreeDrawingSurface(ds);
-      ds = null;
-      dsi = null;
-      win32dsi = null;
-      super.unlockSurface();
+      unlockSurface();
       return LOCK_SURFACE_NOT_READY;
+    } else {
+      updateBounds(dsi.getBounds());
     }
     if (PROFILING) {
       long endTime = System.currentTimeMillis();
@@ -136,21 +118,23 @@ public class WindowsJAWTWindow extends JAWTWindow {
     return ret;
   }
 
-  public void unlockSurface() {
-    if(!isSurfaceLocked()) {
-        throw new RuntimeException("JAWTWindow not locked");
-    }
+  protected void unlockSurfaceImpl() throws NativeWindowException {
     long startTime = 0;
     if (PROFILING) {
       startTime = System.currentTimeMillis();
     }
-    ds.FreeDrawingSurfaceInfo(dsi);
-    ds.Unlock();
-    JAWT.getJAWT().FreeDrawingSurface(ds);
+    if(null!=ds) {
+        if (null!=dsi) {
+            ds.FreeDrawingSurfaceInfo(dsi);
+        }
+        if (dsLocked) {
+            ds.Unlock();
+        }
+        JAWT.getJAWT().FreeDrawingSurface(ds);
+    }
     ds = null;
     dsi = null;
     win32dsi = null;
-    super.unlockSurface();
     if (PROFILING) {
       long endTime = System.currentTimeMillis();
       profilingUnlockSurfaceTime += (endTime - startTime);
@@ -169,6 +153,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
 
   // Variables for lockSurface/unlockSurface
   private JAWT_DrawingSurface ds;
+  private boolean dsLocked;
   private JAWT_DrawingSurfaceInfo dsi;
   private JAWT_Win32DrawingSurfaceInfo win32dsi;
   private long profilingLockSurfaceTime = 0;

@@ -213,7 +213,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     }
 
     public String toString() {
-        return getClass().getName()+"[realized "+getRealized()+
+        return getClass().getName()+"[realized "+isRealized()+
                     ",\n\tfactory    "+getFactory()+
                     ",\n\twindow     "+getNativeWindow()+
                     ",\n\teglSurface  0x"+Long.toHexString(eglSurface)+

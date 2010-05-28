@@ -85,30 +85,26 @@ public class KDWindow extends Window {
         }
     }
 
-    protected void setVisibleImpl() {
+    protected void setVisibleImpl(boolean visible) {
         setVisible0(eglWindowHandle, visible);
-        clearEventMask();
     }
 
-    public void setSize(int width, int height) {
+    protected void setSizeImpl(int width, int height) {
         if(0!=eglWindowHandle) {
             setSize0(eglWindowHandle, width, height);
         }
     }
 
-    public void setPosition(int x, int y) {
+    protected void setPositionImpl(int x, int y) {
         // n/a in KD
         System.err.println("setPosition n/a in KD");
     }
 
-    public boolean setFullscreen(boolean fullscreen) {
-        if(0!=eglWindowHandle && this.fullscreen!=fullscreen) {
-            this.fullscreen=fullscreen;
-            if(this.fullscreen) {
-                setFullScreen0(eglWindowHandle, true);
-            } else {
-                setFullScreen0(eglWindowHandle, false);
-                setSize0(eglWindowHandle, nfs_width, nfs_height);
+    protected boolean setFullscreenImpl(final boolean fullscreen, final int x, final int y, final int w, final int h) {
+        if(0!=eglWindowHandle) {
+            setFullScreen0(eglWindowHandle, fullscreen);
+            if(!fullscreen) {
+                setSize0(eglWindowHandle, w, h);
             }
         }
         return true;

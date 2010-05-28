@@ -65,9 +65,8 @@ public interface NativeWindow extends SurfaceUpdatedListener {
   /**
    * Lock the surface of this native window<P>
    *
-   * The window handle, see {@link #getWindowHandle()},
-   * and the surface handle, see {@link #lockSurface()}, <br>
-   * shall be set and be valid after a successfull call,
+   * The surface handle, see {@link #lockSurface()}, <br>
+   * shall be set and valid after a successfull call,
    * ie a return value other than {@link #LOCK_SURFACE_NOT_READY}.<P>
    *
    * The semantics of the underlying native locked resource
@@ -88,8 +87,7 @@ public interface NativeWindow extends SurfaceUpdatedListener {
   /**
    * Unlock the surface of this native window
    *
-   * Shall not modify the window handle, see {@link #getWindowHandle()},
-   * or the surface handle, see {@link #lockSurface()} <P>
+   * Shall not modify the surface handle, see {@link #lockSurface()} <P>
    *
    * @throws NativeWindowException if surface is not locked
    *
@@ -139,11 +137,6 @@ public interface NativeWindow extends SurfaceUpdatedListener {
 
   /**
    * Returns the window handle for this NativeWindow. <P>
-   *
-   * The window handle should be set/update by {@link #lockSurface()},
-   * where {@link #unlockSurface()} is not allowed to modify it.<br>
-   * After {@link #unlockSurface()} it is no more guaranteed 
-   * that the window handle is still valid.<p>
    *
    * The window handle shall reflect the platform one 
    * for all window related operations, e.g. open, close, resize. <P>

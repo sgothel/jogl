@@ -70,32 +70,24 @@ public class Window extends com.jogamp.newt.Window {
         }
     }
 
-    protected void setVisibleImpl() { }
+    protected void setVisibleImpl(boolean visible) { }
 
-    public void setSize(int width, int height) {
-        System.err.println("setSize "+width+"x"+height+" n/a in BroadcomEGL");
-    }
-
-    void setSizeImpl(int width, int height) {
+    protected void setSizeImpl(int width, int height) {
         if(0!=windowHandle) {
             // n/a in BroadcomEGL
             System.err.println("BCEGL Window.setSizeImpl n/a in BroadcomEGL with realized window");
         } else {
-            if(DEBUG_IMPLEMENTATION) {
-                Exception e = new Exception("BCEGL Window.setSizeImpl() "+this.width+"x"+this.height+" -> "+width+"x"+height);
-                e.printStackTrace();
-            }
             this.width = width;
             this.height = height;
         }
     }
 
-    public void setPosition(int x, int y) {
+    protected void setPositionImpl(int x, int y) {
         // n/a in BroadcomEGL
-        System.err.println("setPosition n/a in BroadcomEGL");
+        System.err.println("BCEGL Window.setPositionImpl n/a in BroadcomEGL");
     }
 
-    public boolean setFullscreen(boolean fullscreen) {
+    protected boolean setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
         // n/a in BroadcomEGL
         System.err.println("setFullscreen n/a in BroadcomEGL");
         return false;

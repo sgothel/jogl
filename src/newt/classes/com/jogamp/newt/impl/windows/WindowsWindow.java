@@ -131,13 +131,28 @@ public class WindowsWindow extends Window {
     protected void closeNative() {
         if (hdc != 0) {
             if(windowHandleClose != 0) {
-                ReleaseDC0(windowHandleClose, hdc);
+                try {
+                    ReleaseDC0(windowHandleClose, hdc);
+                } catch (Throwable t) {
+                    if(DEBUG_IMPLEMENTATION) { 
+                        Exception e = new Exception("closeNative failed - "+Thread.currentThread().getName(), t);
+                        e.printStackTrace();
+                    }
+                }
             }
             hdc = 0;
         }
         if(windowHandleClose != 0) {
-            DestroyWindow0(windowHandleClose);
-            windowHandleClose = 0;
+            try {
+                DestroyWindow0(windowHandleClose);
+            } catch (Throwable t) {
+                if(DEBUG_IMPLEMENTATION) {
+                    Exception e = new Exception("closeNative failed - "+Thread.currentThread().getName(), t);
+                    e.printStackTrace();
+                }
+            } finally {
+                windowHandleClose = 0;
+            }
         }
     }
 
@@ -146,64 +161,30 @@ public class WindowsWindow extends Window {
         super.windowDestroyed();
     }
 
-    protected void setVisibleImpl() {
+    protected void setVisibleImpl(boolean visible) {
         setVisible0(windowHandle, visible);
     }
 
-    // @Override
-    public void setSize(int width, int height) {
-        if (width != this.width || this.height != height) {
-            if(!fullscreen) {
-                nfs_width=width;
-                nfs_height=height;
-                if(0!=windowHandle) {
-                    // this width/height will be set by sizeChanged, called by Windows
-                    setSize0(parentWindowHandle, windowHandle, x, y, width, height);
-                } else {
-                    this.width=width;
-                    this.height=height;
-                }
-            }
-        }
+    protected void setSizeImpl(int width, int height) {
+        // this width/height will be set by sizeChanged, called by Windows
+        setSize0(parentWindowHandle, windowHandle, x, y, width, height);
     }
 
-    //@Override
-    public void setPosition(int x, int y) {
-        if ( this.x != x || this.y != y ) {
-            if(!fullscreen) {
-                nfs_x=x;
-                nfs_y=y;
-                if(0!=windowHandle) {
-                    // this x/y will be set by positionChanged, called by Windows
-                    setPosition0(parentWindowHandle, windowHandle, x , y /*, width, height*/);
-                } else {
-                    this.x=x;
-                    this.y=y;
-                }
-            }
-        }
+    protected void setPositionImpl(int x, int y) {
+        // this x/y will be set by positionChanged, called by Windows
+        setPosition0(parentWindowHandle, windowHandle, x , y /*, width, height*/);
     }
 
-    public boolean setFullscreen(boolean fullscreen) {
-        if(0!=windowHandle && (this.fullscreen!=fullscreen)) {
-            int x,y,w,h;
-            this.fullscreen=fullscreen;
-            if(fullscreen) {
-                x = 0; y = 0;
-                w = screen.getWidth();
-                h = screen.getHeight();
-            } else {
-                x = nfs_x;
-                y = nfs_y;
-                w = nfs_width;
-                h = nfs_height;
-            }
-            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                System.err.println("WindowsWindow fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h);
-            }
-            setFullscreen0(parentWindowHandle, windowHandle, x, y, w, h, undecorated, fullscreen);
-        }
+    protected boolean setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
+        setFullscreen0(fullscreen?0:parentWindowHandle, windowHandle, x, y, w, h, isUndecorated(fullscreen));
         return fullscreen;
+    }
+
+    protected boolean reparentWindowImpl() {
+        if(0!=windowHandle) {
+            reparentWindow0(fullscreen?0:parentWindowHandle, windowHandle, x, y, width, height, isUndecorated());
+        }
+        return true;
     }
 
     // @Override
@@ -245,7 +226,8 @@ public class WindowsWindow extends Window {
     private static native void setVisible0(long windowHandle, boolean visible);
     private        native void setSize0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height);
     private static native void setPosition0(long parentWindowHandle, long windowHandle, int x, int y /*, int width, int height*/);
-    private        native void setFullscreen0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height, boolean isUndecorated, boolean on);
+    private        native void setFullscreen0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height, boolean isUndecorated);
+    private        native void reparentWindow0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height, boolean isUndecorated);
     private static native void setTitle0(long windowHandle, String title);
     private static native void requestFocus0(long windowHandle);
 
