@@ -123,6 +123,9 @@ public interface GLDrawable {
    */
   public void setRealized(boolean realized);
 
+  /** @return true if this drawable is realized, otherwise false */
+  public boolean isRealized();
+
   /** Returns the current width of this GLDrawable. */
   public int getWidth();
 

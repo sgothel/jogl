@@ -50,6 +50,11 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
         return this;
     }
 
+    public AWTAdapter removeFrom(java.awt.Component awtComponent) {
+        awtComponent.removeKeyListener(this);
+        return this;
+    }
+
     public void keyPressed(java.awt.event.KeyEvent e) {
         com.jogamp.newt.event.KeyEvent event = AWTNewtEventFactory.createKeyEvent(e, newtWindow);
         if(null!=newtListener) {

@@ -54,7 +54,7 @@ public class EDTUtil {
 
     public EDTUtil(ThreadGroup tg, String name, Runnable pumpMessages) {
         this.threadGroup = tg;
-        this.name=new String("EDT-"+name);
+        this.name=new String(Thread.currentThread().getName()+"-"+"EDT-"+name);
         this.pumpMessages=pumpMessages;
     }
 
@@ -123,15 +123,15 @@ public class EDTUtil {
     }
 
     public void invokeAndWait(Runnable task) {
-        invoke(false, task);
+        invoke(true, task);
     }
 
-    public void invoke(boolean deferred, Runnable task) {
+    public void invoke(boolean wait, Runnable task) {
         if(task == null) {
             return;
         }
         invokeLater(task);
-        if(!deferred) {
+        if(wait) {
             waitOnWorker();
         }
     }

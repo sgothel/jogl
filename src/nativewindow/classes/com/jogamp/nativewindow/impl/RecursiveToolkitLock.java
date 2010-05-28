@@ -6,8 +6,8 @@ import javax.media.nativewindow.*;
 // Reentrance locking toolkit
 // 
 public class RecursiveToolkitLock implements ToolkitLock {
-    private Thread owner;
-    private int recursionCount;
+    private Thread owner = null;
+    private int recursionCount = 0;
     private Exception lockedStack = null;
     private static final long timeout = 3000;  // maximum wait 3s
 
@@ -31,6 +31,10 @@ public class RecursiveToolkitLock implements ToolkitLock {
         return null != owner;
     }
 
+    public synchronized int getRecursionCount() {
+        return recursionCount;
+    }
+
     /** Recursive and blocking lockSurface() implementation */
     public synchronized void lock() {
         Thread cur = Thread.currentThread();
@@ -49,10 +53,10 @@ public class RecursiveToolkitLock implements ToolkitLock {
         }
         if(owner != null) {
             lockedStack.printStackTrace();
-            throw new RuntimeException("Waited "+timeout+"ms for: "+owner+" - "+cur);
+            throw new RuntimeException("Waited "+timeout+"ms for: "+owner+" - "+cur+", with recursionCount "+recursionCount+", lock: "+this);
         }
         owner = cur;
-        lockedStack = new Exception("Previously locked by "+owner);
+        lockedStack = new Exception("Previously locked by "+owner+", lock: "+this);
     }
     
 
@@ -62,7 +66,7 @@ public class RecursiveToolkitLock implements ToolkitLock {
     }
 
     /** Recursive and unblocking unlockSurface() implementation */
-    public synchronized void unlock(Runnable releaseAfterUnlockBeforeNotify) {
+    public synchronized void unlock(Runnable taskAfterUnlockBeforeNotify) {
         Thread cur = Thread.currentThread();
         if (owner != cur) {
             lockedStack.printStackTrace();
@@ -74,8 +78,8 @@ public class RecursiveToolkitLock implements ToolkitLock {
         }
         owner = null;
         lockedStack = null;
-        if(null!=releaseAfterUnlockBeforeNotify) {
-            releaseAfterUnlockBeforeNotify.run();
+        if(null!=taskAfterUnlockBeforeNotify) {
+            taskAfterUnlockBeforeNotify.run();
         }
         notifyAll();
     }

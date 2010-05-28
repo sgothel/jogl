@@ -51,6 +51,12 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
         return this;
     }
 
+    public AWTAdapter removeFrom(java.awt.Component awtComponent) {
+        awtComponent.removeMouseListener(this);
+        awtComponent.removeMouseMotionListener(this);
+        return this;
+    }
+
     public void mouseClicked(java.awt.event.MouseEvent e) {
         com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
         if(null!=newtListener) {

@@ -146,7 +146,7 @@ public abstract class Display {
                     final Display f_dpy = display;
                     Thread current = Thread.currentThread();
                     display.edtUtil = new EDTUtil(current.getThreadGroup(), 
-                                                  "Display_"+display.getFQName()+"-"+current.getName(),
+                                                  "Display_"+display.getFQName(),
                                                   new Runnable() {
                                                     public void run() {
                                                         if(null!=f_dpy.getGraphicsDevice()) {
@@ -253,7 +253,7 @@ public abstract class Display {
     public static final String getFQName(String type, String name) {
         if(null==type) type=nilString;
         if(null==name) name=nilString;
-        return type+":"+name;
+        return type+"_"+name;
     }
 
     public long getHandle() {
@@ -277,7 +277,7 @@ public abstract class Display {
     }
 
     public String toString() {
-        return "NEWT-Display["+getFQName()+", refCount "+refCount+", "+aDevice+"]";
+        return "NEWT-Display["+getFQName()+", refCount "+refCount+", hasEDT "+(null!=edtUtil)+", "+aDevice+"]";
     }
 
     protected abstract void dispatchMessagesNative();

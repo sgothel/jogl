@@ -33,9 +33,9 @@ package com.jogamp.newt.event.awt;
 
 public class AWTWindowAdapter 
     extends AWTAdapter 
-    implements java.awt.event.ComponentListener, java.awt.event.WindowListener, java.awt.event.HierarchyListener
+    implements java.awt.event.ComponentListener, java.awt.event.WindowListener, 
+               java.awt.event.HierarchyListener, java.awt.event.HierarchyBoundsListener
 {
-    java.awt.Component awtComponent;
     WindowClosingListener windowClosingListener;
 
     public AWTWindowAdapter(com.jogamp.newt.event.WindowListener newtListener) {
@@ -51,12 +51,32 @@ public class AWTWindowAdapter
     }
 
     public AWTAdapter addTo(java.awt.Component awtComponent) {
-        this.awtComponent = awtComponent;
+        java.awt.Window win = getWindow(awtComponent);
         awtComponent.addComponentListener(this);
         awtComponent.addHierarchyListener(this);
-        addWindowClosingListenerTo(getWindow(awtComponent));
+        awtComponent.addHierarchyBoundsListener(this);
+        if( null == windowClosingListener ) {
+            windowClosingListener = new WindowClosingListener();
+        }
+        if( null != win ) {
+            win.addWindowListener(windowClosingListener);
+        }
         if(awtComponent instanceof java.awt.Window) {
             ((java.awt.Window)awtComponent).addWindowListener(this);
+        }
+        return this;
+    }
+
+    public AWTAdapter removeFrom(java.awt.Component awtComponent) {
+        awtComponent.removeComponentListener(this);
+        awtComponent.removeHierarchyListener(this);
+        awtComponent.removeHierarchyBoundsListener(this);
+        java.awt.Window win = getWindow(awtComponent);
+        if( null != win && null != windowClosingListener ) {
+            win.removeWindowListener(windowClosingListener);
+        }
+        if(awtComponent instanceof java.awt.Window) {
+            ((java.awt.Window)awtComponent).removeWindowListener(this);
         }
         return this;
     }
@@ -69,15 +89,6 @@ public class AWTWindowAdapter
             return (java.awt.Window) comp;
         }
         return null;
-    }
-
-    void addWindowClosingListenerTo(java.awt.Window win) {
-        if( null == windowClosingListener ) {
-            windowClosingListener = new WindowClosingListener();
-        }
-        if( null != win ) {
-            win.addWindowListener(windowClosingListener);
-        }
     }
 
     public void componentResized(java.awt.event.ComponentEvent e) {
@@ -101,7 +112,11 @@ public class AWTWindowAdapter
     public void componentShown(java.awt.event.ComponentEvent e) {
         if(null==newtListener) {
             if(!newtWindow.isDestroyed()) {
-                newtWindow.setVisible(true, true /* deferred */);
+                newtWindow.runOnEDTIfAvail(false, new Runnable() {
+                    public void run() {
+                        newtWindow.setVisible(true);
+                    }
+                });
             }
         }
     }
@@ -109,7 +124,11 @@ public class AWTWindowAdapter
     public void componentHidden(java.awt.event.ComponentEvent e) {
         if(null==newtListener) {
             if(!newtWindow.isDestroyed()) {
-                newtWindow.setVisible(false, true /* deferred */);
+                newtWindow.runOnEDTIfAvail(false, new Runnable() {
+                    public void run() {
+                        newtWindow.setVisible(false);
+                    }
+                });
             }
         }
     }
@@ -145,27 +164,45 @@ public class AWTWindowAdapter
     public void hierarchyChanged(java.awt.event.HierarchyEvent e) {
         if( null == newtListener ) {
             long bits = e.getChangeFlags();
-            java.awt.Component changed = e.getChanged();
+            final java.awt.Component changed = e.getChanged();
             if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & bits ) ) {
-                final boolean visible = changed.isVisible();
+                final boolean showing = changed.isShowing();
+                if(DEBUG_IMPLEMENTATION) {
+                    System.out.println("hierarchyChanged SHOWING_CHANGED: showing "+showing+", "+changed);
+                }
                 if(!newtWindow.isDestroyed()) {
-                    newtWindow.setVisible(visible, true /* deferred */);
-                }
-            } else if( 0 != ( java.awt.event.HierarchyEvent.PARENT_CHANGED & bits ) ) {
-                if(awtComponent == changed) {
-                    java.awt.Window win = getWindow(changed);
-                    if(null != win) {
-                        addWindowClosingListenerTo(win);
-                    } else {
-                        java.awt.Component parent = e.getChangedParent();
-                        if(parent instanceof java.awt.Window) {
-                            ((java.awt.Window)parent).removeWindowListener(this);
-                            if( null != windowClosingListener ) {
-                                ((java.awt.Window)parent).removeWindowListener(windowClosingListener);
-                            }
+                    newtWindow.runOnEDTIfAvail(false, new Runnable() {
+                        public void run() {
+                            newtWindow.setVisible(showing);
                         }
-                    }
+                    });
                 }
+            } 
+            if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
+                final boolean displayability = changed.isDisplayable();
+                if(DEBUG_IMPLEMENTATION) {
+                    System.out.println("hierarchyChanged DISPLAYABILITY_CHANGED: displayability "+displayability+", "+changed);
+                }
+            }
+        }
+    }
+
+    public void ancestorMoved(java.awt.event.HierarchyEvent e) {
+        if( null == newtListener ) {
+            final java.awt.Component changed = e.getChanged();
+            final boolean showing = changed.isShowing();
+            if(DEBUG_IMPLEMENTATION) {
+                System.out.println("ancestorMoved: showing "+showing+", "+changed);
+            }
+        }
+    }
+
+    public void ancestorResized(java.awt.event.HierarchyEvent e) {
+        if( null == newtListener ) {
+            final java.awt.Component changed = e.getChanged();
+            final boolean showing = changed.isShowing();
+            if(DEBUG_IMPLEMENTATION) {
+                System.out.println("ancestorResized: showing "+showing+", "+changed);
             }
         }
     }
@@ -176,7 +213,7 @@ public class AWTWindowAdapter
             if(null!=newtListener) {
                 ((com.jogamp.newt.event.WindowListener)newtListener).windowDestroyNotify(event);
             } else {
-                enqueueEvent(event);
+                enqueueEvent(true, event);
             }
         }
 

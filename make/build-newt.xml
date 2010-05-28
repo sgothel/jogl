@@ -90,7 +90,7 @@
                   value="com/jogamp/newt/*, com/jogamp/newt/event/*, com/jogamp/newt/util/*, com/jogamp/newt/impl/*"/>
 
         <property name="java.part.awt"
-                  value="com/jogamp/newt/impl/awt/*, com/jogamp/newt/event/awt/*"/>
+                  value="com/jogamp/newt/impl/awt/*, com/jogamp/newt/awt/*, com/jogamp/newt/event/awt/*"/>
 
         <property name="java.part.x11"
                   value="com/jogamp/newt/impl/x11/*"/>

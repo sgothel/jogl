@@ -33,7 +33,6 @@
 
 package com.jogamp.test.junit.newt;
 
-import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.event.*;
 
 class KeyAction extends KeyAdapter {

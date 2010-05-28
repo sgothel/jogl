@@ -86,6 +86,10 @@ public class GLPbufferImpl implements GLPbuffer {
   public void setRealized(boolean realized) {
   }
 
+  public boolean isRealized() {
+    return true;
+  }
+
   public void setSize(int width, int height) {
     // FIXME
     throw new GLException("Not yet implemented");

@@ -379,6 +379,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   public void setRealized(boolean realized) {
   }
 
+  public boolean isRealized() {
+      return isInitialized;
+  }
+
   public void setContext(GLContext ctx) {
     if (backend == null) {
       return;

@@ -59,16 +59,7 @@ public class X11Util {
     static {
         NWJNILibLoader.loadNativeWindow("x11");
 
-        // No concurrent threading support in case AWT could be used,
-        // Mixing AWT and X11/NEWT results in a segmentation fault:
-        //      C pthread_mutex_lock+0x4
-        //      J sun.awt.X11.XlibWrapper.XGetDefault
-        //      J sun.awt.X11.XToolkit.initializeMultiClickTime
-        //      J sun.awt.X11.XToolkit.getMultiClickTime
-        //
-        // It seems like (Oracle's) AWT's Display locking is buggy.
-        //
-        initialize( ! NativeWindowFactory.isAWTAvailable() ) ;
+        initialize( true );
 
         long dpy = X11Lib.XOpenDisplay(null);
         XLockDisplay(dpy);

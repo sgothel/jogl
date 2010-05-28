@@ -283,6 +283,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   public void setRealized(boolean realized) {
   }
 
+  public boolean isRealized() {
+    return ( null != drawable ) ? drawable.isRealized() : false;
+  }
+
   private Object closingListener = null;
   private Object closingListenerLock = new Object();
 

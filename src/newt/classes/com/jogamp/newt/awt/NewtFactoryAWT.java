@@ -30,7 +30,7 @@
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.newt.impl.awt;
+package com.jogamp.newt.awt;
 
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -46,9 +46,12 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.util.EDTUtil;
+import com.jogamp.newt.impl.Debug;
 import com.jogamp.common.util.ReflectionUtil;
 
-public class AWTNewtFactory extends NewtFactory {
+public class NewtFactoryAWT extends NewtFactory {
+  public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
 
   /**
    * Wraps an AWT component into a {@link javax.media.nativewindow.NativeWindow} utilizing the {@link javax.media.nativewindow.NativeWindowFactory},<br>
@@ -76,46 +79,13 @@ public class AWTNewtFactory extends NewtFactory {
       DefaultGraphicsConfiguration config = 
           AWTGraphicsConfiguration.create(awtComp, (Capabilities) capsRequested.clone(), capsRequested);
       NativeWindow awtNative = NativeWindowFactory.getNativeWindow(awtComp, config); // a JAWTWindow
+      if(DEBUG_IMPLEMENTATION) {
+        System.out.println("NewtFactoryAWT.getNativeWindow: "+awtComp+" -> "+awtNative);
+      }
       return awtNative;
   }
 
-  /**
-   * Creates a native NEWT child window to a AWT parent window.<br>
-   * <p>
-   * First we create a {@link javax.media.nativewindow.NativeWindow} presentation of the given {@link java.awt.Component},
-   * utilizing {@link #getNativeWindow(java.awt.Component)}.<br>
-   * The actual wrapping implementation is {@link com.jogamp.nativewindow.impl.jawt.JAWTWindow}.<br></p>
-   * <p>
-   * Second we create a child {@link com.jogamp.newt.Window}, 
-   * utilizing {@link com.jogamp.newt.NewtFactory#createWindowImpl(java.lang.String, javax.media.nativewindow.NativeWindow, com.jogamp.newt.Screen, javax.media.nativewindow.Capabilities, boolean)},
-   * passing the created {@link javax.media.nativewindow.NativeWindow}.<br></p>
-
-   * <p>
-   * Third we attach a {@link com.jogamp.newt.event.awt.AWTParentWindowAdapter} to the given AWT component.<br>
-   * The adapter passes window related events to our new child window, look at the implementation<br></p>
-   *
-   * <p>
-   * Forth we pass the parents visibility to the new Window<br></p>
-   *
-   * @param awtParentObject must be of type java.awt.Component
-   * @param undecorated only impacts if the window is in top-level state, while attached to a parent window it's rendered undecorated always
-   * @return The successful created child window, or null if the AWT parent is not ready yet (no valid peers)
-   */ 
-  public static Window createNativeChildWindow(Object awtParentObject, Capabilities newtCaps, boolean undecorated) {
-      if( null == awtParentObject ) {
-        throw new NativeWindowException("Null AWT Parent Component");
-      }
-      if( ! (awtParentObject instanceof java.awt.Component) ) {
-        throw new NativeWindowException("AWT Parent Component not a java.awt.Component");
-      }
-      java.awt.Component awtParent = (java.awt.Component) awtParentObject;
-
-      // Generate a complete JAWT NativeWindow from the AWT Component
-      NativeWindow parent = getNativeWindow(awtParent, newtCaps);
-      if(null==parent) {
-        throw new NativeWindowException("Null NativeWindow from parent: "+awtParent);
-      }
-
+  public static Screen createCompatibleScreen(NativeWindow parent) {
       // Get parent's NativeWindow details
       AWTGraphicsConfiguration parentConfig = (AWTGraphicsConfiguration) parent.getGraphicsConfiguration();
       AWTGraphicsScreen parentScreen = (AWTGraphicsScreen) parentConfig.getScreen();
@@ -124,16 +94,7 @@ public class AWTNewtFactory extends NewtFactory {
       // Prep NEWT's Display and Screen according to the parent
       final String type = NativeWindowFactory.getNativeWindowType(true);
       Display display = NewtFactory.wrapDisplay(type, parentDevice.getHandle());
-      Screen screen  = NewtFactory.createScreen(type, display, parentScreen.getIndex());
-
-      // NEWT Window creation and add event handler for proper propagation AWT -> NEWT
-      // and copy size/visible state
-      Window window = NewtFactory.createWindowImpl(type, parent, screen, newtCaps, undecorated);
-      new AWTParentWindowAdapter(window).addTo(awtParent);
-      window.setSize(awtParent.getWidth(), awtParent.getHeight());
-      window.setVisible(awtParent.isVisible());
-
-      return window;
+      return NewtFactory.createScreen(type, display, parentScreen.getIndex());
   }
 }
 
