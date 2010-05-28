@@ -67,7 +67,7 @@ import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
 public class TestParenting01AWT {
     static int width, height;
-    static long durationPerTest = 500;
+    static long durationPerTest = 800;
     static long waitReparent = 0;
     static GLCapabilities glCaps;
 
