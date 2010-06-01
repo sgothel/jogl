@@ -93,6 +93,7 @@
             <batchtest todir="${results.junit}">
               <fileset dir="${classes}">
                   <include name="${java.dir.test}/**/Test*CORE*"/>
+                  <exclude name="**/*$$*"/>
               </fileset>
               <formatter usefile="false" type="brief"/>
               <formatter usefile="true" type="xml"/>
@@ -110,6 +111,7 @@
             <!-- results in absolute path -->
             <fileset dir="${classes}">
                 <include name="${java.dir.test}/**/Test*NEWT*"/>
+                <exclude name="**/*$$*"/>
             </fileset>
           <sequential>
             <var name="test.class.path" unset="true"/>
@@ -178,6 +180,7 @@
             <batchtest todir="${results.junit}">
               <fileset dir="${classes}">
                   <include name="${java.dir.test}/**/Test*AWT*"/>
+                  <exclude name="**/*$$*"/>
               </fileset>
               <formatter usefile="false" type="brief"/>
               <formatter usefile="true" type="xml"/>
