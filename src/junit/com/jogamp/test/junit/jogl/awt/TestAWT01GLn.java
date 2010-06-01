@@ -32,6 +32,7 @@
 
 package com.jogamp.test.junit.jogl.awt;
 
+import java.lang.reflect.InvocationTargetException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.awt.GLCanvas;
@@ -39,17 +40,22 @@ import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import java.awt.Frame;
+import java.awt.Window;
+import javax.swing.JFrame;
 
-import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
+import static org.junit.Assume.*;
+import static org.junit.Assert.*;
+import static javax.swing.SwingUtilities.*;
+
 public class TestAWT01GLn {
-    Frame frame=null;
-    GLCanvas glCanvas=null;
+
+    private Window[] windows;
+
 
     @BeforeClass
     public static void startup() {
@@ -58,47 +64,70 @@ public class TestAWT01GLn {
 
     @Before
     public void init() {
-        frame = new Frame("Texture Test");
-        Assert.assertNotNull(frame);
+        windows = new Window[]{
+            new Window(null),
+            new Frame("JFrame GL test"),
+            new JFrame("Frame GL test")
+        };
     }
 
     @After
-    public void release() {
-        Assert.assertNotNull(frame);
-        Assert.assertNotNull(glCanvas);
-        frame.setVisible(false);
-        try {
-            frame.remove(glCanvas);
-        } catch (Throwable t) {
-            t.printStackTrace();
-            Assume.assumeNoException(t);
-        }
-        frame.dispose();
-        frame=null;
-        glCanvas=null;
+    public void release() throws InterruptedException, InvocationTargetException {
+        invokeAndWait(new Runnable() {
+            public void run() {
+                boolean allReleased = true;
+                for (final Window window : windows) {
+                    window.setVisible(false);
+                    try {
+                        window.removeAll();
+                    } catch (Throwable t) {
+                        allReleased = false;
+                        t.printStackTrace();
+                    }
+                    window.dispose();
+                }
+                assumeTrue(allReleased);
+            }
+        });
     }
 
-    protected void runTestGL(GLCapabilities caps) throws InterruptedException {
-        glCanvas = new GLCanvas(caps);
-        Assert.assertNotNull(glCanvas);
-        frame.add(glCanvas);
-        frame.setSize(512, 512);
 
-        glCanvas.addGLEventListener(new Gears());
 
-        glCanvas.display(); // one in process display 
+    protected void runTestGL(final GLCapabilities caps) throws InterruptedException, InvocationTargetException {
 
-        Animator animator = new Animator(glCanvas);
-        frame.setVisible(true);
-        animator.start();
+        for (final Window window : windows) {
 
-        Thread.sleep(500); // 500 ms
+            System.out.println("testing with "+window.getClass().getName());
 
-        animator.stop();
+            // final array as mutable container hack
+            final GLCanvas[] glCanvas = new GLCanvas[1];
+
+            invokeAndWait(new Runnable() {
+                public void run() {
+                    
+                    glCanvas[0] = new GLCanvas(caps);
+                    glCanvas[0].addGLEventListener(new Gears());
+
+                    window.add(glCanvas[0]);
+                    window.setSize(512, 512);
+                    glCanvas[0].display(); // one in process display
+
+                    window.setVisible(true);
+
+                }
+
+            });
+
+            Animator animator = new Animator(glCanvas[0]);
+            animator.start();
+            Thread.sleep(500);
+            animator.stop();
+
+        }
     }
 
     @Test
-    public void test01GLDefault() throws InterruptedException {
+    public void test01GLDefault() throws InterruptedException, InvocationTargetException {
         GLProfile glp = GLProfile.getDefault();
         System.out.println("GLProfile Default: "+glp);
         GLCapabilities caps = new GLCapabilities(glp);
@@ -106,7 +135,7 @@ public class TestAWT01GLn {
     }
 
     @Test
-    public void test03GLMaxFixed() throws InterruptedException {
+    public void test03GLMaxFixed() throws InterruptedException, InvocationTargetException {
         GLProfile maxFixed = GLProfile.getMaxFixedFunc();
         System.out.println("GLProfile MaxFixed: "+maxFixed);
         GLCapabilities caps = new GLCapabilities(maxFixed);
@@ -119,7 +148,7 @@ public class TestAWT01GLn {
              if(maxFixed.equals(GLProfile.GL3bc) ||
                 maxFixed.equals(GLProfile.GL4bc)) {
                 t.printStackTrace();
-                Assume.assumeNoException(t);
+                assumeNoException(t);
              }
              // else .. serious unexpected exception
         }
