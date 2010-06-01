@@ -45,7 +45,6 @@ import javax.swing.JFrame;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
 import org.junit.Test;
 
 import static org.junit.Assume.*;
@@ -66,32 +65,10 @@ public class TestAWT01GLn {
     public void init() {
         windows = new Window[]{
             new Window(null),
-            new Frame("JFrame GL test"),
-            new JFrame("Frame GL test")
+            new Frame("Frame GL test"),
+            new JFrame("JFrame GL test")
         };
     }
-
-    @After
-    public void release() throws InterruptedException, InvocationTargetException {
-        invokeAndWait(new Runnable() {
-            public void run() {
-                boolean allReleased = true;
-                for (final Window window : windows) {
-                    window.setVisible(false);
-                    try {
-                        window.removeAll();
-                    } catch (Throwable t) {
-                        allReleased = false;
-                        t.printStackTrace();
-                    }
-                    window.dispose();
-                }
-                assumeTrue(allReleased);
-            }
-        });
-    }
-
-
 
     protected void runTestGL(final GLCapabilities caps) throws InterruptedException, InvocationTargetException {
 
@@ -102,27 +79,49 @@ public class TestAWT01GLn {
             // final array as mutable container hack
             final GLCanvas[] glCanvas = new GLCanvas[1];
 
-            invokeAndWait(new Runnable() {
+            Runnable test = new Runnable() {
                 public void run() {
-                    
                     glCanvas[0] = new GLCanvas(caps);
                     glCanvas[0].addGLEventListener(new Gears());
-
                     window.add(glCanvas[0]);
                     window.setSize(512, 512);
-                    glCanvas[0].display(); // one in process display
-
+                    glCanvas[0].display();
                     window.setVisible(true);
+                }
+            };
 
+            Runnable cleanup = new Runnable() {
+                public void run() {
+                    System.out.println("cleaning up...");
+                    window.setVisible(false);
+                    try {
+                        window.removeAll();
+                    } catch (Throwable t) {
+                        assumeNoException(t);
+                        t.printStackTrace();
+                    }
+                    window.dispose();
                 }
 
-            });
+            };
+
+            //swing on EDT..
+            if(window instanceof JFrame) {
+                invokeAndWait(test);
+            }else{
+                test.run();
+            }
 
             Animator animator = new Animator(glCanvas[0]);
             animator.start();
             Thread.sleep(500);
             animator.stop();
 
+            if(window instanceof JFrame) {
+                invokeAndWait(cleanup);
+            }else{
+                cleanup.run();
+            }
         }
     }
 
