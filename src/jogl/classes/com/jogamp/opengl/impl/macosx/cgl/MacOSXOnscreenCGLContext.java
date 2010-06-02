@@ -71,7 +71,7 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
         // do this updating only upon reshape of this component or reshape or movement
         // of an ancestor, but this also wasn't sufficient and left garbage on the
         // screen in some situations.
-        CGL.updateContext(nsContext);
+        CGL.updateContext(contextHandle);
       } else {
         if (!isOptimizable()) {
           // This can happen if the window currently is zero-sized, for example.
@@ -103,16 +103,16 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
   }
 
   protected void swapBuffers() {
-    if (!CGL.flushBuffer(nsContext)) {
+    if (!CGL.flushBuffer(contextHandle)) {
       throw new GLException("Error swapping buffers");
     }
   }
 
   protected void update() throws GLException {
-    if (nsContext == 0) {
+    if (contextHandle == 0) {
       throw new GLException("Context not created");
     }
-    CGL.updateContext(nsContext);
+    CGL.updateContext(contextHandle);
   }
 
   protected void create() {

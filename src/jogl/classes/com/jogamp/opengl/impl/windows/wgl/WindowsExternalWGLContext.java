@@ -46,14 +46,13 @@ import com.jogamp.nativewindow.impl.NullWindow;
 
 public class WindowsExternalWGLContext extends WindowsWGLContext {
   private boolean firstMakeCurrent = true;
-  private boolean created = true;
   private GLContext lastContext;
 
-  private WindowsExternalWGLContext(Drawable drawable, long hglrc, WindowsWGLGraphicsConfiguration cfg) {
+  private WindowsExternalWGLContext(Drawable drawable, long ctx, WindowsWGLGraphicsConfiguration cfg) {
     super(drawable, null);
-    this.context = hglrc;
+    this.contextHandle = ctx;
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Created external OpenGL context " + toHexString(hglrc) + " for " + this);
+      System.err.println(getThreadName() + ": !!! Created external OpenGL context " + toHexString(ctx) + " for " + this);
     }
     GLContextShareSet.contextCreated(this);
     setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
@@ -66,8 +65,8 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     if (0==hdc) {
       throw new GLException("Error: attempted to make an external GLDrawable without a drawable current");
     }
-    long hglrc = WGL.wglGetCurrentContext();
-    if (hglrc == 0) {
+    long ctx = WGL.wglGetCurrentContext();
+    if (ctx == 0) {
       throw new GLException("Error: attempted to make an external GLContext without a context current");
     }
     int pfdID = WGL.GetPixelFormat(hdc);
@@ -81,7 +80,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     NullWindow nw = new NullWindow(cfg);
     nw.setSurfaceHandle(hdc);
 
-    return new WindowsExternalWGLContext(new Drawable(factory, nw), hglrc, cfg);
+    return new WindowsExternalWGLContext(new Drawable(factory, nw), ctx, cfg);
   }
 
   public int makeCurrent() throws GLException {
@@ -113,12 +112,8 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
   }
 
   protected void destroyImpl() throws GLException {
-    created = false;
+    contextHandle = 0;
     GLContextShareSet.contextDestroyed(this);
-  }
-
-  public boolean isCreated() {
-    return created;
   }
 
   // Need to provide the display connection to extension querying APIs

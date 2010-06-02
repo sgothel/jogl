@@ -48,7 +48,6 @@ import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 
 public class WindowsWGLContext extends GLContextImpl {
-  protected long hglrc;
   private boolean wglGetExtensionsStringEXTInitialized;
   private boolean wglGetExtensionsStringEXTAvailable;
   private boolean wglMakeContextCurrentInitialized;
@@ -93,7 +92,7 @@ public class WindowsWGLContext extends GLContextImpl {
     return wglExt;
   }
 
-  public boolean wglMakeContextCurrent(long hDrawDC, long hReadDC, long hglrc) {
+  public boolean wglMakeContextCurrent(long hDrawDC, long hReadDC, long ctx) {
     WGLExt wglExt = getWGLExt();
     if (!wglMakeContextCurrentInitialized) {
       wglMakeContextCurrentARBAvailable = isFunctionAvailable("wglMakeContextCurrentARB");
@@ -104,11 +103,11 @@ public class WindowsWGLContext extends GLContextImpl {
       }
     }
     if(wglMakeContextCurrentARBAvailable) {
-        return wglExt.wglMakeContextCurrentARB(hDrawDC, hReadDC, hglrc);
+        return wglExt.wglMakeContextCurrentARB(hDrawDC, hReadDC, ctx);
     } else if(wglMakeContextCurrentEXTAvailable) {
-        return wglExt.wglMakeContextCurrentEXT(hDrawDC, hReadDC, hglrc);
+        return wglExt.wglMakeContextCurrentEXT(hDrawDC, hReadDC, ctx);
     }
-    return WGL.wglMakeCurrent(hDrawDC, hglrc);
+    return WGL.wglMakeCurrent(hDrawDC, ctx);
   }
 
   public final ProcAddressTable getPlatformExtProcAddressTable() {
@@ -141,7 +140,7 @@ public class WindowsWGLContext extends GLContextImpl {
     boolean ctFwdCompat = 0 != ( CTX_OPTION_FORWARD & ctp ) ;
     boolean ctDebug     = 0 != ( CTX_OPTION_DEBUG & ctp ) ;
 
-    long _context=0;
+    long ctx=0;
 
     final int idx_flags = 4;
     final int idx_profile = 6;
@@ -175,24 +174,24 @@ public class WindowsWGLContext extends GLContextImpl {
         }
     }
 
-    _context = wglExt.wglCreateContextAttribsARB(drawable.getNativeWindow().getSurfaceHandle(), share, attribs, 0); 
+    ctx = wglExt.wglCreateContextAttribsARB(drawable.getNativeWindow().getSurfaceHandle(), share, attribs, 0); 
     if(DEBUG) {
-      System.err.println("WindowsWGLContext.createContextARB success: "+(0!=_context)+" - "+getGLVersion(major, minor, ctp, "@creation")+", bwdCompat "+ctBwdCompat+", fwdCompat "+ctFwdCompat);
+      System.err.println("WindowsWGLContext.createContextARB success: "+(0!=ctx)+" - "+getGLVersion(major, minor, ctp, "@creation")+", bwdCompat "+ctBwdCompat+", fwdCompat "+ctFwdCompat);
     }
-    if(0!=_context) {
+    if(0!=ctx) {
         // In contrast to GLX no verification with a drawable binding, ie default framebuffer, is necessary,
         // if no 3.2 is available creation fails already!
         // Nevertheless .. we do it ..
-        if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), _context)) {
+        if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), ctx)) {
             if(DEBUG) {
               System.err.println("WindowsWGLContext.createContextARB couldn't make current "+getGLVersion(major, minor, ctp, "@creation"));
             }
             WGL.wglMakeCurrent(0, 0);
-            WGL.wglDeleteContext(_context);
-            _context = 0;
+            WGL.wglDeleteContext(ctx);
+            ctx = 0;
         }
     }
-    return _context;
+    return ctx;
   }
 
   /**
@@ -200,8 +199,8 @@ public class WindowsWGLContext extends GLContextImpl {
    * called by {@link #makeCurrentImpl()}.
    */
   protected void create() {
-    if(0!=context) {
-        throw new GLException("context is not null: "+context);
+    if(0!=contextHandle) {
+        throw new GLException("context is not null: "+contextHandle);
     }
     WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
     GLCapabilities glCaps = drawable.getChosenGLCapabilities();
@@ -210,7 +209,7 @@ public class WindowsWGLContext extends GLContextImpl {
     WindowsWGLContext other = (WindowsWGLContext) GLContextShareSet.getShareContext(this);
     long share = 0;
     if (other != null) {
-      share = other.getHGLRC();
+      share = other.getHandle();
       if (share == 0) {
         throw new GLException("GLContextShareSet returned an invalid OpenGL context");
       }
@@ -226,20 +225,20 @@ public class WindowsWGLContext extends GLContextImpl {
         if(DEBUG) {
           System.err.println("WindowsWGLContext.createContext using shared Context: "+factory.getSharedContext());
         }
-        hglrc = createContextARB(share, true, major, minor, ctp);
+        contextHandle = createContextARB(share, true, major, minor, ctp);
         createContextARBTried = true;
     }
 
-    long temp_hglrc = 0;
-    if(0==hglrc) {
+    long temp_ctx = 0;
+    if(0==contextHandle) {
         // To use WGL_ARB_create_context, we have to make a temp context current,
         // so we are able to use GetProcAddress
-        temp_hglrc = WGL.wglCreateContext(drawable.getNativeWindow().getSurfaceHandle());
-        if (temp_hglrc == 0) {
+        temp_ctx = WGL.wglCreateContext(drawable.getNativeWindow().getSurfaceHandle());
+        if (temp_ctx == 0) {
           throw new GLException("Unable to create temp OpenGL context for device context " + toHexString(drawable.getNativeWindow().getSurfaceHandle()));
         }
-        if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), temp_hglrc)) {
-            throw new GLException("Error making temp context current: 0x" + toHexString(temp_hglrc) + ", werr: 0x"+Integer.toHexString(WGL.GetLastError()));
+        if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), temp_ctx)) {
+            throw new GLException("Error making temp context current: 0x" + toHexString(temp_ctx) + ", werr: 0x"+Integer.toHexString(WGL.GetLastError()));
         }
         setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
 
@@ -248,31 +247,31 @@ public class WindowsWGLContext extends GLContextImpl {
             !isExtensionAvailable("WGL_ARB_create_context") ) {
             if(glCaps.getGLProfile().isGL3()) {
               WGL.wglMakeCurrent(0, 0);
-              WGL.wglDeleteContext(temp_hglrc);
+              WGL.wglDeleteContext(temp_ctx);
               throw new GLException("Unable to create OpenGL >= 3.1 context (no WGL_ARB_create_context)");
             }
 
             // continue with temp context for GL < 3.0
-            hglrc = temp_hglrc;
+            contextHandle = temp_ctx;
             return;
         } 
-        hglrc = createContextARB(share, true, major, minor, ctp);
+        contextHandle = createContextARB(share, true, major, minor, ctp);
         createContextARBTried=true;
     }
     
-    if(0!=hglrc) {
+    if(0!=contextHandle) {
         share = 0; // mark as shared ..
 
         WGL.wglMakeCurrent(0, 0);
-        WGL.wglDeleteContext(temp_hglrc);
+        WGL.wglDeleteContext(temp_ctx);
 
-        if (!wglMakeContextCurrent(drawable.getNativeWindow().getSurfaceHandle(), drawableRead.getNativeWindow().getSurfaceHandle(), hglrc)) {
-            throw new GLException("Cannot make previous verified context current: 0x" + toHexString(hglrc) + ", werr: 0x" + Integer.toHexString(WGL.GetLastError()));
+        if (!wglMakeContextCurrent(drawable.getNativeWindow().getSurfaceHandle(), drawableRead.getNativeWindow().getSurfaceHandle(), contextHandle)) {
+            throw new GLException("Cannot make previous verified context current: 0x" + toHexString(contextHandle) + ", werr: 0x" + Integer.toHexString(WGL.GetLastError()));
         }
     } else {
         if(glCaps.getGLProfile().isGL3()) {
           WGL.wglMakeCurrent(0, 0);
-          WGL.wglDeleteContext(temp_hglrc);
+          WGL.wglDeleteContext(temp_ctx);
           throw new GLException("WindowsWGLContext.createContext failed, but context > GL2 requested "+getGLVersion(major[0], minor[0], ctp[0], "@creation")+", ");
         }
         if(DEBUG) {
@@ -280,18 +279,18 @@ public class WindowsWGLContext extends GLContextImpl {
         }
 
         // continue with temp context for GL < 3.0
-        hglrc = temp_hglrc;
-        if (!wglMakeContextCurrent(drawable.getNativeWindow().getSurfaceHandle(), drawableRead.getNativeWindow().getSurfaceHandle(), hglrc)) {
+        contextHandle = temp_ctx;
+        if (!wglMakeContextCurrent(drawable.getNativeWindow().getSurfaceHandle(), drawableRead.getNativeWindow().getSurfaceHandle(), contextHandle)) {
             WGL.wglMakeCurrent(0, 0);
-            WGL.wglDeleteContext(hglrc);
-            throw new GLException("Error making old context current: 0x" + toHexString(hglrc) + ", werr: 0x" + Integer.toHexString(WGL.GetLastError()));
+            WGL.wglDeleteContext(contextHandle);
+            throw new GLException("Error making old context current: 0x" + toHexString(contextHandle) + ", werr: 0x" + Integer.toHexString(WGL.GetLastError()));
         }
     }
 
     if(0!=share) {
-        if (!WGL.wglShareLists(share, hglrc)) {
+        if (!WGL.wglShareLists(share, contextHandle)) {
             throw new GLException("wglShareLists(" + toHexString(share) +
-                                  ", " + toHexString(hglrc) + ") failed: werr 0x" +
+                                  ", " + toHexString(contextHandle) + ") failed: werr 0x" +
                                   Integer.toHexString(WGL.GetLastError()));
         }
     }
@@ -302,27 +301,27 @@ public class WindowsWGLContext extends GLContextImpl {
     if (0 == drawable.getNativeWindow().getSurfaceHandle()) {
         throw new GLException("drawable has invalid surface handle: "+drawable);
     }
-    boolean created = false;
-    if (hglrc == 0) {
-      create();
-      created = true;
+    boolean newCreated = false;
+    if (!isCreated()) {
+      create(); // throws exception if fails!
+      newCreated = true;
       if (DEBUG) {
-        System.err.println(getThreadName() + ": !!! Created GL context for " + getClass().getName());
+        System.err.println(getThreadName() + ": !!! Created GL context " + toHexString(contextHandle) + " for " + getClass().getName());
       }
     }
 
-    if (WGL.wglGetCurrentContext() != hglrc) {
-      if (!wglMakeContextCurrent(drawable.getNativeWindow().getSurfaceHandle(), drawableRead.getNativeWindow().getSurfaceHandle(), hglrc)) {
-        throw new GLException("Error making context current: 0x" + toHexString(hglrc) + ", werr: 0x" + Integer.toHexString(WGL.GetLastError()) + ", " + this);
+    if (WGL.wglGetCurrentContext() != contextHandle) {
+      if (!wglMakeContextCurrent(drawable.getNativeWindow().getSurfaceHandle(), drawableRead.getNativeWindow().getSurfaceHandle(), contextHandle)) {
+        throw new GLException("Error making context current: 0x" + toHexString(contextHandle) + ", werr: 0x" + Integer.toHexString(WGL.GetLastError()) + ", " + this);
       } else {
         if (DEBUG && VERBOSE) {
           System.err.println(getThreadName() + ": wglMakeCurrent(hdc " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) +
-                             ", hglrc " + toHexString(hglrc) + ") succeeded");
+                             ", contextHandle " + toHexString(contextHandle) + ") succeeded");
         }
       }
     }
 
-    if (created) {
+    if (newCreated) {
       setGLFunctionAvailability(false, -1, -1, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
 
       WindowsWGLGraphicsConfiguration config = 
@@ -342,25 +341,21 @@ public class WindowsWGLContext extends GLContextImpl {
 
   protected void destroyImpl() throws GLException {
     if (DEBUG) {
-        Exception e = new Exception(getThreadName() + ": !!! Destroyed OpenGL context " + toHexString(hglrc));
+        Exception e = new Exception(getThreadName() + ": !!! Destroyed OpenGL context " + toHexString(contextHandle));
         e.printStackTrace();
     }
-    if (hglrc != 0) {
-      if (!WGL.wglDeleteContext(hglrc)) {
+    if (contextHandle != 0) {
+      if (!WGL.wglDeleteContext(contextHandle)) {
         throw new GLException("Unable to delete OpenGL context");
       }
-      hglrc = 0;
+      contextHandle = 0;
       GLContextShareSet.contextDestroyed(this);
     }
   }
 
-  public boolean isCreated() {
-    return (hglrc != 0);
-  }
-
   public void copy(GLContext source, int mask) throws GLException {
-    long dst = getHGLRC();
-    long src = ((WindowsWGLContext) source).getHGLRC();
+    long dst = getHandle();
+    long src = source.getHandle();
     if (src == 0) {
       throw new GLException("Source OpenGL context has not been created");
     }
@@ -436,11 +431,4 @@ public class WindowsWGLContext extends GLContextImpl {
     throw new GLException("Should not call this");
   }
 
-  //----------------------------------------------------------------------
-  // Internals only below this point
-  //
-
-  public long getHGLRC() {
-    return hglrc;
-  }
 }

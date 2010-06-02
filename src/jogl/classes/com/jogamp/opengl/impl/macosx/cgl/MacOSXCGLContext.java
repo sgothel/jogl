@@ -49,8 +49,7 @@ import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 
 public abstract class MacOSXCGLContext extends GLContextImpl
 {	
-  protected long nsContext;  // NSOpenGLContext
-  protected long cglContext; // CGLContextObj
+  protected boolean isNSContext;
   private CGLExt cglExt;
   // Table that holds the addresses of the native C-language entry points for
   // CGL extension functions.
@@ -69,6 +68,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   public Object getPlatformGLExtensions() {
     return getCGLExt();
   }
+
+  protected boolean isNSContext() { return isNSContext; }
 
   public CGLExt getCGLExt() {
     if (cglExt == null) {
@@ -98,16 +99,19 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   }
 
   /**
-   * Creates and initializes an appropriate OpenGl nsContext. Should only be
+   * Creates and initializes an appropriate OpenGl Context (NS). Should only be
    * called by {@link makeCurrentImpl()}.
    */
   protected boolean create(boolean pbuffer, boolean floatingPoint) {
     MacOSXCGLContext other = (MacOSXCGLContext) GLContextShareSet.getShareContext(this);
     long share = 0;
     if (other != null) {
-      share = other.getNSContext();
+      if (!other.isNSContext()) {
+        throw new GLException("GLContextShareSet is not a NS Context");
+      }
+      share = other.getHandle();
       if (share == 0) {
-        throw new GLException("GLContextShareSet returned an invalid OpenGL context");
+        throw new GLException("GLContextShareSet returned a NULL OpenGL context");
       }
     }
     MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
@@ -129,11 +133,11 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     try {
       int[] viewNotReady = new int[1];
       // Try to allocate a context with this
-      nsContext = CGL.createContext(share,
+      contextHandle = CGL.createContext(share,
                                     drawable.getNativeWindow().getSurfaceHandle(),
                                     pixelFormat,
                                     viewNotReady, 0);
-      if (nsContext == 0) {
+      if (contextHandle == 0) {
         if (viewNotReady[0] == 1) {
           if (DEBUG) {
             System.err.println("!!! View not ready for " + getClass().getName());
@@ -146,7 +150,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
       if (!pbuffer && !capabilities.isBackgroundOpaque()) {
           // Set the context opacity
-          CGL.setContextOpacity(nsContext, 0);
+          CGL.setContextOpacity(contextHandle, 0);
       }
 
       GLCapabilities caps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(glProfile, pixelFormat);
@@ -154,41 +158,45 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     } finally {
       CGL.deletePixelFormat(pixelFormat);
     }
-    if (!CGL.makeCurrentContext(nsContext)) {
-      throw new GLException("Error making nsContext current");
+    if (!CGL.makeCurrentContext(contextHandle)) {
+      throw new GLException("Error making Context (NS) current");
     }
+    isNSContext = true;
     setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
     GLContextShareSet.contextCreated(this);
     return true;
-  }    
+  }
 	
   protected int makeCurrentImpl() throws GLException {
-    boolean created = false;
     if (0 == drawable.getNativeWindow().getSurfaceHandle()) {
         throw new GLException("drawable has invalid surface handle: "+drawable);
     }
-    if ( 0 == cglContext && 0 == nsContext) {
+    boolean newCreated = false;
+    if (!isCreated()) {
       create();
-      created = 0 != cglContext || 0 != nsContext ;
-      if(!created) {
+      newCreated = isCreated();
+      if(!newCreated) {
+        if (DEBUG) {
+          System.err.println("!!! GL Context creation failed for " + getClass().getName());
+        }
         return CONTEXT_NOT_CURRENT;
       }
       if (DEBUG) {
-        System.err.println("!!! Created OpenGL context " + toHexString(nsContext) + " for " + getClass().getName());
+        System.err.println("!!! Created OpenGL context " + toHexString(contextHandle) + " for " + getClass().getName());
       }
     }
             
-    if ( 0 != cglContext ) {
-        if (CGL.kCGLNoError != CGL.CGLSetCurrentContext(cglContext)) {
-          throw new GLException("Error making cglContext current");
+    if ( isNSContext ) {
+        if (!CGL.makeCurrentContext(contextHandle)) {
+          throw new GLException("Error making Context (NS) current");
         }
     } else {
-        if (!CGL.makeCurrentContext(nsContext)) {
-          throw new GLException("Error making nsContext current");
+        if (CGL.kCGLNoError != CGL.CGLSetCurrentContext(contextHandle)) {
+          throw new GLException("Error making Context (CGL) current");
         }
     }
             
-    if (created) {
+    if (newCreated) {
       setGLFunctionAvailability(false, -1, -1, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
       return CONTEXT_CURRENT_NEW;
     }
@@ -196,61 +204,57 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   }
 	
   protected void releaseImpl() throws GLException {
-    if ( 0 != cglContext ) {
-        CGL.CGLReleaseContext(cglContext);
-    } else {
-        if (!CGL.clearCurrentContext(nsContext)) {
-          throw new GLException("Error freeing OpenGL nsContext");
+    if ( isNSContext ) {
+        if (!CGL.clearCurrentContext(contextHandle)) {
+          throw new GLException("Error freeing OpenGL Context (NS)");
         }
+    } else {
+        CGL.CGLReleaseContext(contextHandle);
     }
   }
 	
   protected void destroyImpl() throws GLException {
-    boolean hadContext = isCreated();
-    if ( 0 != cglContext ) {
-      if (CGL.kCGLNoError != CGL.CGLDestroyContext(cglContext)) {
-        throw new GLException("Unable to delete OpenGL cglContext");
+    if( ! isCreated() ) {
+        return;
+    } 
+    if ( !isNSContext ) {
+      if (CGL.kCGLNoError != CGL.CGLDestroyContext(contextHandle)) {
+        throw new GLException("Unable to delete OpenGL Context (CGL)");
       }
       if (DEBUG) {
-        System.err.println("!!! Destroyed OpenGL cglContext " + cglContext);
+        System.err.println("!!! Destroyed OpenGL Context (CGL) " + contextHandle);
       }
-      cglContext = 0;
+      contextHandle = 0;
       GLContextShareSet.contextDestroyed(this);
-    } else if ( 0 != nsContext ) {
-      if (!CGL.deleteContext(nsContext)) {
-        throw new GLException("Unable to delete OpenGL nsContext");
+    } else {
+      if (!CGL.deleteContext(contextHandle)) {
+        throw new GLException("Unable to delete OpenGL Context (NS)");
       }
       if (DEBUG) {
-        System.err.println("!!! Destroyed OpenGL nsContext " + nsContext);
+        System.err.println("!!! Destroyed OpenGL Context (NS) " + contextHandle);
       }
-      nsContext = 0;
+      contextHandle = 0;
     }
-    if(hadContext) {
-      GLContextShareSet.contextDestroyed(this);
-    }
+    GLContextShareSet.contextDestroyed(this);
   }
 
-  public boolean isCreated() {
-    return 0 != cglContext || 0 != nsContext ;
-  }
-	
   public void copy(GLContext source, int mask) throws GLException {
-    long dst = getCGLContext();
-    long src = 0;
-    if( 0 != dst ) {
-        src = ((MacOSXCGLContext) source).getCGLContext();
-        if (src == 0) {
-          throw new GLException("Source OpenGL cglContext has not been created ; Destination has a cglContext.");
+    long dst = getHandle();
+    if (0 == dst) {
+      throw new GLException("Destination OpenGL Context has not been created");
+    }
+    long src = source.getHandle();
+    if (0 == src) {
+      throw new GLException("Source OpenGL Context has not been created");
+    }
+    if( !isNSContext() ) {
+        if ( ((MacOSXCGLContext)source).isNSContext() ) {
+          throw new GLException("Source OpenGL Context is NS ; Destination Context is CGL.");
         }
         CGL.CGLCopyContext(src, dst, mask);
     } else {
-        dst = getNSContext();
-        src = ((MacOSXCGLContext) source).getNSContext();
-        if (src == 0) {
-          throw new GLException("Source OpenGL nsContext has not been created");
-        }
-        if (dst == 0) {
-          throw new GLException("Destination OpenGL nsContext has not been created");
+        if ( !((MacOSXCGLContext)source).isNSContext() ) {
+          throw new GLException("Source OpenGL Context is CGL ; Destination Context is NS.");
         }
         CGL.copyContext(dst, src, mask);
     }
@@ -274,14 +278,31 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     return "";
   }
 	
+  protected void swapBuffers() {
+    DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    GLCapabilities caps = (GLCapabilities)config.getChosenCapabilities();
+    if(caps.isOnscreen()) {
+        if(isNSContext) {
+            if (!CGL.flushBuffer(contextHandle)) {
+              throw new GLException("Error swapping buffers (NS)");
+            }
+        } else {
+            if (CGL.kCGLNoError != CGL.CGLFlushDrawable(contextHandle)) {
+              throw new GLException("Error swapping buffers (CGL)");
+            }
+        }
+    }
+  }
+
   protected void setSwapIntervalImpl(int interval) {
-    if ( 0 != cglContext ) {
-        int[] lval = new int[] { (int) interval } ;
-        CGL.CGLSetParameter(cglContext, CGL.kCGLCPSwapInterval, lval, 0);
-    } else if ( 0 != nsContext ) {
-        CGL.setSwapInterval(nsContext, interval);
+    if( ! isCreated() ) {
+        throw new GLException("OpenGL context not created");
+    } 
+    if ( isNSContext ) {
+        CGL.setSwapInterval(contextHandle, interval);
     } else {
-      throw new GLException("OpenGL context not current");
+        int[] lval = new int[] { (int) interval } ;
+        CGL.CGLSetParameter(contextHandle, CGL.kCGLCPSwapInterval, lval, 0);
     }
     currentSwapInterval = interval ;
   }
@@ -327,15 +348,4 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   // Support for "mode switching" as described in MacOSXCGLDrawable
   public abstract void setOpenGLMode(int mode);
   public abstract int  getOpenGLMode();
-
-  //----------------------------------------------------------------------
-  // Internals only below this point
-  //
-	
-  public long getCGLContext() {
-    return cglContext;
-  }
-  public long getNSContext() {
-    return nsContext;
-  }
 }

@@ -71,24 +71,21 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
   }
 
   protected int makeCurrentImpl() throws GLException {
-    boolean created = false;
-    if (nsContext == 0) {
+    if (contextHandle == 0) {
       create();
-      created = 0 != nsContext ;
-      if(!created) {
+      if(!isCreated()) {
         return CONTEXT_NOT_CURRENT;
       }
       if (DEBUG) {
-        System.err.println("!!! Created GL nsContext for " + getClass().getName());
+        System.err.println("!!! Created GL Context (NS)  for " + getClass().getName());
       }
-      created = true;
     }
             
-    if (!Java2D.makeOGLContextCurrentOnSurface(graphics, nsContext)) {
+    if (!Java2D.makeOGLContextCurrentOnSurface(graphics, contextHandle)) {
       throw new GLException("Error making context current");
     }
             
-    if (created) {
+    if (isCreated()) {
       setGLFunctionAvailability(false, -1, -1, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
       return CONTEXT_CURRENT_NEW;
     }
@@ -109,7 +106,7 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
           throw new GLException("Can't share between NSOpenGLContexts and CGLContextObjs");
         }
       }
-      share = other.getNSContext();
+      share = other.getHandle();
       // Note we don't check for a 0 return value, since switching
       // the context's mode causes it to be destroyed and not
       // re-initialized until the next makeCurrent
@@ -124,7 +121,8 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
       return;
     }
     // FIXME: think about GLContext sharing
-    nsContext = ctx;
+    contextHandle = ctx;
+    isNSContext = true;
   }
 
   protected void releaseImpl() throws GLException {
@@ -134,12 +132,12 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
   }
 
   protected void destroyImpl() throws GLException {
-    if (nsContext != 0) {
-      Java2D.destroyOGLContext(nsContext);
+    if (contextHandle != 0) {
+      Java2D.destroyOGLContext(contextHandle);
       if (DEBUG) {
-        System.err.println("!!! Destroyed OpenGL context " + nsContext);
+        System.err.println("!!! Destroyed OpenGL context " + contextHandle);
       }
-      nsContext = 0;
+      contextHandle = 0;
       // FIXME
       // GLContextShareSet.contextDestroyed(this);
     }
