@@ -450,7 +450,7 @@ public class MacWindow extends Window {
         }
 
         try {
-            java.awt.EventQueue.invokeAndWait(new Runnable() {
+            MacDisplay.runOnMainThread(true, new Runnable() {
                 public void run() {
                     if(0!=windowHandle) {
                         // save the view .. close the window

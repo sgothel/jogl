@@ -35,6 +35,7 @@ package com.jogamp.newt.impl.macosx;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.macosx.*;
+import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.*;
 import com.jogamp.newt.impl.*;
 import com.jogamp.newt.util.MainThread;
@@ -67,16 +68,7 @@ public class MacDisplay extends Display {
     private DispatchAction dispatchAction = new DispatchAction();
 
     protected void dispatchMessagesNative() {
-        if (false && MainThread.isRunning()) {
-            MainThread.invoke(false, dispatchAction);
-        } else {
-            try {
-                java.awt.EventQueue.invokeLater(dispatchAction);
-                // java.awt.EventQueue.invokeAndWait(dispatchAction);
-            } catch (Exception ie) {
-                ie.printStackTrace();
-            }
-        }
+        runOnMainThread(false, dispatchAction);
     }
     
     protected void createNative() {
@@ -91,6 +83,39 @@ public class MacDisplay extends Display {
     public EDTUtil getEDTUtil() {
         return null;
     }*/
+
+    protected static void runOnMainThread(boolean wait, Runnable r) {
+        if (MainThread.isRunning()) {
+            MainThread.invoke(wait, r);
+        } else if(!runOnAWTEDT(wait, r)) {
+            throw new NativeWindowException("Neither MainThread is running nor AWT EDT available");
+        }
+    }
+
+    protected static boolean runOnAWTEDT(boolean wait, Runnable r) {
+        if(ReflectionUtil.isClassAvailable("java.awt.EventQueue")) {
+            try {
+                if(wait) {
+                    ReflectionUtil.callStaticMethod(
+                        "java.awt.EventQueue",
+                        "invokeAndWait",
+                        new Class[]  { java.lang.Runnable.class },
+                        new Object[] { r } );
+                } else {
+                    ReflectionUtil.callStaticMethod(
+                        "java.awt.EventQueue",
+                        "invokeLater",
+                        new Class[]  { java.lang.Runnable.class },
+                        new Object[] { r } );
+                }
+            } catch (Exception e) {
+                throw new NativeWindowException(e);
+            }
+            return true;
+        }
+        return false;
+    }
+
     private static native boolean initNSApplication0();
     protected native void dispatchMessages0();
 }
