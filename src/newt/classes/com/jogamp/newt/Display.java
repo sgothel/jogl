@@ -112,7 +112,7 @@ public abstract class Display {
         Map displayMap = getCurrentDisplayMap();
         Set entrySet = displayMap.entrySet();
         Iterator i = entrySet.iterator();
-        System.err.println(prefix+" DisplayMap["+entrySet.size()+"] "+Thread.currentThread());
+        System.err.println(prefix+" DisplayMap[] entries: "+entrySet.size()+" - "+Thread.currentThread());
         for(int j=0; i.hasNext(); j++) {
             Map.Entry entry = (Map.Entry) i.next();
             System.err.println("  ["+j+"] "+entry.getKey()+" -> "+entry.getValue());
@@ -125,7 +125,7 @@ public abstract class Display {
     }
 
     /** Make sure to reuse a Display with the same name */
-    protected static Display create(String type, String name, final long handle) {
+    protected static synchronized Display create(String type, String name, final long handle) {
         try {
             Class displayClass = getDisplayClass(type);
             Display tmpDisplay = (Display) displayClass.newInstance();
@@ -140,41 +140,30 @@ public abstract class Display {
                 tmpDisplay = null;
                 display.name = name;
                 display.type=type;
-                display.refCount=1;
-
-                if(NewtFactory.useEDT()) {
-                    final Display f_dpy = display;
-                    Thread current = Thread.currentThread();
-                    display.edtUtil = new EDTUtil(current.getThreadGroup(), 
-                                                  "Display_"+display.getFQName(),
-                                                  new Runnable() {
-                                                    public void run() {
-                                                        if(null!=f_dpy.getGraphicsDevice()) {
-                                                            f_dpy.pumpMessagesImpl();
-                                                        }
-                                                    } } );
-                    display.edt = display.edtUtil.start();
-                    display.edtUtil.invokeAndWait(new Runnable() {
-                        public void run() {
-                            f_dpy.createNative();
-                        }
-                    } );
-                } else {
-                    display.createNative();
-                }
-                if(null==display.aDevice) {
-                    throw new RuntimeException("Display.createNative() failed to instanciate an AbstractGraphicsDevice");
-                }
-                setCurrentDisplay(display);
+                display.refCount=0;
                 if(DEBUG) {
-                    System.err.println("Display.create("+getFQName(type, name)+") NEW: "+display+" "+Thread.currentThread());
+                    System.err.println("Display.create("+getFQName(type, name)+") NEW: refCount "+display.refCount+", "+display+" "+Thread.currentThread());
                 }
             } else {
                 tmpDisplay = null;
-                synchronized(display) {
-                    display.refCount++;
+                if(DEBUG) {
+                    System.err.println("Display.create("+getFQName(type, name)+") REUSE: refCount "+display.refCount+", "+display+" "+Thread.currentThread());
+                }
+            }
+            synchronized(display) {
+                display.refCount++;
+                if(null==display.aDevice) {
+                    final Display f_dpy = display;
+                    display.runOnEDTIfAvail(true, new Runnable() {
+                        public void run() {
+                            f_dpy.createNative();
+                        }});
+                    if(null==display.aDevice) {
+                        throw new RuntimeException("Display.createNative() failed to instanciate an AbstractGraphicsDevice");
+                    }
+                    setCurrentDisplay(display);
                     if(DEBUG) {
-                        System.err.println("Display.create("+getFQName(type, name)+") REUSE: refCount "+display.refCount+", "+display+" "+Thread.currentThread());
+                        System.err.println("Display.create("+getFQName(type, name)+") CreateNative: "+display+" "+Thread.currentThread());
                     }
                 }
             }
@@ -187,7 +176,41 @@ public abstract class Display {
         }
     }
 
-    public EDTUtil getEDTUtil() { return edtUtil; }
+    public boolean runCreateAndDestroyOnEDT() { 
+        return true; 
+    }
+    public EDTUtil getEDTUtil() {
+        if( !edtQueried ) {
+            synchronized (this) {
+                if( !edtQueried ) {
+                    edtQueried = true;
+                    if(NewtFactory.useEDT()) {
+                        final Display f_dpy = this;
+                        Thread current = Thread.currentThread();
+                        edtUtil = new EDTUtil(current.getThreadGroup(), 
+                                              "Display_"+getFQName(),
+                                              new Runnable() {
+                                                  public void run() {
+                                                      if(null!=f_dpy.getGraphicsDevice()) {
+                                                          f_dpy.pumpMessagesImpl();
+                                                      } } } );
+                        edt = edtUtil.start();
+                    }
+                }
+            }
+        }
+        return edtUtil;
+    }
+    volatile boolean edtQueried = false;
+
+    public void runOnEDTIfAvail(boolean wait, final Runnable task) {
+        EDTUtil edtUtil = getEDTUtil();
+        if(runCreateAndDestroyOnEDT() && null!=edtUtil) {
+            edtUtil.invoke(wait, task);
+        } else {
+            task.run();
+        }
+    }
 
     public synchronized void destroy() {
         if(DEBUG) {
@@ -199,18 +222,17 @@ public abstract class Display {
             if(DEBUG) {
                 System.err.println("Display.destroy("+getFQName()+") REMOVE: "+this+" "+Thread.currentThread());
             }
-            if(null!=edtUtil) {
-                final Display f_dpy = this;
-                final EDTUtil f_edt = edtUtil;
-                edtUtil.invokeAndWait(new Runnable() {
-                    public void run() {
-                        f_dpy.closeNative();
+            final Display f_dpy = this;
+            final EDTUtil f_edt = edtUtil;
+            runOnEDTIfAvail(true, new Runnable() {
+                public void run() {
+                    f_dpy.closeNative();
+                    if(null!=f_edt) {
                         f_edt.stop();
                     }
-                } );
-            } else {
-                closeNative();
-            }
+                }
+            } );
+
             if(null!=edtUtil) { 
                 edtUtil.waitUntilStopped();
                 edtUtil=null;

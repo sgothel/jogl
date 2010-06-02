@@ -161,11 +161,6 @@ public abstract class Window implements NativeWindow
         if( null==screen || 0!=windowHandle || !visible ) {
             return 0 != windowHandle ;
         }
-        EDTUtil edtUtil = screen.getDisplay().getEDTUtil();
-        if( null != edtUtil && edtUtil.isRunning() && !edtUtil.isCurrentThreadEDT() ) {
-            throw new NativeWindowException("EDT enabled but not on EDT");
-        }
-
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.createNative() START ("+Thread.currentThread()+", "+this+")");
         }
@@ -219,12 +214,8 @@ public abstract class Window implements NativeWindow
         if(null==screen) {
             throw new RuntimeException("Null screen of inner class: "+this);
         }
-        EDTUtil edtUtil = screen.getDisplay().getEDTUtil();
-        if(null!=edtUtil) {
-            edtUtil.invoke(wait, task);
-        } else {
-            task.run();
-        }
+        Display d  = screen.getDisplay();
+        d.runOnEDTIfAvail(wait, task);
     }
 
     /**

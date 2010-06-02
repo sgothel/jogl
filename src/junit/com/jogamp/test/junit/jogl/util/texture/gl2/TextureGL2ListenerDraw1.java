@@ -53,7 +53,9 @@ public class TextureGL2ListenerDraw1 implements GLEventListener {
     }
 
     public void init(GLAutoDrawable drawable) {
-        this.texture = TextureIO.newTexture(textureData);
+        if(null!=textureData) {
+            this.texture = TextureIO.newTexture(textureData);
+        }
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
@@ -89,21 +91,23 @@ public class TextureGL2ListenerDraw1 implements GLEventListener {
 
     
         // Now draw one quad with the texture
-        texture.enable();
-        texture.bind();
-        gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_REPLACE);
-        TextureCoords coords = texture.getImageTexCoords();
-        gl.glBegin(GL2.GL_QUADS);
-        gl.glTexCoord2f(coords.left(), coords.bottom());
-        gl.glVertex3f(0, 0, 0);
-        gl.glTexCoord2f(coords.right(), coords.bottom());
-        gl.glVertex3f(1, 0, 0);
-        gl.glTexCoord2f(coords.right(), coords.top());
-        gl.glVertex3f(1, 1, 0);
-        gl.glTexCoord2f(coords.left(), coords.top());
-        gl.glVertex3f(0, 1, 0);
-        gl.glEnd();
-        texture.disable();
+        if(null!=texture) {
+            texture.enable();
+            texture.bind();
+            gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_REPLACE);
+            TextureCoords coords = texture.getImageTexCoords();
+            gl.glBegin(GL2.GL_QUADS);
+            gl.glTexCoord2f(coords.left(), coords.bottom());
+            gl.glVertex3f(0, 0, 0);
+            gl.glTexCoord2f(coords.right(), coords.bottom());
+            gl.glVertex3f(1, 0, 0);
+            gl.glTexCoord2f(coords.right(), coords.top());
+            gl.glVertex3f(1, 1, 0);
+            gl.glTexCoord2f(coords.left(), coords.top());
+            gl.glVertex3f(0, 1, 0);
+            gl.glEnd();
+            texture.disable();
+        }
     }
 }
 

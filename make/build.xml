@@ -63,7 +63,7 @@
         </copy>
     </target>
 
-    <target name="one.dir" depends="one-lib-dir,one-jar-dir"/>
+    <target name="one-dir" depends="one-lib-dir,one-jar-dir"/>
 
     <target name="repack-jars" depends="one-jar-dir">
         <!-- Re-pack jars we have the intent to compress later, after signing -->
@@ -155,7 +155,7 @@
        - Main build target.
       -->
 
-    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one-lib-dir,one-jar-dir,developer-zip-archive,source-archive" />
+    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one-dir,developer-zip-archive,source-archive" />
 
     <target name="junit.compile">
       <ant antfile="build-junit.xml" target="junit.compile" inheritRefs="true" inheritAll="true"/>

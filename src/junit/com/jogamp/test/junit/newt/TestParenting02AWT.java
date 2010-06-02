@@ -68,6 +68,7 @@ public class TestParenting02AWT {
     static int width, height;
     static long durationPerTest = 500;
     static long waitReparent = 300;
+    static boolean verbose = false;
 
     @BeforeClass
     public static void initClass() {
@@ -157,7 +158,9 @@ public class TestParenting02AWT {
 
         Assert.assertEquals(true, glWindow.isNativeWindowValid());
         Assert.assertNotNull(glWindow.getParentNativeWindow());
-        System.out.println("+++++++++++++++++++ 1st ADDED");
+        if(verbose) {
+            System.out.println("+++++++++++++++++++ 1st ADDED");
+        }
         Thread.sleep(waitReparent);
 
         if(useLayout) {
@@ -166,7 +169,9 @@ public class TestParenting02AWT {
             Assert.assertEquals(false, glWindow.isVisible());
             Assert.assertEquals(true, glWindow.isNativeWindowValid());
             Assert.assertNull(glWindow.getParentNativeWindow());
-            System.out.println("+++++++++++++++++++ REMOVED!");
+            if(verbose) {
+                System.out.println("+++++++++++++++++++ REMOVED!");
+            }
             Thread.sleep(waitReparent);
 
             // should recreate properly ..
@@ -175,7 +180,9 @@ public class TestParenting02AWT {
             Assert.assertEquals(true, glWindow.isVisible());
             Assert.assertEquals(true, glWindow.isNativeWindowValid());
             Assert.assertNotNull(glWindow.getParentNativeWindow());
-            System.out.println("+++++++++++++++++++ 2nd ADDED");
+            if(verbose) {
+                System.out.println("+++++++++++++++++++ 2nd ADDED");
+            }
             Thread.sleep(waitReparent);
         }
 
@@ -204,7 +211,9 @@ public class TestParenting02AWT {
                 } 
             }
         }
-        System.out.println("+++++++++++++++++++ END");
+        if(verbose) {
+            System.out.println("+++++++++++++++++++ END");
+        }
         Thread.sleep(waitReparent);
 
         glWindow.destroy();
@@ -236,6 +245,7 @@ public class TestParenting02AWT {
     }
 
     public static void main(String args[]) throws IOException {
+        verbose = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
