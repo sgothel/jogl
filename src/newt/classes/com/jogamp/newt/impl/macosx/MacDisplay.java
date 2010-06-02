@@ -67,7 +67,16 @@ public class MacDisplay extends Display {
     private DispatchAction dispatchAction = new DispatchAction();
 
     protected void dispatchMessagesNative() {
-        MainThread.invoke(false, dispatchAction);
+        if (false && MainThread.isRunning()) {
+            MainThread.invoke(false, dispatchAction);
+        } else {
+            try {
+                java.awt.EventQueue.invokeLater(dispatchAction);
+                // java.awt.EventQueue.invokeAndWait(dispatchAction);
+            } catch (Exception ie) {
+                ie.printStackTrace();
+            }
+        }
     }
     
     protected void createNative() {
@@ -76,6 +85,12 @@ public class MacDisplay extends Display {
 
     protected void closeNative() { }
 
+    /*public boolean runCreateAndDestroyOnEDT() { 
+        return false; 
+    }
+    public EDTUtil getEDTUtil() {
+        return null;
+    }*/
     private static native boolean initNSApplication0();
     protected native void dispatchMessages0();
 }
