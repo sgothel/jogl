@@ -56,13 +56,13 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
             throw new IllegalArgumentException("AbstractGraphicsConfiguration is null with a non NativeWindow object");
         }
 
-        if (ReflectionUtil.instanceOf(winObj, "java.awt.Component")) {
+        if (ReflectionUtil.instanceOf(winObj, AWTComponentClassName)) {
             return getAWTNativeWindow(winObj, config);
         }
 
         throw new IllegalArgumentException("Target window object type " +
                                            winObj.getClass().getName() + " is unsupported; expected " +
-                                           "javax.media.nativewindow.NativeWindow or java.awt.Component");
+                                           "javax.media.nativewindow.NativeWindow or "+AWTComponentClassName);
     }
     
     private Constructor nativeWindowConstructor = null;

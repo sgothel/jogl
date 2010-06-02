@@ -33,8 +33,7 @@ package com.jogamp.newt.event.awt;
 
 public class AWTWindowAdapter 
     extends AWTAdapter 
-    implements java.awt.event.ComponentListener, java.awt.event.WindowListener, 
-               java.awt.event.HierarchyListener, java.awt.event.HierarchyBoundsListener
+    implements java.awt.event.ComponentListener, java.awt.event.WindowListener
 {
     WindowClosingListener windowClosingListener;
 
@@ -53,8 +52,6 @@ public class AWTWindowAdapter
     public AWTAdapter addTo(java.awt.Component awtComponent) {
         java.awt.Window win = getWindow(awtComponent);
         awtComponent.addComponentListener(this);
-        awtComponent.addHierarchyListener(this);
-        awtComponent.addHierarchyBoundsListener(this);
         if( null == windowClosingListener ) {
             windowClosingListener = new WindowClosingListener();
         }
@@ -69,8 +66,6 @@ public class AWTWindowAdapter
 
     public AWTAdapter removeFrom(java.awt.Component awtComponent) {
         awtComponent.removeComponentListener(this);
-        awtComponent.removeHierarchyListener(this);
-        awtComponent.removeHierarchyBoundsListener(this);
         java.awt.Window win = getWindow(awtComponent);
         if( null != win && null != windowClosingListener ) {
             win.removeWindowListener(windowClosingListener);
@@ -110,6 +105,7 @@ public class AWTWindowAdapter
     }
 
     public void componentShown(java.awt.event.ComponentEvent e) {
+        /**
         if(null==newtListener) {
             if(!newtWindow.isDestroyed()) {
                 newtWindow.runOnEDTIfAvail(false, new Runnable() {
@@ -118,10 +114,11 @@ public class AWTWindowAdapter
                     }
                 });
             }
-        }
+        }*/
     }
 
     public void componentHidden(java.awt.event.ComponentEvent e) {
+        /**
         if(null==newtListener) {
             if(!newtWindow.isDestroyed()) {
                 newtWindow.runOnEDTIfAvail(false, new Runnable() {
@@ -130,7 +127,7 @@ public class AWTWindowAdapter
                     }
                 });
             }
-        }
+        }*/
     }
 
     public void windowActivated(java.awt.event.WindowEvent e) {
@@ -160,52 +157,6 @@ public class AWTWindowAdapter
     public void windowIconified(java.awt.event.WindowEvent e) { }
 
     public void windowOpened(java.awt.event.WindowEvent e) { }
-
-    public void hierarchyChanged(java.awt.event.HierarchyEvent e) {
-        if( null == newtListener ) {
-            long bits = e.getChangeFlags();
-            final java.awt.Component changed = e.getChanged();
-            if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & bits ) ) {
-                final boolean showing = changed.isShowing();
-                if(DEBUG_IMPLEMENTATION) {
-                    System.out.println("hierarchyChanged SHOWING_CHANGED: showing "+showing+", "+changed);
-                }
-                if(!newtWindow.isDestroyed()) {
-                    newtWindow.runOnEDTIfAvail(false, new Runnable() {
-                        public void run() {
-                            newtWindow.setVisible(showing);
-                        }
-                    });
-                }
-            } 
-            if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
-                final boolean displayability = changed.isDisplayable();
-                if(DEBUG_IMPLEMENTATION) {
-                    System.out.println("hierarchyChanged DISPLAYABILITY_CHANGED: displayability "+displayability+", "+changed);
-                }
-            }
-        }
-    }
-
-    public void ancestorMoved(java.awt.event.HierarchyEvent e) {
-        if( null == newtListener ) {
-            final java.awt.Component changed = e.getChanged();
-            final boolean showing = changed.isShowing();
-            if(DEBUG_IMPLEMENTATION) {
-                System.out.println("ancestorMoved: showing "+showing+", "+changed);
-            }
-        }
-    }
-
-    public void ancestorResized(java.awt.event.HierarchyEvent e) {
-        if( null == newtListener ) {
-            final java.awt.Component changed = e.getChanged();
-            final boolean showing = changed.isShowing();
-            if(DEBUG_IMPLEMENTATION) {
-                System.out.println("ancestorResized: showing "+showing+", "+changed);
-            }
-        }
-    }
 
     class WindowClosingListener implements java.awt.event.WindowListener {
         public void windowClosing(java.awt.event.WindowEvent e) {

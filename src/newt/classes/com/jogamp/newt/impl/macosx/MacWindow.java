@@ -36,7 +36,6 @@ package com.jogamp.newt.impl.macosx;
 import javax.media.nativewindow.*;
 import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
 
-import com.jogamp.newt.util.MainThread;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.*;
@@ -149,29 +148,22 @@ public class MacWindow extends Window {
         }
     }
 
-    class CloseAction implements Runnable {
-        public void run() {
-            nsViewLock.lock();
-            try {
-                if(DEBUG_IMPLEMENTATION) { System.out.println("MacWindow.CloseAction "+Thread.currentThread().getName()); }
-                if (windowHandle != 0) {
-                    close0(windowHandle);
-                }
-            } catch (Throwable t) {
-                if(DEBUG_IMPLEMENTATION) { 
-                    Exception e = new Exception("closeNative failed - "+Thread.currentThread().getName(), t);
-                    e.printStackTrace();
-                }
-            } finally {
-                windowHandle = 0;
-                nsViewLock.unlock();
-            }
-        }
-    }
-    private CloseAction closeAction = new CloseAction();
-
     protected void closeNative() {
-        MainThread.invoke(true, closeAction);
+        nsViewLock.lock();
+        try {
+            if(DEBUG_IMPLEMENTATION) { System.out.println("MacWindow.CloseAction "+Thread.currentThread().getName()); }
+            if (windowHandle != 0) {
+                close0(windowHandle);
+            }
+        } catch (Throwable t) {
+            if(DEBUG_IMPLEMENTATION) { 
+                Exception e = new Exception("closeNative failed - "+Thread.currentThread().getName(), t);
+                e.printStackTrace();
+            }
+        } finally {
+            windowHandle = 0;
+            nsViewLock.unlock();
+        }
     }
     
     public long getWindowHandle() {
@@ -192,25 +184,12 @@ public class MacWindow extends Window {
         }
     }
 
-    class EnsureWindowCreatedAction implements Runnable {
-        public void run() {
-            nsViewLock.lock();
-            try {
-                createWindow(false, getX(), getY(), getWidth(), getHeight(), isFullscreen());
-            } finally {
-                nsViewLock.unlock();
-            }
-        }
-    }
-    private EnsureWindowCreatedAction ensureWindowCreatedAction =
-        new EnsureWindowCreatedAction();
-
     public Insets getInsets() {
         // in order to properly calculate insets we need the window to be
         // created
-        MainThread.invoke(true, ensureWindowCreatedAction);
         nsViewLock.lock();
         try {
+            createWindow(false, getX(), getY(), getWidth(), getHeight(), isFullscreen());
             return (Insets) insets.clone();
         } finally {
             nsViewLock.unlock();
@@ -235,120 +214,84 @@ public class MacWindow extends Window {
     }
 
     protected void setVisibleImpl(final boolean visible) {
-        MainThread.invoke(true, new Runnable() {
-            public void run() {
-                nsViewLock.lock();
-                try {
-                    if (visible) {
-                        createWindow(false, getX(), getY(), getWidth(), getHeight(), isFullscreen());
-                        if (windowHandle != 0) {
-                            makeKeyAndOrderFront0(windowHandle);
-                        }
-                    } else {
-                        if (windowHandle != 0) {
-                            orderOut0(windowHandle);
-                        }
-                    }
-                } finally {
-                    nsViewLock.unlock();
-                }
-            }
-        });
-    }
-
-    class TitleAction implements Runnable {
-        public void run() {
-            nsViewLock.lock();
-            try {
+        nsViewLock.lock();
+        try {
+            if (visible) {
+                createWindow(false, getX(), getY(), getWidth(), getHeight(), isFullscreen());
                 if (windowHandle != 0) {
-                    setTitle0(windowHandle, title);
+                    makeKeyAndOrderFront0(windowHandle);
                 }
-            } finally {
-                nsViewLock.unlock();
+            } else {
+                if (windowHandle != 0) {
+                    orderOut0(windowHandle);
+                }
             }
+        } finally {
+            nsViewLock.unlock();
         }
     }
-    private TitleAction titleAction = new TitleAction();
 
     public void setTitle(String title) {
         super.setTitle(title);
-        MainThread.invoke(true, titleAction);
-    }
-
-    class FocusAction implements Runnable {
-        public void run() {
-            nsViewLock.lock();
-            try {
-                if (windowHandle != 0) {
-                    makeKey0(windowHandle);
-                }
-            } finally {
-                nsViewLock.unlock();
+        nsViewLock.lock();
+        try {
+            if (windowHandle != 0) {
+                setTitle0(windowHandle, title);
             }
+        } finally {
+            nsViewLock.unlock();
         }
     }
-    private FocusAction focusAction = new FocusAction();
 
     public void requestFocus() {
         super.requestFocus();
-        MainThread.invoke(true, focusAction);
-    }
-    
-    class SizeAction implements Runnable {
-        public void run() {
-            nsViewLock.lock();
-            try {
-                if (windowHandle != 0) {
-                    setContentSize0(windowHandle, width, height);
-                }
-            } finally {
-                nsViewLock.unlock();
+        nsViewLock.lock();
+        try {
+            if (windowHandle != 0) {
+                makeKey0(windowHandle);
             }
+        } finally {
+            nsViewLock.unlock();
         }
     }
-    private SizeAction sizeAction = new SizeAction();
-
+    
     protected void setSizeImpl(int width, int height) {
         // this width/height will be set by sizeChanged, called by OSX
-        MainThread.invoke(true, sizeAction);
-    }
-    
-    class PositionAction implements Runnable {
-        public void run() {
-            nsViewLock.lock();
-            try {
-                if (windowHandle != 0) {
-                    setFrameTopLeftPoint0(parentWindowHandle, windowHandle, x, y);
-                }
-            } finally {
-                nsViewLock.unlock();
+        nsViewLock.lock();
+        try {
+            if (windowHandle != 0) {
+                setContentSize0(windowHandle, width, height);
             }
+        } finally {
+            nsViewLock.unlock();
         }
     }
-    private PositionAction positionAction = new PositionAction();
-
+    
     protected void setPositionImpl(int x, int y) {
         // this x/y will be set by positionChanged, called by OSX
-        MainThread.invoke(true, positionAction);
+        nsViewLock.lock();
+        try {
+            if (windowHandle != 0) {
+                setFrameTopLeftPoint0(parentWindowHandle, windowHandle, x, y);
+            }
+        } finally {
+            nsViewLock.unlock();
+        }
     }
     
     protected boolean setFullscreenImpl(final boolean fullscreen, final int x, final int y, final int w, final int h) {
-        MainThread.invoke(true, new Runnable() {
-            public void run() {
-                nsViewLock.lock();
-                try {
-                    if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                        System.err.println("MacWindow fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h);
-                    }
-                    createWindow(true, x, y, w, h, fullscreen);
-                    if (windowHandle != 0) {
-                        makeKeyAndOrderFront0(windowHandle);
-                    }
-                } finally {
-                    nsViewLock.unlock();
-                }
+        nsViewLock.lock();
+        try {
+            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                System.err.println("MacWindow fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h);
             }
-            });
+            createWindow(true, x, y, w, h, fullscreen);
+            if (windowHandle != 0) {
+                makeKeyAndOrderFront0(windowHandle);
+            }
+        } finally {
+            nsViewLock.unlock();
+        }
         return fullscreen;
     }
     
@@ -500,35 +443,45 @@ public class MacWindow extends Window {
         super.sendKeyEvent(eventType, modifiers, key, keyChar);
     }
 
-    private void createWindow(boolean recreate, int x, int y, int width, int height, boolean fullscreen) {
+    private void createWindow(final boolean recreate, final int x, final int y, final int width, final int height, final boolean fullscreen) {
+
         if(0!=windowHandle && !recreate) {
             return;
         }
-        if(0!=windowHandle) {
-            // save the view .. close the window
-            surfaceHandle = changeContentView0(parentWindowHandle, windowHandle, 0);
-            if(recreate && 0==surfaceHandle) {
-                throw new NativeWindowException("Internal Error - recreate, window but no view");
-            }
-            close0(windowHandle);
-            windowHandle=0;
-        } else {
-            surfaceHandle = 0;
+
+        try {
+            java.awt.EventQueue.invokeAndWait(new Runnable() {
+                public void run() {
+                    if(0!=windowHandle) {
+                        // save the view .. close the window
+                        surfaceHandle = changeContentView0(parentWindowHandle, windowHandle, 0);
+                        if(recreate && 0==surfaceHandle) {
+                            throw new NativeWindowException("Internal Error - recreate, window but no view");
+                        }
+                        close0(windowHandle);
+                        windowHandle=0;
+                    } else {
+                        surfaceHandle = 0;
+                    }
+                    windowHandle = createWindow0(parentWindowHandle, 
+                                                 x, y, width, height, fullscreen,
+                                                 (isUndecorated(fullscreen) ?
+                                                 NSBorderlessWindowMask :
+                                                 NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask),
+                                                 NSBackingStoreBuffered, 
+                                                 getScreen().getIndex(), surfaceHandle);
+                    if (windowHandle == 0) {
+                        throw new NativeWindowException("Could create native window "+Thread.currentThread().getName()+" "+this);
+                    }
+                    surfaceHandle = contentView0(windowHandle);
+                    setTitle0(windowHandle, getTitle());
+                    // don't make the window visible on window creation
+                    // makeKeyAndOrderFront0(windowHandle);
+                } } );
+        } catch (Exception ie) {
+            ie.printStackTrace();
         }
-        windowHandle = createWindow0(parentWindowHandle, 
-                                     x, y, width, height, fullscreen,
-                                     (isUndecorated(fullscreen) ?
-                                     NSBorderlessWindowMask :
-                                     NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask),
-                                     NSBackingStoreBuffered, 
-                                     getScreen().getIndex(), surfaceHandle);
-        if (windowHandle == 0) {
-            throw new NativeWindowException("Could create native window "+Thread.currentThread().getName()+" "+this);
-        }
-        surfaceHandle = contentView0(windowHandle);
-        setTitle0(windowHandle, getTitle());
-        // don't make the window visible on window creation
-//        makeKeyAndOrderFront0(windowHandle);
+
         sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
         sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
         sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);

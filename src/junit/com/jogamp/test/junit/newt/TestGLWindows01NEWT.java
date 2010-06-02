@@ -127,10 +127,16 @@ public class TestGLWindows01NEWT {
         window.display();
         window.destroy();
         Assert.assertEquals(false,window.isNativeWindowValid());
-        Assert.assertEquals(true,window.isVisible());
+        Assert.assertEquals(false,window.isVisible());
 
         window.display();
+        Assert.assertEquals(false,window.isNativeWindowValid());
+        Assert.assertEquals(false,window.isVisible());
+
+        window.setVisible(true);
         Assert.assertEquals(true,window.isNativeWindowValid());
+        Assert.assertEquals(true,window.isVisible());
+        window.display();
 
         Animator animator = new Animator(window);
         animator.start();

@@ -38,7 +38,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     // FIXME: not clear whether this is really necessary, but since
     // the API docs seem to imply it is and since it doesn't seem to
     // impact performance, leaving it in
-    CGL.setContextTextureImageToPBuffer(nsContext, drawable.getPbuffer(), GL.GL_FRONT);
+    CGL.setContextTextureImageToPBuffer(contextHandle, drawable.getPbuffer(), GL.GL_FRONT);
   }
 
   public void releasePbufferFromTexture() {
@@ -57,23 +57,24 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       setOpenGLMode(drawable.getOpenGLMode());
     }
 
-    boolean created = false;
-    if (nsContext == 0) {
+    if (contextHandle == 0) {
       create();
-      created = 0 != nsContext ;
-      if(!created) {
+      if(!isCreated()) {
         return CONTEXT_NOT_CURRENT;
       }
+      if(!isNSContext()) {
+          throw new GLException("Not a NS Context");
+      }
       if (DEBUG) {
-        System.err.println("!!! Created OpenGL context " + toHexString(nsContext) + " for " + getClass().getName());
+        System.err.println("!!! Created OpenGL context (NS) " + toHexString(contextHandle) + " for " + getClass().getName());
       }
     }
     
-    if (!impl.makeCurrent(nsContext)) {
-      throw new GLException("Error making nsContext current");
+    if (!impl.makeCurrent(contextHandle)) {
+      throw new GLException("Error making Context (NS) current");
     }
             
-    if (created) {
+    if (isCreated()) {
       setGLFunctionAvailability(false, -1, -1, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
 
       // Initialize render-to-texture support if requested
@@ -105,29 +106,29 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   }
 
   protected void releaseImpl() throws GLException {
-    if (!impl.release(nsContext)) {
-      throw new GLException("Error releasing OpenGL nsContext");
+    if (!impl.release(contextHandle)) {
+      throw new GLException("Error releasing OpenGL Context (NS)");
     }
   }
 
   protected void destroyImpl() throws GLException {
-    if (nsContext != 0) {
-      if (!impl.destroy(nsContext)) {
+    if (contextHandle != 0) {
+      if (!impl.destroy(contextHandle)) {
         throw new GLException("Unable to delete OpenGL context");
       }
       if (DEBUG) {
-        System.err.println("!!! Destroyed OpenGL context " + nsContext);
+        System.err.println("!!! Destroyed OpenGL context " + contextHandle);
       }
-      nsContext = 0;
+      contextHandle = 0;
       GLContextShareSet.contextDestroyed(this);
     }
   }
 
   protected void setSwapIntervalImpl(int interval) {
-    if (nsContext == 0) {
+    if (contextHandle == 0) {
       throw new GLException("OpenGL context not current");
     }
-    impl.setSwapInterval(nsContext, interval);
+    impl.setSwapInterval(contextHandle, interval);
     currentSwapInterval = impl.getSwapInterval() ;
   }
 
@@ -148,10 +149,11 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       setOpenGLMode(other.getOpenGLMode());
     }
     // Will throw exception upon error
-    nsContext = impl.create();
+    isNSContext = impl.isNSContext();
+    contextHandle = impl.create();
 
-    if (!impl.makeCurrent(nsContext)) {
-      throw new GLException("Error making nsContext current");
+    if (!impl.makeCurrent(contextHandle)) {
+      throw new GLException("Error making Context (NS:"+isNSContext()+") current");
     }
     setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
   }
@@ -206,6 +208,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   // Abstract interface for implementation of this context (either
   // NSOpenGL-based or CGL-based)
   interface Impl {
+    public boolean isNSContext();
     public long    create();
     public boolean destroy(long ctx);
     public boolean makeCurrent(long ctx);
@@ -216,6 +219,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
 
   // NSOpenGLContext-based implementation
   class NSOpenGLImpl implements Impl {
+    public boolean isNSContext() { return true; }
     public long create() {
       DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
       GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
@@ -227,8 +231,8 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
         throw new GLException("Error creating context for pbuffer");
       }
       // Must now associate the pbuffer with our newly-created context
-      CGL.setContextPBuffer(nsContext, drawable.getPbuffer());
-      return nsContext;
+      CGL.setContextPBuffer(contextHandle, drawable.getPbuffer());
+      return contextHandle;
     }
 
     public boolean destroy(long ctx) {
@@ -255,6 +259,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   }
 
   class CGLImpl implements Impl {
+    public boolean isNSContext() { return false; }
     public long create() {
       // Find and configure share context
       MacOSXCGLContext other = (MacOSXCGLContext) GLContextShareSet.getShareContext(MacOSXPbufferCGLContext.this);
@@ -265,11 +270,11 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
           MacOSXPbufferCGLContext ctx = (MacOSXPbufferCGLContext) other;
           ctx.setOpenGLMode(MacOSXCGLDrawable.CGL_MODE);
         } else {
-          if (other.getOpenGLMode() != MacOSXCGLDrawable.CGL_MODE) {
+          if (other.isNSContext()) {
             throw new GLException("Can't share between NSOpenGLContexts and CGLContextObjs");
           }
         }
-        share = other.getNSContext();
+        share = other.getHandle();
         // Note we don't check for a 0 return value, since switching
         // the context's mode causes it to be destroyed and not
         // re-initialized until the next makeCurrent

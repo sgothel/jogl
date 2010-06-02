@@ -82,7 +82,7 @@ public class OMXInstance {
         if(null==eglDrawable) {
             throw new RuntimeException("No valid drawable");
         }
-        eglContext = eglCtx.getContext();
+        eglContext = eglCtx.getHandle();
         eglDisplay = eglDrawable.getDisplay();
         eglSurface = eglDrawable.getSurface();
         eglExt = eglCtx.getEGLExt();

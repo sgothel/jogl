@@ -35,10 +35,22 @@ package com.jogamp.newt.event.awt;
  * Specialized parent/client adapter,
  * where the NEWT child window really gets resized,
  * and the parent move window event gets discarded. */
-public class AWTParentWindowAdapter extends AWTWindowAdapter
+public class AWTParentWindowAdapter 
+    extends AWTWindowAdapter 
+    implements java.awt.event.HierarchyListener
 {
     public AWTParentWindowAdapter(com.jogamp.newt.Window downstream) {
         super(downstream);
+    }
+
+    public AWTAdapter addTo(java.awt.Component awtComponent) {
+        awtComponent.addHierarchyListener(this);
+        return super.addTo(awtComponent);
+    }
+
+    public AWTAdapter removeFrom(java.awt.Component awtComponent) {
+        awtComponent.removeHierarchyListener(this);
+        return super.removeFrom(awtComponent);
     }
 
     public void componentResized(java.awt.event.ComponentEvent e) {
@@ -66,6 +78,32 @@ public class AWTParentWindowAdapter extends AWTWindowAdapter
 
     public void windowDeactivated(java.awt.event.WindowEvent e) {
         // no propagation to NEWT child window
+    }
+
+    public void hierarchyChanged(java.awt.event.HierarchyEvent e) {
+        if( null == newtListener ) {
+            long bits = e.getChangeFlags();
+            final java.awt.Component changed = e.getChanged();
+            if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & bits ) ) {
+                final boolean showing = changed.isShowing();
+                if(DEBUG_IMPLEMENTATION) {
+                    System.out.println("hierarchyChanged SHOWING_CHANGED: showing "+showing+", "+changed);
+                }
+                if(!newtWindow.isDestroyed()) {
+                    newtWindow.runOnEDTIfAvail(false, new Runnable() {
+                        public void run() {
+                            newtWindow.setVisible(showing);
+                        }
+                    });
+                }
+            } 
+            if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
+                final boolean displayability = changed.isDisplayable();
+                if(DEBUG_IMPLEMENTATION) {
+                    System.out.println("hierarchyChanged DISPLAYABILITY_CHANGED: displayability "+displayability+", "+changed);
+                }
+            }
+        }
     }
 }
 

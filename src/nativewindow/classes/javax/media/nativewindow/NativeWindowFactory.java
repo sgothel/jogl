@@ -75,7 +75,7 @@ public abstract class NativeWindowFactory {
     private static String nativeWindowingTypeCustom;
     private static String nativeOSNameCustom;
     private static final boolean isAWTAvailable;
-    private static final String awtComponentClassName = "java.awt.Component" ;
+    public static final String AWTComponentClassName = "java.awt.Component" ;
 
     /** Creates a new NativeWindowFactory instance. End users do not
         need to call this method. */
@@ -126,7 +126,7 @@ public abstract class NativeWindowFactory {
         // make it easier to run this code on mobile devices
 
         isAWTAvailable = !Debug.getBooleanProperty("java.awt.headless", true, acc) &&
-                          ReflectionUtil.isClassAvailable(awtComponentClassName) &&
+                          ReflectionUtil.isClassAvailable(AWTComponentClassName) &&
                           ReflectionUtil.isClassAvailable("javax.media.nativewindow.awt.AWTGraphicsDevice") ;
 
         boolean toolkitLockForced   = Debug.getBooleanProperty("nativewindow.locking", true, acc);
@@ -195,7 +195,7 @@ public abstract class NativeWindowFactory {
 
         if ( isAWTAvailable ) {
             // register either our default factory or (if exist) the X11/AWT one -> AWT Component
-            registerFactory(ReflectionUtil.getClass(awtComponentClassName, false), factory);
+            registerFactory(ReflectionUtil.getClass(AWTComponentClassName, false), factory);
         }
         defaultFactory = factory;
 

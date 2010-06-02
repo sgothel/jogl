@@ -48,29 +48,44 @@ import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
+import java.io.IOException;
+import org.junit.Assert;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class TestTexture01AWT {
-    Frame frame;
+    static GLProfile glp;
+    static GLCapabilities caps;
     BufferedImage textureImage;
 
+    @BeforeClass
+    public static void initClass() {
+        glp = GLProfile.get(GLProfile.GL2GL3);
+        Assert.assertNotNull(glp);
+        caps = new GLCapabilities(glp);
+        Assert.assertNotNull(caps);
+    }
+
     @Before
-    public void init() {
+    public void initTest() {
         // create base image
-        BufferedImage baseImage = new BufferedImage(256, 256, BufferedImage.TYPE_INT_RGB);
+        BufferedImage baseImage = new BufferedImage(256, 256, BufferedImage.TYPE_3BYTE_BGR);
+        Assert.assertNotNull(baseImage);
         Graphics2D g = baseImage.createGraphics();
+        Assert.assertNotNull(g);
         g.setPaint(new GradientPaint(0, 0, Color.CYAN,
                                  baseImage.getWidth(), baseImage.getHeight(), Color.BLUE));
         g.fillRect(0, 0, baseImage.getWidth(), baseImage.getHeight());
         g.dispose();
 
         // create texture image
-        int imageType = BufferedImage.TYPE_INT_RGB;
+        int imageType = BufferedImage.TYPE_3BYTE_BGR;
         textureImage = new BufferedImage(baseImage.getWidth(),
                                          baseImage.getHeight(),
                                          imageType);
+        Assert.assertNotNull(textureImage);
         g = textureImage.createGraphics();
         g.setComposite(AlphaComposite.Src);
         g.drawImage(baseImage, 0, 0, null);
@@ -78,22 +93,21 @@ public class TestTexture01AWT {
 
         baseImage.flush();
         baseImage=null;
-
-        frame = new Frame("Texture Test");
     }
 
     @After
-    public void cleanup() {
+    public void cleanupTest() {
+        Assert.assertNotNull(textureImage);
         textureImage.flush();
         textureImage=null;
-        frame.dispose();
-        frame=null;
     }
 
     @Test
     public void test1() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2GL3));
         GLCanvas glCanvas = new GLCanvas(caps);
+
+        Frame frame = new Frame("Texture Test");
+        Assert.assertNotNull(frame);
         frame.add(glCanvas);
         frame.setSize(512, 512);
 
@@ -111,9 +125,23 @@ public class TestTexture01AWT {
         frame.setVisible(false);
         frame.remove(glCanvas);
         glCanvas=null;
+        Assert.assertNotNull(frame);
+        frame.dispose();
+        frame=null;
     }
 
-    public static void main(String args[]) {
-        org.junit.runner.JUnitCore.main(TestTexture01AWT.class.getName());
+    public static void main(String args[]) throws IOException {
+        String tstname = TestTexture01AWT.class.getName();
+        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
+            tstname,
+            "filtertrace=true",
+            "haltOnError=false",
+            "haltOnFailure=false",
+            "showoutput=true",
+            "outputtoformatters=true",
+            "logfailedtests=true",
+            "logtestlistenerevents=true",
+            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
+            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
     }
 }

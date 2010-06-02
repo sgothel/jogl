@@ -44,7 +44,6 @@ import java.nio.*;
 import java.util.*;
 
 public abstract class EGLContext extends GLContextImpl {
-    private long eglContext;
     private boolean eglQueryStringInitialized;
     private boolean eglQueryStringAvailable;
     private EGLExt eglExt;
@@ -85,10 +84,6 @@ public abstract class EGLContext extends GLContextImpl {
 
     protected Map/*<String, String>*/ getExtensionNameMap() { return null; }
 
-    public long getContext() {
-        return eglContext;
-    }
-
     protected int makeCurrentImpl() throws GLException {
         if(EGL.EGL_NO_DISPLAY==((EGLDrawable)drawable).getDisplay() ) {
             throw new GLException("drawable not properly initialized, NO DISPLAY: "+drawable);
@@ -96,26 +91,25 @@ public abstract class EGLContext extends GLContextImpl {
         if (0 == drawable.getNativeWindow().getSurfaceHandle()) {
             throw new GLException("drawable has invalid surface handle: "+drawable);
         }
-        boolean created = false;
-        if (eglContext == 0) {
-            create();
-            created = true;
+        boolean newCreated = false;
+        if (!isCreated()) {
+            create(); // throws exception if fails!
+            newCreated = true;
             if (DEBUG) {
-                System.err.println(getThreadName() + ": !!! Created GL context 0x" +
-                                   Long.toHexString(eglContext) + " for " + getClass().getName());
+                System.err.println(getThreadName() + ": !!! Created GL context " + toHexString(contextHandle) + " for " + getClass().getName());
             }
         }
-        if (EGL.eglGetCurrentContext() != eglContext) {
+        if (EGL.eglGetCurrentContext() != contextHandle) {
             if (!EGL.eglMakeCurrent(((EGLDrawable)drawable).getDisplay(),
                                     ((EGLDrawable)drawable).getSurface(),
                                     ((EGLDrawable)drawableRead).getSurface(),
-                                    eglContext)) {
+                                    contextHandle)) {
                 throw new GLException("Error making context 0x" +
-                                      Long.toHexString(eglContext) + " current: error code " + EGL.eglGetError());
+                                      Long.toHexString(contextHandle) + " current: error code " + EGL.eglGetError());
             }
         }
 
-        if (created) {
+        if(newCreated) {
             setGLFunctionAvailability(false, -1, -1, CTX_PROFILE_ES|CTX_OPTION_ANY);
             return CONTEXT_CURRENT_NEW;
         }
@@ -130,7 +124,7 @@ public abstract class EGLContext extends GLContextImpl {
                                   EGL.EGL_NO_SURFACE,
                                   EGL.EGL_NO_CONTEXT)) {
                 throw new GLException("Error freeing OpenGL context 0x" +
-                                      Long.toHexString(eglContext) + ": error code " + EGL.eglGetError());
+                                      Long.toHexString(contextHandle) + ": error code " + EGL.eglGetError());
           }
       } finally {
           getDrawableImpl().getFactoryImpl().unlockToolkit();
@@ -140,12 +134,12 @@ public abstract class EGLContext extends GLContextImpl {
     protected void destroyImpl() throws GLException {
       getDrawableImpl().getFactoryImpl().lockToolkit();
       try {
-          if (eglContext != 0) {
-              if (!EGL.eglDestroyContext(((EGLDrawable)drawable).getDisplay(), eglContext)) {
+          if (contextHandle != 0) {
+              if (!EGL.eglDestroyContext(((EGLDrawable)drawable).getDisplay(), contextHandle)) {
                   throw new GLException("Error destroying OpenGL context 0x" +
-                                        Long.toHexString(eglContext) + ": error code " + EGL.eglGetError());
+                                        Long.toHexString(contextHandle) + ": error code " + EGL.eglGetError());
               }
-              eglContext = 0;
+              contextHandle = 0;
               GLContextShareSet.contextDestroyed(this);
           }
       } finally {
@@ -188,7 +182,7 @@ public abstract class EGLContext extends GLContextImpl {
 
         EGLContext other = (EGLContext) GLContextShareSet.getShareContext(this);
         if (other != null) {
-            shareWith = other.getContext();
+            shareWith = other.getHandle();
             if (shareWith == 0) {
                 throw new GLException("GLContextShareSet returned an invalid OpenGL context");
             }
@@ -205,15 +199,15 @@ public abstract class EGLContext extends GLContextImpl {
         } else {
             throw new GLException("Error creating OpenGL context - invalid GLProfile: "+glProfile);
         }
-        eglContext = EGL.eglCreateContext(eglDisplay, eglConfig, shareWith, contextAttrs, 0);
-        if (eglContext == 0) {
+        contextHandle = EGL.eglCreateContext(eglDisplay, eglConfig, shareWith, contextAttrs, 0);
+        if (contextHandle == 0) {
             throw new GLException("Error creating OpenGL context: eglDisplay 0x"+Long.toHexString(eglDisplay)+
                                   ", "+glProfile+", error 0x"+Integer.toHexString(EGL.eglGetError()));
         }
         GLContextShareSet.contextCreated(this);
         if (DEBUG) {
             System.err.println(getThreadName() + ": !!! Created OpenGL context 0x" +
-                               Long.toHexString(eglContext) + 
+                               Long.toHexString(contextHandle) + 
                                ",\n\twrite surface 0x" + Long.toHexString(((EGLDrawable)drawable).getSurface()) +
                                ",\n\tread  surface 0x" + Long.toHexString(((EGLDrawable)drawableRead).getSurface())+
                                ",\n\t"+this+
@@ -222,15 +216,11 @@ public abstract class EGLContext extends GLContextImpl {
         if (!EGL.eglMakeCurrent(((EGLDrawable)drawable).getDisplay(),
                                 ((EGLDrawable)drawable).getSurface(),
                                 ((EGLDrawable)drawableRead).getSurface(),
-                                eglContext)) {
+                                contextHandle)) {
             throw new GLException("Error making context 0x" +
-                                  Long.toHexString(eglContext) + " current: error code " + EGL.eglGetError());
+                                  Long.toHexString(contextHandle) + " current: error code " + EGL.eglGetError());
         }
         setGLFunctionAvailability(true, glProfile.usesNativeGLES2()?2:1, 0, CTX_PROFILE_ES|CTX_OPTION_ANY);
-    }
-
-    public boolean isCreated() {
-        return (eglContext != 0);
     }
 
     protected void updateGLProcAddressTable(int major, int minor, int ctp) {

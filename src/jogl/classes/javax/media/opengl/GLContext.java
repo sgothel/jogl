@@ -67,7 +67,8 @@ public abstract class GLContext {
 
   private HashMap/*<int, Object>*/ attachedObjects = new HashMap();
 
-  protected long context;
+  /** The underlying native OpenGL context */
+  protected long contextHandle;
 
   /**
    * Returns the GLDrawable to which this context may be used to
@@ -233,16 +234,28 @@ public abstract class GLContext {
   public abstract GL setGL(GL gl);
 
   /**
+   * Returns the native GL context handle
+   */
+  public final long getHandle() { return contextHandle; }
+
+  /** 
+   * Indicates whether the underlying OpenGL context has been created. 
+   */
+  public final boolean isCreated() {
+    return 0 != contextHandle;
+  }
+
+  /**
    * Returns the attached user object for the given name to this GLContext.
    */
-  public Object getAttachedObject(int name) {
+  public final Object getAttachedObject(int name) {
     return attachedObjects.get(new Integer(name));
   }
 
   /**
    * Returns the attached user object for the given name to this GLContext.
    */
-  public Object getAttachedObject(String name) {
+  public final Object getAttachedObject(String name) {
     return attachedObjects.get(name);
   }
 
@@ -250,7 +263,7 @@ public abstract class GLContext {
    * Sets the attached user object for the given name to this GLContext.
    * Returns the previously set object or null.
    */
-  public Object putAttachedObject(int name, Object obj) {
+  public final Object putAttachedObject(int name, Object obj) {
     return attachedObjects.put(new Integer(name), obj);
   }
 
@@ -258,7 +271,7 @@ public abstract class GLContext {
    * Sets the attached user object for the given name to this GLContext.
    * Returns the previously set object or null.
    */
-  public Object putAttachedObject(String name, Object obj) {
+  public final Object putAttachedObject(String name, Object obj) {
     return attachedObjects.put(name, obj);
   }
 
@@ -306,21 +319,23 @@ public abstract class GLContext {
   public final boolean isCreatedWithARBMethod()   { return ( 0 != ( CTX_IS_ARB_CREATED & ctxOptions ) ); }
 
   /** 
-   * Returns a valid OpenGL version string, ie 
-   *     <code>major.minor ([option]?[options,]*) - gl-version</code>
+   * Returns a valid OpenGL version string, ie<br>
+   * <pre>
+   *     major.minor ([option]?[options,]*) - gl-version
+   * </pre><br>
    *
    * <ul>
    *   <li> options
    *   <ul>
-   *     <li> <code>old</code> refers to the non ARB_create_context created context
-   *     <li> <code>new</code> refers to the ARB_create_context created context
-   *     <li> <code>compatible profile</code>
-   *     <li> <code>core profile</code>
-   *     <li> <code>forward compatible</code>
-   *     <li> <code>any</code> refers to the non forward compatible context
-   *     <li> <code>ES</code>  refers to the GLES context variant
-   *   </ul>
-   *   <li> <i>gl-version</i> the GL_VERSION string
+   *     <li> <code>old</code> refers to the non ARB_create_context created context</li>
+   *     <li> <code>new</code> refers to the ARB_create_context created context</li>
+   *     <li> <code>compatible profile</code></li>
+   *     <li> <code>core profile</code></li>
+   *     <li> <code>forward compatible</code></li>
+   *     <li> <code>any</code> refers to the non forward compatible context</li>
+   *     <li> <code>ES</code>  refers to the GLES context variant</li>
+   *   </ul></li>
+   *   <li> <i>gl-version</i> the GL_VERSION string</li>
    * </ul>
    *
    * e.g.:

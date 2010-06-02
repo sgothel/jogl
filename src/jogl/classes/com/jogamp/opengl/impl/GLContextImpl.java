@@ -663,11 +663,6 @@ public abstract class GLContextImpl extends GLContext {
     ((ProcAddressTable)table).reset(getDrawableImpl().getDynamicLookupHelper() );
   }
 
-  /** Indicates whether the underlying OpenGL context has been
-      created. This is used to manage sharing of display lists and
-      textures between contexts. */
-  public abstract boolean isCreated();
-
   /**
    * Sets the OpenGL implementation class and
    * the cache of which GL functions are available for calling through this

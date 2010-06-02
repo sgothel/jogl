@@ -122,7 +122,7 @@
            <isset property="setup.noOpenGL"/>
         </condition>
 
-        <property name="java.excludes.cdcfp" value="${java.part.awt}"/>
+        <property name="java.excludes.cdcfp" value="${java.part.awt}, com/jogamp/newt/impl/macosx/*"/>
 
         <condition property="java.excludes.desktop"
                    value="${java.part.x11} ${java.part.windows}, ${java.part.macosx}, ${java.part.awt}">

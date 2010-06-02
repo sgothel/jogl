@@ -63,6 +63,6 @@ public class X11OnscreenGLXContext extends X11GLXContext {
 
   protected void create() {
     createContext(true);
-    isIndirect = !GLX.glXIsDirect(drawable.getNativeWindow().getDisplayHandle(), context);
+    isIndirect = !GLX.glXIsDirect(drawable.getNativeWindow().getDisplayHandle(), contextHandle);
   }
 }

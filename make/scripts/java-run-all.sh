@@ -38,6 +38,7 @@ uname -a | grep -i Darwin && MOSX=1
 # D_ARGS="-Dnewt.debug=all -Dnativewindow.debug=all"
 # D_ARGS="-Dnewt.debug=all"
 # D_ARGS="-Dnewt.debug.Window"
+# D_ARGS="-Dnewt.debug.Display"
 # D_ARGS="-Djogl.debug=all"
 
 rm -f java-run.log

@@ -120,8 +120,12 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return (null!=window)?window.isDestroyed():true;
     }
 
-    public Window getInnerWindow() {
+    public final Window getInnerWindow() {
         return window.getInnerWindow();
+    }
+
+    public final Object getWrappedWindow() {
+        return window.getWrappedWindow();
     }
 
     /** 
@@ -244,8 +248,8 @@ public class GLWindow extends Window implements GLAutoDrawable {
                 window.setVisible(visible);
                 if (null == context && visible && 0 != window.getWindowHandle() && 0<getWidth()*getHeight()) {
                     NativeWindow nw;
-                    if (window.getWrappedWindow() != null) {
-                        nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow(), window.getGraphicsConfiguration());
+                    if (getWrappedWindow() != null) {
+                        nw = NativeWindowFactory.getNativeWindow(getWrappedWindow(), window.getGraphicsConfiguration());
                     } else {
                         nw = window;
                     }

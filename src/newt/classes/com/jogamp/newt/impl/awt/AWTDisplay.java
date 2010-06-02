@@ -54,6 +54,9 @@ public class AWTDisplay extends Display {
 
     protected void closeNative() { }
 
+    public boolean runCreateAndDestroyOnEDT() { 
+        return false; 
+    }
     protected void dispatchMessagesNative() { /* nop */ }
 }
 

@@ -41,7 +41,6 @@ import javax.media.nativewindow.*;
 
 public class EGLExternalContext extends EGLContext {
     private boolean firstMakeCurrent = true;
-    private boolean created = true;
     private GLContext lastContext;
 
     public EGLExternalContext(AbstractGraphicsScreen screen) {
@@ -71,6 +70,7 @@ public class EGLExternalContext extends EGLContext {
     protected int makeCurrentImpl() throws GLException {
         if (firstMakeCurrent) {
             firstMakeCurrent = false;
+            // FIXME: set contextHandle
             return CONTEXT_CURRENT_NEW;
         }
         return CONTEXT_CURRENT;
@@ -80,12 +80,8 @@ public class EGLExternalContext extends EGLContext {
     }
 
     protected void destroyImpl() throws GLException {
-        created = false;
+        contextHandle = 0 ;
         GLContextShareSet.contextDestroyed(this);
-    }
-
-    public boolean isCreated() {
-        return created;
     }
 
     public void bindPbufferToTexture() {
