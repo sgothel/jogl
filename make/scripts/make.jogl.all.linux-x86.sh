@@ -39,6 +39,9 @@ fi
 #    -DisX11=true \
 #    -Djogl.cg=1 -Dx11.cg.lib=../../lib-linux-x86 \
 
+LD_PRELOAD=$J2RE_HOME/lib/i386/libjsig.so
+export LD_PRELOAD
+
 ant \
     $CUSTOMLIBDIR \
     -Dbuild.noarchives=true \

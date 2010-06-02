@@ -41,6 +41,9 @@ fi
 #LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64
 #export LD_LIBRARY_PATH
 
+LD_PRELOAD=$J2RE_HOME/lib/amd64/libjsig.so
+export LD_PRELOAD
+
 ant  \
     $CUSTOMLIBDIR \
     -Dbuild.noarchives=true \

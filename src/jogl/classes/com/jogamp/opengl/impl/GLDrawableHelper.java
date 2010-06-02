@@ -136,6 +136,9 @@ public class GLDrawableHelper {
       lastContext.release();
     }
   
+    if(!context.isCreated() && null == initAction) {
+        throw new GLException("Context has to be created, but no initAction is given: "+context);
+    }
     int res = 0;
     try {
       res = context.makeCurrent();

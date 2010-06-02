@@ -95,7 +95,9 @@ public class TestGearsAWT {
         Assert.assertNotNull(animator);
 
         animator.stop();
+        Assert.assertEquals(false, animator.isAnimating());
         frame.setVisible(false);
+        Assert.assertEquals(false, frame.isVisible());
         frame.remove(glCanvas);
         frame.dispose();
         frame=null;
