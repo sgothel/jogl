@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir=".." name="GlueGen-IDE">
+    <!-- edit the following targets according to your needs -->
+    <!-- (more info: http://www.netbeans.org/kb/articles/freeform-config.html-->
+    <property name="libpath" value="${basedir}/build/lib"/>
+    <target name="init">
+        <path id="cp">
+            <pathelement path="${jdk.home}/lib/tools.jar:${ant.core.lib}:${ant.home}/lib/ant-junit.jar"/>
+            <pathelement location="../gluegen/make/lib/junit.jar"/>
+            <pathelement location="../gluegen/build/gluegen-rt.jar"/>
+            <pathelement location="build/test/build/classes"/>
+            <pathelement location="build/jogl/classes"/>
+            <pathelement location="build/jogl/gensrc/classes"/>
+            <pathelement location="build/newt/classes"/>
+            <pathelement location="build/nativewindow/classes"/>
+            <pathelement location="build/nativewindow/gensrc/classes"/>
+        </path>
+    </target>
+    <target name="compile-test" depends="init">
+        <mkdir dir="build/test/build/classes"/>
+        <javac debug="true" debuglevel="lines,vars,source" destdir="build/test/build/classes" failonerror="false" source="1.5" srcdir="src/junit" includeantruntime="false">
+            <classpath refid="cp"/>
+        </javac>
+    </target>
+    <target name="compile-selected-files-in-junit" depends="init">
+        <fail unless="files">Must set property 'files'</fail>
+        <mkdir dir="build/test/build/classes"/>
+        <javac debug="true" debuglevel="lines,vars,source" destdir="build/test/build/classes" includes="${files}" source="1.5" srcdir="src/junit" includeantruntime="false">
+            <classpath refid="cp"/>
+        </javac>
+    </target>
+    <target name="run-selected-file-in-junit" depends="compile-test">
+        <fail unless="run.class">Must set property 'run.class'</fail>
+        <java classname="${run.class}" failonerror="true" fork="true">
+            <jvmarg value="-Djava.library.path=${libpath}"/>
+            <classpath refid="cp"/>
+        </java>
+    </target>
+    <target depends="compile-test" name="test-selected-file-in-junit">
+        <fail unless="run.class">Must set property 'run.class'</fail>
+        <junit errorproperty="tests.failed" failureproperty="tests.failed" fork="true" forkmode="once" showoutput="true">
+            <test name="${run.class}"/>
+            <jvmarg value="-Djava.library.path=${libpath}"/>
+            <classpath refid="cp"/>
+            <formatter type="brief" usefile="false"/>
+        </junit>
+    </target>
+    <target name="debug-selected-file-in-junit" depends="compile-test,init">
+        <fail unless="debug.class">Must set property 'debug.class'</fail>
+        <nbjpdastart addressproperty="jpda.address" name="JOGL" transport="dt_socket">
+            <classpath refid="cp"/>
+        </nbjpdastart>
+        <junit errorproperty="tests.failed" failureproperty="tests.failed" fork="true" forkmode="once" showoutput="true">
+            <test name="${debug.class}"/>
+            <classpath refid="cp"/>
+            <jvmarg value="-Djava.library.path=${libpath}"/>
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
+            <formatter type="brief" usefile="false"/>
+        </junit>
+    </target>
+    <!-- TODO: edit the following target according to your needs -->
+    <!-- (more info: http://www.netbeans.org/kb/articles/freeform-config.html#runsingle) -->
+    <target name="run-selected-file-in-java">
+        <fail unless="run.class">Must set property 'run.class'</fail>
+        <java classname="${run.class}" failonerror="true" fork="true">
+            <classpath/>
+        </java>
+    </target>
+    <!-- TODO: edit the following target according to your needs -->
+    <!-- (more info: http://www.netbeans.org/kb/articles/freeform-config.html#compilesingle) -->
+    <target name="compile-selected-files-in-java">
+        <fail unless="files">Must set property 'files'</fail>
+        <mkdir dir="build/classes"/>
+        <javac destdir="build/classes" includes="${files}" source="1.5" srcdir="src/java">
+            <classpath path="build/classes:${jdk.home}/lib/tools.jar:${ant.core.lib}:lib/antlr-3.2.jar"/>
+        </javac>
+    </target>
+</project>
