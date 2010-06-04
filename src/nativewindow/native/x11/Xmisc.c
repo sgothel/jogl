@@ -266,26 +266,6 @@ Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize(JNIEnv *env, jclass _un
     }
 }
 
-JNIEXPORT jlong JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Lib_dlopen(JNIEnv *env, jclass _unused, jstring name) {
-  const jbyte* chars;
-  void* res;
-  chars = (*env)->GetStringUTFChars(env, name, NULL);
-  res = dlopen(chars, RTLD_LAZY | RTLD_GLOBAL);
-  (*env)->ReleaseStringUTFChars(env, name, chars);
-  return (jlong) ((intptr_t) res);
-}
-
-JNIEXPORT jlong JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Lib_dlsym(JNIEnv *env, jclass _unused, jstring name) {
-  const jbyte* chars;
-  void* res;
-  chars = (*env)->GetStringUTFChars(env, name, NULL);
-  res = dlsym(RTLD_DEFAULT, chars);
-  (*env)->ReleaseStringUTFChars(env, name, chars);
-  return (jlong) ((intptr_t) res);
-}
-
 /*   Java->C glue code:
  *   Java package: com.jogamp.nativewindow.impl.x11.X11Lib
  *    Java method: XVisualInfo XGetVisualInfo(long arg0, long arg1, XVisualInfo arg2, java.nio.IntBuffer arg3)

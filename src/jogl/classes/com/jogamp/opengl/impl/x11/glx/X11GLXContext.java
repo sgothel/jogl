@@ -192,9 +192,6 @@ public abstract class X11GLXContext extends GLContextImpl {
           re.printStackTrace();
         }
     }
-    if(DEBUG) {
-      System.err.println("X11GLXContext.createContextARB success: "+(0!=ctx)+" - "+getGLVersion(major, minor, ctp, "@creation")+", bwdCompat "+ctBwdCompat+", fwdCompat "+ctFwdCompat);
-    }
     if(0!=ctx) {
         if (!glXMakeContextCurrent(display,
                                    drawable.getNativeWindow().getSurfaceHandle(), 
@@ -288,12 +285,15 @@ public abstract class X11GLXContext extends GLContextImpl {
         setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY); // use GL_VERSION
 
         if( createContextARBTried ||
-            !isFunctionAvailable("glXCreateContextAttribsARB") ||
-            !isExtensionAvailable("GLX_ARB_create_context") )  {
+            !isFunctionAvailable("glXCreateContextAttribsARB") /* ||
+            !isExtensionAvailable("GLX_ARB_create_context") */ ) { // unresolved case where client version is 1.4 without this extension
             if(glp.isGL3()) {
               glXMakeContextCurrent(display, 0, 0, 0);
               GLX.glXDestroyContext(display, temp_ctx);
               throw new GLException("Unable to create OpenGL >= 3.1 context (failed GLX_ARB_create_context), GLProfile "+glp+", Drawable "+drawable);
+            }
+            if(DEBUG) {
+              System.err.println("X11GLXContext.createContext: createContextARBTried "+createContextARBTried+", hasFunc glXCreateContextAttribsARB: "+isFunctionAvailable("glXCreateContextAttribsARB")+", hasExt GLX_ARB_create_context: "+isExtensionAvailable("GLX_ARB_create_context"));
             }
 
             // continue with temp context for GL < 3.0
@@ -488,7 +488,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   public synchronized String getPlatformExtensionsString() {
     if (!glXQueryExtensionsStringInitialized) {
       glXQueryExtensionsStringAvailable =
-        getDrawableImpl().getDynamicLookupHelper().dynamicLookupFunction("glXQueryExtensionsString") != 0;
+        getDrawableImpl().getGLDynamicLookupHelper().dynamicLookupFunction("glXQueryExtensionsString") != 0;
       glXQueryExtensionsStringInitialized = true;
     }
     if (glXQueryExtensionsStringAvailable) {

@@ -320,11 +320,13 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         // The user really should not be invoking remove() from this
         // thread -- but since he/she is, we can not go over to the
         // EDT at this point. Try to destroy the context from here.
-        drawableHelper.invokeGL(drawable, context, disposeAction, null);
-      } else {
+        if(context.isCreated()) {
+            drawableHelper.invokeGL(drawable, context, disposeAction, null);
+        }
+      } else if(context.isCreated()) {
         Threading.invokeOnOpenGLThread(disposeOnEventDispatchThreadAction);
       }
-    } else {
+    } else if(context.isCreated()) {
       drawableHelper.invokeGL(drawable, context, disposeAction, null);
     }
 

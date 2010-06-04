@@ -39,7 +39,6 @@
 
 package com.jogamp.opengl.impl.macosx.cgl;
 
-import com.jogamp.common.os.DynamicLookupHelper;
 import java.nio.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
@@ -48,13 +47,20 @@ import com.jogamp.common.util.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.NullWindow;
 
-public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
+public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
+
+  public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
+      return MacOSXCGLDynamicLookupHelper.getMacOSXCGLDynamicLookupHelper();
+  }
+
   public MacOSXCGLDrawableFactory() {
     super();
 
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
     new MacOSXCGLGraphicsConfigurationFactory();
+
+    MacOSXCGLDynamicLookupHelper.getMacOSXCGLDynamicLookupHelper(); // setup and initialize
 
     try {
       ReflectionUtil.createInstance("com.jogamp.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory",
@@ -116,15 +122,6 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements D
   public GLDrawable createExternalGLDrawable() {
     // FIXME
     throw new GLException("Not yet implemented");
-  }
-
-  public void loadGLULibrary() {
-    // Nothing to do; already loaded by native code; not much point in
-    // making it lazier on this platform
-  }
-
-  public long dynamicLookupFunction(String glFuncName) {
-    return CGL.getProcAddress(glFuncName);
   }
 
   public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {

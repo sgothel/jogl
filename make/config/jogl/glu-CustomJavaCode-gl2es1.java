@@ -225,30 +225,3 @@ public final int gluBuild3DMipmaps( int target, int internalFormat, int width,
           depth, format, type, buffer ) );
 }
 
-//----------------------------------------------------------------------
-// GLUProcAddressTable handling
-//
-
-/*
-private static GLUProcAddressTable gluProcAddressTable;
-private static volatile boolean gluLibraryLoaded;
-
-private static GLUProcAddressTable getGLUProcAddressTable() {
-  if (!gluLibraryLoaded) {
-    loadGLULibrary();
-  }
-  if (gluProcAddressTable == null) {
-    GLUProcAddressTable tmp = new GLUProcAddressTable(new GLProcAddressResolver());
-    tmp.reset(GLDrawableFactoryImpl.getFactoryImpl());
-    gluProcAddressTable = tmp;
-  }
-  return gluProcAddressTable;
-}
-
-private static synchronized void loadGLULibrary() {
-  if (!gluLibraryLoaded) {
-    GLDrawableFactoryImpl.getFactoryImpl().loadGLULibrary();
-    gluLibraryLoaded = true;
-  }
-}
-*/

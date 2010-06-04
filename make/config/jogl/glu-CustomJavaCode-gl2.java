@@ -536,27 +536,18 @@ public final void gluEndCurve(GLUnurbs r) {
 //
 
 private static GLUgl2ProcAddressTable gluProcAddressTable;
-private static volatile boolean gluLibraryLoaded;
 
 private static final GLUgl2ProcAddressTable getGLUProcAddressTable() {
-  if (!gluLibraryLoaded) {
-    loadGLULibrary();
-  }
   if (gluProcAddressTable == null) {
     GLContext curContext = GLContext.getCurrent();
     if (curContext == null) {
         throw new GLException("No OpenGL context current on this thread");
     }
+    GLDynamicLookupHelper glLookupHelper = ((GLDrawableImpl) curContext.getGLDrawable()).getGLDynamicLookupHelper();
+    glLookupHelper.loadGLULibrary();
     GLUgl2ProcAddressTable tmp = new GLUgl2ProcAddressTable(new GLProcAddressResolver());
-    tmp.reset(((GLDrawableImpl)curContext.getGLDrawable()).getDynamicLookupHelper());
+    tmp.reset(glLookupHelper);
     gluProcAddressTable = tmp;
   }
   return gluProcAddressTable;
-}
-
-private static final synchronized void loadGLULibrary() {
-  if (!gluLibraryLoaded) {
-    GLDrawableFactoryImpl.getFactoryImpl(null).loadGLULibrary();
-    gluLibraryLoaded = true;
-  }
 }

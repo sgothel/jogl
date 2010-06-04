@@ -49,8 +49,8 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
     super(factory, comp, realized);
   }
 
-  public DynamicLookupHelper getDynamicLookupHelper() {
-    return (X11GLXDrawableFactory) getFactoryImpl() ;
+  public GLDynamicLookupHelper getGLDynamicLookupHelper() {
+    return X11GLXDynamicLookupHelper.getX11GLXDynamicLookupHelper();
   }
 
   protected void setRealizedImpl() {

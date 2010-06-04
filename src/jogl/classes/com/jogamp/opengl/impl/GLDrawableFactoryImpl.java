@@ -55,6 +55,13 @@ import java.security.*;
 public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   protected static final boolean DEBUG = Debug.debug("GLDrawableFactory");
 
+  /** 
+   * Returns the DynamicLookupHelper
+   * @param profile if EGL/ES, profile <code>1</code> refers to ES1 and <code>2</code> to ES2,
+   *        otherwise the profile is ignored.
+   */
+  public abstract GLDynamicLookupHelper getGLDynamicLookupHelper(int profile);
+
   //---------------------------------------------------------------------------
   // Dispatching GLDrawable construction in respect to the NativeWindow Capabilities
   //
@@ -218,11 +225,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   public static GLDrawableFactoryImpl getFactoryImpl(GLProfile glp) {
     return (GLDrawableFactoryImpl) getFactory(glp);
   }
-
-  // Helper function for more lazily loading the GLU library;
-  // apparently can't use System.loadLibrary on UNIX because it uses
-  // RTLD_LOCAL and we need to call dlsym(RTLD_DEFAULT)
-  public abstract void loadGLULibrary();
 
   //----------------------------------------------------------------------
   // Support for locking and unlocking the toolkit -- needed only on X11 platforms

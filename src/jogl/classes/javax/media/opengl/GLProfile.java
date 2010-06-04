@@ -37,9 +37,11 @@
 package javax.media.opengl;
 
 import com.jogamp.common.util.*;
-import com.jogamp.opengl.impl.DRIHack;
 import com.jogamp.opengl.impl.Debug;
 import com.jogamp.opengl.impl.GLJNILibLoader;
+import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
+import com.jogamp.opengl.impl.egl.EGLDynamicLookupHelper;
+import com.jogamp.opengl.impl.DesktopGLDynamicLookupHelper;
 import com.jogamp.common.jvm.JVMUtil;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -865,95 +867,53 @@ public class GLProfile implements Cloneable {
         isAWTAvailable = NativeWindowFactory.isAWTAvailable() &&
                          ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas") ; // JOGL
 
+        hasGL234Impl   = ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.gl4.GL4bcImpl");
+        hasGL4bcImpl   = hasGL234Impl;
+        hasGL4Impl     = hasGL234Impl;
+        hasGL3bcImpl   = hasGL234Impl;
+        hasGL3Impl     = hasGL234Impl;
+        hasGL2Impl     = hasGL234Impl;
+        hasGL2ES12Impl = ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.gl2es12.GL2ES12Impl");
+        mappedProfiles = computeProfileMap();
+
         boolean hasDesktopGL = false;
         boolean hasDesktopGLES12 = false;
         boolean hasNativeOSFactory = false;
         Throwable t;
 
         //
-        // First iteration of desktop GL availability detection
-        //   - native libs exist
-        //   - class exists
-        // 
-        t=null;
-        try {
-            // See DRIHack.java for an explanation of why this is necessary
-            DRIHack.begin();
-            GLJNILibLoader.loadGLDesktop();
-            DRIHack.end();
-            hasDesktopGL = true;
-        } catch (UnsatisfiedLinkError ule) {
-            t=ule;
-        } catch (SecurityException se) {
-            t=se;
-        } catch (NullPointerException npe) {
-            t=npe;
-        } catch (RuntimeException re) {
-            t=re;
-        }
-        if(null!=t) {
-            if (DEBUG) {
-                System.err.println("GLProfile.static Desktop GL Library not available");
-                t.printStackTrace();
-            }
-        }
-
-        t=null;
-        try {
-            // See DRIHack.java for an explanation of why this is necessary
-            DRIHack.begin();
-            GLJNILibLoader.loadGLDesktopES12();
-            DRIHack.end();
-            hasDesktopGLES12 = true;
-        } catch (UnsatisfiedLinkError ule) {
-            t=ule;
-        } catch (SecurityException se) {
-            t=se;
-        } catch (NullPointerException npe) {
-            t=npe;
-        } catch (RuntimeException re) {
-            t=re;
-        }
-        if(DEBUG && null!=t) {
-            System.err.println("GLProfile.static Desktop GLES12 Library not available");
-            t.printStackTrace();
-        }
-
-
-        hasGL234Impl   = hasDesktopGL && ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.gl4.GL4bcImpl");
-        hasGL4bcImpl   = hasGL234Impl;
-        hasGL4Impl     = hasGL234Impl;
-        hasGL3bcImpl   = hasGL234Impl;
-        hasGL3Impl     = hasGL234Impl;
-        hasGL2Impl     = hasGL234Impl;
-        hasGL2ES12Impl = hasDesktopGLES12 && ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.gl2es12.GL2ES12Impl");
-        mappedProfiles = computeProfileMap();
-
-        //
-        // Second iteration of desktop GL availability detection
+        // Iteration of desktop GL availability detection
         // utilizing the detected GL version in the shared context.
         //
         // - Instantiate GLDrawableFactory incl its shared dummy drawable/context,
         //   which will register at GLContext ..
         // 
 
-        if(hasDesktopGL||hasDesktopGLES12) {
-            t=null;
-            // if successfull it has a shared dummy drawable and context created
-            try {
-                hasNativeOSFactory = null != GLDrawableFactory.getFactoryImpl(GL2);
-            } catch (LinkageError le) {
-                t=le;
-            } catch (RuntimeException re) {
-                t=re;
+        t=null;
+        // if successfull it has a shared dummy drawable and context created
+        try {
+            GLDrawableFactoryImpl factory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GL2);
+            hasNativeOSFactory = null != factory;
+            if(hasNativeOSFactory) {
+                DesktopGLDynamicLookupHelper deskGLLookupHelper = (DesktopGLDynamicLookupHelper) factory.getGLDynamicLookupHelper(0);
+                hasDesktopGL = deskGLLookupHelper.hasGLBinding();
+                hasDesktopGLES12 = deskGLLookupHelper.hasGLES12Binding();
             }
-            if(DEBUG && null!=t) {
-                System.err.println("GLProfile.static - Native platform GLDrawable factory not available");
+        } catch (LinkageError le) {
+            t=le;
+        } catch (RuntimeException re) {
+            t=re;
+        }
+        if(DEBUG) {
+            if(null!=t) {
                 t.printStackTrace();
+            }
+            if(!hasNativeOSFactory) {
+                System.err.println("GLProfile.static - Native platform GLDrawable factory not available");
             }
         }
 
-        if(hasNativeOSFactory && !GLContext.mappedVersionsAvailableSet) {
+        if(hasDesktopGL && !GLContext.mappedVersionsAvailableSet) {
             // nobody yet set the available desktop versions, see {@link GLContextImpl#makeCurrent},
             // so we have to add the usual suspect
             GLContext.mapVersionAvailable(2, GLContext.CTX_PROFILE_COMPAT, 1, 5, GLContext.CTX_PROFILE_COMPAT|GLContext.CTX_OPTION_ANY);
@@ -977,16 +937,20 @@ public class GLProfile implements Cloneable {
             hasGL2ES12Impl = hasGL2ES12Impl && GLContext.isGL2Available();
         }
 
-        boolean hasEGLDynLookup = ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.egl.EGLDynamicLookupHelper");
-        boolean hasEGLDrawableFactory = false;
-        boolean btest = false;
-        if(hasEGLDynLookup) {
+        if ( ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.egl.EGLDynamicLookupHelper") ) {
             t=null;
             try {
-                hasEGLDrawableFactory = null!=GLDrawableFactory.getFactoryImpl(GLES2);
-                btest = hasEGLDrawableFactory &&
-                        ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.es2.GLES2Impl") &&
-                        null!=com.jogamp.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(2);
+                GLDrawableFactoryImpl factory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GLES2);
+                if(null != factory) {
+                    EGLDynamicLookupHelper eglLookupHelper = (EGLDynamicLookupHelper) factory.getGLDynamicLookupHelper(2);
+                    if(null!=eglLookupHelper) {
+                        hasGLES2Impl = eglLookupHelper.hasESBinding();
+                    }
+                    eglLookupHelper = (EGLDynamicLookupHelper) factory.getGLDynamicLookupHelper(1);
+                    if(null!=eglLookupHelper) {
+                        hasGLES1Impl = eglLookupHelper.hasESBinding();
+                    }
+                }
             } catch (LinkageError le) {
                 t=le;
             } catch (SecurityException se) {
@@ -997,37 +961,12 @@ public class GLProfile implements Cloneable {
                 t=re;
             }
             if(DEBUG && null!=t) {
-                System.err.println("GLProfile.static - GL ES2 Factory/Library not available");
                 t.printStackTrace();
             }
         }
-        hasGLES2Impl     = btest;
         if(hasGLES2Impl) {
             GLContext.mapVersionAvailable(2, GLContext.CTX_PROFILE_ES, 2, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_OPTION_ANY);
         }
-
-        btest = false;
-        if(hasEGLDynLookup) {
-            t=null;
-            try {
-                btest = hasEGLDrawableFactory &&
-                        ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.es1.GLES1Impl") &&
-                        null!=com.jogamp.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(1);
-            } catch (LinkageError le) {
-                t=le;
-            } catch (SecurityException se) {
-                t=se;
-            } catch (NullPointerException npe) {
-                t=npe;
-            } catch (RuntimeException re) {
-                t=re;
-            }
-            if(DEBUG && null!=t) {
-                System.err.println("GLProfile.static - GL ES1 Factory/Library not available");
-                t.printStackTrace();
-            }
-        }
-        hasGLES1Impl     = btest;
         if(hasGLES1Impl) {
             GLContext.mapVersionAvailable(1, GLContext.CTX_PROFILE_ES, 1, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_OPTION_ANY);
         }
@@ -1039,8 +978,6 @@ public class GLProfile implements Cloneable {
             System.err.println("GLProfile.static hasNativeOSFactory "+hasNativeOSFactory);
             System.err.println("GLProfile.static hasDesktopGL "+hasDesktopGL);
             System.err.println("GLProfile.static hasDesktopGLES12 "+hasDesktopGLES12);
-            System.err.println("GLProfile.static hasEGLDynLookup "+hasEGLDynLookup);
-            System.err.println("GLProfile.static hasEGLDrawableFactory "+hasEGLDrawableFactory);
             System.err.println("GLProfile.static hasGL234Impl "+hasGL234Impl);
             System.err.println("GLProfile.static "+glAvailabilityToString());
         }

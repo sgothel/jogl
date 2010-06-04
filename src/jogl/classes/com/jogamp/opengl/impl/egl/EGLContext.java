@@ -242,7 +242,7 @@ public abstract class EGLContext extends GLContextImpl {
     public synchronized String getPlatformExtensionsString() {
         if (!eglQueryStringInitialized) {
           eglQueryStringAvailable =
-            getDrawableImpl().getDynamicLookupHelper().dynamicLookupFunction("eglQueryString") != 0;
+            getDrawableImpl().getGLDynamicLookupHelper().dynamicLookupFunction("eglQueryString") != 0;
           eglQueryStringInitialized = true;
         }
         if (eglQueryStringAvailable) {

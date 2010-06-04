@@ -61,6 +61,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         super();
     }
 
+    public GLDynamicLookupHelper getGLDynamicLookupHelper(int esProfile) {
+        return EGLDynamicLookupHelper.getEGLDynamicLookupHelper(esProfile);
+    }
+
     protected void shutdown() {}
     protected final GLDrawableImpl getSharedDrawable() { return null; }
     protected final GLContextImpl getSharedContext() { return null; }
@@ -101,9 +105,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     public GLDrawable createExternalGLDrawable() {
         throw new GLException("Not yet implemented");
-    }
-
-    public void loadGLULibrary() {
     }
 
     public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {

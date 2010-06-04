@@ -172,8 +172,6 @@ typedef struct tagPIXELFORMATDESCRIPTOR
 
 // Windows routines
 WINBASEAPI DWORD WINAPI GetLastError(VOID);
-WINBASEAPI HMODULE WINAPI LoadLibraryA(LPCSTR lpLibFileName);
-WINBASEAPI PROC WINAPI GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
 
 // OpenGL-related routines
 WINGDIAPI int   WINAPI ChoosePixelFormat(HDC, CONST PIXELFORMATDESCRIPTOR *);

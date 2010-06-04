@@ -167,7 +167,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
             e1.printStackTrace();
         }
 
-        if ( null != context && null != drawable && drawable.isRealized() ) {
+        if ( null != context && context.isCreated() && null != drawable && drawable.isRealized() ) {
             helper.invokeGL(drawable, context, disposeAction, null);
         }
 

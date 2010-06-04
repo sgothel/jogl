@@ -35,7 +35,7 @@
 
 package com.jogamp.opengl.impl.egl;
 
-import com.jogamp.common.os.DynamicLookupHelper;
+import com.jogamp.opengl.impl.GLDynamicLookupHelper;
 import com.jogamp.opengl.impl.GLDrawableImpl;
 
 import javax.media.nativewindow.*;
@@ -208,8 +208,8 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         return tmp[0];
     }
 
-    public DynamicLookupHelper getDynamicLookupHelper() {
-        return EGLDynamicLookupHelper.getDynamicLookupHelper(getGLProfile());
+    public GLDynamicLookupHelper getGLDynamicLookupHelper() {
+        return EGLDynamicLookupHelper.getEGLDynamicLookupHelper(getGLProfile());
     }
 
     public String toString() {

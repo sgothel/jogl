@@ -227,11 +227,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
             // The user really should not be invoking remove() from this
             // thread -- but since he/she is, we can not go over to the
             // EDT at this point. Try to destroy the context from here.
-            drawableHelper.invokeGL(disposeDrawable, disposeContext, disposeAction, null);
-          } else {
+            if(disposeContext.isCreated()) {
+                drawableHelper.invokeGL(disposeDrawable, disposeContext, disposeAction, null);
+            }
+          } else if(disposeContext.isCreated()) {
             Threading.invokeOnOpenGLThread(disposeOnEventDispatchThreadAction);
           }
-      } else {
+      } else if(disposeContext.isCreated()) {
           drawableHelper.invokeGL(disposeDrawable, disposeContext, disposeAction, null);
       }
 

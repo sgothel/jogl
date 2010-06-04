@@ -39,7 +39,6 @@
 
 package com.jogamp.opengl.impl;
 
-import com.jogamp.common.os.DynamicLookupHelper;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 
@@ -58,7 +57,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   /** 
    * Returns the DynamicLookupHelper
    */
-  public abstract DynamicLookupHelper getDynamicLookupHelper();
+  public abstract GLDynamicLookupHelper getGLDynamicLookupHelper();
 
   public GLDrawableFactoryImpl getFactoryImpl() {
     return (GLDrawableFactoryImpl) getFactory();

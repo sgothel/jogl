@@ -25,25 +25,27 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.jogamp.opengl.impl.egl;
-
-import java.util.*;
-import com.jogamp.opengl.impl.*;
+package com.jogamp.opengl.impl;
 
 /**
- * Implementation of the EGLDynamicLookupHelper for ES1.
+ * Abstract implementation of the DynamicLookupHelper for GL,
+ * which decouples it's dependencies to EGLDrawableFactory.
+ *
+ * Currently two implementations exist, one for ES1 and one for ES2.
  */
-public class EGLES1DynamicLookupHelper extends EGLDynamicLookupHelper {
-  
-    protected EGLES1DynamicLookupHelper() {
-        super();
-    }
+public abstract class DesktopGLDynamicLookupHelper extends GLDynamicLookupHelper {
+    private boolean hasGLBinding = false;
+    private boolean hasGLES12Binding = false;
+
+    public boolean hasGLBinding() { return hasGLBinding; }
+    public boolean hasGLES12Binding() { return hasGLES12Binding; }
 
     protected void loadGLJNILibrary() {
         Throwable t=null;
+
         try {
-            GLJNILibLoader.loadES1();
-            hasESBinding = true;
+            GLJNILibLoader.loadGLDesktop();
+            hasGLBinding = true;
         } catch (UnsatisfiedLinkError ule) {
             t=ule;
         } catch (SecurityException se) {
@@ -54,24 +56,26 @@ public class EGLES1DynamicLookupHelper extends EGLDynamicLookupHelper {
             t=re;
         }
         if(DEBUG && null!=t) {
-            System.err.println("EGLES1DynamicLookupHelper: ES1 Binding Library not available");
+            System.err.println("DesktopGLDynamicLookupHelper: Desktop GL Binding Library not available");
             t.printStackTrace();
         }
-    }
 
-    protected List/*<String>*/ getGLLibNames() {
-        List/*<String>*/ glesLibNames = new ArrayList();
-
-        glesLibNames.add("GLES_CM");
-        glesLibNames.add("GLES_CL");
-        glesLibNames.add("GLESv1_CM");
-        // for windows distributions using the 'unlike' lib prefix, 
-        // where our tool does not add it.
-        glesLibNames.add("libGLES_CM");
-        glesLibNames.add("libGLES_CL");
-        glesLibNames.add("libGLESv1_CM");
-
-        return glesLibNames;
+        try {
+            GLJNILibLoader.loadGLDesktopES12();
+            hasGLES12Binding = true;
+        } catch (UnsatisfiedLinkError ule) {
+            t=ule;
+        } catch (SecurityException se) {
+            t=se;
+        } catch (NullPointerException npe) {
+            t=npe;
+        } catch (RuntimeException re) {
+            t=re;
+        }
+        if(DEBUG && null!=t) {
+            System.err.println("DesktopGLDynamicLookupHelper: Desktop GLES12 Binding Library not available");
+            t.printStackTrace();
+        }
     }
 }
 

@@ -39,7 +39,6 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
-import com.jogamp.common.os.DynamicLookupHelper;
 import java.nio.*;
 import java.util.*;
 import javax.media.nativewindow.*;
@@ -50,15 +49,12 @@ import com.jogamp.common.util.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.NullWindow;
 
-public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
+public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final boolean VERBOSE = Debug.verbose();
 
-  // Handle to GLU32.dll
-  // FIXME: this should go away once we delete support for the C GLU library
-  private long hglu32;
-
-  // Handle to core OpenGL32.dll
-  private long hopengl32;
+  public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
+      return WindowsWGLDynamicLookupHelper.getWindowsWGLDynamicLookupHelper();
+  }
 
   public WindowsWGLDrawableFactory() {
     super();
@@ -66,12 +62,11 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
     new WindowsWGLGraphicsConfigurationFactory();
+    WindowsWGLDynamicLookupHelper.getWindowsWGLDynamicLookupHelper(); // setup and load ..
     try {
       ReflectionUtil.createInstance("com.jogamp.opengl.impl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory",
                                   new Object[] {});
     } catch (JogampRuntimeException jre) { /* n/a .. */ }
-
-    loadOpenGL32Library();
 
     try {
         sharedDrawable = new WindowsDummyWGLDrawable(this, null);
@@ -192,44 +187,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
 
   public GLDrawable createExternalGLDrawable() {
     return WindowsExternalWGLDrawable.create(this, null);
-  }
-
-  public void loadOpenGL32Library() {
-    if (hopengl32 == 0) {
-      hopengl32 = WGL.LoadLibraryA("OpenGL32");
-      if (DEBUG) {
-        if (hopengl32 == 0) {
-          System.err.println("WindowsWGLDrawableFactory: Could not load OpenGL32.dll - maybe an embedded device");
-        }
-      }
-    }
-  }
-
-  public void loadGLULibrary() {
-    if (hglu32 == 0) {
-      hglu32 = WGL.LoadLibraryA("GLU32");
-      if (hglu32 == 0) {
-        throw new GLException("Error loading GLU32.DLL");
-      }
-    }
-  }
-
-  public long dynamicLookupFunction(String glFuncName) {
-    long res = WGL.wglGetProcAddress(glFuncName);
-    if (res == 0) {
-      // It may happen that a driver doesn't return the OpenGL32 core function pointer
-      // with wglGetProcAddress (e.g. NVidia GL 3.1) - hence we have to look harder.
-      if (hopengl32 != 0) {
-        res = WGL.GetProcAddress(hopengl32, glFuncName);
-      }
-    }
-    if (res == 0) {
-      // GLU routines aren't known to the OpenGL function lookup
-      if (hglu32 != 0) {
-        res = WGL.GetProcAddress(hglu32, glFuncName);
-      }
-    }
-    return res;
   }
 
   static String wglGetLastError() {

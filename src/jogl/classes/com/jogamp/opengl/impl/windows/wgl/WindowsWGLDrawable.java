@@ -39,7 +39,6 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
-import com.jogamp.common.os.DynamicLookupHelper;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
@@ -119,8 +118,8 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
     }
   }
 
-  public DynamicLookupHelper getDynamicLookupHelper() {
-    return (WindowsWGLDrawableFactory) getFactoryImpl() ;
+  public GLDynamicLookupHelper getGLDynamicLookupHelper() {
+    return WindowsWGLDynamicLookupHelper.getWindowsWGLDynamicLookupHelper();
   }
 
   protected static String getThreadName() {

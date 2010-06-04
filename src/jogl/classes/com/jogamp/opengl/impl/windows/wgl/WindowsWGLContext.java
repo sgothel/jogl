@@ -243,8 +243,8 @@ public class WindowsWGLContext extends GLContextImpl {
         setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
 
         if( createContextARBTried ||
-            !isFunctionAvailable("wglCreateContextAttribsARB") ||
-            !isExtensionAvailable("WGL_ARB_create_context") ) {
+            !isFunctionAvailable("wglCreateContextAttribsARB") /* ||
+            !isExtensionAvailable("WGL_ARB_create_context") */ ) { // unresolved case where client version is 1.4 without this extension
             if(glCaps.getGLProfile().isGL3()) {
               WGL.wglMakeCurrent(0, 0);
               WGL.wglDeleteContext(temp_ctx);

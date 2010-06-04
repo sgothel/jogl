@@ -92,8 +92,8 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
     }
   }
 
-  public DynamicLookupHelper getDynamicLookupHelper() {
-    return (MacOSXCGLDrawableFactory) getFactoryImpl() ;
+  public GLDynamicLookupHelper getGLDynamicLookupHelper() {
+    return MacOSXCGLDynamicLookupHelper.getMacOSXCGLDynamicLookupHelper();
   }
 
   protected static String getThreadName() {

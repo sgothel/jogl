@@ -39,8 +39,8 @@ fi
 #    -DisX11=true \
 #    -Djogl.cg=1 -Dx11.cg.lib=../../lib-linux-x86 \
 
-LD_PRELOAD=$J2RE_HOME/lib/i386/libjsig.so
-export LD_PRELOAD
+#LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64
+#export LD_LIBRARY_PATH
 
 ant \
     $CUSTOMLIBDIR \

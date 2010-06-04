@@ -36,7 +36,6 @@
 
 package com.jogamp.opengl.impl.x11.glx;
 
-import com.jogamp.common.os.DynamicLookupHelper;
 import java.nio.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
@@ -48,17 +47,19 @@ import com.jogamp.common.util.*;
 import com.jogamp.nativewindow.impl.NullWindow;
 import com.jogamp.nativewindow.impl.x11.*;
 
-public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
+public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   
   static {
     X11Util.initSingleton(); // ensure it's loaded and setup
   }
 
+  public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
+      return X11GLXDynamicLookupHelper.getX11GLXDynamicLookupHelper();
+  }
+
   public X11GLXDrawableFactory() {
     super();
-    // Must initialize GLX support eagerly in case a pbuffer is the
-    // first thing instantiated
-    GLX.getGLXProcAddressTable().reset(this);
+    X11GLXDynamicLookupHelper.getX11GLXDynamicLookupHelper(); // ensure it's loaded and setup
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
     new X11GLXGraphicsConfigurationFactory();
@@ -253,20 +254,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
 
   public GLDrawable createExternalGLDrawable() {
     return X11ExternalGLXDrawable.create(this, null);
-  }
-
-  public void loadGLULibrary() {
-    X11Lib.dlopen("/usr/lib/libGLU.so");
-  }
-
-  public long dynamicLookupFunction(String glFuncName) {
-    long res = 0;
-    res = GLX.glXGetProcAddressARB(glFuncName);
-    if (res == 0) {
-      // GLU routines aren't known to the OpenGL function lookup
-      res = X11Lib.dlsym(glFuncName);
-    }
-    return res;
   }
 
   public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
