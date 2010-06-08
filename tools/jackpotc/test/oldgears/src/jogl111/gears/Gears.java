@@ -1,4 +1,4 @@
-package jogl111.gears;
+package gears;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -7,6 +7,8 @@ import javax.media.opengl.*;
 import com.sun.opengl.util.*;
 
 /**
+ * slightly modified Gears demo used as jackpot testing purposes.
+ * - - -
  * Gears.java <BR>
  * author: Brian Paul (converted to Java by Ron Cemer and Sven Goethel) <P>
  *
@@ -49,7 +51,7 @@ public class Gears implements GLEventListener, MouseListener, MouseMotionListene
 
   public void init(GLAutoDrawable drawable) {
     // Use debug pipeline
-    // drawable.setGL(new DebugGL(drawable.getGL()));
+    drawable.setGL(new DebugGL(drawable.getGL()));
 
     GL gl = drawable.getGL();
 

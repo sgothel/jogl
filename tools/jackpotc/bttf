@@ -1,7 +1,9 @@
 #!/bin/bash
-SRC="./test/oldgears/src/"
-LIBS="./test/oldgears/lib/old/jogl.jar:./test/oldgears/lib/new/jogl.all.jar:./test/oldgears/lib/new/jogl.awt.jar"
-OUTPUT="./test/oldgears/build"
+PROJECT="./test/oldgears"
+SRC="$PROJECT/src"
+GENSRC="$PROJECT/gensrc"
+LIBS="$PROJECT/lib/old/jogl.jar:$PROJECT/lib/new/jogl.all.jar:$PROJECT/lib/new/jogl.awt.jar"
+OUTPUT="$PROJECT/build"
 FILESET=`find $SRC -type f -name "*.java"`
 
 echo "Back to the Future"
@@ -10,6 +12,9 @@ mkdir $OUTPUT
 ./lib/jackpotc -sourcepath $SRC -cp $LIBS -d $OUTPUT -Ajackpot30_extra_hints=./jogl1Tojogl2.hint $FILESET
 
 echo "patching..."
-patch -o ${OUTPUT}/Patched.java $FILESET ${OUTPUT}/META-INF/upgrade/upgrade.diff
+mkdir "$GENSRC"
+mkdir "$GENSRC/jogl2/"
+mkdir "$GENSRC/jogl2/gears/"
+patch -o $GENSRC/jogl2/gears/Gears.java $FILESET ${OUTPUT}/META-INF/upgrade/upgrade.diff
 
 echo "done"
