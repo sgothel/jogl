@@ -116,7 +116,7 @@ public class Window extends com.jogamp.newt.Window {
         return fullscreen;
     }
 
-    public void requestFocus() {
+    protected void requestFocusImpl() {
         ((Display)screen.getDisplay()).setFocus(this);
     }
 

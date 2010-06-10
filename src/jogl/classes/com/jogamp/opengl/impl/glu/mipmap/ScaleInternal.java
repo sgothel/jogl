@@ -48,7 +48,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.glu.GLU;
 import java.nio.*;
-import com.jogamp.opengl.impl.InternalBufferUtil;
+import com.jogamp.common.nio.Buffers;
 
 /**
  *
@@ -2425,10 +2425,10 @@ public class ScaleInternal {
     }
     
     try {
-    beforeImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( Mipmap.imageSize3D( widthIn, 
-            heightIn, depthIn, format, GL2.GL_UNSIGNED_SHORT ) )).asShortBuffer();
-    afterImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( Mipmap.imageSize3D( widthIn, 
-            heightIn, depthIn, format, GL2.GL_UNSIGNED_SHORT ) )).asShortBuffer();
+        beforeImage = Buffers.newDirectByteBuffer( Mipmap.imageSize3D( widthIn, 
+                heightIn, depthIn, format, GL2.GL_UNSIGNED_SHORT ) ).asShortBuffer();
+        afterImage = Buffers.newDirectByteBuffer( Mipmap.imageSize3D( widthIn, 
+                heightIn, depthIn, format, GL2.GL_UNSIGNED_SHORT ) ).asShortBuffer();
     } catch( OutOfMemoryError err ) {
       return( GLU.GLU_OUT_OF_MEMORY );
     }

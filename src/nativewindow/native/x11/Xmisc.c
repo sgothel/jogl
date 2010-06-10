@@ -132,13 +132,13 @@ static void _FatalError(JNIEnv *env, const char* msg, ...)
     (*env)->FatalError(env, buffer);
 }
 
-static const char * const ClazzNameInternalBufferUtil = "com/jogamp/nativewindow/impl/InternalBufferUtil";
-static const char * const ClazzNameInternalBufferUtilStaticCstrName = "copyByteBuffer";
-static const char * const ClazzNameInternalBufferUtilStaticCstrSignature = "(Ljava/nio/ByteBuffer;)Ljava/nio/ByteBuffer;";
+static const char * const ClazzNameBuffers = "com/jogamp/common/nio/Buffers";
+static const char * const ClazzNameBuffersStaticCstrName = "copyByteBuffer";
+static const char * const ClazzNameBuffersStaticCstrSignature = "(Ljava/nio/ByteBuffer;)Ljava/nio/ByteBuffer;";
 static const char * const ClazzNameByteBuffer = "java/nio/ByteBuffer";
 static const char * const ClazzNameRuntimeException = "java/lang/RuntimeException";
-static jclass clazzInternalBufferUtil = NULL;
-static jmethodID cstrInternalBufferUtil = NULL;
+static jclass clazzBuffers = NULL;
+static jmethodID cstrBuffers = NULL;
 static jclass clazzByteBuffer = NULL;
 static jclass clazzRuntimeException=NULL;
 
@@ -157,14 +157,14 @@ static void _initClazzAccess(JNIEnv *env) {
         _FatalError(env, "FatalError: NEWT X11Window: can't use %s", ClazzNameRuntimeException);
     }
 
-    c = (*env)->FindClass(env, ClazzNameInternalBufferUtil);
+    c = (*env)->FindClass(env, ClazzNameBuffers);
     if(NULL==c) {
-        _FatalError(env, "FatalError: Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNameInternalBufferUtil);
+        _FatalError(env, "FatalError: Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNameBuffers);
     }
-    clazzInternalBufferUtil = (jclass)(*env)->NewGlobalRef(env, c);
+    clazzBuffers = (jclass)(*env)->NewGlobalRef(env, c);
     (*env)->DeleteLocalRef(env, c);
-    if(NULL==clazzInternalBufferUtil) {
-        _FatalError(env, "FatalError: Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameInternalBufferUtil);
+    if(NULL==clazzBuffers) {
+        _FatalError(env, "FatalError: Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameBuffers);
     }
     c = (*env)->FindClass(env, ClazzNameByteBuffer);
     if(NULL==c) {
@@ -176,11 +176,11 @@ static void _initClazzAccess(JNIEnv *env) {
         _FatalError(env, "FatalError: Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameByteBuffer);
     }
 
-    cstrInternalBufferUtil = (*env)->GetStaticMethodID(env, clazzInternalBufferUtil, 
-                            ClazzNameInternalBufferUtilStaticCstrName, ClazzNameInternalBufferUtilStaticCstrSignature);
-    if(NULL==cstrInternalBufferUtil) {
+    cstrBuffers = (*env)->GetStaticMethodID(env, clazzBuffers, 
+                            ClazzNameBuffersStaticCstrName, ClazzNameBuffersStaticCstrSignature);
+    if(NULL==cstrBuffers) {
         _FatalError(env, "FatalError: Java_com_jogamp_nativewindow_impl_x11_X11Lib:: can't create %s.%s %s",
-            ClazzNameInternalBufferUtil, ClazzNameInternalBufferUtilStaticCstrName, ClazzNameInternalBufferUtilStaticCstrSignature);
+            ClazzNameBuffers, ClazzNameBuffersStaticCstrName, ClazzNameBuffersStaticCstrSignature);
     }
 }
 
@@ -266,33 +266,13 @@ Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize(JNIEnv *env, jclass _un
     }
 }
 
-JNIEXPORT jlong JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Lib_dlopen(JNIEnv *env, jclass _unused, jstring name) {
-  const jbyte* chars;
-  void* res;
-  chars = (*env)->GetStringUTFChars(env, name, NULL);
-  res = dlopen(chars, RTLD_LAZY | RTLD_GLOBAL);
-  (*env)->ReleaseStringUTFChars(env, name, chars);
-  return (jlong) ((intptr_t) res);
-}
-
-JNIEXPORT jlong JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Lib_dlsym(JNIEnv *env, jclass _unused, jstring name) {
-  const jbyte* chars;
-  void* res;
-  chars = (*env)->GetStringUTFChars(env, name, NULL);
-  res = dlsym(RTLD_DEFAULT, chars);
-  (*env)->ReleaseStringUTFChars(env, name, chars);
-  return (jlong) ((intptr_t) res);
-}
-
 /*   Java->C glue code:
  *   Java package: com.jogamp.nativewindow.impl.x11.X11Lib
  *    Java method: XVisualInfo XGetVisualInfo(long arg0, long arg1, XVisualInfo arg2, java.nio.IntBuffer arg3)
  *     C function: XVisualInfo *  XGetVisualInfo(Display * , long, XVisualInfo * , int * );
  */
 JNIEXPORT jobject JNICALL
-Java_com_jogamp_nativewindow_impl_x11_X11Lib_XGetVisualInfoCopied1__JJLjava_nio_ByteBuffer_2Ljava_lang_Object_2I(JNIEnv *env, jclass _unused, jlong arg0, jlong arg1, jobject arg2, jobject arg3, jint arg3_byte_offset) {
+Java_com_jogamp_nativewindow_impl_x11_X11Lib_XGetVisualInfo1__JJLjava_nio_ByteBuffer_2Ljava_lang_Object_2I(JNIEnv *env, jclass _unused, jlong arg0, jlong arg1, jobject arg2, jobject arg3, jint arg3_byte_offset) {
   XVisualInfo * _ptr2 = NULL;
   int * _ptr3 = NULL;
   XVisualInfo *  _res;
@@ -316,8 +296,7 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XGetVisualInfoCopied1__JJLjava_nio_
   if (_res == NULL) return NULL;
 
   jbyteSource = (*env)->NewDirectByteBuffer(env, _res, count * sizeof(XVisualInfo));
-  jbyteCopy   = (*env)->CallStaticObjectMethod(env,
-                                               clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
+  jbyteCopy   = (*env)->CallStaticObjectMethod(env, clazzBuffers, cstrBuffers, jbyteSource);
 
   XFree(_res);
 
@@ -409,8 +388,6 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
         return 0;
     }
 
-    XLockDisplay(dpy) ;
-
     XSync(dpy, False);
 
     scrn = ScreenOfDisplay(dpy, scrn_idx);
@@ -469,8 +446,6 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
 
     XSync(dpy, False);
 
-    XUnlockDisplay(dpy) ;
-
     DBG_PRINT2( "X11: [CreateWindow] created window %p on display %p\n", window, dpy);
 
     return (jlong) window;
@@ -492,13 +467,10 @@ JNIEXPORT void JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_DestroyDummy
         _throwNewRuntimeException(NULL, env, "invalid display connection..");
         return;
     }
-    XLockDisplay(dpy) ;
 
     XSync(dpy, False);
     XUnmapWindow(dpy, w);
     XSync(dpy, False);
     XDestroyWindow(dpy, w);
     XSync(dpy, False);
-
-    XUnlockDisplay(dpy) ;
 }

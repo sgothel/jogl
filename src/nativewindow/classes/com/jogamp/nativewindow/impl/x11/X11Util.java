@@ -52,7 +52,6 @@ import com.jogamp.nativewindow.impl.*;
  */
 public class X11Util {
     private static final boolean DEBUG = Debug.debug("X11Util");
-    private static final boolean DEBUG_XDISPLAY_LOCK = false;
 
     public static final String nullDisplayName;
 
@@ -62,12 +61,7 @@ public class X11Util {
         initialize( true );
 
         long dpy = X11Lib.XOpenDisplay(null);
-        XLockDisplay(dpy);
-        try {
-            nullDisplayName = X11Lib.XDisplayString(dpy);
-        } finally {
-            XUnlockDisplay(dpy);
-        }
+        nullDisplayName = X11Lib.XDisplayString(dpy);
         X11Lib.XCloseDisplay(dpy);
         if(DEBUG) {
             System.out.println("X11 Display(NULL) <"+nullDisplayName+">");
@@ -136,28 +130,15 @@ public class X11Util {
         return num;
     }
 
-    /** 
-     * @return If name is null, it returns the previous queried NULL display name,
-     * otherwise the name. */
-    public static String validateDisplayName(String name) {
-        return ( null == name ) ? nullDisplayName : name ;
-    }
-
-    public static String validateDisplayName(String name, long handle) {
-        if(null==name && 0!=handle) {
-            name = getNameOfDisplay(handle);
-        }
-        return ( null == name ) ? nullDisplayName : name ;
-    }
+    /*******************************
+     **
+     ** TLS Management
+     ** 
+     *******************************/
 
     /** Returns a clone of the thread local display map, you may {@link Object#wait()} on it */
     public static Map getCurrentDisplayMap() {
         return (Map) ((HashMap)getCurrentDisplayMapImpl()).clone();
-    }
-
-    /** Returns this thread current default display.  If it doesn not exist, it is being created, otherwise the reference count is increased */
-    public static long createThreadLocalDefaultDisplay() {
-        return createThreadLocalDisplay(null);
     }
 
     /** Returns this thread named display. If it doesn not exist, it is being created, otherwise the reference count is increased */
@@ -237,65 +218,6 @@ public class X11Util {
         return closeThreadLocalDisplay(ndpy.getName());
     }
 
-    public static boolean setSynchronizeDisplay(long handle, boolean onoff) {
-        boolean res=false;
-        XLockDisplay(handle);
-        try {
-            res = X11Lib.XSynchronize(handle, onoff);
-        } finally {
-            XUnlockDisplay(handle);
-        }
-        return res;
-    }
-
-    public static String getNameOfDisplay(long handle) {
-        String name;
-        XLockDisplay(handle);
-        try {
-            name = X11Lib.XDisplayString(handle);
-        } finally {
-            XUnlockDisplay(handle);
-        }
-        return name;
-    }
-
-    public static void XLockDisplay(long handle) {
-        if(DEBUG_XDISPLAY_LOCK) {
-            NamedDisplay ndpy;
-            synchronized(globalLock) {
-                ndpy = (NamedDisplay) globalNamedDisplayMap.get(handle);
-            }
-            if(null==ndpy) {
-                throw new RuntimeException("X11Util.Display: Display(0x"+Long.toHexString(handle)+") with given handle is not mapped, thread "+Thread.currentThread().getName());
-            }
-            ndpy.lock();
-            try {
-                X11Lib.XLockDisplay(handle);
-            } catch (Throwable t) {
-                ndpy.unlock();
-                throw new RuntimeException(t);
-            }
-        } else {
-            X11Lib.XLockDisplay(handle);
-        }
-    }
-
-    public static void XUnlockDisplay(long handle) {
-        if(DEBUG_XDISPLAY_LOCK) {
-            NamedDisplay ndpy;
-            synchronized(globalLock) {
-                ndpy = (NamedDisplay) globalNamedDisplayMap.get(handle);
-            }
-            if(null==ndpy) {
-                throw new RuntimeException("X11Util.Display: Display(0x"+Long.toHexString(handle)+") with given handle is not mapped, thread "+Thread.currentThread().getName());
-            }
-            X11Lib.XUnlockDisplay(handle);
-            ndpy.unlock();
-        } else {
-            X11Lib.XUnlockDisplay(handle);
-        }
-    }
-
     public static boolean markThreadLocalDisplayUncloseable(long handle) {
         NamedDisplay ndpy;
         synchronized(globalLock) {
@@ -347,6 +269,53 @@ public class X11Util {
     private static NamedDisplay getCurrentDisplay(String name) {
         Map displayMap = getCurrentDisplayMapImpl();
         return (NamedDisplay) displayMap.get(name);
+    }
+
+    /*******************************
+     **
+     ** Non TLS Functions
+     ** 
+     *******************************/
+
+    /** 
+     * @return If name is null, it returns the previous queried NULL display name,
+     * otherwise the name. */
+    public static String validateDisplayName(String name) {
+        return ( null == name ) ? nullDisplayName : name ;
+    }
+
+    public static String validateDisplayName(String name, long handle) {
+        if(null==name && 0!=handle) {
+            name = getNameOfDisplay(handle);
+        }
+        return validateDisplayName(name);
+    }
+
+    public static boolean setSynchronizeDisplay(long handle, boolean onoff) {
+        boolean res = X11Lib.XSynchronize(handle, onoff);
+        return res;
+    }
+
+    public static String getNameOfDisplay(long handle) {
+        String name = X11Lib.XDisplayString(handle);
+        return name;
+    }
+
+    public static void XLockDisplay(long handle) {
+        if(DEBUG) {
+            System.out.println("... X11 Display Lock try 0x"+Long.toHexString(handle));
+        }
+        X11Lib.XLockDisplay(handle);
+        if(DEBUG) {
+            System.out.println("+++ X11 Display Lock got 0x"+Long.toHexString(handle));
+        }
+    }
+
+    public static void XUnlockDisplay(long handle) {
+        if(DEBUG) {
+            System.out.println("--- X11 Display Lock rel 0x"+Long.toHexString(handle));
+        }
+        X11Lib.XUnlockDisplay(handle);
     }
 
     private static native void initialize(boolean initConcurrentThreadSupport);

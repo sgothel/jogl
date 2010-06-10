@@ -1,0 +1,94 @@
+
+Locking
+=========
+
+Interface AbstractGraphicsDevice: lock() / unlock()
+
+    - Used to exclusively lock the device
+    - Current implementations: 
+        - X11GraphicsDevice: XLockDisplay/XUnlockDisplay
+
+    - Shall only be used, where race conditions may happen with
+      device toolkit calls in regards to windowing resources,
+      ie create/destroy .. etc
+
+    - We call XInitThreads ASAP and a global X11 lock 
+      is not necessary.
+
+    - To ensure XInitThreads can be issued at first,
+      GLProfile.initSingleton() shall be called
+      in the static initializer block of the main class.
+
+      TODO: 
+      However, we have to investigate how to incooperate this
+      with Applet loading.
+      If such call ain't possible, a workaround could be to not
+      call XInitThreads() and utilize AWT locks.
+
+Interface NativeWindow: lockSurface() / unlockSurface()
+
+    - Used to exclusively lock the surface
+
+    - Implementations: 
+
+        - JAWTWindow:
+            - Recursive Lock
+            - JAWT SurfaceLock
+
+        - NEWT Window:
+            - Recursive Lock
+            - May have platform specific surface lock, currently: None
+
+
+GLContext/GLDrawable Locking:
+
+    - MakeCurrent: NativeWindow:lockSurface()
+    - Release: NativeWindow:unlockSurface()
+
+    - Create/Destroy/Realize/Swap: 
+        - NativeWindow:lockSurface()
+            - CreateImpl/DestroyImpl/Realize/Swap
+        - NativeWindow:unlockSurface()
+
+    - The Window impl. class shall lock the window recursive lock
+      for all modifying operations.
+      This should be the same lock as surfaceHandle!
+
+
+Summary:
+
+    Locking is implemented in the platform agnostic code layer.
+
+    Locks and Order:
+        1: - NativeWindow Surface/Window Lock
+            - Locked: 
+                - [makeCurrent .. release]
+                - create/destroy  
+
+    GLContextImpl:
+        - makeCurrent
+            - Surface i       - out only in error
+
+        - release
+            - Surface o - makeCurrentImpl
+
+        - create
+            - Surface i/o
+
+        - destroy
+            - Surface i/o
+
+        - copy
+            - Surface i/o
+
+        - setSwapIntervalImpl
+            - Surface i/o
+
+
+    GLDrawableImpl
+        - setRealizedImpl
+            - Surface i/o
+
+        - swapBuffersImpl
+            - [Surface i/o] - if not locked already
+

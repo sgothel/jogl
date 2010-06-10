@@ -137,6 +137,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   private int viewportY;
 
   static {
+    NativeWindowFactory.initSingleton();
+
     // Force eager initialization of part of the Java2D class since
     // otherwise it's likely it will try to be initialized while on
     // the Queue Flusher Thread, which is not allowed
@@ -227,11 +229,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
             // The user really should not be invoking remove() from this
             // thread -- but since he/she is, we can not go over to the
             // EDT at this point. Try to destroy the context from here.
-            drawableHelper.invokeGL(disposeDrawable, disposeContext, disposeAction, null);
-          } else {
+            if(disposeContext.isCreated()) {
+                drawableHelper.invokeGL(disposeDrawable, disposeContext, disposeAction, null);
+            }
+          } else if(disposeContext.isCreated()) {
             Threading.invokeOnOpenGLThread(disposeOnEventDispatchThreadAction);
           }
-      } else {
+      } else if(disposeContext.isCreated()) {
           drawableHelper.invokeGL(disposeDrawable, disposeContext, disposeAction, null);
       }
 
@@ -464,6 +468,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   }
 
   public NativeWindow getNativeWindow() {
+    throw new GLException("FIXME");
+  }
+
+  public long getHandle() {
     throw new GLException("FIXME");
   }
 

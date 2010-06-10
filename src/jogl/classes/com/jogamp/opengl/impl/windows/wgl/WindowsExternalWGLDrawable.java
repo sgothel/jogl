@@ -55,7 +55,7 @@ public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
     if (0==hdc) {
       throw new GLException("Error: attempted to make an external GLDrawable without a drawable current");
     }
-    int pfdID = WGL.GetPixelFormat(hdc);
+    int pfdID = GDI.GetPixelFormat(hdc);
     if (pfdID == 0) {
       throw new GLException("Error: attempted to make an external GLContext without a valid pixelformat");
     }

@@ -84,8 +84,7 @@ public class AWTWindow extends Window {
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
 
-    public void setTitle(final String title) {
-        super.setTitle(title);
+    protected void setTitleImpl(final String title) {
         runOnEDT(true, new Runnable() {
                 public void run() {
                     if (frame != null) {
@@ -265,17 +264,17 @@ public class AWTWindow extends Window {
         return canvas;
     }
 
-    protected void sendWindowEvent(int eventType) {
-        super.sendWindowEvent(eventType);
+    protected void enqueueWindowEvent(int eventType) {
+        super.enqueueWindowEvent(eventType);
     }
 
-    protected void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
-        super.sendKeyEvent(eventType, modifiers, keyCode, keyChar);
+    protected void enqueueKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
+        super.enqueueKeyEvent(eventType, modifiers, keyCode, keyChar);
     }
 
-    protected void sendMouseEvent(int eventType, int modifiers,
+    protected void enqueueMouseEvent(int eventType, int modifiers,
                                   int x, int y, int button, int rotation) {
-        super.sendMouseEvent(eventType, modifiers, x, y, button, rotation);
+        super.enqueueMouseEvent(eventType, modifiers, x, y, button, rotation);
     }
 
     private void runOnEDT(boolean wait, Runnable r) {

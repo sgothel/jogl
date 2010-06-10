@@ -135,7 +135,7 @@ public class KDWindow extends Window {
         } else {
             ((KDScreen)screen).setScreenSize(width, height);
         }
-        sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
+        enqueueWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
     }
 
     private long   eglWindowHandle;

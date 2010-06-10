@@ -58,21 +58,20 @@ public class X11Window extends Window {
         X11GraphicsConfiguration x11config = (X11GraphicsConfiguration) config;
         long visualID = x11config.getVisualID();
         long w = CreateWindow0(parentWindowHandle, 
-                              display.getHandle(), screen.getIndex(), visualID, 
-                              display.getJavaObjectAtom(), display.getWindowDeleteAtom(), 
-                              x, y, width, height, isUndecorated());
+                               display.getHandle(), screen.getIndex(), visualID, 
+                               display.getJavaObjectAtom(), display.getWindowDeleteAtom(), 
+                               x, y, width, height, isUndecorated());
         if (w == 0 || w!=windowHandle) {
             throw new NativeWindowException("Error creating window: "+w);
         }
         windowHandleClose = windowHandle;
-        displayHandleClose = display.getHandle();
     }
 
     protected void closeNative() {
-        if(0!=displayHandleClose && 0!=windowHandleClose && null!=getScreen() ) {
+        if(0!=windowHandleClose && null!=getScreen() ) {
             X11Display display = (X11Display) getScreen().getDisplay();
             try {
-                CloseWindow0(displayHandleClose, windowHandleClose, display.getJavaObjectAtom());
+                CloseWindow0(display.getHandle(), windowHandleClose, display.getJavaObjectAtom());
             } catch (Throwable t) {
                 if(DEBUG_IMPLEMENTATION) { 
                     Exception e = new Exception("closeNative failed - "+Thread.currentThread().getName(), t);
@@ -80,14 +79,12 @@ public class X11Window extends Window {
                 }
             } finally {
                 windowHandleClose = 0;
-                displayHandleClose = 0;
             }
         }
     }
 
     protected void windowDestroyed() {
         windowHandleClose = 0;
-        displayHandleClose = 0;
         super.windowDestroyed();
     }
 
@@ -101,41 +98,31 @@ public class X11Window extends Window {
     }
 
     protected void setPositionImpl(int x, int y) {
-        // this x/y will be set by windowChanged, called by X11
         setPosition0(parentWindowHandle, getDisplayHandle(), windowHandle, x, y);
     }
 
     protected boolean setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
-        setPosSizeDecor0(fullscreen?0:parentWindowHandle, getDisplayHandle(), getScreenIndex(), windowHandle, x, y, w, h, isUndecorated(fullscreen));
+        setPosSizeDecor0(fullscreen?0:parentWindowHandle, getDisplayHandle(), getScreenIndex(), windowHandle, 
+                         x, y, w, h, isUndecorated(fullscreen), isVisible());
         return fullscreen;
     }
 
     protected boolean reparentWindowImpl() {
         if(0!=windowHandle) {
-            reparentWindow0(fullscreen?0:parentWindowHandle, getDisplayHandle(), getScreenIndex(), windowHandle, x, y, isUndecorated());
-            // X11 reparent unmaps the window 
-            setVisibleImpl(visible);
+            reparentWindow0(fullscreen?0:parentWindowHandle, getDisplayHandle(), getScreenIndex(), windowHandle, 
+                            x, y, isUndecorated(), isVisible());
         }
         return true;
     }
 
-    // @Override
-    public void requestFocus() {
-        super.requestFocus();
+    protected void requestFocusImpl() {
         if (windowHandle != 0L) {
             requestFocus0(getDisplayHandle(), windowHandle);
         }
     }
 
-    // @Override
-    public void setTitle(String title) {
-        if (title == null) {
-            title = "";
-        }
-        if (0!=windowHandle && !title.equals(getTitle())) {
-            super.setTitle(title);
-            setTitle0(getDisplayHandle(), windowHandle, title);
-        }
+    protected void setTitleImpl(String title) {
+        setTitle0(getDisplayHandle(), windowHandle, title);
     }
 
 
@@ -151,12 +138,12 @@ public class X11Window extends Window {
     private        native void setVisible0(long display, long windowHandle, boolean visible);
     private        native void setSize0(long display, long windowHandle, int width, int height);
     private        native void setPosSizeDecor0(long parentWindowHandle, long display, int screen_index, long windowHandle, 
-                                                int x, int y, int width, int height, boolean undecorated);
+                                                int x, int y, int width, int height, boolean undecorated, boolean isVisible);
     private        native void setTitle0(long display, long windowHandle, String title);
     private        native void requestFocus0(long display, long windowHandle);
     private        native void setPosition0(long parentWindowHandle, long display, long windowHandle, int x, int y);
     private        native void reparentWindow0(long parentWindowHandle, long display, int screen_index, long windowHandle, 
-                                               int x, int y, boolean undecorated);
+                                               int x, int y, boolean undecorated, boolean isVisible);
 
     private void windowChanged(int newX, int newY, int newWidth, int newHeight) {
         if(width != newWidth || height != newHeight) {
@@ -169,7 +156,7 @@ public class X11Window extends Window {
                 nfs_width=width;
                 nfs_height=height;
             }
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
+            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
         }
         if( 0==parentWindowHandle && ( x != newX || y != newY ) ) {
             if(DEBUG_IMPLEMENTATION) {
@@ -181,7 +168,7 @@ public class X11Window extends Window {
                 nfs_x=x;
                 nfs_y=y;
             }
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
+            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
         }
     }
 
@@ -190,9 +177,9 @@ public class X11Window extends Window {
      */
     private void focusChanged(boolean focusGained) {
         if (focusGained) {
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
         } else {
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_LOST_FOCUS);
+            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_LOST_FOCUS);
         }
     }
 
@@ -208,5 +195,4 @@ public class X11Window extends Window {
     }
 
     private long   windowHandleClose;
-    private long   displayHandleClose;
 }

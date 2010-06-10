@@ -39,6 +39,7 @@ import org.junit.AfterClass;
 import org.junit.Test;
 
 import javax.media.opengl.*;
+import com.jogamp.common.os.Platform;
 
 import java.io.IOException;
 
@@ -47,6 +48,9 @@ public class DumpVersion implements GLEventListener {
     public void init(GLAutoDrawable drawable) {
         GL gl = drawable.getGL();
 
+        System.err.println(Thread.currentThread()+" Platform: " + Platform.getOS() + " (os), " + Platform.getArch() + " (arch)");
+        System.err.println(Thread.currentThread()+" Platform: littleEndian " + Platform.isLittleEndian() + ", 32Bit "+Platform.is32Bit() + ", a-ptr bit-size "+Platform.getPointerSizeInBits());
+        System.err.println(Thread.currentThread()+" Platform: JavaSE " + Platform.isJavaSE());
         System.err.println(Thread.currentThread()+" GL Profile    " + gl.getGLProfile());
         System.err.println(Thread.currentThread()+" CTX VERSION   " + gl.getContext().getGLVersion());
         System.err.println(Thread.currentThread()+" GL            " + gl);

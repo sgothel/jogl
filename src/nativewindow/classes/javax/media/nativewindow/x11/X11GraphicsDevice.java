@@ -33,6 +33,8 @@
 package javax.media.nativewindow.x11;
 
 import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.impl.*;
+import com.jogamp.nativewindow.impl.x11.X11Util;
 
 /** Encapsulates a graphics device on X11 platforms.
  */
@@ -49,5 +51,14 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     public Object clone() {
       return super.clone();
     }
+
+    public void lock() {
+        X11Util.XLockDisplay(handle);
+    }
+
+    public void unlock() {
+        X11Util.XUnlockDisplay(handle);
+    }
+
 }
 

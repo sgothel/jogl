@@ -180,13 +180,23 @@ public class TestGLWindows01NEWT {
     public void testWindowDecor03TwoWin() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-        Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
 
-        GLWindow window1 = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-        GLWindow window2 = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+        Display display1 = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display1);
+        Display display2 = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display2);
+        Assert.assertEquals(display1, display2); // must be equal: same thread - same display
+
+        Screen screen1  = NewtFactory.createScreen(display1, 0); // screen 0
+        Assert.assertNotNull(screen1);
+        GLWindow window1 = createWindow(screen1, caps, width, height, true /* onscreen */, false /* undecorated */);
+        Assert.assertNotNull(window1);
+
+        Screen screen2  = NewtFactory.createScreen(display2, 0); // screen 0
+        Assert.assertNotNull(screen2);
+        GLWindow window2 = createWindow(screen2, caps, width, height, true /* onscreen */, false /* undecorated */);
+        Assert.assertNotNull(window2);
+
         Animator animator1 = new Animator(window1);
         animator1.start();
         Animator animator2 = new Animator(window2);
@@ -194,9 +204,13 @@ public class TestGLWindows01NEWT {
         while(animator1.isAnimating() && animator1.getDuration()<duration) {
             Thread.sleep(100);
         }
+
         animator2.stop();
+        Assert.assertEquals(false, animator2.isAnimating());
+        destroyWindow(window2, true);
+
         animator1.stop();
-        destroyWindow(window2, false);
+        Assert.assertEquals(false, animator1.isAnimating());
         destroyWindow(window1, true);
     }
 

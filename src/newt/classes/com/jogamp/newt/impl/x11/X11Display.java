@@ -40,6 +40,7 @@ import com.jogamp.newt.impl.*;
 import com.jogamp.nativewindow.impl.x11.X11Util;
 
 public class X11Display extends Display {
+
     static {
         NEWTJNILibLoader.loadNEWT();
 
@@ -65,7 +66,7 @@ public class X11Display extends Display {
     }
 
     protected void createNative() {
-        long handle= X11Util.createThreadLocalDisplay(name);
+        long handle = X11Util.createThreadLocalDisplay(name);
         if( 0 == handle ) {
             throw new RuntimeException("Error creating display: "+name);
         }
@@ -87,16 +88,6 @@ public class X11Display extends Display {
             throw new RuntimeException("display handle null");
         }
         DispatchMessages0(getHandle(), javaObjectAtom, windowDeleteAtom);
-    }
-
-    protected void lockDisplay() {
-        super.lockDisplay();
-        X11Util.XLockDisplay(getHandle());
-    }
-
-    protected void unlockDisplay() {
-        X11Util.XUnlockDisplay(getHandle());
-        super.unlockDisplay();
     }
 
     protected long getJavaObjectAtom() { return javaObjectAtom; }

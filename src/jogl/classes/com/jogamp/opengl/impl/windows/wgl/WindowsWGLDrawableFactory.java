@@ -39,7 +39,6 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
-import com.jogamp.common.os.DynamicLookupHelper;
 import java.nio.*;
 import java.util.*;
 import javax.media.nativewindow.*;
@@ -50,15 +49,29 @@ import com.jogamp.common.util.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.NullWindow;
 
-public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
+public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final boolean VERBOSE = Debug.verbose();
 
-  // Handle to GLU32.dll
-  // FIXME: this should go away once we delete support for the C GLU library
-  private long hglu32;
+  private static final DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper;
 
-  // Handle to core OpenGL32.dll
-  private long hopengl32;
+  static {
+    DesktopGLDynamicLookupHelper tmp = null;
+    try {
+        tmp = new DesktopGLDynamicLookupHelper(new WindowsWGLDynamicLibraryBundleInfo());
+    } catch (GLException gle) {
+        if(DEBUG) {
+            gle.printStackTrace();
+        }
+    }
+    windowsWGLDynamicLookupHelper = tmp;
+    if(null!=windowsWGLDynamicLookupHelper) {
+        WGL.getWGLProcAddressTable().reset(windowsWGLDynamicLookupHelper);
+    }
+  }
+
+  public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
+      return windowsWGLDynamicLookupHelper;
+  }
 
   public WindowsWGLDrawableFactory() {
     super();
@@ -70,8 +83,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
       ReflectionUtil.createInstance("com.jogamp.opengl.impl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory",
                                   new Object[] {});
     } catch (JogampRuntimeException jre) { /* n/a .. */ }
-
-    loadOpenGL32Library();
 
     try {
         sharedDrawable = new WindowsDummyWGLDrawable(this, null);
@@ -194,53 +205,15 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     return WindowsExternalWGLDrawable.create(this, null);
   }
 
-  public void loadOpenGL32Library() {
-    if (hopengl32 == 0) {
-      hopengl32 = WGL.LoadLibraryA("OpenGL32");
-      if (DEBUG) {
-        if (hopengl32 == 0) {
-          System.err.println("WindowsWGLDrawableFactory: Could not load OpenGL32.dll - maybe an embedded device");
-        }
-      }
-    }
-  }
-
-  public void loadGLULibrary() {
-    if (hglu32 == 0) {
-      hglu32 = WGL.LoadLibraryA("GLU32");
-      if (hglu32 == 0) {
-        throw new GLException("Error loading GLU32.DLL");
-      }
-    }
-  }
-
-  public long dynamicLookupFunction(String glFuncName) {
-    long res = WGL.wglGetProcAddress(glFuncName);
-    if (res == 0) {
-      // It may happen that a driver doesn't return the OpenGL32 core function pointer
-      // with wglGetProcAddress (e.g. NVidia GL 3.1) - hence we have to look harder.
-      if (hopengl32 != 0) {
-        res = WGL.GetProcAddress(hopengl32, glFuncName);
-      }
-    }
-    if (res == 0) {
-      // GLU routines aren't known to the OpenGL function lookup
-      if (hglu32 != 0) {
-        res = WGL.GetProcAddress(hglu32, glFuncName);
-      }
-    }
-    return res;
-  }
-
   static String wglGetLastError() {
-    long err = WGL.GetLastError();
+    long err = GDI.GetLastError();
     String detail = null;
     switch ((int) err) {
-      case WGL.ERROR_INVALID_PIXEL_FORMAT: detail = "ERROR_INVALID_PIXEL_FORMAT";       break;
-      case WGL.ERROR_NO_SYSTEM_RESOURCES:  detail = "ERROR_NO_SYSTEM_RESOURCES";        break;
-      case WGL.ERROR_INVALID_DATA:         detail = "ERROR_INVALID_DATA";               break;
-      case WGL.ERROR_PROC_NOT_FOUND:       detail = "ERROR_PROC_NOT_FOUND";             break;
-      case WGL.ERROR_INVALID_WINDOW_HANDLE:detail = "ERROR_INVALID_WINDOW_HANDLE";      break;
+      case GDI.ERROR_INVALID_PIXEL_FORMAT: detail = "ERROR_INVALID_PIXEL_FORMAT";       break;
+      case GDI.ERROR_NO_SYSTEM_RESOURCES:  detail = "ERROR_NO_SYSTEM_RESOURCES";        break;
+      case GDI.ERROR_INVALID_DATA:         detail = "ERROR_INVALID_DATA";               break;
+      case GDI.ERROR_PROC_NOT_FOUND:       detail = "ERROR_PROC_NOT_FOUND";             break;
+      case GDI.ERROR_INVALID_WINDOW_HANDLE:detail = "ERROR_INVALID_WINDOW_HANDLE";      break;
       default:                             detail = "(Unknown error code " + err + ")"; break;
     }
     return detail;
@@ -274,17 +247,17 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
       rampData[i + 2 * GAMMA_RAMP_LENGTH] = scaledValue;
     }
 
-    long screenDC = WGL.GetDC(0);
-    boolean res = WGL.SetDeviceGammaRamp(screenDC, ShortBuffer.wrap(rampData));
-    WGL.ReleaseDC(0, screenDC);
+    long screenDC = GDI.GetDC(0);
+    boolean res = GDI.SetDeviceGammaRamp(screenDC, ShortBuffer.wrap(rampData));
+    GDI.ReleaseDC(0, screenDC);
     return res;
   }
 
   protected Buffer getGammaRamp() {
     ShortBuffer rampData = ShortBuffer.wrap(new short[3 * GAMMA_RAMP_LENGTH]);
-    long screenDC = WGL.GetDC(0);
-    boolean res = WGL.GetDeviceGammaRamp(screenDC, rampData);
-    WGL.ReleaseDC(0, screenDC);
+    long screenDC = GDI.GetDC(0);
+    boolean res = GDI.GetDeviceGammaRamp(screenDC, rampData);
+    GDI.ReleaseDC(0, screenDC);
     if (!res) {
       return null;
     }
@@ -296,8 +269,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
       // getGammaRamp failed earlier
       return;
     }
-    long screenDC = WGL.GetDC(0);
-    WGL.SetDeviceGammaRamp(screenDC, originalGammaRamp);
-    WGL.ReleaseDC(0, screenDC);
+    long screenDC = GDI.GetDC(0);
+    GDI.SetDeviceGammaRamp(screenDC, originalGammaRamp);
+    GDI.ReleaseDC(0, screenDC);
   }
 }

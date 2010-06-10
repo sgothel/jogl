@@ -95,20 +95,9 @@ public abstract class GLDrawableFactory {
    * Instantiate singleton factories if available, EGLES1, EGLES2 and the OS native ones.
    */
   static {
-    GLDrawableFactory tmp = null;
-    try {
-        tmp = (GLDrawableFactory) ReflectionUtil.createInstance("com.jogamp.opengl.impl.egl.EGLDrawableFactory");
-    } catch (JogampRuntimeException jre) {
-        if (GLProfile.DEBUG) {
-            System.err.println("GLDrawableFactory.static - EGLDrawableFactory - not available");
-            jre.printStackTrace();
-        }
-    }
-    eglFactory = tmp;
-
     nativeOSType = NativeWindowFactory.getNativeWindowType(true);
 
-    tmp = null;
+    GLDrawableFactory tmp = null;
     String factoryClassName = Debug.getProperty("jogl.gldrawablefactory.class.name", true, AccessController.getContext());
     if (null == factoryClassName) {
         if ( nativeOSType.equals(NativeWindowFactory.TYPE_X11) ) {
@@ -142,6 +131,17 @@ public abstract class GLDrawableFactory {
       }
     }
     nativeOSFactory = tmp;
+
+    tmp = null;
+    try {
+        tmp = (GLDrawableFactory) ReflectionUtil.createInstance("com.jogamp.opengl.impl.egl.EGLDrawableFactory");
+    } catch (JogampRuntimeException jre) {
+        if (GLProfile.DEBUG) {
+            System.err.println("GLDrawableFactory.static - EGLDrawableFactory - not available");
+            jre.printStackTrace();
+        }
+    }
+    eglFactory = tmp;
   }
 
   /** 

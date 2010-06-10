@@ -278,10 +278,17 @@ public abstract class GLContext {
   /**
    * Classname, GL, GLDrawable
    */
-  public final String toString() {
+  public String toString() {
     StringBuffer sb = new StringBuffer();
     sb.append(getClass().getName());
-    sb.append(" [OpenGL ");
+    sb.append(" [");
+    this.append(sb);
+    sb.append("] ");
+    return sb.toString();
+  }
+
+  public final StringBuffer append(StringBuffer sb) {
+    sb.append("OpenGL ");
     sb.append(getGLVersionMajor());
     sb.append(".");
     sb.append(getGLVersionMinor());
@@ -289,6 +296,8 @@ public abstract class GLContext {
     sb.append(Integer.toHexString(ctxOptions));
     sb.append(", ");
     sb.append(getGLVersion());
+    sb.append(", handle ");
+    sb.append(toHexString(contextHandle));
     sb.append(", ");
     sb.append(getGL());
     if(getGLDrawable()!=getGLDrawableRead()) {
@@ -300,8 +309,7 @@ public abstract class GLContext {
         sb.append(",\n\tDrawable Read/Write: ");
         sb.append(getGLDrawable());
     }
-    sb.append("] ");
-    return sb.toString();
+    return sb;
   }
 
   /** Returns a non-null (but possibly empty) string containing the

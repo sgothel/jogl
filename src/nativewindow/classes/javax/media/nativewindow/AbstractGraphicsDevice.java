@@ -55,4 +55,8 @@ public interface AbstractGraphicsDevice extends Cloneable {
      * if such thing exist.
      */
     public long getHandle();
+
+    public void lock();
+
+    public void unlock();
 }

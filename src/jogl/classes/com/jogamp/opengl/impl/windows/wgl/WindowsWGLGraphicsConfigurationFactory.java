@@ -118,7 +118,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         GLCapabilities chosenCaps = null;
 
         if (onscreen) {
-          if ((pixelFormat = WGL.GetPixelFormat(hdc)) != 0) {
+          if ((pixelFormat = GDI.GetPixelFormat(hdc)) != 0) {
             // Pixelformat already set by either 
             //  - a previous updateGraphicsConfiguration() call on the same HDC,
             //  - the graphics driver, copying the HDC's pixelformat to the new one,
@@ -171,13 +171,13 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
                       }
                     } else {
                       if (DEBUG) {
-                        System.err.println(getThreadName() + ": wglChoosePixelFormatARB failed: " + WGL.GetLastError() );
+                        System.err.println(getThreadName() + ": wglChoosePixelFormatARB failed: " + GDI.GetLastError() );
                         Thread.dumpStack();
                       }
                     }
                     if (DEBUG) {
                       if (recommendedPixelFormat <= 0) {
-                        System.err.print(getThreadName() + ": wglChoosePixelFormatARB didn't recommend a pixel format: "+WGL.GetLastError());
+                        System.err.print(getThreadName() + ": wglChoosePixelFormatARB didn't recommend a pixel format: "+GDI.GetLastError());
                         if (capabilities.getSampleBuffers()) {
                           System.err.print(" for multisampled GLCapabilities");
                         }
@@ -200,23 +200,23 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
 
           if (!gotAvailableCaps) {
             if (DEBUG) {
-              System.err.println(getThreadName() + ": Using ChoosePixelFormat ... (LastError: "+WGL.GetLastError()+")");
+              System.err.println(getThreadName() + ": Using ChoosePixelFormat ... (LastError: "+GDI.GetLastError()+")");
             }
             pfd = WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(capabilities);
-            recommendedPixelFormat = WGL.ChoosePixelFormat(hdc, pfd);
+            recommendedPixelFormat = GDI.ChoosePixelFormat(hdc, pfd);
             if (DEBUG) {
-              System.err.println(getThreadName() + ": ChoosePixelFormat(HDC "+toHexString(hdc)+") = " + recommendedPixelFormat + " (LastError: "+WGL.GetLastError()+")");
+              System.err.println(getThreadName() + ": ChoosePixelFormat(HDC "+toHexString(hdc)+") = " + recommendedPixelFormat + " (LastError: "+GDI.GetLastError()+")");
               System.err.println(getThreadName() + ": Used " + capabilities);
             }
 
-            numFormats = WGL.DescribePixelFormat(hdc, 1, 0, null);
+            numFormats = GDI.DescribePixelFormat(hdc, 1, 0, null);
             if (numFormats == 0) {
               throw new GLException("Unable to enumerate pixel formats of window " +
-                                    toHexString(hdc) + " for GLCapabilitiesChooser (LastError: "+WGL.GetLastError()+")");
+                                    toHexString(hdc) + " for GLCapabilitiesChooser (LastError: "+GDI.GetLastError()+")");
             }
             availableCaps = new GLCapabilities[numFormats];
             for (int i = 0; i < numFormats; i++) {
-              if (WGL.DescribePixelFormat(hdc, 1 + i, pfd.size(), pfd) == 0) {
+              if (GDI.DescribePixelFormat(hdc, 1 + i, pfd.size(), pfd) == 0) {
                 throw new GLException("Error describing pixel format " + (1 + i) + " of device context");
               }
               availableCaps[i] = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, pfd, onscreen, usePBuffer);
@@ -261,23 +261,23 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
             System.err.println(getThreadName() + ": Chosen pixel format (" + pixelFormat + "):");
             System.err.println(chosenCaps);
           }
-          if (WGL.DescribePixelFormat(hdc, pixelFormat, pfd.size(), pfd) == 0) {
-            throw new GLException("Error re-describing the chosen pixel format: " + WGL.GetLastError());
+          if (GDI.DescribePixelFormat(hdc, pixelFormat, pfd.size(), pfd) == 0) {
+            throw new GLException("Error re-describing the chosen pixel format: " + GDI.GetLastError());
           }
         } else {
           // For now, use ChoosePixelFormat for offscreen surfaces until
           // we figure out how to properly choose an offscreen-
           // compatible pixel format
           pfd = WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(capabilities);
-          pixelFormat = WGL.ChoosePixelFormat(hdc, pfd);
+          pixelFormat = GDI.ChoosePixelFormat(hdc, pfd);
         }
         if(!pixelFormatSet) {
-            if (!WGL.SetPixelFormat(hdc, pixelFormat, pfd)) {
-              long lastError = WGL.GetLastError();
+            if (!GDI.SetPixelFormat(hdc, pixelFormat, pfd)) {
+              long lastError = GDI.GetLastError();
               if (DEBUG) {
                 System.err.println(getThreadName() + ": SetPixelFormat failed: current context = " + WGL.wglGetCurrentContext() +
                                    ", current DC = " + WGL.wglGetCurrentDC());
-                System.err.println(getThreadName() + ": GetPixelFormat(hdc " + toHexString(hdc) + ") returns " + WGL.GetPixelFormat(hdc));
+                System.err.println(getThreadName() + ": GetPixelFormat(hdc " + toHexString(hdc) + ") returns " + GDI.GetPixelFormat(hdc));
               }
               throw new GLException("Unable to set pixel format " + pixelFormat + " for device context " + toHexString(hdc) + ": error code " + lastError);
             }

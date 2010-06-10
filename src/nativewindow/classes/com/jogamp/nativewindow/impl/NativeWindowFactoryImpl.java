@@ -99,17 +99,4 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
             throw (IllegalArgumentException) new IllegalArgumentException().initCause(ie);
         }
     }
-
-    // On most platforms the toolkit lock is a no-op
-    private ToolkitLock toolkitLock = new ToolkitLock() {
-            public void lock() {
-            }
-
-            public void unlock() {
-            }
-        };
-
-    public ToolkitLock getToolkitLock() {
-        return toolkitLock;
-    }
 }

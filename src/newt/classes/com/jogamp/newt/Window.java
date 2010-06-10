@@ -132,14 +132,6 @@ public abstract class Window implements NativeWindow
         }
     }
 
-    public static String toHexString(int hex) {
-        return "0x" + Integer.toHexString(hex);
-    }
-
-    public static String toHexString(long hex) {
-        return "0x" + Long.toHexString(hex);
-    }
-
     protected Screen screen;
 
     protected NativeWindow parentNativeWindow;
@@ -162,14 +154,15 @@ public abstract class Window implements NativeWindow
             return 0 != windowHandle ;
         }
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.createNative() START ("+Thread.currentThread()+", "+this+")");
+            System.err.println("Window.createNative() START ("+getThreadName()+", "+this+")");
         }
         if(validateParentWindowHandle()) {
+            Display dpy = getScreen().getDisplay();
             createNativeImpl();
             setVisibleImpl(true);
         }
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.createNative() END ("+Thread.currentThread()+", "+this+")");
+            System.err.println("Window.createNative() END ("+getThreadName()+", "+this+")");
         }
         return 0 != windowHandle ;
     }
@@ -185,25 +178,26 @@ public abstract class Window implements NativeWindow
     private static long getNativeWindowHandle(NativeWindow nativeWindow) {
         long handle = 0;
         if(null!=nativeWindow) {
-            boolean ok = true;
+            boolean locked=false;
             try {
-                nativeWindow.lockSurface();
+                if( NativeWindow.LOCK_SURFACE_NOT_READY < nativeWindow.lockSurface() ) {
+                    locked=true;
+                    handle = nativeWindow.getWindowHandle();
+                    if(0==handle) {
+                        throw new NativeWindowException("Parent native window handle is NULL, after succesful locking: "+nativeWindow);
+                    }
+                }
             } catch (NativeWindowException nwe) {
-                // parent native window not ready .. just skip action for now
-                ok = false;
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window.getNativeWindowHandle: not successful yet: "+nwe);
                 }
+            } finally {
+                if(locked) {
+                    nativeWindow.unlockSurface();
+                }
             }
-            if(ok) {
-                handle = nativeWindow.getWindowHandle();
-                nativeWindow.unlockSurface();
-                if(0==handle) {
-                    throw new NativeWindowException("Parent native window handle is NULL, after succesful locking: "+nativeWindow);
-                }
-                if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.getNativeWindowHandle: "+nativeWindow);
-                }
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("Window.getNativeWindowHandle: locked "+locked+", "+nativeWindow);
             }
         }
         return handle;
@@ -281,7 +275,11 @@ public abstract class Window implements NativeWindow
             title = "";
         }
         this.title = title;
+        if(0 != windowHandle) {
+            setTitleImpl(title);
+        }
     }
+    protected void setTitleImpl(String title) {}
 
     public void setUndecorated(boolean value) {
         undecorated = value;
@@ -296,7 +294,11 @@ public abstract class Window implements NativeWindow
     }
 
     public void requestFocus() {
+        if(0 != windowHandle) {
+            requestFocusImpl();
+        }
     }
+    protected void requestFocusImpl() {}
 
     //
     // NativeWindow impl
@@ -306,35 +308,35 @@ public abstract class Window implements NativeWindow
     public int lockSurface() {
         // We leave the ToolkitLock lock to the specializtion's discretion, 
         // ie the implicit JAWTWindow in case of AWTWindow
-        if(isDestroyed() || !isNativeWindowValid()) {
-            return LOCK_SURFACE_NOT_READY;
-        }
-        surfaceLock.lock();
-        screen.getDisplay().lockDisplay();
+
+        windowLock.lock();
+
+        // if(windowLock.getRecursionCount() == 0) { // allow recursion to lock again, always
+            if(isDestroyed() || !isNativeWindowValid()) {
+                windowLock.unlock();
+                return LOCK_SURFACE_NOT_READY;
+            }
+        // }
         return LOCK_SUCCESS;
     }
 
     /** Recursive and unblocking unlockSurface() implementation */
     public void unlockSurface() throws NativeWindowException {
-        surfaceLock.unlock( new Runnable() {
-                                public void run() {
-                                    screen.getDisplay().unlockDisplay();
-                                }
-                            } );
+        windowLock.unlock();
         // We leave the ToolkitLock unlock to the specializtion's discretion, 
         // ie the implicit JAWTWindow in case of AWTWindow
     }
 
     public boolean isSurfaceLocked() {
-        return surfaceLock.isLocked();
+        return windowLock.isLocked();
     }
 
     public Thread getSurfaceLockOwner() {
-        return surfaceLock.getOwner();
+        return windowLock.getOwner();
     }
 
     public Exception getLockedStack() {
-        return surfaceLock.getLockedStack();
+        return windowLock.getLockedStack();
     }
 
     /** 
@@ -352,6 +354,19 @@ public abstract class Window implements NativeWindow
         destroy(false);
     }
 
+    /** 
+     * @param deep If true, all resources, ie listeners, parent handles, size, position 
+     * and the referenced NEWT screen and display, will be destroyed as well. Be aware that if you call
+     * this method with deep = true, you will not be able to regenerate the Window.
+     * @see #destroy()
+     * @see #invalidate(boolean)
+     */
+    public void destroy(boolean deep) {
+        if(!isDestroyed()) {
+            runOnEDTIfAvail(true, new DestroyAction(deep));
+        }
+    }
+
     class DestroyAction implements Runnable {
         boolean deep;
         public DestroyAction(boolean deep) {
@@ -361,7 +376,7 @@ public abstract class Window implements NativeWindow
             windowLock();
             try {
                 if(DEBUG_WINDOW_EVENT) {
-                    System.err.println("Window.destroy(deep: "+deep+") START "+Thread.currentThread()+", "+this);
+                    System.err.println("Window.destroy(deep: "+deep+") START "+getThreadName()+", "+this);
                 }
 
                 // Childs first ..
@@ -397,39 +412,27 @@ public abstract class Window implements NativeWindow
                     }
                 }
                 Display dpy = null;
+                Screen scr = null;
                 if( null != screen && 0 != windowHandle ) {
-                    Screen scr = screen;
-                    dpy = (null!=screen) ? screen.getDisplay() : null;
+                    scr = screen;
+                    dpy = screen.getDisplay();
                     closeNative();
                 }
                 invalidate(deep);
                 if(deep) {
-                    if(null!=screen) {
-                        screen.destroy();
+                    if(null!=scr) {
+                        scr.destroy();
                     }
                     if(null!=dpy) {
                         dpy.destroy();
                     }
                 }
                 if(DEBUG_WINDOW_EVENT) {
-                    System.err.println("Window.destroy(deep: "+deep+") END "+Thread.currentThread()+", "+this);
+                    System.err.println("Window.destroy(deep: "+deep+") END "+getThreadName()+", "+this);
                 }
             } finally {
                 windowUnlock();
             }
-        }
-    }
-
-    /** 
-     * @param deep If true, all resources, ie listeners, parent handles, size, position 
-     * and the referenced NEWT screen and display, will be destroyed as well. Be aware that if you call
-     * this method with deep = true, you will not be able to regenerate the Window.
-     * @see #destroy()
-     * @see #invalidate(boolean)
-     */
-    public void destroy(boolean deep) {
-        if(!isDestroyed()) {
-            runOnEDTIfAvail(true, new DestroyAction(deep));
         }
     }
 
@@ -461,7 +464,7 @@ public abstract class Window implements NativeWindow
         windowLock();
         try{
             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                String msg = new String("!!! Window Invalidate(deep: "+deep+") "+Thread.currentThread());
+                String msg = new String("!!! Window Invalidate(deep: "+deep+") "+getThreadName());
                 System.err.println(msg);
                 //Exception e = new Exception(msg);
                 //e.printStackTrace();
@@ -600,23 +603,23 @@ public abstract class Window implements NativeWindow
 
     protected void windowDestroyNotify() {
         if(DEBUG_WINDOW_EVENT) {
-            System.err.println("Window.windowDestroyNotify START "+Thread.currentThread());
+            System.err.println("Window.windowDestroyNotify START "+getThreadName());
         }
 
-        sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
+        enqueueWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
 
         if(handleDestroyNotify && !isDestroyed()) {
             destroy();
         }
 
         if(DEBUG_WINDOW_EVENT) {
-            System.err.println("Window.windowDestroyeNotify END "+Thread.currentThread());
+            System.err.println("Window.windowDestroyeNotify END "+getThreadName());
         }
     }
 
     protected void windowDestroyed() {
         if(DEBUG_WINDOW_EVENT) {
-            System.err.println("Window.windowDestroyed "+Thread.currentThread());
+            System.err.println("Window.windowDestroyed "+getThreadName());
         }
         invalidate();
     }
@@ -624,6 +627,68 @@ public abstract class Window implements NativeWindow
     protected boolean reparentWindowImpl() {
         // default implementation, no native reparenting support
         return false;
+    }
+
+    class ReparentAction implements Runnable {
+        NativeWindow newParent;
+        Screen newScreen;
+        public ReparentAction(NativeWindow newParent, Screen newScreen) {
+            this.newParent = newParent;
+            this.newScreen = newScreen;
+        }
+        public void run() {
+            windowLock();
+            try{
+                if ( 0 == windowHandle && null != newScreen ) {
+                    screen = newScreen;
+                }
+                long newParentHandle = 0 ;
+                if(null!=newParent) {
+                    newParentHandle = getNativeWindowHandle(newParent);
+                    if ( 0 == newParentHandle ) {
+                        return; // bail out .. not ready yet
+                    }
+                }
+
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("reparent: START ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+" -> "+toHexString(newParentHandle)+", visible "+visible+", parentNativeWindow "+(null!=parentNativeWindow));
+                }
+
+                if(null!=parentNativeWindow && parentNativeWindow instanceof Window) {
+                    ((Window)parentNativeWindow).getInnerWindow().removeChild(Window.this);
+                }
+                parentNativeWindow = newParent;
+                if(parentNativeWindow instanceof Window) {
+                    ((Window)parentNativeWindow).getInnerWindow().addChild(Window.this);
+                }
+
+                if(newParentHandle != parentWindowHandle) {
+                    parentWindowHandle = newParentHandle;
+                    if(0!=parentWindowHandle) {
+                        // reset position to 0/0 within parent space
+                        // FIXME .. cache position ?
+                        x = 0;
+                        y = 0;
+                    }
+                    boolean reparentRes = false;
+                    reparentRes = reparentWindowImpl();
+                    if(!reparentRes) {
+                        parentWindowHandle = 0;
+
+                        // do it the hard way .. reconstruction with setVisible(true)
+                        if( 0 != windowHandle ) {
+                            destroy(false);
+                        }
+                    }
+                }
+
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("reparentWindow: END ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentNativeWindow "+(null!=parentNativeWindow));
+                }
+            } finally {
+                windowUnlock();
+            }
+        }
     }
 
     /**
@@ -639,54 +704,11 @@ public abstract class Window implements NativeWindow
      *                  this Screen is being used.
      */
     public void reparentWindow(NativeWindow newParent, Screen newScreen) {
-        windowLock();
-        try{
-            if ( 0 == windowHandle && null != newScreen ) {
-                screen = newScreen;
+        if(!isDestroyed()) {
+            runOnEDTIfAvail(true, new ReparentAction(newParent, newScreen)); 
+            if( isVisible() ) {
+                enqueueWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
             }
-            long newParentHandle = 0 ;
-            if(null!=newParent) {
-                newParentHandle = getNativeWindowHandle(newParent);
-                if ( 0 == newParentHandle ) {
-                    return; // bail out .. not ready yet
-                }
-            }
-
-            if(DEBUG_IMPLEMENTATION) {
-                System.err.println("reparent: START ("+Thread.currentThread()+") windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+" -> "+toHexString(newParentHandle)+", visible "+visible+", parentNativeWindow "+(null!=parentNativeWindow));
-            }
-
-            if(null!=parentNativeWindow && parentNativeWindow instanceof Window) {
-                ((Window)parentNativeWindow).getInnerWindow().removeChild(this);
-            }
-            parentNativeWindow = newParent;
-            if(parentNativeWindow instanceof Window) {
-                ((Window)parentNativeWindow).getInnerWindow().addChild(this);
-            }
-
-            if(newParentHandle != parentWindowHandle) {
-                parentWindowHandle = newParentHandle;
-                if(0!=parentWindowHandle) {
-                    // reset position to 0/0 within parent space
-                    // FIXME .. cache position ?
-                    x = 0;
-                    y = 0;
-                }
-                if(!reparentWindowImpl()) {
-                    parentWindowHandle = 0;
-
-                    // do it the hard way .. reconstruction with setVisible(true)
-                    if( 0 != windowHandle ) {
-                        destroy(false);
-                    }
-                }
-            }
-
-            if(DEBUG_IMPLEMENTATION) {
-                System.err.println("reparentWindow: END ("+Thread.currentThread()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentNativeWindow "+(null!=parentNativeWindow));
-            }
-        } finally {
-            windowUnlock();
         }
     }
 
@@ -733,7 +755,7 @@ public abstract class Window implements NativeWindow
                 }
 
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window setVisible: END ("+Thread.currentThread()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+Window.this.visible);
+                    System.err.println("Window setVisible: END ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+Window.this.visible);
                 }
             } finally {
                 windowUnlock();
@@ -768,7 +790,7 @@ public abstract class Window implements NativeWindow
      */
     public void setVisible(boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
-            String msg = new String("Window setVisible: START ("+Thread.currentThread()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentNativeWindow "+(null!=parentNativeWindow));
+            String msg = new String("Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentNativeWindow "+(null!=parentNativeWindow));
             //System.err.println(msg);
             Exception ee = new Exception(msg);
             ee.printStackTrace();
@@ -1000,49 +1022,19 @@ public abstract class Window implements NativeWindow
     //
     // MouseListener/Event Support
     //
-
-    public void addMouseListener(MouseListener l) {
-        if(l == null) {
-            return;
-        }
-        synchronized(mouseListeners) {
-            ArrayList newMouseListeners = (ArrayList) mouseListeners.clone();
-            newMouseListeners.add(l);
-            mouseListeners = newMouseListeners;
-        }
-    }
-
-    public void removeMouseListener(MouseListener l) {
-        if (l == null) {
-            return;
-        }
-        synchronized(mouseListeners) {
-            ArrayList newMouseListeners = (ArrayList) mouseListeners.clone();
-            newMouseListeners.remove(l);
-            mouseListeners = newMouseListeners;
-        }
-    }
-
-    public MouseListener[] getMouseListeners() {
-        synchronized(mouseListeners) {
-            return (MouseListener[]) mouseListeners.toArray();
-        }
-    }
-
     private ArrayList mouseListeners = new ArrayList();
     private int  mouseButtonPressed = 0; // current pressed mouse button number
     private long lastMousePressed = 0; // last time when a mouse button was pressed
     private int  lastMouseClickCount = 0; // last mouse button click count
     public  static final int ClickTimeout = 300;
 
-    /** Be aware that this method synthesizes the events: MouseClicked and MouseDragged */
-    protected void sendMouseEvent(int eventType, int modifiers,
+    protected void enqueueMouseEvent(int eventType, int modifiers,
                                   int x, int y, int button, int rotation) {
         if(x<0||y<0||x>=width||y>=height) {
             return; // .. invalid ..
         }
         if(DEBUG_MOUSE_EVENT) {
-            System.err.println("sendMouseEvent: "+MouseEvent.getEventTypeString(eventType)+
+            System.err.println("enqueueMouseEvent: "+MouseEvent.getEventTypeString(eventType)+
                                ", mod "+modifiers+", pos "+x+"/"+y+", button "+button);
         }
         if(button<0||button>MouseEvent.BUTTON_NUMBER) {
@@ -1086,12 +1078,41 @@ public abstract class Window implements NativeWindow
         } else {
             e = new MouseEvent(eventType, this, when, modifiers, x, y, 0, button, 0);
         }
-        sendMouseEvent(e);
+        screen.getDisplay().enqueueEvent(e);
         if(null!=eClicked) {
             if(DEBUG_MOUSE_EVENT) {
-                System.err.println("sendMouseEvent: synthesized MOUSE_CLICKED event");
+                System.err.println("enqueueMouseEvent: synthesized MOUSE_CLICKED event");
             }
-            sendMouseEvent(eClicked);
+            screen.getDisplay().enqueueEvent(eClicked);
+        }
+    }
+
+
+    public void addMouseListener(MouseListener l) {
+        if(l == null) {
+            return;
+        }
+        synchronized(mouseListeners) {
+            ArrayList newMouseListeners = (ArrayList) mouseListeners.clone();
+            newMouseListeners.add(l);
+            mouseListeners = newMouseListeners;
+        }
+    }
+
+    public void removeMouseListener(MouseListener l) {
+        if (l == null) {
+            return;
+        }
+        synchronized(mouseListeners) {
+            ArrayList newMouseListeners = (ArrayList) mouseListeners.clone();
+            newMouseListeners.remove(l);
+            mouseListeners = newMouseListeners;
+        }
+    }
+
+    public MouseListener[] getMouseListeners() {
+        synchronized(mouseListeners) {
+            return (MouseListener[]) mouseListeners.toArray();
         }
     }
 
@@ -1141,6 +1162,12 @@ public abstract class Window implements NativeWindow
     // KeyListener/Event Support
     //
 
+    protected void enqueueKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
+        screen.getDisplay().enqueueEvent(
+            new KeyEvent(eventType, this, System.currentTimeMillis(),
+                         modifiers, keyCode, keyChar) );
+    }
+
     public void addKeyListener(KeyListener l) {
         if(l == null) {
             return;
@@ -1171,11 +1198,6 @@ public abstract class Window implements NativeWindow
 
     private ArrayList keyListeners = new ArrayList();
 
-    protected void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
-        sendKeyEvent(new KeyEvent(eventType, this, System.currentTimeMillis(),
-                                  modifiers, keyCode, keyChar) );
-    }
-
     protected void sendKeyEvent(KeyEvent e) {
         if(DEBUG_KEY_EVENT) {
             System.err.println("sendKeyEvent: "+e);
@@ -1205,6 +1227,11 @@ public abstract class Window implements NativeWindow
     //
     // WindowListener/Event Support
     //
+    protected void enqueueWindowEvent(int eventType) {
+        WindowEvent event = new WindowEvent(eventType, this, System.currentTimeMillis());
+        screen.getDisplay().enqueueEvent( event );
+        // sendWindowEvent ( event ); // FIXME: Think about performance/lag .. ?
+    }
 
     private ArrayList windowListeners = new ArrayList();
 
@@ -1234,10 +1261,6 @@ public abstract class Window implements NativeWindow
         synchronized(windowListeners) {
             return (WindowListener[]) windowListeners.toArray();
         }
-    }
-
-    protected void sendWindowEvent(int eventType) {
-        sendWindowEvent( new WindowEvent(eventType, this, System.currentTimeMillis()) );
     }
 
     protected void sendWindowEvent(WindowEvent e) {
@@ -1365,8 +1388,7 @@ public abstract class Window implements NativeWindow
         return sb.toString();
     }
 
-    private RecursiveToolkitLock surfaceLock = new RecursiveToolkitLock();
-    private RecursiveToolkitLock windowLock = new RecursiveToolkitLock();
+    protected RecursiveToolkitLock windowLock = new RecursiveToolkitLock();
 
     private static final boolean TRACE_LOCK = false;
 
@@ -1387,8 +1409,23 @@ public abstract class Window implements NativeWindow
     protected final boolean windowIsLocked() {
         return getInnerWindow().windowLock.isLocked();
     }
+    protected RecursiveToolkitLock getWindowLock() {
+        return getInnerWindow().windowLock;
+    }
     protected final void shouldNotCallThis() {
         throw new NativeWindowException("Should not call this");
+    }
+
+    public static String getThreadName() {
+        return Display.getThreadName();
+    }
+
+    public static String toHexString(int hex) {
+        return Display.toHexString(hex);
+    }
+
+    public static String toHexString(long hex) {
+        return Display.toHexString(hex);
     }
 }
 

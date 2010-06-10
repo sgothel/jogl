@@ -99,13 +99,13 @@ private final java.nio.ByteBuffer copyToByteBuffer(java.nio.Buffer buf) {
     if (buf.position() == 0) {
       return (java.nio.ByteBuffer) buf;
     }
-    return InternalBufferUtil.copyByteBuffer((java.nio.ByteBuffer) buf);
+    return Buffers.copyByteBuffer((java.nio.ByteBuffer) buf);
   } else if (buf instanceof java.nio.ShortBuffer) {
-    return InternalBufferUtil.copyShortBufferAsByteBuffer((java.nio.ShortBuffer) buf);
+    return Buffers.copyShortBufferAsByteBuffer((java.nio.ShortBuffer) buf);
   } else if (buf instanceof java.nio.IntBuffer) {
-    return InternalBufferUtil.copyIntBufferAsByteBuffer((java.nio.IntBuffer) buf);
+    return Buffers.copyIntBufferAsByteBuffer((java.nio.IntBuffer) buf);
   } else if (buf instanceof java.nio.FloatBuffer) {
-    return InternalBufferUtil.copyFloatBufferAsByteBuffer((java.nio.FloatBuffer) buf);
+    return Buffers.copyFloatBufferAsByteBuffer((java.nio.FloatBuffer) buf);
   } else {
     throw new IllegalArgumentException("Unsupported buffer type (must be one of byte, short, int, or float)");
   }
@@ -124,11 +124,11 @@ public final int gluScaleImage( int format, int widthin, int heightin,
   if( dataout instanceof java.nio.ByteBuffer ) {
     out = (java.nio.ByteBuffer)dataout;
   } else if( dataout instanceof java.nio.ShortBuffer ) {
-    out = InternalBufferUtil.newByteBuffer(dataout.remaining() * InternalBufferUtil.SIZEOF_SHORT);
+    out = Buffers.newDirectByteBuffer(dataout.remaining() * Buffers.SIZEOF_SHORT);
   } else if ( dataout instanceof java.nio.IntBuffer ) {
-    out = InternalBufferUtil.newByteBuffer(dataout.remaining() * InternalBufferUtil.SIZEOF_INT);
+    out = Buffers.newDirectByteBuffer(dataout.remaining() * Buffers.SIZEOF_INT);
   } else if ( dataout instanceof java.nio.FloatBuffer ) {
-    out = InternalBufferUtil.newByteBuffer(dataout.remaining() * InternalBufferUtil.SIZEOF_FLOAT);
+    out = Buffers.newDirectByteBuffer(dataout.remaining() * Buffers.SIZEOF_FLOAT);
   } else {
     throw new IllegalArgumentException("Unsupported destination buffer type (must be byte, short, int, or float)");
   }
@@ -225,30 +225,3 @@ public final int gluBuild3DMipmaps( int target, int internalFormat, int width,
           depth, format, type, buffer ) );
 }
 
-//----------------------------------------------------------------------
-// GLUProcAddressTable handling
-//
-
-/*
-private static GLUProcAddressTable gluProcAddressTable;
-private static volatile boolean gluLibraryLoaded;
-
-private static GLUProcAddressTable getGLUProcAddressTable() {
-  if (!gluLibraryLoaded) {
-    loadGLULibrary();
-  }
-  if (gluProcAddressTable == null) {
-    GLUProcAddressTable tmp = new GLUProcAddressTable(new GLProcAddressResolver());
-    tmp.reset(GLDrawableFactoryImpl.getFactoryImpl());
-    gluProcAddressTable = tmp;
-  }
-  return gluProcAddressTable;
-}
-
-private static synchronized void loadGLULibrary() {
-  if (!gluLibraryLoaded) {
-    GLDrawableFactoryImpl.getFactoryImpl().loadGLULibrary();
-    gluLibraryLoaded = true;
-  }
-}
-*/

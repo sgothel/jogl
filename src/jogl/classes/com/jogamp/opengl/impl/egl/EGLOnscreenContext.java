@@ -47,37 +47,6 @@ public class EGLOnscreenContext extends EGLContext {
         super(drawable, shareWith);
     }
 
-    // Note: Usually the surface shall be locked within [makeCurrent .. swap .. release]
-    protected int makeCurrentImpl() throws GLException {
-        int lockRes = drawable.lockSurface();
-        boolean exceptionOccurred = false;
-        try {
-          if (lockRes == NativeWindow.LOCK_SURFACE_NOT_READY) {
-            return CONTEXT_NOT_CURRENT;
-          }
-          return super.makeCurrentImpl();
-        } catch (RuntimeException e) {
-          exceptionOccurred = true;
-          throw e;
-        } finally {
-          if (exceptionOccurred ||
-              (isOptimizable() && lockRes != NativeWindow.LOCK_SURFACE_NOT_READY) && drawable.isSurfaceLocked()) {
-            drawable.unlockSurface();
-          }
-        }
-    }
-
-    // Note: Usually the surface shall be locked within [makeCurrent .. swap .. release]
-    protected void releaseImpl() throws GLException {
-        try {
-          super.releaseImpl();
-        } finally {
-          if (!isOptimizable() && drawable.isSurfaceLocked()) {
-            drawable.unlockSurface();
-          }
-        }
-    }
-
     public void bindPbufferToTexture() {
         throw new GLException("Should not call this");
     }

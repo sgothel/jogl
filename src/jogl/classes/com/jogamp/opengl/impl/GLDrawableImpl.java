@@ -39,7 +39,6 @@
 
 package com.jogamp.opengl.impl;
 
-import com.jogamp.common.os.DynamicLookupHelper;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 
@@ -58,7 +57,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   /** 
    * Returns the DynamicLookupHelper
    */
-  public abstract DynamicLookupHelper getDynamicLookupHelper();
+  public abstract GLDynamicLookupHelper getGLDynamicLookupHelper();
 
   public GLDrawableFactoryImpl getFactoryImpl() {
     return (GLDrawableFactoryImpl) getFactory();
@@ -70,11 +69,23 @@ public abstract class GLDrawableImpl implements GLDrawable {
     throw new GLException("Should not call this (should only be called for offscreen GLDrawables)");
   }
 
-  public void swapBuffers() throws GLException {
+  public final void swapBuffers() throws GLException {
     GLCapabilities caps = (GLCapabilities)component.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
     if ( caps.getDoubleBuffered() ) {
         if(!component.surfaceSwap()) {
-            swapBuffersImpl();
+            int lockRes = lockSurface(); // it's recursive, so it's ok within [makeCurrent .. release]
+            if (NativeWindow.LOCK_SURFACE_NOT_READY == lockRes) {
+                return;
+            }
+            try {
+                AbstractGraphicsDevice aDevice = getNativeWindow().getGraphicsConfiguration().getScreen().getDevice();
+                if (NativeWindow.LOCK_SURFACE_CHANGED == lockRes) {
+                    updateHandle();
+                }
+                swapBuffersImpl();
+            } finally {
+                unlockSurface();
+            }
         }
     } else {
         GLContext ctx = GLContext.getCurrent();
@@ -84,7 +95,6 @@ public abstract class GLDrawableImpl implements GLDrawable {
     }
     component.surfaceUpdated(this, component, System.currentTimeMillis());
   }
-
   protected abstract void swapBuffersImpl();
 
   public static String toHexString(long hex) {
@@ -107,23 +117,45 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return component;
   }
 
+  protected void destroyHandle() {}
+  protected void updateHandle() {}
+
+  public long getHandle() {
+    return component.getSurfaceHandle();
+  }
+
   public GLDrawableFactory getFactory() {
     return factory;
   }
 
-  public void setRealized(boolean realized) {
+  public final void setRealized(boolean realized) {
     if ( this.realized != realized ) {
         if(DEBUG) {
             System.err.println("setRealized: "+getClass().getName()+" "+this.realized+" -> "+realized);
         }
         this.realized = realized;
-        setRealizedImpl();
+        if(realized && NativeWindow.LOCK_SURFACE_NOT_READY == lockSurface()) {
+          throw new GLException("X11GLXDrawable.setRealized(true): lockSurface - surface not ready");
+        }
+        try {
+            AbstractGraphicsDevice aDevice = getNativeWindow().getGraphicsConfiguration().getScreen().getDevice();
+            if(!realized) {
+                destroyHandle();
+            }
+            setRealizedImpl();
+            if(realized) {
+                updateHandle();
+            }
+        } finally {
+            if(realized) {
+                unlockSurface();
+            }
+        }
     } else if(DEBUG) {
         System.err.println("setRealized: "+getClass().getName()+" "+this.realized+" == "+realized);
     }
   }
   protected abstract void setRealizedImpl();
-
   public boolean isRealized() {
     return realized;
   }
@@ -138,9 +170,6 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   public int lockSurface() throws GLException {
-    if (!realized) {
-      return NativeWindow.LOCK_SURFACE_NOT_READY;
-    }
     return component.lockSurface();
   }
 
@@ -155,6 +184,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   public String toString() {
     return getClass().getName()+"[Realized "+isRealized()+
                 ",\n\tFactory   "+getFactory()+
+                ",\n\thandle    "+toHexString(getHandle())+
                 ",\n\tWindow    "+getNativeWindow()+"]";
   }
 

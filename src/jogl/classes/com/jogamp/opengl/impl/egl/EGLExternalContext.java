@@ -67,21 +67,16 @@ public class EGLExternalContext extends EGLContext {
         lastContext = null;
     }
 
-    protected int makeCurrentImpl() throws GLException {
+    protected void makeCurrentImpl(boolean newCreated) throws GLException {
         if (firstMakeCurrent) {
             firstMakeCurrent = false;
-            // FIXME: set contextHandle
-            return CONTEXT_CURRENT_NEW;
         }
-        return CONTEXT_CURRENT;
     }
 
     protected void releaseImpl() throws GLException {
     }
 
     protected void destroyImpl() throws GLException {
-        contextHandle = 0 ;
-        GLContextShareSet.contextDestroyed(this);
     }
 
     public void bindPbufferToTexture() {

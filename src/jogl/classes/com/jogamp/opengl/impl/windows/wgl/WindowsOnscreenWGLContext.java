@@ -46,43 +46,8 @@ import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 
 public class WindowsOnscreenWGLContext extends WindowsWGLContext {
-  protected WindowsOnscreenWGLDrawable drawable;
-
   public WindowsOnscreenWGLContext(WindowsOnscreenWGLDrawable drawable,
                                   GLContext shareWith) {
     super(drawable, shareWith);
-    this.drawable = drawable;
-  }
-  
-  // Note: Usually the surface shall be locked within [makeCurrent .. swap .. release]
-  protected int makeCurrentImpl() throws GLException {
-    int lockRes = drawable.lockSurface();
-    boolean exceptionOccurred = false;
-    try {
-      if (lockRes == NativeWindow.LOCK_SURFACE_NOT_READY) {
-        return CONTEXT_NOT_CURRENT;
-      }
-      int ret = super.makeCurrentImpl();
-      return ret;
-    } catch (RuntimeException e) {
-      exceptionOccurred = true;
-      throw e;
-    } finally {
-      if (exceptionOccurred ||
-          (isOptimizable() && lockRes != NativeWindow.LOCK_SURFACE_NOT_READY) && drawable.isSurfaceLocked()) {
-        drawable.unlockSurface();
-      }
-    }
-  }
-
-  // Note: Usually the surface shall be locked within [makeCurrent .. swap .. release]
-  protected void releaseImpl() throws GLException {
-    try {
-      super.releaseImpl();
-    } finally {
-      if (!isOptimizable() && drawable.isSurfaceLocked()) {
-        drawable.unlockSurface();
-      }
-    }
-  }
+  }    
 }

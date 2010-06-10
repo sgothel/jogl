@@ -47,6 +47,9 @@ import com.jogamp.newt.*;
 import java.io.IOException;
 
 public class TestGLProfile01NEWT {
+    static {
+        GLProfile.initSingleton();
+    }
     static GLProfile glp;
 
     @BeforeClass
@@ -93,7 +96,7 @@ public class TestGLProfile01NEWT {
     }
 
     @Test
-    public void test02GLProfileMaxProgrammable() {
+    public void test03GLProfileMaxProgrammable() {
         // Assuming at least one programmable profile is available
         GLProfile glp = GLProfile.getMaxProgrammable();
         System.out.println("GLProfile <static> getMaxProgrammable(): "+glp);
@@ -115,6 +118,28 @@ public class TestGLProfile01NEWT {
         } else if(glp.getName().equals(GLProfile.GL2ES2)) {
             Assert.assertTrue(GLProfile.isGL2ES2Available());
         }
+        dumpVersion(glp);
+    }
+
+    @Test
+    public void test04GLProfileGL2ES1() {
+        if(!GLProfile.isGL2ES1Available()) {
+            System.out.println("GLProfile GL2ES1 n/a");
+            return;
+        }
+        GLProfile glp = GLProfile.getGL2ES1();
+        System.out.println("GLProfile <static> GL2ES1: "+glp);
+        dumpVersion(glp);
+    }
+
+    @Test
+    public void test05GLProfileGL2ES2() {
+        if(!GLProfile.isGL2ES2Available()) {
+            System.out.println("GLProfile GL2ES2 n/a");
+            return;
+        }
+        GLProfile glp = GLProfile.getGL2ES2();
+        System.out.println("GLProfile <static> GL2ES2: "+glp);
         dumpVersion(glp);
     }
 

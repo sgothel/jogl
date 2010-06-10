@@ -231,8 +231,8 @@ public class MacWindow extends Window {
         }
     }
 
-    public void setTitle(String title) {
-        super.setTitle(title);
+    protected void setTitleImpl(final String title) {
+        // FIXME: move nsViewLock up to window lock
         nsViewLock.lock();
         try {
             if (windowHandle != 0) {
@@ -243,8 +243,8 @@ public class MacWindow extends Window {
         }
     }
 
-    public void requestFocus() {
-        super.requestFocus();
+    protected void requestFocusImpl() {
+        // FIXME: move nsViewLock up to window lock
         nsViewLock.lock();
         try {
             if (windowHandle != 0) {
@@ -309,7 +309,7 @@ public class MacWindow extends Window {
             if (DEBUG_IMPLEMENTATION) {
                 System.out.println("  Posted WINDOW_RESIZED event");
             }
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
+            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
         }
     }
 
@@ -340,15 +340,15 @@ public class MacWindow extends Window {
             if (DEBUG_IMPLEMENTATION) {
                 System.out.println("  Posted WINDOW_MOVED event");
             }
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
+            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
         }
     }
 
     private void focusChanged(boolean focusGained) {
         if (focusGained) {
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
         } else {
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_LOST_FOCUS);
+            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_LOST_FOCUS);
         }
     }
 
@@ -435,12 +435,12 @@ public class MacWindow extends Window {
         return keyChar;
     }
 
-    protected void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
+    protected void enqueueKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
         int key = convertKeyChar(keyChar);
-        if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.sendKeyEvent "+Thread.currentThread().getName());
+        if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.enqueueKeyEvent "+Thread.currentThread().getName());
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
-        super.sendKeyEvent(eventType, modifiers, key, keyChar);
+        super.enqueueKeyEvent(eventType, modifiers, key, keyChar);
     }
 
     private void createWindow(final boolean recreate, final int x, final int y, final int width, final int height, final boolean fullscreen) {
@@ -482,9 +482,9 @@ public class MacWindow extends Window {
             ie.printStackTrace();
         }
 
-        sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
-        sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
-        sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+        enqueueWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
+        enqueueWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
+        enqueueWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
     }
     
     protected static native boolean initIDs0();

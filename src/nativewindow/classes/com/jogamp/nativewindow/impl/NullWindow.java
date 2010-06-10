@@ -37,9 +37,10 @@
 package com.jogamp.nativewindow.impl;
 
 import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
 
 public class NullWindow implements NativeWindow, SurfaceChangeable {
-  private Exception lockedStack = null;
+  private RecursiveToolkitLock recurLock = new RecursiveToolkitLock();
   protected int width, height, scrnIndex;
   protected long surfaceHandle, displayHandle;
   protected AbstractGraphicsConfiguration config;
@@ -68,28 +69,20 @@ public class NullWindow implements NativeWindow, SurfaceChangeable {
   }
 
   public synchronized int lockSurface() throws NativeWindowException {
-    if (null!=lockedStack) {
-      lockedStack.printStackTrace();
-      throw new NativeWindowException("Surface already locked - "+this);
-    }
-    lockedStack = new Exception("NullWindow previously locked by "+Thread.currentThread().getName());
+    recurLock.lock();
     return LOCK_SUCCESS;
   }
 
   public synchronized void unlockSurface() {
-    if (null!=lockedStack) {
-        lockedStack = null;
-    } else {
-        throw new NativeWindowException("NullWindow not locked");
-    }
+    recurLock.unlock();
   }
 
   public synchronized boolean isSurfaceLocked() {
-    return null!=lockedStack;
+    return recurLock.isLocked();
   }
 
   public Exception getLockedStack() {
-    return lockedStack;
+    return recurLock.getLockedStack();
   }
 
   public boolean surfaceSwap() {

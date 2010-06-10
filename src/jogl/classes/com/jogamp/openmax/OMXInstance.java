@@ -84,7 +84,7 @@ public class OMXInstance {
         }
         eglContext = eglCtx.getHandle();
         eglDisplay = eglDrawable.getDisplay();
-        eglSurface = eglDrawable.getSurface();
+        eglSurface = eglDrawable.getHandle();
         eglExt = eglCtx.getEGLExt();
         if(null==eglExt) {
             throw new RuntimeException("No valid EGLExt");

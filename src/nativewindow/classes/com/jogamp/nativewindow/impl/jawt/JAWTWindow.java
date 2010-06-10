@@ -101,45 +101,37 @@ public abstract class JAWTWindow implements NativeWindow {
     bounds.setHeight(jawtBounds.getHeight());
   }
 
-  private volatile Exception lockedStack = null;
+  private RecursiveToolkitLock recurLock = new RecursiveToolkitLock();
 
   protected abstract int lockSurfaceImpl() throws NativeWindowException;
 
   public final synchronized int lockSurface() throws NativeWindowException {
-    // We have to be the owner of the JAWT ToolkitLock 'lock' to benefit from it's
-    // recursive and blocking lock capabitlites. 
-    // Otherwise a followup ToolkitLock would deadlock, 
-    // since we already have locked JAWT with the surface lock.
-    NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+    recurLock.lock();
 
-    // recursion not necessary here, due to the blocking ToolkitLock ..
-    if (null!=lockedStack) {
-      lockedStack.printStackTrace();
-      throw new NativeWindowException("JAWT Surface already locked - "+Thread.currentThread().getName()+" "+this);
+    if(recurLock.getRecursionCount() == 0) {
+        return lockSurfaceImpl();
     }
-    lockedStack = new Exception("JAWT Surface previously locked by "+Thread.currentThread().getName());
 
-    return lockSurfaceImpl();
+    return LOCK_SUCCESS;
   }
 
   protected abstract void unlockSurfaceImpl() throws NativeWindowException;
 
   public synchronized void unlockSurface() {
-    if (null!=lockedStack) {
-        lockedStack = null;
-    } else {
-        throw new NativeWindowException("JAWT Surface not locked");
+    recurLock.validateLocked();
+
+    if(recurLock.getRecursionCount()==0) {
+        unlockSurfaceImpl();
     }
-    unlockSurfaceImpl();
-    NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
+    recurLock.unlock();
   }
 
   public synchronized boolean isSurfaceLocked() {
-    return null!=lockedStack;
+    return recurLock.isLocked();
   }
 
   public Exception getLockedStack() {
-    return lockedStack;
+    return recurLock.getLockedStack();
   }
 
   public boolean surfaceSwap() {

@@ -36,7 +36,6 @@
 
 package com.jogamp.opengl.impl.x11.glx;
 
-import com.jogamp.common.os.DynamicLookupHelper;
 import java.nio.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
@@ -48,17 +47,33 @@ import com.jogamp.common.util.*;
 import com.jogamp.nativewindow.impl.NullWindow;
 import com.jogamp.nativewindow.impl.x11.*;
 
-public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
+public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   
+  private static final DesktopGLDynamicLookupHelper x11GLXDynamicLookupHelper;
+
   static {
     X11Util.initSingleton(); // ensure it's loaded and setup
+
+    DesktopGLDynamicLookupHelper tmp = null;
+    try {
+        tmp = new DesktopGLDynamicLookupHelper(new X11GLXDynamicLibraryBundleInfo());
+    } catch (GLException gle) {
+        if(DEBUG) {
+            gle.printStackTrace();
+        }
+    }
+    x11GLXDynamicLookupHelper = tmp;
+    if(null!=x11GLXDynamicLookupHelper) {
+        GLX.getGLXProcAddressTable().reset(x11GLXDynamicLookupHelper);
+    }
+  }
+
+  public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
+      return x11GLXDynamicLookupHelper;
   }
 
   public X11GLXDrawableFactory() {
     super();
-    // Must initialize GLX support eagerly in case a pbuffer is the
-    // first thing instantiated
-    GLX.getGLXProcAddressTable().reset(this);
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
     new X11GLXGraphicsConfigurationFactory();
@@ -74,12 +89,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     isVendorATI = GLXUtil.isVendorATI(vendorName);
     isVendorNVIDIA = GLXUtil.isVendorNVIDIA(vendorName);
     sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
-    X11Util.XLockDisplay(tlsDisplay);
-    try{
-        sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, GLProfile.getDefault());
-    } finally {
-        X11Util.XUnlockDisplay(tlsDisplay);
-    }
+    sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, GLProfile.getDefault());
     if(isVendorATI() && GLProfile.isAWTAvailable()) {
         X11Util.markThreadLocalDisplayUncloseable(tlsDisplay); // failure to close with ATI and AWT usage
     }
@@ -88,7 +98,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     }
     // We have to keep this within this thread,
     // since we have a 'chicken-and-egg' problem otherwise on the <init> lock of this thread.
-    X11Util.XLockDisplay(sharedScreen.getDevice().getHandle());
     try{
         X11GLXContext ctx  = (X11GLXContext) sharedDrawable.createContext(null);
         ctx.makeCurrent();
@@ -96,8 +105,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
         sharedContext = ctx;
     } catch (Throwable t) {
         throw new GLException("X11GLXDrawableFactory - Could not initialize shared resources", t);
-    } finally {
-        X11Util.XUnlockDisplay(sharedScreen.getDevice().getHandle());
     }
     if(null==sharedContext) {
         throw new GLException("X11GLXDrawableFactory - Shared Context is null");
@@ -136,13 +143,15 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
           System.err.println("!!!          Drawable: "+sharedDrawable);
           System.err.println("!!!          Screen  : "+sharedScreen);
     }
-    if(null!=sharedContext) {
-        sharedContext.destroy(); // implies release, if current
-        sharedContext=null;
-    }
 
     // don't free native resources from this point on,
     // since we might be in a critical shutdown hook sequence
+
+    if(null!=sharedContext) {
+        // may cause deadlock: sharedContext.destroy();
+        sharedContext=null;
+    }
+
     if(null!=sharedDrawable) {
         // may cause deadlock: sharedDrawable.destroy();
         sharedDrawable=null;
@@ -151,7 +160,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
          // may cause deadlock: X11Util.closeThreadLocalDisplay(null);
          sharedScreen = null;
     }
-    // don't close pending XDisplay, since they might be a different thread as the opener
+    // don't close pending XDisplay, since this might be a different thread as the opener
     X11Util.shutdown( false, DEBUG );
   }
 
@@ -230,13 +239,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
 
 
   protected NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
-    NullWindow nw = null;
-    X11Util.XLockDisplay(sharedScreen.getDevice().getHandle());
-    try{
-        nw = new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, sharedScreen));
-    }finally{
-        X11Util.XUnlockDisplay(sharedScreen.getDevice().getHandle());
-    }
+    NullWindow nw = new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, sharedScreen));
     if(nw != null) {
         nw.setSize(width, height);
     }
@@ -253,20 +256,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
 
   public GLDrawable createExternalGLDrawable() {
     return X11ExternalGLXDrawable.create(this, null);
-  }
-
-  public void loadGLULibrary() {
-    X11Lib.dlopen("/usr/lib/libGLU.so");
-  }
-
-  public long dynamicLookupFunction(String glFuncName) {
-    long res = 0;
-    res = GLX.glXGetProcAddressARB(glFuncName);
-    if (res == 0) {
-      // GLU routines aren't known to the OpenGL function lookup
-      res = X11Lib.dlsym(glFuncName);
-    }
-    return res;
   }
 
   public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
@@ -291,21 +280,16 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
 
     long display = sharedScreen.getDevice().getHandle();
 
-    X11Util.XLockDisplay(display);
-    try {
-        int[] size = new int[1];
-        boolean res = X11Lib.XF86VidModeGetGammaRampSize(display,
-                                                      X11Lib.DefaultScreen(display),
-                                                      size, 0);
-        if (!res) {
-          return 0;
-        }
-        gotGammaRampLength = true;
-        gammaRampLength = size[0];
-        return gammaRampLength;
-    } finally {
-        X11Util.XUnlockDisplay(display);
+    int[] size = new int[1];
+    boolean res = X11Lib.XF86VidModeGetGammaRampSize(display,
+                                                  X11Lib.DefaultScreen(display),
+                                                  size, 0);
+    if (!res) {
+      return 0;
     }
+    gotGammaRampLength = true;
+    gammaRampLength = size[0];
+    return gammaRampLength;
   }
 
   protected boolean setGammaRamp(float[] ramp) {
@@ -316,18 +300,13 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     }
 
     long display = sharedScreen.getDevice().getHandle();
-    X11Util.XLockDisplay(display);
-    try {
-        boolean res = X11Lib.XF86VidModeSetGammaRamp(display,
-                                                  X11Lib.DefaultScreen(display),
-                                                  rampData.length,
-                                                  rampData, 0,
-                                                  rampData, 0,
-                                                  rampData, 0);
-        return res;
-    } finally {
-        X11Util.XUnlockDisplay(display);
-    }
+    boolean res = X11Lib.XF86VidModeSetGammaRamp(display,
+                                              X11Lib.DefaultScreen(display),
+                                              rampData.length,
+                                              rampData, 0,
+                                              rampData, 0,
+                                              rampData, 0);
+    return res;
   }
 
   protected Buffer getGammaRamp() {
@@ -343,21 +322,16 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
     long display = sharedScreen.getDevice().getHandle();
-    X11Util.XLockDisplay(display);
-    try {
-        boolean res = X11Lib.XF86VidModeGetGammaRamp(display,
-                                                  X11Lib.DefaultScreen(display),
-                                                  size,
-                                                  redRampData,
-                                                  greenRampData,
-                                                  blueRampData);
-        if (!res) {
-          return null;
-        }
-        return rampData;
-    } finally {
-        X11Util.XUnlockDisplay(display);
+    boolean res = X11Lib.XF86VidModeGetGammaRamp(display,
+                                              X11Lib.DefaultScreen(display),
+                                              size,
+                                              redRampData,
+                                              greenRampData,
+                                              blueRampData);
+    if (!res) {
+      return null;
     }
+    return rampData;
   }
 
   protected void resetGammaRamp(Buffer originalGammaRamp) {
@@ -379,16 +353,11 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
     long display = sharedScreen.getDevice().getHandle();
-    X11Util.XLockDisplay(display);
-    try {
-        X11Lib.XF86VidModeSetGammaRamp(display,
-                                    X11Lib.DefaultScreen(display),
-                                    size,
-                                    redRampData,
-                                    greenRampData,
-                                    blueRampData);
-    } finally {
-        X11Util.XUnlockDisplay(display);
-    }
+    X11Lib.XF86VidModeSetGammaRamp(display,
+                                X11Lib.DefaultScreen(display),
+                                size,
+                                redRampData,
+                                greenRampData,
+                                blueRampData);
   }
 }

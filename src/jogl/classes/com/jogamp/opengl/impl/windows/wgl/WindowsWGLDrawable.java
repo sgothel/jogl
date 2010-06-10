@@ -39,7 +39,6 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
-import com.jogamp.common.os.DynamicLookupHelper;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
@@ -65,62 +64,39 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
         return; // nothing todo ..
     }
 
-    if(NativeWindow.LOCK_SURFACE_NOT_READY == lockSurface()) {
-      throw new GLException("WindowsWGLDrawable.setRealized(true): lockSurface - surface not ready");
-    }
-    try {
-        NativeWindow nativeWindow = getNativeWindow();
-        WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)nativeWindow.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-        config.updateGraphicsConfiguration(getFactory(), nativeWindow);
-        if (DEBUG) {
-          System.err.println("!!! WindowsWGLDrawable.setRealized(true): "+config);
-        }
-    } finally {
-        unlockSurface();
+    NativeWindow nativeWindow = getNativeWindow();
+    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)nativeWindow.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    config.updateGraphicsConfiguration(getFactory(), nativeWindow);
+    if (DEBUG) {
+      System.err.println("!!! WindowsWGLDrawable.setRealized(true): "+config);
     }
   }
 
   protected void swapBuffersImpl() {
-    boolean didLock = false;
-
-    if ( !isSurfaceLocked() ) {
-        // Usually the surface shall be locked within [makeCurrent .. swap .. release]
-        if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
-            return;
-        }
-        didLock = true;
+    long startTime = 0;
+    if (PROFILING) {
+      startTime = System.currentTimeMillis();
     }
-    try {
 
-        long startTime = 0;
-        if (PROFILING) {
-          startTime = System.currentTimeMillis();
-        }
+    if (!GDI.SwapBuffers(getHandle()) && (GDI.GetLastError() != 0)) {
+      throw new GLException("Error swapping buffers");
+    }
 
-        if (!WGL.SwapBuffers(getNativeWindow().getSurfaceHandle()) && (WGL.GetLastError() != 0)) {
-          throw new GLException("Error swapping buffers");
-        }
-
-        if (PROFILING) {
-          long endTime = System.currentTimeMillis();
-          profilingSwapBuffersTime += (endTime - startTime);
-          int ticks = PROFILING_TICKS;
-          if (++profilingSwapBuffersTicks == ticks) {
-            System.err.println("SwapBuffers calls: " + profilingSwapBuffersTime + " ms / " + ticks + "  calls (" +
-                               ((float) profilingSwapBuffersTime / (float) ticks) + " ms/call)");
-            profilingSwapBuffersTime = 0;
-            profilingSwapBuffersTicks = 0;
-          }
-        }
-    } finally {
-        if (didLock) {
-          unlockSurface();
-        }
+    if (PROFILING) {
+      long endTime = System.currentTimeMillis();
+      profilingSwapBuffersTime += (endTime - startTime);
+      int ticks = PROFILING_TICKS;
+      if (++profilingSwapBuffersTicks == ticks) {
+        System.err.println("SwapBuffers calls: " + profilingSwapBuffersTime + " ms / " + ticks + "  calls (" +
+                           ((float) profilingSwapBuffersTime / (float) ticks) + " ms/call)");
+        profilingSwapBuffersTime = 0;
+        profilingSwapBuffersTicks = 0;
+      }
     }
   }
 
-  public DynamicLookupHelper getDynamicLookupHelper() {
-    return (WindowsWGLDrawableFactory) getFactoryImpl() ;
+  public GLDynamicLookupHelper getGLDynamicLookupHelper() {
+    return getFactoryImpl().getGLDynamicLookupHelper(0);
   }
 
   protected static String getThreadName() {

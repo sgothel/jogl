@@ -42,7 +42,6 @@ package com.jogamp.opengl.impl.macosx.cgl;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.common.os.DynamicLookupHelper;
 
 public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   // The Java2D/OpenGL pipeline on OS X uses low-level CGLContextObjs
@@ -83,17 +82,10 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
  }
 
   protected void setRealizedImpl() {
-    if(realized) {
-        if( NativeWindow.LOCK_SURFACE_NOT_READY == lockSurface() ) {
-            throw new GLException("Couldn't lock surface");
-        }
-        // locking the surface is essential to update surface data
-        unlockSurface();
-    }
   }
 
-  public DynamicLookupHelper getDynamicLookupHelper() {
-    return (MacOSXCGLDrawableFactory) getFactoryImpl() ;
+  public GLDynamicLookupHelper getGLDynamicLookupHelper() {
+    return getFactoryImpl().getGLDynamicLookupHelper(0);
   }
 
   protected static String getThreadName() {

@@ -339,16 +339,19 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
   int sz = bufferSizeTracker.getBufferSize(bufferStateTracker,
                                            target,
                                            this);
+  if (0 == sz) {
+    return null;
+  }
   long addr;
   addr = dispatch_glMapBuffer(target, access, __addr_);
-  if (addr == 0 || sz == 0) {
+  if (0 == addr) {
     return null;
   }
   ARBVBOKey key = new ARBVBOKey(addr, sz);
   ByteBuffer _res = (ByteBuffer) arbVBOCache.get(key);
   if (_res == null) {
     _res = newDirectByteBuffer(addr, sz);
-    InternalBufferUtil.nativeOrder(_res);
+    Buffers.nativeOrder(_res);
     arbVBOCache.put(key, _res);
   }
   _res.position(0);

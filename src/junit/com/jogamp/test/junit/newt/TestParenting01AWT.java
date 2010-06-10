@@ -94,7 +94,7 @@ public class TestParenting01AWT {
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        glWindow1.setSize(600, 300);
+        // glWindow1.setSize(600, 300);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         Assert.assertNotNull(newtCanvasAWT);
@@ -106,7 +106,7 @@ public class TestParenting01AWT {
         Assert.assertNotNull(frame);
         frame.add(newtCanvasAWT);
         frame.setSize(width, height);
-        frame.pack();
+        // frame.pack();
 
         // visible test
         frame.setVisible(true);
@@ -127,14 +127,14 @@ public class TestParenting01AWT {
         Assert.assertEquals(false, glWindow1.isDestroyed());
 
         frame.remove(newtCanvasAWT);
-        Assert.assertNull(glWindow1.getParentNativeWindow());
+        // Assert.assertNull(glWindow1.getParentNativeWindow());
         Assert.assertEquals(false, glWindow1.isDestroyed());
 
         frame.dispose();
         Assert.assertEquals(false, glWindow1.isDestroyed());
 
         glWindow1.destroy(true);
-        Assert.assertEquals(true, glWindow1.isDestroyed());
+        //Assert.assertEquals(true, glWindow1.isDestroyed());
     }
 
     @Test
@@ -152,7 +152,7 @@ public class TestParenting01AWT {
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        glWindow1.setSize(600, 300);
+        // glWindow1.setSize(600, 300);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         Assert.assertNotNull(newtCanvasAWT);
@@ -169,7 +169,7 @@ public class TestParenting01AWT {
 
         frame.add(newtCanvasAWT);
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
-        frame.pack();
+        // frame.pack();
 
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
@@ -178,6 +178,43 @@ public class TestParenting01AWT {
         }
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
+
+        frame.dispose();
+        glWindow1.destroy(true);
+    }
+
+    @Test
+    public void testWindowParenting02CreateVisibleDestroy3Odd() throws InterruptedException {
+        int x = 0;
+        int y = 0;
+
+        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
+
+        GLWindow glWindow1 = GLWindow.create(glCaps);
+        GLEventListener demo1 = new RedSquare();
+        setDemoFields(demo1, glWindow1, false);
+        glWindow1.addGLEventListener(demo1);
+        // glWindow1.setSize(600, 300);
+
+        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
+
+        Frame frame = new Frame("AWT Parent Frame");
+        Assert.assertNotNull(frame);
+        frame.setSize(width, height);
+
+        // visible test
+        frame.setVisible(true);
+
+        frame.add(newtCanvasAWT);
+        // frame.pack();
+
+        Animator animator1 = new Animator(glWindow1);
+        animator1.start();
+        while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
+            Thread.sleep(100);
+        }
+
+        Assert.assertEquals(true, animator1.isAnimating()); // !!!
 
         frame.dispose();
         glWindow1.destroy(true);
@@ -194,7 +231,7 @@ public class TestParenting01AWT {
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        glWindow1.setSize(600, 300);
+        // glWindow1.setSize(600, 300);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
 
@@ -205,7 +242,7 @@ public class TestParenting01AWT {
 
         frame.add(newtCanvasAWT);
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
-        frame.pack();
+        // frame.pack();
 
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
@@ -227,6 +264,9 @@ public class TestParenting01AWT {
             }
             state++;
         }
+
+        animator1.stop();
+        Assert.assertEquals(false, animator1.isAnimating());
 
         frame.dispose();
         glWindow1.destroy(true);
@@ -243,7 +283,7 @@ public class TestParenting01AWT {
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        glWindow1.setSize(600, 300);
+        // glWindow1.setSize(600, 300);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
 
@@ -259,7 +299,7 @@ public class TestParenting01AWT {
 
         frame.add(newtCanvasAWT, BorderLayout.CENTER);
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
-        frame.pack();
+        // frame.pack();
 
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
@@ -282,6 +322,9 @@ public class TestParenting01AWT {
             state++;
         }
 
+        animator1.stop();
+        Assert.assertEquals(false, animator1.isAnimating());
+
         frame.dispose();
         glWindow1.destroy(true);
     }
@@ -293,11 +336,11 @@ public class TestParenting01AWT {
 
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+        GLWindow glWindow1 = GLWindow.create(glCaps, true);
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        glWindow1.setSize(600, 300);
+        // glWindow1.setSize(600, 300);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
 
@@ -323,7 +366,7 @@ public class TestParenting01AWT {
 
         frame1.add(newtCanvasAWT, BorderLayout.CENTER);
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
-        frame1.pack();
+        // frame1.pack();
 
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
@@ -335,16 +378,19 @@ public class TestParenting01AWT {
                 case 0:
                     frame1.remove(newtCanvasAWT);
                     frame2.add(newtCanvasAWT, BorderLayout.CENTER);
-                    frame2.pack();
+                    //frame2.pack();
                     break;
                 case 1:
                     frame2.remove(newtCanvasAWT);
                     frame1.add(newtCanvasAWT, BorderLayout.CENTER);
-                    frame1.pack();
+                    //frame1.pack();
                     break;
             }
             state++;
         }
+
+        animator1.stop();
+        Assert.assertEquals(false, animator1.isAnimating());
 
         frame1.dispose();
         frame2.dispose();

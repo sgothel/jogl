@@ -48,7 +48,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.glu.GLU;
 import com.jogamp.opengl.impl.Debug;
-import com.jogamp.opengl.impl.InternalBufferUtil;
+import com.jogamp.common.nio.Buffers;
 import java.nio.*;
 import java.io.*;
 
@@ -89,8 +89,8 @@ public class BuildMipmap {
     
     Mipmap.retrieveStoreModes( gl, psm );
     try {
-      newImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( Mipmap.image_size( width, 1, format, 
-            GL2.GL_UNSIGNED_SHORT ) )).asShortBuffer();
+      newImage = Buffers.newDirectByteBuffer( Mipmap.image_size( width, 1, format, 
+            GL2.GL_UNSIGNED_SHORT ) ).asShortBuffer();
     } catch( OutOfMemoryError ome ) {
       return( GLU.GLU_OUT_OF_MEMORY );
     }
@@ -117,7 +117,7 @@ public class BuildMipmap {
         if( otherImage == null ) {
           memReq = Mipmap.image_size( newwidth, 1, format, GL2.GL_UNSIGNED_SHORT );
           try {
-            otherImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq )).asShortBuffer();
+            otherImage = Buffers.newDirectByteBuffer( memReq ).asShortBuffer();
           } catch( OutOfMemoryError ome ) {
             gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
             gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
@@ -178,8 +178,8 @@ public class BuildMipmap {
     }
     
     try {
-      newImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( Mipmap.image_size( width, height, 
-            format, GL2.GL_UNSIGNED_SHORT ) )).asShortBuffer();
+      newImage = Buffers.newDirectByteBuffer( Mipmap.image_size( width, height, 
+            format, GL2.GL_UNSIGNED_SHORT ) ).asShortBuffer();
     } catch( OutOfMemoryError ome ) {
       return( GLU.GLU_OUT_OF_MEMORY );
     }
@@ -206,7 +206,7 @@ public class BuildMipmap {
         if( otherImage == null ) {
           memReq = Mipmap.image_size( newwidth[0], newheight[0], format, GL2.GL_UNSIGNED_SHORT );
           try {
-            otherImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq )).asShortBuffer();
+            otherImage = Buffers.newDirectByteBuffer( memReq ).asShortBuffer();
           } catch( OutOfMemoryError ome ) {
             gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
             gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
@@ -364,7 +364,7 @@ public class BuildMipmap {
           case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
           case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-            dstImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
+            dstImage = Buffers.newDirectByteBuffer( memReq );
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
@@ -481,7 +481,7 @@ public class BuildMipmap {
           case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
           case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-            dstImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
+            dstImage = Buffers.newDirectByteBuffer( memReq );
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
@@ -519,7 +519,7 @@ public class BuildMipmap {
           case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
           case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-            dstImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
+            dstImage = Buffers.newDirectByteBuffer( memReq );
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
@@ -653,7 +653,7 @@ public class BuildMipmap {
             case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
             case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
             case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-              dstImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
+              dstImage = Buffers.newDirectByteBuffer( memReq );
               break;
             default:
               return( GLU.GLU_INVALID_ENUM );
@@ -880,8 +880,7 @@ public class BuildMipmap {
       int i, j;
       
       try {
-        newImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( Mipmap.image_size( 
-              width, height, format, GL2.GL_UNSIGNED_BYTE ) ));
+        newImage = Buffers.newDirectByteBuffer( Mipmap.image_size(width, height, format, GL2.GL_UNSIGNED_BYTE ) );
       } catch( OutOfMemoryError err ) {
         return( GLU.GLU_OUT_OF_MEMORY );
       }
@@ -924,7 +923,7 @@ public class BuildMipmap {
         if( otherImage == null ) {
           memReq = Mipmap.image_size( newwidth[0], newheight[0], format, GL2.GL_UNSIGNED_BYTE );
           try {
-            otherImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
+            otherImage = Buffers.newDirectByteBuffer( memReq );
           } catch( OutOfMemoryError err ) {
             gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
             gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
@@ -1102,7 +1101,7 @@ public class BuildMipmap {
           case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
           case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-            dstImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
+            dstImage = Buffers.newDirectByteBuffer( memReq );
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
@@ -1288,7 +1287,7 @@ public class BuildMipmap {
           case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
           case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-            dstImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
+            dstImage = Buffers.newDirectByteBuffer( memReq );
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
@@ -1329,7 +1328,7 @@ public class BuildMipmap {
           case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
           case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-            dstImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
+            dstImage = Buffers.newDirectByteBuffer( memReq );
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
@@ -1391,7 +1390,7 @@ public class BuildMipmap {
             case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
             case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
             case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-              dstImage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
+              dstImage = Buffers.newDirectByteBuffer( memReq );
               break;
             default:
               return( GLU.GLU_INVALID_ENUM );

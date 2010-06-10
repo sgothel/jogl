@@ -51,9 +51,9 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
     // All entries to CreateDummyWindow must synchronize on one object
     // to avoid accidentally registering the dummy window class twice
     synchronized (WindowsDummyWGLDrawable.class) {
-      hwnd = WGL.CreateDummyWindow(0, 0, 1, 1);
+      hwnd = GDI.CreateDummyWindow(0, 0, 1, 1);
     }
-    hdc = WGL.GetDC(hwnd);
+    hdc = GDI.GetDC(hwnd);
     NullWindow nw = (NullWindow) getNativeWindow();
     nw.setSurfaceHandle(hdc);
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
@@ -61,9 +61,9 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
     GLCapabilities caps = (GLCapabilities) config.getChosenCapabilities();
     caps.setDepthBits(16);
     PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps);
-    int pixelFormat = WGL.ChoosePixelFormat(hdc, pfd);
+    int pixelFormat = GDI.ChoosePixelFormat(hdc, pfd);
     if ((pixelFormat == 0) ||
-        (!WGL.SetPixelFormat(hdc, pixelFormat, pfd))) {
+        (!GDI.SetPixelFormat(hdc, pixelFormat, pfd))) {
       destroy();
     }
   }
@@ -90,12 +90,12 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
 
   public void destroy() {
     if (hdc != 0) {
-      WGL.ReleaseDC(hwnd, hdc);
+      GDI.ReleaseDC(hwnd, hdc);
       hdc = 0;
     }
     if (hwnd != 0) {
-      WGL.ShowWindow(hwnd, WGL.SW_HIDE);
-      WGL.DestroyWindow(hwnd);
+      GDI.ShowWindow(hwnd, GDI.SW_HIDE);
+      GDI.DestroyWindow(hwnd);
       hwnd = 0;
     }
   }

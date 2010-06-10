@@ -157,6 +157,15 @@ public interface GLDrawable {
 
   public NativeWindow getNativeWindow();
 
+  /** 
+   * This is the GL/Windowing drawable handle.<br>
+   * It is usually the {@link javax.media.nativewindow.NativeWindow#getSurfaceHandle()},
+   * ie the native surface handle of the underlying windowing toolkit.<br>
+   * However, on X11/GLX this reflects a GLXDrawable, which represents a GLXWindow, GLXPixmap, or GLXPbuffer.<br>
+   * On EGL, this represents the EGLSurface.<br>
+   */
+  public long getHandle();
+
   public GLDrawableFactory getFactory();
 
   public String toString();

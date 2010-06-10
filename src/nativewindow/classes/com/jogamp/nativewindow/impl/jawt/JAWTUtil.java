@@ -64,7 +64,6 @@ public class JAWTUtil {
     JAWTJNILibLoader.loadAWTImpl();
     JAWTJNILibLoader.loadNativeWindow("awt");
 
-    lockedStack   = null;
     headlessMode = GraphicsEnvironment.isHeadless();
 
     boolean ok=false;
@@ -108,11 +107,10 @@ public class JAWTUtil {
       useSunToolkitAWTLock = false;
   }
 
-  private static Exception lockedStack;
+  public static void initSingleton() {
+      // just exist to ensure static init has been run
+  }
 
-  // Just a hook to let this class being initialized,
-  // ie loading the native libraries ..
-  public static void init() { }
 
   public static final boolean hasJava2D() {
     return j2dExist;
@@ -156,47 +154,36 @@ public class JAWTUtil {
     }
   }
 
+  private static RecursiveToolkitLock recurLock = new RecursiveToolkitLock();
+
   public static synchronized void lockToolkit() throws NativeWindowException {
-    if (isJava2DQueueFlusherThread()) return;
+    recurLock.lock();
 
-    if (null!=lockedStack) {
-      lockedStack.printStackTrace();
-      throw new NativeWindowException("JAWT Toolkit already locked - "+Thread.currentThread().getName());
+    if(recurLock.getRecursionCount()==0 &&
+       !isJava2DQueueFlusherThread() && 
+       !headlessMode) {
+        awtLock();
     }
-    lockedStack = new Exception("JAWT Toolkit already locked by: "+Thread.currentThread().getName());
-
-    if (headlessMode) {
-      // Workaround for running (to some degree) in headless
-      // environments but still supporting rendering via pbuffers
-      // For full correctness, would need to implement a Lock class
-      return;
-    }
-
-    awtLock();
   }
 
   public static synchronized void unlockToolkit() {
-    if (isJava2DQueueFlusherThread()) return;
+    recurLock.validateLocked();
 
-    if (null!=lockedStack) {
-        lockedStack = null;
-        if (headlessMode) {
-          // Workaround for running (to some degree) in headless
-          // environments but still supporting rendering via pbuffers
-          // For full correctness, would need to implement a Lock class
-          return;
-        }
-
+    if(recurLock.getRecursionCount()==0 &&
+       !isJava2DQueueFlusherThread() && 
+       !headlessMode) {
         awtUnlock();
     }
+
+    recurLock.unlock();
   }
 
   public static boolean isToolkitLocked() {
-    return null!=lockedStack;
+    return recurLock.isLocked();
   }
 
   public static Exception getLockedStack() {
-    return lockedStack;
+    return recurLock.getLockedStack();
   }
 }
 

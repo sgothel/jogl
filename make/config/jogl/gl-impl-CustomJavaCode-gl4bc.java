@@ -308,19 +308,20 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
   if (__addr_ == 0) {
     throw new GLException("Method \"glMapBuffer\" not available");
   }
-  int sz = bufferSizeTracker.getBufferSize(bufferStateTracker,
-                                           target,
-                                           this);
+  int sz = bufferSizeTracker.getBufferSize(bufferStateTracker, target, this);
+  if (0 == sz) {
+    return null;
+  }
   long addr;
   addr = dispatch_glMapBuffer(target, access, __addr_);
-  if (addr == 0 || sz == 0) {
+  if (0 == addr) {
     return null;
   }
   ARBVBOKey key = new ARBVBOKey(addr, sz);
   ByteBuffer _res = (ByteBuffer) arbVBOCache.get(key);
   if (_res == null) {
     _res = newDirectByteBuffer(addr, sz);
-    InternalBufferUtil.nativeOrder(_res);
+    Buffers.nativeOrder(_res);
     arbVBOCache.put(key, _res);
   }
   _res.position(0);
@@ -329,6 +330,29 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
 
 /** Encapsulates function pointer for OpenGL function <br>: <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
 native private long dispatch_glMapBuffer(int target, int access, long glProcAddress);
+
+/** Entry point to C language function: <code> GLvoid *  {@native glMapNamedBufferEXT}(GLuint buffer, GLenum access); </code> <br>Part of <code>GL_EXT_direct_state_access</code>   */
+public java.nio.ByteBuffer glMapNamedBufferEXT(int buffer, int access)  {
+  final long __addr_ = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapNamedBufferEXT;
+  if (__addr_ == 0) {
+    throw new GLException("Method \"glMapNamedBufferEXT\" not available");
+  }
+  int sz = bufferSizeTracker.getDirectStateBufferSize(buffer, this);
+  if (0 == sz) {
+    return null;
+  }
+  long addr;
+  addr = dispatch_glMapNamedBufferEXT(buffer, access, __addr_);
+  if (0 == addr) {
+    return null;
+  }
+  ByteBuffer _res = newDirectByteBuffer(addr, sz);
+  Buffers.nativeOrder(_res);
+  _res.position(0);
+  return _res;
+}
+
+private native long dispatch_glMapNamedBufferEXT(int buffer, int access, long procAddress);
 
 native private ByteBuffer newDirectByteBuffer(long addr, int capacity);
 

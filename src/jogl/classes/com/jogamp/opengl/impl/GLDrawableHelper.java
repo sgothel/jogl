@@ -136,6 +136,9 @@ public class GLDrawableHelper {
       lastContext.release();
     }
   
+    if(!context.isCreated() && null == initAction) {
+        throw new GLException("Context has to be created, but no initAction is given: "+context);
+    }
     int res = 0;
     try {
       res = context.makeCurrent();
@@ -154,7 +157,7 @@ public class GLDrawableHelper {
               System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running runnable");
             }
             runnable.run();
-            if (autoSwapBufferMode) {
+            if (autoSwapBufferMode && null != initAction) {
               if (drawable != null) {
                 drawable.swapBuffers();
               }

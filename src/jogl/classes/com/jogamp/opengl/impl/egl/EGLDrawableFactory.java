@@ -44,6 +44,9 @@ import com.jogamp.nativewindow.impl.NullWindow;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
   
+    private static final GLDynamicLookupHelper eglES1DynamicLookupHelper;
+    private static final GLDynamicLookupHelper eglES2DynamicLookupHelper;
+
     static {
         // Register our GraphicsConfigurationFactory implementations
         // The act of constructing them causes them to be registered
@@ -55,10 +58,56 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 ReflectionUtil.createInstance("com.jogamp.opengl.impl.x11.glx.X11GLXGraphicsConfigurationFactory");
             } catch (JogampRuntimeException jre) { /* n/a .. */ }
         }
+
+        // FIXME: Probably need to move EGL from a static model 
+        // to a dynamic one, where there can be 2 instances 
+        // for each ES profile with their own ProcAddressTable.
+
+        GLDynamicLookupHelper tmp=null;
+        try {
+            tmp = new GLDynamicLookupHelper(new EGLES1DynamicLibraryBundleInfo());
+        } catch (GLException gle) {
+            if(DEBUG) {
+                gle.printStackTrace();
+            }
+        }
+        eglES1DynamicLookupHelper = tmp;
+        if(null!=eglES1DynamicLookupHelper && eglES1DynamicLookupHelper.isLibComplete()) {
+            EGL.resetProcAddressTable(eglES1DynamicLookupHelper);
+        }
+
+        tmp=null;
+        try {
+            tmp = new GLDynamicLookupHelper(new EGLES2DynamicLibraryBundleInfo());
+        } catch (GLException gle) {
+            if(DEBUG) {
+                gle.printStackTrace();
+            }
+        }
+        eglES2DynamicLookupHelper = tmp;
+        if(null!=eglES2DynamicLookupHelper && eglES2DynamicLookupHelper.isLibComplete()) {
+            EGL.resetProcAddressTable(eglES2DynamicLookupHelper);
+        }
     }
 
     public EGLDrawableFactory() {
         super();
+    }
+
+    public GLDynamicLookupHelper getGLDynamicLookupHelper(int esProfile) {
+        if (2==esProfile) {
+            if(null==eglES2DynamicLookupHelper) {
+                throw new GLException("GLDynamicLookupHelper for ES2 not available");
+            }
+            return eglES2DynamicLookupHelper;
+        } else if (1==esProfile) {
+            if(null==eglES1DynamicLookupHelper) {
+                throw new GLException("GLDynamicLookupHelper for ES1 not available");
+            }
+            return eglES1DynamicLookupHelper;
+        } else {
+            throw new GLException("Unsupported: ES"+esProfile);
+        }
     }
 
     protected void shutdown() {}
@@ -101,9 +150,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     public GLDrawable createExternalGLDrawable() {
         throw new GLException("Not yet implemented");
-    }
-
-    public void loadGLULibrary() {
     }
 
     public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {

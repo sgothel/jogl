@@ -161,29 +161,13 @@ public class GLWindow extends Window implements GLAutoDrawable {
         shouldNotCallThis();
     }
 
-    protected void dispose() {
-        if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            Exception e1 = new Exception("GLWindow.dispose() "+Thread.currentThread()+", start: "+this);
-            e1.printStackTrace();
-        }
-
-        if ( null != context && null != drawable && drawable.isRealized() ) {
-            helper.invokeGL(drawable, context, disposeAction, null);
-        }
-
-        if (context != null) {
-            context.destroy();
-            context = null;
-        }
-        if (drawable != null) {
-            drawable.setRealized(false);
-            drawable = null;
-        }
-
-        if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            System.out.println("GLWindow.dispose() "+Thread.currentThread()+", fin: "+this);
+    class DisposeAction implements Runnable {
+        public void run() {
+            // Lock: Covered by DestroyAction ..
+            helper.dispose(GLWindow.this);
         }
     }
+    private DisposeAction disposeAction = new DisposeAction();
 
     class DestroyAction implements Runnable {
         boolean deep;
@@ -191,12 +175,35 @@ public class GLWindow extends Window implements GLAutoDrawable {
             this.deep = deep;
         }
         public void run() {
+            // Lock: Have to cover whole workflow (dispose all, context, drawable and window)
             windowLock();
             try {
                 if(null==window || window.isDestroyed()) {
                     return; // nop
                 }
-                dispose();
+                if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
+                    Exception e1 = new Exception("GLWindow.destroy("+deep+") "+Thread.currentThread()+", start: "+GLWindow.this);
+                    e1.printStackTrace();
+                }
+
+                if ( null != context && context.isCreated() && null != drawable && drawable.isRealized() ) {
+                    // Catch dispose GLExceptions by GLEventListener, just 'print' them
+                    // so we can continue with the destruction.
+                    try {
+                        helper.invokeGL(drawable, context, disposeAction, null);
+                    } catch (GLException gle) {
+                        gle.printStackTrace();
+                    }
+                }
+
+                if (context != null && null != drawable && drawable.isRealized() ) {
+                    context.destroy();
+                    context = null;
+                }
+                if (drawable != null) {
+                    drawable.setRealized(false);
+                    drawable = null;
+                }
 
                 if(null!=window) {
                     window.destroy(deep);
@@ -204,6 +211,9 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
                 if(deep) {
                     helper=null;
+                }
+                if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
+                    System.out.println("GLWindow.destroy("+deep+") "+Thread.currentThread()+", fin: "+GLWindow.this);
                 }
             } finally {
                 windowUnlock();
@@ -243,6 +253,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
             this.visible = visible;
         }
         public void run() {
+            // Lock: Have to cover whole workflow (window, may do nativeCreation, drawable and context)
             windowLock();
             try{
                 window.setVisible(visible);
@@ -489,7 +500,12 @@ public class GLWindow extends Window implements GLAutoDrawable {
                 if(forceReshape) {
                     sendReshape = true;
                 }
-                helper.invokeGL(drawable, context, displayAction, initAction);
+                windowLock();
+                try{
+                    helper.invokeGL(drawable, context, displayAction, initAction);
+                } finally {
+                    windowUnlock();
+                }
             }
         }
     }
@@ -506,6 +522,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
     public void swapBuffers() {
         if(drawable!=null && context != null) {
+            // Lock: Locked Surface/Window by MakeCurrent/Release
             if (context != GLContext.getCurrent()) {
                 // Assume we should try to make the context current before swapping the buffers
                 helper.invokeGL(drawable, context, swapBuffersAction, initAction);
@@ -517,6 +534,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
     class InitAction implements Runnable {
         public void run() {
+            // Lock: Locked Surface/Window by MakeCurrent/Release
             helper.init(GLWindow.this);
             startTime = System.currentTimeMillis();
             curTime   = startTime;
@@ -528,15 +546,9 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
     private InitAction initAction = new InitAction();
 
-    class DisposeAction implements Runnable {
-        public void run() {
-            helper.dispose(GLWindow.this);
-        }
-    }
-    private DisposeAction disposeAction = new DisposeAction();
-
     class DisplayAction implements Runnable {
         public void run() {
+            // Lock: Locked Surface/Window by display _and_ MakeCurrent/Release
             if (sendReshape) {
                 int width = getWidth();
                 int height = getHeight();
@@ -633,6 +645,10 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
     public NativeWindow getNativeWindow() {
         return null!=drawable ? drawable.getNativeWindow() : null;
+    }
+
+    public long getHandle() {
+        return null!=drawable ? drawable.getHandle() : 0;
     }
 
     //----------------------------------------------------------------------

@@ -70,29 +70,13 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
     this.graphics = g;
   }
 
-  protected int makeCurrentImpl() throws GLException {
-    if (contextHandle == 0) {
-      create();
-      if(!isCreated()) {
-        return CONTEXT_NOT_CURRENT;
-      }
-      if (DEBUG) {
-        System.err.println("!!! Created GL Context (NS)  for " + getClass().getName());
-      }
-    }
-            
+  protected void makeCurrentImpl(boolean newCreated) throws GLException {
     if (!Java2D.makeOGLContextCurrentOnSurface(graphics, contextHandle)) {
       throw new GLException("Error making context current");
-    }
-            
-    if (isCreated()) {
-      setGLFunctionAvailability(false, -1, -1, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
-      return CONTEXT_CURRENT_NEW;
-    }
-    return CONTEXT_CURRENT;
+    }            
   }
 
-  protected void create() {
+  protected boolean createImpl() {
     // Find and configure share context
     MacOSXCGLContext other = (MacOSXCGLContext) GLContextShareSet.getShareContext(this);
     long share = 0;
@@ -118,11 +102,13 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
 
     long ctx = Java2D.createOGLContextOnSurface(graphics, share);
     if (ctx == 0) {
-      return;
+      return false;
     }
+    setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY); // use GL_VERSION
     // FIXME: think about GLContext sharing
     contextHandle = ctx;
     isNSContext = true;
+    return true;
   }
 
   protected void releaseImpl() throws GLException {
@@ -132,15 +118,10 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
   }
 
   protected void destroyImpl() throws GLException {
-    if (contextHandle != 0) {
       Java2D.destroyOGLContext(contextHandle);
       if (DEBUG) {
         System.err.println("!!! Destroyed OpenGL context " + contextHandle);
       }
-      contextHandle = 0;
-      // FIXME
-      // GLContextShareSet.contextDestroyed(this);
-    }
   }
 
   public void setOpenGLMode(int mode) {

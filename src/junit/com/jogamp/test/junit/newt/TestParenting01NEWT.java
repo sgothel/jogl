@@ -196,10 +196,16 @@ public class TestParenting01NEWT {
             state++;
         }
         animator1.stop();
+        Assert.assertEquals(false, animator1.isAnimating());
         animator2.stop();
+        Assert.assertEquals(false, animator2.isAnimating());
 
         glWindow1.destroy(true);
+        Assert.assertEquals(true, glWindow1.isDestroyed());
+        Assert.assertEquals(false, glWindow2.isDestroyed());
         glWindow2.destroy(true);
+        Assert.assertEquals(true, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow2.isDestroyed());
     }
 
     @Test
@@ -249,9 +255,16 @@ public class TestParenting01NEWT {
             state++;
         }
         animator1.stop();
+        Assert.assertEquals(false, animator1.isAnimating());
         animator2.stop();
+        Assert.assertEquals(false, animator2.isAnimating());
 
         glWindow1.destroy(true);
+        Assert.assertEquals(true, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow2.isDestroyed());
+        glWindow2.destroy(true);
+        Assert.assertEquals(true, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow2.isDestroyed());
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {

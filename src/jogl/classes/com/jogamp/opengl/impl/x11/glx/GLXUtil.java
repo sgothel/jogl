@@ -37,28 +37,25 @@ import javax.media.opengl.*;
 import com.jogamp.nativewindow.impl.x11.*;
 
 public class GLXUtil {
-    public static boolean isMultisampleAvailable(long display) {
-        X11Util.XLockDisplay(display);
-        try {
-            String exts = GLX.glXGetClientString(display, GLX.GLX_EXTENSIONS);
-            if (exts != null) {
-                return (exts.indexOf("GLX_ARB_multisample") >= 0);
-            }
-            return false;
-        } finally {
-            X11Util.XUnlockDisplay(display);
+    public static String getExtension(long display) {
+        return GLX.glXGetClientString(display, GLX.GLX_EXTENSIONS);
+    }
+
+    public static boolean isMultisampleAvailable(String extensions) {
+        if (extensions != null) {
+            return (extensions.indexOf("GLX_ARB_multisample") >= 0);
         }
+        return false;
+    }
+
+    public static boolean isMultisampleAvailable(long display) {
+        return isMultisampleAvailable(getExtension(display));
     }
 
     /** Workaround for apparent issue with ATI's proprietary drivers
         where direct contexts still send GLX tokens for GL calls */
     public static String getVendorName(long display) {
-        X11Util.XLockDisplay(display);
-        try {
-            return GLX.glXGetClientString(display, GLX.GLX_VENDOR);
-        } finally {
-            X11Util.XUnlockDisplay(display);
-        }
+        return GLX.glXGetClientString(display, GLX.GLX_VENDOR);
     }
 
     public static boolean isVendorNVIDIA(String vendor) {
