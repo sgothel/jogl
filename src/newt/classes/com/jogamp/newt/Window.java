@@ -1164,7 +1164,7 @@ public abstract class Window implements NativeWindow
         }
     }
 
-    public MouseListener getWindowListener(int index) {
+    public MouseListener getMouseListener(int index) {
         synchronized(mouseListeners) {
             if(0>index) { 
                 index = mouseListeners.size()-1; 

@@ -66,8 +66,15 @@ public class GLDrawableHelper {
   }
 
   public synchronized void addGLEventListener(GLEventListener listener) {
+    addGLEventListener(-1, listener);
+  }
+
+  public synchronized void addGLEventListener(int index, GLEventListener listener) {
+    if(0>index) {
+        index = listeners.size();
+    }
     List newListeners = (List) ((ArrayList) listeners).clone();
-    newListeners.add(listener);
+    newListeners.add(index, listener);
     listeners = newListeners;
   }
   
