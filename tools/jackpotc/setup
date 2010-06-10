@@ -1,20 +1,27 @@
 #!/bin/bash
+rm -Rf lib
 mkdir lib
 cd ./lib
+
+echo "downloading Jackpot..."
 wget http://bitbucket.org/jlahoda/jackpot30/downloads/jackpotc.zip
 unzip -oj jackpotc.zip
 
 cd ../test
+rm -Rf oldgears/lib
 mkdir oldgears/lib
 mkdir oldgears/lib/new 
 mkdir oldgears/lib/old 
-cd oldgears/lib/new
 
-#TOCO temporary location
-wget http://people.fh-landshut.de/~mbien/jogamp/ref/new/jogl.all.jar
-wget http://people.fh-landshut.de/~mbien/jogamp/ref/new/jogl.awt.jar
-wget http://people.fh-landshut.de/~mbien/jogamp/ref/new/gluegen-rt.jar
+cd oldgears/lib/new
+echo "downloading JOGL 2..."
+wget http://jogamp.org/deployment/jogl-next/jogl.all.jar
+wget http://jogamp.org/deployment/jogl-next/jogl.awt.jar
+wget http://jogamp.org/deployment/jogl-next/gluegen-rt.jar
 
 cd ../old
-wget http://people.fh-landshut.de/~mbien/jogamp/ref/old/jogl.jar
-wget http://people.fh-landshut.de/~mbien/jogamp/ref/old/gluegen-rt.jar
+echo "downloading old JOGL 1.1.1 build..."
+wget http://jogamp.org/deployment/archive/jogl-old-1.1.1/jogl.jar
+wget http://jogamp.org/deployment/archive/gluegen-old-1.0b6/gluegen-rt.jar
+
+echo "done"

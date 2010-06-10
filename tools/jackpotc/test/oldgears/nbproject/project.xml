@@ -1,15 +1,74 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://www.netbeans.org/ns/project/1">
-    <type>org.netbeans.modules.java.j2seproject</type>
+    <type>org.netbeans.modules.ant.freeform</type>
     <configuration>
-        <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
+        <general-data xmlns="http://www.netbeans.org/ns/freeform-project/1">
+            <!-- Do not use Project Properties customizer when editing this file manually. -->
             <name>oldgears</name>
-            <source-roots>
-                <root id="src.dir"/>
-            </source-roots>
-            <test-roots>
-                <root id="test.src.dir"/>
-            </test-roots>
-        </data>
+            <properties/>
+            <folders>
+                <source-folder>
+                    <label>src/jogl111</label>
+                    <type>java</type>
+                    <location>src/jogl111</location>
+                </source-folder>
+                <source-folder>
+                    <label>gensrc/jogl2</label>
+                    <type>java</type>
+                    <location>gensrc/jogl2</location>
+                </source-folder>
+            </folders>
+            <ide-actions>
+                <action name="build">
+                    <target>build</target>
+                </action>
+                <action name="clean">
+                    <target>clean</target>
+                </action>
+                <action name="rebuild">
+                    <target>clean</target>
+                    <target>build</target>
+                </action>
+            </ide-actions>
+            <export>
+                <type>folder</type>
+                <location>build</location>
+                <build-target>build</build-target>
+            </export>
+            <view>
+                <items>
+                    <source-folder style="packages">
+                        <label>src/jogl111</label>
+                        <location>src/jogl111</location>
+                    </source-folder>
+                    <source-folder style="packages">
+                        <label>gensrc/jogl2</label>
+                        <location>gensrc/jogl2</location>
+                    </source-folder>
+                    <source-file>
+                        <location>build.xml</location>
+                    </source-file>
+                </items>
+                <context-menu>
+                    <ide-action name="build"/>
+                    <ide-action name="rebuild"/>
+                    <ide-action name="clean"/>
+                </context-menu>
+            </view>
+            <subprojects/>
+        </general-data>
+        <java-data xmlns="http://www.netbeans.org/ns/freeform-project-java/1">
+            <compilation-unit>
+                <package-root>gensrc/jogl2</package-root>
+                <classpath mode="compile">lib/new/gluegen-rt.jar:lib/new/jogl.all.jar:lib/new/jogl.awt.jar</classpath>
+                <built-to>build</built-to>
+                <source-level>1.4</source-level>
+            </compilation-unit>
+            <compilation-unit>
+                <package-root>src/jogl111</package-root>
+                <classpath mode="compile">lib/old/gluegen-rt.jar:lib/old/jogl.jar</classpath>
+                <source-level>1.4</source-level>
+            </compilation-unit>
+        </java-data>
     </configuration>
 </project>

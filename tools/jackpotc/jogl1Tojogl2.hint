@@ -1,14 +1,30 @@
-// rules for automatic jogl 1.1.1 -> jogl 2 refactorings
+// rules for automatic jogl 1.1.1 -> jogl 2 code transformation
 
-//'JOGL2 API change: javax.media.opengl.GLCanvas -> javax.media.opengl.awt.GLCanvas':
-//javax.media.opengl.GLCanvas=>javax.media.opengl.awt.GLCanvas;;
+// - - - simple move/rename refactorings - - -
+'JOGL2 API change: javax.media.opengl.GLCanvas -> javax.media.opengl.awt.GLCanvas':
+javax.media.opengl.GLCanvas=>javax.media.opengl.awt.GLCanvas;;
 
-//'JOGL2 API change: javax.media.opengl.GLJPanel -> javax.media.opengl.awt.GLJPanel':
-//javax.media.opengl.GLJPanel=>javax.media.opengl.awt.GLJPanel;;
+'JOGL2 API change: javax.media.opengl.GLJPanel -> javax.media.opengl.awt.GLJPanel':
+javax.media.opengl.GLJPanel=>javax.media.opengl.awt.GLJPanel;;
+
+// causes an error:
+// dummy.java:1: illegal character: \8203
+// SEVERE: null
+// java.lang.ClassCastException: com.sun.tools.javac.tree.JCTree$JCNewClass cannot be cast to com.sun.source.tree.ClassTree
+//'JOGL2 API change: com.sun.opengl.util.Animator -> com.​jogamp.​opengl.​util.Animator':
+//com.sun.opengl.util.Animator=>com.​jogamp.​opengl.​util.Animator;;
 
 'JOGL2 API change: javax.media.opengl.GL -> javax.media.opengl.GL2':
 javax.media.opengl.GL=>javax.media.opengl.GL2;;
 
+'JOGL2 API change: javax.media.opengl.DebugGL -> javax.media.opengl.DebugGL2':
+javax.media.opengl.DebugGL=>javax.media.opengl.DebugGL2;;
+
+'JOGL2 API change: javax.media.opengl.TraceGL -> javax.media.opengl.TraceGL2':
+javax.media.opengl.TraceGL=>javax.media.opengl.TraceGL2;;
+
+
+// - - - API changes - - -
 'JOGL2 API change: new javax.media.opengl.GLCapabilities(javax.media.opengl.GLProfile)':
 new javax.media.opengl.GLCapabilities()=>
 new javax.media.opengl.GLCapabilities(javax.media.opengl.GLProfile.get(javax.media.opengl.GLProfile.GL2));;
