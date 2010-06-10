@@ -36,15 +36,11 @@
 
 package javax.media.opengl;
 
-import com.jogamp.common.util.*;
+import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.opengl.impl.Debug;
-import com.jogamp.opengl.impl.GLJNILibLoader;
 import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
 import com.jogamp.opengl.impl.GLDynamicLookupHelper;
-import com.jogamp.opengl.impl.GLDynamicLibraryBundleInfo;
 import com.jogamp.opengl.impl.DesktopGLDynamicLookupHelper;
-import com.jogamp.opengl.impl.DesktopGLDynamicLibraryBundleInfo;
-import com.jogamp.common.jvm.JVMUtil;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.security.*;
@@ -60,7 +56,8 @@ import javax.media.nativewindow.NativeWindowFactory;
  * The platform default profile may be used, using {@link GLProfile#GetProfileDefault()}, 
  * or more specialized versions using the other static GetProfile methods.
  */
-public class GLProfile implements Cloneable {
+public class GLProfile {
+    
     public static final boolean DEBUG = Debug.debug("GLProfile");
 
     //
@@ -89,7 +86,6 @@ public class GLProfile implements Cloneable {
 
     public static final String glAvailabilityToString() {
         boolean avail;
-        String str;
         StringBuffer sb = new StringBuffer();
 
         sb.append("GLAvailability[Native[GL4bc ");
@@ -376,7 +372,7 @@ public class GLProfile implements Cloneable {
                 return glProfile;
             }
         }
-        throw new GLException("Profiles "+list2String(profiles)+" not available");
+        throw new GLException("Profiles "+array2String(profiles)+" not available");
     }
 
     /** Indicates whether the native OpenGL ES1 profile is in use. 
@@ -420,14 +416,6 @@ public class GLProfile implements Cloneable {
         return getGLImplBaseClassName(profileImpl);
     }
 
-    public Object clone() {
-        try {
-            return super.clone();
-        } catch (Exception e) {
-            throw new GLException(e);
-        }
-    }
-
     /**
      * @param o GLProfile object to compare with
      * @return true if given Object is a GLProfile and
@@ -436,20 +424,26 @@ public class GLProfile implements Cloneable {
     public final boolean equals(Object o) {
         if(o instanceof GLProfile) {
             GLProfile glp = (GLProfile)o;
-            return profile.equals(glp.getName()) &&
-                profileImpl.equals(glp.getImplName()) ;
+            return profile.equals(glp.getName()) && profileImpl.equals(glp.getImplName()) ;
         }
         return false;
+    }
+
+    public int hashCode() {
+        int hash = 5;
+        hash = 97 * hash + (this.profileImpl != null ? this.profileImpl.hashCode() : 0);
+        hash = 97 * hash + (this.profile != null ? this.profile.hashCode() : 0);
+        return hash;
     }
  
     /**
      * @param glp GLProfile to compare with
      * @throws GLException if given GLProfile and this aren't equal
      */
-    public final void verifyEquality(GLProfile glp) 
-        throws GLException
-    {
-        if(!this.equals(glp)) throw new GLException("GLProfiles are not equal: "+this+" != "+glp);
+    public final void verifyEquality(GLProfile glp) throws GLException  {
+        if(!this.equals(glp)) {
+            throw new GLException("GLProfiles are not equal: "+this+" != "+glp);
+        }
     }
 
     public final String getName() {
@@ -856,15 +850,9 @@ public class GLProfile implements Cloneable {
      * Tries the profiles implementation and native libraries.
      * Throws an GLException if no profile could be found at all.
      */
-    static {
-        // run the whole static initialization privileged to speed up,
-        // since this skips checking further access
-        AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
+    private static void initProfiles() {
 
         NativeWindowFactory.initSingleton();
-
-        AccessControlContext acc = AccessController.getContext();
 
         isAWTAvailable = NativeWindowFactory.isAWTAvailable() &&
                          ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas") ; // JOGL
@@ -889,7 +877,7 @@ public class GLProfile implements Cloneable {
         //
         // - Instantiate GLDrawableFactory incl its shared dummy drawable/context,
         //   which will register at GLContext ..
-        // 
+        //
 
         t=null;
         // if successfull it has a shared dummy drawable and context created
@@ -986,12 +974,23 @@ public class GLProfile implements Cloneable {
             System.err.println("GLProfile.static "+glAvailabilityToString());
         }
 
-        return null;
-        }
+    }
+
+    /**
+     * Initializes available profiles eagerly.
+     */
+    static {
+        // run the whole static initialization privileged to speed up,
+        // since this skips checking further access
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+                initProfiles();
+                return null;
+            }
         });
 
         if(null==defaultGLProfile) {
-            throw new GLException("No profile available: "+list2String(GL_PROFILE_LIST_ALL)+", "+glAvailabilityToString());
+            throw new GLException("No profile available: "+array2String(GL_PROFILE_LIST_ALL)+", "+glAvailabilityToString());
         }
     }
 
@@ -1004,7 +1003,7 @@ public class GLProfile implements Cloneable {
     public static void initSingleton() {
     }
 
-    private static final String list2String(String[] list) {
+    private static final String array2String(String[] list) {
         StringBuffer msg = new StringBuffer();
         msg.append("[");
         for (int i = 0; i < list.length; i++) {
