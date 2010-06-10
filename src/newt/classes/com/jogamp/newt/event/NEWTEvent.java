@@ -45,6 +45,7 @@ public class NEWTEvent extends java.util.EventObject {
     private boolean isSystemEvent;
     private int eventType;
     private long when;
+    private Object attachment;
 
     static final boolean DEBUG = false;
 
@@ -105,6 +106,7 @@ public class NEWTEvent extends java.util.EventObject {
         this.isSystemEvent = evaluateIsSystemEvent(this, new Throwable());
         this.eventType = eventType;
         this.when = when;
+        this.attachment=null;
     }
 
     /** Indicates whether this event was produced by the system or
@@ -121,6 +123,25 @@ public class NEWTEvent extends java.util.EventObject {
     /** Returns the timestamp, in milliseconds, of this event. */
     public final long getWhen()  {
         return when;
+    }
+
+    /** 
+     * Attach the passed object to this event.<br>
+     * If an object was previously attached, it will replaced.<br>
+     * Attachments to NEWT events allow users to pass on information
+     * from one custom listener to another, ie custom listener to listener 
+     * communication.
+     * @param attachment User application specific object
+     */
+    public final void setAttachment(Object attachment) {
+        this.attachment=attachment;
+    }
+
+    /** 
+     * @return The user application specific attachment, or null
+     */
+    public final Object getAttachment() {
+        return attachment;
     }
 
     public String toString() {

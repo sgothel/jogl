@@ -42,6 +42,7 @@ import javax.media.nativewindow.*;
 import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Iterator;
 import java.lang.reflect.Method;
 
@@ -974,13 +975,36 @@ public abstract class Window implements NativeWindow
 
     private ArrayList surfaceUpdatedListeners = new ArrayList();
 
+    /** 
+     * Appends the given {@link com.jogamp.newt.event.SurfaceUpdatedListener} to the end of 
+     * the list.
+     */
     public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+        getInnerWindow().addSurfaceUpdatedListener(-1, l);
+    }
+
+    /** 
+     * Inserts the given {@link com.jogamp.newt.event.SurfaceUpdatedListener} at the 
+     * specified position in the list.<br>
+
+     * @param index Position where the listener will be inserted. 
+     *              Should be within (0 <= index && index <= size()).
+     *              An index value of -1 is interpreted as the end of the list, size().
+     * @param l The listener object to be inserted
+     * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index <= size()), or -1
+     */
+    public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) 
+        throws IndexOutOfBoundsException
+    {
         if(l == null) {
             return;
         }
         synchronized(surfaceUpdatedListeners) {
+            if(0>index) { 
+                index = surfaceUpdatedListeners.size(); 
+            }
             ArrayList newSurfaceUpdatedListeners = (ArrayList) surfaceUpdatedListeners.clone();
-            newSurfaceUpdatedListeners.add(l);
+            newSurfaceUpdatedListeners.add(index, l);
             surfaceUpdatedListeners = newSurfaceUpdatedListeners;
         }
     }
@@ -1002,7 +1026,16 @@ public abstract class Window implements NativeWindow
         }
     }
 
-    public SurfaceUpdatedListener[] getSurfaceUpdatedListener() {
+    public SurfaceUpdatedListener getSurfaceUpdatedListener(int index) {
+        synchronized(surfaceUpdatedListeners) {
+            if(0>index) { 
+                index = surfaceUpdatedListeners.size()-1; 
+            }
+            return (SurfaceUpdatedListener) surfaceUpdatedListeners.get(index);
+        }
+    }
+
+    public SurfaceUpdatedListener[] getSurfaceUpdatedListeners() {
         synchronized(surfaceUpdatedListeners) {
             return (SurfaceUpdatedListener[]) surfaceUpdatedListeners.toArray();
         }
@@ -1088,13 +1121,34 @@ public abstract class Window implements NativeWindow
     }
 
 
+    /** 
+     * Appends the given {@link com.jogamp.newt.event.MouseListener} to the end of 
+     * the list.
+     */
     public void addMouseListener(MouseListener l) {
+        getInnerWindow().addMouseListener(-1, l);
+    }
+
+    /** 
+     * Inserts the given {@link com.jogamp.newt.event.MouseListener} at the 
+     * specified position in the list.<br>
+
+     * @param index Position where the listener will be inserted. 
+     *              Should be within (0 <= index && index <= size()).
+     *              An index value of -1 is interpreted as the end of the list, size().
+     * @param l The listener object to be inserted
+     * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index <= size()), or -1
+     */
+    public void addMouseListener(int index, MouseListener l) {
         if(l == null) {
             return;
         }
         synchronized(mouseListeners) {
+            if(0>index) { 
+                index = mouseListeners.size(); 
+            }
             ArrayList newMouseListeners = (ArrayList) mouseListeners.clone();
-            newMouseListeners.add(l);
+            newMouseListeners.add(index, l);
             mouseListeners = newMouseListeners;
         }
     }
@@ -1107,6 +1161,15 @@ public abstract class Window implements NativeWindow
             ArrayList newMouseListeners = (ArrayList) mouseListeners.clone();
             newMouseListeners.remove(l);
             mouseListeners = newMouseListeners;
+        }
+    }
+
+    public MouseListener getWindowListener(int index) {
+        synchronized(mouseListeners) {
+            if(0>index) { 
+                index = mouseListeners.size()-1; 
+            }
+            return (MouseListener) mouseListeners.get(index);
         }
     }
 
@@ -1168,13 +1231,34 @@ public abstract class Window implements NativeWindow
                          modifiers, keyCode, keyChar) );
     }
 
+    /** 
+     * Appends the given {@link com.jogamp.newt.event.KeyListener} to the end of 
+     * the list.
+     */
     public void addKeyListener(KeyListener l) {
+        getInnerWindow().addKeyListener(-1, l);
+    }
+
+    /** 
+     * Inserts the given {@link com.jogamp.newt.event.KeyListener} at the 
+     * specified position in the list.<br>
+
+     * @param index Position where the listener will be inserted. 
+     *              Should be within (0 <= index && index <= size()).
+     *              An index value of -1 is interpreted as the end of the list, size().
+     * @param l The listener object to be inserted
+     * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index <= size()), or -1
+     */
+    public void addKeyListener(int index, KeyListener l) {
         if(l == null) {
             return;
         }
         synchronized(keyListeners) {
+            if(0>index) { 
+                index = keyListeners.size(); 
+            }
             ArrayList newKeyListeners = (ArrayList) keyListeners.clone();
-            newKeyListeners.add(l);
+            newKeyListeners.add(index, l);
             keyListeners = newKeyListeners;
         }
     }
@@ -1187,6 +1271,15 @@ public abstract class Window implements NativeWindow
             ArrayList newKeyListeners = (ArrayList) keyListeners.clone();
             newKeyListeners.remove(l);
             keyListeners = newKeyListeners;
+        }
+    }
+
+    public KeyListener getKeyListener(int index) {
+        synchronized(keyListeners) {
+            if(0>index) { 
+                index = keyListeners.size()-1; 
+            }
+            return (KeyListener) keyListeners.get(index);
         }
     }
 
@@ -1235,13 +1328,36 @@ public abstract class Window implements NativeWindow
 
     private ArrayList windowListeners = new ArrayList();
 
+    /** 
+     * Appends the given {@link com.jogamp.newt.event.WindowListener} to the end of 
+     * the list.
+     */
     public void addWindowListener(WindowListener l) {
+        getInnerWindow().addWindowListener(-1, l);
+    }
+
+    /** 
+     * Inserts the given {@link com.jogamp.newt.event.WindowListener} at the 
+     * specified position in the list.<br>
+
+     * @param index Position where the listener will be inserted. 
+     *              Should be within (0 <= index && index <= size()).
+     *              An index value of -1 is interpreted as the end of the list, size().
+     * @param l The listener object to be inserted
+     * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index <= size()), or -1
+     */
+    public void addWindowListener(int index, WindowListener l) 
+        throws IndexOutOfBoundsException
+    {
         if(l == null) {
             return;
         }
         synchronized(windowListeners) {
+            if(0>index) { 
+                index = windowListeners.size(); 
+            }
             ArrayList newWindowListeners = (ArrayList) windowListeners.clone();
-            newWindowListeners.add(l);
+            newWindowListeners.add(index, l);
             windowListeners = newWindowListeners;
         }
     }
@@ -1254,6 +1370,15 @@ public abstract class Window implements NativeWindow
             ArrayList newWindowListeners = (ArrayList) windowListeners.clone();
             newWindowListeners.remove(l);
             windowListeners = newWindowListeners;
+        }
+    }
+
+    public WindowListener getWindowListener(int index) {
+        synchronized(windowListeners) {
+            if(0>index) { 
+                index = windowListeners.size()-1; 
+            }
+            return (WindowListener) windowListeners.get(index);
         }
     }
 
@@ -1304,13 +1429,34 @@ public abstract class Window implements NativeWindow
 
     private ArrayList paintListeners = new ArrayList();
 
+    /** 
+     * Appends the given {@link com.jogamp.newt.event.PaintListener} to the end of 
+     * the list.
+     */
     public void addPaintListener(PaintListener l) {
+        getInnerWindow().addPaintListener(-1, l);
+    }
+
+    /** 
+     * Inserts the given {@link com.jogamp.newt.event.PaintListener} at the 
+     * specified position in the list.<br>
+
+     * @param index Position where the listener will be inserted. 
+     *              Should be within (0 <= index && index <= size()).
+     *              An index value of -1 is interpreted as the end of the list, size().
+     * @param l The listener object to be inserted
+     * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index <= size()), or -1
+     */
+    public void addPaintListener(int index, PaintListener l) {
         if(l == null) {
             return;
         }
         synchronized(paintListeners) {
+            if(0>index) { 
+                index = paintListeners.size(); 
+            }
             ArrayList newPaintListeners = (ArrayList) paintListeners.clone();
-            newPaintListeners.add(l);
+            newPaintListeners.add(index, l);
             paintListeners = newPaintListeners;
         }
     }
@@ -1323,6 +1469,15 @@ public abstract class Window implements NativeWindow
             ArrayList newPaintListeners = (ArrayList) paintListeners.clone();
             newPaintListeners.remove(l);
             paintListeners = newPaintListeners;
+        }
+    }
+
+    public PaintListener getPaintListener(int index) {
+        synchronized(paintListeners) {
+            if(0>index) { 
+                index = paintListeners.size()-1; 
+            }
+            return (PaintListener) paintListeners.get(index);
         }
     }
 
