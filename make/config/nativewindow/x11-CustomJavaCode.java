@@ -3,12 +3,12 @@
   } 
 
   /** Interface to C language function: <br> <code> XVisualInfo *  XGetVisualInfo(Display * , long, XVisualInfo * , int * ); </code>    */
-  public static XVisualInfo[] XGetVisualInfoCopied(long arg0, long arg1, XVisualInfo arg2, int[] arg3, int arg3_offset)
+  public static XVisualInfo[] XGetVisualInfo(long arg0, long arg1, XVisualInfo arg2, int[] arg3, int arg3_offset)
   {
     if(arg3 != null && arg3.length <= arg3_offset)
       throw new RuntimeException("array offset argument \"arg3_offset\" (" + arg3_offset + ") equals or exceeds array length (" + arg3.length + ")");
     java.nio.ByteBuffer _res;
-    _res = XGetVisualInfoCopied1(arg0, arg1, ((arg2 == null) ? null : arg2.getBuffer()), arg3, Buffers.SIZEOF_INT * arg3_offset);
+    _res = XGetVisualInfo1(arg0, arg1, ((arg2 == null) ? null : arg2.getBuffer()), arg3, Buffers.SIZEOF_INT * arg3_offset);
 
     if (_res == null) return null;
     Buffers.nativeOrder(_res);
@@ -25,7 +25,7 @@
   }
 
   /** Entry point to C language function: <code> XVisualInfo *  XGetVisualInfo(Display * , long, XVisualInfo * , int * ); </code>    */
-  private static native java.nio.ByteBuffer XGetVisualInfoCopied1(long arg0, long arg1, java.nio.ByteBuffer arg2, Object arg3, int arg3_byte_offset);
+  private static native java.nio.ByteBuffer XGetVisualInfo1(long arg0, long arg1, java.nio.ByteBuffer arg2, Object arg3, int arg3_byte_offset);
 
   public static native long DefaultVisualID(long display, int screen);
 

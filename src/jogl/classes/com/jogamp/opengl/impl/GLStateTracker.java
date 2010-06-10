@@ -39,8 +39,10 @@
 
 package com.jogamp.opengl.impl;
 
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
 import javax.media.opengl.*;
+import com.jogamp.common.util.IntIntHashMap;
 
 /**
  * Tracks as closely as possible OpenGL states.
@@ -54,24 +56,27 @@ public class GLStateTracker {
 
   private volatile boolean enabled = true;
 
-  private Map/*<Integer,Integer>*/ pixelStateMap = new HashMap/*<Integer,Integer>*/();
+  private IntIntHashMap pixelStateMap;
 
   static class SavedState {
     SavedState() {
         this.pixelStateMap = null;
     }
-    void putPixelStateMap(Map pixelStateMap) {
-        this.pixelStateMap = new HashMap();
+    void putPixelStateMap(IntIntHashMap pixelStateMap) {
+        this.pixelStateMap = new IntIntHashMap();
+        this.pixelStateMap.setKeyNotFoundValue(-1);
         this.pixelStateMap.putAll(pixelStateMap);
     }
-    Map getPixelStateMap() { return pixelStateMap; }
+    IntIntHashMap getPixelStateMap() { return pixelStateMap; }
 
-    private Map pixelStateMap;
+    private IntIntHashMap pixelStateMap;
     // private Map otherStateMap;
   }
   private List/*<SavedState>*/ stack = new ArrayList();
 
   public GLStateTracker() {
+    pixelStateMap = new IntIntHashMap();
+    pixelStateMap.setKeyNotFoundValue(-1);
     resetStates();
   }
 
@@ -88,34 +93,26 @@ public class GLStateTracker {
     return enabled;
   }
 
+  /** @return true if found in our map, otherwise false, 
+   *  which forces the caller to query GL. */
   public boolean getInt(int pname, int[] params, int params_offset) {
     if(enabled) {
-        Integer key = boxKey(pname);
-        if(null!=key) {
-            Integer value = (Integer) pixelStateMap.get(key);
-            if(null!=value) {
-                params[params_offset] = value.intValue();
-            } else {
-                GLException re = new GLException("Key (0x"+Integer.toHexString(key.intValue())+") is not mapped");
-                throw re;
-            }
+        int value = pixelStateMap.get(pname);
+        if(0 <= value) {
+            params[params_offset] = value;
             return true;
         }
     }
     return false;
   }
 
+  /** @return true if found in our map, otherwise false, 
+   *  which forces the caller to query GL. */
   public boolean getInt(int pname, java.nio.IntBuffer params, int dummy) {
     if(enabled) {
-        Integer key = boxKey(pname);
-        if(null!=key) {
-            Integer value = (Integer) pixelStateMap.get(key);
-            if(null!=value) {
-                params.put(params.position(), value.intValue());
-            } else {
-                GLException re = new GLException("Key (0x"+Integer.toHexString(key.intValue())+") is not mapped");
-                throw re;
-            }
+        int value = pixelStateMap.get(pname);
+        if(0 <= value) {
+            params.put(params.position(), value);
             return true;
         }
     }
@@ -124,10 +121,7 @@ public class GLStateTracker {
 
   public void setInt(int pname, int param) {
     if(enabled) {
-        Integer key = boxKey(pname);
-        if(null!=key) {
-            pixelStateMap.put(key, boxInt(param));
-        }
+        pixelStateMap.put(pname, param);
     }
   }
 
@@ -151,7 +145,8 @@ public class GLStateTracker {
             throw new GLException("null stack element (remaining stack size "+stack.size()+")");
         }
 
-        Map/*<Integer,Integer>*/ pixelStateMapNew = new HashMap/*<Integer,Integer>*/();
+        IntIntHashMap pixelStateMapNew = new IntIntHashMap();
+        pixelStateMapNew.setKeyNotFoundValue(-1);
         if ( null != state.getPixelStateMap() ) {
             pixelStateMapNew.putAll(state.getPixelStateMap());
         }
@@ -159,80 +154,26 @@ public class GLStateTracker {
     }
   }
 
-  private static final Integer GL_PACK_SWAP_BYTES   = new Integer(GL2GL3.GL_PACK_SWAP_BYTES);
-  private static final Integer GL_PACK_LSB_FIRST    = new Integer(GL2GL3.GL_PACK_LSB_FIRST);
-  private static final Integer GL_PACK_ROW_LENGTH   = new Integer(GL2GL3.GL_PACK_ROW_LENGTH);
-  private static final Integer GL_PACK_SKIP_ROWS    = new Integer(GL2GL3.GL_PACK_SKIP_ROWS);
-  private static final Integer GL_PACK_SKIP_PIXELS  = new Integer(GL2GL3.GL_PACK_SKIP_PIXELS);
-  private static final Integer GL_PACK_ALIGNMENT    = new Integer(GL.GL_PACK_ALIGNMENT);
-  private static final Integer GL_PACK_IMAGE_HEIGHT = new Integer(GL2GL3.GL_PACK_IMAGE_HEIGHT);
-  private static final Integer GL_PACK_SKIP_IMAGES  = new Integer(GL2GL3.GL_PACK_SKIP_IMAGES);
-
-  private static final Integer GL_UNPACK_SWAP_BYTES   = new Integer(GL2GL3.GL_UNPACK_SWAP_BYTES);
-  private static final Integer GL_UNPACK_LSB_FIRST    = new Integer(GL2GL3.GL_UNPACK_LSB_FIRST);
-  private static final Integer GL_UNPACK_ROW_LENGTH   = new Integer(GL2GL3.GL_UNPACK_ROW_LENGTH);
-  private static final Integer GL_UNPACK_SKIP_ROWS    = new Integer(GL2GL3.GL_UNPACK_SKIP_ROWS);
-  private static final Integer GL_UNPACK_SKIP_PIXELS  = new Integer(GL2GL3.GL_UNPACK_SKIP_PIXELS);
-  private static final Integer GL_UNPACK_ALIGNMENT    = new Integer(GL.GL_UNPACK_ALIGNMENT);
-  private static final Integer GL_UNPACK_IMAGE_HEIGHT = new Integer(GL2GL3.GL_UNPACK_IMAGE_HEIGHT);
-  private static final Integer GL_UNPACK_SKIP_IMAGES  = new Integer(GL2GL3.GL_UNPACK_SKIP_IMAGES);
-
-  private static final Integer zero                   = new Integer(0);
-  private static final Integer one                    = new Integer(1);
-
-  private static Integer boxKey(int key) {
-    switch (key) {
-      case 0:                          return zero;
-      case GL2GL3.GL_PACK_SWAP_BYTES:     return GL_PACK_SWAP_BYTES;
-      case GL2GL3.GL_PACK_LSB_FIRST:      return GL_PACK_LSB_FIRST;
-      case GL2GL3.GL_PACK_ROW_LENGTH:     return GL_PACK_ROW_LENGTH;
-      case GL2GL3.GL_PACK_SKIP_ROWS:      return GL_PACK_SKIP_ROWS;
-      case GL2GL3.GL_PACK_SKIP_PIXELS:    return GL_PACK_SKIP_PIXELS;
-      case GL.GL_PACK_ALIGNMENT:          return GL_PACK_ALIGNMENT;
-      case GL2GL3.GL_PACK_IMAGE_HEIGHT:   return GL_PACK_IMAGE_HEIGHT;
-      case GL2GL3.GL_PACK_SKIP_IMAGES:    return GL_PACK_SKIP_IMAGES;
-
-      case GL2GL3.GL_UNPACK_SWAP_BYTES:   return GL_UNPACK_SWAP_BYTES;
-      case GL2GL3.GL_UNPACK_LSB_FIRST:    return GL_UNPACK_LSB_FIRST;
-      case GL2GL3.GL_UNPACK_ROW_LENGTH:   return GL_UNPACK_ROW_LENGTH;
-      case GL2GL3.GL_UNPACK_SKIP_ROWS:    return GL_UNPACK_SKIP_ROWS;
-      case GL2GL3.GL_UNPACK_SKIP_PIXELS:  return GL_UNPACK_SKIP_PIXELS;
-      case GL.GL_UNPACK_ALIGNMENT:        return GL_UNPACK_ALIGNMENT;
-      case GL2GL3.GL_UNPACK_IMAGE_HEIGHT: return GL_UNPACK_IMAGE_HEIGHT;
-      case GL2GL3.GL_UNPACK_SKIP_IMAGES:  return GL_UNPACK_SKIP_IMAGES;
-
-      default: return null;
-    }
-  }
-
   public void resetStates() {
     pixelStateMap.clear();
 
-    pixelStateMap.put(GL_PACK_SWAP_BYTES,   zero /* GL_FALSE */);
-    pixelStateMap.put(GL_PACK_LSB_FIRST,    zero /* GL_FALSE */);
-    pixelStateMap.put(GL_PACK_ROW_LENGTH,   zero);
-    pixelStateMap.put(GL_PACK_SKIP_ROWS,    zero);
-    pixelStateMap.put(GL_PACK_SKIP_PIXELS,  zero);
-    pixelStateMap.put(GL_PACK_ALIGNMENT,    new Integer(4));
-    pixelStateMap.put(GL_PACK_IMAGE_HEIGHT, zero);
-    pixelStateMap.put(GL_PACK_SKIP_IMAGES,  zero);
+    pixelStateMap.put(GL.GL_PACK_ALIGNMENT,          4);
+    pixelStateMap.put(GL2GL3.GL_PACK_SWAP_BYTES,     0 /* GL_FALSE */);
+    pixelStateMap.put(GL2GL3.GL_PACK_LSB_FIRST,      0 /* GL_FALSE */);
+    pixelStateMap.put(GL2GL3.GL_PACK_ROW_LENGTH,     0);
+    pixelStateMap.put(GL2GL3.GL_PACK_SKIP_ROWS,      0);
+    pixelStateMap.put(GL2GL3.GL_PACK_SKIP_PIXELS,    0);
+    pixelStateMap.put(GL2GL3.GL_PACK_IMAGE_HEIGHT,   0);
+    pixelStateMap.put(GL2GL3.GL_PACK_SKIP_IMAGES,    0);
 
-    pixelStateMap.put(GL_UNPACK_SWAP_BYTES,   zero /* GL_FALSE */);
-    pixelStateMap.put(GL_UNPACK_LSB_FIRST,    zero /* GL_FALSE */);
-    pixelStateMap.put(GL_UNPACK_ROW_LENGTH,   zero);
-    pixelStateMap.put(GL_UNPACK_SKIP_ROWS,    zero);
-    pixelStateMap.put(GL_UNPACK_SKIP_PIXELS,  zero);
-    pixelStateMap.put(GL_UNPACK_ALIGNMENT,    new Integer(4));
-    pixelStateMap.put(GL_UNPACK_IMAGE_HEIGHT, zero);
-    pixelStateMap.put(GL_UNPACK_SKIP_IMAGES,  zero);
-  }
-
-  private static Integer boxInt(int value) {
-    switch (value) {
-      case 0:           return zero;
-      case 1:           return one;
-
-      default: return new Integer(value);
-    }
+    pixelStateMap.put(GL.GL_UNPACK_ALIGNMENT,        4);
+    pixelStateMap.put(GL2GL3.GL_UNPACK_SWAP_BYTES,   0 /* GL_FALSE */);
+    pixelStateMap.put(GL2GL3.GL_UNPACK_LSB_FIRST,    0 /* GL_FALSE */);
+    pixelStateMap.put(GL2GL3.GL_UNPACK_ROW_LENGTH,   0);
+    pixelStateMap.put(GL2GL3.GL_UNPACK_SKIP_ROWS,    0);
+    pixelStateMap.put(GL2GL3.GL_UNPACK_SKIP_PIXELS,  0);
+    pixelStateMap.put(GL2GL3.GL_UNPACK_IMAGE_HEIGHT, 0);
+    pixelStateMap.put(GL2GL3.GL_UNPACK_SKIP_IMAGES,  0);
   }
 }
+

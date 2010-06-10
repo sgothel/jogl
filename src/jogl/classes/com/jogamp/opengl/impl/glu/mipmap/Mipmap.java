@@ -50,7 +50,7 @@ import javax.media.opengl.GL2GL3;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.GLException;
 import java.nio.*;
-import com.jogamp.opengl.impl.InternalBufferUtil;
+import com.jogamp.common.nio.Buffers;
 
 /**
  *
@@ -575,8 +575,8 @@ public class Mipmap {
       if( !isLegalFormatForPackedPixelType( format, typeout ) ) {
         return( GLU.GLU_INVALID_OPERATION );
       }
-      beforeimage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( image_size( widthin, heightin, format, GL2GL3.GL_UNSIGNED_SHORT ) ));
-      afterimage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( image_size( widthout, heightout, format, GL2GL3.GL_UNSIGNED_SHORT ) ));
+      beforeimage = Buffers.newDirectByteBuffer( image_size( widthin, heightin, format, GL2GL3.GL_UNSIGNED_SHORT ) );
+      afterimage = Buffers.newDirectByteBuffer( image_size( widthout, heightout, format, GL2GL3.GL_UNSIGNED_SHORT ) );
       if( beforeimage == null || afterimage == null ) {
         return( GLU.GLU_OUT_OF_MEMORY );
       }

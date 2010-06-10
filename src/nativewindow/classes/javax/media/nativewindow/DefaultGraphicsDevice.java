@@ -62,6 +62,12 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         return handle;
     }
 
+    public void lock() {
+    }
+
+    public void unlock() {
+    }
+
     public String toString() {
         return getClass().toString()+"[type "+getType()+", handle 0x"+Long.toHexString(getHandle())+"]";
     }

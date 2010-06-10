@@ -25,67 +25,60 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.jogamp.opengl.impl.windows.wgl;
+package com.jogamp.opengl.cg;
 
-import com.jogamp.opengl.impl.*;
 import com.jogamp.common.os.DynamicLookupHelper;
+import com.jogamp.common.os.DynamicLibraryBundleInfo;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
 import java.util.*;
 import java.security.*;
 import javax.media.opengl.GLException;
 
-public class WindowsWGLDynamicLookupHelper extends DesktopGLDynamicLookupHelper {
-    private static final WindowsWGLDynamicLookupHelper windowsWGLDynamicLookupHelper;
-
+public class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
+    private static List/*<String>*/ glueLibNames;
     static {
-        WindowsWGLDynamicLookupHelper tmp = null;
-        try {
-            tmp = new WindowsWGLDynamicLookupHelper();
-        } catch (GLException gle) {
-            if(DEBUG) {
-                gle.printStackTrace();
-            }
-        }
-        windowsWGLDynamicLookupHelper = tmp;
+        glueLibNames = new ArrayList();
+        // glueLibNames.addAll(getGlueLibNamesPreload());
+        glueLibNames.add("jogl_cg");
     }
 
-    public static WindowsWGLDynamicLookupHelper getWindowsWGLDynamicLookupHelper() {
-        return windowsWGLDynamicLookupHelper;
+    public static final int getCgGlueLibIndex() {
+        return glueLibNames.size()-1;
     }
 
-    protected WindowsWGLDynamicLookupHelper() {
+    protected CgDynamicLibraryBundleInfo() {
         super();
     }
 
-    public synchronized void loadGLULibrary() {
-        if(null==gluLib) {
-            List/*<String>*/ gluLibNames = new ArrayList();
-            gluLibNames.add("GLU32");
-            gluLib = loadFirstAvailable(gluLibNames, null, false);
-            if(null != gluLib) {
-                glLibraries.add(gluLib);
-            }
-        }
-    }
-    NativeLibrary gluLib = null;
+    /** Make Cg symbols available to CgGL */
+    public boolean shallLinkGlobal() { return true; }
 
-    protected final List/*<String>*/ getGLLibNames() {
-        List/*<String>*/ glesLibNames = new ArrayList();
-        glesLibNames.add("OpenGL32");
-        return glesLibNames;
-    }
+    /** default **/
+    public boolean shallLookupGlobal() { return false; }
 
-    protected final List/*<String>*/ getGLXLibNames() {
+    /** Tool has none **/
+    public final List getToolGetProcAddressFuncNameList() {
         return null;
     }
 
-    protected final String getGLXGetProcAddressFuncName() {
-        return "wglGetProcAddress" ;
+    /** Tool has none **/
+    public final long toolDynamicLookupFunction(long toolGetProcAddressHandle, String funcName) {
+        return 0;
     }
 
-    protected long dynamicLookupFunctionOnGLX(long glxGetProcAddressHandle, String glFuncName) {
-        return WGL.wglGetProcAddress(glFuncName);
+    public List/*<List<String>>*/ getToolLibNames() {
+        List/*<List>*/ libNamesList = new ArrayList();
+
+        libNamesList.add("Cg");
+        libNamesList.add("CgGL");
+
+        return libNamesList;
+    }
+
+    public final List/*<String>*/ getGlueLibNames() {
+        return glueLibNames;
     }
 }
+
 

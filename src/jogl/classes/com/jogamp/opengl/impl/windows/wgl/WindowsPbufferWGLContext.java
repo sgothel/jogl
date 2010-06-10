@@ -68,7 +68,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
     WGLExt wglExt = getWGLExt();
     gl.glBindTexture(textureTarget, texture);
     if (rtt && hasRTT) {
-      if (!wglExt.wglBindTexImageARB(drawable.getPbuffer(), WGLExt.WGL_FRONT_LEFT_ARB)) {
+      if (!wglExt.wglBindTexImageARB(drawable.getPbufferHandle(), WGLExt.WGL_FRONT_LEFT_ARB)) {
         throw new GLException("Binding of pbuffer to texture failed: " + wglGetLastError());
       }
     }
@@ -84,18 +84,15 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
     }
     if (rtt && hasRTT) {
       WGLExt wglExt = getWGLExt();
-      if (!wglExt.wglReleaseTexImageARB(drawable.getPbuffer(), WGLExt.WGL_FRONT_LEFT_ARB)) {
+      if (!wglExt.wglReleaseTexImageARB(drawable.getPbufferHandle(), WGLExt.WGL_FRONT_LEFT_ARB)) {
         throw new GLException("Releasing of pbuffer from texture failed: " + wglGetLastError());
       }
     }
   }
 
-  protected int makeCurrentImpl() throws GLException {
-    int res = super.makeCurrentImpl();
-    if (DEBUG && VERBOSE) {
-      System.err.println("WindowsPbufferWGLContext: super.makeCurrentImpl() = " + res);
-    }
-    if (res == CONTEXT_CURRENT_NEW) {
+  protected void makeCurrentImpl(boolean newCreated) throws GLException {
+    super.makeCurrentImpl(newCreated);
+    if (newCreated) {
       GLCapabilities capabilities = drawable.getChosenGLCapabilities();
 
       // Initialize render-to-texture support if requested
@@ -142,7 +139,6 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
         }
       }
     }
-    return res;
   }
 
   public int getFloatingPointMode() {

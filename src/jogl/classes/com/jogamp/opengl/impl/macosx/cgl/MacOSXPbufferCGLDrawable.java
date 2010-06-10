@@ -96,7 +96,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     }
   }
 
-  public long getPbuffer() {
+  public long getHandle() {
     return pBuffer;
   }
   

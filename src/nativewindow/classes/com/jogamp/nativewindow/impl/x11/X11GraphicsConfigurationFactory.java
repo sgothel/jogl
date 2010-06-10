@@ -58,19 +58,13 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         int num[] = { -1 };
         long display = screen.getDevice().getHandle();
 
-        X11Util.XLockDisplay(display);
-        try {
-            XVisualInfo[] xvis = X11Lib.XGetVisualInfoCopied(display, X11Lib.VisualIDMask|X11Lib.VisualScreenMask, xvi_temp, num, 0);
+        XVisualInfo[] xvis = X11Lib.XGetVisualInfo(display, X11Lib.VisualIDMask|X11Lib.VisualScreenMask, xvi_temp, num, 0);
 
-            if(xvis==null || num[0]<1) {
-                return null;
-            }
-
-            return XVisualInfo.create(xvis[0]);
-        } finally {
-            X11Util.XUnlockDisplay(display);
+        if(xvis==null || num[0]<1) {
+            return null;
         }
 
+        return XVisualInfo.create(xvis[0]);
     }
 
     public static XVisualInfo getXVisualInfo(AbstractGraphicsScreen screen, Capabilities capabilities)
@@ -90,29 +84,24 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         vinfo_template.setC_class(c_class);
         long display = screen.getDevice().getHandle();
 
-        X11Util.XLockDisplay(display);
-        try {
-            XVisualInfo[] vinfos = X11Lib.XGetVisualInfoCopied(display, X11Lib.VisualScreenMask, vinfo_template, num, 0);
-            XVisualInfo best=null;
-            int rdepth = capabilities.getRedBits() + capabilities.getGreenBits() + capabilities.getBlueBits() + capabilities.getAlphaBits();
-            for (int i = 0; vinfos!=null && i < num[0]; i++) {
-                if ( best == null || 
-                     best.getDepth() < vinfos[i].getDepth() )
-                {
-                    best = vinfos[i];
-                    if(rdepth <= best.getDepth())
-                        break;
-                }
+        XVisualInfo[] vinfos = X11Lib.XGetVisualInfo(display, X11Lib.VisualScreenMask, vinfo_template, num, 0);
+        XVisualInfo best=null;
+        int rdepth = capabilities.getRedBits() + capabilities.getGreenBits() + capabilities.getBlueBits() + capabilities.getAlphaBits();
+        for (int i = 0; vinfos!=null && i < num[0]; i++) {
+            if ( best == null || 
+                 best.getDepth() < vinfos[i].getDepth() )
+            {
+                best = vinfos[i];
+                if(rdepth <= best.getDepth())
+                    break;
             }
-            if ( null!=best && ( rdepth <= best.getDepth() || 24 == best.getDepth()) ) {
-                ret = XVisualInfo.create(best);
-            }
-            best = null;
-
-            return ret;
-        } finally {
-            X11Util.XUnlockDisplay(display);
         }
+        if ( null!=best && ( rdepth <= best.getDepth() || 24 == best.getDepth()) ) {
+            ret = XVisualInfo.create(best);
+        }
+        best = null;
+
+        return ret;
     }
 }
 

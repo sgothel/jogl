@@ -43,10 +43,54 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.opengl.impl.x11.*;
+import com.jogamp.nativewindow.impl.x11.*;
 
 public class X11OnscreenGLXDrawable extends X11GLXDrawable {
+  /** GLXWindow can't be made current on AWT with NVidia driver, hence disabled for now */
+  public static final boolean USE_GLXWINDOW = false;
+  long glXWindow; // GLXWindow, a GLXDrawable representation
+  boolean useGLXWindow;
+
   protected X11OnscreenGLXDrawable(GLDrawableFactory factory, NativeWindow component) {
     super(factory, component, false);
+    glXWindow=0;
+    useGLXWindow=false;
+  }
+
+  public long getHandle() {
+    if(useGLXWindow) {
+        return glXWindow; 
+    } 
+    return getNativeWindow().getSurfaceHandle();
+  }
+
+  protected void destroyHandle() {
+    if(0!=glXWindow) {
+        GLX.glXDestroyWindow(getNativeWindow().getDisplayHandle(), glXWindow);
+        glXWindow = 0;
+        useGLXWindow=false;
+    }
+  }
+
+  /** must be locked already */
+  protected void updateHandle() {
+    if(USE_GLXWINDOW) {
+        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        if(config.getFBConfig()>=0) {
+            useGLXWindow=true;
+            long dpy = getNativeWindow().getDisplayHandle();
+            if(0!=glXWindow) {
+                GLX.glXDestroyWindow(dpy, glXWindow);
+            }
+            glXWindow = GLX.glXCreateWindow(dpy, config.getFBConfig(), getNativeWindow().getSurfaceHandle(), null, 0);
+            if (DEBUG) {
+              System.err.println("!!! X11OnscreenGLXDrawable.setRealized(true): glXWindow: "+toHexString(getNativeWindow().getSurfaceHandle())+" -> "+toHexString(glXWindow));
+            }
+            if(0==glXWindow) {
+                throw new GLException("X11OnscreenGLXDrawable.setRealized(true): GLX.glXCreateWindow() failed: "+this);
+            }
+        }
+    }
   }
 
   public GLContext createContext(GLContext shareWith) {
@@ -60,5 +104,4 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
   public int getHeight() {
     return component.getHeight();
   }
-
 }

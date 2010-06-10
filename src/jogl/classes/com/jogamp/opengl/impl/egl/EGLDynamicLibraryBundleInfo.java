@@ -41,84 +41,32 @@ import java.security.*;
  *
  * Currently two implementations exist, one for ES1 and one for ES2.
  */
-public abstract class EGLDynamicLookupHelper extends GLDynamicLookupHelper {
-    private static final EGLDynamicLookupHelper eglES1DynamicLookupHelper;
-    private static final EGLDynamicLookupHelper eglES2DynamicLookupHelper;
+public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
 
-    static {
-        EGLDynamicLookupHelper tmp=null;
-        try {
-            tmp = new EGLES1DynamicLookupHelper();
-        } catch (GLException gle) {
-            if(DEBUG) {
-                gle.printStackTrace();
-            }
-        }
-        eglES1DynamicLookupHelper = tmp;
-
-        tmp=null;
-        try {
-            tmp = new EGLES2DynamicLookupHelper();
-        } catch (GLException gle) {
-            if(DEBUG) {
-                gle.printStackTrace();
-            }
-        }
-        eglES2DynamicLookupHelper = tmp;
-    }
-
-    public static EGLDynamicLookupHelper getEGLDynamicLookupHelper(GLProfile glp) {
-        if (glp.usesNativeGLES2()) {
-            return getEGLDynamicLookupHelper(2);
-        } else if (glp.usesNativeGLES1()) {
-            return getEGLDynamicLookupHelper(1);
-        } else {
-            throw new GLException("Unsupported: "+glp);
-        }
-    }
-
-    public static EGLDynamicLookupHelper getEGLDynamicLookupHelper(int esProfile) {
-        if (2==esProfile) {
-            if(null==eglES2DynamicLookupHelper) {
-                throw new GLException("EGLDynamicLookupHelper for ES2 not available");
-            }
-            return eglES2DynamicLookupHelper;
-        } else if (1==esProfile) {
-            if(null==eglES1DynamicLookupHelper) {
-                throw new GLException("EGLDynamicLookupHelper for ES1 not available");
-            }
-            return eglES1DynamicLookupHelper;
-        } else {
-            throw new GLException("Unsupported: ES"+esProfile);
-        }
-    }
-
-    protected EGLDynamicLookupHelper() {
+    protected EGLDynamicLibraryBundleInfo() {
         super();
-        EGL.resetProcAddressTable(this);
     }
 
-    protected boolean hasESBinding = false;
-    public boolean hasESBinding() { return hasESBinding; }
+    /** Might be a desktop GL library, and might need to allow symbol access to subsequent libs */
+    public boolean shallLinkGlobal() { return true; }
 
-    protected final List/*<String>*/ getGLXLibNames() {
+    public final List getToolGetProcAddressFuncNameList() {
+        List res = new ArrayList();
+        res.add("eglGetProcAddress");
+        return res;
+    }
+
+    public final long toolDynamicLookupFunction(long toolGetProcAddressHandle, String funcName) {
+        return EGL.eglGetProcAddress(toolGetProcAddressHandle, funcName);
+    }
+
+    protected List/*<String>*/ getEGLLibNamesList() {
         List/*<String>*/ eglLibNames = new ArrayList();
-
         // EGL
         eglLibNames.add("EGL");
         // for windows distributions using the 'unlike' lib prefix, 
         // where our tool does not add it.
         eglLibNames.add("libEGL");
-
         return eglLibNames;
     }
-
-    protected final String getGLXGetProcAddressFuncName() {
-        return "eglGetProcAddress" ;
-    }
-
-    protected final long dynamicLookupFunctionOnGLX(long glxGetProcAddressHandle, String glFuncName) {
-        return EGL.eglGetProcAddress(glxGetProcAddressHandle, glFuncName);
-    }
 }
-

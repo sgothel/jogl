@@ -60,56 +60,52 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
   }
 
   protected static MacOSXExternalCGLContext create(GLDrawableFactory factory, GLProfile glp) {
-    ((GLDrawableFactoryImpl)factory).lockToolkit();
-    try {
-        long pixelFormat = 0;
-        long currentDrawable = 0;
-        long contextHandle = CGL.getCurrentContext(); // Check: MacOSX 10.3 ..
-        boolean isNSContext = 0 != contextHandle;
-        if( isNSContext ) {
-            currentDrawable = CGL.getNSView(contextHandle);
-            long ctx = CGL.getCGLContext(contextHandle);
-            if (ctx == 0) {
-              throw new GLException("Error: NULL Context (CGL) of Context (NS) 0x" +Long.toHexString(contextHandle));
-            }
-            pixelFormat = CGL.CGLGetPixelFormat(ctx);
-            if(DEBUG) {
-                System.err.println("MacOSXExternalCGLContext Create Context (NS) 0x"+Long.toHexString(contextHandle)+
-                                   ", Context (CGL) 0x"+Long.toHexString(ctx)+
-                                   ", pixelFormat 0x"+Long.toHexString(pixelFormat));
-            }
-        } else {
-            contextHandle = CGL.CGLGetCurrentContext();
-            if (contextHandle == 0) {
-              throw new GLException("Error: current Context (CGL) null, no Context (NS)");
-            }
-            pixelFormat = CGL.CGLGetPixelFormat(contextHandle);
-            if(DEBUG) {
-                System.err.println("MacOSXExternalCGLContext Create Context (CGL) 0x"+Long.toHexString(contextHandle)+
-                                   ", pixelFormat 0x"+Long.toHexString(pixelFormat));
-            }
+    long pixelFormat = 0;
+    long currentDrawable = 0;
+    long contextHandle = CGL.getCurrentContext(); // Check: MacOSX 10.3 ..
+    boolean isNSContext = 0 != contextHandle;
+    if( isNSContext ) {
+        currentDrawable = CGL.getNSView(contextHandle);
+        long ctx = CGL.getCGLContext(contextHandle);
+        if (ctx == 0) {
+          throw new GLException("Error: NULL Context (CGL) of Context (NS) 0x" +Long.toHexString(contextHandle));
         }
-
-        if (0 == pixelFormat) {
-          throw new GLException("Error: current pixelformat of current Context 0x"+Long.toHexString(contextHandle)+" is null");
-        }
-        GLCapabilities caps = MacOSXCGLGraphicsConfiguration.CGLPixelFormat2GLCapabilities(glp, pixelFormat);
+        pixelFormat = CGL.CGLGetPixelFormat(ctx);
         if(DEBUG) {
-            System.err.println("MacOSXExternalCGLContext Create "+caps);
+            System.err.println("MacOSXExternalCGLContext Create Context (NS) 0x"+Long.toHexString(contextHandle)+
+                               ", Context (CGL) 0x"+Long.toHexString(ctx)+
+                               ", pixelFormat 0x"+Long.toHexString(pixelFormat));
         }
-
-        AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
-        MacOSXCGLGraphicsConfiguration cfg = new MacOSXCGLGraphicsConfiguration(aScreen, caps, caps, pixelFormat);
-
-        NullWindow nw = new NullWindow(cfg);
-        nw.setSurfaceHandle(currentDrawable); 
-        return new MacOSXExternalCGLContext(new Drawable(factory, nw), isNSContext, contextHandle);
-    } finally {
-        ((GLDrawableFactoryImpl)factory).unlockToolkit();
+    } else {
+        contextHandle = CGL.CGLGetCurrentContext();
+        if (contextHandle == 0) {
+          throw new GLException("Error: current Context (CGL) null, no Context (NS)");
+        }
+        pixelFormat = CGL.CGLGetPixelFormat(contextHandle);
+        if(DEBUG) {
+            System.err.println("MacOSXExternalCGLContext Create Context (CGL) 0x"+Long.toHexString(contextHandle)+
+                               ", pixelFormat 0x"+Long.toHexString(pixelFormat));
+        }
     }
+
+    if (0 == pixelFormat) {
+      throw new GLException("Error: current pixelformat of current Context 0x"+Long.toHexString(contextHandle)+" is null");
+    }
+    GLCapabilities caps = MacOSXCGLGraphicsConfiguration.CGLPixelFormat2GLCapabilities(glp, pixelFormat);
+    if(DEBUG) {
+        System.err.println("MacOSXExternalCGLContext Create "+caps);
+    }
+
+    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
+    MacOSXCGLGraphicsConfiguration cfg = new MacOSXCGLGraphicsConfiguration(aScreen, caps, caps, pixelFormat);
+
+    NullWindow nw = new NullWindow(cfg);
+    nw.setSurfaceHandle(currentDrawable); 
+    return new MacOSXExternalCGLContext(new Drawable(factory, nw), isNSContext, contextHandle);
   }
 
-  protected void create() {
+  protected boolean createImpl() throws GLException {
+      return true;
   }
 
   public int makeCurrent() throws GLException {
@@ -129,20 +125,16 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     lastContext = null;
   }
 
-  protected int makeCurrentImpl() throws GLException {
+  protected void makeCurrentImpl(boolean newCreated) throws GLException {
     if (firstMakeCurrent) {
       firstMakeCurrent = false;
-      return CONTEXT_CURRENT_NEW;
     }
-    return CONTEXT_CURRENT;
   }
 
   protected void releaseImpl() throws GLException {
   }
 
   protected void destroyImpl() throws GLException {
-    contextHandle = 0;
-    GLContextShareSet.contextDestroyed(this);
   }
 
   public void setOpenGLMode(int mode) {

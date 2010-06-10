@@ -67,7 +67,7 @@ public class X11PbufferGLXContext extends X11GLXContext {
     return drawable.getFloatingPointMode();
   }
 
-  protected void create() {
-    createContext(true);
+  protected boolean createImpl() {
+    return createContext(true);
   }
 }

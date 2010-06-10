@@ -53,35 +53,21 @@ public class WindowsWindow extends Window {
     public WindowsWindow() {
     }
 
-    Thread hdcOwner = null;
-
-    public synchronized int lockSurface() throws NativeWindowException {
+    public int lockSurface() throws NativeWindowException {
         int res = super.lockSurface(); 
-        if(LOCK_SUCCESS==res && 0!=windowHandle) {
-            if(hdc!=0) {
-                throw new NativeWindowException("NEWT Surface handle set HDC "+toHexString(hdc)+" - "+Thread.currentThread().getName()+" ; "+this);
-            }
+        if( LOCK_SUCCESS == res && 0 != windowHandle && 0 == hdc ) {
             hdc = GetDC0(windowHandle);
             hmon = MonitorFromWindow0(windowHandle);
-            hdcOwner = Thread.currentThread();
         }
         return res;
     }
 
-    public synchronized void unlockSurface() {
-        // prevalidate, before we change data ..
-        Thread cur = Thread.currentThread();
-        if ( getSurfaceLockOwner() != cur ) {
-            getLockedStack().printStackTrace();
-            throw new NativeWindowException(cur+": Not owner, owner is "+getSurfaceLockOwner());
-        }
-        if (0!=hdc && 0!=windowHandle) {
-            if(hdcOwner != cur) {
-                throw new NativeWindowException("NEWT Surface handle set HDC "+toHexString(hdc)+" by other thread "+hdcOwner+", this "+cur+" ; "+this);
-            }
+    public void unlockSurface() {
+        getWindowLock().validateLocked();
+
+        if ( 0 != hdc && 0 != windowHandle && getWindowLock().getRecursionCount() == 0) {
             ReleaseDC0(windowHandle, hdc);
             hdc=0;
-            hdcOwner=null;
         }
         super.unlockSurface();
     }
@@ -187,23 +173,14 @@ public class WindowsWindow extends Window {
         return true;
     }
 
-    // @Override
-    public void requestFocus() {
-        super.requestFocus();
+    protected void requestFocusImpl() {
         if (windowHandle != 0L) {
-            requestFocus0(windowHandle);
+            requestFocus0(fullscreen?0:parentWindowHandle, windowHandle);
         }
     }
 
-    // @Override
-    public void setTitle(String title) {
-        if (title == null) {
-            title = "";
-        }
-        if (0!=windowHandle && !title.equals(getTitle())) {
-            super.setTitle(title);
-            setTitle0(windowHandle, title);
-        }
+    protected void setTitleImpl(final String title) {
+        setTitle0(windowHandle, title);
     }
 
     public Insets getInsets() {
@@ -229,7 +206,7 @@ public class WindowsWindow extends Window {
     private        native void setFullscreen0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height, boolean isUndecorated);
     private        native void reparentWindow0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height, boolean isUndecorated);
     private static native void setTitle0(long windowHandle, String title);
-    private static native void requestFocus0(long windowHandle);
+    private static native void requestFocus0(long parentWindowHandle, long windowHandle);
 
     private void insetsChanged(int left, int top, int right, int bottom) {
         if (left != -1 && top != -1 && right != -1 && bottom != -1) {
@@ -248,7 +225,7 @@ public class WindowsWindow extends Window {
                 nfs_width=width;
                 nfs_height=height;
             }
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
+            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
         }
     }
 
@@ -260,7 +237,7 @@ public class WindowsWindow extends Window {
                 nfs_x=x;
                 nfs_y=y;
             }
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
+            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
         }
     }
 
@@ -272,9 +249,9 @@ public class WindowsWindow extends Window {
      */
     private void focusChanged(long focusOwner, boolean focusGained) {
         if (focusGained) {
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
         } else {
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_LOST_FOCUS);
+            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_LOST_FOCUS);
         }
     }
 }

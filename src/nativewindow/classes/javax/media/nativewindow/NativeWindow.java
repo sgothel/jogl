@@ -53,6 +53,9 @@ package javax.media.nativewindow;
     such as the window handle.
 */
 public interface NativeWindow extends SurfaceUpdatedListener {
+  /** Unlocked state */
+  public static final int LOCK_SURFACE_UNLOCKED = 0;
+
   /** Returned by {@link #lockSurface()} if the surface is not ready to be locked. */
   public static final int LOCK_SURFACE_NOT_READY = 1;
 

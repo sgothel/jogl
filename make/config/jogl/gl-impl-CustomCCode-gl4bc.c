@@ -15,6 +15,21 @@ Java_com_jogamp_opengl_impl_gl4_GL4bcImpl_dispatch_1glMapBuffer(JNIEnv *env, job
 
 /*   Java->C glue code:
  *   Java package: com.jogamp.opengl.impl.gl4.GL4bcImpl
+ *    Java method: long dispatch_glMapNamedBufferEXT(int target, int access)
+ *     C function: void * glMapNamedBufferEXT(GLenum target, GLenum access);
+ */
+JNIEXPORT jlong JNICALL 
+Java_com_jogamp_opengl_impl_gl4_GL4bcImpl_dispatch_1glMapNamedBufferEXT(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
+  PFNGLMAPNAMEDBUFFEREXTPROC ptr_glMapNamedBufferEXT;
+  void * _res;
+  ptr_glMapNamedBufferEXT = (PFNGLMAPNAMEDBUFFEREXTPROC) (intptr_t) glProcAddress;
+  assert(ptr_glMapNamedBufferEXT != NULL);
+  _res = (* ptr_glMapNamedBufferEXT) ((GLenum) target, (GLenum) access);
+  return (jlong) (intptr_t) _res;
+}
+
+/*   Java->C glue code:
+ *   Java package: com.jogamp.opengl.impl.gl4.GL4bcImpl
  *    Java method: ByteBuffer newDirectByteBuffer(long addr, int capacity);
  *     C function: jobject newDirectByteBuffer(jlong addr, jint capacity);
  */

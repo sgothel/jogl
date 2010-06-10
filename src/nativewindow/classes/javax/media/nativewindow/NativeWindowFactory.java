@@ -76,6 +76,7 @@ public abstract class NativeWindowFactory {
     private static String nativeOSNameCustom;
     private static final boolean isAWTAvailable;
     public static final String AWTComponentClassName = "java.awt.Component" ;
+    public static final String X11UtilClassName = "com.jogamp.nativewindow.impl.x11.X11Util";
 
     /** Creates a new NativeWindowFactory instance. End users do not
         need to call this method. */
@@ -112,6 +113,10 @@ public abstract class NativeWindowFactory {
             nativeWindowingTypeCustom = nativeOSNameCustom;
         }
 
+        if( TYPE_X11.equals(nativeWindowingTypePure) ) {
+            ReflectionUtil.callStaticMethod( X11UtilClassName, "initSingleton", new Class[]  { }, new Object[] { } );
+        }
+
         registeredFactories = Collections.synchronizedMap(new HashMap());
 
         String factoryClassName = null;
@@ -124,85 +129,23 @@ public abstract class NativeWindowFactory {
     
         // We break compile-time dependencies on the AWT here to
         // make it easier to run this code on mobile devices
-
         isAWTAvailable = !Debug.getBooleanProperty("java.awt.headless", true, acc) &&
                           ReflectionUtil.isClassAvailable(AWTComponentClassName) &&
                           ReflectionUtil.isClassAvailable("javax.media.nativewindow.awt.AWTGraphicsDevice") ;
-
-        boolean toolkitLockForced   = Debug.getBooleanProperty("nativewindow.locking", true, acc);
-        boolean awtToolkitLockDisabled = !isAWTAvailable ||
-                                         Debug.getBooleanProperty("nativewindow.nolocking", true, acc) ;
-
-        NativeWindowFactory _factory = null;
-        
-        if( !awtToolkitLockDisabled && TYPE_X11.equals(nativeWindowingTypeCustom) ) {
-            // There are certain operations that may be done by
-            // user-level native code which must share the display
-            // connection with the underlying window toolkit. In JOGL,
-            // for example, the AWT GLCanvas makes GLX and OpenGL
-            // calls against an X Drawable that was created by the
-            // AWT. In this case, the AWT Native Interface ("JAWT") is
-            // used to lock and unlock this surface, which grabs and
-            // releases a lock which is also used internally to the
-            // AWT implementation. This is required because the AWT
-            // makes X calls from multiple threads: for example, the
-            // AWT Toolkit thread and one or more Event Dispatch
-            // Threads.
-            //
-            // There are cases where synchronization with the
-            // toolkit is required in case of a shared resource pattern,
-            // e.g. with AWT.  From recollection, visual selection is 
-            // performed outside of the cover of the
-            // toolkit's lock, and the toolkit's display connection is
-            // used for this operation, so for correctness the toolkit
-            // must be locked during glXChooseFBConfig /
-            // glXChooseVisual. Synchronization with the toolkit is
-            // definitely needed for support of external GLDrawables,
-            // where JOGL creates additional OpenGL contexts on a
-            // surface that was created by a third party. External
-            // GLDrawables are the foundation of the Java 2D / JOGL
-            // bridge. While this bridge may be historical at this
-            // point, support for external GLDrawables on platforms
-            // that can support them (namely, WGL and X11 platforms;
-            // Mac OS X does not currently have the required
-            // primitives in its OpenGL window system binding) makes
-            // the JOGL library more powerful.
-            // 
-            // The X11AWTNativeWindowFactory provides a locking
-            // mechanism compatible with the AWT. It may be desirable
-            // to replace this window factory when using third-party
-            // toolkits like Newt even when running on Java SE when
-            // the AWT is available.
-
-            try {
-                Constructor factoryConstructor =
-                    ReflectionUtil.getConstructor("com.jogamp.nativewindow.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
-                _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
-            } catch (Exception e) { }
-        }
-
-        if (toolkitLockForced && null==_factory) {
-            try {
-                Constructor factoryConstructor =
-                    ReflectionUtil.getConstructor("com.jogamp.nativewindow.impl.LockingNativeWindowFactory", new Class[] {});
-                _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
-            } catch (Exception e) { }
-        }
-
-        if (null !=_factory) {
-            factory = _factory;
-        }
 
         if ( isAWTAvailable ) {
             // register either our default factory or (if exist) the X11/AWT one -> AWT Component
             registerFactory(ReflectionUtil.getClass(AWTComponentClassName, false), factory);
         }
-        defaultFactory = factory;
 
         if(DEBUG) {
-            System.err.println("NativeWindowFactory toolkitLockForced "+toolkitLockForced+
-                               ", awtToolkitLockDisabled "+awtToolkitLockDisabled+", defaultFactory "+factory);
+            System.err.println("NativeWindowFactory isAWTAvailable "+isAWTAvailable+
+                               ", defaultFactory "+factory);
         }
+    }
+
+    public static void initSingleton() {
+        // just exist to ensure static init has been run
     }
 
     /** @return true if not headless, AWT Component and NativeWindow's AWT part available */
@@ -216,32 +159,12 @@ public abstract class NativeWindowFactory {
         return useCustom?nativeWindowingTypeCustom:nativeWindowingTypePure;
     }
 
-    /** Sets the default NativeWindowFactory. Certain operations on
-        X11 platforms require synchronization, and the implementation
-        of this synchronization may be specific to the window toolkit
-        in use. It is impractical to require that all of the APIs that
-        might require synchronization receive a {@link ToolkitLock
-        ToolkitLock} as argument. For this reason the concept of a
-        default NativeWindowFactory is introduced. The toolkit lock
-        provided via {@link #getToolkitLock getToolkitLock} from this
-        default NativeWindowFactory will be used for synchronization
-        within the Java binding to OpenGL. By default, if the AWT is
-        available, the default toolkit will support the AWT. */
+    /** Sets the default NativeWindowFactory. */
     public static void setDefaultFactory(NativeWindowFactory factory) {
         defaultFactory = factory;
     }
 
-    /** Gets the default NativeWindowFactory. Certain operations on
-        X11 platforms require synchronization, and the implementation
-        of this synchronization may be specific to the window toolkit
-        in use. It is impractical to require that all of the APIs that
-        might require synchronization receive a {@link ToolkitLock
-        ToolkitLock} as argument. For this reason the concept of a
-        default NativeWindowFactory is introduced. The toolkit lock
-        provided via {@link #getToolkitLock getToolkitLock} from this
-        default NativeWindowFactory will be used for synchronization
-        within the Java binding to OpenGL. By default, if the AWT is
-        available, the default toolkit will support the AWT. */
+    /** Gets the default NativeWindowFactory. */
     public static NativeWindowFactory getDefaultFactory() {
         return defaultFactory;
     }
@@ -308,10 +231,4 @@ public abstract class NativeWindowFactory {
         NativeWindow. Implementors of concrete NativeWindowFactory
         subclasses should override this method. */
     protected abstract NativeWindow getNativeWindowImpl(Object winObj, AbstractGraphicsConfiguration config) throws IllegalArgumentException;
-
-    /** Returns the object which provides support for synchronizing
-        with the underlying window toolkit.<br>
-        @see ToolkitLock
-      */
-    public abstract ToolkitLock getToolkitLock();
 }

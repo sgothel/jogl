@@ -48,6 +48,7 @@ import java.beans.PropertyChangeListener;
 
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
+import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
 
 /** Platform-independent class exposing pbuffer functionality to
     applications. This class is not exposed in the public API as it
@@ -97,6 +98,10 @@ public class GLPbufferImpl implements GLPbuffer {
 
   public NativeWindow getNativeWindow() {
       return pbufferDrawable.getNativeWindow();
+  }
+
+  public long getHandle() {
+    return pbufferDrawable.getHandle();
   }
 
   public GLDrawableFactory getFactory() {
@@ -194,19 +199,23 @@ public class GLPbufferImpl implements GLPbuffer {
     return pbufferDrawable.getGLProfile();
   }
 
-  private boolean surfaceLocked = false;
+  private RecursiveToolkitLock recurLock = new RecursiveToolkitLock();
 
   public int lockSurface() throws GLException {
-    surfaceLocked=true;
+    recurLock.lock();
     return NativeWindow.LOCK_SUCCESS;
   }
 
   public void unlockSurface() {
-    surfaceLocked=false;
+    recurLock.unlock();
   }
 
   public boolean isSurfaceLocked() {
-    return surfaceLocked;
+    return recurLock.isLocked();
+  }
+
+  public Exception getLockedStack() {
+    return recurLock.getLockedStack();
   }
 
   //----------------------------------------------------------------------

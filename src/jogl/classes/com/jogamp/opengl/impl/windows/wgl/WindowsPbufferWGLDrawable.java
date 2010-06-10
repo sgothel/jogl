@@ -89,18 +89,21 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
           // not be called here, so we skip the use of any composable
           // pipelines (see WindowsOnscreenWGLContext.makeCurrentImpl)
           if (wglExt.wglReleasePbufferDCARB(buffer, nw.getSurfaceHandle()) == 0) {
-            throw new GLException("Error releasing pbuffer device context: error code " + WGL.GetLastError());
+            throw new GLException("Error releasing pbuffer device context: error code " + GDI.GetLastError());
           }
           ((SurfaceChangeable)nw).setSurfaceHandle(0);
         }
         if (!wglExt.wglDestroyPbufferARB(buffer)) {
-            throw new GLException("Error destroying pbuffer: error code " + WGL.GetLastError());
+            throw new GLException("Error destroying pbuffer: error code " + GDI.GetLastError());
         }
         buffer = 0;
     }
   }
 
-  public long getPbuffer() {
+  public long getPbufferHandle() {
+    // The actual to-be-used handle for makeCurrent etc,
+    // is the derived DC, set in the NativeWindow surfaceHandle
+    // returned by getHandle().
     return buffer;
   }
 
@@ -293,7 +296,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       if (wglExt.wglGetPixelFormatAttribivARB(parentHdc, pformats[whichFormat], 0, niattribs, iattributes, 0, ivalues, 0)) {
         GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.AttribList2GLCapabilities(glProfile, iattributes, niattribs, ivalues, true, false, true);
         PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
-        if (WGL.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
+        if (GDI.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
           if (DEBUG) {
               System.err.println("Unable to describe pixel format (Continue: true) " + whichFormat + "/" + nformats + " pfdID " + pformats[whichFormat]+":\n\t"+newCaps);
           }
@@ -304,7 +307,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         config.setCapsPFD(newCaps, pfd, pformats[whichFormat], true);
       } else {
         PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
-        if (WGL.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
+        if (GDI.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
           throw new GLException("Unable to describe pixel format " + pformats[whichFormat]);
         }
         GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, pfd, false, true);

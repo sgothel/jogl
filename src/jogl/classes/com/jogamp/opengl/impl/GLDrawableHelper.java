@@ -157,7 +157,7 @@ public class GLDrawableHelper {
               System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running runnable");
             }
             runnable.run();
-            if (autoSwapBufferMode) {
+            if (autoSwapBufferMode && null != initAction) {
               if (drawable != null) {
                 drawable.swapBuffers();
               }

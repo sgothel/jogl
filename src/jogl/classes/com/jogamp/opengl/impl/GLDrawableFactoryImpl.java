@@ -56,7 +56,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   protected static final boolean DEBUG = Debug.debug("GLDrawableFactory");
 
   /** 
-   * Returns the DynamicLookupHelper
+   * Returns the GLDynamicLookupHelper
    * @param profile if EGL/ES, profile <code>1</code> refers to ES1 and <code>2</code> to ES2,
    *        otherwise the profile is ignored.
    */
@@ -224,18 +224,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    */
   public static GLDrawableFactoryImpl getFactoryImpl(GLProfile glp) {
     return (GLDrawableFactoryImpl) getFactory(glp);
-  }
-
-  //----------------------------------------------------------------------
-  // Support for locking and unlocking the toolkit -- needed only on X11 platforms
-  //
-
-  public void lockToolkit() {
-    NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-  }
-
-  public void unlockToolkit() {
-    NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
   }
 
   //---------------------------------------------------------------------------

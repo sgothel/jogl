@@ -38,11 +38,6 @@
    - Optional properties:
    -   -Djogl.cg=1 when combined with the build or javadoc targets will cause
    -               the experimental binding to NVidia's Cg language to be built.
-   -               Then you need to define the location of your CG libraries:
-   -               -Dwindows.cg.lib32=<PATH> for Windows x32 and
-   -               -Dwindows.cg.lib64=<PATH> for Windows x64 and
-   -               -Dx11.cg.lib32=<PATH> for X11/Unix x32
-   -               -Dx11.cg.lib64=<PATH> for X11/Unix x64
    -
    - Thanks to Rob Grzywinski and Artur Biesiadowski for the bulk of the
    - ANT build, including the GlueGen and StaticGLInfo tasks, the building of
@@ -299,7 +294,6 @@
 
     <target name="setup.javacdc">
         <copy file="../src/jogl/classes/com/jogamp/opengl/impl/SystemUtil.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/impl/SystemUtil.java" />
-        <copy file="../src/jogl/classes/com/jogamp/opengl/impl/InternalBufferUtil.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/impl/InternalBufferUtil.java" />
         <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/TextureIO.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/util/texture/TextureIO.java" />
         <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/spi/DDSImage.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/util/texture/spi/DDSImage.java" />
         <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/spi/TGAImage.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/util/texture/spi/TGAImage.java" />
@@ -307,7 +301,6 @@
 
     <target name="setup.javase">
         <copy file="../src/jogl/classes/com/jogamp/opengl/impl/SystemUtil.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/impl/SystemUtil.java" />
-        <copy file="../src/jogl/classes/com/jogamp/opengl/impl/InternalBufferUtil.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/impl/InternalBufferUtil.java" />
         <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/TextureIO.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/util/texture/TextureIO.java" />
         <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/spi/DDSImage.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/util/texture/spi/DDSImage.java" />
         <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/spi/TGAImage.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/util/texture/spi/TGAImage.java" />
@@ -622,7 +615,7 @@
         <echo message="Generating EGL implementation class" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes}/${window.es.system}/** ${stub.includes}/common/**" />
-        <gluegen src="${stub.includes}/${window.es.system}/window-system.c"
+        <gluegen src="${stub.includes}/${window.es.system}/window-system1.c"
                  outputRootDir="${build.jogl}"
                  config="${window.es.cfg}"
                  includeRefid="stub.includes.fileset.platform"
@@ -644,12 +637,24 @@
         </gluegen>
     </target>
 
-    <target name="java.generate.window.system.os" if="window.os.cfg">
+    <target name="java.generate.window.system.os0" if="window.os0.cfg">
         <echo message="Generating window system glue impl: ${window.os.system}" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes}/${window.os.system}/window-system.c"
+        <gluegen src="${stub.includes}/${window.os.system}/window-system0.c"
                  outputRootDir="${build.jogl}"
-                 config="${window.os.cfg}"
+                 config="${window.os0.cfg}"
+                 includeRefid="stub.includes.fileset.platform"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.window.system.os1" if="window.os1.cfg">
+        <echo message="Generating window system glue impl: ${window.os.system}" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
+        <gluegen src="${stub.includes}/${window.os.system}/window-system1.c"
+                 outputRootDir="${build.jogl}"
+                 config="${window.os1.cfg}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen.classpath" />
@@ -659,7 +664,8 @@
     <target name="java.generate.gl.platforms" >
         <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes}/${window.os.system}/** ${stub.includes}/${window.es.system}/** ${stub.includes}/common/** ${stub.includes}/opengl/**" />
 
-        <antcall target="java.generate.window.system.os" inheritRefs="true" />
+        <antcall target="java.generate.window.system.os0" inheritRefs="true" />
+        <antcall target="java.generate.window.system.os1" inheritRefs="true" />
         <antcall target="java.generate.platform.glext" inheritRefs="true" />
     </target>
 
@@ -688,21 +694,22 @@
 
         <antcall target="java.generate.gl.platforms" inheritRefs="true">
             <param name="window.os.system"                       value="x11"/>
-            <param name="window.os.cfg"                          value="${config.jogl}/glx-x11.cfg" />
+            <param name="window.os1.cfg"                         value="${config.jogl}/glx-x11.cfg" />
             <param name="glext.platform.cfg"                     value="${config.jogl}/glxext.cfg" />
             <param name="glext.platform.header"                  value="${stub.includes}/x11/glxext.c" />
         </antcall>
 
         <antcall target="java.generate.gl.platforms" inheritRefs="true">
             <param name="window.os.system"                       value="win32"/>
-            <param name="window.os.cfg"                          value="${config.jogl}/wgl-win32.cfg" />
+            <param name="window.os0.cfg"                         value="${config.jogl}/gdi-win32.cfg" />
+            <param name="window.os1.cfg"                         value="${config.jogl}/wgl-win32.cfg" />
             <param name="glext.platform.cfg"                     value="${config.jogl}/wglext.cfg" />
             <param name="glext.platform.header"                  value="${stub.includes}/win32/wglext.c" />
         </antcall>          
 
         <antcall target="java.generate.gl.platforms" inheritRefs="true">
           <param name="window.os.system"                     value="macosx"/>
-          <param name="window.os.cfg"                        value="${config.jogl}/cgl-macosx.cfg" />
+          <param name="window.os1.cfg"                       value="${config.jogl}/cgl-macosx.cfg" />
           <param name="glext.platform.cfg"                   value="${config.jogl}/cglext.cfg" />
           <param name="glext.platform.header"                value="${stub.includes}/macosx/cglext.c" />
         </antcall>
@@ -754,7 +761,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/cg-common.cfg"
                  includeRefid="stub.includes.cg.fileset.all"
-                 emitter="com.sun.gluegen.JavaEmitter">
+                 emitter="com.sun.gluegen.procaddress.ProcAddressEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
@@ -1108,10 +1115,6 @@
         <syslibset libs="Xxf86vm" />
       </linker>
 
-      <linker id="linker.cfg.linux.jogl.cg" extends="linker.cfg.linux.jogl.x11">
-        <syslibset dir="${x11.cg.lib32}" libs="Cg, CgGL"/>
-      </linker>
-
       <linker id="linker.cfg.linux.amd64.jogl.x11" extends="linker.cfg.linux.amd64">
         <syslibset libs="X11"/>
         <syslibset libs="Xxf86vm" />
@@ -1288,6 +1291,7 @@
           <include name="${rootrel.generated.c.jogl}/gl2/GLUgl2_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/X11/GLX*.c" if="isX11"/>
           <include name="${rootrel.generated.c.jogl}/MacOSX/CGL*.c" if="isOSX"/>
+          <include name="${rootrel.generated.c.jogl}/Windows/GDI*.c" if="isWindows"/>
           <include name="${rootrel.generated.c.jogl}/Windows/WGL*.c" if="isWindows"/>
         </patternset>
 

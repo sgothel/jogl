@@ -57,6 +57,9 @@ public class AWTParentWindowAdapter
         // Need to resize the NEWT child window
         // the resized event will be send via the native window feedback.
         final java.awt.Component comp = e.getComponent();
+        if(DEBUG_IMPLEMENTATION) {
+            System.out.println("AWT: componentResized: "+comp);
+        }
         newtWindow.runOnEDTIfAvail(false, new Runnable() {
             public void run() {
                 if( 0 < comp.getWidth() * comp.getHeight() ) {
@@ -87,7 +90,7 @@ public class AWTParentWindowAdapter
             if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & bits ) ) {
                 final boolean showing = changed.isShowing();
                 if(DEBUG_IMPLEMENTATION) {
-                    System.out.println("hierarchyChanged SHOWING_CHANGED: showing "+showing+", "+changed);
+                    System.out.println("AWT: hierarchyChanged SHOWING_CHANGED: showing "+showing+", "+changed);
                 }
                 if(!newtWindow.isDestroyed()) {
                     newtWindow.runOnEDTIfAvail(false, new Runnable() {
@@ -100,7 +103,7 @@ public class AWTParentWindowAdapter
             if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
                 final boolean displayability = changed.isDisplayable();
                 if(DEBUG_IMPLEMENTATION) {
-                    System.out.println("hierarchyChanged DISPLAYABILITY_CHANGED: displayability "+displayability+", "+changed);
+                    System.out.println("AWT: hierarchyChanged DISPLAYABILITY_CHANGED: displayability "+displayability+", "+changed);
                 }
             }
         }

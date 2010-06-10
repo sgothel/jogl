@@ -54,52 +54,13 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
     this.drawable = drawable;
   }
 
-  protected int makeCurrentImpl() throws GLException {
-    int lockRes = drawable.lockSurface();
-    boolean exceptionOccurred = false;
-    try {
-      if (lockRes == NativeWindow.LOCK_SURFACE_NOT_READY) {
-        return CONTEXT_NOT_CURRENT;
-      }
-      int ret = super.makeCurrentImpl();
-      if ((ret == CONTEXT_CURRENT) ||
-          (ret == CONTEXT_CURRENT_NEW)) {
-        // Assume the canvas might have been resized or moved and tell the OpenGL
-        // context to update itself. This used to be done only upon receiving a
-        // reshape event but that doesn't appear to be sufficient. An experiment
-        // was also done to add a HierarchyBoundsListener to the GLCanvas and
-        // do this updating only upon reshape of this component or reshape or movement
-        // of an ancestor, but this also wasn't sufficient and left garbage on the
-        // screen in some situations.
-        CGL.updateContext(contextHandle);
-      } else {
-        if (!isOptimizable()) {
-          // This can happen if the window currently is zero-sized, for example.
-          // Make sure we don't leave the surface locked in this case.
-          drawable.unlockSurface();
-          lockRes = NativeWindow.LOCK_SURFACE_NOT_READY;
-        }
-      }
-      return ret;
-    } catch (RuntimeException e) {
-      exceptionOccurred = true;
-      throw e;
-    } finally {
-      if (exceptionOccurred ||
-          (isOptimizable() && lockRes != NativeWindow.LOCK_SURFACE_NOT_READY)) {
-        drawable.unlockSurface();
-      }
-    }
+  protected void makeCurrentImpl(boolean newCreated) throws GLException {
+      super.makeCurrentImpl(newCreated);
+      CGL.updateContext(contextHandle);
   }
     
   protected void releaseImpl() throws GLException {
-    try {
-      super.releaseImpl();
-    } finally {
-      if (!isOptimizable() && drawable.isSurfaceLocked()) {
-        drawable.unlockSurface();
-      }
-    }
+    super.releaseImpl();
   }
 
   protected void swapBuffers() {
@@ -115,8 +76,8 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
     CGL.updateContext(contextHandle);
   }
 
-  protected void create() {
-    create(false, false);
+  protected boolean createImpl() {
+    return create(false, false);
   }
 
   public void setOpenGLMode(int mode) {

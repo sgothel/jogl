@@ -39,8 +39,8 @@
 
 package com.jogamp.opengl.impl;
 
-import java.util.*;
 import javax.media.opengl.*;
+import com.jogamp.common.util.IntIntHashMap;
 
 /**
  * Tracks as closely as possible which OpenGL buffer object is bound
@@ -77,29 +77,28 @@ import javax.media.opengl.*;
 public class GLBufferStateTracker {
   private static final boolean DEBUG = Debug.debug("GLBufferStateTracker");
 
-  private static final Integer arrayBufferEnum        = new Integer(GL.GL_ARRAY_BUFFER);
-  private static final Integer elementArrayBufferEnum = new Integer(GL.GL_ELEMENT_ARRAY_BUFFER);
-  private static final Integer pixelPackBufferEnum    = new Integer(GL2.GL_PIXEL_PACK_BUFFER);
-  private static final Integer pixelUnpackBufferEnum  = new Integer(GL2.GL_PIXEL_UNPACK_BUFFER);
-  private static final Integer zero                   = new Integer(0);
-
   // Maps binding targets to buffer objects. A null value indicates
   // that the binding is unknown. A zero value indicates that it is
-  // known that no buffer is bound to the target.
-  private Map/*<Integer,Integer>*/ bindingMap = new HashMap/*<Integer,Integer>*/();
+  // known that no buffer is bound to the target, according to the 
+  // OpenGL specifications. 
+  // http://www.opengl.org/sdk/docs/man/xhtml/glBindBuffer.xml
+  private IntIntHashMap bindingMap;
 
   private int[] bufTmp = new int[1];
 
   public GLBufferStateTracker() {
+    bindingMap = new IntIntHashMap();
+    bindingMap.setKeyNotFoundValue(-1);
+
     // Start with known unbound targets for known keys
-    bindingMap.put(arrayBufferEnum,        zero);
-    bindingMap.put(elementArrayBufferEnum, zero);
-    bindingMap.put(pixelPackBufferEnum,    zero);
-    bindingMap.put(pixelUnpackBufferEnum,  zero);
+    bindingMap.put(GL.GL_ARRAY_BUFFER,         0);
+    bindingMap.put(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
+    bindingMap.put(GL2.GL_PIXEL_PACK_BUFFER,   0);
+    bindingMap.put(GL2.GL_PIXEL_UNPACK_BUFFER, 0);
   }
 
   public void setBoundBufferObject(int target, int buffer) {
-    bindingMap.put(box(target), box(buffer));
+    bindingMap.put(target, buffer);
   }
 
   /** Note: returns an unspecified value if the binding for the
@@ -107,8 +106,8 @@ public class GLBufferStateTracker {
       You must use isBoundBufferObjectKnown() to see whether the
       return value is valid. */
   public int getBoundBufferObject(int target, GL caller) {
-    Integer value = (Integer) bindingMap.get(box(target));
-    if (value == null) {
+    int value = bindingMap.get(target);
+    if (0 > value) {
       // User probably either called glPushClientAttrib /
       // glPopClientAttrib or is querying an unknown target. See
       // whether we know how to fetch this state.
@@ -129,19 +128,19 @@ public class GLBufferStateTracker {
                              " for query target 0x" + Integer.toHexString(queryTarget));
         }
         setBoundBufferObject(target, bufTmp[0]);
-        // Try once more
-        return getBoundBufferObject(target, caller);
+        return bufTmp[0];
       }
       return 0;
     }
-    return value.intValue();
+    return value;
   }
 
   /** Indicates whether the binding state for the specified target is
-      currently known. Should be called after getBoundBufferObject()
+      currently known, ie it could be bound or not but it must be tracked.<br>
+      Should be called after getBoundBufferObject()
       because that method may change the answer for a given target. */
   public boolean isBoundBufferObjectKnown(int target) {
-    return (bindingMap.get(box(target)) != null);
+    return 0 < bindingMap.get(target) ;
   }
 
   /** Clears out the known/unknown state of the various buffer object
@@ -153,17 +152,5 @@ public class GLBufferStateTracker {
       code manipulating OpenGL state. */
   public void clearBufferObjectState() {
     bindingMap.clear();
-  }
-
-  // FIXME: could largely remove this and use Integer.valueOf() in JDK 5
-  private static Integer box(int key) {
-    switch (key) {
-      case 0:                          return zero;
-      case GL.GL_ARRAY_BUFFER:         return arrayBufferEnum;
-      case GL.GL_ELEMENT_ARRAY_BUFFER: return elementArrayBufferEnum;
-      case GL2.GL_PIXEL_PACK_BUFFER:   return pixelPackBufferEnum;
-      case GL2.GL_PIXEL_UNPACK_BUFFER: return pixelUnpackBufferEnum;
-      default:                         return new Integer(key);
-    }
   }
 }

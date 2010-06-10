@@ -40,8 +40,10 @@ import com.jogamp.common.util.*;
 import com.jogamp.opengl.impl.Debug;
 import com.jogamp.opengl.impl.GLJNILibLoader;
 import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
-import com.jogamp.opengl.impl.egl.EGLDynamicLookupHelper;
+import com.jogamp.opengl.impl.GLDynamicLookupHelper;
+import com.jogamp.opengl.impl.GLDynamicLibraryBundleInfo;
 import com.jogamp.opengl.impl.DesktopGLDynamicLookupHelper;
+import com.jogamp.opengl.impl.DesktopGLDynamicLibraryBundleInfo;
 import com.jogamp.common.jvm.JVMUtil;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -860,7 +862,7 @@ public class GLProfile implements Cloneable {
         AccessController.doPrivileged(new PrivilegedAction() {
             public Object run() {
 
-        JVMUtil.initSingleton();
+        NativeWindowFactory.initSingleton();
 
         AccessControlContext acc = AccessController.getContext();
 
@@ -895,9 +897,11 @@ public class GLProfile implements Cloneable {
             GLDrawableFactoryImpl factory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GL2);
             hasNativeOSFactory = null != factory;
             if(hasNativeOSFactory) {
-                DesktopGLDynamicLookupHelper deskGLLookupHelper = (DesktopGLDynamicLookupHelper) factory.getGLDynamicLookupHelper(0);
-                hasDesktopGL = deskGLLookupHelper.hasGLBinding();
-                hasDesktopGLES12 = deskGLLookupHelper.hasGLES12Binding();
+                DesktopGLDynamicLookupHelper glLookupHelper = (DesktopGLDynamicLookupHelper) factory.getGLDynamicLookupHelper(0);
+                if(null!=glLookupHelper) {
+                    hasDesktopGL = glLookupHelper.hasGLBinding();
+                    hasDesktopGLES12 = glLookupHelper.hasGLES12Binding();
+                }
             }
         } catch (LinkageError le) {
             t=le;
@@ -937,18 +941,18 @@ public class GLProfile implements Cloneable {
             hasGL2ES12Impl = hasGL2ES12Impl && GLContext.isGL2Available();
         }
 
-        if ( ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.egl.EGLDynamicLookupHelper") ) {
+        if ( ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.egl.EGLDrawableFactory") ) {
             t=null;
             try {
                 GLDrawableFactoryImpl factory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GLES2);
                 if(null != factory) {
-                    EGLDynamicLookupHelper eglLookupHelper = (EGLDynamicLookupHelper) factory.getGLDynamicLookupHelper(2);
+                    GLDynamicLookupHelper eglLookupHelper = factory.getGLDynamicLookupHelper(2);
                     if(null!=eglLookupHelper) {
-                        hasGLES2Impl = eglLookupHelper.hasESBinding();
+                        hasGLES2Impl = eglLookupHelper.isLibComplete();
                     }
-                    eglLookupHelper = (EGLDynamicLookupHelper) factory.getGLDynamicLookupHelper(1);
+                    eglLookupHelper = factory.getGLDynamicLookupHelper(1);
                     if(null!=eglLookupHelper) {
-                        hasGLES1Impl = eglLookupHelper.hasESBinding();
+                        hasGLES1Impl = eglLookupHelper.isLibComplete();
                     }
                 }
             } catch (LinkageError le) {
@@ -989,6 +993,15 @@ public class GLProfile implements Cloneable {
         if(null==defaultGLProfile) {
             throw new GLException("No profile available: "+list2String(GL_PROFILE_LIST_ALL)+", "+glAvailabilityToString());
         }
+    }
+
+    /**
+     * It is mandatory to call this methods ASAP, before anything else.<br>
+     * You may issue the call in your main class static initializer block, or in the static main function.<br>
+     * This will kick off JOGL's static initialization.<br>
+     * It is essential to do this at the very beginning, so JOGL has a chance to initialize multithreading support.<br>
+     */
+    public static void initSingleton() {
     }
 
     private static final String list2String(String[] list) {

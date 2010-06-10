@@ -25,53 +25,38 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.jogamp.opengl.impl.egl;
+package com.jogamp.opengl.impl.windows.wgl;
 
-import java.util.*;
 import com.jogamp.opengl.impl.*;
+import com.jogamp.common.os.DynamicLookupHelper;
+import com.jogamp.common.os.NativeLibrary;
+import com.jogamp.common.os.Platform;
+import java.util.*;
+import java.security.*;
+import javax.media.opengl.GLException;
 
-/**
- * Implementation of the EGLDynamicLookupHelper for ES2.
- */
-public class EGLES2DynamicLookupHelper extends EGLDynamicLookupHelper {
-  
-    protected EGLES2DynamicLookupHelper() {
+public class WindowsWGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundleInfo  {
+    protected WindowsWGLDynamicLibraryBundleInfo() {
         super();
     }
 
-    protected void loadGLJNILibrary() {
-        Throwable t=null;
-        try {
-            GLJNILibLoader.loadES2();
-            hasESBinding = true;
-        } catch (UnsatisfiedLinkError ule) {
-            t=ule;
-        } catch (SecurityException se) {
-            t=se;
-        } catch (NullPointerException npe) {
-            t=npe;
-        } catch (RuntimeException re) {
-            t=re;
-        }
-        if(DEBUG && null!=t) {
-            System.err.println("EGLES2DynamicLookupHelper: ES2 Binding Library not available");
-            t.printStackTrace();
-        }
+    public List getToolLibNames() {
+        List/*<String>*/ libNamesList = new ArrayList();
+
+        libNamesList.add("OpenGL32");
+
+        return libNamesList;
     }
 
-    protected List/*<String>*/ getGLLibNames() {
-        List/*<String>*/ glesLibNames = new ArrayList();
 
-        glesLibNames.add("GLES20");
-        glesLibNames.add("GLESv2");
-        glesLibNames.add("GLESv2_CM");
-        // for windows distributions using the 'unlike' lib prefix
-        // where our tool does not add it.
-        glesLibNames.add("libGLES20"); 
-        glesLibNames.add("libGLESv2");
-        glesLibNames.add("libGLESv2_CM");
+    public final List getToolGetProcAddressFuncNameList() {
+        List res = new ArrayList();
+        res.add("wglGetProcAddress");
+        return res;
+    }
 
-        return glesLibNames;
+    public final long toolDynamicLookupFunction(long toolGetProcAddressHandle, String funcName) {
+        return WGL.wglGetProcAddress(toolGetProcAddressHandle, funcName);
     }
 }
 

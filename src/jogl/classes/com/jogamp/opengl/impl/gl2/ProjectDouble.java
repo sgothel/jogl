@@ -118,6 +118,7 @@ import java.nio.*;
 
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
+import com.jogamp.common.nio.Buffers;
 
 /**
  * Project.java
@@ -173,7 +174,7 @@ public class ProjectDouble {
     // Slice up one big buffer because some NIO implementations
     // allocate a huge amount of memory to back even the smallest of
     // buffers.
-    DoubleBuffer locbuf = InternalBufferUtil.newDoubleBuffer(128);
+    DoubleBuffer locbuf = Buffers.newDirectDoubleBuffer(128);
     int pos = 0;
     int sz = 16;
     matrixBuf = slice(locbuf, pos, sz);

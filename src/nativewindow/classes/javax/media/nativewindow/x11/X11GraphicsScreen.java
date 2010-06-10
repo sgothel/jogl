@@ -56,53 +56,23 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
 
     /** Creates a new X11GraphicsScreen using a thread local display connection */
     public static AbstractGraphicsScreen createDefault() {
-        NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-        try {
-            long display = X11Util.createThreadLocalDefaultDisplay();
-            X11Util.XLockDisplay(display);
-            try{
-                int scrnIdx = X11Lib.DefaultScreen(display);
-                return createScreenDevice(display, scrnIdx);
-            }finally{
-                X11Util.XUnlockDisplay(display);
-            }
-        } finally {
-            NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
-        }
+        long display = X11Util.createThreadLocalDisplay(null);
+        int scrnIdx = X11Lib.DefaultScreen(display);
+        return createScreenDevice(display, scrnIdx);
     }
 
     public long getDefaultVisualID() {
         // It still could be an AWT hold handle ..
-        NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-        try {
-            long display = getDevice().getHandle();
-            X11Util.XLockDisplay(display);
-            try{
-                int scrnIdx = X11Lib.DefaultScreen(display);
-                return X11Lib.DefaultVisualID(display, scrnIdx);
-            }finally{
-                X11Util.XUnlockDisplay(display);
-            }
-        } finally {
-            NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
-        }
+        long display = getDevice().getHandle();
+        int scrnIdx = X11Lib.DefaultScreen(display);
+        return X11Lib.DefaultVisualID(display, scrnIdx);
     }
 
     private static int fetchScreen(X11GraphicsDevice device, int screen) {
         // It still could be an AWT hold handle ..
-        NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-        try {
-            long display = device.getHandle();
-            X11Util.XLockDisplay(display);
-            try{
-                if(X11Lib.XineramaEnabled(display)) {
-                    screen = 0; // Xinerama -> 1 screen
-                }
-            }finally{
-                X11Util.XUnlockDisplay(display);
-            }
-        } finally {
-            NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
+        long display = device.getHandle();
+        if(X11Lib.XineramaEnabled(display)) {
+            screen = 0; // Xinerama -> 1 screen
         }
         return screen;
     }

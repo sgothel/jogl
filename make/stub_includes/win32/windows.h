@@ -34,14 +34,6 @@ typedef unsigned int        UINT;
 typedef unsigned short      USHORT;
 typedef unsigned short      WORD;
 
-typedef struct tagRECT
-    {
-    LONG left;
-    LONG top;
-    LONG right;
-    LONG bottom;
-    } 	RECT;
-
 /* Necessary handle typedefs for parsing wglext.h */
 
 typedef HANDLE              HPBUFFERARB;

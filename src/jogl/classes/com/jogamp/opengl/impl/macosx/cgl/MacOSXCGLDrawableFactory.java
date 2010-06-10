@@ -48,9 +48,26 @@ import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.NullWindow;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
+  private static final DesktopGLDynamicLookupHelper macOSXCGLDynamicLookupHelper;
+
+  static {
+        DesktopGLDynamicLookupHelper tmp = null;
+        try {
+            tmp = new DesktopGLDynamicLookupHelper(new MacOSXCGLDynamicLibraryBundleInfo());
+        } catch (GLException gle) {
+            if(DEBUG) {
+                gle.printStackTrace();
+            }
+        }
+        macOSXCGLDynamicLookupHelper = tmp;
+        /** FIXME ?? 
+        if(null!=macOSXCGLDynamicLookupHelper) {
+            CGL.getCGLProcAddressTable().reset(macOSXCGLDynamicLookupHelper);
+        } */
+  }
 
   public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
-      return MacOSXCGLDynamicLookupHelper.getMacOSXCGLDynamicLookupHelper();
+      return macOSXCGLDynamicLookupHelper;
   }
 
   public MacOSXCGLDrawableFactory() {
@@ -59,8 +76,6 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
     new MacOSXCGLGraphicsConfigurationFactory();
-
-    MacOSXCGLDynamicLookupHelper.getMacOSXCGLDynamicLookupHelper(); // setup and initialize
 
     try {
       ReflectionUtil.createInstance("com.jogamp.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory",

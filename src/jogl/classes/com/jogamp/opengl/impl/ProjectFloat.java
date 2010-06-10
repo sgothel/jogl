@@ -118,6 +118,7 @@ import java.nio.*;
 
 import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.common.nio.Buffers;
 
 /**
  * ProjectFloat.java
@@ -180,7 +181,7 @@ public class ProjectFloat {
     // Slice up one big buffer because some NIO implementations
     // allocate a huge amount of memory to back even the smallest of
     // buffers.
-    locbuf = InternalBufferUtil.newFloatBuffer(2*16+2*4+3*3);
+    locbuf = Buffers.newDirectFloatBuffer(2*16+2*4+3*3);
     int pos = 0;
     int sz = 16;
     matrixBuf = slice(locbuf, pos, sz);

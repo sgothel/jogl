@@ -53,16 +53,6 @@ public abstract class GLContextImpl extends GLContext {
   protected GLContextLock lock = new GLContextLock();
   protected static final boolean DEBUG = Debug.debug("GLContext");
   protected static final boolean VERBOSE = Debug.verbose();
-  // NOTE: default sense of GLContext optimization disabled in JSR-231
-  // 1.0 beta 5 due to problems on X11 platforms (both Linux and
-  // Solaris) when moving and resizing windows. Apparently GLX tokens
-  // get sent to the X server under the hood (and out from under the
-  // cover of the AWT lock) in these situations. Users requiring
-  // multi-screen X11 applications can manually enable this flag. It
-  // basically had no tangible effect on the Windows or Mac OS X
-  // platforms anyway in particular with the disabling of the
-  // GLWorkerThread which we found to be necessary in 1.0 beta 4.
-  protected boolean optimizationEnabled = Debug.isPropertyDefined("jogl.GLContext.optimize", true);
 
   // Cache of the functions that are available to be called at the current
   // moment in time
@@ -151,21 +141,24 @@ public abstract class GLContextImpl extends GLContext {
 
   public abstract Object getPlatformGLExtensions();
 
+  // Note: the surface is locked within [makeCurrent .. swap .. release]
   public void release() throws GLException {
     if (!lock.isHeld()) {
       throw new GLException("Context not current on current thread");
     }
     setCurrent(null);
     try {
-      releaseImpl();
+        releaseImpl();
     } finally {
+      if (drawable.isSurfaceLocked()) {
+          drawable.unlockSurface();
+      }
       lock.unlock();
     }
   }
-
   protected abstract void releaseImpl() throws GLException;
 
-  public void destroy() {
+  public final void destroy() {
     if (lock.isHeld()) {
         // release current context 
         release();
@@ -209,13 +202,46 @@ public abstract class GLContextImpl extends GLContext {
           glStateTracker.clearStates(false);
       }
   
-      destroyImpl();
+      if (contextHandle != 0) {
+          int lockRes = drawable.lockSurface();
+          if (NativeWindow.LOCK_SURFACE_NOT_READY == lockRes) {
+                // this would be odd ..
+                throw new GLException("Surface not ready to lock: "+drawable);
+          }
+          try {
+              destroyImpl();
+              contextHandle = 0;
+              GLContextShareSet.contextDestroyed(this);
+          } finally {
+              drawable.unlockSurface();
+          }
+      }
     } finally {
       lock.unlock();
     }
   }
-
   protected abstract void destroyImpl() throws GLException;
+
+  public final void copy(GLContext source, int mask) throws GLException {
+    if (source.getHandle() == 0) {
+      throw new GLException("Source OpenGL context has not been created");
+    }
+    if (getHandle() == 0) {
+      throw new GLException("Destination OpenGL context has not been created");
+    }
+
+    int lockRes = drawable.lockSurface();
+    if (NativeWindow.LOCK_SURFACE_NOT_READY == lockRes) {
+        // this would be odd ..
+        throw new GLException("Surface not ready to lock");
+    }
+    try {
+        copyImpl(source, mask);
+    } finally {
+      drawable.unlockSurface();
+    }
+  }
+  protected abstract void copyImpl(GLContext source, int mask) throws GLException;
 
   //----------------------------------------------------------------------
   //
@@ -285,7 +311,7 @@ public abstract class GLContextImpl extends GLContext {
     lock.lock();
     int res = 0;
     try {
-      res = makeCurrentImpl();
+      res = makeCurrentLocking();
 
       /* FIXME: refactor dependence on Java 2D / JOGL bridge
       if ((tracker != null) &&
@@ -320,15 +346,50 @@ public abstract class GLContextImpl extends GLContext {
     return res;
   }
 
-  /**
-   * @see #makeCurrent
-   */
-  protected abstract int makeCurrentImpl() throws GLException;
-
-  /**
-   * @see #makeCurrent
-   */
-  protected abstract void create() throws GLException ;
+  // Note: the surface is locked within [makeCurrent .. swap .. release]
+  protected final int makeCurrentLocking() throws GLException {
+    boolean exceptionOccurred = false;
+    int lockRes = drawable.lockSurface();
+    try {
+      if (NativeWindow.LOCK_SURFACE_NOT_READY == lockRes) {
+        return CONTEXT_NOT_CURRENT;
+      }
+      try {
+          if (NativeWindow.LOCK_SURFACE_CHANGED == lockRes) {
+            drawable.updateHandle();
+          }
+          if (0 == drawable.getHandle()) {
+              throw new GLException("drawable has invalid handle: "+drawable);
+          }
+          boolean newCreated = false;
+          if (!isCreated()) {
+            newCreated = createImpl(); // may throws exception if fails!
+            if (DEBUG) {
+                if(newCreated) {
+                    System.err.println(getThreadName() + ": !!! Create GL context OK: " + toHexString(contextHandle) + " for " + getClass().getName());
+                } else {
+                    System.err.println(getThreadName() + ": !!! Create GL context FAILED for " + getClass().getName());
+                }
+            }
+            if(!newCreated) {
+                return CONTEXT_NOT_CURRENT;
+            }
+            GLContextShareSet.contextCreated(this);
+          }
+          makeCurrentImpl(newCreated);
+          return newCreated ? CONTEXT_CURRENT_NEW : CONTEXT_CURRENT ;
+      } catch (RuntimeException e) {
+        exceptionOccurred = true;
+        throw e;
+      }
+    } finally {
+      if (exceptionOccurred) {
+        drawable.unlockSurface();
+      }
+    }
+  }
+  protected abstract void makeCurrentImpl(boolean newCreatedContext) throws GLException;
+  protected abstract boolean createImpl() throws GLException ;
 
   /** 
    * Platform dependent but harmonized implementation of the <code>ARB_create_context</code>
@@ -388,8 +449,8 @@ public abstract class GLContextImpl extends GLContext {
    * @see #createContextARBImpl
    * @see #destroyContextARBImpl
    */
-  protected long createContextARB(long share, boolean direct,
-                                  int major[], int minor[], int ctp[]) 
+  protected final long createContextARB(long share, boolean direct,
+                                        int major[], int minor[], int ctp[]) 
   {
     AbstractGraphicsConfiguration config = drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities glCaps = (GLCapabilities) config.getChosenCapabilities();
@@ -441,7 +502,7 @@ public abstract class GLContextImpl extends GLContext {
     return _ctx;
   }
 
-  private void createContextARBMapVersionsAvailable(int reqMajor, boolean compat)
+  private final void createContextARBMapVersionsAvailable(int reqMajor, boolean compat)
   {
     long _context;
     int reqProfile = compat ? CTX_PROFILE_COMPAT : CTX_PROFILE_CORE ;
@@ -509,10 +570,10 @@ public abstract class GLContextImpl extends GLContext {
     }
   }
 
-  private long createContextARBVersions(long share, boolean direct, int ctxOptionFlags, 
-                                        int majorMax, int minorMax, 
-                                        int majorMin, int minorMin, 
-                                        int major[], int minor[]) {
+  private final long createContextARBVersions(long share, boolean direct, int ctxOptionFlags, 
+                                              int majorMax, int minorMax, 
+                                              int majorMin, int minorMin, 
+                                              int major[], int minor[]) {
     major[0]=majorMax;
     minor[0]=minorMax;
     long _context=0;
@@ -540,7 +601,7 @@ public abstract class GLContextImpl extends GLContext {
    * If major==0 && minor == 0 : Use GL_VERSION
    * Otherwise .. don't touch ..
    */
-  protected void setContextVersion(int major, int minor, int ctp) {
+  protected final void setContextVersion(int major, int minor, int ctp) {
       if (0==ctp) {
         throw new GLException("Invalid GL Version "+major+"."+minor+", ctp "+toHexString(ctp));
       }
@@ -619,7 +680,7 @@ public abstract class GLContextImpl extends GLContext {
 
   public abstract ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3);
 
-  public void setSwapInterval(final int interval) {
+  public final void setSwapInterval(final int interval) {
     GLContext current = getCurrent();
     if (current != this) {
         throw new GLException("This context is not current. Current context: "+current+
@@ -627,15 +688,10 @@ public abstract class GLContextImpl extends GLContext {
     }
     setSwapIntervalImpl(interval);
   }
-
+  protected void setSwapIntervalImpl(final int interval) { /** nop per default .. **/  }
   protected int currentSwapInterval = -1; // default: not set yet ..
-
   public int getSwapInterval() {
     return currentSwapInterval;
-  }
-
-  protected void setSwapIntervalImpl(final int interval) {
-    // nop per default ..
   }
 
   /** Maps the given "platform-independent" function name to a real function
@@ -837,10 +893,6 @@ public abstract class GLContextImpl extends GLContext {
   // Helpers for context optimization where the last context is left
   // current on the OpenGL worker thread
   //
-
-  public boolean isOptimizable() {
-    return optimizationEnabled;
-  }
 
   public boolean hasWaiters() {
     return lock.hasWaiters();

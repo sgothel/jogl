@@ -69,7 +69,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     if (ctx == 0) {
       throw new GLException("Error: attempted to make an external GLContext without a context current");
     }
-    int pfdID = WGL.GetPixelFormat(hdc);
+    int pfdID = GDI.GetPixelFormat(hdc);
     if (pfdID == 0) {
       throw new GLException("Error: attempted to make an external GLContext without a valid pixelformat");
     }
@@ -100,20 +100,16 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     lastContext = null;
   }
 
-  protected int makeCurrentImpl() throws GLException {
+  protected void makeCurrentImpl(boolean newCreated) throws GLException {
     if (firstMakeCurrent) {
       firstMakeCurrent = false;
-      return CONTEXT_CURRENT_NEW;
     }
-    return CONTEXT_CURRENT;
   }
 
   protected void releaseImpl() throws GLException {
   }
 
   protected void destroyImpl() throws GLException {
-    contextHandle = 0;
-    GLContextShareSet.contextDestroyed(this);
   }
 
   // Need to provide the display connection to extension querying APIs

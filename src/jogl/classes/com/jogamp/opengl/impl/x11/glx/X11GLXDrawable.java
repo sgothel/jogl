@@ -42,7 +42,7 @@ package com.jogamp.opengl.impl.x11.glx;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.common.os.DynamicLookupHelper;
+import com.jogamp.nativewindow.impl.x11.*;
 
 public abstract class X11GLXDrawable extends GLDrawableImpl {
   protected X11GLXDrawable(GLDrawableFactory factory, NativeWindow comp, boolean realized) {
@@ -50,45 +50,22 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
   }
 
   public GLDynamicLookupHelper getGLDynamicLookupHelper() {
-    return X11GLXDynamicLookupHelper.getX11GLXDynamicLookupHelper();
+    return getFactoryImpl().getGLDynamicLookupHelper(0);
   }
 
   protected void setRealizedImpl() {
-    if(!realized) {
-        return; // nothing to do 
-    }
-
-    if(NativeWindow.LOCK_SURFACE_NOT_READY == lockSurface()) {
-      throw new GLException("X11GLXDrawable.setRealized(true): lockSurface - surface not ready");
-    }
-    try {
+    if(realized) {
         X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
         config.updateGraphicsConfiguration();
 
         if (DEBUG) {
           System.err.println("!!! X11GLXDrawable.setRealized(true): "+config);
         }
-    } finally {
-        unlockSurface();
     }
   }
 
     protected void swapBuffersImpl() {
-        boolean didLock = false;
-        if (!isSurfaceLocked()) {
-            // Usually the surface shall be locked within [makeCurrent .. swap .. release]
-            if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
-                return;
-            }
-            didLock = true;
-        }
-        try {
-            GLX.glXSwapBuffers(component.getDisplayHandle(), component.getSurfaceHandle());
-        } finally {
-            if (didLock) {
-                unlockSurface();
-            }
-        }
+        GLX.glXSwapBuffers(getNativeWindow().getDisplayHandle(), getHandle());
     }
 
   //---------------------------------------------------------------------------

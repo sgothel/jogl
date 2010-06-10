@@ -76,21 +76,14 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
   }
 
   public void destroy() {
-    getFactoryImpl().lockToolkit();
-    try {
-        NativeWindow nw = getNativeWindow();
-        if (nw.getSurfaceHandle() != 0) {
-          GLX.glXDestroyPbuffer(nw.getDisplayHandle(), nw.getSurfaceHandle());
-        }
-        ((SurfaceChangeable)nw).setSurfaceHandle(0);
-    } finally {
-        getFactoryImpl().unlockToolkit();
+    NativeWindow nw = getNativeWindow();
+    if (nw.getSurfaceHandle() != 0) {
+      GLX.glXDestroyPbuffer(nw.getDisplayHandle(), nw.getSurfaceHandle());
     }
+    ((SurfaceChangeable)nw).setSurfaceHandle(0);
   }
 
   private void createPbuffer() {
-    getFactoryImpl().lockToolkit();
-    try {
       X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
       AbstractGraphicsScreen aScreen = config.getScreen();
       AbstractGraphicsDevice aDevice = aScreen.getDevice();
@@ -139,9 +132,6 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       GLX.glXQueryDrawable(display, pbuffer, GLX.GLX_HEIGHT, tmp, 0);
       int height = tmp[0];
       ((SurfaceChangeable)nw).setSize(width, height);
-    } finally {
-      getFactoryImpl().unlockToolkit();
-    }
   }
 
   public int getFloatingPointMode() {

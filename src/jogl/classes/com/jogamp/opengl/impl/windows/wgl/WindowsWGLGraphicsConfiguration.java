@@ -67,7 +67,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
           glp = GLProfile.getDefault();
         }
         PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor();
-        if (WGL.DescribePixelFormat(hdc, pfdID, pfd.size(), pfd) == 0) {
+        if (GDI.DescribePixelFormat(hdc, pfdID, pfd.size(), pfd) == 0) {
             throw new GLException("Unable to describe pixel format " + pfdID);
         }
 
@@ -215,10 +215,10 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
               }
           }
         } else {
-          long lastErr = WGL.GetLastError();
+          long lastErr = GDI.GetLastError();
           // Intel Extreme graphics fails with a zero error code
           if (lastErr != 0) {
-            throw new GLException("Unable to enumerate pixel formats of window using wglGetPixelFormatAttribivARB: error code " + WGL.GetLastError());
+            throw new GLException("Unable to enumerate pixel formats of window using wglGetPixelFormatAttribivARB: error code " + GDI.GetLastError());
           }
         }
         return availableCaps;
@@ -539,7 +539,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
   // PIXELFORMAT
 
     public static GLCapabilities PFD2GLCapabilities(GLProfile glp, PIXELFORMATDESCRIPTOR pfd, boolean onscreen, boolean usePBuffer) {
-        if ((pfd.getDwFlags() & WGL.PFD_SUPPORT_OPENGL) == 0) {
+        if ((pfd.getDwFlags() & GDI.PFD_SUPPORT_OPENGL) == 0) {
           return null;
         }
         GLCapabilities res = new GLCapabilities(glp);
@@ -553,11 +553,11 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         res.setAccumAlphaBits(pfd.getCAccumAlphaBits());
         res.setDepthBits     (pfd.getCDepthBits());
         res.setStencilBits   (pfd.getCStencilBits());
-        res.setDoubleBuffered((pfd.getDwFlags() & WGL.PFD_DOUBLEBUFFER) != 0);
-        res.setStereo        ((pfd.getDwFlags() & WGL.PFD_STEREO) != 0);
-        res.setHardwareAccelerated( ((pfd.getDwFlags() & WGL.PFD_GENERIC_FORMAT) == 0) ||
-                                    ((pfd.getDwFlags() & WGL.PFD_GENERIC_ACCELERATED) != 0) );
-        res.setOnscreen      ( onscreen && ((pfd.getDwFlags() & WGL.PFD_DRAW_TO_WINDOW) != 0) );
+        res.setDoubleBuffered((pfd.getDwFlags() & GDI.PFD_DOUBLEBUFFER) != 0);
+        res.setStereo        ((pfd.getDwFlags() & GDI.PFD_STEREO) != 0);
+        res.setHardwareAccelerated( ((pfd.getDwFlags() & GDI.PFD_GENERIC_FORMAT) == 0) ||
+                                    ((pfd.getDwFlags() & GDI.PFD_GENERIC_ACCELERATED) != 0) );
+        res.setOnscreen      ( onscreen && ((pfd.getDwFlags() & GDI.PFD_DRAW_TO_WINDOW) != 0) );
         res.setPBuffer       ( usePBuffer );
         /* FIXME: Missing ??
         if (GLXUtil.isMultisampleAvailable()) {
@@ -580,21 +580,21 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
       throw new GLException("Bit depths < 15 (i.e., non-true-color) not supported");
     }
     PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor();
-    int pfdFlags = (WGL.PFD_SUPPORT_OPENGL |
-                    WGL.PFD_GENERIC_ACCELERATED);
+    int pfdFlags = (GDI.PFD_SUPPORT_OPENGL |
+                    GDI.PFD_GENERIC_ACCELERATED);
     if (caps.getDoubleBuffered()) {
-      pfdFlags |= WGL.PFD_DOUBLEBUFFER;
+      pfdFlags |= GDI.PFD_DOUBLEBUFFER;
     }
     if (caps.isOnscreen()) {
-      pfdFlags |= WGL.PFD_DRAW_TO_WINDOW;
+      pfdFlags |= GDI.PFD_DRAW_TO_WINDOW;
     } else {
-      pfdFlags |= WGL.PFD_DRAW_TO_BITMAP;
+      pfdFlags |= GDI.PFD_DRAW_TO_BITMAP;
     }
     if (caps.getStereo()) {
-      pfdFlags |= WGL.PFD_STEREO;
+      pfdFlags |= GDI.PFD_STEREO;
     }
     pfd.setDwFlags(pfdFlags);
-    pfd.setIPixelType((byte) WGL.PFD_TYPE_RGBA);
+    pfd.setIPixelType((byte) GDI.PFD_TYPE_RGBA);
     pfd.setCColorBits((byte) colorDepth);
     pfd.setCRedBits  ((byte) caps.getRedBits());
     pfd.setCGreenBits((byte) caps.getGreenBits());
@@ -610,7 +610,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     pfd.setCAccumAlphaBits((byte) caps.getAccumAlphaBits());
     pfd.setCDepthBits((byte) caps.getDepthBits());
     pfd.setCStencilBits((byte) caps.getStencilBits());
-    pfd.setILayerType((byte) WGL.PFD_MAIN_PLANE);
+    pfd.setILayerType((byte) GDI.PFD_MAIN_PLANE);
 
     /* FIXME: Missing: 
       caps.getSampleBuffers()

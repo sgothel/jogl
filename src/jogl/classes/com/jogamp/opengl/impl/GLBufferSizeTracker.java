@@ -39,8 +39,8 @@
 
 package com.jogamp.opengl.impl;
 
-import java.util.*;
 import javax.media.opengl.*;
+import com.jogamp.common.util.IntIntHashMap;
 
 /**
  * Tracks as closely as possible the sizes of allocated OpenGL buffer
@@ -93,18 +93,17 @@ public class GLBufferSizeTracker {
   // objects, which is probably sub-optimal. The expected usage
   // pattern of buffer objects indicates that the fact that this map
   // never shrinks is probably not that bad.
-  private Map/*<Integer,Integer>*/ bufferSizeMap =
-    Collections.synchronizedMap(new HashMap/*<Integer,Integer>*/());
+  private IntIntHashMap bufferSizeMap;
 
   private static final boolean DEBUG = Debug.debug("GLBufferSizeTracker");
 
   public GLBufferSizeTracker() {
+      bufferSizeMap = new IntIntHashMap();
+      bufferSizeMap.setKeyNotFoundValue(-1);
   }
 
   public void setBufferSize(GLBufferStateTracker bufferStateTracker,
-                            int target,
-                            GL caller,
-                            int size) {
+                            int target, GL caller, int size) {
     // Need to do some similar queries to getBufferSize below
     int buffer = bufferStateTracker.getBoundBufferObject(target, caller);
     boolean valid = bufferStateTracker.isBoundBufferObjectKnown(target);
@@ -118,12 +117,16 @@ public class GLBufferSizeTracker {
         throw new GLException("Error: no OpenGL buffer object appears to be bound to target 0x" +
                               Integer.toHexString(target));
       }
-      bufferSizeMap.put(new Integer(buffer), new Integer(size));
+      setDirectStateBufferSize(buffer, caller, size);
     }
     // We don't know the current buffer state. Note that the buffer
     // state tracker will have made the appropriate OpenGL query if it
     // didn't know what was going on, so at this point we have nothing
     // left to do except drop this piece of information on the floor.
+  }
+
+  public void setDirectStateBufferSize(int buffer, GL caller, int size) {
+      bufferSizeMap.put(buffer, size);
   }
 
   public int getBufferSize(GLBufferStateTracker bufferStateTracker,
@@ -134,7 +137,7 @@ public class GLBufferSizeTracker {
     int buffer = bufferStateTracker.getBoundBufferObject(target, caller);
     boolean valid = bufferStateTracker.isBoundBufferObjectKnown(target);
     if (valid) {
-      if (buffer == 0) {
+      if (0 == buffer) {
         // FIXME: this really should not happen if we know what's
         // going on. Very likely there is an OpenGL error in the
         // application if we get here. Could silently return 0, but it
@@ -143,30 +146,7 @@ public class GLBufferSizeTracker {
         throw new GLException("Error: no OpenGL buffer object appears to be bound to target 0x" +
                               Integer.toHexString(target));
       }
-      // See whether we know the size of this buffer object; at this
-      // point we almost certainly should if the application is
-      // written correctly
-      Integer key = new Integer(buffer);
-      Integer sz = (Integer) bufferSizeMap.get(key);
-      if (sz == null) {
-        // For robustness, try to query this value from the GL as we used to
-        int[] tmp = new int[1];
-        caller.glGetBufferParameteriv(target, GL.GL_BUFFER_SIZE, tmp, 0);
-        if (tmp[0] == 0) {
-          // Assume something is wrong rather than silently going along
-          throw new GLException("Error: buffer size returned by glGetBufferParameteriv was zero; probably application error");
-        }
-        // Assume we just don't know what's happening
-        sz = new Integer(tmp[0]);
-        bufferSizeMap.put(key, sz);
-        if (DEBUG) {
-          System.err.println("GLBufferSizeTracker.getBufferSize(): made slow query to cache size " +
-                             tmp[0] +
-                             " for buffer " +
-                             buffer);
-        }
-      }
-      return sz.intValue();
+      return getBufferSizeImpl(target, buffer, caller);
     }
     // We don't know what's going on in this case; query the GL for an answer
     int[] tmp = new int[1];
@@ -175,6 +155,47 @@ public class GLBufferSizeTracker {
       System.err.println("GLBufferSizeTracker.getBufferSize(): no cached buffer information");
     }
     return tmp[0];
+  }
+
+  public int getDirectStateBufferSize(int buffer, GL caller) {
+      return getBufferSizeImpl(0, buffer, caller);
+  }
+
+  private int getBufferSizeImpl(int target, int buffer, GL caller) {
+      // See whether we know the size of this buffer object; at this
+      // point we almost certainly should if the application is
+      // written correctly
+      int sz = bufferSizeMap.get(buffer);
+      if (0 > sz) {
+        // For robustness, try to query this value from the GL as we used to
+        int[] tmp = new int[1];
+        if(0==target) {
+            // DirectState ..
+            if(caller.isFunctionAvailable("glGetNamedBufferParameterivEXT")) {
+                caller.getGL2().glGetNamedBufferParameterivEXT(buffer, GL.GL_BUFFER_SIZE, tmp, 0);
+            } else {
+                throw new GLException("Error: getDirectStateBufferSize called with unknown state and GL function 'glGetNamedBufferParameterivEXT' n/a to query size");
+            }
+        } else {
+            caller.glGetBufferParameteriv(target, GL.GL_BUFFER_SIZE, tmp, 0);
+        }
+        if (tmp[0] == 0) {
+          // Assume something is wrong rather than silently going along
+          throw new GLException("Error: buffer size returned by "+
+                                ((0==target)?"glGetNamedBufferParameterivEXT":"glGetBufferParameteriv")+
+                                " was zero; probably application error");
+        }
+        // Assume we just don't know what's happening
+        sz = tmp[0];
+        bufferSizeMap.put(buffer, sz);
+        if (DEBUG) {
+          System.err.println("GLBufferSizeTracker.getBufferSize(): made slow query to cache size " +
+                             sz +
+                             " for buffer " +
+                             buffer);
+        }
+      }
+      return sz;
   }
 
   // This should be called on any major event where we might start

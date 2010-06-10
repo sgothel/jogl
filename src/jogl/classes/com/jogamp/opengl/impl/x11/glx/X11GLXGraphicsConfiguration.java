@@ -73,7 +73,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       if(null==caps) {
           throw new GLException("GLCapabilities null of "+toHexString(fbcfg));
       }
-      XVisualInfo xvi = GLX.glXGetVisualFromFBConfigCopied(display, fbcfg);
+      XVisualInfo xvi = GLX.glXGetVisualFromFBConfig(display, fbcfg);
       if(null==xvi) {
           throw new GLException("XVisualInfo null of "+toHexString(fbcfg));
       }
@@ -326,7 +326,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
   public static long glXFBConfigID2FBConfig(long display, int screen, int id) {
       int[] attribs = new int[] { GLX.GLX_FBCONFIG_ID, id, 0 };
       int[] count = { -1 };
-      PointerBuffer fbcfgsL = GLX.glXChooseFBConfigCopied(display, screen, attribs, 0, count, 0);
+      PointerBuffer fbcfgsL = GLX.glXChooseFBConfig(display, screen, attribs, 0, count, 0);
       if (fbcfgsL == null || fbcfgsL.limit()<1) {
           return 0;
       }
@@ -336,20 +336,14 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
   // Visual Info
 
   public static XVisualInfo XVisualID2XVisualInfo(long display, long visualID) {
-      XVisualInfo res = null;
-      NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-      try{
-          int[] count = new int[1];
-          XVisualInfo template = XVisualInfo.create();
-          template.setVisualid(visualID);
-          XVisualInfo[] infos = X11Lib.XGetVisualInfoCopied(display, X11Lib.VisualIDMask, template, count, 0);
-          if (infos == null || infos.length == 0) {
+      int[] count = new int[1];
+      XVisualInfo template = XVisualInfo.create();
+      template.setVisualid(visualID);
+      XVisualInfo[] infos = X11Lib.XGetVisualInfo(display, X11Lib.VisualIDMask, template, count, 0);
+      if (infos == null || infos.length == 0) {
             return null;
-          }  
-        res = XVisualInfo.create(infos[0]);
-      } finally {
-          NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
-      }
+      }  
+      XVisualInfo res = XVisualInfo.create(infos[0]);
       if (DEBUG) {
         System.err.println("!!! Fetched XVisualInfo for visual ID " + toHexString(visualID));
         System.err.println("!!! Resulting XVisualInfo: visualid = " + toHexString(res.getVisualid()));

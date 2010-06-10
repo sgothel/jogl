@@ -35,59 +35,37 @@ import java.util.*;
 import java.security.*;
 import javax.media.opengl.GLException;
 
-public class MacOSXCGLDynamicLookupHelper extends DesktopGLDynamicLookupHelper {
-    private static final MacOSXCGLDynamicLookupHelper macOSXCGLDynamicLookupHelper;
-
-    static {
-        MacOSXCGLDynamicLookupHelper tmp = null;
-        try {
-            tmp = new MacOSXCGLDynamicLookupHelper();
-        } catch (GLException gle) {
-            if(DEBUG) {
-                gle.printStackTrace();
-            }
-        }
-        macOSXCGLDynamicLookupHelper = tmp;
-    }
-
-    public static MacOSXCGLDynamicLookupHelper getMacOSXCGLDynamicLookupHelper() {
-        return macOSXCGLDynamicLookupHelper;
-    }
-
-    protected MacOSXCGLDynamicLookupHelper() {
+public class MacOSXCGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundleInfo  {
+    protected MacOSXCGLDynamicLibraryBundleInfo() {
         super();
     }
 
-    public synchronized void loadGLULibrary() {
-        if(null==gluLib) {
-            List/*<String>*/ gluLibNames = new ArrayList();
-            gluLibNames.add("/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib");
-            gluLibNames.add("GLU");
-            gluLib = loadFirstAvailable(gluLibNames, null, false);
-            if(null != gluLib) {
-                glLibraries.add(gluLib);
-            }
-        }
-    }
-    NativeLibrary gluLib = null;
+    public List getToolLibNames() {
+        List/*<List>*/ libNamesList = new ArrayList();
 
-    protected final List/*<String>*/ getGLLibNames() {
         List/*<String>*/ glesLibNames = new ArrayList();
+
         glesLibNames.add("/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib");
         glesLibNames.add("GL");
-        return glesLibNames;
+
+        libNamesList.add(glesLibNames);
+
+        return libNamesList;
     }
 
-    protected final List/*<String>*/ getGLXLibNames() {
-        return null;
+    public final List getToolGetProcAddressFuncNameList() {
+        return null; 
+        /** OSX manual says: NSImage use is discouraged
+        List res = new ArrayList();
+        res.add("GetProcAddress"); // dummy
+        return res; */
     }
 
-    protected final String getGLXGetProcAddressFuncName() {
-        return "getProcAddress" ; // dummy 
-    }
-
-    protected long dynamicLookupFunctionOnGLX(long glxGetProcAddressHandle, String glFuncName) {
-        return CGL.getProcAddress(glFuncName); // manual implementation 
+    public final long toolDynamicLookupFunction(long toolGetProcAddressHandle, String funcName) {
+        return 0;
+        /** OSX manual says: NSImage use is discouraged
+            return CGL.getProcAddress(glFuncName); // manual implementation 
+         */
     }
 }
 

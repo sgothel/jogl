@@ -89,27 +89,27 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
     header.setBiYPelsPerMeter(0);
     header.setBiClrUsed(0);
     header.setBiClrImportant(0);
-    header.setBiCompression(WGL.BI_RGB);
+    header.setBiCompression(GDI.BI_RGB);
     header.setBiSizeImage(width * height * bitsPerPixel / 8);
 
-    long hdc = WGL.CreateCompatibleDC(0);
+    long hdc = GDI.CreateCompatibleDC(0);
     if (hdc == 0) {
-      System.out.println("LastError: " + WGL.GetLastError());
+      System.out.println("LastError: " + GDI.GetLastError());
       throw new GLException("Error creating device context for offscreen OpenGL context");
     }
     ((SurfaceChangeable)nw).setSurfaceHandle(hdc);
 
-    hbitmap = WGL.CreateDIBSection(hdc, info, WGL.DIB_RGB_COLORS, null, 0, 0);
+    hbitmap = GDI.CreateDIBSection(hdc, info, GDI.DIB_RGB_COLORS, null, 0, 0);
     if (hbitmap == 0) {
-      WGL.DeleteDC(hdc);
+      GDI.DeleteDC(hdc);
       hdc = 0;
       throw new GLException("Error creating offscreen bitmap of width " + width +
                             ", height " + height);
     }
-    if ((origbitmap = WGL.SelectObject(hdc, hbitmap)) == 0) {
-      WGL.DeleteObject(hbitmap);
+    if ((origbitmap = GDI.SelectObject(hdc, hbitmap)) == 0) {
+      GDI.DeleteObject(hbitmap);
       hbitmap = 0;
-      WGL.DeleteDC(hdc);
+      GDI.DeleteDC(hdc);
       hdc = 0;
       throw new GLException("Error selecting bitmap into new device context");
     }
@@ -121,9 +121,9 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
     NativeWindow nw = getNativeWindow();
     if (nw.getSurfaceHandle() != 0) {
       // Must destroy bitmap and device context
-      WGL.SelectObject(nw.getSurfaceHandle(), origbitmap);
-      WGL.DeleteObject(hbitmap);
-      WGL.DeleteDC(nw.getSurfaceHandle());
+      GDI.SelectObject(nw.getSurfaceHandle(), origbitmap);
+      GDI.DeleteObject(hbitmap);
+      GDI.DeleteDC(nw.getSurfaceHandle());
       origbitmap = 0;
       hbitmap = 0;
       ((SurfaceChangeable)nw).setSurfaceHandle(0);

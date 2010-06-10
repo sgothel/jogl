@@ -27,7 +27,7 @@ if [ "$1" = "-libdir" ] ; then
     shift
 fi
 
-# -Djogl.cg=1 -Dx11.cg.lib=../../lib-linux-x86_64
+# -Djogl.cg=1
 #    -Dc.compiler.debug=true \
 #    -Dbuild.noarchives=true \
 
@@ -41,11 +41,21 @@ fi
 #LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64
 #export LD_LIBRARY_PATH
 
+LOGF=make.jogl.all.linux-x86_64.log
+rm -f $LOGF
+
+# export LIBGL_DRIVERS_PATH=/usr/lib/fglrx/dri:/usr/lib32/fglrx/dri
+# export LIBGL_DEBUG=verbose
+echo LIBXCB_ALLOW_SLOPPY_LOCK: $LIBXCB_ALLOW_SLOPPY_LOCK 2>&1 | tee -a $LOGF
+echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a $LOGF
+echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $LOGF
+
 ant  \
     $CUSTOMLIBDIR \
     -Dbuild.noarchives=true \
-    -Djogl.cg=1 -Dx11.cg.lib=../../lib-linux-x86_64 \
+    -Djogl.cg=1 \
     -Drootrel.build=build-x86_64 \
     -DuseKD=true \
     -DuseOpenMAX=true \
-    $* 2>&1 | tee make.jogl.all.linux-x86_64.log
+    $* 2>&1 | tee -a $LOGF
+

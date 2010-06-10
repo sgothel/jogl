@@ -33,8 +33,9 @@
 
 package com.jogamp.newt;
 
-import com.jogamp.newt.event.*;
 import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
+import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.Debug;
 import com.jogamp.newt.util.EDTUtil;
 import java.util.*;
@@ -112,7 +113,7 @@ public abstract class Display {
         Map displayMap = getCurrentDisplayMap();
         Set entrySet = displayMap.entrySet();
         Iterator i = entrySet.iterator();
-        System.err.println(prefix+" DisplayMap[] entries: "+entrySet.size()+" - "+Thread.currentThread());
+        System.err.println(prefix+" DisplayMap[] entries: "+entrySet.size()+" - "+getThreadName());
         for(int j=0; i.hasNext(); j++) {
             Map.Entry entry = (Map.Entry) i.next();
             System.err.println("  ["+j+"] "+entry.getKey()+" -> "+entry.getValue());
@@ -142,12 +143,12 @@ public abstract class Display {
                 display.type=type;
                 display.refCount=0;
                 if(DEBUG) {
-                    System.err.println("Display.create("+getFQName(type, name)+") NEW: refCount "+display.refCount+", "+display+" "+Thread.currentThread());
+                    System.err.println("Display.create("+getFQName(type, name)+") NEW: refCount "+display.refCount+", "+display+" "+getThreadName());
                 }
             } else {
                 tmpDisplay = null;
                 if(DEBUG) {
-                    System.err.println("Display.create("+getFQName(type, name)+") REUSE: refCount "+display.refCount+", "+display+" "+Thread.currentThread());
+                    System.err.println("Display.create("+getFQName(type, name)+") REUSE: refCount "+display.refCount+", "+display+" "+getThreadName());
                 }
             }
             synchronized(display) {
@@ -163,7 +164,7 @@ public abstract class Display {
                     }
                     setCurrentDisplay(display);
                     if(DEBUG) {
-                        System.err.println("Display.create("+getFQName(type, name)+") CreateNative: "+display+" "+Thread.currentThread());
+                        System.err.println("Display.create("+getFQName(type, name)+") CreateNative: "+display+" "+getThreadName());
                     }
                 }
             }
@@ -192,7 +193,7 @@ public abstract class Display {
                                               new Runnable() {
                                                   public void run() {
                                                       if(null!=f_dpy.getGraphicsDevice()) {
-                                                          f_dpy.pumpMessagesImpl();
+                                                          f_dpy.dispatchMessages();
                                                       } } } );
                         edt = edtUtil.start();
                     }
@@ -220,7 +221,7 @@ public abstract class Display {
         if(0==refCount) {
             removeCurrentDisplay(type, name);
             if(DEBUG) {
-                System.err.println("Display.destroy("+getFQName()+") REMOVE: "+this+" "+Thread.currentThread());
+                System.err.println("Display.destroy("+getFQName()+") REMOVE: "+this+" "+getThreadName());
             }
             final Display f_dpy = this;
             final EDTUtil f_edt = edtUtil;
@@ -240,7 +241,7 @@ public abstract class Display {
             aDevice = null;
         } else {
             if(DEBUG) {
-                System.err.println("Display.destroy("+getFQName()+") KEEP: refCount "+refCount+", "+this+" "+Thread.currentThread());
+                System.err.println("Display.destroy("+getFQName()+") KEEP: refCount "+refCount+", "+this+" "+getThreadName());
             }
         }
         if(DEBUG) {
@@ -267,7 +268,7 @@ public abstract class Display {
 
     protected String validateDisplayName(String name, long handle) {
         if(null==name && 0!=handle) {
-            name="wrapping-0x"+Long.toHexString(handle);
+            name="wrapping-"+toHexString(handle);
         }
         return ( null == name ) ? nilString : name ;
     }
@@ -290,11 +291,6 @@ public abstract class Display {
     }
 
     public synchronized void pumpMessages() {
-        pumpMessagesImpl();
-    }
-
-    private void pumpMessagesImpl() {
-        if(0==refCount) return;
         dispatchMessages();
     }
 
@@ -302,27 +298,73 @@ public abstract class Display {
         return "NEWT-Display["+getFQName()+", refCount "+refCount+", hasEDT "+(null!=edtUtil)+", "+aDevice+"]";
     }
 
+    public static String getThreadName() {
+        return Thread.currentThread().getName();
+    }
+
+    public static String toHexString(int hex) {
+        return "0x" + Integer.toHexString(hex);
+    }
+
+    public static String toHexString(long hex) {
+        return "0x" + Long.toHexString(hex);
+    }
+
+
     protected abstract void dispatchMessagesNative();
 
+    private Object eventsLock = new Object();
     private LinkedList/*<NEWTEvent>*/ events = new LinkedList();
+    private boolean events2Wait = false;
 
     protected void dispatchMessages() {
+        if(0==refCount) return; // we should not exist ..
+
         if(!events.isEmpty()) {
-            synchronized(events) {
-                while (!events.isEmpty()) {
-                    NEWTEvent e = (NEWTEvent) events.removeFirst();
-                    Object source = e.getSource();
-                    if(source instanceof Window) {
-                        ((Window)source).sendEvent(e);
-                    } else {
-                        throw new RuntimeException("Event source not a NEWT Window: "+source.getClass().getName()+", "+source);
+            if(events2Wait) {
+                synchronized(eventsLock) {
+                    while (!events.isEmpty()) {
+                        NEWTEvent e = (NEWTEvent) events.removeFirst();
+                        Object source = e.getSource();
+                        if(source instanceof Window) {
+                            ((Window)source).sendEvent(e);
+                        } else {
+                            throw new RuntimeException("Event source not a NEWT Window: "+source.getClass().getName()+", "+source);
+                        }
+                    }
+                    events2Wait = false; // clear
+                    eventsLock.notifyAll();
+                }
+            } else {
+                // swap events list to free ASAP
+                LinkedList/*<NEWTEvent>*/ _events = null;
+                synchronized(eventsLock) {
+                    if(!events.isEmpty()) {
+                        _events = events;
+                        events = new LinkedList();
+                    }
+                    eventsLock.notifyAll();
+                }
+                if( null != _events ) {
+                    while (!_events.isEmpty()) {
+                        NEWTEvent e = (NEWTEvent) _events.removeFirst();
+                        Object source = e.getSource();
+                        if(source instanceof Window) {
+                            ((Window)source).sendEvent(e);
+                        } else {
+                            throw new RuntimeException("Event source not a NEWT Window: "+source.getClass().getName()+", "+source);
+                        }
                     }
                 }
-                events.notifyAll();
             }
         }
 
-        dispatchMessagesNative();
+        // lock();
+        try {
+            dispatchMessagesNative();
+        } finally {
+            // unlock();
+        }
     }
 
     public void enqueueEvent(NEWTEvent e) {
@@ -330,17 +372,18 @@ public abstract class Display {
     }
 
     public void enqueueEvent(boolean wait, NEWTEvent e) {
-        synchronized(events) {
+        synchronized(eventsLock) {
             if(DEBUG) {
                 System.out.println("Display.enqueueEvent: START - wait "+wait+", "+e);
             }
+            events2Wait = wait;
             events.addLast(e);
         }
         if(wait && !events.isEmpty()) {
-            synchronized(events) {
+            synchronized(eventsLock) {
                 while(!events.isEmpty()) {
                     try {
-                        events.wait();
+                        eventsLock.wait();
                     } catch (InterruptedException ie) {
                         ie.printStackTrace();
                     }
@@ -352,12 +395,13 @@ public abstract class Display {
         }
     }
 
+    public void lock() { 
+        aDevice.lock();
+    }
 
-    /** Default impl. nop - Currently only X11 needs a Display lock */
-    protected void lockDisplay() { }
-
-    /** Default impl. nop - Currently only X11 needs a Display lock */
-    protected void unlockDisplay() { }
+    public void unlock() { 
+        aDevice.unlock();
+    }
 
     protected EDTUtil edtUtil = null;
     protected Thread  edt = null;

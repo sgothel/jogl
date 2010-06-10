@@ -25,53 +25,42 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.jogamp.opengl.impl.egl;
+package com.jogamp.opengl.impl;
 
-import java.util.*;
-import com.jogamp.opengl.impl.*;
+import com.jogamp.common.os.DynamicLibraryBundleInfo;
+import java.util.List;
+import java.util.ArrayList;
 
-/**
- * Implementation of the EGLDynamicLookupHelper for ES1.
- */
-public class EGLES1DynamicLookupHelper extends EGLDynamicLookupHelper {
-  
-    protected EGLES1DynamicLookupHelper() {
+public abstract class DesktopGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
+    private static int posGlueLibGL2ES12;
+    private static int posGlueLibGLDESKTOP;
+    private static List/*<String>*/ glueLibNames;
+    static {
+        glueLibNames = new ArrayList();
+
+        glueLibNames.addAll(getGlueLibNamesPreload());
+
+        posGlueLibGL2ES12 = glueLibNames.size();
+        glueLibNames.add("jogl_gl2es12");
+
+        posGlueLibGLDESKTOP = glueLibNames.size();
+        glueLibNames.add("jogl_desktop");
+    }
+
+    public static final int getGlueLibPosGL2ES12() { 
+        return posGlueLibGL2ES12; 
+    }
+
+    public static final int getGlueLibPosGLDESKTOP() { 
+        return posGlueLibGLDESKTOP; 
+    }
+
+    public DesktopGLDynamicLibraryBundleInfo() {
         super();
     }
 
-    protected void loadGLJNILibrary() {
-        Throwable t=null;
-        try {
-            GLJNILibLoader.loadES1();
-            hasESBinding = true;
-        } catch (UnsatisfiedLinkError ule) {
-            t=ule;
-        } catch (SecurityException se) {
-            t=se;
-        } catch (NullPointerException npe) {
-            t=npe;
-        } catch (RuntimeException re) {
-            t=re;
-        }
-        if(DEBUG && null!=t) {
-            System.err.println("EGLES1DynamicLookupHelper: ES1 Binding Library not available");
-            t.printStackTrace();
-        }
-    }
-
-    protected List/*<String>*/ getGLLibNames() {
-        List/*<String>*/ glesLibNames = new ArrayList();
-
-        glesLibNames.add("GLES_CM");
-        glesLibNames.add("GLES_CL");
-        glesLibNames.add("GLESv1_CM");
-        // for windows distributions using the 'unlike' lib prefix, 
-        // where our tool does not add it.
-        glesLibNames.add("libGLES_CM");
-        glesLibNames.add("libGLES_CL");
-        glesLibNames.add("libGLESv1_CM");
-
-        return glesLibNames;
+    public final List/*<String>*/ getGlueLibNames() {
+        return glueLibNames;
     }
 }
 

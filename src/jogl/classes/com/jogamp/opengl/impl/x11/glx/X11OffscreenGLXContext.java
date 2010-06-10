@@ -71,7 +71,7 @@ public class X11OffscreenGLXContext extends X11GLXContext {
     return true;
   }
 
-  protected void create() {
-    createContext(false);
+  protected boolean createImpl() {
+    return createContext(false);
   }
 }

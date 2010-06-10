@@ -52,8 +52,25 @@ import com.jogamp.nativewindow.impl.NullWindow;
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final boolean VERBOSE = Debug.verbose();
 
+  private static final DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper;
+
+  static {
+    DesktopGLDynamicLookupHelper tmp = null;
+    try {
+        tmp = new DesktopGLDynamicLookupHelper(new WindowsWGLDynamicLibraryBundleInfo());
+    } catch (GLException gle) {
+        if(DEBUG) {
+            gle.printStackTrace();
+        }
+    }
+    windowsWGLDynamicLookupHelper = tmp;
+    if(null!=windowsWGLDynamicLookupHelper) {
+        WGL.getWGLProcAddressTable().reset(windowsWGLDynamicLookupHelper);
+    }
+  }
+
   public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
-      return WindowsWGLDynamicLookupHelper.getWindowsWGLDynamicLookupHelper();
+      return windowsWGLDynamicLookupHelper;
   }
 
   public WindowsWGLDrawableFactory() {
@@ -62,7 +79,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
     new WindowsWGLGraphicsConfigurationFactory();
-    WindowsWGLDynamicLookupHelper.getWindowsWGLDynamicLookupHelper(); // setup and load ..
     try {
       ReflectionUtil.createInstance("com.jogamp.opengl.impl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory",
                                   new Object[] {});
@@ -190,14 +206,14 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   static String wglGetLastError() {
-    long err = WGL.GetLastError();
+    long err = GDI.GetLastError();
     String detail = null;
     switch ((int) err) {
-      case WGL.ERROR_INVALID_PIXEL_FORMAT: detail = "ERROR_INVALID_PIXEL_FORMAT";       break;
-      case WGL.ERROR_NO_SYSTEM_RESOURCES:  detail = "ERROR_NO_SYSTEM_RESOURCES";        break;
-      case WGL.ERROR_INVALID_DATA:         detail = "ERROR_INVALID_DATA";               break;
-      case WGL.ERROR_PROC_NOT_FOUND:       detail = "ERROR_PROC_NOT_FOUND";             break;
-      case WGL.ERROR_INVALID_WINDOW_HANDLE:detail = "ERROR_INVALID_WINDOW_HANDLE";      break;
+      case GDI.ERROR_INVALID_PIXEL_FORMAT: detail = "ERROR_INVALID_PIXEL_FORMAT";       break;
+      case GDI.ERROR_NO_SYSTEM_RESOURCES:  detail = "ERROR_NO_SYSTEM_RESOURCES";        break;
+      case GDI.ERROR_INVALID_DATA:         detail = "ERROR_INVALID_DATA";               break;
+      case GDI.ERROR_PROC_NOT_FOUND:       detail = "ERROR_PROC_NOT_FOUND";             break;
+      case GDI.ERROR_INVALID_WINDOW_HANDLE:detail = "ERROR_INVALID_WINDOW_HANDLE";      break;
       default:                             detail = "(Unknown error code " + err + ")"; break;
     }
     return detail;
@@ -231,17 +247,17 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       rampData[i + 2 * GAMMA_RAMP_LENGTH] = scaledValue;
     }
 
-    long screenDC = WGL.GetDC(0);
-    boolean res = WGL.SetDeviceGammaRamp(screenDC, ShortBuffer.wrap(rampData));
-    WGL.ReleaseDC(0, screenDC);
+    long screenDC = GDI.GetDC(0);
+    boolean res = GDI.SetDeviceGammaRamp(screenDC, ShortBuffer.wrap(rampData));
+    GDI.ReleaseDC(0, screenDC);
     return res;
   }
 
   protected Buffer getGammaRamp() {
     ShortBuffer rampData = ShortBuffer.wrap(new short[3 * GAMMA_RAMP_LENGTH]);
-    long screenDC = WGL.GetDC(0);
-    boolean res = WGL.GetDeviceGammaRamp(screenDC, rampData);
-    WGL.ReleaseDC(0, screenDC);
+    long screenDC = GDI.GetDC(0);
+    boolean res = GDI.GetDeviceGammaRamp(screenDC, rampData);
+    GDI.ReleaseDC(0, screenDC);
     if (!res) {
       return null;
     }
@@ -253,8 +269,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       // getGammaRamp failed earlier
       return;
     }
-    long screenDC = WGL.GetDC(0);
-    WGL.SetDeviceGammaRamp(screenDC, originalGammaRamp);
-    WGL.ReleaseDC(0, screenDC);
+    long screenDC = GDI.GetDC(0);
+    GDI.SetDeviceGammaRamp(screenDC, originalGammaRamp);
+    GDI.ReleaseDC(0, screenDC);
   }
 }

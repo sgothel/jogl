@@ -47,22 +47,12 @@ import com.jogamp.opengl.impl.*;
 import com.jogamp.opengl.impl.x11.*;
 
 public class X11OnscreenGLXContext extends X11GLXContext {
-  // This indicates whether the context we have created is indirect
-  // and therefore requires the toolkit to be locked around all GL
-  // calls rather than just all GLX calls
-  protected boolean isIndirect;
-
   public X11OnscreenGLXContext(X11OnscreenGLXDrawable drawable,
                               GLContext shareWith) {
     super(drawable, shareWith);
   }
   
-  public boolean isOptimizable() {
-    return super.isOptimizable() && !isIndirect;
-  }
-
-  protected void create() {
-    createContext(true);
-    isIndirect = !GLX.glXIsDirect(drawable.getNativeWindow().getDisplayHandle(), contextHandle);
+  protected boolean createImpl() {
+    return createContext(true);
   }
 }

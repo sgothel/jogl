@@ -44,6 +44,7 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
 
 import com.jogamp.opengl.impl.*;
+import com.jogamp.nativewindow.impl.jawt.JAWTUtil;
 
 import java.awt.Canvas;
 import java.awt.Color;
@@ -73,9 +74,15 @@ import java.security.*;
 
 public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
-  private static final boolean DEBUG = Debug.debug("GLCanvas");
+  private static final boolean DEBUG;
+  private static final GLProfile defaultGLProfile;
 
-  static private GLProfile defaultGLProfile = GLProfile.getDefault();
+  static {
+      NativeWindowFactory.initSingleton();
+      defaultGLProfile = GLProfile.getDefault();
+      DEBUG = Debug.debug("GLCanvas");
+  }
+
   private GLProfile glProfile;
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private GraphicsConfiguration chosen;
@@ -396,22 +403,27 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         /*
          * Save the chosen capabilities for use in getGraphicsConfiguration().
          */
-        awtConfig = chooseGraphicsConfiguration(capabilities, chooser, device);
-        if(DEBUG) {
-            Exception e = new Exception("Created Config: "+awtConfig);
-            e.printStackTrace();
-        }
-        if(null!=awtConfig) {
-          // update ..
-          chosen = awtConfig.getGraphicsConfiguration();
+        JAWTUtil.lockToolkit();
+        try {
+            awtConfig = chooseGraphicsConfiguration(capabilities, chooser, device);
+            if(DEBUG) {
+                Exception e = new Exception("Created Config: "+awtConfig);
+                e.printStackTrace();
+            }
+            if(null!=awtConfig) {
+              // update ..
+              chosen = awtConfig.getGraphicsConfiguration();
 
+            }
+            if(null==awtConfig) {
+              throw new GLException("Error: AWTGraphicsConfiguration is null");
+            }
+            drawable = GLDrawableFactory.getFactory(glProfile).createGLDrawable(NativeWindowFactory.getNativeWindow(this, awtConfig));
+            context = (GLContextImpl) drawable.createContext(shareWith);
+            context.setSynchronized(true);
+        } finally {
+            JAWTUtil.unlockToolkit();
         }
-        if(null==awtConfig) {
-          throw new GLException("Error: AWTGraphicsConfiguration is null");
-        }
-        drawable = GLDrawableFactory.getFactory(glProfile).createGLDrawable(NativeWindowFactory.getNativeWindow(this, awtConfig));
-        context = (GLContextImpl) drawable.createContext(shareWith);
-        context.setSynchronized(true);
 
         if(DEBUG) {
             System.err.println("Created Drawable: "+drawable);
@@ -536,6 +548,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
   public NativeWindow getNativeWindow() {
     return drawable.getNativeWindow();
+  }
+
+  public long getHandle() {
+    return drawable.getHandle();
   }
 
   public GLDrawableFactory getFactory() {

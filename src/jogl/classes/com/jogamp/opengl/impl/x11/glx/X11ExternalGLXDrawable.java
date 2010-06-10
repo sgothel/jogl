@@ -62,46 +62,41 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
   }
 
   protected static X11ExternalGLXDrawable create(GLDrawableFactory factory, GLProfile glp) {
-    ((GLDrawableFactoryImpl)factory).lockToolkit();
-    try {
-        long context = GLX.glXGetCurrentContext();
-        if (context == 0) {
-          throw new GLException("Error: current context null");
-        }
-        long display = GLX.glXGetCurrentDisplay();
-        if (display == 0) {
-          throw new GLException("Error: current display null");
-        }
-        long drawable = GLX.glXGetCurrentDrawable();
-        if (drawable == 0) {
-          throw new GLException("Error: attempted to make an external GLDrawable without a drawable current");
-        }
-        int[] val = new int[1];
-        GLX.glXQueryContext(display, context, GLX.GLX_SCREEN, val, 0);
-        X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val[0]);
-
-        GLX.glXQueryContext(display, context, GLX.GLX_FBCONFIG_ID, val, 0);
-        X11GLXGraphicsConfiguration cfg = X11GLXGraphicsConfiguration.create(glp, x11Screen, val[0]);
-
-        int w, h;
-        GLX.glXQueryDrawable(display, drawable, GLX.GLX_WIDTH, val, 0);
-        w=val[0];
-        GLX.glXQueryDrawable(display, drawable, GLX.GLX_HEIGHT, val, 0);
-        h=val[0];
-
-        GLX.glXQueryContext(display, context, GLX.GLX_RENDER_TYPE, val, 0);
-        if ((val[0] & GLX.GLX_RGBA_TYPE) == 0) {
-          if (DEBUG) {
-            System.err.println("X11ExternalGLXDrawable: WARNING: forcing GLX_RGBA_TYPE for newly created contexts (current 0x"+Integer.toHexString(val[0])+")");
-          }
-        }
-        NullWindow nw = new NullWindow(cfg);
-        nw.setSurfaceHandle(drawable);
-        nw.setSize(w, h);
-        return new X11ExternalGLXDrawable(factory, nw, GLX.GLX_RGBA_TYPE);
-    } finally {
-        ((GLDrawableFactoryImpl)factory).unlockToolkit();
+    long context = GLX.glXGetCurrentContext();
+    if (context == 0) {
+      throw new GLException("Error: current context null");
     }
+    long display = GLX.glXGetCurrentDisplay();
+    if (display == 0) {
+      throw new GLException("Error: current display null");
+    }
+    long drawable = GLX.glXGetCurrentDrawable();
+    if (drawable == 0) {
+      throw new GLException("Error: attempted to make an external GLDrawable without a drawable current");
+    }
+    int[] val = new int[1];
+    GLX.glXQueryContext(display, context, GLX.GLX_SCREEN, val, 0);
+    X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val[0]);
+
+    GLX.glXQueryContext(display, context, GLX.GLX_FBCONFIG_ID, val, 0);
+    X11GLXGraphicsConfiguration cfg = X11GLXGraphicsConfiguration.create(glp, x11Screen, val[0]);
+
+    int w, h;
+    GLX.glXQueryDrawable(display, drawable, GLX.GLX_WIDTH, val, 0);
+    w=val[0];
+    GLX.glXQueryDrawable(display, drawable, GLX.GLX_HEIGHT, val, 0);
+    h=val[0];
+
+    GLX.glXQueryContext(display, context, GLX.GLX_RENDER_TYPE, val, 0);
+    if ((val[0] & GLX.GLX_RGBA_TYPE) == 0) {
+      if (DEBUG) {
+        System.err.println("X11ExternalGLXDrawable: WARNING: forcing GLX_RGBA_TYPE for newly created contexts (current 0x"+Integer.toHexString(val[0])+")");
+      }
+    }
+    NullWindow nw = new NullWindow(cfg);
+    nw.setSurfaceHandle(drawable);
+    nw.setSize(w, h);
+    return new X11ExternalGLXDrawable(factory, nw, GLX.GLX_RGBA_TYPE);
   }
 
   public GLContext createContext(GLContext shareWith) {
@@ -125,8 +120,8 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
       super(drawable, shareWith);
     }
 
-    protected void create() {
-      createContext(true);
+    protected boolean createImpl() {
+      return createContext(true);
     }
   }
 }

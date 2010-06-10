@@ -58,52 +58,6 @@ public class GLJNILibLoader extends JNILibLoaderBase {
     });
   }
 
-  public static void loadGLDesktop() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        loadLibrary("jogl_desktop", nativeOSPreload, true);
-        return null;
-      }
-    });
-  }
-
-  public static void loadGLDesktopES12() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        loadLibrary("jogl_gl2es12", nativeOSPreload, true);
-        return null;
-      }
-    });
-  }
-
-  public static void loadES2() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        loadLibrary("jogl_es2", nativeOSPreload, true);
-        return null;
-      }
-    });
-  }
-
-  public static void loadES1() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        loadLibrary("jogl_es1", nativeOSPreload, true);
-        return null;
-      }
-    });
-  }
-
-  public static void loadCgImpl() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        String[] preload = { "nativewindow", "cg", "cgGL" };
-        loadLibrary("jogl_cg", preload, true);
-        return null;
-      }
-    });
-  }
-
   private static final String[] nativeOSPreload = { "nativewindow_x11" };
 }
 

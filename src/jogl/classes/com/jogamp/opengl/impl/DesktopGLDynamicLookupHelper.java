@@ -27,55 +27,45 @@
 
 package com.jogamp.opengl.impl;
 
-/**
- * Abstract implementation of the DynamicLookupHelper for GL,
- * which decouples it's dependencies to EGLDrawableFactory.
- *
- * Currently two implementations exist, one for ES1 and one for ES2.
- */
-public abstract class DesktopGLDynamicLookupHelper extends GLDynamicLookupHelper {
-    private boolean hasGLBinding = false;
-    private boolean hasGLES12Binding = false;
+import com.jogamp.common.os.DynamicLibraryBundle;
+import com.jogamp.common.os.DynamicLibraryBundleInfo;
+import com.jogamp.common.os.DynamicLookupHelper;
+import com.jogamp.common.os.NativeLibrary;
+import java.util.*;
+import java.security.*;
+import javax.media.opengl.GLException;
 
-    public boolean hasGLBinding() { return hasGLBinding; }
-    public boolean hasGLES12Binding() { return hasGLES12Binding; }
+public class DesktopGLDynamicLookupHelper extends GLDynamicLookupHelper {
 
-    protected void loadGLJNILibrary() {
-        Throwable t=null;
-
-        try {
-            GLJNILibLoader.loadGLDesktop();
-            hasGLBinding = true;
-        } catch (UnsatisfiedLinkError ule) {
-            t=ule;
-        } catch (SecurityException se) {
-            t=se;
-        } catch (NullPointerException npe) {
-            t=npe;
-        } catch (RuntimeException re) {
-            t=re;
-        }
-        if(DEBUG && null!=t) {
-            System.err.println("DesktopGLDynamicLookupHelper: Desktop GL Binding Library not available");
-            t.printStackTrace();
-        }
-
-        try {
-            GLJNILibLoader.loadGLDesktopES12();
-            hasGLES12Binding = true;
-        } catch (UnsatisfiedLinkError ule) {
-            t=ule;
-        } catch (SecurityException se) {
-            t=se;
-        } catch (NullPointerException npe) {
-            t=npe;
-        } catch (RuntimeException re) {
-            t=re;
-        }
-        if(DEBUG && null!=t) {
-            System.err.println("DesktopGLDynamicLookupHelper: Desktop GLES12 Binding Library not available");
-            t.printStackTrace();
-        }
+    public DesktopGLDynamicLookupHelper(DesktopGLDynamicLibraryBundleInfo info) {
+        super(info);
     }
+
+    public DesktopGLDynamicLibraryBundleInfo getDesktopGLBundleInfo() { return (DesktopGLDynamicLibraryBundleInfo) getBundleInfo(); }
+
+    public boolean hasGLBinding() {
+        return isToolLibLoaded() && isGlueLibLoaded(DesktopGLDynamicLibraryBundleInfo.getGlueLibPosGLDESKTOP());
+    }
+
+    public boolean hasGLES12Binding() {
+        return isToolLibLoaded() && isGlueLibLoaded(DesktopGLDynamicLibraryBundleInfo.getGlueLibPosGL2ES12());
+    }
+
+    public synchronized boolean loadGLULibrary() {
+        /** hacky code .. where all platform GLU libs are tried ..*/
+        if(null==gluLib) {
+            List/*<String>*/ gluLibNames = new ArrayList();
+            gluLibNames.add("/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib"); // osx
+            gluLibNames.add("libGLU.so"); // unix
+            gluLibNames.add("GLU32"); // windows
+            gluLibNames.add("GLU"); // generic
+            gluLib = loadFirstAvailable(gluLibNames, null, true);
+            if(null != gluLib) {
+                nativeLibraries.add(gluLib);
+            }
+        }
+        return null != gluLib ;
+    }
+    NativeLibrary gluLib = null;
 }
 

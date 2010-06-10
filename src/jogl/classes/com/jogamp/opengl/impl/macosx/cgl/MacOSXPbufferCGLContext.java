@@ -38,45 +38,22 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     // FIXME: not clear whether this is really necessary, but since
     // the API docs seem to imply it is and since it doesn't seem to
     // impact performance, leaving it in
-    CGL.setContextTextureImageToPBuffer(contextHandle, drawable.getPbuffer(), GL.GL_FRONT);
+    CGL.setContextTextureImageToPBuffer(contextHandle, drawable.getHandle(), GL.GL_FRONT);
   }
 
   public void releasePbufferFromTexture() {
   }
 
-  protected int makeCurrentImpl() throws GLException {
-    if (drawable.getPbuffer() == 0) {
-      if (DEBUG) {
-        System.err.println("Pbuffer not instantiated yet for " + this);
-      }
-      // pbuffer not instantiated yet
-      return CONTEXT_NOT_CURRENT;
-    }
-
+  protected void makeCurrentImpl(boolean newCreated) throws GLException {
     if (getOpenGLMode() != drawable.getOpenGLMode()) {
       setOpenGLMode(drawable.getOpenGLMode());
     }
 
-    if (contextHandle == 0) {
-      create();
-      if(!isCreated()) {
-        return CONTEXT_NOT_CURRENT;
-      }
-      if(!isNSContext()) {
-          throw new GLException("Not a NS Context");
-      }
-      if (DEBUG) {
-        System.err.println("!!! Created OpenGL context (NS) " + toHexString(contextHandle) + " for " + getClass().getName());
-      }
-    }
-    
     if (!impl.makeCurrent(contextHandle)) {
       throw new GLException("Error making Context (NS) current");
     }
             
-    if (isCreated()) {
-      setGLFunctionAvailability(false, -1, -1, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
-
+    if (newCreated) {
       // Initialize render-to-texture support if requested
       DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
       GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
@@ -99,10 +76,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
       gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
       gl.glCopyTexImage2D(textureTarget, 0, GL.GL_RGB, 0, 0, drawable.getWidth(), drawable.getHeight(), 0);
-
-      return CONTEXT_CURRENT_NEW;
     }
-    return CONTEXT_CURRENT;
   }
 
   protected void releaseImpl() throws GLException {
@@ -112,22 +86,15 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   }
 
   protected void destroyImpl() throws GLException {
-    if (contextHandle != 0) {
       if (!impl.destroy(contextHandle)) {
         throw new GLException("Unable to delete OpenGL context");
       }
       if (DEBUG) {
         System.err.println("!!! Destroyed OpenGL context " + contextHandle);
       }
-      contextHandle = 0;
-      GLContextShareSet.contextDestroyed(this);
-    }
   }
 
   protected void setSwapIntervalImpl(int interval) {
-    if (contextHandle == 0) {
-      throw new GLException("OpenGL context not current");
-    }
     impl.setSwapInterval(contextHandle, interval);
     currentSwapInterval = impl.getSwapInterval() ;
   }
@@ -136,7 +103,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     return GLPbuffer.APPLE_FLOAT;
   }
 
-  protected void create() {
+  protected boolean createImpl() throws GLException {
     DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
     if (capabilities.getPbufferFloatingPointBuffers() &&
@@ -155,7 +122,11 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     if (!impl.makeCurrent(contextHandle)) {
       throw new GLException("Error making Context (NS:"+isNSContext()+") current");
     }
+    if(!isNSContext()) { // FIXME: ??
+        throw new GLException("Not a NS Context");
+    }
     setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
+    return true;
   }
 
   //---------------------------------------------------------------------------
@@ -231,7 +202,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
         throw new GLException("Error creating context for pbuffer");
       }
       // Must now associate the pbuffer with our newly-created context
-      CGL.setContextPBuffer(contextHandle, drawable.getPbuffer());
+      CGL.setContextPBuffer(contextHandle, drawable.getHandle());
       return contextHandle;
     }
 
@@ -335,7 +306,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
         throw new GLException("Error code " + res + " while creating context");
       }
       // Attach newly-created context to the pbuffer
-      res = CGL.CGLSetPBuffer(ctx.get(0), drawable.getPbuffer(), 0, 0, 0);
+      res = CGL.CGLSetPBuffer(ctx.get(0), drawable.getHandle(), 0, 0, 0);
       if (res != CGL.kCGLNoError) {
         throw new GLException("Error code " + res + " while attaching context to pbuffer");
       }
