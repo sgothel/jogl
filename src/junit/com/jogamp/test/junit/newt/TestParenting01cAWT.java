@@ -47,7 +47,9 @@ import org.junit.Test;
 import java.awt.Button;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
+import java.awt.Container;
 import java.awt.Frame;
+import java.awt.Dimension;
 
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
@@ -64,66 +66,87 @@ import com.jogamp.test.junit.util.*;
 import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
-public class TestListenerCom01AWT {
+public class TestParenting01cAWT {
     static int width, height;
-    static long durationPerTest = 500;
-    static long waitReparent = 300;
-    static boolean verbose = false;
+    static long durationPerTest = 800;
+    static long waitReparent = 0;
+    static GLCapabilities glCaps;
 
     @BeforeClass
     public static void initClass() {
         width  = 640;
         height = 480;
+        glCaps = new GLCapabilities(null);
     }
 
     @Test
-    public void testListenerStringPassingAndOrder() throws InterruptedException {
-        // setup NEWT GLWindow ..
-        GLWindow glWindow = GLWindow.create(new GLCapabilities(null));
-        Assert.assertNotNull(glWindow);
-        glWindow.setTitle("NEWT - CHILD");
+    public void testWindowParenting01CreateVisibleDestroy1() throws InterruptedException {
+        int x = 0;
+        int y = 0;
 
-        System.out.println("durationPerTest "+durationPerTest);
+        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
-        GLEventListener demo = new Gears();
-        setDemoFields(demo, glWindow, false);
-        glWindow.addGLEventListener(demo);
+        GLWindow glWindow1 = GLWindow.create(glCaps);
+        Assert.assertNotNull(glWindow1);
+        Assert.assertEquals(false, glWindow1.isVisible());
+        Assert.assertEquals(false, glWindow1.isNativeWindowValid());
+        Assert.assertNull(glWindow1.getParentNativeWindow());
+        glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
+        GLEventListener demo1 = new RedSquare();
+        setDemoFields(demo1, glWindow1, false);
+        glWindow1.addGLEventListener(demo1);
 
-        WindowEventCom1 wl1 = new WindowEventCom1();
-        WindowEventCom2 wl2 = new WindowEventCom2();
-        WindowEventCom3 wl3 = new WindowEventCom3();
+        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
+        Assert.assertNotNull(newtCanvasAWT);
+        Assert.assertEquals(false, glWindow1.isVisible());
+        Assert.assertEquals(false, glWindow1.isNativeWindowValid());
+        Assert.assertNull(glWindow1.getParentNativeWindow());
 
-        // TraceWindowAdapter wlT = new TraceWindowAdapter();
-        // glWindow.addWindowListener(0, wlT);
-        // Assert.assertEquals(wlT, glWindow.getWindowListener(0));
+        Frame frame1 = new Frame("AWT Parent Frame");
+        frame1.setLayout(new BorderLayout());
+        frame1.add(new Button("North"), BorderLayout.NORTH);
+        frame1.add(new Button("South"), BorderLayout.SOUTH);
+        frame1.add(new Button("East"), BorderLayout.EAST);
+        frame1.add(new Button("West"), BorderLayout.WEST);
 
-        glWindow.addWindowListener(0, wl3);
-        glWindow.addWindowListener(0, wl2);
-        glWindow.addWindowListener(0, wl1);
+        Container container1 = new Container();
+        container1.setLayout(new BorderLayout());
+        container1.add(new Button("north"), BorderLayout.NORTH);
+        container1.add(new Button("south"), BorderLayout.SOUTH);
+        container1.add(new Button("east"), BorderLayout.EAST);
+        container1.add(new Button("west"), BorderLayout.WEST);
+        container1.add(newtCanvasAWT, BorderLayout.CENTER);
 
-        Assert.assertEquals(wl1, glWindow.getWindowListener(0));
-        Assert.assertEquals(wl2, glWindow.getWindowListener(1));
-        Assert.assertEquals(wl3, glWindow.getWindowListener(2));
+        frame1.add(container1, BorderLayout.CENTER);
+        frame1.setSize(width, height);
 
-        // attach NEWT GLWindow to AWT Canvas
-        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
-        Frame frame = new Frame("AWT Parent Frame");
-        frame.add(newtCanvasAWT);
-        frame.setSize(width, height);
-        frame.setVisible(true);
+        // visible test
+        frame1.setVisible(true);
+        Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
 
-        Animator animator1 = new Animator(glWindow);
+        Animator animator1 = new Animator(glWindow1);
         animator1.start();
         while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
             Thread.sleep(100);
-            width+=10; height+=10;
-            frame.setSize(width, height);
         }
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
 
-        frame.dispose();
-        glWindow.destroy(true);
+        frame1.setVisible(false);
+        Assert.assertEquals(false, glWindow1.isDestroyed());
+
+        frame1.setVisible(true);
+        Assert.assertEquals(false, glWindow1.isDestroyed());
+
+        frame1.remove(newtCanvasAWT);
+        // Assert.assertNull(glWindow1.getParentNativeWindow());
+        Assert.assertEquals(false, glWindow1.isDestroyed());
+
+        frame1.dispose();
+        Assert.assertEquals(false, glWindow1.isDestroyed());
+
+        glWindow1.destroy(true);
+        //Assert.assertEquals(true, glWindow1.isDestroyed());
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
@@ -148,7 +171,6 @@ public class TestListenerCom01AWT {
     }
 
     public static void main(String args[]) throws IOException {
-        verbose = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
@@ -156,7 +178,7 @@ public class TestListenerCom01AWT {
                 waitReparent = atoi(args[++i]);
             }
         }
-        String tstname = TestListenerCom01AWT.class.getName();
+        String tstname = TestParenting01cAWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

@@ -487,6 +487,10 @@ public class GLWindow extends Window implements GLAutoDrawable {
         helper.removeGLEventListener(listener);
     }
 
+    public void invoke(boolean wait, GLRunnable glRunnable) {
+        helper.invoke(wait, glRunnable);
+    }
+
     public void display() {
         display(false);
     }

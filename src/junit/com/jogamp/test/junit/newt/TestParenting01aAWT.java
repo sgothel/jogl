@@ -65,7 +65,7 @@ import com.jogamp.test.junit.util.*;
 import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
-public class TestParenting01AWT {
+public class TestParenting01aAWT {
     static int width, height;
     static long durationPerTest = 800;
     static long waitReparent = 0;
@@ -399,7 +399,7 @@ public class TestParenting01AWT {
     static int atoi(String a) {
         int i=0;
         try {
-            durationPerTest = Integer.parseInt(a);
+            i = Integer.parseInt(a);
         } catch (Exception ex) { ex.printStackTrace(); }
         return i;
     }
@@ -412,7 +412,7 @@ public class TestParenting01AWT {
                 waitReparent = atoi(args[++i]);
             }
         }
-        String tstname = TestParenting01AWT.class.getName();
+        String tstname = TestParenting01aAWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

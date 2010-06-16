@@ -87,7 +87,7 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="com/jogamp/newt/*, com/jogamp/newt/event/*, com/jogamp/newt/util/*, com/jogamp/newt/impl/*"/>
+                  value="com/jogamp/newt/*, com/jogamp/newt/event/*, com/jogamp/newt/util/*, com/jogamp/newt/impl/*, com/jogamp/newt/impl/event/*"/>
 
         <property name="java.part.awt"
                   value="com/jogamp/newt/impl/awt/*, com/jogamp/newt/awt/*, com/jogamp/newt/event/awt/*"/>

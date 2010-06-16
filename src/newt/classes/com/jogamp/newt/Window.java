@@ -707,9 +707,9 @@ public abstract class Window implements NativeWindow
     public void reparentWindow(NativeWindow newParent, Screen newScreen) {
         if(!isDestroyed()) {
             runOnEDTIfAvail(true, new ReparentAction(newParent, newScreen)); 
-            if( isVisible() ) {
-                enqueueWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
-            }
+            // if( isVisible() ) {
+                enqueueWindowEvent(true, WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
+            // }
         }
     }
 
@@ -1321,8 +1321,12 @@ public abstract class Window implements NativeWindow
     // WindowListener/Event Support
     //
     protected void enqueueWindowEvent(int eventType) {
+        enqueueWindowEvent(false, eventType);
+    }
+
+    protected void enqueueWindowEvent(boolean wait, int eventType) {
         WindowEvent event = new WindowEvent(eventType, this, System.currentTimeMillis());
-        screen.getDisplay().enqueueEvent( event );
+        screen.getDisplay().enqueueEvent( wait, event );
         // sendWindowEvent ( event ); // FIXME: Think about performance/lag .. ?
     }
 
