@@ -36,6 +36,7 @@
 
 package com.jogamp.newt.util;
 
+import com.jogamp.common.util.RunnableTask;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.impl.Debug;
 import java.util.*;
@@ -107,10 +108,7 @@ public class EDTUtil {
         return null!=edt && edt.isRunning() ;
     }
 
-    public void invokeLater(Runnable task) {
-        if(task == null) {
-            return;
-        }
+    private void invokeLater(Runnable task) {
         synchronized(edtLock) {
             if(null!=edt && edt.isRunning() && edt != Thread.currentThread() ) {
                 tasks.add(task);
@@ -122,21 +120,33 @@ public class EDTUtil {
         }
     }
 
-    public void invokeAndWait(Runnable task) {
-        invoke(true, task);
-    }
-
     public void invoke(boolean wait, Runnable task) {
         if(task == null) {
             return;
         }
-        invokeLater(task);
-        if(wait) {
-            waitOnWorker();
+        boolean doWait = wait && null!=edt && edt.isRunning() && edt != Thread.currentThread();
+        Object lock = new Object();
+        RunnableTask rTask = new RunnableTask(task, doWait?lock:null, true);
+        Throwable throwable = null;
+        synchronized(lock) {
+            invokeLater(rTask);
+            if( doWait ) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException ie) {
+                    throwable = ie;
+                }
+            }
+        }
+        if(null==throwable) {
+            throwable = rTask.getThrowable();
+        }
+        if(null!=throwable) {
+            throw new RuntimeException(throwable);
         }
     }
 
-    public void waitOnWorker() {
+    public void waitUntilIdle() {
         synchronized(edtLock) {
             if(null!=edt && edt.isRunning() && tasks.size()>0 && edt != Thread.currentThread() ) {
                 try {

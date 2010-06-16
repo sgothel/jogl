@@ -64,7 +64,7 @@ import com.jogamp.test.junit.util.*;
 import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
-public class TestParenting02AWT {
+public class TestListenerCom01AWT {
     static int width, height;
     static long durationPerTest = 500;
     static long waitReparent = 300;
@@ -77,150 +77,53 @@ public class TestParenting02AWT {
     }
 
     @Test
-    public void testWindowParenting01NewtChildOnAWTParentLayouted() throws InterruptedException {
-        runNewtChildOnAWTParent(true, false);
-    }
-
-    @Test
-    public void testWindowParenting02NewtChildOnAWTParentLayoutedDef() throws InterruptedException {
-        runNewtChildOnAWTParent(true, true);
-    }
-
-    @Test
-    public void testWindowParenting03NewtChildOnAWTParentDirect() throws InterruptedException {
-        runNewtChildOnAWTParent(false, false);
-    }
-
-    @Test
-    public void testWindowParenting04NewtChildOnAWTParentDirectDef() throws InterruptedException {
-        runNewtChildOnAWTParent(false, true);
-    }
-
-    public void runNewtChildOnAWTParent(boolean useLayout, boolean deferredPeer) throws InterruptedException {
-        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
-
+    public void testListenerStringPassingAndOrder() throws InterruptedException {
         // setup NEWT GLWindow ..
         GLWindow glWindow = GLWindow.create(new GLCapabilities(null));
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("NEWT - CHILD");
-        glWindow.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
-        glWindow.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
+
+        System.out.println("durationPerTest "+durationPerTest);
+
         GLEventListener demo = new Gears();
         setDemoFields(demo, glWindow, false);
         glWindow.addGLEventListener(demo);
 
+        WindowEventCom1 wl1 = new WindowEventCom1();
+        WindowEventCom2 wl2 = new WindowEventCom2();
+        WindowEventCom3 wl3 = new WindowEventCom3();
+
+        // TraceWindowAdapter wlT = new TraceWindowAdapter();
+        // glWindow.addWindowListener(0, wlT);
+        // Assert.assertEquals(wlT, glWindow.getWindowListener(0));
+
+        glWindow.addWindowListener(0, wl3);
+        glWindow.addWindowListener(0, wl2);
+        glWindow.addWindowListener(0, wl1);
+
+        Assert.assertEquals(wl1, glWindow.getWindowListener(0));
+        Assert.assertEquals(wl2, glWindow.getWindowListener(1));
+        Assert.assertEquals(wl3, glWindow.getWindowListener(2));
+
         // attach NEWT GLWindow to AWT Canvas
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
-        Assert.assertNotNull(newtCanvasAWT);
-        Assert.assertEquals(false, glWindow.isVisible());
-        Assert.assertEquals(false, glWindow.isNativeWindowValid());
-        Assert.assertNull(glWindow.getParentNativeWindow());
-
         Frame frame = new Frame("AWT Parent Frame");
-        Assert.assertNotNull(frame);
-        if(useLayout) {
-            frame.setLayout(new BorderLayout());
-            frame.add(new Button("North"), BorderLayout.NORTH);
-            frame.add(new Button("South"), BorderLayout.SOUTH);
-            frame.add(new Button("East"), BorderLayout.EAST);
-            frame.add(new Button("West"), BorderLayout.WEST);
-            if(!deferredPeer) {
-                frame.add(newtCanvasAWT, BorderLayout.CENTER);
-            }
-        } else {
-            if(!deferredPeer) {
-                frame.add(newtCanvasAWT);
-            }
-        }
-
+        frame.add(newtCanvasAWT);
         frame.setSize(width, height);
-
         frame.setVisible(true);
-        // X11: true, Windows: false - Assert.assertEquals(true, glWindow.isVisible());
 
-        if(deferredPeer) {
-            if(useLayout) {
-                frame.add(newtCanvasAWT, BorderLayout.CENTER);
-            } else {
-                frame.add(newtCanvasAWT);
-            }
+        Animator animator1 = new Animator(glWindow);
+        animator1.start();
+        while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
+            Thread.sleep(100);
+            width+=10; height+=10;
+            frame.setSize(width, height);
         }
+        animator1.stop();
+        Assert.assertEquals(false, animator1.isAnimating());
 
-        // Since it is not defined when AWT's addNotify call happen
-        // we just have to wait for it in this junit test
-        // because we have assertions on the state.
-        // Regular application shall not need to do that.
-        do {
-            Thread.yield();
-            // 1st display .. creation
-            glWindow.display();
-        } while(!glWindow.isNativeWindowValid()) ;
-
-        Assert.assertEquals(true, glWindow.isNativeWindowValid());
-        Assert.assertNotNull(glWindow.getParentNativeWindow());
-        if(verbose) {
-            System.out.println("+++++++++++++++++++ 1st ADDED");
-        }
-        Thread.sleep(waitReparent);
-
-        if(useLayout) {
-            // test some fancy re-layout ..
-            frame.remove(newtCanvasAWT);
-            Assert.assertEquals(false, glWindow.isVisible());
-            Assert.assertEquals(true, glWindow.isNativeWindowValid());
-            Assert.assertNull(glWindow.getParentNativeWindow());
-            if(verbose) {
-                System.out.println("+++++++++++++++++++ REMOVED!");
-            }
-            Thread.sleep(waitReparent);
-
-            // should recreate properly ..
-            frame.add(newtCanvasAWT, BorderLayout.CENTER);
-            glWindow.display();
-            Assert.assertEquals(true, glWindow.isVisible());
-            Assert.assertEquals(true, glWindow.isNativeWindowValid());
-            Assert.assertNotNull(glWindow.getParentNativeWindow());
-            if(verbose) {
-                System.out.println("+++++++++++++++++++ 2nd ADDED");
-            }
-            Thread.sleep(waitReparent);
-        }
-
-        long duration = durationPerTest;
-        long step = 20;
-        NEWTEvent event;
-        boolean shouldQuit = false;
-
-        while (duration>0 && !shouldQuit) {
-            glWindow.display();
-            Thread.sleep(step);
-            duration -= step;
-
-            while( null != ( event = (NEWTEvent) eventFifo.get() ) ) {
-                Window source = (Window) event.getSource();
-                if(event instanceof KeyEvent) {
-                    KeyEvent keyEvent = (KeyEvent) event;
-                    switch(keyEvent.getKeyChar()) {
-                        case 'q':
-                            shouldQuit = true;
-                            break;
-                        case 'f':
-                            source.setFullscreen(!source.isFullscreen());
-                            break;
-                    }
-                } 
-            }
-        }
-        if(verbose) {
-            System.out.println("+++++++++++++++++++ END");
-        }
-        Thread.sleep(waitReparent);
-
-        glWindow.destroy();
-        if(useLayout) {
-            frame.remove(newtCanvasAWT);
-        }
         frame.dispose();
+        glWindow.destroy(true);
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
@@ -253,7 +156,7 @@ public class TestParenting02AWT {
                 waitReparent = atoi(args[++i]);
             }
         }
-        String tstname = TestParenting02AWT.class.getName();
+        String tstname = TestListenerCom01AWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

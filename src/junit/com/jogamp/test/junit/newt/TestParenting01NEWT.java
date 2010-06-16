@@ -283,7 +283,7 @@ public class TestParenting01NEWT {
     static int atoi(String a) {
         int i=0;
         try {
-            durationPerTest = Integer.parseInt(a);
+            i = Integer.parseInt(a);
         } catch (Exception ex) { ex.printStackTrace(); }
         return i;
     }

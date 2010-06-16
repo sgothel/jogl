@@ -65,7 +65,7 @@ import com.jogamp.test.junit.util.*;
 import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
-public class TestParenting01AWT {
+public class TestParenting01aAWT {
     static int width, height;
     static long durationPerTest = 800;
     static long waitReparent = 0;
@@ -94,7 +94,6 @@ public class TestParenting01AWT {
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        // glWindow1.setSize(600, 300);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         Assert.assertNotNull(newtCanvasAWT);
@@ -106,7 +105,6 @@ public class TestParenting01AWT {
         Assert.assertNotNull(frame);
         frame.add(newtCanvasAWT);
         frame.setSize(width, height);
-        // frame.pack();
 
         // visible test
         frame.setVisible(true);
@@ -152,7 +150,6 @@ public class TestParenting01AWT {
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        // glWindow1.setSize(600, 300);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         Assert.assertNotNull(newtCanvasAWT);
@@ -169,7 +166,6 @@ public class TestParenting01AWT {
 
         frame.add(newtCanvasAWT);
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
-        // frame.pack();
 
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
@@ -194,7 +190,6 @@ public class TestParenting01AWT {
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        // glWindow1.setSize(600, 300);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
 
@@ -206,7 +201,6 @@ public class TestParenting01AWT {
         frame.setVisible(true);
 
         frame.add(newtCanvasAWT);
-        // frame.pack();
 
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
@@ -231,7 +225,6 @@ public class TestParenting01AWT {
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        // glWindow1.setSize(600, 300);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
 
@@ -242,7 +235,6 @@ public class TestParenting01AWT {
 
         frame.add(newtCanvasAWT);
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
-        // frame.pack();
 
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
@@ -283,7 +275,6 @@ public class TestParenting01AWT {
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        // glWindow1.setSize(600, 300);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
 
@@ -299,7 +290,6 @@ public class TestParenting01AWT {
 
         frame.add(newtCanvasAWT, BorderLayout.CENTER);
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
-        // frame.pack();
 
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
@@ -340,7 +330,6 @@ public class TestParenting01AWT {
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        // glWindow1.setSize(600, 300);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
 
@@ -366,7 +355,6 @@ public class TestParenting01AWT {
 
         frame1.add(newtCanvasAWT, BorderLayout.CENTER);
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
-        // frame1.pack();
 
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
@@ -378,12 +366,10 @@ public class TestParenting01AWT {
                 case 0:
                     frame1.remove(newtCanvasAWT);
                     frame2.add(newtCanvasAWT, BorderLayout.CENTER);
-                    //frame2.pack();
                     break;
                 case 1:
                     frame2.remove(newtCanvasAWT);
                     frame1.add(newtCanvasAWT, BorderLayout.CENTER);
-                    //frame1.pack();
                     break;
             }
             state++;
@@ -413,7 +399,7 @@ public class TestParenting01AWT {
     static int atoi(String a) {
         int i=0;
         try {
-            durationPerTest = Integer.parseInt(a);
+            i = Integer.parseInt(a);
         } catch (Exception ex) { ex.printStackTrace(); }
         return i;
     }
@@ -426,7 +412,7 @@ public class TestParenting01AWT {
                 waitReparent = atoi(args[++i]);
             }
         }
-        String tstname = TestParenting01AWT.class.getName();
+        String tstname = TestParenting01aAWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

@@ -36,6 +36,7 @@ package com.jogamp.newt;
 import javax.media.nativewindow.*;
 import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
 import com.jogamp.newt.event.*;
+import com.jogamp.newt.impl.event.*;
 import com.jogamp.newt.impl.Debug;
 import com.jogamp.newt.util.EDTUtil;
 import java.util.*;
@@ -315,46 +316,31 @@ public abstract class Display {
 
     private Object eventsLock = new Object();
     private LinkedList/*<NEWTEvent>*/ events = new LinkedList();
-    private boolean events2Wait = false;
 
     protected void dispatchMessages() {
         if(0==refCount) return; // we should not exist ..
 
         if(!events.isEmpty()) {
-            if(events2Wait) {
-                synchronized(eventsLock) {
-                    while (!events.isEmpty()) {
-                        NEWTEvent e = (NEWTEvent) events.removeFirst();
-                        Object source = e.getSource();
-                        if(source instanceof Window) {
-                            ((Window)source).sendEvent(e);
-                        } else {
-                            throw new RuntimeException("Event source not a NEWT Window: "+source.getClass().getName()+", "+source);
-                        }
-                    }
-                    events2Wait = false; // clear
-                    eventsLock.notifyAll();
+            // swap events list to free ASAP
+            LinkedList/*<NEWTEvent>*/ _events = null;
+            synchronized(eventsLock) {
+                if(!events.isEmpty()) {
+                    _events = events;
+                    events = new LinkedList();
                 }
-            } else {
-                // swap events list to free ASAP
-                LinkedList/*<NEWTEvent>*/ _events = null;
-                synchronized(eventsLock) {
-                    if(!events.isEmpty()) {
-                        _events = events;
-                        events = new LinkedList();
+                eventsLock.notifyAll();
+            }
+            if( null != _events ) {
+                for (Iterator iter = _events.iterator(); iter.hasNext(); ) {
+                    NEWTEventTask eventTask = (NEWTEventTask) iter.next();
+                    NEWTEvent event = eventTask.get();
+                    Object source = event.getSource();
+                    if(source instanceof Window) {
+                        ((Window)source).sendEvent(event);
+                    } else {
+                        throw new RuntimeException("Event source not a NEWT Window: "+source.getClass().getName()+", "+source);
                     }
-                    eventsLock.notifyAll();
-                }
-                if( null != _events ) {
-                    while (!_events.isEmpty()) {
-                        NEWTEvent e = (NEWTEvent) _events.removeFirst();
-                        Object source = e.getSource();
-                        if(source instanceof Window) {
-                            ((Window)source).sendEvent(e);
-                        } else {
-                            throw new RuntimeException("Event source not a NEWT Window: "+source.getClass().getName()+", "+source);
-                        }
-                    }
+                    eventTask.notifyIssuer();
                 }
             }
         }
@@ -372,26 +358,20 @@ public abstract class Display {
     }
 
     public void enqueueEvent(boolean wait, NEWTEvent e) {
-        synchronized(eventsLock) {
-            if(DEBUG) {
-                System.out.println("Display.enqueueEvent: START - wait "+wait+", "+e);
-            }
-            events2Wait = wait;
-            events.addLast(e);
-        }
-        if(wait && !events.isEmpty()) {
+        Object lock = new Object();
+        NEWTEventTask eTask = new NEWTEventTask(e, wait?lock:null);
+        synchronized(lock) {
             synchronized(eventsLock) {
-                while(!events.isEmpty()) {
-                    try {
-                        eventsLock.wait();
-                    } catch (InterruptedException ie) {
-                        ie.printStackTrace();
-                    }
+                events.addLast(eTask);
+                eventsLock.notifyAll();
+            }
+            if( wait ) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException ie) {
+                    throw new RuntimeException(ie);
                 }
             }
-        }
-        if(DEBUG) {
-            System.out.println("Display.enqueueEvent: END - wait "+wait+", "+e);
         }
     }
 

@@ -51,6 +51,7 @@ public class GLDrawableHelper {
   private static final boolean VERBOSE = Debug.verbose();
   private static final boolean NVIDIA_CRASH_WORKAROUND = Debug.isPropertyDefined("jogl.nvidia.crash.workaround", true);
   private boolean autoSwapBufferMode = true;
+  private ArrayList glRunnables = new ArrayList(); // one shot GL tasks
 
   public GLDrawableHelper() {
   }
@@ -66,8 +67,15 @@ public class GLDrawableHelper {
   }
 
   public synchronized void addGLEventListener(GLEventListener listener) {
+    addGLEventListener(-1, listener);
+  }
+
+  public synchronized void addGLEventListener(int index, GLEventListener listener) {
+    if(0>index) {
+        index = listeners.size();
+    }
     List newListeners = (List) ((ArrayList) listeners).clone();
-    newListeners.add(listener);
+    newListeners.add(index, listener);
     listeners = newListeners;
   }
   
@@ -93,12 +101,62 @@ public class GLDrawableHelper {
     for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
       ((GLEventListener) iter.next()).display(drawable);
     }
+    execGLRunnables(drawable);
   }
 
   public void reshape(GLAutoDrawable drawable,
                       int x, int y, int width, int height) {
     for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
       ((GLEventListener) iter.next()).reshape(drawable, x, y, width, height);
+    }
+  }
+
+  private void execGLRunnables(GLAutoDrawable drawable) {
+    if(glRunnables.size()>0) {
+        ArrayList _glRunnables = null;
+        synchronized(glRunnables) {
+            if(glRunnables.size()>0) {
+                _glRunnables = glRunnables;
+                glRunnables = new ArrayList();
+            }
+        }
+        if(null!=_glRunnables) {
+            for (Iterator iter = _glRunnables.iterator(); iter.hasNext(); ) {
+              ((GLRunnable) iter.next()).run(drawable);
+            }
+        }
+    }
+  }
+
+  private void invokeLater(GLRunnable glRunnable) {
+    synchronized(glRunnables) {
+        glRunnables.add(glRunnable);
+        glRunnables.notifyAll();
+    }
+  }
+
+  public void invoke(boolean wait, GLRunnable glRunnable) {
+    if(glRunnable == null) {
+        return;
+    }
+    Object lock = new Object();
+    GLRunnableTask rTask = new GLRunnableTask(glRunnable, wait?lock:null/*, true*/);
+    Throwable throwable = null;
+    synchronized(lock) {
+        invokeLater(rTask);
+        if( wait ) {
+            try {
+                lock.wait();
+            } catch (InterruptedException ie) {
+                throwable = ie;
+            }
+        }
+    }
+    if(null==throwable) {
+        throwable = rTask.getThrowable();
+    }
+    if(null!=throwable) {
+        throw new RuntimeException(throwable);
     }
   }
 

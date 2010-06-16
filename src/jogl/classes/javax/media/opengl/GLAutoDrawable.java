@@ -138,10 +138,21 @@ public interface GLAutoDrawable extends GLDrawable {
    */
   public void setContext(GLContext context);
 
-  /** Adds a {@link GLEventListener} to this drawable. If multiple
-      listeners are added to a given drawable, they are notified of
-      events in an arbitrary order. */
+  /** Adds a {@link GLEventListener} to the end of this drawable queue.
+      The listeners are notified of events in the order of the queue. */
   public void addGLEventListener(GLEventListener listener);
+
+  /** 
+   * Adds a {@link GLEventListener} at the given index of this drawable queue.
+   * The listeners are notified of events in the order of the queue.
+   * @param index Position where the listener will be inserted. 
+   *              Should be within (0 <= index && index <= size()).
+   *              An index value of -1 is interpreted as the end of the list, size().
+   * @param listener The GLEventListener object to be inserted
+   * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index <= size()), or -1
+   */
+  public void addGLEventListener(int index, GLEventListener listener)
+    throws IndexOutOfBoundsException;
 
   /** Removes a {@link GLEventListener} from this drawable. Note that
       if this is done from within a particular drawable's {@link
@@ -149,6 +160,19 @@ public interface GLAutoDrawable extends GLDrawable {
       guaranteed that all other listeners will be evaluated properly
       during this update cycle. */
   public void removeGLEventListener(GLEventListener listener);
+
+  /** 
+   * Enqueues the one-shot {@link javax.media.opengl.GLRunnable} into the queue,
+   * which will be executed at the next {@link #display()} call.
+   * <p>
+   * Warning: We cannot verify if the caller runs in the same thread 
+   * as the display caller, hence we cannot avoid a deadlock
+   * in such case. You have to know what you are doing, 
+   * ie call this only in a I/O event listener, or such.<br></p>
+   * @see #display()
+   * @see javax.media.opengl.GLRunnable
+   */   
+  public void invoke(boolean wait, GLRunnable glRunnable);
 
   /** FIXME: Returns the current state, 
       {@link #STATE_INVALID}, {@link #STATE_VALID} or {@link #STATE_DESTROYING}.
@@ -166,19 +190,28 @@ public interface GLAutoDrawable extends GLDrawable {
       routine may be called manually. */
   public void destroy();
 
-  /** Causes OpenGL rendering to be performed for this GLAutoDrawable
-      by calling {@link GLEventListener#display display(..)} for all
-      registered {@link GLEventListener}s. Called automatically by the
-      window system toolkit upon receiving a repaint() request. this
-      routine may be called manually for better control over the
+  /** <p>Causes OpenGL rendering to be performed for this GLAutoDrawable
+      in the following order:
+      <ul>
+        <li> Calling {@link GLEventListener#display display(..)} for all
+             registered {@link GLEventListener}s. </li>
+        <li> Execute and dismiss all one-shot {@link javax.media.opengl.GLRunnable},
+             enqueued via {@link #invoke(boolean, GLRunnable)}.</li>
+      </ul></p>
+      <p> 
+      Called automatically by the
+      window system toolkit upon receiving a repaint() request.</p> 
+      <p> 
+      This routine may be called manually for better control over the
       rendering process. It is legal to call another GLAutoDrawable's
       display method from within the {@link GLEventListener#display
-      display(..)} callback.<p>
+      display(..)} callback.</p>
+      <p>
       In case of a new generated OpenGL context, 
       the implementation shall call {@link GLEventListener#init init(..)} for all
       registered {@link GLEventListener}s <i>before</i> making the 
       actual {@link GLEventListener#display display(..)} calls,
-      in case this has not been done yet.*/
+      in case this has not been done yet.</p> */
   public void display();
 
   /** Enables or disables automatic buffer swapping for this drawable.
@@ -211,4 +244,5 @@ public interface GLAutoDrawable extends GLDrawable {
       demos for examples.
       @return the set GL pipeline or null if not successful */
   public GL setGL(GL gl);
+
 }

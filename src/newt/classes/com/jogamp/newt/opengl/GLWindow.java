@@ -373,8 +373,8 @@ public class GLWindow extends Window implements GLAutoDrawable {
         window.sendEvent(e);
     }
 
-    public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
-        window.addSurfaceUpdatedListener(l);
+    public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) {
+        window.addSurfaceUpdatedListener(index, l);
     }
     public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
         window.removeSurfaceUpdatedListener(l);
@@ -382,45 +382,51 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public void removeAllSurfaceUpdatedListener() {
         window.removeAllSurfaceUpdatedListener();
     }
-    public SurfaceUpdatedListener[] getSurfaceUpdatedListener() {
-        return window.getSurfaceUpdatedListener();
+    public SurfaceUpdatedListener getSurfaceUpdatedListener(int index) {
+        return window.getSurfaceUpdatedListener(index);
+    }
+    public SurfaceUpdatedListener[] getSurfaceUpdatedListeners() {
+        return window.getSurfaceUpdatedListeners();
     }
     public void surfaceUpdated(Object updater, NativeWindow window0, long when) { 
         window.surfaceUpdated(updater, window, when);
     }
 
-    public void addMouseListener(MouseListener l) {
-        window.addMouseListener(l);
+    public void addMouseListener(int index, MouseListener l) {
+        window.addMouseListener(index, l);
     }
-
     public void removeMouseListener(MouseListener l) {
         window.removeMouseListener(l);
     }
-
+    public MouseListener getMouseListener(int index) {
+        return window.getMouseListener(index);
+    }
     public MouseListener[] getMouseListeners() {
         return window.getMouseListeners();
     }
 
-    public void addKeyListener(KeyListener l) {
-        window.addKeyListener(l);
+    public void addKeyListener(int index, KeyListener l) {
+        window.addKeyListener(index, l);
     }
-
     public void removeKeyListener(KeyListener l) {
         window.removeKeyListener(l);
     }
-
+    public KeyListener getKeyListener(int index) {
+        return window.getKeyListener(index);
+    }
     public KeyListener[] getKeyListeners() {
         return window.getKeyListeners();
     }
 
-    public void addWindowListener(WindowListener l) {
-        window.addWindowListener(l);
+    public void addWindowListener(int index, WindowListener l) {
+        window.addWindowListener(index, l);
     }
-
     public void removeWindowListener(WindowListener l) {
         window.removeWindowListener(l);
     }
-
+    public WindowListener getWindowListener(int index) {
+        return window.getWindowListener(index);
+    }
     public WindowListener[] getWindowListeners() {
         return window.getWindowListeners();
     }
@@ -473,8 +479,16 @@ public class GLWindow extends Window implements GLAutoDrawable {
         helper.addGLEventListener(listener);
     }
 
+    public void addGLEventListener(int index, GLEventListener listener) {
+        helper.addGLEventListener(index, listener);
+    }
+
     public void removeGLEventListener(GLEventListener listener) {
         helper.removeGLEventListener(listener);
+    }
+
+    public void invoke(boolean wait, GLRunnable glRunnable) {
+        helper.invoke(wait, glRunnable);
     }
 
     public void display() {
