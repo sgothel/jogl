@@ -87,7 +87,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
                     throw new IllegalArgumentException("OS " + getNativeOSName(false) + " not yet supported");
                 }
 
-                nativeWindowConstructor = ReflectionUtil.getConstructor(windowClassName, new Class[] { Object.class, AbstractGraphicsConfiguration.class });
+                nativeWindowConstructor = ReflectionUtil.getConstructor(windowClassName, getClass().getClassLoader(), new Class[] { Object.class, AbstractGraphicsConfiguration.class });
             } catch (Exception e) {
                 throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
             }

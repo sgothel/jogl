@@ -93,17 +93,20 @@ public class MacDisplay extends Display {
     }
 
     protected static boolean runOnAWTEDT(boolean wait, Runnable r) {
-        if(ReflectionUtil.isClassAvailable("java.awt.EventQueue")) {
+        ClassLoader cl = MacDisplay.class.getClassLoader();
+        if(ReflectionUtil.isClassAvailable("java.awt.EventQueue", cl)) {
             try {
                 if(wait) {
                     ReflectionUtil.callStaticMethod(
                         "java.awt.EventQueue",
+                        cl,
                         "invokeAndWait",
                         new Class[]  { java.lang.Runnable.class },
                         new Object[] { r } );
                 } else {
                     ReflectionUtil.callStaticMethod(
                         "java.awt.EventQueue",
+                        cl,
                         "invokeLater",
                         new Class[]  { java.lang.Runnable.class },
                         new Object[] { r } );

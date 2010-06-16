@@ -99,13 +99,14 @@ public abstract class GLDrawableFactory {
 
     GLDrawableFactory tmp = null;
     String factoryClassName = Debug.getProperty("jogl.gldrawablefactory.class.name", true, AccessController.getContext());
+    ClassLoader cl = GLDrawableFactory.class.getClassLoader();
     if (null == factoryClassName) {
         if ( nativeOSType.equals(NativeWindowFactory.TYPE_X11) ) {
           factoryClassName = "com.jogamp.opengl.impl.x11.glx.X11GLXDrawableFactory";
         } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_WINDOWS) ) {
           factoryClassName = "com.jogamp.opengl.impl.windows.wgl.WindowsWGLDrawableFactory";
         } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_MACOSX) ) {
-            if(ReflectionUtil.isClassAvailable(macosxFactoryClassNameAWTCGL)) {
+            if(ReflectionUtil.isClassAvailable(macosxFactoryClassNameAWTCGL, cl)) {
                 factoryClassName = macosxFactoryClassNameAWTCGL;
             } else {
                 factoryClassName = macosxFactoryClassNameCGL;
@@ -122,7 +123,7 @@ public abstract class GLDrawableFactory {
           System.err.println("GLDrawableFactory.static - Native OS Factory for: "+nativeOSType+": "+factoryClassName);
       }
       try {
-          tmp = (GLDrawableFactory) ReflectionUtil.createInstance(factoryClassName);
+          tmp = (GLDrawableFactory) ReflectionUtil.createInstance(factoryClassName, cl);
       } catch (JogampRuntimeException jre) { 
           if (GLProfile.DEBUG) {
               System.err.println("GLDrawableFactory.static - Native Platform: "+nativeOSType+" - not available: "+factoryClassName);
@@ -134,7 +135,7 @@ public abstract class GLDrawableFactory {
 
     tmp = null;
     try {
-        tmp = (GLDrawableFactory) ReflectionUtil.createInstance("com.jogamp.opengl.impl.egl.EGLDrawableFactory");
+        tmp = (GLDrawableFactory) ReflectionUtil.createInstance("com.jogamp.opengl.impl.egl.EGLDrawableFactory", cl);
     } catch (JogampRuntimeException jre) {
         if (GLProfile.DEBUG) {
             System.err.println("GLDrawableFactory.static - EGLDrawableFactory - not available");

@@ -64,6 +64,7 @@ public class ThreadingImpl {
             AccessController.doPrivileged(new PrivilegedAction() {
                     public Object run() {
                         String workaround = Debug.getProperty("jogl.1thread", true);
+                        ClassLoader cl = ThreadingImpl.class.getClassLoader();
                         // Default to using the AWT thread on all platforms except
                         // Windows. On OS X there is instability apparently due to
                         // using the JAWT on non-AWT threads. On X11 platforms there
@@ -72,8 +73,8 @@ public class ThreadingImpl {
                         // while holding the AWT lock. The optimization of
                         // makeCurrent / release calls isn't worth these stability
                         // problems.
-                        hasAWT = ReflectionUtil.isClassAvailable("java.awt.Canvas") &&
-                                 ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas");
+                        hasAWT = ReflectionUtil.isClassAvailable("java.awt.Canvas", cl) &&
+                                 ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas", cl);
 
                         String osType = NativeWindowFactory.getNativeWindowType(false);
                         _isX11 = NativeWindowFactory.TYPE_X11.equals(osType);
@@ -103,7 +104,7 @@ public class ThreadingImpl {
                         Object threadingPluginObj=null;
                         // try to fetch the AWTThreadingPlugin
                         try {
-                            threadingPluginObj = ReflectionUtil.createInstance("com.jogamp.opengl.impl.awt.AWTThreadingPlugin");
+                            threadingPluginObj = ReflectionUtil.createInstance("com.jogamp.opengl.impl.awt.AWTThreadingPlugin", cl);
                         } catch (JogampRuntimeException jre) { /* n/a .. */ }
                         return threadingPluginObj;
                     }
