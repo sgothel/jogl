@@ -41,4 +41,5 @@ public interface WindowListener extends NEWTEventListener {
     public void windowDestroyNotify(WindowEvent e);
     public void windowGainedFocus(WindowEvent e);
     public void windowLostFocus(WindowEvent e);
+    public void windowRepaint(WindowUpdateEvent e);
 }

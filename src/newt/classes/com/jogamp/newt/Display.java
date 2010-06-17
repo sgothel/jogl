@@ -353,10 +353,6 @@ public abstract class Display {
         }
     }
 
-    public void enqueueEvent(NEWTEvent e) {
-        enqueueEvent(false, e);
-    }
-
     public void enqueueEvent(boolean wait, NEWTEvent e) {
         Object lock = new Object();
         NEWTEventTask eTask = new NEWTEventTask(e, wait?lock:null);

@@ -60,7 +60,7 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
         if(null!=newtListener) {
             ((com.jogamp.newt.event.KeyListener)newtListener).keyPressed(event);
         } else {
-            enqueueEvent(event);
+            enqueueEvent(false, event);
         }
     }
 
@@ -69,7 +69,7 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
         if(null!=newtListener) {
             ((com.jogamp.newt.event.KeyListener)newtListener).keyReleased(event);
         } else {
-            enqueueEvent(event);
+            enqueueEvent(false, event);
         }
     }
 
@@ -78,7 +78,7 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
         if(null!=newtListener) {
             ((com.jogamp.newt.event.KeyListener)newtListener).keyTyped(event);
         } else {
-            enqueueEvent(event);
+            enqueueEvent(false, event);
         }
     }
 }

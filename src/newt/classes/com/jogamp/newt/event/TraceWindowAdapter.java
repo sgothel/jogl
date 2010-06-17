@@ -65,4 +65,8 @@ public class TraceWindowAdapter implements WindowListener {
         System.out.println(e);
         if(null!=downstream) { downstream.windowLostFocus(e); }
     }
+    public void windowRepaint(WindowEvent e) {
+        System.out.println(e);
+        if(null!=downstream) { downstream.windowRepaint(e); }
+    }
 }

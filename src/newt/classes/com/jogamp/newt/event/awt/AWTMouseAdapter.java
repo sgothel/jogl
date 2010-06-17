@@ -62,7 +62,7 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseClicked(event);
         } else {
-            enqueueEvent(event);
+            enqueueEvent(false, event);
         }
     }
 
@@ -71,7 +71,7 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseEntered(event);
         } else {
-            enqueueEvent(event);
+            enqueueEvent(false, event);
         }
     }
 
@@ -80,7 +80,7 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseExited(event);
         } else {
-            enqueueEvent(event);
+            enqueueEvent(false, event);
         }
     }
 
@@ -89,7 +89,7 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mousePressed(event);
         } else {
-            enqueueEvent(event);
+            enqueueEvent(false, event);
         }
     }
 
@@ -98,7 +98,7 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseReleased(event);
         } else {
-            enqueueEvent(event);
+            enqueueEvent(false, event);
         }
     }
 
@@ -107,7 +107,7 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseDragged(event);
         } else {
-            enqueueEvent(event);
+            enqueueEvent(false, event);
         }
     }
 
@@ -116,7 +116,7 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseMoved(event);
         } else {
-            enqueueEvent(event);
+            enqueueEvent(false, event);
         }
     }
 }

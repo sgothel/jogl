@@ -369,10 +369,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return window.isFullscreen();
     }
 
-    public void sendEvent(NEWTEvent e) {
-        window.sendEvent(e);
-    }
-
     public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) {
         window.addSurfaceUpdatedListener(index, l);
     }

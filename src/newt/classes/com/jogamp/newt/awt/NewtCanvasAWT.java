@@ -161,7 +161,13 @@ public class NewtCanvasAWT extends java.awt.Canvas {
           newtChild.setVisible(false);
           newtChild.reparentWindow(null, null);
       }
-  }
+    }
+
+    public void paint(Graphics g) {
+      if(null!=newtChild) {
+          // enqueueWindowEvent(true, WindowEvent.EVENT_WINDOW_REPAINT); // trigger a repaint to listener
+      }
+    }
 
   // Disables the AWT's erasing of this Canvas's background on Windows
   // in Java SE 6. This internal API is not available in previous

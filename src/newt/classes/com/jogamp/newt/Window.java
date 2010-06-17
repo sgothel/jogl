@@ -607,7 +607,7 @@ public abstract class Window implements NativeWindow
             System.err.println("Window.windowDestroyNotify START "+getThreadName());
         }
 
-        enqueueWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
+        enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
 
         if(handleDestroyNotify && !isDestroyed()) {
             destroy();
@@ -709,6 +709,7 @@ public abstract class Window implements NativeWindow
             runOnEDTIfAvail(true, new ReparentAction(newParent, newScreen)); 
             // if( isVisible() ) {
                 enqueueWindowEvent(true, WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
+                // enqueueWindowEvent(true, WindowEvent.EVENT_WINDOW_REPAINT); // trigger a repaint to listener
             // }
         }
     }
@@ -957,15 +958,19 @@ public abstract class Window implements NativeWindow
     // Generic Event Support
     //
 
+    public void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
+        if(!getInnerWindow().isDestroyed()) {
+            getInnerWindow().getScreen().getDisplay().enqueueEvent(wait, event);
+        }
+    }
+
     public void sendEvent(NEWTEvent e) {
         if(e instanceof WindowEvent) {
-            sendWindowEvent((WindowEvent)e);
+            getInnerWindow().sendWindowEvent((WindowEvent)e);
         } else if(e instanceof KeyEvent) {
-            sendKeyEvent((KeyEvent)e);
+            getInnerWindow().sendKeyEvent((KeyEvent)e);
         } else if(e instanceof MouseEvent) {
-            sendMouseEvent((MouseEvent)e);
-        } else if(e instanceof PaintEvent) {
-            sendPaintEvent((PaintEvent)e);
+            getInnerWindow().sendMouseEvent((MouseEvent)e);
         }
     }
 
@@ -1061,7 +1066,7 @@ public abstract class Window implements NativeWindow
     private int  lastMouseClickCount = 0; // last mouse button click count
     public  static final int ClickTimeout = 300;
 
-    protected void enqueueMouseEvent(int eventType, int modifiers,
+    public void enqueueMouseEvent(boolean wait, int eventType, int modifiers,
                                   int x, int y, int button, int rotation) {
         if(x<0||y<0||x>=width||y>=height) {
             return; // .. invalid ..
@@ -1111,12 +1116,12 @@ public abstract class Window implements NativeWindow
         } else {
             e = new MouseEvent(eventType, this, when, modifiers, x, y, 0, button, 0);
         }
-        screen.getDisplay().enqueueEvent(e);
+        screen.getDisplay().enqueueEvent(wait, e);
         if(null!=eClicked) {
             if(DEBUG_MOUSE_EVENT) {
                 System.err.println("enqueueMouseEvent: synthesized MOUSE_CLICKED event");
             }
-            screen.getDisplay().enqueueEvent(eClicked);
+            screen.getDisplay().enqueueEvent(wait, eClicked);
         }
     }
 
@@ -1225,8 +1230,8 @@ public abstract class Window implements NativeWindow
     // KeyListener/Event Support
     //
 
-    protected void enqueueKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
-        screen.getDisplay().enqueueEvent(
+    public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
+        screen.getDisplay().enqueueEvent(wait,
             new KeyEvent(eventType, this, System.currentTimeMillis(),
                          modifiers, keyCode, keyChar) );
     }
@@ -1320,11 +1325,7 @@ public abstract class Window implements NativeWindow
     //
     // WindowListener/Event Support
     //
-    protected void enqueueWindowEvent(int eventType) {
-        enqueueWindowEvent(false, eventType);
-    }
-
-    protected void enqueueWindowEvent(boolean wait, int eventType) {
+    public void enqueueWindowEvent(boolean wait, int eventType) {
         WindowEvent event = new WindowEvent(eventType, this, System.currentTimeMillis());
         screen.getDisplay().enqueueEvent( wait, event );
         // sendWindowEvent ( event ); // FIXME: Think about performance/lag .. ?
@@ -1393,8 +1394,12 @@ public abstract class Window implements NativeWindow
     }
 
     protected void sendWindowEvent(WindowEvent e) {
+        getInnerWindow().sendWindowEvent(e, 0, 0, 0, 0);
+    }
+
+    protected void sendWindowEvent(WindowEvent e, int p1, int p2, int p3, int p4) {
         if(DEBUG_WINDOW_EVENT) {
-            System.err.println("sendWindowEvent: "+e);
+            System.err.println("sendWindowEvent: "+e+", "+p1+", "+p2+", "+p3+", "+p4);
         }
         ArrayList listeners = null;
         synchronized(windowListeners) {
@@ -1418,85 +1423,14 @@ public abstract class Window implements NativeWindow
                 case WindowEvent.EVENT_WINDOW_LOST_FOCUS:
                     l.windowLostFocus(e);
                     break;
+                //case WindowEvent.EVENT_WINDOW_REPAINT:
+                //    l.windowRepaint(e);
+                //    break;
                 default:
                     throw 
                         new NativeWindowException("Unexpected window event type "
                                                   + e.getEventType());
             }
-        }
-    }
-
-
-    //
-    // PaintListener/Event Support
-    //
-
-    private ArrayList paintListeners = new ArrayList();
-
-    /** 
-     * Appends the given {@link com.jogamp.newt.event.PaintListener} to the end of 
-     * the list.
-     */
-    public void addPaintListener(PaintListener l) {
-        getInnerWindow().addPaintListener(-1, l);
-    }
-
-    /** 
-     * Inserts the given {@link com.jogamp.newt.event.PaintListener} at the 
-     * specified position in the list.<br>
-
-     * @param index Position where the listener will be inserted. 
-     *              Should be within (0 <= index && index <= size()).
-     *              An index value of -1 is interpreted as the end of the list, size().
-     * @param l The listener object to be inserted
-     * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index <= size()), or -1
-     */
-    public void addPaintListener(int index, PaintListener l) {
-        if(l == null) {
-            return;
-        }
-        synchronized(paintListeners) {
-            if(0>index) { 
-                index = paintListeners.size(); 
-            }
-            ArrayList newPaintListeners = (ArrayList) paintListeners.clone();
-            newPaintListeners.add(index, l);
-            paintListeners = newPaintListeners;
-        }
-    }
-
-    public void removePaintListener(PaintListener l) {
-        if (l == null) {
-            return;
-        }
-        synchronized(paintListeners) {
-            ArrayList newPaintListeners = (ArrayList) paintListeners.clone();
-            newPaintListeners.remove(l);
-            paintListeners = newPaintListeners;
-        }
-    }
-
-    public PaintListener getPaintListener(int index) {
-        synchronized(paintListeners) {
-            if(0>index) { 
-                index = paintListeners.size()-1; 
-            }
-            return (PaintListener) paintListeners.get(index);
-        }
-    }
-
-    protected void sendPaintEvent(int eventType, int x, int y, int w, int h) {
-        sendPaintEvent( new PaintEvent(eventType, this, System.currentTimeMillis(), x, y, w, h) );
-    }
-
-    protected void sendPaintEvent(PaintEvent e) {
-        ArrayList listeners = null;
-        synchronized(paintListeners) {
-            listeners = paintListeners;
-        }
-        for(Iterator i = listeners.iterator(); i.hasNext(); ) {
-            PaintListener l = (PaintListener) i.next();
-            l.exposed(e);
         }
     }
 

@@ -57,9 +57,6 @@ public class NEWTEvent extends java.util.EventObject {
     //  2:       MouseEvent.java  
     //  3:          com.jogamp.newt.Window
     //  3:          com.jogamp.newt.event.awt.AWTNewtEventFactory
-    //  1:   PaintEvent.java  
-    //  2:       com.jogamp.newt.Window
-    //  2:       com.jogamp.newt.event.awt.AWTNewtEventFactory
     //  1:   WindowEvent.java
     //  2:       com.jogamp.newt.Window
     //  2:       com.jogamp.newt.event.awt.AWTNewtEventFactory
@@ -80,8 +77,7 @@ public class NEWTEvent extends java.util.EventObject {
 
         String clazzName = null;
 
-        if( (event instanceof com.jogamp.newt.event.WindowEvent) ||
-            (event instanceof com.jogamp.newt.event.PaintEvent) ) {
+        if( event instanceof com.jogamp.newt.event.WindowEvent ) {
             if ( stack.length > 2 ) {
                 clazzName = stack[2].getClassName();
             }

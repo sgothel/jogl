@@ -45,4 +45,6 @@ public abstract class WindowAdapter implements WindowListener
     }
     public void windowLostFocus(WindowEvent e) {
     }
+    public void windowRepaint(WindowEvent e) {
+    }
 }

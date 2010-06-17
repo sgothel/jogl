@@ -91,7 +91,7 @@ public class AWTWindowAdapter
         if(null!=newtListener) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowResized(event);
         } else {
-            enqueueEvent(event);
+            enqueueEvent(false, event);
         }
     }
 
@@ -100,7 +100,7 @@ public class AWTWindowAdapter
         if(null!=newtListener) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowMoved(event);
         } else {
-            enqueueEvent(event);
+            enqueueEvent(false, event);
         }
     }
 
@@ -143,7 +143,7 @@ public class AWTWindowAdapter
         if(null!=newtListener) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowGainedFocus(event);
         } else {
-            enqueueEvent(event);
+            enqueueEvent(false, event);
         }
     }
 
@@ -156,7 +156,7 @@ public class AWTWindowAdapter
         if(null!=newtListener) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowLostFocus(event);
         } else {
-            enqueueEvent(event);
+            enqueueEvent(false, event);
         }
     }
 
