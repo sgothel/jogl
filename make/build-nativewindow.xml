@@ -477,7 +477,7 @@
     
     <target name="c.configure.freebsd.amd64" if="isFreeBSDAMD64">
       <echo message="FreeBSD.AMD64" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.amd64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.freebsd.amd64.nativewindow.x11" />
     </target>
     
