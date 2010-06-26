@@ -47,7 +47,6 @@ public class GLRunnableDummy implements GLRunnable {
     float d=0.001f;
 
     public void run(GLAutoDrawable drawable) {
-        System.out.println("Red: "+r);
         GL2ES1 gl = drawable.getGL().getGL2ES1();
         gl.glClearColor(r, g, b, 1f);
         r+=d;
