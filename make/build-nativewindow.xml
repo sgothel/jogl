@@ -359,7 +359,17 @@
       </compiler>
 
       <!-- linker configuration -->
- 
+
+      <linker id="linker.cfg.freebsd.nativewindow.x11" extends="linker.cfg.freebsd">
+        <syslibset libs="X11"/>
+        <syslibset libs="Xxf86vm" />
+      </linker>
+
+      <linker id="linker.cfg.freebsd.amd64.nativewindow.x11" extends="linker.cfg.freebsd.amd64">
+        <syslibset libs="X11"/>
+        <syslibset libs="Xxf86vm" />
+      </linker>
+
       <linker id="linker.cfg.linux.nativewindow.x11" extends="linker.cfg.linux">
         <syslibset libs="X11"/>
         <syslibset libs="Xxf86vm" />
@@ -464,11 +474,19 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.amd64.nativewindow.x11" />
     </target>
    
-    <target name="c.configure.freebsd" depends="c.configure.x11" if="isFreeBSD">
-      <echo message="FreeBSD" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.nativewindow" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
+    <target name="c.configure.freebsd.x86" if="isFreeBSDX86">
+      <echo message="FreeBSD.x86" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.freebsd.nativewindow.x11" />
     </target>
+    
+    <target name="c.configure.freebsd.amd64" if="isFreeBSDAMD64">
+      <echo message="FreeBSD.AMD64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.amd64" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.freebsd.amd64.nativewindow.x11" />
+    </target>
+    
+    <target name="c.configure.freebsd" depends="c.configure.freebsd.x86,c.configure.freebsd.amd64,c.configure.x11" if="isFreeBSD" />
 
     <target name="c.configure.hpux" depends="c.configure.x11" if="isHPUX">
       <echo message="HP-UX" />
