@@ -1102,6 +1102,12 @@
       <!-- compiler configuration -->
       <!-- Note that we can use the base setups in the gluegen-cpptasks for most of these -->
 
+      <compiler id="compiler.cfg.freebsd.jogl" extends="compiler.cfg.freebsd">
+        <!-- Need to force X11R6 headers on to include path after stub_includes -->
+        <includepath path="stub_includes/opengl"/>
+        <includepath path="/usr/local/include" />
+      </compiler>
+
       <!-- linker configuration -->
  
       <linker id="linker.cfg.freebsd.jogl.x11" extends="linker.cfg.freebsd">
