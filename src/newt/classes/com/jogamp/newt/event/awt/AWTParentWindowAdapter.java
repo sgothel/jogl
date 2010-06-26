@@ -53,6 +53,19 @@ public class AWTParentWindowAdapter
         return super.removeFrom(awtComponent);
     }
 
+    public void focusGained(java.awt.event.FocusEvent e) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.out.println("AWT: focusGained: START "+ e.getComponent());
+        }
+        newtWindow.requestFocus();
+    }
+
+    public void focusLost(java.awt.event.FocusEvent e) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.out.println("AWT: focusLost: "+ e.getComponent());
+        }
+    }
+
     public void componentResized(java.awt.event.ComponentEvent e) {
         // Need to resize the NEWT child window
         // the resized event will be send via the native window feedback.

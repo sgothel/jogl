@@ -378,7 +378,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       return;
     }
 
-    display();
+    if( null == getAnimator() ) {
+        display();
+    }
   }
 
   /** Overridden to track when this component is added to a container.
@@ -492,8 +494,16 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     drawableHelper.removeGLEventListener(listener);
   }
 
+  public void setAnimator(Thread animator) {
+    drawableHelper.setAnimator(animator);
+  }
+
+  public Thread getAnimator() {
+    return drawableHelper.getAnimator();
+  }
+
   public void invoke(boolean wait, GLRunnable glRunnable) {
-    drawableHelper.invoke(wait, glRunnable);
+    drawableHelper.invoke(this, wait, glRunnable);
   }
 
   public void setContext(GLContext ctx) {
@@ -640,10 +650,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       if (sendReshape) {
         // Note: we ignore the given x and y within the parent component
         // since we are drawing directly into this heavyweight component.
-        int width = getWidth();
-        int height = getHeight();
-        getGL().glViewport(0, 0, width, height);
-        drawableHelper.reshape(GLCanvas.this, 0, 0, width, height);
+        drawableHelper.reshape(GLCanvas.this, 0, 0, getWidth(), getHeight());
         sendReshape = false;
       }
 

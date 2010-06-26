@@ -48,6 +48,10 @@ import org.junit.After;
 import org.junit.Test;
 
 public class TestAWT01GLn {
+    static {
+        GLProfile.initSingleton();
+    }
+
     Frame frame=null;
     GLCanvas glCanvas=null;
 

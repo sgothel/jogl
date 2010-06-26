@@ -31,20 +31,13 @@
  */
 package com.jogamp.newt.event;
 
-import com.jogamp.newt.*;
+public interface NEWTEventConsumer {
 
-public abstract class WindowAdapter implements WindowListener
-{
-    public void windowResized(WindowEvent e) {
-    }
-    public void windowMoved(WindowEvent e) {
-    }
-    public void windowDestroyNotify(WindowEvent e) {
-    }
-    public void windowGainedFocus(WindowEvent e) {
-    }
-    public void windowLostFocus(WindowEvent e) {
-    }
-    public void windowRepaint(WindowUpdateEvent e) {
-    }
+    /** 
+     * Consume the event 
+     *
+     * @return true if the event can be consumed now,
+     * otherwise propagate it later.
+     */
+    public boolean consumeEvent(NEWTEvent event);
 }

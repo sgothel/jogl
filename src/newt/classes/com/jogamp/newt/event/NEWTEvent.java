@@ -123,7 +123,7 @@ public class NEWTEvent extends java.util.EventObject {
 
     /** 
      * Attach the passed object to this event.<br>
-     * If an object was previously attached, it will replaced.<br>
+     * If an object was previously attached, it will be replaced.<br>
      * Attachments to NEWT events allow users to pass on information
      * from one custom listener to another, ie custom listener to listener 
      * communication.

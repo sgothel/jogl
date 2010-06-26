@@ -35,6 +35,7 @@ package com.jogamp.newt.opengl;
 
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
+import com.jogamp.newt.util.*;
 import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
@@ -55,22 +56,34 @@ import java.util.*;
  */
 public class GLWindow extends Window implements GLAutoDrawable {
     private Window window;
-    private boolean runPumpMessages;
 
     /**
      * Constructor. Do not call this directly -- use {@link #create()} instead.
      */
     protected GLWindow(Window window) {
+        this.startTime = System.currentTimeMillis();
         this.window = window;
         this.window.setHandleDestroyNotify(false);
-        this.runPumpMessages = ( null == getScreen().getDisplay().getEDTUtil() ) ;
         window.addWindowListener(new WindowAdapter() {
+                public void windowRepaint(WindowUpdateEvent e) {
+                    if( !windowIsLocked() && null == getAnimator() ) {
+                        display();
+                    }
+                }
+
                 public void windowResized(WindowEvent e) {
                     sendReshape = true;
+                    if( !windowIsLocked() && null == getAnimator() ) {
+                        display();
+                    }
                 }
 
                 public void windowDestroyNotify(WindowEvent e) {
-                    sendDestroy = true;
+                    if( !windowIsLocked() && null == getAnimator() ) {
+                        destroy();
+                    } else {
+			sendDestroy = true;
+	 	    }
                 }
             });
     }
@@ -128,31 +141,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return window.getWrappedWindow();
     }
 
-    /** 
-     * EXPERIMENTAL<br> 
-     * Enable or disables running the {@link Display#pumpMessages} in the {@link #display()} call.<br>
-     * The default behavior is to run {@link Display#pumpMessages}.<P>
-     *
-     * The idea was that in a single threaded environment with one {@link Display} and many {@link Window}'s,
-     * a performance benefit was expected while disabling the implicit {@link Display#pumpMessages} and
-     * do it once via {@link GLWindow#runCurrentThreadPumpMessage()} <br>
-     * This could not have been verified. No measurable difference could have been recognized.<P>
-     *
-     * Best performance has been achieved with one GLWindow per thread.<br> 
-     *
-     * Enabling local pump messages while using the EDT, 
-     * {@link com.jogamp.newt.NewtFactory#setUseEDT(boolean)},
-     * will result in an exception.
-     *
-     * @deprecated EXPERIMENTAL, semantic is about to be removed after further verification.
-     */
-    public void setRunPumpMessages(boolean onoff) {
-        if( onoff && null!=getScreen().getDisplay().getEDTUtil() ) {
-            throw new GLException("GLWindow.setRunPumpMessages(true) - Can't do with EDT on");
-        }
-        runPumpMessages = onoff;
-    }
-
     protected void createNativeImpl() {
         shouldNotCallThis();
     }
@@ -178,7 +166,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
             // Lock: Have to cover whole workflow (dispose all, context, drawable and window)
             windowLock();
             try {
-                if(null==window || window.isDestroyed()) {
+	        if( isDestroyed() ) {
                     return; // nop
                 }
                 if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
@@ -186,21 +174,20 @@ public class GLWindow extends Window implements GLAutoDrawable {
                     e1.printStackTrace();
                 }
 
-                if ( null != context && context.isCreated() && null != drawable && drawable.isRealized() ) {
-                    // Catch dispose GLExceptions by GLEventListener, just 'print' them
-                    // so we can continue with the destruction.
-                    try {
-                        helper.invokeGL(drawable, context, disposeAction, null);
-                    } catch (GLException gle) {
-                        gle.printStackTrace();
-                    }
-                }
+                if( window.isNativeWindowValid() && null != drawable && drawable.isRealized() ) {
+                    if( null != context && context.isCreated() ) {
+                        // Catch dispose GLExceptions by GLEventListener, just 'print' them
+                        // so we can continue with the destruction.
+                        try {
+                            helper.invokeGL(drawable, context, disposeAction, null);
+                        } catch (GLException gle) {
+                            gle.printStackTrace();
+                        }
 
-                if (context != null && null != drawable && drawable.isRealized() ) {
-                    context.destroy();
-                    context = null;
-                }
-                if (drawable != null) {
+                        context.destroy();
+                        context = null;
+                    }
+
                     drawable.setRealized(false);
                     drawable = null;
                 }
@@ -228,7 +215,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
      * @see #destroy()
      */
     public void destroy(boolean deep) {
-        if(!isDestroyed()) {
+	if( !isDestroyed() ) {
             runOnEDTIfAvail(true, new DestroyAction(deep));
         }
     }
@@ -369,6 +356,13 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return window.isFullscreen();
     }
 
+    public void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
+        window.enqueueEvent(wait, event);
+    }
+    public boolean consumeEvent(NEWTEvent e) {
+        return window.consumeEvent(e);
+    }
+
     public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) {
         window.addSurfaceUpdatedListener(index, l);
     }
@@ -414,6 +408,12 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return window.getKeyListeners();
     }
 
+    public void sendWindowEvent(int eventType) {
+        window.sendWindowEvent(eventType);
+    }
+    public void enqueueWindowEvent(boolean wait, int eventType) {
+        window.enqueueWindowEvent(wait, eventType);
+    }
     public void addWindowListener(int index, WindowListener l) {
         window.addWindowListener(index, l);
     }
@@ -425,6 +425,12 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
     public WindowListener[] getWindowListeners() {
         return window.getWindowListeners();
+    }
+    public void setPropagateRepaint(boolean v) {
+        window.setPropagateRepaint(v);
+    }
+    public void windowRepaint(int x, int y, int width, int height) {
+        window.windowRepaint(x, y, width, height);
     }
 
     public String toString() {
@@ -483,8 +489,17 @@ public class GLWindow extends Window implements GLAutoDrawable {
         helper.removeGLEventListener(listener);
     }
 
+    public void setAnimator(Thread animator) {
+        helper.setAnimator(animator);
+        window.setPropagateRepaint(null==animator);
+    }
+
+    public Thread getAnimator() {
+        return helper.getAnimator();
+    }
+
     public void invoke(boolean wait, GLRunnable glRunnable) {
-        helper.invoke(wait, glRunnable);
+        helper.invoke(this, wait, glRunnable);
     }
 
     public void display() {
@@ -494,28 +509,26 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public void display(boolean forceReshape) {
         if( null == window ) { return; }
 
+        if(sendDestroy || ( null!=window && window.hasDeviceChanged() && GLAutoDrawable.SCREEN_CHANGE_ACTION_ENABLED ) ) {
+	  sendDestroy=false;
+	  destroy();
+          return;
+	}
+
         if( null == context && window.isVisible() ) {
             // retry native window and drawable/context creation 
             setVisible(true);
         }
 
-        if( window.isNativeWindowValid() && null != context ) {
-            if(runPumpMessages) {
-                window.getScreen().getDisplay().pumpMessages();
+        if( window.isVisible() && window.isNativeWindowValid() && null != context ) {
+            if(forceReshape) {
+                sendReshape = true;
             }
-            if(sendDestroy || window.hasDeviceChanged() && GLAutoDrawable.SCREEN_CHANGE_ACTION_ENABLED) {
-                destroy();
-                sendDestroy=false;
-            } else if ( window.isVisible() ) {
-                if(forceReshape) {
-                    sendReshape = true;
-                }
-                windowLock();
-                try{
-                    helper.invokeGL(drawable, context, displayAction, initAction);
-                } finally {
-                    windowUnlock();
-                }
+            windowLock();
+            try{
+                helper.invokeGL(drawable, context, displayAction, initAction);
+            } finally {
+                windowUnlock();
             }
         }
     }
@@ -546,7 +559,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         public void run() {
             // Lock: Locked Surface/Window by MakeCurrent/Release
             helper.init(GLWindow.this);
-            startTime = System.currentTimeMillis();
+            startTime = System.currentTimeMillis(); // overwrite startTime to real init one
             curTime   = startTime;
             if(perfLog) {
                 lastCheck  = startTime;
@@ -560,10 +573,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         public void run() {
             // Lock: Locked Surface/Window by display _and_ MakeCurrent/Release
             if (sendReshape) {
-                int width = getWidth();
-                int height = getHeight();
-                getGL().glViewport(0, 0, width, height);
-                helper.reshape(GLWindow.this, 0, 0, width, height);
+                helper.reshape(GLWindow.this, 0, 0, getWidth(), getHeight());
                 sendReshape = false;
             }
 
@@ -589,8 +599,8 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private DisplayAction displayAction = new DisplayAction();
 
     public long getStartTime()   { return startTime; }
-    public long getCurrentTime() { return curTime; }
-    public long getDuration()    { return curTime-startTime; }
+    public long getCurrentTime() { curTime = System.currentTimeMillis(); return curTime; }
+    public long getDuration()    { return getCurrentTime()-startTime; }
     public int  getTotalFrames() { return totalFrames; }
 
     private long startTime = 0;

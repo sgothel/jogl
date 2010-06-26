@@ -218,6 +218,9 @@ public class Animator {
         } else {
             thread = new Thread(threadGroup, runnable);
         }
+        for(Iterator iter = drawables.iterator(); iter.hasNext(); ) {
+            ((GLAutoDrawable) iter.next()).setAnimator(thread);
+        }
         thread.start();
     }
 
@@ -241,15 +244,16 @@ public class Animator {
         // dependencies on the Animator's internal thread. Currently we
         // use a couple of heuristics to determine whether we should do
         // the blocking wait().
-        if (impl.skipWaitForStop(thread)) {
-            return;
-        }
-
-        while (shouldStop && thread != null) {
-            try {
-                wait();
-            } catch (InterruptedException ie) {
+        if (!impl.skipWaitForStop(thread)) {
+            while (shouldStop && thread != null) {
+                try {
+                    wait();
+                } catch (InterruptedException ie) {
+                }
             }
+        }
+        for(Iterator iter = drawables.iterator(); iter.hasNext(); ) {
+            ((GLAutoDrawable) iter.next()).setAnimator(null);
         }
     }
 }

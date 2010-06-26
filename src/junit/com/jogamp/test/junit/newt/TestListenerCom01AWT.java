@@ -65,9 +65,12 @@ import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
 public class TestListenerCom01AWT {
+    static {
+        GLProfile.initSingleton();
+    }
+
     static int width, height;
     static long durationPerTest = 500;
-    static long waitReparent = 300;
     static boolean verbose = false;
 
     @BeforeClass
@@ -152,8 +155,6 @@ public class TestListenerCom01AWT {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
-            } else if(args[i].equals("-wait")) {
-                waitReparent = atoi(args[++i]);
             }
         }
         String tstname = TestListenerCom01AWT.class.getName();

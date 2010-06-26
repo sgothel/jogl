@@ -380,8 +380,16 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     drawableHelper.removeGLEventListener(listener);
   }
 
+  public void setAnimator(Thread animator) {
+    drawableHelper.setAnimator(animator);
+  }
+
+  public Thread getAnimator() {
+    return drawableHelper.getAnimator();
+  }
+
   public void invoke(boolean wait, GLRunnable glRunnable) {
-    drawableHelper.invoke(wait, glRunnable);
+    drawableHelper.invoke(this, wait, glRunnable);
   }
 
   public GLContext createContext(GLContext shareWith) {
@@ -585,9 +593,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       }
       if (sendReshape) {
         if (DEBUG||VERBOSE) {
-          System.err.println("display: glViewport(" + viewportX + "," + viewportY + " " + panelWidth + "x" + panelHeight + ")");
+          System.err.println("display: reshape(" + viewportX + "," + viewportY + " " + panelWidth + "x" + panelHeight + ")");
         }
-        getGL().getGL2().glViewport(viewportX, viewportY, panelWidth, panelHeight);
         drawableHelper.reshape(GLJPanel.this, viewportX, viewportY, panelWidth, panelHeight);
         sendReshape = false;
       }

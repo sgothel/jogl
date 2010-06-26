@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2010 Sven Gothel. All Rights Reserved.
  * 
@@ -29,22 +30,20 @@
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
-package com.jogamp.newt.event;
 
-import com.jogamp.newt.*;
+package com.jogamp.test.junit.newt.parenting;
 
-public abstract class WindowAdapter implements WindowListener
-{
-    public void windowResized(WindowEvent e) {
+import com.jogamp.newt.event.*;
+
+class KeyAction extends KeyAdapter {
+    NEWTEventFiFo eventFifo;
+
+    public KeyAction(NEWTEventFiFo eventFifo) { 
+        this.eventFifo = eventFifo; 
     }
-    public void windowMoved(WindowEvent e) {
-    }
-    public void windowDestroyNotify(WindowEvent e) {
-    }
-    public void windowGainedFocus(WindowEvent e) {
-    }
-    public void windowLostFocus(WindowEvent e) {
-    }
-    public void windowRepaint(WindowUpdateEvent e) {
+
+    public void keyTyped(KeyEvent e) {
+        eventFifo.put(e);
     }
 }
+

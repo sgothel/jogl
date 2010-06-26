@@ -44,6 +44,7 @@ public class RedSquare implements GLEventListener {
     private FloatBuffer vertices;
 
     public void init(GLAutoDrawable drawable) {
+        System.out.println("RedSquare: Init");
         GL _gl = drawable.getGL();
 
         if(glDebugEmu) {
@@ -119,6 +120,7 @@ public class RedSquare implements GLEventListener {
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+        System.out.println("RedSquare: Reshape");
         GL2ES1 gl = drawable.getGL().getGL2ES1();
         // Set location in front of camera
         gl.glMatrixMode(gl.GL_PROJECTION);
@@ -147,6 +149,7 @@ public class RedSquare implements GLEventListener {
     }
 
     public void dispose(GLAutoDrawable drawable) {
+        System.out.println("RedSquare: Dispose");
         GL2ES1 gl = drawable.getGL().getGL2ES1();
         if(debug) {
             System.out.println(Thread.currentThread()+" RedSquare.dispose: "+gl.getContext());
@@ -163,8 +166,4 @@ public class RedSquare implements GLEventListener {
             System.out.println(Thread.currentThread()+" RedSquare.dispose: FIN");
         }
     }
-
-    public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
-    }
-
 }

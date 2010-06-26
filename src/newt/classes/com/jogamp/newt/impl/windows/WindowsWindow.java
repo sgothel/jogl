@@ -36,6 +36,7 @@ package com.jogamp.newt.impl.windows;
 import javax.media.nativewindow.*;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
+import com.jogamp.newt.util.*;
 
 public class WindowsWindow extends Window {
 
@@ -214,44 +215,6 @@ public class WindowsWindow extends Window {
             insets.top = top;
             insets.right = right;
             insets.bottom = bottom;
-        }
-    }
-
-    private void sizeChanged(int newWidth, int newHeight) {
-        if(width != newWidth || height != newHeight) {
-            width = newWidth;
-            height = newHeight;
-            if(!fullscreen) {
-                nfs_width=width;
-                nfs_height=height;
-            }
-            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
-        }
-    }
-
-    private void positionChanged(int newX, int newY) {
-        if( 0==parentWindowHandle && ( x != newX || y != newY ) ) {
-            x = newX;
-            y = newY;
-            if(!fullscreen) {
-                nfs_x=x;
-                nfs_y=y;
-            }
-            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
-        }
-    }
-
-    /**
-     *
-     * @param focusOwner if focusGained is true, focusOwner is the previous
-     * focus owner, if focusGained is false, focusOwner is the new focus owner
-     * @param focusGained
-     */
-    private void focusChanged(long focusOwner, boolean focusGained) {
-        if (focusGained) {
-            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
-        } else {
-            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_LOST_FOCUS);
         }
     }
 }

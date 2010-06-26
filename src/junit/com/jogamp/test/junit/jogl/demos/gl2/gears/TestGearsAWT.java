@@ -51,6 +51,10 @@ import org.junit.After;
 import org.junit.Test;
 
 public class TestGearsAWT {
+    static {
+        GLProfile.initSingleton();
+    }
+
     static GLProfile glp;
     static int width, height;
 

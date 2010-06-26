@@ -30,7 +30,7 @@
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.test.junit.newt;
+package com.jogamp.test.junit.newt.parenting;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -47,7 +47,7 @@ public class GLRunnableDummy implements GLRunnable {
     float d=0.001f;
 
     public void run(GLAutoDrawable drawable) {
-        // nop ..
+        System.out.println("Red: "+r);
         GL2ES1 gl = drawable.getGL().getGL2ES1();
         gl.glClearColor(r, g, b, 1f);
         r+=d;

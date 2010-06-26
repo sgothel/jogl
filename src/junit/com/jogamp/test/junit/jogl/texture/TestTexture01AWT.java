@@ -56,6 +56,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class TestTexture01AWT {
+    static {
+        GLProfile.initSingleton();
+    }
+
     static GLProfile glp;
     static GLCapabilities caps;
     BufferedImage textureImage;

@@ -215,7 +215,7 @@ public class AWTWindow extends Window {
         }
     }
 
-    public com.jogamp.newt.Insets getInsets() {
+    public com.jogamp.newt.util.Insets getInsets() {
         final int insets[] = new int[] { 0, 0, 0, 0 };
         runOnEDT(true, new Runnable() {
                 public void run() {
@@ -226,7 +226,7 @@ public class AWTWindow extends Window {
                     insets[3] = contInsets.right;
                 }
             });
-        return new com.jogamp.newt.
+        return new com.jogamp.newt.util.
             Insets(insets[0],insets[1],insets[2],insets[3]);
     }
 
@@ -262,19 +262,6 @@ public class AWTWindow extends Window {
 
     public Object getWrappedWindow() {
         return canvas;
-    }
-
-    protected void enqueueWindowEvent(int eventType) {
-        super.enqueueWindowEvent(eventType);
-    }
-
-    protected void enqueueKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
-        super.enqueueKeyEvent(eventType, modifiers, keyCode, keyChar);
-    }
-
-    protected void enqueueMouseEvent(int eventType, int modifiers,
-                                  int x, int y, int button, int rotation) {
-        super.enqueueMouseEvent(eventType, modifiers, x, y, button, rotation);
     }
 
     private void runOnEDT(boolean wait, Runnable r) {

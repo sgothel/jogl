@@ -120,6 +120,7 @@ public class TestWindows01NEWT {
 
         window.setVisible(true);
         Assert.assertEquals(true,window.isNativeWindowValid());
+        Assert.assertEquals(true,window.isVisible());
 
         Thread.sleep(100); // 100 ms
         destroyWindow(display, screen, window);

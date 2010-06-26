@@ -30,7 +30,7 @@
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.test.junit.newt;
+package com.jogamp.test.junit.newt.parenting;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;
@@ -47,7 +47,6 @@ import org.junit.Test;
 import java.awt.Button;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
-import java.awt.Container;
 import java.awt.Frame;
 import java.awt.Dimension;
 
@@ -66,7 +65,11 @@ import com.jogamp.test.junit.util.*;
 import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
-public class TestParenting01cAWT {
+public class TestParenting01bAWT {
+    static {
+        GLProfile.initSingleton();
+    }
+
     static int width, height;
     static long durationPerTest = 800;
     static long waitReparent = 0;
@@ -80,27 +83,18 @@ public class TestParenting01cAWT {
     }
 
     @Test
-    public void testWindowParenting01CreateVisibleDestroy1() throws InterruptedException {
+    public void testWindowParenting05ReparentAWTWinHopFrame2Frame() throws InterruptedException {
         int x = 0;
         int y = 0;
 
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
-        GLWindow glWindow1 = GLWindow.create(glCaps);
-        Assert.assertNotNull(glWindow1);
-        Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(false, glWindow1.isNativeWindowValid());
-        Assert.assertNull(glWindow1.getParentNativeWindow());
-        glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
+        GLWindow glWindow1 = GLWindow.create(glCaps, true);
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
-        Assert.assertNotNull(newtCanvasAWT);
-        Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(false, glWindow1.isNativeWindowValid());
-        Assert.assertNull(glWindow1.getParentNativeWindow());
 
         Frame frame1 = new Frame("AWT Parent Frame");
         frame1.setLayout(new BorderLayout());
@@ -108,45 +102,48 @@ public class TestParenting01cAWT {
         frame1.add(new Button("South"), BorderLayout.SOUTH);
         frame1.add(new Button("East"), BorderLayout.EAST);
         frame1.add(new Button("West"), BorderLayout.WEST);
-
-        Container container1 = new Container();
-        container1.setLayout(new BorderLayout());
-        container1.add(new Button("north"), BorderLayout.NORTH);
-        container1.add(new Button("south"), BorderLayout.SOUTH);
-        container1.add(new Button("east"), BorderLayout.EAST);
-        container1.add(new Button("west"), BorderLayout.WEST);
-        container1.add(newtCanvasAWT, BorderLayout.CENTER);
-
-        frame1.add(container1, BorderLayout.CENTER);
         frame1.setSize(width, height);
-
-        // visible test
+        frame1.setLocation(0, 0);
         frame1.setVisible(true);
+
+        Frame frame2 = new Frame("AWT Parent Frame");
+        frame2.setLayout(new BorderLayout());
+        frame2.add(new Button("North"), BorderLayout.NORTH);
+        frame2.add(new Button("South"), BorderLayout.SOUTH);
+        frame2.add(new Button("East"), BorderLayout.EAST);
+        frame2.add(new Button("West"), BorderLayout.WEST);
+        frame2.setSize(width, height);
+        frame2.setLocation(640, 480);
+        frame2.setVisible(true);
+
+        frame1.add(newtCanvasAWT, BorderLayout.CENTER);
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
 
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
-        while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
-            Thread.sleep(100);
+
+        int state = 0;
+        while(animator1.isAnimating() && animator1.getDuration()<3*durationPerTest) {
+            Thread.sleep(durationPerTest);
+            switch(state) {
+                case 0:
+                    frame1.remove(newtCanvasAWT);
+                    frame2.add(newtCanvasAWT, BorderLayout.CENTER);
+                    break;
+                case 1:
+                    frame2.remove(newtCanvasAWT);
+                    frame1.add(newtCanvasAWT, BorderLayout.CENTER);
+                    break;
+            }
+            state++;
         }
+
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
 
-        frame1.setVisible(false);
-        Assert.assertEquals(false, glWindow1.isDestroyed());
-
-        frame1.setVisible(true);
-        Assert.assertEquals(false, glWindow1.isDestroyed());
-
-        frame1.remove(newtCanvasAWT);
-        // Assert.assertNull(glWindow1.getParentNativeWindow());
-        Assert.assertEquals(false, glWindow1.isDestroyed());
-
         frame1.dispose();
-        Assert.assertEquals(false, glWindow1.isDestroyed());
-
+        frame2.dispose();
         glWindow1.destroy(true);
-        //Assert.assertEquals(true, glWindow1.isDestroyed());
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
@@ -178,7 +175,7 @@ public class TestParenting01cAWT {
                 waitReparent = atoi(args[++i]);
             }
         }
-        String tstname = TestParenting01cAWT.class.getName();
+        String tstname = TestParenting01bAWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

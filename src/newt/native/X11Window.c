@@ -151,14 +151,16 @@ static const char * const ClazzNameNewtWindow =
                             "com/jogamp/newt/Window";
 static jclass    newtWindowClz=NULL;
 
-static jmethodID windowChangedID = NULL;
+static jmethodID sizeChangedID = NULL;
+static jmethodID positionChangedID = NULL;
 static jmethodID focusChangedID = NULL;
 static jmethodID visibleChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowDestroyedID = NULL;
+static jmethodID windowRepaintID = NULL;
 static jmethodID windowCreatedID = NULL;
-static jmethodID enqueueMouseEventID = NULL;
-static jmethodID enqueueKeyEventID = NULL;
+static jmethodID sendMouseEventID = NULL;
+static jmethodID sendKeyEventID = NULL;
 
 static jmethodID displayCompletedID = NULL;
 
@@ -291,8 +293,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_CompleteDisplay0
  * Window
  */
 
-// #define WINDOW_EVENT_MASK ( FocusChangeMask | StructureNotifyMask | ExposureMask | VisibilityNotify )
-#define WINDOW_EVENT_MASK ( FocusChangeMask | StructureNotifyMask | VisibilityNotify )
+#define WINDOW_EVENT_MASK ( FocusChangeMask | StructureNotifyMask | ExposureMask )
 
 static int putPtrIn32Long(unsigned long * dst, uintptr_t src) {
     int i=0;
@@ -505,31 +506,37 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
         switch(evt.type) {
             case ButtonPress:
                 NewtWindows_requestFocus1 ( dpy, evt.xany.window );
-                (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
+                (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, 
+                                      (jint) EVENT_MOUSE_PRESSED, 
                                       (jint) evt.xbutton.state, 
                                       (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
                 break;
             case ButtonRelease:
-                (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, (jint) EVENT_MOUSE_RELEASED, 
+                (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, 
+                                      (jint) EVENT_MOUSE_RELEASED, 
                                       (jint) evt.xbutton.state, 
                                       (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
                 break;
             case MotionNotify:
-                (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, (jint) EVENT_MOUSE_MOVED, 
+                (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, 
+                                      (jint) EVENT_MOUSE_MOVED, 
                                       (jint) evt.xmotion.state, 
                                       (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0, 0 /*rotation*/); 
                 break;
             case KeyPress:
-                (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, (jint) EVENT_KEY_PRESSED, 
+                (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, 
+                                      (jint) EVENT_KEY_PRESSED, 
                                       (jint) evt.xkey.state, 
                                       X11KeySym2NewtVKey(keySym), (jchar) keyChar);
                 break;
             case KeyRelease:
-                (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, (jint) EVENT_KEY_RELEASED, 
+                (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, 
+                                      (jint) EVENT_KEY_RELEASED, 
                                       (jint) evt.xkey.state, 
                                       X11KeySym2NewtVKey(keySym), (jchar) keyChar);
 
-                (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, (jint) EVENT_KEY_TYPED, 
+                (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, 
+                                      (jint) EVENT_KEY_TYPED, 
                                       (jint) evt.xkey.state, 
                                       (jint) -1, (jchar) keyChar);
                 break;
@@ -546,9 +553,10 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
                             (unsigned int)evt.xconfigure.window, (unsigned int)evt.xconfigure.event, (unsigned int)evt.xconfigure.above,
                             evt.xconfigure.x, evt.xconfigure.y, evt.xconfigure.width, evt.xconfigure.height, 
                             evt.xconfigure.override_redirect);
-                (*env)->CallVoidMethod(env, jwindow, windowChangedID, 
-                                        (jint) evt.xconfigure.x, (jint) evt.xconfigure.y,
+                (*env)->CallVoidMethod(env, jwindow, sizeChangedID, 
                                         (jint) evt.xconfigure.width, (jint) evt.xconfigure.height);
+                (*env)->CallVoidMethod(env, jwindow, positionChangedID, 
+                                        (jint) evt.xconfigure.x, (jint) evt.xconfigure.y);
                 break;
             case ClientMessage:
                 if (evt.xclient.send_event==True && evt.xclient.data.l[0]==(Atom)wmDeleteAtom) {
@@ -568,25 +576,28 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
                 (*env)->CallVoidMethod(env, jwindow, focusChangedID, JNI_FALSE);
                 break;
 
+            case Expose:
+                DBG_PRINT( "X11: event . Expose call 0x%X %d/%d %dx%d\n", (unsigned int)evt.xexpose.window,
+                    evt.xexpose.x, evt.xexpose.y, evt.xexpose.width, evt.xexpose.height);
+
+                if (evt.xexpose.width > 0 && evt.xexpose.height > 0) {
+                    (*env)->CallVoidMethod(env, jwindow, windowRepaintID, 
+                        evt.xexpose.x, evt.xexpose.y, evt.xexpose.width, evt.xexpose.height);
+                }
+                break;
+
             case MapNotify:
                 DBG_PRINT( "X11: event . MapNotify call 0x%X\n", (unsigned int)evt.xunmap.window);
-                // FIXME (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_TRUE);
+                (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_TRUE);
                 break;
 
             case UnmapNotify:
                 DBG_PRINT( "X11: event . UnmapNotify call 0x%X\n", (unsigned int)evt.xunmap.window);
-                // FIXME (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_FALSE);
+                (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_FALSE);
                 break;
 
             // unhandled events .. yet ..
 
-            case VisibilityNotify:
-                DBG_PRINT( "X11: event . VisibilityNotify call 0x%X\n", (unsigned int)evt.xvisibility.window);
-                break;
-            case Expose:
-                DBG_PRINT( "X11: event . Expose call 0x%X\n", (unsigned int)evt.xexpose.window);
-                /* FIXME: Might want to send a repaint event .. */
-                break;
             default:
                 DBG_PRINT("X11: event . unhandled %d 0x%X call 0x%X\n", evt.type, evt.type, (unsigned int)evt.xunmap.window);
         }
@@ -653,23 +664,27 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getHeight0
 JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs0
   (JNIEnv *env, jclass clazz)
 {
-    windowChangedID = (*env)->GetMethodID(env, clazz, "windowChanged", "(IIII)V");
+    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
+    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(Z)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
+    windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(IIII)V");
     windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(J)V");
-    enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(IIIIII)V");
-    enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(IIIC)V");
+    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
+    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
 
-    if (windowChangedID == NULL ||
+    if (sizeChangedID == NULL ||
+        positionChangedID == NULL ||
         focusChangedID == NULL ||
         visibleChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowDestroyedID == NULL ||
+        windowRepaintID == NULL ||
         windowCreatedID == NULL ||
-        enqueueMouseEventID == NULL ||
-        enqueueKeyEventID == NULL) {
+        sendMouseEventID == NULL ||
+        sendKeyEventID == NULL) {
         return JNI_FALSE;
     }
     return JNI_TRUE;
@@ -749,12 +764,17 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow0
         pVisualQuery=NULL;
     }
 
-    attrMask  = ( CWBackPixel | CWBorderPixel | CWColormap | CWOverrideRedirect ) ;
+    attrMask  = ( CWBackingStore | CWBackingPlanes | CWBackingPixel | CWBackPixel | 
+                  CWBorderPixel | CWColormap | CWOverrideRedirect ) ;
 
     memset(&xswa, 0, sizeof(xswa));
     xswa.override_redirect = ( 0 != parent ) ? True : False ;
     xswa.border_pixel = 0;
     xswa.background_pixel = 0;
+    xswa.backing_store=NotUseful; /* NotUseful, WhenMapped, Always */
+    xswa.backing_planes=0;        /* planes to be preserved if possible */
+    xswa.backing_pixel=0;         /* value to use in restoring planes */
+
     xswa.colormap = XCreateColormap(dpy,
                                     windowParent, // XRootWindow(dpy, scrn_idx),
                                     visual,
@@ -781,6 +801,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow0
 
     setJavaWindowProperty(env, dpy, window, javaObjectAtom, (*env)->NewGlobalRef(env, obj));
 
+    // XClearWindow(dpy, window);
     XSync(dpy, False);
 
     {
@@ -806,7 +827,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow0
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CloseWindow0
-  (JNIEnv *env, jobject obj, jlong display, jlong window, jlong javaObjectAtom)
+  (JNIEnv *env, jobject obj, jlong display, jlong window, jlong javaObjectAtom, jlong wmDeleteAtom)
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
@@ -827,13 +848,18 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CloseWindow0
         _throwNewRuntimeException(dpy, env, "Internal Error .. Window global ref not the same!");
         return;
     }
-    (*env)->DeleteGlobalRef(env, jwindow);
 
     XSync(dpy, False);
     XSelectInput(dpy, w, 0);
     XUnmapWindow(dpy, w);
+
+    // Drain all events related to this window ..
+    JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages0(env, obj, display, javaObjectAtom, wmDeleteAtom);
+
     XDestroyWindow(dpy, w);
     XSync(dpy, False);
+
+    (*env)->DeleteGlobalRef(env, jwindow);
 
     DBG_PRINT( "X11: CloseWindow END\n");
 
@@ -922,6 +948,11 @@ static void NewtWindows_reparentWindow
     DBG_PRINT( "X11: reparentWindow dpy %p, parent %p/%p, win %p, %d/%d undec %d\n", 
         (void*)dpy, (void*) jparent, (void*)parent, (void*)w, x, y, undecorated);
 
+    // don't propagate events during reparenting
+    // long orig_xevent_mask = xwa->your_event_mask ;
+    /* XSelectInput(dpy, w, orig_xevent_mask & ~ ( StructureNotifyMask ) );
+       XSync(dpy, False); */
+
     if(0 != jparent) {
         // move into parent ..
         NewtWindows_setDecorations (dpy, w, False);
@@ -952,6 +983,14 @@ static void NewtWindows_reparentWindow
         XSync(dpy, False);
 
         XMapWindow(dpy, w);
+        XSync(dpy, False);
+    }
+
+    /* XSelectInput(dpy, w, orig_xevent_mask);
+       XSync(dpy, False); */
+
+    if(JNI_TRUE == isVisible) {
+        NewtWindows_requestFocus0 ( dpy, w, xwa );
         XSync(dpy, False);
     }
 
@@ -993,12 +1032,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setPosSizeDecor0
     xwc.width=width;
     xwc.height=height;
     XConfigureWindow(dpy, w, CWX|CWY|CWWidth|CWHeight, &xwc);
-
-    if(JNI_TRUE == isVisible) {
-        XGetWindowAttributes(dpy, w, &xwa);
-        NewtWindows_requestFocus0 ( dpy, w, &xwa );
-        XSync(dpy, False);
-    }
 }
 
 /*
@@ -1039,7 +1072,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_reparentWindow0
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_requestFocus0
   (JNIEnv *env, jobject obj, jlong display, jlong window)
 {
-    NewtWindows_requestFocus ( (Display *) (intptr_t) display, (Window)window ) ;
+    NewtWindows_requestFocus1 ( (Display *) (intptr_t) display, (Window)window ) ;
 }
 
 /*

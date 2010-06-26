@@ -30,7 +30,7 @@
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.test.junit.newt;
+package com.jogamp.test.junit.newt.parenting;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;
@@ -60,6 +60,10 @@ import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
 public class TestParenting01NEWT {
+    static {
+        GLProfile.initSingleton();
+    }
+
     static int width, height;
     static long durationPerTest = 500;
     static long waitReparent = 0;

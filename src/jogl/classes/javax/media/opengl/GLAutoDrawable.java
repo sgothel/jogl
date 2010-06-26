@@ -161,14 +161,49 @@ public interface GLAutoDrawable extends GLDrawable {
       during this update cycle. */
   public void removeGLEventListener(GLEventListener listener);
 
-  /** 
-   * Enqueues the one-shot {@link javax.media.opengl.GLRunnable} into the queue,
-   * which will be executed at the next {@link #display()} call.
+  /**
    * <p>
-   * Warning: We cannot verify if the caller runs in the same thread 
-   * as the display caller, hence we cannot avoid a deadlock
-   * in such case. You have to know what you are doing, 
-   * ie call this only in a I/O event listener, or such.<br></p>
+   * Indicates whether a running animator thread is periodically issuing {@link #display()} calls or not.</p><br>
+   * <p>
+   * This method shall be called by an animator implementation only,<br>
+   * e.g. {@link com.jogamp.opengl.util.Animator#start()}, passing the animator thread,<br>
+   * and {@link com.jogamp.opengl.util.Animator#start()}, passing <code>null</code>.</p><br>
+   * <p>
+   * Impacts {@link #display()} and {@link #invoke(boolean, GLRunnable)} semantics.</p><br>
+   *
+   * @param animator <code>null</code> reference indicates no running animator thread 
+   *                 issues {@link #display()} calls on this <code>GLAutoDrawable</code>,<br>
+   *                 a valid reference indicates a running animator thread 
+   *                 periodically issuing {@link #display()} calls.
+   *
+   * @throws GLException if a running animator thread is already registered and you try to register a different one without unregistering the previous one.
+   * @see #display()
+   * @see #invoke(boolean, GLRunnable)
+   */ 
+  public void setAnimator(Thread animator) throws GLException;
+
+  /**
+   * @return the value of the registered animator thread
+   *
+   * @see #setAnimator(Thread)
+   */
+  public Thread getAnimator();
+
+  /** 
+   * <p>
+   * Enqueues a one-shot {@link javax.media.opengl.GLRunnable},
+   * which will be executed with the next {@link #display()} call.</p><br>
+   * <p>
+   * If {@link #setAnimator(Thread)} has not registered no running animator thread, the default,<br>
+   * or if the current thread is the animator thread,<br>
+   * a {@link #display()} call has to be issued after enqueueing the <code>GLRunnable</code>.<br>
+   * No extra synchronization must be performed in case <code>wait</code> is true, since it is executed in the current thread.</p><br>
+   * <p>
+   * If {@link #setAnimator(Thread)} has registered a valid animator thread,<br>
+   * no call of {@link #display()} must be issued, since the animator thread performs it.<br>
+   * If <code>wait</code> is true, the implementation must wait until the <code>GLRunnable</code> is excecuted.</p><br>
+   *
+   * @see #setAnimator(Thread)
    * @see #display()
    * @see javax.media.opengl.GLRunnable
    */   
@@ -190,28 +225,37 @@ public interface GLAutoDrawable extends GLDrawable {
       routine may be called manually. */
   public void destroy();
 
-  /** <p>Causes OpenGL rendering to be performed for this GLAutoDrawable
-      in the following order:
-      <ul>
-        <li> Calling {@link GLEventListener#display display(..)} for all
-             registered {@link GLEventListener}s. </li>
-        <li> Execute and dismiss all one-shot {@link javax.media.opengl.GLRunnable},
-             enqueued via {@link #invoke(boolean, GLRunnable)}.</li>
-      </ul></p>
-      <p> 
-      Called automatically by the
-      window system toolkit upon receiving a repaint() request.</p> 
-      <p> 
-      This routine may be called manually for better control over the
-      rendering process. It is legal to call another GLAutoDrawable's
-      display method from within the {@link GLEventListener#display
-      display(..)} callback.</p>
-      <p>
-      In case of a new generated OpenGL context, 
-      the implementation shall call {@link GLEventListener#init init(..)} for all
-      registered {@link GLEventListener}s <i>before</i> making the 
-      actual {@link GLEventListener#display display(..)} calls,
-      in case this has not been done yet.</p> */
+  /** 
+   * <p>
+   * Causes OpenGL rendering to be performed for this GLAutoDrawable
+   * in the following order:
+   * <ul>
+   *     <li> Calling {@link GLEventListener#display display(..)} for all
+   *          registered {@link GLEventListener}s. </li>
+   *     <li> Executes all one-shot {@link javax.media.opengl.GLRunnable},
+   *          enqueued via {@link #invoke(boolean, GLRunnable)}.</li>
+   * </ul></p>
+   * <p> 
+   * Called automatically by the
+   * window system toolkit upon receiving a repaint() request, 
+   * except a running animator thread is registered with {@link #setAnimator(Thread)}.</p> <br>
+   * <p> 
+   * Maybe called periodically by a running animator thread,<br>
+   * which must register itself with {@link #setAnimator(Thread)}.</p> <br>
+   * <p> 
+   * This routine may be called manually for better control over the
+   * rendering process. It is legal to call another GLAutoDrawable's
+   * display method from within the {@link GLEventListener#display
+   * display(..)} callback.</p>
+   * <p>
+   * In case of a new generated OpenGL context, 
+   * the implementation shall call {@link GLEventListener#init init(..)} for all
+   * registered {@link GLEventListener}s <i>before</i> making the 
+   * actual {@link GLEventListener#display display(..)} calls,
+   * in case this has not been done yet.</p>
+   *
+   * @see #setAnimator(Thread)
+   */
   public void display();
 
   /** Enables or disables automatic buffer swapping for this drawable.

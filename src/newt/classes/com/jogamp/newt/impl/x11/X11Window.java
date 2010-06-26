@@ -71,7 +71,8 @@ public class X11Window extends Window {
         if(0!=windowHandleClose && null!=getScreen() ) {
             X11Display display = (X11Display) getScreen().getDisplay();
             try {
-                CloseWindow0(display.getHandle(), windowHandleClose, display.getJavaObjectAtom());
+                CloseWindow0(display.getHandle(), windowHandleClose, 
+                             display.getJavaObjectAtom(), display.getWindowDeleteAtom());
             } catch (Throwable t) {
                 if(DEBUG_IMPLEMENTATION) { 
                     Exception e = new Exception("closeNative failed - "+Thread.currentThread().getName(), t);
@@ -134,7 +135,7 @@ public class X11Window extends Window {
     private        native long CreateWindow0(long parentWindowHandle, long display, int screen_index, 
                                             long visualID, long javaObjectAtom, long windowDeleteAtom, 
                                             int x, int y, int width, int height, boolean undecorated);
-    private        native void CloseWindow0(long display, long windowHandle, long javaObjectAtom);
+    private        native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom);
     private        native void setVisible0(long display, long windowHandle, boolean visible);
     private        native void setSize0(long display, long windowHandle, int width, int height);
     private        native void setPosSizeDecor0(long parentWindowHandle, long display, int screen_index, long windowHandle, 
@@ -144,51 +145,6 @@ public class X11Window extends Window {
     private        native void setPosition0(long parentWindowHandle, long display, long windowHandle, int x, int y);
     private        native void reparentWindow0(long parentWindowHandle, long display, int screen_index, long windowHandle, 
                                                int x, int y, boolean undecorated, boolean isVisible);
-
-    private void windowChanged(int newX, int newY, int newWidth, int newHeight) {
-        if(width != newWidth || height != newHeight) {
-            if(DEBUG_IMPLEMENTATION) {
-                System.err.println("X11Window windowChanged size: "+this.width+"x"+this.height+" -> "+newWidth+"x"+newHeight);
-            }
-            width = newWidth;
-            height = newHeight;
-            if(!fullscreen) {
-                nfs_width=width;
-                nfs_height=height;
-            }
-            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
-        }
-        if( 0==parentWindowHandle && ( x != newX || y != newY ) ) {
-            if(DEBUG_IMPLEMENTATION) {
-                System.err.println("X11Window windowChanged position: "+this.x+"/"+this.y+" -> "+newX+"x"+newY);
-            }
-            x = newX;
-            y = newY;
-            if(!fullscreen) {
-                nfs_x=x;
-                nfs_y=y;
-            }
-            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
-        }
-    }
-
-    /**
-     * @param focusGained
-     */
-    private void focusChanged(boolean focusGained) {
-        if (focusGained) {
-            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
-        } else {
-            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_LOST_FOCUS);
-        }
-    }
-
-    /**
-     * @param focusGained
-     */
-    private void visibleChanged(boolean visible) {
-        // FIXME .. this.visible = visible ;
-    }
 
     private void windowCreated(long windowHandle) {
         this.windowHandle = windowHandle;

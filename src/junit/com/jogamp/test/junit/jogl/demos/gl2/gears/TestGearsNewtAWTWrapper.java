@@ -49,6 +49,10 @@ import org.junit.After;
 import org.junit.Test;
 
 public class TestGearsNewtAWTWrapper {
+    static {
+        GLProfile.initSingleton();
+    }
+
     static GLProfile glp;
     static int width, height;
 

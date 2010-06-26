@@ -34,11 +34,12 @@
 package com.jogamp.newt;
 
 import com.jogamp.newt.event.*;
+import com.jogamp.newt.util.*;
 import com.jogamp.newt.impl.Debug;
-import com.jogamp.newt.util.EDTUtil;
 
 import com.jogamp.common.util.*;
 import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
 
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ import java.util.List;
 import java.util.Iterator;
 import java.lang.reflect.Method;
 
-public abstract class Window implements NativeWindow
+public abstract class Window implements NativeWindow, NEWTEventConsumer
 {
     public static final boolean DEBUG_MOUSE_EVENT = Debug.debug("Window.MouseEvent");
     public static final boolean DEBUG_KEY_EVENT = Debug.debug("Window.KeyEvent");
@@ -155,7 +156,7 @@ public abstract class Window implements NativeWindow
             return 0 != windowHandle ;
         }
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.createNative() START ("+getThreadName()+", "+this+")");
+            System.out.println("Window.createNative() START ("+getThreadName()+", "+this+")");
         }
         if(validateParentWindowHandle()) {
             Display dpy = getScreen().getDisplay();
@@ -163,7 +164,7 @@ public abstract class Window implements NativeWindow
             setVisibleImpl(true);
         }
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.createNative() END ("+getThreadName()+", "+this+")");
+            System.out.println("Window.createNative() END ("+getThreadName()+", "+this+")");
         }
         return 0 != windowHandle ;
     }
@@ -190,7 +191,7 @@ public abstract class Window implements NativeWindow
                 }
             } catch (NativeWindowException nwe) {
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.getNativeWindowHandle: not successful yet: "+nwe);
+                    System.out.println("Window.getNativeWindowHandle: not successful yet: "+nwe);
                 }
             } finally {
                 if(locked) {
@@ -198,7 +199,7 @@ public abstract class Window implements NativeWindow
                 }
             }
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.getNativeWindowHandle: locked "+locked+", "+nativeWindow);
+                System.out.println("Window.getNativeWindowHandle: locked "+locked+", "+nativeWindow);
             }
         }
         return handle;
@@ -245,7 +246,8 @@ public abstract class Window implements NativeWindow
                     "\n, Visible "+isVisible()+
                     "\n, Undecorated "+undecorated+
                     "\n, Fullscreen "+fullscreen+
-                    "\n, WrappedWindow "+getWrappedWindow());
+                    "\n, WrappedWindow "+getWrappedWindow()+
+                    "\n, ChildWindows "+childWindows.size());
 
         sb.append(", SurfaceUpdatedListeners num "+surfaceUpdatedListeners.size()+" [");
         for (Iterator iter = surfaceUpdatedListeners.iterator(); iter.hasNext(); ) {
@@ -376,41 +378,38 @@ public abstract class Window implements NativeWindow
         public void run() {
             windowLock();
             try {
-                if(DEBUG_WINDOW_EVENT) {
-                    System.err.println("Window.destroy(deep: "+deep+") START "+getThreadName()+", "+this);
+                if(DEBUG_IMPLEMENTATION) {
+                    System.out.println("Window.destroy(deep: "+deep+") START "+getThreadName()+", "+Window.this);
                 }
 
                 // Childs first ..
-                ArrayList listeners = null;
-                synchronized(childWindows) {
-                    listeners = childWindows;
-                }
-                for(Iterator i = listeners.iterator(); i.hasNext(); ) {
+                synchronized(childWindowsLock) {
+                  for(Iterator i = childWindows.iterator(); i.hasNext(); ) {
                     NativeWindow nw = (NativeWindow) i.next();
+                    System.out.println("Window.destroy(deep: "+deep+") CHILD BEGIN");
                     if(nw instanceof Window) {
-                        ((Window)nw).destroy(deep);
+                        ((Window)nw).sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
+                        if(deep) {
+                                ((Window)nw).destroy(deep);
+                        }
                     } else {
                         nw.destroy();
                     }
+                    System.out.println("Window.destroy(deep: "+deep+") CHILD END");
+                  }
                 }
 
                 // Now us ..
                 if(deep) {
-                    synchronized(childWindows) {
+                    synchronized(childWindowsLock) {
                         childWindows = new ArrayList();
                     }
-                    synchronized(surfaceUpdatedListeners) {
+                    synchronized(surfaceUpdatedListenersLock) {
                         surfaceUpdatedListeners = new ArrayList();
                     }
-                    synchronized(windowListeners) {
-                        windowListeners = new ArrayList();
-                    }
-                    synchronized(mouseListeners) {
-                        mouseListeners = new ArrayList();
-                    }
-                    synchronized(keyListeners) {
-                        keyListeners = new ArrayList();
-                    }
+                    windowListeners = new ArrayList();
+                    mouseListeners = new ArrayList();
+                    keyListeners = new ArrayList();
                 }
                 Display dpy = null;
                 Screen scr = null;
@@ -428,8 +427,8 @@ public abstract class Window implements NativeWindow
                         dpy.destroy();
                     }
                 }
-                if(DEBUG_WINDOW_EVENT) {
-                    System.err.println("Window.destroy(deep: "+deep+") END "+getThreadName()+", "+this);
+                if(DEBUG_IMPLEMENTATION) {
+                    System.out.println("Window.destroy(deep: "+deep+") END "+getThreadName()+", "+Window.this);
                 }
             } finally {
                 windowUnlock();
@@ -466,16 +465,16 @@ public abstract class Window implements NativeWindow
         try{
             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
                 String msg = new String("!!! Window Invalidate(deep: "+deep+") "+getThreadName());
-                System.err.println(msg);
-                //Exception e = new Exception(msg);
-                //e.printStackTrace();
+                //System.out.println(msg);
+                Exception e = new Exception(msg);
+                e.printStackTrace();
             }
             windowHandle = 0;
-            visible=false;
-            fullscreen=false;
+            visible = false;
+            fullscreen = false;
 
             if(deep) {
-                screen   = null;
+                screen = null;
                 parentWindowHandle = 0;
                 parentNativeWindow = null;
                 caps = null;
@@ -593,43 +592,6 @@ public abstract class Window implements NativeWindow
         return false;
     }
 
-    /**
-     * If set to true, the default value, this NEWT Window implementation will 
-     * handle the destruction (ie {@link #destroy()} call) within {@link #windowDestroyNotify()} implementation.<br>
-     * If set to false, it's up to the caller/owner to handle destruction within {@link #windowDestroyNotify()}.
-     */
-    public void setHandleDestroyNotify(boolean b) {
-        handleDestroyNotify = b;
-    }
-
-    protected void windowDestroyNotify() {
-        if(DEBUG_WINDOW_EVENT) {
-            System.err.println("Window.windowDestroyNotify START "+getThreadName());
-        }
-
-        enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
-
-        if(handleDestroyNotify && !isDestroyed()) {
-            destroy();
-        }
-
-        if(DEBUG_WINDOW_EVENT) {
-            System.err.println("Window.windowDestroyeNotify END "+getThreadName());
-        }
-    }
-
-    protected void windowDestroyed() {
-        if(DEBUG_WINDOW_EVENT) {
-            System.err.println("Window.windowDestroyed "+getThreadName());
-        }
-        invalidate();
-    }
-
-    protected boolean reparentWindowImpl() {
-        // default implementation, no native reparenting support
-        return false;
-    }
-
     class ReparentAction implements Runnable {
         NativeWindow newParent;
         Screen newScreen;
@@ -652,7 +614,7 @@ public abstract class Window implements NativeWindow
                 }
 
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("reparent: START ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+" -> "+toHexString(newParentHandle)+", visible "+visible+", parentNativeWindow "+(null!=parentNativeWindow));
+                    System.out.println("reparent: START ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+" -> "+toHexString(newParentHandle)+", visible "+visible+", parentNativeWindow "+(null!=parentNativeWindow));
                 }
 
                 if(null!=parentNativeWindow && parentNativeWindow instanceof Window) {
@@ -671,8 +633,16 @@ public abstract class Window implements NativeWindow
                         x = 0;
                         y = 0;
                     }
+                    getScreen().getDisplay().dispatchMessages(); // status up2date
+                    boolean wasVisible = isVisible();
+                    if(wasVisible) {
+                        Window.this.visible = false;
+                        setVisibleImpl(false);
+                        getScreen().getDisplay().dispatchMessages(); // status up2date
+                    }
                     boolean reparentRes = false;
                     reparentRes = reparentWindowImpl();
+                    getScreen().getDisplay().dispatchMessages(); // status up2date
                     if(!reparentRes) {
                         parentWindowHandle = 0;
 
@@ -680,11 +650,17 @@ public abstract class Window implements NativeWindow
                         if( 0 != windowHandle ) {
                             destroy(false);
                         }
+                    } else {
+                        if(wasVisible) {
+                            Window.this.visible = true;
+                            setVisibleImpl(true);
+                            getScreen().getDisplay().dispatchMessages(); // status up2date
+                        }
                     }
                 }
 
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("reparentWindow: END ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentNativeWindow "+(null!=parentNativeWindow));
+                    System.out.println("reparentWindow: END ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentNativeWindow "+(null!=parentNativeWindow));
                 }
             } finally {
                 windowUnlock();
@@ -707,10 +683,10 @@ public abstract class Window implements NativeWindow
     public void reparentWindow(NativeWindow newParent, Screen newScreen) {
         if(!isDestroyed()) {
             runOnEDTIfAvail(true, new ReparentAction(newParent, newScreen)); 
-            // if( isVisible() ) {
-                enqueueWindowEvent(true, WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
-                // enqueueWindowEvent(true, WindowEvent.EVENT_WINDOW_REPAINT); // trigger a repaint to listener
-            // }
+            if( isVisible() ) {
+                sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
+                windowRepaint(0, 0, getWidth(), getHeight());
+            }
         }
     }
 
@@ -723,17 +699,15 @@ public abstract class Window implements NativeWindow
             windowLock();
             try{
                 if( !isDestroyed() ) {
-                    ArrayList listeners = null;
-                    synchronized(childWindows) {
-                        listeners = childWindows;
-                    }
-                    if(!visible && listeners.size()>0) {
-                        for(Iterator i = listeners.iterator(); i.hasNext(); ) {
+                    if(!visible && childWindows.size()>0) {
+                      synchronized(childWindowsLock) {
+                        for(Iterator i = childWindows.iterator(); i.hasNext(); ) {
                             NativeWindow nw = (NativeWindow) i.next();
                             if(nw instanceof Window) {
                                 ((Window)nw).setVisible(false);
                             }
                         }
+                      }
                     }
                     if(0==windowHandle && visible) { 
                         Window.this.visible = visible;
@@ -746,18 +720,20 @@ public abstract class Window implements NativeWindow
                             setVisibleImpl(visible);
                         }
                     }
-                    if(0!=windowHandle && visible && listeners.size()>0) {
-                        for(Iterator i = listeners.iterator(); i.hasNext(); ) {
+                    if(0!=windowHandle && visible && childWindows.size()>0) {
+                      synchronized(childWindowsLock) {
+                        for(Iterator i = childWindows.iterator(); i.hasNext(); ) {
                             NativeWindow nw = (NativeWindow) i.next();
                             if(nw instanceof Window) {
                                 ((Window)nw).setVisible(true);
                             }
                         }
+                      }
                     }
                 }
 
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window setVisible: END ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+Window.this.visible);
+                    System.out.println("Window setVisible: END ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+Window.this.visible);
                 }
             } finally {
                 windowUnlock();
@@ -793,7 +769,7 @@ public abstract class Window implements NativeWindow
     public void setVisible(boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
             String msg = new String("Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentNativeWindow "+(null!=parentNativeWindow));
-            //System.err.println(msg);
+            //System.out.println(msg);
             Exception ee = new Exception(msg);
             ee.printStackTrace();
         }
@@ -830,7 +806,7 @@ public abstract class Window implements NativeWindow
         try{
             if(DEBUG_IMPLEMENTATION) {
                 String msg = new String("Window setSize: START "+this.width+"x"+this.height+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible);
-                //System.err.println(msg);
+                //System.out.println(msg);
                 Exception e = new Exception(msg);
                 e.printStackTrace();
             }
@@ -847,7 +823,7 @@ public abstract class Window implements NativeWindow
                         this.width = width;
                         this.height = height;
                     } else if ( 0 != windowHandle ) {
-                        // this width/height will be set by windowChanged, called by X11
+                        // this width/height will be set by windowChanged, called by the native implementation
                         setSizeImpl(width, height);
                     } else {
                         this.width = width;
@@ -856,7 +832,7 @@ public abstract class Window implements NativeWindow
                 }
             }
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window setSize: END "+this.width+"x"+this.height+", visibleAction "+visibleAction);
+                System.out.println("Window setSize: END "+this.width+"x"+this.height+", visibleAction "+visibleAction);
             }
         } finally {
             windowUnlock();
@@ -881,7 +857,7 @@ public abstract class Window implements NativeWindow
         windowLock();
         try{
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window setPosition: "+this.x+"/"+this.y+" -> "+x+"/"+y+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle));
+                System.out.println("Window setPosition: "+this.x+"/"+this.y+" -> "+x+"/"+y+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle));
             }
             if ( this.x != x || this.y != y ) {
                 if(!fullscreen) {
@@ -918,7 +894,7 @@ public abstract class Window implements NativeWindow
                     h = nfs_height;
                 }
                 if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                    System.err.println("X11Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated());
+                    System.out.println("X11Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated());
                 }
                 this.fullscreen = setFullscreenImpl(fullscreen, x, y, w, h);
             }
@@ -934,12 +910,11 @@ public abstract class Window implements NativeWindow
     // 
 
     private ArrayList childWindows = new ArrayList();
+    private Object childWindowsLock = new Object();
 
     protected void removeChild(NativeWindow win) {
-        synchronized(childWindows) {
-            ArrayList newChildWindows = (ArrayList) childWindows.clone();
-            newChildWindows.remove(win);
-            childWindows = newChildWindows;
+        synchronized(childWindowsLock) {
+            childWindows.remove(win);
         }
     }
 
@@ -947,16 +922,26 @@ public abstract class Window implements NativeWindow
         if (win == null) {
             return;
         }
-        synchronized(childWindows) {
-            ArrayList newChildWindows = (ArrayList) childWindows.clone();
-            newChildWindows.add(win);
-            childWindows = newChildWindows;
+        synchronized(childWindowsLock) {
+            childWindows.add(win);
         }
     }
 
     // 
     // Generic Event Support
     //
+    private void doEvent(boolean enqueue, boolean wait, com.jogamp.newt.event.NEWTEvent event) {
+        boolean done = false;
+
+        if(!enqueue) {
+            done = consumeEvent(event);
+            wait = done; // don't wait if event can't be consumed now
+        }
+
+        if(!done) {
+            enqueueEvent(wait, event);
+        }
+    }
 
     public void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
         if(!getInnerWindow().isDestroyed()) {
@@ -964,21 +949,45 @@ public abstract class Window implements NativeWindow
         }
     }
 
-    public void sendEvent(NEWTEvent e) {
-        if(e instanceof WindowEvent) {
-            getInnerWindow().sendWindowEvent((WindowEvent)e);
-        } else if(e instanceof KeyEvent) {
-            getInnerWindow().sendKeyEvent((KeyEvent)e);
-        } else if(e instanceof MouseEvent) {
-            getInnerWindow().sendMouseEvent((MouseEvent)e);
+    public boolean consumeEvent(NEWTEvent e) {
+        switch(e.getEventType()) {
+            case WindowEvent.EVENT_WINDOW_REPAINT:
+                if( windowIsLocked() ) {
+                  if(!repaintQueued) {
+                      repaintQueued=true;
+                      return false;
+                  } else {
+                      return true;
+                  }
+                } else {
+                  if(DEBUG_IMPLEMENTATION) {
+                    System.out.println("Window.windowRepaint: "+e);
+                    // Exception ee = new Exception("Window.windowRepaint: "+e);
+                    // ee.printStackTrace();
+                  }
+                  repaintQueued=false;
+                }
+                break;
+            default:
+                break;
         }
+        if(e instanceof WindowEvent) {
+            getInnerWindow().consumeWindowEvent((WindowEvent)e);
+        } else if(e instanceof KeyEvent) {
+            getInnerWindow().consumeKeyEvent((KeyEvent)e);
+        } else if(e instanceof MouseEvent) {
+            getInnerWindow().consumeMouseEvent((MouseEvent)e);
+        }
+        return true;
     }
+    protected boolean repaintQueued = false;
 
     //
     // SurfaceUpdatedListener Support
     //
 
     private ArrayList surfaceUpdatedListeners = new ArrayList();
+    private Object surfaceUpdatedListenersLock = new Object();
 
     /** 
      * Appends the given {@link com.jogamp.newt.event.SurfaceUpdatedListener} to the end of 
@@ -1004,13 +1013,11 @@ public abstract class Window implements NativeWindow
         if(l == null) {
             return;
         }
-        synchronized(surfaceUpdatedListeners) {
+        synchronized(surfaceUpdatedListenersLock) {
             if(0>index) { 
                 index = surfaceUpdatedListeners.size(); 
             }
-            ArrayList newSurfaceUpdatedListeners = (ArrayList) surfaceUpdatedListeners.clone();
-            newSurfaceUpdatedListeners.add(index, l);
-            surfaceUpdatedListeners = newSurfaceUpdatedListeners;
+            surfaceUpdatedListeners.add(index, l);
         }
     }
 
@@ -1018,21 +1025,19 @@ public abstract class Window implements NativeWindow
         if (l == null) {
             return;
         }
-        synchronized(surfaceUpdatedListeners) {
-            ArrayList newSurfaceUpdatedListeners = (ArrayList) surfaceUpdatedListeners.clone();
-            newSurfaceUpdatedListeners.remove(l);
-            surfaceUpdatedListeners = newSurfaceUpdatedListeners;
+        synchronized(surfaceUpdatedListenersLock) {
+            surfaceUpdatedListeners.remove(l);
         }
     }
 
     public void removeAllSurfaceUpdatedListener() {
-        synchronized(surfaceUpdatedListeners) {
+        synchronized(surfaceUpdatedListenersLock) {
             surfaceUpdatedListeners = new ArrayList();
         }
     }
 
     public SurfaceUpdatedListener getSurfaceUpdatedListener(int index) {
-        synchronized(surfaceUpdatedListeners) {
+        synchronized(surfaceUpdatedListenersLock) {
             if(0>index) { 
                 index = surfaceUpdatedListeners.size()-1; 
             }
@@ -1041,19 +1046,17 @@ public abstract class Window implements NativeWindow
     }
 
     public SurfaceUpdatedListener[] getSurfaceUpdatedListeners() {
-        synchronized(surfaceUpdatedListeners) {
+        synchronized(surfaceUpdatedListenersLock) {
             return (SurfaceUpdatedListener[]) surfaceUpdatedListeners.toArray();
         }
     }
 
     public void surfaceUpdated(Object updater, NativeWindow window, long when) { 
-        ArrayList listeners = null;
-        synchronized(surfaceUpdatedListeners) {
-            listeners = surfaceUpdatedListeners;
-        }
-        for(Iterator i = listeners.iterator(); i.hasNext(); ) {
+        synchronized(surfaceUpdatedListenersLock) {
+          for(Iterator i = surfaceUpdatedListeners.iterator(); i.hasNext(); ) {
             SurfaceUpdatedListener l = (SurfaceUpdatedListener) i.next();
             l.surfaceUpdated(updater, window, when);
+          }
         }
     }
 
@@ -1066,13 +1069,21 @@ public abstract class Window implements NativeWindow
     private int  lastMouseClickCount = 0; // last mouse button click count
     public  static final int ClickTimeout = 300;
 
+    public void sendMouseEvent(int eventType, int modifiers,
+                               int x, int y, int button, int rotation) {
+        doMouseEvent(false, false, eventType, modifiers, x, y, button, rotation);
+    }
     public void enqueueMouseEvent(boolean wait, int eventType, int modifiers,
                                   int x, int y, int button, int rotation) {
+        doMouseEvent(true, wait, eventType, modifiers, x, y, button, rotation);
+    }
+    private void doMouseEvent(boolean enqueue, boolean wait, int eventType, int modifiers,
+                              int x, int y, int button, int rotation) {
         if(x<0||y<0||x>=width||y>=height) {
             return; // .. invalid ..
         }
         if(DEBUG_MOUSE_EVENT) {
-            System.err.println("enqueueMouseEvent: "+MouseEvent.getEventTypeString(eventType)+
+            System.out.println("doMouseEvent: enqueue"+enqueue+", wait "+wait+", "+MouseEvent.getEventTypeString(eventType)+
                                ", mod "+modifiers+", pos "+x+"/"+y+", button "+button);
         }
         if(button<0||button>MouseEvent.BUTTON_NUMBER) {
@@ -1116,12 +1127,12 @@ public abstract class Window implements NativeWindow
         } else {
             e = new MouseEvent(eventType, this, when, modifiers, x, y, 0, button, 0);
         }
-        screen.getDisplay().enqueueEvent(wait, e);
+        doEvent(enqueue, wait, e);
         if(null!=eClicked) {
             if(DEBUG_MOUSE_EVENT) {
-                System.err.println("enqueueMouseEvent: synthesized MOUSE_CLICKED event");
+                System.out.println("doMouseEvent: synthesized MOUSE_CLICKED event");
             }
-            screen.getDisplay().enqueueEvent(wait, eClicked);
+            doEvent(enqueue, wait, eClicked);
         }
     }
 
@@ -1148,52 +1159,41 @@ public abstract class Window implements NativeWindow
         if(l == null) {
             return;
         }
-        synchronized(mouseListeners) {
-            if(0>index) { 
-                index = mouseListeners.size(); 
-            }
-            ArrayList newMouseListeners = (ArrayList) mouseListeners.clone();
-            newMouseListeners.add(index, l);
-            mouseListeners = newMouseListeners;
+        ArrayList clonedListeners = (ArrayList) mouseListeners.clone();
+        if(0>index) { 
+            index = clonedListeners.size(); 
         }
+        clonedListeners.add(index, l);
+        mouseListeners = clonedListeners;
     }
 
     public void removeMouseListener(MouseListener l) {
         if (l == null) {
             return;
         }
-        synchronized(mouseListeners) {
-            ArrayList newMouseListeners = (ArrayList) mouseListeners.clone();
-            newMouseListeners.remove(l);
-            mouseListeners = newMouseListeners;
-        }
+        ArrayList clonedListeners = (ArrayList) mouseListeners.clone();
+        clonedListeners.remove(l);
+        mouseListeners = clonedListeners;
     }
 
     public MouseListener getMouseListener(int index) {
-        synchronized(mouseListeners) {
-            if(0>index) { 
-                index = mouseListeners.size()-1; 
-            }
-            return (MouseListener) mouseListeners.get(index);
+        ArrayList clonedListeners = (ArrayList) mouseListeners.clone();
+        if(0>index) { 
+            index = clonedListeners.size()-1; 
         }
+        return (MouseListener) clonedListeners.get(index);
     }
 
     public MouseListener[] getMouseListeners() {
-        synchronized(mouseListeners) {
-            return (MouseListener[]) mouseListeners.toArray();
-        }
+        return (MouseListener[]) mouseListeners.toArray();
     }
 
-    protected void sendMouseEvent(MouseEvent e) {
+    protected void consumeMouseEvent(MouseEvent e) {
         if(DEBUG_MOUSE_EVENT) {
-            System.err.println("sendMouseEvent: event:         "+e);
+            System.out.println("consumeMouseEvent: event:         "+e);
         }
 
-        ArrayList listeners = null;
-        synchronized(mouseListeners) {
-            listeners = mouseListeners;
-        }
-        for(Iterator i = listeners.iterator(); i.hasNext(); ) {
+        for(Iterator i = mouseListeners.iterator(); i.hasNext(); ) {
             MouseListener l = (MouseListener) i.next();
             switch(e.getEventType()) {
                 case MouseEvent.EVENT_MOUSE_CLICKED:
@@ -1230,10 +1230,12 @@ public abstract class Window implements NativeWindow
     // KeyListener/Event Support
     //
 
+    public void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
+        consumeKeyEvent(new KeyEvent(eventType, this, System.currentTimeMillis(), modifiers, keyCode, keyChar) );
+    }
+
     public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
-        screen.getDisplay().enqueueEvent(wait,
-            new KeyEvent(eventType, this, System.currentTimeMillis(),
-                         modifiers, keyCode, keyChar) );
+        enqueueEvent(wait, new KeyEvent(eventType, this, System.currentTimeMillis(), modifiers, keyCode, keyChar) );
     }
 
     /** 
@@ -1258,53 +1260,42 @@ public abstract class Window implements NativeWindow
         if(l == null) {
             return;
         }
-        synchronized(keyListeners) {
-            if(0>index) { 
-                index = keyListeners.size(); 
-            }
-            ArrayList newKeyListeners = (ArrayList) keyListeners.clone();
-            newKeyListeners.add(index, l);
-            keyListeners = newKeyListeners;
+        ArrayList clonedListeners = (ArrayList) keyListeners.clone();
+        if(0>index) { 
+            index = clonedListeners.size();
         }
+        clonedListeners.add(index, l);
+        keyListeners = clonedListeners;
     }
 
     public void removeKeyListener(KeyListener l) {
         if (l == null) {
             return;
         }
-        synchronized(keyListeners) {
-            ArrayList newKeyListeners = (ArrayList) keyListeners.clone();
-            newKeyListeners.remove(l);
-            keyListeners = newKeyListeners;
-        }
+        ArrayList clonedListeners = (ArrayList) keyListeners.clone();
+        clonedListeners.remove(l);
+        keyListeners = clonedListeners;
     }
 
     public KeyListener getKeyListener(int index) {
-        synchronized(keyListeners) {
-            if(0>index) { 
-                index = keyListeners.size()-1; 
-            }
-            return (KeyListener) keyListeners.get(index);
+        ArrayList clonedListeners = (ArrayList) keyListeners.clone();
+        if(0>index) { 
+            index = clonedListeners.size()-1;
         }
+        return (KeyListener) clonedListeners.get(index);
     }
 
     public KeyListener[] getKeyListeners() {
-        synchronized(keyListeners) {
-            return (KeyListener[]) keyListeners.toArray();
-        }
+        return (KeyListener[]) keyListeners.toArray();
     }
 
     private ArrayList keyListeners = new ArrayList();
 
-    protected void sendKeyEvent(KeyEvent e) {
+    protected void consumeKeyEvent(KeyEvent e) {
         if(DEBUG_KEY_EVENT) {
-            System.err.println("sendKeyEvent: "+e);
+            System.out.println("consumeKeyEvent: "+e);
         }
-        ArrayList listeners = null;
-        synchronized(keyListeners) {
-            listeners = keyListeners;
-        }
-        for(Iterator i = listeners.iterator(); i.hasNext(); ) {
+        for(Iterator i = keyListeners.iterator(); i.hasNext(); ) {
             KeyListener l = (KeyListener) i.next();
             switch(e.getEventType()) {
                 case KeyEvent.EVENT_KEY_PRESSED:
@@ -1325,10 +1316,12 @@ public abstract class Window implements NativeWindow
     //
     // WindowListener/Event Support
     //
+    public void sendWindowEvent(int eventType) {
+        consumeWindowEvent( new WindowEvent(eventType, this, System.currentTimeMillis()) );
+    }
+
     public void enqueueWindowEvent(boolean wait, int eventType) {
-        WindowEvent event = new WindowEvent(eventType, this, System.currentTimeMillis());
-        screen.getDisplay().enqueueEvent( wait, event );
-        // sendWindowEvent ( event ); // FIXME: Think about performance/lag .. ?
+        enqueueEvent( wait, new WindowEvent(eventType, this, System.currentTimeMillis()) );
     }
 
     private ArrayList windowListeners = new ArrayList();
@@ -1357,55 +1350,40 @@ public abstract class Window implements NativeWindow
         if(l == null) {
             return;
         }
-        synchronized(windowListeners) {
-            if(0>index) { 
-                index = windowListeners.size(); 
-            }
-            ArrayList newWindowListeners = (ArrayList) windowListeners.clone();
-            newWindowListeners.add(index, l);
-            windowListeners = newWindowListeners;
+        ArrayList clonedListeners = (ArrayList) windowListeners.clone();
+        if(0>index) { 
+            index = clonedListeners.size(); 
         }
+        clonedListeners.add(index, l);
+        windowListeners = clonedListeners;
     }
 
     public void removeWindowListener(WindowListener l) {
         if (l == null) {
             return;
         }
-        synchronized(windowListeners) {
-            ArrayList newWindowListeners = (ArrayList) windowListeners.clone();
-            newWindowListeners.remove(l);
-            windowListeners = newWindowListeners;
-        }
+        ArrayList clonedListeners = (ArrayList) windowListeners.clone();
+        clonedListeners.remove(l);
+        windowListeners = clonedListeners;
     }
 
     public WindowListener getWindowListener(int index) {
-        synchronized(windowListeners) {
-            if(0>index) { 
-                index = windowListeners.size()-1; 
-            }
-            return (WindowListener) windowListeners.get(index);
+        ArrayList clonedListeners = (ArrayList) windowListeners.clone();
+        if(0>index) { 
+            index = clonedListeners.size()-1; 
         }
+        return (WindowListener) clonedListeners.get(index);
     }
 
     public WindowListener[] getWindowListeners() {
-        synchronized(windowListeners) {
-            return (WindowListener[]) windowListeners.toArray();
-        }
+        return (WindowListener[]) windowListeners.toArray();
     }
 
-    protected void sendWindowEvent(WindowEvent e) {
-        getInnerWindow().sendWindowEvent(e, 0, 0, 0, 0);
-    }
-
-    protected void sendWindowEvent(WindowEvent e, int p1, int p2, int p3, int p4) {
+    protected void consumeWindowEvent(WindowEvent e) {
         if(DEBUG_WINDOW_EVENT) {
-            System.err.println("sendWindowEvent: "+e+", "+p1+", "+p2+", "+p3+", "+p4);
+            System.out.println("consumeWindowEvent: "+e);
         }
-        ArrayList listeners = null;
-        synchronized(windowListeners) {
-            listeners = windowListeners;
-        }
-        for(Iterator i = listeners.iterator(); i.hasNext(); ) {
+        for(Iterator i = windowListeners.iterator(); i.hasNext(); ) {
             WindowListener l = (WindowListener) i.next();
             switch(e.getEventType()) {
                 case WindowEvent.EVENT_WINDOW_RESIZED:
@@ -1423,15 +1401,124 @@ public abstract class Window implements NativeWindow
                 case WindowEvent.EVENT_WINDOW_LOST_FOCUS:
                     l.windowLostFocus(e);
                     break;
-                //case WindowEvent.EVENT_WINDOW_REPAINT:
-                //    l.windowRepaint(e);
-                //    break;
+                case WindowEvent.EVENT_WINDOW_REPAINT:
+                    l.windowRepaint((WindowUpdateEvent)e);
+                    break;
                 default:
                     throw 
                         new NativeWindowException("Unexpected window event type "
                                                   + e.getEventType());
             }
         }
+    }
+
+    /**
+     * @param focusGained
+     */
+    protected void focusChanged(boolean focusGained) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.out.println("Window.focusChanged: "+focusGained);
+        }
+        if (focusGained) {
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+        } else {
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_LOST_FOCUS);
+        }
+    }
+
+    protected void visibleChanged(boolean visible) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.out.println("Window.visibleChanged: "+this.visible+" -> "+visible);
+        }
+        this.visible = visible ;
+    }
+
+    protected void sizeChanged(int newWidth, int newHeight) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.out.println("Window.sizeChanged: "+width+"x"+height+" -> "+newWidth+"x"+newHeight);
+        }
+        if(width != newWidth || height != newHeight) {
+            width = newWidth;
+            height = newHeight;
+            if(!fullscreen) {
+                nfs_width=width;
+                nfs_height=height;
+            }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
+        }
+    }
+
+    protected void positionChanged(int newX, int newY) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.out.println("Window.positionChanged: "+x+"/"+y+" -> "+newX+"/"+newY);
+        }
+        if( 0==parentWindowHandle && ( x != newX || y != newY ) ) {
+            x = newX;
+            y = newY;
+            if(!fullscreen) {
+                nfs_x=x;
+                nfs_y=y;
+            }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
+        }
+    }
+
+    /**
+     * If set to true, the default value, this NEWT Window implementation will 
+     * handle the destruction (ie {@link #destroy()} call) within {@link #windowDestroyNotify()} implementation.<br>
+     * If set to false, it's up to the caller/owner to handle destruction within {@link #windowDestroyNotify()}.
+     */
+    public void setHandleDestroyNotify(boolean b) {
+        handleDestroyNotify = b;
+    }
+
+    protected void windowDestroyNotify() {
+        if(DEBUG_IMPLEMENTATION) {
+            System.out.println("Window.windowDestroyNotify START "+getThreadName());
+        }
+
+        enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
+
+        if(handleDestroyNotify && !isDestroyed()) {
+            destroy();
+        }
+
+        if(DEBUG_IMPLEMENTATION) {
+            System.out.println("Window.windowDestroyeNotify END "+getThreadName());
+        }
+    }
+
+    protected void windowDestroyed() {
+        if(DEBUG_IMPLEMENTATION) {
+            System.out.println("Window.windowDestroyed "+getThreadName());
+        }
+        invalidate();
+    }
+
+    public void setPropagateRepaint(boolean v) {
+        propagateRepaint = v;
+    }
+    protected boolean propagateRepaint = true;
+
+    public void windowRepaint(int x, int y, int width, int height) {
+        if(!propagateRepaint) { 
+            return; 
+        }
+        if(0>width) {
+            width=this.width;
+        }
+        if(0>height) {
+            height=this.height;
+        }
+
+        NEWTEvent e = new WindowUpdateEvent(WindowEvent.EVENT_WINDOW_REPAINT, this, System.currentTimeMillis(), 
+                                            new Rectangle(x, y, width, height));
+        doEvent(false, false, e);
+    }
+
+    protected boolean reparentWindowImpl() {
+        // default implementation, no native reparenting support
+        return false;
     }
 
     //

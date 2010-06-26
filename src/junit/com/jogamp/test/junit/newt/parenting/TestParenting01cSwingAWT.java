@@ -30,7 +30,7 @@
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.test.junit.newt;
+package com.jogamp.test.junit.newt.parenting;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;
@@ -70,6 +70,10 @@ import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
 public class TestParenting01cSwingAWT {
+    static {
+        GLProfile.initSingleton();
+    }
+
     static int width, height;
     static long durationPerTest = 800;
     static long waitReparent = 0;
@@ -147,6 +151,7 @@ public class TestParenting01cSwingAWT {
         jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
         jFrame1.setContentPane(jPanel1);
         jFrame1.setSize(width, height);
+        System.out.println("Demos: 1 - Visible");
         jFrame1.setVisible(true); // from here on, we need to run modifications on EDT
 
         final JFrame _jFrame1 = jFrame1;
@@ -159,23 +164,27 @@ public class TestParenting01cSwingAWT {
         while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
             Thread.sleep(100);
         }
+        System.out.println("Demos: 2 - StopAnimator");
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
+		    System.out.println("Demos: 3 - !Visible");
                     _jFrame1.setVisible(false);
                 } });
         Assert.assertEquals(false, glWindow1.isDestroyed());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
+		    System.out.println("Demos: 4 - Visible");
                     _jFrame1.setVisible(true);
                 } });
         Assert.assertEquals(false, glWindow1.isDestroyed());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
+		    System.out.println("Demos: 5 - X Container");
                     _jPanel1.remove(_container1);
                 } });
         // Assert.assertNull(glWindow1.getParentNativeWindow());

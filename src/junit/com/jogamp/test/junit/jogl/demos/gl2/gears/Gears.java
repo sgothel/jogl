@@ -25,6 +25,7 @@ public class Gears implements GLEventListener {
   private boolean mouseRButtonDown = false;
 
   public void init(GLAutoDrawable drawable) {
+    System.out.println("Gears: Init");
     // Use debug pipeline
     // drawable.setGL(new DebugGL(drawable.getGL()));
 
@@ -77,6 +78,7 @@ public class Gears implements GLEventListener {
   }
     
   public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    System.out.println("Gears: Reshape");
     GL2 gl = drawable.getGL().getGL2();
 
     float h = (float)height / (float)width;
@@ -91,6 +93,7 @@ public class Gears implements GLEventListener {
   }
 
   public void dispose(GLAutoDrawable drawable) {
+    System.out.println("Gears: Dispose");
   }
 
   public void display(GLAutoDrawable drawable) {
@@ -143,8 +146,6 @@ public class Gears implements GLEventListener {
     // rotating the entire gear assembly
     gl.glPopMatrix();
   }
-
-  public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {}
 
   public static void gear(GL2 gl,
                           float inner_radius,

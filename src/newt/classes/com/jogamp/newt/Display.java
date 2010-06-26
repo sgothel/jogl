@@ -182,10 +182,9 @@ public abstract class Display {
         return true; 
     }
     public EDTUtil getEDTUtil() {
-        if( !edtQueried ) {
+        if( null == edtUtil ) {
             synchronized (this) {
-                if( !edtQueried ) {
-                    edtQueried = true;
+                if( null == edtUtil ) {
                     if(NewtFactory.useEDT()) {
                         final Display f_dpy = this;
                         Thread current = Thread.currentThread();
@@ -203,12 +202,11 @@ public abstract class Display {
         }
         return edtUtil;
     }
-    volatile boolean edtQueried = false;
 
     public void runOnEDTIfAvail(boolean wait, final Runnable task) {
-        EDTUtil edtUtil = getEDTUtil();
-        if(runCreateAndDestroyOnEDT() && null!=edtUtil) {
-            edtUtil.invoke(wait, task);
+        EDTUtil _edtUtil = getEDTUtil();
+        if(runCreateAndDestroyOnEDT() && null!=_edtUtil) {
+            _edtUtil.invoke(wait, task);
         } else {
             task.run();
         }
@@ -238,6 +236,7 @@ public abstract class Display {
             if(null!=edtUtil) { 
                 edtUtil.waitUntilStopped();
                 edtUtil=null;
+                edt=null;
             }
             aDevice = null;
         } else {
@@ -318,11 +317,12 @@ public abstract class Display {
     private LinkedList/*<NEWTEvent>*/ events = new LinkedList();
 
     protected void dispatchMessages() {
-        if(0==refCount) return; // we should not exist ..
+        if(0==refCount) return; // in destruction ..
+
+        LinkedList/*<NEWTEvent>*/ _events = null;
 
         if(!events.isEmpty()) {
             // swap events list to free ASAP
-            LinkedList/*<NEWTEvent>*/ _events = null;
             synchronized(eventsLock) {
                 if(!events.isEmpty()) {
                     _events = events;
@@ -335,10 +335,13 @@ public abstract class Display {
                     NEWTEventTask eventTask = (NEWTEventTask) iter.next();
                     NEWTEvent event = eventTask.get();
                     Object source = event.getSource();
-                    if(source instanceof Window) {
-                        ((Window)source).sendEvent(event);
+                    if(source instanceof NEWTEventConsumer) {
+                        NEWTEventConsumer consumer = (NEWTEventConsumer) source ;
+                        if(!consumer.consumeEvent(event)) {
+                            enqueueEvent(false, event);
+                        }
                     } else {
-                        throw new RuntimeException("Event source not a NEWT Window: "+source.getClass().getName()+", "+source);
+                        throw new RuntimeException("Event source not a NEWT one: "+source.getClass().getName()+", "+source);
                     }
                     eventTask.notifyIssuer();
                 }

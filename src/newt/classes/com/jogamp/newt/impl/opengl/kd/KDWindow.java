@@ -126,16 +126,11 @@ public class KDWindow extends Window {
         windowUserData=userData;
     }
 
-    private void sizeChanged(int newWidth, int newHeight) {
-        width = newWidth;
-        height = newHeight;
-        if(!fullscreen) {
-            nfs_width=width;
-            nfs_height=height;
-        } else {
+    protected void sizeChanged(int newWidth, int newHeight) {
+        if(fullscreen) {
             ((KDScreen)screen).setScreenSize(width, height);
         }
-        enqueueWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
+        super.sizeChanged(newWidth, newHeight);
     }
 
     private long   eglWindowHandle;

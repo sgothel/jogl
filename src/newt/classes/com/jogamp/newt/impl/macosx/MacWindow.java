@@ -39,6 +39,7 @@ import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.*;
+import com.jogamp.newt.util.*;
 
 public class MacWindow extends Window {
     
@@ -295,24 +296,6 @@ public class MacWindow extends Window {
         return fullscreen;
     }
     
-    private void sizeChanged(int newWidth, int newHeight) {
-        if(width != newWidth || height != newHeight) {
-            if (DEBUG_IMPLEMENTATION) {
-                System.out.println(Thread.currentThread().getName()+" Size changed to " + newWidth + ", " + newHeight);
-            }
-            width = newWidth;
-            height = newHeight;
-            if(!fullscreen) {
-                nfs_width=width;
-                nfs_height=height;
-            }
-            if (DEBUG_IMPLEMENTATION) {
-                System.out.println("  Posted WINDOW_RESIZED event");
-            }
-            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
-        }
-    }
-
     private void insetsChanged(int left, int top, int right, int bottom) {
         if (DEBUG_IMPLEMENTATION) {
             System.out.println(Thread.currentThread().getName()+
@@ -323,32 +306,6 @@ public class MacWindow extends Window {
             insets.top = top;
             insets.right = right;
             insets.bottom = bottom;
-        }
-    }
-
-    private void positionChanged(int newX, int newY) {
-        if( 0==parentWindowHandle && ( x != newX || y != newY ) ) {
-            if (DEBUG_IMPLEMENTATION) {
-                System.out.println(Thread.currentThread().getName()+" Position changed to " + newX + ", " + newY);
-            }
-            x = newX;
-            y = newY;
-            if(!fullscreen) {
-                nfs_x=x;
-                nfs_y=y;
-            }
-            if (DEBUG_IMPLEMENTATION) {
-                System.out.println("  Posted WINDOW_MOVED event");
-            }
-            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
-        }
-    }
-
-    private void focusChanged(boolean focusGained) {
-        if (focusGained) {
-            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
-        } else {
-            enqueueWindowEvent(WindowEvent.EVENT_WINDOW_LOST_FOCUS);
         }
     }
 
@@ -435,12 +392,12 @@ public class MacWindow extends Window {
         return keyChar;
     }
 
-    protected void enqueueKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
+    public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
         int key = convertKeyChar(keyChar);
         if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.enqueueKeyEvent "+Thread.currentThread().getName());
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
-        super.enqueueKeyEvent(eventType, modifiers, key, keyChar);
+        super.enqueueKeyEvent(wait, eventType, modifiers, key, keyChar);
     }
 
     private void createWindow(final boolean recreate, final int x, final int y, final int width, final int height, final boolean fullscreen) {
@@ -482,9 +439,9 @@ public class MacWindow extends Window {
             ie.printStackTrace();
         }
 
-        enqueueWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
-        enqueueWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
-        enqueueWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+        enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_MOVED);
+        enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_RESIZED);
+        enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
     }
     
     protected static native boolean initIDs0();

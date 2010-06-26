@@ -47,6 +47,7 @@ import org.junit.Test;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 
+import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
@@ -55,7 +56,7 @@ import java.io.IOException;
 import com.jogamp.test.junit.util.MiscUtils;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
-public class TestGLWindows01NEWT {
+public class TestGLWindows02NEWTAnimated {
     static {
         GLProfile.initSingleton();
     }
@@ -71,11 +72,7 @@ public class TestGLWindows01NEWT {
         glp = GLProfile.getDefault();
     }
 
-    static GLWindow createWindow(Screen screen, GLCapabilities caps, 
-                                 int width, int height, boolean onscreen, boolean undecorated,
-                                 boolean addGLEventListenerAfterVisible) 
-        throws InterruptedException
-    {
+    static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
         Assert.assertNotNull(caps);
         caps.setOnscreen(onscreen);
         // System.out.println("Requested: "+caps);
@@ -92,23 +89,17 @@ public class TestGLWindows01NEWT {
             glWindow = GLWindow.create(caps, onscreen && undecorated);
         }
         Assert.assertNotNull(glWindow);
-        Assert.assertEquals(false,glWindow.isVisible());
-        Assert.assertEquals(false,glWindow.isNativeWindowValid());
-
         GLEventListener demo = new Gears();
         setDemoFields(demo, glWindow);
-        if(!addGLEventListenerAfterVisible) {
-            glWindow.addGLEventListener(demo);
-        }
+        glWindow.addGLEventListener(demo);
         glWindow.addWindowListener(new TraceWindowAdapter());
+        Assert.assertEquals(false,glWindow.isNativeWindowValid());
 
         glWindow.setSize(width, height);
-
+        Assert.assertEquals(false,glWindow.isVisible());
         glWindow.setVisible(true);
         Assert.assertEquals(true,glWindow.isVisible());
         Assert.assertEquals(true,glWindow.isNativeWindowValid());
-        while(glWindow.getTotalFrames()<1) { Thread.sleep(100); }
-        Assert.assertEquals(1,glWindow.getTotalFrames()); // native expose ..
         // Assert.assertEquals(width,glWindow.getWidth());
         // Assert.assertEquals(height,glWindow.getHeight());
         // System.out.println("Created: "+glWindow);
@@ -124,106 +115,26 @@ public class TestGLWindows01NEWT {
         Assert.assertTrue(caps.getRedBits()>5);
         Assert.assertEquals(caps.isOnscreen(),onscreen);
 
-        if(addGLEventListenerAfterVisible) {
-            glWindow.addGLEventListener(demo);
-            glWindow.display();
-        }
-
         return glWindow;
     }
 
     static void destroyWindow(GLWindow glWindow, boolean deep) {
         if(null!=glWindow) {
             glWindow.destroy(deep);
-            Assert.assertEquals(false,glWindow.isNativeWindowValid());
         }
     }
 
     @Test
-    public void testWindowNativeRecreate01aSimple() throws InterruptedException {
+    public void testWindowDecor01Simple() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-        GLWindow window = createWindow(null, caps, width, height, 
-                                       true /* onscreen */, false /* undecorated */, 
-                                       false /*addGLEventListenerAfterVisible*/);
-
-        Assert.assertEquals(true,window.isNativeWindowValid());
-        Assert.assertEquals(true,window.isVisible());
-        window.destroy(false);
-        Assert.assertEquals(false,window.isNativeWindowValid());
-        Assert.assertEquals(false,window.isVisible());
-
-        window.display();
-        Assert.assertEquals(false,window.isNativeWindowValid());
-        Assert.assertEquals(false,window.isVisible());
-
-        window.setVisible(true);
-        Assert.assertEquals(true,window.isNativeWindowValid());
-        Assert.assertEquals(true,window.isVisible());
-
-        window.setVisible(false);
-        Assert.assertEquals(true,window.isNativeWindowValid());
-        Assert.assertEquals(false,window.isVisible());
-
-        destroyWindow(window, true);
-    }
-
-    @Test
-    public void testWindowNativeRecreate01bSimple() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(glp);
-        Assert.assertNotNull(caps);
-        GLWindow window = createWindow(null, caps, width, height, 
-                                       true /* onscreen */, false /* undecorated */, 
-                                       true /*addGLEventListenerAfterVisible*/);
-
-        Assert.assertEquals(true,window.isNativeWindowValid());
-        Assert.assertEquals(true,window.isVisible());
-        window.destroy(false);
-        Assert.assertEquals(false,window.isNativeWindowValid());
-        Assert.assertEquals(false,window.isVisible());
-
-        window.display();
-        Assert.assertEquals(false,window.isNativeWindowValid());
-        Assert.assertEquals(false,window.isVisible());
-
-        window.setVisible(true);
-        Assert.assertEquals(true,window.isNativeWindowValid());
-        Assert.assertEquals(true,window.isVisible());
-
-        window.setVisible(false);
-        Assert.assertEquals(true,window.isNativeWindowValid());
-        Assert.assertEquals(false,window.isVisible());
-
-        destroyWindow(window, true);
-    }
-
-    @Test
-    public void testWindowDecor01aSimple() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(glp);
-        Assert.assertNotNull(caps);
-        GLWindow window = createWindow(null, caps, width, height, 
-                                       true /* onscreen */, false /* undecorated */, 
-                                       false /*addGLEventListenerAfterVisible*/);
-        System.out.println("Created: "+window);
-        while(window.getDuration()<durationPerTest) {
+        GLWindow window = createWindow(null, caps, width, height, true /* onscreen */, false /* undecorated */);
+        Animator animator = new Animator(window);
+        animator.start();
+        while(animator.isAnimating() && animator.getDuration()<durationPerTest) {
             Thread.sleep(100);
         }
-        System.out.println("duration: "+window.getDuration());
-        destroyWindow(window, true);
-    }
-
-    @Test
-    public void testWindowDecor01bSimple() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(glp);
-        Assert.assertNotNull(caps);
-        GLWindow window = createWindow(null, caps, width, height, 
-                                       true /* onscreen */, false /* undecorated */, 
-                                       true /*addGLEventListenerAfterVisible*/);
-        System.out.println("Created: "+window);
-        while(window.getDuration()<durationPerTest) {
-            Thread.sleep(100);
-        }
-        System.out.println("duration: "+window.getDuration());
+        animator.stop();
         destroyWindow(window, true);
     }
 
@@ -231,13 +142,13 @@ public class TestGLWindows01NEWT {
     public void testWindowDecor02DestroyWinTwiceA() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-        GLWindow window = createWindow(null, caps, width, height, 
-                                       true /* onscreen */, false /* undecorated */, 
-                                       false /*addGLEventListenerAfterVisible*/);
-        while(window.getDuration()<durationPerTest) {
+        GLWindow window = createWindow(null, caps, width, height, true /* onscreen */, false /* undecorated */);
+        Animator animator = new Animator(window);
+        animator.start();
+        while(animator.isAnimating() && animator.getDuration()<durationPerTest) {
             Thread.sleep(100);
         }
-        System.out.println("duration: "+window.getDuration());
+        animator.stop();
         destroyWindow(window, false);
         destroyWindow(window, true);
     }
@@ -255,26 +166,28 @@ public class TestGLWindows01NEWT {
 
         Screen screen1  = NewtFactory.createScreen(display1, 0); // screen 0
         Assert.assertNotNull(screen1);
-        GLWindow window1 = createWindow(screen1, caps, width, height, 
-                                       true /* onscreen */, false /* undecorated */, 
-                                       false /*addGLEventListenerAfterVisible*/);
+        GLWindow window1 = createWindow(screen1, caps, width, height, true /* onscreen */, false /* undecorated */);
         Assert.assertNotNull(window1);
 
         Screen screen2  = NewtFactory.createScreen(display2, 0); // screen 0
         Assert.assertNotNull(screen2);
-        GLWindow window2 = createWindow(screen2, caps, width, height, 
-                                       true /* onscreen */, false /* undecorated */, 
-                                       false /*addGLEventListenerAfterVisible*/);
+        GLWindow window2 = createWindow(screen2, caps, width-10, height-10, true /* onscreen */, false /* undecorated */);
         Assert.assertNotNull(window2);
 
-        while(window1.getDuration()<durationPerTest) {
+        Animator animator1 = new Animator(window1);
+        animator1.start();
+        Animator animator2 = new Animator(window2);
+        animator2.start();
+        while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
             Thread.sleep(100);
         }
-        System.out.println("duration1: "+window1.getDuration());
-        System.out.println("duration2: "+window2.getDuration());
 
-        destroyWindow(window2, true);
+        animator2.stop();
+        Assert.assertEquals(false, animator2.isAnimating());
+        destroyWindow(window2, false);
 
+        animator1.stop();
+        Assert.assertEquals(false, animator1.isAnimating());
         destroyWindow(window1, true);
     }
 
@@ -300,8 +213,7 @@ public class TestGLWindows01NEWT {
                 durationPerTest = atoi(args[++i]);
             }
         }
-        System.out.println("durationPerTest: "+durationPerTest);
-        String tstname = TestGLWindows01NEWT.class.getName();
+        String tstname = TestGLWindows02NEWTAnimated.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

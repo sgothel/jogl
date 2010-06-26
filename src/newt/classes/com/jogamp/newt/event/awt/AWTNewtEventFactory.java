@@ -48,8 +48,10 @@ class AWTNewtEventFactory {
         // n/a map.put(java.awt.event.WindowEvent.WINDOW_DEICONIFIED, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_DEICONIFIED);
         map.put(java.awt.event.WindowEvent.WINDOW_ACTIVATED, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
         map.put(java.awt.event.WindowEvent.WINDOW_GAINED_FOCUS, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+        map.put(java.awt.event.FocusEvent.FOCUS_GAINED, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
         map.put(java.awt.event.WindowEvent.WINDOW_DEACTIVATED, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_LOST_FOCUS);
         map.put(java.awt.event.WindowEvent.WINDOW_LOST_FOCUS, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_LOST_FOCUS);
+        map.put(java.awt.event.FocusEvent.FOCUS_LOST, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_LOST_FOCUS);
         // n/a map.put(java.awt.event.WindowEvent.WINDOW_STATE_CHANGED, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_STATE_CHANGED);
 
         map.put(java.awt.event.ComponentEvent.COMPONENT_MOVED, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_MOVED);
@@ -101,6 +103,14 @@ class AWTNewtEventFactory {
     }
 
     static final com.jogamp.newt.event.WindowEvent createWindowEvent(java.awt.event.ComponentEvent event, com.jogamp.newt.Window newtSource) {
+        int type = eventTypeAWT2NEWT.get(event.getID());
+        if(-1 < type) {
+            return new com.jogamp.newt.event.WindowEvent(type, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, System.currentTimeMillis());
+        }
+        return null; // no mapping ..
+    }
+
+    static final com.jogamp.newt.event.WindowEvent createWindowEvent(java.awt.event.FocusEvent event, com.jogamp.newt.Window newtSource) {
         int type = eventTypeAWT2NEWT.get(event.getID());
         if(-1 < type) {
             return new com.jogamp.newt.event.WindowEvent(type, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, System.currentTimeMillis());

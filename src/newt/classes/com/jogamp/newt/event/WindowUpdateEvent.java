@@ -29,20 +29,25 @@
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
+package com.jogamp.newt.event;
 
-package com.jogamp.test.junit.newt;
+import com.jogamp.newt.*;
+import com.jogamp.nativewindow.util.Rectangle;
 
-import com.jogamp.newt.event.*;
+public class WindowUpdateEvent extends WindowEvent {
+    Rectangle bounds;
 
-class WindowAction extends WindowAdapter {
-    NEWTEventFiFo eventFifo;
-
-    public WindowAction(NEWTEventFiFo eventFifo) { 
-        this.eventFifo = eventFifo; 
+    public WindowUpdateEvent(int eventType, Object source, long when, Rectangle bounds)
+    {
+        super(eventType, source, when);
+        this.bounds = bounds;
     }
 
-    public void windowDestroyNotify(WindowEvent e) {
-        eventFifo.put(e);
+    public Rectangle getBounds() {
+        return bounds;
+    }
+
+    public String toString() {
+        return "WindowUpdateEvent["+super.toString()+", "+bounds+"]";
     }
 }
-

@@ -45,6 +45,10 @@ import com.jogamp.newt.*;
 import java.io.IOException;
 
 public class TestDrawable01NEWT {
+    static {
+        GLProfile.initSingleton();
+    }
+
     static GLProfile glp;
     static GLDrawableFactory factory;
     static int width, height;

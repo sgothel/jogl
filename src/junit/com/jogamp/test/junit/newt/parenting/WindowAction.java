@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2010 Sven Gothel. All Rights Reserved.
  * 
@@ -31,18 +30,18 @@
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.test.junit.newt;
+package com.jogamp.test.junit.newt.parenting;
 
 import com.jogamp.newt.event.*;
 
-class KeyAction extends KeyAdapter {
+class WindowAction extends WindowAdapter {
     NEWTEventFiFo eventFifo;
 
-    public KeyAction(NEWTEventFiFo eventFifo) { 
+    public WindowAction(NEWTEventFiFo eventFifo) { 
         this.eventFifo = eventFifo; 
     }
 
-    public void keyTyped(KeyEvent e) {
+    public void windowDestroyNotify(WindowEvent e) {
         eventFifo.put(e);
     }
 }

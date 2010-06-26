@@ -56,6 +56,10 @@ import static javax.swing.SwingUtilities.*;
  * @author Michael Bien
  */
 public class TestSwingAWT01GLn {
+    static {
+        GLProfile.initSingleton();
+    }
+
 
     private Window[] windows;
 

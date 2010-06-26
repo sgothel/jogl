@@ -30,7 +30,7 @@
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.test.junit.newt;
+package com.jogamp.test.junit.newt.parenting;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;
@@ -59,6 +59,10 @@ import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
 public class TestParenting02NEWT {
+    static {
+        GLProfile.initSingleton();
+    }
+
     static int width, height;
     static long durationPerTest = 500;
 
@@ -122,6 +126,11 @@ public class TestParenting02NEWT {
         glWindow1.setPosition(x,y);
         glWindow1.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
         glWindow1.addWindowListener(new TraceWindowAdapter());
+
+        GLEventListener demo1 = new RedSquare();
+        setDemoFields(demo1, window1, glWindow1, false);
+        // glWindow1.addGLEventListener(demo1);
+
         glWindow1.setVisible(true);
         Capabilities capsChosen = glWindow1.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
         Assert.assertNotNull(capsChosen);
@@ -139,17 +148,17 @@ public class TestParenting02NEWT {
         glWindow2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
         glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
         // glWindow2.addMouseListener(new TraceMouseAdapter());
+
+        GLEventListener demo2 = new Gears();
+        setDemoFields(demo2, window2, glWindow2, false);
+        // glWindow2.addGLEventListener(demo2);
+
         glWindow2.setVisible(true);
         capsChosen = glWindow2.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
         Assert.assertNotNull(capsChosen);
         Assert.assertTrue(capsChosen.isOnscreen()==true);
 
-        GLEventListener demo1 = new RedSquare();
-        setDemoFields(demo1, window1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-
-        GLEventListener demo2 = new Gears();
-        setDemoFields(demo2, window2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
 
         boolean shouldQuit = false;

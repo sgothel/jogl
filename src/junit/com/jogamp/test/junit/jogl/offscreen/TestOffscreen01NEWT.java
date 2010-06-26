@@ -57,6 +57,10 @@ import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import java.io.IOException;
 
 public class TestOffscreen01NEWT {
+    static {
+        GLProfile.initSingleton();
+    }
+
     static GLProfile glpDefault;
     static GLDrawableFactory glDrawableFactory;
     static int width, height;

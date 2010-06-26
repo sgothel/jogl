@@ -30,7 +30,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  *
  */
-package com.jogamp.newt;
+package com.jogamp.newt.util;
 
 /**
  * Simple class representing insets.
