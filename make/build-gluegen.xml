@@ -89,7 +89,7 @@
            -        a separate task.  -->
         <javac destdir="${classes}" includes="**/gluegen/**" excludes="**/GlueGenTask.java"
                includeAntRuntime="false"
-               source="1.4" debug="true" debuglevel="source,lines">
+               source="1.4" debug="true" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
             <classpath refid="antlr.classpath" />

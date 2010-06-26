@@ -113,8 +113,10 @@ public abstract class NativeWindowFactory {
             nativeWindowingTypeCustom = nativeOSNameCustom;
         }
 
+        ClassLoader cl = NativeWindowFactory.class.getClassLoader();
+
         if( TYPE_X11.equals(nativeWindowingTypePure) ) {
-            ReflectionUtil.callStaticMethod( X11UtilClassName, "initSingleton", new Class[]  { }, new Object[] { } );
+            ReflectionUtil.callStaticMethod( X11UtilClassName, cl, "initSingleton", new Class[]  { }, new Object[] { } );
         }
 
         registeredFactories = Collections.synchronizedMap(new HashMap());
@@ -130,12 +132,12 @@ public abstract class NativeWindowFactory {
         // We break compile-time dependencies on the AWT here to
         // make it easier to run this code on mobile devices
         isAWTAvailable = !Debug.getBooleanProperty("java.awt.headless", true, acc) &&
-                          ReflectionUtil.isClassAvailable(AWTComponentClassName) &&
-                          ReflectionUtil.isClassAvailable("javax.media.nativewindow.awt.AWTGraphicsDevice") ;
+                          ReflectionUtil.isClassAvailable(AWTComponentClassName, cl) &&
+                          ReflectionUtil.isClassAvailable("javax.media.nativewindow.awt.AWTGraphicsDevice", cl) ;
 
         if ( isAWTAvailable ) {
             // register either our default factory or (if exist) the X11/AWT one -> AWT Component
-            registerFactory(ReflectionUtil.getClass(AWTComponentClassName, false), factory);
+            registerFactory(ReflectionUtil.getClass(AWTComponentClassName, false, cl), factory);
         }
 
         if(DEBUG) {

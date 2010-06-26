@@ -854,16 +854,18 @@ public class GLProfile {
 
         NativeWindowFactory.initSingleton();
 
-        isAWTAvailable = NativeWindowFactory.isAWTAvailable() &&
-                         ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas") ; // JOGL
+        ClassLoader classloader = GLProfile.class.getClassLoader();
 
-        hasGL234Impl   = ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.gl4.GL4bcImpl");
+        isAWTAvailable = NativeWindowFactory.isAWTAvailable() &&
+                         ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas", classloader) ; // JOGL
+
+        hasGL234Impl   = ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.gl4.GL4bcImpl", classloader);
         hasGL4bcImpl   = hasGL234Impl;
         hasGL4Impl     = hasGL234Impl;
         hasGL3bcImpl   = hasGL234Impl;
         hasGL3Impl     = hasGL234Impl;
         hasGL2Impl     = hasGL234Impl;
-        hasGL2ES12Impl = ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.gl2es12.GL2ES12Impl");
+        hasGL2ES12Impl = ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.gl2es12.GL2ES12Impl", classloader);
         mappedProfiles = computeProfileMap();
 
         boolean hasDesktopGL = false;
@@ -929,7 +931,7 @@ public class GLProfile {
             hasGL2ES12Impl = hasGL2ES12Impl && GLContext.isGL2Available();
         }
 
-        if ( ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.egl.EGLDrawableFactory") ) {
+        if ( ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.egl.EGLDrawableFactory", classloader) ) {
             t=null;
             try {
                 GLDrawableFactoryImpl factory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GLES2);

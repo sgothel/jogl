@@ -29,7 +29,7 @@
         <mkdir dir="${classes}" />
 
         <!-- Compile BuildStaticGLInfo -->
-        <javac srcdir="${src.java}" destdir="${classes}" includes="**/BuildStaticGLInfo.java" source="1.4" debug="true" debuglevel="source,lines"
+        <javac srcdir="${src.java}" destdir="${classes}" includes="**/BuildStaticGLInfo.java" source="1.4" debug="true" debuglevel="${javacdebuglevel}"
                includeAntRuntime="false">
             <classpath refid="antlr.classpath" />
         </javac>
@@ -50,7 +50,7 @@
         <!-- Build the BuildStaticGLInfo ANT task.
            - NOTE:  ONLY the StaticGLGen is built at this time.  BuildStaticGLInfo 
            -        itself is built in a separate task.  -->
-        <javac destdir="${classes}" includes="**/StaticGLGenTask.java" source="1.4" debug="true" debuglevel="source,lines"
+        <javac destdir="${classes}" includes="**/StaticGLGenTask.java" source="1.4" debug="true" debuglevel="${javacdebuglevel}"
                includeAntRuntime="false">
 	        <src path="${src.java}" />
             <classpath refid="classpath" />
