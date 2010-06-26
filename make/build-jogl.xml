@@ -1111,13 +1111,13 @@
       <!-- linker configuration -->
  
       <linker id="linker.cfg.freebsd.jogl.x11" extends="linker.cfg.freebsd">
-        <syslibset libs="X11"/>
-        <syslibset libs="Xxf86vm" />
+        <syslibset dir="/usr/local/lib" libs="X11"/>
+        <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.freebsd.amd64.jogl.x11" extends="linker.cfg.freebsd.amd64">
-        <syslibset libs="X11"/>
-        <syslibset libs="Xxf86vm" />
+        <syslibset dir="/usr/local/lib" libs="X11"/>
+        <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.jogl.x11" extends="linker.cfg.linux">
