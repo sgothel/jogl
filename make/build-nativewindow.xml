@@ -352,6 +352,10 @@
     <target name="c.configure.1" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler">
       <!-- compiler configuration -->
       <!-- Note that we can use the base setups in the gluegen-cpptasks for most of these -->
+      <compiler id="compiler.cfg.freebsd.nativewindow" extends="compiler.cfg.freebsd">
+        <!-- Need to force X11R6 headers on to include path after stub_includes -->
+        <includepath path="/usr/local/include" />
+      </compiler>
 
       <!-- linker configuration -->
 
@@ -471,13 +475,13 @@
    
     <target name="c.configure.freebsd.x86" if="isFreeBSDX86">
       <echo message="FreeBSD.x86" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.nativewindow" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.freebsd.nativewindow.x11" />
     </target>
     
     <target name="c.configure.freebsd.amd64" if="isFreeBSDAMD64">
       <echo message="FreeBSD.AMD64" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.nativewindow" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.freebsd.amd64.nativewindow.x11" />
     </target>
     
