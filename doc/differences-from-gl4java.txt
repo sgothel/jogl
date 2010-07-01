@@ -1,3 +1,4 @@
+JOGL 1.x:
 - GLContext is no longer exposed in the public API.
 - No more GLAnimCanvas/GLAnimJPanel variants. To perform animation,
   attach an Animator to a GLDrawable.

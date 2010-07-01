@@ -1,5 +1,8 @@
+This list is probably completely out of date...
+anyone the guts to remove it? :)
+-mbien
+
 Random, somewhat old to-do list:
-(See Issue Tracker on http://jogl.dev.java.net/ for current high-priority issues)
 
 - Non-const array types must be properly released with JNI_COMMIT in
   order to see side effects if the array was copied.
