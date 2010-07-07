@@ -100,14 +100,13 @@ public class KDWindow extends Window {
         System.err.println("setPosition n/a in KD");
     }
 
-    protected boolean setFullscreenImpl(final boolean fullscreen, final int x, final int y, final int w, final int h) {
+    protected void setFullscreenImpl(final boolean fullscreen, final int x, final int y, final int w, final int h) {
         if(0!=eglWindowHandle) {
             setFullScreen0(eglWindowHandle, fullscreen);
             if(!fullscreen) {
                 setSize0(eglWindowHandle, w, h);
             }
         }
-        return true;
     }
 
     //----------------------------------------------------------------------

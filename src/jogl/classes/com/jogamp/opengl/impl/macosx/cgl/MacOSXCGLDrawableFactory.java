@@ -78,8 +78,8 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     new MacOSXCGLGraphicsConfigurationFactory();
 
     try {
-      ReflectionUtil.createInstance("com.jogamp.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory", getClass().getClassLoader(),
-                                  new Object[] {});
+      ReflectionUtil.createInstance("com.jogamp.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory", 
+                                    new Object[] {}, getClass().getClassLoader());
     } catch (JogampRuntimeException jre) { /* n/a .. */ }
   }
 

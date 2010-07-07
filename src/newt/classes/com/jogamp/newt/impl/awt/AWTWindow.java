@@ -240,7 +240,7 @@ public class AWTWindow extends Window {
         }
     }
 
-    protected boolean setFullscreenImpl(final boolean fullscreen, final int x, final int y, final int w, final int h) {
+    protected void setFullscreenImpl(final boolean fullscreen, final int x, final int y, final int w, final int h) {
         /** An AWT event on setSize() would bring us in a deadlock situation, hence invokeLater() */
         runOnEDT(false, new Runnable() {
                 public void run() {
@@ -257,7 +257,6 @@ public class AWTWindow extends Window {
                     container.setSize(w, h);
                 }
             });
-        return fullscreen;
     }
 
     public Object getWrappedWindow() {

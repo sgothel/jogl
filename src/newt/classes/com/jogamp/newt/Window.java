@@ -303,6 +303,30 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
     }
     protected void requestFocusImpl() {}
 
+    /** 
+     * May set to a {@link FocusRunnable}, {@link FocusRunnable#run()} before Newt requests the native focus.
+     * This allows notifying a covered window toolkit like AWT that the focus is requested,
+     * hence focus traversal can be made transparent.
+     */
+    public void setFocusAction(FocusRunnable focusAction) {
+        this.focusAction = focusAction;
+    }
+    protected boolean focusAction() {
+        if(null!=focusAction) {
+            return focusAction.run();
+        }
+        return false;
+    }
+    protected FocusRunnable focusAction = null;
+
+    public static interface FocusRunnable {
+        /**
+         * @return false if NEWT shall proceed requesting the focus,
+         * true if NEWT shall not request the focus.
+         */
+        public boolean run();
+    }
+
     //
     // NativeWindow impl
     //
@@ -888,22 +912,31 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
                     w = screen.getWidth();
                     h = screen.getHeight();
                 } else {
-                    x = nfs_x;
-                    y = nfs_y;
+                    if(0!=parentWindowHandle) {
+                        x=0;
+                        y=0;
+                    } else {
+                        x = nfs_x;
+                        y = nfs_y;
+                    }
                     w = nfs_width;
                     h = nfs_height;
                 }
                 if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
                     System.out.println("X11Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated());
                 }
-                this.fullscreen = setFullscreenImpl(fullscreen, x, y, w, h);
+                this.fullscreen = fullscreen;
+                setFullscreenImpl(fullscreen, x, y, w, h);
             }
-            return this.fullscreen;
         } finally {
             windowUnlock();
         }
+        if( isVisible() ) {
+            windowRepaint(0, 0, getWidth(), getHeight());
+        }
+        return this.fullscreen;
     }
-    protected abstract boolean setFullscreenImpl(boolean fullscreen, int x, int y, int widht, int height);
+    protected abstract void setFullscreenImpl(boolean fullscreen, int x, int y, int widht, int height);
 
     //
     // Child Window Management
@@ -1495,6 +1528,9 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
         invalidate();
     }
 
+    public boolean getPropagateRepaint() {
+        return propagateRepaint;
+    }
     public void setPropagateRepaint(boolean v) {
         propagateRepaint = v;
     }

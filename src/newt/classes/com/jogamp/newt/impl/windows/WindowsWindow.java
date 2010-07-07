@@ -162,9 +162,8 @@ public class WindowsWindow extends Window {
         setPosition0(parentWindowHandle, windowHandle, x , y /*, width, height*/);
     }
 
-    protected boolean setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
+    protected void setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
         setFullscreen0(fullscreen?0:parentWindowHandle, windowHandle, x, y, w, h, isUndecorated(fullscreen));
-        return fullscreen;
     }
 
     protected boolean reparentWindowImpl() {
@@ -176,7 +175,7 @@ public class WindowsWindow extends Window {
 
     protected void requestFocusImpl() {
         if (windowHandle != 0L) {
-            requestFocus0(fullscreen?0:parentWindowHandle, windowHandle);
+            requestFocus0(windowHandle);
         }
     }
 
@@ -207,7 +206,7 @@ public class WindowsWindow extends Window {
     private        native void setFullscreen0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height, boolean isUndecorated);
     private        native void reparentWindow0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height, boolean isUndecorated);
     private static native void setTitle0(long windowHandle, String title);
-    private static native void requestFocus0(long parentWindowHandle, long windowHandle);
+    private        native void requestFocus0(long windowHandle);
 
     private void insetsChanged(int left, int top, int right, int bottom) {
         if (left != -1 && top != -1 && right != -1 && bottom != -1) {

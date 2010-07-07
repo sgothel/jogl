@@ -36,10 +36,11 @@ import java.lang.reflect.*;
 import java.security.*;
 
 import java.awt.Button;
-import java.awt.Frame;
 import java.awt.Canvas;
+import java.awt.Component;
+import java.awt.EventQueue;
+import java.awt.Frame;
 import java.awt.Graphics;
-import java.awt.KeyboardFocusManager;
 
 import javax.media.nativewindow.*;
 
@@ -59,7 +60,6 @@ public class NewtCanvasAWT extends java.awt.Canvas {
     NativeWindow parent = null;
     Window newtChild = null;
     AWTAdapter awtAdapter = null;
-    boolean hasSwingContainer = false;
 
     /**
      * Instantiates a NewtCanvas without a NEWT child.<br>
@@ -75,84 +75,39 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         super();
         setNEWTChild(child);
     }
-    
-    class UnfocusRunnable implements Runnable {
-        boolean focusTraversed = false;
-        public void run() {
-            KeyboardFocusManager focusManager =
-                KeyboardFocusManager.getCurrentKeyboardFocusManager();
-            java.awt.Component comp1 =   focusManager.getPermanentFocusOwner();
-            java.awt.Component comp2 =   focusManager.getFocusOwner();
-            if(DEBUG_IMPLEMENTATION) {
-	            System.out.println("AWT Unfocus: traversed "+focusTraversed+" (1)");
-	            System.out.println("PRE PermenetFocusOwner: "+comp1);
-	            System.out.println("PRE FocusOwner: "+comp2);
-            }
-            if(null!=comp1) {
-                if(!focusTraversed && null==comp2) {
-                    comp1.requestFocus();
-                    focusTraversed=true;
-                    if(DEBUG_IMPLEMENTATION) {
-                        System.out.println("AWT Unfocus: traversed "+focusTraversed+" (*)");
-                    }
-                } else {
-                    focusTraversed=false;
-                }
-                
-                if(DEBUG_IMPLEMENTATION) {
-                    comp1 = focusManager.getPermanentFocusOwner();
-                    comp2 = focusManager.getFocusOwner();
-                    System.out.println("MID PermenetFocusOwner: "+comp1);
-                    System.out.println("MID FocusOwner: "+comp2);
-                }
 
-                focusManager.clearGlobalFocusOwner();
-
-                if(DEBUG_IMPLEMENTATION) {
-                    comp1 = focusManager.getPermanentFocusOwner();
-                    comp2 = focusManager.getFocusOwner();
-                    System.out.println("POST PermenetFocusOwner: "+comp1);
-                    System.out.println("POST FocusOwner: "+comp2);
-                }
-                
-                if(focusTraversed && null!=newtChild) {
-                    newtChild.requestFocus();
-                }
-            }
-        }
-    }
-    UnfocusRunnable unfocusRunnable = new UnfocusRunnable();
-    
-    class FocusListener extends WindowAdapter {
-        public synchronized void windowGainedFocus(WindowEvent e) {
-            if(DEBUG_IMPLEMENTATION) {
-                System.out.println("NewtCanvasAWT focus on: AWT focus "+ NewtCanvasAWT.this.hasFocus()+
-                                   ", focusable "+NewtCanvasAWT.this.isFocusable()+", onEDT "+hasSwingContainer);
-            }
-            if(hasSwingContainer) {
-            	java.awt.EventQueue.invokeLater(unfocusRunnable);
+    class FocusAction implements Window.FocusRunnable {
+        public boolean run() {
+            if ( EventQueue.isDispatchThread() ) {
+                focusActionImpl.run();
             } else {
-            	unfocusRunnable.run();
+                try {
+                    EventQueue.invokeAndWait(focusActionImpl);
+                } catch (Exception e) {
+                    throw new NativeWindowException(e);
+                }
             }
+            return focusActionImpl.result;
         }
-        public synchronized void windowLostFocus(WindowEvent e) {
-            if(DEBUG_IMPLEMENTATION) {
-                System.out.println("NewtCanvasAWT focus off: AWT focus "+ NewtCanvasAWT.this.hasFocus());
-            }
-        }
-    }
-    FocusListener focusListener = new FocusListener();
 
+        class FocusActionImpl implements Runnable {
+            public final boolean result = false; // NEWT shall always proceed requesting the native focus
+            public void run() {
+                if(DEBUG_IMPLEMENTATION) {
+                    System.out.println("FocusActionImpl.run() "+Window.getThreadName());
+                }
+                NewtCanvasAWT.this.requestFocusAWT();
+            }
+        }
+        FocusActionImpl focusActionImpl = new FocusActionImpl();
+    }
+    FocusAction focusAction = new FocusAction();
+    
     /** sets a new NEWT child, provoking reparenting on the NEWT level. */
     public NewtCanvasAWT setNEWTChild(Window child) {
         if(newtChild!=child) {
-            if(null!=newtChild) {
-                newtChild.removeWindowListener(focusListener);
-            }
             newtChild = child;
-            if(null!=newtChild) {
-                newtChild.addWindowListener(focusListener);
-            }
+            newtChild.setFocusAction(focusAction);
             if(null!=parent) {
                 java.awt.Container cont = getContainer(this);
                 // reparent right away, addNotify has been called already
@@ -181,16 +136,6 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         }
     }
 
-    static boolean hasSwingContainer(java.awt.Component comp) {
-        while( null != comp ) {
-        	if( comp instanceof javax.swing.JComponent ) {
-        		return true;
-        	}
-            comp = comp.getParent();
-        }
-        return false;
-    }
-
     static java.awt.Container getContainer(java.awt.Component comp) {
         while( null != comp ) {
         	if( comp instanceof java.awt.Container ) {
@@ -204,13 +149,12 @@ public class NewtCanvasAWT extends java.awt.Canvas {
     public void addNotify() {
         super.addNotify();
         disableBackgroundErase();
-        hasSwingContainer = hasSwingContainer(this);
         java.awt.Container cont = getContainer(this);
         if(DEBUG_IMPLEMENTATION) {
             // if ( isShowing() == false ) -> Container was not visible yet.
             // if ( isShowing() == true  ) -> Container is already visible.
             System.err.println("NewtCanvasAWT.addNotify: "+newtChild+", "+this+", visible "+isVisible()+", showing "+isShowing()+
-            		           ", displayable "+isDisplayable()+", swingContainer "+hasSwingContainer+" -> "+cont);
+            		           ", displayable "+isDisplayable()+" -> "+cont);
         }  
         reparentWindow(true, cont);
     }
@@ -267,6 +211,49 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         if(null!=newtChild) {
             newtChild.windowRepaint(0, 0, getWidth(), getHeight());
         }
+    }
+
+    void requestFocusAWT() {
+        super.requestFocus();
+    }
+
+    public void requestFocus() {
+        super.requestFocus();
+        if(null!=newtChild) {
+            newtChild.setFocusAction(null);
+            newtChild.requestFocus();
+            newtChild.setFocusAction(focusAction);
+        }
+    }
+
+    public boolean requestFocus(boolean temporary) {
+        boolean res = super.requestFocus(temporary);
+        if(res && null!=newtChild) {
+            newtChild.setFocusAction(null);
+            newtChild.requestFocus();
+            newtChild.setFocusAction(focusAction);
+        }
+        return res;
+    }
+
+    public boolean requestFocusInWindow() {
+        boolean res = super.requestFocusInWindow();
+        if(res && null!=newtChild) {
+            newtChild.setFocusAction(null);
+            newtChild.requestFocus();
+            newtChild.setFocusAction(focusAction);
+        }
+        return res;
+    }
+
+    public boolean requestFocusInWindow(boolean temporary) {
+        boolean res = super.requestFocusInWindow(temporary);
+        if(res && null!=newtChild) {
+            newtChild.setFocusAction(null);
+            newtChild.requestFocus();
+            newtChild.setFocusAction(focusAction);
+        }
+        return res;
     }
 
   // Disables the AWT's erasing of this Canvas's background on Windows

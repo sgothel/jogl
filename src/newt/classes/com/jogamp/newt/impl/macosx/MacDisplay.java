@@ -99,17 +99,15 @@ public class MacDisplay extends Display {
                 if(wait) {
                     ReflectionUtil.callStaticMethod(
                         "java.awt.EventQueue",
-                        cl,
                         "invokeAndWait",
                         new Class[]  { java.lang.Runnable.class },
-                        new Object[] { r } );
+                        new Object[] { r }, cl );
                 } else {
                     ReflectionUtil.callStaticMethod(
                         "java.awt.EventQueue",
-                        cl,
                         "invokeLater",
                         new Class[]  { java.lang.Runnable.class },
-                        new Object[] { r } );
+                        new Object[] { r }, cl );
                 }
             } catch (Exception e) {
                 throw new NativeWindowException(e);

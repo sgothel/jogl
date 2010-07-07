@@ -57,7 +57,6 @@ public class AWTParentWindowAdapter
         if(DEBUG_IMPLEMENTATION) {
             System.out.println("AWT: focusGained: START "+ e.getComponent());
         }
-        newtWindow.requestFocus();
     }
 
     public void focusLost(java.awt.event.FocusEvent e) {

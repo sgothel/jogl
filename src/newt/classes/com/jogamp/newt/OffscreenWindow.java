@@ -107,9 +107,8 @@ public class OffscreenWindow extends Window implements SurfaceChangeable {
         // nop
         return false;
     }
-    protected boolean setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
+    protected void setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
         shouldNotCallThis();
-        return false;
     }
 }
 

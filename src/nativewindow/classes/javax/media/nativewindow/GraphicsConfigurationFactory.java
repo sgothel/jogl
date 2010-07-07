@@ -78,7 +78,8 @@ public abstract class GraphicsConfigurationFactory {
         if (NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {
             try {
                 GraphicsConfigurationFactory factory = (GraphicsConfigurationFactory)
-                    ReflectionUtil.createInstance("com.jogamp.nativewindow.impl.x11.X11GraphicsConfigurationFactory", GraphicsConfigurationFactory.class.getClassLoader(), new Object[] {});
+                    ReflectionUtil.createInstance("com.jogamp.nativewindow.impl.x11.X11GraphicsConfigurationFactory", new Object[] {}, 
+                                                  GraphicsConfigurationFactory.class.getClassLoader());
                 registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, factory);
             } catch (Exception e) {
                 throw new RuntimeException(e);

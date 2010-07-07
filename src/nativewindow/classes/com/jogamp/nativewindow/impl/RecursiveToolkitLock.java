@@ -9,7 +9,7 @@ public class RecursiveToolkitLock {
     private Thread owner = null;
     private int recursionCount = 0;
     private Exception lockedStack = null;
-    private static final long timeout = 30000;  // maximum wait 3s
+    private static final long timeout = 3000;  // maximum wait 3s
     private static final boolean TRACE_LOCK = false;
 
     public Exception getLockedStack() {

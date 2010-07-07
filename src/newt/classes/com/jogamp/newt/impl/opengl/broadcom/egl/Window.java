@@ -87,10 +87,9 @@ public class Window extends com.jogamp.newt.Window {
         System.err.println("BCEGL Window.setPositionImpl n/a in BroadcomEGL");
     }
 
-    protected boolean setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
+    protected void setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
         // n/a in BroadcomEGL
         System.err.println("setFullscreen n/a in BroadcomEGL");
-        return false;
     }
 
     public boolean surfaceSwap() {

@@ -167,7 +167,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * <p>
    * This method shall be called by an animator implementation only,<br>
    * e.g. {@link com.jogamp.opengl.util.Animator#start()}, passing the animator thread,<br>
-   * and {@link com.jogamp.opengl.util.Animator#start()}, passing <code>null</code>.</p><br>
+   * and {@link com.jogamp.opengl.util.Animator#stop()}, passing <code>null</code>.</p><br>
    * <p>
    * Impacts {@link #display()} and {@link #invoke(boolean, GLRunnable)} semantics.</p><br>
    *

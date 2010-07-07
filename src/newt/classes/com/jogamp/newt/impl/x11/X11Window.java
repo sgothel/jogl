@@ -102,10 +102,9 @@ public class X11Window extends Window {
         setPosition0(parentWindowHandle, getDisplayHandle(), windowHandle, x, y);
     }
 
-    protected boolean setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
+    protected void setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
         setPosSizeDecor0(fullscreen?0:parentWindowHandle, getDisplayHandle(), getScreenIndex(), windowHandle, 
                          x, y, w, h, isUndecorated(fullscreen), isVisible());
-        return fullscreen;
     }
 
     protected boolean reparentWindowImpl() {

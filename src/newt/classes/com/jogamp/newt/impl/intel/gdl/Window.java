@@ -109,11 +109,10 @@ public class Window extends com.jogamp.newt.Window {
         }
     }
 
-    protected boolean setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
+    protected void setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
         if(0!=surfaceHandle) {
             SetBounds0(surfaceHandle, screen.getWidth(), screen.getHeight(), x, y, w, h);
         }
-        return fullscreen;
     }
 
     protected void requestFocusImpl() {

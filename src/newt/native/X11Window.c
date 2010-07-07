@@ -161,6 +161,7 @@ static jmethodID windowRepaintID = NULL;
 static jmethodID windowCreatedID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
+static jmethodID focusActionID = NULL;
 
 static jmethodID displayCompletedID = NULL;
 
@@ -372,18 +373,42 @@ static jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, j
     return jwindow;
 }
 
-static void NewtWindows_requestFocus0 (Display *dpy, Window w, XWindowAttributes *xwa) {
-    // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
-    if(xwa->map_state == IsViewable) {
-        XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
+/**
+static Window NewtWindows_getParent (Display *dpy, Window w) {
+    Window root_return=0;
+    Window parent_return=0;
+    Window *children_return=NULL;
+    unsigned int nchildren_return=0;
+
+    Status res = XQueryTree(dpy, w, &root_return, &parent_return, &children_return, &nchildren_return);
+    if(NULL!=children_return) {
+        XFree(children_return);
+    }
+    if(0!=res) {
+        return parent_return;
+    }
+    return 0;
+} */
+
+static void NewtWindows_requestFocus0 (JNIEnv *env, jobject window, Display *dpy, Window w, XWindowAttributes *xwa) {
+    Window focus_return;
+    int revert_to_return;
+    XGetInputFocus(dpy, &focus_return, &revert_to_return);
+    if(focus_return!=w) {
+        // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
+        if( JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
+            if(xwa->map_state == IsViewable) {
+                XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
+            }
+        }
     }
 }
 
-static void NewtWindows_requestFocus1 (Display *dpy, Window w) {
+static void NewtWindows_requestFocus1 (JNIEnv *env, jobject window, Display *dpy, Window w) {
     XWindowAttributes xwa;
 
     XGetWindowAttributes(dpy, w, &xwa);
-    NewtWindows_requestFocus0 (dpy, w, &xwa);
+    NewtWindows_requestFocus0 (env, window, dpy, w, &xwa);
     XSync(dpy, False);
 }
 
@@ -505,7 +530,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
 
         switch(evt.type) {
             case ButtonPress:
-                NewtWindows_requestFocus1 ( dpy, evt.xany.window );
+                NewtWindows_requestFocus1 ( env, jwindow, dpy, evt.xany.window );
                 (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, 
                                       (jint) EVENT_MOUSE_PRESSED, 
                                       (jint) evt.xbutton.state, 
@@ -674,6 +699,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs0
     windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(J)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
+    focusActionID = (*env)->GetMethodID(env, clazz, "focusAction", "()Z");
 
     if (sizeChangedID == NULL ||
         positionChangedID == NULL ||
@@ -684,7 +710,8 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs0
         windowRepaintID == NULL ||
         windowCreatedID == NULL ||
         sendMouseEventID == NULL ||
-        sendKeyEventID == NULL) {
+        sendKeyEventID == NULL ||
+        focusActionID == NULL) {
         return JNI_FALSE;
     }
     return JNI_TRUE;
@@ -941,7 +968,9 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setPosition0
 }
 
 static void NewtWindows_reparentWindow
-  (Display * dpy, Screen * scrn, Window w, XWindowAttributes *xwa, jlong jparent, jint x, jint y, jboolean undecorated, jboolean isVisible)
+  (JNIEnv *env, jobject obj, 
+   Display * dpy, Screen * scrn, Window w, XWindowAttributes *xwa, jlong jparent, 
+   jint x, jint y, jboolean undecorated, jboolean isVisible)
 {
     Window parent = (0!=jparent)?(Window)jparent:XRootWindowOfScreen(scrn);
 
@@ -990,7 +1019,7 @@ static void NewtWindows_reparentWindow
        XSync(dpy, False); */
 
     if(JNI_TRUE == isVisible) {
-        NewtWindows_requestFocus0 ( dpy, w, xwa );
+        NewtWindows_requestFocus0 ( env, obj, dpy, w, xwa );
         XSync(dpy, False);
     }
 
@@ -1023,7 +1052,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setPosSizeDecor0
     XSync(dpy, False);
     XGetWindowAttributes(dpy, w, &xwa);
 
-    NewtWindows_reparentWindow(dpy, scrn, w, &xwa, jparent, x, y, undecorated, isVisible);
+    NewtWindows_reparentWindow(env, obj, dpy, scrn, w, &xwa, jparent, x, y, undecorated, isVisible);
     XSync(dpy, False);
 
     memset(&xwc, 0, sizeof(XWindowChanges));
@@ -1058,7 +1087,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_reparentWindow0
     XSync(dpy, False);
     XGetWindowAttributes(dpy, w, &xwa);
 
-    NewtWindows_reparentWindow(dpy, scrn, w, &xwa, jparent, x, y, undecorated, isVisible);
+    NewtWindows_reparentWindow(env, obj, dpy, scrn, w, &xwa, jparent, x, y, undecorated, isVisible);
     XSync(dpy, False);
 
     DBG_PRINT( "X11: reparentWindow0 X\n");
@@ -1072,7 +1101,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_reparentWindow0
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_requestFocus0
   (JNIEnv *env, jobject obj, jlong display, jlong window)
 {
-    NewtWindows_requestFocus1 ( (Display *) (intptr_t) display, (Window)window ) ;
+    NewtWindows_requestFocus1 ( env, obj, (Display *) (intptr_t) display, (Window)window ) ;
 }
 
 /*

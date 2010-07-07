@@ -116,7 +116,7 @@ public abstract class NativeWindowFactory {
         ClassLoader cl = NativeWindowFactory.class.getClassLoader();
 
         if( TYPE_X11.equals(nativeWindowingTypePure) ) {
-            ReflectionUtil.callStaticMethod( X11UtilClassName, cl, "initSingleton", new Class[]  { }, new Object[] { } );
+            ReflectionUtil.callStaticMethod( X11UtilClassName, "initSingleton", new Class[]  { }, new Object[] { }, cl );
         }
 
         registeredFactories = Collections.synchronizedMap(new HashMap());

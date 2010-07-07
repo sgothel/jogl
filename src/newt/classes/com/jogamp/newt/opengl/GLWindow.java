@@ -305,6 +305,9 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public void requestFocus() {
         window.requestFocus();
     }
+    public void setFocusAction(FocusRunnable focusAction) {
+        window.setFocusAction(focusAction);
+    }
 
     public Insets getInsets() {
         return window.getInsets();
@@ -327,9 +330,8 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public boolean setFullscreen(boolean fullscreen) {
         return window.setFullscreen(fullscreen);
     }
-    protected boolean setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
+    protected void setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
         shouldNotCallThis();
-        return false;
     }
 
     public boolean isVisible() {

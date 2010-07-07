@@ -119,6 +119,7 @@ static jmethodID windowDestroyedID = NULL;
 static jmethodID windowRepaintID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
+static jmethodID focusActionID = NULL;
 
 static RECT* UpdateInsets(JNIEnv *env, HWND hwnd, jobject window);
 
@@ -596,23 +597,27 @@ static int WmKeyUp(JNIEnv *env, jobject window, UINT wkey, UINT repCnt,
     return 0;
 }
 
-static void NewtWindows_requestFocus (HWND hwnd, BOOL topLevel, BOOL reparented) {
-    DBG_PRINT("*** WindowsWindow: requestFocus.0 window %p\n", (void*)hwnd);
-    if (IsWindow(hwnd)) {
-        UINT flags = SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE;
-        if(reparented) {
-            flags |= SWP_FRAMECHANGED;
+static void NewtWindows_requestFocus (JNIEnv *env, jobject window, HWND hwnd, BOOL reparented) {
+    HWND pHwnd = GetParent(hwnd);
+    HWND current = GetFocus();
+    DBG_PRINT("*** WindowsWindow: requestFocus.0 parent %p, window %p, isCurrent %d\n", 
+        (void*) pHwnd, (void*)hwnd, current==hwnd);
+    if(reparented || current!=hwnd) {
+        if( JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
+            UINT flags = SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE;
+            if(reparented) {
+                flags |= SWP_FRAMECHANGED;
+            }
+            SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, flags);
+            SetForegroundWindow(hwnd);  // Slightly Higher Priority
+            SetFocus(hwnd);// Sets Keyboard Focus To Window
+            if(NULL!=pHwnd) {
+                SetActiveWindow(hwnd);
+            }
+            DBG_PRINT("*** WindowsWindow: requestFocus.X1\n");
+        } else {
+            DBG_PRINT("*** WindowsWindow: requestFocus.X0\n");
         }
-        SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, flags);
-        DBG_PRINT("*** WindowsWindow: requestFocus.1\n");
-        SetForegroundWindow(hwnd);  // Slightly Higher Priority
-        DBG_PRINT("*** WindowsWindow: requestFocus.2\n");
-        SetFocus(hwnd);// Sets Keyboard Focus To TheWindow                 
-        DBG_PRINT("*** WindowsWindow: requestFocus.3\n");
-        if(topLevel) {
-            SetActiveWindow(hwnd);
-        }
-        DBG_PRINT("*** WindowsWindow: requestFocus.X\n");
     }
 }
 
@@ -800,7 +805,8 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 
 
     case WM_LBUTTONDOWN:
-        NewtWindows_requestFocus ( wnd, FALSE, FALSE ); // request focus on this window, if not already ..
+        DBG_PRINT("*** WindowsWindow: LBUTTONDOWN\n");
+        NewtWindows_requestFocus ( env, window, wnd, FALSE ); // request focus on this window, if not already ..
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers(),
@@ -819,7 +825,8 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         break;
 
     case WM_MBUTTONDOWN:
-        NewtWindows_requestFocus ( wnd, FALSE, FALSE ); // request focus on this window, if not already ..
+        DBG_PRINT("*** WindowsWindow: MBUTTONDOWN\n");
+        NewtWindows_requestFocus ( env, window, wnd, FALSE ); // request focus on this window, if not already ..
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers(),
@@ -838,7 +845,8 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         break;
 
     case WM_RBUTTONDOWN:
-        NewtWindows_requestFocus ( wnd, FALSE, FALSE ); // request focus on this window, if not already ..
+        DBG_PRINT("*** WindowsWindow: RBUTTONDOWN\n");
+        NewtWindows_requestFocus ( env, window, wnd, FALSE ); // request focus on this window, if not already ..
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers(),
@@ -1069,6 +1077,8 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_initI
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(IIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
+    focusActionID = (*env)->GetMethodID(env, clazz, "focusAction", "()Z");
+
     if (insetsChangedID == NULL ||
         sizeChangedID == NULL ||
         positionChangedID == NULL ||
@@ -1078,7 +1088,8 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_initI
         windowDestroyedID == NULL ||
         windowRepaintID == NULL ||
         sendMouseEventID == NULL ||
-        sendKeyEventID == NULL)
+        sendKeyEventID == NULL ||
+        focusActionID == NULL)
     {
         return JNI_FALSE;
     }
@@ -1148,13 +1159,6 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_CreateWi
 #endif
 
         UpdateInsets(env, window, obj);
-
-        ShowWindow(window, SW_SHOWNORMAL);
-        if(NULL!=parentWindow) {
-            NewtWindows_requestFocus ( window, FALSE, FALSE ); // request focus on this window, if not already ..
-        } /* else {
-            // top level already capable of receiving [keyboard] events
-        } */
     }
 
 #ifdef UNICODE
@@ -1224,13 +1228,13 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_MonitorF
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setVisible0
   (JNIEnv *_env, jclass clazz, jlong window, jboolean visible)
 {
-    HWND hWnd = (HWND) (intptr_t) window;
-    DBG_PRINT("*** WindowsWindow: setVisible window %p, visible: %d\n", hWnd, (int)visible);
+    HWND hwnd = (HWND) (intptr_t) window;
+    DBG_PRINT("*** WindowsWindow: setVisible window %p, visible: %d\n", hwnd, (int)visible);
     if (visible) {
-        SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE);
-        ShowWindow(hWnd, SW_SHOW);
+        SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE);
+        ShowWindow(hwnd, SW_SHOW);
     } else {
-        ShowWindow(hWnd, SW_HIDE);
+        ShowWindow(hwnd, SW_HIDE);
     }
 }
 
@@ -1301,14 +1305,14 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setPositi
     }
 }
 
-static void NewtWindows_reparentWindow(HWND hwndP, HWND hwnd, jint x, jint y, jint width, jint height, jboolean bIsUndecorated)
+static void NewtWindows_reparentWindow(JNIEnv *env, jobject obj, HWND hwndP, HWND hwnd, BOOL visible,
+                                       jint x, jint y, jint width, jint height, jboolean bIsUndecorated)
 {
     UINT flags;
     HWND hWndInsertAfter;
     DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN ;
-    BOOL isVisible = IsWindowVisible(hwnd);
 
-    DBG_PRINT("*** WindowsWindow: reparentWindow.1 parent %p, window %p, %d/%d %dx%d undeco %d visible %d\n", (void*)hwndP, (void*)hwnd, x, y, width, height, bIsUndecorated, isVisible);
+    DBG_PRINT("*** WindowsWindow: reparentWindow.1 parent %p, window %p, %d/%d %dx%d undeco %d\n", (void*)hwndP, (void*)hwnd, x, y, width, height, bIsUndecorated);
     if (!IsWindow(hwnd)) {
         DBG_PRINT("*** WindowsWindow: reparentWindow failure: Passed window %p is invalid\n", (void*)hwnd);
         return;
@@ -1318,8 +1322,8 @@ static void NewtWindows_reparentWindow(HWND hwndP, HWND hwnd, jint x, jint y, ji
         return;
     }
 
-    if (isVisible) {
-        windowStyle |= WS_VISIBLE;
+    if(visible) {
+        windowStyle |= WS_VISIBLE ;
     }
 
     // order of call sequence: (MS documentation)
@@ -1346,10 +1350,6 @@ static void NewtWindows_reparentWindow(HWND hwndP, HWND hwnd, jint x, jint y, ji
         DBG_PRINT("*** WindowsWindow: reparentWindow.4\n");
     }
 
-    if(isVisible) {
-        NewtWindows_requestFocus ( hwnd, ( NULL == hwndP ) ? TRUE : FALSE, TRUE );
-    }
-
     DBG_PRINT("*** WindowsWindow: reparentWindow.X\n");
 }
 
@@ -1365,13 +1365,12 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setFullsc
     HWND hwndP = (HWND) (intptr_t) parent;
     HWND hwnd = (HWND) (intptr_t) window;
     HWND hWndInsertAfter;
-    DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
     BOOL isVisible = IsWindowVisible(hwnd);
 
     DBG_PRINT("*** WindowsWindow: setFullscreen.1 parent %p, window %p, %d/%d %dx%d undeco %d visible\n", 
         parent, window, x, y, width, height, bIsUndecorated, isVisible);
 
-    NewtWindows_reparentWindow(hwndP, hwnd, x, y, width, height, bIsUndecorated);
+    NewtWindows_reparentWindow(env, obj, hwndP, hwnd, FALSE, x, y, width, height, bIsUndecorated);
 
     if ( NULL == hwndP ) {
         flags = SWP_SHOWWINDOW;
@@ -1380,8 +1379,11 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setFullsc
         flags = SWP_NOACTIVATE | SWP_NOZORDER;
         hWndInsertAfter = 0;
     }
-
     SetWindowPos(hwnd, hWndInsertAfter, x, y, width, height, flags);
+
+    if(isVisible) {
+        NewtWindows_requestFocus ( env, obj, hwnd, TRUE ); // request focus on this window, if not already ..
+    }
 
     DBG_PRINT("*** WindowsWindow: setFullscreen.X\n");
     (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height); // resize necessary ..
@@ -1397,8 +1399,14 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_reparentW
 {
     HWND hwndP = (HWND) (intptr_t) parent;
     HWND hwnd = (HWND) (intptr_t) window;
+    BOOL isVisible = IsWindowVisible(hwnd);
 
-    NewtWindows_reparentWindow(hwndP, hwnd, x, y, width, height, bIsUndecorated);
+    NewtWindows_reparentWindow(env, obj, hwndP, hwnd, FALSE, x, y, width, height, bIsUndecorated);
+
+    if(isVisible) {
+        NewtWindows_requestFocus ( env, obj, hwnd, TRUE ); // request focus on this window, if not already ..
+    }
+
 }
 
 /*
@@ -1425,8 +1433,9 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setTitle0
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_requestFocus0
-  (JNIEnv *env, jclass clazz, jlong parent, jlong window)
+  (JNIEnv *env, jobject obj, jlong window)
 {
-    NewtWindows_requestFocus ( (HWND) (intptr_t) window, (0 == parent) ? TRUE : FALSE, FALSE ) ;
+    DBG_PRINT("*** WindowsWindow: RequestFocus0\n");
+    NewtWindows_requestFocus ( env, obj, (HWND) (intptr_t) window, FALSE ) ;
 }
 

@@ -280,7 +280,7 @@ public class MacWindow extends Window {
         }
     }
     
-    protected boolean setFullscreenImpl(final boolean fullscreen, final int x, final int y, final int w, final int h) {
+    protected void setFullscreenImpl(final boolean fullscreen, final int x, final int y, final int w, final int h) {
         nsViewLock.lock();
         try {
             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
@@ -293,7 +293,6 @@ public class MacWindow extends Window {
         } finally {
             nsViewLock.unlock();
         }
-        return fullscreen;
     }
     
     private void insetsChanged(int left, int top, int right, int bottom) {
