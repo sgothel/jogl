@@ -1153,8 +1153,8 @@
       <linker id="linker.cfg.macosx.jogl" extends="linker.cfg.macosx">
         <linkerarg value="-framework" />
         <linkerarg value="Cocoa" />
-        <!--linkerarg value="-framework" />
-        <linkerarg value="OpenGL" /-->
+        <linkerarg value="-framework" />
+        <linkerarg value="OpenGL" />
       </linker>
 
       <!--linker id="linker.cfg.macosx.jogl.cg" extends="linker.cfg.macosx.jogl">
