@@ -185,15 +185,15 @@ public class TestParenting01NEWT {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
+                    Assert.assertEquals(true, glWindow2.isVisible());
                     glWindow2.reparentWindow(glWindow1, null);
-                    Thread.sleep(100); // give some time for events to be propagated
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeWindowValid());
                     Assert.assertEquals(glWindow1,glWindow2.getParentNativeWindow());
                     break;
                 case 1:
+                    Assert.assertEquals(true, glWindow2.isVisible());
                     glWindow2.reparentWindow(null, null);
-                    Thread.sleep(100); // give some time for events to be propagated
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeWindowValid());
                     Assert.assertNull(glWindow2.getParentNativeWindow());
@@ -246,15 +246,15 @@ public class TestParenting01NEWT {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
-                    glWindow2.reparentWindow(null, null);
-                    Thread.sleep(100); // give some time for events to be propagated
+                    Assert.assertEquals(true, glWindow2.isVisible());
+                    glWindow2.reparentWindow(null, null); 
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeWindowValid());
                     Assert.assertNull(glWindow2.getParentNativeWindow());
                     break;
                 case 1:
+                    Assert.assertEquals(true, glWindow2.isVisible());
                     glWindow2.reparentWindow(glWindow1, null);
-                    Thread.sleep(100); // give some time for events to be propagated
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeWindowValid());
                     Assert.assertEquals(glWindow1,glWindow2.getParentNativeWindow());

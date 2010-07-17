@@ -674,12 +674,11 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
                         if( 0 != windowHandle ) {
                             destroy(false);
                         }
-                    } else {
-                        if(wasVisible) {
-                            Window.this.visible = true;
-                            setVisibleImpl(true);
-                            getScreen().getDisplay().dispatchMessages(); // status up2date
-                        }
+                    } else if(wasVisible) {
+                        Window.this.visible = true;
+                        setVisibleImpl(true);
+                        requestFocusImpl();
+                        getScreen().getDisplay().dispatchMessages(); // status up2date
                     }
                 }
 
@@ -1461,7 +1460,9 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
 
     protected void visibleChanged(boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
-            System.out.println("Window.visibleChanged: "+this.visible+" -> "+visible);
+            System.out.println("Window.visibleChanged ("+getThreadName()+"): "+this.visible+" -> "+visible+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+            // Exception e = new Exception("Window.visibleChanged ("+getThreadName()+"): "+this.visible+" -> "+visible+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+            // e.printStackTrace();
         }
         this.visible = visible ;
     }

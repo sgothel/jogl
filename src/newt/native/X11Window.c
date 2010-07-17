@@ -45,6 +45,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
+#include <X11/Xatom.h>
 
 #include "com_jogamp_newt_impl_x11_X11Window.h"
 
@@ -441,14 +442,24 @@ static Bool NewtWindows_setOverrideRedirect1 (Display *dpy, Window w, Bool newVa
 #define MWM_HINTS_DECORATIONS   (1L << 1)
 #define PROP_MWM_HINTS_ELEMENTS 5
 
-static void NewtWindows_setDecorations (Display *dpy, Window w, Bool val) {
+static void NewtWindows_setDecorations (Display *dpy, Window w, Bool decorated) {
     unsigned long mwmhints[PROP_MWM_HINTS_ELEMENTS] = { 0, 0, 0, 0, 0 }; // flags, functions, decorations, input_mode, status
-    Atom prop;
+    Atom _MOTIF_WM_HINTS_DECORATIONS = XInternAtom( dpy, "_MOTIF_WM_HINTS", False );
+    Atom _NET_WM_WINDOW_TYPE = XInternAtom( dpy, "_NET_WM_WINDOW_TYPE", False );
+    Atom types[3]={0};
+    int ntypes=0;
+    if(True==decorated) {
+        types[ntypes++] = XInternAtom( dpy, "_NET_WM_WINDOW_TYPE_NORMAL", False );
+    } else {
+        types[ntypes++] = XInternAtom( dpy, "_NET_WM_WINDOW_TYPE_POPUP_MENU", False );
+        types[ntypes++] = XInternAtom( dpy, "_NET_WM_WINDOW_TYPE_NORMAL", False );
+    }
 
     mwmhints[0] = MWM_HINTS_DECORATIONS;
-    mwmhints[2] = val ;
-    prop = XInternAtom( dpy, "_MOTIF_WM_HINTS", False );
-    XChangeProperty( dpy, w, prop, prop, 32, PropModeReplace, (unsigned char *)&mwmhints, PROP_MWM_HINTS_ELEMENTS);
+    mwmhints[2] = decorated ;
+
+    XChangeProperty( dpy, w, _MOTIF_WM_HINTS_DECORATIONS, _MOTIF_WM_HINTS_DECORATIONS, 32, PropModeReplace, (unsigned char *)&mwmhints, PROP_MWM_HINTS_ELEMENTS);
+    XChangeProperty( dpy, w, _NET_WM_WINDOW_TYPE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, ntypes);
 }
 
 /*
@@ -612,12 +623,14 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
                 break;
 
             case MapNotify:
-                DBG_PRINT( "X11: event . MapNotify call 0x%X\n", (unsigned int)evt.xunmap.window);
+                DBG_PRINT( "X11: event . MapNotify call Event 0x%X, Window 0x%X, override_redirect %d\n", 
+                    (unsigned int)evt.xmap.event, (unsigned int)evt.xmap.window, (int)evt.xmap.override_redirect);
                 (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_TRUE);
                 break;
 
             case UnmapNotify:
-                DBG_PRINT( "X11: event . UnmapNotify call 0x%X\n", (unsigned int)evt.xunmap.window);
+                DBG_PRINT( "X11: event . UnmapNotify call Event 0x%X, Window 0x%X, from_configure %d\n", 
+                    (unsigned int)evt.xunmap.event, (unsigned int)evt.xunmap.window, (int)evt.xunmap.from_configure);
                 (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_FALSE);
                 break;
 
@@ -977,10 +990,10 @@ static void NewtWindows_reparentWindow
     DBG_PRINT( "X11: reparentWindow dpy %p, parent %p/%p, win %p, %d/%d undec %d\n", 
         (void*)dpy, (void*) jparent, (void*)parent, (void*)w, x, y, undecorated);
 
-    // don't propagate events during reparenting
-    // long orig_xevent_mask = xwa->your_event_mask ;
-    /* XSelectInput(dpy, w, orig_xevent_mask & ~ ( StructureNotifyMask ) );
-       XSync(dpy, False); */
+    if(JNI_TRUE == isVisible) {
+        XUnmapWindow(dpy, w);
+        XSync(dpy, False);
+    }
 
     if(0 != jparent) {
         // move into parent ..
@@ -990,35 +1003,22 @@ static void NewtWindows_reparentWindow
         XSync(dpy, False);
     }
 
-    if(JNI_TRUE == isVisible) {
-        XUnmapWindow(dpy, w);
-        XSync(dpy, False);
-    }
-
     XReparentWindow( dpy, w, parent, x, y );
     XSync(dpy, False);
 
     if(0 == jparent) 
     {
         // move out of parent ..
-        NewtWindows_setOverrideRedirect0 (dpy, w, xwa, (0 == jparent) ? False : True);
+        NewtWindows_setOverrideRedirect0 (dpy, w, xwa, False);
         XSync(dpy, False);
         NewtWindows_setDecorations (dpy, w, (JNI_TRUE == undecorated) ? False : True);
         XSync(dpy, False);
     }
 
     if(JNI_TRUE == isVisible) {
-        XRaiseWindow(dpy, w);
+        XMapRaised(dpy, w);
         XSync(dpy, False);
 
-        XMapWindow(dpy, w);
-        XSync(dpy, False);
-    }
-
-    /* XSelectInput(dpy, w, orig_xevent_mask);
-       XSync(dpy, False); */
-
-    if(JNI_TRUE == isVisible) {
         NewtWindows_requestFocus0 ( env, obj, dpy, w, xwa );
         XSync(dpy, False);
     }
@@ -1061,6 +1061,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setPosSizeDecor0
     xwc.width=width;
     xwc.height=height;
     XConfigureWindow(dpy, w, CWX|CWY|CWWidth|CWHeight, &xwc);
+    XSync(dpy, False);
 }
 
 /*
