@@ -107,8 +107,10 @@ public class TestGLWindows01NEWT {
         glWindow.setVisible(true);
         Assert.assertEquals(true,glWindow.isVisible());
         Assert.assertEquals(true,glWindow.isNativeWindowValid());
-        while(glWindow.getTotalFrames()<1) { Thread.sleep(100); }
-        Assert.assertEquals(1,glWindow.getTotalFrames()); // native expose ..
+        int wait=0;
+        while(wait<10 && glWindow.getTotalFrames()<1) { Thread.sleep(100); wait++; }
+        System.out.println("Frames for initial setVisible(true): "+glWindow.getTotalFrames());
+        Assert.assertTrue(0<glWindow.getTotalFrames()); // native expose ..
         // Assert.assertEquals(width,glWindow.getWidth());
         // Assert.assertEquals(height,glWindow.getHeight());
         // System.out.println("Created: "+glWindow);
