@@ -352,14 +352,23 @@
     <target name="c.configure.1" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler">
       <!-- compiler configuration -->
       <!-- Note that we can use the base setups in the gluegen-cpptasks for most of these -->
-
       <compiler id="compiler.cfg.freebsd.nativewindow" extends="compiler.cfg.freebsd">
         <!-- Need to force X11R6 headers on to include path after stub_includes -->
-        <includepath path="/usr/X11R6/include" />
+        <includepath path="/usr/local/include" />
       </compiler>
 
       <!-- linker configuration -->
- 
+
+      <linker id="linker.cfg.freebsd.nativewindow.x11" extends="linker.cfg.freebsd">
+        <syslibset dir="/usr/local/lib" libs="X11"/>
+        <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
+      </linker>
+
+      <linker id="linker.cfg.freebsd.amd64.nativewindow.x11" extends="linker.cfg.freebsd.amd64">
+        <syslibset dir="/usr/local/lib" libs="X11" />
+        <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
+      </linker>
+
       <linker id="linker.cfg.linux.nativewindow.x11" extends="linker.cfg.linux">
         <syslibset libs="X11"/>
         <syslibset libs="Xxf86vm" />
@@ -464,11 +473,19 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.amd64.nativewindow.x11" />
     </target>
    
-    <target name="c.configure.freebsd" depends="c.configure.x11" if="isFreeBSD">
-      <echo message="FreeBSD" />
+    <target name="c.configure.freebsd.x86" if="isFreeBSDX86">
+      <echo message="FreeBSD.x86" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.nativewindow" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.freebsd.nativewindow.x11" />
     </target>
+    
+    <target name="c.configure.freebsd.amd64" if="isFreeBSDAMD64">
+      <echo message="FreeBSD.AMD64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.nativewindow" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.freebsd.amd64.nativewindow.x11" />
+    </target>
+    
+    <target name="c.configure.freebsd" depends="c.configure.freebsd.x86,c.configure.freebsd.amd64,c.configure.x11" if="isFreeBSD" />
 
     <target name="c.configure.hpux" depends="c.configure.x11" if="isHPUX">
       <echo message="HP-UX" />

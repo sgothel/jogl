@@ -231,13 +231,21 @@
     <target name="c.configure.1" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler">
       <!-- compiler configuration -->
       <!-- Note that we can use the base setups in the gluegen-cpptasks for most of these -->
-
       <compiler id="compiler.cfg.freebsd.newt" extends="compiler.cfg.freebsd">
-        <!-- Need to force X11R6 headers on to include path after stub_includes -->
-        <includepath path="/usr/X11R6/include" />
+        <includepath path="/usr/local/include" />
       </compiler>
 
       <!-- linker configuration -->
+
+      <linker id="linker.cfg.freebsd.newt.x11" extends="linker.cfg.freebsd">
+        <syslibset dir="/usr/local/lib" libs="X11"/>
+        <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
+      </linker>
+
+      <linker id="linker.cfg.freebsd.amd64.newt.x11" extends="linker.cfg.freebsd.amd64">
+        <syslibset dir="/usr/local/lib" libs="X11"/>
+        <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
+      </linker>
 
       <linker id="linker.cfg.linux.newt.broadcom_egl" extends="linker.cfg.linux">
         <syslibset libs="EGL"/>
@@ -365,12 +373,29 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.amd64.newt.x11" />
     </target>
 
-    <target name="c.configure.freebsd" depends="c.configure.x11" if="isFreeBSD">
-      <echo message="FreeBSD" />
+    <target name="c.configure.freebsd.x86" if="isFreeBSDX86">
+      <echo message="FreeBSD.x86" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.newt" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.newt.x11" />
+      <property name="linker.cfg.id.core"                   value="linker.cfg.freebsd" />
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.freebsd.newt.x11"
+                                                            else="linker.cfg.freebsd">
+          <isset property="isX11" />
+      </condition>
+      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
     </target>
+
+    <target name="c.configure.freebsd.amd64" if="isFreeBSDAMD64">
+      <echo message="FreeBSD.AMD64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.newt" />
+      <property name="linker.cfg.id.core"                   value="linker.cfg.freebsd.amd64" />
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.freebsd.amd64.newt.x11"
+                                                            else="linker.cfg.freebsd.amd64">
+          <isset property="isX11" />
+      </condition>
+      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+    </target>
+
+    <target name="c.configure.freebsd" depends="c.configure.freebsd.x86,c.configure.freebsd.amd64,c.configure.x11" if="isFreeBSD"/>
 
     <target name="c.configure.hpux" depends="c.configure.x11" if="isHPUX">
       <echo message="HP-UX" />
