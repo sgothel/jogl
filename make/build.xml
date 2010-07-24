@@ -150,12 +150,17 @@
              includes="jogl/${rootrel.build}/jogl/gensrc/classes/javax/media/opengl/**" />
     </target>
 
+    <target name="tag.build">
+        <copy file="${gluegen.root}/build/artifact.properties" todir="${build}" overwrite="true"/>
+        <echo file="${build}/artifact.properties" message='jogl.build.number="${build.number}"${line.separator}' append="true"/>
+    </target>
+
     <!-- ================================================================== -->
     <!--
        - Main build target.
       -->
 
-    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one-dir,developer-zip-archive,source-archive" />
+    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one-dir,tag.build,developer-zip-archive,source-archive" />
 
     <target name="junit.compile">
       <ant antfile="build-junit.xml" target="junit.compile" inheritRefs="true" inheritAll="true"/>
