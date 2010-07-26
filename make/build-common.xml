@@ -82,6 +82,8 @@
         <property name="stub.includes"              value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
         <property name="stub.includes.common"       value="${stub.includes}/common" />
 
+        <property file="${build}/artifact.properties"/>
+
         <condition property="setup.nodesktop">
             <and>
                 <isfalse value="${isWindows}" />
