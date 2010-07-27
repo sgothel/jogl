@@ -209,6 +209,7 @@ public abstract class Display {
                                                               f_dpy.dispatchMessages();
                                                           } } } );
                             edtUtil = MainThread.getSingleton();
+                            System.err.println("Display.getEDTUtil("+getFQName()+") Test EDT MainThread: "+edtUtil.getClass().getName());
                             // End JAU EDT Test ..
                         }
                         edtUtil.start();

@@ -46,7 +46,6 @@ import javax.media.nativewindow.*;
 import com.jogamp.common.util.*;
 import com.jogamp.newt.*;
 import com.jogamp.newt.impl.*;
-import com.jogamp.newt.impl.macosx.MacDisplay;
 
 /**
  * NEWT Utility class MainThread<P>
@@ -178,7 +177,8 @@ public class MainThread implements EDTUtil {
         mainAction = new MainAction(mainClassName, mainClassArgs);
 
         if(NativeWindowFactory.TYPE_MACOSX.equals(NativeWindowFactory.getNativeWindowType(false))) {
-            MacDisplay.initSingleton();
+            ReflectionUtil.callStaticMethod("com.jogamp.newt.impl.macosx.MacDisplay", "initSingleton", 
+                null, null, MainThread.class.getClassLoader());
         }
 
         if ( useMainThread ) {
@@ -235,7 +235,7 @@ public class MainThread implements EDTUtil {
 
     private void initAWTReflection() {
         if(null == cAWTEventQueue) {
-            ClassLoader cl = MacDisplay.class.getClassLoader();
+            ClassLoader cl = MainThread.class.getClassLoader();
             cAWTEventQueue = ReflectionUtil.getClass("java.awt.EventQueue", true, cl);
             mAWTInvokeAndWait = ReflectionUtil.getMethod(cAWTEventQueue, "invokeAndWait", new Class[] { java.lang.Runnable.class }, cl);
             mAWTInvokeLater = ReflectionUtil.getMethod(cAWTEventQueue, "invokeLater", new Class[] { java.lang.Runnable.class }, cl);
