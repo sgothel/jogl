@@ -38,6 +38,7 @@ import javax.media.nativewindow.macosx.*;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.*;
 import com.jogamp.newt.impl.*;
+import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.newt.util.MainThread;
 
 public class MacDisplay extends Display {
@@ -60,15 +61,8 @@ public class MacDisplay extends Display {
     public MacDisplay() {
     }
 
-    class DispatchAction implements Runnable {
-        public void run() {
-            dispatchMessages0();
-        }
-    }
-    private DispatchAction dispatchAction = new DispatchAction();
-
     protected void dispatchMessagesNative() {
-        runOnMainThread(false, dispatchAction);
+        dispatchMessages0();
     }
     
     protected void createNative() {
@@ -77,44 +71,33 @@ public class MacDisplay extends Display {
 
     protected void closeNative() { }
 
-    /*public boolean runCreateAndDestroyOnEDT() { 
-        return false; 
-    }
     public EDTUtil getEDTUtil() {
-        return null;
-    }*/
-
-    protected static void runOnMainThread(boolean wait, Runnable r) {
-        if (MainThread.isRunning()) {
-            MainThread.invoke(wait, r);
-        } else if(!runOnAWTEDT(wait, r)) {
-            throw new NativeWindowException("Neither MainThread is running nor AWT EDT available");
+        if( null == edtUtil ) {
+            synchronized (this) {
+                if( null == edtUtil ) {
+                    if(NewtFactory.useEDT()) {
+                        final Display f_dpy = this;
+                        MainThread.addPumpMessage(this, 
+                                              new Runnable() {
+                                                  public void run() {
+                                                      if(null!=f_dpy.getGraphicsDevice()) {
+                                                          f_dpy.dispatchMessages();
+                                                      } } } );
+                        edtUtil = MainThread.getSingleton();
+                        edtUtil.start();
+                    }
+                }
+            }
         }
+        return edtUtil;
     }
 
-    protected static boolean runOnAWTEDT(boolean wait, Runnable r) {
-        ClassLoader cl = MacDisplay.class.getClassLoader();
-        if(ReflectionUtil.isClassAvailable("java.awt.EventQueue", cl)) {
-            try {
-                if(wait) {
-                    ReflectionUtil.callStaticMethod(
-                        "java.awt.EventQueue",
-                        "invokeAndWait",
-                        new Class[]  { java.lang.Runnable.class },
-                        new Object[] { r }, cl );
-                } else {
-                    ReflectionUtil.callStaticMethod(
-                        "java.awt.EventQueue",
-                        "invokeLater",
-                        new Class[]  { java.lang.Runnable.class },
-                        new Object[] { r }, cl );
-                }
-            } catch (Exception e) {
-                throw new NativeWindowException(e);
-            }
-            return true;
+    protected void releaseEDTUtil() {
+        if(null!=edtUtil) { 
+            MainThread.removePumpMessage(this);
+            edtUtil.waitUntilStopped();
+            edtUtil=null;
         }
-        return false;
     }
 
     private static native boolean initNSApplication0();

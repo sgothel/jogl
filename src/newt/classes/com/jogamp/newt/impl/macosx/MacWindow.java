@@ -165,6 +165,7 @@ public class MacWindow extends Window {
             windowHandle = 0;
             nsViewLock.unlock();
         }
+        windowDestroyed(); // No OSX hook for DidClose, so do it here
     }
     
     public long getWindowHandle() {
@@ -406,8 +407,8 @@ public class MacWindow extends Window {
         }
 
         try {
-            MacDisplay.runOnMainThread(true, new Runnable() {
-                public void run() {
+            //runOnEDTIfAvail(true, new Runnable() {
+            //    public void run() {
                     if(0!=windowHandle) {
                         // save the view .. close the window
                         surfaceHandle = changeContentView0(parentWindowHandle, windowHandle, 0);
@@ -433,7 +434,7 @@ public class MacWindow extends Window {
                     setTitle0(windowHandle, getTitle());
                     // don't make the window visible on window creation
                     // makeKeyAndOrderFront0(windowHandle);
-                } } );
+             //   } } );
         } catch (Exception ie) {
             ie.printStackTrace();
         }

@@ -150,7 +150,7 @@
              includes="jogl/${rootrel.build}/jogl/gensrc/classes/javax/media/opengl/**" />
     </target>
 
-    <target name="tag.build">
+    <target name="tag.build" depends="init">
         <copy file="${build.gluegen}/artifact.properties" todir="${build}" overwrite="true"/>
         <echo file="${build}/artifact.properties" message='jogl.build.number=${jogl.build.number}${line.separator}' append="true"/>
     </target>
