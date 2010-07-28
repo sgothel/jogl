@@ -83,11 +83,7 @@
         <property name="stub.includes.common"       value="${stub.includes}/common" />
 
         <property file="${build}/artifact.properties"/>
-        <condition property="jogl.build.number" value="manual-build">
-          <not>
-              <isset property="jogl.build.number"/>
-          </not>
-        </condition>
+        <property name="jogl.build.number" value="manual-build"/>
 
         <condition property="setup.nodesktop">
             <and>
