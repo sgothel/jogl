@@ -46,7 +46,6 @@ import javax.media.nativewindow.*;
 import com.jogamp.common.util.*;
 import com.jogamp.newt.*;
 import com.jogamp.newt.impl.*;
-import com.jogamp.newt.impl.macosx.MacDisplay;
 
 /**
  * NEWT Utility class MainThread<P>
@@ -81,20 +80,32 @@ import com.jogamp.newt.impl.macosx.MacDisplay;
  </PRE>
  * Which starts 4 threads, each with a window and OpenGL rendering.<br>
  */
-public class MainThread {
+public class MainThread implements EDTUtil {
     private static AccessControlContext localACC = AccessController.getContext();
-    public static final boolean USE_MAIN_THREAD = NativeWindowFactory.TYPE_MACOSX.equals(NativeWindowFactory.getNativeWindowType(false)) ||
-                                                  Debug.getBooleanProperty("newt.MainThread.force", true, localACC);
+    public static final boolean  MAIN_THREAD_CRITERIA = ( !NativeWindowFactory.isAWTAvailable() &&
+                                                           NativeWindowFactory.TYPE_MACOSX.equals(NativeWindowFactory.getNativeWindowType(false)) 
+                                                        ) || Debug.getBooleanProperty("newt.MainThread.force", true, localACC);
 
     protected static final boolean DEBUG = Debug.debug("MainThread");
+
+    private static MainThread singletonMainThread = new MainThread(); // one singleton MainThread
 
     private static boolean isExit=false;
     private static volatile boolean isRunning=false;
     private static Object taskWorkerLock=new Object();
     private static boolean shouldStop;
     private static ArrayList tasks;
-    private static ArrayList tasksBlock;
     private static Thread mainThread;
+
+    private static Timer pumpMessagesTimer=null;
+    private static TimerTask pumpMessagesTimerTask=null;
+    private static Map/*<Display, Runnable>*/ pumpMessageDisplayMap = new HashMap();
+
+    private static boolean useMainThread = false;
+    private static Class cAWTEventQueue=null;
+    private static Method mAWTInvokeAndWait=null;
+    private static Method mAWTInvokeLater=null;
+    private static Method mAWTIsDispatchThread=null;
 
     static class MainAction extends Thread {
         private String mainClassName;
@@ -109,9 +120,9 @@ public class MainThread {
         }
 
         public void run() {
-            if ( USE_MAIN_THREAD ) {
+            if ( useMainThread ) {
                 // we have to start first to provide the service ..
-                MainThread.waitUntilRunning();
+                singletonMainThread.waitUntilRunning();
             }
 
             // start user app ..
@@ -136,9 +147,9 @@ public class MainThread {
 
             if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" user app fin");
 
-            if ( USE_MAIN_THREAD ) {
-                MainThread.exit();
-                if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" MainThread fin - exit");
+            if ( useMainThread ) {
+                singletonMainThread.stop();
+                if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" MainThread fin - stop");
                 System.exit(0);
             }
         }
@@ -147,7 +158,9 @@ public class MainThread {
 
     /** Your new java application main entry, which pipelines your application */
     public static void main(String[] args) {
-        if(DEBUG) System.err.println("MainThread.main(): "+Thread.currentThread().getName()+" USE_MAIN_THREAD "+ USE_MAIN_THREAD );
+        useMainThread = MAIN_THREAD_CRITERIA;
+
+        if(DEBUG) System.err.println("MainThread.main(): "+Thread.currentThread().getName()+" useMainThread "+ useMainThread );
 
         if(args.length==0) {
             return;
@@ -161,32 +174,142 @@ public class MainThread {
 
         NEWTJNILibLoader.loadNEWT();
         
-        shouldStop = false;
-        tasks = new ArrayList();
-        tasksBlock = new ArrayList();
-        mainThread = Thread.currentThread();
-
         mainAction = new MainAction(mainClassName, mainClassArgs);
 
         if(NativeWindowFactory.TYPE_MACOSX.equals(NativeWindowFactory.getNativeWindowType(false))) {
-            MacDisplay.initSingleton();
+            ReflectionUtil.callStaticMethod("com.jogamp.newt.impl.macosx.MacDisplay", "initSingleton", 
+                null, null, MainThread.class.getClassLoader());
         }
 
-        if ( USE_MAIN_THREAD ) {
+        if ( useMainThread ) {
+            shouldStop = false;
+            tasks = new ArrayList();
+            mainThread = Thread.currentThread();
+
             // dispatch user's main thread ..
             mainAction.start();
 
             // do our main thread task scheduling
-            run();
+            singletonMainThread.run();
         } else {
             // run user's main in this thread 
             mainAction.run();
         }
     }
 
+    public static final MainThread getSingleton() {
+        return singletonMainThread;
+    }
+
+    public static Runnable removePumpMessage(Display dpy) {
+        synchronized(pumpMessageDisplayMap) {
+            return (Runnable) pumpMessageDisplayMap.remove(dpy);
+        }
+    }
+
+    public static void addPumpMessage(Display dpy, Runnable pumpMessage) {
+        if ( useMainThread ) {
+            return; // error ?
+        }
+        if(null == pumpMessagesTimer) {
+            synchronized (MainThread.class) {
+                if(null == pumpMessagesTimer) {
+                    pumpMessagesTimer = new Timer();
+                    pumpMessagesTimerTask = new TimerTask() {
+                        public void run() {
+                            synchronized(pumpMessageDisplayMap) {
+                                for(Iterator i = pumpMessageDisplayMap.values().iterator(); i.hasNext(); ) {
+                                    ((Runnable) i.next()).run();
+                                }
+                            }
+                        }
+                    };
+                    pumpMessagesTimer.scheduleAtFixedRate(pumpMessagesTimerTask, 0, defaultEDTPollGranularity);
+                }
+            }
+        }
+        synchronized(pumpMessageDisplayMap) {
+            pumpMessageDisplayMap.put(dpy, pumpMessage);
+        }
+    }
+
+    private void initAWTReflection() {
+        if(null == cAWTEventQueue) {
+            ClassLoader cl = MainThread.class.getClassLoader();
+            cAWTEventQueue = ReflectionUtil.getClass("java.awt.EventQueue", true, cl);
+            mAWTInvokeAndWait = ReflectionUtil.getMethod(cAWTEventQueue, "invokeAndWait", new Class[] { java.lang.Runnable.class }, cl);
+            mAWTInvokeLater = ReflectionUtil.getMethod(cAWTEventQueue, "invokeLater", new Class[] { java.lang.Runnable.class }, cl);
+            mAWTIsDispatchThread = ReflectionUtil.getMethod(cAWTEventQueue, "isDispatchThread", new Class[] { }, cl);
+        }
+    }
+
+    public void start() {
+        // nop
+    }
+
+    public void stop() {
+        if(DEBUG) System.err.println("MainThread.stop(): "+Thread.currentThread().getName()+" start");
+        synchronized(taskWorkerLock) { 
+            if(isRunning) {
+                shouldStop = true;
+            }
+            taskWorkerLock.notifyAll();
+        }
+        if(DEBUG) System.err.println("MainThread.stop(): "+Thread.currentThread().getName()+" end");
+    }
+
+    public boolean isCurrentThreadEDT() {
+        if(NativeWindowFactory.isAWTAvailable()) {
+            initAWTReflection();
+            return ((Boolean) ReflectionUtil.callMethod(null, mAWTIsDispatchThread, null) ).booleanValue();
+        }
+        return isRunning() && mainThread == Thread.currentThread() ;
+    }
+
+    public boolean isRunning() {
+        if( useMainThread ) {
+            synchronized(taskWorkerLock) { 
+                return isRunning;
+            }
+        }
+        return true; // AWT is always running
+    }
+
+    private void invokeLater(Runnable task) {
+        synchronized(taskWorkerLock) {
+            if(isRunning() && mainThread != Thread.currentThread()) {
+                tasks.add(task);
+                taskWorkerLock.notifyAll();
+            } else {
+                // if !running or isEDTThread, do it right away
+                task.run();
+            }
+        }
+    }
+
     /** invokes the given Runnable */
-    public static void invoke(boolean wait, Runnable r) {
+    public void invoke(boolean wait, Runnable r) {
         if(r == null) {
+            return;
+        }
+
+        if(NativeWindowFactory.isAWTAvailable()) {
+            initAWTReflection();
+
+            // handover to AWT MainThread ..
+            try {
+                if ( ((Boolean) ReflectionUtil.callMethod(null, mAWTIsDispatchThread, null) ).booleanValue() ) {
+                    r.run();
+                    return;
+                }
+                if(wait) {
+                    ReflectionUtil.callMethod(null, mAWTInvokeAndWait, new Object[] { r });
+                } else {
+                    ReflectionUtil.callMethod(null, mAWTInvokeLater, new Object[] { r });
+                }
+            } catch (Exception e) {
+                throw new NativeWindowException(e);
+            }
             return;
         }
 
@@ -197,42 +320,35 @@ public class MainThread {
             return;
         }
 
-        synchronized(taskWorkerLock) {
-            tasks.add(r);
-            if(wait) {
-                tasksBlock.add(r);
-            }
-            taskWorkerLock.notifyAll();
-            if(wait) {
-                while(tasksBlock.size()>0) {
-                    try {
-                        taskWorkerLock.wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+        boolean doWait = wait && isRunning() && mainThread != Thread.currentThread();
+        Object lock = new Object();
+        RunnableTask rTask = new RunnableTask(r, doWait?lock:null, true);
+        Throwable throwable = null;
+        synchronized(lock) {
+            invokeLater(rTask);
+            if( doWait ) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException ie) {
+                    throwable = ie;
                 }
             }
         }
-    }
-
-    public static void exit() {
-        if(DEBUG) System.err.println("MainThread.exit(): "+Thread.currentThread().getName()+" start");
-        synchronized(taskWorkerLock) { 
-            if(isRunning) {
-                shouldStop = true;
-            }
-            taskWorkerLock.notifyAll();
+        if(null==throwable) {
+            throwable = rTask.getThrowable();
         }
-        if(DEBUG) System.err.println("MainThread.exit(): "+Thread.currentThread().getName()+" end");
-    }
-
-    public static boolean isRunning() {
-        synchronized(taskWorkerLock) { 
-            return isRunning;
+        if(null!=throwable) {
+            throw new RuntimeException(throwable);
         }
     }
 
-    private static void waitUntilRunning() {
+    public void waitUntilIdle() {
+    }
+
+    public void waitUntilStopped() {
+    }
+
+    private void waitUntilRunning() {
         synchronized(taskWorkerLock) {
             if(isExit) return;
 
@@ -246,7 +362,7 @@ public class MainThread {
         }
     }
 
-    public static void run() {
+    public void run() {
         if(DEBUG) System.err.println("MainThread.run(): "+Thread.currentThread().getName());
         synchronized(taskWorkerLock) {
             isRunning = true;
@@ -254,8 +370,6 @@ public class MainThread {
         }
         while(!shouldStop) {
             try {
-                ArrayList localTasks=null;
-
                 // wait for something todo ..
                 synchronized(taskWorkerLock) {
                     while(!shouldStop && tasks.size()==0) {
@@ -265,28 +379,13 @@ public class MainThread {
                             e.printStackTrace();
                         }
                     }
-                    // seq. process all tasks until no blocking one exists in the list
-                    for(Iterator i = tasks.iterator(); tasksBlock.size()>0 && i.hasNext(); ) {
-                        Runnable task = (Runnable) i.next();
-                        task.run();
-                        i.remove();
-                        tasksBlock.remove(task);
-                    }
 
                     // take over the tasks ..
-                    if(tasks.size()>0) {
-                        localTasks = tasks;
-                        tasks = new ArrayList();
+                    if(!shouldStop && tasks.size()>0) {
+                        Runnable task = (Runnable) tasks.remove(0);
+                        task.run(); // FIXME: could be run outside of lock
                     }
                     taskWorkerLock.notifyAll();
-                }
-
-                // seq. process all unblocking tasks ..
-                if(null!=localTasks) {
-                    for(Iterator i = localTasks.iterator(); i.hasNext(); ) {
-                        Runnable task = (Runnable) i.next();
-                        task.run();
-                    }
                 }
             } catch (Throwable t) {
                 // handle errors ..

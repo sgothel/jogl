@@ -109,8 +109,8 @@ jint GetDeltaY(NSEvent *event, jint javaMods) {
 
 @end
 
-static jmethodID enqueueMouseEventID  = NULL;
-static jmethodID enqueueKeyEventID    = NULL;
+static jmethodID sendMouseEventID  = NULL;
+static jmethodID sendKeyEventID    = NULL;
 static jmethodID insetsChangedID   = NULL;
 static jmethodID sizeChangedID     = NULL;
 static jmethodID positionChangedID = NULL;
@@ -122,15 +122,15 @@ static jmethodID windowDestroyedID = NULL;
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jclass) clazz
 {
-    enqueueMouseEventID  = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent",  "(IIIIII)V");
-    enqueueKeyEventID    = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent",    "(IIIC)V");
+    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
+    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     sizeChangedID     = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(II)V");
     insetsChangedID     = (*env)->GetMethodID(env, clazz, "insetsChanged", "(IIII)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(Z)V");
     windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
     windowDestroyedID    = (*env)->GetMethodID(env, clazz, "windowDestroyed",    "()V");
-    if (enqueueMouseEventID && enqueueKeyEventID && sizeChangedID && insetsChangedID &&
+    if (sendMouseEventID && sendKeyEventID && sizeChangedID && insetsChangedID &&
         positionChangedID && focusChangedID && windowDestroyedID && windowDestroyNotifyID)
     {
         return YES;
@@ -206,7 +206,7 @@ static jint mods2JavaMods(NSUInteger mods)
     return javaMods;
 }
 
-- (void) enqueueKeyEvent: (NSEvent*) event eventType: (jint) evType
+- (void) sendKeyEvent: (NSEvent*) event eventType: (jint) evType
 {
     NSView* nsview = [self contentView];
     if( ! [nsview isMemberOfClass:[NewtView class]] ) {
@@ -229,23 +229,23 @@ static jint mods2JavaMods(NSUInteger mods)
         // Note: the key code in the NSEvent does not map to anything we can use
         jchar keyChar = (jchar) [chars characterAtIndex: i];
 
-        (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID,
+        (*env)->CallVoidMethod(env, javaWindowObject, sendKeyEventID,
                                evType, javaMods, keyCode, keyChar);
     }
 }
 
 - (void) keyDown: (NSEvent*) theEvent
 {
-    [self enqueueKeyEvent: theEvent eventType: EVENT_KEY_PRESSED];
+    [self sendKeyEvent: theEvent eventType: EVENT_KEY_PRESSED];
 }
 
 - (void) keyUp: (NSEvent*) theEvent
 {
-    [self enqueueKeyEvent: theEvent eventType: EVENT_KEY_RELEASED];
-    [self enqueueKeyEvent: theEvent eventType: EVENT_KEY_TYPED];
+    [self sendKeyEvent: theEvent eventType: EVENT_KEY_RELEASED];
+    [self sendKeyEvent: theEvent eventType: EVENT_KEY_TYPED];
 }
 
-- (void) enqueueMouseEvent: (NSEvent*) event eventType: (jint) evType
+- (void) sendMouseEvent: (NSEvent*) event eventType: (jint) evType
 {
     NSView* nsview = [self contentView];
     if( ! [nsview isMemberOfClass:[NewtView class]] ) {
@@ -302,7 +302,7 @@ static jint mods2JavaMods(NSUInteger mods)
         // ignore 0 increment wheel scroll events
         return;
     }
-    (*env)->CallVoidMethod(env, javaWindowObject, enqueueMouseEventID,
+    (*env)->CallVoidMethod(env, javaWindowObject, sendMouseEventID,
                            evType, javaMods,
                            (jint) location.x,
                            (jint) (contentRect.size.height - location.y),
@@ -311,70 +311,70 @@ static jint mods2JavaMods(NSUInteger mods)
 
 - (void) mouseEntered: (NSEvent*) theEvent
 {
-    [self enqueueMouseEvent: theEvent eventType: EVENT_MOUSE_ENTERED];
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_ENTERED];
 }
 
 - (void) mouseExited: (NSEvent*) theEvent
 {
-    [self enqueueMouseEvent: theEvent eventType: EVENT_MOUSE_EXITED];
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_EXITED];
 }
 
 - (void) mouseMoved: (NSEvent*) theEvent
 {
-    [self enqueueMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
 }
 
 - (void) scrollWheel: (NSEvent*) theEvent
 {
-    [self enqueueMouseEvent: theEvent eventType: EVENT_MOUSE_WHEEL_MOVED];
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_WHEEL_MOVED];
 }
 
 - (void) mouseDown: (NSEvent*) theEvent
 {
-    [self enqueueMouseEvent: theEvent eventType: EVENT_MOUSE_PRESSED];
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_PRESSED];
 }
 
 - (void) mouseDragged: (NSEvent*) theEvent
 {
     // Note use of MOUSE_MOVED event type because mouse dragged events are synthesized by Java
-    [self enqueueMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
 }
 
 - (void) mouseUp: (NSEvent*) theEvent
 {
-    [self enqueueMouseEvent: theEvent eventType: EVENT_MOUSE_RELEASED];
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_RELEASED];
 }
 
 - (void) rightMouseDown: (NSEvent*) theEvent
 {
-    [self enqueueMouseEvent: theEvent eventType: EVENT_MOUSE_PRESSED];
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_PRESSED];
 }
 
 - (void) rightMouseDragged: (NSEvent*) theEvent
 {
     // Note use of MOUSE_MOVED event type because mouse dragged events are synthesized by Java
-    [self enqueueMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
 }
 
 - (void) rightMouseUp: (NSEvent*) theEvent
 {
-    [self enqueueMouseEvent: theEvent eventType: EVENT_MOUSE_RELEASED];
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_RELEASED];
 }
 
 - (void) otherMouseDown: (NSEvent*) theEvent
 {
-    [self enqueueMouseEvent: theEvent eventType: EVENT_MOUSE_PRESSED];
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_PRESSED];
 }
 
 - (void) otherMouseDragged: (NSEvent*) theEvent
 {
     // Note use of MOUSE_MOVED event type because mouse dragged events are synthesized by Java
-    [self enqueueMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
 }
 
 - (void) otherMouseUp: (NSEvent*) theEvent
 {
-    [self enqueueMouseEvent: theEvent eventType: EVENT_MOUSE_RELEASED];
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_RELEASED];
 }
 
 - (void)windowDidResize: (NSNotification*) notification
@@ -442,7 +442,8 @@ static jint mods2JavaMods(NSUInteger mods)
     }
 
     (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyNotifyID);
-    (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyedID); // No OSX hook for DidClose, so do it here 
+    // Can't issue call here - locked window state, done from Java method
+    // (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyedID); // No OSX hook for DidClose, so do it here 
 
     // EOL ..
     (*env)->DeleteGlobalRef(env, javaWindowObject);

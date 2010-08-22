@@ -39,10 +39,13 @@ import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.event.*;
 import com.jogamp.newt.impl.Debug;
 import com.jogamp.newt.util.EDTUtil;
+import com.jogamp.newt.util.MainThread;
+import com.jogamp.newt.util.DefaultEDTUtil;
 import java.util.*;
 
 public abstract class Display {
     public static final boolean DEBUG = Debug.debug("Display");
+    public static final boolean DEBUG_TEST_EDT_MAINTHREAD = Debug.debug("TestEDTMainThread"); // JAU EDT Test ..
 
     private static Class getDisplayClass(String type) 
         throws ClassNotFoundException 
@@ -181,26 +184,50 @@ public abstract class Display {
     public boolean runCreateAndDestroyOnEDT() { 
         return true; 
     }
+
     public EDTUtil getEDTUtil() {
         if( null == edtUtil ) {
             synchronized (this) {
                 if( null == edtUtil ) {
                     if(NewtFactory.useEDT()) {
                         final Display f_dpy = this;
-                        Thread current = Thread.currentThread();
-                        edtUtil = new EDTUtil(current.getThreadGroup(), 
-                                              "Display_"+getFQName(),
-                                              new Runnable() {
-                                                  public void run() {
-                                                      if(null!=f_dpy.getGraphicsDevice()) {
-                                                          f_dpy.dispatchMessages();
-                                                      } } } );
-                        edt = edtUtil.start();
+                        if ( ! DEBUG_TEST_EDT_MAINTHREAD ) {
+                            Thread current = Thread.currentThread();
+                            edtUtil = new DefaultEDTUtil(current.getThreadGroup(), 
+                                                  "Display_"+getFQName(),
+                                                  new Runnable() {
+                                                      public void run() {
+                                                          if(null!=f_dpy.getGraphicsDevice()) {
+                                                              f_dpy.dispatchMessages();
+                                                          } } } );
+                        } else {
+                            // Begin JAU EDT Test ..
+                            MainThread.addPumpMessage(this, 
+                                                  new Runnable() {
+                                                      public void run() {
+                                                          if(null!=f_dpy.getGraphicsDevice()) {
+                                                              f_dpy.dispatchMessages();
+                                                          } } } );
+                            edtUtil = MainThread.getSingleton();
+                            System.err.println("Display.getEDTUtil("+getFQName()+") Test EDT MainThread: "+edtUtil.getClass().getName());
+                            // End JAU EDT Test ..
+                        }
+                        edtUtil.start();
                     }
                 }
             }
         }
         return edtUtil;
+    }
+
+    protected void releaseEDTUtil() {
+        if(null!=edtUtil) { 
+            if ( DEBUG_TEST_EDT_MAINTHREAD ) {
+                MainThread.removePumpMessage(this); // JAU EDT Test ..
+            }
+            edtUtil.waitUntilStopped();
+            edtUtil=null;
+        }
     }
 
     public void runOnEDTIfAvail(boolean wait, final Runnable task) {
@@ -223,21 +250,16 @@ public abstract class Display {
                 System.err.println("Display.destroy("+getFQName()+") REMOVE: "+this+" "+getThreadName());
             }
             final Display f_dpy = this;
-            final EDTUtil f_edt = edtUtil;
+            final EDTUtil f_edtUtil = edtUtil;
             runOnEDTIfAvail(true, new Runnable() {
                 public void run() {
                     f_dpy.closeNative();
-                    if(null!=f_edt) {
-                        f_edt.stop();
+                    if(null!=f_edtUtil) {
+                        f_edtUtil.stop();
                     }
                 }
             } );
-
-            if(null!=edtUtil) { 
-                edtUtil.waitUntilStopped();
-                edtUtil=null;
-                edt=null;
-            }
+            releaseEDTUtil();
             aDevice = null;
         } else {
             if(DEBUG) {
@@ -316,7 +338,7 @@ public abstract class Display {
     private Object eventsLock = new Object();
     private LinkedList/*<NEWTEvent>*/ events = new LinkedList();
 
-    protected void dispatchMessages() {
+    public void dispatchMessages() {
         if(0==refCount) return; // in destruction ..
 
         LinkedList/*<NEWTEvent>*/ _events = null;
@@ -383,7 +405,6 @@ public abstract class Display {
     }
 
     protected EDTUtil edtUtil = null;
-    protected Thread  edt = null;
     protected String name;
     protected String type;
     protected int refCount;

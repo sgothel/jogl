@@ -82,6 +82,9 @@
         <property name="stub.includes"              value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
         <property name="stub.includes.common"       value="${stub.includes}/common" />
 
+        <property file="${build}/artifact.properties"/>
+        <property name="jogl.build.number" value="manual-build"/>
+
         <condition property="setup.nodesktop">
             <and>
                 <isfalse value="${isWindows}" />

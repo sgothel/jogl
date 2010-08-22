@@ -96,8 +96,8 @@ static jmethodID windowCreatedID = NULL;
 static jmethodID sizeChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowDestroyedID = NULL;
-static jmethodID enqueueMouseEventID = NULL;
-static jmethodID enqueueKeyEventID = NULL;
+static jmethodID sendMouseEventID = NULL;
+static jmethodID sendKeyEventID = NULL;
 
 /**
  * Display
@@ -180,13 +180,13 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_opengl_kd_KDDisplay_DispatchMes
                     // time = ev->timestamp
                     if(KD_INPUT_POINTER_SELECT==ptr->index) {
                         DBG_PRINT( "event mouse click: src: %p, s:%d, (%d,%d)\n", userData, ptr->select, ptr->x, ptr->y);
-                        (*env)->CallVoidMethod(env, javaWindow, enqueueMouseEventID, 
+                        (*env)->CallVoidMethod(env, javaWindow, sendMouseEventID, 
                                               (ptr->select==0) ? (jint) EVENT_MOUSE_RELEASED : (jint) EVENT_MOUSE_PRESSED, 
                                               (jint) 0,
                                               (jint) ptr->x, (jint) ptr->y, 1, 0);
                     } else {
                         DBG_PRINT( "event mouse: src: %d, s:%p, i:0x%X (%d,%d)\n", userData, ptr->select, ptr->index, ptr->x, ptr->y);
-                        (*env)->CallVoidMethod(env, javaWindow, enqueueMouseEventID, (jint) EVENT_MOUSE_MOVED, 
+                        (*env)->CallVoidMethod(env, javaWindow, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
                                               0,
                                               (jint) ptr->x, (jint) ptr->y, 0, 0);
                     }
@@ -213,14 +213,14 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_opengl_kd_KDWindow_initIDs
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
-    enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(IIIIII)V");
-    enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(IIIC)V");
+    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
+    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     if (windowCreatedID == NULL ||
         sizeChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowDestroyedID == NULL ||
-        enqueueMouseEventID == NULL ||
-        enqueueKeyEventID == NULL) {
+        sendMouseEventID == NULL ||
+        sendKeyEventID == NULL) {
         DBG_PRINT( "initIDs failed\n" );
         return JNI_FALSE;
     }
