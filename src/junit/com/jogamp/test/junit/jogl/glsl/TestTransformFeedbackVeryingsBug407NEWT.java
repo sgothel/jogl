@@ -21,12 +21,13 @@ import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.opengl.util.glsl.ShaderUtil;
 
+import java.io.IOException;
 
 /**
  * Bug 'Function glTransformFeedbackVaryings incorrectly passes argument'
  * http://jogamp.org/bugzilla/show_bug.cgi?id=407
  */
-public class TransformFeedbackVeryingsBug407Test {
+public class TestTransformFeedbackVeryingsBug407NEWT {
 
     static {
         //NativeUtil.preloadNativeLibs(); // internal method
@@ -129,4 +130,20 @@ public class TransformFeedbackVeryingsBug407Test {
         Assert.assertEquals(GL3.GL_NO_ERROR, gl.glGetError());
         Assert.assertTrue(baos.toString().contains("(named PPPosition)"));
     }
+
+    public static void main(String args[]) throws IOException {
+        String tstname = TestTransformFeedbackVeryingsBug407NEWT.class.getName();
+        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
+            tstname,
+            "filtertrace=true",
+            "haltOnError=false",
+            "haltOnFailure=false",
+            "showoutput=true",
+            "outputtoformatters=true",
+            "logfailedtests=true",
+            "logtestlistenerevents=true",
+            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
+            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+    }
+
 }
