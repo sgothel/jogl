@@ -1572,8 +1572,7 @@ public class TextRenderer {
         public List/*<Glyph>*/ getGlyphs(CharSequence inString) {
             glyphsOutput.clear();
             iter.initFromCharSequence(inString);
-            GlyphVector fullRunGlyphVector = font.createGlyphVector(getFontRenderContext(),
-                                                                    iter);
+            GlyphVector fullRunGlyphVector = font.createGlyphVector(getFontRenderContext(), iter);
             boolean complex = (fullRunGlyphVector.getLayoutFlags() != 0);
             if (complex || DISABLE_GLYPH_CACHE) {
                 // Punt to the robust version of the renderer
