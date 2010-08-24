@@ -443,7 +443,7 @@ public abstract class GLContext {
       /* 1.*/ { 0, 1, 2, 3, 4, 5 },
       /* 2.*/ { 0, 1 },
       /* 3.*/ { 0, 1, 2, 3 },
-      /* 4.*/ { 0 } };
+      /* 4.*/ { 0, 1 } };
 
   public static final int getMaxMajor() {
       return GL_VERSIONS.length-1;

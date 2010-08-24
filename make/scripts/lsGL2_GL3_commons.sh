@@ -9,10 +9,10 @@ fi
 
 idir=$BUILDDIR/jogl/gensrc/classes/javax/media/opengl
 
-SOURCE="$idir/GL.java $idir/GL2ES2.java $idir/GL2GL3.java $idir/GL3.java"
+SOURCE="$idir/GL.java $idir/GL2ES2.java $idir/GL2GL3.java $idir/GL2.java $idir/GL3.java"
 
-echo GL GL2ES2 GL2GL3 GL3 defines
+echo GL GL2ES2 GL2GL3 GL2 GL3 defines
 sort $SOURCE | uniq -d | grep GL_ | grep -v "Part of <code>"
 
-echo GL GL2ES2 GL2GL3 GL3 functions
+echo GL GL2ES2 GL2GL3 GL2 GL3 functions
 sort $SOURCE | uniq -d | grep "public [a-z0-9_]* gl"

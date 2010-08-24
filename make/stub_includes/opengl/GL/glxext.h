@@ -87,6 +87,17 @@ extern "C" {
 #define GLX_CONTEXT_PROFILE_MASK_ARB       0x9126
 #endif
 
+#ifndef GLX_ARB_create_context_robustness
+#define GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB       0x00000004
+#define GLX_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB     0x8256
+#define GLX_NO_RESET_NOTIFICATION_ARB                   0x8261
+#define GLX_LOSE_CONTEXT_ON_RESET_ARB                   0x8252
+#endif
+
+#ifndef GLX_EXT_create_context_es2_profile
+#define GLX_CONTEXT_ES2_PROFILE_BIT_EXT     0x00000004
+#endif
+
 #ifndef GLX_SGIS_multisample
 #define GLX_SAMPLE_BUFFERS_SGIS            100000
 #define GLX_SAMPLES_SGIS                   100001

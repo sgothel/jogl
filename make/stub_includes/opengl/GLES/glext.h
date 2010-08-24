@@ -500,14 +500,14 @@ typedef GLbitfield (GL_APIENTRYP PFNGLQUERYMATRIXXOESPROC) (GLfixed* mantissa, G
 #ifndef GL_OES_single_precision
 #define GL_OES_single_precision 1
 #ifdef GL_GLEXT_PROTOTYPES
-GL_API void GL_APIENTRY glDepthRangefOES (GLclampf zNear, GLclampf zFar);
+GL_API void GL_APIENTRY glDepthRangefOES (GLclampf n, GLclampf f);
 GL_API void GL_APIENTRY glFrustumfOES (GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar);
 GL_API void GL_APIENTRY glOrthofOES (GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar);
 GL_API void GL_APIENTRY glClipPlanefOES (GLenum plane, const GLfloat *equation);
 /* FIXME: GlueGen generates incorrect code for this one */
 /* GL_API void GL_APIENTRY glGetClipPlanefOES (GLenum pname, GLfloat eqn[4]); */
 GL_API void GL_APIENTRY glGetClipPlanefOES (GLenum pname, GLfloat* eqn);
-GL_API void GL_APIENTRY glClearDepthfOES (GLclampf depth);
+GL_API void GL_APIENTRY glClearDepthfOES (GLclampf d);
 #endif
 typedef void (GL_APIENTRYP PFNGLDEPTHRANGEFOESPROC) (GLclampf zNear, GLclampf zFar);
 typedef void (GL_APIENTRYP PFNGLFRUSTUMFOESPROC) (GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar);

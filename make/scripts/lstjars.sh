@@ -123,7 +123,7 @@ done
 rm -rf nope
 mkdir -p nope
 
-mv *.cdc.lst *.all*.lst nope/
+mv jogl.test.lst *-noawt.lst *.cdc.lst *.all*.lst nope/
 
 mv jogl.gl2es12.*.lst jogl.gldesktop.*.lst nope/
 echo duplicates - w/o gl2es12.* gldesktop.*
@@ -131,7 +131,7 @@ echo
 sort jogl*.lst | uniq -d
 mv nope/* .
 
-mv *.cdc.lst *.all*.lst nope/
+mv jogl.test.lst *.cdc.lst *.all*.lst nope/
 cat *.lst | sort -u > allparts.lst
 mv nope/* .
 cat *.all.lst gluegen-rt.lst   | sort -u > allall.lst

@@ -1,8 +1,6 @@
 #ifndef __gl3ext_h_
 #define __gl3ext_h_
 
-#include "gl3-64bit-types.h"
-
 /*
  * ------------------------------------------------
  * Everything here and below was added manually
@@ -27,303 +25,6 @@
  */
   
 
-#ifndef GL_VERSION_3_1
-#define GL_SAMPLER_2D_RECT                0x8B63
-#define GL_SAMPLER_2D_RECT_SHADOW         0x8B64
-#define GL_SAMPLER_BUFFER                 0x8DC2
-#define GL_INT_SAMPLER_2D_RECT            0x8DCD
-#define GL_INT_SAMPLER_BUFFER             0x8DD0
-#define GL_UNSIGNED_INT_SAMPLER_2D_RECT   0x8DD5
-#define GL_UNSIGNED_INT_SAMPLER_BUFFER    0x8DD8
-#define GL_TEXTURE_BUFFER                 0x8C2A
-#define GL_MAX_TEXTURE_BUFFER_SIZE        0x8C2B
-#define GL_TEXTURE_BINDING_BUFFER         0x8C2C
-#define GL_TEXTURE_BUFFER_DATA_STORE_BINDING 0x8C2D
-#define GL_TEXTURE_BUFFER_FORMAT          0x8C2E
-#define GL_TEXTURE_RECTANGLE              0x84F5
-#define GL_TEXTURE_BINDING_RECTANGLE      0x84F6
-#define GL_PROXY_TEXTURE_RECTANGLE        0x84F7
-#define GL_MAX_RECTANGLE_TEXTURE_SIZE     0x84F8
-#define GL_RED_SNORM                      0x8F90
-#define GL_RG_SNORM                       0x8F91
-#define GL_RGB_SNORM                      0x8F92
-#define GL_RGBA_SNORM                     0x8F93
-#define GL_R8_SNORM                       0x8F94
-#define GL_RG8_SNORM                      0x8F95
-#define GL_RGB8_SNORM                     0x8F96
-#define GL_RGBA8_SNORM                    0x8F97
-#define GL_R16_SNORM                      0x8F98
-#define GL_RG16_SNORM                     0x8F99
-#define GL_RGB16_SNORM                    0x8F9A
-#define GL_RGBA16_SNORM                   0x8F9B
-#define GL_SIGNED_NORMALIZED              0x8F9C
-#define GL_PRIMITIVE_RESTART              0x8F9D
-#define GL_PRIMITIVE_RESTART_INDEX        0x8F9E
-/* Reuse tokens from ARB_copy_buffer */
-/* reuse GL_COPY_READ_BUFFER */
-/* reuse GL_COPY_WRITE_BUFFER */
-/* Would reuse tokens from ARB_draw_instanced, but it has none */
-/* Reuse tokens from ARB_uniform_buffer_object */
-/* reuse GL_UNIFORM_BUFFER */
-/* reuse GL_UNIFORM_BUFFER_BINDING */
-/* reuse GL_UNIFORM_BUFFER_START */
-/* reuse GL_UNIFORM_BUFFER_SIZE */
-/* reuse GL_MAX_VERTEX_UNIFORM_BLOCKS */
-/* reuse GL_MAX_FRAGMENT_UNIFORM_BLOCKS */
-/* reuse GL_MAX_COMBINED_UNIFORM_BLOCKS */
-/* reuse GL_MAX_UNIFORM_BUFFER_BINDINGS */
-/* reuse GL_MAX_UNIFORM_BLOCK_SIZE */
-/* reuse GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS */
-/* reuse GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS */
-/* reuse GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT */
-/* reuse GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH */
-/* reuse GL_ACTIVE_UNIFORM_BLOCKS */
-/* reuse GL_UNIFORM_TYPE */
-/* reuse GL_UNIFORM_SIZE */
-/* reuse GL_UNIFORM_NAME_LENGTH */
-/* reuse GL_UNIFORM_BLOCK_INDEX */
-/* reuse GL_UNIFORM_OFFSET */
-/* reuse GL_UNIFORM_ARRAY_STRIDE */
-/* reuse GL_UNIFORM_MATRIX_STRIDE */
-/* reuse GL_UNIFORM_IS_ROW_MAJOR */
-/* reuse GL_UNIFORM_BLOCK_BINDING */
-/* reuse GL_UNIFORM_BLOCK_DATA_SIZE */
-/* reuse GL_UNIFORM_BLOCK_NAME_LENGTH */
-/* reuse GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS */
-/* reuse GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES */
-/* reuse GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER */
-/* reuse GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER */
-/* reuse GL_INVALID_INDEX */
-#endif
-#ifndef GL_VERSION_3_1
-#define GL_VERSION_3_1 1
-/* OpenGL 3.1 also reuses entry points from these extensions: */
-/* ARB_copy_buffer */
-/* ARB_uniform_buffer_object */
-#ifdef GL3_PROTOTYPES
-GLAPI void APIENTRY glDrawArraysInstanced (GLenum, GLint, GLsizei, GLsizei);
-GLAPI void APIENTRY glDrawElementsInstanced (GLenum, GLsizei, GLenum, const GLvoid *, GLsizei);
-GLAPI void APIENTRY glTexBuffer (GLenum, GLenum, GLuint);
-GLAPI void APIENTRY glPrimitiveRestartIndex (GLuint);
-#endif /* GL3_PROTOTYPES */
-/* No need for explicit function pointer: we force generation of ProcAddress .. */
-#endif
-
-
-#ifndef GL_ARB_copy_buffer
-#define GL_COPY_READ_BUFFER               0x8F36
-#define GL_COPY_WRITE_BUFFER              0x8F37
-#endif
-#ifndef GL_ARB_copy_buffer
-#define GL_ARB_copy_buffer 1
-#ifdef GL3_PROTOTYPES
-GLAPI void APIENTRY glCopyBufferSubData (GLenum, GLenum, GLintptr, GLintptr, GLsizeiptr);
-#endif /* GL3_PROTOTYPES */
-/* No need for explicit function pointer: we force generation of ProcAddress .. */
-#endif
-
-
-#ifndef GL_ARB_uniform_buffer_object
-#define GL_UNIFORM_BUFFER                 0x8A11
-#define GL_UNIFORM_BUFFER_BINDING         0x8A28
-#define GL_UNIFORM_BUFFER_START           0x8A29
-#define GL_UNIFORM_BUFFER_SIZE            0x8A2A
-#define GL_MAX_VERTEX_UNIFORM_BLOCKS      0x8A2B
-#define GL_MAX_GEOMETRY_UNIFORM_BLOCKS    0x8A2C
-#define GL_MAX_FRAGMENT_UNIFORM_BLOCKS    0x8A2D
-#define GL_MAX_COMBINED_UNIFORM_BLOCKS    0x8A2E
-#define GL_MAX_UNIFORM_BUFFER_BINDINGS    0x8A2F
-#define GL_MAX_UNIFORM_BLOCK_SIZE         0x8A30
-#define GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS 0x8A31
-#define GL_MAX_COMBINED_GEOMETRY_UNIFORM_COMPONENTS 0x8A32
-#define GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS 0x8A33
-#define GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT 0x8A34
-#define GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH 0x8A35
-#define GL_ACTIVE_UNIFORM_BLOCKS          0x8A36
-#define GL_UNIFORM_TYPE                   0x8A37
-#define GL_UNIFORM_SIZE                   0x8A38
-#define GL_UNIFORM_NAME_LENGTH            0x8A39
-#define GL_UNIFORM_BLOCK_INDEX            0x8A3A
-#define GL_UNIFORM_OFFSET                 0x8A3B
-#define GL_UNIFORM_ARRAY_STRIDE           0x8A3C
-#define GL_UNIFORM_MATRIX_STRIDE          0x8A3D
-#define GL_UNIFORM_IS_ROW_MAJOR           0x8A3E
-#define GL_UNIFORM_BLOCK_BINDING          0x8A3F
-#define GL_UNIFORM_BLOCK_DATA_SIZE        0x8A40
-#define GL_UNIFORM_BLOCK_NAME_LENGTH      0x8A41
-#define GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS  0x8A42
-#define GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES 0x8A43
-#define GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER 0x8A44
-#define GL_UNIFORM_BLOCK_REFERENCED_BY_GEOMETRY_SHADER 0x8A45
-#define GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER 0x8A46
-/** Manual: #define GL_INVALID_INDEX                  -1 == (int) 0xFFFFFFFFu */
-#endif
-#ifndef GL_ARB_uniform_buffer_object
-#define GL_ARB_uniform_buffer_object 1
-#ifdef GL3_PROTOTYPES
-GLAPI void APIENTRY glGetUniformIndices (GLuint, GLsizei, const GLchar* *, GLuint *);
-GLAPI void APIENTRY glGetActiveUniformsiv (GLuint, GLsizei, const GLuint *, GLenum, GLint *);
-GLAPI void APIENTRY glGetActiveUniformName (GLuint, GLuint, GLsizei, GLsizei *, GLchar *);
-GLAPI GLuint APIENTRY glGetUniformBlockIndex (GLuint, const GLchar *);
-GLAPI void APIENTRY glGetActiveUniformBlockiv (GLuint, GLuint, GLenum, GLint *);
-GLAPI void APIENTRY glGetActiveUniformBlockName (GLuint, GLuint, GLsizei, GLsizei *, GLchar *);
-GLAPI void APIENTRY glUniformBlockBinding (GLuint, GLuint, GLuint);
-#endif /* GL3_PROTOTYPES */
-/* No need for explicit function pointer: we force generation of ProcAddress .. */
-#endif
-
-
-#ifndef GL_VERSION_3_2
-#define GL_VERSION_3_2 1
-/* OpenGL 3.2 also reuses entry points from these extensions: */
-/* ARB_vertex_array_bgra */
-/* ARB_draw_elements_base_vertex */
-/* ARB_fragment_coord_conventions */
-/* ARB_provoking_vertex */
-/* ARB_seamless_cube_map */
-/* ARB_texture_multisample */
-/* ARB_depth_clamp */
-/* ARB_geometry_shader4 */
-/* ARB_sync */
-#ifdef GL_GL3EXT_PROTOTYPES
-#endif /* GL3_PROTOTYPES */
-#endif
-
-/**
- * http://www.opengl.org/registry/specs/ARB/vertex_array_bgra.txt
- */
-#ifndef GL_ARB_vertex_array_bgra
-#define GL_BGRA 0x80E1
-#endif
-#ifndef GL_ARB_vertex_array_bgra
-#define GL_ARB_vertex_array_bgra 1
-#ifdef GL_GL3EXT_PROTOTYPES
-/* No FUNCTIONS */
-#endif
-/* No need for explicit function pointer: we force generation of ProcAddress .. */
-#endif
-
-/**
- * http://www.opengl.org/registry/specs/ARB/draw_elements_base_vertex.txt
- */
-#ifndef GL_ARB_draw_elements_base_vertex
-/* No TOKENS */
-#endif
-#ifndef GL_ARB_draw_elements_base_vertex
-#define GL_ARB_draw_elements_base_vertex 1
-#ifdef GL_GL3EXT_PROTOTYPES
-GLAPI void APIENTRY glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type,
-         GLvoid *indices, GLint basevertex);
-GLAPI void APIENTRY glDrawRangeElementsBaseVertex(GLenum mode, GLuint start, GLuint end,
-         GLsizei count, GLenum type, GLvoid *indices, GLint basevertex);
-GLAPI void APIENTRY glDrawElementsInstancedBaseVertex(GLenum mode, GLsizei count,
-         GLenum type, const GLvoid *indices, GLsizei primcount, GLint basevertex);
-GLAPI void APIENTRY glMultiDrawElementsBaseVertex(GLenum mode, GLsizei *count, GLenum type,
-         GLvoid **indices, GLsizei primcount, GLint *basevertex);
-#endif
-/* No need for explicit function pointer: we force generation of ProcAddress .. */
-#endif
-
-/**
- * http://www.opengl.org/registry/specs/ARB/fragment_coord_conventions.txt
- */
-#ifndef GL_ARB_fragment_coord_conventions
-/* No Tokens */
-#endif
-#ifndef GL_ARB_fragment_coord_conventions
-#define GL_ARB_fragment_coord_conventions 1
-#ifdef GL_GL3EXT_PROTOTYPES
-/* No Functions */
-#endif
-/* No need for explicit function pointer: we force generation of ProcAddress .. */
-#endif
-
-/**
- * http://www.opengl.org/registry/specs/ARB/provoking_vertex.txt
- */
-#ifndef GL_ARB_provoking_vertex
-#define GL_FIRST_VERTEX_CONVENTION                   0x8E4D
-#define GL_LAST_VERTEX_CONVENTION                    0x8E4E
-#define GL_PROVOKING_VERTEX                          0x8E4F
-#define GL_QUADS_FOLLOW_PROVOKING_VERTEX_CONVENTION  0x8E4C
-#endif
-#ifndef GL_ARB_provoking_vertex
-#define GL_ARB_provoking_vertex 1
-#ifdef GL_GL3EXT_PROTOTYPES
-GLAPI void APIENTRY glProvokingVertex(GLenum mode);
-#endif
-/* No need for explicit function pointer: we force generation of ProcAddress .. */
-#endif
-
-/**
- * http://www.opengl.org/registry/specs/ARB/seamless_cube_map.txt
- */
-#ifndef GL_ARB_seamless_cube_map
-#define GL_TEXTURE_CUBE_MAP_SEAMLESS                   0x884F
-#endif
-#ifndef GL_ARB_seamless_cube_map
-#define GL_ARB_seamless_cube_map 1
-#ifdef GL_GL3EXT_PROTOTYPES
-/* No Functions */
-#endif
-/* No need for explicit function pointer: we force generation of ProcAddress .. */
-#endif
-
-/**
- * http://www.opengl.org/registry/specs/ARB/texture_multisample.txt
- */
-#ifndef GL_ARB_texture_multisample
-#define GL_SAMPLE_POSITION                             0x8E50
-#define GL_SAMPLE_MASK                                 0x8E51
-#define GL_SAMPLE_MASK_VALUE                           0x8E52
-#define GL_TEXTURE_2D_MULTISAMPLE                      0x9100
-#define GL_PROXY_TEXTURE_2D_MULTISAMPLE                0x9101
-#define GL_TEXTURE_2D_MULTISAMPLE_ARRAY                0x9102
-#define GL_PROXY_TEXTURE_2D_MULTISAMPLE_ARRAY          0x9103
-#define GL_MAX_SAMPLE_MASK_WORDS                       0x8E59
-#define GL_MAX_COLOR_TEXTURE_SAMPLES                   0x910E
-#define GL_MAX_DEPTH_TEXTURE_SAMPLES                   0x910F
-#define GL_MAX_INTEGER_SAMPLES                         0x9110
-#define GL_TEXTURE_BINDING_2D_MULTISAMPLE              0x9104
-#define GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY        0x9105
-#define GL_TEXTURE_SAMPLES                             0x9106
-#define GL_TEXTURE_FIXED_SAMPLE_LOCATIONS              0x9107
-#define GL_SAMPLER_2D_MULTISAMPLE                      0x9108
-#define GL_INT_SAMPLER_2D_MULTISAMPLE                  0x9109
-#define GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE         0x910A
-#define GL_SAMPLER_2D_MULTISAMPLE_ARRAY                0x910B
-#define GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY            0x910C
-#define GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY   0x910D
-#endif
-#ifndef GL_ARB_texture_multisample
-#define GL_ARB_texture_multisample 1
-#ifdef GL_GL3EXT_PROTOTYPES
-GLAPI void APIENTRY glTexImage2DMultisample(GLenum target, GLsizei samples, GLint internalformat,
-                               GLsizei width, GLsizei height,
-                               GLboolean fixedsamplelocations);
-GLAPI void APIENTRY glTexImage3DMultisample(GLenum target, GLsizei samples, GLint internalformat,
-                               GLsizei width, GLsizei height, GLsizei depth,
-                               GLboolean fixedsamplelocations);
-GLAPI void APIENTRY glGetMultisamplefv(GLenum pname, GLuint index, GLfloat *val);
-GLAPI void APIENTRY glSampleMaski(GLuint index, GLbitfield mask);
-#endif
-/* No need for explicit function pointer: we force generation of ProcAddress .. */
-#endif
-
-/**
- * http://www.opengl.org/registry/specs/ARB/depth_clamp.txt
- */
-#ifndef GL_ARB_depth_clamp
-#define GL_DEPTH_CLAMP 0x864F
-#endif
-#ifndef GL_ARB_depth_clamp
-#define GL_ARB_depth_clamp 1
-#ifdef GL_GL3EXT_PROTOTYPES
-/* No FUNCTIONS */
-#endif
-/* No need for explicit function pointer: we force generation of ProcAddress .. */
-#endif
-
 /**
  * http://www.opengl.org/registry/specs/ARB/geometry_shader4.txt
  */
@@ -346,71 +47,25 @@ GLAPI void APIENTRY glSampleMaski(GLuint index, GLbitfield mask);
 #define GL_MAX_GEOMETRY_UNIFORM_COMPONENTS_ARB 0x8DDF
 #define GL_MAX_GEOMETRY_OUTPUT_VERTICES_ARB 0x8DE0
 #define GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS_ARB 0x8DE1
-/* reuse GL_MAX_VARYING_COMPONENTS */
-/* reuse GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER */
+#ifndef GL_MAX_VARYING_COMPONENTS
+#define GL_MAX_VARYING_COMPONENTS         0x8B4B
+#endif
+#ifndef GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER
+#define GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER 0x8CD4
+#endif
 #endif
 #ifndef GL_ARB_geometry_shader4
 #define GL_ARB_geometry_shader4 1
-#ifdef GL_GL3EXT_PROTOTYPES
-GLAPI void APIENTRY glProgramParameteriARB (GLuint, GLenum, GLint);
-GLAPI void APIENTRY glFramebufferTextureARB (GLenum, GLenum, GLuint, GLint);
-GLAPI void APIENTRY glFramebufferTextureLayerARB (GLenum, GLenum, GLuint, GLint, GLint);
-GLAPI void APIENTRY glFramebufferTextureFaceARB (GLenum, GLenum, GLuint, GLint, GLenum);
-#endif
-/* No need for explicit function pointer: we force generation of ProcAddress .. */
-#endif
-
-/**
- * http://www.opengl.org/registry/specs/ARB/sync.txt
- */
-#ifndef GL_ARB_sync
-#define GL_MAX_SERVER_WAIT_TIMEOUT    0x9111
-#define GL_OBJECT_TYPE                0x9112
-#define GL_SYNC_CONDITION             0x9113
-#define GL_SYNC_STATUS                0x9114
-#define GL_SYNC_FLAGS                 0x9115
-#define GL_SYNC_FENCE                 0x9116
-#define GL_SYNC_GPU_COMMANDS_COMPLETE 0x9117
-#define GL_UNSIGNALED                 0x9118
-#define GL_SIGNALED                   0x9119
-#define GL_SYNC_FLUSH_COMMANDS_BIT    0x00000001
-/* Manual: #define GL_TIMEOUT_IGNORED 0xFFFFFFFFFFFFFFFFul */
-#define GL_ALREADY_SIGNALED           0x911A
-#define GL_TIMEOUT_EXPIRED            0x911B
-#define GL_CONDITION_SATISFIED        0x911C
-#define GL_WAIT_FAILED                0x911D
-#endif
-#ifndef GL_ARB_sync
-typedef int64_t GLint64;
-typedef uint64_t GLuint64;
-typedef struct __GLsync *GLsync;
-#endif
-#ifndef GL_ARB_sync
-#define GL_ARB_sync 1
-#ifdef GL_GL3EXT_PROTOTYPES
-GLAPI GLsync    APIENTRY glFenceSync(GLenum condition, GLbitfield flags);
-GLAPI GLboolean APIENTRY glIsSync(GLsync sync);
-GLAPI void      APIENTRY glDeleteSync(GLsync sync);
-GLAPI GLenum    APIENTRY glClientWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout);
-GLAPI void      APIENTRY glWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout);
-GLAPI void      APIENTRY glGetInteger64v(GLenum pname, GLint64 *params);
-GLAPI void      APIENTRY glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize, GLsizei *length, GLint *values);
-#endif
-/* No need for explicit function pointer: we force generation of ProcAddress .. */
-#endif
-
-/**
- * Convenient names only .. actually subsumed into core
- */
-#ifndef GL_ARB_texture_rectangle
-#define GL_TEXTURE_RECTANGLE_ARB          0x84F5
-#define GL_TEXTURE_BINDING_RECTANGLE_ARB  0x84F6
-#define GL_PROXY_TEXTURE_RECTANGLE_ARB    0x84F7
-#define GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB 0x84F8
-#endif
-
-#ifndef GL_ARB_texture_rectangle
-#define GL_ARB_texture_rectangle 1
+#ifdef GL_GLEXT_PROTOTYPES
+GLAPI void APIENTRY glProgramParameteriARB (GLuint program, GLenum pname, GLint value);
+GLAPI void APIENTRY glFramebufferTextureARB (GLenum target, GLenum attachment, GLuint texture, GLint level);
+GLAPI void APIENTRY glFramebufferTextureLayerARB (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
+GLAPI void APIENTRY glFramebufferTextureFaceARB (GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face);
+#endif /* GL_GLEXT_PROTOTYPES */
+typedef void (APIENTRYP PFNGLPROGRAMPARAMETERIARBPROC) (GLuint program, GLenum pname, GLint value);
+typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTUREARBPROC) (GLenum target, GLenum attachment, GLuint texture, GLint level);
+typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTURELAYERARBPROC) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
+typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTUREFACEARBPROC) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face);
 #endif
 
 /**
@@ -445,50 +100,66 @@ GLAPI void APIENTRY glTessellationModeAMD(GLenum mode);
 #ifndef GL_NV_shader_buffer_load
 #define GL_NV_shader_buffer_load 1
 #ifdef GL_GL3EXT_PROTOTYPES
-GLAPI void APIENTRY glMakeBufferResidentNV(GLenum target, GLenum access);
-GLAPI void APIENTRY glMakeBufferNonResidentNV(GLenum target);
-GLAPI GLboolean APIENTRY glIsBufferResidentNV(GLenum target);
-GLAPI void APIENTRY glNamedMakeBufferResidentNV(GLuint buffer, GLenum access);
-GLAPI void APIENTRY glNamedMakeBufferNonResidentNV(GLuint buffer);
-GLAPI GLboolean APIENTRY glIsNamedBufferResidentNV(GLuint buffer);
-GLAPI void APIENTRY glGetBufferParameterui64vNV(GLenum target, GLenum pname, GLuint64 *params);
-GLAPI void APIENTRY glGetNamedBufferParameterui64vNV(GLuint buffer, GLenum pname, GLuint64 *params);
-GLAPI void APIENTRY glGetIntegerui64vNV(GLenum value, GLuint64 *result);
-GLAPI void APIENTRY glUniformui64NV(GLint location, GLuint64 value);
-GLAPI void APIENTRY glUniformui64vNV(GLint location, GLsizei count, GLuint64 *value);
-GLAPI void APIENTRY glGetUniformui64vNV(GLuint program, GLint location, GLuint64 *params);
-GLAPI void APIENTRY glProgramUniformui64NV(GLuint program, GLint location, GLuint64 value);
-GLAPI void APIENTRY glProgramUniformui64vNV(GLuint program, GLint location, GLsizei count, GLuint64 *value);
+GLAPI void APIENTRY glMakeBufferResidentNV (GLenum target, GLenum access);
+GLAPI void APIENTRY glMakeBufferNonResidentNV (GLenum target);
+GLAPI GLboolean APIENTRY glIsBufferResidentNV (GLenum target);
+GLAPI void APIENTRY glMakeNamedBufferResidentNV (GLuint buffer, GLenum access);
+GLAPI void APIENTRY glMakeNamedBufferNonResidentNV (GLuint buffer);
+GLAPI GLboolean APIENTRY glIsNamedBufferResidentNV (GLuint buffer);
+GLAPI void APIENTRY glGetBufferParameterui64vNV (GLenum target, GLenum pname, GLuint64EXT *params);
+GLAPI void APIENTRY glGetNamedBufferParameterui64vNV (GLuint buffer, GLenum pname, GLuint64EXT *params);
+GLAPI void APIENTRY glGetIntegerui64vNV (GLenum value, GLuint64EXT *result);
+GLAPI void APIENTRY glUniformui64NV (GLint location, GLuint64EXT value);
+GLAPI void APIENTRY glUniformui64vNV (GLint location, GLsizei count, const GLuint64EXT *value);
+GLAPI void APIENTRY glGetUniformui64vNV (GLuint program, GLint location, GLuint64EXT *params);
+GLAPI void APIENTRY glProgramUniformui64NV (GLuint program, GLint location, GLuint64EXT value);
+GLAPI void APIENTRY glProgramUniformui64vNV (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
 #endif /* GL_GL3EXT_PROTOTYPES */
-/* No need for explicit function pointer: we force generation of ProcAddress .. */
+typedef void (APIENTRYP PFNGLMAKEBUFFERRESIDENTNVPROC) (GLenum target, GLenum access);
+typedef void (APIENTRYP PFNGLMAKEBUFFERNONRESIDENTNVPROC) (GLenum target);
+typedef GLboolean (APIENTRYP PFNGLISBUFFERRESIDENTNVPROC) (GLenum target);
+typedef void (APIENTRYP PFNGLMAKENAMEDBUFFERRESIDENTNVPROC) (GLuint buffer, GLenum access);
+typedef void (APIENTRYP PFNGLMAKENAMEDBUFFERNONRESIDENTNVPROC) (GLuint buffer);
+typedef GLboolean (APIENTRYP PFNGLISNAMEDBUFFERRESIDENTNVPROC) (GLuint buffer);
+typedef void (APIENTRYP PFNGLGETBUFFERPARAMETERUI64VNVPROC) (GLenum target, GLenum pname, GLuint64EXT *params);
+typedef void (APIENTRYP PFNGLGETNAMEDBUFFERPARAMETERUI64VNVPROC) (GLuint buffer, GLenum pname, GLuint64EXT *params);
+typedef void (APIENTRYP PFNGLGETINTEGERUI64VNVPROC) (GLenum value, GLuint64EXT *result);
+typedef void (APIENTRYP PFNGLUNIFORMUI64NVPROC) (GLint location, GLuint64EXT value);
+typedef void (APIENTRYP PFNGLUNIFORMUI64VNVPROC) (GLint location, GLsizei count, const GLuint64EXT *value);
+typedef void (APIENTRYP PFNGLGETUNIFORMUI64VNVPROC) (GLuint program, GLint location, GLuint64EXT *params);
+typedef void (APIENTRYP PFNGLPROGRAMUNIFORMUI64NVPROC) (GLuint program, GLint location, GLuint64EXT value);
+typedef void (APIENTRYP PFNGLPROGRAMUNIFORMUI64VNVPROC) (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
 #endif
 
 /**
  * http://www.opengl.org/registry/specs/NV/vertex_buffer_unified_memory.txt
  */
 #ifndef GL_NV_vertex_buffer_unified_memory
-#define GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV   0x8F1E
-#define GL_ELEMENT_ARRAY_UNIFIED_NV         0x8F1F
-#define GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV   0x8F20
-#define GL_VERTEX_ARRAY_ADDRESS_NV          0x8F21
-#define GL_NORMAL_ARRAY_ADDRESS_NV          0x8F22
-#define GL_COLOR_ARRAY_ADDRESS_NV           0x8F23
-#define GL_INDEX_ARRAY_ADDRESS_NV           0x8F24
-#define GL_TEXTURE_COORD_ARRAY_ADDRESS_NV   0x8F25
-#define GL_EDGE_FLAG_ARRAY_ADDRESS_NV       0x8F26
+#define GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV 0x8F1E
+#define GL_ELEMENT_ARRAY_UNIFIED_NV       0x8F1F
+#define GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV 0x8F20
+#define GL_VERTEX_ARRAY_ADDRESS_NV        0x8F21
+#define GL_NORMAL_ARRAY_ADDRESS_NV        0x8F22
+#define GL_COLOR_ARRAY_ADDRESS_NV         0x8F23
+#define GL_INDEX_ARRAY_ADDRESS_NV         0x8F24
+#define GL_TEXTURE_COORD_ARRAY_ADDRESS_NV 0x8F25
+#define GL_EDGE_FLAG_ARRAY_ADDRESS_NV     0x8F26
 #define GL_SECONDARY_COLOR_ARRAY_ADDRESS_NV 0x8F27
-#define GL_FOG_COORD_ARRAY_ADDRESS_NV       0x8F28
-#define GL_ELEMENT_ARRAY_ADDRESS_NV         0x8F29
-#define GL_VERTEX_ATTRIB_ARRAY_LENGTH_NV    0x8F2A
-#define GL_VERTEX_ARRAY_LENGTH_NV           0x8F2B
-#define GL_NORMAL_ARRAY_LENGTH_NV           0x8F2C
-#define GL_COLOR_ARRAY_LENGTH_NV            0x8F2D
-#define GL_INDEX_ARRAY_LENGTH_NV            0x8F2E
-#define GL_TEXTURE_COORD_ARRAY_LENGTH_NV    0x8F2F
-#define GL_EDGE_FLAG_ARRAY_LENGTH_NV        0x8F30
-#define GL_SECONDARY_COLOR_ARRAY_LENGTH_NV  0x8F31
-#define GL_FOG_COORD_ARRAY_LENGTH_NV        0x8F32
-#define GL_ELEMENT_ARRAY_LENGTH_NV          0x8F33
+#define GL_FOG_COORD_ARRAY_ADDRESS_NV     0x8F28
+#define GL_ELEMENT_ARRAY_ADDRESS_NV       0x8F29
+#define GL_VERTEX_ATTRIB_ARRAY_LENGTH_NV  0x8F2A
+#define GL_VERTEX_ARRAY_LENGTH_NV         0x8F2B
+#define GL_NORMAL_ARRAY_LENGTH_NV         0x8F2C
+#define GL_COLOR_ARRAY_LENGTH_NV          0x8F2D
+#define GL_INDEX_ARRAY_LENGTH_NV          0x8F2E
+#define GL_TEXTURE_COORD_ARRAY_LENGTH_NV  0x8F2F
+#define GL_EDGE_FLAG_ARRAY_LENGTH_NV      0x8F30
+#define GL_SECONDARY_COLOR_ARRAY_LENGTH_NV 0x8F31
+#define GL_FOG_COORD_ARRAY_LENGTH_NV      0x8F32
+#define GL_ELEMENT_ARRAY_LENGTH_NV        0x8F33
+#define GL_DRAW_INDIRECT_UNIFIED_NV       0x8F40
+#define GL_DRAW_INDIRECT_ADDRESS_NV       0x8F41
+#define GL_DRAW_INDIRECT_LENGTH_NV        0x8F42
 #endif
 #ifndef GL_NV_vertex_buffer_unified_memory
 #define GL_NV_vertex_buffer_unified_memory 1
@@ -497,20 +168,33 @@ GLAPI GLboolean APIENTRY glIsEnabled( GLenum cap );     // extra requirement in 
 GLAPI void APIENTRY glEnableClientState( GLenum cap );  // extra requirement in core GL3
 GLAPI void APIENTRY glDisableClientState( GLenum cap ); // extra requirement in core GL3
 GLAPI void APIENTRY glBufferAddressRangeNV(GLenum pname, GLuint index, GLuint64 address, GLsizeiptr length);
-GLAPI void APIENTRY glVertexFormatNV(GLint size, GLenum type, GLsizei stride);
-GLAPI void APIENTRY glNormalFormatNV(GLenum type, GLsizei stride);
-GLAPI void APIENTRY glColorFormatNV(GLint size, GLenum type, GLsizei stride);
-GLAPI void APIENTRY glIndexFormatNV(GLenum type, GLsizei stride);
-GLAPI void APIENTRY glTexCoordFormatNV(GLint size, GLenum type, GLsizei stride);
-GLAPI void APIENTRY glEdgeFlagFormatNV(GLsizei stride);
-GLAPI void APIENTRY glSecondaryColorFormatNV(GLint size, GLenum type, GLsizei stride);
-GLAPI void APIENTRY glFogCoordFormatNV(GLenum type, GLsizei stride);
-GLAPI void APIENTRY glVertexAttribFormatNV(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride);
-GLAPI void APIENTRY glVertexAttribIFormatNV(GLuint index, GLint size, GLenum type, GLsizei stride);
-GLAPI void APIENTRY glGetIntegerui64i_vNV(GLenum value, GLuint index, GLuint64 *result);
+GLAPI void APIENTRY glBufferAddressRangeNV (GLenum pname, GLuint index, GLuint64EXT address, GLsizeiptr length);
+GLAPI void APIENTRY glVertexFormatNV (GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glNormalFormatNV (GLenum type, GLsizei stride);
+GLAPI void APIENTRY glColorFormatNV (GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glIndexFormatNV (GLenum type, GLsizei stride);
+GLAPI void APIENTRY glTexCoordFormatNV (GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glEdgeFlagFormatNV (GLsizei stride);
+GLAPI void APIENTRY glSecondaryColorFormatNV (GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glFogCoordFormatNV (GLenum type, GLsizei stride);
+GLAPI void APIENTRY glVertexAttribFormatNV (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride);
+GLAPI void APIENTRY glVertexAttribIFormatNV (GLuint index, GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glGetIntegerui64i_vNV (GLenum value, GLuint index, GLuint64EXT *result);
 #endif /* GL_GL3EXT_PROTOTYPES */
-/* No need for explicit function pointer: we force generation of ProcAddress .. */
+typedef void (APIENTRYP PFNGLBUFFERADDRESSRANGENVPROC) (GLenum pname, GLuint index, GLuint64EXT address, GLsizeiptr length);
+typedef void (APIENTRYP PFNGLVERTEXFORMATNVPROC) (GLint size, GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLNORMALFORMATNVPROC) (GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLCOLORFORMATNVPROC) (GLint size, GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLINDEXFORMATNVPROC) (GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLTEXCOORDFORMATNVPROC) (GLint size, GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLEDGEFLAGFORMATNVPROC) (GLsizei stride);
+typedef void (APIENTRYP PFNGLSECONDARYCOLORFORMATNVPROC) (GLint size, GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLFOGCOORDFORMATNVPROC) (GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLVERTEXATTRIBFORMATNVPROC) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride);
+typedef void (APIENTRYP PFNGLVERTEXATTRIBIFORMATNVPROC) (GLuint index, GLint size, GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLGETINTEGERUI64I_VNVPROC) (GLenum value, GLuint index, GLuint64EXT *result);
 #endif
+
 
 
 #ifndef GL_APPLE_float_pixels
@@ -574,6 +258,40 @@ GLAPI void APIENTRY glGetIntegerui64i_vNV(GLenum value, GLuint index, GLuint64 *
 #ifndef GL_NV_float_buffer
 #define GL_NV_float_buffer 1
 #endif
+
+#ifndef GL_AMD_debug_output
+#define GL_MAX_DEBUG_LOGGED_MESSAGES_AMD  0x9144
+#define GL_DEBUG_LOGGED_MESSAGES_AMD      0x9145
+#define GL_DEBUG_SEVERITY_HIGH_AMD        0x9146
+#define GL_DEBUG_SEVERITY_MEDIUM_AMD      0x9147
+#define GL_DEBUG_SEVERITY_LOW_AMD         0x9148
+#define GL_DEBUG_CATEGORY_API_ERROR_AMD   0x9149
+#define GL_DEBUG_CATEGORY_WINDOW_SYSTEM_AMD 0x914A
+#define GL_DEBUG_CATEGORY_DEPRECATION_AMD 0x914B
+#define GL_DEBUG_CATEGORY_UNDEFINED_BEHAVIOR_AMD 0x914C
+#define GL_DEBUG_CATEGORY_PERFORMANCE_AMD 0x914D
+#define GL_DEBUG_CATEGORY_SHADER_COMPILER_AMD 0x914E
+#define GL_DEBUG_CATEGORY_APPLICATION_AMD 0x914F
+#define GL_DEBUG_CATEGORY_OTHER_AMD       0x9150
+#endif
+#ifndef GL_AMD_debug_output
+typedef void (APIENTRY *GLDEBUGPROCAMD)(GLuint id,GLenum category,GLenum severity,GLsizei length,const GLchar *message,GLvoid *userParam);
+#endif
+#ifndef GL_AMD_debug_output
+#define GL_AMD_debug_output 1
+#ifdef GL_GLEXT_PROTOTYPES
+GLAPI void APIENTRY glDebugMessageEnableAMD (GLenum category, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
+GLAPI void APIENTRY glDebugMessageInsertAMD (GLenum category, GLenum severity, GLuint id, GLsizei length, const GLchar *buf);
+GLAPI void APIENTRY glDebugMessageCallbackAMD (GLDEBUGPROCAMD callback, GLvoid *userParam);
+GLAPI GLuint APIENTRY glGetDebugMessageLogAMD (GLuint count, GLsizei bufsize, GLenum *categories, GLuint *severities, GLuint *ids, GLsizei *lengths, GLchar *message);
+#endif /* GL_GLEXT_PROTOTYPES */
+typedef void (APIENTRYP PFNGLDEBUGMESSAGEENABLEAMDPROC) (GLenum category, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
+typedef void (APIENTRYP PFNGLDEBUGMESSAGEINSERTAMDPROC) (GLenum category, GLenum severity, GLuint id, GLsizei length, const GLchar *buf);
+typedef void (APIENTRYP PFNGLDEBUGMESSAGECALLBACKAMDPROC) (GLDEBUGPROCAMD callback, GLvoid *userParam);
+typedef GLuint (APIENTRYP PFNGLGETDEBUGMESSAGELOGAMDPROC) (GLuint count, GLsizei bufsize, GLenum *categories, GLuint *severities, GLuint *ids, GLsizei *lengths, GLchar *message);
+#endif
+
+
 
 #endif /* __gl3ext_h_ */
 

@@ -776,7 +776,13 @@ public abstract class GLContextImpl extends GLContext {
     setContextVersion(major, minor, ctp);
 
     extensionAvailability.reset();
+
+    hasNativeES2Methods = isGLES2() || isExtensionAvailable("GL_ARB_ES2_compatibility") ;
   }
+
+  protected boolean hasNativeES2Methods = false;
+
+  public final boolean hasNativeES2Methods() { return hasNativeES2Methods; }
 
   /**
    * Returns true if the specified OpenGL core- or extension-function can be

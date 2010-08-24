@@ -1,9 +1,9 @@
-#ifndef __gl3_64bit_types_h_
-#define __gl3_64bit_types_h_
+#ifndef __gl_64bit_types_h_
+#define __gl_64bit_types_h_
 
-#ifndef GL3_64_TYPES_DEFINED
+#ifndef GL_64_TYPES_DEFINED
     /* This code block is duplicated in glext.h, so must be protected */
-    #define GL3_64_TYPES_DEFINED
+    #define GL_64_TYPES_DEFINED
     /* Define int32_t, int64_t, and uint64_t types for UST/MSC */
     /* (as used in the GL_EXT_timer_query extension). */
     #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
@@ -40,4 +40,15 @@
     #endif
 #endif
 
-#endif /* __gl3_64bit_types_h_ */
+#ifndef GL_EXT_timer_query
+typedef int64_t GLint64EXT;
+typedef uint64_t GLuint64EXT;
+#endif
+
+#ifndef GL_ARB_sync
+typedef int64_t GLint64;
+typedef uint64_t GLuint64;
+typedef struct __GLsync *GLsync;
+#endif
+
+#endif /* __gl_64bit_types_h_ */

@@ -33,76 +33,25 @@
 #ifndef __gl_h_
 #define __gl_h_
 
-/**********************************************************************
- * Begin system-specific stuff.
- */
-#if defined(__BEOS__)
-#include <stdlib.h>     /* to get some BeOS-isms */
+/* Function declaration macros - to move into glplatform.h */
+#include "glplatform.h"
+
+#ifndef GLAPIENTRY
+#define GLAPIENTRY
 #endif
-
-#if !defined(OPENSTEP) && (defined(NeXT) || defined(NeXT_PDO))
-#define OPENSTEP
+#ifndef GLAPIENTRYP
+#define GLAPIENTRYP GLAPIENTRY*
 #endif
-
-#if defined(_WIN32) && !defined(__WIN32__) && !defined(__CYGWIN__)
-#define __WIN32__
-#endif
-
-#if !defined(OPENSTEP) && (defined(__WIN32__) && !defined(__CYGWIN__))
-#  if defined(_MSC_VER) && defined(BUILD_GL32) /* tag specify we're building mesa as a DLL */
-#    define GLAPI __declspec(dllexport)
-#  elif defined(_MSC_VER) && defined(_DLL) /* tag specifying we're building for DLL runtime support */
-#    define GLAPI __declspec(dllimport)
-#  else /* for use with static link lib build of Win32 edition only */
-#    define GLAPI extern
-#  endif /* _STATIC_MESA support */
-#  define GLAPIENTRY __stdcall
-#else
-/* non-Windows compilation */
-#  define GLAPI extern
-#  define GLAPIENTRY
-#endif /* WIN32 / CYGWIN bracket */
-
-#if (defined(__BEOS__) && defined(__POWERPC__)) || defined(__QUICKDRAW__)
-#  define PRAGMA_EXPORT_SUPPORTED               1
-#endif
-
-/*
- * WINDOWS: Include windows.h here to define APIENTRY.
- * It is also useful when applications include this file by
- * including only glut.h, since glut.h depends on windows.h.
- * Applications needing to include windows.h with parms other
- * than "WIN32_LEAN_AND_MEAN" may include windows.h before
- * glut.h or gl.h.
- */
-#if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__)
-#define WIN32_LEAN_AND_MEAN 1
-#include <windows.h>
-#endif
-
-#if defined(_WIN32) && !defined(_WINGDI_) && !defined(_GNU_H_WINDOWS32_DEFINES) && !defined(OPENSTEP) && !defined(__CYGWIN__)
-#include <gl/mesa_wgl.h>
-#endif
-
-#if defined(macintosh) && PRAGMA_IMPORT_SUPPORTED
-#pragma import on
+#ifndef GLAPI
+#define GLAPI extern
 #endif
 
 #ifndef APIENTRY
 #define APIENTRY GLAPIENTRY
 #endif
-
-#ifdef CENTERLINE_CLPP
-#define signed
+#ifndef APIENTRYP
+#define APIENTRYP GLAPIENTRYP
 #endif
-
-#if defined(PRAGMA_EXPORT_SUPPORTED)
-#pragma export on
-#endif
-
-/*
- * End system-specific stuff.
- **********************************************************************/
 
 #ifdef __cplusplus
 extern "C" {

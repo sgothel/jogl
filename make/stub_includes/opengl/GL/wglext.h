@@ -202,6 +202,17 @@ extern "C" {
 #define ERROR_INVALID_VERSION_ARB       0x2095
 #endif
 
+#ifndef WGL_ARB_create_context_robustness
+#define WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB       0x00000004
+#define WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB     0x8256
+#define WGL_NO_RESET_NOTIFICATION_ARB                   0x8261
+#define WGL_LOSE_CONTEXT_ON_RESET_ARB                   0x8252
+#endif
+
+#ifndef WGL_EXT_create_context_es2_profile
+#define WGL_CONTEXT_ES2_PROFILE_BIT_EXT     0x00000004
+#endif
+
 #ifndef WGL_EXT_make_current_read
 #define ERROR_INVALID_PIXEL_TYPE_EXT   0x2043
 #endif

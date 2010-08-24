@@ -626,10 +626,10 @@ typedef int             GLsizeiptr;
 /* Available only in Common profile */
 GL_API void GL_APIENTRY glAlphaFunc (GLenum func, GLclampf ref);
 GL_API void GL_APIENTRY glClearColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
-GL_API void GL_APIENTRY glClearDepthf (GLclampf depth);
+GL_API void GL_APIENTRY glClearDepthf (GLclampf d);
 GL_API void GL_APIENTRY glClipPlanef (GLenum plane, const GLfloat *equation);
 GL_API void GL_APIENTRY glColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
-GL_API void GL_APIENTRY glDepthRangef (GLclampf zNear, GLclampf zFar);
+GL_API void GL_APIENTRY glDepthRangef (GLclampf n, GLclampf f);
 GL_API void GL_APIENTRY glFogf (GLenum pname, GLfloat param);
 GL_API void GL_APIENTRY glFogfv (GLenum pname, const GLfloat *params);
 GL_API void GL_APIENTRY glFrustumf (GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar);

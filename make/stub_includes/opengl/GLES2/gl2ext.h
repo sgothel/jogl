@@ -103,14 +103,6 @@ typedef void  (GL_APIENTRYP PFNGLEGLIMAGETARGETTEXTURE2DOESPROC) (GLenum target,
 #define GL_BUFFER_MAPPED_OES                                    0x88BC
 #define GL_BUFFER_MAP_POINTER_OES                               0x88BD
 #endif
-
-/* GL_OES_rgb8_rgba8 */
-#ifndef GL_OES_rgb8_rgba8
-#define GL_RGB8_OES                                             0x8051
-#define GL_RGBA8_OES                                            0x8058
-#endif
-
-/* GL_OES_mapbuffer */
 #ifndef GL_OES_mapbuffer
 #define GL_OES_mapbuffer 1
 #ifdef GL_GLEXT_PROTOTYPES
@@ -124,6 +116,10 @@ typedef void  (GL_APIENTRYP PFNGLGETBUFFERPOINTERIVNVPROC) (GLenum target, GLenu
 #endif
 
 /* GL_OES_rgb8_rgba8 */
+#ifndef GL_OES_rgb8_rgba8
+#define GL_RGB8_OES                                             0x8051
+#define GL_RGBA8_OES                                            0x8058
+#endif
 #ifndef GL_OES_rgb8_rgba8
 #define GL_OES_rgb8_rgba8 1
 #endif
@@ -143,6 +139,9 @@ typedef void  (GL_APIENTRYP PFNGLGETBUFFERPOINTERIVNVPROC) (GLenum target, GLenu
 #define GL_UNSIGNED_INT_10F_11F_11F_REV_EXT             0x8C3B
 #define GL_RGBA_SIGNED_COMPONENTS_EXT                   0x8C3C
 #endif
+#ifndef GL_EXT_packed_float
+#define GL_EXT_packed_float 1
+#endif
 
 /* GL_EXT_texture_array */
 #ifndef GL_EXT_texture_array
@@ -152,12 +151,17 @@ typedef void  (GL_APIENTRYP PFNGLGETBUFFERPOINTERIVNVPROC) (GLenum target, GLenu
 #define GL_MAX_ARRAY_TEXTURE_LAYERS_EXT   0x88FF
 #define GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER_EXT 0x8CD4
 #endif
-
+#ifndef GL_EXT_texture_array
+#define GL_EXT_texture_array 1
+#endif
 
 /* GL_EXT_texture_compression_dxt1 */
 #ifndef GL_EXT_texture_compression_dxt1
 #define GL_COMPRESSED_RGB_S3TC_DXT1_EXT   0x83F0
 #define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT  0x83F1
+#endif
+#ifndef GL_EXT_texture_compression_dxt1
+#define GL_EXT_texture_compression_dxt1 1
 #endif
 
 /* GL_EXT_texture_compression_s3tc */
@@ -167,25 +171,15 @@ typedef void  (GL_APIENTRYP PFNGLGETBUFFERPOINTERIVNVPROC) (GLenum target, GLenu
 #define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT  0x83F2
 #define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT  0x83F3
 #endif
+#ifndef GL_EXT_texture_compression_s3tc
+#define GL_EXT_texture_compression_s3tc 1
+#endif
 
 /* GL_EXT_texture_filter_anisotropic */
 #ifndef GL_EXT_texture_filter_anisotropic
 #define GL_TEXTURE_MAX_ANISOTROPY_EXT                           0x84FE
 #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT                       0x84FF
 #endif
-
-
-/* GL_EXT_texture_compression_dxt1 */
-#ifndef GL_EXT_texture_compression_dxt1
-#define GL_EXT_texture_compression_dxt1 1
-#endif
-
-/* GL_EXT_texture_compression_s3tc */
-#ifndef GL_EXT_texture_compression_s3tc
-#define GL_EXT_texture_compression_s3tc 1
-#endif
-
-/* GL_EXT_texture_filter_anisotropic */
 #ifndef GL_EXT_texture_filter_anisotropic
 #define GL_EXT_texture_filter_anisotropic 1
 #endif

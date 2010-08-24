@@ -83,7 +83,7 @@ public class Debug {
     return b.booleanValue();
   }
 
-  static boolean isPropertyDefined(final String property, final boolean jnlpAlias) {
+  public static boolean isPropertyDefined(final String property, final boolean jnlpAlias) {
     return isPropertyDefined(property, jnlpAlias, localACC);
   }
 

@@ -556,7 +556,7 @@ GL_APICALL void         GL_APIENTRY glBufferSubData (GLenum target, GLintptr off
 GL_APICALL GLenum       GL_APIENTRY glCheckFramebufferStatus (GLenum target);
 GL_APICALL void         GL_APIENTRY glClear (GLbitfield mask);
 GL_APICALL void         GL_APIENTRY glClearColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
-GL_APICALL void         GL_APIENTRY glClearDepthf (GLclampf depth);
+GL_APICALL void         GL_APIENTRY glClearDepthf (GLclampf d);
 GL_APICALL void         GL_APIENTRY glClearStencil (GLint s);
 GL_APICALL void         GL_APIENTRY glColorMask (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
 GL_APICALL void         GL_APIENTRY glCompileShader (GLuint shader);
@@ -576,7 +576,7 @@ GL_APICALL void         GL_APIENTRY glDeleteShader (GLuint shader);
 GL_APICALL void         GL_APIENTRY glDetachShader (GLuint program, GLuint shader);
 GL_APICALL void         GL_APIENTRY glDepthFunc (GLenum func);
 GL_APICALL void         GL_APIENTRY glDepthMask (GLboolean flag);
-GL_APICALL void         GL_APIENTRY glDepthRangef (GLclampf zNear, GLclampf zFar);
+GL_APICALL void         GL_APIENTRY glDepthRangef (GLclampf n, GLclampf f);
 GL_APICALL void         GL_APIENTRY glDisable (GLenum cap);
 GL_APICALL void         GL_APIENTRY glDisableVertexAttribArray (GLuint index);
 GL_APICALL void         GL_APIENTRY glDrawArrays (GLenum mode, GLint first, GLsizei count);

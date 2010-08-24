@@ -363,20 +363,6 @@ native private long dispatch_glMapBuffer(int target, int access, long glProcAddr
 
 native private ByteBuffer newDirectByteBuffer(long addr, int capacity);
 
-  /** Dummy implementation for the ES 2.0 function: <br> <code> void {@native glShaderBinary}(GLint n, const GLuint *  shaders, GLenum binaryformat, const void *  binary, GLint length); </code>  <br> Always throws a GLException!  */
-  public void glShaderBinary(int n, java.nio.IntBuffer shaders, int binaryformat, java.nio.Buffer binary, int length) {
-    throw new GLException("Method \"glShaderBinary\" not available");
-  }
-
-  /** Dummy implementation for the ES 2.0 function: <br> <code> void {@native glShaderBinary}(GLint n, const GLuint *  shaders, GLenum binaryformat, const void *  binary, GLint length); </code>  <br> Always throws a GLException!  */
-  public void glShaderBinary(int n, int[] shaders, int shaders_offset, int binaryformat, java.nio.Buffer binary, int length) {
-    throw new GLException("Method \"glShaderBinary\" not available");
-  }
-
-  public void glReleaseShaderCompiler() {
-    // nothing to do 
-  }
-
     public void glVertexPointer(GLArrayData array) {
       if(array.getComponentNumber()==0) return;
       if(array.isVBO()) {

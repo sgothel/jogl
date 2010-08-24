@@ -45,7 +45,7 @@ import java.util.*;
 
 public abstract class Display {
     public static final boolean DEBUG = Debug.debug("Display");
-    public static final boolean DEBUG_TEST_EDT_MAINTHREAD = Debug.debug("TestEDTMainThread"); // JAU EDT Test ..
+    public static final boolean DEBUG_TEST_EDT_MAINTHREAD = Debug.isPropertyDefined("newt.test.EDTMainThread", true); // JAU EDT Test ..
 
     private static Class getDisplayClass(String type) 
         throws ClassNotFoundException 
