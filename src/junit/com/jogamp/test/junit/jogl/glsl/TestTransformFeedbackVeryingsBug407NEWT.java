@@ -39,7 +39,7 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
     @Before
     public void setUp() {
         VERTEX_SHADER_TEXT =
-                  "#version 330                           \n"
+                  "#version 150                           \n"
                 + "                                       \n"
                 + "out vec4 Position;                     \n"
                 + "                                       \n"
