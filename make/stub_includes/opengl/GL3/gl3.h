@@ -66,11 +66,7 @@ extern "C" {
  */
 
 /* Function declaration macros - to move into glplatform.h */
-
-#if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
-#define WIN32_LEAN_AND_MEAN 1
-#include <windows.h>
-#endif
+#include "glplatform.h"
 
 #ifndef APIENTRY
 #define APIENTRY
@@ -826,22 +822,13 @@ typedef void GLvoid;
 #endif
 
 #ifndef GL_VERSION_3_1
-#define GL_SAMPLER_2D_RECT                0x8B63
-#define GL_SAMPLER_2D_RECT_SHADOW         0x8B64
 #define GL_SAMPLER_BUFFER                 0x8DC2
 #define GL_INT_SAMPLER_2D_RECT            0x8DCD
 #define GL_INT_SAMPLER_BUFFER             0x8DD0
 #define GL_UNSIGNED_INT_SAMPLER_2D_RECT   0x8DD5
 #define GL_UNSIGNED_INT_SAMPLER_BUFFER    0x8DD8
-#define GL_TEXTURE_BUFFER                 0x8C2A
-#define GL_MAX_TEXTURE_BUFFER_SIZE        0x8C2B
-#define GL_TEXTURE_BINDING_BUFFER         0x8C2C
-#define GL_TEXTURE_BUFFER_DATA_STORE_BINDING 0x8C2D
-#define GL_TEXTURE_BUFFER_FORMAT          0x8C2E
-#define GL_TEXTURE_RECTANGLE              0x84F5
-#define GL_TEXTURE_BINDING_RECTANGLE      0x84F6
-#define GL_PROXY_TEXTURE_RECTANGLE        0x84F7
-#define GL_MAX_RECTANGLE_TEXTURE_SIZE     0x84F8
+/* Reuse all tokens from ARB_texture_buffer_object */
+/* Reuse all tokens from ARB_texture_rectangle */
 #define GL_RED_SNORM                      0x8F90
 #define GL_RG_SNORM                       0x8F91
 #define GL_RGB_SNORM                      0x8F92
@@ -1001,17 +988,9 @@ typedef void GLvoid;
 #endif
 
 #ifndef GL_VERSION_4_0
-#define GL_SAMPLE_SHADING                 0x8C36
-#define GL_MIN_SAMPLE_SHADING_VALUE       0x8C37
-#define GL_MIN_PROGRAM_TEXTURE_GATHER_OFFSET 0x8E5E
-#define GL_MAX_PROGRAM_TEXTURE_GATHER_OFFSET 0x8E5F
-#define GL_TEXTURE_CUBE_MAP_ARRAY         0x9009
-#define GL_TEXTURE_BINDING_CUBE_MAP_ARRAY 0x900A
-#define GL_PROXY_TEXTURE_CUBE_MAP_ARRAY   0x900B
-#define GL_SAMPLER_CUBE_MAP_ARRAY         0x900C
-#define GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW  0x900D
-#define GL_INT_SAMPLER_CUBE_MAP_ARRAY     0x900E
-#define GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY 0x900F
+/* Reuse all tokens from ARB_sample_shading */
+/* Reuse all tokens from ARB_texture_gather */
+/* Reuse all tokens from ARB_texture_cube_map_array */
 /* Reuse tokens from ARB_texture_query_lod (none) */
 /* Reuse tokens from ARB_draw_buffers_blend (none) */
 /* Reuse tokens from ARB_draw_indirect */
@@ -1305,7 +1284,7 @@ typedef void GLvoid;
 #define GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER 0x8A44
 #define GL_UNIFORM_BLOCK_REFERENCED_BY_GEOMETRY_SHADER 0x8A45
 #define GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER 0x8A46
-#define GL_INVALID_INDEX                  0xFFFFFFFFu
+/* #define GL_INVALID_INDEX                  0xFFFFFFFFu - manual, due to fixed uint32_t size. GlueGen would create int64_t */
 #endif
 
 #ifndef GL_ARB_copy_buffer
@@ -1401,6 +1380,7 @@ typedef void GLvoid;
 #ifndef GL_ARB_texture_gather
 #define GL_MIN_PROGRAM_TEXTURE_GATHER_OFFSET_ARB 0x8E5E
 #define GL_MAX_PROGRAM_TEXTURE_GATHER_OFFSET_ARB 0x8E5F
+#define GL_MAX_PROGRAM_TEXTURE_GATHER_COMPONENTS_ARB 0x8F9F
 #endif
 
 #ifndef GL_ARB_texture_query_lod
@@ -1716,67 +1696,17 @@ typedef unsigned short GLhalfARB;
 typedef unsigned short GLhalfNV;
 #endif
 
-#ifndef GLEXT_64_TYPES_DEFINED
-/* This code block is duplicated in glxext.h, so must be protected */
-#define GLEXT_64_TYPES_DEFINED
-/* Define int32_t, int64_t, and uint64_t types for UST/MSC */
-/* (as used in the GL_EXT_timer_query extension). */
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-#include <inttypes.h>
-#elif defined(__sun__) || defined(__digital__)
-#include <inttypes.h>
-#if defined(__STDC__)
-#if defined(__arch64__) || defined(_LP64)
-typedef long int int64_t;
-typedef unsigned long int uint64_t;
-#else
-typedef long long int int64_t;
-typedef unsigned long long int uint64_t;
-#endif /* __arch64__ */
-#endif /* __STDC__ */
-#elif defined( __VMS ) || defined(__sgi)
-#include <inttypes.h>
-#elif defined(__SCO__) || defined(__USLC__)
-#include <stdint.h>
-#elif defined(__UNIXOS2__) || defined(__SOL64__)
-typedef long int int32_t;
-typedef long long int int64_t;
-typedef unsigned long long int uint64_t;
-#elif defined(_WIN32) && defined(__GNUC__)
-#include <stdint.h>
-#elif defined(_WIN32)
-typedef __int32 int32_t;
-typedef __int64 int64_t;
-typedef unsigned __int64 uint64_t;
-#else
-/* Fallback if nothing above works */
-#include <inttypes.h>
-#endif
-#endif
-
-#ifndef GL_EXT_timer_query
-typedef int64_t GLint64EXT;
-typedef uint64_t GLuint64EXT;
-#endif
-
-#ifndef GL_ARB_sync
-typedef int64_t GLint64;
-typedef uint64_t GLuint64;
-typedef struct __GLsync *GLsync;
-#endif
+#include "gl-64bit-types.h"
 
 #ifndef GL_ARB_cl_event
-/* These incomplete types let us declare types compatible with OpenCL's cl_context and cl_event */
+/* These incomplete types let us declare types compatible with OpenCL's cl_context and cl_event 
 struct _cl_context;
 struct _cl_event;
+ */
 #endif
 
 #ifndef GL_ARB_debug_output
 typedef void (APIENTRY *GLDEBUGPROCARB)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,GLvoid *userParam);
-#endif
-
-#ifndef GL_AMD_debug_output
-typedef void (APIENTRY *GLDEBUGPROCAMD)(GLuint id,GLenum category,GLenum severity,GLsizei length,const GLchar *message,GLvoid *userParam);
 #endif
 
 #ifndef GL_NV_vdpau_interop
@@ -2366,15 +2296,11 @@ typedef const GLubyte * (APIENTRYP PFNGLGETSTRINGIPROC) (GLenum name, GLuint ind
 /* OpenGL 3.1 also reuses entry points from these extensions: */
 /* ARB_copy_buffer */
 /* ARB_uniform_buffer_object */
+/* ARB_draw_instanced */
+/* ARB_texture_buffer_object */
 #ifdef GL3_PROTOTYPES
-GLAPI void APIENTRY glDrawArraysInstanced (GLenum mode, GLint first, GLsizei count, GLsizei primcount);
-GLAPI void APIENTRY glDrawElementsInstanced (GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount);
-GLAPI void APIENTRY glTexBuffer (GLenum target, GLenum internalformat, GLuint buffer);
 GLAPI void APIENTRY glPrimitiveRestartIndex (GLuint index);
 #endif /* GL3_PROTOTYPES */
-typedef void (APIENTRYP PFNGLDRAWARRAYSINSTANCEDPROC) (GLenum mode, GLint first, GLsizei count, GLsizei primcount);
-typedef void (APIENTRYP PFNGLDRAWELEMENTSINSTANCEDPROC) (GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount);
-typedef void (APIENTRYP PFNGLTEXBUFFERPROC) (GLenum target, GLenum internalformat, GLuint buffer);
 typedef void (APIENTRYP PFNGLPRIMITIVERESTARTINDEXPROC) (GLuint index);
 #endif
 
@@ -2427,18 +2353,8 @@ typedef void (APIENTRYP PFNGLVERTEXATTRIBDIVISORPROC) (GLuint index, GLuint divi
 /* ARB_texture_gather (no entry points) */
 /* ARB_transform_feedback2 */
 /* ARB_transform_feedback3 */
-#ifdef GL3_PROTOTYPES
-GLAPI void APIENTRY glMinSampleShading (GLclampf value);
-GLAPI void APIENTRY glBlendEquationi (GLuint buf, GLenum mode);
-GLAPI void APIENTRY glBlendEquationSeparatei (GLuint buf, GLenum modeRGB, GLenum modeAlpha);
-GLAPI void APIENTRY glBlendFunci (GLuint buf, GLenum src, GLenum dst);
-GLAPI void APIENTRY glBlendFuncSeparatei (GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
-#endif /* GL3_PROTOTYPES */
-typedef void (APIENTRYP PFNGLMINSAMPLESHADINGPROC) (GLclampf value);
-typedef void (APIENTRYP PFNGLBLENDEQUATIONIPROC) (GLuint buf, GLenum mode);
-typedef void (APIENTRYP PFNGLBLENDEQUATIONSEPARATEIPROC) (GLuint buf, GLenum modeRGB, GLenum modeAlpha);
-typedef void (APIENTRYP PFNGLBLENDFUNCIPROC) (GLuint buf, GLenum src, GLenum dst);
-typedef void (APIENTRYP PFNGLBLENDFUNCSEPARATEIPROC) (GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
+/* Susume ARB_sample_shading */
+/* Susume ARB_draw_buffers_blend */
 #endif
 
 #ifndef GL_VERSION_4_1
@@ -3187,9 +3103,11 @@ typedef void (APIENTRYP PFNGLGETDOUBLEI_VPROC) (GLenum target, GLuint index, GLd
 #ifndef GL_ARB_cl_event
 #define GL_ARB_cl_event 1
 #ifdef GL3_PROTOTYPES
-GLAPI GLsync APIENTRY glCreateSyncFromCLeventARB (struct _cl_context * context, struct _cl_event * event, GLbitfield flags);
+/* GLAPI GLsync APIENTRY glCreateSyncFromCLeventARB (struct _cl_context * context, struct _cl_event * event, GLbitfield flags); */
+GLAPI GLsync APIENTRY glCreateSyncFromCLeventARB (void * context, void  * event, GLbitfield flags);
 #endif /* GL3_PROTOTYPES */
-typedef GLsync (APIENTRYP PFNGLCREATESYNCFROMCLEVENTARBPROC) (struct _cl_context * context, struct _cl_event * event, GLbitfield flags);
+/* typedef GLsync (APIENTRYP PFNGLCREATESYNCFROMCLEVENTARBPROC) (struct _cl_context * context, struct _cl_event * event, GLbitfield flags); */
+typedef GLsync (APIENTRYP PFNGLCREATESYNCFROMCLEVENTARBPROC) (void  * context, void  * event, GLbitfield flags);
 #endif
 
 #ifndef GL_ARB_debug_output
@@ -3256,6 +3174,65 @@ typedef void (APIENTRYP PFNGLGETNUNIFORMDVARBPROC) (GLuint program, GLint locati
 #define GL_ARB_shader_stencil_export 1
 #endif
 
+#ifndef GL_ARB_texture_buffer_object
+#define GL_TEXTURE_BUFFER_ARB             0x8C2A
+#define GL_MAX_TEXTURE_BUFFER_SIZE_ARB    0x8C2B
+#define GL_TEXTURE_BINDING_BUFFER_ARB     0x8C2C
+#define GL_TEXTURE_BUFFER_DATA_STORE_BINDING_ARB 0x8C2D
+#define GL_TEXTURE_BUFFER_FORMAT_ARB      0x8C2E
+#endif
+#ifndef GL_ARB_texture_buffer_object
+#define GL_ARB_texture_buffer_object 1
+#ifdef GL_GLEXT_PROTOTYPES
+GLAPI void APIENTRY glTexBufferARB (GLenum target, GLenum internalformat, GLuint buffer);
+#endif /* GL_GLEXT_PROTOTYPES */
+typedef void (APIENTRYP PFNGLTEXBUFFERARBPROC) (GLenum target, GLenum internalformat, GLuint buffer);
+#endif
+
+/**
+ * Convenient names only .. actually subsumed into core
+ */
+#ifndef GL_ARB_texture_rectangle
+#define GL_TEXTURE_RECTANGLE_ARB          0x84F5
+#define GL_TEXTURE_BINDING_RECTANGLE_ARB  0x84F6
+#define GL_PROXY_TEXTURE_RECTANGLE_ARB    0x84F7
+#define GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB 0x84F8
+#define GL_SAMPLER_2D_RECT_ARB            0x8B63
+#define GL_SAMPLER_2D_RECT_SHADOW_ARB     0x8B64
+#endif
+#ifndef GL_ARB_texture_rectangle
+#define GL_ARB_texture_rectangle 1
+#endif
+
+/**
+ * We rename EXT_texture_rectangle into core,
+ * so ARB_texture_rectangle will remain intact.
+ */
+#ifndef GL_EXT_texture_rectangle
+#define GL_TEXTURE_RECTANGLE_EXT          0x84F5
+#define GL_TEXTURE_BINDING_RECTANGLE_EXT  0x84F6
+#define GL_PROXY_TEXTURE_RECTANGLE_EXT    0x84F7
+#define GL_MAX_RECTANGLE_TEXTURE_SIZE_EXT 0x84F8
+#define GL_SAMPLER_2D_RECT_EXT            0x8B63
+#define GL_SAMPLER_2D_RECT_SHADOW_EXT     0x8B64
+#endif
+#ifndef GL_EXT_texture_rectangle 
+#define GL_EXT_texture_rectangle 1 
+#endif
+
+#ifndef GL_ARB_draw_instanced
+#endif
+#ifndef GL_ARB_draw_instanced
+#define GL_ARB_draw_instanced 1
+#ifdef GL_GLEXT_PROTOTYPES
+GLAPI void APIENTRY glDrawArraysInstancedARB (GLenum mode, GLint first, GLsizei count, GLsizei primcount);
+GLAPI void APIENTRY glDrawElementsInstancedARB (GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount);
+#endif /* GL_GLEXT_PROTOTYPES */
+typedef void (APIENTRYP PFNGLDRAWARRAYSINSTANCEDARBPROC) (GLenum mode, GLint first, GLsizei count, GLsizei primcount);
+typedef void (APIENTRYP PFNGLDRAWELEMENTSINSTANCEDARBPROC) (GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount);
+#endif
+
+#include <GL3/gl3ext.h>
 
 #ifdef __cplusplus
 }
