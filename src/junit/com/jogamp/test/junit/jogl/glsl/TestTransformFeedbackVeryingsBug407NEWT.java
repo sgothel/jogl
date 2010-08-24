@@ -78,6 +78,9 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
     }
 
     private int getShader(GL3 gl, String text, int type) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream pbaos = new PrintStream(baos);
+
         int shaderProgram = gl.glCreateProgram();
 
         int vertShader = gl.glCreateShader(type);
@@ -86,13 +89,24 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
         int[] lengths = new int[]{lines[0].length()};
         gl.glShaderSource(vertShader, lines.length, lines, lengths, 0);
         gl.glCompileShader(vertShader);
+
+        if(!ShaderUtil.isShaderStatusValid(gl, vertShader, gl.GL_COMPILE_STATUS, pbaos)) {
+            System.out.println("getShader:postCompile: "+baos.toString());
+            Assert.assertTrue(false);
+        }
+        pbaos.flush(); baos.reset();
+
         gl.glAttachShader(shaderProgram, vertShader);
+
 
         return shaderProgram;
     }
 
     @Test
     public void testGlTransformFeedbackVaryings_WhenVarNameOK() {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream pbaos = new PrintStream(baos);
+
         // given
 
         GL3 gl = context.getGL().getGL3();
@@ -106,12 +120,20 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
 
         // then
 
-        Assert.assertTrue(ShaderUtil.isProgramValid(gl, shaderProgram, System.out));
+        if(!ShaderUtil.isProgramValid(gl, shaderProgram, pbaos)) {
+            System.out.println("testGlTransformFeedbackVaryings_WhenVarNameOK:postLink: "+baos.toString());
+            Assert.assertTrue(false);
+        }
+        pbaos.flush(); baos.reset();
+
         Assert.assertEquals(GL3.GL_NO_ERROR, gl.glGetError());
     }
 
     @Test
     public void testGlTransformFeedbackVaryings_WhenVarNameWrong() {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream pbaos = new PrintStream(baos);
+
         // given
 
         GL3 gl = context.getGL().getGL3();
@@ -125,10 +147,16 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
 
         // then
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Assert.assertFalse(ShaderUtil.isProgramValid(gl, shaderProgram, new PrintStream(baos)));
+        if(!ShaderUtil.isProgramValid(gl, shaderProgram, pbaos)) {
+            System.out.println("testGlTransformFeedbackVaryings_WhenVarNameWrong:postLink: "+baos.toString());
+            // should be invalid, due to wrong var name
+        } else {
+            Assert.assertTrue(false);
+        }
+        pbaos.flush(); baos.reset();
+
         Assert.assertEquals(GL3.GL_NO_ERROR, gl.glGetError());
-        Assert.assertTrue(baos.toString().contains("(named PPPosition)"));
+        // You cannot assume this error message - Assert.assertTrue(baos.toString().contains("(named PPPosition)"));
     }
 
     public static void main(String args[]) throws IOException {
