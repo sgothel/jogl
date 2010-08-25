@@ -439,7 +439,7 @@
     <target name="java.generate.gl2_gl3_if">
         <echo message="Generating GL2_GL3 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gl3-subset.c" 
+        <gluegen src="${stub.includes.opengl}/gl3.c" 
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl3-subset.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
