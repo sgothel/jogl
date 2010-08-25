@@ -82,7 +82,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
                 focusActionImpl.run();
             } else {
                 try {
-                    EventQueue.invokeAndWait(focusActionImpl);
+                    EventQueue.invokeLater(focusActionImpl);
                 } catch (Exception e) {
                     throw new NativeWindowException(e);
                 }
