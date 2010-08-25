@@ -3183,9 +3183,9 @@ typedef void (APIENTRYP PFNGLGETNUNIFORMDVARBPROC) (GLuint program, GLint locati
 #endif
 #ifndef GL_ARB_texture_buffer_object
 #define GL_ARB_texture_buffer_object 1
-#ifdef GL_GLEXT_PROTOTYPES
+#ifdef GL3_PROTOTYPES
 GLAPI void APIENTRY glTexBufferARB (GLenum target, GLenum internalformat, GLuint buffer);
-#endif /* GL_GLEXT_PROTOTYPES */
+#endif /* GL3_PROTOTYPES */
 typedef void (APIENTRYP PFNGLTEXBUFFERARBPROC) (GLenum target, GLenum internalformat, GLuint buffer);
 #endif
 
@@ -3224,10 +3224,10 @@ typedef void (APIENTRYP PFNGLTEXBUFFERARBPROC) (GLenum target, GLenum internalfo
 #endif
 #ifndef GL_ARB_draw_instanced
 #define GL_ARB_draw_instanced 1
-#ifdef GL_GLEXT_PROTOTYPES
+#ifdef GL3_PROTOTYPES
 GLAPI void APIENTRY glDrawArraysInstancedARB (GLenum mode, GLint first, GLsizei count, GLsizei primcount);
 GLAPI void APIENTRY glDrawElementsInstancedARB (GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount);
-#endif /* GL_GLEXT_PROTOTYPES */
+#endif /* GL3_PROTOTYPES */
 typedef void (APIENTRYP PFNGLDRAWARRAYSINSTANCEDARBPROC) (GLenum mode, GLint first, GLsizei count, GLsizei primcount);
 typedef void (APIENTRYP PFNGLDRAWELEMENTSINSTANCEDARBPROC) (GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount);
 #endif

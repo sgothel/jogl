@@ -84,12 +84,12 @@
 #endif
 #ifndef GL_ARB_geometry_shader4
 #define GL_ARB_geometry_shader4 1
-#ifdef GL_GLEXT_PROTOTYPES
+#ifdef GL_GL3EXT_PROTOTYPES
 GLAPI void APIENTRY glProgramParameteriARB (GLuint program, GLenum pname, GLint value);
 GLAPI void APIENTRY glFramebufferTextureARB (GLenum target, GLenum attachment, GLuint texture, GLint level);
 GLAPI void APIENTRY glFramebufferTextureLayerARB (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
 GLAPI void APIENTRY glFramebufferTextureFaceARB (GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face);
-#endif /* GL_GLEXT_PROTOTYPES */
+#endif /* GL_GL3EXT_PROTOTYPES */
 typedef void (APIENTRYP PFNGLPROGRAMPARAMETERIARBPROC) (GLuint program, GLenum pname, GLint value);
 typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTUREARBPROC) (GLenum target, GLenum attachment, GLuint texture, GLint level);
 typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTURELAYERARBPROC) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
@@ -113,7 +113,7 @@ typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTUREFACEARBPROC) (GLenum target, GLen
 #ifdef GL_GL3EXT_PROTOTYPES
 GLAPI void APIENTRY glTessellationFactorAMD(GLfloat factor);
 GLAPI void APIENTRY glTessellationModeAMD(GLenum mode);
-#endif
+#endif /* GL_GL3EXT_PROTOTYPES */
 /* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
@@ -307,12 +307,12 @@ typedef void (APIENTRY *GLDEBUGPROCAMD)(GLuint id,GLenum category,GLenum severit
 #endif
 #ifndef GL_AMD_debug_output
 #define GL_AMD_debug_output 1
-#ifdef GL_GLEXT_PROTOTYPES
+#ifdef GL_GL3EXT_PROTOTYPES
 GLAPI void APIENTRY glDebugMessageEnableAMD (GLenum category, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
 GLAPI void APIENTRY glDebugMessageInsertAMD (GLenum category, GLenum severity, GLuint id, GLsizei length, const GLchar *buf);
 GLAPI void APIENTRY glDebugMessageCallbackAMD (GLDEBUGPROCAMD callback, GLvoid *userParam);
 GLAPI GLuint APIENTRY glGetDebugMessageLogAMD (GLuint count, GLsizei bufsize, GLenum *categories, GLuint *severities, GLuint *ids, GLsizei *lengths, GLchar *message);
-#endif /* GL_GLEXT_PROTOTYPES */
+#endif /* GL_GL3EXT_PROTOTYPES */
 typedef void (APIENTRYP PFNGLDEBUGMESSAGEENABLEAMDPROC) (GLenum category, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
 typedef void (APIENTRYP PFNGLDEBUGMESSAGEINSERTAMDPROC) (GLenum category, GLenum severity, GLuint id, GLsizei length, const GLchar *buf);
 typedef void (APIENTRYP PFNGLDEBUGMESSAGECALLBACKAMDPROC) (GLDEBUGPROCAMD callback, GLvoid *userParam);
