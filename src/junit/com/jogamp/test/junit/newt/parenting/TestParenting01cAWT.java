@@ -59,6 +59,7 @@ import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.awt.NewtCanvasAWT;
+import com.jogamp.newt.util.EDTUtil;
 
 import java.io.IOException;
 
@@ -145,8 +146,16 @@ public class TestParenting01cAWT {
         frame1.dispose();
         Assert.assertEquals(false, glWindow1.isDestroyed());
 
+        // Get the EDT for the display so that we can verify it is shut down.
+        EDTUtil edt1 = glWindow1.getScreen().getDisplay().getEDTUtil();
+        Assert.assertTrue (edt1.isRunning());
+
         glWindow1.destroy(true);
-        //Assert.assertEquals(true, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow1.isDestroyed());
+
+        // Verify that the EDT has been stopped.
+        Assert.assertFalse ("EDT was not stopped during destroy",
+            edt1.isRunning());
     }
 
     @Test
