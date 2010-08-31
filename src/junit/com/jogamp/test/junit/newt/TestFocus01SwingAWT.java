@@ -78,25 +78,26 @@ public class TestFocus01SwingAWT {
         frame1.setSize(width, height);
         frame1.setVisible(true);
 
+        // Request the focus, which should automatically provide the window
+        // with focus.
+        newtCanvasAWT.requestFocus();
+
         Animator animator = new Animator(glWindow1);
         animator.start();
 
-        Robot robot = new Robot();
-
-        // Wait for the window to initialize.
+        // Wait for the window to initialize and receive focus.
         // TODO Eliminate the need for this delay.
         while (glWindow1.getDuration() < durationPerTest) {
             Thread.sleep(100);
         }
 
-        // Request the focus, which should automatically provide the window
-        // with focus.
-        newtCanvasAWT.requestFocus();
+        // Verify focus status.
         assertFalse("AWT parent canvas has focus", newtCanvasAWT.hasFocus());
         // TODO No test for NEWT hasFocus.
         // assertTrue(newtCanvasAWT.getNEWTChild().hasFocus());
 
         // Type two keys, which should be directed to the focused window.
+        Robot robot = new Robot();
         robot.keyPress(java.awt.event.KeyEvent.VK_A);
         robot.keyRelease(java.awt.event.KeyEvent.VK_A);
         robot.keyPress(java.awt.event.KeyEvent.VK_B);

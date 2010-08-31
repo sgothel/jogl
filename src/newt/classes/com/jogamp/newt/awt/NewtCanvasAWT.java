@@ -35,11 +35,8 @@ package com.jogamp.newt.awt;
 import java.lang.reflect.*;
 import java.security.*;
 
-import java.awt.Button;
 import java.awt.Canvas;
-import java.awt.Component;
 import java.awt.EventQueue;
-import java.awt.Frame;
 import java.awt.Graphics;
 
 import javax.media.nativewindow.*;
@@ -47,9 +44,6 @@ import javax.media.nativewindow.*;
 import com.jogamp.newt.event.awt.AWTAdapter;
 import com.jogamp.newt.event.awt.AWTParentWindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
-import com.jogamp.newt.event.WindowAdapter;
-import com.jogamp.newt.event.MouseEvent;
-import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.impl.Debug;
@@ -133,6 +127,11 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         }
         if(attach && null!=newtChild) {
             awtAdapter = new AWTParentWindowAdapter(newtChild).addTo(this);
+
+            // If the child has been reparented, it will need to request focus.
+            if (hasFocus()) {
+                requestFocus();
+            }
         }
     }
 

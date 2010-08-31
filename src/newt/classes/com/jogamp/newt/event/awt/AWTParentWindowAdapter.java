@@ -57,6 +57,11 @@ public class AWTParentWindowAdapter
         if(DEBUG_IMPLEMENTATION) {
             System.out.println("AWT: focusGained: START "+ e.getComponent());
         }
+
+        // Ensure that receiving focus is passed on to any NEWT child.
+        // This doesn't loop indefinitely because FOCUS_GAINED is only fired
+        // the first time.
+        e.getComponent().requestFocus();
     }
 
     public void focusLost(java.awt.event.FocusEvent e) {
