@@ -220,7 +220,6 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         super.requestFocus();
         if (null != newtChild) {
             newtChild.runOnEDTIfAvail(true, new Runnable() {
-                @Override
                 public void run() {
                     if (null != newtChild) {
                         newtChild.setFocusAction(null);
@@ -236,7 +235,6 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         boolean res = super.requestFocus(temporary);
         if (res && null != newtChild) {
             newtChild.runOnEDTIfAvail(true, new Runnable() {
-                @Override
                 public void run() {
                     if (null != newtChild) {
                         newtChild.setFocusAction(null);
@@ -253,7 +251,6 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         boolean res = super.requestFocusInWindow();
         if (res && null != newtChild) {
             newtChild.runOnEDTIfAvail(true, new Runnable() {
-                @Override
                 public void run() {
                     if (null != newtChild) {
                         newtChild.setFocusAction(null);
@@ -270,8 +267,6 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         boolean res = super.requestFocusInWindow(temporary);
         if (res && null != newtChild) {
             newtChild.runOnEDTIfAvail(true, new Runnable() {
-
-                @Override
                 public void run() {
                     if (null != newtChild) {
                         newtChild.setFocusAction(null);
