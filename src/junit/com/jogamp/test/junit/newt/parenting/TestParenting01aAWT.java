@@ -95,7 +95,7 @@ public class TestParenting01aAWT {
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeWindowValid());
         Assert.assertNull(glWindow1.getParentNativeWindow());
-        glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
+        glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy1");
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
@@ -106,7 +106,7 @@ public class TestParenting01aAWT {
         Assert.assertEquals(false, glWindow1.isNativeWindowValid());
         Assert.assertNull(glWindow1.getParentNativeWindow());
 
-        Frame frame1 = new Frame("AWT Parent Frame");
+        Frame frame1 = new Frame("AWT Parent Frame: " + glWindow1.getTitle());
         frame1.setLayout(new BorderLayout());
         frame1.add(new Button("North"), BorderLayout.NORTH);
         frame1.add(new Button("South"), BorderLayout.SOUTH);
@@ -165,6 +165,7 @@ public class TestParenting01aAWT {
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeWindowValid());
         Assert.assertNull(glWindow1.getParentNativeWindow());
+        glWindow1.setTitle("testWindowParenting02CreateVisibleDestroy2Defered");
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
@@ -175,7 +176,7 @@ public class TestParenting01aAWT {
         Assert.assertEquals(false, glWindow1.isNativeWindowValid());
         Assert.assertNull(glWindow1.getParentNativeWindow());
 
-        Frame frame = new Frame("AWT Parent Frame");
+        Frame frame = new Frame("AWT Parent Frame: " + glWindow1.getTitle());
         Assert.assertNotNull(frame);
         frame.setSize(width, height);
 
@@ -205,13 +206,14 @@ public class TestParenting01aAWT {
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
         GLWindow glWindow1 = GLWindow.create(glCaps);
+        glWindow1.setTitle("testWindowParenting02CreateVisibleDestroy3Odd");
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
 
-        Frame frame = new Frame("AWT Parent Frame");
+        Frame frame = new Frame("AWT Parent Frame: " + glWindow1.getTitle());
         Assert.assertNotNull(frame);
         frame.setSize(width, height);
 
@@ -240,13 +242,14 @@ public class TestParenting01aAWT {
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
         GLWindow glWindow1 = GLWindow.create(glCaps);
+        glWindow1.setTitle("testWindowParenting03ReparentNewtWin2Top");
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
 
-        Frame frame = new Frame("AWT Parent Frame");
+        Frame frame = new Frame("AWT Parent Frame: " + glWindow1.getTitle());
         frame.setSize(width, height);
         frame.setLocation(640, 480);
         frame.setVisible(true);
@@ -290,13 +293,14 @@ public class TestParenting01aAWT {
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
         GLWindow glWindow1 = GLWindow.create(glCaps);
+        glWindow1.setTitle("testWindowParenting04ReparentNewtWin2TopLayouted");
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
 
-        Frame frame = new Frame("AWT Parent Frame");
+        Frame frame = new Frame("AWT Parent Frame: " + glWindow1.getTitle());
         frame.setLayout(new BorderLayout());
         frame.add(new Button("North"), BorderLayout.NORTH);
         frame.add(new Button("South"), BorderLayout.SOUTH);
@@ -345,13 +349,14 @@ public class TestParenting01aAWT {
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
         GLWindow glWindow1 = GLWindow.create(glCaps, true);
+        glWindow1.setTitle("testWindowParenting05ReparentAWTWinHopFrame2Frame");
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
 
-        Frame frame1 = new Frame("AWT Parent Frame");
+        Frame frame1 = new Frame("AWT Parent Frame 1: " + glWindow1.getTitle());
         frame1.setLayout(new BorderLayout());
         frame1.add(new Button("North"), BorderLayout.NORTH);
         frame1.add(new Button("South"), BorderLayout.SOUTH);
@@ -361,7 +366,7 @@ public class TestParenting01aAWT {
         frame1.setLocation(0, 0);
         frame1.setVisible(true);
 
-        Frame frame2 = new Frame("AWT Parent Frame");
+        Frame frame2 = new Frame("AWT Parent Frame 2: " + glWindow1.getTitle());
         frame2.setLayout(new BorderLayout());
         frame2.add(new Button("North"), BorderLayout.NORTH);
         frame2.add(new Button("South"), BorderLayout.SOUTH);
