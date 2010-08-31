@@ -82,7 +82,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
                 focusActionImpl.run();
             } else {
                 try {
-                    EventQueue.invokeLater(focusActionImpl);
+                    EventQueue.invokeAndWait(focusActionImpl);
                 } catch (Exception e) {
                     throw new NativeWindowException(e);
                 }
@@ -219,39 +219,68 @@ public class NewtCanvasAWT extends java.awt.Canvas {
 
     public void requestFocus() {
         super.requestFocus();
-        if(null!=newtChild) {
-            newtChild.setFocusAction(null);
-            newtChild.requestFocus();
-            newtChild.setFocusAction(focusAction);
+        if (null != newtChild) {
+            newtChild.runOnEDTIfAvail(true, new Runnable() {
+                @Override
+                public void run() {
+                    if (null != newtChild) {
+                        newtChild.setFocusAction(null);
+                        newtChild.requestFocus();
+                        newtChild.setFocusAction(focusAction);
+                    }
+                }
+            });
         }
     }
 
     public boolean requestFocus(boolean temporary) {
         boolean res = super.requestFocus(temporary);
-        if(res && null!=newtChild) {
-            newtChild.setFocusAction(null);
-            newtChild.requestFocus();
-            newtChild.setFocusAction(focusAction);
+        if (res && null != newtChild) {
+            newtChild.runOnEDTIfAvail(true, new Runnable() {
+                @Override
+                public void run() {
+                    if (null != newtChild) {
+                        newtChild.setFocusAction(null);
+                        newtChild.requestFocus();
+                        newtChild.setFocusAction(focusAction);
+                    }
+                }
+            });
         }
         return res;
     }
 
     public boolean requestFocusInWindow() {
         boolean res = super.requestFocusInWindow();
-        if(res && null!=newtChild) {
-            newtChild.setFocusAction(null);
-            newtChild.requestFocus();
-            newtChild.setFocusAction(focusAction);
+        if (res && null != newtChild) {
+            newtChild.runOnEDTIfAvail(true, new Runnable() {
+                @Override
+                public void run() {
+                    if (null != newtChild) {
+                        newtChild.setFocusAction(null);
+                        newtChild.requestFocus();
+                        newtChild.setFocusAction(focusAction);
+                    }
+                }
+            });
         }
         return res;
     }
 
     public boolean requestFocusInWindow(boolean temporary) {
         boolean res = super.requestFocusInWindow(temporary);
-        if(res && null!=newtChild) {
-            newtChild.setFocusAction(null);
-            newtChild.requestFocus();
-            newtChild.setFocusAction(focusAction);
+        if (res && null != newtChild) {
+            newtChild.runOnEDTIfAvail(true, new Runnable() {
+
+                @Override
+                public void run() {
+                    if (null != newtChild) {
+                        newtChild.setFocusAction(null);
+                        newtChild.requestFocus();
+                        newtChild.setFocusAction(focusAction);
+                    }
+                }
+            });
         }
         return res;
     }
