@@ -43,7 +43,6 @@
 
 #include "com_jogamp_newt_impl_opengl_broadcom_egl_Window.h"
 
-#include "EventListener.h"
 #include "MouseEvent.h"
 #include "KeyEvent.h"
 

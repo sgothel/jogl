@@ -37,10 +37,5 @@ import com.jogamp.newt.*;
 
 public interface NEWTEventListener extends java.util.EventListener
 {
-    public static final int WINDOW  = 1 << 0;
-    public static final int MOUSE   = 1 << 1;
-    public static final int KEY     = 1 << 2;
-    public static final int SURFACE = 1 << 3;
-
 }
 

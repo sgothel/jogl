@@ -297,11 +297,20 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
     }
 
     public void requestFocus() {
-        if(0 != windowHandle) {
-            requestFocusImpl();
-        }
+        enqueueRequestFocus(false); // FIXME: or shall we wait ?
     }
     protected void requestFocusImpl() {}
+
+    class RequestFocusAction implements Runnable {
+        public void run() {
+            Window.this.requestFocusImpl();
+        }
+    }
+    RequestFocusAction requestFocusAction = new RequestFocusAction();
+
+    public void enqueueRequestFocus(boolean wait) {
+        runOnEDTIfAvail(wait, requestFocusAction);
+    }
 
     /** 
      * May set to a {@link FocusRunnable}, {@link FocusRunnable#run()} before Newt requests the native focus.
@@ -985,20 +994,19 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
         switch(e.getEventType()) {
             case WindowEvent.EVENT_WINDOW_REPAINT:
                 if( windowIsLocked() ) {
+                  // make sure only one repaint event is queued
                   if(!repaintQueued) {
                       repaintQueued=true;
                       return false;
-                  } else {
-                      return true;
                   }
-                } else {
-                  if(DEBUG_IMPLEMENTATION) {
+                  return true;
+                }
+                if(DEBUG_IMPLEMENTATION) {
                     System.out.println("Window.windowRepaint: "+e);
                     // Exception ee = new Exception("Window.windowRepaint: "+e);
                     // ee.printStackTrace();
-                  }
-                  repaintQueued=false;
                 }
+                repaintQueued=false; // no repaint event queued
                 break;
             default:
                 break;
@@ -1009,6 +1017,8 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
             getInnerWindow().consumeKeyEvent((KeyEvent)e);
         } else if(e instanceof MouseEvent) {
             getInnerWindow().consumeMouseEvent((MouseEvent)e);
+        } else {
+            throw new NativeWindowException("Unexpected NEWTEvent type " + e);
         }
         return true;
     }

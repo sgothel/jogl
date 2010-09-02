@@ -48,17 +48,9 @@ public abstract class InputEvent extends NEWTEvent
 
  protected InputEvent(int eventType, Object source, long when, int modifiers) {
     super(eventType, source, when);
-    this.consumed=false;
     this.modifiers=modifiers;
  }
 
- public void consume() {
-    consumed=true;
- }
-
- public boolean isConsumed() {
-    return consumed;
- }
  public int getModifiers() {
     return modifiers;
  }
@@ -94,6 +86,5 @@ public abstract class InputEvent extends NEWTEvent
      return "InputEvent[modifiers:"+modifiers+", "+super.toString()+"]";
  }
 
- private boolean consumed;
  private int modifiers;
 }

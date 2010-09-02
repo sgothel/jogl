@@ -84,6 +84,14 @@ public class AWTWindow extends Window {
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
 
+    protected void requestFocusImpl() {
+        runOnEDT(true, new Runnable() {
+                public void run() {
+                    container.requestFocus();
+                }
+            });
+    }
+
     protected void setTitleImpl(final String title) {
         runOnEDT(true, new Runnable() {
                 public void run() {
