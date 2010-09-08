@@ -44,6 +44,7 @@ import javax.media.nativewindow.*;
 import com.jogamp.newt.event.awt.AWTAdapter;
 import com.jogamp.newt.event.awt.AWTParentWindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
+import com.jogamp.newt.Display;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.impl.Debug;
@@ -183,8 +184,17 @@ public class NewtCanvasAWT extends java.awt.Canvas {
               setSize(cont.getWidth(), cont.getHeight());
               newtChild.setSize(cont.getWidth(), cont.getHeight());
 
+              // FIXME: Variables for hack which will work for a single window.
+              Screen origScreen = null;
+              Display origDisplay = null;
+
               Screen screen = null;
               if( !newtChild.isNativeWindowValid() ) {
+                  // FIXME: Setup for hack which will work for a single window.
+                  // Hold on to the original screen and display for the child.
+                  origScreen = newtChild.getScreen();
+                  origDisplay = origScreen.getDisplay();
+
                   screen = NewtFactoryAWT.createCompatibleScreen(parent);
               }
               newtChild.reparentWindow(parent, screen);
@@ -192,6 +202,16 @@ public class NewtCanvasAWT extends java.awt.Canvas {
               setWindowAdapter(true);
               newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
               newtChild.windowRepaint(0, 0, newtChild.getWidth(), newtChild.getHeight());
+
+              // FIXME: Hack which will work for a single window.
+              // Clean-up the original screen (if different) and update the
+              // reference count on the display.
+              if (origScreen != null && screen != origScreen) {
+                 origScreen.destroy();
+              }
+              if (origDisplay != null) {
+                 origDisplay.destroy();
+              }
           }
       } else {
           setWindowAdapter(false);
