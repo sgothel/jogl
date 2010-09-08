@@ -113,7 +113,8 @@ public class DefaultEDTUtil implements EDTUtil {
         Throwable throwable = null;
         synchronized(lock) {
             invokeLater(rTask);
-            if( doWait ) {
+            // Ensure that the EDT is still running before waiting.
+            if( doWait && edt.isRunning() ) {
                 try {
                     lock.wait();
                 } catch (InterruptedException ie) {
