@@ -44,7 +44,6 @@ import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.NullWindow;
-import com.jogamp.nativewindow.impl.x11.*;
 
 public class X11ExternalGLXContext extends X11GLXContext {
   private boolean firstMakeCurrent = true;

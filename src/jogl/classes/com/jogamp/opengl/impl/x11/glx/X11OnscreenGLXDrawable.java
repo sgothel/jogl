@@ -41,9 +41,6 @@ package com.jogamp.opengl.impl.x11.glx;
 
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.opengl.impl.x11.*;
-import com.jogamp.nativewindow.impl.x11.*;
 
 public class X11OnscreenGLXDrawable extends X11GLXDrawable {
   /** GLXWindow can't be made current on AWT with NVidia driver, hence disabled for now */

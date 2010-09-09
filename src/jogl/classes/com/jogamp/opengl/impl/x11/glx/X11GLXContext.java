@@ -43,10 +43,7 @@ import java.nio.*;
 import java.util.*;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.x11.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.opengl.impl.x11.glx.*;
-import com.jogamp.nativewindow.impl.x11.*;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 
@@ -402,9 +399,8 @@ public abstract class X11GLXContext extends GLContextImpl {
       glXQueryExtensionsStringInitialized = true;
     }
     if (glXQueryExtensionsStringAvailable) {
-        long display = drawable.getNativeWindow().getDisplayHandle();
-        String ret = GLX.glXQueryExtensionsString(drawable.getNativeWindow().getDisplayHandle(), 
-                                                  drawable.getNativeWindow().getScreenIndex());
+        NativeWindow nw = drawable.getNativeWindow();
+        String ret = GLX.glXQueryExtensionsString(nw.getDisplayHandle(), nw.getScreenIndex());
         if (DEBUG) {
           System.err.println("!!! GLX extensions: " + ret);
         }
@@ -431,7 +427,6 @@ public abstract class X11GLXContext extends GLContextImpl {
     GLCapabilities glCaps = (GLCapabilities) config.getChosenCapabilities();
     if(!glCaps.isOnscreen()) return;
 
-    long display = drawable.getNativeWindow().getDisplayHandle();
     GLXExt glXExt = getGLXExt();
     if(0==hasSwapIntervalSGI) {
         try {

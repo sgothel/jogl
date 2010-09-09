@@ -40,8 +40,6 @@
 package com.jogamp.opengl.impl.x11.glx;
 
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.opengl.impl.x11.*;
 
 public class X11OffscreenGLXContext extends X11GLXContext {
   private X11OffscreenGLXDrawable drawable;
