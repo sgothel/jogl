@@ -34,19 +34,14 @@ package com.jogamp.opengl.impl.x11.glx.awt;
 
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.nativewindow.awt.*;
 import javax.media.opengl.*;
-import javax.media.opengl.awt.*;
 
 import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.jawt.*;
 import com.jogamp.nativewindow.impl.jawt.x11.*;
 import com.jogamp.nativewindow.impl.x11.*;
-import com.jogamp.opengl.impl.x11.*;
-import com.jogamp.opengl.impl.x11.glx.*;
 
 public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
@@ -111,11 +106,8 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
         if(DEBUG) {
             System.err.println("AWT Colormodel compatible: "+capabilities);
         }
-
-        x11Config = (X11GraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(x11Device).chooseGraphicsConfiguration(capabilities,
-                                                                                           chooser,
-                                                                                           x11Screen);
+        GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(x11Device);
+        x11Config = (X11GraphicsConfiguration)factory.chooseGraphicsConfiguration(capabilities, chooser, x11Screen);
         if (x11Config == null) {
             throw new GLException("Unable to choose a GraphicsConfiguration: "+capabilities+",\n\t"+chooser+"\n\t"+x11Screen);
         }

@@ -36,23 +36,17 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-
 package com.jogamp.opengl.impl.x11.glx;
 
-import java.util.*;
-
-import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.opengl.impl.x11.*;
 
 public class X11OnscreenGLXContext extends X11GLXContext {
-  public X11OnscreenGLXContext(X11OnscreenGLXDrawable drawable,
-                              GLContext shareWith) {
-    super(drawable, shareWith);
-  }
-  
-  protected boolean createImpl() {
-    return createContext(true);
-  }
+
+    public X11OnscreenGLXContext(X11OnscreenGLXDrawable drawable, GLContext shareWith) {
+        super(drawable, shareWith);
+    }
+
+    protected boolean createImpl() {
+        return createContext(true);
+    }
 }

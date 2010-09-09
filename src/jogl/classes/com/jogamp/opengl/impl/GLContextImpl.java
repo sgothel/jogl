@@ -119,8 +119,8 @@ public abstract class GLContextImpl extends GLContext {
 
   public GL setGL(GL gl) {
     if(DEBUG) {
-        String sgl1 = (null!=this.gl)?this.gl.getClass().toString()+", "+this.gl.toString():new String("<null>");
-        String sgl2 = (null!=gl)?gl.getClass().toString()+", "+gl.toString():new String("<null>");
+        String sgl1 = (null!=this.gl)?this.gl.getClass().toString()+", "+this.gl.toString():"<null>";
+        String sgl2 = (null!=gl)?gl.getClass().toString()+", "+gl.toString():"<null>";
         Exception e = new Exception("setGL (OpenGL "+getGLVersion()+"): "+Thread.currentThread()+", "+sgl1+" -> "+sgl2);
         e.printStackTrace();
     }
@@ -455,26 +455,12 @@ public abstract class GLContextImpl extends GLContext {
     AbstractGraphicsConfiguration config = drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities glCaps = (GLCapabilities) config.getChosenCapabilities();
     GLProfile glp = glCaps.getGLProfile();
-    long _context = 0;
 
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! createContextARB: mappedVersionsAvailableSet "+ mappedVersionsAvailableSet);
     }
-    if( !mappedVersionsAvailableSet ) {
-        synchronized(mappedVersionsAvailableLock) {
-            if( !mappedVersionsAvailableSet ) {
-                createContextARBMapVersionsAvailable(4, false /* compat */); // GL4
-                createContextARBMapVersionsAvailable(4, true /* compat */);  // GL4bc
-                createContextARBMapVersionsAvailable(3, false /* compat */); // GL3
-                createContextARBMapVersionsAvailable(3, true /* compat */);  // GL3bc
-                createContextARBMapVersionsAvailable(2, true /* compat */);  // GL2
-                mappedVersionsAvailableSet=true;
-                if (DEBUG) {
-                  System.err.println(getThreadName() + ": !!! createContextARB: SET mappedVersionsAvailableSet "+ mappedVersionsAvailableSet);
-                }
-            }
-        }
-    }
+
+    mapGLVersions();
 
     int reqMajor;
     if(glp.isGL4()) {
@@ -501,6 +487,24 @@ public abstract class GLContextImpl extends GLContext {
     }
     return _ctx;
   }
+
+    private void mapGLVersions() {
+        if (!mappedVersionsAvailableSet) {
+            synchronized (mappedVersionsAvailableLock) {
+                if (!mappedVersionsAvailableSet) {
+                    createContextARBMapVersionsAvailable(4, false); // GL4
+                    createContextARBMapVersionsAvailable(4, true);  // GL4bc
+                    createContextARBMapVersionsAvailable(3, false); // GL3
+                    createContextARBMapVersionsAvailable(3, true);  // GL3bc
+                    createContextARBMapVersionsAvailable(2, true);  // GL2
+                    mappedVersionsAvailableSet = true;
+                    if (DEBUG) {
+                        System.err.println(getThreadName() + ": !!! createContextARB: SET mappedVersionsAvailableSet " + mappedVersionsAvailableSet);
+                    }
+                }
+            }
+        }
+    }
 
   private final void createContextARBMapVersionsAvailable(int reqMajor, boolean compat)
   {

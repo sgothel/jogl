@@ -41,9 +41,6 @@ package com.jogamp.opengl.impl.x11.glx;
 
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.opengl.impl.x11.glx.*;
-import com.jogamp.nativewindow.impl.x11.*;
 
 public class X11PbufferGLXDrawable extends X11GLXDrawable {
   protected X11PbufferGLXDrawable(GLDrawableFactory factory, NativeWindow target) {

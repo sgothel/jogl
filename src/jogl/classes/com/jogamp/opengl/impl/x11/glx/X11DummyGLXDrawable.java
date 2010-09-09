@@ -33,9 +33,7 @@
 package com.jogamp.opengl.impl.x11.glx;
 
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
 
-import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import com.jogamp.nativewindow.impl.*;
 import com.jogamp.nativewindow.impl.x11.*;
@@ -57,7 +55,6 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
 
     NullWindow nw = (NullWindow) getNativeWindow();
     X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities caps = (GLCapabilities) config.getChosenCapabilities();
 
     X11GraphicsDevice device = (X11GraphicsDevice) screen.getDevice();
     long dpy = device.getHandle();
