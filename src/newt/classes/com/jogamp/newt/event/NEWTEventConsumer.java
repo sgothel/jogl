@@ -36,8 +36,8 @@ public interface NEWTEventConsumer {
     /** 
      * Consume the event 
      *
-     * @return true if the event can be consumed now,
-     * otherwise propagate it later.
+     * @return true if the event has been consumed,
+     * otherwise it returns false for later propagation.
      */
     public boolean consumeEvent(NEWTEvent event);
 }

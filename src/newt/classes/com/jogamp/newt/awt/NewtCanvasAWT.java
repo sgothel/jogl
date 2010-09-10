@@ -96,7 +96,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
                 if(DEBUG_IMPLEMENTATION) {
                     System.out.println("FocusActionImpl.run() "+Window.getThreadName());
                 }
-                NewtCanvasAWT.this.requestFocusAWT();
+                NewtCanvasAWT.this.requestFocusAWTParent();
             }
         }
         FocusActionImpl focusActionImpl = new FocusActionImpl();
@@ -213,12 +213,11 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         }
     }
 
-    void requestFocusAWT() {
+    final void requestFocusAWTParent() {
         super.requestFocus();
     }
 
-    public void requestFocus() {
-        super.requestFocus();
+    final void requestFocusNEWTChild() {
         if(null!=newtChild) {
             newtChild.setFocusAction(null);
             newtChild.requestFocus();
@@ -226,32 +225,31 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         }
     }
 
+    public void requestFocus() {
+        requestFocusAWTParent();
+        requestFocusNEWTChild();
+    }
+
     public boolean requestFocus(boolean temporary) {
         boolean res = super.requestFocus(temporary);
-        if(res && null!=newtChild) {
-            newtChild.setFocusAction(null);
-            newtChild.requestFocus();
-            newtChild.setFocusAction(focusAction);
+        if(res) {
+            requestFocusNEWTChild();
         }
         return res;
     }
 
     public boolean requestFocusInWindow() {
         boolean res = super.requestFocusInWindow();
-        if(res && null!=newtChild) {
-            newtChild.setFocusAction(null);
-            newtChild.requestFocus();
-            newtChild.setFocusAction(focusAction);
+        if(res) {
+            requestFocusNEWTChild();
         }
         return res;
     }
 
     public boolean requestFocusInWindow(boolean temporary) {
         boolean res = super.requestFocusInWindow(temporary);
-        if(res && null!=newtChild) {
-            newtChild.setFocusAction(null);
-            newtChild.requestFocus();
-            newtChild.setFocusAction(focusAction);
+        if(res) {
+            requestFocusNEWTChild();
         }
         return res;
     }

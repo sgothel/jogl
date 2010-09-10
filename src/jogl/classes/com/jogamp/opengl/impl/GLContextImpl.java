@@ -250,14 +250,14 @@ public abstract class GLContextImpl extends GLContext {
    * MakeCurrent functionality, which also issues the creation of the actual OpenGL context.<br>
    * The complete callgraph for general OpenGL context creation is:<br>
    * <ul>
-   *    <li> {@link #makeCurrent} <i>GLContextImpl</i>
-   *    <li> {@link #makeCurrentImpl} <i>Platform Implementation</i>
-   *    <li> {@link #create} <i>Platform Implementation</i>
+   *    <li> {@link #makeCurrent} <i>GLContextImpl</i></li>
+   *    <li> {@link #makeCurrentImpl} <i>Platform Implementation</i></li>
+   *    <li> {@link #create} <i>Platform Implementation</i></li>
    *    <li> If <code>ARB_create_context</code> is supported:
    *    <ul>
-   *        <li> {@link #createContextARB} <i>GLContextImpl</i>
-   *        <li> {@link #createContextARBImpl} <i>Platform Implementation</i>
-   *    </ul>
+   *        <li> {@link #createContextARB} <i>GLContextImpl</i></li>
+   *        <li> {@link #createContextARBImpl} <i>Platform Implementation</i></li>
+   *    </ul></li>
    * </ul><br>
    *
    * Once at startup, ie triggered by the singleton constructor of a {@link GLDrawableFactoryImpl} specialization,
@@ -267,10 +267,10 @@ public abstract class GLContextImpl extends GLContext {
    *    <ul>
    *        <li> {@link #createContextARBMapVersionsAvailable}
    *        <ul>
-   *            <li> {@link #createContextARBVersions}
-   *        </ul>
-   *        <li> {@link #mapVersionAvailable}
-   *    </ul>
+   *            <li> {@link #createContextARBVersions}</li>
+   *        </ul></li>
+   *        <li> {@link #mapVersionAvailable}</li>
+   *    </ul></li>
    * </ul><br>
    *
    * @see #makeCurrentImpl

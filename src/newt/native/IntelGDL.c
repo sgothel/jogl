@@ -41,7 +41,6 @@
 #include "com_jogamp_newt_impl_intel_gdl_Screen.h"
 #include "com_jogamp_newt_impl_intel_gdl_Window.h"
 
-#include "EventListener.h"
 #include "MouseEvent.h"
 #include "KeyEvent.h"
 
