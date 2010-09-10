@@ -117,7 +117,7 @@ public class TestParenting02AWT {
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
         Assert.assertNotNull(newtCanvasAWT);
         Assert.assertEquals(false, glWindow.isVisible());
-        Assert.assertEquals(false, glWindow.isNativeWindowValid());
+        Assert.assertEquals(false, glWindow.isNativeValid());
         Assert.assertNull(glWindow.getParentNativeWindow());
 
         Frame frame = new Frame("AWT Parent Frame");
@@ -158,9 +158,9 @@ public class TestParenting02AWT {
             Thread.yield();
             // 1st display .. creation
             glWindow.display();
-        } while(!glWindow.isNativeWindowValid()) ;
+        } while(!glWindow.isNativeValid()) ;
 
-        Assert.assertEquals(true, glWindow.isNativeWindowValid());
+        Assert.assertEquals(true, glWindow.isNativeValid());
         Assert.assertNotNull(glWindow.getParentNativeWindow());
         if(verbose) {
             System.out.println("+++++++++++++++++++ 1st ADDED");
@@ -171,7 +171,7 @@ public class TestParenting02AWT {
             // test some fancy re-layout ..
             frame.remove(newtCanvasAWT);
             Assert.assertEquals(false, glWindow.isVisible());
-            Assert.assertEquals(true, glWindow.isNativeWindowValid());
+            Assert.assertEquals(true, glWindow.isNativeValid());
             Assert.assertNull(glWindow.getParentNativeWindow());
             if(verbose) {
                 System.out.println("+++++++++++++++++++ REMOVED!");
@@ -182,7 +182,7 @@ public class TestParenting02AWT {
             frame.add(newtCanvasAWT, BorderLayout.CENTER);
             glWindow.display();
             Assert.assertEquals(true, glWindow.isVisible());
-            Assert.assertEquals(true, glWindow.isNativeWindowValid());
+            Assert.assertEquals(true, glWindow.isNativeValid());
             Assert.assertNotNull(glWindow.getParentNativeWindow());
             if(verbose) {
                 System.out.println("+++++++++++++++++++ 2nd ADDED");

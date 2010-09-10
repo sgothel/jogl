@@ -92,7 +92,7 @@ public class TestParenting01cAWT {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(false, glWindow1.isNativeWindowValid());
+        Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParentNativeWindow());
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
         GLEventListener demo1 = new RedSquare();
@@ -102,7 +102,7 @@ public class TestParenting01cAWT {
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         Assert.assertNotNull(newtCanvasAWT);
         Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(false, glWindow1.isNativeWindowValid());
+        Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParentNativeWindow());
 
         Frame frame1 = new Frame("AWT Parent Frame");
@@ -132,20 +132,20 @@ public class TestParenting01cAWT {
         }
 
         frame1.setVisible(false);
-        Assert.assertEquals(false, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow1.isValid());
 
         frame1.setVisible(true);
-        Assert.assertEquals(false, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow1.isValid());
 
         frame1.remove(newtCanvasAWT);
         // Assert.assertNull(glWindow1.getParentNativeWindow());
-        Assert.assertEquals(false, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow1.isValid());
 
         frame1.dispose();
-        Assert.assertEquals(false, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow1.isValid());
 
         glWindow1.destroy(true);
-        //Assert.assertEquals(true, glWindow1.isDestroyed());
+        //Assert.assertEquals(false, glWindow1.isValid());
     }
 
     @Test

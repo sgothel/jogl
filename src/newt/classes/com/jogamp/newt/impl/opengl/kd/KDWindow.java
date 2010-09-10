@@ -78,7 +78,7 @@ public class KDWindow extends Window {
         windowHandleClose = eglWindowHandle;
     }
 
-    protected void closeNative() {
+    protected void closeNativeImpl() {
         if(0!=windowHandleClose) {
             CloseWindow(windowHandleClose, windowUserData);
             windowUserData=0;

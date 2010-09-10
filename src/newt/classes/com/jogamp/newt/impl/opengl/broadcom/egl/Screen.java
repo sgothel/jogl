@@ -45,12 +45,12 @@ public class Screen extends com.jogamp.newt.Screen {
     public Screen() {
     }
 
-    protected void createNative(int index) {
-        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), index);
+    protected void createNativeImpl() {
+        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), idx);
         setScreenSize(fixedWidth, fixedHeight);
     }
 
-    protected void closeNative() { }
+    protected void closeNativeImpl() { }
 
     //----------------------------------------------------------------------
     // Internals only

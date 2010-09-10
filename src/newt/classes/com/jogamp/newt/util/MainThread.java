@@ -243,6 +243,10 @@ public class MainThread implements EDTUtil {
         }
     }
 
+    public void reset() {
+        // nop
+    }
+
     public void start() {
         // nop
     }

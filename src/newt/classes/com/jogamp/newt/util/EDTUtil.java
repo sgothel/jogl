@@ -44,6 +44,8 @@ public interface EDTUtil {
 
     public static final long defaultEDTPollGranularity = 10; // 10ms, 1/100s
 
+    public void reset();
+
     public void start();
 
     public void stop();
@@ -52,6 +54,7 @@ public interface EDTUtil {
 
     public boolean isRunning();
 
+    /** Shall start the thread if not running */
     public void invoke(boolean wait, Runnable task);
 
     public void waitUntilIdle();

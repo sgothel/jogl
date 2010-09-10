@@ -93,13 +93,13 @@ public class TestGLWindows02NEWTAnimated {
         setDemoFields(demo, glWindow);
         glWindow.addGLEventListener(demo);
         glWindow.addWindowListener(new TraceWindowAdapter());
-        Assert.assertEquals(false,glWindow.isNativeWindowValid());
+        Assert.assertEquals(false,glWindow.isNativeValid());
 
         glWindow.setSize(width, height);
         Assert.assertEquals(false,glWindow.isVisible());
         glWindow.setVisible(true);
         Assert.assertEquals(true,glWindow.isVisible());
-        Assert.assertEquals(true,glWindow.isNativeWindowValid());
+        Assert.assertEquals(true,glWindow.isNativeValid());
         // Assert.assertEquals(width,glWindow.getWidth());
         // Assert.assertEquals(height,glWindow.getHeight());
         // System.out.println("Created: "+glWindow);

@@ -145,12 +145,13 @@ public abstract class NewtFactory {
         if(null!=nParentConfig) {
             AbstractGraphicsScreen nParentScreen = nParentConfig.getScreen();
             AbstractGraphicsDevice nParentDevice = nParentScreen.getDevice();
-            Display display = NewtFactory.wrapDisplay(type, nParentDevice.getHandle());
+            Display display = NewtFactory.createDisplay(type, nParentDevice.getHandle());
             screen  = NewtFactory.createScreen(type, display, nParentScreen.getIndex());
         } else {
             Display display = NewtFactory.createDisplay(type, null); // local display
             screen  = NewtFactory.createScreen(type, display, 0); // screen 0
         }
+        screen.setDestroyWhenUnused(true);
         final Window win = createWindowImpl(type, nParentWindow, screen, caps, undecorated);
 
         win.setSize(nParentWindow.getWidth(), nParentWindow.getHeight());
@@ -177,6 +178,7 @@ public abstract class NewtFactory {
     protected static Window createWindowImpl(String type, Capabilities caps, boolean undecorated) {
         Display display = NewtFactory.createDisplay(type, null); // local display
         Screen screen  = NewtFactory.createScreen(type, display, 0); // screen 0
+        screen.setDestroyWhenUnused(true);
         return Window.create(type, null, 0, screen, caps, undecorated);
     }
 
@@ -217,7 +219,7 @@ public abstract class NewtFactory {
     /**
      * Instantiate a Display entity using the native handle.
      */
-    public static Display wrapDisplay(String type, long handle) {
+    public static Display createDisplay(String type, long handle) {
       return Display.create(type, null, handle);
     }
 

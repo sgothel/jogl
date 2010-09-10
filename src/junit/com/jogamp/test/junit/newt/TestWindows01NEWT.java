@@ -69,11 +69,11 @@ public class TestWindows01NEWT {
         Window window = NewtFactory.createWindow(screen, caps, onscreen && undecorated);
         Assert.assertNotNull(window);
         window.setSize(width, height);
-        Assert.assertEquals(false,window.isNativeWindowValid());
+        Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
         window.setVisible(true);
         Assert.assertEquals(true,window.isVisible());
-        Assert.assertEquals(true,window.isNativeWindowValid());
+        Assert.assertEquals(true,window.isNativeValid());
         // Assert.assertEquals(width,window.getWidth());
         // Assert.assertEquals(height,window.getHeight());
         // System.out.println("Created: "+window);
@@ -115,11 +115,11 @@ public class TestWindows01NEWT {
 
         Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
         window.destroy();
-        Assert.assertEquals(false,window.isNativeWindowValid());
+        Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
         window.setVisible(true);
-        Assert.assertEquals(true,window.isNativeWindowValid());
+        Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
 
         Thread.sleep(100); // 100 ms

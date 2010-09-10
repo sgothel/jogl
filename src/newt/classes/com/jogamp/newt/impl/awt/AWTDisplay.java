@@ -44,7 +44,7 @@ public class AWTDisplay extends Display {
     public AWTDisplay() {
     }
 
-    protected void createNative() {
+    protected void createNativeImpl() {
         aDevice = (AWTGraphicsDevice) AWTGraphicsDevice.createDevice(null); // default 
     }
 
@@ -52,7 +52,7 @@ public class AWTDisplay extends Display {
         aDevice = d;
     }
 
-    protected void closeNative() { }
+    protected void closeNativeImpl() { }
 
     protected boolean getShallRunOnEDT() { 
         return false; 

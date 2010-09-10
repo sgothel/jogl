@@ -44,11 +44,11 @@ public class KDScreen extends Screen {
     public KDScreen() {
     }
 
-    protected void createNative(int index) {
-        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), index);
+    protected void createNativeImpl() {
+        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), idx);
     }
 
-    protected void closeNative() { }
+    protected void closeNativeImpl() { }
 
     // elevate access to this package ..
     protected void setScreenSize(int w, int h) {

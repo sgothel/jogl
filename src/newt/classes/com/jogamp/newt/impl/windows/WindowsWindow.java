@@ -115,14 +115,14 @@ public class WindowsWindow extends Window {
         }
     }
 
-    protected void closeNative() {
+    protected void closeNativeImpl() {
         if (hdc != 0) {
             if(windowHandleClose != 0) {
                 try {
                     ReleaseDC0(windowHandleClose, hdc);
                 } catch (Throwable t) {
                     if(DEBUG_IMPLEMENTATION) { 
-                        Exception e = new Exception("closeNative failed - "+Thread.currentThread().getName(), t);
+                        Exception e = new Exception("closeNativeImpl failed - "+Thread.currentThread().getName(), t);
                         e.printStackTrace();
                     }
                 }
@@ -134,7 +134,7 @@ public class WindowsWindow extends Window {
                 DestroyWindow0(windowHandleClose);
             } catch (Throwable t) {
                 if(DEBUG_IMPLEMENTATION) {
-                    Exception e = new Exception("closeNative failed - "+Thread.currentThread().getName(), t);
+                    Exception e = new Exception("closeNativeImpl failed - "+Thread.currentThread().getName(), t);
                     e.printStackTrace();
                 }
             } finally {

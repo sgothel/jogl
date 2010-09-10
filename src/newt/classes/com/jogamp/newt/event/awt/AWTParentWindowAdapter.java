@@ -104,7 +104,7 @@ public class AWTParentWindowAdapter
                 if(DEBUG_IMPLEMENTATION) {
                     System.out.println("AWT: hierarchyChanged SHOWING_CHANGED: showing "+showing+", "+changed);
                 }
-                if(!newtWindow.isDestroyed()) {
+                if(newtWindow.isValid()) {
                     newtWindow.runOnEDTIfAvail(false, new Runnable() {
                         public void run() {
                             newtWindow.setVisible(showing);

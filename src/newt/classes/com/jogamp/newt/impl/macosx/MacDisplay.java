@@ -65,31 +65,24 @@ public class MacDisplay extends Display {
         dispatchMessages0();
     }
     
-    protected void createNative() {
+    protected void createNativeImpl() {
         aDevice = new MacOSXGraphicsDevice();
     }
 
-    protected void closeNative() { }
+    protected void closeNativeImpl() { }
 
-    public EDTUtil getEDTUtil() {
-        if( null == edtUtil ) {
-            synchronized (this) {
-                if( null == edtUtil ) {
-                    if(NewtFactory.useEDT()) {
-                        final Display f_dpy = this;
-                        MainThread.addPumpMessage(this, 
-                                              new Runnable() {
-                                                  public void run() {
-                                                      if(null!=f_dpy.getGraphicsDevice()) {
-                                                          f_dpy.dispatchMessages();
-                                                      } } } );
-                        edtUtil = MainThread.getSingleton();
-                        edtUtil.start();
-                    }
-                }
-            }
+    protected void createEDTUtil() {
+        if(NewtFactory.useEDT()) {
+            final Display f_dpy = this;
+            MainThread.addPumpMessage(this, 
+                                  new Runnable() {
+                                      public void run() {
+                                          if(null!=f_dpy.getGraphicsDevice()) {
+                                              f_dpy.dispatchMessages();
+                                          } } } );
+            edtUtil = MainThread.getSingleton();
+            edtUtil.start();
         }
-        return edtUtil;
     }
 
     protected void releaseEDTUtil() {

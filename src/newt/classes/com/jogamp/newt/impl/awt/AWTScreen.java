@@ -42,7 +42,7 @@ public class AWTScreen extends Screen {
     public AWTScreen() {
     }
 
-    protected void createNative(int index) {
+    protected void createNativeImpl() {
         aScreen = new AWTGraphicsScreen((AWTGraphicsDevice)display.getGraphicsDevice());
         
         DisplayMode mode = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice().getDisplayMode();
@@ -60,6 +60,6 @@ public class AWTScreen extends Screen {
         super.setScreenSize(w, h);
     }
 
-    protected void closeNative() { }
+    protected void closeNativeImpl() { }
 
 }

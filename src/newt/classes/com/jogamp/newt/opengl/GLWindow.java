@@ -82,8 +82,8 @@ public class GLWindow extends Window implements GLAutoDrawable {
                     if( !windowIsLocked() && null == getAnimator() ) {
                         destroy();
                     } else {
-			sendDestroy = true;
-	 	    }
+                        sendDestroy = true;
+                    }
                 }
             });
     }
@@ -125,12 +125,12 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return new GLWindow(window);
     }
     
-    public boolean isNativeWindowValid() {
-        return (null!=window)?window.isNativeWindowValid():false;
+    public boolean isNativeValid() {
+        return (null!=window)?window.isNativeValid():false;
     }
 
-    public boolean isDestroyed() {
-        return (null!=window)?window.isDestroyed():true;
+    public boolean isValid() {
+        return (null!=window)?window.isValid():true;
     }
 
     public final Window getInnerWindow() {
@@ -145,7 +145,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         shouldNotCallThis();
     }
 
-    protected void closeNative() {
+    protected void closeNativeImpl() {
         shouldNotCallThis();
     }
 
@@ -158,23 +158,23 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private DisposeAction disposeAction = new DisposeAction();
 
     class DestroyAction implements Runnable {
-        boolean deep;
-        public DestroyAction(boolean deep) {
-            this.deep = deep;
+        boolean unrecoverable;
+        public DestroyAction(boolean unrecoverable) {
+            this.unrecoverable = unrecoverable;
         }
         public void run() {
             // Lock: Have to cover whole workflow (dispose all, context, drawable and window)
             windowLock();
             try {
-	        if( isDestroyed() ) {
+                if( !isValid() ) {
                     return; // nop
                 }
                 if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-                    Exception e1 = new Exception("GLWindow.destroy("+deep+") "+Thread.currentThread()+", start: "+GLWindow.this);
+                    Exception e1 = new Exception("GLWindow.destroy("+unrecoverable+") "+Thread.currentThread()+", start: "+GLWindow.this);
                     e1.printStackTrace();
                 }
 
-                if( window.isNativeWindowValid() && null != drawable && drawable.isRealized() ) {
+                if( window.isNativeValid() && null != drawable && drawable.isRealized() ) {
                     if( null != context && context.isCreated() ) {
                         // Catch dispose GLExceptions by GLEventListener, just 'print' them
                         // so we can continue with the destruction.
@@ -193,14 +193,14 @@ public class GLWindow extends Window implements GLAutoDrawable {
                 }
 
                 if(null!=window) {
-                    window.destroy(deep);
+                    window.destroy(unrecoverable);
                 }
 
-                if(deep) {
+                if(unrecoverable) {
                     helper=null;
                 }
                 if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-                    System.out.println("GLWindow.destroy("+deep+") "+Thread.currentThread()+", fin: "+GLWindow.this);
+                    System.out.println("GLWindow.destroy("+unrecoverable+") "+Thread.currentThread()+", fin: "+GLWindow.this);
                 }
             } finally {
                 windowUnlock();
@@ -208,15 +208,9 @@ public class GLWindow extends Window implements GLAutoDrawable {
         }
     }
 
-    /** 
-     * @param deep If true, all resources, ie listeners, parent handles, size, position 
-     * and the referenced NEWT screen and display, will be destroyed as well. Be aware that if you call
-     * this method with deep = true, you will not be able to regenerate the Window.
-     * @see #destroy()
-     */
-    public void destroy(boolean deep) {
-	if( !isDestroyed() ) {
-            runOnEDTIfAvail(true, new DestroyAction(deep));
+    public void destroy(boolean unrecoverable) {
+        if( isValid() ) {
+            runOnEDTIfAvail(true, new DestroyAction(unrecoverable));
         }
     }
 
@@ -269,7 +263,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     public void setVisible(boolean visible) {
-        if(!isDestroyed()) {
+        if(isValid()) {
             runOnEDTIfAvail(true, new VisibleAction(visible));
         }
     }
@@ -512,17 +506,17 @@ public class GLWindow extends Window implements GLAutoDrawable {
         if( null == window ) { return; }
 
         if(sendDestroy || ( null!=window && window.hasDeviceChanged() && GLAutoDrawable.SCREEN_CHANGE_ACTION_ENABLED ) ) {
-	  sendDestroy=false;
-	  destroy();
-          return;
-	}
+            sendDestroy=false;
+            destroy();
+            return;
+        }
 
         if( null == context && window.isVisible() ) {
             // retry native window and drawable/context creation 
             setVisible(true);
         }
 
-        if( window.isVisible() && window.isNativeWindowValid() && null != context ) {
+        if( window.isVisible() && window.isNativeValid() && null != context ) {
             if(forceReshape) {
                 sendReshape = true;
             }

@@ -150,8 +150,9 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
 
     protected String title = "Newt Window";
     protected boolean undecorated = false;
+    protected boolean screenRefAdded = false;
 
-    private boolean createNative() {
+    private final boolean createNative() {
         if( null==screen || 0!=windowHandle || !visible ) {
             return 0 != windowHandle ;
         }
@@ -159,7 +160,11 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
             System.out.println("Window.createNative() START ("+getThreadName()+", "+this+")");
         }
         if(validateParentWindowHandle()) {
-            Display dpy = getScreen().getDisplay();
+            if(!screenRefAdded) {
+                // only once .. at 1st creation
+                screenRefAdded = true;
+                getScreen().addReference();
+            }
             createNativeImpl();
             setVisibleImpl(true);
         }
@@ -219,7 +224,7 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
      */
     protected abstract void createNativeImpl();
 
-    protected abstract void closeNative();
+    protected abstract void closeNativeImpl();
 
     public Capabilities getRequestedCapabilities() {
         return (Capabilities)caps.clone();
@@ -348,7 +353,7 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
         windowLock.lock();
 
         // if(windowLock.getRecursionCount() == 0) { // allow recursion to lock again, always
-            if(isDestroyed() || !isNativeWindowValid()) {
+            if(!isNativeValid()) {
                 windowLock.unlock();
                 return LOCK_SURFACE_NOT_READY;
             }
@@ -381,7 +386,7 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
      * windowing related resources.<br></p>
      * <p>
      * all other resources and states are kept intact,
-     * ie listeners, parent handles and size, position etc.<br></p>
+     * ie listeners, parent handles, size, position and Screen reference.<br></p>
      *
      * @see #destroy(boolean)
      * @see #invalidate()
@@ -391,49 +396,51 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
     }
 
     /** 
-     * @param deep If true, all resources, ie listeners, parent handles, size, position 
-     * and the referenced NEWT screen and display, will be destroyed as well. Be aware that if you call
-     * this method with deep = true, you will not be able to regenerate the Window.
+     * Destroys the Window and it's children.
+     * @param unrecoverable If true, all resources, ie listeners, parent handles, 
+     * size, position and reference to it's Screen will be destroyed as well. 
+     * Otherwise you can recreate the window, via <code>setVisible(true)</code>.
      * @see #destroy()
      * @see #invalidate(boolean)
+     * @see #setVisible(boolean)
      */
-    public void destroy(boolean deep) {
-        if(!isDestroyed()) {
-            runOnEDTIfAvail(true, new DestroyAction(deep));
+    public void destroy(boolean unrecoverable) {
+        if(isValid()) {
+            runOnEDTIfAvail(true, new DestroyAction(unrecoverable));
         }
     }
 
     class DestroyAction implements Runnable {
-        boolean deep;
-        public DestroyAction(boolean deep) {
-            this.deep = deep;
+        boolean unrecoverable;
+        public DestroyAction(boolean unrecoverable) {
+            this.unrecoverable = unrecoverable;
         }
         public void run() {
             windowLock();
             try {
                 if(DEBUG_IMPLEMENTATION) {
-                    System.out.println("Window.destroy(deep: "+deep+") START "+getThreadName()+", "+Window.this);
+                    System.out.println("Window.destroy(unrecoverable: "+unrecoverable+") START "+getThreadName()+", "+Window.this);
                 }
 
                 // Childs first ..
                 synchronized(childWindowsLock) {
                   for(Iterator i = childWindows.iterator(); i.hasNext(); ) {
                     NativeWindow nw = (NativeWindow) i.next();
-                    System.out.println("Window.destroy(deep: "+deep+") CHILD BEGIN");
+                    System.out.println("Window.destroy(unrecoverable: "+unrecoverable+") CHILD BEGIN");
                     if(nw instanceof Window) {
                         ((Window)nw).sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
-                        if(deep) {
-                                ((Window)nw).destroy(deep);
+                        if(unrecoverable) {
+                                ((Window)nw).destroy(unrecoverable);
                         }
                     } else {
                         nw.destroy();
                     }
-                    System.out.println("Window.destroy(deep: "+deep+") CHILD END");
+                    System.out.println("Window.destroy(unrecoverable: "+unrecoverable+") CHILD END");
                   }
                 }
 
                 // Now us ..
-                if(deep) {
+                if(unrecoverable) {
                     synchronized(childWindowsLock) {
                         childWindows = new ArrayList();
                     }
@@ -444,24 +451,20 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
                     mouseListeners = new ArrayList();
                     keyListeners = new ArrayList();
                 }
-                Display dpy = null;
                 Screen scr = null;
                 if( null != screen && 0 != windowHandle ) {
                     scr = screen;
-                    dpy = screen.getDisplay();
-                    closeNative();
+                    closeNativeImpl();
                 }
-                invalidate(deep);
-                if(deep) {
+                invalidate(unrecoverable);
+                if(unrecoverable) {
                     if(null!=scr) {
-                        scr.destroy();
-                    }
-                    if(null!=dpy) {
-                        dpy.destroy();
+                        // only once .. at final destruction
+                        scr.removeReference();
                     }
                 }
                 if(DEBUG_IMPLEMENTATION) {
-                    System.out.println("Window.destroy(deep: "+deep+") END "+getThreadName()+", "+Window.this);
+                    System.out.println("Window.destroy(unrecoverable: "+unrecoverable+") END "+getThreadName()+", "+Window.this);
                 }
             } finally {
                 windowUnlock();
@@ -486,18 +489,18 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
     }
 
     /**
-     * @param deep if false only the native window handle is invalidated, otherwise all
-     * states (references and properties) are reset. Be aware that if you call
-     * this method with deep = true, you will not be able to regenerate the Window.
+     * @param unrecoverable If true, all states, size, position, parent handles,
+     * reference to it's Screen are reset.
+     * Otherwise you can recreate the window, via <code>setVisible(true)</code>.
      * @see #invalidate()
      * @see #destroy()
      * @see #destroy(boolean)
      */
-    public void invalidate(boolean deep) {
+    public void invalidate(boolean unrecoverable) {
         windowLock();
         try{
             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                String msg = new String("!!! Window Invalidate(deep: "+deep+") "+getThreadName());
+                String msg = new String("!!! Window Invalidate(unrecoverable: "+unrecoverable+") "+getThreadName());
                 //System.out.println(msg);
                 Exception e = new Exception(msg);
                 e.printStackTrace();
@@ -506,7 +509,7 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
             visible = false;
             fullscreen = false;
 
-            if(deep) {
+            if(unrecoverable) {
                 screen = null;
                 parentWindowHandle = 0;
                 parentNativeWindow = null;
@@ -523,13 +526,24 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
         }
     }
 
-    /** @return true if the native window handle is valid and ready to operate */
-    public boolean isNativeWindowValid() {
-        return 0 != windowHandle ;
+    /** @return true if the native window handle is valid and ready to operate, ie
+     *  if the native window has been created, otherwise false.
+     *
+     * @see #setVisible(boolean)
+     * @see #destroy(boolean)
+     */
+    public boolean isNativeValid() {
+        return null != screen && 0 != windowHandle ;
     }
 
-    public boolean isDestroyed() {
-        return null == screen ;
+    /** @return True if native window is valid, can be created or recovered.
+    *   Otherwise false, ie this window is unrecoverable due to a <code>destroy(true)</code> call.
+     *
+     * @see #destroy(boolean)
+     * @see #setVisible(boolean)
+     */
+    public boolean isValid() {
+        return null != screen ;
     }
 
     public boolean surfaceSwap() { 
@@ -713,7 +727,7 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
      *                  this Screen is being used.
      */
     public void reparentWindow(NativeWindow newParent, Screen newScreen) {
-        if(!isDestroyed()) {
+        if(isValid()) {
             runOnEDTIfAvail(true, new ReparentAction(newParent, newScreen)); 
             if( isVisible() ) {
                 sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
@@ -730,7 +744,7 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
         public void run() {
             windowLock();
             try{
-                if( !isDestroyed() ) {
+                if( isValid() ) {
                     if(!visible && childWindows.size()>0) {
                       synchronized(childWindowsLock) {
                         for(Iterator i = childWindows.iterator(); i.hasNext(); ) {
@@ -805,7 +819,7 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
             Exception ee = new Exception(msg);
             ee.printStackTrace();
         }
-        if(!isDestroyed()) {
+        if(isValid()) {
             runOnEDTIfAvail(true, new VisibleAction(visible));
         }
     }
@@ -985,7 +999,7 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
     }
 
     public void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
-        if(!getInnerWindow().isDestroyed()) {
+        if(getInnerWindow().isValid()) {
             getInnerWindow().getScreen().getDisplay().enqueueEvent(wait, event);
         }
     }
@@ -1523,7 +1537,7 @@ public abstract class Window implements NativeWindow, NEWTEventConsumer
 
         enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
 
-        if(handleDestroyNotify && !isDestroyed()) {
+        if(handleDestroyNotify && isValid()) {
             destroy();
         }
 

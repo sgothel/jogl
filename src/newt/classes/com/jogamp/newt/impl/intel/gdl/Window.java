@@ -67,7 +67,7 @@ public class Window extends com.jogamp.newt.Window {
         }
     }
 
-    protected void closeNative() {
+    protected void closeNativeImpl() {
         if(0!=surfaceHandle) {
             synchronized(Window.class) {
                 CloseSurface(getDisplayHandle(), surfaceHandle);

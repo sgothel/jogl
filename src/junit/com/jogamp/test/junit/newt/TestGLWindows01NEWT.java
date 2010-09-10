@@ -93,7 +93,7 @@ public class TestGLWindows01NEWT {
         }
         Assert.assertNotNull(glWindow);
         Assert.assertEquals(false,glWindow.isVisible());
-        Assert.assertEquals(false,glWindow.isNativeWindowValid());
+        Assert.assertEquals(false,glWindow.isNativeValid());
 
         GLEventListener demo = new Gears();
         setDemoFields(demo, glWindow);
@@ -106,7 +106,7 @@ public class TestGLWindows01NEWT {
 
         glWindow.setVisible(true);
         Assert.assertEquals(true,glWindow.isVisible());
-        Assert.assertEquals(true,glWindow.isNativeWindowValid());
+        Assert.assertEquals(true,glWindow.isNativeValid());
         int wait=0;
         while(wait<10 && glWindow.getTotalFrames()<1) { Thread.sleep(100); wait++; }
         System.out.println("Frames for initial setVisible(true): "+glWindow.getTotalFrames());
@@ -137,7 +137,7 @@ public class TestGLWindows01NEWT {
     static void destroyWindow(GLWindow glWindow, boolean deep) {
         if(null!=glWindow) {
             glWindow.destroy(deep);
-            Assert.assertEquals(false,glWindow.isNativeWindowValid());
+            Assert.assertEquals(false,glWindow.isNativeValid());
         }
     }
 
@@ -149,22 +149,22 @@ public class TestGLWindows01NEWT {
                                        true /* onscreen */, false /* undecorated */, 
                                        false /*addGLEventListenerAfterVisible*/);
 
-        Assert.assertEquals(true,window.isNativeWindowValid());
+        Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
         window.destroy(false);
-        Assert.assertEquals(false,window.isNativeWindowValid());
+        Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
         window.display();
-        Assert.assertEquals(false,window.isNativeWindowValid());
+        Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
         window.setVisible(true);
-        Assert.assertEquals(true,window.isNativeWindowValid());
+        Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
 
         window.setVisible(false);
-        Assert.assertEquals(true,window.isNativeWindowValid());
+        Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
         destroyWindow(window, true);
@@ -178,22 +178,22 @@ public class TestGLWindows01NEWT {
                                        true /* onscreen */, false /* undecorated */, 
                                        true /*addGLEventListenerAfterVisible*/);
 
-        Assert.assertEquals(true,window.isNativeWindowValid());
+        Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
         window.destroy(false);
-        Assert.assertEquals(false,window.isNativeWindowValid());
+        Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
         window.display();
-        Assert.assertEquals(false,window.isNativeWindowValid());
+        Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
         window.setVisible(true);
-        Assert.assertEquals(true,window.isNativeWindowValid());
+        Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
 
         window.setVisible(false);
-        Assert.assertEquals(true,window.isNativeWindowValid());
+        Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
         destroyWindow(window, true);

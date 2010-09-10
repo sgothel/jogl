@@ -62,7 +62,7 @@ public class OffscreenWindow extends Window implements SurfaceChangeable {
         }
     }
 
-    protected void closeNative() {
+    protected void closeNativeImpl() {
         // nop
     }
 

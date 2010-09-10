@@ -61,26 +61,26 @@ public class X11Display extends Display {
     public X11Display() {
     }
 
-    protected String validateDisplayName(String name, long handle) {
+    public String validateDisplayName(String name, long handle) {
         return X11Util.validateDisplayName(name, handle);
     }
 
-    protected void createNative() {
-        long handle = X11Util.createThreadLocalDisplay(name);
+    protected void createNativeImpl() {
+        long handle = X11Util.createDisplay(name);
         if( 0 == handle ) {
             throw new RuntimeException("Error creating display: "+name);
         }
         try {
             CompleteDisplay0(handle);
         } catch(RuntimeException e) {
-            X11Util.closeThreadLocalDisplay(name);
+            X11Util.closeDisplay(handle);
             throw e;
         }
         aDevice = new X11GraphicsDevice(handle);
     }
 
-    protected void closeNative() {
-        X11Util.closeThreadLocalDisplay(name);
+    protected void closeNativeImpl() {
+        X11Util.closeDisplay(getHandle());
     }
 
     protected void dispatchMessagesNative() {

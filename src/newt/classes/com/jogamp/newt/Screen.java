@@ -40,6 +40,8 @@ import java.security.*;
 
 public abstract class Screen {
 
+    public static final boolean DEBUG = Debug.debug("Display");
+
     private static Class getScreenClass(String type) 
         throws ClassNotFoundException 
     {
@@ -62,7 +64,7 @@ public abstract class Screen {
         return screenClass;
     }
 
-    protected static Screen create(String type, Display display, int idx) {
+    protected static Screen create(String type, Display display, final int idx) {
         try {
             if(usrWidth<0 || usrHeight<0) {
                 usrWidth  = Debug.getIntProperty("newt.ws.swidth", true, localACC);
@@ -74,40 +76,97 @@ public abstract class Screen {
             Class screenClass = getScreenClass(type);
             Screen screen  = (Screen) screenClass.newInstance();
             screen.display = display;
-            screen.createNative(idx);
-            if(null==screen.aScreen) {
-                throw new RuntimeException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
-            }
+            screen.idx = idx;
             return screen;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public synchronized void destroy() {
-        closeNative();
-        display = null;
-        aScreen = null;
+    protected  synchronized final void createNative() {
+        if(null == aScreen) {
+            if(DEBUG) {
+                System.out.println("Screen.createNative() START ("+Display.getThreadName()+", "+this+")");
+            }
+            display.addReference();
+            createNativeImpl();
+            if(null == aScreen) {
+                throw new RuntimeException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
+            }
+            if(DEBUG) {
+                System.out.println("Screen.createNative() END ("+Display.getThreadName()+", "+this+")");
+            }
+        }
     }
 
-    protected abstract void createNative(int index);
-    protected abstract void closeNative();
+    public synchronized final void destroy() {
+        if ( null != aScreen ) {
+            closeNativeImpl();
+            display.removeReference();
+            aScreen = null;
+        }
+    }
+
+    protected synchronized final int addReference() {
+        if(DEBUG) {
+            System.out.println("Screen.addReference() ("+Display.getThreadName()+"): "+refCount+" -> "+(refCount+1));
+        }
+        if ( 0 == refCount ) {
+            createNative();
+        }
+        if(null == aScreen) {
+            throw new RuntimeException("Screen.addReference() (refCount "+refCount+") null AbstractGraphicsScreen");
+        }
+        return ++refCount;
+    }
+
+    protected synchronized final int removeReference() {
+        if(DEBUG) {
+            System.out.println("Screen.removeReference() ("+Display.getThreadName()+"): "+refCount+" -> "+(refCount-1));
+        }
+        refCount--;
+        if(0==refCount && getDestroyWhenUnused()) {
+            destroy();
+        }
+        return refCount;
+    }
+
+    /** 
+     * @return number of references by Window
+     */
+    public synchronized final int getReferenceCount() {
+        return refCount;
+    }
+
+    public final boolean getDestroyWhenUnused() { 
+        return display.getDestroyWhenUnused(); 
+    }
+    public final void setDestroyWhenUnused(boolean v) { 
+        display.setDestroyWhenUnused(v); 
+    }
+
+    protected abstract void createNativeImpl();
+    protected abstract void closeNativeImpl();
 
     protected void setScreenSize(int w, int h) {
         System.out.println("Detected screen size "+w+"x"+h);
         width=w; height=h;
     }
 
-    public Display getDisplay() {
+    public final Display getDisplay() {
         return display;
     }
 
-    public int getIndex() {
-        return aScreen.getIndex();
+    public final int getIndex() {
+        return idx;
     }
 
-    public AbstractGraphicsScreen getGraphicsScreen() {
+    public final AbstractGraphicsScreen getGraphicsScreen() {
         return aScreen;
+    }
+
+    public final boolean isNativeValid() {
+        return null != aScreen;
     }
 
     /**
@@ -115,7 +174,7 @@ public abstract class Screen {
      * if not we return 800.
      * This can be overwritten with the user property 'newt.ws.swidth',
      */
-    public int getWidth() {
+    public final int getWidth() {
         return (usrWidth>0) ? usrWidth : (width>0) ? width : 480;
     }
 
@@ -124,12 +183,14 @@ public abstract class Screen {
      * if not we return 480.
      * This can be overwritten with the user property 'newt.ws.sheight',
      */
-    public int getHeight() {
+    public final int getHeight() {
         return (usrHeight>0) ? usrHeight : (height>0) ? height : 480;
     }
 
     protected Display display;
+    protected int idx;
     protected AbstractGraphicsScreen aScreen;
+    protected int refCount; // number of Screen references by Window
     protected int width=-1, height=-1; // detected values: set using setScreenSize
     protected static int usrWidth=-1, usrHeight=-1; // property values: newt.ws.swidth and newt.ws.sheight
     private static AccessControlContext localACC = AccessController.getContext();

@@ -99,7 +99,7 @@ public class TestParenting01cSwingAWT {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(false, glWindow1.isNativeWindowValid());
+        Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParentNativeWindow());
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
         GLEventListener demo1 = new RedSquare();
@@ -127,7 +127,7 @@ public class TestParenting01cSwingAWT {
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         Assert.assertNotNull(newtCanvasAWT);
         Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(false, glWindow1.isNativeWindowValid());
+        Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParentNativeWindow());
 
         Container container1 = new Container();
@@ -173,14 +173,14 @@ public class TestParenting01cSwingAWT {
 		    System.out.println("Demos: 3 - !Visible");
                     _jFrame1.setVisible(false);
                 } });
-        Assert.assertEquals(false, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow1.isValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
 		    System.out.println("Demos: 4 - Visible");
                     _jFrame1.setVisible(true);
                 } });
-        Assert.assertEquals(false, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow1.isValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -188,16 +188,16 @@ public class TestParenting01cSwingAWT {
                     _jPanel1.remove(_container1);
                 } });
         // Assert.assertNull(glWindow1.getParentNativeWindow());
-        Assert.assertEquals(false, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow1.isValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     _jFrame1.dispose();
                 } });
-        Assert.assertEquals(false, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow1.isValid());
 
         glWindow1.destroy(true);
-        //Assert.assertEquals(true, glWindow1.isDestroyed());
+        //Assert.assertEquals(false, glWindow1.isValid());
     }
 
     @Test
@@ -213,7 +213,7 @@ public class TestParenting01cSwingAWT {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(false, glWindow1.isNativeWindowValid());
+        Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParentNativeWindow());
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
         GLEventListener demo1 = new RedSquare();
@@ -240,7 +240,7 @@ public class TestParenting01cSwingAWT {
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         Assert.assertNotNull(newtCanvasAWT);
         Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(false, glWindow1.isNativeWindowValid());
+        Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParentNativeWindow());
 
         Container container1 = new Container();
@@ -322,17 +322,17 @@ public class TestParenting01cSwingAWT {
                     _jFrame1.setVisible(false);
                     _jFrame2.setVisible(false);
                 } });
-        Assert.assertEquals(false, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow1.isValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     _jFrame1.dispose();
                     _jFrame2.dispose();
                 } });
-        Assert.assertEquals(false, glWindow1.isDestroyed());
+        Assert.assertEquals(true, glWindow1.isValid());
 
         glWindow1.destroy(true);
-        //Assert.assertEquals(true, glWindow1.isDestroyed());
+        //Assert.assertEquals(false, glWindow1.isValid());
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {

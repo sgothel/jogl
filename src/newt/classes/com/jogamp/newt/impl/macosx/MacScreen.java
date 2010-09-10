@@ -44,12 +44,12 @@ public class MacScreen extends Screen {
     public MacScreen() {
     }
 
-    protected void createNative(int index) {
-        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), index);
-        setScreenSize(getWidthImpl0(getIndex()), getHeightImpl0(getIndex()));
+    protected void createNativeImpl() {
+        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), idx);
+        setScreenSize(getWidthImpl0(idx), getHeightImpl0(idx));
     }
 
-    protected void closeNative() { }
+    protected void closeNativeImpl() { }
 
     private static native int getWidthImpl0(int scrn_idx);
     private static native int getHeightImpl0(int scrn_idx);

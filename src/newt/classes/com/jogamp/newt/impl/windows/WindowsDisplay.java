@@ -60,11 +60,11 @@ public class WindowsDisplay extends Display {
     public WindowsDisplay() {
     }
 
-    protected void createNative() {
+    protected void createNativeImpl() {
         aDevice = new WindowsGraphicsDevice();
     }
 
-    protected void closeNative() { 
+    protected void closeNativeImpl() { 
         // Can't do .. only at application shutdown 
         // UnregisterWindowClass0(getWindowClassAtom(), getHInstance());
     }

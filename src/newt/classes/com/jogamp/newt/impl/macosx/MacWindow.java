@@ -149,7 +149,7 @@ public class MacWindow extends Window {
         }
     }
 
-    protected void closeNative() {
+    protected void closeNativeImpl() {
         nsViewLock.lock();
         try {
             if(DEBUG_IMPLEMENTATION) { System.out.println("MacWindow.CloseAction "+Thread.currentThread().getName()); }

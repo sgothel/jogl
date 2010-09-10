@@ -131,7 +131,7 @@ public class AWTWindowAdapter
         }
         /**
         if(null==newtListener) {
-            if(!newtWindow.isDestroyed()) {
+            if(newtWindow.isValid()) {
                 newtWindow.runOnEDTIfAvail(false, new Runnable() {
                     public void run() {
                         newtWindow.setVisible(true);
@@ -148,7 +148,7 @@ public class AWTWindowAdapter
         }
         /**
         if(null==newtListener) {
-            if(!newtWindow.isDestroyed()) {
+            if(newtWindow.isValid()) {
                 newtWindow.runOnEDTIfAvail(false, new Runnable() {
                     public void run() {
                         newtWindow.setVisible(false);

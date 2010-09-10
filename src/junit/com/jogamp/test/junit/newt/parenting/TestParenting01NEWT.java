@@ -86,7 +86,7 @@ public class TestParenting01NEWT {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(false, glWindow1.isNativeWindowValid());
+        Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParentNativeWindow());
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
         glWindow1.setSize(640, 480);
@@ -97,7 +97,7 @@ public class TestParenting01NEWT {
         GLWindow glWindow2 = GLWindow.create(glWindow1, glCaps);
         Assert.assertNotNull(glWindow2);
         Assert.assertEquals(false, glWindow2.isVisible());
-        Assert.assertEquals(false, glWindow2.isNativeWindowValid());
+        Assert.assertEquals(false, glWindow2.isNativeValid());
         Assert.assertEquals(glWindow1,glWindow2.getParentNativeWindow());
         glWindow2.setSize(320, 240);
         GLEventListener demo2 = new Gears();
@@ -107,19 +107,19 @@ public class TestParenting01NEWT {
         // visible test
         glWindow1.setVisible(true);
         Assert.assertEquals(true, glWindow1.isVisible());
-        Assert.assertEquals(true, glWindow1.isNativeWindowValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
         Assert.assertEquals(true, glWindow2.isVisible());
-        Assert.assertEquals(true, glWindow2.isNativeWindowValid());
+        Assert.assertEquals(true, glWindow2.isNativeValid());
         glWindow1.setVisible(false);
         Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(true, glWindow1.isNativeWindowValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
         Assert.assertEquals(false, glWindow2.isVisible());
-        Assert.assertEquals(true, glWindow2.isNativeWindowValid());
+        Assert.assertEquals(true, glWindow2.isNativeValid());
         glWindow1.setVisible(true);
         Assert.assertEquals(true, glWindow1.isVisible());
-        Assert.assertEquals(true, glWindow1.isNativeWindowValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
         Assert.assertEquals(true, glWindow2.isVisible());
-        Assert.assertEquals(true, glWindow2.isNativeWindowValid());
+        Assert.assertEquals(true, glWindow2.isNativeValid());
 
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
@@ -136,20 +136,20 @@ public class TestParenting01NEWT {
         glWindow1.destroy(); // false
 
         Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(false, glWindow1.isNativeWindowValid());
-        Assert.assertEquals(false, glWindow1.isDestroyed());
+        Assert.assertEquals(false, glWindow1.isNativeValid());
+        Assert.assertEquals(true,  glWindow1.isValid());
 
         Assert.assertEquals(false, glWindow2.isVisible());
-        Assert.assertEquals(false, glWindow2.isNativeWindowValid());
-        Assert.assertEquals(false, glWindow2.isDestroyed());
+        Assert.assertEquals(false, glWindow2.isNativeValid());
+        Assert.assertEquals(true,  glWindow2.isValid());
 
         glWindow1.destroy(true);
-        Assert.assertEquals(true, glWindow1.isDestroyed());
-        Assert.assertEquals(true, glWindow2.isDestroyed());
+        Assert.assertEquals(false,  glWindow1.isValid());
+        Assert.assertEquals(false,  glWindow2.isValid());
 
         // test double destroy ..
         glWindow2.destroy(true);
-        Assert.assertEquals(true, glWindow2.isDestroyed());
+        Assert.assertEquals(false,  glWindow2.isValid());
     }
 
     @Test
@@ -188,14 +188,14 @@ public class TestParenting01NEWT {
                     Assert.assertEquals(true, glWindow2.isVisible());
                     glWindow2.reparentWindow(glWindow1, null);
                     Assert.assertEquals(true, glWindow2.isVisible());
-                    Assert.assertEquals(true, glWindow2.isNativeWindowValid());
+                    Assert.assertEquals(true, glWindow2.isNativeValid());
                     Assert.assertEquals(glWindow1,glWindow2.getParentNativeWindow());
                     break;
                 case 1:
                     Assert.assertEquals(true, glWindow2.isVisible());
                     glWindow2.reparentWindow(null, null);
                     Assert.assertEquals(true, glWindow2.isVisible());
-                    Assert.assertEquals(true, glWindow2.isNativeWindowValid());
+                    Assert.assertEquals(true, glWindow2.isNativeValid());
                     Assert.assertNull(glWindow2.getParentNativeWindow());
                     break;
             }
@@ -207,11 +207,11 @@ public class TestParenting01NEWT {
         Assert.assertEquals(false, animator2.isAnimating());
 
         glWindow1.destroy(true);
-        Assert.assertEquals(true, glWindow1.isDestroyed());
-        Assert.assertEquals(false, glWindow2.isDestroyed());
+        Assert.assertEquals(false, glWindow1.isValid());
+        Assert.assertEquals(true , glWindow2.isValid());
         glWindow2.destroy(true);
-        Assert.assertEquals(true, glWindow1.isDestroyed());
-        Assert.assertEquals(true, glWindow2.isDestroyed());
+        Assert.assertEquals(false, glWindow1.isValid());
+        Assert.assertEquals(false, glWindow2.isValid());
     }
 
     @Test
@@ -249,14 +249,14 @@ public class TestParenting01NEWT {
                     Assert.assertEquals(true, glWindow2.isVisible());
                     glWindow2.reparentWindow(null, null); 
                     Assert.assertEquals(true, glWindow2.isVisible());
-                    Assert.assertEquals(true, glWindow2.isNativeWindowValid());
+                    Assert.assertEquals(true, glWindow2.isNativeValid());
                     Assert.assertNull(glWindow2.getParentNativeWindow());
                     break;
                 case 1:
                     Assert.assertEquals(true, glWindow2.isVisible());
                     glWindow2.reparentWindow(glWindow1, null);
                     Assert.assertEquals(true, glWindow2.isVisible());
-                    Assert.assertEquals(true, glWindow2.isNativeWindowValid());
+                    Assert.assertEquals(true, glWindow2.isNativeValid());
                     Assert.assertEquals(glWindow1,glWindow2.getParentNativeWindow());
                     break;
             }
@@ -268,11 +268,11 @@ public class TestParenting01NEWT {
         Assert.assertEquals(false, animator2.isAnimating());
 
         glWindow1.destroy(true);
-        Assert.assertEquals(true, glWindow1.isDestroyed());
-        Assert.assertEquals(true, glWindow2.isDestroyed());
+        Assert.assertEquals(false, glWindow1.isValid());
+        Assert.assertEquals(false, glWindow2.isValid());
         glWindow2.destroy(true);
-        Assert.assertEquals(true, glWindow1.isDestroyed());
-        Assert.assertEquals(true, glWindow2.isDestroyed());
+        Assert.assertEquals(false, glWindow1.isValid());
+        Assert.assertEquals(false, glWindow2.isValid());
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {

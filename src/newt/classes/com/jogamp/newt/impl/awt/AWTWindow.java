@@ -148,7 +148,7 @@ public class AWTWindow extends Window {
         this.windowHandle = 1; // just a marker ..
     }
 
-    protected void closeNative() {
+    protected void closeNativeImpl() {
         this.windowHandle = 0; // just a marker ..
         if(null!=container) {
             runOnEDT(true, new Runnable() {

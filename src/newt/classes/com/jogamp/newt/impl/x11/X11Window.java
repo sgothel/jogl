@@ -67,7 +67,7 @@ public class X11Window extends Window {
         windowHandleClose = windowHandle;
     }
 
-    protected void closeNative() {
+    protected void closeNativeImpl() {
         if(0!=windowHandleClose && null!=getScreen() ) {
             X11Display display = (X11Display) getScreen().getDisplay();
             try {
@@ -75,7 +75,7 @@ public class X11Window extends Window {
                              display.getJavaObjectAtom(), display.getWindowDeleteAtom());
             } catch (Throwable t) {
                 if(DEBUG_IMPLEMENTATION) { 
-                    Exception e = new Exception("closeNative failed - "+Thread.currentThread().getName(), t);
+                    Exception e = new Exception("closeNativeImpl failed - "+Thread.currentThread().getName(), t);
                     e.printStackTrace();
                 }
             } finally {

@@ -55,7 +55,7 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.impl.Debug;
 
 public class NewtCanvasAWT extends java.awt.Canvas {
-    public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
+    public static final boolean DEBUG = Debug.debug("Window");
 
     NativeWindow parent = null;
     Window newtChild = null;
@@ -93,7 +93,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         class FocusActionImpl implements Runnable {
             public final boolean result = false; // NEWT shall always proceed requesting the native focus
             public void run() {
-                if(DEBUG_IMPLEMENTATION) {
+                if(DEBUG) {
                     System.out.println("FocusActionImpl.run() "+Window.getThreadName());
                 }
                 NewtCanvasAWT.this.requestFocusAWTParent();
@@ -150,7 +150,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         super.addNotify();
         disableBackgroundErase();
         java.awt.Container cont = getContainer(this);
-        if(DEBUG_IMPLEMENTATION) {
+        if(DEBUG) {
             // if ( isShowing() == false ) -> Container was not visible yet.
             // if ( isShowing() == true  ) -> Container is already visible.
             System.err.println("NewtCanvasAWT.addNotify: "+newtChild+", "+this+", visible "+isVisible()+", showing "+isShowing()+
@@ -161,7 +161,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
 
     public void removeNotify() {
         java.awt.Container cont = getContainer(this);
-        if(DEBUG_IMPLEMENTATION) {
+        if(DEBUG) {
             System.err.println("NewtCanvasAWT.removeNotify: "+newtChild+", from "+cont);
         }
         reparentWindow(false, cont);
@@ -178,15 +178,19 @@ public class NewtCanvasAWT extends java.awt.Canvas {
               parent = NewtFactoryAWT.getNativeWindow(this, newtChild.getRequestedCapabilities());
           }
           if(null!=parent) {
-              if(DEBUG_IMPLEMENTATION) {
+              if(DEBUG) {
                 System.err.println("NewtCanvasAWT.reparentWindow: "+newtChild);
               }
               setSize(cont.getWidth(), cont.getHeight());
               newtChild.setSize(cont.getWidth(), cont.getHeight());
 
               Screen screen = null;
-              if( !newtChild.isNativeWindowValid() ) {
-                  screen = NewtFactoryAWT.createCompatibleScreen(parent);
+              if( !newtChild.isNativeValid() ) {
+                  Screen currentScreen = newtChild.getScreen();
+                  screen = NewtFactoryAWT.createCompatibleScreen(parent, currentScreen);
+                  if( currentScreen != screen ) {
+                    screen.setDestroyWhenUnused(true);
+                  }
               }
               newtChild.reparentWindow(parent, screen);
               newtChild.setVisible(true);
