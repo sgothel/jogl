@@ -77,7 +77,8 @@ public class NewtCanvasAWT extends java.awt.Canvas {
                 focusActionImpl.run();
             } else {
                 try {
-                    EventQueue.invokeAndWait(focusActionImpl);
+                    // Run on child EDT to avoid deadlock with AWT EDT.
+                    newtChild.runOnEDTIfAvail(true,focusActionImpl);
                 } catch (Exception e) {
                     throw new NativeWindowException(e);
                 }
@@ -91,7 +92,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
                 if(DEBUG_IMPLEMENTATION) {
                     System.out.println("FocusActionImpl.run() "+Window.getThreadName());
                 }
-                NewtCanvasAWT.this.requestFocusAWT();
+                NewtCanvasAWT.this.requestFocusAWTParent();
             }
         }
         FocusActionImpl focusActionImpl = new FocusActionImpl();
@@ -130,9 +131,11 @@ public class NewtCanvasAWT extends java.awt.Canvas {
             awtAdapter = new AWTParentWindowAdapter(newtChild).addTo(this);
 
             // If the child has been reparented, it will need to request focus.
+            /* Reevaluate the need for this step.
             if (hasFocus()) {
                 requestFocus();
             }
+            */
         }
     }
 
@@ -232,69 +235,43 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         }
     }
 
-    void requestFocusAWT() {
+    final void requestFocusAWTParent() {
         super.requestFocus();
     }
 
-    public void requestFocus() {
-        super.requestFocus();
-        if (null != newtChild) {
-            newtChild.runOnEDTIfAvail(true, new Runnable() {
-                public void run() {
-                    if (null != newtChild) {
-                        newtChild.setFocusAction(null);
-                        newtChild.requestFocus();
-                        newtChild.setFocusAction(focusAction);
-                    }
-                }
-            });
+    final void requestFocusNEWTChild() {
+        if(null!=newtChild) {
+            newtChild.setFocusAction(null);
+            newtChild.requestFocus();
+            newtChild.setFocusAction(focusAction);
         }
+    }
+
+    public void requestFocus() {
+        requestFocusAWTParent();
+        requestFocusNEWTChild();
     }
 
     public boolean requestFocus(boolean temporary) {
         boolean res = super.requestFocus(temporary);
-        if (res && null != newtChild) {
-            newtChild.runOnEDTIfAvail(true, new Runnable() {
-                public void run() {
-                    if (null != newtChild) {
-                        newtChild.setFocusAction(null);
-                        newtChild.requestFocus();
-                        newtChild.setFocusAction(focusAction);
-                    }
-                }
-            });
+        if(res) {
+            requestFocusNEWTChild();
         }
         return res;
     }
 
     public boolean requestFocusInWindow() {
         boolean res = super.requestFocusInWindow();
-        if (res && null != newtChild) {
-            newtChild.runOnEDTIfAvail(true, new Runnable() {
-                public void run() {
-                    if (null != newtChild) {
-                        newtChild.setFocusAction(null);
-                        newtChild.requestFocus();
-                        newtChild.setFocusAction(focusAction);
-                    }
-                }
-            });
+        if(res) {
+            requestFocusNEWTChild();
         }
         return res;
     }
 
     public boolean requestFocusInWindow(boolean temporary) {
         boolean res = super.requestFocusInWindow(temporary);
-        if (res && null != newtChild) {
-            newtChild.runOnEDTIfAvail(true, new Runnable() {
-                public void run() {
-                    if (null != newtChild) {
-                        newtChild.setFocusAction(null);
-                        newtChild.requestFocus();
-                        newtChild.setFocusAction(focusAction);
-                    }
-                }
-            });
+        if(res) {
+            requestFocusNEWTChild();
         }
         return res;
     }
