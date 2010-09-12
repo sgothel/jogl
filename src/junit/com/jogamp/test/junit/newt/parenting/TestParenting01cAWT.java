@@ -74,7 +74,6 @@ public class TestParenting01cAWT {
 
     static int width, height;
     static long durationPerTest = 800;
-    static long waitReparent = 0;
     static GLCapabilities glCaps;
 
     @BeforeClass
@@ -241,8 +240,6 @@ public class TestParenting01cAWT {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
-            } else if(args[i].equals("-wait")) {
-                waitReparent = atoi(args[++i]);
             }
         }
         String tstname = TestParenting01cAWT.class.getName();

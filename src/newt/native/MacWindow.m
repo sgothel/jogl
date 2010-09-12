@@ -36,7 +36,6 @@
 #import "com_jogamp_newt_impl_macosx_MacWindow.h"
 #import "NewtMacWindow.h"
 
-#import "EventListener.h"
 #import "MouseEvent.h"
 #import "KeyEvent.h"
 

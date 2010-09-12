@@ -49,7 +49,6 @@
 
 #include "com_jogamp_newt_impl_x11_X11Window.h"
 
-#include "EventListener.h"
 #include "MouseEvent.h"
 #include "KeyEvent.h"
 #include "WindowEvent.h"
@@ -160,9 +159,12 @@ static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowDestroyedID = NULL;
 static jmethodID windowRepaintID = NULL;
 static jmethodID windowCreatedID = NULL;
+static jmethodID enqueueMouseEventID = NULL;
 static jmethodID sendMouseEventID = NULL;
+static jmethodID enqueueKeyEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 static jmethodID focusActionID = NULL;
+static jmethodID enqueueRequestFocusID = NULL;
 
 static jmethodID displayCompletedID = NULL;
 
@@ -391,11 +393,12 @@ static Window NewtWindows_getParent (Display *dpy, Window w) {
     return 0;
 } */
 
-static void NewtWindows_requestFocus0 (JNIEnv *env, jobject window, Display *dpy, Window w, XWindowAttributes *xwa) {
+static void NewtWindows_requestFocus0 (JNIEnv *env, jobject window, Display *dpy, Window w, XWindowAttributes *xwa, 
+                                       Bool reparented){
     Window focus_return;
     int revert_to_return;
     XGetInputFocus(dpy, &focus_return, &revert_to_return);
-    if(focus_return!=w) {
+    if(reparented || focus_return!=w) {
         // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
         if( JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
             if(xwa->map_state == IsViewable) {
@@ -405,11 +408,12 @@ static void NewtWindows_requestFocus0 (JNIEnv *env, jobject window, Display *dpy
     }
 }
 
-static void NewtWindows_requestFocus1 (JNIEnv *env, jobject window, Display *dpy, Window w) {
+static void NewtWindows_requestFocus1 (JNIEnv *env, jobject window, Display *dpy, Window w, 
+                                       Bool reparented) {
     XWindowAttributes xwa;
 
     XGetWindowAttributes(dpy, w, &xwa);
-    NewtWindows_requestFocus0 (env, window, dpy, w, &xwa);
+    NewtWindows_requestFocus0 (env, window, dpy, w, &xwa, reparented);
     XSync(dpy, False);
 }
 
@@ -541,7 +545,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
 
         switch(evt.type) {
             case ButtonPress:
-                NewtWindows_requestFocus1 ( env, jwindow, dpy, evt.xany.window );
+                (*env)->CallVoidMethod(env, jwindow, enqueueRequestFocusID, JNI_FALSE);
                 (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, 
                                       (jint) EVENT_MOUSE_PRESSED, 
                                       (jint) evt.xbutton.state, 
@@ -710,8 +714,11 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs0
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(IIII)V");
     windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(J)V");
+    enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
+    enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZIIIC)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
+    enqueueRequestFocusID = (*env)->GetMethodID(env, clazz, "enqueueRequestFocus", "(Z)V");
     focusActionID = (*env)->GetMethodID(env, clazz, "focusAction", "()Z");
 
     if (sizeChangedID == NULL ||
@@ -722,9 +729,12 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs0
         windowDestroyedID == NULL ||
         windowRepaintID == NULL ||
         windowCreatedID == NULL ||
+        enqueueMouseEventID == NULL ||
         sendMouseEventID == NULL ||
+        enqueueKeyEventID == NULL ||
         sendKeyEventID == NULL ||
-        focusActionID == NULL) {
+        focusActionID == NULL ||
+        enqueueRequestFocusID == NULL) {
         return JNI_FALSE;
     }
     return JNI_TRUE;
@@ -1019,7 +1029,7 @@ static void NewtWindows_reparentWindow
         XMapRaised(dpy, w);
         XSync(dpy, False);
 
-        NewtWindows_requestFocus0 ( env, obj, dpy, w, xwa );
+        NewtWindows_requestFocus0 ( env, obj, dpy, w, xwa, True );
         XSync(dpy, False);
     }
 
@@ -1102,7 +1112,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_reparentWindow0
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_requestFocus0
   (JNIEnv *env, jobject obj, jlong display, jlong window)
 {
-    NewtWindows_requestFocus1 ( env, obj, (Display *) (intptr_t) display, (Window)window ) ;
+    NewtWindows_requestFocus1 ( env, obj, (Display *) (intptr_t) display, (Window)window, False ) ;
 }
 
 /*

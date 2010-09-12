@@ -91,7 +91,6 @@
 
 #include "com_jogamp_newt_impl_windows_WindowsWindow.h"
 
-#include "EventListener.h"
 #include "MouseEvent.h"
 #include "InputEvent.h"
 #include "KeyEvent.h"
@@ -117,9 +116,12 @@ static jmethodID visibleChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowDestroyedID = NULL;
 static jmethodID windowRepaintID = NULL;
+static jmethodID enqueueMouseEventID = NULL;
 static jmethodID sendMouseEventID = NULL;
+static jmethodID enqueueKeyEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 static jmethodID focusActionID = NULL;
+static jmethodID enqueueRequestFocusID = NULL;
 
 static RECT* UpdateInsets(JNIEnv *env, HWND hwnd, jobject window);
 
@@ -806,7 +808,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 
     case WM_LBUTTONDOWN:
         DBG_PRINT("*** WindowsWindow: LBUTTONDOWN\n");
-        NewtWindows_requestFocus ( env, window, wnd, FALSE ); // request focus on this window, if not already ..
+        (*env)->CallVoidMethod(env, window, enqueueRequestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers(),
@@ -826,7 +828,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 
     case WM_MBUTTONDOWN:
         DBG_PRINT("*** WindowsWindow: MBUTTONDOWN\n");
-        NewtWindows_requestFocus ( env, window, wnd, FALSE ); // request focus on this window, if not already ..
+        (*env)->CallVoidMethod(env, window, enqueueRequestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers(),
@@ -846,7 +848,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 
     case WM_RBUTTONDOWN:
         DBG_PRINT("*** WindowsWindow: RBUTTONDOWN\n");
-        NewtWindows_requestFocus ( env, window, wnd, FALSE ); // request focus on this window, if not already ..
+        (*env)->CallVoidMethod(env, window, enqueueRequestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers(),
@@ -1075,8 +1077,11 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_initI
     windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(IIII)V");
+    enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
+    enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZIIIC)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
+    enqueueRequestFocusID = (*env)->GetMethodID(env, clazz, "enqueueRequestFocus", "(Z)V");
     focusActionID = (*env)->GetMethodID(env, clazz, "focusAction", "()Z");
 
     if (insetsChangedID == NULL ||
@@ -1087,10 +1092,12 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_initI
         windowDestroyNotifyID == NULL ||
         windowDestroyedID == NULL ||
         windowRepaintID == NULL ||
+        enqueueMouseEventID == NULL ||
         sendMouseEventID == NULL ||
+        enqueueKeyEventID == NULL ||
         sendKeyEventID == NULL ||
-        focusActionID == NULL)
-    {
+        focusActionID == NULL ||
+        enqueueRequestFocusID == NULL) {
         return JNI_FALSE;
     }
     BuildDynamicKeyMapTable();
