@@ -40,6 +40,13 @@ import java.util.*;
  * NEWT events are provided for notification purposes ONLY;<br>
  * The NEWT will automatically handle the event semantics internally, regardless of whether a program is receiving these events or not.<br>
  * The actual event semantic is processed before the event is send.<br>
+ *
+ * Event type registry:<br>
+ * <ul>
+ *   <li> WindowEvent <code>100..10x</code></li>
+ *   <li> MouseEvent  <code>200..20x</code></li>
+ *   <li> KeyEvent    <code>300..30x</code></li>
+ * </ul><br>
  */
 public class NEWTEvent extends java.util.EventObject {
     private boolean isSystemEvent;
@@ -60,6 +67,8 @@ public class NEWTEvent extends java.util.EventObject {
     //  1:   WindowEvent.java
     //  2:       com.jogamp.newt.Window
     //  2:       com.jogamp.newt.event.awt.AWTNewtEventFactory
+    //
+    // FIXME: verify the isSystemEvent evaluation
     //
     static final String WindowClazzName = "com.jogamp.newt.Window" ;
     static final String AWTNewtEventFactoryClazzName = "com.jogamp.newt.event.awt.AWTNewtEventFactory" ;

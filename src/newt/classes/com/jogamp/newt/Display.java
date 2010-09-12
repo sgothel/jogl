@@ -181,7 +181,7 @@ public abstract class Display {
         }
     }
 
-    public boolean runCreateAndDestroyOnEDT() { 
+    protected boolean getShallRunOnEDT() { 
         return true; 
     }
 
@@ -232,7 +232,7 @@ public abstract class Display {
 
     public void runOnEDTIfAvail(boolean wait, final Runnable task) {
         EDTUtil _edtUtil = getEDTUtil();
-        if(runCreateAndDestroyOnEDT() && null!=_edtUtil) {
+        if(getShallRunOnEDT() && null!=_edtUtil) {
             _edtUtil.invoke(wait, task);
         } else {
             task.run();
@@ -363,7 +363,7 @@ public abstract class Display {
                             enqueueEvent(false, event);
                         }
                     } else {
-                        throw new RuntimeException("Event source not a NEWT one: "+source.getClass().getName()+", "+source);
+                        throw new RuntimeException("Event source not NEWT: "+source.getClass().getName()+", "+source);
                     }
                     eventTask.notifyIssuer();
                 }
