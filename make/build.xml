@@ -93,7 +93,6 @@
         <mkdir dir="${archive}" />
         <!-- Copy the appropriate pieces into the archive directory -->
         <copy file="../CHANGELOG.txt"  todir="${archive}" />
-        <copy file="../COPYRIGHT.txt"  todir="${archive}" />
         <copy file="../LICENSE.txt"    todir="${archive}" />
         <copy file="../doc/userguide/index.html" tofile="${archive}/Userguide.html" />
         <copy file="README-zip-bundles.txt"
