@@ -46,7 +46,6 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
   private static final boolean DEBUG = Debug.debug("WindowsPbufferWGLContext");
 
   // State for render-to-texture and render-to-texture-rectangle support
-  private WindowsPbufferWGLDrawable drawable;
   private boolean rtt;       // render-to-texture?
   private boolean hasRTT;    // render-to-texture extension available?
   private boolean rect;      // render-to-texture-rectangle?
@@ -56,7 +55,6 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
   public WindowsPbufferWGLContext(WindowsPbufferWGLDrawable drawable,
                                  GLContext shareWith) {
     super(drawable, shareWith);
-    this.drawable = drawable;
   }
 
   public void bindPbufferToTexture() {
@@ -68,7 +66,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
     WGLExt wglExt = getWGLExt();
     gl.glBindTexture(textureTarget, texture);
     if (rtt && hasRTT) {
-      if (!wglExt.wglBindTexImageARB(drawable.getPbufferHandle(), WGLExt.WGL_FRONT_LEFT_ARB)) {
+      if (!wglExt.wglBindTexImageARB(((WindowsPbufferWGLDrawable)drawable).getPbufferHandle(), WGLExt.WGL_FRONT_LEFT_ARB)) {
         throw new GLException("Binding of pbuffer to texture failed: " + wglGetLastError());
       }
     }
@@ -84,7 +82,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
     }
     if (rtt && hasRTT) {
       WGLExt wglExt = getWGLExt();
-      if (!wglExt.wglReleaseTexImageARB(drawable.getPbufferHandle(), WGLExt.WGL_FRONT_LEFT_ARB)) {
+      if (!wglExt.wglReleaseTexImageARB(((WindowsPbufferWGLDrawable)drawable).getPbufferHandle(), WGLExt.WGL_FRONT_LEFT_ARB)) {
         throw new GLException("Releasing of pbuffer from texture failed: " + wglGetLastError());
       }
     }
@@ -142,7 +140,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
   }
 
   public int getFloatingPointMode() {
-    return drawable.getFloatingPointMode();
+    return ((WindowsPbufferWGLDrawable)drawable).getFloatingPointMode();
   }
 
   private static String wglGetLastError() {

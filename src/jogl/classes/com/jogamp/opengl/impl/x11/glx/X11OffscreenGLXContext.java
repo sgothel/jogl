@@ -40,16 +40,12 @@
 package com.jogamp.opengl.impl.x11.glx;
 
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.opengl.impl.x11.*;
 
 public class X11OffscreenGLXContext extends X11GLXContext {
-  private X11OffscreenGLXDrawable drawable;
 
   public X11OffscreenGLXContext(X11OffscreenGLXDrawable drawable,
                                GLContext shareWith) {
     super(drawable, shareWith);
-    this.drawable = drawable;
   }
 
   public int getOffscreenContextPixelDataType() {

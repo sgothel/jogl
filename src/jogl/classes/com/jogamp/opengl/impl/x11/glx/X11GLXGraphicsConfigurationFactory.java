@@ -41,7 +41,7 @@ import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 
 
-/** Subclass of GraphicsConfigurationFactory used when non-AWT tookits
+/** Subclass of GraphicsConfigurationFactory used when non-AWT toolkits
     are used on X11 platforms. Toolkits will likely need to delegate
     to this one to change the accepted and returned types of the
     GraphicsDevice and GraphicsConfiguration abstractions. */
@@ -56,7 +56,18 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
     public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
                                                                      CapabilitiesChooser chooser,
                                                                      AbstractGraphicsScreen absScreen) {
-        return chooseGraphicsConfigurationStatic(capabilities, chooser, absScreen);
+        if (!(absScreen instanceof X11GraphicsScreen)) {
+            throw new IllegalArgumentException("Only X11GraphicsScreen are allowed here");
+        }
+
+        if (capabilities != null && !(capabilities instanceof GLCapabilities)) {
+            throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilities objects");
+        }
+
+        if (chooser != null && !(chooser instanceof GLCapabilitiesChooser)) {
+            throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilitiesChooser objects");
+        }
+        return chooseGraphicsConfigurationStatic((GLCapabilities)capabilities, (GLCapabilitiesChooser)chooser, (X11GraphicsScreen)absScreen);
     }
 
     /**
@@ -109,52 +120,32 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
       return new X11GLXGraphicsConfiguration(x11Screen, (null!=capsFB)?capsFB:caps, caps, null, xvis, fbcfg, fbid);
     } */
 
-    protected static X11GLXGraphicsConfiguration chooseGraphicsConfigurationStatic(Capabilities capabilities,
-                                                                                   CapabilitiesChooser chooser,
-                                                                                   AbstractGraphicsScreen absScreen) {
-        if (absScreen == null) {
+    protected static X11GLXGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilities capabilities,
+                                                                                  GLCapabilitiesChooser chooser,
+                                                                                  X11GraphicsScreen x11Screen) {
+        if (x11Screen == null) {
             throw new IllegalArgumentException("AbstractGraphicsScreen is null");
-        }
-        if (!(absScreen instanceof X11GraphicsScreen)) {
-            throw new IllegalArgumentException("Only X11GraphicsScreen are allowed here");
-        }
-        X11GraphicsScreen x11Screen = (X11GraphicsScreen)absScreen;
-
-
-        if (capabilities != null &&
-            !(capabilities instanceof GLCapabilities)) {
-            throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilities objects");
-        }
-
-        if (chooser != null &&
-            !(chooser instanceof GLCapabilitiesChooser)) {
-            throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilitiesChooser objects");
         }
 
         if (capabilities == null) {
             capabilities = new GLCapabilities(null);
         }
 
-        boolean onscreen = capabilities.isOnscreen();
-        boolean usePBuffer = ((GLCapabilities)capabilities).isPBuffer();
-
         GLCapabilities caps2 = (GLCapabilities) capabilities.clone();
+
+        boolean usePBuffer = caps2.isPBuffer();
+
         if(!caps2.isOnscreen()) {
             // OFFSCREEN !DOUBLE_BUFFER // FIXME DBLBUFOFFSCRN
             caps2.setDoubleBuffered(false);
         }
     
-        X11GLXGraphicsConfiguration res;
-        res = chooseGraphicsConfigurationFBConfig((GLCapabilities) caps2,
-                                                  (GLCapabilitiesChooser) chooser,
-                                                  x11Screen);
+        X11GLXGraphicsConfiguration res = chooseGraphicsConfigurationFBConfig(caps2, chooser, x11Screen);
         if(null==res) {
             if(usePBuffer) {
                 throw new GLException("Error: Couldn't create X11GLXGraphicsConfiguration based on FBConfig for "+caps2);
             }
-            res = chooseGraphicsConfigurationXVisual((GLCapabilities) caps2,
-                                                     (GLCapabilitiesChooser) chooser,
-                                                     x11Screen);
+            res = chooseGraphicsConfigurationXVisual(caps2, chooser, x11Screen);
         }
         if(null==res) {
             throw new GLException("Error: Couldn't create X11GLXGraphicsConfiguration based on FBConfig and XVisual for "+caps2);
