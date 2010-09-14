@@ -47,19 +47,8 @@ import com.jogamp.nativewindow.impl.NullWindow;
 
 public class X11ExternalGLXDrawable extends X11GLXDrawable {
 
-    //TODO? those are not used
-//  private int fbConfigID;
-//  private int renderType;
-
-  private X11ExternalGLXDrawable(GLDrawableFactory factory, NativeWindow component, int renderType) {
+  private X11ExternalGLXDrawable(GLDrawableFactory factory, NativeWindow component) {
     super(factory, component, true);
-
-//    this.renderType = renderType;
-
-    // Need GLXFBConfig ID in order to properly create new contexts
-    // on this drawable
-//    X11GLXGraphicsConfiguration cfg = (X11GLXGraphicsConfiguration) component.getGraphicsConfiguration();
-//    fbConfigID = cfg.getFBConfigID();
   }
 
   protected static X11ExternalGLXDrawable create(GLDrawableFactory factory, GLProfile glp) {
@@ -97,7 +86,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
     NullWindow nw = new NullWindow(cfg);
     nw.setSurfaceHandle(drawable);
     nw.setSize(w, h);
-    return new X11ExternalGLXDrawable(factory, nw, GLX.GLX_RGBA_TYPE);
+    return new X11ExternalGLXDrawable(factory, nw);
   }
 
   public GLContext createContext(GLContext shareWith) {

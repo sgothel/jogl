@@ -42,11 +42,9 @@ package com.jogamp.opengl.impl.x11.glx;
 import javax.media.opengl.*;
 
 public class X11PbufferGLXContext extends X11GLXContext {
-  private X11PbufferGLXDrawable drawable;
 
   public X11PbufferGLXContext(X11PbufferGLXDrawable drawable, GLContext shareWith) {
     super(drawable, shareWith);
-    this.drawable = drawable;
   }
 
   public void bindPbufferToTexture() {
@@ -61,7 +59,7 @@ public class X11PbufferGLXContext extends X11GLXContext {
 
 
   public int getFloatingPointMode() {
-    return drawable.getFloatingPointMode();
+    return ((X11PbufferGLXDrawable)drawable).getFloatingPointMode();
   }
 
   protected boolean createImpl() {

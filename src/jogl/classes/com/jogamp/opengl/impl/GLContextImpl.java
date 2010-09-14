@@ -492,11 +492,11 @@ public abstract class GLContextImpl extends GLContext {
         if (!mappedVersionsAvailableSet) {
             synchronized (mappedVersionsAvailableLock) {
                 if (!mappedVersionsAvailableSet) {
-                    createContextARBMapVersionsAvailable(4, false); // GL4
-                    createContextARBMapVersionsAvailable(4, true);  // GL4bc
-                    createContextARBMapVersionsAvailable(3, false); // GL3
-                    createContextARBMapVersionsAvailable(3, true);  // GL3bc
-                    createContextARBMapVersionsAvailable(2, true);  // GL2
+                    createContextARBMapVersionsAvailable(4, false /* core   */);  // GL4
+                    createContextARBMapVersionsAvailable(4, true  /* compat */);  // GL4bc
+                    createContextARBMapVersionsAvailable(3, false /* core   */);  // GL3
+                    createContextARBMapVersionsAvailable(3, true  /* compat */);  // GL3bc
+                    createContextARBMapVersionsAvailable(2, true  /* compat */);  // GL2
                     mappedVersionsAvailableSet = true;
                     if (DEBUG) {
                         System.err.println(getThreadName() + ": !!! createContextARB: SET mappedVersionsAvailableSet " + mappedVersionsAvailableSet);

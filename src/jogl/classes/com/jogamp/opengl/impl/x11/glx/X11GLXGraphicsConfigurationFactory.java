@@ -132,7 +132,6 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
         }
 
         GLCapabilities caps2 = (GLCapabilities) capabilities.clone();
-        GLCapabilitiesChooser glChooser = chooser;
 
         boolean usePBuffer = caps2.isPBuffer();
 
@@ -141,12 +140,12 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
             caps2.setDoubleBuffered(false);
         }
     
-        X11GLXGraphicsConfiguration res = chooseGraphicsConfigurationFBConfig(caps2, glChooser, x11Screen);
+        X11GLXGraphicsConfiguration res = chooseGraphicsConfigurationFBConfig(caps2, chooser, x11Screen);
         if(null==res) {
             if(usePBuffer) {
                 throw new GLException("Error: Couldn't create X11GLXGraphicsConfiguration based on FBConfig for "+caps2);
             }
-            res = chooseGraphicsConfigurationXVisual(caps2, glChooser, x11Screen);
+            res = chooseGraphicsConfigurationXVisual(caps2, chooser, x11Screen);
         }
         if(null==res) {
             throw new GLException("Error: Couldn't create X11GLXGraphicsConfiguration based on FBConfig and XVisual for "+caps2);
