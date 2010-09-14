@@ -9,7 +9,6 @@ import javax.media.nativewindow.*;
 import com.jogamp.opengl.impl.*;
 
 public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
-  protected MacOSXPbufferCGLDrawable drawable;
 
   // State for render-to-texture and render-to-texture-rectangle support
   private int textureTarget; // e.g. GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_NV
@@ -28,7 +27,6 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   public MacOSXPbufferCGLContext(MacOSXPbufferCGLDrawable drawable,
                                 GLContext shareWith) {
     super(drawable, shareWith);
-    this.drawable = drawable;
     initOpenGLImpl();
   }
 
@@ -45,8 +43,8 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   }
 
   protected void makeCurrentImpl(boolean newCreated) throws GLException {
-    if (getOpenGLMode() != drawable.getOpenGLMode()) {
-      setOpenGLMode(drawable.getOpenGLMode());
+    if (getOpenGLMode() != ((MacOSXPbufferCGLDrawable)drawable).getOpenGLMode()) {
+      setOpenGLMode(((MacOSXPbufferCGLDrawable)drawable).getOpenGLMode());
     }
 
     if (!impl.makeCurrent(contextHandle)) {
@@ -149,7 +147,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       throw new GLException("Can't switch between using NSOpenGLPixelBuffer and CGLPBufferObj more than once");
     }
     destroyImpl();
-    drawable.setOpenGLMode(mode);
+    ((MacOSXPbufferCGLDrawable)drawable).setOpenGLMode(mode);
     openGLMode = mode;
     haveSetOpenGLMode = true;
     if (DEBUG) {

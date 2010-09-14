@@ -46,12 +46,10 @@ import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 
 public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
-  protected MacOSXOnscreenCGLDrawable drawable;
 
   public MacOSXOnscreenCGLContext(MacOSXOnscreenCGLDrawable drawable,
                                  GLContext shareWith) {
     super(drawable, shareWith);
-    this.drawable = drawable;
   }
 
   protected void makeCurrentImpl(boolean newCreated) throws GLException {
