@@ -42,23 +42,24 @@ package com.jogamp.opengl.impl.x11.glx;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.NullWindow;
 
 
 public class X11ExternalGLXDrawable extends X11GLXDrawable {
-  private int fbConfigID;
-  private int renderType;
+
+    //TODO? those are not used
+//  private int fbConfigID;
+//  private int renderType;
 
   private X11ExternalGLXDrawable(GLDrawableFactory factory, NativeWindow component, int renderType) {
     super(factory, component, true);
 
-    this.renderType = renderType;
+//    this.renderType = renderType;
 
     // Need GLXFBConfig ID in order to properly create new contexts
     // on this drawable
-    X11GLXGraphicsConfiguration cfg = (X11GLXGraphicsConfiguration) component.getGraphicsConfiguration();
-    fbConfigID = cfg.getFBConfigID();
+//    X11GLXGraphicsConfiguration cfg = (X11GLXGraphicsConfiguration) component.getGraphicsConfiguration();
+//    fbConfigID = cfg.getFBConfigID();
   }
 
   protected static X11ExternalGLXDrawable create(GLDrawableFactory factory, GLProfile glp) {

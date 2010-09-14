@@ -557,7 +557,7 @@ public abstract class GLContext {
 
   protected static final IntIntHashMap mappedVersionsAvailable;
   protected static volatile boolean mappedVersionsAvailableSet;
-  protected static Object mappedVersionsAvailableLock;
+  protected static final Object mappedVersionsAvailableLock;
 
   static {
       mappedVersionsAvailableLock = new Object();

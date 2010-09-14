@@ -42,9 +42,6 @@ package com.jogamp.opengl.impl;
 import java.nio.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.jogamp.common.util.*;
-import com.jogamp.gluegen.runtime.*;
-import java.lang.reflect.*;
 import java.security.*;
 
 /** Extends GLDrawableFactory with a few methods for handling
@@ -70,11 +67,11 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
       throw new IllegalArgumentException("Null target");
     }
     AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities caps = (GLCapabilities) target.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    GLCapabilities caps = (GLCapabilities) config.getChosenCapabilities();
     GLDrawable result = null;
     if(caps.isOnscreen()) {
         if(DEBUG) {
-            System.out.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target);
+            System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target);
         }
         result = createOnscreenDrawable(target);
     } else {
@@ -83,19 +80,19 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         }
         if(caps.isPBuffer()) {
             if(DEBUG) {
-                System.out.println("GLDrawableFactoryImpl.createGLDrawable -> PbufferDrawable: "+target);
+                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> PbufferDrawable: "+target);
             }
             result = createGLPbufferDrawable(target);
         }
         if(null==result) {
             if(DEBUG) {
-                System.out.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable: "+target);
+                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable: "+target);
             }
             result = createOffscreenDrawable(target);
         }
     }
     if(DEBUG) {
-        System.out.println("GLDrawableFactoryImpl.createGLDrawable: "+result);
+        System.err.println("GLDrawableFactoryImpl.createGLDrawable: "+result);
     }
     return result;
   }
