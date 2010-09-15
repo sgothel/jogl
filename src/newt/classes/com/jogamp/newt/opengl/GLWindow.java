@@ -224,8 +224,8 @@ public class GLWindow extends Window implements GLAutoDrawable {
         shouldNotCallThis();
     }
 
-    public void reparentWindow(NativeWindow newParent, Screen newScreen) {
-        window.reparentWindow(newParent, newScreen);
+    public void reparentWindow(NativeWindow newParent) {
+        window.reparentWindow(newParent);
     }
 
     class VisibleAction implements Runnable {

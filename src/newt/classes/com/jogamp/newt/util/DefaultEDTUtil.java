@@ -125,8 +125,10 @@ public class DefaultEDTUtil implements EDTUtil {
             }
             // wait until task finished, if requested
             // and no stop() call slipped through.
-            if( wait && !shouldStop ) {
+            if( wait && isRunning() ) {
                 try {
+                    // JAU FIXME
+                    System.out.println(Thread.currentThread()+": Wait on Task. EDT: "+edt);
                     rTaskLock.wait();
                 } catch (InterruptedException ie) {
                     throwable = ie;

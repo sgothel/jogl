@@ -49,6 +49,7 @@ import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
+import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.impl.Debug;
 
 public class NewtCanvasAWT extends java.awt.Canvas {
@@ -91,7 +92,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
             public final boolean result = false; // NEWT shall always proceed requesting the native focus
             public void run() {
                 if(DEBUG) {
-                    System.out.println("FocusActionImpl.run() "+Window.getThreadName());
+                    System.err.println("FocusActionImpl.run() "+Window.getThreadName());
                 }
                 NewtCanvasAWT.this.requestFocusAWTParent();
             }
@@ -180,16 +181,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
               }
               setSize(cont.getWidth(), cont.getHeight());
               newtChild.setSize(cont.getWidth(), cont.getHeight());
-
-              Screen screen = null;
-              if( !newtChild.isNativeValid() ) {
-                  Screen currentScreen = newtChild.getScreen();
-                  screen = NewtFactoryAWT.createCompatibleScreen(parent, currentScreen);
-                  if( currentScreen != screen ) {
-                    screen.setDestroyWhenUnused(true);
-                  }
-              }
-              newtChild.reparentWindow(parent, screen);
+              newtChild.reparentWindow(parent);
               newtChild.setVisible(true);
               setWindowAdapter(true);
               newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
@@ -199,7 +191,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
           setWindowAdapter(false);
           parent = null;
           newtChild.setVisible(false);
-          newtChild.reparentWindow(null, null);
+          newtChild.reparentWindow(null);
       }
     }
 

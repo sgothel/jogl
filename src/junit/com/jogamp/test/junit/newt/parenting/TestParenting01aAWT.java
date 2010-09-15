@@ -258,12 +258,12 @@ public class TestParenting01aAWT {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
-                    glWindow1.reparentWindow(null, null);
+                    glWindow1.reparentWindow(null);
                     Assert.assertEquals(true, glWindow1.isNativeValid());
                     Assert.assertNull(glWindow1.getParentNativeWindow());
                     break;
                 case 1:
-                    glWindow1.reparentWindow(newtCanvasAWT.getNativeWindow(), null);
+                    glWindow1.reparentWindow(newtCanvasAWT.getNativeWindow());
                     Assert.assertEquals(true, glWindow1.isNativeValid());
                     Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
                     break;
@@ -313,12 +313,12 @@ public class TestParenting01aAWT {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
-                    glWindow1.reparentWindow(null, null);
+                    glWindow1.reparentWindow(null);
                     Assert.assertEquals(true, glWindow1.isNativeValid());
                     Assert.assertNull(glWindow1.getParentNativeWindow());
                     break;
                 case 1:
-                    glWindow1.reparentWindow(newtCanvasAWT.getNativeWindow(), null);
+                    glWindow1.reparentWindow(newtCanvasAWT.getNativeWindow());
                     Assert.assertEquals(true, glWindow1.isNativeValid());
                     Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
                     break;

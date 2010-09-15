@@ -78,6 +78,10 @@ public class TestParenting01NEWT {
         int x = 0;
         int y = 0;
 
+        Assert.assertEquals(0,Display.getActiveDisplayNumber());
+        Display display = null;
+        Screen screen = null;
+
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
         GLWindow glWindow1 = GLWindow.create(glCaps);
@@ -85,6 +89,17 @@ public class TestParenting01NEWT {
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParentNativeWindow());
+        screen = glWindow1.getScreen();
+        display = screen.getDisplay();
+        Assert.assertEquals(true,display.getDestroyWhenUnused());
+        Assert.assertEquals(0,display.getReferenceCount());
+        Assert.assertEquals(false,display.isNativeValid());
+        Assert.assertNotNull(display.getEDTUtil());
+        Assert.assertEquals(false,display.getEDTUtil().isRunning());
+        Assert.assertEquals(0,screen.getReferenceCount());
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(0,Display.getActiveDisplayNumber());
+
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
         glWindow1.setSize(640, 480);
         GLEventListener demo1 = new RedSquare();
@@ -95,11 +110,22 @@ public class TestParenting01NEWT {
         Assert.assertNotNull(glWindow2);
         Assert.assertEquals(false, glWindow2.isVisible());
         Assert.assertEquals(false, glWindow2.isNativeValid());
-        Assert.assertEquals(glWindow1,glWindow2.getParentNativeWindow());
+        Assert.assertSame(glWindow1,glWindow2.getParentNativeWindow());
+        Assert.assertSame(screen,glWindow2.getScreen());
+        Assert.assertSame(display,glWindow2.getScreen().getDisplay());
         glWindow2.setSize(320, 240);
         GLEventListener demo2 = new Gears();
         setDemoFields(demo2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
+
+        Assert.assertEquals(true,display.getDestroyWhenUnused());
+        Assert.assertEquals(0,display.getReferenceCount());
+        Assert.assertEquals(false,display.isNativeValid());
+        Assert.assertNotNull(display.getEDTUtil());
+        Assert.assertEquals(true,display.getEDTUtil().isRunning()); // GLWindow -> invoke ..
+        Assert.assertEquals(0,screen.getReferenceCount());
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
         // visible test
         glWindow1.setVisible(true);
@@ -107,11 +133,20 @@ public class TestParenting01NEWT {
         Assert.assertEquals(true, glWindow1.isNativeValid());
         Assert.assertEquals(true, glWindow2.isVisible());
         Assert.assertEquals(true, glWindow2.isNativeValid());
+        Assert.assertEquals(1,display.getReferenceCount());
+        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertNotNull(display.getEDTUtil());
+        Assert.assertEquals(true,display.getEDTUtil().isRunning());
+        Assert.assertEquals(2,screen.getReferenceCount());
+        Assert.assertEquals(true,screen.isNativeValid());
+        Assert.assertEquals(1,Display.getActiveDisplayNumber());
+
         glWindow1.setVisible(false);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(true, glWindow1.isNativeValid());
         Assert.assertEquals(false, glWindow2.isVisible());
         Assert.assertEquals(true, glWindow2.isNativeValid());
+
         glWindow1.setVisible(true);
         Assert.assertEquals(true, glWindow1.isVisible());
         Assert.assertEquals(true, glWindow1.isNativeValid());
@@ -130,29 +165,97 @@ public class TestParenting01NEWT {
         animator2.stop();
         Assert.assertEquals(false, animator2.isAnimating());
 
-        glWindow1.destroy(); // false
+        Assert.assertEquals(1,display.getReferenceCount());
+        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertNotNull(display.getEDTUtil());
+        Assert.assertEquals(true,display.getEDTUtil().isRunning());
+        Assert.assertEquals(2,screen.getReferenceCount());
+        Assert.assertEquals(true,screen.isNativeValid());
+        Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
-        Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(false, glWindow1.isNativeValid());
+        glWindow2.destroy(); // can be recreated, refs are hold
+        Assert.assertEquals(true,  glWindow1.isVisible());
+        Assert.assertEquals(true,  glWindow1.isNativeValid());
         Assert.assertEquals(true,  glWindow1.isValid());
-
         Assert.assertEquals(false, glWindow2.isVisible());
         Assert.assertEquals(false, glWindow2.isNativeValid());
         Assert.assertEquals(true,  glWindow2.isValid());
 
-        glWindow1.destroy(true);
-        Assert.assertEquals(false,  glWindow1.isValid());
-        Assert.assertEquals(false,  glWindow2.isValid());
+        Assert.assertEquals(1,display.getReferenceCount());
+        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertNotNull(display.getEDTUtil());
+        Assert.assertEquals(true,display.getEDTUtil().isRunning());
+        Assert.assertEquals(2,screen.getReferenceCount());
+        Assert.assertEquals(true,screen.isNativeValid());
+        Assert.assertEquals(1,Display.getActiveDisplayNumber());
+
+        glWindow1.destroy(); // can be recreated, refs are hold
+        Assert.assertEquals(false, glWindow1.isVisible());
+        Assert.assertEquals(false, glWindow1.isNativeValid());
+        Assert.assertEquals(true,  glWindow1.isValid());
+        Assert.assertEquals(false, glWindow2.isVisible());
+        Assert.assertEquals(false, glWindow2.isNativeValid());
+        Assert.assertEquals(true,  glWindow2.isValid());
+
+        Assert.assertEquals(1,display.getReferenceCount());
+        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertNotNull(display.getEDTUtil());
+        Assert.assertEquals(true,display.getEDTUtil().isRunning());
+        Assert.assertEquals(2,screen.getReferenceCount());
+        Assert.assertEquals(true,screen.isNativeValid());
+        Assert.assertEquals(1,Display.getActiveDisplayNumber());
+
+        // recreation ..
+        glWindow1.setVisible(true);
+        Assert.assertEquals(true, glWindow1.isVisible());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
+        Assert.assertEquals(true, glWindow2.isVisible());
+        Assert.assertEquals(true, glWindow2.isNativeValid());
+        Assert.assertEquals(1,display.getReferenceCount());
+        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertNotNull(display.getEDTUtil());
+        Assert.assertEquals(true,display.getEDTUtil().isRunning());
+        Assert.assertEquals(2,screen.getReferenceCount());
+        Assert.assertEquals(true,screen.isNativeValid());
+        Assert.assertEquals(1,Display.getActiveDisplayNumber());
+
+        // cannot be recreated, will drop Display/Screen refs
+        glWindow1.destroy(true); 
+        Assert.assertEquals(false, glWindow1.isValid());
+        Assert.assertEquals(false, glWindow1.isNativeValid());
+        Assert.assertEquals(false, glWindow2.isValid());
+        Assert.assertEquals(false, glWindow2.isNativeValid());
+        Assert.assertEquals(0,display.getReferenceCount());
+        Assert.assertEquals(false,display.isNativeValid());
+        Assert.assertNotNull(display.getEDTUtil());
+        Assert.assertEquals(false,display.getEDTUtil().isRunning());
+        Assert.assertEquals(0,screen.getReferenceCount());
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
         // test double destroy ..
         glWindow2.destroy(true);
         Assert.assertEquals(false,  glWindow2.isValid());
+
+        Assert.assertEquals(0,display.getReferenceCount());
+        Assert.assertEquals(false,display.isNativeValid());
+        Assert.assertNotNull(display.getEDTUtil());
+        Assert.assertEquals(false,display.getEDTUtil().isRunning());
+        Assert.assertEquals(0,screen.getReferenceCount());
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(0,Display.getActiveDisplayNumber());
     }
 
     @Test
     public void testWindowParenting02ReparentTop2Win() throws InterruptedException {
         int x = 0;
         int y = 0;
+
+        Assert.assertEquals(0,Display.getActiveDisplayNumber());
+        Display display1 = null;
+        Screen screen1 = null;
+        Display display2 = null;
+        Screen screen2 = null;
 
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
@@ -162,15 +265,63 @@ public class TestParenting01NEWT {
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
+        screen1 = glWindow1.getScreen();
+        display1 = screen1.getDisplay();
+
+        Assert.assertEquals(true,display1.getDestroyWhenUnused());
+        Assert.assertEquals(0,display1.getReferenceCount());
+        Assert.assertEquals(false,display1.isNativeValid());
+        Assert.assertNotNull(display1.getEDTUtil());
+        Assert.assertEquals(false,display1.getEDTUtil().isRunning());
+        Assert.assertEquals(0,screen1.getReferenceCount());
+        Assert.assertEquals(false,screen1.isNativeValid());
+        Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
         GLWindow glWindow2 = GLWindow.create(glCaps);
         glWindow2.setSize(320, 240);
         GLEventListener demo2 = new Gears();
         setDemoFields(demo2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
+        screen2 = glWindow2.getScreen();
+        display2 = screen2.getDisplay();
+
+        Assert.assertEquals(true,display2.getDestroyWhenUnused());
+        Assert.assertEquals(0,display2.getReferenceCount());
+        Assert.assertEquals(false,display2.isNativeValid());
+        Assert.assertNotNull(display2.getEDTUtil());
+        Assert.assertEquals(false,display2.getEDTUtil().isRunning());
+        Assert.assertEquals(0,screen2.getReferenceCount());
+        Assert.assertEquals(false,screen2.isNativeValid());
+        Assert.assertEquals(0,Display.getActiveDisplayNumber());
+
+        Assert.assertNotSame(screen1, screen2);
+        Assert.assertNotSame(display1, display2);
 
         glWindow1.setVisible(true);
+        Assert.assertEquals(1,display1.getReferenceCount());
+        Assert.assertEquals(true,display1.isNativeValid());
+        Assert.assertNotNull(display1.getEDTUtil());
+        Assert.assertEquals(true,display1.getEDTUtil().isRunning());
+        Assert.assertEquals(1,screen1.getReferenceCount());
+        Assert.assertEquals(true,screen1.isNativeValid());
+        Assert.assertEquals(1,Display.getActiveDisplayNumber());
+
         glWindow2.setVisible(true);
+        Assert.assertEquals(1,display1.getReferenceCount());
+        Assert.assertEquals(true,display1.isNativeValid());
+        Assert.assertNotNull(display1.getEDTUtil());
+        Assert.assertEquals(true,display1.getEDTUtil().isRunning());
+        Assert.assertEquals(1,screen1.getReferenceCount());
+        Assert.assertEquals(true,screen1.isNativeValid());
+
+        Assert.assertEquals(1,display2.getReferenceCount());
+        Assert.assertEquals(true,display2.isNativeValid());
+        Assert.assertNotNull(display2.getEDTUtil());
+        Assert.assertEquals(true,display2.getEDTUtil().isRunning());
+        Assert.assertEquals(1,screen2.getReferenceCount());
+        Assert.assertEquals(true,screen2.isNativeValid());
+
+        Assert.assertEquals(2,Display.getActiveDisplayNumber());
 
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
@@ -182,18 +333,58 @@ public class TestParenting01NEWT {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
+                    // glWindow2 -- child --> glWindow1: compatible
                     Assert.assertEquals(true, glWindow2.isVisible());
-                    glWindow2.reparentWindow(glWindow1, null);
+                    glWindow2.reparentWindow(glWindow1);
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeValid());
-                    Assert.assertEquals(glWindow1,glWindow2.getParentNativeWindow());
+                    Assert.assertSame(glWindow1,glWindow2.getParentNativeWindow());
+                    Assert.assertNotSame(screen1,glWindow2.getScreen());
+                    Assert.assertNotSame(display1,glWindow2.getScreen().getDisplay());
+
+                    Assert.assertEquals(1,display1.getReferenceCount());
+                    Assert.assertEquals(true,display1.isNativeValid());
+                    Assert.assertNotNull(display1.getEDTUtil());
+                    Assert.assertEquals(true,display1.getEDTUtil().isRunning());
+                    Assert.assertEquals(1,screen1.getReferenceCount());
+                    Assert.assertEquals(true,screen1.isNativeValid());
+
+                    Assert.assertEquals(1,display2.getReferenceCount());
+                    Assert.assertEquals(true,display2.isNativeValid());
+                    Assert.assertNotNull(display2.getEDTUtil());
+                    Assert.assertEquals(true,display2.getEDTUtil().isRunning());
+                    Assert.assertEquals(1,screen2.getReferenceCount());
+                    Assert.assertEquals(true,screen2.isNativeValid());
+
+                    Assert.assertEquals(2,Display.getActiveDisplayNumber());
+
                     break;
+
                 case 1:
+                    // glWindow2 --> top
                     Assert.assertEquals(true, glWindow2.isVisible());
-                    glWindow2.reparentWindow(null, null);
+                    glWindow2.reparentWindow(null);
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeValid());
                     Assert.assertNull(glWindow2.getParentNativeWindow());
+                    Assert.assertNotSame(screen1,glWindow2.getScreen());
+                    Assert.assertNotSame(display1,glWindow2.getScreen().getDisplay());
+
+                    Assert.assertEquals(1,display1.getReferenceCount());
+                    Assert.assertEquals(true,display1.isNativeValid());
+                    Assert.assertNotNull(display1.getEDTUtil());
+                    Assert.assertEquals(true,display1.getEDTUtil().isRunning());
+                    Assert.assertEquals(1,screen1.getReferenceCount());
+                    Assert.assertEquals(true,screen1.isNativeValid());
+
+                    Assert.assertEquals(1,display2.getReferenceCount());
+                    Assert.assertEquals(true,display2.isNativeValid());
+                    Assert.assertNotNull(display2.getEDTUtil());
+                    Assert.assertEquals(true,display2.getEDTUtil().isRunning());
+                    Assert.assertEquals(1,screen2.getReferenceCount());
+                    Assert.assertEquals(true,screen2.isNativeValid());
+
+                    Assert.assertEquals(2,Display.getActiveDisplayNumber());
                     break;
             }
             state++;
@@ -203,12 +394,65 @@ public class TestParenting01NEWT {
         animator2.stop();
         Assert.assertEquals(false, animator2.isAnimating());
 
+        // pre-destroy check (both valid and running)
+        Assert.assertEquals(1,display1.getReferenceCount());
+        Assert.assertEquals(true,display1.isNativeValid());
+        Assert.assertNotNull(display1.getEDTUtil());
+        Assert.assertEquals(true,display1.getEDTUtil().isRunning());
+        Assert.assertEquals(1,screen1.getReferenceCount());
+        Assert.assertEquals(true,screen1.isNativeValid());
+
+        Assert.assertEquals(1,display2.getReferenceCount());
+        Assert.assertEquals(true,display2.isNativeValid());
+        Assert.assertNotNull(display2.getEDTUtil());
+        Assert.assertEquals(true,display2.getEDTUtil().isRunning());
+        Assert.assertEquals(1,screen2.getReferenceCount());
+        Assert.assertEquals(true,screen2.isNativeValid());
+
+        Assert.assertEquals(2,Display.getActiveDisplayNumber());
+
+
+        // destroy glWindow1
         glWindow1.destroy(true);
         Assert.assertEquals(false, glWindow1.isValid());
         Assert.assertEquals(true , glWindow2.isValid());
+
+        Assert.assertEquals(0,display1.getReferenceCount());
+        Assert.assertEquals(false,display1.isNativeValid());
+        Assert.assertNotNull(display1.getEDTUtil());
+        Assert.assertEquals(false,display1.getEDTUtil().isRunning());
+        Assert.assertEquals(0,screen1.getReferenceCount());
+        Assert.assertEquals(false,screen1.isNativeValid());
+
+        Assert.assertEquals(1,display2.getReferenceCount());
+        Assert.assertEquals(true,display2.isNativeValid());
+        Assert.assertNotNull(display2.getEDTUtil());
+        Assert.assertEquals(true,display2.getEDTUtil().isRunning());
+        Assert.assertEquals(1,screen2.getReferenceCount());
+        Assert.assertEquals(true,screen2.isNativeValid());
+
+        Assert.assertEquals(1,Display.getActiveDisplayNumber());
+
+        // destroy glWindow1
         glWindow2.destroy(true);
         Assert.assertEquals(false, glWindow1.isValid());
         Assert.assertEquals(false, glWindow2.isValid());
+
+        Assert.assertEquals(0,display1.getReferenceCount());
+        Assert.assertEquals(false,display1.isNativeValid());
+        Assert.assertNotNull(display1.getEDTUtil());
+        Assert.assertEquals(false,display1.getEDTUtil().isRunning());
+        Assert.assertEquals(0,screen1.getReferenceCount());
+        Assert.assertEquals(false,screen1.isNativeValid());
+
+        Assert.assertEquals(0,display2.getReferenceCount());
+        Assert.assertEquals(false,display2.isNativeValid());
+        Assert.assertNotNull(display2.getEDTUtil());
+        Assert.assertEquals(false,display2.getEDTUtil().isRunning());
+        Assert.assertEquals(0,screen2.getReferenceCount());
+        Assert.assertEquals(false,screen2.isNativeValid());
+
+        Assert.assertEquals(0,Display.getActiveDisplayNumber());
     }
 
     @Test
@@ -244,17 +488,17 @@ public class TestParenting01NEWT {
             switch(state) {
                 case 0:
                     Assert.assertEquals(true, glWindow2.isVisible());
-                    glWindow2.reparentWindow(null, null); 
+                    glWindow2.reparentWindow(null); 
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeValid());
                     Assert.assertNull(glWindow2.getParentNativeWindow());
                     break;
                 case 1:
                     Assert.assertEquals(true, glWindow2.isVisible());
-                    glWindow2.reparentWindow(glWindow1, null);
+                    glWindow2.reparentWindow(glWindow1);
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeValid());
-                    Assert.assertEquals(glWindow1,glWindow2.getParentNativeWindow());
+                    Assert.assertSame(glWindow1,glWindow2.getParentNativeWindow());
                     break;
             }
             state++;

@@ -40,8 +40,11 @@ import java.util.Iterator;
 import com.jogamp.common.jvm.JVMUtil;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
+import com.jogamp.newt.impl.Debug;
 
 public abstract class NewtFactory {
+    public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
+
     // Work-around for initialization order problems on Mac OS X
     // between native Newt and (apparently) Fmod
     static {
@@ -141,22 +144,30 @@ public abstract class NewtFactory {
         }
 
         Screen screen  = null;
-        AbstractGraphicsConfiguration nParentConfig = nParentWindow.getGraphicsConfiguration();
-        if(null!=nParentConfig) {
-            AbstractGraphicsScreen nParentScreen = nParentConfig.getScreen();
-            AbstractGraphicsDevice nParentDevice = nParentScreen.getDevice();
-            Display display = NewtFactory.createDisplay(type, nParentDevice.getHandle());
-            screen  = NewtFactory.createScreen(type, display, nParentScreen.getIndex());
+        Window parentWindow = null;
+
+        if ( nParentWindow instanceof Window ) {
+            // use parent NEWT Windows Display/Screen
+            parentWindow = (Window) nParentWindow ;
+            screen = parentWindow.getScreen();
         } else {
-            Display display = NewtFactory.createDisplay(type, null); // local display
-            screen  = NewtFactory.createScreen(type, display, 0); // screen 0
+            // create a Display/Screen compatible to the NativeWindow
+            AbstractGraphicsConfiguration nParentConfig = nParentWindow.getGraphicsConfiguration();
+            if(null!=nParentConfig) {
+                AbstractGraphicsScreen nParentScreen = nParentConfig.getScreen();
+                AbstractGraphicsDevice nParentDevice = nParentScreen.getDevice();
+                Display display = NewtFactory.createDisplay(type, nParentDevice.getHandle());
+                screen  = NewtFactory.createScreen(type, display, nParentScreen.getIndex());
+            } else {
+                Display display = NewtFactory.createDisplay(type, null); // local display
+                screen  = NewtFactory.createScreen(type, display, 0); // screen 0
+            }
+            screen.setDestroyWhenUnused(true);
         }
-        screen.setDestroyWhenUnused(true);
         final Window win = createWindowImpl(type, nParentWindow, screen, caps, undecorated);
 
         win.setSize(nParentWindow.getWidth(), nParentWindow.getHeight());
-        if ( nParentWindow instanceof Window ) {
-            Window parentWindow = (Window) nParentWindow ;
+        if ( null != parentWindow ) {
             parentWindow.getInnerWindow().addChild(win);
             win.setVisible(parentWindow.isVisible());
         }
@@ -234,5 +245,57 @@ public abstract class NewtFactory {
         return false;
     }
 
+    public static boolean isScreenCompatible(NativeWindow parent, Screen childScreen) {
+      // Get parent's NativeWindow details
+      AbstractGraphicsConfiguration parentConfig = (AbstractGraphicsConfiguration) parent.getGraphicsConfiguration();
+      AbstractGraphicsScreen parentScreen = (AbstractGraphicsScreen) parentConfig.getScreen();
+      AbstractGraphicsDevice parentDevice = (AbstractGraphicsDevice) parentScreen.getDevice();
+
+      Display childDisplay = childScreen.getDisplay();
+      String parentDisplayName = childDisplay.validateDisplayName(null, parentDevice.getHandle());
+      String childDisplayName = childDisplay.getName();
+      if( ! parentDisplayName.equals( childDisplayName ) ) {
+        return false;
+      }
+
+      if( parentScreen.getIndex() != childScreen.getIndex() ) {
+        return false;
+      }
+      return true;
+    }
+
+    public static Screen createCompatibleScreen(NativeWindow parent) {
+      return createCompatibleScreen(parent, null);
+    }
+
+    public static Screen createCompatibleScreen(NativeWindow parent, Screen childScreen) {
+      // Get parent's NativeWindow details
+      AbstractGraphicsConfiguration parentConfig = (AbstractGraphicsConfiguration) parent.getGraphicsConfiguration();
+      AbstractGraphicsScreen parentScreen = (AbstractGraphicsScreen) parentConfig.getScreen();
+      AbstractGraphicsDevice parentDevice = (AbstractGraphicsDevice) parentScreen.getDevice();
+
+      if(null != childScreen) {
+        // check if child Display/Screen is compatible already
+        Display childDisplay = childScreen.getDisplay();
+        String parentDisplayName = childDisplay.validateDisplayName(null, parentDevice.getHandle());
+        String childDisplayName = childDisplay.getName();
+        boolean displayEqual = parentDisplayName.equals( childDisplayName );
+        boolean screenEqual = parentScreen.getIndex() == childScreen.getIndex();
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("NewtFactory.createCompatibleScreen: Display: "+
+                parentDisplayName+" =? "+childDisplayName+" : "+displayEqual+"; Screen: "+
+                parentScreen.getIndex()+" =? "+childScreen.getIndex()+" : "+screenEqual);
+        }
+        if( displayEqual && screenEqual ) {
+            // match: display/screen
+            return childScreen;
+        }
+      }
+
+      // Prep NEWT's Display and Screen according to the parent
+      final String type = NativeWindowFactory.getNativeWindowType(true);
+      Display display = NewtFactory.createDisplay(type, parentDevice.getHandle());
+      return NewtFactory.createScreen(type, display, parentScreen.getIndex());
+    }
 }
 

@@ -46,7 +46,7 @@ uname -a | grep -i Darwin && MOSX=1
 # D_ARGS="-Dnewt.debug=all"
 # D_ARGS="-Dnewt.debug.Window"
 # D_ARGS="-Dnewt.debug.Display"
-# D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display"
+D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display"
 # D_ARGS="-Dnewt.debug.Window -Dnewt.debug.TestEDTMainThread"
 # D_ARGS="-Dnewt.debug.TestEDTMainThread"
 # D_ARGS="-Djogl.debug=all -Djogl.debug.DynamicLookup=true -Djogamp.debug.NativeLibrary=true"

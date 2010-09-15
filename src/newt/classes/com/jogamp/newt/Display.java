@@ -127,7 +127,7 @@ public abstract class Display {
     protected  synchronized final void createNative() {
         if(null==aDevice) {
             if(DEBUG) {
-                System.out.println("Display.createNative() START ("+getThreadName()+", "+this+")");
+                System.err.println("Display.createNative() START ("+getThreadName()+", "+this+")");
             }
             final Display f_dpy = this;
             runOnEDTIfAvail(true, new Runnable() {
@@ -138,7 +138,7 @@ public abstract class Display {
                 throw new RuntimeException("Display.createNative() failed to instanciate an AbstractGraphicsDevice");
             }
             if(DEBUG) {
-                System.out.println("Display.createNative() END ("+getThreadName()+", "+this+")");
+                System.err.println("Display.createNative() END ("+getThreadName()+", "+this+")");
             }
             synchronized(displayList) {
                 displaysActive++;
@@ -217,7 +217,7 @@ public abstract class Display {
 
     protected synchronized final int addReference() {
         if(DEBUG) {
-            System.out.println("Display.addReference() ("+Display.getThreadName()+"): "+refCount+" -> "+(refCount+1));
+            System.err.println("Display.addReference() ("+Display.getThreadName()+"): "+refCount+" -> "+(refCount+1));
         }
         if ( 0 == refCount ) {
             createNative();
@@ -231,7 +231,7 @@ public abstract class Display {
 
     protected synchronized final int removeReference() {
         if(DEBUG) {
-            System.out.println("Display.removeReference() ("+Display.getThreadName()+"): "+refCount+" -> "+(refCount-1));
+            System.err.println("Display.removeReference() ("+Display.getThreadName()+"): "+refCount+" -> "+(refCount-1));
         }
         refCount--;
         if(0==refCount && destroyWhenUnused) {

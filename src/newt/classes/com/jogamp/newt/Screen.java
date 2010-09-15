@@ -70,7 +70,7 @@ public abstract class Screen {
                 usrWidth  = Debug.getIntProperty("newt.ws.swidth", true, localACC);
                 usrHeight = Debug.getIntProperty("newt.ws.sheight", true, localACC);
                 if(usrWidth>0 || usrHeight>0) {
-                    System.out.println("User screen size "+usrWidth+"x"+usrHeight);
+                    System.err.println("User screen size "+usrWidth+"x"+usrHeight);
                 }
             }
             Class screenClass = getScreenClass(type);
@@ -86,7 +86,7 @@ public abstract class Screen {
     protected  synchronized final void createNative() {
         if(null == aScreen) {
             if(DEBUG) {
-                System.out.println("Screen.createNative() START ("+Display.getThreadName()+", "+this+")");
+                System.err.println("Screen.createNative() START ("+Display.getThreadName()+", "+this+")");
             }
             display.addReference();
             createNativeImpl();
@@ -94,7 +94,7 @@ public abstract class Screen {
                 throw new RuntimeException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
             }
             if(DEBUG) {
-                System.out.println("Screen.createNative() END ("+Display.getThreadName()+", "+this+")");
+                System.err.println("Screen.createNative() END ("+Display.getThreadName()+", "+this+")");
             }
         }
     }
@@ -109,7 +109,7 @@ public abstract class Screen {
 
     protected synchronized final int addReference() {
         if(DEBUG) {
-            System.out.println("Screen.addReference() ("+Display.getThreadName()+"): "+refCount+" -> "+(refCount+1));
+            System.err.println("Screen.addReference() ("+Display.getThreadName()+"): "+refCount+" -> "+(refCount+1));
         }
         if ( 0 == refCount ) {
             createNative();
@@ -122,7 +122,7 @@ public abstract class Screen {
 
     protected synchronized final int removeReference() {
         if(DEBUG) {
-            System.out.println("Screen.removeReference() ("+Display.getThreadName()+"): "+refCount+" -> "+(refCount-1));
+            System.err.println("Screen.removeReference() ("+Display.getThreadName()+"): "+refCount+" -> "+(refCount-1));
         }
         refCount--;
         if(0==refCount && getDestroyWhenUnused()) {
@@ -149,7 +149,7 @@ public abstract class Screen {
     protected abstract void closeNativeImpl();
 
     protected void setScreenSize(int w, int h) {
-        System.out.println("Detected screen size "+w+"x"+h);
+        System.err.println("Detected screen size "+w+"x"+h);
         width=w; height=h;
     }
 
@@ -185,6 +185,10 @@ public abstract class Screen {
      */
     public final int getHeight() {
         return (usrHeight>0) ? usrHeight : (height>0) ? height : 480;
+    }
+
+    public String toString() {
+        return "NEWT-Screen[idx "+idx+", refCount "+refCount+", "+aScreen+", "+display+"]";
     }
 
     protected Display display;

@@ -77,63 +77,9 @@ public class NewtFactoryAWT extends NewtFactory {
           AWTGraphicsConfiguration.create(awtComp, (Capabilities) capsRequested.clone(), capsRequested);
       NativeWindow awtNative = NativeWindowFactory.getNativeWindow(awtComp, config); // a JAWTWindow
       if(DEBUG_IMPLEMENTATION) {
-        System.out.println("NewtFactoryAWT.getNativeWindow: "+awtComp+" -> "+awtNative);
+        System.err.println("NewtFactoryAWT.getNativeWindow: "+awtComp+" -> "+awtNative);
       }
       return awtNative;
-  }
-
-  public static Screen createCompatibleScreen(NativeWindow parent) {
-    return createCompatibleScreen(parent, null);
-  }
-
-  public static Screen createCompatibleScreen(NativeWindow parent, Screen childScreen) {
-      // Get parent's NativeWindow details
-      AWTGraphicsConfiguration parentConfig = (AWTGraphicsConfiguration) parent.getGraphicsConfiguration();
-      AWTGraphicsScreen parentScreen = (AWTGraphicsScreen) parentConfig.getScreen();
-      AWTGraphicsDevice parentDevice = (AWTGraphicsDevice) parentScreen.getDevice();
-
-      final String type = NativeWindowFactory.getNativeWindowType(true);
-
-      if(null != childScreen) {
-        // check if child Display/Screen is compatible already
-        Display childDisplay = childScreen.getDisplay();
-        String parentDisplayName = childDisplay.validateDisplayName(null, parentDevice.getHandle());
-        String childDisplayName = childDisplay.getName();
-        boolean displayEqual = parentDisplayName.equals( childDisplayName );
-        boolean screenEqual = parentScreen.getIndex() == childScreen.getIndex();
-        if(DEBUG_IMPLEMENTATION) {
-            System.out.println("NewtFactoryAWT.createCompatibleScreen: Display: "+
-                parentDisplayName+" =? "+childDisplayName+" : "+displayEqual+"; Screen: "+
-                parentScreen.getIndex()+" =? "+childScreen.getIndex()+" : "+screenEqual);
-        }
-        if( displayEqual && screenEqual ) {
-            // match: display/screen
-            return childScreen;
-        }
-      }
-
-      // Prep NEWT's Display and Screen according to the parent
-      Display display = NewtFactory.createDisplay(type, parentDevice.getHandle());
-      return NewtFactory.createScreen(type, display, parentScreen.getIndex());
-  }
-
-  public static boolean isScreenCompatible(NativeWindow parent, Screen childScreen) {
-      // Get parent's NativeWindow details
-      AWTGraphicsConfiguration parentConfig = (AWTGraphicsConfiguration) parent.getGraphicsConfiguration();
-      AWTGraphicsScreen parentScreen = (AWTGraphicsScreen) parentConfig.getScreen();
-      AWTGraphicsDevice parentDevice = (AWTGraphicsDevice) parentScreen.getDevice();
-
-      Display childDisplay = childScreen.getDisplay();
-      String parentDisplayName = childDisplay.validateDisplayName(null, parentDevice.getHandle());
-      String childDisplayName = childDisplay.getName();
-      if( ! parentDisplayName.equals( childDisplayName ) ) {
-        return false;
-      }
-
-      if( parentScreen.getIndex() != childScreen.getIndex() ) {
-        return false;
-      }
-      return true;
   }
 }
 
