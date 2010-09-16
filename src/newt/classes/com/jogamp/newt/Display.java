@@ -146,7 +146,7 @@ public abstract class Display {
         }
     }
 
-    protected boolean getShallRunOnEDT() { 
+    protected boolean shallRunOnEDT() { 
         return true; 
     }
 
@@ -154,7 +154,7 @@ public abstract class Display {
         if(NewtFactory.useEDT()) {
             if ( ! DEBUG_TEST_EDT_MAINTHREAD ) {
                 Thread current = Thread.currentThread();
-                edtUtil = new DefaultEDTUtil(current.getThreadGroup(), "Display_"+getFQName(), dispatchMessagesRunnable);
+                edtUtil = new DefaultEDTUtil(current.getThreadGroup(), "Display-"+getFQName(), dispatchMessagesRunnable);
             } else {
                 // Begin JAU EDT Test ..
                 MainThread.addPumpMessage(this, dispatchMessagesRunnable); 
@@ -172,7 +172,7 @@ public abstract class Display {
     }
 
     public void runOnEDTIfAvail(boolean wait, final Runnable task) {
-        if( getShallRunOnEDT() && null!=edtUtil ) {
+        if( shallRunOnEDT() && null!=edtUtil ) {
             edtUtil.invoke(wait, task);
         } else {
             task.run();
@@ -285,7 +285,7 @@ public abstract class Display {
         sb.append(type);
         sb.append("_");
         sb.append(name);
-        sb.append("_");
+        sb.append("-");
         sb.append(id);
         return sb.toString();
     }

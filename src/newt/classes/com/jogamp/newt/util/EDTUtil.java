@@ -54,11 +54,24 @@ public interface EDTUtil {
 
     public boolean isRunning();
 
-    /** Shall start the thread if not running */
+    /** 
+     * Add task to the EDT task queue.
+     * Wait until execution is finished if wait is true.
+     * Shall start the thread if not running 
+     */
     public void invoke(boolean wait, Runnable task);
 
+    /** 
+     * Wait until EDT task queue, filled via invoke, is empty.
+     * It is allowed that the last task is still in execution
+     * when this method returns. 
+     */
     public void waitUntilIdle();
 
+    /**
+     * Wait until EDT task has stopped.
+     * stop is not exected here and should be beforehand.
+     */
     public void waitUntilStopped();
 }
 

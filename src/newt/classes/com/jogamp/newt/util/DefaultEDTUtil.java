@@ -54,9 +54,9 @@ public class DefaultEDTUtil implements EDTUtil {
 
     public DefaultEDTUtil(ThreadGroup tg, String name, Runnable pumpMessages) {
         this.threadGroup = tg;
-        this.name=new String(Thread.currentThread().getName()+"-"+"EDT-"+name);
+        this.name=new String(Thread.currentThread().getName()+"-EDT-"+name);
         this.pumpMessages=pumpMessages;
-        this.edt = new EventDispatchThread(threadGroup, name);
+        this.edt = new EventDispatchThread(threadGroup, name+"-EDT");
     }
 
     public final void reset() {
@@ -109,26 +109,24 @@ public class DefaultEDTUtil implements EDTUtil {
         RunnableTask rTask = null;
         Object rTaskLock = new Object();
         synchronized(rTaskLock) { // lock the optional task execution
-            synchronized(edtLock) { // lock the EDT status
-                start(); // start if not started yet
-                if(isRunning() && edt != Thread.currentThread() ) {
+            if( isCurrentThreadEDT() ) {
+                wait = false;
+                task.run();
+            } else {
+                synchronized(edtLock) { // lock the EDT status
+                    start(); // start if not started yet
                     rTask = new RunnableTask(task, wait?rTaskLock:null, true);
                     synchronized(edtTasks) {
                         edtTasks.add(rTask);
                         edtTasks.notifyAll();
                     }
-                } else {
-                    // if !running or isEDTThread, do it right away
-                    wait = false;
-                    task.run();
                 }
             }
+
             // wait until task finished, if requested
             // and no stop() call slipped through.
             if( wait && isRunning() ) {
                 try {
-                    // JAU FIXME
-                    System.out.println(Thread.currentThread()+": Wait on Task. EDT: "+edt);
                     rTaskLock.wait();
                 } catch (InterruptedException ie) {
                     throwable = ie;
@@ -202,6 +200,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         pumpMessages.run();
                     }
                     // wait and work on tasks
+                    Runnable task = null;
                     synchronized(edtTasks) {
                         // wait for tasks
                         while(!shouldStop && edtTasks.size()==0) {
@@ -213,10 +212,12 @@ public class DefaultEDTUtil implements EDTUtil {
                         }
                         // execute one task, if available
                         if(edtTasks.size()>0) {
-                            Runnable task = (Runnable) edtTasks.remove(0);
-                            task.run();
+                            task = (Runnable) edtTasks.remove(0);
                             edtTasks.notifyAll();
                         }
+                    }
+                    if(null!=task) {
+                        task.run();
                     }
                 } while(!shouldStop || edtTasks.size()>0) ;
             } catch (Throwable t) {
