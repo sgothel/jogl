@@ -4,3 +4,6 @@ build-temp
 make/temp*
 .idea/workspace.xml
 **~
+.classpath
+.project
+target
