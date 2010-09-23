@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -148,7 +149,10 @@ public class MainThread implements EDTUtil {
             if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" user app fin");
 
             if ( useMainThread ) {
-                singletonMainThread.stop();
+                singletonMainThread.invokeStop(new Runnable() {
+                    public void run() {
+                        // nop
+                    }});
                 if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" MainThread fin - stop");
                 System.exit(0);
             }
@@ -251,17 +255,6 @@ public class MainThread implements EDTUtil {
         // nop
     }
 
-    public void stop() {
-        if(DEBUG) System.err.println("MainThread.stop(): "+Thread.currentThread().getName()+" start");
-        synchronized(taskWorkerLock) { 
-            if(isRunning) {
-                shouldStop = true;
-            }
-            taskWorkerLock.notifyAll();
-        }
-        if(DEBUG) System.err.println("MainThread.stop(): "+Thread.currentThread().getName()+" end");
-    }
-
     public boolean isCurrentThreadEDT() {
         if(NativeWindowFactory.isAWTAvailable()) {
             initAWTReflection();
@@ -291,8 +284,15 @@ public class MainThread implements EDTUtil {
         }
     }
 
-    /** invokes the given Runnable */
+    public void invokeStop(Runnable r) {
+        invokeImpl(true, r, true);
+    }
+
     public void invoke(boolean wait, Runnable r) {
+        invokeImpl(wait, r, false);
+    }
+
+    private void invokeImpl(boolean wait, Runnable r, boolean stop) {
         if(r == null) {
             return;
         }
@@ -319,6 +319,7 @@ public class MainThread implements EDTUtil {
 
         // if this main thread is not being used or
         // if this is already the main thread .. just execute.
+        // FIXME: start if not started .. sync logic with DefaultEDTUtil!!!
         if( !isRunning() || mainThread == Thread.currentThread() ) {
             r.run();
             return;
@@ -330,6 +331,14 @@ public class MainThread implements EDTUtil {
         Throwable throwable = null;
         synchronized(lock) {
             invokeLater(rTask);
+            // FIXME ..
+            synchronized(taskWorkerLock) { 
+                if(isRunning) {
+                    shouldStop = true;
+                    if(DEBUG) System.err.println("MainThread.stop(): "+Thread.currentThread().getName()+" start");
+                }
+                taskWorkerLock.notifyAll();
+            }
             if( doWait ) {
                 try {
                     lock.wait();
