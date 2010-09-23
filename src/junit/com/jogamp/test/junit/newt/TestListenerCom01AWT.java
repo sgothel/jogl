@@ -128,7 +128,7 @@ public class TestListenerCom01AWT {
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        Window window = glWindow.getInnerWindow();
+        Window window = glWindow.getWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);

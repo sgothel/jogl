@@ -340,7 +340,8 @@ public class TestParenting01aAWT {
 
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
-        GLWindow glWindow1 = GLWindow.create(glCaps, true);
+        GLWindow glWindow1 = GLWindow.create(glCaps);
+        glWindow1.setUndecorated(true);
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
@@ -399,13 +400,12 @@ public class TestParenting01aAWT {
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
         Assert.assertNotNull(demo);
-        Assert.assertNotNull(glWindow);
-        Window window = glWindow.getInnerWindow();
+        Assert.assertNotNull(glWindow);        
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);
         }
-        if(!MiscUtils.setFieldIfExists(demo, "window", window)) {
+        if(!MiscUtils.setFieldIfExists(demo, "window", glWindow.getWindow())) {
             MiscUtils.setFieldIfExists(demo, "glWindow", glWindow);
         }
     }

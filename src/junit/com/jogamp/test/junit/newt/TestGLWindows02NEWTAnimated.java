@@ -78,13 +78,15 @@ public class TestGLWindows02NEWTAnimated {
         // 
         GLWindow glWindow;
         if(null!=screen) {
-            Window window = NewtFactory.createWindow(screen, caps, onscreen && undecorated);
+            Window window = NewtFactory.createWindow(screen, caps);
             Assert.assertNotNull(window);
             glWindow = GLWindow.create(window);
         } else {
-            glWindow = GLWindow.create(caps, onscreen && undecorated);
+            glWindow = GLWindow.create(caps);
         }
         Assert.assertNotNull(glWindow);
+        glWindow.setUndecorated(onscreen && undecorated);
+
         GLEventListener demo = new Gears();
         setDemoFields(demo, glWindow);
         glWindow.addGLEventListener(demo);
@@ -104,7 +106,7 @@ public class TestGLWindows02NEWTAnimated {
         // Create native OpenGL resources .. XGL/WGL/CGL .. 
         // equivalent to GLAutoDrawable methods: setVisible(true)
         // 
-        caps = (GLCapabilities) glWindow.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        caps = glWindow.getChosenGLCapabilities();
         Assert.assertNotNull(caps);
         Assert.assertTrue(caps.getGreenBits()>5);
         Assert.assertTrue(caps.getBlueBits()>5);
@@ -158,7 +160,7 @@ public class TestGLWindows02NEWTAnimated {
         Assert.assertNotNull(display1);
         Display display2 = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display2);
-        Assert.assertEquals(display1, display2); // must be equal: same thread - same display
+        Assert.assertNotSame(display1, display2);
 
         Screen screen1  = NewtFactory.createScreen(display1, 0); // screen 0
         Assert.assertNotNull(screen1);
@@ -190,7 +192,7 @@ public class TestGLWindows02NEWTAnimated {
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        if(!MiscUtils.setFieldIfExists(demo, "window", glWindow.getInnerWindow())) {
+        if(!MiscUtils.setFieldIfExists(demo, "window", glWindow)) {
             MiscUtils.setFieldIfExists(demo, "glWindow", glWindow);
         }
     }

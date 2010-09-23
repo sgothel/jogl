@@ -81,13 +81,17 @@ public class TestGLWindows01NEWT {
         // 
         GLWindow glWindow;
         if(null!=screen) {
-            Window window = NewtFactory.createWindow(screen, caps, onscreen && undecorated);
-            Assert.assertNotNull(window);
-            glWindow = GLWindow.create(window);
+            boolean destroyWhenUnused = screen.getDestroyWhenUnused();
+            glWindow = GLWindow.create(screen, caps);
+            Assert.assertNotNull(glWindow);
+            Assert.assertEquals(destroyWhenUnused, glWindow.getScreen().getDestroyWhenUnused());
         } else {
-            glWindow = GLWindow.create(caps, onscreen && undecorated);
+            glWindow = GLWindow.create(caps);
+            Assert.assertNotNull(glWindow);
+            Assert.assertTrue(glWindow.getScreen().getDestroyWhenUnused());
         }
-        Assert.assertNotNull(glWindow);
+
+        glWindow.setUndecorated(onscreen && undecorated);
         Assert.assertEquals(false,glWindow.isVisible());
         Assert.assertEquals(false,glWindow.isNativeValid());
 
@@ -100,22 +104,20 @@ public class TestGLWindows01NEWT {
 
         glWindow.setSize(width, height);
 
+        Assert.assertEquals(0, glWindow.getTotalFrames());
         glWindow.setVisible(true);
         Assert.assertEquals(true,glWindow.isVisible());
         Assert.assertEquals(true,glWindow.isNativeValid());
         int wait=0;
         while(wait<10 && glWindow.getTotalFrames()<1) { Thread.sleep(100); wait++; }
         System.out.println("Frames for initial setVisible(true): "+glWindow.getTotalFrames());
-        // FIXME: Assert.assertTrue(0<glWindow.getTotalFrames()); // native expose ..
-        // Assert.assertEquals(width,glWindow.getWidth());
-        // Assert.assertEquals(height,glWindow.getHeight());
-        // System.out.println("Created: "+glWindow);
+        Assert.assertTrue(0 < glWindow.getTotalFrames());
 
         //
         // Create native OpenGL resources .. XGL/WGL/CGL .. 
         // equivalent to GLAutoDrawable methods: setVisible(true)
         // 
-        caps = (GLCapabilities) glWindow.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        caps = glWindow.getChosenGLCapabilities();
         Assert.assertNotNull(caps);
         Assert.assertTrue(caps.getGreenBits()>5);
         Assert.assertTrue(caps.getBlueBits()>5);
@@ -130,10 +132,18 @@ public class TestGLWindows01NEWT {
         return glWindow;
     }
 
-    static void destroyWindow(GLWindow glWindow, boolean deep) {
+    static void destroyWindow(GLWindow glWindow, Screen screen, Display display, boolean unrecoverable) {
         if(null!=glWindow) {
-            glWindow.destroy(deep);
+            glWindow.destroy(unrecoverable);
             Assert.assertEquals(false,glWindow.isNativeValid());
+        }
+        if(null!=screen) {
+            screen.destroy();
+            Assert.assertEquals(false,screen.isNativeValid());
+        }
+        if(null!=display) {
+            display.destroy();
+            Assert.assertEquals(false,display.isNativeValid());
         }
     }
 
@@ -163,7 +173,7 @@ public class TestGLWindows01NEWT {
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
-        destroyWindow(window, true);
+        destroyWindow(window, null, null, true);
     }
 
     @Test
@@ -192,7 +202,7 @@ public class TestGLWindows01NEWT {
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
-        destroyWindow(window, true);
+        destroyWindow(window, null, null, true);
     }
 
     @Test
@@ -203,11 +213,12 @@ public class TestGLWindows01NEWT {
                                        true /* onscreen */, false /* undecorated */, 
                                        false /*addGLEventListenerAfterVisible*/);
         System.out.println("Created: "+window);
-        while(window.getDuration()<durationPerTest) {
+        int state;
+        for(state=0; state*100<durationPerTest; state++) {
             Thread.sleep(100);
         }
         System.out.println("duration: "+window.getDuration());
-        destroyWindow(window, true);
+        destroyWindow(window, null, null, true);
     }
 
     @Test
@@ -218,11 +229,12 @@ public class TestGLWindows01NEWT {
                                        true /* onscreen */, false /* undecorated */, 
                                        true /*addGLEventListenerAfterVisible*/);
         System.out.println("Created: "+window);
-        while(window.getDuration()<durationPerTest) {
+        int state;
+        for(state=0; state*100<durationPerTest; state++) {
             Thread.sleep(100);
         }
         System.out.println("duration: "+window.getDuration());
-        destroyWindow(window, true);
+        destroyWindow(window, null, null, true);
     }
 
     @Test
@@ -232,12 +244,13 @@ public class TestGLWindows01NEWT {
         GLWindow window = createWindow(null, caps, width, height, 
                                        true /* onscreen */, false /* undecorated */, 
                                        false /*addGLEventListenerAfterVisible*/);
-        while(window.getDuration()<durationPerTest) {
+        int state;
+        for(state=0; state*100<durationPerTest; state++) {
             Thread.sleep(100);
         }
         System.out.println("duration: "+window.getDuration());
-        destroyWindow(window, false);
-        destroyWindow(window, true);
+        destroyWindow(window, null, null, false);
+        destroyWindow(window, null, null, true);
     }
 
     @Test
@@ -249,7 +262,7 @@ public class TestGLWindows01NEWT {
         Assert.assertNotNull(display1);
         Display display2 = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display2);
-        Assert.assertEquals(display1, display2); // must be equal: same thread - same display
+        Assert.assertNotSame(display1, display2);
 
         Screen screen1  = NewtFactory.createScreen(display1, 0); // screen 0
         Assert.assertNotNull(screen1);
@@ -265,21 +278,53 @@ public class TestGLWindows01NEWT {
                                        false /*addGLEventListenerAfterVisible*/);
         Assert.assertNotNull(window2);
 
-        while(window1.getDuration()<durationPerTest) {
+        Assert.assertEquals(2,Display.getActiveDisplayNumber());
+
+        Assert.assertEquals(1,display1.getReferenceCount());
+        Assert.assertEquals(true,display1.isNativeValid());
+        Assert.assertNotNull(display1.getEDTUtil());
+        Assert.assertEquals(true,display1.getEDTUtil().isRunning());
+        Assert.assertEquals(1,screen1.getReferenceCount());
+        Assert.assertEquals(true,screen1.isNativeValid());
+
+        Assert.assertEquals(1,display2.getReferenceCount());
+        Assert.assertEquals(true,display2.isNativeValid());
+        Assert.assertNotNull(display2.getEDTUtil());
+        Assert.assertEquals(true,display2.getEDTUtil().isRunning());
+        Assert.assertEquals(1,screen2.getReferenceCount());
+        Assert.assertEquals(true,screen2.isNativeValid());
+
+        int state;
+        for(state=0; state*100<durationPerTest; state++) {
             Thread.sleep(100);
         }
         System.out.println("duration1: "+window1.getDuration());
         System.out.println("duration2: "+window2.getDuration());
 
-        destroyWindow(window2, true);
+        destroyWindow(window2, screen2, display2, true);
+        destroyWindow(window1, screen1, display1, true);
 
-        destroyWindow(window1, true);
+        Assert.assertEquals(0,Display.getActiveDisplayNumber());
+
+        Assert.assertEquals(0,display1.getReferenceCount());
+        Assert.assertEquals(false,display1.isNativeValid());
+        Assert.assertNotNull(display1.getEDTUtil());
+        Assert.assertEquals(false,display1.getEDTUtil().isRunning());
+        Assert.assertEquals(0,screen1.getReferenceCount());
+        Assert.assertEquals(false,screen1.isNativeValid());
+
+        Assert.assertEquals(0,display2.getReferenceCount());
+        Assert.assertEquals(false,display2.isNativeValid());
+        Assert.assertNotNull(display2.getEDTUtil());
+        Assert.assertEquals(false,display2.getEDTUtil().isRunning());
+        Assert.assertEquals(0,screen2.getReferenceCount());
+        Assert.assertEquals(false,screen2.isNativeValid());
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        if(!MiscUtils.setFieldIfExists(demo, "window", glWindow.getInnerWindow())) {
+        if(!MiscUtils.setFieldIfExists(demo, "window", glWindow)) {
             MiscUtils.setFieldIfExists(demo, "glWindow", glWindow);
         }
     }

@@ -14,8 +14,11 @@ set CP_ALL=.;%BLD_DIR%\jogl\jogl.all.jar;%BLD_DIR%\nativewindow\nativewindow.all
 echo CP_ALL %CP_ALL%
 
 REM set D_ARGS="-Djogamp.debug.JNILibLoader=true" "-Djogamp.debug.NativeLibrary=true" "-Djogamp.debug.NativeLibrary.Lookup=true" "-Djogl.debug.GLProfile=true"
-REM set D_ARGS="-Djogl.debug=all -Dnewt.debug=all -Dnativewindow.debug=all"
-set D_ARGS="-Dnewt.debug.Window"
+REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all"
+REM set D_ARGS="-Dnewt.debug.Window" "-Dnativewindow.debug.TraceLock"
+REM set D_ARGS="-Dnativewindow.debug.TraceLock"
+set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display"
+REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display" "-Dnewt.test.Window.reparent.incompatible=true"
 
 set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true"
 

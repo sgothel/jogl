@@ -71,14 +71,15 @@ public class TestParenting02NEWT {
 
     static Window createWindow(Screen screen, Capabilities caps) {
         Assert.assertNotNull(caps);
-        Window window = NewtFactory.createWindow(screen, caps, false) ;
+        Window window = NewtFactory.createWindow(screen, caps) ;
         Assert.assertNotNull(window);
         return window;
     }
 
     static Window createWindow(NativeWindow parent, Capabilities caps) {
         Assert.assertNotNull(caps);
-        Window window = NewtFactory.createWindow(parent, caps, true);
+        Window window = NewtFactory.createWindow(parent, caps);
+        window.setUndecorated(true);
         Assert.assertNotNull(window);
         return window;
     }

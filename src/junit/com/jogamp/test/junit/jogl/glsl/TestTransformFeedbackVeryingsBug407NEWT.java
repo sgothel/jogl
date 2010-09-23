@@ -60,7 +60,8 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
         Display display = NewtFactory.createDisplay(null); // local display
         Screen screen = NewtFactory.createScreen(display, 0); // screen 0
 
-        window = NewtFactory.createWindow(screen, caps, true);
+        window = NewtFactory.createWindow(screen, caps);
+        window.setUndecorated(true);
         window.setSize(800, 600);
         window.setVisible(true);
 

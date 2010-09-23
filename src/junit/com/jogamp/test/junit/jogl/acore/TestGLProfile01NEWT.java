@@ -141,7 +141,7 @@ public class TestGLProfile01NEWT {
 
     protected void dumpVersion(GLProfile glp) {
         GLCapabilities caps = new GLCapabilities(glp);
-        GLWindow glWindow = GLWindow.create(caps, false);
+        GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("TestGLProfile01NEWT");
 

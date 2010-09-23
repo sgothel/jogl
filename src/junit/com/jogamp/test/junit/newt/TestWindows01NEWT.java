@@ -62,8 +62,9 @@ public class TestWindows01NEWT {
         //
         // Create native windowing resources .. X11/Win/OSX
         // 
-        Window window = NewtFactory.createWindow(screen, caps, onscreen && undecorated);
+        Window window = NewtFactory.createWindow(screen, caps);
         Assert.assertNotNull(window);
+        window.setUndecorated(onscreen && undecorated);
         window.setSize(width, height);
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());

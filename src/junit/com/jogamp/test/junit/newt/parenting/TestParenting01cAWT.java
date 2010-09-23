@@ -50,7 +50,6 @@ import java.awt.Dimension;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 
-import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
@@ -82,6 +81,7 @@ public class TestParenting01cAWT {
     public void testWindowParenting01CreateVisibleDestroy1() throws InterruptedException {
         int x = 0;
         int y = 0;
+        int i;
 
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
@@ -123,7 +123,7 @@ public class TestParenting01cAWT {
         frame1.setVisible(true);
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
 
-        while(glWindow1.getDuration()<durationPerTest) {
+        for(i=0; i*100<durationPerTest; i++) {
             Thread.sleep(100);
         }
 
@@ -151,7 +151,8 @@ public class TestParenting01cAWT {
 
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
-        GLWindow glWindow1 = GLWindow.create(glCaps, true);
+        GLWindow glWindow1 = GLWindow.create(glCaps);
+        glWindow1.setUndecorated(true);
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
@@ -181,8 +182,8 @@ public class TestParenting01cAWT {
         frame1.add(newtCanvasAWT, BorderLayout.CENTER);
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
 
-        int state = 0;
-        while(glWindow1.getDuration()<3*durationPerTest) {
+        int state;
+        for(state=0; state<3; state++) {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
@@ -194,7 +195,6 @@ public class TestParenting01cAWT {
                     frame1.add(newtCanvasAWT, BorderLayout.CENTER);
                     break;
             }
-            state++;
         }
 
         frame1.dispose();
@@ -205,7 +205,7 @@ public class TestParenting01cAWT {
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        Window window = glWindow.getInnerWindow();
+        Window window = glWindow.getWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);

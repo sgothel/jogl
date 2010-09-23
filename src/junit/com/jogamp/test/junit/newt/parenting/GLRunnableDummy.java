@@ -54,5 +54,4 @@ public class GLRunnableDummy implements GLRunnable {
             d*=-1f;
         }
     }
-
 }

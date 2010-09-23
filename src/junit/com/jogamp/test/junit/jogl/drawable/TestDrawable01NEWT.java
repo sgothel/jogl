@@ -90,8 +90,9 @@ public class TestDrawable01NEWT {
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
 
-        window = NewtFactory.createWindow(screen, caps, onscreen && undecorated);
+        window = NewtFactory.createWindow(screen, caps);
         Assert.assertNotNull(window);
+        window.setUndecorated(onscreen && undecorated);
         window.setSize(width, height);
         window.setVisible(true);
         // System.out.println("Created: "+window);

@@ -87,7 +87,7 @@ public class TestOffscreen01NEWT {
         Assert.assertNotNull(display);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
-        Window window = NewtFactory.createWindow(screen, caps, false /* undecorated */);
+        Window window = NewtFactory.createWindow(screen, caps);
         Assert.assertNotNull(window);
         window.setSize(width, height);
         GLWindow glWindow = GLWindow.create(window);
@@ -192,7 +192,7 @@ public class TestOffscreen01NEWT {
 
         for(i=0; i<winnum; i++) {
             System.out.println("Create Window "+i);
-            windows[i] = NewtFactory.createWindow(screen, caps2, false /* undecorated */);
+            windows[i] = NewtFactory.createWindow(screen, caps2);
             Assert.assertNotNull(windows[i]);
             windows[i].setSize(width, height);
             glWindows[i] = GLWindow.create(windows[i]);
@@ -257,7 +257,7 @@ public class TestOffscreen01NEWT {
             Assert.assertNotNull(displays[i]);
             screens[i]  = NewtFactory.createScreen(displays[i], 0); // screen 0
             Assert.assertNotNull(screens[i]);
-            windows[i] = NewtFactory.createWindow(screens[i], caps2, false /* undecorated */);
+            windows[i] = NewtFactory.createWindow(screens[i], caps2);
             Assert.assertNotNull(windows[i]);
             windows[i].setSize(width, height);
             glWindows[i] = GLWindow.create(windows[i]);
@@ -316,7 +316,7 @@ public class TestOffscreen01NEWT {
         Assert.assertNotNull(display);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
-        Window window = NewtFactory.createWindow(screen, caps2, false /* undecorated */);
+        Window window = NewtFactory.createWindow(screen, caps2);
         Assert.assertNotNull(window);
         window.setSize(width, height);
         GLWindow glWindow = GLWindow.create(window);
@@ -376,7 +376,7 @@ public class TestOffscreen01NEWT {
         Assert.assertNotNull(display);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
-        Window window = NewtFactory.createWindow(screen, caps2, false /* undecorated */);
+        Window window = NewtFactory.createWindow(screen, caps2);
         Assert.assertNotNull(window);
         window.setSize(width, height);
         GLWindow glWindow = GLWindow.create(window);
@@ -431,7 +431,7 @@ public class TestOffscreen01NEWT {
         Assert.assertNotNull(display);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
-        Window window = NewtFactory.createWindow(screen, caps2, false /* undecorated */);
+        Window window = NewtFactory.createWindow(screen, caps2);
         Assert.assertNotNull(window);
         window.setSize(width, height);
         GLWindow glWindow = GLWindow.create(window);

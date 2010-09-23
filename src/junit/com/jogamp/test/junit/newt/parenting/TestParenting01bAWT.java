@@ -50,6 +50,7 @@ import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
@@ -79,13 +80,23 @@ public class TestParenting01bAWT {
     }
 
     @Test
-    public void testWindowParenting05ReparentAWTWinHopFrame2Frame() throws InterruptedException {
+    public void testWindowParenting05ReparentAWTWinHopFrame2FrameFPS25Animator() throws InterruptedException {
+        testWindowParenting05ReparentAWTWinHopFrame2FrameImpl(25);
+    }
+
+    @Test
+    public void testWindowParenting05ReparentAWTWinHopFrame2FrameStdAnimator() throws InterruptedException {
+        testWindowParenting05ReparentAWTWinHopFrame2FrameImpl(0);
+    }
+
+    public void testWindowParenting05ReparentAWTWinHopFrame2FrameImpl(int fps) throws InterruptedException {
         int x = 0;
         int y = 0;
 
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
-        GLWindow glWindow1 = GLWindow.create(glCaps, true);
+        GLWindow glWindow1 = GLWindow.create(glCaps);
+        glWindow1.setUndecorated(true);
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
@@ -115,11 +126,16 @@ public class TestParenting01bAWT {
         frame1.add(newtCanvasAWT, BorderLayout.CENTER);
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
 
-        Animator animator1 = new Animator(glWindow1);
+        GLAnimatorControl animator1;
+        if(fps>0) {
+            animator1 = new FPSAnimator(glWindow1, fps);
+        } else {
+            animator1 = new Animator(glWindow1);
+        }
         animator1.start();
 
-        int state = 0;
-        while(animator1.isAnimating() && animator1.getDuration()<3*durationPerTest) {
+        int state;
+        for(state=0; state<3; state++) {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
@@ -131,11 +147,15 @@ public class TestParenting01bAWT {
                     frame1.add(newtCanvasAWT, BorderLayout.CENTER);
                     break;
             }
-            state++;
         }
 
+        Assert.assertEquals(true, animator1.isAnimating());
+        Assert.assertEquals(false, animator1.isPaused());
+        Assert.assertNotNull(animator1.getThread());
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
+        Assert.assertEquals(false, animator1.isPaused());
+        Assert.assertEquals(null, animator1.getThread());
 
         frame1.dispose();
         frame2.dispose();
@@ -145,7 +165,7 @@ public class TestParenting01bAWT {
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        Window window = glWindow.getInnerWindow();
+        Window window = glWindow.getWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);

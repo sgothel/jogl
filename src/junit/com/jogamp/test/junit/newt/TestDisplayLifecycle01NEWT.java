@@ -83,11 +83,11 @@ public class TestDisplayLifecycle01NEWT {
         // 
         GLWindow glWindow;
         if(null!=screen) {
-            Window window = NewtFactory.createWindow(screen, caps, false);
+            Window window = NewtFactory.createWindow(screen, caps);
             Assert.assertNotNull(window);
             glWindow = GLWindow.create(window);
         } else {
-            glWindow = GLWindow.create(caps, false);
+            glWindow = GLWindow.create(caps);
         }
 
         GLEventListener demo = new Gears();
@@ -128,11 +128,12 @@ public class TestDisplayLifecycle01NEWT {
         Assert.assertEquals(false,window.isVisible());
 
         // lazy native creation sequence: Display, Screen and Window
+        Assert.assertEquals(0, window.getTotalFrames());
         window.setVisible(true);
-        window.display();
         int wait=0;
         while(wait<10 && window.getTotalFrames()<1) { Thread.sleep(100); wait++; }
-        System.out.println("Frames for setVisible(true) 1: "+window.getTotalFrames());
+        System.err.println("Frames for setVisible(true) 1: "+window.getTotalFrames());
+        Assert.assertTrue(0 < window.getTotalFrames());
 
         Assert.assertEquals(screen,window.getScreen());
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
@@ -148,7 +149,7 @@ public class TestDisplayLifecycle01NEWT {
             window.display();
             Thread.sleep(100);
         }
-        System.out.println("duration: "+window.getDuration());
+        System.err.println("duration: "+window.getDuration());
 
         // just make the Window invisible
         window.setVisible(false);
@@ -156,15 +157,21 @@ public class TestDisplayLifecycle01NEWT {
         Assert.assertEquals(false,window.isVisible());
 
         // just make the Window visible again
+        window.resetPerfCounter();
+        Assert.assertEquals(0, window.getTotalFrames());
         window.setVisible(true);
+        wait=0;
+        while(wait<10 && window.getTotalFrames()<1) { Thread.sleep(100); wait++; }
+        System.err.println("Frames for setVisible(true) 1: "+window.getTotalFrames());
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
+        Assert.assertTrue(0 < window.getTotalFrames());
 
         while(window.getDuration()<2*durationPerTest) {
             window.display();
             Thread.sleep(100);
         }
-        System.out.println("duration: "+window.getDuration());
+        System.err.println("duration: "+window.getDuration());
 
         // recoverable destruction, ie Display/Screen untouched
         window.destroy(false);
@@ -178,18 +185,21 @@ public class TestDisplayLifecycle01NEWT {
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
+        window.resetPerfCounter();
+        Assert.assertEquals(0, window.getTotalFrames());
 
         // a display call shall not change a thing
         window.display();
+        Assert.assertEquals(0, window.getTotalFrames());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
         // recover Window
         window.setVisible(true);
-        window.display();
         wait=0;
         while(wait<10 && window.getTotalFrames()<1) { Thread.sleep(100); wait++; }
-        System.out.println("Frames for setVisible(true) 2: "+window.getTotalFrames());
+        System.err.println("Frames for setVisible(true) 2: "+window.getTotalFrames());
+        Assert.assertTrue(0 < window.getTotalFrames());
 
         Assert.assertEquals(screen,window.getScreen());
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
@@ -205,12 +215,12 @@ public class TestDisplayLifecycle01NEWT {
             window.display();
             Thread.sleep(100);
         }
-        System.out.println("duration: "+window.getDuration());
+        System.err.println("duration: "+window.getDuration());
 
         // unrecoverable destruction, ie Display/Screen will be unreferenced
         window.destroy(true);
         Assert.assertEquals(null,window.getScreen());
-        Display.dumpDisplayList("Post destroy(true)");
+        display.dumpDisplayList("Post destroy(true)");
         if(!destroyWhenUnused) {
             // display/screen untouched when unused, default
             Assert.assertEquals(1,Display.getActiveDisplayNumber());
@@ -279,7 +289,7 @@ public class TestDisplayLifecycle01NEWT {
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        if(!MiscUtils.setFieldIfExists(demo, "window", glWindow.getInnerWindow())) {
+        if(!MiscUtils.setFieldIfExists(demo, "window", glWindow)) {
             MiscUtils.setFieldIfExists(demo, "glWindow", glWindow);
         }
     }
@@ -298,7 +308,7 @@ public class TestDisplayLifecycle01NEWT {
                 durationPerTest = atoi(args[++i]);
             }
         }
-        System.out.println("durationPerTest: "+durationPerTest);
+        System.err.println("durationPerTest: "+durationPerTest);
         String tstname = TestDisplayLifecycle01NEWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,

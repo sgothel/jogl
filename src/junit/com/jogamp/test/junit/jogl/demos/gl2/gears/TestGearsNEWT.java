@@ -64,7 +64,7 @@ public class TestGearsNEWT {
     }
 
     protected void runTestGL(GLCapabilities caps) throws InterruptedException {
-        GLWindow glWindow = GLWindow.create(caps, false);
+        GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test");
 
@@ -73,8 +73,23 @@ public class TestGearsNEWT {
         Animator animator = new Animator(glWindow);
         QuitAdapter quitAdapter = new QuitAdapter();
 
-        glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
-        glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
+        //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
+        //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
+        glWindow.addKeyListener(quitAdapter);
+        glWindow.addWindowListener(quitAdapter);
+
+        final GLWindow f_glWindow = glWindow;
+        glWindow.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                if(e.getKeyChar()=='f') {
+                    f_glWindow.invoke(false, new GLRunnable() {
+                        public void run(GLAutoDrawable drawable) {
+                            GLWindow win = (GLWindow)drawable;
+                            win.setFullscreen(!win.isFullscreen());
+                        } });
+                }
+            }
+        });
 
         glWindow.setSize(width, height);
         glWindow.setVisible(true);
