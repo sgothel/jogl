@@ -138,11 +138,11 @@ public class GLPbufferImpl implements GLPbuffer {
     drawableHelper.removeGLEventListener(listener);
   }
 
-  public void setAnimator(Thread animator) {
-    drawableHelper.setAnimator(animator);
+  public void setAnimator(GLAnimatorControl animatorControl) {
+    drawableHelper.setAnimator(animatorControl);
   }
 
-  public Thread getAnimator() {
+  public GLAnimatorControl getAnimator() {
     return drawableHelper.getAnimator();
   }
 

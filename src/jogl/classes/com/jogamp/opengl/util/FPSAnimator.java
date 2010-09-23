@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,88 +37,142 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-
 package com.jogamp.opengl.util;
 
 import java.util.*;
 import javax.media.opengl.*;
 
 /** An Animator subclass which attempts to achieve a target
-    frames-per-second rate to avoid using all CPU time. The target FPS
-    is only an estimate and is not guaranteed. */
+frames-per-second rate to avoid using all CPU time. The target FPS
+is only an estimate and is not guaranteed. */
+public class FPSAnimator extends AnimatorBase {
+    private Timer timer = null;
+    private TimerTask task = null;
+    private int fps;
+    private boolean scheduleAtFixedRate;
+    private volatile boolean shouldRun;
 
-public class FPSAnimator extends Animator {
-  private Timer timer;
-  private int   fps;
-  private boolean scheduleAtFixedRate;
-
-  /** Creates an FPSAnimator with a given target frames-per-second
-      value. Equivalent to <code>FPSAnimator(null, fps)</code>. */
-  public FPSAnimator(int fps) {
-    this(null, fps);
-  }
-
-  /** Creates an FPSAnimator with a given target frames-per-second
-      value and a flag indicating whether to use fixed-rate
-      scheduling. Equivalent to <code>FPSAnimator(null, fps,
-      scheduleAtFixedRate)</code>. */
-  public FPSAnimator(int fps, boolean scheduleAtFixedRate) {
-    this(null, fps, scheduleAtFixedRate);
-  }
-
-  /** Creates an FPSAnimator with a given target frames-per-second
-      value and an initial drawable to animate. Equivalent to
-      <code>FPSAnimator(null, fps, false)</code>. */
-  public FPSAnimator(GLAutoDrawable drawable, int fps) {
-    this(drawable, fps, false);
-  }
-
-  /** Creates an FPSAnimator with a given target frames-per-second
-      value, an initial drawable to animate, and a flag indicating
-      whether to use fixed-rate scheduling. */
-  public FPSAnimator(GLAutoDrawable drawable, int fps, boolean scheduleAtFixedRate) {
-    this.fps = fps;
-    if (drawable != null) {
-      add(drawable);
+    protected String getBaseName(String prefix) {
+        return "FPS" + prefix + "Animator" ;
     }
-    this.scheduleAtFixedRate = scheduleAtFixedRate;
-  }
 
-  /** Starts this FPSAnimator. */
-  public synchronized void start() {
-    if (timer != null) {
-      throw new GLException("Already started");
+    /** Creates an FPSAnimator with a given target frames-per-second
+    value. Equivalent to <code>FPSAnimator(null, fps)</code>. */
+    public FPSAnimator(int fps) {
+        this(null, fps);
     }
-    timer = new Timer();
-    long delay = (long) (1000.0f / (float) fps);
-    TimerTask task = new TimerTask() {
-        public void run() {
-          display();
+
+    /** Creates an FPSAnimator with a given target frames-per-second
+    value and a flag indicating whether to use fixed-rate
+    scheduling. Equivalent to <code>FPSAnimator(null, fps,
+    scheduleAtFixedRate)</code>. */
+    public FPSAnimator(int fps, boolean scheduleAtFixedRate) {
+        this(null, fps, scheduleAtFixedRate);
+    }
+
+    /** Creates an FPSAnimator with a given target frames-per-second
+    value and an initial drawable to animate. Equivalent to
+    <code>FPSAnimator(null, fps, false)</code>. */
+    public FPSAnimator(GLAutoDrawable drawable, int fps) {
+        this(drawable, fps, false);
+    }
+
+    /** Creates an FPSAnimator with a given target frames-per-second
+    value, an initial drawable to animate, and a flag indicating
+    whether to use fixed-rate scheduling. */
+    public FPSAnimator(GLAutoDrawable drawable, int fps, boolean scheduleAtFixedRate) {
+        this.fps = fps;
+        if (drawable != null) {
+            add(drawable);
         }
-      };
-    if (scheduleAtFixedRate) {
-      timer.scheduleAtFixedRate(task, 0, delay);
-    } else {
-      timer.schedule(task, 0, delay);
+        this.scheduleAtFixedRate = scheduleAtFixedRate;
     }
-  }
 
-  /** Indicates whether this FPSAnimator is currently running. This
-      should only be used as a heuristic to applications because in
-      some circumstances the FPSAnimator may be in the process of
-      shutting down and this method will still return true. */
-  public synchronized boolean isAnimating() {
-    return (timer != null);
-  }
+    public long getStartTime()   { return startTime; }
+    public long getCurrentTime() { return curTime; }
+    public long getDuration()    { return curTime-startTime; }
+    public int  getTotalFrames() { return totalFrames; }
 
-  /** Stops this FPSAnimator. Due to the implementation of the
-      FPSAnimator it is not guaranteed that the FPSAnimator will be
-      completely stopped by the time this method returns. */
-  public synchronized void stop() {
-    if (timer == null) {
-      throw new GLException("Already stopped");
+    public final synchronized boolean isStarted() {
+        return (timer != null);
     }
-    timer.cancel();
-    timer = null;
-  }
+
+    public final synchronized boolean isAnimating() {
+        return (timer != null) && (task != null);
+    }
+
+    public final synchronized boolean isPaused() {
+        return (timer != null) && (task == null);
+    }
+
+    private void startTask() {
+        long delay = (long) (1000.0f / (float) fps);
+        task = new TimerTask() {
+            public void run() {
+                if(FPSAnimator.this.shouldRun) {
+                    FPSAnimator.this.thread = Thread.currentThread();
+                    display();
+                }
+            }
+        };
+
+        startTime = System.currentTimeMillis();
+        curTime = startTime;
+        totalFrames = 0;
+        shouldRun = true;
+
+        if (scheduleAtFixedRate) {
+            timer.scheduleAtFixedRate(task, 0, delay);
+        } else {
+            timer.schedule(task, 0, delay);
+        }
+    }
+
+    public synchronized void start() {
+        if (timer != null) {
+            throw new GLException("Already started");
+        }
+        timer = new Timer();
+        startTask();
+    }
+
+    /** Stops this FPSAnimator. Due to the implementation of the
+    FPSAnimator it is not guaranteed that the FPSAnimator will be
+    completely stopped by the time this method returns. */
+    public synchronized void stop() {
+        if (timer == null) {
+            throw new GLException("Already stopped");
+        }
+        shouldRun = false;
+        task.cancel();
+        task = null;
+        timer.cancel();
+        timer = null;
+        thread = null;
+    }
+
+    public synchronized void pause() {
+        if (timer == null) {
+            throw new GLException("Not running");
+        }
+        shouldRun = false;
+        task.cancel();
+        task = null;
+        thread = null;
+    }
+
+    public synchronized void resume() {
+        if (timer == null) {
+            throw new GLException("Not running");
+        }
+        startTask();
+    }
+
+    protected final boolean getShouldPause() {
+        return (timer != null) && (task == null);
+    }
+
+    protected final boolean getShouldStop() {
+        return (timer == null);
+    }
 }

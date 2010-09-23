@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -377,8 +378,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
                    (int) ((getHeight() + bounds.getHeight()) / 2));
       return;
     }
-
-    if( null == getAnimator() ) {
+    if( this.drawableHelper.isExternalAnimatorAnimating() ) {
         display();
     }
   }
@@ -494,11 +494,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     drawableHelper.removeGLEventListener(listener);
   }
 
-  public void setAnimator(Thread animator) {
-    drawableHelper.setAnimator(animator);
+  public void setAnimator(GLAnimatorControl animatorControl) {
+    drawableHelper.setAnimator(animatorControl);
   }
 
-  public Thread getAnimator() {
+  public GLAnimatorControl getAnimator() {
     return drawableHelper.getAnimator();
   }
 

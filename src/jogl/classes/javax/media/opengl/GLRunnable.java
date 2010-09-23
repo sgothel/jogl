@@ -28,16 +28,20 @@
  
 package javax.media.opengl;
 
-/** <p> Declares one-shot OpenGL commands, which client code can use to manage OpenGL
-    commands into a {@link GLAutoDrawable}. At the time any of these
-    methods is called, the drawable has made its associated OpenGL
-    context current, so it is valid to make OpenGL calls.<br></p>
-    <p> A GLRunnable maybe used to inject OpenGL commands via I/O event listener,
-    via {@link GLAutoDrawable#invoke(boolean, GLRunnable)}.</p>
-  */
+/**
+ * <p>
+ * Declares one-shot OpenGL commands usable for injection into a {@link GLAutoDrawable},<br>
+ * via {@link GLAutoDrawable#invoke(boolean, javax.media.opengl.GLRunnable)}.<br>
+ * {@link GLAutoDrawable} executes these commands within it's {@link GLAutoDrawable#display()}
+ * method while the OpenGL context is current.<br>
+ * <p>
+ * This might be useful to inject OpenGL commands from an I/O event listener.
+ */
 public interface GLRunnable { 
-  /** Called by the drawable to initiate one-shot OpenGL commands by the
-      client, like {@link GLEventListener#display(GLAutoDrawable)}. */
-  public void run(GLAutoDrawable drawable);
+    /**
+     * Called by the drawable to initiate one-shot OpenGL commands by the
+     * client, like {@link GLEventListener#display(GLAutoDrawable)}.
+     */
+    void run(GLAutoDrawable drawable);
 }
 

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -115,17 +116,6 @@ public interface GLAutoDrawable extends GLDrawable {
     * where you drag the window to another monitor. */
   public static final boolean SCREEN_CHANGE_ACTION_ENABLED = Debug.getBooleanProperty("jogl.screenchange.action", true, AccessController.getContext());
 
-  /** FIXME:
-  ** Invalid state, the resources are not yet ready to render. *
-  public static final int STATE_INVALID = 0;
-
-  ** Valid state, all resources are ready to render, 
-      and all registered {@link GLEventListener#init init(..)} are called. *
-  public static final int STATE_VALID = 1;
-
-  ** Destroying state, currently executing the {@link #destroy()} method. *
-  public static final int STATE_DESTROYING = 2; */
-
   /**
    * Returns the context associated with this drawable. The returned
    * context will be synchronized.
@@ -163,57 +153,54 @@ public interface GLAutoDrawable extends GLDrawable {
 
   /**
    * <p>
-   * Indicates whether a running animator thread is periodically issuing {@link #display()} calls or not.</p><br>
+   * Registers the usage of an animator, an {@link javax.media.opengl.GLAnimatorControl} implementation.
+   * The animator will be queried whether it's animating, ie periodically issuing {@link #display()} calls or not.</p><br>
    * <p>
    * This method shall be called by an animator implementation only,<br>
-   * e.g. {@link com.jogamp.opengl.util.Animator#start()}, passing the animator thread,<br>
-   * and {@link com.jogamp.opengl.util.Animator#stop()}, passing <code>null</code>.</p><br>
+   * e.g. {@link com.jogamp.opengl.util.Animator#add(javax.media.opengl.GLAutoDrawable)}, passing it's control implementation,<br>
+   * and {@link com.jogamp.opengl.util.Animator#remove(javax.media.opengl.GLAutoDrawable)}, passing <code>null</code>.</p><br>
    * <p>
    * Impacts {@link #display()} and {@link #invoke(boolean, GLRunnable)} semantics.</p><br>
    *
-   * @param animator <code>null</code> reference indicates no running animator thread 
-   *                 issues {@link #display()} calls on this <code>GLAutoDrawable</code>,<br>
-   *                 a valid reference indicates a running animator thread 
-   *                 periodically issuing {@link #display()} calls.
+   * @param animator <code>null</code> reference indicates no animator is using
+   *                 this <code>GLAutoDrawable</code>,<br>
+   *                 a valid reference indicates an animator is using this <code>GLAutoDrawable</code>.
    *
-   * @throws GLException if a running animator thread is already registered and you try to register a different one without unregistering the previous one.
+   * @throws GLException if an animator is already registered.
    * @see #display()
    * @see #invoke(boolean, GLRunnable)
+   * @see javax.media.opengl.GLAnimatorControl
    */ 
-  public void setAnimator(Thread animator) throws GLException;
+  public abstract void setAnimator(GLAnimatorControl animatorControl) throws GLException;
 
   /**
-   * @return the value of the registered animator thread
+   * @return the registered {@link javax.media.opengl.GLAnimatorControl} implementation, using this <code>GLAutoDrawable</code>.
    *
-   * @see #setAnimator(Thread)
+   * @see #setAnimator(javax.media.opengl.GLAnimatorControl)
+   * @see javax.media.opengl.GLAnimatorControl
    */
-  public Thread getAnimator();
+  public GLAnimatorControl getAnimator();
 
   /** 
    * <p>
    * Enqueues a one-shot {@link javax.media.opengl.GLRunnable},
-   * which will be executed with the next {@link #display()} call.</p><br>
+   * which will be executed with the next {@link #display()} call.</p>
    * <p>
-   * If {@link #setAnimator(Thread)} has not registered no running animator thread, the default,<br>
+   * If a {@link javax.media.opengl.GLAnimatorControl} is registered, or if it's not animating, the default situation,<br>
    * or if the current thread is the animator thread,<br>
-   * a {@link #display()} call has to be issued after enqueueing the <code>GLRunnable</code>.<br>
-   * No extra synchronization must be performed in case <code>wait</code> is true, since it is executed in the current thread.</p><br>
+   * a {@link #display()} call has to be issued after enqueue the <code>GLRunnable</code>.<br>
+   * No extra synchronization must be performed in case <code>wait</code> is true, since it is executed in the current thread.</p>
    * <p>
-   * If {@link #setAnimator(Thread)} has registered a valid animator thread,<br>
-   * no call of {@link #display()} must be issued, since the animator thread performs it.<br>
-   * If <code>wait</code> is true, the implementation must wait until the <code>GLRunnable</code> is excecuted.</p><br>
+   * If {@link javax.media.opengl.GLAnimatorControl} is registered and is animating,<br>
+   * no call of {@link #display()} must be issued, since the animator thread will performs it.<br>
+   * If <code>wait</code> is true, the implementation must wait until the <code>GLRunnable</code> is executed.<br>
+   * </p><br>
    *
-   * @see #setAnimator(Thread)
+   * @see #setAnimator(javax.media.opengl.GLAnimatorControl)
    * @see #display()
    * @see javax.media.opengl.GLRunnable
    */   
   public void invoke(boolean wait, GLRunnable glRunnable);
-
-  /** FIXME: Returns the current state, 
-      {@link #STATE_INVALID}, {@link #STATE_VALID} or {@link #STATE_DESTROYING}.
-      Tool to determine, e.g. if a {@link GLEventListener#dispose dispose(..)}
-      event is send in the context of the destruction of this GLAutoDrawable.
-  public int getCurrentState(); */
 
   /** Destroys all resources associated with this GLAutoDrawable,
       inclusive the GLContext.
@@ -236,14 +223,13 @@ public interface GLAutoDrawable extends GLDrawable {
    *          enqueued via {@link #invoke(boolean, GLRunnable)}.</li>
    * </ul></p>
    * <p> 
-   * Called automatically by the
-   * window system toolkit upon receiving a repaint() request, 
-   * except a running animator thread is registered with {@link #setAnimator(Thread)}.</p> <br>
+   * May be called periodically by a running {@link javax.media.opengl.GLAnimatorControl} implementation,<br>
+   * which must register itself with {@link #setAnimator(javax.media.opengl.GLAnimatorControl)}.</p>
+   * <p>
+   * Called automatically by the window system toolkit upon receiving a repaint() request, <br>
+   * except an {@link javax.media.opengl.GLAnimatorControl} implementation {@link javax.media.opengl.GLAnimatorControl#isAnimating()}.</p>
    * <p> 
-   * Maybe called periodically by a running animator thread,<br>
-   * which must register itself with {@link #setAnimator(Thread)}.</p> <br>
-   * <p> 
-   * This routine may be called manually for better control over the
+   * This routine may also be called manually for better control over the
    * rendering process. It is legal to call another GLAutoDrawable's
    * display method from within the {@link GLEventListener#display
    * display(..)} callback.</p>
@@ -254,7 +240,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * actual {@link GLEventListener#display display(..)} calls,
    * in case this has not been done yet.</p>
    *
-   * @see #setAnimator(Thread)
+   * @see #setAnimator(javax.media.opengl.GLAnimatorControl)
    */
   public void display();
 

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -51,11 +52,11 @@ class AWTAnimatorImpl extends AnimatorImpl {
     private Map  repaintManagers = new IdentityHashMap();
     private Map  dirtyRegions    = new IdentityHashMap();
 
-    public void display(Animator animator,
+    public void display(AnimatorBase animator,
                         boolean ignoreExceptions,
                         boolean printExceptions) {
         Iterator iter = animator.drawableIterator();
-        while (iter.hasNext()) {
+        while (animator.isAnimating() && !animator.getShouldStop() && !animator.getShouldPause() && iter.hasNext()) {
             GLAutoDrawable drawable = (GLAutoDrawable) iter.next();
             if (drawable instanceof JComponent) {
                 // Lightweight components need a more efficient drawing
@@ -157,7 +158,7 @@ class AWTAnimatorImpl extends AnimatorImpl {
             }
         };
 
-    public boolean skipWaitForStop(Thread thread) {
+    public boolean skipWaitForCompletion(Thread thread) {
         return ((Thread.currentThread() == thread) || EventQueue.isDispatchThread());
     }
 }
