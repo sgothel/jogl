@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,11 +40,15 @@
 
 package com.jogamp.opengl.util;
 
-import java.util.*;
-
-import javax.media.opengl.*;
+import javax.media.opengl.GLAnimatorControl;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
 
 import com.jogamp.opengl.impl.Debug;
+
+import java.util.*;
+
 
 /** <P> An Animator can be attached to one or more {@link
     GLAutoDrawable}s to drive their display() methods in a loop. </P>
@@ -54,44 +59,34 @@ import com.jogamp.opengl.impl.Debug;
     CPU, unless {@link #setRunAsFastAsPossible} has been called.  </P>
 */
 
-public class Animator {
-    protected static final boolean DEBUG = Debug.debug("Animator");
+public class Animator extends AnimatorBase {
 
-    private volatile ArrayList/*<GLAutoDrawable>*/ drawables = new ArrayList();
-    private AnimatorImpl impl;
+    protected ThreadGroup threadGroup;
     private Runnable runnable;
     private boolean runAsFastAsPossible;
-    protected ThreadGroup threadGroup;
-    protected Thread thread;
+    protected volatile boolean isAnimating;
+    protected volatile boolean shouldPause;
     protected volatile boolean shouldStop;
-    protected boolean ignoreExceptions;
-    protected boolean printExceptions;
 
-    /** Creates a new, empty Animator. */
-    public Animator(ThreadGroup tg) {
-
-        if(GLProfile.isAWTAvailable()) {
-            try {
-                impl = (AnimatorImpl) Class.forName("com.jogamp.opengl.util.awt.AWTAnimatorImpl").newInstance();
-            } catch (Exception e) { }
-        }
-        if(null==impl) {
-            impl = new AnimatorImpl();
-        }
-        threadGroup = tg;
-
+    public Animator() {
+        super();
         if(DEBUG) {
-            System.out.println("Animator created, ThreadGroup: "+threadGroup);
+            System.err.println("Animator created");
         }
     }
 
-    public Animator() {
-        this((ThreadGroup)null);
+    public Animator(ThreadGroup tg) {
+        super();
+        threadGroup = tg;
+
+        if(DEBUG) {
+            System.err.println("Animator created, ThreadGroup: "+threadGroup);
+        }
     }
 
     /** Creates a new Animator for a particular drawable. */
     public Animator(GLAutoDrawable drawable) {
-        this((ThreadGroup)null);
+        super();
         add(drawable);
     }
 
@@ -101,142 +96,131 @@ public class Animator {
         add(drawable);
     }
 
-    /** Adds a drawable to the list managed by this Animator. */
-    public synchronized void add(GLAutoDrawable drawable) {
-        ArrayList newList = (ArrayList) drawables.clone();
-        newList.add(drawable);
-        drawables = newList;
-        notifyAll();
+    protected String getBaseName(String prefix) {
+        return prefix + "Animator" ;
     }
 
-    /** Removes a drawable from the list managed by this Animator. */
-    public synchronized void remove(GLAutoDrawable drawable) {
-        ArrayList newList = (ArrayList) drawables.clone();
-        newList.remove(drawable);
-        drawables = newList;
-    }
-
-    /** Returns an iterator over the drawables managed by this
-        Animator. */
-    public Iterator/*<GLAutoDrawable>*/ drawableIterator() {
-        return drawables.iterator();
-    }
-
-    /** Sets a flag causing this Animator to ignore exceptions produced
-        while redrawing the drawables. By default this flag is set to
-        false, causing any exception thrown to halt the Animator. */
-    public void setIgnoreExceptions(boolean ignoreExceptions) {
-        this.ignoreExceptions = ignoreExceptions;
-    }
-
-    /** Sets a flag indicating that when exceptions are being ignored by
-        this Animator (see {@link #setIgnoreExceptions}), to print the
-        exceptions' stack traces for diagnostic information. Defaults to
-        false. */
-    public void setPrintExceptions(boolean printExceptions) {
-        this.printExceptions = printExceptions;
-    }
-
-    /** Sets a flag in this Animator indicating that it is to run as
-        fast as possible. By default there is a brief pause in the
-        animation loop which prevents the CPU from getting swamped.
-        This method may not have an effect on subclasses. */
+    /**
+     * Sets a flag in this Animator indicating that it is to run as
+     * fast as possible. By default there is a brief pause in the
+     * animation loop which prevents the CPU from getting swamped.
+     * This method may not have an effect on subclasses.
+     */
     public final void setRunAsFastAsPossible(boolean runFast) {
         runAsFastAsPossible = runFast;
     }
-
-    /** Called every frame to cause redrawing of all of the
-        GLAutoDrawables this Animator manages. Subclasses should call
-        this to get the most optimized painting behavior for the set of
-        components this Animator manages, in particular when multiple
-        lightweight widgets are continually being redrawn. */
-    protected void display() {
-        impl.display(this, ignoreExceptions, printExceptions);
-    }
-
-    private long startTime = 0;
-    private long curTime = 0;
-    private int  totalFrames = 0;
 
     class MainLoop implements Runnable {
         public void run() {
             try {
                 if(DEBUG) {
-                    System.out.println("Animator started: "+Thread.currentThread());
+                    System.err.println("Animator started: "+Thread.currentThread());
                 }
                 startTime = System.currentTimeMillis();
                 curTime   = startTime;
+                totalFrames = 0;
+
+                synchronized (Animator.this) {
+                    isAnimating = true;
+                    Animator.this.notifyAll();
+                }
 
                 while (!shouldStop) {
-                    // Don't consume CPU unless there is work to be done
-                    if (drawables.size() == 0) {
+                    // Don't consume CPU unless there is work to be done and not paused
+                    if ( !shouldStop && ( shouldPause || drawables.size() == 0 ) ) {
                         synchronized (Animator.this) {
-                            while (drawables.size() == 0 && !shouldStop) {
+                            boolean wasPaused = false;
+                            while ( !shouldStop && ( shouldPause || drawables.size() == 0 )  ) {
+                                if(DEBUG) {
+                                    System.err.println("Animator paused: "+Thread.currentThread());
+                                }
+                                isAnimating = false;
+                                wasPaused = true;
+                                Animator.this.notifyAll();
                                 try {
                                     Animator.this.wait();
                                 } catch (InterruptedException e) {
                                 }
                             }
+                            if ( wasPaused ) {
+                                startTime = System.currentTimeMillis();
+                                curTime   = startTime;
+                                totalFrames = 0;
+                                if(DEBUG) {
+                                    System.err.println("Animator resumed: "+Thread.currentThread());
+                                }
+                                isAnimating = true;
+                                Animator.this.notifyAll();
+                            }
                         }
                     }
-                    display();
-                    curTime = System.currentTimeMillis();
-                    totalFrames++;
-                    if (!runAsFastAsPossible) {
-                        // Avoid swamping the CPU
-                        Thread.yield();
+                    if ( !shouldStop ) {
+                        display();
+                        if (!runAsFastAsPossible) {
+                            // Avoid swamping the CPU
+                            Thread.yield();
+                        }
                     }
                 }
-                if(DEBUG) {
-                    System.out.println("Animator stopped: "+Thread.currentThread());
-                }
             } finally {
-                shouldStop = false;
                 synchronized (Animator.this) {
+                    if(DEBUG) {
+                        System.err.println("Animator stopped: "+Thread.currentThread());
+                    }
+                    shouldStop = false;
+                    shouldPause = false;
                     thread = null;
-                    Animator.this.notify();
+                    isAnimating = false;
+                    Animator.this.notifyAll();
                 }
             }
         }
     }
 
-    public long getStartTime()   { return startTime; }
-    public long getCurrentTime() { return curTime; }
-    public long getDuration()    { return curTime-startTime; }
-    public int  getTotalFrames() { return totalFrames; }
+    public final synchronized boolean isStarted() {
+        return (thread != null);
+    }
 
-    /** Starts this animator. */
+    public final synchronized boolean isAnimating() {
+        return (thread != null) && isAnimating;
+    }
+
+    public final synchronized boolean isPaused() {
+        return (thread != null) && shouldPause;
+    }
+
     public synchronized void start() {
-        if (thread != null) {
-            throw new GLException("Already started");
+        boolean started = null != thread;
+        if ( started || isAnimating ) {
+            throw new GLException("Already running (started "+started+" (false), animating "+isAnimating+" (false))");
         }
         if (runnable == null) {
             runnable = new MainLoop();
         }
+        int id;
+        String threadName = Thread.currentThread().getName()+"-"+baseName;
         if(null==threadGroup) {
-            thread = new Thread(runnable);
+            thread = new Thread(runnable, threadName);
         } else {
-            thread = new Thread(threadGroup, runnable);
-        }
-        for(Iterator iter = drawables.iterator(); iter.hasNext(); ) {
-            ((GLAutoDrawable) iter.next()).setAnimator(thread);
+            thread = new Thread(threadGroup, runnable, threadName);
         }
         thread.start();
+
+        if (!impl.skipWaitForCompletion(thread)) {
+            while (!isAnimating && thread != null) {
+                try {
+                    wait();
+                } catch (InterruptedException ie) {
+                }
+            }
+        }
     }
 
-    /** Indicates whether this animator is currently running. This
-        should only be used as a heuristic to applications because in
-        some circumstances the Animator may be in the process of
-        shutting down and this method will still return true. */
-    public synchronized boolean isAnimating() {
-        return (thread != null);
-    }
-
-    /** Stops this animator. In most situations this method blocks until
-        completion, except when called from the animation thread itself
-        or in some cases from an implementation-internal thread like the
-        AWT event queue thread. */
     public synchronized void stop() {
+        boolean started = null != thread;
+        if ( !started || !isAnimating ) {
+            throw new GLException("Not running (started "+started+" (true), animating "+isAnimating+" (true) )");
+        }
         shouldStop = true;
         notifyAll();
 
@@ -244,16 +228,58 @@ public class Animator {
         // dependencies on the Animator's internal thread. Currently we
         // use a couple of heuristics to determine whether we should do
         // the blocking wait().
-        if (!impl.skipWaitForStop(thread)) {
-            while (shouldStop && thread != null) {
+        if (!impl.skipWaitForCompletion(thread)) {
+            while (isAnimating && thread != null) {
                 try {
                     wait();
                 } catch (InterruptedException ie) {
                 }
             }
         }
-        for(Iterator iter = drawables.iterator(); iter.hasNext(); ) {
-            ((GLAutoDrawable) iter.next()).setAnimator(null);
+    }
+
+    public synchronized void pause() {
+        boolean started = null != thread;
+        if ( !started || !isAnimating || shouldPause ) {
+            throw new GLException("Invalid state (started "+started+" (true), animating "+isAnimating+" (true), paused "+shouldPause+" (false) )");
+        }
+        shouldPause = true;
+        notifyAll();
+
+        if (!impl.skipWaitForCompletion(thread)) {
+            while (isAnimating && thread != null) {
+                try {
+                    wait();
+                } catch (InterruptedException ie) {
+                }
+            }
         }
     }
+
+    public synchronized void resume() {
+        boolean started = null != thread;
+        if ( !started || !shouldPause ) {
+            throw new GLException("Invalid state (started "+started+" (true), paused "+shouldPause+" (true) )");
+        }
+        shouldPause = false;
+        notifyAll();
+
+        if (!impl.skipWaitForCompletion(thread)) {
+            while (!isAnimating && thread != null) {
+                try {
+                    wait();
+                } catch (InterruptedException ie) {
+                }
+            }
+        }
+    }
+
+    protected final boolean getShouldPause() {
+        return shouldPause;
+    }
+
+    protected final boolean getShouldStop() {
+        return shouldStop;
+    }
+
 }

@@ -38,27 +38,52 @@ import javax.media.opengl.GLAutoDrawable;
 public class GLRunnableTask implements GLRunnable {
     GLRunnable runnable;
     Object notifyObject;
+    boolean catchExceptions;
+    boolean isExecuted;
 
     Throwable runnableException;
 
-    public GLRunnableTask(GLRunnable runnable, Object notifyObject) {
+    public GLRunnableTask(GLRunnable runnable, Object notifyObject, boolean catchExceptions) {
         this.runnable = runnable ;
         this.notifyObject = notifyObject ;
+        this.catchExceptions = catchExceptions;
+        isExecuted = false;
     }
 
     public void run(GLAutoDrawable drawable) {
-        try {
-            runnable.run(drawable);
-        } catch (Throwable t) {
-            runnableException = t;
-        }
-        if(null != notifyObject) {
+        if(null == notifyObject) {
+            try {
+                runnable.run(drawable);
+            } catch (Throwable t) {
+                runnableException = t;
+                if(catchExceptions) {
+                    runnableException.printStackTrace();
+                } else {
+                    throw new RuntimeException(runnableException);
+                }
+            } finally {
+                isExecuted=true;
+            }
+        } else {
             synchronized (notifyObject) {
-                notifyObject.notifyAll();
+                try {
+                    runnable.run(drawable);
+                } catch (Throwable t) {
+                    runnableException = t;
+                    if(catchExceptions) {
+                        runnableException.printStackTrace();
+                    } else {
+                        throw new RuntimeException(runnableException);
+                    }
+                } finally {
+                    isExecuted=true;
+                    notifyObject.notifyAll();
+                }
             }
         }
     }
 
+    public boolean isExecuted() { return isExecuted; }
     public Throwable getThrowable() { return runnableException; }
 }
 

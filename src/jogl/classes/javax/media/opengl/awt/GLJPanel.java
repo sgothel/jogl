@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -286,6 +287,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       return;
     }
 
+    if ( drawableHelper.isExternalAnimatorAnimating() ) {
+        return;
+    }
+
     if (backend == null || !isInitialized) {
       createAndInitializeBackend();
     }
@@ -380,11 +385,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     drawableHelper.removeGLEventListener(listener);
   }
 
-  public void setAnimator(Thread animator) {
-    drawableHelper.setAnimator(animator);
+  public void setAnimator(GLAnimatorControl animatorControl) {
+    drawableHelper.setAnimator(animatorControl);
   }
 
-  public Thread getAnimator() {
+  public GLAnimatorControl getAnimator() {
     return drawableHelper.getAnimator();
   }
 

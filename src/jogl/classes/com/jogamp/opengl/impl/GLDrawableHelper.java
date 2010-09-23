@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -54,13 +55,14 @@ public class GLDrawableHelper {
   private boolean autoSwapBufferMode = true;
   private Object glRunnablesLock = new Object();
   private ArrayList glRunnables = new ArrayList(); // one shot GL tasks
-  private Thread animatorThread = null; // default
+  private GLAnimatorControl animatorCtrl = null; // default
 
   public GLDrawableHelper() {
   }
 
   public String toString() {
     StringBuffer sb = new StringBuffer();
+    sb.append("GLAnimatorControl: "+animatorCtrl+", ");
     synchronized(listenersLock) {
         sb.append("GLEventListeners num "+listeners.size()+" [");
         for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
@@ -176,19 +178,23 @@ public class GLDrawableHelper {
     }
   }
 
-  public void setAnimator(Thread animator) throws GLException {
+  public void setAnimator(GLAnimatorControl animator) throws GLException {
     synchronized(glRunnablesLock) {
-        if(animator!=animatorThread && null!=animator && null!=animatorThread) {
-            throw new GLException("Trying to register animator thread "+animator+", where "+animatorThread+" is already registered. Unregister first.");
+        if(animatorCtrl!=animator && null!=animator && null!=animatorCtrl) {
+            throw new GLException("Trying to register GLAnimatorControl "+animator+", where "+animatorCtrl+" is already registered. Unregister first.");
         }
-        animatorThread = animator;
+        animatorCtrl = animator;
     }
   }
 
-  public Thread getAnimator() {
+  public GLAnimatorControl getAnimator() {
     synchronized(glRunnablesLock) {
-        return animatorThread;
+        return animatorCtrl;
     }
+  }
+
+  public final boolean isExternalAnimatorAnimating() {
+    return ( null != animatorCtrl ) ? animatorCtrl.isAnimating() && animatorCtrl.getThread() != Thread.currentThread() : false ;
   }
 
   public void invoke(GLAutoDrawable drawable, boolean wait, GLRunnable glRunnable) {
@@ -196,30 +202,35 @@ public class GLDrawableHelper {
         return;
     }
     Throwable throwable = null;
-    Object lock = new Object();
     GLRunnableTask rTask = null;
-    synchronized(lock) {
-        boolean callDisplay;
+    Object rTaskLock = new Object();
+    synchronized(rTaskLock) {
+        boolean deferred;
         synchronized(glRunnablesLock) {
-            callDisplay = null == animatorThread || animatorThread == Thread.currentThread() ;
-            rTask = new GLRunnableTask(glRunnable, ( !callDisplay && wait ) ? lock : null);
+            deferred = isExternalAnimatorAnimating();
+            if(!deferred) {
+                wait = false; // don't wait if exec immediatly
+            }
+            rTask = new GLRunnableTask(glRunnable,
+                                       wait ? rTaskLock : null,
+                                       wait  /* catch Exceptions if waiting for result */);
             glRunnables.add(rTask);
         }
-        if( callDisplay ) {
+        if( !deferred ) {
             drawable.display();
         } else if( wait ) {
             try {
-                lock.wait();
+                rTaskLock.wait(); // free lock, allow execution of rTask
             } catch (InterruptedException ie) {
                 throwable = ie;
             }
+            if(null==throwable) {
+                throwable = rTask.getThrowable();
+            }
+            if(null!=throwable) {
+                throw new RuntimeException(throwable);
+            }
         }
-    }
-    if(null==throwable) {
-        throwable = rTask.getThrowable();
-    }
-    if(null!=throwable) {
-        throw new RuntimeException(throwable);
     }
   }
 

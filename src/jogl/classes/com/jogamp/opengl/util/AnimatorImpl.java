@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -40,11 +41,11 @@ import javax.media.opengl.*;
     up this behavior if desired. */
 
 class AnimatorImpl {
-    public void display(Animator animator,
+    public void display(AnimatorBase animator,
                         boolean ignoreExceptions,
                         boolean printExceptions) {
         Iterator iter = animator.drawableIterator();
-        while (iter.hasNext()) {
+        while (animator.isAnimating() && !animator.getShouldStop() && !animator.getShouldPause() && iter.hasNext()) {
             GLAutoDrawable drawable = (GLAutoDrawable) iter.next();
             try {
                 drawable.display();
@@ -60,7 +61,7 @@ class AnimatorImpl {
         }
     }
 
-    public boolean skipWaitForStop(Thread thread) {
+    public boolean skipWaitForCompletion(Thread thread) {
         return (Thread.currentThread() == thread);
     }
 }
