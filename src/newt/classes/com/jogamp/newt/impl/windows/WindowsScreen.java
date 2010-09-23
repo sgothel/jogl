@@ -34,9 +34,10 @@
 package com.jogamp.newt.impl.windows;
 
 import com.jogamp.newt.*;
+import com.jogamp.newt.impl.ScreenImpl;
 import javax.media.nativewindow.*;
 
-public class WindowsScreen extends Screen {
+public class WindowsScreen extends ScreenImpl {
     static {
         WindowsDisplay.initSingleton();
     }

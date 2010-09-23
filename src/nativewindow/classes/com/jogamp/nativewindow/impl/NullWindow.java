@@ -77,11 +77,19 @@ public class NullWindow implements NativeWindow, SurfaceChangeable {
     recurLock.unlock();
   }
 
+  public synchronized boolean isSurfaceLockedByOtherThread() {
+    return recurLock.isLockedByOtherThread();
+  }
+
   public synchronized boolean isSurfaceLocked() {
     return recurLock.isLocked();
   }
 
-  public Exception getLockedStack() {
+  public Thread getSurfaceLockOwner() {
+    return recurLock.getOwner();
+  }
+
+  public Exception getSurfaceLockStack() {
     return recurLock.getLockedStack();
   }
 

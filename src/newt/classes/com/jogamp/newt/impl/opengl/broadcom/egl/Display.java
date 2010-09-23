@@ -38,7 +38,7 @@ import com.jogamp.opengl.impl.egl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 
-public class Display extends com.jogamp.newt.Display {
+public class Display extends com.jogamp.newt.impl.DisplayImpl {
 
     static {
         NEWTJNILibLoader.loadNEWT();

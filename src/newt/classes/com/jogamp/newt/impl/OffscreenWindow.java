@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -31,11 +32,11 @@
  * 
  */
 
-package com.jogamp.newt;
+package com.jogamp.newt.impl;
 
 import javax.media.nativewindow.*;
 
-public class OffscreenWindow extends Window implements SurfaceChangeable {
+public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
 
     long surfaceHandle = 0;
 
@@ -45,20 +46,20 @@ public class OffscreenWindow extends Window implements SurfaceChangeable {
     static long nextWindowHandle = 0x100; // start here - a marker
 
     protected void createNativeImpl() {
-        if(0!=parentWindowHandle) {
+        if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("OffscreenWindow does not support window parenting");
         }
         if(caps.isOnscreen()) {
             throw new NativeWindowException("Capabilities is onscreen");
         }
-        AbstractGraphicsScreen aScreen = screen.getGraphicsScreen();
+        AbstractGraphicsScreen aScreen = getScreen().getGraphicsScreen();
         config = GraphicsConfigurationFactory.getFactory(aScreen.getDevice()).chooseGraphicsConfiguration(caps, null, aScreen);
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
 
         synchronized(OffscreenWindow.class) {
-            windowHandle = nextWindowHandle++;
+            setWindowHandle(nextWindowHandle++);
         }
     }
 
@@ -66,12 +67,13 @@ public class OffscreenWindow extends Window implements SurfaceChangeable {
         // nop
     }
 
-    public void invalidate() {
-        super.invalidate();
+    public void invalidate(boolean unrecoverable) {
+        super.invalidate(unrecoverable);
         surfaceHandle = 0;
     }
 
-    public synchronized void destroy(boolean deep) {
+    public synchronized void destroy(boolean unrecoverable) {
+        super.destroy(unrecoverable);
         surfaceHandle = 0;
     }
 
@@ -84,6 +86,9 @@ public class OffscreenWindow extends Window implements SurfaceChangeable {
     }
 
     protected void setVisibleImpl(boolean visible) {
+    }
+
+    protected void requestFocusImpl(boolean reparented) {
     }
 
     public void setSize(int width, int height) {
@@ -107,7 +112,7 @@ public class OffscreenWindow extends Window implements SurfaceChangeable {
         // nop
         return false;
     }
-    protected void setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
+    protected void reconfigureWindowImpl(int x, int y, int width, int height) {
         shouldNotCallThis();
     }
 }

@@ -41,7 +41,7 @@ import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.*;
 import com.jogamp.newt.util.*;
 
-public class MacWindow extends Window {
+public class MacWindow extends WindowImpl {
     
     // Window styles
     private static final int NSBorderlessWindowMask     = 0;
@@ -153,8 +153,8 @@ public class MacWindow extends Window {
         nsViewLock.lock();
         try {
             if(DEBUG_IMPLEMENTATION) { System.out.println("MacWindow.CloseAction "+Thread.currentThread().getName()); }
-            if (windowHandle != 0) {
-                close0(windowHandle);
+            if (getWindowHandle() != 0) {
+                close0(getWindowHandle());
             }
         } catch (Throwable t) {
             if(DEBUG_IMPLEMENTATION) { 
@@ -162,28 +162,14 @@ public class MacWindow extends Window {
                 e.printStackTrace();
             }
         } finally {
-            windowHandle = 0;
+            setWindowHandle(0);
             nsViewLock.unlock();
         }
         windowDestroyed(); // No OSX hook for DidClose, so do it here
     }
     
-    public long getWindowHandle() {
-        nsViewLock.lock();
-        try {
-            return windowHandle;
-        } finally {
-            nsViewLock.unlock();
-        }
-    }
-
-    public long getSurfaceHandle() {
-        nsViewLock.lock();
-        try {
-            return surfaceHandle;
-        } finally {
-            nsViewLock.unlock();
-        }
+    public final long getSurfaceHandle() {
+        return surfaceHandle;
     }
 
     public Insets getInsets() {
@@ -200,18 +186,12 @@ public class MacWindow extends Window {
 
     private RecursiveToolkitLock nsViewLock = new RecursiveToolkitLock();
 
-    public synchronized int lockSurface() throws NativeWindowException {
+    protected int lockSurfaceImpl() {
         nsViewLock.lock();
-        try {
-            return super.lockSurface();
-        } catch (RuntimeException re) {
-            nsViewLock.unlock();
-            throw re;
-        }
+        return LOCK_SUCCESS;
     }
 
-    public void unlockSurface() {
-        super.unlockSurface();
+    protected void unlockSurfaceImpl() {
         nsViewLock.unlock();
     }
 
@@ -220,12 +200,12 @@ public class MacWindow extends Window {
         try {
             if (visible) {
                 createWindow(false, getX(), getY(), getWidth(), getHeight(), isFullscreen());
-                if (windowHandle != 0) {
-                    makeKeyAndOrderFront0(windowHandle);
+                if (getWindowHandle() != 0) {
+                    makeKeyAndOrderFront0(getWindowHandle());
                 }
             } else {
-                if (windowHandle != 0) {
-                    orderOut0(windowHandle);
+                if (getWindowHandle() != 0) {
+                    orderOut0(getWindowHandle());
                 }
             }
         } finally {
@@ -237,21 +217,17 @@ public class MacWindow extends Window {
         // FIXME: move nsViewLock up to window lock
         nsViewLock.lock();
         try {
-            if (windowHandle != 0) {
-                setTitle0(windowHandle, title);
-            }
+            setTitle0(getWindowHandle(), title);
         } finally {
             nsViewLock.unlock();
         }
     }
 
-    protected void requestFocusImpl() {
+    protected void requestFocusImpl(boolean reparented) {
         // FIXME: move nsViewLock up to window lock
         nsViewLock.lock();
         try {
-            if (windowHandle != 0) {
-                makeKey0(windowHandle);
-            }
+            makeKey0(getWindowHandle());
         } finally {
             nsViewLock.unlock();
         }
@@ -261,9 +237,7 @@ public class MacWindow extends Window {
         // this width/height will be set by sizeChanged, called by OSX
         nsViewLock.lock();
         try {
-            if (windowHandle != 0) {
-                setContentSize0(windowHandle, width, height);
-            }
+            setContentSize0(getWindowHandle(), width, height);
         } finally {
             nsViewLock.unlock();
         }
@@ -273,23 +247,21 @@ public class MacWindow extends Window {
         // this x/y will be set by positionChanged, called by OSX
         nsViewLock.lock();
         try {
-            if (windowHandle != 0) {
-                setFrameTopLeftPoint0(parentWindowHandle, windowHandle, x, y);
-            }
+            setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), x, y);
         } finally {
             nsViewLock.unlock();
         }
     }
     
-    protected void setFullscreenImpl(final boolean fullscreen, final int x, final int y, final int w, final int h) {
+    protected void reconfigureWindowImpl(int x, int y, int width, int height) {
         nsViewLock.lock();
         try {
             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                System.err.println("MacWindow fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h);
+                System.err.println("MacWindow reconfig: "+fullscreen+" "+x+"/"+y+" "+width+"x"+height);
             }
-            createWindow(true, x, y, w, h, fullscreen);
-            if (windowHandle != 0) {
-                makeKeyAndOrderFront0(windowHandle);
+            createWindow(true, x, y, width, height, fullscreen);
+            if (getWindowHandle() != 0) {
+                makeKeyAndOrderFront0(getWindowHandle());
             }
         } finally {
             nsViewLock.unlock();
@@ -402,36 +374,36 @@ public class MacWindow extends Window {
 
     private void createWindow(final boolean recreate, final int x, final int y, final int width, final int height, final boolean fullscreen) {
 
-        if(0!=windowHandle && !recreate) {
+        if(0!=getWindowHandle() && !recreate) {
             return;
         }
 
         try {
             //runOnEDTIfAvail(true, new Runnable() {
             //    public void run() {
-                    if(0!=windowHandle) {
+                    if(0!=getWindowHandle()) {
                         // save the view .. close the window
-                        surfaceHandle = changeContentView0(parentWindowHandle, windowHandle, 0);
+                        surfaceHandle = changeContentView0(getParentWindowHandle(), getWindowHandle(), 0);
                         if(recreate && 0==surfaceHandle) {
                             throw new NativeWindowException("Internal Error - recreate, window but no view");
                         }
-                        close0(windowHandle);
-                        windowHandle=0;
+                        close0(getWindowHandle());
+                        setWindowHandle(0);
                     } else {
                         surfaceHandle = 0;
                     }
-                    windowHandle = createWindow0(parentWindowHandle, 
+                    setWindowHandle(createWindow0(getParentWindowHandle(),
                                                  x, y, width, height, fullscreen,
                                                  (isUndecorated(fullscreen) ?
                                                  NSBorderlessWindowMask :
                                                  NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask),
                                                  NSBackingStoreBuffered, 
-                                                 getScreen().getIndex(), surfaceHandle);
-                    if (windowHandle == 0) {
+                                                 getScreen().getIndex(), surfaceHandle));
+                    if (getWindowHandle() == 0) {
                         throw new NativeWindowException("Could create native window "+Thread.currentThread().getName()+" "+this);
                     }
-                    surfaceHandle = contentView0(windowHandle);
-                    setTitle0(windowHandle, getTitle());
+                    surfaceHandle = contentView0(getWindowHandle());
+                    setTitle0(getWindowHandle(), getTitle());
                     // don't make the window visible on window creation
                     // makeKeyAndOrderFront0(windowHandle);
              //   } } );

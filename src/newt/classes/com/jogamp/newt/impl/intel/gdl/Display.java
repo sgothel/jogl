@@ -36,7 +36,7 @@ package com.jogamp.newt.impl.intel.gdl;
 import com.jogamp.newt.impl.*;
 import javax.media.nativewindow.*;
 
-public class Display extends com.jogamp.newt.Display {
+public class Display extends com.jogamp.newt.impl.DisplayImpl {
     static int initCounter = 0;
 
     static {

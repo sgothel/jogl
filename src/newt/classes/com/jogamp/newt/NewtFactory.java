@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -40,19 +41,22 @@ import java.util.Iterator;
 import com.jogamp.common.jvm.JVMUtil;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
+import com.jogamp.newt.impl.DisplayImpl;
+import com.jogamp.newt.impl.ScreenImpl;
+import com.jogamp.newt.impl.WindowImpl;
 import com.jogamp.newt.impl.Debug;
 
-public abstract class NewtFactory {
+public class NewtFactory {
     public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
 
     // Work-around for initialization order problems on Mac OS X
     // between native Newt and (apparently) Fmod
     static {
         JVMUtil.initSingleton();
-        Window.init(NativeWindowFactory.getNativeWindowType(true));
+        WindowImpl.init(NativeWindowFactory.getNativeWindowType(true));
     }
 
-    static Class getCustomClass(String packageName, String classBaseName) {
+    public static Class getCustomClass(String packageName, String classBaseName) {
         Class clazz = null;
         if(packageName!=null || classBaseName!=null) {
             String clazzName = packageName + "." + classBaseName ;
@@ -81,42 +85,43 @@ public abstract class NewtFactory {
      * Create a Display entity, incl native creation
      */
     public static Display createDisplay(String name) {
-      return Display.create(NativeWindowFactory.getNativeWindowType(true), name, 0);
+      return DisplayImpl.create(NativeWindowFactory.getNativeWindowType(true), name, 0);
     }
 
     /**
      * Create a Display entity using the given implementation type, incl native creation
      */
     public static Display createDisplay(String type, String name) {
-      return Display.create(type, name, 0);
+      return DisplayImpl.create(type, name, 0);
     }
 
     /**
      * Create a Screen entity, incl native creation
      */
     public static Screen createScreen(Display display, int index) {
-      return Screen.create(NativeWindowFactory.getNativeWindowType(true), display, index);
+      return ScreenImpl.create(NativeWindowFactory.getNativeWindowType(true), display, index);
     }
 
     /**
      * Create a Screen entity using the given implementation type, incl native creation
      */
     public static Screen createScreen(String type, Display display, int index) {
-      return Screen.create(type, display, index);
+      return ScreenImpl.create(type, display, index);
+    }
+
+    /**
+     * Create a top level Window entity, incl native creation.
+     * The Display/Screen is created and owned, ie destructed atomatic.
+     */
+    public static Window createWindow(Capabilities caps) {
+        return createWindowImpl(NativeWindowFactory.getNativeWindowType(true), caps);
     }
 
     /**
      * Create a top level Window entity, incl native creation
      */
     public static Window createWindow(Screen screen, Capabilities caps) {
-        return createWindowImpl(NativeWindowFactory.getNativeWindowType(true), screen, caps, false);
-    }
-
-    /**
-     * Create a top level Window entity, incl native creation
-     */
-    public static Window createWindow(Screen screen, Capabilities caps, boolean undecorated) {
-        return createWindowImpl(NativeWindowFactory.getNativeWindowType(true), screen, caps, undecorated);
+        return createWindowImpl(NativeWindowFactory.getNativeWindowType(true), screen, caps);
     }
 
     /**
@@ -131,17 +136,13 @@ public abstract class NewtFactory {
      * The parents visibility is passed to the new Window<br></p>
      * <p>
      * In case <code>parentWindowObject</code> is a different {@link javax.media.nativewindow.NativeWindow} implementation,<br>
-     * you have to handle all events appropriatly.<br></p>
+     * you have to handle all events appropriate.<br></p>
      * <p>
      *
      * @param parentWindowObject either a NativeWindow instance
-     * @param undecorated only impacts if the window is in top-level state, while attached to a parent window it's rendered undecorated always
      */
-    public static Window createWindow(NativeWindow nParentWindow, Capabilities caps, boolean undecorated) {
+    public static Window createWindow(NativeWindow nParentWindow, Capabilities caps) {
         final String type = NativeWindowFactory.getNativeWindowType(true);
-        if(null==nParentWindow) {
-            return createWindowImpl(type, caps, undecorated);
-        }
 
         Screen screen  = null;
         Window parentWindow = null;
@@ -164,33 +165,33 @@ public abstract class NewtFactory {
             }
             screen.setDestroyWhenUnused(true);
         }
-        final Window win = createWindowImpl(type, nParentWindow, screen, caps, undecorated);
+        final Window win = createWindowImpl(type, nParentWindow, screen, caps);
 
         win.setSize(nParentWindow.getWidth(), nParentWindow.getHeight());
         if ( null != parentWindow ) {
-            parentWindow.getInnerWindow().addChild(win);
+            parentWindow.addChild(win);
             win.setVisible(parentWindow.isVisible());
         }
         return win;
     }
 
-    protected static Window createWindowImpl(String type, NativeWindow parentNativeWindow, Screen screen, Capabilities caps, boolean undecorated) {
-        return Window.create(type, parentNativeWindow, 0, screen, caps, undecorated);
+    protected static Window createWindowImpl(String type, NativeWindow parentNativeWindow, Screen screen, Capabilities caps) {
+        return WindowImpl.create(type, parentNativeWindow, 0, screen, caps);
     }
 
-    protected static Window createWindowImpl(String type, long parentWindowHandle, Screen screen, Capabilities caps, boolean undecorated) {
-        return Window.create(type, null, parentWindowHandle, screen, caps, undecorated);
+    protected static Window createWindowImpl(String type, long parentWindowHandle, Screen screen, Capabilities caps) {
+        return WindowImpl.create(type, null, parentWindowHandle, screen, caps);
     }
 
-    protected static Window createWindowImpl(String type, Screen screen, Capabilities caps, boolean undecorated) {
-        return Window.create(type, null, 0, screen, caps, undecorated);
+    protected static Window createWindowImpl(String type, Screen screen, Capabilities caps) {
+        return WindowImpl.create(type, null, 0, screen, caps);
     }
 
-    protected static Window createWindowImpl(String type, Capabilities caps, boolean undecorated) {
+    protected static Window createWindowImpl(String type, Capabilities caps) {
         Display display = NewtFactory.createDisplay(type, null); // local display
         Screen screen  = NewtFactory.createScreen(type, display, 0); // screen 0
         screen.setDestroyWhenUnused(true);
-        return Window.create(type, null, 0, screen, caps, undecorated);
+        return WindowImpl.create(type, null, 0, screen, caps);
     }
 
     /**
@@ -199,19 +200,19 @@ public abstract class NewtFactory {
      * @param parentWindowObject the native parent window handle
      * @param undecorated only impacts if the window is in top-level state, while attached to a parent window it's rendered undecorated always
      */
-    public static Window createWindow(long parentWindowHandle, Screen screen, Capabilities caps, boolean undecorated) {
-        return createWindowImpl(NativeWindowFactory.getNativeWindowType(true), parentWindowHandle, screen, caps, undecorated);
+    public static Window createWindow(long parentWindowHandle, Screen screen, Capabilities caps) {
+        return createWindowImpl(NativeWindowFactory.getNativeWindowType(true), parentWindowHandle, screen, caps);
     }
 
     /**
-     * Ability to try a Window type with a construnctor argument, if supported ..<p>
+     * Ability to try a Window type with a constructor argument, if supported ..<p>
      * Currently only valid is <code> AWTWindow(Frame frame) </code>,
      * to support an external created AWT Frame, ie the browsers embedded frame.
      *
      * @param undecorated only impacts if the window is in top-level state, while attached to a parent window it's rendered undecorated always
      */
-    public static Window createWindow(Object[] cstrArguments, Screen screen, Capabilities caps, boolean undecorated) {
-        return Window.create(NativeWindowFactory.getNativeWindowType(true), cstrArguments, screen, caps, undecorated);
+    public static Window createWindow(Object[] cstrArguments, Screen screen, Capabilities caps) {
+        return WindowImpl.create(NativeWindowFactory.getNativeWindowType(true), cstrArguments, screen, caps);
     }
 
     /**
@@ -219,19 +220,19 @@ public abstract class NewtFactory {
      *
      * @param undecorated only impacts if the window is in top-level state, while attached to a parent window it's rendered undecorated always
      */
-    public static Window createWindow(String type, Screen screen, Capabilities caps, boolean undecorated) {
-        return createWindowImpl(type, null, screen, caps, undecorated);
+    public static Window createWindow(String type, Screen screen, Capabilities caps) {
+        return createWindowImpl(type, null, screen, caps);
     }
 
-    public static Window createWindow(String type, Object[] cstrArguments, Screen screen, Capabilities caps, boolean undecorated) {
-        return Window.create(type, cstrArguments, screen, caps, undecorated);
+    public static Window createWindow(String type, Object[] cstrArguments, Screen screen, Capabilities caps) {
+        return WindowImpl.create(type, cstrArguments, screen, caps);
     }
 
     /**
      * Instantiate a Display entity using the native handle.
      */
     public static Display createDisplay(String type, long handle) {
-      return Display.create(type, null, handle);
+      return DisplayImpl.create(type, null, handle);
     }
 
     private static final boolean instanceOf(Object obj, String clazzName) {
@@ -251,7 +252,7 @@ public abstract class NewtFactory {
       AbstractGraphicsScreen parentScreen = (AbstractGraphicsScreen) parentConfig.getScreen();
       AbstractGraphicsDevice parentDevice = (AbstractGraphicsDevice) parentScreen.getDevice();
 
-      Display childDisplay = childScreen.getDisplay();
+      DisplayImpl childDisplay = (DisplayImpl) childScreen.getDisplay();
       String parentDisplayName = childDisplay.validateDisplayName(null, parentDevice.getHandle());
       String childDisplayName = childDisplay.getName();
       if( ! parentDisplayName.equals( childDisplayName ) ) {
@@ -276,7 +277,7 @@ public abstract class NewtFactory {
 
       if(null != childScreen) {
         // check if child Display/Screen is compatible already
-        Display childDisplay = childScreen.getDisplay();
+        DisplayImpl childDisplay = (DisplayImpl) childScreen.getDisplay();
         String parentDisplayName = childDisplay.validateDisplayName(null, parentDevice.getHandle());
         String childDisplayName = childDisplay.getName();
         boolean displayEqual = parentDisplayName.equals( childDisplayName );

@@ -39,7 +39,7 @@ import com.jogamp.opengl.impl.egl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 
-public class KDDisplay extends Display {
+public class KDDisplay extends DisplayImpl {
 
     static {
         NEWTJNILibLoader.loadNEWT();

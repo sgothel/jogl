@@ -29,23 +29,12 @@
 
 package com.jogamp.newt.awt;
 
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.Component;
-import java.awt.Canvas;
 
-import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
 
-import com.jogamp.newt.event.awt.AWTParentWindowAdapter;
-import com.jogamp.newt.Display;
-import com.jogamp.newt.Screen;
-import com.jogamp.newt.Window;
 import com.jogamp.newt.NewtFactory;
-import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.newt.impl.Debug;
-import com.jogamp.common.util.ReflectionUtil;
 
 public class NewtFactoryAWT extends NewtFactory {
   public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");

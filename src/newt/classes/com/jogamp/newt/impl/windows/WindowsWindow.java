@@ -35,16 +35,14 @@ package com.jogamp.newt.impl.windows;
 
 import javax.media.nativewindow.*;
 import com.jogamp.newt.*;
-import com.jogamp.newt.event.*;
 import com.jogamp.newt.util.*;
+import com.jogamp.newt.impl.WindowImpl;
 
-public class WindowsWindow extends Window {
+public class WindowsWindow extends WindowImpl {
 
     private long hmon;
     private long hdc;
     private long windowHandleClose;
-    // non fullscreen dimensions ..
-    private int nfs_width, nfs_height, nfs_x, nfs_y;
     private final Insets insets = new Insets(0, 0, 0, 0);
 
     static {
@@ -54,32 +52,28 @@ public class WindowsWindow extends Window {
     public WindowsWindow() {
     }
 
-    public int lockSurface() throws NativeWindowException {
-        int res = super.lockSurface(); 
-        if( LOCK_SUCCESS == res && 0 != windowHandle && 0 == hdc ) {
-            hdc = GetDC0(windowHandle);
-            hmon = MonitorFromWindow0(windowHandle);
+    protected int lockSurfaceImpl() {
+        if( 0 != getWindowHandle() && 0 == hdc ) {
+            hdc = GetDC0(getWindowHandle());
+            hmon = MonitorFromWindow0(getWindowHandle());
         }
-        return res;
+        return LOCK_SUCCESS;
     }
 
-    public void unlockSurface() {
-        getWindowLock().validateLocked();
-
-        if ( 0 != hdc && 0 != windowHandle && getWindowLock().getRecursionCount() == 0) {
-            ReleaseDC0(windowHandle, hdc);
+    protected void unlockSurfaceImpl() {
+        if ( 0 != hdc && 0 != getWindowHandle() && getWindowLockRecursionCount() == 0) {
+            ReleaseDC0(getWindowHandle(), hdc);
             hdc=0;
         }
-        super.unlockSurface();
     }
 
-    public long getSurfaceHandle() {
+    public final long getSurfaceHandle() {
         return hdc;
     }
 
     public boolean hasDeviceChanged() {
-        if(0!=windowHandle) {
-            long _hmon = MonitorFromWindow0(windowHandle);
+        if(0!=getWindowHandle()) {
+            long _hmon = MonitorFromWindow0(getWindowHandle());
             if (hmon != _hmon) {
                 if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
                     Exception e = new Exception("!!! Window Device Changed "+Thread.currentThread().getName()+
@@ -100,17 +94,17 @@ public class WindowsWindow extends Window {
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
-        windowHandle = CreateWindow0(parentWindowHandle, 
+        setWindowHandle(CreateWindow0(getParentWindowHandle(),
                                     display.getWindowClassAtom(), display.WINDOW_CLASS_NAME, display.getHInstance(), 
-                                    0, undecorated, x, y, width, height);
-        if (windowHandle == 0) {
+                                    0, undecorated, x, y, width, height));
+        if (getWindowHandle() == 0) {
             throw new NativeWindowException("Error creating window");
         }
-        windowHandleClose = windowHandle;
+        windowHandleClose = getWindowHandle();
         if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
             Exception e = new Exception("!!! Window new window handle "+Thread.currentThread().getName()+
-                                        " (Parent HWND "+toHexString(parentWindowHandle)+
-                                        ") : HWND "+toHexString(windowHandle)+", "+Thread.currentThread());
+                                        " (Parent HWND "+toHexString(getParentWindowHandle())+
+                                        ") : HWND "+toHexString(getWindowHandle())+", "+Thread.currentThread());
             e.printStackTrace();
         }
     }
@@ -149,38 +143,34 @@ public class WindowsWindow extends Window {
     }
 
     protected void setVisibleImpl(boolean visible) {
-        setVisible0(windowHandle, visible);
+        setVisible0(getWindowHandle(), visible);
     }
 
     protected void setSizeImpl(int width, int height) {
         // this width/height will be set by sizeChanged, called by Windows
-        setSize0(parentWindowHandle, windowHandle, x, y, width, height);
+        setSize0(getParentWindowHandle(), getWindowHandle(), x, y, width, height);
     }
 
     protected void setPositionImpl(int x, int y) {
         // this x/y will be set by positionChanged, called by Windows
-        setPosition0(parentWindowHandle, windowHandle, x , y /*, width, height*/);
+        setPosition0(getParentWindowHandle(), getWindowHandle(), x , y /*, width, height*/);
     }
 
-    protected void setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
-        setFullscreen0(fullscreen?0:parentWindowHandle, windowHandle, x, y, w, h, isUndecorated(fullscreen));
+    protected void reconfigureWindowImpl(int x, int y, int width, int height) {
+        reconfigureWindow0(fullscreen?0:getParentWindowHandle(), getWindowHandle(), x, y, width, height, isUndecorated(fullscreen));
     }
 
     protected boolean reparentWindowImpl() {
-        if(0!=windowHandle) {
-            reparentWindow0(fullscreen?0:parentWindowHandle, windowHandle, x, y, width, height, isUndecorated());
-        }
+        reparentWindow0(fullscreen?0:getParentWindowHandle(), getWindowHandle(), x, y, width, height, isUndecorated());
         return true;
     }
 
-    protected void requestFocusImpl() {
-        if (windowHandle != 0L) {
-            requestFocus0(windowHandle);
-        }
+    protected void requestFocusImpl(boolean reparented) {
+        requestFocus0(getWindowHandle(), reparented);
     }
 
     protected void setTitleImpl(final String title) {
-        setTitle0(windowHandle, title);
+        setTitle0(getWindowHandle(), title);
     }
 
     public Insets getInsets() {
@@ -203,10 +193,11 @@ public class WindowsWindow extends Window {
     private static native void setVisible0(long windowHandle, boolean visible);
     private        native void setSize0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height);
     private static native void setPosition0(long parentWindowHandle, long windowHandle, int x, int y /*, int width, int height*/);
-    private        native void setFullscreen0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height, boolean isUndecorated);
+    private        native void reconfigureWindow0(long parentWindowHandle, long windowHandle, 
+                                                  int x, int y, int width, int height, boolean isUndecorated);
     private        native void reparentWindow0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height, boolean isUndecorated);
     private static native void setTitle0(long windowHandle, String title);
-    private        native void requestFocus0(long windowHandle);
+    private        native void requestFocus0(long windowHandle, boolean reparented);
 
     private void insetsChanged(int left, int top, int right, int bottom) {
         if (left != -1 && top != -1 && right != -1 && bottom != -1) {

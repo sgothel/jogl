@@ -34,9 +34,10 @@
 package com.jogamp.newt.impl.opengl.kd;
 
 import com.jogamp.newt.*;
+import com.jogamp.newt.impl.ScreenImpl;
 import javax.media.nativewindow.*;
 
-public class KDScreen extends Screen {
+public class KDScreen extends ScreenImpl {
     static {
         KDDisplay.initSingleton();
     }

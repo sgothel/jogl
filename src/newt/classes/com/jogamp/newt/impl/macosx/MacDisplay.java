@@ -41,7 +41,7 @@ import com.jogamp.newt.impl.*;
 import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.newt.util.MainThread;
 
-public class MacDisplay extends Display {
+public class MacDisplay extends DisplayImpl {
     static {
         NEWTJNILibLoader.loadNEWT();
 

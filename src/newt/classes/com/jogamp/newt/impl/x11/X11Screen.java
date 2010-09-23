@@ -34,9 +34,10 @@
 package com.jogamp.newt.impl.x11;
 
 import com.jogamp.newt.*;
+import com.jogamp.newt.impl.ScreenImpl;
 import javax.media.nativewindow.x11.*;
 
-public class X11Screen extends Screen {
+public class X11Screen extends ScreenImpl {
 
     static {
         X11Display.initSingleton();

@@ -35,10 +35,11 @@ package com.jogamp.newt.impl.x11;
 
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
+import com.jogamp.newt.impl.WindowImpl;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 
-public class X11Window extends Window {
+public class X11Window extends WindowImpl {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
 
     static {
@@ -57,14 +58,14 @@ public class X11Window extends Window {
         }
         X11GraphicsConfiguration x11config = (X11GraphicsConfiguration) config;
         long visualID = x11config.getVisualID();
-        long w = CreateWindow0(parentWindowHandle, 
+        long w = CreateWindow0(getParentWindowHandle(),
                                display.getHandle(), screen.getIndex(), visualID, 
                                display.getJavaObjectAtom(), display.getWindowDeleteAtom(), 
                                x, y, width, height, isUndecorated());
-        if (w == 0 || w!=windowHandle) {
+        if (w == 0 || w!=getWindowHandle()) {
             throw new NativeWindowException("Error creating window: "+w);
         }
-        windowHandleClose = windowHandle;
+        windowHandleClose = getWindowHandle();
     }
 
     protected void closeNativeImpl() {
@@ -90,41 +91,38 @@ public class X11Window extends Window {
     }
 
     protected void setVisibleImpl(boolean visible) {
-        setVisible0(getDisplayHandle(), windowHandle, visible);
+        setVisible0(getDisplayHandle(), getWindowHandle(), visible);
     }
 
     protected void setSizeImpl(int width, int height) {
         // this width/height will be set by windowChanged, called by X11
-        setSize0(getDisplayHandle(), windowHandle, width, height);
+        setSize0(getDisplayHandle(), getWindowHandle(), width, height);
     }
 
     protected void setPositionImpl(int x, int y) {
-        setPosition0(parentWindowHandle, getDisplayHandle(), windowHandle, x, y);
+        setPosition0(getParentWindowHandle(), getDisplayHandle(), getWindowHandle(), x, y);
     }
 
-    protected void setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
-        setPosSizeDecor0(fullscreen?0:parentWindowHandle, getDisplayHandle(), getScreenIndex(), windowHandle, 
-                         x, y, w, h, isUndecorated(fullscreen), isVisible());
+    protected void reconfigureWindowImpl(int x, int y, int width, int height) {
+        reconfigureWindow0(fullscreen?0:getParentWindowHandle(), getDisplayHandle(), getScreenIndex(), getWindowHandle(),
+                            x, y, width, height, isUndecorated(fullscreen), isVisible());
     }
 
     protected boolean reparentWindowImpl() {
-        if(0!=windowHandle) {
-            reparentWindow0(fullscreen?0:parentWindowHandle, getDisplayHandle(), getScreenIndex(), windowHandle, 
+        if(0!=getWindowHandle()) {
+            reparentWindow0(fullscreen?0:getParentWindowHandle(), getDisplayHandle(), getScreenIndex(), getWindowHandle(),
                             x, y, isUndecorated(), isVisible());
         }
         return true;
     }
 
-    protected void requestFocusImpl() {
-        if (windowHandle != 0L) {
-            requestFocus0(getDisplayHandle(), windowHandle);
-        }
+    protected void requestFocusImpl(boolean reparented) {
+        requestFocus0(getDisplayHandle(), getWindowHandle(), reparented);
     }
 
     protected void setTitleImpl(String title) {
-        setTitle0(getDisplayHandle(), windowHandle, title);
+        setTitle0(getDisplayHandle(), getWindowHandle(), title);
     }
-
 
     //----------------------------------------------------------------------
     // Internals only
@@ -137,16 +135,16 @@ public class X11Window extends Window {
     private        native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom);
     private        native void setVisible0(long display, long windowHandle, boolean visible);
     private        native void setSize0(long display, long windowHandle, int width, int height);
-    private        native void setPosSizeDecor0(long parentWindowHandle, long display, int screen_index, long windowHandle, 
-                                                int x, int y, int width, int height, boolean undecorated, boolean isVisible);
+    private        native void reconfigureWindow0(long parentWindowHandle, long display, int screen_index, long windowHandle, 
+                                                  int x, int y, int width, int height, boolean undecorated, boolean isVisible);
     private        native void setTitle0(long display, long windowHandle, String title);
-    private        native void requestFocus0(long display, long windowHandle);
+    private        native void requestFocus0(long display, long windowHandle, boolean reparented);
     private        native void setPosition0(long parentWindowHandle, long display, long windowHandle, int x, int y);
     private        native void reparentWindow0(long parentWindowHandle, long display, int screen_index, long windowHandle, 
                                                int x, int y, boolean undecorated, boolean isVisible);
 
     private void windowCreated(long windowHandle) {
-        this.windowHandle = windowHandle;
+        setWindowHandle(windowHandle);
     }
 
     private long   windowHandleClose;

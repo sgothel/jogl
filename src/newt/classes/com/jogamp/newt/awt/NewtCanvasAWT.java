@@ -29,14 +29,12 @@
 
 package com.jogamp.newt.awt;
 
+import com.jogamp.newt.Display;
 import java.lang.reflect.*;
 import java.security.*;
 
-import java.awt.Button;
 import java.awt.Canvas;
-import java.awt.Component;
 import java.awt.EventQueue;
-import java.awt.Frame;
 import java.awt.Graphics;
 
 import javax.media.nativewindow.*;
@@ -44,12 +42,7 @@ import javax.media.nativewindow.*;
 import com.jogamp.newt.event.awt.AWTAdapter;
 import com.jogamp.newt.event.awt.AWTParentWindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
-import com.jogamp.newt.event.WindowAdapter;
-import com.jogamp.newt.event.MouseEvent;
-import com.jogamp.newt.event.MouseAdapter;
-import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
-import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.impl.Debug;
 
 public class NewtCanvasAWT extends java.awt.Canvas {
@@ -92,7 +85,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
             public final boolean result = false; // NEWT shall always proceed requesting the native focus
             public void run() {
                 if(DEBUG) {
-                    System.err.println("FocusActionImpl.run() "+Window.getThreadName());
+                    System.err.println("FocusActionImpl.run() "+Display.getThreadName());
                 }
                 NewtCanvasAWT.this.requestFocusAWTParent();
             }
@@ -120,7 +113,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         return newtChild;
     }
 
-    /** @return this AWT Canvas NativeWindow represention, may be null in case {@link #removeNotify()} has been called, 
+    /** @return this AWT Canvas NativeWindow representation, may be null in case {@link #removeNotify()} has been called,
      * or {@link #addNotify()} hasn't been called yet.*/
     public NativeWindow getNativeWindow() { return parent; }
 

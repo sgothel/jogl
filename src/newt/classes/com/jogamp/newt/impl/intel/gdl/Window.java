@@ -35,7 +35,7 @@ package com.jogamp.newt.impl.intel.gdl;
 
 import javax.media.nativewindow.*;
 
-public class Window extends com.jogamp.newt.Window {
+public class Window extends com.jogamp.newt.impl.WindowImpl {
     static {
         Display.initSingleton();
     }
@@ -46,11 +46,11 @@ public class Window extends com.jogamp.newt.Window {
     static long nextWindowHandle = 1;
 
     protected void createNativeImpl() {
-        if(0!=parentWindowHandle) {
+        if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("GDL Window does not support window parenting");
         }
-        AbstractGraphicsScreen aScreen = screen.getGraphicsScreen();
-        AbstractGraphicsDevice aDevice = screen.getDisplay().getGraphicsDevice();
+        AbstractGraphicsScreen aScreen = getScreen().getGraphicsScreen();
+        AbstractGraphicsDevice aDevice = getScreen().getDisplay().getGraphicsDevice();
 
         config = GraphicsConfigurationFactory.getFactory(aDevice).chooseGraphicsConfiguration(caps, null, aScreen);
         if (config == null) {
@@ -58,9 +58,9 @@ public class Window extends com.jogamp.newt.Window {
         }
 
         synchronized(Window.class) {
-            windowHandle = nextWindowHandle++;
+            setWindowHandle(nextWindowHandle++); // just a marker
 
-            surfaceHandle = CreateSurface(aDevice.getHandle(), screen.getWidth(), screen.getHeight(), x, y, width, height);
+            surfaceHandle = CreateSurface(aDevice.getHandle(), getScreen().getWidth(), getScreen().getHeight(), x, y, width, height);
             if (surfaceHandle == 0) {
                 throw new NativeWindowException("Error creating window");
             }
@@ -73,13 +73,13 @@ public class Window extends com.jogamp.newt.Window {
                 CloseSurface(getDisplayHandle(), surfaceHandle);
             }
             surfaceHandle = 0;
-            ((Display)screen.getDisplay()).setFocus(null);
+            ((Display)getScreen().getDisplay()).setFocus(null);
         }
     }
 
     protected void setVisibleImpl(boolean visible) {
         if(visible) {
-            ((Display)screen.getDisplay()).setFocus(this);
+            ((Display)getScreen().getDisplay()).setFocus(this);
         }
     }
 
@@ -109,17 +109,17 @@ public class Window extends com.jogamp.newt.Window {
         }
     }
 
-    protected void setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
+    protected void reconfigureWindowImpl(int x, int y, int width, int height) {
         if(0!=surfaceHandle) {
-            SetBounds0(surfaceHandle, screen.getWidth(), screen.getHeight(), x, y, w, h);
+            SetBounds0(surfaceHandle, getScreen().getWidth(), getScreen().getHeight(), x, y, width, height);
         }
     }
 
-    protected void requestFocusImpl() {
-        ((Display)screen.getDisplay()).setFocus(this);
+    protected void requestFocusImpl(boolean reparented) {
+        ((Display)getScreen().getDisplay()).setFocus(this);
     }
 
-    public long getSurfaceHandle() {
+    public final long getSurfaceHandle() {
         return surfaceHandle;
     }
 

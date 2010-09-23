@@ -39,7 +39,7 @@ import com.jogamp.newt.*;
 import com.jogamp.newt.impl.*;
 import com.jogamp.nativewindow.impl.x11.X11Util;
 
-public class X11Display extends Display {
+public class X11Display extends DisplayImpl {
 
     static {
         NEWTJNILibLoader.loadNEWT();

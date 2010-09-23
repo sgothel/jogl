@@ -38,7 +38,7 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.GLCapabilities;
 import javax.media.nativewindow.NativeWindowException;
 
-public class Window extends com.jogamp.newt.Window {
+public class Window extends com.jogamp.newt.impl.WindowImpl {
     static {
         Display.initSingleton();
     }
@@ -47,7 +47,7 @@ public class Window extends com.jogamp.newt.Window {
     }
 
     protected void createNativeImpl() {
-        if(0!=parentWindowHandle) {
+        if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
         // query a good configuration .. even thought we drop this one 
@@ -58,8 +58,8 @@ public class Window extends com.jogamp.newt.Window {
         }
         setSizeImpl(getScreen().getWidth(), getScreen().getHeight());
 
-        windowHandle = realizeWindow(true, width, height);
-        if (0 == windowHandle) {
+        setWindowHandle(realizeWindow(true, width, height));
+        if (0 == getWindowHandle()) {
             throw new NativeWindowException("Error native Window Handle is null");
         }
     }
@@ -72,8 +72,10 @@ public class Window extends com.jogamp.newt.Window {
 
     protected void setVisibleImpl(boolean visible) { }
 
+    protected void requestFocusImpl(boolean reparented) { }
+
     protected void setSizeImpl(int width, int height) {
-        if(0!=windowHandle) {
+        if(0!=getWindowHandle()) {
             // n/a in BroadcomEGL
             System.err.println("BCEGL Window.setSizeImpl n/a in BroadcomEGL with realized window");
         } else {
@@ -87,17 +89,14 @@ public class Window extends com.jogamp.newt.Window {
         System.err.println("BCEGL Window.setPositionImpl n/a in BroadcomEGL");
     }
 
-    protected void setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
+    protected void reconfigureWindowImpl(int x, int y, int width, int height) {
         // n/a in BroadcomEGL
         System.err.println("setFullscreen n/a in BroadcomEGL");
     }
 
     public boolean surfaceSwap() {
-        if ( 0!=windowHandle ) {
-            SwapWindow(getDisplayHandle(), windowHandle);
-            return true;
-        }
-        return false;
+        SwapWindow(getDisplayHandle(), getWindowHandle());
+        return true;
     }
 
     //----------------------------------------------------------------------
@@ -126,7 +125,7 @@ public class Window extends com.jogamp.newt.Window {
         this.width = width;
         this.height = height;
         GLCapabilities capsReq = (GLCapabilities) config.getRequestedCapabilities();
-        config = EGLGraphicsConfiguration.create(capsReq, screen.getGraphicsScreen(), cfgID);
+        config = EGLGraphicsConfiguration.create(capsReq, getScreen().getGraphicsScreen(), cfgID);
         if (config == null) {
             throw new NativeWindowException("Error creating EGLGraphicsConfiguration from id: "+cfgID+", "+this);
         }

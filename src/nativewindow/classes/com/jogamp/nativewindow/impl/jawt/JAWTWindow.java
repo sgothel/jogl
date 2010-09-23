@@ -126,11 +126,19 @@ public abstract class JAWTWindow implements NativeWindow {
     recurLock.unlock();
   }
 
+  public synchronized boolean isSurfaceLockedByOtherThread() {
+    return recurLock.isLockedByOtherThread();
+  }
+
   public synchronized boolean isSurfaceLocked() {
     return recurLock.isLocked();
   }
 
-  public Exception getLockedStack() {
+  public Thread getSurfaceLockOwner() {
+    return recurLock.getOwner();
+  }
+
+  public Exception getSurfaceLockStack() {
     return recurLock.getLockedStack();
   }
 
@@ -188,7 +196,7 @@ public abstract class JAWTWindow implements NativeWindow {
     } else {
       sb.append(", component NULL");
     }
-    sb.append(", locked "+isSurfaceLocked()+
+    sb.append(", lockedExt "+isSurfaceLockedByOtherThread()+
               ",\n\tconfig "+config+
               ",\n\twrappedWindow "+getWrappedWindow()+"]");
 

@@ -38,7 +38,7 @@ import javax.media.nativewindow.windows.*;
 import com.jogamp.newt.*;
 import com.jogamp.newt.impl.*;
 
-public class WindowsDisplay extends Display {
+public class WindowsDisplay extends DisplayImpl {
 
     protected static final String WINDOW_CLASS_NAME = "NewtWindowClass";
     private static int windowClassAtom;
