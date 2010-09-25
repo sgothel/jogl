@@ -165,9 +165,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
       }
 
       if(add) {
-          if(null!=newtChild) {
-              parent = NewtFactoryAWT.getNativeWindow(this, newtChild.getRequestedCapabilities());
-          }
+          parent = NewtFactoryAWT.getNativeWindow(this, newtChild.getRequestedCapabilities());
           if(null!=parent) {
               if(DEBUG) {
                 System.err.println("NewtCanvasAWT.reparentWindow: "+newtChild);
@@ -186,6 +184,44 @@ public class NewtCanvasAWT extends java.awt.Canvas {
           newtChild.setVisible(false);
           newtChild.reparentWindow(null);
       }
+    }
+
+    /**
+     * @see #destroy(boolean)
+     */
+    public final void destroy() {
+        destroy(false);
+    }
+
+    /**
+     * Destroys this resource:
+     * <ul>
+     *   <li> Make the NEWT Child invisible </li>
+     *   <li> Disconnects the NEWT Child from this Canvas NativeWindow, reparent to NULL </li>
+     *   <li> Issues <code>destroy(unrecoverable)</code> on the NEWT Child</li>
+     *   <li> Remove reference to the NEWT Child, if unrecoverable</li>
+     *   <li> Remove this Canvas from it's parent.</li>
+     * </ul>
+     * @see Window#destroy()
+     * @see Window#destroy(boolean)
+     */
+    public final void destroy(boolean unrecoverable) {
+        if(null!=newtChild) {
+            java.awt.Container cont = getContainer(this);
+            if(DEBUG) {
+                System.err.println("NewtCanvasAWT.destroy("+unrecoverable+"): "+newtChild+", from "+cont);
+            }
+            parent = null;
+            newtChild.setVisible(false);
+            newtChild.reparentWindow(null);
+            newtChild.destroy(unrecoverable);
+            if(unrecoverable) {
+                newtChild = null;
+            }
+            if(null!=cont) {
+                cont.remove(this);
+            }
+        }
     }
 
     public void paint(Graphics g) {
