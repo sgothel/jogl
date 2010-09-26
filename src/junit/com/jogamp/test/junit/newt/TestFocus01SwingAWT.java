@@ -9,6 +9,7 @@ import java.awt.Robot;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.lang.reflect.InvocationTargetException;
+import java.io.IOException;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
@@ -186,5 +187,35 @@ public class TestFocus01SwingAWT {
             ++keyTyped;
         }
     }
+
+    static int atoi(String a) {
+        int i=0;
+        try {
+            i = Integer.parseInt(a);
+        } catch (Exception ex) { ex.printStackTrace(); }
+        return i;
+    }
+
+    public static void main(String args[]) throws IOException {
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-time")) {
+                durationPerTest = atoi(args[++i]);
+            }
+        }
+        System.out.println("durationPerTest: "+durationPerTest);
+        String tstname = TestFocus01SwingAWT.class.getName();
+        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
+            tstname,
+            "filtertrace=true",
+            "haltOnError=false",
+            "haltOnFailure=false",
+            "showoutput=true",
+            "outputtoformatters=true",
+            "logfailedtests=true",
+            "logtestlistenerevents=true",
+            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
+            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+    }
+
 
 }

@@ -19,12 +19,14 @@ spath=`dirname $0`
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01NEWT $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting02NEWT $*
 
-$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01aAWT $*
+# $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01aAWT $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01bAWT $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01cAWT $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01cSwingAWT $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting02AWT $*
 
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.jogl.awt.TestSwingAWTUsageBeforeJOGLInitBug411 $*
+
+$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestFocus01SwingAWT $*
 
 $spath/count-edt-start.sh java-run.log
