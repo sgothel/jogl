@@ -101,9 +101,10 @@ public abstract class ScreenImpl implements Screen {
     public synchronized final void destroy() {
         if ( null != aScreen ) {
             closeNativeImpl();
-            display.removeReference();
             aScreen = null;
         }
+        refCount = 0;
+        display.removeReference();
     }
 
     protected synchronized final int addReference() {
@@ -123,8 +124,8 @@ public abstract class ScreenImpl implements Screen {
         if(DEBUG) {
             System.err.println("Screen.removeReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount-1));
         }
-        refCount--;
-        if(0==refCount && getDestroyWhenUnused()) {
+        refCount--; // could become < 0, in case of forced destruction without actual creation/addReference
+        if(0>=refCount && getDestroyWhenUnused()) {
             destroy();
         }
         return refCount;

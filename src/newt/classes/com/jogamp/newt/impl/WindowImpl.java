@@ -179,6 +179,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected String title = "Newt Window";
     protected boolean undecorated = false;
 
+    private final void destroyScreen() {
+        screenReferenced = false;
+        if(null!=screen) {
+            screen.removeReference();
+            screen = null;
+        }
+    }
     private final void setScreen(ScreenImpl newScreen) {
         if(screenReferenced) {
             screenReferenced = false;
@@ -506,15 +513,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void destroy(boolean unrecoverable) {
-        if(isValid()) {
-            if(DEBUG_IMPLEMENTATION) {
-                String msg = new String("Window.destroy(unrecoverable: "+unrecoverable+") START "+getThreadName()/*+", "+this*/);
-                System.err.println(msg);
-                //Exception ee = new Exception(msg);
-                //ee.printStackTrace();
-            }
-            runOnEDTIfAvail(true, new DestroyAction(unrecoverable));
+        if(DEBUG_IMPLEMENTATION) {
+            String msg = new String("Window.destroy(unrecoverable: "+unrecoverable+") START "+getThreadName()/*+", "+this*/);
+            System.err.println(msg);
+            //Exception ee = new Exception(msg);
+            //ee.printStackTrace();
         }
+        runOnEDTIfAvail(true, new DestroyAction(unrecoverable));
     }
 
     class DestroyAction implements Runnable {
@@ -525,10 +530,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         public void run() {
             windowLock.lock();
             try {
-                if( !isValid() ) {
-                    return; // nop
-                }
-
                 // Childs first ..
                 synchronized(childWindowsLock) {
                   // avoid ConcurrentModificationException: parent -> child -> parent.removeChild(this)
@@ -616,7 +617,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             fullscreen = false;
 
             if(unrecoverable) {
-                setScreen(null);
+                destroyScreen();
                 parentWindowHandle = 0;
                 parentWindow = null;
                 caps = null;

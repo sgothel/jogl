@@ -157,35 +157,35 @@ public abstract class DisplayImpl extends Display {
     }
 
     public synchronized final void destroy() {
-        if ( null != aDevice ) {
-            if(DEBUG) {
-                dumpDisplayList("Display.destroy("+getFQName()+") BEGIN");
-            }
-            synchronized(displayList) {
-                displayList.remove(this);
-                displaysActive--;
-            }
-            if(DEBUG) {
-                System.err.println("Display.destroy(): "+this+" "+getThreadName());
-            }
-            final DisplayImpl f_dpy = this;
-            final EDTUtil f_edtUtil = edtUtil;
-            stopEDT( new Runnable() {
-                public void run() {
+        if(DEBUG) {
+            dumpDisplayList("Display.destroy("+getFQName()+") BEGIN");
+        }
+        synchronized(displayList) {
+            displayList.remove(this);
+            displaysActive--;
+        }
+        if(DEBUG) {
+            System.err.println("Display.destroy(): "+this+" "+getThreadName());
+        }
+        final AbstractGraphicsDevice f_aDevice = aDevice;
+        final DisplayImpl f_dpy = this;
+        stopEDT( new Runnable() {
+            public void run() {
+                if ( null != f_aDevice ) {
                     f_dpy.closeNativeImpl();
                 }
-            } );
-            if(null!=edtUtil) {
-                if ( DEBUG_TEST_EDT_MAINTHREAD ) {
-                    MainThread.removePumpMessage(this); // JAU EDT Test ..
-                }
-                edtUtil.waitUntilStopped();
-                edtUtil.reset();
             }
-            aDevice = null;
-            if(DEBUG) {
-                dumpDisplayList("Display.destroy("+getFQName()+") END");
+        } );
+        if(null!=edtUtil) {
+            if ( DEBUG_TEST_EDT_MAINTHREAD ) {
+                MainThread.removePumpMessage(this); // JAU EDT Test ..
             }
+            edtUtil.waitUntilStopped();
+            edtUtil.reset();
+        }
+        aDevice = null;
+        if(DEBUG) {
+            dumpDisplayList("Display.destroy("+getFQName()+") END");
         }
     }
 
@@ -207,8 +207,8 @@ public abstract class DisplayImpl extends Display {
         if(DEBUG) {
             System.err.println("Display.removeReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount-1));
         }
-        refCount--;
-        if(0==refCount && destroyWhenUnused) {
+        refCount--; // could become < 0, in case of forced destruction without actual creation/addReference
+        if(0>=refCount && getDestroyWhenUnused()) {
             destroy();
         }
         return refCount;

@@ -274,9 +274,19 @@ public class TestSwingAWTUsageBeforeJOGLInitBug411 {
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
 
+        GLWindow win0 = GLWindow.create(caps);
+        win0.setSize(100,100);
+        win0.setVisible(true);
+        win0.addGLEventListener(new Gears());
+        Animator anim0 = new Animator(win0);
+        anim0.start();
+
         GLCanvas glCanvas = new GLCanvas(caps);
 
         runTestGL(glCanvas, glCanvas);
+
+        anim0.stop();
+        win0.destroy(true);
     }
 
     @Test
@@ -284,10 +294,20 @@ public class TestSwingAWTUsageBeforeJOGLInitBug411 {
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
 
+        GLWindow win0 = GLWindow.create(caps);
+        win0.setSize(100,100);
+        win0.setVisible(true);
+        win0.addGLEventListener(new Gears());
+        Animator anim0 = new Animator(win0);
+        anim0.start();
+
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(GLWindow.create(caps));
 
         runTestGL(newtCanvasAWT, (GLAutoDrawable)newtCanvasAWT.getNEWTChild());
         newtCanvasAWT.destroy(true);
+
+        anim0.stop();
+        win0.destroy(true);
     }
 
     static int atoi(String a) {
