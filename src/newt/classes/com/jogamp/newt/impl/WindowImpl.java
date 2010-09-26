@@ -170,7 +170,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     protected AbstractGraphicsConfiguration config;
     protected Capabilities caps;
-    protected boolean fullscreen, visible;
+    protected boolean fullscreen, visible, hasFocus;
     protected int width, height, x, y;
 
     // non fullscreen dimensions ..
@@ -621,6 +621,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             windowHandle = 0;
             visible = false;
             fullscreen = false;
+            hasFocus = false;
 
             if(unrecoverable) {
                 destroyScreen();
@@ -917,6 +918,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public void requestFocus() {
         enqueueRequestFocus(false); // FIXME: or shall we wait ?
+    }
+
+    public boolean hasFocus() {
+        return hasFocus;
     }
 
     public Insets getInsets() {
@@ -1614,6 +1619,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.focusChanged: ("+getThreadName()+"): "+focusGained+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
         }
+        hasFocus = focusGained;
         if (focusGained) {
             sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
         } else {

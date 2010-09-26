@@ -12,6 +12,7 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,7 +52,13 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
         Window window;
         GLDrawable drawable;
 
-        GLProfile glp = GLProfile.get(GLProfile.GL3);
+        GLProfile glp = null;
+        try {
+            glp = GLProfile.get(GLProfile.GL3);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            Assume.assumeNoException(t);
+        }
         caps = new GLCapabilities(glp);
 
         caps.setOnscreen(true);

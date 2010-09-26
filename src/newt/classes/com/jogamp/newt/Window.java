@@ -277,6 +277,8 @@ public interface Window extends NativeWindow {
 
     void requestFocus();
 
+    boolean hasFocus();
+
     void windowRepaint(int x, int y, int width, int height);
 
     void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event);

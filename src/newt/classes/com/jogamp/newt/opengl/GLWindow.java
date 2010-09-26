@@ -184,6 +184,10 @@ public class GLWindow implements GLAutoDrawable, Window {
         window.requestFocus();
     }
 
+    public boolean hasFocus() {
+        return window.hasFocus();
+    }
+
     public final Insets getInsets() {
         return window.getInsets();
     }

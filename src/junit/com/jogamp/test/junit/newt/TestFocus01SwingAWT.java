@@ -2,6 +2,7 @@ package com.jogamp.test.junit.newt;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.awt.AWTException;
 import java.awt.BorderLayout;
@@ -94,8 +95,7 @@ public class TestFocus01SwingAWT {
 
         // Verify focus status.
         assertFalse("AWT parent canvas has focus", newtCanvasAWT.hasFocus());
-        // TODO No test for NEWT hasFocus.
-        // assertTrue(newtCanvasAWT.getNEWTChild().hasFocus());
+        assertTrue(newtCanvasAWT.getNEWTChild().hasFocus());
 
         // Type two keys, which should be directed to the focused window.
         Robot robot = new Robot();

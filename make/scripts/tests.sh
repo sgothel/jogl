@@ -28,5 +28,7 @@ spath=`dirname $0`
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.jogl.awt.TestSwingAWTUsageBeforeJOGLInitBug411 $*
 
 $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestFocus01SwingAWT $*
+# $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.jogl.offscreen.TestOffscreen01NEWT $*
+
 
 $spath/count-edt-start.sh java-run.log
