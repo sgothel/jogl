@@ -1,11 +1,15 @@
 package com.jogamp.test.junit.newt;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Test;
 
 import java.awt.AWTException;
 import java.awt.BorderLayout;
+import java.awt.Button;
 import java.awt.Robot;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -29,6 +33,8 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 
+import com.jogamp.test.junit.util.*;
+
 public class TestFocus01SwingAWT {
 
     static {
@@ -49,7 +55,18 @@ public class TestFocus01SwingAWT {
     }
 
     @Test
-    public void testNewtCanvasAWTRequestFocus() throws AWTException,
+    public void testFocus01ProgrFocus() throws AWTException, InterruptedException, InvocationTargetException {
+        testFocus01ProgrFocusImpl(null);
+    }
+
+    @Test
+    public void testFocus02RobotFocus() throws AWTException, InterruptedException, InvocationTargetException {
+        Robot robot = new Robot();
+        robot.setAutoWaitForIdle(true);
+        testFocus01ProgrFocusImpl(robot);
+    }
+
+    private void testFocus01ProgrFocusImpl(Robot robot) throws AWTException,
             InvocationTargetException, InterruptedException {
         // Create a window.
         GLWindow glWindow1 = GLWindow.create(glCaps);
@@ -57,135 +74,103 @@ public class TestFocus01SwingAWT {
         GLEventListener demo1 = new RedSquare();
         TestListenerCom01AWT.setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
+        NEWTFocusAdapter glWindow1FA = new NEWTFocusAdapter("GLWindow1");
+        glWindow1.addWindowListener(glWindow1FA);
 
         // Monitor NEWT focus and keyboard events.
-        NewtKeyAdapter newtKeyAdapter = new NewtKeyAdapter();
+        NEWTKeyAdapter newtKeyAdapter = new NEWTKeyAdapter("GLWindow1");
         glWindow1.addKeyListener(newtKeyAdapter);
-        NewtFocusAdapter newtFocusAdapter = new NewtFocusAdapter();
-        glWindow1.addWindowListener(newtFocusAdapter);
 
         // Wrap the window in a canvas.
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
 
         // Monitor AWT focus and keyboard events.
-        AWTKeyAdapter awtKeyAdapter = new AWTKeyAdapter();
+        AWTKeyAdapter awtKeyAdapter = new AWTKeyAdapter("NewtCanvasAWT");
         newtCanvasAWT.addKeyListener(awtKeyAdapter);
-        AWTFocusAdapter awtFocusAdapter = new AWTFocusAdapter();
-        newtCanvasAWT.addFocusListener(awtFocusAdapter);
+        AWTFocusAdapter newtCanvasAWTFA = new AWTFocusAdapter("NewtCanvasAWT");
+        newtCanvasAWT.addFocusListener(newtCanvasAWTFA);
 
         // Add the canvas to a frame, and make it all visible.
         JFrame frame1 = new JFrame("Swing AWT Parent Frame: "
                 + glWindow1.getTitle());
         frame1.getContentPane().add(newtCanvasAWT, BorderLayout.CENTER);
+        Button button = new Button("Click me ..");
+        AWTFocusAdapter buttonFA = new AWTFocusAdapter("Button");
+        button.addFocusListener(buttonFA);
+        frame1.getContentPane().add(button, BorderLayout.NORTH);
         frame1.setSize(width, height);
         frame1.setVisible(true);
 
-        // Request the focus, which should automatically provide the window
-        // with focus.
-        newtCanvasAWT.requestFocus();
+        int wait=0;
+        while(wait<10 && glWindow1.getTotalFrames()<1) { Thread.sleep(100); wait++; }
+        System.out.println("Frames for initial setVisible(true): "+glWindow1.getTotalFrames());
+        Assert.assertTrue(0 < glWindow1.getTotalFrames());
 
+        // Continuous animation ..
         Animator animator = new Animator(glWindow1);
         animator.start();
 
-        // Wait for the window to initialize and receive focus.
-        // TODO Eliminate the need for this delay.
-        while (glWindow1.getDuration() < durationPerTest) {
+        // Button Focus
+        Thread.sleep(100); // allow event sync
+        System.err.println("FOCUS AWT  Button request");
+        AWTRobotUtil.requestFocus(robot, button);
+        for (wait=0; wait<10 && !button.hasFocus(); wait++) {
             Thread.sleep(100);
         }
+        Assert.assertTrue(button.hasFocus());
+        Assert.assertFalse(newtCanvasAWT.getNEWTChild().hasFocus());
+        Assert.assertFalse(newtCanvasAWT.hasFocus());
+        Assert.assertEquals(0, glWindow1FA.getCount());
+        Assert.assertEquals(0, newtCanvasAWTFA.getCount());
+        Assert.assertEquals(1, buttonFA.getCount());
+        System.err.println("FOCUS AWT  Button sync");
 
+        // Request the AWT focus, which should automatically provide the NEWT window with focus.
+        Thread.sleep(100); // allow event sync
+        System.err.println("FOCUS NEWT Canvas/GLWindow request");
+        AWTRobotUtil.requestFocus(robot, newtCanvasAWT);
+        for (wait=0; wait<10 && !newtCanvasAWT.getNEWTChild().hasFocus(); wait++) {
+            Thread.sleep(100);
+        }
         // Verify focus status.
-        assertFalse("AWT parent canvas has focus", newtCanvasAWT.hasFocus());
-        assertTrue(newtCanvasAWT.getNEWTChild().hasFocus());
+        Assert.assertFalse("AWT parent canvas has focus", newtCanvasAWT.hasFocus());
+        Assert.assertTrue(newtCanvasAWT.getNEWTChild().hasFocus());
+        Assert.assertFalse(button.hasFocus());
+        Assert.assertEquals(1, glWindow1FA.getCount());
+        Assert.assertEquals(0, newtCanvasAWTFA.getCount());
+        Assert.assertEquals(0, buttonFA.getCount());
+        System.err.println("FOCUS NEWT Canvas/GLWindow sync");
 
         // Type two keys, which should be directed to the focused window.
-        Robot robot = new Robot();
+        if(null == robot) {
+            robot = new Robot();
+            robot.setAutoWaitForIdle(true);
+        }
         robot.keyPress(java.awt.event.KeyEvent.VK_A);
         robot.keyRelease(java.awt.event.KeyEvent.VK_A);
         robot.keyPress(java.awt.event.KeyEvent.VK_B);
         robot.keyRelease(java.awt.event.KeyEvent.VK_B);
 
-        // Wait for the events to be processed.
-        // TODO Eliminate the need for this delay.
-        while (glWindow1.getDuration() < 2 * durationPerTest) {
+        // Wait for the key events to be processed.
+        for (wait=0; wait<10 && newtKeyAdapter.getCount()<2; wait++) {
             Thread.sleep(100);
         }
 
-        assertEquals(1, awtFocusAdapter.focusLost);
-        assertEquals(1, newtFocusAdapter.focusGained);
-        assertEquals("AWT parent canvas received keyboard events", 0,
-                awtKeyAdapter.keyTyped);
-        assertEquals(2, newtKeyAdapter.keyTyped);
+        Assert.assertEquals(0, newtCanvasAWTFA.getCount());
+        Assert.assertEquals(1, glWindow1FA.getCount());
+        Assert.assertEquals("AWT parent canvas received keyboard events", 0, awtKeyAdapter.getCount());
+        Assert.assertEquals(2, newtKeyAdapter.getCount());
 
         // Remove listeners to avoid logging during dispose/destroy.
         glWindow1.removeKeyListener(newtKeyAdapter);
-        glWindow1.removeWindowListener(newtFocusAdapter);
+        glWindow1.removeWindowListener(glWindow1FA);
         newtCanvasAWT.removeKeyListener(awtKeyAdapter);
-        newtCanvasAWT.removeFocusListener(awtFocusAdapter);
+        newtCanvasAWT.removeFocusListener(newtCanvasAWTFA);
 
         // Shutdown the test.
         animator.stop();
         frame1.dispose();
         glWindow1.destroy(true);
-    }
-
-    private static final class NewtFocusAdapter extends WindowAdapter {
-
-        int focusGained = 0;
-
-        int focusLost = 0;
-
-        @Override
-        public void windowGainedFocus(WindowEvent e) {
-            System.out.println(e);
-            ++focusGained;
-        }
-
-        @Override
-        public void windowLostFocus(WindowEvent e) {
-            System.out.println(e);
-            ++focusLost;
-        }
-    }
-
-    private static final class AWTFocusAdapter implements FocusListener {
-
-        int focusGained = 0;
-
-        int focusLost = 0;
-
-        @Override
-        public void focusGained(FocusEvent e) {
-            System.out.println(e);
-            ++focusGained;
-        }
-
-        @Override
-        public void focusLost(FocusEvent e) {
-            System.out.println(e);
-            ++focusLost;
-        }
-    }
-
-    private static final class NewtKeyAdapter extends KeyAdapter {
-
-        int keyTyped;
-
-        @Override
-        public void keyTyped(KeyEvent e) {
-            System.out.println(e);
-            ++keyTyped;
-        }
-    }
-
-    private static final class AWTKeyAdapter extends java.awt.event.KeyAdapter {
-
-        int keyTyped;
-
-        @Override
-        public void keyTyped(java.awt.event.KeyEvent e) {
-            System.out.println(e);
-            ++keyTyped;
-        }
     }
 
     static int atoi(String a) {
