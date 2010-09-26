@@ -513,13 +513,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void destroy(boolean unrecoverable) {
-        if(DEBUG_IMPLEMENTATION) {
-            String msg = new String("Window.destroy(unrecoverable: "+unrecoverable+") START "+getThreadName()/*+", "+this*/);
-            System.err.println(msg);
-            //Exception ee = new Exception(msg);
-            //ee.printStackTrace();
+        if( isValid() ) {
+            if(DEBUG_IMPLEMENTATION) {
+                String msg = new String("Window.destroy(unrecoverable: "+unrecoverable+") START "+getThreadName()/*+", "+this*/);
+                System.err.println(msg);
+                //Exception ee = new Exception(msg);
+                //ee.printStackTrace();
+            }
+            runOnEDTIfAvail(true, new DestroyAction(unrecoverable));
         }
-        runOnEDTIfAvail(true, new DestroyAction(unrecoverable));
     }
 
     class DestroyAction implements Runnable {
@@ -530,6 +532,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         public void run() {
             windowLock.lock();
             try {
+                if( !isValid() ) {
+                    return; // nop
+                }
+
                 // Childs first ..
                 synchronized(childWindowsLock) {
                   // avoid ConcurrentModificationException: parent -> child -> parent.removeChild(this)

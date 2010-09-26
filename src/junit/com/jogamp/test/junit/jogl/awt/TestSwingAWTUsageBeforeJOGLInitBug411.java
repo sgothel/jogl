@@ -294,6 +294,9 @@ public class TestSwingAWTUsageBeforeJOGLInitBug411 {
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
 
+        GLWindow winDummy = GLWindow.create(caps);
+        winDummy.addGLEventListener(new Gears());
+
         GLWindow win0 = GLWindow.create(caps);
         win0.setSize(100,100);
         win0.setVisible(true);
@@ -305,6 +308,8 @@ public class TestSwingAWTUsageBeforeJOGLInitBug411 {
 
         runTestGL(newtCanvasAWT, (GLAutoDrawable)newtCanvasAWT.getNEWTChild());
         newtCanvasAWT.destroy(true);
+
+        winDummy.destroy(true);
 
         anim0.stop();
         win0.destroy(true);

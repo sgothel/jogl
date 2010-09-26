@@ -78,6 +78,7 @@ public abstract class DisplayImpl extends Display {
             display.name = name;
             display.type=type;
             display.destroyWhenUnused=false;
+            display.refCount=0;
             synchronized(displayList) {
                 display.id = serialno++;
                 display.fqname = getFQName(display.id, display.type, display.name);
@@ -184,6 +185,7 @@ public abstract class DisplayImpl extends Display {
             edtUtil.reset();
         }
         aDevice = null;
+        refCount=0;
         if(DEBUG) {
             dumpDisplayList("Display.destroy("+getFQName()+") END");
         }
