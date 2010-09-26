@@ -37,7 +37,7 @@ public class RecursiveToolkitLock {
     private Thread owner = null;
     private int recursionCount = 0;
     private Exception lockedStack = null;
-    private static final long timeout = 3000;  // maximum wait 3s
+    private static final long timeout = 5000;  // maximum wait 5s
     // private static final long timeout = 300000;  // maximum wait 300s
     private static final boolean TRACE_LOCK = Debug.debug("TraceLock");
 
