@@ -72,7 +72,7 @@ import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-public class TestSwingAWTUsageBeforeJOGLInitBug411 {
+public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 {
     static long durationPerTest = 500; // ms
     static Robot robot;
     static Border border;
@@ -300,6 +300,6 @@ public class TestSwingAWTUsageBeforeJOGLInitBug411 {
             }
         }
         System.out.println("durationPerTest: "+durationPerTest);
-        org.junit.runner.JUnitCore.main(TestSwingAWTUsageBeforeJOGLInitBug411.class.getName());
+        org.junit.runner.JUnitCore.main(TestSwingAWTRobotUsageBeforeJOGLInitBug411.class.getName());
     }
 }

@@ -70,7 +70,7 @@ import java.io.IOException;
 import com.jogamp.test.junit.util.*;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
-public class TestFocus02SwingAWT {
+public class TestFocus02SwingAWTRobot {
     static int width, height;
     static long durationPerTest = 800;
     static long waitReparent = 0;
@@ -271,7 +271,7 @@ public class TestFocus02SwingAWT {
         }
         System.err.println("durationPerTest "+durationPerTest);
         System.err.println("waitReparent "+waitReparent);
-        String tstname = TestFocus02SwingAWT.class.getName();
+        String tstname = TestFocus02SwingAWTRobot.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

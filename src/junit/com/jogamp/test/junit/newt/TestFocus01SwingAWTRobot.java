@@ -35,7 +35,7 @@ import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 
 import com.jogamp.test.junit.util.*;
 
-public class TestFocus01SwingAWT {
+public class TestFocus01SwingAWTRobot {
 
     static {
         GLProfile.initSingleton();
@@ -189,7 +189,7 @@ public class TestFocus01SwingAWT {
             }
         }
         System.out.println("durationPerTest: "+durationPerTest);
-        String tstname = TestFocus01SwingAWT.class.getName();
+        String tstname = TestFocus01SwingAWTRobot.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",
