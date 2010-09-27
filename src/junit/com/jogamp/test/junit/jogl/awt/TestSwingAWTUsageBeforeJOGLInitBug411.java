@@ -29,6 +29,7 @@
 package com.jogamp.test.junit.jogl.awt;
 
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
+import com.jogamp.test.junit.util.*;
 
 import java.lang.reflect.InvocationTargetException;
 import javax.media.opengl.GLAutoDrawable;
@@ -40,6 +41,7 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
+import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
@@ -73,8 +75,6 @@ import org.junit.Test;
 public class TestSwingAWTUsageBeforeJOGLInitBug411 {
     static long durationPerTest = 500; // ms
     static Robot robot;
-    static boolean keyTyped;
-    static boolean buttonClicked;
     static Border border;
     static JFrame frame;
     static JButton button;
@@ -118,8 +118,6 @@ public class TestSwingAWTUsageBeforeJOGLInitBug411 {
         int count;
 
         // simulate AWT usage before JOGL's initialization of X11 threading
-        keyTyped = false;
-        buttonClicked = false;
         windowClosing=false;
         border = BorderFactory.createLineBorder (Color.yellow, 2);
 
@@ -130,7 +128,6 @@ public class TestSwingAWTUsageBeforeJOGLInitBug411 {
         button.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 System.err.println("Test: "+e);
-                buttonClicked = true;
             }
         });
         panel.add(button, BorderLayout.NORTH);
@@ -145,12 +142,6 @@ public class TestSwingAWTUsageBeforeJOGLInitBug411 {
         frame.addWindowListener( new WindowAdapter() {
             public void windowClosing(WindowEvent ev) {
                 windowClosing=true;
-            }
-        });
-        frame.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                System.err.println("Test: "+e);
-                keyTyped = true;
             }
         });
         frame.setContentPane(panel);
@@ -170,34 +161,9 @@ public class TestSwingAWTUsageBeforeJOGLInitBug411 {
         robot = new Robot();
         robot.setAutoWaitForIdle(true);
 
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                frame.requestFocus();
-            }});
+        AWTRobotUtil.toFront(robot, frame);
+        AWTRobotUtil.requestFocus(robot, button);
 
-        Thread.sleep(200);
-
-        robot.delay(100);
-
-        for (count=0; !keyTyped && count<99; count++) {
-            robot.keyPress(KeyEvent.VK_Q);
-            robot.delay(50);
-            robot.keyRelease(KeyEvent.VK_Q);
-            robot.delay(100);
-            Thread.sleep(100);
-        }
-        Point p0 = button.getLocationOnScreen();
-        Rectangle r0 = button.getBounds();
-        robot.mouseMove( (int) ( p0.getX() + r0.getWidth() /2.0 + .5 ) ,
-                         (int) ( p0.getY() + r0.getHeight()/2.0 + .5 ) );
-
-        for (count=0; !buttonClicked && count<99; count++) {
-            robot.mousePress(InputEvent.BUTTON1_MASK);
-            robot.delay(50);
-            robot.mouseRelease(InputEvent.BUTTON1_MASK);
-            robot.delay(100);
-            Thread.sleep(100);
-        }
         System.err.println("Clean End of Pre-JOGL-Swing");
 
         GLProfile.initSingleton();
@@ -211,7 +177,9 @@ public class TestSwingAWTUsageBeforeJOGLInitBug411 {
         frame=null;
     }
 
-    protected void runTestGL(final Canvas canvas, GLAutoDrawable drawable) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(final Canvas canvas, GLAutoDrawable drawable) 
+        throws AWTException, InterruptedException, InvocationTargetException {
+
         Dimension size = new Dimension(400,400);
         canvas.setPreferredSize(size);
 
@@ -221,6 +189,8 @@ public class TestSwingAWTUsageBeforeJOGLInitBug411 {
                 frame.pack();
             }
         });
+
+        AWTRobotUtil.toFront(robot, frame);
 
         drawable.addGLEventListener(new Gears());
 
@@ -270,7 +240,7 @@ public class TestSwingAWTUsageBeforeJOGLInitBug411 {
     }
 
     @Test
-    public void test01GLCanvas() throws InterruptedException, InvocationTargetException {
+    public void test01GLCanvas() throws AWTException, InterruptedException, InvocationTargetException {
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
 
@@ -290,7 +260,7 @@ public class TestSwingAWTUsageBeforeJOGLInitBug411 {
     }
 
     @Test
-    public void test02NewtCanvasAWT() throws InterruptedException, InvocationTargetException {
+    public void test02NewtCanvasAWT() throws AWTException, InterruptedException, InvocationTargetException {
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
 

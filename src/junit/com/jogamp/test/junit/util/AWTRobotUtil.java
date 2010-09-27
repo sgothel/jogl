@@ -35,11 +35,48 @@ import java.awt.Container;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
+import java.awt.Window;
 import java.awt.event.InputEvent;
 import javax.swing.JFrame;
 
 public class AWTRobotUtil {
 
+    /**
+     * toFront, call setVisible(true) and toFront(),
+     * after positioning the mouse in the middle of the window via robot.
+     * If the given robot is null, a new one is created (waitForIdle=true).
+     */
+    public static void toFront(Robot robot, Window window) 
+        throws AWTException, InterruptedException, InvocationTargetException {
+
+        if(null == robot) {
+            robot = new Robot();
+            robot.setAutoWaitForIdle(true);
+        }
+        Point p0 = window.getLocationOnScreen();
+        Rectangle r0 = window.getBounds();
+        int dx = (int) ( r0.getWidth()  / 2.0 + .5 );
+        int dy = (int) ( r0.getHeight() / 2.0 + .5 );
+        int x0 = (int) ( p0.getX() + dx + .5 ) ;
+        int y0 = (int) ( p0.getY() + dy + .5 ) ;
+        System.err.println("robot pos: "+x0+"/"+y0);
+        robot.mouseMove( x0, y0 );
+        robot.delay(50);
+
+        final Window f_window = window;
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                f_window.setVisible(true);
+                f_window.toFront();
+                f_window.requestFocus();
+            }});
+        robot.delay(200);
+    }
+
+    /**
+     * requestFocus, if robot is valid, use mouse operation,
+     * otherwise programatic, ie call requestFocus
+     */
     public static void requestFocus(Robot robot, Object obj) 
         throws InterruptedException, InvocationTargetException {
         Component comp = null;
@@ -87,7 +124,7 @@ public class AWTRobotUtil {
             y0 = win.getY() + win.getHeight() / 2 ;
         }
 
-        System.err.println("pos: "+x0+"/"+y0);
+        System.err.println("robot pos: "+x0+"/"+y0);
         robot.mouseMove( x0, y0 );
         robot.delay(50);
         robot.mousePress(InputEvent.BUTTON1_MASK);

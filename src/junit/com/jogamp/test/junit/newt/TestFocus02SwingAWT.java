@@ -92,7 +92,8 @@ public class TestFocus02SwingAWT {
     }
 
     
-    private void testFocus01ProgrFocusImpl(Robot robot) throws InterruptedException, InvocationTargetException {
+    private void testFocus01ProgrFocusImpl(Robot robot) 
+        throws AWTException, InterruptedException, InvocationTargetException {
         int x = 0;
         int y = 0;
 
@@ -140,6 +141,7 @@ public class TestFocus02SwingAWT {
         jFrame1.setContentPane(jPanel1);
         jFrame1.setSize(width, height);
         jFrame1.setVisible(true); // from here on, we need to run modifications on EDT
+        AWTRobotUtil.toFront(robot, jFrame1);
 
         int wait=0;
         while(wait<10 && glWindow1.getTotalFrames()<1) { Thread.sleep(100); wait++; }
@@ -240,7 +242,7 @@ public class TestFocus02SwingAWT {
     }
 
     @Test
-    public void testFocus01ProgrFocus() throws InterruptedException, InvocationTargetException {
+    public void testFocus01ProgrFocus() throws AWTException, InterruptedException, InvocationTargetException {
         testFocus01ProgrFocusImpl(null);
     }
 

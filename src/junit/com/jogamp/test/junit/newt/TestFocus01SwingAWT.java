@@ -100,6 +100,7 @@ public class TestFocus01SwingAWT {
         frame1.getContentPane().add(button, BorderLayout.NORTH);
         frame1.setSize(width, height);
         frame1.setVisible(true);
+        AWTRobotUtil.toFront(robot, frame1);
 
         int wait=0;
         while(wait<10 && glWindow1.getTotalFrames()<1) { Thread.sleep(100); wait++; }
