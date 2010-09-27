@@ -39,6 +39,11 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
 
     @Before
     public void setUp() {
+        if(!GLProfile.isGL3Available()) {
+            System.err.println("GL3 not available");
+            System.err.println(GLProfile.glAvailabilityToString());
+            return;
+        }
         VERTEX_SHADER_TEXT =
                   "#version 150                           \n"
                 + "                                       \n"
@@ -82,7 +87,9 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
 
     @After
     public void tearDown() {
-        context.release();
+        if(null!=context) {
+            context.release();
+        }
     }
 
     private int getShader(GL3 gl, String text, int type) {
@@ -112,6 +119,9 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
 
     @Test
     public void testGlTransformFeedbackVaryings_WhenVarNameOK() {
+        if(!GLProfile.isGL3Available()) {
+            return;
+        }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream pbaos = new PrintStream(baos);
 
@@ -139,6 +149,9 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
 
     @Test
     public void testGlTransformFeedbackVaryings_WhenVarNameWrong() {
+        if(!GLProfile.isGL3Available()) {
+            return;
+        }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream pbaos = new PrintStream(baos);
 
