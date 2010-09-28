@@ -35,4 +35,6 @@ spath=`dirname $0`
 # $spath/java-run-all.sh ../build-x86 com.jogamp.test.junit.newt.TestFocus01SwingAWTRobot $*
 $spath/java-run-all.sh ../build-x86 com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot $*
 
+# $spath/java-run-all.sh ../build-x86 com.jogamp.test.junit.newt.parenting.TestParenting01aAWT $*
+
 $spath/count-edt-start.sh java-run.log

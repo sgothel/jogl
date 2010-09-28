@@ -52,12 +52,6 @@ public class AWTParentWindowAdapter
         return super.removeFrom(awtComponent);
     }
 
-    boolean forcePermanentFocusLossOneShot = false;
-
-    public void setForcePermanentFocusLossOneShot() {
-        forcePermanentFocusLossOneShot = true;
-    }
-
     public void focusGained(java.awt.event.FocusEvent e) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: focusGained: "+ e);
@@ -67,14 +61,6 @@ public class AWTParentWindowAdapter
     public void focusLost(java.awt.event.FocusEvent e) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: focusLost: "+ e);
-        }
-        if(forcePermanentFocusLossOneShot) {
-            forcePermanentFocusLossOneShot = false;
-            if(DEBUG_IMPLEMENTATION) {
-                System.err.println("AWT: focusLost: - clearGlobalFocusOwner -");
-            }
-            KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-            kfm.clearGlobalFocusOwner();
         }
     }
 
