@@ -128,7 +128,7 @@ public class TestFocus01SwingAWTRobot {
         frame1.getContentPane().add(button, BorderLayout.NORTH);
         frame1.setSize(width, height);
         frame1.setVisible(true);
-        AWTRobotUtil.toFront(robot, frame1);
+        Assert.assertTrue(AWTRobotUtil.toFront(robot, frame1));
 
         int wait=0;
         while(wait<10 && glWindow1.getTotalFrames()<1) { Thread.sleep(100); wait++; }
@@ -142,13 +142,7 @@ public class TestFocus01SwingAWTRobot {
         // Button Focus
         Thread.sleep(100); // allow event sync
         System.err.println("FOCUS AWT  Button request");
-        AWTRobotUtil.requestFocus(robot, button);
-        for (wait=0; wait<10 && !button.hasFocus(); wait++) {
-            Thread.sleep(100);
-        }
-        Assert.assertTrue(button.hasFocus());
-        Assert.assertFalse(newtCanvasAWT.getNEWTChild().hasFocus());
-        Assert.assertFalse(newtCanvasAWT.hasFocus());
+        Assert.assertTrue(AWTRobotUtil.requestFocusAndWait(robot, button, button));
         Assert.assertEquals(0, glWindow1FA.getCount());
         Assert.assertEquals(0, newtCanvasAWTFA.getCount());
         Assert.assertEquals(1, buttonFA.getCount());
@@ -157,14 +151,7 @@ public class TestFocus01SwingAWTRobot {
         // Request the AWT focus, which should automatically provide the NEWT window with focus.
         Thread.sleep(100); // allow event sync
         System.err.println("FOCUS NEWT Canvas/GLWindow request");
-        AWTRobotUtil.requestFocus(robot, newtCanvasAWT);
-        for (wait=0; wait<10 && !newtCanvasAWT.getNEWTChild().hasFocus(); wait++) {
-            Thread.sleep(100);
-        }
-        // Verify focus status.
-        Assert.assertFalse("AWT parent canvas has focus", newtCanvasAWT.hasFocus());
-        Assert.assertTrue(newtCanvasAWT.getNEWTChild().hasFocus());
-        Assert.assertFalse(button.hasFocus());
+        Assert.assertTrue(AWTRobotUtil.requestFocusAndWait(robot, newtCanvasAWT, newtCanvasAWT.getNEWTChild()));
         Assert.assertEquals(1, glWindow1FA.getCount());
         Assert.assertEquals(0, newtCanvasAWTFA.getCount());
         Assert.assertEquals(0, buttonFA.getCount());

@@ -35,24 +35,33 @@ public class AWTFocusAdapter implements TestEventCountAdapter, FocusListener {
 
     String prefix;
     int focusGained = 0;
+    boolean wasTemporary = false;
 
     public AWTFocusAdapter(String prefix) {
         this.prefix = prefix;
     }
 
+    /** @return the balance of focus gained/lost, ie should be 0 or 1 */
     public int getCount() {
         return focusGained;
+    }
+
+    /** @return true, if the last change was temporary */
+    public boolean getWasTemporary() {
+        return wasTemporary;
     }
 
     @Override 
     public void focusGained(FocusEvent e) {
         ++focusGained;
-        System.err.println("FOCUS AWT  GAINED ["+focusGained+"]: "+prefix+", "+e);
+        wasTemporary = e.isTemporary();
+        System.err.println("FOCUS AWT  GAINED "+(wasTemporary?"TEMP":"PERM")+" ["+focusGained+"]: "+prefix+", "+e);
     }
 
     @Override
     public void focusLost(FocusEvent e) {
         --focusGained;
-        System.err.println("FOCUS AWT  LOST   ["+focusGained+"]: "+prefix+", "+e);
+        wasTemporary = e.isTemporary();
+        System.err.println("FOCUS AWT  LOST   "+(wasTemporary?"TEMP":"PERM")+" ["+focusGained+"]: "+prefix+", "+e);
     }
 }

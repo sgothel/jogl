@@ -27,9 +27,9 @@ spath=`dirname $0`
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01cSwingAWT $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting02AWT $*
 
-$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.jogl.awt.TestSwingAWTUsageBeforeJOGLInitBug411 $*
+# $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.jogl.awt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
 
-# $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestFocus01SwingAWT $*
-# $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestFocus02SwingAWT $*
+# $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestFocus01SwingAWTRobot $*
+$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot $*
 
 $spath/count-edt-start.sh java-run.log

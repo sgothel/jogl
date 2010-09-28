@@ -32,6 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.awt.AWTException;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
@@ -41,12 +42,16 @@ import javax.swing.JFrame;
 
 public class AWTRobotUtil {
 
+    public static int TIME_OUT = 1000; // 1s
+
     /**
      * toFront, call setVisible(true) and toFront(),
      * after positioning the mouse in the middle of the window via robot.
      * If the given robot is null, a new one is created (waitForIdle=true).
+     *
+     * @return True if the Window became the global focused Window within TIME_OUT
      */
-    public static void toFront(Robot robot, Window window) 
+    public static boolean toFront(Robot robot, Window window) 
         throws AWTException, InterruptedException, InvocationTargetException {
 
         if(null == robot) {
@@ -71,6 +76,13 @@ public class AWTRobotUtil {
                 f_window.requestFocus();
             }});
         robot.delay(200);
+
+        KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        int wait;
+        for (wait=0; wait<10 && window != kfm.getFocusedWindow(); wait++) {
+            Thread.sleep(TIME_OUT/10);
+        }
+        return wait<10;
     }
 
     /**
@@ -133,5 +145,34 @@ public class AWTRobotUtil {
         robot.delay(50);
     }
 
+    /**
+     *
+     * @return True if the Window became the global focused Window within TIME_OUT
+     */
+    public static boolean waitForFocus(Object obj) throws InterruptedException {
+        int wait;
+        if(obj instanceof Component) {
+            Component comp = (Component) obj;
+            KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+            for (wait=0; wait<10 && comp != kfm.getPermanentFocusOwner(); wait++) {
+                Thread.sleep(TIME_OUT/10);
+            }
+        } else if(obj instanceof com.jogamp.newt.Window) {
+            com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
+            for (wait=0; wait<10 && !win.hasFocus(); wait++) {
+                Thread.sleep(TIME_OUT/10);
+            }
+        } else {
+            throw new RuntimeException("Neither AWT nor NEWT: "+obj);
+        }
+        return wait<10;
+    }
+
+    public static boolean requestFocusAndWait(Robot robot, Object requestFocus, Object waitForFocus)
+        throws InterruptedException, InvocationTargetException {
+
+        requestFocus(robot, requestFocus);
+        return waitForFocus(waitForFocus);
+    }
 }
 
