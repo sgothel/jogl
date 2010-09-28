@@ -775,14 +775,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
 
                 if( ACTION_NATIVE_REPARENTING == reparentAction ) {
-                  NativeWindow parentWindowLocked = null;
-                  if( null != parentWindow ) {
-                      parentWindowLocked = parentWindow;
-                      if(NativeWindow.LOCK_SURFACE_NOT_READY >= parentWindowLocked.lockSurface() ) {
-                          throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
-                      }
-                  }
-                  try {
                     if(0!=parentWindowHandle) {
                         // reset position to 0/0 within parent space
                         // FIXME .. cache position ?
@@ -796,26 +788,40 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         setVisibleImpl(false);
                         display.dispatchMessages(); // status up2date
                     }
-                    boolean ok = reparentWindowImpl();
-                    display.dispatchMessages(); // status up2date
-                    if ( !ok ) {
+
+                    // Lock parentWindow only during reparenting (attempt)
+                    NativeWindow parentWindowLocked = null;
+                    if( null != parentWindow ) {
+                        parentWindowLocked = parentWindow;
+                        if(NativeWindow.LOCK_SURFACE_NOT_READY >= parentWindowLocked.lockSurface() ) {
+                            throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
+                        }
+                    }
+                    boolean ok = false;
+                    try {
+                        ok = reparentWindowImpl();
+                    } finally {
+                        if(null!=parentWindowLocked) {
+                            parentWindowLocked.unlockSurface();
+                        }
+                    }
+
+                    if(ok) {
+                        display.dispatchMessages(); // status up2date
+                        if(wasVisible) {
+                            visible = true;
+                            setVisibleImpl(true);
+                            requestFocusImpl(true);
+                            display.dispatchMessages(); // status up2date
+                        }
+                    } else {
                         // native reparent failed -> try creation
                         if(DEBUG_IMPLEMENTATION) {
                             System.err.println("Window.reparent: native reparenting failed ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+" -> "+toHexString(newParentWindowHandle)+" - Trying recreation");
                         }
                         destroy(false);
                         reparentAction = ACTION_NATIVE_CREATION ;
-                    } if(wasVisible) {
-                        visible = true;
-                        setVisibleImpl(true);
-                        requestFocusImpl(true);
-                        display.dispatchMessages(); // status up2date
                     }
-                  } finally {
-                    if(null!=parentWindowLocked) {
-                        parentWindowLocked.unlockSurface();
-                    }
-                  }
                 }
 
                 if(DEBUG_IMPLEMENTATION) {
