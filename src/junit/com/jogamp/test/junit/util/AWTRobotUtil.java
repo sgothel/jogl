@@ -174,5 +174,39 @@ public class AWTRobotUtil {
         requestFocus(robot, requestFocus);
         return waitForFocus(waitForFocus);
     }
+
+    /**
+     * @param keyTypedCounter shall return the number of keys typed (press + release)
+     * @return True if the object received 2 keys within TIME_OUT
+     */
+    public static boolean testKeyInput(Robot robot, TestEventCountAdapter keyTypedCounter) 
+        throws AWTException, InterruptedException, InvocationTargetException {
+        Component comp = null;
+        com.jogamp.newt.Window win = null;
+
+        int c0 = keyTypedCounter.getCount();
+
+        if(null == robot) {
+            robot = new Robot();
+            robot.setAutoWaitForIdle(true);
+        }
+
+        robot.keyPress(java.awt.event.KeyEvent.VK_A);
+        robot.delay(50);
+        robot.keyRelease(java.awt.event.KeyEvent.VK_A);
+        robot.delay(50);
+        robot.keyPress(java.awt.event.KeyEvent.VK_B);
+        robot.delay(50);
+        robot.keyRelease(java.awt.event.KeyEvent.VK_B);
+        robot.delay(50);
+
+        // Wait for the key events to be processed.
+        int wait;
+        for (wait=0; wait<10 && (keyTypedCounter.getCount()-c0)<2; wait++) {
+            Thread.sleep(TIME_OUT/10);
+        }
+        return wait<10;
+    }
+
 }
 
