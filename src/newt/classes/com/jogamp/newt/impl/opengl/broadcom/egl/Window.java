@@ -111,7 +111,7 @@ public class Window extends com.jogamp.newt.impl.WindowImpl {
 
     private long realizeWindow(boolean chromaKey, int width, int height) {
         if(DEBUG_IMPLEMENTATION) {
-            System.out.println("BCEGL Window.realizeWindow() with: chroma "+chromaKey+", "+width+"x"+height+", "+config);
+            System.err.println("BCEGL Window.realizeWindow() with: chroma "+chromaKey+", "+width+"x"+height+", "+config);
         }
         long handle = CreateWindow(getDisplayHandle(), chromaKey, width, height);
         if (0 == handle) {
@@ -130,7 +130,7 @@ public class Window extends com.jogamp.newt.impl.WindowImpl {
             throw new NativeWindowException("Error creating EGLGraphicsConfiguration from id: "+cfgID+", "+this);
         }
         if(DEBUG_IMPLEMENTATION) {
-            System.out.println("BCEGL Window.windowCreated(): "+toHexString(cfgID)+", "+width+"x"+height+", "+config);
+            System.err.println("BCEGL Window.windowCreated(): "+toHexString(cfgID)+", "+width+"x"+height+", "+config);
         }
     }
 

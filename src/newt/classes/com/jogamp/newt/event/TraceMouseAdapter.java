@@ -43,35 +43,35 @@ public class TraceMouseAdapter implements MouseListener {
  }
 
  public void mouseClicked(MouseEvent e) {
-    System.out.println(e);
+    System.err.println(e);
     if(null!=downstream) { downstream.mouseClicked(e); }
  }
  public void mouseEntered(MouseEvent e) {
-    System.out.println(e);
+    System.err.println(e);
     if(null!=downstream) { downstream.mouseEntered(e); }
  }
  public void mouseExited(MouseEvent e) {
-    System.out.println(e);
+    System.err.println(e);
     if(null!=downstream) { downstream.mouseExited(e); }
  }
  public void mousePressed(MouseEvent e) {
-    System.out.println(e);
+    System.err.println(e);
     if(null!=downstream) { downstream.mousePressed(e); }
  }
  public void mouseReleased(MouseEvent e) {
-    System.out.println(e);
+    System.err.println(e);
     if(null!=downstream) { downstream.mouseReleased(e); }
  }
  public void mouseMoved(MouseEvent e) {
-    System.out.println(e);
+    System.err.println(e);
     if(null!=downstream) { downstream.mouseMoved(e); }
  }
  public void mouseDragged(MouseEvent e) {
-    System.out.println(e);
+    System.err.println(e);
     if(null!=downstream) { downstream.mouseDragged(e); }
  }
  public void mouseWheelMoved(MouseEvent e) {
-    System.out.println(e);
+    System.err.println(e);
     if(null!=downstream) { downstream.mouseWheelMoved(e); }
  }
 }

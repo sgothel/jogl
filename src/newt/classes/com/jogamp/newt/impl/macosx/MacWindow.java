@@ -152,7 +152,7 @@ public class MacWindow extends WindowImpl {
     protected void closeNativeImpl() {
         nsViewLock.lock();
         try {
-            if(DEBUG_IMPLEMENTATION) { System.out.println("MacWindow.CloseAction "+Thread.currentThread().getName()); }
+            if(DEBUG_IMPLEMENTATION) { System.err.println("MacWindow.CloseAction "+Thread.currentThread().getName()); }
             if (getWindowHandle() != 0) {
                 close0(getWindowHandle());
             }
@@ -270,7 +270,7 @@ public class MacWindow extends WindowImpl {
     
     private void insetsChanged(int left, int top, int right, int bottom) {
         if (DEBUG_IMPLEMENTATION) {
-            System.out.println(Thread.currentThread().getName()+
+            System.err.println(Thread.currentThread().getName()+
                 " Insets changed to " + left + ", " + top + ", " + right + ", " + bottom);
         }
         if (left != -1 && top != -1 && right != -1 && bottom != -1) {
@@ -366,7 +366,7 @@ public class MacWindow extends WindowImpl {
 
     public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
         int key = convertKeyChar(keyChar);
-        if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.enqueueKeyEvent "+Thread.currentThread().getName());
+        if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.enqueueKeyEvent "+Thread.currentThread().getName());
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
         super.enqueueKeyEvent(wait, eventType, modifiers, key, keyChar);

@@ -28,6 +28,8 @@
  
 package com.jogamp.newt.event.awt;
 
+import java.awt.KeyboardFocusManager;
+
 /**
  * Specialized parent/client adapter,
  * where the NEWT child window really gets resized,
@@ -50,15 +52,29 @@ public class AWTParentWindowAdapter
         return super.removeFrom(awtComponent);
     }
 
+    boolean forcePermanentFocusLossOneShot = false;
+
+    public void setForcePermanentFocusLossOneShot() {
+        forcePermanentFocusLossOneShot = true;
+    }
+
     public void focusGained(java.awt.event.FocusEvent e) {
         if(DEBUG_IMPLEMENTATION) {
-            System.out.println("AWT: focusGained: START "+ e.getComponent());
+            System.err.println("AWT: focusGained: "+ e);
         }
     }
 
     public void focusLost(java.awt.event.FocusEvent e) {
         if(DEBUG_IMPLEMENTATION) {
-            System.out.println("AWT: focusLost: "+ e.getComponent());
+            System.err.println("AWT: focusLost: "+ e);
+        }
+        if(forcePermanentFocusLossOneShot) {
+            forcePermanentFocusLossOneShot = false;
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("AWT: focusLost: - clearGlobalFocusOwner -");
+            }
+            KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+            kfm.clearGlobalFocusOwner();
         }
     }
 
@@ -67,7 +83,7 @@ public class AWTParentWindowAdapter
         // the resized event will be send via the native window feedback.
         final java.awt.Component comp = e.getComponent();
         if(DEBUG_IMPLEMENTATION) {
-            System.out.println("AWT: componentResized: "+comp);
+            System.err.println("AWT: componentResized: "+comp);
         }
         newtWindow.runOnEDTIfAvail(false, new Runnable() {
             public void run() {
@@ -99,7 +115,7 @@ public class AWTParentWindowAdapter
             if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & bits ) ) {
                 final boolean showing = changed.isShowing();
                 if(DEBUG_IMPLEMENTATION) {
-                    System.out.println("AWT: hierarchyChanged SHOWING_CHANGED: showing "+showing+", "+changed);
+                    System.err.println("AWT: hierarchyChanged SHOWING_CHANGED: showing "+showing+", "+changed);
                 }
                 if(newtWindow.isValid()) {
                     newtWindow.runOnEDTIfAvail(false, new Runnable() {
@@ -112,7 +128,7 @@ public class AWTParentWindowAdapter
             if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
                 final boolean displayability = changed.isDisplayable();
                 if(DEBUG_IMPLEMENTATION) {
-                    System.out.println("AWT: hierarchyChanged DISPLAYABILITY_CHANGED: displayability "+displayability+", "+changed);
+                    System.err.println("AWT: hierarchyChanged DISPLAYABILITY_CHANGED: displayability "+displayability+", "+changed);
                 }
             }
         }

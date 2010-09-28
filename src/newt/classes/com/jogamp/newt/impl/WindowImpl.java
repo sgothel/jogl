@@ -1064,7 +1064,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * hence focus traversal can be made transparent.
      */
     public void setFocusAction(FocusRunnable focusAction) {
-        focusAction = focusAction;
+        this.focusAction = focusAction;
     }
     protected boolean focusAction() {
         if(DEBUG_IMPLEMENTATION) {

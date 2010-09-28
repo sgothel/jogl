@@ -124,7 +124,7 @@ public class AWTWindowAdapter
     public void componentShown(java.awt.event.ComponentEvent e) {
         final java.awt.Component comp = e.getComponent();
         if(DEBUG_IMPLEMENTATION) {
-            System.out.println("AWT: componentShown: "+comp);
+            System.err.println("AWT: componentShown: "+comp);
         }
         /**
         if(null==newtListener) {
@@ -141,7 +141,7 @@ public class AWTWindowAdapter
     public void componentHidden(java.awt.event.ComponentEvent e) {
         final java.awt.Component comp = e.getComponent();
         if(DEBUG_IMPLEMENTATION) {
-            System.out.println("AWT: componentHidden: "+comp);
+            System.err.println("AWT: componentHidden: "+comp);
         }
         /**
         if(null==newtListener) {

@@ -41,15 +41,15 @@ public class TraceKeyAdapter implements KeyListener {
     }
 
     public void keyPressed(KeyEvent e) {
-        System.out.println(e);
+        System.err.println(e);
         if(null!=downstream) { downstream.keyPressed(e); }
     }
     public void keyReleased(KeyEvent e) {
-        System.out.println(e);
+        System.err.println(e);
         if(null!=downstream) { downstream.keyReleased(e); }
     }
     public void keyTyped(KeyEvent e) {
-        System.out.println(e);
+        System.err.println(e);
         if(null!=downstream) { downstream.keyTyped(e); }
     }
 }

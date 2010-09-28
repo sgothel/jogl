@@ -51,7 +51,9 @@ public class MacDisplay extends DisplayImpl {
         if(!MacWindow.initIDs0()) {
             throw new NativeWindowException("Failed to initialize jmethodIDs");
         }
-        if(DEBUG) System.out.println("MacDisplay.init App and IDs OK "+Thread.currentThread().getName());
+        if(DEBUG) {
+            System.err.println("MacDisplay.init App and IDs OK "+Thread.currentThread().getName());
+        }
     }
 
     public static void initSingleton() {

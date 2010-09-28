@@ -36,6 +36,7 @@ import java.security.*;
 import java.awt.Canvas;
 import java.awt.EventQueue;
 import java.awt.Graphics;
+import java.awt.KeyboardFocusManager;
 
 import javax.media.nativewindow.*;
 
@@ -50,7 +51,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
 
     NativeWindow parent = null;
     Window newtChild = null;
-    AWTAdapter awtAdapter = null;
+    AWTParentWindowAdapter awtAdapter = null;
 
     /**
      * Instantiates a NewtCanvas without a NEWT child.<br>
@@ -88,6 +89,9 @@ public class NewtCanvasAWT extends java.awt.Canvas {
                     System.err.println("FocusActionImpl.run() "+Display.getThreadName());
                 }
                 NewtCanvasAWT.this.requestFocusAWTParent();
+                // awtAdapter.setForcePermanentFocusLossOneShot();
+                KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+                kfm.clearGlobalFocusOwner();
             }
         }
         FocusActionImpl focusActionImpl = new FocusActionImpl();
@@ -123,7 +127,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
           awtAdapter=null;
         }
         if(attach && null!=newtChild) {
-            awtAdapter = new AWTParentWindowAdapter(newtChild).addTo(this);
+            awtAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter(newtChild).addTo(this);
         }
     }
 

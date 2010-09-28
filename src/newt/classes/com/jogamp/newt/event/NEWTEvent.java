@@ -80,7 +80,7 @@ public class NEWTEvent extends java.util.EventObject {
         }
         if(DEBUG) {
             for (int i = 0; i < stack.length && i<5; i++) {
-             System.out.println(i+": " + stack[i].getClassName()+ "." + stack[i].getMethodName());
+             System.err.println(i+": " + stack[i].getClassName()+ "." + stack[i].getMethodName());
             }
         }
 
@@ -101,7 +101,7 @@ public class NEWTEvent extends java.util.EventObject {
                         clazzName.equals(WindowClazzName) || 
                         clazzName.equals(AWTNewtEventFactoryClazzName) ) ;
         if(DEBUG) {
-            System.out.println("system: "+res);
+            System.err.println("system: "+res);
         }
         return res;
     }
