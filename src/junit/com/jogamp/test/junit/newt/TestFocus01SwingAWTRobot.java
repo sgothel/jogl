@@ -74,12 +74,19 @@ public class TestFocus01SwingAWTRobot {
     static long durationPerTest = 800;
 
     static GLCapabilities glCaps;
+    static SingletonInstance instance;
 
     @BeforeClass
     public static void initClass() {
         width = 640;
         height = 480;
         glCaps = new GLCapabilities(null);
+        instance = AWTRobotUtil.lock();
+    }
+
+    @AfterClass
+    public static void release() {
+        instance.unlock();
     }
 
     @Test

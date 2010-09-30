@@ -75,6 +75,7 @@ public class TestFocus02SwingAWTRobot {
     static long durationPerTest = 800;
     static long waitReparent = 0;
     static GLCapabilities glCaps;
+    static SingletonInstance instance;
 
     @BeforeClass
     public static void initClass() throws AWTException {
@@ -89,8 +90,14 @@ public class TestFocus02SwingAWTRobot {
 
         GLProfile.initSingleton();
         glCaps = new GLCapabilities(null);
+
+        instance = AWTRobotUtil.lock();
     }
 
+    @AfterClass
+    public static void release() {
+        instance.unlock();
+    }
     
     private void testFocus01ProgrFocusImpl(Robot robot) 
         throws AWTException, InterruptedException, InvocationTargetException {

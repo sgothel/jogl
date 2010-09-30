@@ -44,6 +44,14 @@ public class AWTRobotUtil {
 
     public static int TIME_OUT = 1000; // 1s
 
+    public static final String SINGLE_INSTANCE_LOCK_FILE = "AWTRobotUtil.lock";
+
+    public static SingletonInstance lock() {
+        SingletonInstance si = new SingletonInstance(SINGLE_INSTANCE_LOCK_FILE);
+        si.lock(3*60*1000, 500); // wait up to 3 min, poll every 500ms
+        return si;
+    }
+
     /**
      * toFront, call setVisible(true) and toFront(),
      * after positioning the mouse in the middle of the window via robot.

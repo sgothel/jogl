@@ -81,6 +81,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 {
     static JPanel panel;
     static JPanel colorPanel;
     static boolean windowClosing;
+    static SingletonInstance instance;
 
     boolean modLightBrighter = true;
 
@@ -116,6 +117,8 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 {
     @BeforeClass
     public static void setup() throws InterruptedException, InvocationTargetException, AWTException {
         int count;
+
+        instance = AWTRobotUtil.lock();
 
         // simulate AWT usage before JOGL's initialization of X11 threading
         windowClosing=false;
@@ -175,6 +178,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 {
         Assert.assertNotNull(frame);
         frame.dispose();
         frame=null;
+        instance.unlock();
     }
 
     protected void runTestGL(final Canvas canvas, GLAutoDrawable drawable) 
