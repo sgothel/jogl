@@ -31,7 +31,7 @@ package com.jogamp.test.junit.util;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 
-public class NEWTKeyAdapter extends KeyAdapter implements TestEventCountAdapter {
+public class NEWTKeyAdapter extends KeyAdapter implements EventCountAdapter {
 
     String prefix;
     int keyTyped;

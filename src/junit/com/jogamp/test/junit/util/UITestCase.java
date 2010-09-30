@@ -28,9 +28,32 @@
  
 package com.jogamp.test.junit.util;
 
-public interface EventCountAdapter {
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
 
-    int getCount();
+import java.lang.reflect.InvocationTargetException;
 
+public abstract class UITestCase {
+
+    public static final String SINGLE_INSTANCE_LOCK_FILE = "UITestCase.lock";
+
+    static SingletonInstance singletonInstance;
+
+    protected SingletonInstance getSingletonInstance() {
+        return singletonInstance;
+    }
+
+    @BeforeClass
+    public static void oneTimeSetUp() {
+        // one-time initialization code        
+        singletonInstance = new SingletonInstance(SINGLE_INSTANCE_LOCK_FILE);
+        singletonInstance.lock(3*60*1000, 100); // wait up to 3 min, poll every 100ms
+    }
+
+    @AfterClass
+    public static void oneTimeTearDown() {
+        // one-time cleanup code
+        singletonInstance.unlock();
+    }
 }
 

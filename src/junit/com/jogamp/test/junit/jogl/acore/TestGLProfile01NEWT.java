@@ -28,6 +28,7 @@
  
 package com.jogamp.test.junit.jogl.acore;
 
+import com.jogamp.test.junit.util.UITestCase;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -42,7 +43,7 @@ import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.*;
 import java.io.IOException;
 
-public class TestGLProfile01NEWT {
+public class TestGLProfile01NEWT extends UITestCase {
     static {
         GLProfile.initSingleton();
     }

@@ -45,7 +45,9 @@ import javax.media.nativewindow.*;
 import com.jogamp.newt.*;
 import java.io.IOException;
 
-public class TestWindows01NEWT {
+import com.jogamp.test.junit.util.UITestCase;
+
+public class TestWindows01NEWT extends UITestCase {
     static int width, height;
 
     @BeforeClass

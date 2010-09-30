@@ -31,7 +31,7 @@ package com.jogamp.test.junit.util;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 
-public class NEWTFocusAdapter extends WindowAdapter implements TestEventCountAdapter {
+public class NEWTFocusAdapter extends WindowAdapter implements EventCountAdapter {
 
     String prefix;
     int focusGained = 0;

@@ -29,7 +29,7 @@
 package com.jogamp.test.junit.util;
 
 
-public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements TestEventCountAdapter {
+public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements EventCountAdapter {
 
     String prefix;
     int keyTyped;

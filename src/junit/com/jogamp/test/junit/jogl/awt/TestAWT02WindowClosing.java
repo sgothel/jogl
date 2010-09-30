@@ -28,6 +28,7 @@
  
 package com.jogamp.test.junit.jogl.awt;
 
+import com.jogamp.test.junit.util.UITestCase;
 import javax.media.opengl.GLProfile;
 
 import java.awt.*;
@@ -40,7 +41,7 @@ import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
-public class TestAWT02WindowClosing {
+public class TestAWT02WindowClosing extends UITestCase {
     static {
         GLProfile.initSingleton();
     }

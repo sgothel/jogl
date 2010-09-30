@@ -31,7 +31,7 @@ package com.jogamp.test.junit.util;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
-public class AWTFocusAdapter implements TestEventCountAdapter, FocusListener {
+public class AWTFocusAdapter implements EventCountAdapter, FocusListener {
 
     String prefix;
     int focusGained = 0;

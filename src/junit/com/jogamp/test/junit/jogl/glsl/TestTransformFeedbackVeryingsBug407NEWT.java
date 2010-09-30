@@ -1,5 +1,7 @@
 package com.jogamp.test.junit.jogl.glsl;
 
+import com.jogamp.test.junit.util.UITestCase;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
@@ -28,7 +30,7 @@ import java.io.IOException;
  * Bug 'Function glTransformFeedbackVaryings incorrectly passes argument'
  * http://jogamp.org/bugzilla/show_bug.cgi?id=407
  */
-public class TestTransformFeedbackVeryingsBug407NEWT {
+public class TestTransformFeedbackVeryingsBug407NEWT extends UITestCase {
 
     static {
         //NativeUtil.preloadNativeLibs(); // internal method

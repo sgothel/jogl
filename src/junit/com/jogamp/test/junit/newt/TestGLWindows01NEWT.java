@@ -48,10 +48,11 @@ import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
 import java.io.IOException;
 
+import com.jogamp.test.junit.util.UITestCase;
 import com.jogamp.test.junit.util.MiscUtils;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
-public class TestGLWindows01NEWT {
+public class TestGLWindows01NEWT extends UITestCase {
     static {
         GLProfile.initSingleton();
     }

@@ -74,6 +74,9 @@ public class SingletonInstance {
                 if(tryLock()) {
                     return;
                 }
+                if(DEBUG && 0==i) {
+                    System.err.println("Wait for lock " + file);
+                }
                 i++;
                 Thread.sleep(poll_ms);
             } while ( i < timeout_ms / poll_ms ) ;

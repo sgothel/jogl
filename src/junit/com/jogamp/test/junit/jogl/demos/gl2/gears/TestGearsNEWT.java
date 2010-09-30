@@ -28,6 +28,8 @@
  
 package com.jogamp.test.junit.jogl.demos.gl2.gears;
 
+import com.jogamp.test.junit.util.UITestCase;
+
 import javax.media.opengl.*;
 import com.jogamp.opengl.util.Animator;
 
@@ -43,7 +45,7 @@ import org.junit.AfterClass;
 import org.junit.After;
 import org.junit.Test;
 
-public class TestGearsNEWT {
+public class TestGearsNEWT extends UITestCase {
     static {
         GLProfile.initSingleton();
     }

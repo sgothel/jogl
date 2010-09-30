@@ -28,6 +28,7 @@
  
 package com.jogamp.test.junit.jogl.awt;
 
+import com.jogamp.test.junit.util.UITestCase;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import com.jogamp.test.junit.util.*;
 
@@ -72,7 +73,7 @@ import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 {
+public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
     static long durationPerTest = 500; // ms
     static Robot robot;
     static Border border;
@@ -81,7 +82,6 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 {
     static JPanel panel;
     static JPanel colorPanel;
     static boolean windowClosing;
-    static SingletonInstance instance;
 
     boolean modLightBrighter = true;
 
@@ -117,8 +117,6 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 {
     @BeforeClass
     public static void setup() throws InterruptedException, InvocationTargetException, AWTException {
         int count;
-
-        instance = AWTRobotUtil.lock();
 
         // simulate AWT usage before JOGL's initialization of X11 threading
         windowClosing=false;
@@ -178,7 +176,6 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 {
         Assert.assertNotNull(frame);
         frame.dispose();
         frame=null;
-        instance.unlock();
     }
 
     protected void runTestGL(final Canvas canvas, GLAutoDrawable drawable) 

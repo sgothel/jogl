@@ -63,7 +63,7 @@ import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 
 import com.jogamp.test.junit.util.*;
 
-public class TestFocus01SwingAWTRobot {
+public class TestFocus01SwingAWTRobot extends UITestCase {
 
     static {
         GLProfile.initSingleton();
@@ -74,19 +74,16 @@ public class TestFocus01SwingAWTRobot {
     static long durationPerTest = 800;
 
     static GLCapabilities glCaps;
-    static SingletonInstance instance;
 
     @BeforeClass
     public static void initClass() {
         width = 640;
         height = 480;
         glCaps = new GLCapabilities(null);
-        instance = AWTRobotUtil.lock();
     }
 
     @AfterClass
     public static void release() {
-        instance.unlock();
     }
 
     @Test

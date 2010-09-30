@@ -32,6 +32,7 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.util.Animator;
 
+import com.jogamp.test.junit.util.UITestCase;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
@@ -44,7 +45,7 @@ import org.junit.AfterClass;
 import org.junit.After;
 import org.junit.Test;
 
-public class TestGearsNewtAWTWrapper {
+public class TestGearsNewtAWTWrapper extends UITestCase {
     static {
         GLProfile.initSingleton();
     }

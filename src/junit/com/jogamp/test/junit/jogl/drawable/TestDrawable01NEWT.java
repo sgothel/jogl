@@ -28,6 +28,7 @@
  
 package com.jogamp.test.junit.jogl.drawable;
 
+import com.jogamp.test.junit.util.UITestCase;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,7 +41,7 @@ import javax.media.opengl.*;
 import com.jogamp.newt.*;
 import java.io.IOException;
 
-public class TestDrawable01NEWT {
+public class TestDrawable01NEWT extends UITestCase {
     static {
         GLProfile.initSingleton();
     }

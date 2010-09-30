@@ -33,7 +33,9 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.Animator;
 
+import com.jogamp.test.junit.util.UITestCase;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
+
 import java.awt.Frame;
 
 import org.junit.Assert;
@@ -43,7 +45,8 @@ import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
-public class TestAWT01GLn {
+
+public class TestAWT01GLn extends UITestCase {
     static {
         GLProfile.initSingleton();
     }

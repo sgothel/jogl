@@ -70,12 +70,11 @@ import java.io.IOException;
 import com.jogamp.test.junit.util.*;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
-public class TestFocus02SwingAWTRobot {
+public class TestFocus02SwingAWTRobot extends UITestCase {
     static int width, height;
     static long durationPerTest = 800;
     static long waitReparent = 0;
     static GLCapabilities glCaps;
-    static SingletonInstance instance;
 
     @BeforeClass
     public static void initClass() throws AWTException {
@@ -90,13 +89,10 @@ public class TestFocus02SwingAWTRobot {
 
         GLProfile.initSingleton();
         glCaps = new GLCapabilities(null);
-
-        instance = AWTRobotUtil.lock();
     }
 
     @AfterClass
     public static void release() {
-        instance.unlock();
     }
     
     private void testFocus01ProgrFocusImpl(Robot robot) 

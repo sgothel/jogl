@@ -44,14 +44,6 @@ public class AWTRobotUtil {
 
     public static int TIME_OUT = 1000; // 1s
 
-    public static final String SINGLE_INSTANCE_LOCK_FILE = "AWTRobotUtil.lock";
-
-    public static SingletonInstance lock() {
-        SingletonInstance si = new SingletonInstance(SINGLE_INSTANCE_LOCK_FILE);
-        si.lock(3*60*1000, 500); // wait up to 3 min, poll every 500ms
-        return si;
-    }
-
     /**
      * toFront, call setVisible(true) and toFront(),
      * after positioning the mouse in the middle of the window via robot.
@@ -187,7 +179,7 @@ public class AWTRobotUtil {
      * @param keyTypedCounter shall return the number of keys typed (press + release)
      * @return True if the object received 2 keys within TIME_OUT
      */
-    public static boolean testKeyInput(Robot robot, TestEventCountAdapter keyTypedCounter) 
+    public static boolean testKeyInput(Robot robot, EventCountAdapter keyTypedCounter) 
         throws AWTException, InterruptedException, InvocationTargetException {
         Component comp = null;
         com.jogamp.newt.Window win = null;

@@ -36,6 +36,7 @@ import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 
+import com.jogamp.test.junit.util.UITestCase;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import java.awt.Frame;
 
@@ -46,7 +47,7 @@ import org.junit.AfterClass;
 import org.junit.After;
 import org.junit.Test;
 
-public class TestGearsAWT {
+public class TestGearsAWT extends UITestCase {
     static {
         GLProfile.initSingleton();
     }

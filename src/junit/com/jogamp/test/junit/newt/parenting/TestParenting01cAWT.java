@@ -61,7 +61,7 @@ import com.jogamp.test.junit.util.*;
 import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
-public class TestParenting01cAWT {
+public class TestParenting01cAWT extends UITestCase {
     static {
         GLProfile.initSingleton();
     }

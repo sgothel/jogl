@@ -30,6 +30,8 @@ package com.jogamp.test.junit.jogl.texture;
 
 import com.jogamp.test.junit.jogl.util.texture.gl2.TextureGL2ListenerDraw1;
 
+import com.jogamp.test.junit.util.UITestCase;
+
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.awt.GLCanvas;
@@ -51,7 +53,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestTexture01AWT {
+public class TestTexture01AWT extends UITestCase {
     static {
         GLProfile.initSingleton();
     }

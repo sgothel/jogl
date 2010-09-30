@@ -34,6 +34,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.Animator;
 
+import com.jogamp.test.junit.util.UITestCase;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import java.awt.Frame;
 import java.awt.Window;
@@ -51,7 +52,7 @@ import static javax.swing.SwingUtilities.*;
  * Tests context creation + display on various kinds of Window implementations.
  * @author Michael Bien
  */
-public class TestSwingAWT01GLn {
+public class TestSwingAWT01GLn extends UITestCase {
     static {
         GLProfile.initSingleton();
     }
