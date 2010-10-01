@@ -811,7 +811,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         if(wasVisible) {
                             visible = true;
                             setVisibleImpl(true);
-                            requestFocusImpl(true);
                             display.dispatchMessages(); // status up2date
                         }
                     } else {
@@ -848,7 +847,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     System.err.println("Window.reparentWindow: ReparentActionRecreate ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+Display.hashCode(parentWindow));
                 }
                 setVisible(true); // native creation
-                requestFocus();
             } finally {
                 windowLock.unlock();
             }

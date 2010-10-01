@@ -2,12 +2,11 @@
 
 spath=`dirname $0`
 
-#com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsNEWT -time 30000
 #com.jogamp.test.junit.jogl.acore.TestGLProfile01CORE
 #com.jogamp.test.junit.newt.TestParenting01AWT
 
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsAWT $*
-# $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsNEWT $*
+$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsNEWT $*
 
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestDisplayLifecycle01NEWT $*
 
@@ -21,7 +20,7 @@ spath=`dirname $0`
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01NEWT $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting02NEWT $*
 
-# $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01aAWT $*
+#$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01aAWT $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01bAWT $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01cAWT $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01cSwingAWT $*
@@ -31,11 +30,5 @@ spath=`dirname $0`
 
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestFocus01SwingAWTRobot $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot $*
-
-$spath/java-run-all.sh ../build-x86 com.jogamp.test.junit.jogl.awt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
-$spath/java-run-all.sh ../build-x86 com.jogamp.test.junit.newt.TestFocus01SwingAWTRobot $*
-$spath/java-run-all.sh ../build-x86 com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot $*
-
-# $spath/java-run-all.sh ../build-x86 com.jogamp.test.junit.newt.parenting.TestParenting01aAWT $*
 
 $spath/count-edt-start.sh java-run.log
