@@ -28,22 +28,21 @@
  
 package com.jogamp.test.junit.util;
 
-public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements EventCountAdapter {
-
+public class AWTMouseAdapter extends java.awt.event.MouseAdapter implements EventCountAdapter {
     String prefix;
-    int keyTyped;
+    int mouseClicked;
 
-    public AWTKeyAdapter(String prefix) {
+    public AWTMouseAdapter(String prefix) {
         this.prefix = prefix;
     }
 
     public int getCount() {
-        return keyTyped;
+        return mouseClicked;
     }
 
-    public void keyTyped(java.awt.event.KeyEvent e) {
-        ++keyTyped;
-        System.err.println("KEY AWT  TYPED ["+keyTyped+"]: "+prefix+", "+e);
+    public void mouseClicked(java.awt.event.MouseEvent e) {
+        mouseClicked+=e.getClickCount();
+        System.err.println("MOUSE AWT CLICKED ["+mouseClicked+"]: "+prefix+", "+e);
     }
 }
 

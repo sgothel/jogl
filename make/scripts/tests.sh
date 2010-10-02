@@ -6,7 +6,7 @@ spath=`dirname $0`
 #com.jogamp.test.junit.newt.TestParenting01AWT
 
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsAWT $*
-$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsNEWT $*
+# $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsNEWT $*
 
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestDisplayLifecycle01NEWT $*
 
@@ -28,7 +28,7 @@ $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.jogl.demos.gl2.gear
 
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.jogl.awt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
 
-# $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestFocus01SwingAWTRobot $*
-# $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot $*
+$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestFocus01SwingAWTRobot $*
+$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot $*
 
 $spath/count-edt-start.sh java-run.log

@@ -44,6 +44,43 @@ public class AWTRobotUtil {
 
     public static int TIME_OUT = 1000; // 1s
 
+    public static Point getCenterLocation(Object obj, boolean frameTitlebar) 
+        throws InterruptedException, InvocationTargetException {
+        Component comp = null;
+        com.jogamp.newt.Window win = null;
+
+        if(obj instanceof com.jogamp.newt.Window) {
+            win = (com.jogamp.newt.Window) obj;
+        } else if(obj instanceof Component) {
+            comp = (Component) obj;
+        } else {
+            throw new RuntimeException("Neither AWT nor NEWT: "+obj);
+        }
+
+        int x0, y0;
+        if(null!=comp) {
+            Point p0 = comp.getLocationOnScreen();
+            Rectangle r0 = comp.getBounds();
+            if( frameTitlebar && comp instanceof JFrame ) {
+                JFrame jFrame = (JFrame) comp;
+                Container cont = jFrame.getContentPane();
+                Point p1 = cont.getLocationOnScreen();
+                int dx = (int) ( r0.getWidth() / 2.0 + .5 );
+                int dy = (int) ( ( p1.getY() - p0.getY() ) / 2.0 + .5 );
+                x0 = (int) ( p0.getX() + dx + .5 ) ;
+                y0 = (int) ( p0.getY() + dy + .5 ) ;
+            } else {
+                x0 = (int) ( p0.getX() + r0.getWidth()  / 2.0 + .5 ) ;
+                y0 = (int) ( p0.getY() + r0.getHeight() / 2.0 + .5 ) ;
+            }
+        } else {
+            x0 = win.getX() + win.getWidth()  / 2 ;
+            y0 = win.getY() + win.getHeight() / 2 ;
+        }
+
+        return new Point(x0, y0);
+    }
+
     /**
      * toFront, call setVisible(true) and toFront(),
      * after positioning the mouse in the middle of the window via robot.
@@ -58,14 +95,9 @@ public class AWTRobotUtil {
             robot = new Robot();
             robot.setAutoWaitForIdle(true);
         }
-        Point p0 = window.getLocationOnScreen();
-        Rectangle r0 = window.getBounds();
-        int dx = (int) ( r0.getWidth()  / 2.0 + .5 );
-        int dy = (int) ( r0.getHeight() / 2.0 + .5 );
-        int x0 = (int) ( p0.getX() + dx + .5 ) ;
-        int y0 = (int) ( p0.getY() + dy + .5 ) ;
-        System.err.println("robot pos: "+x0+"/"+y0);
-        robot.mouseMove( x0, y0 );
+        Point p0 = getCenterLocation(window, false);
+        System.err.println("robot pos: "+p0);
+        robot.mouseMove( (int) p0.getX(), (int) p0.getY() );
         robot.delay(50);
 
         final Window f_window = window;
@@ -86,11 +118,39 @@ public class AWTRobotUtil {
     }
 
     /**
+     * centerMouse
+     */
+    public static void centerMouse(Robot robot, Object obj) 
+        throws AWTException, InterruptedException, InvocationTargetException {
+        Component comp = null;
+        com.jogamp.newt.Window win = null;
+
+        if(null == robot) {
+            robot = new Robot();
+            robot.setAutoWaitForIdle(true);
+        }
+
+        if(obj instanceof com.jogamp.newt.Window) {
+            win = (com.jogamp.newt.Window) obj;
+        } else if(obj instanceof Component) {
+            comp = (Component) obj;
+        } else {
+            throw new RuntimeException("Neither AWT nor NEWT: "+obj);
+        }
+
+        Point p0 = getCenterLocation(obj, false);
+        System.err.println("robot pos: "+p0);
+
+        robot.mouseMove( (int) p0.getX(), (int) p0.getY() );
+        robot.delay(50);
+    }
+
+    /**
      * requestFocus, if robot is valid, use mouse operation,
      * otherwise programatic, ie call requestFocus
      */
     public static void requestFocus(Robot robot, Object obj) 
-        throws InterruptedException, InvocationTargetException {
+        throws AWTException, InterruptedException, InvocationTargetException {
         Component comp = null;
         com.jogamp.newt.Window win = null;
 
@@ -115,29 +175,8 @@ public class AWTRobotUtil {
             return;
         }
 
-        int x0, y0;
-        if(null!=comp) {
-            Point p0 = comp.getLocationOnScreen();
-            Rectangle r0 = comp.getBounds();
-            if( comp instanceof JFrame ) {
-                JFrame jFrame = (JFrame) comp;
-                Container cont = jFrame.getContentPane();
-                Point p1 = cont.getLocationOnScreen();
-                int dx = (int) ( r0.getWidth() / 2.0 + .5 );
-                int dy = (int) ( ( p1.getY() - p0.getY() ) / 2.0 + .5 );
-                x0 = (int) ( p0.getX() + dx + .5 ) ;
-                y0 = (int) ( p0.getY() + dy + .5 ) ;
-            } else {
-                x0 = (int) ( p0.getX() + r0.getWidth()  / 2.0 + .5 ) ;
-                y0 = (int) ( p0.getY() + r0.getHeight() / 2.0 + .5 ) ;
-            }
-        } else {
-            x0 = win.getX() + win.getWidth()  / 2 ;
-            y0 = win.getY() + win.getHeight() / 2 ;
-        }
+        centerMouse(robot, obj);
 
-        System.err.println("robot pos: "+x0+"/"+y0);
-        robot.mouseMove( x0, y0 );
         robot.delay(50);
         robot.mousePress(InputEvent.BUTTON1_MASK);
         robot.delay(50);
@@ -169,7 +208,7 @@ public class AWTRobotUtil {
     }
 
     public static boolean requestFocusAndWait(Robot robot, Object requestFocus, Object waitForFocus)
-        throws InterruptedException, InvocationTargetException {
+        throws AWTException, InterruptedException, InvocationTargetException {
 
         requestFocus(robot, requestFocus);
         return waitForFocus(waitForFocus);
@@ -177,35 +216,73 @@ public class AWTRobotUtil {
 
     /**
      * @param keyTypedCounter shall return the number of keys typed (press + release)
-     * @return True if the object received 2 keys within TIME_OUT
+     * @return True if typeCount keys within TIME_OUT has been received
      */
-    public static boolean testKeyInput(Robot robot, EventCountAdapter keyTypedCounter) 
+    public static int testKeyType(Robot robot, int typeCount, Object obj, EventCountAdapter keyTypedCounter) 
         throws AWTException, InterruptedException, InvocationTargetException {
         Component comp = null;
         com.jogamp.newt.Window win = null;
-
-        int c0 = keyTypedCounter.getCount();
 
         if(null == robot) {
             robot = new Robot();
             robot.setAutoWaitForIdle(true);
         }
 
-        robot.keyPress(java.awt.event.KeyEvent.VK_A);
-        robot.delay(50);
-        robot.keyRelease(java.awt.event.KeyEvent.VK_A);
-        robot.delay(50);
-        robot.keyPress(java.awt.event.KeyEvent.VK_B);
-        robot.delay(50);
-        robot.keyRelease(java.awt.event.KeyEvent.VK_B);
+        centerMouse(robot, obj);
+
+        int c0 = keyTypedCounter.getCount();
+
+        for(int i=0; i<typeCount; i++) {
+            robot.keyPress(java.awt.event.KeyEvent.VK_A);
+            robot.delay(50);
+            robot.keyRelease(java.awt.event.KeyEvent.VK_A);
+            robot.delay(50);
+        }
+
+        // Wait for the key events to be processed.
+        int wait;
+        for (wait=0; wait<10 && (keyTypedCounter.getCount()-c0)<typeCount; wait++) {
+            Thread.sleep(TIME_OUT/10);
+        }
+        return keyTypedCounter.getCount()-c0;
+    }
+
+    /**
+     * @param mouseButton ie InputEvent.BUTTON1_MASK
+     * @param clickCount ie 1, or 2
+     * @return True if the desired clickCount within TIME_OUT has been received
+     */
+    public static int testMouseClick(Robot robot, int mouseButton, int clickCount,
+                                     Object obj, EventCountAdapter mouseClickCounter) 
+        throws AWTException, InterruptedException, InvocationTargetException {
+
+        if(null == robot) {
+            robot = new Robot();
+            robot.setAutoWaitForIdle(true);
+        }
+
+        final int clickTO = com.jogamp.newt.event.MouseEvent.getClickTimeout();
+
+        centerMouse(robot, obj);
+
+        robot.delay(2*clickTO);
+
+        int c0 = mouseClickCounter.getCount();
+
+        for(int i=0; i<clickCount; i++) {
+            robot.mousePress(mouseButton);
+            robot.delay(clickTO/4);
+            robot.mouseRelease(mouseButton);
+            robot.delay(clickTO/4);
+        }
         robot.delay(50);
 
         // Wait for the key events to be processed.
         int wait;
-        for (wait=0; wait<10 && (keyTypedCounter.getCount()-c0)<2; wait++) {
+        for (wait=0; wait<10 && (mouseClickCounter.getCount()-c0)<clickCount; wait++) {
             Thread.sleep(TIME_OUT/10);
         }
-        return wait<10;
+        return mouseClickCounter.getCount()-c0;
     }
 
 }

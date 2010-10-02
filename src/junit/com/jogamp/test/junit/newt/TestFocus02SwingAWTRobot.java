@@ -111,18 +111,24 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         glWindow1.addWindowListener(glWindow1FA);
         NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
         glWindow1.addKeyListener(glWindow1KA);
+        NEWTMouseAdapter glWindow1MA = new NEWTMouseAdapter("GLWindow1");
+        glWindow1.addMouseListener(glWindow1MA);
 
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         AWTFocusAdapter newtCanvasAWTFA = new AWTFocusAdapter("NewtCanvasAWT");
         newtCanvasAWT.addFocusListener(newtCanvasAWTFA);
         AWTKeyAdapter newtCanvasAWTKA = new AWTKeyAdapter("NewtCanvasAWT");
         newtCanvasAWT.addKeyListener(newtCanvasAWTKA);
+        AWTMouseAdapter newtCanvasAWTMA = new AWTMouseAdapter("NewtCanvasAWT");
+        newtCanvasAWT.addMouseListener(newtCanvasAWTMA);
 
         Button buttonNorthInner = new Button("north");
         AWTFocusAdapter buttonNorthInnerFA = new AWTFocusAdapter("ButtonNorthInner");
         buttonNorthInner.addFocusListener(buttonNorthInnerFA);
         AWTKeyAdapter buttonNorthInnerKA = new AWTKeyAdapter("ButtonNorthInner");
         buttonNorthInner.addKeyListener(buttonNorthInnerKA);
+        AWTMouseAdapter buttonNorthInnerMA = new AWTMouseAdapter("ButtonNorthInner");
+        buttonNorthInner.addMouseListener(buttonNorthInnerMA);
         Container container1 = new Container();
         container1.setLayout(new BorderLayout());
         container1.add(buttonNorthInner, BorderLayout.NORTH);
@@ -136,6 +142,8 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         buttonNorthOuter.addFocusListener(buttonNorthOuterFA);
         AWTKeyAdapter buttonNorthOuterKA = new AWTKeyAdapter("ButtonNorthOuter");
         buttonNorthOuter.addKeyListener(buttonNorthOuterKA);
+        AWTMouseAdapter buttonNorthOuterMA = new AWTMouseAdapter("ButtonNorthOuter");
+        buttonNorthOuter.addMouseListener(buttonNorthOuterMA);
         JPanel jPanel1 = new JPanel();
         jPanel1.setLayout(new BorderLayout());
         jPanel1.add(buttonNorthOuter, BorderLayout.NORTH);
@@ -172,7 +180,11 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         Assert.assertEquals(0, buttonNorthInnerFA.getCount());
         Assert.assertEquals(0, jFrame1FA.getCount());
         System.err.println("FOCUS AWT  Button Outer sync");
-        Assert.assertTrue(AWTRobotUtil.testKeyInput(robot, buttonNorthOuterKA));
+        Assert.assertEquals(2, AWTRobotUtil.testKeyType(robot, 2, buttonNorthOuter, buttonNorthOuterKA));
+        Assert.assertEquals(1, AWTRobotUtil.testMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1, 
+                                                           buttonNorthOuter, buttonNorthOuterMA));
+        Assert.assertEquals(3, AWTRobotUtil.testMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2, 
+                                                           buttonNorthOuter, buttonNorthOuterMA));
 
         // NEWT Focus
         Thread.sleep(100); // allow event sync
@@ -183,8 +195,13 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         Assert.assertEquals(0, buttonNorthOuterFA.getCount());
         Assert.assertEquals(0, jFrame1FA.getCount());
         System.err.println("FOCUS NEWT Canvas/GLWindow sync");
-        Assert.assertTrue(AWTRobotUtil.testKeyInput(robot, glWindow1KA));
+        Assert.assertEquals(2, AWTRobotUtil.testKeyType(robot, 2, glWindow1, glWindow1KA));
         Assert.assertEquals("AWT parent canvas received keyboard events", 0, newtCanvasAWTKA.getCount());
+        Assert.assertEquals(1, AWTRobotUtil.testMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1, 
+                                                           glWindow1, glWindow1MA));
+        Assert.assertEquals(3, AWTRobotUtil.testMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2, 
+                                                           glWindow1, glWindow1MA));
+        Assert.assertEquals("AWT parent canvas received mouse events", 0, newtCanvasAWTMA.getCount());
 
         // Button Inner Focus
         Thread.sleep(100); // allow event sync
@@ -195,7 +212,11 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         Assert.assertEquals(0, buttonNorthOuterFA.getCount());
         Assert.assertEquals(0, jFrame1FA.getCount());
         System.err.println("FOCUS AWT  Button sync");
-        Assert.assertTrue(AWTRobotUtil.testKeyInput(robot, buttonNorthInnerKA));
+        Assert.assertEquals(2, AWTRobotUtil.testKeyType(robot, 2, buttonNorthInner, buttonNorthInnerKA));
+        Assert.assertEquals(1, AWTRobotUtil.testMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1, 
+                                                           buttonNorthInner, buttonNorthInnerMA));
+        Assert.assertEquals(3, AWTRobotUtil.testMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2, 
+                                                           buttonNorthInner, buttonNorthInnerMA));
 
         // NEWT Focus
         Thread.sleep(100); // allow event sync
@@ -206,8 +227,14 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         Assert.assertEquals(0, buttonNorthOuterFA.getCount());
         Assert.assertEquals(0, jFrame1FA.getCount());
         System.err.println("FOCUS NEWT Canvas/GLWindow sync");
-        Assert.assertTrue(AWTRobotUtil.testKeyInput(robot, glWindow1KA));
+        Assert.assertEquals(2, AWTRobotUtil.testKeyType(robot, 2, glWindow1, glWindow1KA));
         Assert.assertEquals("AWT parent canvas received keyboard events", 0, newtCanvasAWTKA.getCount());
+        Assert.assertEquals(1, AWTRobotUtil.testMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1, 
+                                                           glWindow1, glWindow1MA));
+        Assert.assertEquals(3, AWTRobotUtil.testMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2, 
+                                                           glWindow1, glWindow1MA));
+        Assert.assertEquals("AWT parent canvas received mouse events", 0, newtCanvasAWTMA.getCount());
+
 
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());

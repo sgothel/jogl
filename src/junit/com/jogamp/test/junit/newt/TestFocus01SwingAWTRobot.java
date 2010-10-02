@@ -152,7 +152,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         Assert.assertEquals(0, glWindow1FA.getCount());
         Assert.assertEquals(0, newtCanvasAWTFA.getCount());
         System.err.println("FOCUS AWT  Button sync");
-        Assert.assertTrue(AWTRobotUtil.testKeyInput(robot, buttonKA));
+        Assert.assertEquals(2, AWTRobotUtil.testKeyType(robot, 2, button, buttonKA));
 
         // Request the AWT focus, which should automatically provide the NEWT window with focus.
         Thread.sleep(100); // allow event sync
@@ -161,7 +161,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         Assert.assertEquals(0, newtCanvasAWTFA.getCount());
         Assert.assertEquals(0, buttonFA.getCount());
         System.err.println("FOCUS NEWT Canvas/GLWindow sync");
-        Assert.assertTrue(AWTRobotUtil.testKeyInput(robot, glWindow1KA));
+        Assert.assertEquals(2, AWTRobotUtil.testKeyType(robot, 2, glWindow1, glWindow1KA));
         Assert.assertEquals("AWT parent canvas received keyboard events", 0, newtCanvasAWTKA.getCount());
 
         // Remove listeners to avoid logging during dispose/destroy.
