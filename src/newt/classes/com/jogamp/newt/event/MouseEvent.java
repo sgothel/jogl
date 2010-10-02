@@ -45,6 +45,10 @@ public class MouseEvent extends InputEvent
   public static final int BUTTON6 = 6;
   public static final int BUTTON_NUMBER = 6;
 
+  public static final int getClickTimeout() { 
+    return 300; 
+  }
+
  public MouseEvent(int eventType, Object source, long when,
                    int modifiers, int x, int y, int clickCount, int button,
                    int rotation)

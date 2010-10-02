@@ -1313,7 +1313,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private int  mouseButtonPressed = 0; // current pressed mouse button number
     private long lastMousePressed = 0; // last time when a mouse button was pressed
     private int  lastMouseClickCount = 0; // last mouse button click count
-    public  static final int ClickTimeout = 300;
 
     public void sendMouseEvent(int eventType, int modifiers,
                                int x, int y, int button, int rotation) {
@@ -1340,7 +1339,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         MouseEvent e = null;
 
         if(MouseEvent.EVENT_MOUSE_PRESSED==eventType) {
-            if(when-lastMousePressed<ClickTimeout) {
+            if(when-lastMousePressed<MouseEvent.getClickTimeout()) {
                 lastMouseClickCount++;
             } else {
                 lastMouseClickCount=1;
@@ -1352,7 +1351,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         } else if(MouseEvent.EVENT_MOUSE_RELEASED==eventType) {
             e = new MouseEvent(eventType, this, when,
                                modifiers, x, y, lastMouseClickCount, button, 0);
-            if(when-lastMousePressed<ClickTimeout) {
+            if(when-lastMousePressed<MouseEvent.getClickTimeout()) {
                 eClicked = new MouseEvent(MouseEvent.EVENT_MOUSE_CLICKED, this, when,
                                           modifiers, x, y, lastMouseClickCount, button, 0);
             } else {
