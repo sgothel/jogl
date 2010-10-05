@@ -1,35 +1,31 @@
-/*
- * Copyright (c) 2010 Sven Gothel. All Rights Reserved.
+/**
+ * Copyright 2010 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
  * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
  * 
- * - Redistribution of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
  * 
- * - Redistribution in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * Neither the name Sven Gothel or the names of
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
- * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
- * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
- * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
- * DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE
- * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
- * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
- * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
  */
-
+ 
 package com.jogamp.test.junit.newt.parenting;
 
 import java.lang.reflect.*;
@@ -64,7 +60,7 @@ import com.jogamp.test.junit.util.*;
 import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
-public class TestParenting02AWT {
+public class TestParenting02AWT extends UITestCase {
     static {
         GLProfile.initSingleton();
     }
@@ -117,7 +113,7 @@ public class TestParenting02AWT {
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
         Assert.assertNotNull(newtCanvasAWT);
         Assert.assertEquals(false, glWindow.isVisible());
-        Assert.assertEquals(false, glWindow.isNativeWindowValid());
+        Assert.assertEquals(false, glWindow.isNativeValid());
         Assert.assertNull(glWindow.getParentNativeWindow());
 
         Frame frame = new Frame("AWT Parent Frame");
@@ -158,9 +154,9 @@ public class TestParenting02AWT {
             Thread.yield();
             // 1st display .. creation
             glWindow.display();
-        } while(!glWindow.isNativeWindowValid()) ;
+        } while(!glWindow.isNativeValid()) ;
 
-        Assert.assertEquals(true, glWindow.isNativeWindowValid());
+        Assert.assertEquals(true, glWindow.isNativeValid());
         Assert.assertNotNull(glWindow.getParentNativeWindow());
         if(verbose) {
             System.out.println("+++++++++++++++++++ 1st ADDED");
@@ -171,7 +167,7 @@ public class TestParenting02AWT {
             // test some fancy re-layout ..
             frame.remove(newtCanvasAWT);
             Assert.assertEquals(false, glWindow.isVisible());
-            Assert.assertEquals(true, glWindow.isNativeWindowValid());
+            Assert.assertEquals(true, glWindow.isNativeValid());
             Assert.assertNull(glWindow.getParentNativeWindow());
             if(verbose) {
                 System.out.println("+++++++++++++++++++ REMOVED!");
@@ -182,7 +178,7 @@ public class TestParenting02AWT {
             frame.add(newtCanvasAWT, BorderLayout.CENTER);
             glWindow.display();
             Assert.assertEquals(true, glWindow.isVisible());
-            Assert.assertEquals(true, glWindow.isNativeWindowValid());
+            Assert.assertEquals(true, glWindow.isNativeValid());
             Assert.assertNotNull(glWindow.getParentNativeWindow());
             if(verbose) {
                 System.out.println("+++++++++++++++++++ 2nd ADDED");
@@ -230,7 +226,7 @@ public class TestParenting02AWT {
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        Window window = glWindow.getInnerWindow();
+        Window window = glWindow.getWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);

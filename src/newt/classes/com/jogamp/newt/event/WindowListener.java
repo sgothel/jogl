@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,10 +37,21 @@ package com.jogamp.newt.event;
 import com.jogamp.newt.*;
 
 public interface WindowListener extends NEWTEventListener {
+    /** Window is resized, your application shall respect the new window dimension. A repaint is recommended. */
     public void windowResized(WindowEvent e);
+
+    /** Window has been moved. */
     public void windowMoved(WindowEvent e);
+
+    /** Window will be destroyed. Release of resources is recommended. */
     public void windowDestroyNotify(WindowEvent e);
+
+    /** Window gained focus. */
     public void windowGainedFocus(WindowEvent e);
+
+    /** Window lost focus. */
     public void windowLostFocus(WindowEvent e);
+
+    /** Window area shall be repainted. */
     public void windowRepaint(WindowUpdateEvent e);
 }

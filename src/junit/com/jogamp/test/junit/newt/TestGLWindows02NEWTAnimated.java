@@ -1,35 +1,31 @@
-/*
- * Copyright (c) 2010 Sven Gothel. All Rights Reserved.
+/**
+ * Copyright 2010 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
  * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
  * 
- * - Redistribution of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
  * 
- * - Redistribution in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * Neither the name Sven Gothel or the names of
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
- * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
- * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
- * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
- * DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE
- * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
- * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
- * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
  */
-
+ 
 package com.jogamp.test.junit.newt;
 
 import java.lang.reflect.*;
@@ -53,10 +49,11 @@ import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
 import java.io.IOException;
 
+import com.jogamp.test.junit.util.UITestCase;
 import com.jogamp.test.junit.util.MiscUtils;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
-public class TestGLWindows02NEWTAnimated {
+public class TestGLWindows02NEWTAnimated extends UITestCase {
     static {
         GLProfile.initSingleton();
     }
@@ -82,24 +79,26 @@ public class TestGLWindows02NEWTAnimated {
         // 
         GLWindow glWindow;
         if(null!=screen) {
-            Window window = NewtFactory.createWindow(screen, caps, onscreen && undecorated);
+            Window window = NewtFactory.createWindow(screen, caps);
             Assert.assertNotNull(window);
             glWindow = GLWindow.create(window);
         } else {
-            glWindow = GLWindow.create(caps, onscreen && undecorated);
+            glWindow = GLWindow.create(caps);
         }
         Assert.assertNotNull(glWindow);
+        glWindow.setUndecorated(onscreen && undecorated);
+
         GLEventListener demo = new Gears();
         setDemoFields(demo, glWindow);
         glWindow.addGLEventListener(demo);
         glWindow.addWindowListener(new TraceWindowAdapter());
-        Assert.assertEquals(false,glWindow.isNativeWindowValid());
+        Assert.assertEquals(false,glWindow.isNativeValid());
 
         glWindow.setSize(width, height);
         Assert.assertEquals(false,glWindow.isVisible());
         glWindow.setVisible(true);
         Assert.assertEquals(true,glWindow.isVisible());
-        Assert.assertEquals(true,glWindow.isNativeWindowValid());
+        Assert.assertEquals(true,glWindow.isNativeValid());
         // Assert.assertEquals(width,glWindow.getWidth());
         // Assert.assertEquals(height,glWindow.getHeight());
         // System.out.println("Created: "+glWindow);
@@ -108,7 +107,7 @@ public class TestGLWindows02NEWTAnimated {
         // Create native OpenGL resources .. XGL/WGL/CGL .. 
         // equivalent to GLAutoDrawable methods: setVisible(true)
         // 
-        caps = (GLCapabilities) glWindow.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        caps = glWindow.getChosenGLCapabilities();
         Assert.assertNotNull(caps);
         Assert.assertTrue(caps.getGreenBits()>5);
         Assert.assertTrue(caps.getBlueBits()>5);
@@ -162,7 +161,7 @@ public class TestGLWindows02NEWTAnimated {
         Assert.assertNotNull(display1);
         Display display2 = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display2);
-        Assert.assertEquals(display1, display2); // must be equal: same thread - same display
+        Assert.assertNotSame(display1, display2);
 
         Screen screen1  = NewtFactory.createScreen(display1, 0); // screen 0
         Assert.assertNotNull(screen1);
@@ -194,7 +193,7 @@ public class TestGLWindows02NEWTAnimated {
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        if(!MiscUtils.setFieldIfExists(demo, "window", glWindow.getInnerWindow())) {
+        if(!MiscUtils.setFieldIfExists(demo, "window", glWindow)) {
             MiscUtils.setFieldIfExists(demo, "glWindow", glWindow);
         }
     }

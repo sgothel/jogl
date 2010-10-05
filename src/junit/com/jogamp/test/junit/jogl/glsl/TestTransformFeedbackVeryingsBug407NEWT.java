@@ -1,5 +1,7 @@
 package com.jogamp.test.junit.jogl.glsl;
 
+import com.jogamp.test.junit.util.UITestCase;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
@@ -12,6 +14,7 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,7 +30,7 @@ import java.io.IOException;
  * Bug 'Function glTransformFeedbackVaryings incorrectly passes argument'
  * http://jogamp.org/bugzilla/show_bug.cgi?id=407
  */
-public class TestTransformFeedbackVeryingsBug407NEWT {
+public class TestTransformFeedbackVeryingsBug407NEWT extends UITestCase {
 
     static {
         //NativeUtil.preloadNativeLibs(); // internal method
@@ -38,6 +41,11 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
 
     @Before
     public void setUp() {
+        if(!GLProfile.isGL3Available()) {
+            System.err.println("GL3 not available");
+            System.err.println(GLProfile.glAvailabilityToString());
+            return;
+        }
         VERTEX_SHADER_TEXT =
                   "#version 150                           \n"
                 + "                                       \n"
@@ -51,7 +59,13 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
         Window window;
         GLDrawable drawable;
 
-        GLProfile glp = GLProfile.get(GLProfile.GL3);
+        GLProfile glp = null;
+        try {
+            glp = GLProfile.get(GLProfile.GL3);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            Assume.assumeNoException(t);
+        }
         caps = new GLCapabilities(glp);
 
         caps.setOnscreen(true);
@@ -60,7 +74,8 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
         Display display = NewtFactory.createDisplay(null); // local display
         Screen screen = NewtFactory.createScreen(display, 0); // screen 0
 
-        window = NewtFactory.createWindow(screen, caps, true);
+        window = NewtFactory.createWindow(screen, caps);
+        window.setUndecorated(true);
         window.setSize(800, 600);
         window.setVisible(true);
 
@@ -74,7 +89,9 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
 
     @After
     public void tearDown() {
-        context.release();
+        if(null!=context) {
+            context.release();
+        }
     }
 
     private int getShader(GL3 gl, String text, int type) {
@@ -104,6 +121,9 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
 
     @Test
     public void testGlTransformFeedbackVaryings_WhenVarNameOK() {
+        if(!GLProfile.isGL3Available()) {
+            return;
+        }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream pbaos = new PrintStream(baos);
 
@@ -131,6 +151,9 @@ public class TestTransformFeedbackVeryingsBug407NEWT {
 
     @Test
     public void testGlTransformFeedbackVaryings_WhenVarNameWrong() {
+        if(!GLProfile.isGL3Available()) {
+            return;
+        }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream pbaos = new PrintStream(baos);
 

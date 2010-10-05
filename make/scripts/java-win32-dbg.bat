@@ -1,8 +1,8 @@
 
 set BLD_SUB=build-win32
-set J2RE_HOME=c:\jre1.6.0_20_x32
-set JAVA_HOME=c:\jdk1.6.0_20_x32
-set ANT_PATH=C:\apache-ant-1.8.0
+set J2RE_HOME=c:\jre1.6.0_21_x32
+set JAVA_HOME=c:\jdk1.6.0_21_x32
+set ANT_PATH=C:\apache-ant-1.8.1
 
 set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%PATH%
 

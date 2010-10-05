@@ -36,15 +36,16 @@ package com.jogamp.newt.impl.awt;
 import java.awt.event.*;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Window;
+import com.jogamp.newt.impl.DisplayImpl;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
 import java.util.*;
 
-public class AWTDisplay extends Display {
+public class AWTDisplay extends DisplayImpl {
     public AWTDisplay() {
     }
 
-    protected void createNative() {
+    protected void createNativeImpl() {
         aDevice = (AWTGraphicsDevice) AWTGraphicsDevice.createDevice(null); // default 
     }
 
@@ -52,9 +53,9 @@ public class AWTDisplay extends Display {
         aDevice = d;
     }
 
-    protected void closeNative() { }
+    protected void closeNativeImpl() { }
 
-    protected boolean getShallRunOnEDT() { 
+    protected boolean shallRunOnEDT() { 
         return false; 
     }
     protected void dispatchMessagesNative() { /* nop */ }

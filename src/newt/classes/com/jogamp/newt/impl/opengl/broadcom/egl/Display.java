@@ -38,7 +38,7 @@ import com.jogamp.opengl.impl.egl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 
-public class Display extends com.jogamp.newt.Display {
+public class Display extends com.jogamp.newt.impl.DisplayImpl {
 
     static {
         NEWTJNILibLoader.loadNEWT();
@@ -56,7 +56,7 @@ public class Display extends com.jogamp.newt.Display {
     public Display() {
     }
 
-    protected void createNative() {
+    protected void createNativeImpl() {
         long handle = CreateDisplay(Screen.fixedWidth, Screen.fixedHeight);
         if (handle == EGL.EGL_NO_DISPLAY) {
             throw new NativeWindowException("BC EGL CreateDisplay failed");
@@ -64,7 +64,7 @@ public class Display extends com.jogamp.newt.Display {
         aDevice = new EGLGraphicsDevice(handle);
     }
 
-    protected void closeNative() {
+    protected void closeNativeImpl() {
         if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
             DestroyDisplay(aDevice.getHandle());
         }

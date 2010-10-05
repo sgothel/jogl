@@ -36,7 +36,7 @@ package com.jogamp.newt.impl.intel.gdl;
 import com.jogamp.newt.impl.*;
 import javax.media.nativewindow.*;
 
-public class Display extends com.jogamp.newt.Display {
+public class Display extends com.jogamp.newt.impl.DisplayImpl {
     static int initCounter = 0;
 
     static {
@@ -58,7 +58,7 @@ public class Display extends com.jogamp.newt.Display {
     public Display() {
     }
 
-    protected void createNative() {
+    protected void createNativeImpl() {
         synchronized(Display.class) {
             if(0==initCounter) {
                 displayHandle = CreateDisplay();
@@ -71,7 +71,7 @@ public class Display extends com.jogamp.newt.Display {
         aDevice = new DefaultGraphicsDevice(NativeWindowFactory.TYPE_DEFAULT, displayHandle);
     }
 
-    protected void closeNative() {
+    protected void closeNativeImpl() {
         if(0==displayHandle) {
             throw new NativeWindowException("displayHandle null; initCnt "+initCounter);
         }

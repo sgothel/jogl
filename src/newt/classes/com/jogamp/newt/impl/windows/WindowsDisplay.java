@@ -38,7 +38,7 @@ import javax.media.nativewindow.windows.*;
 import com.jogamp.newt.*;
 import com.jogamp.newt.impl.*;
 
-public class WindowsDisplay extends Display {
+public class WindowsDisplay extends DisplayImpl {
 
     protected static final String WINDOW_CLASS_NAME = "NewtWindowClass";
     private static int windowClassAtom;
@@ -60,11 +60,11 @@ public class WindowsDisplay extends Display {
     public WindowsDisplay() {
     }
 
-    protected void createNative() {
+    protected void createNativeImpl() {
         aDevice = new WindowsGraphicsDevice();
     }
 
-    protected void closeNative() { 
+    protected void closeNativeImpl() { 
         // Can't do .. only at application shutdown 
         // UnregisterWindowClass0(getWindowClassAtom(), getHInstance());
     }

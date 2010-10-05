@@ -34,9 +34,10 @@
 package com.jogamp.newt.impl.x11;
 
 import com.jogamp.newt.*;
+import com.jogamp.newt.impl.ScreenImpl;
 import javax.media.nativewindow.x11.*;
 
-public class X11Screen extends Screen {
+public class X11Screen extends ScreenImpl {
 
     static {
         X11Display.initSingleton();
@@ -46,17 +47,17 @@ public class X11Screen extends Screen {
     public X11Screen() {
     }
 
-    protected void createNative(int index) {
-        long handle = GetScreen0(display.getHandle(), index);
+    protected void createNativeImpl() {
+        long handle = GetScreen0(display.getHandle(), idx);
         if (handle == 0 ) {
-            throw new RuntimeException("Error creating screen: "+index);
+            throw new RuntimeException("Error creating screen: "+idx);
         }
-        aScreen = new X11GraphicsScreen((X11GraphicsDevice)getDisplay().getGraphicsDevice(), index);
-        setScreenSize(getWidth0(display.getHandle(), index),
-                      getHeight0(display.getHandle(), index));
+        aScreen = new X11GraphicsScreen((X11GraphicsDevice)getDisplay().getGraphicsDevice(), idx);
+        setScreenSize(getWidth0(display.getHandle(), idx),
+                      getHeight0(display.getHandle(), idx));
     }
 
-    protected void closeNative() { }
+    protected void closeNativeImpl() { }
 
     //----------------------------------------------------------------------
     // Internals only

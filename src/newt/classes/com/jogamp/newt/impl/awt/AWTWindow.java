@@ -50,6 +50,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.*;
 import com.jogamp.newt.Window;
+import com.jogamp.newt.impl.WindowImpl;
 import java.awt.Insets;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
@@ -58,7 +59,7 @@ import javax.media.nativewindow.awt.*;
     AWT. This is provided for convenience of porting to platforms
     supporting Java SE. */
 
-public class AWTWindow extends Window {
+public class AWTWindow extends WindowImpl {
 
     public AWTWindow() {
         this(null);
@@ -84,7 +85,7 @@ public class AWTWindow extends Window {
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
 
-    protected void requestFocusImpl() {
+    protected void requestFocusImpl(boolean reparented) {
         runOnEDT(true, new Runnable() {
                 public void run() {
                     container.requestFocus();
@@ -104,7 +105,7 @@ public class AWTWindow extends Window {
 
     protected void createNativeImpl() {
 
-        if(0!=parentWindowHandle) {
+        if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported in AWT, use AWTWindow(Frame) cstr for wrapping instead");
         }
 
@@ -145,11 +146,11 @@ public class AWTWindow extends Window {
                     }
                 }
             });
-        this.windowHandle = 1; // just a marker ..
+        setWindowHandle(1); // just a marker ..
     }
 
-    protected void closeNative() {
-        this.windowHandle = 0; // just a marker ..
+    protected void closeNativeImpl() {
+        setWindowHandle(0); // just a marker ..
         if(null!=container) {
             runOnEDT(true, new Runnable() {
                     public void run() {
@@ -207,7 +208,7 @@ public class AWTWindow extends Window {
         DisplayMode mode = ((AWTGraphicsDevice)config.getScreen().getDevice()).getGraphicsDevice().getDisplayMode();
         int w = mode.getWidth();
         int h = mode.getHeight();
-        ((AWTScreen)screen).setScreenSize(w, h);
+        ((AWTScreen)getScreen()).setScreenSize(w, h);
     }
 
     protected void setSizeImpl(final int width, final int height) {
@@ -248,7 +249,7 @@ public class AWTWindow extends Window {
         }
     }
 
-    protected void setFullscreenImpl(final boolean fullscreen, final int x, final int y, final int w, final int h) {
+    protected void reconfigureWindowImpl(final int x, final int y, final int width, final int height) {
         /** An AWT event on setSize() would bring us in a deadlock situation, hence invokeLater() */
         runOnEDT(false, new Runnable() {
                 public void run() {
@@ -262,7 +263,7 @@ public class AWTWindow extends Window {
                         }
                     }
                     container.setLocation(x, y);
-                    container.setSize(w, h);
+                    container.setSize(width, height);
                 }
             });
     }
@@ -272,7 +273,7 @@ public class AWTWindow extends Window {
     }
 
     private void runOnEDT(boolean wait, Runnable r) {
-        EDTUtil edtUtil = screen.getDisplay().getEDTUtil();
+        EDTUtil edtUtil = getScreen().getDisplay().getEDTUtil();
         if ( ( null != edtUtil && edtUtil.isCurrentThreadEDT() ) || EventQueue.isDispatchThread() ) {
             r.run();
         } else {

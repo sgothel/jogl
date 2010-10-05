@@ -42,7 +42,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.nativewindow.NativeWindowException;
 
-public class KDWindow extends Window {
+public class KDWindow extends WindowImpl {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
@@ -55,7 +55,7 @@ public class KDWindow extends Window {
     }
 
     protected void createNativeImpl() {
-        if(0!=parentWindowHandle) {
+        if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
         config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
@@ -71,14 +71,14 @@ public class KDWindow extends Window {
             throw new NativeWindowException("Error creating egl window: "+config);
         }
         setVisible0(eglWindowHandle, false);
-        windowHandle = RealizeWindow(eglWindowHandle);
-        if (0 == windowHandle) {
+        setWindowHandle(RealizeWindow(eglWindowHandle));
+        if (0 == getWindowHandle()) {
             throw new NativeWindowException("Error native Window Handle is null");
         }
         windowHandleClose = eglWindowHandle;
     }
 
-    protected void closeNative() {
+    protected void closeNativeImpl() {
         if(0!=windowHandleClose) {
             CloseWindow(windowHandleClose, windowUserData);
             windowUserData=0;
@@ -88,6 +88,8 @@ public class KDWindow extends Window {
     protected void setVisibleImpl(boolean visible) {
         setVisible0(eglWindowHandle, visible);
     }
+
+    protected void requestFocusImpl(boolean reparented) { }
 
     protected void setSizeImpl(int width, int height) {
         if(0!=eglWindowHandle) {
@@ -100,11 +102,11 @@ public class KDWindow extends Window {
         System.err.println("setPosition n/a in KD");
     }
 
-    protected void setFullscreenImpl(final boolean fullscreen, final int x, final int y, final int w, final int h) {
+    protected void reconfigureWindowImpl(int x, int y, int width, int height) {
         if(0!=eglWindowHandle) {
             setFullScreen0(eglWindowHandle, fullscreen);
             if(!fullscreen) {
-                setSize0(eglWindowHandle, w, h);
+                setSize0(eglWindowHandle, width, height);
             }
         }
     }
@@ -127,7 +129,7 @@ public class KDWindow extends Window {
 
     protected void sizeChanged(int newWidth, int newHeight) {
         if(fullscreen) {
-            ((KDScreen)screen).setScreenSize(width, height);
+            ((KDScreen)getScreen()).setScreenSize(width, height);
         }
         super.sizeChanged(newWidth, newHeight);
     }

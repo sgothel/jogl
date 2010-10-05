@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -35,410 +36,327 @@ package com.jogamp.newt.opengl;
 
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
-import com.jogamp.newt.util.*;
-import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
+import com.jogamp.newt.util.Insets;
+import com.jogamp.newt.impl.WindowImpl;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.GLDrawableHelper;
-import java.util.*;
 
 /**
- * An implementation of {@link Window} which is customized for OpenGL
- * use, and which implements the {@link javax.media.opengl.GLAutoDrawable} interface.
+ * An implementation of {@link javax.media.opengl.GLAutoDrawable} interface,
+ * using an aggregation of a {@link com.jogamp.newt.Window} implementation.
  * <P>
  * This implementation does not make the OpenGL context current<br>
- * before calling the various input EventListener callbacks (MouseListener, KeyListener,
- * etc.).<br>
- * This design decision is made to favor a more performant and simplified
- * implementation, as well as the event dispatcher shall be allowed
- * not having a notion about OpenGL.
+ * before calling the various input EventListener callbacks, ie {@link com.jogamp.newt.event.MouseListener} etc.<br>
+ * This design decision is made in favor of a more performant and simplified
+ * implementation. Also the event dispatcher shall be implemented OpenGL agnostic.<br>
+ * To be able to use OpenGL commands from within such input {@link com.jogamp.newt.event.NEWTEventListener},<br>
+ * you can inject {@link javax.media.opengl.GLRunnable} objects
+ * via {@link #invoke(boolean, javax.media.opengl.GLRunnable)} to the OpenGL command stream.<br>
  * <p>
  */
-public class GLWindow extends Window implements GLAutoDrawable {
-    private Window window;
+public class GLWindow implements GLAutoDrawable, Window {
+    private WindowImpl window;
 
     /**
      * Constructor. Do not call this directly -- use {@link #create()} instead.
      */
     protected GLWindow(Window window) {
-        this.startTime = System.currentTimeMillis();
-        this.window = window;
-        this.window.setHandleDestroyNotify(false);
+        resetPerfCounter();
+        this.window = (WindowImpl) window;
+        ((WindowImpl)this.window).setHandleDestroyNotify(false);
         window.addWindowListener(new WindowAdapter() {
                 public void windowRepaint(WindowUpdateEvent e) {
-                    if( !windowIsLocked() && null == getAnimator() ) {
+                    if( !GLWindow.this.window.isSurfaceLockedByOtherThread() && !GLWindow.this.helper.isExternalAnimatorAnimating() ) {
                         display();
                     }
                 }
 
                 public void windowResized(WindowEvent e) {
                     sendReshape = true;
-                    if( !windowIsLocked() && null == getAnimator() ) {
+                    if( !GLWindow.this.window.isSurfaceLockedByOtherThread() && !GLWindow.this.helper.isExternalAnimatorAnimating() ) {
                         display();
                     }
                 }
 
                 public void windowDestroyNotify(WindowEvent e) {
-                    if( !windowIsLocked() && null == getAnimator() ) {
+                    if( !GLWindow.this.window.isSurfaceLockedByOtherThread() && !GLWindow.this.helper.isExternalAnimatorAnimating() ) {
                         destroy();
                     } else {
-			sendDestroy = true;
-	 	    }
+                        sendDestroy = true;
+                    }
                 }
             });
+        this.window.setLifecycleHook(new GLLifecycleHook());
     }
 
-    /** Creates a new GLWindow attaching the given window - not owning the Window. */
-    public static GLWindow create(Window window) {
-        return create(null, window, null, false);
-    }
-
-    /** Creates a new GLWindow attaching a new native child Window of the given <code>parentNativeWindow</code>
-        with the given GLCapabilities - owning the Window */
-    public static GLWindow create(NativeWindow parentNativeWindow, GLCapabilities caps) {
-        return create(parentNativeWindow, null, caps, false);
-    }
-
-    /** Creates a new GLWindow attaching a new decorated Window on the local display, screen 0, with a
-        dummy visual ID and given GLCapabilities - owning the window */
+    /**
+     * Creates a new GLWindow attaching a new Window referencing a new Screen
+     * with the given GLCapabilities.
+     * <P>
+     * The resulting GLWindow owns the Window, Screen and Device, ie it will be destructed.
+     */
     public static GLWindow create(GLCapabilities caps) {
-        return create(null, null, caps, false);
+        return new GLWindow(NewtFactory.createWindow(caps));
     }
 
-    /** Creates a new GLWindow attaching a new Window on the local display, screen 0, with a
-        dummy visual ID and given GLCapabilities - owning the window */
-    public static GLWindow create(GLCapabilities caps, boolean undecorated) {
-        return create(null, null, caps, undecorated);
-    }
-
-    /** Either or: window (prio), or caps and undecorated (2nd choice) */
-    private static GLWindow create(NativeWindow parentNativeWindow, Window window, 
-                                   GLCapabilities caps,
-                                   boolean undecorated) {
-        if (window == null) {
-            if (caps == null) {
-                caps = new GLCapabilities(null); // default ..
-            }
-            window = NewtFactory.createWindow(parentNativeWindow, caps, undecorated);
-        }
-
-        return new GLWindow(window);
-    }
-    
-    public boolean isNativeWindowValid() {
-        return (null!=window)?window.isNativeWindowValid():false;
-    }
-
-    public boolean isDestroyed() {
-        return (null!=window)?window.isDestroyed():true;
-    }
-
-    public final Window getInnerWindow() {
-        return window.getInnerWindow();
-    }
-
-    public final Object getWrappedWindow() {
-        return window.getWrappedWindow();
-    }
-
-    protected void createNativeImpl() {
-        shouldNotCallThis();
-    }
-
-    protected void closeNative() {
-        shouldNotCallThis();
-    }
-
-    class DisposeAction implements Runnable {
-        public void run() {
-            // Lock: Covered by DestroyAction ..
-            helper.dispose(GLWindow.this);
-        }
-    }
-    private DisposeAction disposeAction = new DisposeAction();
-
-    class DestroyAction implements Runnable {
-        boolean deep;
-        public DestroyAction(boolean deep) {
-            this.deep = deep;
-        }
-        public void run() {
-            // Lock: Have to cover whole workflow (dispose all, context, drawable and window)
-            windowLock();
-            try {
-	        if( isDestroyed() ) {
-                    return; // nop
-                }
-                if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-                    Exception e1 = new Exception("GLWindow.destroy("+deep+") "+Thread.currentThread()+", start: "+GLWindow.this);
-                    e1.printStackTrace();
-                }
-
-                if( window.isNativeWindowValid() && null != drawable && drawable.isRealized() ) {
-                    if( null != context && context.isCreated() ) {
-                        // Catch dispose GLExceptions by GLEventListener, just 'print' them
-                        // so we can continue with the destruction.
-                        try {
-                            helper.invokeGL(drawable, context, disposeAction, null);
-                        } catch (GLException gle) {
-                            gle.printStackTrace();
-                        }
-
-                        context.destroy();
-                        context = null;
-                    }
-
-                    drawable.setRealized(false);
-                    drawable = null;
-                }
-
-                if(null!=window) {
-                    window.destroy(deep);
-                }
-
-                if(deep) {
-                    helper=null;
-                }
-                if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-                    System.out.println("GLWindow.destroy("+deep+") "+Thread.currentThread()+", fin: "+GLWindow.this);
-                }
-            } finally {
-                windowUnlock();
-            }
-        }
+    /**
+     * Creates a new GLWindow attaching a new Window referencing the given Screen
+     * with the given GLCapabilities.
+     * <P>
+     * The resulting GLWindow owns the Window, ie it will be destructed.
+     */
+    public static GLWindow create(Screen screen, GLCapabilities caps) {
+        return new GLWindow(NewtFactory.createWindow(screen, caps));
     }
 
     /** 
-     * @param deep If true, all resources, ie listeners, parent handles, size, position 
-     * and the referenced NEWT screen and display, will be destroyed as well. Be aware that if you call
-     * this method with deep = true, you will not be able to regenerate the Window.
-     * @see #destroy()
+     * Creates a new GLWindow attaching the given window.
+     * <P>
+     * The resulting GLWindow does not own the given Window, ie it will not be destructed. 
      */
-    public void destroy(boolean deep) {
-	if( !isDestroyed() ) {
-            runOnEDTIfAvail(true, new DestroyAction(deep));
+    public static GLWindow create(Window window) {
+        return new GLWindow(window);
+    }
+
+    /** 
+     * Creates a new GLWindow attaching a new child Window 
+     * of the given <code>parentNativeWindow</code> with the given GLCapabilities.
+     * <P>
+     * The Display/Screen will be compatible with the <code>parentNativeWindow</code>,
+     * or even identical in case it's a Newt Window.
+     * <P>
+     * The resulting GLWindow owns the Window, ie it will be destructed. 
+     */
+    public static GLWindow create(NativeWindow parentNativeWindow, GLCapabilities caps) {
+        return new GLWindow(NewtFactory.createWindow(parentNativeWindow, caps));
+    }
+
+    //----------------------------------------------------------------------
+    // Window Access
+    //
+
+    public final Capabilities getChosenCapabilities() {
+        if (drawable == null) {
+            return window.getChosenCapabilities();
         }
+
+        return drawable.getChosenGLCapabilities();
     }
 
-    public boolean getPerfLogEnabled() { return perfLog; }
-
-    public void enablePerfLog(boolean v) {
-        perfLog = v;
-    }
-
-    protected void setVisibleImpl(boolean visible) {
-        shouldNotCallThis();
-    }
-
-    public void reparentWindow(NativeWindow newParent, Screen newScreen) {
-        window.reparentWindow(newParent, newScreen);
-    }
-
-    class VisibleAction implements Runnable {
-        boolean visible;
-        public VisibleAction(boolean visible) {
-            this.visible = visible;
-        }
-        public void run() {
-            // Lock: Have to cover whole workflow (window, may do nativeCreation, drawable and context)
-            windowLock();
-            try{
-                window.setVisible(visible);
-                if (null == context && visible && 0 != window.getWindowHandle() && 0<getWidth()*getHeight()) {
-                    NativeWindow nw;
-                    if (getWrappedWindow() != null) {
-                        nw = NativeWindowFactory.getNativeWindow(getWrappedWindow(), window.getGraphicsConfiguration());
-                    } else {
-                        nw = window;
-                    }
-                    GLCapabilities glCaps = (GLCapabilities) nw.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
-                    if(null==factory) {
-                        factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
-                    }
-                    if(null==drawable) {
-                        drawable = factory.createGLDrawable(nw);
-                    }    
-                    drawable.setRealized(true);
-                    context = drawable.createContext(null);
-                    sendReshape = true; // ensure a reshape event is send ..
-                }
-            } finally {
-                windowUnlock();
-            }
-        }
-    }
-
-    public void setVisible(boolean visible) {
-        if(!isDestroyed()) {
-            runOnEDTIfAvail(true, new VisibleAction(visible));
-        }
-    }
-
-    public Capabilities getRequestedCapabilities() {
+    public final Capabilities getRequestedCapabilities() {
         return window.getRequestedCapabilities();
     }
 
-    public NativeWindow getParentNativeWindow() {
+    public final Window getWindow() {
+        return window;
+    }
+
+    public final NativeWindow getParentNativeWindow() {
         return window.getParentNativeWindow();
     }
 
-    public Screen getScreen() {
+    public final Screen getScreen() {
         return window.getScreen();
     }
 
-    public void setTitle(String title) {
+    public final void setTitle(String title) {
         window.setTitle(title);
     }
 
-    public String getTitle() {
+    public final String getTitle() {
         return window.getTitle();
     }
 
-    public void setUndecorated(boolean value) {
+    public final void setUndecorated(boolean value) {
         window.setUndecorated(value);
     }
 
-    public boolean isUndecorated() {
+    public final boolean isUndecorated() {
         return window.isUndecorated();
     }
 
-    public void requestFocus() {
-        window.requestFocus();
-    }
-    public void setFocusAction(FocusRunnable focusAction) {
+    public final void setFocusAction(FocusRunnable focusAction) {
         window.setFocusAction(focusAction);
     }
+    
+    public final void requestFocus() {
+        window.requestFocus();
+    }
 
-    public Insets getInsets() {
+    public boolean hasFocus() {
+        return window.hasFocus();
+    }
+
+    public final Insets getInsets() {
         return window.getInsets();
     }
 
-    public void setSize(int width, int height) {
-        window.setSize(width, height);
-    }
-    protected void setSizeImpl(int width, int height) {
-        shouldNotCallThis();
-    }
-
-    public void setPosition(int x, int y) {
+    public final void setPosition(int x, int y) {
         window.setPosition(x, y);
     }
-    protected void setPositionImpl(int x, int y) {
-        shouldNotCallThis();
-    }
 
-    public boolean setFullscreen(boolean fullscreen) {
+    public final boolean setFullscreen(boolean fullscreen) {
         return window.setFullscreen(fullscreen);
     }
-    protected void setFullscreenImpl(boolean fullscreen, int x, int y, int w, int h) {
-        shouldNotCallThis();
-    }
 
-    public boolean isVisible() {
-        return window.isVisible();
-    }
-
-    public int getX() {
-        return window.getX();
-    }
-
-    public int getY() {
-        return window.getY();
-    }
-
-    public int getWidth() {
-        return window.getWidth();
-    }
-
-    public int getHeight() {
-        return window.getHeight();
-    }
-
-    public boolean isFullscreen() {
+    public final boolean isFullscreen() {
         return window.isFullscreen();
     }
 
-    public void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
-        window.enqueueEvent(wait, event);
-    }
-    public boolean consumeEvent(NEWTEvent e) {
-        return window.consumeEvent(e);
+    public final boolean isVisible() {
+        return window.isVisible();
     }
 
-    public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) {
-        window.addSurfaceUpdatedListener(index, l);
-    }
-    public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
-        window.removeSurfaceUpdatedListener(l);
-    }
-    public void removeAllSurfaceUpdatedListener() {
-        window.removeAllSurfaceUpdatedListener();
-    }
-    public SurfaceUpdatedListener getSurfaceUpdatedListener(int index) {
-        return window.getSurfaceUpdatedListener(index);
-    }
-    public SurfaceUpdatedListener[] getSurfaceUpdatedListeners() {
-        return window.getSurfaceUpdatedListeners();
-    }
-    public void surfaceUpdated(Object updater, NativeWindow window0, long when) { 
-        window.surfaceUpdated(updater, window, when);
+    public final String toString() {
+        return "NEWT-GLWindow[ \n\tHelper: " + helper + ", \n\tDrawable: " + drawable + 
+               ", \n\tContext: " + context + /** ", \n\tWindow: "+window+", \n\tFactory: "+factory+ */ "]";
     }
 
-    public void addMouseListener(int index, MouseListener l) {
-        window.addMouseListener(index, l);
-    }
-    public void removeMouseListener(MouseListener l) {
-        window.removeMouseListener(l);
-    }
-    public MouseListener getMouseListener(int index) {
-        return window.getMouseListener(index);
-    }
-    public MouseListener[] getMouseListeners() {
-        return window.getMouseListeners();
+    public final int reparentWindow(NativeWindow newParent) {
+        return window.reparentWindow(newParent);
     }
 
-    public void addKeyListener(int index, KeyListener l) {
-        window.addKeyListener(index, l);
-    }
-    public void removeKeyListener(KeyListener l) {
-        window.removeKeyListener(l);
-    }
-    public KeyListener getKeyListener(int index) {
-        return window.getKeyListener(index);
-    }
-    public KeyListener[] getKeyListeners() {
-        return window.getKeyListeners();
+    public final int reparentWindow(NativeWindow newParent, boolean forceDestroyCreate) {
+        return window.reparentWindow(newParent, forceDestroyCreate);
     }
 
-    public void sendWindowEvent(int eventType) {
-        window.sendWindowEvent(eventType);
-    }
-    public void enqueueWindowEvent(boolean wait, int eventType) {
-        window.enqueueWindowEvent(wait, eventType);
-    }
-    public void addWindowListener(int index, WindowListener l) {
-        window.addWindowListener(index, l);
-    }
-    public void removeWindowListener(WindowListener l) {
-        window.removeWindowListener(l);
-    }
-    public WindowListener getWindowListener(int index) {
-        return window.getWindowListener(index);
-    }
-    public WindowListener[] getWindowListeners() {
-        return window.getWindowListeners();
-    }
-    public void setPropagateRepaint(boolean v) {
-        window.setPropagateRepaint(v);
-    }
-    public void windowRepaint(int x, int y, int width, int height) {
-        window.windowRepaint(x, y, width, height);
+    public final void removeChild(NativeWindow win) {
+        window.removeChild(win);
     }
 
-    public String toString() {
-        return "NEWT-GLWindow[ \n\tHelper: "+helper+", \n\tDrawable: "+drawable + /** ", \n\tWindow: "+window+", \n\tFactory: "+factory+ */ "]";
+    public final void addChild(NativeWindow win) {
+        window.addChild(win);
     }
 
+    //----------------------------------------------------------------------
+    // Window.LifecycleHook Implementation
+    //
+
+    public final void destroy(boolean unrecoverable) {
+        window.destroy(unrecoverable);
+    }
+
+    public final void setVisible(boolean visible) {
+        window.setVisible(visible);
+    }
+
+    public final void setSize(int width, int height) {
+        window.setSize(width, height);
+    }
+
+    public final boolean isValid() {
+        return window.isValid();
+    }
+
+    public final boolean isNativeValid() {
+        return window.isNativeValid();
+    }
+
+    // Hide methods here ..
+    protected class GLLifecycleHook implements WindowImpl.LifecycleHook {
+
+        class DisposeAction implements Runnable {
+            public void run() {
+                // Lock: Covered by DestroyAction ..
+                helper.dispose(GLWindow.this);
+            }
+        }
+        DisposeAction disposeAction = new DisposeAction();
+
+        /** Window.LifecycleHook */
+        public synchronized void destroyAction(boolean unrecoverable) {
+            if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
+                String msg = new String("GLWindow.destroy("+unrecoverable+") "+Thread.currentThread()+", start");
+                System.err.println(msg);
+                //Exception e1 = new Exception(msg);
+                //e1.printStackTrace();
+            }
+
+            if( window.isNativeValid() && null != drawable && drawable.isRealized() ) {
+                if( null != context && context.isCreated() ) {
+                    // Catch dispose GLExceptions by GLEventListener, just 'print' them
+                    // so we can continue with the destruction.
+                    try {
+                        helper.invokeGL(drawable, context, disposeAction, null);
+                    } catch (GLException gle) {
+                        gle.printStackTrace();
+                    }
+                    context.destroy();
+                }
+                drawable.setRealized(false);
+            }
+            context = null;
+            drawable = null;
+
+            if(unrecoverable) {
+                helper=null;
+            }
+
+            if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
+                System.err.println("GLWindow.destroy("+unrecoverable+") "+Thread.currentThread()+", fin");
+            }
+        }
+
+        /** Window.LifecycleHook */
+        public synchronized void setVisibleAction(boolean visible, boolean nativeWindowCreated) {
+            if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
+                String msg = new String("GLWindow.setVisibleAction("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", start");
+                System.err.println(msg);
+                // Exception e1 = new Exception(msg);
+                // e1.printStackTrace();
+            }
+
+            /* if (nativeWindowCreated && null != context) {
+                throw new GLException("InternalError: Native Windows has been just created, but context wasn't destroyed (is not null)");
+            } */
+            if (null == context && visible && 0 != window.getWindowHandle() && 0<getWidth()*getHeight()) {
+                NativeWindow nw;
+                if (window.getWrappedWindow() != null) {
+                    nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow(), window.getGraphicsConfiguration());
+                } else {
+                    nw = window;
+                }
+                GLCapabilities glCaps = (GLCapabilities) nw.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+                if(null==factory) {
+                    factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
+                }
+                if(null==drawable) {
+                    drawable = factory.createGLDrawable(nw);
+                }
+                drawable.setRealized(true);
+                context = drawable.createContext(null);
+                resetPerfCounter();
+            } else if(!visible) {
+                resetPerfCounter();
+            }
+            if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
+                String msg = new String("GLWindow.setVisibleAction("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", fin");
+                System.err.println(msg);
+                //Exception e1 = new Exception(msg);
+                //e1.printStackTrace();
+            }
+        }
+
+        boolean animatorPaused = false;
+
+        public synchronized void reparentActionPre() {
+            GLAnimatorControl ctrl = GLWindow.this.getAnimator();
+            if ( null!=ctrl && ctrl.isAnimating() && ctrl.getThread() != Thread.currentThread() ) {
+                animatorPaused = true;
+                ctrl.pause();
+            }
+        }
+
+        public synchronized void reparentActionPost(int reparentActionType) {
+            resetPerfCounter();
+            GLAnimatorControl ctrl = GLWindow.this.getAnimator();
+            if ( null!=ctrl && animatorPaused ) {
+                animatorPaused = false;
+                ctrl.resume();
+            }
+        }
+    }
     //----------------------------------------------------------------------
     // OpenGL-related methods and state
     //
@@ -451,6 +369,16 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private boolean sendReshape=false;
     private boolean sendDestroy=false;
     private boolean perfLog = false;
+    private long startTime, curTime, lastCheck;
+    private int  totalFrames, lastFrames;
+
+    /** Reset all performance counter (startTime, currentTime, frame number) */
+    public void resetPerfCounter() {
+        startTime = System.currentTimeMillis(); // overwrite startTime to real init one
+        curTime   = startTime;
+        lastCheck  = startTime;
+        totalFrames = 0; lastFrames = 0;
+    }
 
     public GLDrawableFactory getFactory() {
         return factory;
@@ -491,13 +419,18 @@ public class GLWindow extends Window implements GLAutoDrawable {
         helper.removeGLEventListener(listener);
     }
 
-    public void setAnimator(Thread animator) {
-        helper.setAnimator(animator);
-        window.setPropagateRepaint(null==animator);
+    public void setAnimator(GLAnimatorControl animatorControl) {
+        helper.setAnimator(animatorControl);
     }
 
-    public Thread getAnimator() {
+    public GLAnimatorControl getAnimator() {
         return helper.getAnimator();
+    }
+
+    public boolean getPerfLogEnabled() { return perfLog; }
+
+    public void enablePerfLog(boolean v) {
+        perfLog = v;
     }
 
     public void invoke(boolean wait, GLRunnable glRunnable) {
@@ -512,25 +445,25 @@ public class GLWindow extends Window implements GLAutoDrawable {
         if( null == window ) { return; }
 
         if(sendDestroy || ( null!=window && window.hasDeviceChanged() && GLAutoDrawable.SCREEN_CHANGE_ACTION_ENABLED ) ) {
-	  sendDestroy=false;
-	  destroy();
-          return;
-	}
+            sendDestroy=false;
+            destroy();
+            return;
+        }
 
         if( null == context && window.isVisible() ) {
             // retry native window and drawable/context creation 
             setVisible(true);
         }
 
-        if( window.isVisible() && window.isNativeWindowValid() && null != context ) {
+        if( isVisible() && isNativeValid() && null != context ) {
             if(forceReshape) {
                 sendReshape = true;
             }
-            windowLock();
+            lockSurface();
             try{
                 helper.invokeGL(drawable, context, displayAction, initAction);
             } finally {
-                windowUnlock();
+                unlockSurface();
             }
         }
     }
@@ -561,12 +494,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         public void run() {
             // Lock: Locked Surface/Window by MakeCurrent/Release
             helper.init(GLWindow.this);
-            startTime = System.currentTimeMillis(); // overwrite startTime to real init one
-            curTime   = startTime;
-            if(perfLog) {
-                lastCheck  = startTime;
-                totalFrames = 0; lastFrames = 0;
-            }
+            resetPerfCounter();
         }
     }
     private InitAction initAction = new InitAction();
@@ -590,7 +518,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
                 dt0 = curTime-lastCheck;
                 if ( dt0 > 5000 ) {
                     dt1 = curTime-startTime;
-                    System.out.println(dt0/1000 +"s: "+ lastFrames + "f, " + (lastFrames*1000)/dt0 + " fps, "+dt0/lastFrames+" ms/f; "+
+                    System.err.println(dt0/1000 +"s: "+ lastFrames + "f, " + (lastFrames*1000)/dt0 + " fps, "+dt0/lastFrames+" ms/f; "+
                                        "total: "+ dt1/1000+"s, "+(totalFrames*1000)/dt1 + " fps, "+dt1/totalFrames+" ms/f");
                     lastCheck=curTime;
                     lastFrames=0;
@@ -600,15 +528,69 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
     private DisplayAction displayAction = new DisplayAction();
 
-    public long getStartTime()   { return startTime; }
-    public long getCurrentTime() { curTime = System.currentTimeMillis(); return curTime; }
-    public long getDuration()    { return getCurrentTime()-startTime; }
-    public int  getTotalFrames() { return totalFrames; }
+    /** 
+     * @return Time of the first display call in milliseconds.
+     *         This value is reset if becoming visible again or reparenting.
+     *         In case an animator is used, 
+     *         the corresponding {@link javax.media.opengl.GLAnimatorControl} value is returned.
+     *
+     * @see javax.media.opengl.GLAnimatorControl#getStartTime()
+     */
+    public final long getStartTime()   { 
+        GLAnimatorControl animator = getAnimator();
+        if ( null == animator || null == animator.getThread() ) {
+            // no animator, or not started -> use local time
+            return startTime; 
+        } else {
+            return animator.getStartTime();
+        }
+    }
 
-    private long startTime = 0;
-    private long curTime = 0;
-    private long lastCheck  = 0;
-    private int  totalFrames = 0, lastFrames = 0;
+    /** 
+     * @return Time of the last display call in milliseconds.
+     *         This value is reset if becoming visible again or reparenting.
+     *         In case an animator is used, 
+     *         the corresponding {@link javax.media.opengl.GLAnimatorControl} value is returned.
+     *
+     * @see javax.media.opengl.GLAnimatorControl#getCurrentTime()
+     */
+    public final long getCurrentTime() {
+        GLAnimatorControl animator = getAnimator();
+        if ( null == animator || null == animator.getThread() ) {
+            // no animator, or not started -> use local time
+            return curTime;
+        } else {
+            return animator.getCurrentTime();
+        }
+    }
+
+    /** 
+     * @return Duration <code>getCurrentTime() - getStartTime()</code>.
+     *
+     * @see #getStartTime()
+     * @see #getCurrentTime()
+     */
+    public final long getDuration() { 
+        return getCurrentTime()-getStartTime(); 
+    }
+
+    /** 
+     * @return Number of frames displayed since the first display call, ie <code>getStartTime()</code>.
+     *         This value is reset if becoming visible again or reparenting.
+     *         In case an animator is used, 
+     *         the corresponding {@link javax.media.opengl.GLAnimatorControl} value is returned.
+     *
+     * @see javax.media.opengl.GLAnimatorControl#getTotalFrames()
+     */
+    public final int  getTotalFrames() { 
+        GLAnimatorControl animator = getAnimator();
+        if ( null == animator || null == animator.getThread() ) {
+            // no animator, or not started -> use local value
+            return totalFrames; 
+        } else {
+            return animator.getTotalFrames();
+        }
+    }
 
     class SwapBuffersAction implements Runnable {
         public void run() {
@@ -618,77 +600,53 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
 
     //----------------------------------------------------------------------
-    // NativeWindow/Window methods
-    //
-
-    public int lockSurface() throws NativeWindowException {
-        if(null!=drawable) return drawable.getNativeWindow().lockSurface();
-        return window.lockSurface();
-    }
-
-    public void unlockSurface() {
-        if(null!=drawable) drawable.getNativeWindow().unlockSurface();
-        else window.unlockSurface();
-    }
-
-    public boolean isSurfaceLocked() {
-        if(null!=drawable) return drawable.getNativeWindow().isSurfaceLocked();
-        return window.isSurfaceLocked();
-    }
-
-    public Exception getLockedStack() {
-        if(null!=drawable) return drawable.getNativeWindow().getLockedStack();
-        return window.getLockedStack();
-    }
-
-    public boolean surfaceSwap() { 
-        if(null!=drawable) return drawable.getNativeWindow().surfaceSwap();
-        return super.surfaceSwap();
-    }
-
-    public long getWindowHandle() {
-        if(null!=drawable) return drawable.getNativeWindow().getWindowHandle();
-        return window.getWindowHandle();
-    }
-
-    public long getSurfaceHandle() {
-        if(null!=drawable) return drawable.getNativeWindow().getSurfaceHandle();
-        return window.getSurfaceHandle();
-    }
-
-    public AbstractGraphicsConfiguration getGraphicsConfiguration() {
-        if(null!=drawable) return drawable.getNativeWindow().getGraphicsConfiguration();
-        return window.getGraphicsConfiguration();
-    }
-
-    //----------------------------------------------------------------------
     // GLDrawable methods
     //
 
-    public NativeWindow getNativeWindow() {
+    public final NativeWindow getNativeWindow() {
         return null!=drawable ? drawable.getNativeWindow() : null;
     }
 
-    public long getHandle() {
+    public final long getHandle() {
         return null!=drawable ? drawable.getHandle() : 0;
+    }
+
+    public final void destroy() {
+        window.destroy();
+    }
+
+    public final int getX() {
+        return window.getX();
+    }
+
+    public final int getY() {
+        return window.getY();
+    }
+
+    public final int getWidth() {
+        return window.getWidth();
+    }
+
+    public final int getHeight() {
+        return window.getHeight();
     }
 
     //----------------------------------------------------------------------
     // GLDrawable methods that are not really needed
     //
 
-    public GLContext createContext(GLContext shareWith) {
+    public final GLContext createContext(GLContext shareWith) {
         return drawable.createContext(shareWith);
     }
 
-    public void setRealized(boolean realized) {
+    public final void setRealized(boolean realized) {
     }
 
-    public boolean isRealized() {
+    public final boolean isRealized() {
         return ( null != drawable ) ? drawable.isRealized() : false;
     }
 
-    public GLCapabilities getChosenGLCapabilities() {
+    public final GLCapabilities getChosenGLCapabilities() {
         if (drawable == null) {
             throw new GLException("No drawable yet");
         }
@@ -696,11 +654,177 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return drawable.getChosenGLCapabilities();
     }
 
-    public GLProfile getGLProfile() {
+    public final GLProfile getGLProfile() {
         if (drawable == null) {
             throw new GLException("No drawable yet");
         }
 
         return drawable.getGLProfile();
+    }
+
+    //----------------------------------------------------------------------
+    // Window completion
+    //
+    public final void windowRepaint(int x, int y, int width, int height) {
+        window.windowRepaint(x, y, width, height);
+    }
+
+    public final void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
+        window.enqueueEvent(wait, event);
+    }
+
+    public final void runOnEDTIfAvail(boolean wait, final Runnable task) {
+        window.runOnEDTIfAvail(wait, task);
+    }
+
+    public final SurfaceUpdatedListener getSurfaceUpdatedListener(int index) {
+        return window.getSurfaceUpdatedListener(index);
+    }
+
+    public final SurfaceUpdatedListener[] getSurfaceUpdatedListeners() {
+        return window.getSurfaceUpdatedListeners();
+    }
+
+    public final void removeAllSurfaceUpdatedListener() {
+        window.removeAllSurfaceUpdatedListener();
+    }
+
+    public final void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+        window.removeSurfaceUpdatedListener(l);
+    }
+
+    public final void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+        window.addSurfaceUpdatedListener(l);
+    }
+
+    public final void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
+        window.addSurfaceUpdatedListener(index, l);
+    }
+
+    public void sendWindowEvent(int eventType) {
+        window.sendWindowEvent(eventType);
+    }
+
+    public final WindowListener getWindowListener(int index) {
+        return window.getWindowListener(index);
+    }
+
+    public final WindowListener[] getWindowListeners() {
+        return window.getWindowListeners();
+    }
+
+    public final void removeWindowListener(WindowListener l) {
+        window.removeWindowListener(l);
+    }
+
+    public final void addWindowListener(WindowListener l) {
+        window.addWindowListener(l);
+    }
+
+    public final void addWindowListener(int index, WindowListener l) throws IndexOutOfBoundsException {
+        window.addWindowListener(index, l);
+    }
+
+    public final void addKeyListener(KeyListener l) {
+        window.addKeyListener(l);
+    }
+
+    public final void addKeyListener(int index, KeyListener l) {
+        window.addKeyListener(index, l);
+    }
+
+    public final void removeKeyListener(KeyListener l) {
+        window.removeKeyListener(l);
+    }
+
+    public final KeyListener getKeyListener(int index) {
+        return window.getKeyListener(index);
+    }
+
+    public final KeyListener[] getKeyListeners() {
+        return window.getKeyListeners();
+    }
+
+    public final void addMouseListener(MouseListener l) {
+        window.addMouseListener(l);
+    }
+
+    public final void addMouseListener(int index, MouseListener l) {
+        window.addMouseListener(index, l);
+    }
+
+    public final void removeMouseListener(MouseListener l) {
+        window.removeMouseListener(l);
+    }
+
+    public final MouseListener getMouseListener(int index) {
+        return window.getMouseListener(index);
+    }
+
+    public final MouseListener[] getMouseListeners() {
+        return window.getMouseListeners();
+    }
+
+    //----------------------------------------------------------------------
+    // NativeWindow completion
+    //
+
+    public final int lockSurface() {
+        return window.lockSurface();
+    }
+
+    public final void unlockSurface() throws NativeWindowException {
+        window.unlockSurface();
+    }
+
+    public final boolean isSurfaceLockedByOtherThread() {
+        return window.isSurfaceLockedByOtherThread();
+    }
+
+    public final boolean isSurfaceLocked() {
+        return window.isSurfaceLocked();
+    }
+
+    public final Thread getSurfaceLockOwner() {
+        return window.getSurfaceLockOwner();
+
+    }
+
+    public final Exception getSurfaceLockStack() {
+        return window.getSurfaceLockStack();
+    }
+
+    public final boolean surfaceSwap() {
+        return window.surfaceSwap();
+    }
+
+    public final void invalidate() {
+        window.invalidate();
+    }
+    
+    public final long getWindowHandle() {
+        return window.getWindowHandle();
+
+    }
+
+    public final long getSurfaceHandle() {
+        return window.getSurfaceHandle();
+
+    }
+
+    public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
+        return window.getGraphicsConfiguration();
+    }
+
+    public final long getDisplayHandle() {
+        return window.getDisplayHandle();
+    }
+
+    public final int  getScreenIndex() {
+        return window.getScreenIndex();
+    }
+
+    public final void surfaceUpdated(Object updater, NativeWindow window, long when) {
+        window.surfaceUpdated(updater, window, when);
     }
 }

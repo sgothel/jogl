@@ -69,35 +69,42 @@ public interface NativeWindow extends SurfaceUpdatedListener {
    * Lock the surface of this native window<P>
    *
    * The surface handle, see {@link #lockSurface()}, <br>
-   * shall be set and valid after a successfull call,
-   * ie a return value other than {@link #LOCK_SURFACE_NOT_READY}.<P>
+   * shall be valid after a successfull call,
+   * ie return a value other than {@link #LOCK_SURFACE_NOT_READY}.<P>
    *
-   * The semantics of the underlying native locked resource
-   * may be related to the {@link ToolkitLock} one. Hence it is 
-   * important that implementation of both harmonize well.<br>
-   * The implementation may want to aquire the {@link ToolkitLock}
-   * first to become it's owner before proceeding with it's
-   * actual surface lock. <P>
+   * This call is blocking until the surface has been locked
+   * or a timeout is reached. The latter will throw a runtime exception. <P>
+   *
+   * This call allows recursion from the same thread.<P>
+   *
+   * The implementation may want to aquire the 
+   * application level {@link com.jogamp.nativewindow.impl.RecursiveToolkitLock}
+   * first before proceeding with a native surface lock. <P>
    *
    * @return {@link #LOCK_SUCCESS}, {@link #LOCK_SURFACE_CHANGED} or {@link #LOCK_SURFACE_NOT_READY}.
    *
-   * @throws NativeWindowException if surface is already locked
+   * @throws RuntimeException after timeout when waiting for the surface lock
    *
-   * @see ToolkitLock
+   * @see com.jogamp.nativewindow.impl.RecursiveToolkitLock
    */
-  public int lockSurface() throws NativeWindowException ;
+  public int lockSurface();
 
   /**
    * Unlock the surface of this native window
    *
    * Shall not modify the surface handle, see {@link #lockSurface()} <P>
    *
-   * @throws NativeWindowException if surface is not locked
+   * @throws RuntimeException if surface is not locked
    *
    * @see #lockSurface
-   * @see ToolkitLock
+   * @see com.jogamp.nativewindow.impl.RecursiveToolkitLock
    */
   public void unlockSurface() throws NativeWindowException ;
+
+  /**
+   * Return if surface is locked by another thread, ie not the current one
+   */
+  public boolean isSurfaceLockedByOtherThread();
 
   /**
    * Return if surface is locked
@@ -105,12 +112,17 @@ public interface NativeWindow extends SurfaceUpdatedListener {
   public boolean isSurfaceLocked();
 
   /**
+   * Return the locking owner's Thread, or null if not locked.
+   */
+  public Thread getSurfaceLockOwner();
+
+  /**
    * Return the lock-exception, or null if not locked.
    *
    * The lock-exception is created at {@link #lockSurface()}
    * and hence holds the locker's call stack.
    */
-  public Exception getLockedStack();
+  public Exception getSurfaceLockStack();
 
   /**
    * Provide a mechanism to utilize custom (pre-) swap surface

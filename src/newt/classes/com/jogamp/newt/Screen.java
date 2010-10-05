@@ -1,137 +1,70 @@
-/*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- * 
- * - Redistribution of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- * 
- * - Redistribution in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- * 
- * Neither the name of Sun Microsystems, Inc. or the names of
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
- * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
- * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
- * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
- * DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE
- * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
- * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
- * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+/**
+ * Copyright 2010 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
  */
 
 package com.jogamp.newt;
 
-import com.jogamp.newt.impl.*;
+import com.jogamp.newt.impl.Debug;
+import javax.media.nativewindow.AbstractGraphicsScreen;
 
-import javax.media.nativewindow.*;
-import java.security.*;
+public interface Screen {
+    public static final boolean DEBUG = Debug.debug("Display");
 
-public abstract class Screen {
+    boolean isNativeValid();
 
-    private static Class getScreenClass(String type) 
-        throws ClassNotFoundException 
-    {
-        Class screenClass = NewtFactory.getCustomClass(type, "Screen");
-        if(null==screenClass) {
-            if (NativeWindowFactory.TYPE_EGL.equals(type)) {
-                screenClass = Class.forName("com.jogamp.newt.impl.opengl.kd.KDScreen");
-            } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
-                screenClass = Class.forName("com.jogamp.newt.impl.windows.WindowsScreen");
-            } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
-                screenClass = Class.forName("com.jogamp.newt.impl.macosx.MacScreen");
-            } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
-                screenClass = Class.forName("com.jogamp.newt.impl.x11.X11Screen");
-            } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
-                screenClass = Class.forName("com.jogamp.newt.impl.awt.AWTScreen");
-            } else {
-                throw new RuntimeException("Unknown window type \"" + type + "\"");
-            }
-        }
-        return screenClass;
-    }
+    /**
+     *
+     * @return number of references by Window
+     */
+    int getReferenceCount();
 
-    protected static Screen create(String type, Display display, int idx) {
-        try {
-            if(usrWidth<0 || usrHeight<0) {
-                usrWidth  = Debug.getIntProperty("newt.ws.swidth", true, localACC);
-                usrHeight = Debug.getIntProperty("newt.ws.sheight", true, localACC);
-                if(usrWidth>0 || usrHeight>0) {
-                    System.out.println("User screen size "+usrWidth+"x"+usrHeight);
-                }
-            }
-            Class screenClass = getScreenClass(type);
-            Screen screen  = (Screen) screenClass.newInstance();
-            screen.display = display;
-            screen.createNative(idx);
-            if(null==screen.aScreen) {
-                throw new RuntimeException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
-            }
-            return screen;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+    void destroy();
 
-    public synchronized void destroy() {
-        closeNative();
-        display = null;
-        aScreen = null;
-    }
+    boolean getDestroyWhenUnused();
 
-    protected abstract void createNative(int index);
-    protected abstract void closeNative();
+    void setDestroyWhenUnused(boolean v);
 
-    protected void setScreenSize(int w, int h) {
-        System.out.println("Detected screen size "+w+"x"+h);
-        width=w; height=h;
-    }
+    AbstractGraphicsScreen getGraphicsScreen();
 
-    public Display getDisplay() {
-        return display;
-    }
-
-    public int getIndex() {
-        return aScreen.getIndex();
-    }
-
-    public AbstractGraphicsScreen getGraphicsScreen() {
-        return aScreen;
-    }
+    int getIndex();
 
     /**
      * The actual implementation shall return the detected display value,
      * if not we return 800.
      * This can be overwritten with the user property 'newt.ws.swidth',
      */
-    public int getWidth() {
-        return (usrWidth>0) ? usrWidth : (width>0) ? width : 480;
-    }
+    int getWidth();
 
     /**
      * The actual implementation shall return the detected display value,
      * if not we return 480.
      * This can be overwritten with the user property 'newt.ws.sheight',
      */
-    public int getHeight() {
-        return (usrHeight>0) ? usrHeight : (height>0) ? height : 480;
-    }
+    int getHeight();
 
-    protected Display display;
-    protected AbstractGraphicsScreen aScreen;
-    protected int width=-1, height=-1; // detected values: set using setScreenSize
-    protected static int usrWidth=-1, usrHeight=-1; // property values: newt.ws.swidth and newt.ws.sheight
-    private static AccessControlContext localACC = AccessController.getContext();
+    Display getDisplay();
 }
-

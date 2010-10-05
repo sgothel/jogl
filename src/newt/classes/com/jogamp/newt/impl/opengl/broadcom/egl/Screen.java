@@ -35,7 +35,7 @@ package com.jogamp.newt.impl.opengl.broadcom.egl;
 
 import javax.media.nativewindow.*;
 
-public class Screen extends com.jogamp.newt.Screen {
+public class Screen extends com.jogamp.newt.impl.ScreenImpl {
 
     static {
         Display.initSingleton();
@@ -45,12 +45,12 @@ public class Screen extends com.jogamp.newt.Screen {
     public Screen() {
     }
 
-    protected void createNative(int index) {
-        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), index);
+    protected void createNativeImpl() {
+        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), idx);
         setScreenSize(fixedWidth, fixedHeight);
     }
 
-    protected void closeNative() { }
+    protected void closeNativeImpl() { }
 
     //----------------------------------------------------------------------
     // Internals only

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -315,26 +316,29 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         Exception ex1 = new Exception("dispose("+regenerate+") - start");
         ex1.printStackTrace();
     }
-    disposeRegenerate=regenerate;
 
-    if (Threading.isSingleThreaded() &&
-        !Threading.isOpenGLThread()) {
-      // Workaround for termination issues with applets --
-      // sun.applet.AppletPanel should probably be performing the
-      // remove() call on the EDT rather than on its own thread
-      if (ThreadingImpl.isAWTMode() &&
-          Thread.holdsLock(getTreeLock())) {
-        // The user really should not be invoking remove() from this
-        // thread -- but since he/she is, we can not go over to the
-        // EDT at this point. Try to destroy the context from here.
-        if(context.isCreated()) {
-            drawableHelper.invokeGL(drawable, context, disposeAction, null);
+    if(null!=context) {
+        disposeRegenerate=regenerate;
+
+        if (Threading.isSingleThreaded() &&
+            !Threading.isOpenGLThread()) {
+          // Workaround for termination issues with applets --
+          // sun.applet.AppletPanel should probably be performing the
+          // remove() call on the EDT rather than on its own thread
+          if (ThreadingImpl.isAWTMode() &&
+              Thread.holdsLock(getTreeLock())) {
+            // The user really should not be invoking remove() from this
+            // thread -- but since he/she is, we can not go over to the
+            // EDT at this point. Try to destroy the context from here.
+            if(context.isCreated()) {
+                drawableHelper.invokeGL(drawable, context, disposeAction, null);
+            }
+          } else if(context.isCreated()) {
+            Threading.invokeOnOpenGLThread(disposeOnEventDispatchThreadAction);
+          }
+        } else if(context.isCreated()) {
+          drawableHelper.invokeGL(drawable, context, disposeAction, null);
         }
-      } else if(context.isCreated()) {
-        Threading.invokeOnOpenGLThread(disposeOnEventDispatchThreadAction);
-      }
-    } else if(context.isCreated()) {
-      drawableHelper.invokeGL(drawable, context, disposeAction, null);
     }
 
     if(DEBUG) {
@@ -377,8 +381,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
                    (int) ((getHeight() + bounds.getHeight()) / 2));
       return;
     }
-
-    if( null == getAnimator() ) {
+    if( this.drawableHelper.isExternalAnimatorAnimating() ) {
         display();
     }
   }
@@ -494,11 +497,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     drawableHelper.removeGLEventListener(listener);
   }
 
-  public void setAnimator(Thread animator) {
-    drawableHelper.setAnimator(animator);
+  public void setAnimator(GLAnimatorControl animatorControl) {
+    drawableHelper.setAnimator(animatorControl);
   }
 
-  public Thread getAnimator() {
+  public GLAnimatorControl getAnimator() {
     return drawableHelper.getAnimator();
   }
 

@@ -41,7 +41,7 @@ import com.jogamp.newt.impl.*;
 import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.newt.util.MainThread;
 
-public class MacDisplay extends Display {
+public class MacDisplay extends DisplayImpl {
     static {
         NEWTJNILibLoader.loadNEWT();
 
@@ -51,7 +51,9 @@ public class MacDisplay extends Display {
         if(!MacWindow.initIDs0()) {
             throw new NativeWindowException("Failed to initialize jmethodIDs");
         }
-        if(DEBUG) System.out.println("MacDisplay.init App and IDs OK "+Thread.currentThread().getName());
+        if(DEBUG) {
+            System.err.println("MacDisplay.init App and IDs OK "+Thread.currentThread().getName());
+        }
     }
 
     public static void initSingleton() {
@@ -65,31 +67,24 @@ public class MacDisplay extends Display {
         dispatchMessages0();
     }
     
-    protected void createNative() {
+    protected void createNativeImpl() {
         aDevice = new MacOSXGraphicsDevice();
     }
 
-    protected void closeNative() { }
+    protected void closeNativeImpl() { }
 
-    public EDTUtil getEDTUtil() {
-        if( null == edtUtil ) {
-            synchronized (this) {
-                if( null == edtUtil ) {
-                    if(NewtFactory.useEDT()) {
-                        final Display f_dpy = this;
-                        MainThread.addPumpMessage(this, 
-                                              new Runnable() {
-                                                  public void run() {
-                                                      if(null!=f_dpy.getGraphicsDevice()) {
-                                                          f_dpy.dispatchMessages();
-                                                      } } } );
-                        edtUtil = MainThread.getSingleton();
-                        edtUtil.start();
-                    }
-                }
-            }
+    protected void createEDTUtil() {
+        if(NewtFactory.useEDT()) {
+            final Display f_dpy = this;
+            MainThread.addPumpMessage(this, 
+                                  new Runnable() {
+                                      public void run() {
+                                          if(null!=f_dpy.getGraphicsDevice()) {
+                                              f_dpy.dispatchMessages();
+                                          } } } );
+            edtUtil = MainThread.getSingleton();
+            edtUtil.start();
         }
-        return edtUtil;
     }
 
     protected void releaseEDTUtil() {

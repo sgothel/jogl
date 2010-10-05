@@ -1,56 +1,53 @@
-/*
- * Copyright (c) 2010 Sven Gothel. All Rights Reserved.
+/**
+ * Copyright 2010 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
  * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
  * 
- * - Redistribution of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
  * 
- * - Redistribution in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * Neither the name Sven Gothel or the names of
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
- * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
- * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
- * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
- * DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE
- * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
- * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
- * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
  */
+ 
 
 package com.jogamp.newt.awt;
 
+import com.jogamp.newt.Display;
 import java.lang.reflect.*;
 import java.security.*;
 
 import java.awt.Canvas;
 import java.awt.EventQueue;
 import java.awt.Graphics;
+import java.awt.KeyboardFocusManager;
 
 import javax.media.nativewindow.*;
 
 import com.jogamp.newt.event.awt.AWTAdapter;
 import com.jogamp.newt.event.awt.AWTParentWindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
-import com.jogamp.newt.Display;
-import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.impl.Debug;
 
 public class NewtCanvasAWT extends java.awt.Canvas {
-    public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
+    public static final boolean DEBUG = Debug.debug("Window");
 
     NativeWindow parent = null;
     Window newtChild = null;
@@ -77,8 +74,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
                 focusActionImpl.run();
             } else {
                 try {
-                    // Run on child EDT to avoid deadlock with AWT EDT.
-                    newtChild.runOnEDTIfAvail(true,focusActionImpl);
+                    EventQueue.invokeAndWait(focusActionImpl);
                 } catch (Exception e) {
                     throw new NativeWindowException(e);
                 }
@@ -89,10 +85,12 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         class FocusActionImpl implements Runnable {
             public final boolean result = false; // NEWT shall always proceed requesting the native focus
             public void run() {
-                if(DEBUG_IMPLEMENTATION) {
-                    System.out.println("FocusActionImpl.run() "+Window.getThreadName());
+                if(DEBUG) {
+                    System.err.println("FocusActionImpl.run() "+Display.getThreadName());
                 }
                 NewtCanvasAWT.this.requestFocusAWTParent();
+                KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+                kfm.clearGlobalFocusOwner();
             }
         }
         FocusActionImpl focusActionImpl = new FocusActionImpl();
@@ -103,7 +101,6 @@ public class NewtCanvasAWT extends java.awt.Canvas {
     public NewtCanvasAWT setNEWTChild(Window child) {
         if(newtChild!=child) {
             newtChild = child;
-            newtChild.setFocusAction(focusAction);
             if(null!=parent) {
                 java.awt.Container cont = getContainer(this);
                 // reparent right away, addNotify has been called already
@@ -118,7 +115,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         return newtChild;
     }
 
-    /** @return this AWT Canvas NativeWindow represention, may be null in case {@link #removeNotify()} has been called, 
+    /** @return this AWT Canvas NativeWindow representation, may be null in case {@link #removeNotify()} has been called,
      * or {@link #addNotify()} hasn't been called yet.*/
     public NativeWindow getNativeWindow() { return parent; }
 
@@ -129,13 +126,6 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         }
         if(attach && null!=newtChild) {
             awtAdapter = new AWTParentWindowAdapter(newtChild).addTo(this);
-
-            // If the child has been reparented, it will need to request focus.
-            /* Reevaluate the need for this step.
-            if (hasFocus()) {
-                requestFocus();
-            }
-            */
         }
     }
 
@@ -153,7 +143,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         super.addNotify();
         disableBackgroundErase();
         java.awt.Container cont = getContainer(this);
-        if(DEBUG_IMPLEMENTATION) {
+        if(DEBUG) {
             // if ( isShowing() == false ) -> Container was not visible yet.
             // if ( isShowing() == true  ) -> Container is already visible.
             System.err.println("NewtCanvasAWT.addNotify: "+newtChild+", "+this+", visible "+isVisible()+", showing "+isShowing()+
@@ -164,7 +154,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
 
     public void removeNotify() {
         java.awt.Container cont = getContainer(this);
-        if(DEBUG_IMPLEMENTATION) {
+        if(DEBUG) {
             System.err.println("NewtCanvasAWT.removeNotify: "+newtChild+", from "+cont);
         }
         reparentWindow(false, cont);
@@ -176,52 +166,66 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         return; // nop
       }
 
+      newtChild.setFocusAction(null); // no AWT focus traversal ..
       if(add) {
-          if(null!=newtChild) {
-              parent = NewtFactoryAWT.getNativeWindow(this, newtChild.getRequestedCapabilities());
-          }
+          parent = NewtFactoryAWT.getNativeWindow(this, newtChild.getRequestedCapabilities());
           if(null!=parent) {
-              if(DEBUG_IMPLEMENTATION) {
+              if(DEBUG) {
                 System.err.println("NewtCanvasAWT.reparentWindow: "+newtChild);
               }
               setSize(cont.getWidth(), cont.getHeight());
               newtChild.setSize(cont.getWidth(), cont.getHeight());
-
-              // FIXME: Variables for hack which will work for a single window.
-              Screen origScreen = null;
-              Display origDisplay = null;
-
-              Screen screen = null;
-              if( !newtChild.isNativeWindowValid() ) {
-                  // FIXME: Setup for hack which will work for a single window.
-                  // Hold on to the original screen and display for the child.
-                  origScreen = newtChild.getScreen();
-                  origDisplay = origScreen.getDisplay();
-
-                  screen = NewtFactoryAWT.createCompatibleScreen(parent);
-              }
-              newtChild.reparentWindow(parent, screen);
+              newtChild.reparentWindow(parent);
               newtChild.setVisible(true);
               setWindowAdapter(true);
               newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
               newtChild.windowRepaint(0, 0, newtChild.getWidth(), newtChild.getHeight());
-
-              // FIXME: Hack which will work for a single window.
-              // Clean-up the original screen (if different) and update the
-              // reference count on the display.
-              if (origScreen != null && screen != origScreen) {
-                 origScreen.destroy();
-              }
-              if (origDisplay != null) {
-                 origDisplay.destroy();
-              }
+              newtChild.setFocusAction(focusAction); // enable AWT focus traversal
           }
       } else {
           setWindowAdapter(false);
           parent = null;
           newtChild.setVisible(false);
-          newtChild.reparentWindow(null, null);
+          newtChild.reparentWindow(null);
       }
+    }
+
+    /**
+     * @see #destroy(boolean)
+     */
+    public final void destroy() {
+        destroy(false);
+    }
+
+    /**
+     * Destroys this resource:
+     * <ul>
+     *   <li> Make the NEWT Child invisible </li>
+     *   <li> Disconnects the NEWT Child from this Canvas NativeWindow, reparent to NULL </li>
+     *   <li> Issues <code>destroy(unrecoverable)</code> on the NEWT Child</li>
+     *   <li> Remove reference to the NEWT Child, if unrecoverable</li>
+     *   <li> Remove this Canvas from it's parent.</li>
+     * </ul>
+     * @see Window#destroy()
+     * @see Window#destroy(boolean)
+     */
+    public final void destroy(boolean unrecoverable) {
+        if(null!=newtChild) {
+            java.awt.Container cont = getContainer(this);
+            if(DEBUG) {
+                System.err.println("NewtCanvasAWT.destroy("+unrecoverable+"): "+newtChild+", from "+cont);
+            }
+            parent = null;
+            newtChild.setVisible(false);
+            newtChild.reparentWindow(null);
+            newtChild.destroy(unrecoverable);
+            if(unrecoverable) {
+                newtChild = null;
+            }
+            if(null!=cont) {
+                cont.remove(this);
+            }
+        }
     }
 
     public void paint(Graphics g) {

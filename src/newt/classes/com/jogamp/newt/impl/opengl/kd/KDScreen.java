@@ -34,9 +34,10 @@
 package com.jogamp.newt.impl.opengl.kd;
 
 import com.jogamp.newt.*;
+import com.jogamp.newt.impl.ScreenImpl;
 import javax.media.nativewindow.*;
 
-public class KDScreen extends Screen {
+public class KDScreen extends ScreenImpl {
     static {
         KDDisplay.initSingleton();
     }
@@ -44,11 +45,11 @@ public class KDScreen extends Screen {
     public KDScreen() {
     }
 
-    protected void createNative(int index) {
-        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), index);
+    protected void createNativeImpl() {
+        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), idx);
     }
 
-    protected void closeNative() { }
+    protected void closeNativeImpl() { }
 
     // elevate access to this package ..
     protected void setScreenSize(int w, int h) {

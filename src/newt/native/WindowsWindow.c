@@ -600,10 +600,11 @@ static int WmKeyUp(JNIEnv *env, jobject window, UINT wkey, UINT repCnt,
 }
 
 static void NewtWindows_requestFocus (JNIEnv *env, jobject window, HWND hwnd, BOOL reparented) {
-    HWND pHwnd = GetParent(hwnd);
-    HWND current = GetFocus();
-    DBG_PRINT("*** WindowsWindow: requestFocus.0 parent %p, window %p, isCurrent %d\n", 
-        (void*) pHwnd, (void*)hwnd, current==hwnd);
+    HWND pHwnd, current;
+    pHwnd = GetParent(hwnd);
+    current = GetFocus();
+    DBG_PRINT("*** WindowsWindow: requestFocus.S parent %p, window %p, isCurrent %d, reparented %d\n", 
+        (void*) pHwnd, (void*)hwnd, current==hwnd, (int) reparented);
     if(reparented || current!=hwnd) {
         if( JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
             UINT flags = SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE;
@@ -621,6 +622,7 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, HWND hwnd, BO
             DBG_PRINT("*** WindowsWindow: requestFocus.X0\n");
         }
     }
+    DBG_PRINT("*** WindowsWindow: requestFocus.XX\n");
 }
 
 static RECT * UpdateInsets(JNIEnv *env, HWND hwnd, jobject window)
@@ -738,11 +740,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     env = wud->jenv;
     window = wud->jinstance;
 
+    // DBG_PRINT("*** WindowsWindow: thread 0x%X - window %p -> %p, 0x%X %d/%d\n", (int)GetCurrentThreadId(), wnd, window, message, (int)LOWORD(lParam), (int)HIWORD(lParam));
+
     if (NULL==window || NULL==env) {
         return DefWindowProc(wnd, message, wParam, lParam);
     }
-
-    // DBG_PRINT("*** WindowsWindow: window %p -> %p, 0x%X %d/%d\n", wnd, window, message, (int)LOWORD(lParam), (int)HIWORD(lParam));
 
     switch (message) {
 
@@ -961,6 +963,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsDisplay_Dispatch
     // Periodically take a break
     do {
         gotOne = PeekMessage(&msg, (HWND) NULL, 0, 0, PM_REMOVE);
+        // DBG_PRINT("*** WindowsWindow.DispatchMessages0: thread 0x%X - gotOne %d\n", (int)GetCurrentThreadId(), (int)gotOne);
         if (gotOne) {
             ++i;
 #ifdef DEBUG_KEYS
@@ -1149,7 +1152,8 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_CreateWi
                           (HINSTANCE) (intptr_t) hInstance,
                           NULL);
 
-    DBG_PRINT("*** WindowsWindow: CreateWindow parent %p, window %p, %d/%d %dx%d\n", parentWindow, window, x, y, width, height);
+    DBG_PRINT("*** WindowsWindow: CreateWindow thread 0xX, parent %p, window %p, %d/%d %dx%d\n", 
+        (int)GetCurrentThreadId(), parentWindow, window, x, y, width, height);
 
     if (NULL == window) {
         int lastError = (int) GetLastError();
@@ -1186,7 +1190,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_CreateWi
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_DestroyWindow0
   (JNIEnv *env, jobject obj, jlong window)
 {
-    DBG_PRINT("*** WindowsWindow: DestroyWindow window %p\n", window);
+    DBG_PRINT("*** WindowsWindow: DestroyWindow thread 0x%X, window %p\n", (int)GetCurrentThreadId(), window);
     DestroyWindow((HWND) (intptr_t) window);
 }
 
@@ -1362,10 +1366,10 @@ static void NewtWindows_reparentWindow(JNIEnv *env, jobject obj, HWND hwndP, HWN
 
 /*
  * Class:     com_jogamp_newt_impl_windows_WindowsWindow
- * Method:    setFullscreen
+ * Method:    reconfigureWindow0
  * Signature: (JIIIIZ)V
  */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setFullscreen0
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_reconfigureWindow0
   (JNIEnv *env, jobject obj, jlong parent, jlong window, jint x, jint y, jint width, jint height, jboolean bIsUndecorated)
 {
     UINT flags;
@@ -1374,7 +1378,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setFullsc
     HWND hWndInsertAfter;
     BOOL isVisible = IsWindowVisible(hwnd);
 
-    DBG_PRINT("*** WindowsWindow: setFullscreen.1 parent %p, window %p, %d/%d %dx%d undeco %d visible\n", 
+    DBG_PRINT("*** WindowsWindow: reconfigureWindow0.1 parent %p, window %p, %d/%d %dx%d undeco %d visible\n", 
         parent, window, x, y, width, height, bIsUndecorated, isVisible);
 
     NewtWindows_reparentWindow(env, obj, hwndP, hwnd, FALSE, x, y, width, height, bIsUndecorated);
@@ -1388,11 +1392,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setFullsc
     }
     SetWindowPos(hwnd, hWndInsertAfter, x, y, width, height, flags);
 
-    if(isVisible) {
-        NewtWindows_requestFocus ( env, obj, hwnd, TRUE ); // request focus on this window, if not already ..
-    }
-
-    DBG_PRINT("*** WindowsWindow: setFullscreen.X\n");
+    DBG_PRINT("*** WindowsWindow: reconfigureWindow0.X\n");
     (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height); // resize necessary ..
 }
 
@@ -1409,11 +1409,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_reparentW
     BOOL isVisible = IsWindowVisible(hwnd);
 
     NewtWindows_reparentWindow(env, obj, hwndP, hwnd, FALSE, x, y, width, height, bIsUndecorated);
-
-    if(isVisible) {
-        NewtWindows_requestFocus ( env, obj, hwnd, TRUE ); // request focus on this window, if not already ..
-    }
-
 }
 
 /*
@@ -1440,9 +1435,9 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setTitle0
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_requestFocus0
-  (JNIEnv *env, jobject obj, jlong window)
+  (JNIEnv *env, jobject obj, jlong window, jboolean bReparented)
 {
-    DBG_PRINT("*** WindowsWindow: RequestFocus0\n");
-    NewtWindows_requestFocus ( env, obj, (HWND) (intptr_t) window, FALSE ) ;
+    DBG_PRINT("*** WindowsWindow: RequestFocus0: reparented %d\n", (int)bReparented);
+    NewtWindows_requestFocus ( env, obj, (HWND) (intptr_t) window, bReparented ) ;
 }
 

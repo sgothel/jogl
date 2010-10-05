@@ -34,7 +34,6 @@ package com.jogamp.opengl.impl.x11.glx;
 
 import javax.media.opengl.*;
 
-import com.jogamp.nativewindow.impl.x11.*;
 
 public class GLXUtil {
     public static String getExtension(long display) {

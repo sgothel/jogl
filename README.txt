@@ -6,25 +6,39 @@ make/               Ant build scripts,
                     see top of build.xml for brief invocation instructions
 make/config         Configuration files for glue code generation
 make/stub_includes  Header files for glue code generation
+
 src/                Java and native source code for:
 src/jogl            - JOGL
 src/nativewindow    - NativeWindow Interface
 src/newt            - NEWT
+src/junit           - Unit test cases
 
-www/   Web pages and older Java Web Start binaries for JOGL
+www/                Web pages
 
 NativeWindow and NEWT may be build seperately.
+
+Contact Us
+---------------
+
+Web                http://jogamp.org/
+Forum/Mailinglist  http://jogamp.762907.n3.nabble.com/
+JogAmp Channel     server: conference.jabber.org room: jogamp
+Repository         http://jogamp.org/git/
+Email              mediastream _at_ jogamp _dot_ org
 
 Acknowledgments
 ---------------
 
-Sun Microsystems, Inc. gratefully acknowledges that the initial
+The JogAmp Community is gratefully acknowledges that the initial
 version of JOGL was authored and developed by Kenneth Bradley Russell
 and Christopher John Kline.
 
-Sun and the JOGL development team are grateful for the contributions
-of all of the individuals who have advanced the project. Please
-contact the project owners if your name is missing from this list.
+The JogAmp Community is grateful for all the contributions
+of all of the individuals who have advanced the project. 
+For sure we are not able to list all of them here.
+Please contact us if you like to be added to this list.
+
+(Chronological)
 
 Gerard Ziemski contributed the original port of JOGL to Mac OS X.
 
@@ -63,15 +77,16 @@ Sven Gothel refactored the windowing subsystem layer to be generic,
 introduced the support for multiple GL profiles, realized NEWT and more..
 
 The following individuals made significant contributions to various
-areas of the project:
+areas of the project (Alphabetical):
 
+Michael Bien
 Alban Cousinié
 Athomas Goldberg
 Yuri Vladimir Gushchin
 Gregory Pierce
 Carsten Weisse
 
-Sun and the JOGL development team are grateful for the support of the
+The JogAmp Community is grateful for the support of the
 javagaming.org community, from where dozens, if not hundreds, of
 individuals have contributed discussions, bug reports, bug fixes, and
 other forms of support.

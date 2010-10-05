@@ -148,6 +148,12 @@
                 <script>${ant.script}</script>
                 <build-target>all</build-target>
             </export>
+            <export>
+                <type>folder</type>
+                <location>bin</location>
+                <script>${ant.script}</script>
+                <build-target>all</build-target>
+            </export>
             <view>
                 <items>
                     <source-folder style="packages">

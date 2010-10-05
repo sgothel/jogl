@@ -34,15 +34,16 @@
 package com.jogamp.newt.impl.awt;
 
 import com.jogamp.newt.*;
+import com.jogamp.newt.impl.ScreenImpl;
 import java.awt.DisplayMode;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
 
-public class AWTScreen extends Screen {
+public class AWTScreen extends ScreenImpl {
     public AWTScreen() {
     }
 
-    protected void createNative(int index) {
+    protected void createNativeImpl() {
         aScreen = new AWTGraphicsScreen((AWTGraphicsDevice)display.getGraphicsDevice());
         
         DisplayMode mode = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice().getDisplayMode();
@@ -60,6 +61,6 @@ public class AWTScreen extends Screen {
         super.setScreenSize(w, h);
     }
 
-    protected void closeNative() { }
+    protected void closeNativeImpl() { }
 
 }

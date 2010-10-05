@@ -20,6 +20,6 @@ mkdir orig-jnlp
 
 for i in *.jnlp ; do
     mv $i orig-jnlp
-    sed -e 's/<security>//g' -e 's/<\/security>//g' -e 's/<all-permissions\/>//g' orig/$i > $i
+    sed -e 's/<security>//g' -e 's/<\/security>//g' -e 's/<all-permissions\/>//g' orig-jnlp/$i > $i
 done
 

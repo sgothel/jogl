@@ -277,6 +277,44 @@ public class X11Util {
      ** 
      *******************************/
 
+    /** Returns this created named display. */
+    public static long createDisplay(String name) {
+        name = validateDisplayName(name);
+        long dpy = X11Lib.XOpenDisplay(name);
+        if(0==dpy) {
+            throw new NativeWindowException("X11Util.Display: Unable to create a display("+name+") connection. Thread "+Thread.currentThread().getName());
+        }
+        // if you like to debug and synchronize X11 commands ..
+        // setSynchronizeDisplay(dpy, true);
+        NamedDisplay namedDpy = new NamedDisplay(name, dpy);
+        synchronized(globalLock) {
+            globalNamedDisplayMap.put(dpy, namedDpy);
+        }
+        if(DEBUG) {
+            Exception e = new Exception("X11Util.Display: Created new global "+namedDpy+". Thread "+Thread.currentThread().getName());
+            e.printStackTrace();
+        }
+        return namedDpy.getHandle();
+    }
+
+    public static void closeDisplay(long handle) {
+        NamedDisplay namedDpy;
+
+        synchronized(globalLock) {
+            namedDpy = (NamedDisplay) globalNamedDisplayMap.remove(handle);
+        }
+        if(null==namedDpy) {
+            throw new RuntimeException("X11Util.Display: Display(0x"+Long.toHexString(handle)+") with given handle is not mapped. Thread "+Thread.currentThread().getName());
+        }
+        if(namedDpy.getHandle()!=handle) {
+            throw new RuntimeException("X11Util.Display: Display(0x"+Long.toHexString(handle)+") Mapping error: "+namedDpy+". Thread "+Thread.currentThread().getName());
+        }
+
+        if(!namedDpy.isUncloseable()) {
+            X11Lib.XCloseDisplay(namedDpy.getHandle());
+        }
+    }
+
     /** 
      * @return If name is null, it returns the previous queried NULL display name,
      * otherwise the name. */
