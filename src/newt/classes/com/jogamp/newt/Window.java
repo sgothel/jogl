@@ -28,15 +28,15 @@
 
 package com.jogamp.newt;
 
-import com.jogamp.newt.util.Insets;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseListener;
-import com.jogamp.newt.event.NEWTEventConsumer;
 import com.jogamp.newt.impl.Debug;
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.SurfaceUpdatedListener;
+import javax.media.nativewindow.util.Insets;
+import javax.media.nativewindow.util.Point;
 
 /**
  * Specifying the public Window functionality for the
@@ -74,12 +74,6 @@ public interface Window extends NativeWindow {
      * @return The associated Screen
      */
     Screen getScreen();
-
-    /**
-     * @return The NativeWindow representation of the parent Window,
-     * or null if this Window is top level
-     */
-    NativeWindow getParentNativeWindow();
 
     /**
      * @return The requested capabilities
@@ -239,7 +233,7 @@ public interface Window extends NativeWindow {
      * @param y coord of the top left corner
      */
     void setPosition(int x, int y);
-    
+
     int getX();
 
     int getY();

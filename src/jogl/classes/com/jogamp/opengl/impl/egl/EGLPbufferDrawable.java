@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -48,12 +49,12 @@ public class EGLPbufferDrawable extends EGLDrawable {
     private int texFormat;
     protected static final boolean useTexture = false; // No yet ..
 
-    protected EGLPbufferDrawable(EGLDrawableFactory factory, NativeWindow target) {
+    protected EGLPbufferDrawable(EGLDrawableFactory factory, NativeSurface target) {
         super(factory, target);
         ownEGLDisplay = true;
 
         // get choosen ones ..
-        GLCapabilities caps = (GLCapabilities) getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        GLCapabilities caps = (GLCapabilities) getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
 
         if(useTexture) {
             this.texFormat = caps.getAlphaBits() > 0 ? EGL.EGL_TEXTURE_RGBA : EGL.EGL_TEXTURE_RGB ;
@@ -62,7 +63,7 @@ public class EGLPbufferDrawable extends EGLDrawable {
         }
 
         if (DEBUG) {
-          System.out.println("Pbuffer config: " + getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration());
+          System.out.println("Pbuffer config: " + getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration());
         }
 
         setRealized(true);
@@ -74,7 +75,7 @@ public class EGLPbufferDrawable extends EGLDrawable {
     }
 
     protected long createSurface(long eglDpy, long eglNativeCfg, long surfaceHandle) {
-        NativeWindow nw = getNativeWindow();
+        NativeSurface nw = getNativeSurface();
         int[] attrs = EGLGraphicsConfiguration.CreatePBufferSurfaceAttribList(nw.getWidth(), nw.getHeight(), texFormat);
         long surf = EGL.eglCreatePbufferSurface(eglDpy, eglNativeCfg, attrs, 0);
         if (EGL.EGL_NO_SURFACE==surf) {

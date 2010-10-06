@@ -49,9 +49,9 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     protected Thread thread;
     protected boolean ignoreExceptions;
     protected boolean printExceptions;
-    protected long startTime = 0;
-    protected long curTime = 0;
-    protected int  totalFrames = 0;
+    protected long startTime;
+    protected long curTime;
+    protected int  totalFrames;
 
     /** Creates a new, empty Animator. */
     public AnimatorBase() {
@@ -69,6 +69,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
             animatorCount++;
             baseName = baseName.concat("-"+animatorCount);
         }
+        resetCounter();
     }
 
     protected abstract String getBaseName(String prefix);
@@ -112,16 +113,18 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         return curTime - startTime;
     }
 
-    protected abstract boolean getShouldPause();
-
-    protected abstract boolean getShouldStop();
-
     public long getStartTime() {
         return startTime;
     }
 
     public int getTotalFrames() {
         return totalFrames;
+    }
+
+    public synchronized void resetCounter() {
+        startTime = System.currentTimeMillis(); // overwrite startTime to real init one
+        curTime   = startTime;
+        totalFrames = 0;
     }
 
     public final synchronized Thread getThread() {
@@ -142,4 +145,12 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     public void setPrintExceptions(boolean printExceptions) {
         this.printExceptions = printExceptions;
     }
+
+    public String toString() {
+        return getClass().getName()+"[started "+isStarted()+", animating "+isAnimating()+", paused "+isPaused()+", frames "+getTotalFrames()+"]";
+    }
+
+    protected abstract boolean getShouldPause();
+
+    protected abstract boolean getShouldStop();
 }

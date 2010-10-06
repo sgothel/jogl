@@ -74,8 +74,10 @@ public class AWTRobotUtil {
                 y0 = (int) ( p0.getY() + r0.getHeight() / 2.0 + .5 ) ;
             }
         } else {
-            x0 = win.getX() + win.getWidth()  / 2 ;
-            y0 = win.getY() + win.getHeight() / 2 ;
+            javax.media.nativewindow.util.Point p0 = win.getLocationOnScreen(null);
+            p0.translate(win.getWidth()/2, win.getHeight()/2);
+            x0 = p0.getX();
+            y0 = p0.getY();
         }
 
         return new Point(x0, y0);

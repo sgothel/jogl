@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -87,10 +88,10 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
     }
 
     protected static void updateGraphicsConfiguration(CapabilitiesChooser chooser,
-                                                      GLDrawableFactory _factory, NativeWindow nativeWindow) {
+                                                      GLDrawableFactory _factory, NativeSurface ns) {
         WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory) _factory;
-        if (nativeWindow == null) {
-            throw new IllegalArgumentException("NativeWindow is null");
+        if (ns == null) {
+            throw new IllegalArgumentException("NativeSurface is null");
         }
 
         if (chooser != null &&
@@ -99,17 +100,17 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         }
 
         boolean choosenBywGLPixelFormat = false;
-        WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) nativeWindow.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
         GLCapabilities capabilities = (GLCapabilities) config.getRequestedCapabilities();
         boolean onscreen = capabilities.isOnscreen();
         boolean usePBuffer = capabilities.isPBuffer();
         GLProfile glProfile = capabilities.getGLProfile();
-        long hdc = nativeWindow.getSurfaceHandle();
+        long hdc = ns.getSurfaceHandle();
 
         if (DEBUG) {
           Exception ex = new Exception("WindowsWGLGraphicsConfigurationFactory got HDC "+toHexString(hdc));
           ex.printStackTrace();
-          System.err.println("WindowsWGLGraphicsConfigurationFactory got NW    "+nativeWindow);
+          System.err.println("WindowsWGLGraphicsConfigurationFactory got NW    "+ns);
         }
 
         PIXELFORMATDESCRIPTOR pfd = null;

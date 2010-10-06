@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -43,7 +44,7 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.NullWindow;
+import com.jogamp.nativewindow.impl.ProxySurface;
 
 public class X11ExternalGLXContext extends X11GLXContext {
   private boolean firstMakeCurrent = true;
@@ -77,9 +78,9 @@ public class X11ExternalGLXContext extends X11GLXContext {
     GLX.glXQueryContext(display, ctx, GLX.GLX_FBCONFIG_ID, val, 0);
     X11GLXGraphicsConfiguration cfg = X11GLXGraphicsConfiguration.create(glp, x11Screen, val[0]);
 
-    NullWindow nw = new NullWindow(cfg);
-    nw.setSurfaceHandle(drawable);
-    return new X11ExternalGLXContext(new Drawable(factory, nw), ctx);
+    ProxySurface ns = new ProxySurface(cfg);
+    ns.setSurfaceHandle(drawable);
+    return new X11ExternalGLXContext(new Drawable(factory, ns), ctx);
   }
 
   protected boolean createImpl() {
@@ -117,7 +118,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
 
   // Need to provide the display connection to extension querying APIs
   static class Drawable extends X11GLXDrawable {
-    Drawable(GLDrawableFactory factory, NativeWindow comp) {
+    Drawable(GLDrawableFactory factory, NativeSurface comp) {
       super(factory, comp, true);
     }
 

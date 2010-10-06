@@ -39,17 +39,17 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.*;
-import com.jogamp.newt.util.*;
 
 import com.jogamp.common.util.*;
 import javax.media.nativewindow.*;
-import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
-import com.jogamp.newt.impl.OffscreenWindow;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.lang.reflect.Method;
+import javax.media.nativewindow.util.Insets;
+import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.Rectangle;
 
 public abstract class WindowImpl implements Window, NEWTEventConsumer
 {
@@ -263,7 +263,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
 
     //----------------------------------------------------------------------
-    // NativeWindow: Native implementation
+    // NativeSurface: Native implementation
     //
 
     protected int lockSurfaceImpl() { return LOCK_SUCCESS; }
@@ -291,7 +291,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected void setTitleImpl(String title) {}
 
     //----------------------------------------------------------------------
-    // NativeWindow
+    // NativeSurface
     //
 
     public final int lockSurface() {
@@ -336,6 +336,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return windowLock.getLockedStack();
     }
 
+    public long getSurfaceHandle() {
+        return windowHandle; // default: return window handle
+    }
+
+    public boolean surfaceSwap() {
+        return false;
+    }
+
+    public AbstractGraphicsConfiguration getGraphicsConfiguration() {
+        return config;
+    }
+
     public final long getDisplayHandle() {
         return getScreen().getDisplay().getHandle();
     }
@@ -344,20 +356,32 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return getScreen().getIndex();
     }
 
-    public AbstractGraphicsConfiguration getGraphicsConfiguration() {
-        return config;
+    //----------------------------------------------------------------------
+    // NativeWindow
+    //
+
+    public final void destroy() {
+        destroy(false);
+    }
+
+    public final NativeWindow getParent() {
+        return parentWindow;
     }
 
     public final long getWindowHandle() {
         return windowHandle;
     }
 
-    public long getSurfaceHandle() {
-        return windowHandle; // default: return window handle
-    }
-
-    public boolean surfaceSwap() {
-        return false;
+    public Point getLocationOnScreen(Point storage) {
+        if(null!=storage) {
+            storage.translate(getX(),getY());
+        } else {
+            storage = new Point(getX(),getY());
+        }
+        if(null!=parentWindow) {
+            parentWindow.getLocationOnScreen(storage);
+        }
+        return storage;
     }
 
     //----------------------------------------------------------------------
@@ -370,10 +394,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public final boolean isValid() {
         return null != getScreen() ;
-    }
-
-    public final NativeWindow getParentNativeWindow() {
-        return parentWindow;
     }
 
     public final Screen getScreen() {
@@ -506,10 +526,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(visibleAction>0) {
             setVisible( ( 1 == visibleAction ) ? false : true );
         }
-    }
-
-    public final void destroy() {
-        destroy(false);
     }
 
     public void destroy(boolean unrecoverable) {
@@ -689,7 +705,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         setScreen( (ScreenImpl) newParentWindowNEWT.getScreen() );
                         displayChanged = true;
                         reparentAction = ACTION_NATIVE_CREATION_PENDING;
-                    } else if(newParentWindow != getParentNativeWindow()) {
+                    } else if(newParentWindow != getParent()) {
                         // Case: Parent's native window realized and changed
                         if( !isNativeValid() ) {
                             // May create a new compatible Screen/Display and
@@ -812,6 +828,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                             visible = true;
                             setVisibleImpl(true);
                             display.dispatchMessages(); // status up2date
+                            requestFocusImpl(true);
+                            display.dispatchMessages(); // status up2date
                         }
                     } else {
                         // native reparent failed -> try creation
@@ -921,7 +939,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void requestFocus() {
-        enqueueRequestFocus(false); // FIXME: or shall we wait ?
+        // enqueueRequestFocus(false); // FIXME: or shall we wait ?
+        enqueueRequestFocus(true);
     }
 
     public boolean hasFocus() {
@@ -1114,6 +1133,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public boolean setFullscreen(boolean fullscreen) {
+        boolean action = false;
         windowLock.lock();
         try{
             if(0!=windowHandle && this.fullscreen!=fullscreen) {
@@ -1138,10 +1158,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
                 this.fullscreen = fullscreen;
                 reconfigureWindowImpl(x, y, w, h);
-                requestFocus();
+                action = true;
             }
         } finally {
             windowLock.unlock();
+        }
+        if(action) {
+            requestFocus();
         }
         if( isVisible() ) {
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
@@ -1297,11 +1320,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    public void surfaceUpdated(Object updater, NativeWindow window, long when) { 
+    public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
         synchronized(surfaceUpdatedListenersLock) {
           for(Iterator i = surfaceUpdatedListeners.iterator(); i.hasNext(); ) {
             SurfaceUpdatedListener l = (SurfaceUpdatedListener) i.next();
-            l.surfaceUpdated(updater, window, when);
+            l.surfaceUpdated(updater, ns, when);
           }
         }
     }

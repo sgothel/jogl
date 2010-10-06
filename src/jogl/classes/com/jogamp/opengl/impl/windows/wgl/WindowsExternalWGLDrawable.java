@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -42,11 +43,11 @@ package com.jogamp.opengl.impl.windows.wgl;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.NullWindow;
+import com.jogamp.nativewindow.impl.ProxySurface;
 
 public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
 
-  private WindowsExternalWGLDrawable(GLDrawableFactory factory, NativeWindow component) {
+  private WindowsExternalWGLDrawable(GLDrawableFactory factory, NativeSurface component) {
     super(factory, component, true);
   }
 
@@ -63,12 +64,12 @@ public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
     WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.create(hdc, pfdID, glp, aScreen, true, true);
 
-    NullWindow nw = new NullWindow(cfg);
-    nw.setSurfaceHandle(hdc);
+    ProxySurface ns = new ProxySurface(cfg);
+    ns.setSurfaceHandle(hdc);
 
-    cfg.updateGraphicsConfiguration(factory, nw);
+    cfg.updateGraphicsConfiguration(factory, ns);
 
-    return new WindowsExternalWGLDrawable(factory, nw);
+    return new WindowsExternalWGLDrawable(factory, ns);
   }
 
 

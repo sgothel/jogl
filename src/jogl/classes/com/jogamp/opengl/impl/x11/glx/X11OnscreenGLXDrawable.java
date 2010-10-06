@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -48,7 +49,7 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
   long glXWindow; // GLXWindow, a GLXDrawable representation
   boolean useGLXWindow;
 
-  protected X11OnscreenGLXDrawable(GLDrawableFactory factory, NativeWindow component) {
+  protected X11OnscreenGLXDrawable(GLDrawableFactory factory, NativeSurface component) {
     super(factory, component, false);
     glXWindow=0;
     useGLXWindow=false;
@@ -58,12 +59,12 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
     if(useGLXWindow) {
         return glXWindow; 
     } 
-    return getNativeWindow().getSurfaceHandle();
+    return getNativeSurface().getSurfaceHandle();
   }
 
   protected void destroyHandle() {
     if(0!=glXWindow) {
-        GLX.glXDestroyWindow(getNativeWindow().getDisplayHandle(), glXWindow);
+        GLX.glXDestroyWindow(getNativeSurface().getDisplayHandle(), glXWindow);
         glXWindow = 0;
         useGLXWindow=false;
     }
@@ -72,16 +73,16 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
   /** must be locked already */
   protected void updateHandle() {
     if(USE_GLXWINDOW) {
-        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
         if(config.getFBConfig()>=0) {
             useGLXWindow=true;
-            long dpy = getNativeWindow().getDisplayHandle();
+            long dpy = getNativeSurface().getDisplayHandle();
             if(0!=glXWindow) {
                 GLX.glXDestroyWindow(dpy, glXWindow);
             }
-            glXWindow = GLX.glXCreateWindow(dpy, config.getFBConfig(), getNativeWindow().getSurfaceHandle(), null, 0);
+            glXWindow = GLX.glXCreateWindow(dpy, config.getFBConfig(), getNativeSurface().getSurfaceHandle(), null, 0);
             if (DEBUG) {
-              System.err.println("!!! X11OnscreenGLXDrawable.setRealized(true): glXWindow: "+toHexString(getNativeWindow().getSurfaceHandle())+" -> "+toHexString(glXWindow));
+              System.err.println("!!! X11OnscreenGLXDrawable.setRealized(true): glXWindow: "+toHexString(getNativeSurface().getSurfaceHandle())+" -> "+toHexString(glXWindow));
             }
             if(0==glXWindow) {
                 throw new GLException("X11OnscreenGLXDrawable.setRealized(true): GLX.glXCreateWindow() failed: "+this);
@@ -92,13 +93,5 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
 
   public GLContext createContext(GLContext shareWith) {
     return new X11OnscreenGLXContext(this, shareWith);
-  }
-
-  public int getWidth() {
-    return component.getWidth();
-  }
-
-  public int getHeight() {
-    return component.getHeight();
   }
 }

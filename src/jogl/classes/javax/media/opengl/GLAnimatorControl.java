@@ -66,10 +66,7 @@ public interface GLAnimatorControl {
 
 
     /**
-     * @return Number of frames issued to all registered GLAutoDrawables registered
-     */
-    /**
-     * @return Number of frame cycles displayed by all registered {@link javax.media.opengl.GLAutoDrawable}
+     * @return Number of frame cycles displayed
      *         since the first display call, ie <code>getStartTime()</code>.
      *         This value is reset if started or resumed.
      *
@@ -77,6 +74,9 @@ public interface GLAnimatorControl {
      * @see #resume()
      */
     int getTotalFrames();
+
+    /** Reset all performance counter (startTime, currentTime, frame number) */
+    public void resetCounter();
 
     /**
      * Indicates whether this animator is currently running, ie started.

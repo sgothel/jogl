@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -77,7 +78,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   public static final int NSOPENGL_MODE = 1;
   public static final int CGL_MODE      = 2;
 
-  public MacOSXCGLDrawable(GLDrawableFactory factory, NativeWindow comp, boolean realized) {
+  public MacOSXCGLDrawable(GLDrawableFactory factory, NativeSurface comp, boolean realized) {
     super(factory, comp, realized);
  }
 

@@ -88,11 +88,6 @@ public class FPSAnimator extends AnimatorBase {
         this.scheduleAtFixedRate = scheduleAtFixedRate;
     }
 
-    public long getStartTime()   { return startTime; }
-    public long getCurrentTime() { return curTime; }
-    public long getDuration()    { return curTime-startTime; }
-    public int  getTotalFrames() { return totalFrames; }
-
     public final synchronized boolean isStarted() {
         return (timer != null);
     }
@@ -116,9 +111,7 @@ public class FPSAnimator extends AnimatorBase {
             }
         };
 
-        startTime = System.currentTimeMillis();
-        curTime = startTime;
-        totalFrames = 0;
+        resetCounter();
         shouldRun = true;
 
         if (scheduleAtFixedRate) {

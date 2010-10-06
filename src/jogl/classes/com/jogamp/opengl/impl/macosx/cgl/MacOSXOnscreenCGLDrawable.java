@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -51,7 +52,7 @@ public class MacOSXOnscreenCGLDrawable extends MacOSXCGLDrawable {
   private List/*<WeakReference<GLContext>>*/ createdContexts =
     new ArrayList();
 
-  protected MacOSXOnscreenCGLDrawable(GLDrawableFactory factory, NativeWindow component) {
+  protected MacOSXOnscreenCGLDrawable(GLDrawableFactory factory, NativeSurface component) {
     super(factory, component, false);
   }
 
@@ -68,14 +69,6 @@ public class MacOSXOnscreenCGLDrawable extends MacOSXCGLDrawable {
       createdContexts = newContexts;
     }
     return context;
-  }
-
-  public int getWidth() {
-    return component.getWidth();
-  }
-
-  public int getHeight() {
-    return component.getHeight();
   }
 
   protected void swapBuffersImpl() {

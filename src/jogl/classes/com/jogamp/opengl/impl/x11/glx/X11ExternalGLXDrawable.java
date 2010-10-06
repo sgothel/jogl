@@ -42,13 +42,13 @@ package com.jogamp.opengl.impl.x11.glx;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
-import com.jogamp.nativewindow.impl.NullWindow;
+import com.jogamp.nativewindow.impl.ProxySurface;
 
 
 public class X11ExternalGLXDrawable extends X11GLXDrawable {
 
-  private X11ExternalGLXDrawable(GLDrawableFactory factory, NativeWindow component) {
-    super(factory, component, true);
+  private X11ExternalGLXDrawable(GLDrawableFactory factory, NativeSurface surface) {
+    super(factory, surface, true);
   }
 
   protected static X11ExternalGLXDrawable create(GLDrawableFactory factory, GLProfile glp) {
@@ -83,10 +83,10 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
         System.err.println("X11ExternalGLXDrawable: WARNING: forcing GLX_RGBA_TYPE for newly created contexts (current 0x"+Integer.toHexString(val[0])+")");
       }
     }
-    NullWindow nw = new NullWindow(cfg);
-    nw.setSurfaceHandle(drawable);
-    nw.setSize(w, h);
-    return new X11ExternalGLXDrawable(factory, nw);
+    ProxySurface ns = new ProxySurface(cfg);
+    ns.setSurfaceHandle(drawable);
+    ns.setSize(w, h);
+    return new X11ExternalGLXDrawable(factory, ns);
   }
 
   public GLContext createContext(GLContext shareWith) {
@@ -96,14 +96,6 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
   public void setSize(int newWidth, int newHeight) {
     throw new GLException("Should not call this");
   }
-
-  public int getWidth() {
-    return getNativeWindow().getWidth();
-  }  
-
-  public int getHeight() {
-    return getNativeWindow().getHeight();
-  }  
 
   class Context extends X11GLXContext {
     Context(X11GLXDrawable drawable, GLContext shareWith) {

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -55,7 +56,7 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
   private long profilingSwapBuffersTime;
 
 
-  public WindowsWGLDrawable(GLDrawableFactory factory, NativeWindow comp, boolean realized) {
+  public WindowsWGLDrawable(GLDrawableFactory factory, NativeSurface comp, boolean realized) {
     super(factory, comp, realized);
   }
 
@@ -64,9 +65,9 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
         return; // nothing todo ..
     }
 
-    NativeWindow nativeWindow = getNativeWindow();
-    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)nativeWindow.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    config.updateGraphicsConfiguration(getFactory(), nativeWindow);
+    NativeSurface ns = getNativeSurface();
+    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    config.updateGraphicsConfiguration(getFactory(), ns);
     if (DEBUG) {
       System.err.println("!!! WindowsWGLDrawable.setRealized(true): "+config);
     }

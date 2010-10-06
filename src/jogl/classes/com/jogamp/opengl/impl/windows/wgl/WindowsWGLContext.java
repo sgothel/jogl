@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -306,7 +307,7 @@ public class WindowsWGLContext extends GLContextImpl {
 
     if (newCreated) {
       WindowsWGLGraphicsConfiguration config = 
-        (WindowsWGLGraphicsConfiguration)drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        (WindowsWGLGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
       config.updateCapabilitiesByWGL(this);
     }
   }

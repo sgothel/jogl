@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -177,7 +178,7 @@ public abstract class GLDrawableFactory {
    * which determines pixel format, on- and offscreen incl. PBuffer type.
    * <p>
    * The native platform's chosen Capabilties are referenced within the target
-   * NativeWindow's AbstractGraphicsConfiguration.<p>
+   * NativeSurface's AbstractGraphicsConfiguration.<p>
    *
    * In case {@link javax.media.nativewindow.Capabilities#isOnscreen()} is true,<br>
    * an onscreen GLDrawable will be realized.
@@ -193,7 +194,7 @@ public abstract class GLDrawableFactory {
    *
    * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
    */
-  public abstract GLDrawable createGLDrawable(NativeWindow target)
+  public abstract GLDrawable createGLDrawable(NativeSurface target)
     throws IllegalArgumentException, GLException;
 
   /**

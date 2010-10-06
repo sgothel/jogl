@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,14 +37,14 @@
 
 package com.jogamp.nativewindow.impl.jawt;
 
-import com.jogamp.nativewindow.impl.*;
-import com.jogamp.nativewindow.util.Rectangle;
 
 import java.awt.Component;
 import java.awt.Window;
 import java.awt.GraphicsEnvironment;
 import javax.media.nativewindow.*;
 import com.jogamp.nativewindow.impl.*;
+import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.Rectangle;
 
 public abstract class JAWTWindow implements NativeWindow {
   protected static final boolean DEBUG = Debug.debug("JAWT");
@@ -79,19 +80,10 @@ public abstract class JAWTWindow implements NativeWindow {
 
   protected abstract void initNative() throws NativeWindowException;
 
-  public synchronized void invalidate() {
+  protected synchronized void invalidate() {
     component = null;
     drawable= 0;
     bounds = new Rectangle();
-  }
-
-  public synchronized void destroy() {
-    if(null!=component) {
-        if(component instanceof Window) {
-            ((Window)component).dispose();
-        }
-    }
-    invalidate();
   }
 
   protected void updateBounds(JAWT_Rectangle jawtBounds) {
@@ -100,6 +92,25 @@ public abstract class JAWTWindow implements NativeWindow {
     bounds.setWidth(jawtBounds.getWidth());
     bounds.setHeight(jawtBounds.getHeight());
   }
+
+  /** @return the JAWT_DrawingSurfaceInfo's (JAWT_Rectangle) bounds, updated with lock */
+  public Rectangle getBounds() { return bounds; }
+
+  public Component getAWTComponent() {
+    return component;
+  }
+
+  //
+  // SurfaceUpdateListener
+  //
+
+  public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+      // nop
+  }
+  
+  //
+  // NativeSurface
+  //
 
   private RecursiveToolkitLock recurLock = new RecursiveToolkitLock();
 
@@ -148,15 +159,6 @@ public abstract class JAWTWindow implements NativeWindow {
 
   public void surfaceUpdated(Object updater, NativeWindow window, long when) { }
 
-  public long getDisplayHandle() {
-    return config.getScreen().getDevice().getHandle();
-  }
-  public int getScreenIndex() {
-    return config.getScreen().getIndex();
-  }
-  public long getWindowHandle() {
-    return drawable;
-  }
   public long getSurfaceHandle() {
     return drawable;
   }
@@ -164,8 +166,12 @@ public abstract class JAWTWindow implements NativeWindow {
     return config;
   }
 
-  public Object getWrappedWindow() {
-    return component;
+  public long getDisplayHandle() {
+    return config.getScreen().getDevice().getHandle();
+  }
+
+  public int getScreenIndex() {
+    return config.getScreen().getIndex();
   }
 
   public void setSize(int width, int height) {
@@ -180,8 +186,44 @@ public abstract class JAWTWindow implements NativeWindow {
     return component.getHeight();
   }
 
-  /** @return the JAWT_DrawingSurfaceInfo's (JAWT_Rectangle) bounds, updated with lock */
-  public Rectangle getBounds() { return bounds; }
+  //
+  // NativeWindow
+  //
+
+  public synchronized void destroy() {
+    if(null!=component) {
+        if(component instanceof Window) {
+            ((Window)component).dispose();
+        }
+    }
+    invalidate();
+  }
+
+  public NativeWindow getParent() {
+      return null;
+  }
+
+  public long getWindowHandle() {
+    return drawable;
+  }
+
+  public int getX() {
+      return component.getX();
+  }
+
+  public int getY() {
+      return component.getY();
+  }
+
+  public Point getLocationOnScreen(Point point) {
+        java.awt.Point awtLOS = component.getLocationOnScreen();
+        int dx = (int) ( awtLOS.getX() + .5 ) ;
+        int dy = (int) ( awtLOS.getY() + .5 ) ;
+        if(null!=point) {
+            return point.translate(dx, dy);
+        }
+        return new Point(dx, dy);
+  }
 
   public String toString() {
     StringBuffer sb = new StringBuffer();
@@ -191,14 +233,14 @@ public abstract class JAWTWindow implements NativeWindow {
                 ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
                 ", bounds "+bounds);
     if(null!=component) {
-      sb.append(", pos "+component.getX()+"/"+component.getY()+", size "+getWidth()+"x"+getHeight()+
+      sb.append(", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                 ", visible "+component.isVisible());
     } else {
       sb.append(", component NULL");
     }
     sb.append(", lockedExt "+isSurfaceLockedByOtherThread()+
               ",\n\tconfig "+config+
-              ",\n\twrappedWindow "+getWrappedWindow()+"]");
+              ",\n\tawtComponent "+getAWTComponent()+"]");
 
     return sb.toString();
   }

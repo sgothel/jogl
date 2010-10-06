@@ -120,7 +120,7 @@ public class TestDrawable01NEWT extends UITestCase {
         // Assert.assertEquals(width,drawable.getWidth());
         // Assert.assertEquals(height,drawable.getHeight());
         // Assert.assertEquals(glCaps,drawable.getChosenGLCapabilities());
-        Assert.assertEquals(window,drawable.getNativeWindow());
+        Assert.assertEquals(window,drawable.getNativeSurface());
         // System.out.println("Post: "+drawable);
 
         context = drawable.createContext(null);

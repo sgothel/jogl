@@ -124,8 +124,7 @@ static void _FatalError(JNIEnv *env, const char* msg, ...)
     vsnprintf(buffer, sizeof(buffer), msg, ap);
     va_end(ap);
 
-    fprintf(stderr, buffer);
-    fprintf(stderr, "\n");
+    fprintf(stderr, "%s\n", buffer);
     (*env)->FatalError(env, buffer);
 }
 

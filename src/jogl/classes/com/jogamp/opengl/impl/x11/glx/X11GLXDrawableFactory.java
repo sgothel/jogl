@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -44,7 +45,7 @@ import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
-import com.jogamp.nativewindow.impl.NullWindow;
+import com.jogamp.nativewindow.impl.ProxySurface;
 import com.jogamp.nativewindow.impl.x11.*;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
@@ -164,14 +165,14 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     X11Util.shutdown( false, DEBUG );
   }
 
-  public GLDrawableImpl createOnscreenDrawable(NativeWindow target) {
+  public GLDrawableImpl createOnscreenDrawable(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
     return new X11OnscreenGLXDrawable(this, target);
   }
 
-  protected GLDrawableImpl createOffscreenDrawable(NativeWindow target) {
+  protected GLDrawableImpl createOffscreenDrawable(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -209,7 +210,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return ( glxVersionMajor > majorReq ) || ( glxVersionMajor == majorReq && glxVersionMinor >= minorReq ) ;
   }
 
-  protected GLDrawableImpl createGLPbufferDrawableImpl(final NativeWindow target) {
+  protected GLDrawableImpl createGLPbufferDrawableImpl(final NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -238,12 +239,12 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
 
-  protected NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
-    NullWindow nw = new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, sharedScreen));
-    if(nw != null) {
-        nw.setSize(width, height);
+  protected NativeSurface createOffscreenSurface(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
+    ProxySurface ns = new ProxySurface(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, sharedScreen));
+    if(ns != null) {
+        ns.setSize(width, height);
     }
-    return nw;
+    return ns;
   }
 
   public GLContext createExternalGLContext() {

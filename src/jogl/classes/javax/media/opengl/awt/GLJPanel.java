@@ -488,7 +488,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     return glProfile;
   }
 
-  public NativeWindow getNativeWindow() {
+  public NativeSurface getNativeSurface() {
     throw new GLException("FIXME");
   }
 
@@ -1541,7 +1541,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
                   }
                 }
                 if (joglContext == null) {
-                  AbstractGraphicsDevice device = j2dContext.getGLDrawable().getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
+                  AbstractGraphicsDevice device = j2dContext.getGLDrawable().getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
                   if (factory.canCreateExternalGLDrawable(device)) {
                     joglDrawable = factory.createExternalGLDrawable();
                     // FIXME: Need to share with j2d context, due to FBO resource .. 

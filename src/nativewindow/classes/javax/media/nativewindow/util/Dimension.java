@@ -1,5 +1,6 @@
 /**
  * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,35 +28,67 @@
  */
  
 
-package com.jogamp.nativewindow.util;
+package javax.media.nativewindow.util;
 
-public class Rectangle {
-    int x;
-    int y;
+public class Dimension {
     int width;
     int height;
 
-    public Rectangle() {
-        this(0, 0, 0, 0);
+    public Dimension() {
+        this(0, 0);
     }
 
-    public Rectangle(int x, int y, int width, int height) {
-        this.x=x;
-        this.y=y;
+    public Dimension(int width, int height) {
         this.width=width;
         this.height=height;
     }
-    public int getX() { return x; }
-    public int getY() { return y; }
     public int getWidth() { return width; }
     public int getHeight() { return height; }
-    public void setX(int x) { this.x = x; }
-    public void setY(int y) { this.y = y; }
     public void setWidth(int width) { this.width = width; }
     public void setHeight(int height) { this.height = height; }
 
-    public String toString() {
-        return new String("Rect["+x+"/"+y+" "+width+"x"+height+"]");
+    public Dimension scale(int s) {
+        width *= s;
+        height *= s;
+        return this;
     }
+
+    public Dimension add(Dimension pd) {
+        width += pd.width ;
+        height += pd.height ;
+        return this;
+    }
+
+    public String toString() {
+        return new String("Dimension["+width+"x"+height+"]");
+    }
+
+    /**
+     * Checks whether two dimensions objects are equal. Two instances
+     * of <code>Dimension</code> are equal if the four integer values
+     * of the fields <code>height</code> and <code>width</code>
+     * are equal.
+     * @return      <code>true</code> if the two dimensions are equal;
+     *                          otherwise <code>false</code>.
+     */
+    public boolean equals(Object obj) {
+        if (obj instanceof Dimension) {
+            Dimension p = (Dimension)obj;
+            return (height == p.height) && (width == p.width) &&
+                   (height == p.height) && (width == p.width);
+        }
+        return false;
+    }
+
+    /**
+     * Returns the hash code for this Dimension.
+     *
+     * @return    a hash code for this Dimension.
+     */
+    public int hashCode() {
+        int sum1 = width + height;
+        return sum1 * (sum1 + 1)/2 + width;
+    }
+
 }
 

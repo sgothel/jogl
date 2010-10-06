@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -64,7 +65,7 @@ public class GLPbufferImpl implements GLPbuffer {
   public GLPbufferImpl(GLDrawableImpl pbufferDrawable,
                        GLContext parentContext) {
     GLCapabilities caps = (GLCapabilities) 
-         pbufferDrawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+         pbufferDrawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
     if(caps.isOnscreen()) {
         if(caps.isPBuffer()) {
             throw new IllegalArgumentException("Error: Given drawable is Onscreen and Pbuffer: "+pbufferDrawable);
@@ -96,8 +97,8 @@ public class GLPbufferImpl implements GLPbuffer {
     throw new GLException("Not yet implemented");
   }
 
-  public NativeWindow getNativeWindow() {
-      return pbufferDrawable.getNativeWindow();
+  public NativeSurface getNativeSurface() {
+      return pbufferDrawable.getNativeSurface();
   }
 
   public long getHandle() {
@@ -219,7 +220,7 @@ public class GLPbufferImpl implements GLPbuffer {
 
   public int lockSurface() throws GLException {
     recurLock.lock();
-    return NativeWindow.LOCK_SUCCESS;
+    return NativeSurface.LOCK_SUCCESS;
   }
 
   public void unlockSurface() {

@@ -56,7 +56,7 @@ import java.security.*;
     based rendering mechanism as well by end users directly.<P>
 
     The implementation shall initialize itself as soon as possible,
-    ie if the attached {@link javax.media.nativewindow.NativeWindow NativeWindow} is become visible. 
+    ie if the attached {@link javax.media.nativewindow.NativeSurface NativeSurface} becomes visible/realized. 
     The following protocol shall be satisfied:
     <ul>
         <li> Create the  {@link GLDrawable} with the requested {@link GLCapabilities}</li>
@@ -70,12 +70,12 @@ import java.security.*;
 
     Another implementation detail is the drawable reconfiguration. One use case is where a window is being 
     dragged to another screen with a different pixel configuration, ie {@link GLCapabilities}. The implementation 
-    shall be able to detect such cases in conjunction with the associated {@link javax.media.nativewindow.NativeWindow NativeWindow}.<br>
+    shall be able to detect such cases in conjunction with the associated {@link javax.media.nativewindow.NativeSurface NativeSurface}.<br>
     For example, AWT's {@link java.awt.Canvas} 's {@link java.awt.Canvas#getGraphicsConfiguration getGraphicsConfiguration()}
     is capable to determine a display device change. This is demonstrated within {@link javax.media.opengl.awt.GLCanvas}'s 
     and NEWT's <code>AWTCanvas</code> {@link javax.media.opengl.awt.GLCanvas#getGraphicsConfiguration getGraphicsConfiguration()} 
     specialization. Another demonstration is NEWT's {@link javax.media.nativewindow.NativeWindow NativeWindow} 
-    implementation on the the Windows platform, which utilizes the native platform's <i>MonitorFromWindow(HWND)</i> function.<br>
+    implementation on the Windows platform, which utilizes the native platform's <i>MonitorFromWindow(HWND)</i> function.<br>
     All OpenGL resources shall be regenerated, while the drawable's {@link GLCapabilities} has 
     to be choosen again. The following protocol shall be satisfied.
     <ul>

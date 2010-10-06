@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -44,20 +45,12 @@ import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 
 public class WindowsOnscreenWGLDrawable extends WindowsWGLDrawable {
-  protected WindowsOnscreenWGLDrawable(GLDrawableFactory factory, NativeWindow component) {
+  protected WindowsOnscreenWGLDrawable(GLDrawableFactory factory, NativeSurface component) {
     super(factory, component, false);
   }
 
   public GLContext createContext(GLContext shareWith) {
     return new WindowsOnscreenWGLContext(this, shareWith);
-  }
-
-  public int getWidth() {
-    return component.getWidth();
-  }
-
-  public int getHeight() {
-    return component.getHeight();
   }
 
 }

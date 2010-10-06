@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -40,7 +41,7 @@ import javax.media.opengl.*;
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.NullWindow;
+import com.jogamp.nativewindow.impl.ProxySurface;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
   
@@ -114,14 +115,14 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     protected final GLDrawableImpl getSharedDrawable() { return null; }
     protected final GLContextImpl getSharedContext() { return null; }
 
-    public GLDrawableImpl createOnscreenDrawable(NativeWindow target) {
+    public GLDrawableImpl createOnscreenDrawable(NativeSurface target) {
         if (target == null) {
           throw new IllegalArgumentException("Null target");
         }
         return new EGLOnscreenDrawable(this, target);
     }
 
-    protected GLDrawableImpl createOffscreenDrawable(NativeWindow target) {
+    protected GLDrawableImpl createOffscreenDrawable(NativeSurface target) {
         throw new GLException("Not yet implemented");
     }
 
@@ -129,14 +130,14 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return true;
     }
 
-    protected GLDrawableImpl createGLPbufferDrawableImpl(NativeWindow target) {
+    protected GLDrawableImpl createGLPbufferDrawableImpl(NativeSurface target) {
         return new EGLPbufferDrawable(this, target);
     }
 
-    protected NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
-        NullWindow nw = new NullWindow(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(capabilities, chooser));
-        nw.setSize(width, height);
-        return nw;
+    protected NativeSurface createOffscreenSurface(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
+        ProxySurface ns = new ProxySurface(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(capabilities, chooser));
+        ns.setSize(width, height);
+        return ns;
     }
 
     public GLContext createExternalGLContext() {

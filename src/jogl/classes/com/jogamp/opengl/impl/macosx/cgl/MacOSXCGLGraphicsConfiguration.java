@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -148,7 +149,7 @@ public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration
         // On this platform the pixel format is associated with the
         // context and not the drawable. However it's a reasonable
         // approximation to just store the chosen pixel format up in the
-        // NativeWindow's AbstractGraphicsConfiguration, 
+        // NativeSurface's AbstractGraphicsConfiguration, 
         // since the public API doesn't provide for a different GLCapabilities per context.
         // Note: These restrictions of the platform's API might be considered as a bug anyways.
 

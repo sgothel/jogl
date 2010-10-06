@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -46,12 +47,12 @@ public abstract class GLDrawableImpl implements GLDrawable {
   protected static final boolean DEBUG = Debug.debug("GLDrawable");
 
   protected GLDrawableImpl(GLDrawableFactory factory,
-                           NativeWindow comp,
+                           NativeSurface comp,
                            boolean realized) {
       this.factory = factory;
-      this.component = comp;
+      this.surface = comp;
       this.realized = realized;
-      this.requestedCapabilities = (GLCapabilities)component.getGraphicsConfiguration().getNativeGraphicsConfiguration().getRequestedCapabilities(); // a copy ..
+      this.requestedCapabilities = (GLCapabilities)surface.getGraphicsConfiguration().getNativeGraphicsConfiguration().getRequestedCapabilities(); // a copy ..
   }
 
   /** 
@@ -70,16 +71,16 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   public final void swapBuffers() throws GLException {
-    GLCapabilities caps = (GLCapabilities)component.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    GLCapabilities caps = (GLCapabilities)surface.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
     if ( caps.getDoubleBuffered() ) {
-        if(!component.surfaceSwap()) {
+        if(!surface.surfaceSwap()) {
             int lockRes = lockSurface(); // it's recursive, so it's ok within [makeCurrent .. release]
-            if (NativeWindow.LOCK_SURFACE_NOT_READY == lockRes) {
+            if (NativeSurface.LOCK_SURFACE_NOT_READY == lockRes) {
                 return;
             }
             try {
-                AbstractGraphicsDevice aDevice = getNativeWindow().getGraphicsConfiguration().getScreen().getDevice();
-                if (NativeWindow.LOCK_SURFACE_CHANGED == lockRes) {
+                AbstractGraphicsDevice aDevice = getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
+                if (NativeSurface.LOCK_SURFACE_CHANGED == lockRes) {
                     updateHandle();
                 }
                 swapBuffersImpl();
@@ -93,7 +94,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
             ctx.getGL().glFinish();
         }
     }
-    component.surfaceUpdated(this, component, System.currentTimeMillis());
+    surface.surfaceUpdated(this, surface, System.currentTimeMillis());
   }
   protected abstract void swapBuffersImpl();
 
@@ -106,22 +107,22 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   public GLCapabilities getChosenGLCapabilities() {
-    return  (GLCapabilities)component.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities(); // a copy
+    return  (GLCapabilities)surface.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities(); // a copy
   }
 
   public GLCapabilities getRequestedGLCapabilities() {
     return requestedCapabilities;
   }
 
-  public NativeWindow getNativeWindow() {
-    return component;
+  public NativeSurface getNativeSurface() {
+    return surface;
   }
 
   protected void destroyHandle() {}
   protected void updateHandle() {}
 
   public long getHandle() {
-    return component.getSurfaceHandle();
+    return surface.getSurfaceHandle();
   }
 
   public GLDrawableFactory getFactory() {
@@ -134,11 +135,11 @@ public abstract class GLDrawableImpl implements GLDrawable {
             System.err.println("setRealized: "+getClass().getName()+" "+this.realized+" -> "+realized);
         }
         this.realized = realized;
-        if(realized && NativeWindow.LOCK_SURFACE_NOT_READY == lockSurface()) {
+        if(realized && NativeSurface.LOCK_SURFACE_NOT_READY == lockSurface()) {
           throw new GLException("X11GLXDrawable.setRealized(true): lockSurface - surface not ready");
         }
         try {
-            AbstractGraphicsDevice aDevice = getNativeWindow().getGraphicsConfiguration().getScreen().getDevice();
+            AbstractGraphicsDevice aDevice = getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
             if(!realized) {
                 destroyHandle();
             }
@@ -161,39 +162,38 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   public int getWidth() {
-    return component.getWidth();
+    return surface.getWidth();
   }
-
-  /** Returns the current height of this GLDrawable. */
+  
   public int getHeight() {
-    return component.getHeight();
+    return surface.getHeight();
   }
 
   public int lockSurface() throws GLException {
-    return component.lockSurface();
+    return surface.lockSurface();
   }
 
   public void unlockSurface() {
-    component.unlockSurface();
+    surface.unlockSurface();
   }
 
   public boolean isSurfaceLocked() {
-    return component.isSurfaceLocked();
+    return surface.isSurfaceLocked();
   }
 
   public String toString() {
     return getClass().getName()+"[Realized "+isRealized()+
                 ",\n\tFactory   "+getFactory()+
                 ",\n\thandle    "+toHexString(getHandle())+
-                ",\n\tWindow    "+getNativeWindow()+"]";
+                ",\n\tWindow    "+getNativeSurface()+"]";
   }
 
   protected GLDrawableFactory factory;
-  protected NativeWindow component;
+  protected NativeSurface surface;
   protected GLCapabilities requestedCapabilities;
 
-  // Indicates whether the component (if an onscreen context) has been
-  // realized. Plausibly, before the component is realized the JAWT
+  // Indicates whether the surface (if an onscreen context) has been
+  // realized. Plausibly, before the surface is realized the JAWT
   // should return an error or NULL object from some of its
   // operations; this appears to be the case on Win32 but is not true
   // at least with Sun's current X11 implementation (1.4.x), which
@@ -201,7 +201,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   // fetched from a locked DrawingSurface during the validation as a
   // result of calling show() on the main thread. To work around this
   // we prevent any JAWT or OpenGL operations from being done until
-  // addNotify() is called on the component.
+  // addNotify() is called on the surface.
   protected boolean realized;
 
 }

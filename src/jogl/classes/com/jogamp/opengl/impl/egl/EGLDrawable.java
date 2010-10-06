@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -50,7 +51,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     protected long eglSurface;
 
     protected EGLDrawable(EGLDrawableFactory factory,
-                       NativeWindow component) throws GLException {
+                       NativeSurface component) throws GLException {
         super(factory, component, false);
         eglSurface=EGL.EGL_NO_SURFACE;
         eglDisplay=0;
@@ -86,19 +87,19 @@ public abstract class EGLDrawable extends GLDrawableImpl {
             System.err.println("createSurface using eglDisplay 0x"+Long.toHexString(eglDisplay)+", "+eglConfig);
         }
 
-        eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig(), component.getSurfaceHandle());
+        eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig(), surface.getSurfaceHandle());
         if (EGL.EGL_NO_SURFACE==eglSurface) {
             throw new GLException("Creation of window surface failed: "+eglConfig+", error 0x"+Integer.toHexString(EGL.eglGetError()));
         }
 
         if(DEBUG) {
-            System.err.println("setSurface using component: handle 0x"+Long.toHexString(component.getSurfaceHandle())+" -> 0x"+Long.toHexString(eglSurface));
+            System.err.println("setSurface using component: handle 0x"+Long.toHexString(surface.getSurfaceHandle())+" -> 0x"+Long.toHexString(eglSurface));
         }
     }
 
     protected void setRealizedImpl() {
         if (realized) {
-            AbstractGraphicsConfiguration aConfig = component.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+            AbstractGraphicsConfiguration aConfig = surface.getGraphicsConfiguration().getNativeGraphicsConfiguration();
             AbstractGraphicsDevice aDevice = aConfig.getScreen().getDevice();
             if(aDevice instanceof EGLGraphicsDevice) {
                 if(DEBUG) {
@@ -116,10 +117,10 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                     }
 
                     int[] tmp = new int[1];
-                    if ( 0 != component.getSurfaceHandle() &&
-                         EGL.eglQuerySurface(eglDisplay, component.getSurfaceHandle(), EGL.EGL_CONFIG_ID, tmp, 0) ) {
-                        // component holds static EGLSurface
-                        eglSurface = component.getSurfaceHandle();
+                    if ( 0 != surface.getSurfaceHandle() &&
+                         EGL.eglQuerySurface(eglDisplay, surface.getSurfaceHandle(), EGL.EGL_CONFIG_ID, tmp, 0) ) {
+                        // surface holds static EGLSurface
+                        eglSurface = surface.getSurfaceHandle();
                         if(DEBUG) {
                             System.err.println("setSurface re-using component's EGLSurface: handle 0x"+Long.toHexString(eglSurface));
                         }
@@ -145,7 +146,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
 
                 long nDisplay=0;
                 if( NativeWindowFactory.TYPE_WINDOWS.equals(NativeWindowFactory.getNativeWindowType(false)) ) {
-                    nDisplay = component.getSurfaceHandle(); // don't even ask ..
+                    nDisplay = surface.getSurfaceHandle(); // don't even ask ..
                 } else {
                     nDisplay = aDevice.getHandle(); // 0 == EGL.EGL_DEFAULT_DISPLAY
                 }
@@ -219,7 +220,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     public String toString() {
         return getClass().getName()+"[realized "+isRealized()+
                     ",\n\tfactory    "+getFactory()+
-                    ",\n\twindow     "+getNativeWindow()+
+                    ",\n\tsurface    "+getNativeSurface()+
                     ",\n\teglSurface  0x"+Long.toHexString(eglSurface)+
                     ",\n\teglConfig  "+eglConfig+
                     ",\n\trequested  "+getRequestedGLCapabilities()+

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -56,7 +57,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
   protected void initNative() throws NativeWindowException {
   }
 
-  public synchronized void invalidate() {
+  protected synchronized void invalidate() {
     super.invalidate();
     windowHandle = 0;
   }

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -46,7 +47,7 @@ import com.jogamp.nativewindow.impl.x11.*;
 public class X11OffscreenGLXDrawable extends X11GLXDrawable {
   private long pixmap;
 
-  protected X11OffscreenGLXDrawable(GLDrawableFactory factory, NativeWindow target) {
+  protected X11OffscreenGLXDrawable(GLDrawableFactory factory, NativeSurface target) {
     super(factory, target, true);
     create();
   }
@@ -64,8 +65,8 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
   }
   
   private void create() {
-    NativeWindow nw = getNativeWindow();
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    NativeSurface ns = getNativeSurface();
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     XVisualInfo vis = config.getXVisualInfo();
     int bitsPerPixel = vis.getDepth();
     AbstractGraphicsScreen aScreen = config.getScreen();
@@ -74,7 +75,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     int screen = aScreen.getIndex();
 
     pixmap = X11Lib.XCreatePixmap(dpy, X11Lib.RootWindow(dpy, screen),
-                                  component.getWidth(), component.getHeight(), bitsPerPixel);
+                                  surface.getWidth(), surface.getHeight(), bitsPerPixel);
     if (pixmap == 0) {
         throw new GLException("XCreatePixmap failed");
     }
@@ -84,7 +85,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
         pixmap = 0;
         throw new GLException("glXCreateGLXPixmap failed");
     }
-    ((SurfaceChangeable)nw).setSurfaceHandle(drawable);
+    ((SurfaceChangeable)ns).setSurfaceHandle(drawable);
     if (DEBUG) {
         System.err.println("Created pixmap " + toHexString(pixmap) +
                            ", GLXPixmap " + toHexString(drawable) +
@@ -95,10 +96,10 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
   public void destroy() {
     if (pixmap == 0) return;
 
-    NativeWindow nw = getNativeWindow();
-    long display = nw.getDisplayHandle();
+    NativeSurface ns = getNativeSurface();
+    long display = ns.getDisplayHandle();
 
-    long drawable = nw.getSurfaceHandle();
+    long drawable = ns.getSurfaceHandle();
     if (DEBUG) {
         System.err.println("Destroying pixmap " + toHexString(pixmap) +
                            ", GLXPixmap " + toHexString(drawable) +
@@ -124,7 +125,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     X11Lib.XFreePixmap(display, pixmap);
     drawable = 0;
     pixmap = 0;
-    ((SurfaceChangeable)nw).setSurfaceHandle(0);
+    ((SurfaceChangeable)ns).setSurfaceHandle(0);
     display = 0;
   }
 

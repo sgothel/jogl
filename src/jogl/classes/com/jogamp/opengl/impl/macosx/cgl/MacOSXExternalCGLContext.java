@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -43,7 +44,7 @@ import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 
 import javax.media.nativewindow.*;
-import com.jogamp.nativewindow.impl.NullWindow;
+import com.jogamp.nativewindow.impl.ProxySurface;
 
 public class MacOSXExternalCGLContext extends MacOSXCGLContext {
   private boolean firstMakeCurrent = true;
@@ -99,9 +100,9 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
     MacOSXCGLGraphicsConfiguration cfg = new MacOSXCGLGraphicsConfiguration(aScreen, caps, caps, pixelFormat);
 
-    NullWindow nw = new NullWindow(cfg);
-    nw.setSurfaceHandle(currentDrawable); 
-    return new MacOSXExternalCGLContext(new Drawable(factory, nw), isNSContext, contextHandle);
+    ProxySurface ns = new ProxySurface(cfg);
+    ns.setSurfaceHandle(currentDrawable);
+    return new MacOSXExternalCGLContext(new Drawable(factory, ns), isNSContext, contextHandle);
   }
 
   protected boolean createImpl() throws GLException {
@@ -150,7 +151,7 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
   static class Drawable extends MacOSXCGLDrawable {
     MacOSXExternalCGLContext extCtx;
 
-    Drawable(GLDrawableFactory factory, NativeWindow comp) {
+    Drawable(GLDrawableFactory factory, NativeSurface comp) {
       super(factory, comp, true);
     }
 

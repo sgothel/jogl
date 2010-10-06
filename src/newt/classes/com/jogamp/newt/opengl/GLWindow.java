@@ -36,11 +36,12 @@ package com.jogamp.newt.opengl;
 
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
-import com.jogamp.newt.util.Insets;
 import com.jogamp.newt.impl.WindowImpl;
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.util.Point;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.GLDrawableHelper;
+import javax.media.nativewindow.util.Insets;
 
 /**
  * An implementation of {@link javax.media.opengl.GLAutoDrawable} interface,
@@ -62,7 +63,7 @@ public class GLWindow implements GLAutoDrawable, Window {
      * Constructor. Do not call this directly -- use {@link #create()} instead.
      */
     protected GLWindow(Window window) {
-        resetPerfCounter();
+        resetCounter();
         this.window = (WindowImpl) window;
         ((WindowImpl)this.window).setHandleDestroyNotify(false);
         window.addWindowListener(new WindowAdapter() {
@@ -152,8 +153,8 @@ public class GLWindow implements GLAutoDrawable, Window {
         return window;
     }
 
-    public final NativeWindow getParentNativeWindow() {
-        return window.getParentNativeWindow();
+    public final NativeWindow getParent() {
+        return window.getParent();
     }
 
     public final Screen getScreen() {
@@ -253,6 +254,10 @@ public class GLWindow implements GLAutoDrawable, Window {
         return window.isNativeValid();
     }
 
+    public Point getLocationOnScreen(Point storage) {
+        return window.getLocationOnScreen(storage);
+    }
+
     // Hide methods here ..
     protected class GLLifecycleHook implements WindowImpl.LifecycleHook {
 
@@ -326,9 +331,9 @@ public class GLWindow implements GLAutoDrawable, Window {
                 }
                 drawable.setRealized(true);
                 context = drawable.createContext(null);
-                resetPerfCounter();
+                resetCounter();
             } else if(!visible) {
-                resetPerfCounter();
+                resetCounter();
             }
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
                 String msg = new String("GLWindow.setVisibleAction("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", fin");
@@ -349,7 +354,7 @@ public class GLWindow implements GLAutoDrawable, Window {
         }
 
         public synchronized void reparentActionPost(int reparentActionType) {
-            resetPerfCounter();
+            resetCounter();
             GLAnimatorControl ctrl = GLWindow.this.getAnimator();
             if ( null!=ctrl && animatorPaused ) {
                 animatorPaused = false;
@@ -371,14 +376,6 @@ public class GLWindow implements GLAutoDrawable, Window {
     private boolean perfLog = false;
     private long startTime, curTime, lastCheck;
     private int  totalFrames, lastFrames;
-
-    /** Reset all performance counter (startTime, currentTime, frame number) */
-    public void resetPerfCounter() {
-        startTime = System.currentTimeMillis(); // overwrite startTime to real init one
-        curTime   = startTime;
-        lastCheck  = startTime;
-        totalFrames = 0; lastFrames = 0;
-    }
 
     public GLDrawableFactory getFactory() {
         return factory;
@@ -450,7 +447,7 @@ public class GLWindow implements GLAutoDrawable, Window {
             return;
         }
 
-        if( null == context && window.isVisible() ) {
+        if( null == context && isVisible() ) {
             // retry native window and drawable/context creation 
             setVisible(true);
         }
@@ -494,7 +491,7 @@ public class GLWindow implements GLAutoDrawable, Window {
         public void run() {
             // Lock: Locked Surface/Window by MakeCurrent/Release
             helper.init(GLWindow.this);
-            resetPerfCounter();
+            resetCounter();
         }
     }
     private InitAction initAction = new InitAction();
@@ -531,37 +528,17 @@ public class GLWindow implements GLAutoDrawable, Window {
     /** 
      * @return Time of the first display call in milliseconds.
      *         This value is reset if becoming visible again or reparenting.
-     *         In case an animator is used, 
-     *         the corresponding {@link javax.media.opengl.GLAnimatorControl} value is returned.
-     *
-     * @see javax.media.opengl.GLAnimatorControl#getStartTime()
      */
     public final long getStartTime()   { 
-        GLAnimatorControl animator = getAnimator();
-        if ( null == animator || null == animator.getThread() ) {
-            // no animator, or not started -> use local time
-            return startTime; 
-        } else {
-            return animator.getStartTime();
-        }
+        return startTime; 
     }
 
     /** 
      * @return Time of the last display call in milliseconds.
      *         This value is reset if becoming visible again or reparenting.
-     *         In case an animator is used, 
-     *         the corresponding {@link javax.media.opengl.GLAnimatorControl} value is returned.
-     *
-     * @see javax.media.opengl.GLAnimatorControl#getCurrentTime()
      */
     public final long getCurrentTime() {
-        GLAnimatorControl animator = getAnimator();
-        if ( null == animator || null == animator.getThread() ) {
-            // no animator, or not started -> use local time
-            return curTime;
-        } else {
-            return animator.getCurrentTime();
-        }
+        return curTime;
     }
 
     /** 
@@ -577,19 +554,17 @@ public class GLWindow implements GLAutoDrawable, Window {
     /** 
      * @return Number of frames displayed since the first display call, ie <code>getStartTime()</code>.
      *         This value is reset if becoming visible again or reparenting.
-     *         In case an animator is used, 
-     *         the corresponding {@link javax.media.opengl.GLAnimatorControl} value is returned.
-     *
-     * @see javax.media.opengl.GLAnimatorControl#getTotalFrames()
      */
-    public final int  getTotalFrames() { 
-        GLAnimatorControl animator = getAnimator();
-        if ( null == animator || null == animator.getThread() ) {
-            // no animator, or not started -> use local value
-            return totalFrames; 
-        } else {
-            return animator.getTotalFrames();
-        }
+    public final int getTotalFrames() { 
+        return totalFrames; 
+    }
+
+    /** Reset all counter (startTime, currentTime, frame number) */
+    public synchronized void resetCounter() {
+        startTime = System.currentTimeMillis(); // overwrite startTime to real init one
+        curTime   = startTime;
+        lastCheck  = startTime;
+        totalFrames = 0; lastFrames = 0;
     }
 
     class SwapBuffersAction implements Runnable {
@@ -603,8 +578,8 @@ public class GLWindow implements GLAutoDrawable, Window {
     // GLDrawable methods
     //
 
-    public final NativeWindow getNativeWindow() {
-        return null!=drawable ? drawable.getNativeWindow() : null;
+    public final NativeSurface getNativeSurface() {
+        return null!=drawable ? drawable.getNativeSurface() : null;
     }
 
     public final long getHandle() {
@@ -824,7 +799,7 @@ public class GLWindow implements GLAutoDrawable, Window {
         return window.getScreenIndex();
     }
 
-    public final void surfaceUpdated(Object updater, NativeWindow window, long when) {
-        window.surfaceUpdated(updater, window, when);
+    public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+        window.surfaceUpdated(updater, ns, when);
     }
 }

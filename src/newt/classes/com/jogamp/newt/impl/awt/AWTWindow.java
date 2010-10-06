@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,19 +38,10 @@ import com.jogamp.newt.event.awt.*;
 import com.jogamp.newt.util.EDTUtil;
 
 import java.awt.BorderLayout;
-import java.awt.Canvas;
 import java.awt.Container;
 import java.awt.DisplayMode;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.*;
-import com.jogamp.newt.Window;
 import com.jogamp.newt.impl.WindowImpl;
 import java.awt.Insets;
 import javax.media.nativewindow.*;
@@ -224,7 +216,7 @@ public class AWTWindow extends WindowImpl {
         }
     }
 
-    public com.jogamp.newt.util.Insets getInsets() {
+    public javax.media.nativewindow.util.Insets getInsets() {
         final int insets[] = new int[] { 0, 0, 0, 0 };
         runOnEDT(true, new Runnable() {
                 public void run() {
@@ -235,8 +227,7 @@ public class AWTWindow extends WindowImpl {
                     insets[3] = contInsets.right;
                 }
             });
-        return new com.jogamp.newt.util.
-            Insets(insets[0],insets[1],insets[2],insets[3]);
+        return new javax.media.nativewindow.util.Insets(insets[0],insets[1],insets[2],insets[3]);
     }
 
     protected void setPositionImpl(final int x, final int y) {

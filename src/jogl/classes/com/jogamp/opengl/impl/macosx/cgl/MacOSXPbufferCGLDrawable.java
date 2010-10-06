@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -53,15 +54,15 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
 
   // NSOpenGLPbuffer (for normal mode)
   // CGLPbufferObj (for CGL_MODE situation, i.e., when Java2D/JOGL bridge is active)
-  // Note that we can not store this in the NativeWindow because the
+  // Note that we can not store this in the NativeSurface because the
   // semantic is that contains an NSView
   protected long pBuffer;
 
-  public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, NativeWindow target) {
+  public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, NativeSurface target) {
     super(factory, target, true);
 
     if (DEBUG) {
-        System.out.println("Pbuffer config: " + getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration());
+        System.out.println("Pbuffer config: " + getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration());
     }
 
     initOpenGLImpl();
@@ -86,10 +87,10 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
 
   public void destroy() {
     if (this.pBuffer != 0) {
-      NativeWindow nw = getNativeWindow();
+      NativeSurface ns = getNativeSurface();
       impl.destroy(pBuffer);
       this.pBuffer = 0;
-      ((SurfaceChangeable)nw).setSurfaceHandle(0);
+      ((SurfaceChangeable)ns).setSurfaceHandle(0);
       if (DEBUG) {
         System.err.println("Destroyed pbuffer: " + pBuffer);
       }
@@ -107,8 +108,8 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   private void createPbuffer() {
-    NativeWindow nw = getNativeWindow();
-    DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    NativeSurface ns = getNativeSurface();
+    DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
     GLProfile glProfile = capabilities.getGLProfile();
     int renderTarget;
@@ -117,7 +118,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     } else {
       int w = getNextPowerOf2(getWidth());
       int h = getNextPowerOf2(getHeight());
-      ((SurfaceChangeable)nw).setSize(w, h);
+      ((SurfaceChangeable)ns).setSize(w, h);
       renderTarget = GL.GL_TEXTURE_2D;
     }
 
@@ -148,7 +149,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
       throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
     }
 
-    ((SurfaceChangeable)nw).setSurfaceHandle(pBuffer);
+    ((SurfaceChangeable)ns).setSurfaceHandle(pBuffer);
 
   }
 

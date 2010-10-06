@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -43,14 +44,14 @@ import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 
 public class X11PbufferGLXDrawable extends X11GLXDrawable {
-  protected X11PbufferGLXDrawable(GLDrawableFactory factory, NativeWindow target) {
+  protected X11PbufferGLXDrawable(GLDrawableFactory factory, NativeSurface target) {
                                   /* GLCapabilities caps, 
                                   GLCapabilitiesChooser chooser,
                                   int width, int height */
     super(factory, target, true);
 
     if (DEBUG) {
-        System.out.println("Pbuffer config: " + getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration());
+        System.out.println("Pbuffer config: " + getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration());
     }
 
     createPbuffer();
@@ -73,15 +74,15 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
   }
 
   public void destroy() {
-    NativeWindow nw = getNativeWindow();
-    if (nw.getSurfaceHandle() != 0) {
-      GLX.glXDestroyPbuffer(nw.getDisplayHandle(), nw.getSurfaceHandle());
+    NativeSurface ns = getNativeSurface();
+    if (ns.getSurfaceHandle() != 0) {
+      GLX.glXDestroyPbuffer(ns.getDisplayHandle(), ns.getSurfaceHandle());
     }
-    ((SurfaceChangeable)nw).setSurfaceHandle(0);
+    ((SurfaceChangeable)ns).setSurfaceHandle(0);
   }
 
   private void createPbuffer() {
-      X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+      X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
       AbstractGraphicsScreen aScreen = config.getScreen();
       AbstractGraphicsDevice aDevice = aScreen.getDevice();
       long display = aDevice.getHandle();
@@ -91,7 +92,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
         throw new GLException("Null display");
       }
 
-      NativeWindow nw = getNativeWindow();
+      NativeSurface ns = getNativeSurface();
     
       GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
 
@@ -108,9 +109,9 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       int[] iattributes = new int[5];
 
       iattributes[niattribs++] = GLX.GLX_PBUFFER_WIDTH;
-      iattributes[niattribs++] = nw.getWidth();
+      iattributes[niattribs++] = ns.getWidth();
       iattributes[niattribs++] = GLX.GLX_PBUFFER_HEIGHT;
-      iattributes[niattribs++] = nw.getHeight();
+      iattributes[niattribs++] = ns.getHeight();
       iattributes[niattribs++] = 0;
 
       long pbuffer = GLX.glXCreatePbuffer(display, config.getFBConfig(), iattributes, 0);
@@ -120,7 +121,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       }
 
       // Set up instance variables
-      ((SurfaceChangeable)nw).setSurfaceHandle(pbuffer);
+      ((SurfaceChangeable)ns).setSurfaceHandle(pbuffer);
       
       // Determine the actual width and height we were able to create.
       int[] tmp = new int[1];
@@ -128,7 +129,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       int width = tmp[0];
       GLX.glXQueryDrawable(display, pbuffer, GLX.GLX_HEIGHT, tmp, 0);
       int height = tmp[0];
-      ((SurfaceChangeable)nw).setSize(width, height);
+      ((SurfaceChangeable)ns).setSize(width, height);
   }
 
   public int getFloatingPointMode() {

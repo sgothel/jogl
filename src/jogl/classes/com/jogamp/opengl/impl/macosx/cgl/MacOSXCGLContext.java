@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -114,7 +115,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         throw new GLException("GLContextShareSet returned a NULL OpenGL context");
       }
     }
-    MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities capabilitiesRequested = (GLCapabilities)config.getRequestedCapabilities();
     GLProfile glProfile = capabilitiesRequested.getGLProfile();
     if(glProfile.isGL3()) {
@@ -242,7 +243,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   }
 	
   protected void swapBuffers() {
-    DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities caps = (GLCapabilities)config.getChosenCapabilities();
     if(caps.isOnscreen()) {
         if(isNSContext) {

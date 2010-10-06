@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -41,22 +42,22 @@ package com.jogamp.opengl.impl.windows.wgl;
 
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.NullWindow;
+import com.jogamp.nativewindow.impl.ProxySurface;
 
 public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
   private long hwnd, hdc;
 
   public WindowsDummyWGLDrawable(GLDrawableFactory factory, GLProfile glp) {
-    super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(glp, null, true, true)), true);
+    super(factory, new ProxySurface(WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(glp, null, true, true)), true);
     // All entries to CreateDummyWindow must synchronize on one object
     // to avoid accidentally registering the dummy window class twice
     synchronized (WindowsDummyWGLDrawable.class) {
       hwnd = GDI.CreateDummyWindow(0, 0, 1, 1);
     }
     hdc = GDI.GetDC(hwnd);
-    NullWindow nw = (NullWindow) getNativeWindow();
-    nw.setSurfaceHandle(hdc);
-    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    ProxySurface ns = (ProxySurface) getNativeSurface();
+    ns.setSurfaceHandle(hdc);
+    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     // Choose a (hopefully hardware-accelerated) OpenGL pixel format for this device context
     GLCapabilities caps = (GLCapabilities) config.getChosenCapabilities();
     caps.setDepthBits(16);

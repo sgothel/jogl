@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -60,9 +61,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   public abstract GLDynamicLookupHelper getGLDynamicLookupHelper(int profile);
 
   //---------------------------------------------------------------------------
-  // Dispatching GLDrawable construction in respect to the NativeWindow Capabilities
+  // Dispatching GLDrawable construction in respect to the NativeSurface Capabilities
   //
-  public GLDrawable createGLDrawable(NativeWindow target) {
+  public GLDrawable createGLDrawable(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -76,7 +77,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         result = createOnscreenDrawable(target);
     } else {
         if( ! ( target instanceof SurfaceChangeable ) ) {
-            throw new IllegalArgumentException("Passed NativeWindow must implement SurfaceChangeable for offscreen: "+target);
+            throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen: "+target);
         }
         if(caps.isPBuffer()) {
             if(DEBUG) {
@@ -102,7 +103,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   // Onscreen GLDrawable construction 
   //
 
-  protected abstract GLDrawableImpl createOnscreenDrawable(NativeWindow target);
+  protected abstract GLDrawableImpl createOnscreenDrawable(NativeSurface target);
 
   //---------------------------------------------------------------------------
   //
@@ -110,9 +111,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   //
 
   /** Target must implement SurfaceChangeable */
-  protected abstract GLDrawableImpl createGLPbufferDrawableImpl(NativeWindow target);
+  protected abstract GLDrawableImpl createGLPbufferDrawableImpl(NativeSurface target);
 
-  protected GLDrawableImpl createGLPbufferDrawable(NativeWindow target) {
+  protected GLDrawableImpl createGLPbufferDrawable(NativeSurface target) {
     if (!canCreateGLPbuffer(target.getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice())) {
         throw new GLException("Pbuffer support not available with current graphics card");
     }
@@ -130,7 +131,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     capabilities.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
     capabilities.setOnscreen(false);
     capabilities.setPBuffer(true);
-    return createGLPbufferDrawable( createOffscreenWindow(capabilities, chooser, height, height) );
+    return createGLPbufferDrawable( createOffscreenSurface(capabilities, chooser, height, height) );
   }
 
   public GLPbuffer createGLPbuffer(GLCapabilities capabilities,
@@ -148,7 +149,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   // Offscreen GLDrawable construction 
   //
 
-  protected abstract GLDrawableImpl createOffscreenDrawable(NativeWindow target) ;
+  protected abstract GLDrawableImpl createOffscreenDrawable(NativeSurface target) ;
 
   public GLDrawable createOffscreenDrawable(GLCapabilities capabilities,
                                             GLCapabilitiesChooser chooser,
@@ -161,14 +162,14 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     capabilities.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
     capabilities.setOnscreen(false);
     capabilities.setPBuffer(false);
-    return createOffscreenDrawable( createOffscreenWindow(capabilities, chooser, width, height) );
+    return createOffscreenDrawable( createOffscreenSurface(capabilities, chooser, width, height) );
   }
 
   /**
-   * creates an offscreen NativeWindow, which must implement SurfaceChangeable as well,
+   * creates an offscreen NativeSurface, which must implement SurfaceChangeable as well,
    * so the windowing system related implementation is able to set the surface handle.
    */
-  protected abstract NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, 
+  protected abstract NativeSurface createOffscreenSurface(GLCapabilities capabilities, GLCapabilitiesChooser chooser,
                                                         int width, int height);
 
   protected abstract GLDrawableImpl getSharedDrawable();

@@ -29,39 +29,24 @@
 package com.jogamp.test.junit.newt;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Test;
 
 import java.awt.AWTException;
 import java.awt.Button;
 import java.awt.BorderLayout;
-import java.awt.Canvas;
 import java.awt.Container;
-import java.awt.Frame;
-import java.awt.Dimension;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.Robot;
-import java.awt.Point;
-import java.awt.Rectangle;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import javax.media.opengl.*;
-import javax.media.nativewindow.*;
 
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.newt.*;
-import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
@@ -252,7 +237,7 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         glWindow1.destroy(true);
     }
 
-    @Test
+//    @Test
     public void testFocus01ProgrFocus() throws AWTException, InterruptedException, InvocationTargetException {
         testFocus01ProgrFocusImpl(null);
     }

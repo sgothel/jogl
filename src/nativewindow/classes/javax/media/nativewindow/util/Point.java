@@ -1,5 +1,6 @@
 /**
  * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -26,24 +27,67 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.newt.event;
 
-import javax.media.nativewindow.util.Rectangle;
+package javax.media.nativewindow.util;
 
-public class WindowUpdateEvent extends WindowEvent {
-    Rectangle bounds;
+public class Point {
+    int x;
+    int y;
 
-    public WindowUpdateEvent(int eventType, Object source, long when, Rectangle bounds)
-    {
-        super(eventType, source, when);
-        this.bounds = bounds;
+    public Point() {
+        this(0, 0);
     }
 
-    public Rectangle getBounds() {
-        return bounds;
+    public Point(int x, int y) {
+        this.x=x;
+        this.y=y;
+    }
+    public int getX() { return x; }
+    public int getY() { return y; }
+    public void setX(int x) { this.x = x; }
+    public void setY(int y) { this.y = y; }
+
+    public Point translate(Point pd) {
+        x += pd.x ;
+        y += pd.y ;
+        return this;
+    }
+
+    public Point translate(int dx, int dy) {
+        x += dx ;
+        y += dy ;
+        return this;
     }
 
     public String toString() {
-        return "WindowUpdateEvent["+super.toString()+", "+bounds+"]";
+        return new String("Point["+x+"/"+y+"]");
     }
+
+    /**
+     * Checks whether two points objects are equal. Two instances
+     * of <code>Point</code> are equal if the four integer values
+     * of the fields <code>y</code> and <code>x</code>
+     * are equal.
+     * @return      <code>true</code> if the two points are equal;
+     *                          otherwise <code>false</code>.
+     */
+    public boolean equals(Object obj) {
+        if (obj instanceof Point) {
+            Point p = (Point)obj;
+            return (y == p.y) && (x == p.x);
+        }
+        return false;
+    }
+
+    /**
+     * Returns the hash code for this Point.
+     *
+     * @return    a hash code for this Point.
+     */
+    public int hashCode() {
+        int sum1 = x + y;
+        return sum1 * (sum1 + 1)/2 + x;
+    }
+
 }
+

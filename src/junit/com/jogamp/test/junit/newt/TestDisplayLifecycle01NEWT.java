@@ -158,7 +158,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(false,window.isVisible());
 
         // just make the Window visible again
-        window.resetPerfCounter();
+        window.resetCounter();
         Assert.assertEquals(0, window.getTotalFrames());
         window.setVisible(true);
         wait=0;
@@ -186,7 +186,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
-        window.resetPerfCounter();
+        window.resetCounter();
         Assert.assertEquals(0, window.getTotalFrames());
 
         // a display call shall not change a thing

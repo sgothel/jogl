@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -204,7 +205,7 @@ public abstract class GLContextImpl extends GLContext {
   
       if (contextHandle != 0) {
           int lockRes = drawable.lockSurface();
-          if (NativeWindow.LOCK_SURFACE_NOT_READY == lockRes) {
+          if (NativeSurface.LOCK_SURFACE_NOT_READY == lockRes) {
                 // this would be odd ..
                 throw new GLException("Surface not ready to lock: "+drawable);
           }
@@ -231,7 +232,7 @@ public abstract class GLContextImpl extends GLContext {
     }
 
     int lockRes = drawable.lockSurface();
-    if (NativeWindow.LOCK_SURFACE_NOT_READY == lockRes) {
+    if (NativeSurface.LOCK_SURFACE_NOT_READY == lockRes) {
         // this would be odd ..
         throw new GLException("Surface not ready to lock");
     }
@@ -351,11 +352,11 @@ public abstract class GLContextImpl extends GLContext {
     boolean exceptionOccurred = false;
     int lockRes = drawable.lockSurface();
     try {
-      if (NativeWindow.LOCK_SURFACE_NOT_READY == lockRes) {
+      if (NativeSurface.LOCK_SURFACE_NOT_READY == lockRes) {
         return CONTEXT_NOT_CURRENT;
       }
       try {
-          if (NativeWindow.LOCK_SURFACE_CHANGED == lockRes) {
+          if (NativeSurface.LOCK_SURFACE_CHANGED == lockRes) {
             drawable.updateHandle();
           }
           if (0 == drawable.getHandle()) {
@@ -452,7 +453,7 @@ public abstract class GLContextImpl extends GLContext {
   protected final long createContextARB(long share, boolean direct,
                                         int major[], int minor[], int ctp[]) 
   {
-    AbstractGraphicsConfiguration config = drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities glCaps = (GLCapabilities) config.getChosenCapabilities();
     GLProfile glp = glCaps.getGLProfile();
 

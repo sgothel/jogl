@@ -124,7 +124,7 @@ public class TestParenting01bAWT extends UITestCase {
         frame2.setVisible(true);
 
         frame1.add(newtCanvasAWT, BorderLayout.CENTER);
-        Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
+        Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         GLAnimatorControl animator1;
         if(fps>0) {

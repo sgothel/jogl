@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -45,7 +46,7 @@ import javax.media.opengl.*;
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.NullWindow;
+import com.jogamp.nativewindow.impl.ProxySurface;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final DesktopGLDynamicLookupHelper macOSXCGLDynamicLookupHelper;
@@ -87,14 +88,14 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   protected final GLDrawableImpl getSharedDrawable() { return null; }
   protected final GLContextImpl getSharedContext() { return null; }
 
-  public GLDrawableImpl createOnscreenDrawable(NativeWindow target) {
+  public GLDrawableImpl createOnscreenDrawable(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
     return new MacOSXOnscreenCGLDrawable(this, target);
   }
 
-  protected GLDrawableImpl createOffscreenDrawable(NativeWindow target) {
+  protected GLDrawableImpl createOffscreenDrawable(NativeSurface target) {
     return new MacOSXOffscreenCGLDrawable(this, target);
   }
 
@@ -102,7 +103,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     return true;
   }
 
-  protected GLDrawableImpl createGLPbufferDrawableImpl(final NativeWindow target) {
+  protected GLDrawableImpl createGLPbufferDrawableImpl(final NativeSurface target) {
     /** 
      * FIXME: Think about this ..
      * should not be necessary ? ..
@@ -119,11 +120,11 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     return new MacOSXPbufferCGLDrawable(this, target);
   }
 
-  protected NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
+  protected NativeSurface createOffscreenSurface(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
     AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault();
-    NullWindow nw = new NullWindow(MacOSXCGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, screen, true));
-    nw.setSize(width, height);
-    return nw;
+    ProxySurface ns = new ProxySurface(MacOSXCGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, screen, true));
+    ns.setSize(width, height);
+    return ns;
   }
 
   public GLContext createExternalGLContext() {

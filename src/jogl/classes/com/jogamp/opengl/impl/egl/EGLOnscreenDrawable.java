@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -41,12 +42,9 @@ package com.jogamp.opengl.impl.egl;
 
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.egl.*;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.NullWindow;
 
 public class EGLOnscreenDrawable extends EGLDrawable {
-    protected EGLOnscreenDrawable(EGLDrawableFactory factory, NativeWindow component) throws GLException {
+    protected EGLOnscreenDrawable(EGLDrawableFactory factory, NativeSurface component) throws GLException {
         super(factory, component);
     }
 

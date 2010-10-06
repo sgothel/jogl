@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,10 +37,9 @@ package com.jogamp.newt.impl.macosx;
 import javax.media.nativewindow.*;
 import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
 
-import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.*;
-import com.jogamp.newt.util.*;
+import javax.media.nativewindow.util.Insets;
 
 public class MacWindow extends WindowImpl {
     

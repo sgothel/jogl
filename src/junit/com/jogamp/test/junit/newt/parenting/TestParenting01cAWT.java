@@ -89,7 +89,7 @@ public class TestParenting01cAWT extends UITestCase {
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
-        Assert.assertNull(glWindow1.getParentNativeWindow());
+        Assert.assertNull(glWindow1.getParent());
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
@@ -99,7 +99,7 @@ public class TestParenting01cAWT extends UITestCase {
         Assert.assertNotNull(newtCanvasAWT);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
-        Assert.assertNull(glWindow1.getParentNativeWindow());
+        Assert.assertNull(glWindow1.getParent());
 
         Frame frame1 = new Frame("AWT Parent Frame");
         frame1.setLayout(new BorderLayout());
@@ -121,7 +121,7 @@ public class TestParenting01cAWT extends UITestCase {
 
         // visible test
         frame1.setVisible(true);
-        Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
+        Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         for(i=0; i*100<durationPerTest; i++) {
             Thread.sleep(100);
@@ -134,7 +134,7 @@ public class TestParenting01cAWT extends UITestCase {
         Assert.assertEquals(true, glWindow1.isValid());
 
         frame1.remove(newtCanvasAWT);
-        // Assert.assertNull(glWindow1.getParentNativeWindow());
+        // Assert.assertNull(glWindow1.getParent());
         Assert.assertEquals(true, glWindow1.isValid());
 
         frame1.dispose();
@@ -180,7 +180,7 @@ public class TestParenting01cAWT extends UITestCase {
         frame2.setVisible(true);
 
         frame1.add(newtCanvasAWT, BorderLayout.CENTER);
-        Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
+        Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         int state;
         for(state=0; state<3; state++) {

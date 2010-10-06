@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -51,16 +52,16 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
   private int floatMode;
 
-  public WindowsPbufferWGLDrawable(GLDrawableFactory factory, NativeWindow target,
+  public WindowsPbufferWGLDrawable(GLDrawableFactory factory, NativeSurface target,
                                    WindowsWGLDrawable dummyDrawable,
                                    WGLExt wglExt) {
     super(factory, target, true);
 
     if (DEBUG) {
-        System.out.println("Pbuffer config: " + getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration());
+        System.out.println("Pbuffer config: " + getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration());
     }
 
-    createPbuffer(dummyDrawable.getNativeWindow().getSurfaceHandle(), wglExt);
+    createPbuffer(dummyDrawable.getNativeSurface().getSurfaceHandle(), wglExt);
 
     if (DEBUG) {
         System.err.println("Created pbuffer " + this);
@@ -80,18 +81,18 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   }
 
   public void destroy() {
-    NativeWindow nw = getNativeWindow();
+    NativeSurface ns = getNativeSurface();
     if(0!=buffer) {
         WGLExt wglExt = cachedWGLExt;
-        if (nw.getSurfaceHandle() != 0) {
+        if (ns.getSurfaceHandle() != 0) {
           // Must release DC and pbuffer
           // NOTE that since the context is not current, glGetError() can
           // not be called here, so we skip the use of any composable
           // pipelines (see WindowsOnscreenWGLContext.makeCurrentImpl)
-          if (wglExt.wglReleasePbufferDCARB(buffer, nw.getSurfaceHandle()) == 0) {
+          if (wglExt.wglReleasePbufferDCARB(buffer, ns.getSurfaceHandle()) == 0) {
             throw new GLException("Error releasing pbuffer device context: error code " + GDI.GetLastError());
           }
-          ((SurfaceChangeable)nw).setSurfaceHandle(0);
+          ((SurfaceChangeable)ns).setSurfaceHandle(0);
         }
         if (!wglExt.wglDestroyPbufferARB(buffer)) {
             throw new GLException("Error destroying pbuffer: error code " + GDI.GetLastError());
@@ -102,7 +103,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
   public long getPbufferHandle() {
     // The actual to-be-used handle for makeCurrent etc,
-    // is the derived DC, set in the NativeWindow surfaceHandle
+    // is the derived DC, set in the NativeSurface surfaceHandle
     // returned by getHandle().
     return buffer;
   }
@@ -124,7 +125,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     int     niattribs   = 0;
     int     width, height;
 
-    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities capabilities = (GLCapabilities)config.getRequestedCapabilities();
     GLProfile glProfile = capabilities.getGLProfile();
 
@@ -265,10 +266,10 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       throw new GLException("pbuffer creation error: wglGetPbufferDC() failed");
     }
 
-    NativeWindow nw = getNativeWindow();
+    NativeSurface ns = getNativeSurface();
     // Set up instance variables
     buffer = tmpBuffer;
-    ((SurfaceChangeable)nw).setSurfaceHandle(tmpHdc);
+    ((SurfaceChangeable)ns).setSurfaceHandle(tmpHdc);
     cachedWGLExt = wglExt;
     cachedParentHdc = parentHdc;
 
@@ -324,7 +325,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     width = tmp[0];
     wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_HEIGHT_ARB, tmp, 0 );
     height = tmp[0];
-    ((SurfaceChangeable)nw).setSize(width, height);
+    ((SurfaceChangeable)ns).setSize(width, height);
   }
 
   private static String wglGetLastError() {

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -86,8 +87,8 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     }
 
     /** Update config - before having a valid context */
-    protected void updateGraphicsConfiguration(GLDrawableFactory factory, NativeWindow nativeWindow) {
-        WindowsWGLGraphicsConfigurationFactory.updateGraphicsConfiguration(chooser, factory, nativeWindow);
+    protected void updateGraphicsConfiguration(GLDrawableFactory factory, NativeSurface ns) {
+        WindowsWGLGraphicsConfigurationFactory.updateGraphicsConfiguration(chooser, factory, ns);
     }
 
     /** Update config - after having a valid and current context */
@@ -101,8 +102,8 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
 
         WGLExt wglExt = (WGLExt) context.getPlatformGLExtensions();
         GLDrawable drawable = context.getGLDrawable();
-        NativeWindow nativeWindow = drawable.getNativeWindow();
-        long hdc = nativeWindow.getSurfaceHandle();
+        NativeSurface ns = drawable.getNativeSurface();
+        long hdc = ns.getSurfaceHandle();
 
         GLCapabilities[] caps = HDC2GLCapabilities(wglExt, hdc, getPixelFormatID(), glp, true, onscreen, usePBuffer);
         if(null!=caps && null!=caps[0]) {

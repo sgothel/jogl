@@ -197,6 +197,7 @@ public class Animator extends AnimatorBase {
         if (runnable == null) {
             runnable = new MainLoop();
         }
+        resetCounter();
         int id;
         String threadName = Thread.currentThread().getName()+"-"+baseName;
         if(null==threadGroup) {
@@ -272,6 +273,7 @@ public class Animator extends AnimatorBase {
                 }
             }
         }
+        resetCounter();
     }
 
     protected final boolean getShouldPause() {

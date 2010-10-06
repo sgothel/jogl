@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -606,7 +607,7 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, HWND hwnd, BO
     DBG_PRINT("*** WindowsWindow: requestFocus.S parent %p, window %p, isCurrent %d, reparented %d\n", 
         (void*) pHwnd, (void*)hwnd, current==hwnd, (int) reparented);
     if(reparented || current!=hwnd) {
-        if( JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
+        if( reparented || JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
             UINT flags = SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE;
             if(reparented) {
                 flags |= SWP_FRAMECHANGED;

@@ -46,7 +46,7 @@ public class Surface2File implements SurfaceUpdatedListener {
         readBufferUtil.dispose();
     }
 
-    public void surfaceUpdated(Object updater, NativeWindow window, long when) {
+    public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
         if (updater instanceof GLDrawable) {
             GLDrawable drawable = (GLDrawable) updater;
             GLContext ctx = GLContext.getCurrent();

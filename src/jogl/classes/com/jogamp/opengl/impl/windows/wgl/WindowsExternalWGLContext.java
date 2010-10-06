@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -42,7 +43,7 @@ package com.jogamp.opengl.impl.windows.wgl;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.NullWindow;
+import com.jogamp.nativewindow.impl.ProxySurface;
 
 public class WindowsExternalWGLContext extends WindowsWGLContext {
   private boolean firstMakeCurrent = true;
@@ -77,10 +78,10 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
     WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.create(hdc, pfdID, glp, aScreen, true, true);
 
-    NullWindow nw = new NullWindow(cfg);
-    nw.setSurfaceHandle(hdc);
+    ProxySurface ns = new ProxySurface(cfg);
+    ns.setSurfaceHandle(hdc);
 
-    return new WindowsExternalWGLContext(new Drawable(factory, nw), ctx, cfg);
+    return new WindowsExternalWGLContext(new Drawable(factory, ns), ctx, cfg);
   }
 
   public int makeCurrent() throws GLException {
@@ -114,7 +115,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
 
   // Need to provide the display connection to extension querying APIs
   static class Drawable extends WindowsWGLDrawable {
-    Drawable(GLDrawableFactory factory, NativeWindow comp) {
+    Drawable(GLDrawableFactory factory, NativeSurface comp) {
       super(factory, comp, true);
     }
 

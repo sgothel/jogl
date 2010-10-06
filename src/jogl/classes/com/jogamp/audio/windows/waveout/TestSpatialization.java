@@ -33,7 +33,7 @@
 package com.jogamp.audio.windows.waveout;
 
 import java.io.*;
-import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLDrawableFactory;
 
 public class TestSpatialization {
@@ -46,7 +46,7 @@ public class TestSpatialization {
         try {
             // FIXME: this is a hack to get the native library loaded
             try {
-                GLDrawableFactory.getFactory(NativeWindow.class);
+                GLDrawableFactory.getFactory(NativeSurface.class);
             } catch (Exception e) {}
             // Initialize the audio subsystem
             Audio audio = Audio.getInstance();

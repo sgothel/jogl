@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -103,13 +104,13 @@ public interface GLDrawable {
    *
    * With an argument of <code>true</code>, 
    * the minimum implementation shall call 
-   * {@link NativeWindow#lockSurface() NativeWindow's lockSurface()} and if successfull:
+   * {@link NativeSurface#lockSurface() NativeSurface's lockSurface()} and if successfull:
    * <ul>
    *    <li> Update the {@link GLCapabilities}, which are associated with 
-   *         the attached {@link NativeWindow}'s {@link AbstractGraphicsConfiguration}.</li>
-   *    <li> Release the lock with {@link NativeWindow#unlockSurface() NativeWindow's unlockSurface()}.</li>
+   *         the attached {@link NativeSurface}'s {@link AbstractGraphicsConfiguration}.</li>
+   *    <li> Release the lock with {@link NativeSurface#unlockSurface() NativeSurface's unlockSurface()}.</li>
    * </ul><br>
-   * This is important since {@link NativeWindow#lockSurface() NativeWindow's lockSurface()}
+   * This is important since {@link NativeSurface#lockSurface() NativeSurface's lockSurface()}
    * ensures resolving the window/surface handles, and the drawable's {@link GLCapabilities}
    * might have changed.
    *
@@ -143,7 +144,7 @@ public interface GLDrawable {
       On some platforms, the pixel format is not directly associated
       with the drawable; a best attempt is made to return a reasonable
       value in this case. <br>
-      This object shall be directly associated to the attached {@link NativeWindow}'s 
+      This object shall be directly associated to the attached {@link NativeSurface}'s 
       {@link AbstractGraphicsConfiguration}, and if changes are necessary,
       they should reflect those as well.
       @return A copy of the queried object.
@@ -155,11 +156,11 @@ public interface GLDrawable {
     */
   public GLProfile getGLProfile();
 
-  public NativeWindow getNativeWindow();
+  public NativeSurface getNativeSurface();
 
   /** 
    * This is the GL/Windowing drawable handle.<br>
-   * It is usually the {@link javax.media.nativewindow.NativeWindow#getSurfaceHandle()},
+   * It is usually the {@link javax.media.nativewindow.NativeSurface#getSurfaceHandle()},
    * ie the native surface handle of the underlying windowing toolkit.<br>
    * However, on X11/GLX this reflects a GLXDrawable, which represents a GLXWindow, GLXPixmap, or GLXPbuffer.<br>
    * On EGL, this represents the EGLSurface.<br>

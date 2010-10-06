@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,16 +37,19 @@
 
 package com.jogamp.nativewindow.impl;
 
-import javax.media.nativewindow.*;
-import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.SurfaceChangeable;
 
-public class NullWindow implements NativeWindow, SurfaceChangeable {
+public class ProxySurface implements NativeSurface, SurfaceChangeable {
   private RecursiveToolkitLock recurLock = new RecursiveToolkitLock();
   protected int width, height, scrnIndex;
   protected long surfaceHandle, displayHandle;
   protected AbstractGraphicsConfiguration config;
 
-  public NullWindow(AbstractGraphicsConfiguration cfg) {
+  public ProxySurface(AbstractGraphicsConfiguration cfg) {
     invalidate();
     config = cfg;
     displayHandle=cfg.getScreen().getDevice().getHandle();
@@ -56,6 +60,10 @@ public class NullWindow implements NativeWindow, SurfaceChangeable {
   }
 
   protected void initNative() throws NativeWindowException {
+  }
+
+  public NativeWindow getParent() {
+    return null;
   }
 
   public void destroy() {
@@ -97,34 +105,8 @@ public class NullWindow implements NativeWindow, SurfaceChangeable {
     return false;
   }
 
-  public void surfaceUpdated(Object updater, NativeWindow window, long when) { }
-
-  public long getDisplayHandle() {
-    return displayHandle;
-  }
-  public int getScreenIndex() {
-    return scrnIndex;
-  }
-  public long getWindowHandle() {
-    return 0;
-  }
   public long getSurfaceHandle() {
     return surfaceHandle;
-  }
-  public void setSurfaceHandle(long surfaceHandle) {
-    this.surfaceHandle=surfaceHandle;
-  }
-  public AbstractGraphicsConfiguration getGraphicsConfiguration() {
-    return config;
-  }
-
-  public final boolean isTerminalObject() {
-    return true;
-  }
-
-  public void setSize(int width, int height) {
-    this.width=width;
-    this.height=height;
   }
 
   public int getWidth() {
@@ -133,6 +115,28 @@ public class NullWindow implements NativeWindow, SurfaceChangeable {
 
   public int getHeight() {
     return height;
+  }
+
+  public AbstractGraphicsConfiguration getGraphicsConfiguration() {
+    return config;
+  }
+
+  public void surfaceUpdated(Object updater, NativeSurface ns, long when) { }
+
+  public long getDisplayHandle() {
+    return displayHandle;
+  }
+  public int getScreenIndex() {
+    return scrnIndex;
+  }
+  
+  public void setSurfaceHandle(long surfaceHandle) {
+    this.surfaceHandle=surfaceHandle;
+  }
+
+  public void setSize(int width, int height) {
+    this.width=width;
+    this.height=height;
   }
 
   public String toString() {

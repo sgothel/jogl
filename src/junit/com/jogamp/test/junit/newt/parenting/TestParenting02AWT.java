@@ -114,7 +114,7 @@ public class TestParenting02AWT extends UITestCase {
         Assert.assertNotNull(newtCanvasAWT);
         Assert.assertEquals(false, glWindow.isVisible());
         Assert.assertEquals(false, glWindow.isNativeValid());
-        Assert.assertNull(glWindow.getParentNativeWindow());
+        Assert.assertNull(glWindow.getParent());
 
         Frame frame = new Frame("AWT Parent Frame");
         Assert.assertNotNull(frame);
@@ -157,7 +157,7 @@ public class TestParenting02AWT extends UITestCase {
         } while(!glWindow.isNativeValid()) ;
 
         Assert.assertEquals(true, glWindow.isNativeValid());
-        Assert.assertNotNull(glWindow.getParentNativeWindow());
+        Assert.assertNotNull(glWindow.getParent());
         if(verbose) {
             System.out.println("+++++++++++++++++++ 1st ADDED");
         }
@@ -168,7 +168,7 @@ public class TestParenting02AWT extends UITestCase {
             frame.remove(newtCanvasAWT);
             Assert.assertEquals(false, glWindow.isVisible());
             Assert.assertEquals(true, glWindow.isNativeValid());
-            Assert.assertNull(glWindow.getParentNativeWindow());
+            Assert.assertNull(glWindow.getParent());
             if(verbose) {
                 System.out.println("+++++++++++++++++++ REMOVED!");
             }
@@ -179,7 +179,7 @@ public class TestParenting02AWT extends UITestCase {
             glWindow.display();
             Assert.assertEquals(true, glWindow.isVisible());
             Assert.assertEquals(true, glWindow.isNativeValid());
-            Assert.assertNotNull(glWindow.getParentNativeWindow());
+            Assert.assertNotNull(glWindow.getParent());
             if(verbose) {
                 System.out.println("+++++++++++++++++++ 2nd ADDED");
             }
@@ -216,7 +216,7 @@ public class TestParenting02AWT extends UITestCase {
         }
         Thread.sleep(waitReparent);
 
-        glWindow.destroy();
+        glWindow.destroy(true);
         if(useLayout) {
             frame.remove(newtCanvasAWT);
         }

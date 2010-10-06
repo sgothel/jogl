@@ -45,12 +45,12 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
    */
   public X11DummyGLXDrawable(X11GraphicsScreen screen, GLDrawableFactory factory, GLProfile glp) {
     super(factory, 
-          new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
+          new ProxySurface(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
             new GLCapabilities(glp), null, screen)));
     this.realized = true;
 
-    NullWindow nw = (NullWindow) getNativeWindow();
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    ProxySurface ns = (ProxySurface) getNativeSurface();
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
 
     X11GraphicsDevice device = (X11GraphicsDevice) screen.getDevice();
     long dpy = device.getHandle();
@@ -58,7 +58,7 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
     long visualID = config.getVisualID();
 
     dummyWindow = X11Lib.CreateDummyWindow(dpy, scrn, visualID);
-    nw.setSurfaceHandle( dummyWindow );
+    ns.setSurfaceHandle( dummyWindow );
 
     updateHandle();
   }
@@ -77,7 +77,7 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
   public void destroy() {
     if(0!=dummyWindow) {
         destroyHandle();
-        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
         X11Lib.DestroyDummyWindow(config.getScreen().getDevice().getHandle(), dummyWindow);
     }
   }

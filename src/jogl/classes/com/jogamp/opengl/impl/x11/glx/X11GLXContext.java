@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -130,7 +131,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected void destroyContextARBImpl(long ctx) {
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     long display = config.getScreen().getDevice().getHandle();
 
     glXMakeContextCurrent(display, 0, 0, 0);
@@ -139,7 +140,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
     X11GLXDrawableFactory factory = (X11GLXDrawableFactory)drawable.getFactoryImpl();
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     long display = config.getScreen().getDevice().getHandle();
 
     GLXExt glXExt;
@@ -215,7 +216,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   protected boolean createContext(boolean direct) {
     isDirect = false; // default
     X11GLXDrawableFactory factory = (X11GLXDrawableFactory)drawable.getFactoryImpl();
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     long display = config.getScreen().getDevice().getHandle();
 
     X11GLXContext other = (X11GLXContext) GLContextShareSet.getShareContext(this);
@@ -328,7 +329,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected void makeCurrentImpl(boolean newCreated) throws GLException {
-    long dpy = drawable.getNativeWindow().getDisplayHandle();
+    long dpy = drawable.getNativeSurface().getDisplayHandle();
 
     if (GLX.glXGetCurrentContext() != contextHandle) {        
         if (!glXMakeContextCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
@@ -345,14 +346,14 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected void releaseImpl() throws GLException {
-    long display = drawable.getNativeWindow().getDisplayHandle();
+    long display = drawable.getNativeSurface().getDisplayHandle();
     if (!glXMakeContextCurrent(display, 0, 0, 0)) {
         throw new GLException("Error freeing OpenGL context");
     }
   }
 
   protected void destroyImpl() throws GLException {
-    long display = drawable.getNativeWindow().getDisplayHandle();
+    long display = drawable.getNativeSurface().getDisplayHandle();
     if (DEBUG) {
       System.err.println("glXDestroyContext(dpy " +
                          toHexString(display)+
@@ -368,7 +369,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   protected void copyImpl(GLContext source, int mask) throws GLException {
     long dst = getHandle();
     long src = source.getHandle();
-    long display = drawable.getNativeWindow().getDisplayHandle();
+    long display = drawable.getNativeSurface().getDisplayHandle();
     if (0 == display) {
       throw new GLException("Connection to X display not yet set up");
     }
@@ -399,8 +400,8 @@ public abstract class X11GLXContext extends GLContextImpl {
       glXQueryExtensionsStringInitialized = true;
     }
     if (glXQueryExtensionsStringAvailable) {
-        NativeWindow nw = drawable.getNativeWindow();
-        String ret = GLX.glXQueryExtensionsString(nw.getDisplayHandle(), nw.getScreenIndex());
+        NativeSurface ns = drawable.getNativeSurface();
+        String ret = GLX.glXQueryExtensionsString(ns.getDisplayHandle(), ns.getScreenIndex());
         if (DEBUG) {
           System.err.println("!!! GLX extensions: " + ret);
         }
@@ -414,7 +415,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     if (glExtensionName.equals("GL_ARB_pbuffer") ||
         glExtensionName.equals("GL_ARB_pixel_format")) {
       return getGLDrawable().getFactory().canCreateGLPbuffer(
-          drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice() );
+          drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice() );
     }
     return super.isExtensionAvailable(glExtensionName);
   }
@@ -423,7 +424,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   private int hasSwapIntervalSGI = 0;
 
   protected void setSwapIntervalImpl(int interval) {
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities glCaps = (GLCapabilities) config.getChosenCapabilities();
     if(!glCaps.isOnscreen()) return;
 

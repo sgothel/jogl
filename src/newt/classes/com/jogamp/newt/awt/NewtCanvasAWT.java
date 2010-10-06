@@ -49,7 +49,7 @@ import com.jogamp.newt.impl.Debug;
 public class NewtCanvasAWT extends java.awt.Canvas {
     public static final boolean DEBUG = Debug.debug("Window");
 
-    NativeWindow parent = null;
+    NativeWindow nativeWindow = null;
     Window newtChild = null;
     AWTAdapter awtAdapter = null;
 
@@ -101,7 +101,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
     public NewtCanvasAWT setNEWTChild(Window child) {
         if(newtChild!=child) {
             newtChild = child;
-            if(null!=parent) {
+            if(null!=nativeWindow) {
                 java.awt.Container cont = getContainer(this);
                 // reparent right away, addNotify has been called already
                 reparentWindow( (null!=newtChild) ? true : false, cont );
@@ -117,7 +117,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
 
     /** @return this AWT Canvas NativeWindow representation, may be null in case {@link #removeNotify()} has been called,
      * or {@link #addNotify()} hasn't been called yet.*/
-    public NativeWindow getNativeWindow() { return parent; }
+    public NativeWindow getNativeWindow() { return nativeWindow; }
 
     void setWindowAdapter(boolean attach) {
         if(null!=awtAdapter) {
@@ -168,14 +168,14 @@ public class NewtCanvasAWT extends java.awt.Canvas {
 
       newtChild.setFocusAction(null); // no AWT focus traversal ..
       if(add) {
-          parent = NewtFactoryAWT.getNativeWindow(this, newtChild.getRequestedCapabilities());
-          if(null!=parent) {
+          nativeWindow = NewtFactoryAWT.getNativeWindow(this, newtChild.getRequestedCapabilities());
+          if(null!=nativeWindow) {
               if(DEBUG) {
                 System.err.println("NewtCanvasAWT.reparentWindow: "+newtChild);
               }
               setSize(cont.getWidth(), cont.getHeight());
               newtChild.setSize(cont.getWidth(), cont.getHeight());
-              newtChild.reparentWindow(parent);
+              newtChild.reparentWindow(nativeWindow);
               newtChild.setVisible(true);
               setWindowAdapter(true);
               newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
@@ -184,7 +184,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
           }
       } else {
           setWindowAdapter(false);
-          parent = null;
+          nativeWindow = null;
           newtChild.setVisible(false);
           newtChild.reparentWindow(null);
       }
@@ -215,7 +215,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
             if(DEBUG) {
                 System.err.println("NewtCanvasAWT.destroy("+unrecoverable+"): "+newtChild+", from "+cont);
             }
-            parent = null;
+            nativeWindow = null;
             newtChild.setVisible(false);
             newtChild.reparentWindow(null);
             newtChild.destroy(unrecoverable);

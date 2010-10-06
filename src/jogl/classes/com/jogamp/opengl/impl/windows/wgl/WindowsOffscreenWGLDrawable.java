@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -42,13 +43,12 @@ package com.jogamp.opengl.impl.windows.wgl;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.NullWindow;
 
 public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   private long origbitmap;
   private long hbitmap;
 
-  public WindowsOffscreenWGLDrawable(GLDrawableFactory factory, NativeWindow target) {
+  public WindowsOffscreenWGLDrawable(GLDrawableFactory factory, NativeSurface target) {
     super(factory, target, true);
     create();
   }
@@ -66,8 +66,8 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   }
 
   private void create() {
-    NativeWindow nw = getNativeWindow();
-    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    NativeSurface ns = getNativeSurface();
+    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities capabilities = (GLCapabilities)config.getRequestedCapabilities();
     int width = getWidth();
     int height = getHeight();
@@ -97,7 +97,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
       System.out.println("LastError: " + GDI.GetLastError());
       throw new GLException("Error creating device context for offscreen OpenGL context");
     }
-    ((SurfaceChangeable)nw).setSurfaceHandle(hdc);
+    ((SurfaceChangeable)ns).setSurfaceHandle(hdc);
 
     hbitmap = GDI.CreateDIBSection(hdc, info, GDI.DIB_RGB_COLORS, null, 0, 0);
     if (hbitmap == 0) {
@@ -114,19 +114,19 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
       throw new GLException("Error selecting bitmap into new device context");
     }
         
-    config.updateGraphicsConfiguration(getFactory(), nw);
+    config.updateGraphicsConfiguration(getFactory(), ns);
   }
   
   public void destroy() {
-    NativeWindow nw = getNativeWindow();
-    if (nw.getSurfaceHandle() != 0) {
+    NativeSurface ns = getNativeSurface();
+    if (ns.getSurfaceHandle() != 0) {
       // Must destroy bitmap and device context
-      GDI.SelectObject(nw.getSurfaceHandle(), origbitmap);
+      GDI.SelectObject(ns.getSurfaceHandle(), origbitmap);
       GDI.DeleteObject(hbitmap);
-      GDI.DeleteDC(nw.getSurfaceHandle());
+      GDI.DeleteDC(ns.getSurfaceHandle());
       origbitmap = 0;
       hbitmap = 0;
-      ((SurfaceChangeable)nw).setSurfaceHandle(0);
+      ((SurfaceChangeable)ns).setSurfaceHandle(0);
     }
   }
 

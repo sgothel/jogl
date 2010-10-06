@@ -96,7 +96,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
-        Assert.assertNull(glWindow1.getParentNativeWindow());
+        Assert.assertNull(glWindow1.getParent());
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
@@ -124,7 +124,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         Assert.assertNotNull(newtCanvasAWT);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
-        Assert.assertNull(glWindow1.getParentNativeWindow());
+        Assert.assertNull(glWindow1.getParent());
 
         Container container1 = new Container();
         container1.setLayout(new BorderLayout());
@@ -155,7 +155,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         final Container _container1 = container1;
 
         // visible test
-        Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
+        Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
             Thread.sleep(100);
@@ -183,7 +183,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
 		    System.out.println("Demos: 5 - X Container");
                     _jPanel1.remove(_container1);
                 } });
-        // Assert.assertNull(glWindow1.getParentNativeWindow());
+        // Assert.assertNull(glWindow1.getParent());
         Assert.assertEquals(true, glWindow1.isValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
@@ -210,7 +210,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
-        Assert.assertNull(glWindow1.getParentNativeWindow());
+        Assert.assertNull(glWindow1.getParent());
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, glWindow1, false);
@@ -237,7 +237,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         Assert.assertNotNull(newtCanvasAWT);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
-        Assert.assertNull(glWindow1.getParentNativeWindow());
+        Assert.assertNull(glWindow1.getParent());
 
         Container container1 = new Container();
         container1.setLayout(new BorderLayout());
@@ -286,7 +286,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         final JPanel _jPanel2 = jPanel2;
 
         // visible test
-        Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParentNativeWindow());
+        Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         int state = 0;
         while(animator1.isAnimating() && animator1.getDuration()<3*durationPerTest) {

@@ -567,8 +567,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     return (GLCapabilities)awtConfig.getRequestedCapabilities();
   }
 
-  public NativeWindow getNativeWindow() {
-    return drawable.getNativeWindow();
+  public NativeSurface getNativeSurface() {
+    return drawable.getNativeSurface();
   }
 
   public long getHandle() {
