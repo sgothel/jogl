@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -49,36 +50,38 @@ import javax.media.opengl.*;
     be raised. */
 
 public class GLContextLock {
-  private Object lock = new Object();
-  private Thread owner;
-  private boolean failFastMode = true;
-  private volatile int waiters;
+  static class SyncData {
+      Thread owner = null;
+      boolean failFastMode = true;
+      int waiters = 0;
+  }
+  private SyncData sdata = new SyncData(); // synchronized (flow/mem)  mutable access
 
   /** Locks this GLContextLock on the current thread. If fail fast
       mode is enabled and the GLContextLock is already owned by
       another thread, throws GLException. */
-  public void lock() throws GLException {
-    synchronized(lock) {
+  public final void lock() throws GLException {
+    synchronized(sdata) {
       Thread current = Thread.currentThread();
-      if (owner == null) {
-        owner = current;
-      } else if (owner != current) {
-        while (owner != null) {
-          if (failFastMode) {
+      if (sdata.owner == null) {
+        sdata.owner = current;
+      } else if (sdata.owner != current) {
+        while (sdata.owner != null) {
+          if (sdata.failFastMode) {
             throw new GLException("Attempt to make context current on thread " + current +
-                                  " which is already current on thread " + owner);
+                                  " which is already current on thread " + sdata.owner);
           } else {
             try {
-              ++waiters;
-              lock.wait();
+              ++sdata.waiters;
+              sdata.wait();
             } catch (InterruptedException e) {
               throw new GLException(e);
             } finally {
-              --waiters;
+              --sdata.waiters;
             }
           }
         }
-        owner = current;
+        sdata.owner = current;
       } else {
         throw new GLException("Attempt to make the same context current twice on thread " + current);
       }
@@ -86,16 +89,18 @@ public class GLContextLock {
   }
 
   /** Unlocks this GLContextLock. */
-  public void unlock() throws GLException {
-    synchronized (lock) {
+  public final void unlock() throws GLException {
+    synchronized (sdata) {
       Thread current = Thread.currentThread();
-      if (owner == current) {
-        owner = null;
-        lock.notifyAll();
+      if (sdata.owner == current) {
+        sdata.owner = null;
+        // Assuming notify() implementation weaks up the longest waiting thread, to avoid starvation. 
+        // Otherwise we would need to have a Thread queue implemented, using sleep(timeout) and interrupt.
+        sdata.notify();
       } else {
-        if (owner != null) {
+        if (sdata.owner != null) {
           throw new GLException("Attempt by thread " + current +
-                                " to release context owned by thread " + owner);
+                                " to release context owned by thread " + sdata.owner);
         } else {
           throw new GLException("Attempt by thread " + current +
                                 " to release unowned context");
@@ -105,22 +110,28 @@ public class GLContextLock {
   }
 
   /** Indicates whether this lock is held by the current thread. */
-  public boolean isHeld() {
-    synchronized(lock) {
+  public final boolean isHeld() {
+    synchronized(sdata) {
       Thread current = Thread.currentThread();
-      return (owner == current);
+      return (sdata.owner == current);
     }
   }
 
-  public void setFailFastMode(boolean onOrOff) {
-    failFastMode = onOrOff;
+  public final void setFailFastMode(boolean onOrOff) {
+    synchronized(sdata) {
+        sdata.failFastMode = onOrOff;
+    }
   }
 
-  public boolean getFailFastMode() {
-    return failFastMode;
+  public final boolean getFailFastMode() {
+    synchronized(sdata) {
+        return sdata.failFastMode;
+    }
   }
 
-  public boolean hasWaiters() {
-    return (waiters != 0);
+  public final boolean hasWaiters() {
+    synchronized(sdata) {
+        return (sdata.waiters != 0);
+    }
   }
 }

@@ -161,7 +161,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         Thread.sleep(100); // allow event sync
         System.err.println("FOCUS AWT  Button request");
         EventCountAdapterUtil.reset(eventCountAdapters);
-        Assert.assertTrue(AWTRobotUtil.requestFocusAndWait(robot, button, button));
+        Assert.assertTrue(AWTRobotUtil.requestFocusAndWait(robot, button, button, buttonFA, null));
         Assert.assertEquals(1, buttonFA.getCount());
         Assert.assertEquals(0, glWindow1FA.getCount());
         Assert.assertEquals(0, newtCanvasAWTFA.getCount());
@@ -172,10 +172,11 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         Thread.sleep(100); // allow event sync
         System.err.println("FOCUS NEWT Canvas/GLWindow request");
         EventCountAdapterUtil.reset(eventCountAdapters);
-        Assert.assertTrue(AWTRobotUtil.requestFocusAndWait(robot, newtCanvasAWT, newtCanvasAWT.getNEWTChild()));
+        Assert.assertTrue(AWTRobotUtil.requestFocusAndWait(robot, newtCanvasAWT, newtCanvasAWT.getNEWTChild(), glWindow1FA, buttonFA));
+        Assert.assertTrue(AWTRobotUtil.waitForCount(0, newtCanvasAWTFA));
         Assert.assertEquals(1, glWindow1FA.getCount());
         Assert.assertEquals(0, newtCanvasAWTFA.getCount());
-        // Assert.assertEquals(-1, buttonFA.getCount()); // lost focus
+        Assert.assertEquals(-1, buttonFA.getCount()); // lost focus
         System.err.println("FOCUS NEWT Canvas/GLWindow sync");
         Assert.assertEquals(2, AWTRobotUtil.testKeyType(robot, 2, glWindow1, glWindow1KA));
         Assert.assertEquals("AWT parent canvas received keyboard events", 0, newtCanvasAWTKA.getCount());

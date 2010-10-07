@@ -211,11 +211,43 @@ public class AWTRobotUtil {
         return wait<POLL_DIVIDER;
     }
 
+    /**
+     *
+     * @return True if the Window became the global focused Window within TIME_OUT
+     */
+    public static boolean waitForFocus(Object obj, int gainT0, EventCountAdapter gain, 
+                                                   int lostT0, EventCountAdapter lost) throws InterruptedException {
+        if(!waitForFocus(obj)) {
+            return false;
+        }
+        int wait;
+        for (wait=0; wait<POLL_DIVIDER; wait++) {
+            int gainT1 = gain.getCount();
+            int lostT1 = (null!=lost) ? lost.getCount() : -1;
+            if(gainT1-gainT0==1 && lostT1-lostT0==-1) {
+                return true;
+            }
+            Thread.sleep(TIME_OUT/POLL_DIVIDER);
+        }
+        return false;
+    }
+
     public static boolean requestFocusAndWait(Robot robot, Object requestFocus, Object waitForFocus)
         throws AWTException, InterruptedException, InvocationTargetException {
 
         requestFocus(robot, requestFocus);
         return waitForFocus(waitForFocus);
+    }
+
+    public static boolean requestFocusAndWait(Robot robot, Object requestFocus, Object waitForFocus, 
+                                              EventCountAdapter gain, EventCountAdapter lost)
+        throws AWTException, InterruptedException, InvocationTargetException {
+
+        int gainT0 = gain.getCount();
+        int lostT0 = (null!=lost) ? lost.getCount() : 0;
+
+        requestFocus(robot, requestFocus);
+        return waitForFocus(waitForFocus, gainT0, gain, lostT0, lost);
     }
 
     /**
@@ -286,6 +318,20 @@ public class AWTRobotUtil {
             Thread.sleep(TIME_OUT/POLL_DIVIDER);
         }
         return mouseClickCounter.getCount()-c0;
+    }
+
+    /**
+     *
+     * @return True if the EventCountAdapter became the desired value within TIME_OUT
+     */
+    public static boolean waitForCount(int desired, EventCountAdapter eca) throws InterruptedException {
+        for (int wait=0; wait<POLL_DIVIDER; wait++) {
+            if( eca.getCount() == desired ) {
+                return true;
+            }
+            Thread.sleep(TIME_OUT/POLL_DIVIDER);
+        }
+        return false;
     }
 
 }

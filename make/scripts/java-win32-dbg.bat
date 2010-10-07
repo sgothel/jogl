@@ -13,4 +13,14 @@ set CP_ALL=.;%BLD_DIR%\jogl\jogl.all.jar;%BLD_DIR%\nativewindow\nativewindow.all
 
 echo CP_ALL %CP_ALL%
 
-%J2RE_HOME%\bin\java -classpath %CP_ALL% "-Djava.library.path=%LIB_DIR%" "-Dnativewindow.debug=all" "-Djogl.debug=all" "-Dnewt.debug=all" "-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true" %1 %2 %3 %4 %5 %6 %7 %8 %9 > java-win32-dbg.log 2>&1
+REM set D_ARGS="-Djogamp.debug.JNILibLoader=true" "-Djogamp.debug.NativeLibrary=true" "-Djogamp.debug.NativeLibrary.Lookup=true" "-Djogl.debug.GLProfile=true"
+REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all"
+REM set D_ARGS="-Dnewt.debug.Window" "-Dnativewindow.debug.TraceLock"
+REM set D_ARGS="-Dnativewindow.debug.TraceLock"
+set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display"
+REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display" "-Dnewt.test.Window.reparent.incompatible=true"
+
+set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true"
+
+%J2RE_HOME%\bin\java -classpath %CP_ALL% "-Djava.library.path=%LIB_DIR%" %D_ARGS% %X_ARGS% %1 %2 %3 %4 %5 %6 %7 %8 %9 > java-win32-dbg.log 2>&1
+
