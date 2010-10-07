@@ -202,7 +202,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             System.err.println("Window.createNative() START ("+getThreadName()+", "+this+")");
         }
         if( null != parentWindow && 
-            NativeWindow.LOCK_SURFACE_NOT_READY >= parentWindow.lockSurface() ) {
+            NativeSurface.LOCK_SURFACE_NOT_READY >= parentWindow.lockSurface() ) {
                 throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
         }
         try {
@@ -236,26 +236,24 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private static long getNativeWindowHandle(NativeWindow nativeWindow) {
         long handle = 0;
         if(null!=nativeWindow) {
-            boolean locked=false;
-            try {
-                if( NativeWindow.LOCK_SURFACE_NOT_READY < nativeWindow.lockSurface() ) {
-                    locked=true;
+            boolean wasLocked = false;
+            if( NativeSurface.LOCK_SURFACE_NOT_READY < nativeWindow.lockSurface() ) {
+                wasLocked = true;
+                try {
                     handle = nativeWindow.getWindowHandle();
                     if(0==handle) {
                         throw new NativeWindowException("Parent native window handle is NULL, after succesful locking: "+nativeWindow);
                     }
-                }
-            } catch (NativeWindowException nwe) {
-                if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.getNativeWindowHandle: not successful yet: "+nwe);
-                }
-            } finally {
-                if(locked) {
+                } catch (NativeWindowException nwe) {
+                    if(DEBUG_IMPLEMENTATION) {
+                        System.err.println("Window.getNativeWindowHandle: not successful yet: "+nwe);
+                    }
+                } finally {
                     nativeWindow.unlockSurface();
                 }
             }
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.getNativeWindowHandle: locked "+locked+", "+nativeWindow);
+                System.err.println("Window.getNativeWindowHandle: locked "+wasLocked+", "+nativeWindow);
             }
         }
         return handle;
@@ -809,7 +807,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     NativeWindow parentWindowLocked = null;
                     if( null != parentWindow ) {
                         parentWindowLocked = parentWindow;
-                        if(NativeWindow.LOCK_SURFACE_NOT_READY >= parentWindowLocked.lockSurface() ) {
+                        if(NativeSurface.LOCK_SURFACE_NOT_READY >= parentWindowLocked.lockSurface() ) {
                             throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
                         }
                     }

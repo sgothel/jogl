@@ -48,6 +48,7 @@ uname -a | grep -i Darwin && MOSX=1
 # D_ARGS="-Dnewt.debug.EDT -Dnewt.debug.Window"
 # D_ARGS="-Dsun.awt.disableMixing=true -Dnewt.debug.EDT"
 D_ARGS="-Dnewt.debug.EDT"
+# D_ARGS="-Dnativewindow.debug.TraceLock"
 # D_ARGS="-Dnewt.debug.Display"
 # D_ARGS="-Djogl.debug.Animator -Dnewt.debug.Window -Dnewt.debug.Display"
 # D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.test.Window.reparent.incompatible=true"

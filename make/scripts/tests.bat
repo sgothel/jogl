@@ -12,4 +12,6 @@ REM # ./scripts/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.paren
 REM # ./scripts/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestGLWindows01NEWT
 REM # ./scripts/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestGLWindows02NEWTAnimated
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.parenting.TestParenting01NEWT
-scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestFocus01SwingAWT
+scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestFocus01SwingAWTRobot
+REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestFocus01SwingAWTRobot
+REM scripts\java-win64-dbg.bat com.jogamp.test.junit.nativewindow.TestRecursiveToolkitLockCORE

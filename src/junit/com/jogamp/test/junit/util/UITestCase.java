@@ -28,7 +28,9 @@
  
 package com.jogamp.test.junit.util;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.After;
 import org.junit.AfterClass;
 
 import java.lang.reflect.InvocationTargetException;
@@ -55,5 +57,16 @@ public abstract class UITestCase {
         // one-time cleanup code
         singletonInstance.unlock();
     }
+
+    @Before
+    public void setUp() {
+        System.err.println("++++ UITestCase.setUp: "+getClass().getName());
+    }
+
+    @After
+    public void tearDown() {
+        System.err.println("++++ UITestCase.tearDown: "+getClass().getName());
+    }
+
 }
 
