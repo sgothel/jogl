@@ -34,10 +34,15 @@ public class AWTMouseAdapter extends java.awt.event.MouseAdapter implements Even
 
     public AWTMouseAdapter(String prefix) {
         this.prefix = prefix;
+        reset();
     }
 
     public int getCount() {
         return mouseClicked;
+    }
+
+    public void reset() {
+        mouseClicked = 0;
     }
 
     public void mouseClicked(java.awt.event.MouseEvent e) {

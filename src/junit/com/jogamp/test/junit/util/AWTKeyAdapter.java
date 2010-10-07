@@ -35,10 +35,15 @@ public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements EventCou
 
     public AWTKeyAdapter(String prefix) {
         this.prefix = prefix;
+        reset();
     }
 
     public int getCount() {
         return keyTyped;
+    }
+
+    public void reset() {
+        keyTyped = 0;
     }
 
     public void keyTyped(java.awt.event.KeyEvent e) {

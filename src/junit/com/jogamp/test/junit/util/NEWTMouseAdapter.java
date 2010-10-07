@@ -38,10 +38,15 @@ public class NEWTMouseAdapter extends MouseAdapter implements EventCountAdapter 
 
     public NEWTMouseAdapter(String prefix) {
         this.prefix = prefix;
+        reset();
     }
 
     public int getCount() {
         return mouseClicked;
+    }
+
+    public void reset() {
+        mouseClicked = 0;
     }
 
     public void mouseClicked(MouseEvent e) {

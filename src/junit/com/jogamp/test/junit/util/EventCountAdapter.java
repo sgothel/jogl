@@ -31,6 +31,6 @@ package com.jogamp.test.junit.util;
 public interface EventCountAdapter {
 
     int getCount();
-
+    void reset();
 }
 

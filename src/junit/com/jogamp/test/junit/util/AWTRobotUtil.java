@@ -43,6 +43,8 @@ import javax.swing.JFrame;
 public class AWTRobotUtil {
 
     public static int TIME_OUT = 1000; // 1s
+    public static int ROBOT_DELAY = 50; // ms
+    public static int POLL_DIVIDER = 20; // TO/20
 
     public static Point getCenterLocation(Object obj, boolean frameTitlebar) 
         throws InterruptedException, InvocationTargetException {
@@ -100,7 +102,7 @@ public class AWTRobotUtil {
         Point p0 = getCenterLocation(window, false);
         System.err.println("robot pos: "+p0);
         robot.mouseMove( (int) p0.getX(), (int) p0.getY() );
-        robot.delay(50);
+        robot.delay(ROBOT_DELAY);
 
         final Window f_window = window;
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -109,14 +111,14 @@ public class AWTRobotUtil {
                 f_window.toFront();
                 f_window.requestFocus();
             }});
-        robot.delay(200);
+        robot.delay(ROBOT_DELAY);
 
         KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
         int wait;
-        for (wait=0; wait<10 && window != kfm.getFocusedWindow(); wait++) {
-            Thread.sleep(TIME_OUT/10);
+        for (wait=0; wait<POLL_DIVIDER && window != kfm.getFocusedWindow(); wait++) {
+            Thread.sleep(TIME_OUT/POLL_DIVIDER);
         }
-        return wait<10;
+        return wait<POLL_DIVIDER;
     }
 
     /**
@@ -144,7 +146,7 @@ public class AWTRobotUtil {
         System.err.println("robot pos: "+p0);
 
         robot.mouseMove( (int) p0.getX(), (int) p0.getY() );
-        robot.delay(50);
+        robot.delay(ROBOT_DELAY);
     }
 
     /**
@@ -179,11 +181,11 @@ public class AWTRobotUtil {
 
         centerMouse(robot, obj);
 
-        robot.delay(50);
+        robot.delay(ROBOT_DELAY);
         robot.mousePress(InputEvent.BUTTON1_MASK);
-        robot.delay(50);
+        robot.delay(ROBOT_DELAY);
         robot.mouseRelease(InputEvent.BUTTON1_MASK);
-        robot.delay(50);
+        robot.delay(ROBOT_DELAY);
     }
 
     /**
@@ -195,18 +197,18 @@ public class AWTRobotUtil {
         if(obj instanceof Component) {
             Component comp = (Component) obj;
             KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-            for (wait=0; wait<10 && comp != kfm.getPermanentFocusOwner(); wait++) {
-                Thread.sleep(TIME_OUT/10);
+            for (wait=0; wait<POLL_DIVIDER && comp != kfm.getPermanentFocusOwner(); wait++) {
+                Thread.sleep(TIME_OUT/POLL_DIVIDER);
             }
         } else if(obj instanceof com.jogamp.newt.Window) {
             com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
-            for (wait=0; wait<10 && !win.hasFocus(); wait++) {
-                Thread.sleep(TIME_OUT/10);
+            for (wait=0; wait<POLL_DIVIDER && !win.hasFocus(); wait++) {
+                Thread.sleep(TIME_OUT/POLL_DIVIDER);
             }
         } else {
             throw new RuntimeException("Neither AWT nor NEWT: "+obj);
         }
-        return wait<10;
+        return wait<POLL_DIVIDER;
     }
 
     public static boolean requestFocusAndWait(Robot robot, Object requestFocus, Object waitForFocus)
@@ -236,15 +238,15 @@ public class AWTRobotUtil {
 
         for(int i=0; i<typeCount; i++) {
             robot.keyPress(java.awt.event.KeyEvent.VK_A);
-            robot.delay(50);
+            robot.delay(ROBOT_DELAY);
             robot.keyRelease(java.awt.event.KeyEvent.VK_A);
-            robot.delay(50);
+            robot.delay(ROBOT_DELAY);
         }
 
         // Wait for the key events to be processed.
         int wait;
-        for (wait=0; wait<10 && (keyTypedCounter.getCount()-c0)<typeCount; wait++) {
-            Thread.sleep(TIME_OUT/10);
+        for (wait=0; wait<POLL_DIVIDER && (keyTypedCounter.getCount()-c0)<typeCount; wait++) {
+            Thread.sleep(TIME_OUT/POLL_DIVIDER);
         }
         return keyTypedCounter.getCount()-c0;
     }
@@ -267,7 +269,7 @@ public class AWTRobotUtil {
 
         centerMouse(robot, obj);
 
-        robot.delay(2*clickTO);
+        robot.delay(clickTO);
 
         int c0 = mouseClickCounter.getCount();
 
@@ -277,12 +279,11 @@ public class AWTRobotUtil {
             robot.mouseRelease(mouseButton);
             robot.delay(clickTO/4);
         }
-        robot.delay(50);
 
         // Wait for the key events to be processed.
         int wait;
-        for (wait=0; wait<10 && (mouseClickCounter.getCount()-c0)<clickCount; wait++) {
-            Thread.sleep(TIME_OUT/10);
+        for (wait=0; wait<POLL_DIVIDER && (mouseClickCounter.getCount()-c0)<clickCount; wait++) {
+            Thread.sleep(TIME_OUT/POLL_DIVIDER);
         }
         return mouseClickCounter.getCount()-c0;
     }

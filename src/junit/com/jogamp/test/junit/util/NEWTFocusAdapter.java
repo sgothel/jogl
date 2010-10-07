@@ -34,14 +34,19 @@ import com.jogamp.newt.event.WindowEvent;
 public class NEWTFocusAdapter extends WindowAdapter implements EventCountAdapter {
 
     String prefix;
-    int focusGained = 0;
+    int focusGained;
 
     public NEWTFocusAdapter(String prefix) {
         this.prefix = prefix;
+        reset();
     }
 
     public int getCount() {
         return focusGained;
+    }
+
+    public void reset() {
+        focusGained = 0;
     }
 
     @Override

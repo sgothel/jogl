@@ -42,12 +42,16 @@ import java.awt.Robot;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.lang.reflect.InvocationTargetException;
-import java.io.IOException;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.swing.JFrame;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Iterator;
+import java.io.IOException;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -100,6 +104,8 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
 
     private void testFocus01ProgrFocusImpl(Robot robot) throws AWTException,
             InvocationTargetException, InterruptedException {
+        ArrayList eventCountAdapters = new ArrayList();
+
         // Create a window.
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setTitle("testNewtChildFocus");
@@ -107,10 +113,12 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         TestListenerCom01AWT.setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         NEWTFocusAdapter glWindow1FA = new NEWTFocusAdapter("GLWindow1");
+        eventCountAdapters.add(glWindow1FA);
         glWindow1.addWindowListener(glWindow1FA);
 
         // Monitor NEWT focus and keyboard events.
         NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
+        eventCountAdapters.add(glWindow1KA);
         glWindow1.addKeyListener(glWindow1KA);
 
         // Wrap the window in a canvas.
@@ -119,8 +127,10 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         // Monitor AWT focus and keyboard events.
         AWTKeyAdapter newtCanvasAWTKA = new AWTKeyAdapter("NewtCanvasAWT");
         newtCanvasAWT.addKeyListener(newtCanvasAWTKA);
+        eventCountAdapters.add(newtCanvasAWTKA);
         AWTFocusAdapter newtCanvasAWTFA = new AWTFocusAdapter("NewtCanvasAWT");
         newtCanvasAWT.addFocusListener(newtCanvasAWTFA);
+        eventCountAdapters.add(newtCanvasAWTFA);
 
         // Add the canvas to a frame, and make it all visible.
         JFrame frame1 = new JFrame("Swing AWT Parent Frame: "
@@ -129,8 +139,10 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         Button button = new Button("Click me ..");
         AWTFocusAdapter buttonFA = new AWTFocusAdapter("Button");
         button.addFocusListener(buttonFA);
+        eventCountAdapters.add(buttonFA);
         AWTKeyAdapter buttonKA = new AWTKeyAdapter("Button");
         button.addKeyListener(buttonKA);
+        eventCountAdapters.add(buttonKA);
         frame1.getContentPane().add(button, BorderLayout.NORTH);
         frame1.setSize(width, height);
         frame1.setVisible(true);
@@ -148,7 +160,9 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         // Button Focus
         Thread.sleep(100); // allow event sync
         System.err.println("FOCUS AWT  Button request");
+        EventCountAdapterUtil.reset(eventCountAdapters);
         Assert.assertTrue(AWTRobotUtil.requestFocusAndWait(robot, button, button));
+        Assert.assertEquals(1, buttonFA.getCount());
         Assert.assertEquals(0, glWindow1FA.getCount());
         Assert.assertEquals(0, newtCanvasAWTFA.getCount());
         System.err.println("FOCUS AWT  Button sync");
@@ -157,9 +171,11 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         // Request the AWT focus, which should automatically provide the NEWT window with focus.
         Thread.sleep(100); // allow event sync
         System.err.println("FOCUS NEWT Canvas/GLWindow request");
+        EventCountAdapterUtil.reset(eventCountAdapters);
         Assert.assertTrue(AWTRobotUtil.requestFocusAndWait(robot, newtCanvasAWT, newtCanvasAWT.getNEWTChild()));
+        Assert.assertEquals(1, glWindow1FA.getCount());
         Assert.assertEquals(0, newtCanvasAWTFA.getCount());
-        Assert.assertEquals(0, buttonFA.getCount());
+        // Assert.assertEquals(-1, buttonFA.getCount()); // lost focus
         System.err.println("FOCUS NEWT Canvas/GLWindow sync");
         Assert.assertEquals(2, AWTRobotUtil.testKeyType(robot, 2, glWindow1, glWindow1KA));
         Assert.assertEquals("AWT parent canvas received keyboard events", 0, newtCanvasAWTKA.getCount());

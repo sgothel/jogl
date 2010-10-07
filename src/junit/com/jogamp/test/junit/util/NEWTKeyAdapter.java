@@ -38,10 +38,15 @@ public class NEWTKeyAdapter extends KeyAdapter implements EventCountAdapter {
 
     public NEWTKeyAdapter(String prefix) {
         this.prefix = prefix;
+        reset();
     }
 
     public int getCount() {
         return keyTyped;
+    }
+
+    public void reset() {
+        keyTyped = 0;
     }
 
     @Override

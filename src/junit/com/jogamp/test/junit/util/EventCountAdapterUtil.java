@@ -28,46 +28,22 @@
  
 package com.jogamp.test.junit.util;
 
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.util.List;
+import java.util.Iterator;
 
-public class AWTFocusAdapter implements EventCountAdapter, FocusListener {
+public abstract class EventCountAdapterUtil {
 
-    String prefix;
-    int focusGained;
-    boolean wasTemporary;
-
-    public AWTFocusAdapter(String prefix) {
-        this.prefix = prefix;
-        reset();
+    public static void reset(EventCountAdapter[] adapters) {
+        for(int i=0; i<adapters.length; i++) {
+            adapters[i].reset();
+        }
     }
 
-    /** @return the balance of focus gained/lost, ie should be 0 or 1 */
-    public int getCount() {
-        return focusGained;
-    }
-
-    public void reset() {
-        focusGained = 0;
-        wasTemporary = false;
-    }
-
-    /** @return true, if the last change was temporary */
-    public boolean getWasTemporary() {
-        return wasTemporary;
-    }
-
-    @Override 
-    public void focusGained(FocusEvent e) {
-        ++focusGained;
-        wasTemporary = e.isTemporary();
-        System.err.println("FOCUS AWT  GAINED "+(wasTemporary?"TEMP":"PERM")+" ["+focusGained+"]: "+prefix+", "+e);
-    }
-
-    @Override
-    public void focusLost(FocusEvent e) {
-        --focusGained;
-        wasTemporary = e.isTemporary();
-        System.err.println("FOCUS AWT  LOST   "+(wasTemporary?"TEMP":"PERM")+" ["+focusGained+"]: "+prefix+", "+e);
+    public static void reset(List/*<EventCountAdapter>*/ adapters) {
+        for(Iterator i = adapters.iterator(); i.hasNext(); ) {
+            EventCountAdapter adapter = (EventCountAdapter) i.next();
+            adapter.reset();
+        }
     }
 }
+
