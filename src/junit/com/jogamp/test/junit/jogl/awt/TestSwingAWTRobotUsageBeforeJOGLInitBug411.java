@@ -48,7 +48,6 @@ import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.AWTException;
-import java.awt.Container;
 import java.awt.LayoutManager;
 import java.awt.Robot;
 import java.awt.Point;

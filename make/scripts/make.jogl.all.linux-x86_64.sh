@@ -50,6 +50,8 @@ echo LIBXCB_ALLOW_SLOPPY_LOCK: $LIBXCB_ALLOW_SLOPPY_LOCK 2>&1 | tee -a $LOGF
 echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a $LOGF
 echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $LOGF
 
+#    -Dbuild.noarchives=true \
+
 ant  \
     $CUSTOMLIBDIR \
     -Dbuild.noarchives=true \

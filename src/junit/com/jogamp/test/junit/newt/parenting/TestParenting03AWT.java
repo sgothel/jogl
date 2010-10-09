@@ -43,8 +43,9 @@ import org.junit.Test;
 import java.awt.Button;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
-import java.awt.Frame;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Label;
 
 import javax.media.opengl.*;
@@ -67,24 +68,23 @@ public class TestParenting03AWT extends UITestCase {
         GLProfile.initSingleton();
     }
 
-    static int width, height;
+    static Dimension size;
     static long durationPerTest = 800;
-    static long waitReparent = 0;
+    static long waitAdd2nd = 500;
     static GLCapabilities glCaps;
 
     @BeforeClass
     public static void initClass() {
-        width  = 800;
-        height = 400;
+        size = new Dimension(400,200);
         glCaps = new GLCapabilities(null);
     }
 
     @Test
-    public void testWindowParenting1AWT2NewtChilds01() throws InterruptedException {
-        testWindowParenting1AWT2NewtChilds();
+    public void testWindowParenting1AWT2NewtChilds01() throws InterruptedException, InvocationTargetException {
+        testWindowParenting1AWT2NewtChilds(true);
     }
 
-    public void testWindowParenting1AWT2NewtChilds() throws InterruptedException {
+    public void testWindowParenting1AWT2NewtChilds(boolean visibleChild2) throws InterruptedException, InvocationTargetException {
         int x = 0;
         int y = 0;
 
@@ -131,19 +131,33 @@ public class TestParenting03AWT extends UITestCase {
         animator2.start();
 
         NewtCanvasAWT newtCanvasAWT1 = new NewtCanvasAWT(glWindow1);
+        newtCanvasAWT1.setPreferredSize(size);
+        Container cont1 = new Container();
+        cont1.setLayout(new BorderLayout());
+        cont1.add(newtCanvasAWT1, BorderLayout.CENTER);
+        cont1.setVisible(true);
+        final Container f_cont1 = cont1;
+
         NewtCanvasAWT newtCanvasAWT2 = new NewtCanvasAWT(glWindow2);
+        newtCanvasAWT2.setPreferredSize(size);
+        Container cont2 = new Container();
+        cont2.setLayout(new BorderLayout());
+        cont2.add(newtCanvasAWT2, BorderLayout.CENTER);
+        cont2.setVisible(true);
+        final Container f_cont2 = cont2;
 
         Frame frame1 = new Frame("AWT Parent Frame");
         frame1.setLayout(new BorderLayout());
-        frame1.add(newtCanvasAWT1, BorderLayout.EAST);
+        frame1.add(cont1, BorderLayout.EAST);
         frame1.add(new Label("center"), BorderLayout.CENTER);
-        frame1.add(newtCanvasAWT2, BorderLayout.WEST);
         frame1.setLocation(0, 0);
-        frame1.setSize(width/2, height/2);
-        System.err.println("1: "+frame1);
-        frame1.pack();
-        frame1.setVisible(true);
-        System.err.println("2: "+frame1);
+        frame1.setSize((int)size.getWidth()*2, (int)size.getHeight()*2);
+        final Frame f_frame1 = frame1;
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                f_frame1.pack();
+                f_frame1.setVisible(true);
+            }});
 
         Assert.assertEquals(newtCanvasAWT1.getNativeWindow(),glWindow1.getParent());
         Assert.assertEquals(newtCanvasAWT2.getNativeWindow(),glWindow2.getParent());
@@ -155,6 +169,14 @@ public class TestParenting03AWT extends UITestCase {
         Assert.assertEquals(true, animator2.isAnimating());
         Assert.assertEquals(false, animator2.isPaused());
         Assert.assertNotNull(animator2.getThread());
+
+        Thread.sleep(waitAdd2nd);
+
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                f_frame1.add(f_cont2, BorderLayout.WEST);
+                f_frame1.pack();
+            }});
 
         Thread.sleep(durationPerTest);
 
@@ -199,7 +221,7 @@ public class TestParenting03AWT extends UITestCase {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
             } else if(args[i].equals("-wait")) {
-                waitReparent = atoi(args[++i]);
+                waitAdd2nd = atoi(args[++i]);
             }
         }
         String tstname = TestParenting03AWT.class.getName();

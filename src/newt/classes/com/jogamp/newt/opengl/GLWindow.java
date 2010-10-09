@@ -447,7 +447,7 @@ public class GLWindow implements GLAutoDrawable, Window {
             return;
         }
 
-        if( null == context && isVisible() ) {
+        if( null == context && isVisible() && 0<getWidth()*getHeight() ) {
             // retry native window and drawable/context creation 
             setVisible(true);
         }

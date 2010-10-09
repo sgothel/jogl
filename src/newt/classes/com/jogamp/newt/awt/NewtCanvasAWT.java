@@ -173,13 +173,15 @@ public class NewtCanvasAWT extends java.awt.Canvas {
               if(DEBUG) {
                 System.err.println("NewtCanvasAWT.reparentWindow: "+newtChild);
               }
-              setSize(cont.getWidth(), cont.getHeight());
-              newtChild.setSize(cont.getWidth(), cont.getHeight());
+              final int w = cont.getWidth();
+              final int h = cont.getHeight();
+              setSize(w, h);
+              newtChild.setSize(w, h);
               newtChild.reparentWindow(nativeWindow);
               newtChild.setVisible(true);
               setWindowAdapter(true);
               newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
-              newtChild.windowRepaint(0, 0, newtChild.getWidth(), newtChild.getHeight());
+              newtChild.windowRepaint(0, 0, w, h);
               newtChild.setFocusAction(focusAction); // enable AWT focus traversal
           }
       } else {

@@ -400,6 +400,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public void setVisible(boolean visible) {
         if(isValid()) {
+            if( 0==windowHandle && visible && 0>=width*height ) {
+                // fast-path: not realized yet, make visible, but zero size
+                return;
+            }
             VisibleAction va = new VisibleAction(visible);
             runOnEDTIfAvail(true, va);
             if( va.getChanged() ) {
@@ -427,51 +431,49 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         public void run() {
             windowLock.lock();
             try {
-                if( isValid() ) {
-                    if(DEBUG_IMPLEMENTATION) {
-                        String msg = new String("Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+" -> "+visible+", parentWindowHandle "+toHexString(WindowImpl.this.parentWindowHandle)+", parentWindow "+(null!=WindowImpl.this.parentWindow)/*+", "+this*/);
-                        System.err.println(msg);
-                    }
-                    if(!visible && childWindows.size()>0) {
-                      synchronized(childWindowsLock) {
-                        for(Iterator i = childWindows.iterator(); i.hasNext(); ) {
-                            NativeWindow nw = (NativeWindow) i.next();
-                            if(nw instanceof WindowImpl) {
-                                ((WindowImpl)nw).setVisible(false);
-                            }
-                        }
-                      }
-                    }
-                    if(0==windowHandle && visible) {
-                        WindowImpl.this.visible = visible;
-                        if( 0<width*height ) {
-                            nativeWindowCreated = createNative();
-                        }
-                    } else if(WindowImpl.this.visible != visible) {
-                        WindowImpl.this.visible = visible;
-                        if(0 != windowHandle) {
-                            setVisibleImpl(visible);
-                            madeVisible = visible;
+                if(DEBUG_IMPLEMENTATION) {
+                    String msg = new String("Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+" -> "+visible+", parentWindowHandle "+toHexString(WindowImpl.this.parentWindowHandle)+", parentWindow "+(null!=WindowImpl.this.parentWindow)/*+", "+this*/);
+                    System.err.println(msg);
+                }
+                if(!visible && childWindows.size()>0) {
+                  synchronized(childWindowsLock) {
+                    for(Iterator i = childWindows.iterator(); i.hasNext(); ) {
+                        NativeWindow nw = (NativeWindow) i.next();
+                        if(nw instanceof WindowImpl) {
+                            ((WindowImpl)nw).setVisible(false);
                         }
                     }
+                  }
+                }
+                if(0==windowHandle && visible) {
+                    WindowImpl.this.visible = visible;
+                    if( 0<width*height ) {
+                        nativeWindowCreated = createNative();
+                    }
+                } else if(WindowImpl.this.visible != visible) {
+                    WindowImpl.this.visible = visible;
+                    if(0 != windowHandle) {
+                        setVisibleImpl(visible);
+                        madeVisible = visible;
+                    }
+                }
 
-                    if(null!=lifecycleHook) {
-                        lifecycleHook.setVisibleAction(visible, nativeWindowCreated);
-                    }
+                if(null!=lifecycleHook) {
+                    lifecycleHook.setVisibleAction(visible, nativeWindowCreated);
+                }
 
-                    if(0!=windowHandle && visible && childWindows.size()>0) {
-                      synchronized(childWindowsLock) {
-                        for(Iterator i = childWindows.iterator(); i.hasNext(); ) {
-                            NativeWindow nw = (NativeWindow) i.next();
-                            if(nw instanceof WindowImpl) {
-                                ((WindowImpl)nw).setVisible(true);
-                            }
+                if(0!=windowHandle && visible && childWindows.size()>0) {
+                  synchronized(childWindowsLock) {
+                    for(Iterator i = childWindows.iterator(); i.hasNext(); ) {
+                        NativeWindow nw = (NativeWindow) i.next();
+                        if(nw instanceof WindowImpl) {
+                            ((WindowImpl)nw).setVisible(true);
                         }
-                      }
                     }
-                    if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window setVisible: END ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+", nativeWindowCreated: "+nativeWindowCreated+", madeVisible: "+madeVisible);
-                    }
+                  }
+                }
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window setVisible: END ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+", nativeWindowCreated: "+nativeWindowCreated+", madeVisible: "+madeVisible);
                 }
             } finally {
                 windowLock.unlock();
@@ -711,7 +713,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                     displayChanged = true;
                                 }
                             }
-                            reparentAction = ACTION_NATIVE_CREATION;
+                            if( 0<width*height ) {
+                                reparentAction = ACTION_NATIVE_CREATION;
+                            } else {
+                                reparentAction = ACTION_NATIVE_CREATION_PENDING;
+                            }
                         } else if ( DEBUG_TEST_REPARENT_INCOMPATIBLE || forceDestroyCreate ||
                                     !NewtFactory.isScreenCompatible(newParentWindow, getScreen()) ) {
                             // Destroy this window (handle screen + native) and
@@ -739,12 +745,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if( 0 == getParentWindowHandle() ) {
                         // Already Top Window
                         reparentAction = ACTION_UNCHANGED;
-                    } else if ( DEBUG_TEST_REPARENT_INCOMPATIBLE || forceDestroyCreate ) {
-                        // Destroy this window (handle screen + native) and
-                        // keep Screen/Display and
-                        // mark it for creation.
+                    } else if( !isNativeValid() || DEBUG_TEST_REPARENT_INCOMPATIBLE || forceDestroyCreate ) {
+                        // Destroy this window (handle screen + native),
+                        // keep Screen/Display and mark it for creation.
                         destroy(false);
-                        reparentAction = ACTION_NATIVE_CREATION;
+                        if( 0<width*height ) {
+                            reparentAction = ACTION_NATIVE_CREATION;
+                        } else {
+                            reparentAction = ACTION_NATIVE_CREATION_PENDING;
+                        }
                     } else {
                         // Mark it for native reparenting
                         reparentAction = ACTION_NATIVE_REPARENTING;
