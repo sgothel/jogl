@@ -71,15 +71,23 @@ public class AWTParentWindowAdapter
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: componentResized: "+comp);
         }
-        newtWindow.runOnEDTIfAvail(false, new Runnable() {
-            public void run() {
-                if( 0 < comp.getWidth() * comp.getHeight() ) {
-                    newtWindow.setSize(comp.getWidth(), comp.getHeight());
-                    newtWindow.setVisible(comp.isVisible());
-                } else {
-                    newtWindow.setVisible(false);
-                }
-            }});
+        if(newtWindow.isValid()) {
+            newtWindow.runOnEDTIfAvail(false, new Runnable() {
+                public void run() {
+                    int cw = comp.getWidth();
+                    int ch = comp.getHeight();
+                    if( 0 < cw * ch ) {
+                        if( newtWindow.getWidth() != cw || newtWindow.getHeight() != ch ) {
+                            newtWindow.setSize(cw, ch);
+                            if(comp.isVisible() != newtWindow.isVisible()) {
+                                newtWindow.setVisible(comp.isVisible());
+                            }
+                        }
+                    } else if(newtWindow.isVisible()) {
+                        newtWindow.setVisible(false);
+                    }
+                }});
+        }
     }
 
     public void componentMoved(java.awt.event.ComponentEvent e) {
@@ -106,14 +114,15 @@ public class AWTParentWindowAdapter
                 if(newtWindow.isValid()) {
                     newtWindow.runOnEDTIfAvail(false, new Runnable() {
                         public void run() {
-                            newtWindow.setVisible(showing);
-                        }
-                    });
+                            if(newtWindow.isVisible() != showing) {
+                                newtWindow.setVisible(showing);
+                            }
+                        }});
                 }
             } 
-            if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
-                final boolean displayability = changed.isDisplayable();
-                if(DEBUG_IMPLEMENTATION) {
+            if(DEBUG_IMPLEMENTATION) {
+                if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
+                    final boolean displayability = changed.isDisplayable();
                     System.err.println("AWT: hierarchyChanged DISPLAYABILITY_CHANGED: displayability "+displayability+", "+changed);
                 }
             }

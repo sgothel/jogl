@@ -49,7 +49,7 @@ import java.beans.PropertyChangeListener;
 
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
+import com.jogamp.common.util.RecursiveToolkitLock;
 
 /** Platform-independent class exposing pbuffer functionality to
     applications. This class is not exposed in the public API as it

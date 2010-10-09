@@ -63,14 +63,14 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * This call allows recursion from the same thread.<P>
    *
    * The implementation may want to aquire the 
-   * application level {@link com.jogamp.nativewindow.impl.RecursiveToolkitLock}
+   * application level {@link com.jogamp.common.util.RecursiveToolkitLock}
    * first before proceeding with a native surface lock. <P>
    *
    * @return {@link #LOCK_SUCCESS}, {@link #LOCK_SURFACE_CHANGED} or {@link #LOCK_SURFACE_NOT_READY}.
    *
    * @throws RuntimeException after timeout when waiting for the surface lock
    *
-   * @see com.jogamp.nativewindow.impl.RecursiveToolkitLock
+   * @see com.jogamp.common.util.RecursiveToolkitLock
    */
   public int lockSurface();
 
@@ -82,7 +82,7 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * @throws RuntimeException if surface is not locked
    *
    * @see #lockSurface
-   * @see com.jogamp.nativewindow.impl.RecursiveToolkitLock
+   * @see com.jogamp.common.util.RecursiveToolkitLock
    */
   public void unlockSurface() throws NativeWindowException ;
 

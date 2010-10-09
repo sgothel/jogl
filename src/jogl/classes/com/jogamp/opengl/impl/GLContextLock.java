@@ -51,9 +51,10 @@ import javax.media.opengl.*;
 
 public class GLContextLock {
   static class SyncData {
-      Thread owner = null;
       boolean failFastMode = true;
+      Thread owner = null;
       int waiters = 0;
+      Exception lockedStack = null;
   }
   private SyncData sdata = new SyncData(); // synchronized (flow/mem)  mutable access
 
@@ -65,9 +66,11 @@ public class GLContextLock {
       Thread current = Thread.currentThread();
       if (sdata.owner == null) {
         sdata.owner = current;
+        sdata.lockedStack = new Exception("Previously made current (1) by "+sdata.owner+", lock: "+this);
       } else if (sdata.owner != current) {
         while (sdata.owner != null) {
           if (sdata.failFastMode) {
+            sdata.lockedStack.printStackTrace();
             throw new GLException("Attempt to make context current on thread " + current +
                                   " which is already current on thread " + sdata.owner);
           } else {
@@ -82,6 +85,7 @@ public class GLContextLock {
           }
         }
         sdata.owner = current;
+        sdata.lockedStack = new Exception("Previously made current (2) by "+sdata.owner+", lock: "+this);
       } else {
         throw new GLException("Attempt to make the same context current twice on thread " + current);
       }
@@ -94,6 +98,7 @@ public class GLContextLock {
       Thread current = Thread.currentThread();
       if (sdata.owner == current) {
         sdata.owner = null;
+        sdata.lockedStack = null;
         // Assuming notify() implementation weaks up the longest waiting thread, to avoid starvation. 
         // Otherwise we would need to have a Thread queue implemented, using sleep(timeout) and interrupt.
         sdata.notify();
@@ -112,8 +117,7 @@ public class GLContextLock {
   /** Indicates whether this lock is held by the current thread. */
   public final boolean isHeld() {
     synchronized(sdata) {
-      Thread current = Thread.currentThread();
-      return (sdata.owner == current);
+      return (Thread.currentThread() == sdata.owner);
     }
   }
 
@@ -131,7 +135,14 @@ public class GLContextLock {
 
   public final boolean hasWaiters() {
     synchronized(sdata) {
-        return (sdata.waiters != 0);
+        return (0 != sdata.waiters);
     }
   }
+
+  public final Exception getLockedStack() {
+    synchronized(sdata) {
+        return sdata.lockedStack;
+    }
+  }
+
 }

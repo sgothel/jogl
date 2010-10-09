@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.ArrayList;
 import java.util.Iterator;
 import com.jogamp.common.util.LongObjectHashMap;
+import com.jogamp.common.util.RecursiveToolkitLock;
 
 import javax.media.nativewindow.*;
 

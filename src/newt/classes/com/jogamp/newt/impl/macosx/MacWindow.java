@@ -35,7 +35,7 @@
 package com.jogamp.newt.impl.macosx;
 
 import javax.media.nativewindow.*;
-import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
+import com.jogamp.common.util.RecursiveToolkitLock;
 
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.*;

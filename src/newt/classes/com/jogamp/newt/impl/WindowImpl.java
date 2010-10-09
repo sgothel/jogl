@@ -42,7 +42,7 @@ import com.jogamp.newt.event.*;
 
 import com.jogamp.common.util.*;
 import javax.media.nativewindow.*;
-import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
+import com.jogamp.common.util.RecursiveToolkitLock;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -399,12 +399,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void setVisible(boolean visible) {
-        if(DEBUG_IMPLEMENTATION) {
-            String msg = new String("Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(this.parentWindowHandle)+", parentWindow "+(null!=this.parentWindow)/*+", "+this*/);
-            System.err.println(msg);
-            //Exception ee = new Exception(msg);
-            //ee.printStackTrace();
-        }
         if(isValid()) {
             VisibleAction va = new VisibleAction(visible);
             runOnEDTIfAvail(true, va);
@@ -434,6 +428,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             windowLock.lock();
             try {
                 if( isValid() ) {
+                    if(DEBUG_IMPLEMENTATION) {
+                        String msg = new String("Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+" -> "+visible+", parentWindowHandle "+toHexString(WindowImpl.this.parentWindowHandle)+", parentWindow "+(null!=WindowImpl.this.parentWindow)/*+", "+this*/);
+                        System.err.println(msg);
+                    }
                     if(!visible && childWindows.size()>0) {
                       synchronized(childWindowsLock) {
                         for(Iterator i = childWindows.iterator(); i.hasNext(); ) {
@@ -471,12 +469,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         }
                       }
                     }
+                    if(DEBUG_IMPLEMENTATION) {
+                        System.err.println("Window setVisible: END ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+", nativeWindowCreated: "+nativeWindowCreated+", madeVisible: "+madeVisible);
+                    }
                 }
-
-                if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window setVisible: END ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+", nativeWindowCreated: "+nativeWindowCreated+", madeVisible: "+madeVisible);
-                }
-
             } finally {
                 windowLock.unlock();
             }
@@ -488,35 +484,31 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         int visibleAction = 0; // 1 invisible, 2 visible
         windowLock.lock();
         try{
-            if(DEBUG_IMPLEMENTATION) {
-                String msg = new String("Window setSize: START "+this.width+"x"+this.height+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible);
-                System.err.println(msg);
-                // Exception e = new Exception(msg);
-                // e.printStackTrace();
-            }
-            if (width != this.width || this.height != height) {
-                if(!fullscreen) {
-                    nfs_width=width;
-                    nfs_height=height;
-                    if ( 0 != windowHandle && 0>=width*height && visible ) {
-                        visibleAction=1; // invisible
-                        this.width = 0;
-                        this.height = 0;
-                    } else if ( 0 == windowHandle && 0<width*height && visible ) {
-                        visibleAction = 2; // visible
-                        this.width = width;
-                        this.height = height;
-                    } else if ( 0 != windowHandle ) {
-                        // this width/height will be set by windowChanged, called by the native implementation
-                        setSizeImpl(width, height);
-                    } else {
-                        this.width = width;
-                        this.height = height;
-                    }
+            if ( !fullscreen && ( width != this.width || this.height != height ) ) {
+                if(DEBUG_IMPLEMENTATION) {
+                    String msg = new String("Window setSize: START "+this.width+"x"+this.height+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible);
+                    System.err.println(msg);
                 }
-            }
-            if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window setSize: END "+this.width+"x"+this.height+", visibleAction "+visibleAction);
+                nfs_width=width;
+                nfs_height=height;
+                if ( 0 != windowHandle && 0>=width*height && visible ) {
+                    visibleAction=1; // invisible
+                    this.width = 0;
+                    this.height = 0;
+                } else if ( 0 == windowHandle && 0<width*height && visible ) {
+                    visibleAction = 2; // visible
+                    this.width = width;
+                    this.height = height;
+                } else if ( 0 != windowHandle ) {
+                    // this width/height will be set by windowChanged, called by the native implementation
+                    setSizeImpl(width, height);
+                } else {
+                    this.width = width;
+                    this.height = height;
+                }
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window setSize: END "+this.width+"x"+this.height+", visibleAction "+visibleAction);
+                }
             }
         } finally {
             windowLock.unlock();
@@ -1661,10 +1653,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     protected void sizeChanged(int newWidth, int newHeight) {
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.sizeChanged: ("+getThreadName()+"): "+width+"x"+height+" -> "+newWidth+"x"+newHeight+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
-        }
         if(width != newWidth || height != newHeight) {
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("Window.sizeChanged: ("+getThreadName()+"): "+width+"x"+height+" -> "+newWidth+"x"+newHeight+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+            }
             width = newWidth;
             height = newHeight;
             if(!fullscreen) {
@@ -1678,10 +1670,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     protected void positionChanged(int newX, int newY) {
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.positionChanged: ("+getThreadName()+"): "+x+"/"+y+" -> "+newX+"/"+newY+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
-        }
         if( 0==parentWindowHandle && ( x != newX || y != newY ) ) {
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("Window.positionChanged: ("+getThreadName()+"): "+x+"/"+y+" -> "+newX+"/"+newY+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+            }
             x = newX;
             y = newY;
             if(!fullscreen) {

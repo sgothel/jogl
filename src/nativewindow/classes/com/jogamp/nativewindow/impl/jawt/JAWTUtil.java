@@ -40,6 +40,8 @@ import com.jogamp.nativewindow.impl.*;
 
 import javax.media.nativewindow.*;
 
+import com.jogamp.common.util.RecursiveToolkitLock;
+
 import java.awt.GraphicsEnvironment;
 import java.lang.reflect.*;
 import java.security.*;

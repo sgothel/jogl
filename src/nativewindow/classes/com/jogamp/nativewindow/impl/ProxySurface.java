@@ -43,6 +43,8 @@ import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.SurfaceChangeable;
 
+import com.jogamp.common.util.RecursiveToolkitLock;
+
 public class ProxySurface implements NativeSurface, SurfaceChangeable {
   private RecursiveToolkitLock recurLock = new RecursiveToolkitLock();
   protected int width, height, scrnIndex;

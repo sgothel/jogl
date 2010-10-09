@@ -37,12 +37,13 @@
 
 package com.jogamp.nativewindow.impl.jawt;
 
+import com.jogamp.nativewindow.impl.*;
+import com.jogamp.common.util.RecursiveToolkitLock;
 
 import java.awt.Component;
 import java.awt.Window;
 import java.awt.GraphicsEnvironment;
 import javax.media.nativewindow.*;
-import com.jogamp.nativewindow.impl.*;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.Rectangle;
 
