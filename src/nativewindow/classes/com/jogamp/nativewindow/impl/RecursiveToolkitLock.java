@@ -29,21 +29,28 @@
 package com.jogamp.nativewindow.impl;
 
 import javax.media.nativewindow.*;
+import java.util.LinkedList;
 
-//
-// Reentrance locking toolkit
-// 
+/**
+ * Reentrance locking toolkit, impl a complete fair FIFO scheduler
+ */
 public class RecursiveToolkitLock {
     static class SyncData {
-        Thread owner = null;
-        int recursionCount = 0;
-        Exception lockedStack = null;
+        // owner of the lock
+        Thread owner = null; 
+        // lock recursion
+        int recursionCount = 0; 
+        // stack trace of the lock
+        Exception lockedStack = null; 
+        // waiting thread queue
+        LinkedList threadQueue = new LinkedList(); 
+        // flag signaling unlock has woken up a waiting thread
+        boolean signaled = false; 
     }
     private SyncData sdata = new SyncData(); // synchronized (flow/mem)  mutable access
 
     private long timeout;
     private static final long defaultTimeout = 5000;  // default maximum wait 5s
-    // private static final long defaultTimeout = 10000;  // default maximum wait 10s
     // private static final long defaultTimeout = 300000;  // default maximum wait 300s / 5min
     private static final boolean TRACE_LOCK = Debug.debug("TraceLock");
 
@@ -111,32 +118,49 @@ public class RecursiveToolkitLock {
     public final void lock() {
         synchronized(sdata) {
             Thread cur = Thread.currentThread();
-            if(TRACE_LOCK) {
-                System.out.println("... LOCK 0 ["+this+"], recursions "+sdata.recursionCount+", "+cur);
-            }
             if (sdata.owner == cur) {
                 ++sdata.recursionCount;
                 if(TRACE_LOCK) {
-                    System.out.println("+++ LOCK 1 ["+this+"], recursions "+sdata.recursionCount+", "+cur);
+                    System.err.println("+++ LOCK 2 ["+this+"], recursions "+sdata.recursionCount+", "+cur);
                 }
                 return;
             }
 
-            long ts = System.currentTimeMillis();
-            while (sdata.owner != null && (System.currentTimeMillis()-ts) < timeout) {
-                try {
-                    sdata.wait(timeout);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+            if (sdata.owner != null || sdata.signaled || sdata.threadQueue.size() > 0) {
+                // enqueue due to locked resource or already waiting or signaled threads (be fair)
+                boolean timedOut = false;
+                do {
+                    sdata.threadQueue.addFirst(cur); // should only happen once 
+                    try {
+                        sdata.wait(timeout);
+                        timedOut = sdata.threadQueue.remove(cur); // timeout if not already removed by unlock
+                    } catch (InterruptedException e) {
+                        if(!sdata.signaled) {
+                            // theoretically we could stay in the loop,
+                            // in case the interrupt wasn't issued by unlock, 
+                            // hence the re-enqueue
+                            sdata.threadQueue.remove(cur);
+                            if(TRACE_LOCK) {
+                                System.err.println("XXX LOCK - ["+this+"], recursions "+sdata.recursionCount+", "+cur);
+                            }
+                        }
+                    }
+                } while (null != sdata.owner && !timedOut) ;
+
+                sdata.signaled = false;
+
+                if(timedOut || null != sdata.owner) {
+                    sdata.lockedStack.printStackTrace();
+                    throw new RuntimeException("Waited "+timeout+"ms for: "+sdata.owner+" - "+cur+", with recursionCount "+sdata.recursionCount+", lock: "+this+", qsz "+sdata.threadQueue.size());
                 }
+
+                if(TRACE_LOCK) {
+                    System.err.println("+++ LOCK 3 ["+this+"], recursions "+sdata.recursionCount+", qsz "+sdata.threadQueue.size()+", "+cur);
+                }
+            } else if(TRACE_LOCK) {
+                System.err.println("+++ LOCK 1 ["+this+"], recursions "+sdata.recursionCount+", qsz "+sdata.threadQueue.size()+", "+cur);
             }
-            if(sdata.owner != null) {
-                sdata.lockedStack.printStackTrace();
-                throw new RuntimeException("Waited "+timeout+"ms for: "+sdata.owner+" - "+cur+", with recursionCount "+sdata.recursionCount+", lock: "+this);
-            }
-            if(TRACE_LOCK) {
-                System.out.println("+++ LOCK X ["+this+"], recursions "+sdata.recursionCount+", "+cur);
-            }
+
             sdata.owner = cur;
             sdata.lockedStack = new Exception("Previously locked by "+sdata.owner+", lock: "+this);
         }
@@ -156,7 +180,7 @@ public class RecursiveToolkitLock {
             if (sdata.recursionCount > 0) {
                 --sdata.recursionCount;
                 if(TRACE_LOCK) {
-                    System.out.println("--- LOCK 1 ["+this+"], recursions "+sdata.recursionCount+", "+Thread.currentThread());
+                    System.err.println("--- LOCK 1 ["+this+"], recursions "+sdata.recursionCount+", "+Thread.currentThread());
                 }
                 return;
             }
@@ -165,12 +189,25 @@ public class RecursiveToolkitLock {
             if(null!=taskAfterUnlockBeforeNotify) {
                 taskAfterUnlockBeforeNotify.run();
             }
-            if(TRACE_LOCK) {
-                System.out.println("--- LOCK X ["+this+"], recursions "+sdata.recursionCount+", "+Thread.currentThread());
+
+            int qsz = sdata.threadQueue.size();
+            if(qsz > 0) {
+                Thread parkedThread = (Thread) sdata.threadQueue.removeLast();
+                if(TRACE_LOCK) {
+                    System.err.println("--- LOCK X ["+this+"], recursions "+sdata.recursionCount+
+                                       ", "+Thread.currentThread()+", irq "+(qsz-1)+": "+parkedThread);
+                }
+                sdata.signaled = true;
+                if(qsz==1) {
+                    // fast path, just one waiting thread
+                    sdata.notify();
+                } else {
+                    // signal the oldest one ..
+                    parkedThread.interrupt(); // Propagate SecurityException if it happens
+                }
+            } else if(TRACE_LOCK) {
+                System.err.println("--- LOCK X ["+this+"], recursions "+sdata.recursionCount+", "+Thread.currentThread());
             }
-            // Assuming notify() implementation weaks up the longest waiting thread, to avoid starvation. 
-            // Otherwise we would need to have a Thread queue implemented, using sleep(timeout) and interrupt.
-            sdata.notify();
         }
     }
 }
