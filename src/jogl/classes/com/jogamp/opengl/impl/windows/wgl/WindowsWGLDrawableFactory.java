@@ -158,27 +158,26 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       throw new IllegalArgumentException("Null target");
     }
     final List returnList = new ArrayList();
-    final GLDrawableFactory factory = this;
-    final WindowsWGLContext _sharedContext = sharedContext;
-    final WindowsDummyWGLDrawable _sharedDrawable = sharedDrawable;
     Runnable r = new Runnable() {
         public void run() {
           GLContext lastContext = GLContext.getCurrent();
           if (lastContext != null) {
             lastContext.release();
           }
-          _sharedContext.makeCurrent();
-          WGLExt wglExt = _sharedContext.getWGLExt();
-          try {
-            GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(factory, target,
-                                                                           _sharedDrawable,
-                                                                           wglExt);
-            returnList.add(pbufferDrawable);
-          } finally {
-            _sharedContext.release();
-            if (lastContext != null) {
-              lastContext.makeCurrent();
-            }
+          synchronized(WindowsWGLDrawableFactory.this.sharedContext) {
+              WindowsWGLDrawableFactory.this.sharedContext.makeCurrent();
+              try {
+                WGLExt wglExt = WindowsWGLDrawableFactory.this.sharedContext.getWGLExt();
+                GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(WindowsWGLDrawableFactory.this, target,
+                                                                               WindowsWGLDrawableFactory.this.sharedDrawable,
+                                                                               wglExt);
+                returnList.add(pbufferDrawable);
+              } finally {
+                WindowsWGLDrawableFactory.this.sharedContext.release();
+                if (lastContext != null) {
+                  lastContext.makeCurrent();
+                }
+              }
           }
         }
       };

@@ -223,17 +223,17 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
      * The dummy context shall also use the same Display,
      * since switching Display in this regard is another ATI bug.
      */
-    boolean usedSharedContext=false;
     if( isVendorATI() && null == GLContext.getCurrent() ) {
-        sharedContext.makeCurrent();
-        usedSharedContext=true;
-    }
-    try {
-        pbufferDrawable = new X11PbufferGLXDrawable(this, target);
-    } finally {
-        if(usedSharedContext) {
-            sharedContext.release();
+        synchronized(sharedContext) {
+            sharedContext.makeCurrent();
+            try {
+                pbufferDrawable = new X11PbufferGLXDrawable(this, target);
+            } finally {
+                sharedContext.release();
+            }
         }
+    } else {
+        pbufferDrawable = new X11PbufferGLXDrawable(this, target);
     }
     return pbufferDrawable;
   }
