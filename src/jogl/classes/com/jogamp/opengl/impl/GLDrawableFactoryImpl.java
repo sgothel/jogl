@@ -51,7 +51,7 @@ import java.security.*;
     these GLDrawables is not supplied directly to end users, though
     they may be instantiated by the GLJPanel implementation. */
 public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
-  protected static final boolean DEBUG = Debug.debug("GLDrawableFactory");
+  protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
 
   /** 
    * Returns the GLDynamicLookupHelper

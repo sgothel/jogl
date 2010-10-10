@@ -43,8 +43,6 @@ import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 
 public class WindowsPbufferWGLContext extends WindowsWGLContext {
-  private static final boolean DEBUG = Debug.debug("WindowsPbufferWGLContext");
-
   // State for render-to-texture and render-to-texture-rectangle support
   private boolean rtt;       // render-to-texture?
   private boolean hasRTT;    // render-to-texture extension available?

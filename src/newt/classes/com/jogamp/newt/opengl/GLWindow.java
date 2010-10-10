@@ -457,7 +457,7 @@ public class GLWindow implements GLAutoDrawable, Window {
                 sendReshape = true;
             }
             if( NativeSurface.LOCK_SURFACE_NOT_READY < lockSurface() ) {
-                try{
+                try {
                     helper.invokeGL(drawable, context, displayAction, initAction);
                 } finally {
                     unlockSurface();

@@ -47,7 +47,7 @@ import javax.media.opengl.*;
     methods to be able to share it between GLCanvas and GLJPanel. */
 
 public class GLDrawableHelper {
-  private static final boolean DEBUG = Debug.debug("GLDrawableHelper");
+  protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
   private static final boolean VERBOSE = Debug.verbose();
   private Object listenersLock = new Object();
   private List listeners = new ArrayList();

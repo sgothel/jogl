@@ -39,7 +39,7 @@ import java.security.*;
 import javax.media.nativewindow.*;
 
 public class NativeWindowFactoryImpl extends NativeWindowFactory {
-    protected static final boolean DEBUG = Debug.debug("NativeWindowFactoryImpl");
+    protected static final boolean DEBUG = Debug.debug("NativeWindow");
 
     // This subclass of NativeWindowFactory handles the case of
     // NativeWindows being passed in

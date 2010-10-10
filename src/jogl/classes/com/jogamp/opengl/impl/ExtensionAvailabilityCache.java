@@ -51,8 +51,8 @@ import java.lang.reflect.*;
  * and display.
  */
 public final class ExtensionAvailabilityCache {
-  private static final boolean DEBUG = Debug.debug("ExtensionAvailabilityCache");
-  private static final boolean DEBUG_AVAILABILITY = Debug.isPropertyDefined("ExtensionAvailabilityCache", true);
+  private static final boolean DEBUG = GLContextImpl.DEBUG;
+  private static final boolean DEBUG_AVAILABILITY = Debug.isPropertyDefined("jogl.debug.ExtensionAvailabilityCache", true);
 
   ExtensionAvailabilityCache(GLContextImpl context)
   {

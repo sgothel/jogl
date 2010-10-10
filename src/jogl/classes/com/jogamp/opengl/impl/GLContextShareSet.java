@@ -54,7 +54,7 @@ import javax.media.opengl.*;
 public class GLContextShareSet {
   // FIXME: refactor Java SE dependencies
   //  private static boolean forceTracking = Debug.isPropertyDefined("jogl.glcontext.forcetracking");
-  private static final boolean DEBUG = Debug.debug("GLContextShareSet");
+  private static final boolean DEBUG = Debug.debug("GLContext");
 
   // This class is implemented with a WeakHashMap that goes from the
   // contexts as keys to a complex data structure as value that tracks

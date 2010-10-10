@@ -69,7 +69,7 @@ import javax.media.opengl.*;
  */
 
 public class GLObjectTracker {
-  private static final boolean DEBUG = Debug.debug("GLObjectTracker");
+  private static final boolean DEBUG = Debug.debug("GLStatusTracker");
 
   //----------------------------------------------------------------------
   // Adders

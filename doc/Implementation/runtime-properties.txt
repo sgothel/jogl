@@ -1,0 +1,74 @@
+../doc/Implementation/properties/jogl.debug.all.txt
+----------------------------------------
+    jogl.debug.Animator
+    jogl.debug.BuildMipmap
+    jogl.debug.CapabilitiesChooser
+    jogl.debug.EGL
+    jogl.debug.GLCanvas
+    jogl.debug.GLContext
+    jogl.debug.GLDrawable
+    jogl.debug.GLJPanel
+    jogl.debug.GLPipelineFactory
+    jogl.debug.GLProfile
+    jogl.debug.GLSLCode
+    jogl.debug.GLStateTracker
+    jogl.debug.GLStatusTracker
+    jogl.debug.GraphicsConfiguration
+    jogl.debug.Java2D
+    jogl.debug.MacOSXPbufferCGLDrawable
+    jogl.debug.Texture
+    jogl.debug.TextureIO
+    jogl.debug.Threading
+
+
+
+../doc/Implementation/properties/jogl.ipd.debug.txt
+----------------------------------------
+    jogl.debug.ExtensionAvailabilityCache
+    jogl.debug.GLDrawable.profiling
+    jogl.debug.GLSLCode
+    jogl.debug.GLSLState
+    jogl.debug.TextRenderer
+    jogl.glcontext.forcetracking
+    jogl.gljpanel.nohw
+    jogl.gljpanel.noogl
+    jogl.gljpanel.nosw
+    jogl.texture.nonpot
+    jogl.texture.notexrect
+
+
+
+../doc/Implementation/properties/nativewindow.debug.txt
+----------------------------------------
+    nativewindow.debug.DefaultCapabilitiesChooser
+    nativewindow.debug.GraphicsConfiguration
+    nativewindow.debug.JAWT
+    nativewindow.debug.NativeWindow
+    nativewindow.debug.X11Util
+
+
+
+../doc/Implementation/properties/nativewindow.ipd.debug.txt
+----------------------------------------
+
+
+
+../doc/Implementation/properties/newt.debug.txt
+----------------------------------------
+    newt.debug.Display
+    newt.debug.EDT
+    newt.debug.MainThread
+    newt.debug.Window
+    newt.debug.Window.KeyEvent
+    newt.debug.Window.MouseEvent
+    newt.debug.Window.WindowEvent
+
+
+
+../doc/Implementation/properties/newt.ipd.debug.txt
+----------------------------------------
+    newt.test.EDTMainThread
+    newt.test.Window.reparent.incompatible
+
+
+

@@ -95,7 +95,7 @@ public class GLBufferSizeTracker {
   // never shrinks is probably not that bad.
   private IntIntHashMap bufferSizeMap;
 
-  private static final boolean DEBUG = Debug.debug("GLBufferSizeTracker");
+  protected static final boolean DEBUG = Debug.debug("GLStatusTracker");
 
   public GLBufferSizeTracker() {
       bufferSizeMap = new IntIntHashMap();

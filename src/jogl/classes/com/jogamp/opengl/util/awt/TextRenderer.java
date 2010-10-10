@@ -67,6 +67,8 @@ import java.text.*;
 
 import java.util.*;
 
+import java.security.*;
+
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 import javax.media.opengl.glu.gl2.*;
@@ -127,7 +129,7 @@ import javax.media.opengl.awt.*;
     @author Kenneth Russell
 */
 public class TextRenderer {
-    private static final boolean DEBUG = Debug.debug("TextRenderer");
+    private static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.TextRenderer", true, AccessController.getContext());
 
     // These are occasionally useful for more in-depth debugging
     private static final boolean DISABLE_GLYPH_CACHE = false;

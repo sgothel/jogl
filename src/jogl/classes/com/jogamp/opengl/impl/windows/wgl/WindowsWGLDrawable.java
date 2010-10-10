@@ -43,10 +43,11 @@ package com.jogamp.opengl.impl.windows.wgl;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
+import java.security.*;
 
 public abstract class WindowsWGLDrawable extends GLDrawableImpl {
   private static final int MAX_SET_PIXEL_FORMAT_FAIL_COUNT = 5;
-  private static final boolean PROFILING = Debug.debug("WindowsWGLDrawable.profiling");
+  private static final boolean PROFILING = Debug.isPropertyDefined("jogl.debug.GLDrawable.profiling", true, AccessController.getContext());
   private static final int PROFILING_TICKS = 200;
   private int  profilingLockSurfaceTicks;
   private long profilingLockSurfaceTime;
