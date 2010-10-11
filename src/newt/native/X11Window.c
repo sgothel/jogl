@@ -463,6 +463,47 @@ static void NewtWindows_setDecorations (Display *dpy, Window w, Bool decorated) 
     XChangeProperty( dpy, w, _NET_WM_WINDOW_TYPE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, ntypes);
 }
 
+static void NewtWindows_setFullscreen (Display *dpy, Window w, Bool fullscreen) {
+    Atom _NET_WM_STATE = XInternAtom( dpy, "_NET_WM_STATE", False );
+    Atom _NET_WM_STATE_ABOVE = XInternAtom( dpy, "_NET_WM_STATE_ABOVE", False );
+    Atom _NET_WM_STATE_FULLSCREEN = XInternAtom( dpy, "_NET_WM_STATE_FULLSCREEN", False );
+    
+    Atom types[2]={0};
+    int ntypes=0;
+    
+    XEvent xev;
+    memset ( &xev, 0, sizeof(xev) );
+	
+    if(True==fullscreen) {
+	types[ntypes++] = _NET_WM_STATE_FULLSCREEN;
+	types[ntypes++] = _NET_WM_STATE_ABOVE;
+	
+	xev.type                 = ClientMessage;
+	xev.xclient.window       = w;
+	xev.xclient.message_type = _NET_WM_STATE;
+	xev.xclient.format       = 32;
+	xev.xclient.data.l[0]    = 1;
+	xev.xclient.data.l[1]    = _NET_WM_STATE_FULLSCREEN;
+	xev.xclient.data.l[2]    = _NET_WM_STATE_ABOVE;
+	
+    } else {
+	types[ntypes++] = _NET_WM_STATE_FULLSCREEN;
+	types[ntypes++] = _NET_WM_STATE_ABOVE;
+	
+	xev.type                 = ClientMessage;
+	xev.xclient.window       = w;
+	xev.xclient.message_type = _NET_WM_STATE;
+	xev.xclient.format       = 32;
+	xev.xclient.data.l[0]    = 0;
+	xev.xclient.data.l[1]    = _NET_WM_STATE_FULLSCREEN;
+	xev.xclient.data.l[2]    = _NET_WM_STATE_ABOVE;
+    }
+    
+    XChangeProperty( dpy, w, _NET_WM_STATE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, ntypes);
+    
+    XSendEvent (dpy, w, False, SubstructureNotifyMask, &xev );
+}
+
 /*
  * Class:     com_jogamp_newt_impl_x11_X11Display
  * Method:    DispatchMessages
@@ -1037,7 +1078,7 @@ static void NewtWindows_reparentWindow
  */
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_reconfigureWindow0
   (JNIEnv *env, jobject obj, jlong jparent, jlong display, jint screen_index, jlong window, 
-   jint x, jint y, jint width, jint height, jboolean undecorated, jboolean isVisible) 
+   jint x, jint y, jint width, jint height, jboolean undecorated, jboolean isVisible, jboolean isFullscreen) 
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
@@ -1046,16 +1087,22 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_reconfigureWindow
     XWindowChanges xwc;
     XWindowAttributes xwa;
 
-    DBG_PRINT( "X11: reconfigureWindow0 dpy %p, parent %p, win %p, %d/%d %dx%d undec %d, visible %d\n", 
-        (void*)dpy, (void*) jparent, (void*)w, x, y, width, height, undecorated, isVisible);
+    DBG_PRINT( "X11: reconfigureWindow0 dpy %p, parent %p, win %p, %d/%d %dx%d undec %d, visible %d, fullscreen %d\n", 
+        (void*)dpy, (void*) jparent, (void*)w, x, y, width, height, undecorated, isVisible,isFullscreen);
 
     if(dpy==NULL) {
         _FatalError(env, "invalid display connection..");
     }
 
+    
     XSync(dpy, False);
     XGetWindowAttributes(dpy, w, &xwa);
-
+    
+    if(JNI_FALSE == isFullscreen ) {
+      NewtWindows_setFullscreen(dpy, w, False );
+      XSync(dpy, False);
+    }
+    
     NewtWindows_reparentWindow(env, obj, dpy, scrn, w, &xwa, jparent, x, y, undecorated, isVisible);
     XSync(dpy, False);
 
@@ -1066,6 +1113,11 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_reconfigureWindow
     xwc.height=height;
     XConfigureWindow(dpy, w, CWX|CWY|CWWidth|CWHeight, &xwc);
     XSync(dpy, False);
+
+    if(JNI_TRUE == isFullscreen ) {
+      NewtWindows_setFullscreen(dpy, w, True );
+      XSync(dpy, False);
+    }
 }
 
 /*
