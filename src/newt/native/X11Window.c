@@ -463,6 +463,9 @@ static void NewtWindows_setDecorations (Display *dpy, Window w, Bool decorated) 
     XChangeProperty( dpy, w, _NET_WM_WINDOW_TYPE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, ntypes);
 }
 
+#define _NET_WM_STATE_REMOVE 0
+#define _NET_WM_STATE_ADD 1
+
 static void NewtWindows_setFullscreen (Display *dpy, Window w, Bool fullscreen) {
     Atom _NET_WM_STATE = XInternAtom( dpy, "_NET_WM_STATE", False );
     Atom _NET_WM_STATE_ABOVE = XInternAtom( dpy, "_NET_WM_STATE_ABOVE", False );
@@ -470,38 +473,32 @@ static void NewtWindows_setFullscreen (Display *dpy, Window w, Bool fullscreen) 
     
     Atom types[2]={0};
     int ntypes=0;
-    
+
+    types[ntypes++] = _NET_WM_STATE_FULLSCREEN;
+    types[ntypes++] = _NET_WM_STATE_ABOVE;
+
     XEvent xev;
     memset ( &xev, 0, sizeof(xev) );
-	
+    
+    xev.type = ClientMessage;
+    xev.xclient.window = w;
+    xev.xclient.message_type = _NET_WM_STATE;
+    xev.xclient.format = 32;
+        
     if(True==fullscreen) {
-	types[ntypes++] = _NET_WM_STATE_FULLSCREEN;
-	types[ntypes++] = _NET_WM_STATE_ABOVE;
-	
-	xev.type                 = ClientMessage;
-	xev.xclient.window       = w;
-	xev.xclient.message_type = _NET_WM_STATE;
-	xev.xclient.format       = 32;
-	xev.xclient.data.l[0]    = 1;
-	xev.xclient.data.l[1]    = _NET_WM_STATE_FULLSCREEN;
-	xev.xclient.data.l[2]    = _NET_WM_STATE_ABOVE;
-	
+        xev.xclient.data.l[0] = _NET_WM_STATE_ADD;
+        xev.xclient.data.l[1] = _NET_WM_STATE_FULLSCREEN;
+        xev.xclient.data.l[2] = _NET_WM_STATE_ABOVE;
+        xev.xclient.data.l[3] = 1; //source indication for normal applications
     } else {
-	types[ntypes++] = _NET_WM_STATE_FULLSCREEN;
-	types[ntypes++] = _NET_WM_STATE_ABOVE;
-	
-	xev.type                 = ClientMessage;
-	xev.xclient.window       = w;
-	xev.xclient.message_type = _NET_WM_STATE;
-	xev.xclient.format       = 32;
-	xev.xclient.data.l[0]    = 0;
-	xev.xclient.data.l[1]    = _NET_WM_STATE_FULLSCREEN;
-	xev.xclient.data.l[2]    = _NET_WM_STATE_ABOVE;
+        xev.xclient.data.l[0] = _NET_WM_STATE_REMOVE;
+        xev.xclient.data.l[1] = _NET_WM_STATE_FULLSCREEN;
+        xev.xclient.data.l[2] = _NET_WM_STATE_ABOVE;
+        xev.xclient.data.l[3] = 1; //source indication for normal applications
     }
     
     XChangeProperty( dpy, w, _NET_WM_STATE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, ntypes);
-    
-    XSendEvent (dpy, w, False, SubstructureNotifyMask, &xev );
+    XSendEvent (dpy, DefaultRootWindow(dpy), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev );
 }
 
 /*
@@ -1086,7 +1083,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_reconfigureWindow
 
     XWindowChanges xwc;
     XWindowAttributes xwa;
-
+    
     DBG_PRINT( "X11: reconfigureWindow0 dpy %p, parent %p, win %p, %d/%d %dx%d undec %d, visible %d, fullscreen %d\n", 
         (void*)dpy, (void*) jparent, (void*)w, x, y, width, height, undecorated, isVisible,isFullscreen);
 
