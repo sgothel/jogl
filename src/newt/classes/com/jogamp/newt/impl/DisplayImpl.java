@@ -346,6 +346,14 @@ public abstract class DisplayImpl extends Display {
     }
 
     public void enqueueEvent(boolean wait, NEWTEvent e) {
+        if(!isEDTRunning()) {
+            // oops .. we are already dead
+            if(DEBUG) {
+                Throwable t = new Throwable("EDT already stopped: wait:="+wait+", "+e);
+                t.printStackTrace();
+            }
+            return;
+        }
         Object lock = new Object();
         NEWTEventTask eTask = new NEWTEventTask(e, wait?lock:null);
         synchronized(lock) {
