@@ -62,10 +62,11 @@ public class DefaultEDTUtil implements EDTUtil {
     public final void reset() {
         synchronized(edtLock) { 
             waitUntilStopped();
-            if(edt.tasks.size()>0) {
-                throw new RuntimeException("Remaining EDTTasks: "+edt.tasks.size()+" - "+edt);
-            }
             if(DEBUG) {
+                if(edt.tasks.size()>0) {
+                    Throwable t = new Throwable("Warning: EDT reset, remaining tasks: "+edt.tasks.size()+" - "+edt);
+                    t.printStackTrace();
+                }
                 System.err.println(Thread.currentThread()+": EDT reset - edt: "+edt);
             }
             this.edt = new EventDispatchThread(threadGroup, name);
@@ -115,7 +116,12 @@ public class DefaultEDTUtil implements EDTUtil {
         synchronized(rTaskLock) { // lock the optional task execution
             synchronized(edtLock) { // lock the EDT status
                 if( edt.shouldStop ) {
-                    throw new RuntimeException("EDT about to stop: "+edt);
+                    // drop task ..
+                    if(DEBUG) {
+                        Throwable t = new Throwable("Warning: EDT about (1) to stop, won't enqueue new task: "+edt);
+                        t.printStackTrace();
+                    }
+                    return; 
                 }
                 // Exception ee = new Exception("XXX stop: "+stop+", tasks: "+edt.tasks.size()+", task: "+task);
                 // ee.printStackTrace();
@@ -130,7 +136,8 @@ public class DefaultEDTUtil implements EDTUtil {
                     task.run();
                     wait = false; // running in same thread (EDT) -> no wait
                     if(stop && edt.tasks.size()>0) {
-                        throw new RuntimeException("Remaining EDTTasks: "+edt.tasks.size()+" - "+edt);
+                        Throwable t = new Throwable("Warning: EDT about (2) to stop, having remaining tasks: "+edt.tasks.size()+" - "+edt);
+                        t.printStackTrace();
                     }
                 } else {
                     start(); // start if not started yet
@@ -272,11 +279,14 @@ public class DefaultEDTUtil implements EDTUtil {
                                 task.run();
                                 tasks.notifyAll();
                             }
-                            if(null!=task && task.getAttachment()==null) {
-                                error = new RuntimeException("Last EDTTasks Not Final: "+tasks.size()+
-                                                           ", "+task+" - "+edt);
-                            } else if(tasks.size()>0) {
-                                error = new RuntimeException("Remaining EDTTasks Post Final: "+tasks.size());
+                            if(DEBUG) {
+                                if(null!=task && task.getAttachment()==null) {
+                                    Throwable t = new Throwable("Warning: EDT exit: Last task Not Final: "+tasks.size()+", "+task+" - "+edt);
+                                    t.printStackTrace();
+                                } else if(tasks.size()>0) {
+                                    Throwable t = new Throwable("Warning: EDT exit: Remaining tasks Post Final: "+tasks.size());
+                                    t.printStackTrace();
+                                }
                             }
                         }
                     }
