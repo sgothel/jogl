@@ -44,20 +44,26 @@ class AnimatorImpl {
     public void display(AnimatorBase animator,
                         boolean ignoreExceptions,
                         boolean printExceptions) {
-        Iterator iter = animator.drawableIterator();
-        while (animator.isAnimating() && !animator.getShouldStop() && !animator.getShouldPause() && iter.hasNext()) {
-            GLAutoDrawable drawable = (GLAutoDrawable) iter.next();
-            try {
-                drawable.display();
-            } catch (RuntimeException e) {
-                if (ignoreExceptions) {
-                    if (printExceptions) {
-                        e.printStackTrace();
+        List drawables = animator.acquireDrawables();
+        try {
+            for (int i=0;
+                 animator.isAnimating() && !animator.getShouldStop() && !animator.getShouldPause() && i<drawables.size();
+                 i++) {
+                GLAutoDrawable drawable = (GLAutoDrawable) drawables.get(i);
+                try {
+                    drawable.display();
+                } catch (RuntimeException e) {
+                    if (ignoreExceptions) {
+                        if (printExceptions) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        throw(e);
                     }
-                } else {
-                    throw(e);
                 }
             }
+        } finally {
+            animator.releaseDrawables();
         }
     }
 

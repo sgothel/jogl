@@ -55,29 +55,36 @@ class AWTAnimatorImpl extends AnimatorImpl {
     public void display(AnimatorBase animator,
                         boolean ignoreExceptions,
                         boolean printExceptions) {
-        Iterator iter = animator.drawableIterator();
-        while (animator.isAnimating() && !animator.getShouldStop() && !animator.getShouldPause() && iter.hasNext()) {
-            GLAutoDrawable drawable = (GLAutoDrawable) iter.next();
-            if (drawable instanceof JComponent) {
-                // Lightweight components need a more efficient drawing
-                // scheme than simply forcing repainting of each one in
-                // turn since drawing one can force another one to be
-                // drawn in turn
-                lightweights.add(drawable);
-            } else {
-                try {
-                    drawable.display();
-                } catch (RuntimeException e) {
-                    if (ignoreExceptions) {
-                        if (printExceptions) {
-                            e.printStackTrace();
+        List drawables = animator.acquireDrawables();
+        try {
+            for (int i=0;
+                 animator.isAnimating() && !animator.getShouldStop() && !animator.getShouldPause() && i<drawables.size();
+                 i++) {
+                GLAutoDrawable drawable = (GLAutoDrawable) drawables.get(i);
+                if (drawable instanceof JComponent) {
+                    // Lightweight components need a more efficient drawing
+                    // scheme than simply forcing repainting of each one in
+                    // turn since drawing one can force another one to be
+                    // drawn in turn
+                    lightweights.add(drawable);
+                } else {
+                    try {
+                        drawable.display();
+                    } catch (RuntimeException e) {
+                        if (ignoreExceptions) {
+                            if (printExceptions) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            throw(e);
                         }
-                    } else {
-                        throw(e);
                     }
                 }
             }
+        } finally {
+            animator.releaseDrawables();
         }
+
         if (lightweights.size() > 0) {
             try {
                 SwingUtilities.invokeAndWait(drawWithRepaintManagerRunnable);

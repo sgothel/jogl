@@ -50,15 +50,29 @@ public class GLDrawableHelper {
   protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
   private static final boolean VERBOSE = Debug.verbose();
   private Object listenersLock = new Object();
-  private List listeners = new ArrayList();
-  private volatile boolean listenersIter = false; // avoid java.util.ConcurrentModificationException
-  private Set listenersToBeInit = new HashSet();
-  private boolean autoSwapBufferMode = true;
+  private List listeners;
+  private volatile boolean listenersIter; // avoid java.util.ConcurrentModificationException
+  private Set listenersToBeInit;
+  private boolean autoSwapBufferMode;
   private Object glRunnablesLock = new Object();
-  private ArrayList glRunnables = new ArrayList(); // one shot GL tasks
-  private GLAnimatorControl animatorCtrl = null; // default
+  private ArrayList glRunnables;
+  private GLAnimatorControl animatorCtrl;
 
   public GLDrawableHelper() {
+    reset();
+  }
+
+  public void reset() {
+    synchronized(listenersLock) {
+        listeners = new ArrayList();
+        listenersIter = false;
+        listenersToBeInit = new HashSet();
+    }
+    autoSwapBufferMode = true;
+    synchronized(glRunnablesLock) {
+        glRunnables = new ArrayList();
+    }
+    animatorCtrl = null;
   }
 
   public String toString() {
@@ -67,8 +81,8 @@ public class GLDrawableHelper {
     synchronized(listenersLock) {
         sb.append("GLEventListeners num "+listeners.size()+" [");
         listenersIter = true;
-        for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
-          Object l = iter.next();
+        for (int i=0; i < listeners.size(); i++) {
+          Object l = listeners.get(i);
           sb.append(l);
           sb.append("[init ");
           sb.append( !listenersToBeInit.contains(l) );
@@ -120,8 +134,8 @@ public class GLDrawableHelper {
   public void dispose(GLAutoDrawable drawable) {
     synchronized(listenersLock) {
         listenersIter = true;
-        for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
-          GLEventListener listener = (GLEventListener) iter.next() ;
+        for (int i=0; i < listeners.size(); i++) {
+          GLEventListener listener = (GLEventListener) listeners.get(i) ;
           listener.dispose(drawable);
           listenersToBeInit.add(listener);
         }
@@ -143,8 +157,8 @@ public class GLDrawableHelper {
   public void init(GLAutoDrawable drawable) {
     synchronized(listenersLock) {
         listenersIter = true;
-        for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
-          GLEventListener listener = (GLEventListener) iter.next() ;
+        for (int i=0; i < listeners.size(); i++) {
+          GLEventListener listener = (GLEventListener) listeners.get(i) ;
           if ( ! init( listener, drawable, false ) ) {
             throw new GLException("GLEventListener "+listener+" already initialized: "+drawable);
           }
@@ -156,8 +170,8 @@ public class GLDrawableHelper {
   public void display(GLAutoDrawable drawable) {
     synchronized(listenersLock) {
         listenersIter = true;
-        for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
-          GLEventListener listener = (GLEventListener) iter.next() ;
+        for (int i=0; i < listeners.size(); i++) {
+          GLEventListener listener = (GLEventListener) listeners.get(i) ;
           // GLEventListener may need to be init, 
           // in case this one is added after the realization of the GLAutoDrawable
           init( listener, drawable, true ) ; 
@@ -179,9 +193,8 @@ public class GLDrawableHelper {
   public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     synchronized(listenersLock) {
         listenersIter = true;
-        int i=0;
-        for (Iterator iter = listeners.iterator(); iter.hasNext(); i++) {
-          reshape((GLEventListener) iter.next(), drawable, x, y, width, height, 0==i);
+        for (int i=0; i < listeners.size(); i++) {
+          reshape((GLEventListener) listeners.get(i), drawable, x, y, width, height, 0==i);
         }
         listenersIter = false;
     }
@@ -198,8 +211,8 @@ public class GLDrawableHelper {
             }
         }
         if(null!=_glRunnables) {
-            for (Iterator iter = _glRunnables.iterator(); iter.hasNext(); ) {
-              ((GLRunnable) iter.next()).run(drawable);
+            for (int i=0; i < _glRunnables.size(); i++) {
+              ((GLRunnable) _glRunnables.get(i)).run(drawable);
             }
         }
     }

@@ -28,9 +28,11 @@
 
 package com.jogamp.opengl.util;
 
+import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.impl.Debug;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLProfile;
@@ -43,7 +45,8 @@ public abstract class AnimatorBase implements GLAnimatorControl {
 
     private static int animatorCount = 0;
 
-    protected volatile ArrayList/*<GLAutoDrawable>*/ drawables = new ArrayList();
+    protected ArrayList/*<GLAutoDrawable>*/ drawables = new ArrayList();
+    protected RecursiveLock drawablesLock = new RecursiveLock();
     protected AnimatorImpl impl;
     protected String baseName;
     protected Thread thread;
@@ -75,18 +78,24 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     protected abstract String getBaseName(String prefix);
 
     public synchronized void add(GLAutoDrawable drawable) {
-        ArrayList newList = (ArrayList) drawables.clone();
-        newList.add(drawable);
-        drawables = newList;
-        drawable.setAnimator(this);
+        drawablesLock.lock();
+        try {
+            drawables.add(drawable);
+            drawable.setAnimator(this);
+        } finally {
+            drawablesLock.unlock();
+        }
         notifyAll();
     }
 
     public synchronized void remove(GLAutoDrawable drawable) {
-        ArrayList newList = (ArrayList) drawables.clone();
-        newList.remove(drawable);
-        drawables = newList;
-        drawable.setAnimator(null);
+        drawablesLock.lock();
+        try {
+            drawables.remove(drawable);
+            drawable.setAnimator(null);
+        } finally {
+            drawablesLock.unlock();
+        }
         notifyAll();
     }
 
@@ -101,8 +110,13 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         totalFrames++;
     }
 
-    public Iterator drawableIterator() {
-        return drawables.iterator();
+    public List acquireDrawables() {
+        drawablesLock.lock();
+        return drawables;
+    }
+
+    public void releaseDrawables() {
+        drawablesLock.unlock();
     }
 
     public long getCurrentTime() {
