@@ -55,6 +55,7 @@ public abstract class UITestCase {
     @AfterClass
     public static void oneTimeTearDown() {
         // one-time cleanup code
+        System.gc(); // force cleanup
         singletonInstance.unlock();
     }
 

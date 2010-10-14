@@ -76,7 +76,7 @@ public class X11Window extends WindowImpl {
                              display.getJavaObjectAtom(), display.getWindowDeleteAtom());
             } catch (Throwable t) {
                 if(DEBUG_IMPLEMENTATION) { 
-                    Exception e = new Exception("closeNativeImpl failed - "+Thread.currentThread().getName(), t);
+                    Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
                     e.printStackTrace();
                 }
             } finally {
@@ -105,7 +105,7 @@ public class X11Window extends WindowImpl {
 
     protected void reconfigureWindowImpl(int x, int y, int width, int height) {
         reconfigureWindow0(fullscreen?0:getParentWindowHandle(), getDisplayHandle(), getScreenIndex(), getWindowHandle(),
-                            x, y, width, height, isUndecorated(fullscreen), isVisible());
+                            x, y, width, height, isUndecorated(), isVisible());
     }
 
     protected boolean reparentWindowImpl() {

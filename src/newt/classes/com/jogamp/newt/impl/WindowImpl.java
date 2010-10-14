@@ -42,10 +42,9 @@ import com.jogamp.newt.event.*;
 
 import com.jogamp.common.util.*;
 import javax.media.nativewindow.*;
-import com.jogamp.common.util.RecursiveToolkitLock;
+import com.jogamp.common.util.locks.RecursiveLock;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.lang.reflect.Method;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
@@ -161,7 +160,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     private LifecycleHook lifecycleHook = null;
-    private RecursiveToolkitLock windowLock = new RecursiveToolkitLock();
+    private RecursiveLock windowLock = new RecursiveLock();
     private long   windowHandle;
     private ScreenImpl screen;
     private boolean screenReferenced = false;
@@ -293,17 +292,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
 
     public final int lockSurface() {
-        // We leave the ToolkitLock lock to the specializtion's discretion,
-        // ie the implicit JAWTWindow in case of AWTWindow
+        int res = LOCK_SURFACE_NOT_READY;
 
-        // may throw RuntimeException if timed out while waiting for lock
         windowLock.lock();
 
-        int res = lockSurfaceImpl();
-        if(!isNativeValid()) {
-            windowLock.unlock();
-            res = LOCK_SURFACE_NOT_READY;
+        screen.getDisplay().getGraphicsDevice().lock();
+        try {
+            res = lockSurfaceImpl();
+        } finally {
+            if(!isNativeValid()) {
+                screen.getDisplay().getGraphicsDevice().unlock();
+                windowLock.unlock();
+                res = LOCK_SURFACE_NOT_READY;
+            }
         }
+
         return res;
     }
 
@@ -311,11 +314,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         // may throw RuntimeException if not locked
         windowLock.validateLocked();
 
-        unlockSurfaceImpl();
-
+        try {
+            unlockSurfaceImpl();
+        } finally {
+            screen.getDisplay().getGraphicsDevice().unlock();
+        }
         windowLock.unlock();
-        // We leave the ToolkitLock unlock to the specializtion's discretion,
-        // ie the implicit JAWTWindow in case of AWTWindow
     }
 
     public final boolean isSurfaceLockedByOtherThread() {
@@ -328,10 +332,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public final Thread getSurfaceLockOwner() {
         return windowLock.getOwner();
-    }
-
-    public final Exception getSurfaceLockStack() {
-        return windowLock.getLockedStack();
     }
 
     public long getSurfaceHandle() {
@@ -437,8 +437,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
                 if(!visible && childWindows.size()>0) {
                   synchronized(childWindowsLock) {
-                    for(Iterator i = childWindows.iterator(); i.hasNext(); ) {
-                        NativeWindow nw = (NativeWindow) i.next();
+                    for(int i = 0; i < childWindows.size(); i++ ) {
+                        NativeWindow nw = (NativeWindow) childWindows.get(i);
                         if(nw instanceof WindowImpl) {
                             ((WindowImpl)nw).setVisible(false);
                         }
@@ -464,8 +464,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                 if(0!=windowHandle && visible && childWindows.size()>0) {
                   synchronized(childWindowsLock) {
-                    for(Iterator i = childWindows.iterator(); i.hasNext(); ) {
-                        NativeWindow nw = (NativeWindow) i.next();
+                    for(int i = 0; i < childWindows.size(); i++ ) {
+                        NativeWindow nw = (NativeWindow) childWindows.get(i);
                         if(nw instanceof WindowImpl) {
                             ((WindowImpl)nw).setVisible(true);
                         }
@@ -478,7 +478,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             } finally {
                 windowLock.unlock();
             }
-            getScreen().getDisplay().dispatchMessages(); // status up2date
         }
     }
 
@@ -885,7 +884,24 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 ReparentActionImpl reparentAction = new ReparentActionImpl(newParent, forceDestroyCreate);
                 runOnEDTIfAvail(true, reparentAction);
                 reparentActionStrategy = reparentAction.getStrategy();
-                if( isVisible() ) {
+                boolean sizeSignaled=false;
+                if(null!=newParent) {
+                    // refit if size is bigger than parent
+                    int w = getWidth();
+                    int h = getHeight();
+                    if(w>newParent.getWidth()) {
+                        w=newParent.getWidth();
+                        sizeSignaled=true;
+                    }
+                    if(h>newParent.getHeight()) {
+                        h=newParent.getHeight();
+                        sizeSignaled=true;
+                    }
+                    if(sizeSignaled) {
+                        setSize(w, h);
+                    }
+                }
+                if( !sizeSignaled && isVisible() ) {
                     sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
                 }
             } finally {
@@ -920,17 +936,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void setUndecorated(boolean value) {
-        if(this.undecorated != value) {
+        if(!fullscreen && this.undecorated != value) {
             undecorated = value;
             if( 0 != windowHandle ) {
                 reconfigureWindowImpl(x, y, width, height);
                 requestFocus();
             }
         }
-    }
-
-    public boolean isUndecorated(boolean fullscreen) {
-        return 0 != getParentWindowHandle() || undecorated || fullscreen ;
     }
 
     public boolean isUndecorated() {
@@ -1037,20 +1049,20 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     "\n, ChildWindows "+childWindows.size());
 
         sb.append(", SurfaceUpdatedListeners num "+surfaceUpdatedListeners.size()+" [");
-        for (Iterator iter = surfaceUpdatedListeners.iterator(); iter.hasNext(); ) {
-          sb.append(iter.next()+", ");
+        for (int i = 0; i < surfaceUpdatedListeners.size(); i++ ) {
+          sb.append(surfaceUpdatedListeners.get(i)+", ");
         }
         sb.append("], WindowListeners num "+windowListeners.size()+" [");
-        for (Iterator iter = windowListeners.iterator(); iter.hasNext(); ) {
-          sb.append(iter.next()+", ");
+        for (int i = 0; i < windowListeners.size(); i++ ) {
+          sb.append(windowListeners.get(i)+", ");
         }
         sb.append("], MouseListeners num "+mouseListeners.size()+" [");
-        for (Iterator iter = mouseListeners.iterator(); iter.hasNext(); ) {
-          sb.append(iter.next()+", ");
+        for (int i = 0; i < mouseListeners.size(); i++ ) {
+          sb.append(mouseListeners.get(i)+", ");
         }
         sb.append("], KeyListeners num "+keyListeners.size()+" [");
-        for (Iterator iter = keyListeners.iterator(); iter.hasNext(); ) {
-          sb.append(iter.next()+", ");
+        for (int i = 0; i < keyListeners.size(); i++ ) {
+          sb.append(keyListeners.get(i)+", ");
         }
         sb.append("] ]");
         return sb.toString();
@@ -1321,8 +1333,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
         synchronized(surfaceUpdatedListenersLock) {
-          for(Iterator i = surfaceUpdatedListeners.iterator(); i.hasNext(); ) {
-            SurfaceUpdatedListener l = (SurfaceUpdatedListener) i.next();
+          for(int i = 0; i < surfaceUpdatedListeners.size(); i++ ) {
+            SurfaceUpdatedListener l = (SurfaceUpdatedListener) surfaceUpdatedListeners.get(i);
             l.surfaceUpdated(updater, ns, when);
           }
         }
@@ -1446,8 +1458,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             System.err.println("consumeMouseEvent: event:         "+e);
         }
 
-        for(Iterator i = mouseListeners.iterator(); i.hasNext(); ) {
-            MouseListener l = (MouseListener) i.next();
+        for(int i = 0; i < mouseListeners.size(); i++ ) {
+            MouseListener l = (MouseListener) mouseListeners.get(i);
             switch(e.getEventType()) {
                 case MouseEvent.EVENT_MOUSE_CLICKED:
                     l.mouseClicked(e);
@@ -1534,8 +1546,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(DEBUG_KEY_EVENT) {
             System.err.println("consumeKeyEvent: "+e);
         }
-        for(Iterator i = keyListeners.iterator(); i.hasNext(); ) {
-            KeyListener l = (KeyListener) i.next();
+        for(int i = 0; i < keyListeners.size(); i++ ) {
+            KeyListener l = (KeyListener) keyListeners.get(i);
             switch(e.getEventType()) {
                 case KeyEvent.EVENT_KEY_PRESSED:
                     l.keyPressed(e);
@@ -1606,10 +1618,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     protected void consumeWindowEvent(WindowEvent e) {
         if(DEBUG_WINDOW_EVENT) {
-            System.err.println("consumeWindowEvent: "+e);
+            System.err.println("consumeWindowEvent: "+e+", visible "+isVisible()+" "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
         }
-        for(Iterator i = windowListeners.iterator(); i.hasNext(); ) {
-            WindowListener l = (WindowListener) i.next();
+        for(int i = 0; i < windowListeners.size(); i++ ) {
+            WindowListener l = (WindowListener) windowListeners.get(i);
             switch(e.getEventType()) {
                 case WindowEvent.EVENT_WINDOW_RESIZED:
                     l.windowResized(e);

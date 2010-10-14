@@ -77,7 +77,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     if(realized) {
         createPbuffer();
     } else {
-        destroy();
+        destroyImpl();
     }
   }
 
@@ -85,7 +85,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     return new MacOSXPbufferCGLContext(this, shareWith);
   }
 
-  public void destroy() {
+  protected void destroyImpl() {
     if (this.pBuffer != 0) {
       NativeSurface ns = getNativeSurface();
       impl.destroy(pBuffer);
@@ -185,7 +185,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     if (haveSetOpenGLMode) {
       throw new GLException("Can't switch between using NSOpenGLPixelBuffer and CGLPBufferObj more than once");
     }
-    destroy();
+    destroyImpl();
     openGLMode = mode;
     haveSetOpenGLMode = true;
     if (DEBUG) {

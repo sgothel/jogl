@@ -73,6 +73,7 @@ public class NEWTEvent extends java.util.EventObject {
     static final String WindowClazzName = "com.jogamp.newt.Window" ;
     static final String AWTNewtEventFactoryClazzName = "com.jogamp.newt.event.awt.AWTNewtEventFactory" ;
 
+    /**
     static final boolean evaluateIsSystemEvent(NEWTEvent event, Throwable t) {
         StackTraceElement[] stack = t.getStackTrace();
         if(stack.length==0 || null==stack[0]) {
@@ -104,11 +105,12 @@ public class NEWTEvent extends java.util.EventObject {
             System.err.println("system: "+res);
         }
         return res;
-    }
+    } */
 
     protected NEWTEvent(int eventType, Object source, long when) {
         super(source);
-        this.isSystemEvent = evaluateIsSystemEvent(this, new Throwable());
+        // this.isSystemEvent = evaluateIsSystemEvent(this, new Throwable());
+        this.isSystemEvent = false; // FIXME: Need a more efficient way to determine system events
         this.eventType = eventType;
         this.when = when;
         this.attachment=null;

@@ -42,10 +42,6 @@ import com.jogamp.newt.*;
 import java.io.IOException;
 
 public class TestDrawable01NEWT extends UITestCase {
-    static {
-        GLProfile.initSingleton();
-    }
-
     static GLProfile glp;
     static GLDrawableFactory factory;
     static int width, height;
@@ -56,6 +52,7 @@ public class TestDrawable01NEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
+        GLProfile.initSingleton(true);
         glp = GLProfile.getDefault();
         Assert.assertNotNull(glp);
         factory = GLDrawableFactory.getFactory(glp);

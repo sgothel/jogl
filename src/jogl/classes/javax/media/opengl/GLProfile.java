@@ -37,7 +37,9 @@
 
 package javax.media.opengl;
 
+import com.jogamp.common.jvm.JVMUtil;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.opengl.util.VersionInfo;
 import com.jogamp.opengl.impl.Debug;
 import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
 import com.jogamp.opengl.impl.GLDynamicLookupHelper;
@@ -281,6 +283,7 @@ public class GLProfile {
      * @see #GL_PROFILE_LIST_ALL
      */
     public static final GLProfile getDefault() {
+        validateInitialization();
         if(null==defaultGLProfile) {
             throw new GLException("No default profile available"); // should never be reached 
         }
@@ -349,6 +352,7 @@ public class GLProfile {
     public static final GLProfile get(String profile) 
         throws GLException
     {
+        validateInitialization();
         if(null==profile || profile.equals("GL")) return getDefault();
         GLProfile glProfile = (GLProfile) mappedProfiles.get(profile);
         if(null==glProfile) {
@@ -366,6 +370,7 @@ public class GLProfile {
     public static final GLProfile get(String[] profiles) 
         throws GLException
     {
+        validateInitialization();
         for(int i=0; i<profiles.length; i++) {
             String profile = profiles[i];
             GLProfile glProfile = (GLProfile) mappedProfiles.get(profile);
@@ -851,9 +856,9 @@ public class GLProfile {
      * Tries the profiles implementation and native libraries.
      * Throws an GLException if no profile could be found at all.
      */
-    private static void initProfiles() {
+    private static void initProfiles(boolean firstUIActionOnProcess) {
 
-        NativeWindowFactory.initSingleton();
+        NativeWindowFactory.initSingleton(firstUIActionOnProcess);
 
         ClassLoader classloader = GLProfile.class.getClassLoader();
 
@@ -898,13 +903,15 @@ public class GLProfile {
             t=le;
         } catch (RuntimeException re) {
             t=re;
+        } catch (Throwable tt) {
+            t=tt;
         }
         if(DEBUG) {
             if(null!=t) {
                 t.printStackTrace();
             }
             if(!hasNativeOSFactory) {
-                System.err.println("GLProfile.static - Native platform GLDrawable factory not available");
+                System.err.println("Info: GLProfile.init - Native platform GLDrawable factory not available");
             }
         }
 
@@ -969,41 +976,80 @@ public class GLProfile {
         mappedProfiles = computeProfileMap();
 
         if (DEBUG) {
-            System.err.println("GLProfile.static isAWTAvailable "+isAWTAvailable);
-            System.err.println("GLProfile.static hasNativeOSFactory "+hasNativeOSFactory);
-            System.err.println("GLProfile.static hasDesktopGL "+hasDesktopGL);
-            System.err.println("GLProfile.static hasDesktopGLES12 "+hasDesktopGLES12);
-            System.err.println("GLProfile.static hasGL234Impl "+hasGL234Impl);
-            System.err.println("GLProfile.static "+glAvailabilityToString());
+            System.err.println(VersionInfo.getPackageInfo(null, "GLProfile.init", "javax.media.opengl", "GL"));
+            System.err.println(VersionInfo.getPlatformInfo(null, "GLProfile.init"));
+            System.err.println("GLProfile.init firstUIActionOnProcess "+firstUIActionOnProcess);
+            System.err.println("GLProfile.init isAWTAvailable "+isAWTAvailable);
+            System.err.println("GLProfile.init hasNativeOSFactory "+hasNativeOSFactory);
+            System.err.println("GLProfile.init hasDesktopGL "+hasDesktopGL);
+            System.err.println("GLProfile.init hasDesktopGLES12 "+hasDesktopGLES12);
+            System.err.println("GLProfile.init hasGL234Impl "+hasGL234Impl);
+            System.err.println("GLProfile.init "+glAvailabilityToString());
         }
-
     }
 
-    /**
-     * Initializes available profiles eagerly.
-     */
     static {
-        // run the whole static initialization privileged to speed up,
-        // since this skips checking further access
-        AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
-                initProfiles();
-                return null;
-            }
-        });
+        JVMUtil.initSingleton();
+    }
 
-        if(null==defaultGLProfile) {
-            throw new GLException("No profile available: "+array2String(GL_PROFILE_LIST_ALL)+", "+glAvailabilityToString());
+    static boolean initialized = false;
+
+    /**
+     * Static one time initialization of JOGL.
+     * <p>
+     * Applications shall call this methods <b>ASAP</b>, before any other UI invocation.<br>
+     * You may issue the call in your main function.<br>
+     * In case applications are able to initialize JOGL before any other UI action,<br>
+     * they shall invoke this method with <code>firstUIActionOnProcess=true</code> and benefit from fast native multithreading support on all platforms if possible.</P>
+     * <P>
+     * RCP Application (Applet's, Webstart, Netbeans, ..) using JOGL may not be able to initialize JOGL
+     * before the first UI action.<br>
+     * In such case you shall invoke this method with <code>firstUIActionOnProcess=false</code>.<br>
+     * On some platforms, notably X11 with AWT usage, JOGL will utilize special locking mechanisms which may slow down your
+     * application.</P>
+     * <P>
+     * Remark: NEWT is currently not affected by this behavior, ie always uses native multithreading.</P>
+     * <P>
+     * However, in case this method is not invoked, hence GLProfile is not initialized explicitly by the user,<br>
+     * the first call to {@link #getDefault()}, {@link #get(java.lang.String)}, etc, will initialize with <code>firstUIActionOnProcess=false</code>,<br>
+     * hence without the possibility to enable native multithreading.<br>
+     * This is not the recommended way, since it may has a performance impact, but it allows you to run code without explicit initialization.</P>
+     * <P>
+     * In case no explicit initialization was invoked and the implicit initialization didn't happen,<br>
+     * you may encounter the following exception:
+     * <pre>
+     *      javax.media.opengl.GLException: No default profile available
+     * </pre></P>
+     * 
+     * @param firstUIActionOnProcess Should be <code>true</code> if called before the first UI action of the running program,
+     * otherwise <code>false</code>.
+     */
+    public static synchronized void initSingleton(final boolean firstUIActionOnProcess) {
+        if(!initialized) {
+            initialized = true;
+            // run the whole static initialization privileged to speed up,
+            // since this skips checking further access
+            AccessController.doPrivileged(new PrivilegedAction() {
+                public Object run() {
+                    initProfiles(firstUIActionOnProcess);
+                    return null;
+                }
+            });
+
+            if(null==defaultGLProfile) {
+                throw new GLException("No profile available: "+array2String(GL_PROFILE_LIST_ALL)+", "+glAvailabilityToString());
+            }
         }
     }
 
-    /**
-     * It is mandatory to call this methods ASAP, before anything else.<br>
-     * You may issue the call in your main class static initializer block, or in the static main function.<br>
-     * This will kick off JOGL's static initialization.<br>
-     * It is essential to do this at the very beginning, so JOGL has a chance to initialize multithreading support.<br>
-     */
-    public static void initSingleton() {
+    private static void validateInitialization() {
+        if(!initialized) {
+            synchronized(GLProfile.class) {
+                if(!initialized) {
+                    initSingleton(false);
+                }
+            }
+        }
     }
 
     private static final String array2String(String[] list) {
@@ -1028,17 +1074,17 @@ public class GLProfile {
                 GLProfile glProfile = new GLProfile(profile, profileImpl);
                 _mappedProfiles.put(profile, glProfile);
                 if (DEBUG) {
-                    System.err.println("GLProfile.static map "+glProfile);
+                    System.err.println("GLProfile.init map "+glProfile);
                 }
                 if(null==defaultGLProfile) {
                     defaultGLProfile=glProfile;
                     if (DEBUG) {
-                        System.err.println("GLProfile.static default "+glProfile);
+                        System.err.println("GLProfile.init default "+glProfile);
                     }
                 }
             } else {
                 if (DEBUG) {
-                    System.err.println("GLProfile.static map *** no mapping for "+profile);
+                    System.err.println("GLProfile.init map *** no mapping for "+profile);
                 }
             }
         }

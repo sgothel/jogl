@@ -43,17 +43,18 @@ import javax.media.nativewindow.*;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import javax.media.nativewindow.AbstractGraphicsDevice;
-import com.jogamp.nativewindow.impl.*;
 
 /** A wrapper for an AWT GraphicsDevice allowing it to be
     handled in a toolkit-independent manner. */
 
 public class AWTGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
   private GraphicsDevice device;
+  private String subType;
 
   protected AWTGraphicsDevice(GraphicsDevice device) {
     super(NativeWindowFactory.TYPE_AWT);
     this.device = device;
+    this.subType = null;
   }
 
   public static AbstractGraphicsDevice createDevice(GraphicsDevice awtDevice) {
@@ -73,14 +74,23 @@ public class AWTGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
 
   /**
    * In case the native handle was specified, e.g. using X11,
-   * we shall be able to mark it.
+   * we shall be able to mark it.<br>
+   * This will also set the subType, queried with {@link #getSubType()}
+   * and reset the ToolkitLock type with {@link NativeWindowFactory#createDefaultToolkitLock(java.lang.String, long)}
+   * and {@link #setToolkitLock(javax.media.nativewindow.ToolkitLock)}.
    */
-  public void setHandle(long handle) {
+  public void setSubType(String subType, long handle) {
     this.handle = handle;
+    this.subType = subType;
+    setToolkitLock( NativeWindowFactory.createDefaultToolkitLock(subType, handle) );
+  }
+
+  public String getSubType() {
+    return subType;
   }
 
   public String toString() {
-    return getClass().toString()+"[type "+getType()+", awtDevice "+device+", handle 0x"+Long.toHexString(getHandle())+"]";
+    return getClass().toString()+"[type "+getType()+"[subType "+getSubType()+"], awtDevice "+device+", handle 0x"+Long.toHexString(getHandle())+"]";
   }
 }
 

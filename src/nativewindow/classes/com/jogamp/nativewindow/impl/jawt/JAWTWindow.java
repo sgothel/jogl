@@ -38,7 +38,7 @@
 package com.jogamp.nativewindow.impl.jawt;
 
 import com.jogamp.nativewindow.impl.*;
-import com.jogamp.common.util.RecursiveToolkitLock;
+import com.jogamp.common.util.locks.RecursiveLock;
 
 import java.awt.Component;
 import java.awt.Window;
@@ -48,14 +48,7 @@ import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.Rectangle;
 
 public abstract class JAWTWindow implements NativeWindow {
-  protected static final boolean DEBUG = Debug.debug("JAWT");
-
-  // See whether we're running in headless mode
-  private static boolean headlessMode;
-
-  static {
-    headlessMode = GraphicsEnvironment.isHeadless();
-  }
+  protected static final boolean DEBUG = JAWTUtil.DEBUG;
 
   // lifetime: forever
   protected Component component;
@@ -113,45 +106,58 @@ public abstract class JAWTWindow implements NativeWindow {
   // NativeSurface
   //
 
-  private RecursiveToolkitLock recurLock = new RecursiveToolkitLock();
+  private RecursiveLock recurLock = new RecursiveLock();
 
   protected abstract int lockSurfaceImpl() throws NativeWindowException;
 
-  public final synchronized int lockSurface() throws NativeWindowException {
+  public final int lockSurface() throws NativeWindowException {
+    int res = LOCK_SURFACE_NOT_READY;
+
     recurLock.lock();
 
     if(recurLock.getRecursionCount() == 0) {
-        return lockSurfaceImpl();
+        config.getScreen().getDevice().lock();
+        try {
+            res = lockSurfaceImpl();
+        } finally {
+            // Unlock in case surface couldn't be locked
+            if(LOCK_SURFACE_NOT_READY >= res ) {
+                config.getScreen().getDevice().unlock();
+                recurLock.unlock();
+            }
+        }
+    } else {
+        res = LOCK_SUCCESS;
     }
 
-    return LOCK_SUCCESS;
+    return res;
   }
 
   protected abstract void unlockSurfaceImpl() throws NativeWindowException;
 
-  public synchronized void unlockSurface() {
+  public final void unlockSurface() {
     recurLock.validateLocked();
 
     if(recurLock.getRecursionCount()==0) {
-        unlockSurfaceImpl();
+        try {
+            unlockSurfaceImpl();
+        } finally {
+            config.getScreen().getDevice().unlock();
+        }
     }
     recurLock.unlock();
   }
 
-  public synchronized boolean isSurfaceLockedByOtherThread() {
+  public final boolean isSurfaceLockedByOtherThread() {
     return recurLock.isLockedByOtherThread();
   }
 
-  public synchronized boolean isSurfaceLocked() {
+  public final boolean isSurfaceLocked() {
     return recurLock.isLocked();
   }
 
-  public Thread getSurfaceLockOwner() {
+  public final Thread getSurfaceLockOwner() {
     return recurLock.getOwner();
-  }
-
-  public Exception getSurfaceLockStack() {
-    return recurLock.getLockedStack();
   }
 
   public boolean surfaceSwap() {

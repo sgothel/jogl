@@ -99,9 +99,12 @@
         <condition property="jvmarg.newt" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
 
         <!-- Test*CORE* -->
-        <junit forkmode="once" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+            <!-- 
+            <jvmarg value="-Dnewt.debug.EDT"/>
+            -->
 
             <formatter usefile="false" type="plain"/>
             <formatter usefile="true" type="xml"/>
@@ -153,6 +156,9 @@
                 <env key="CLASSPATH" value="${junit_jogl_newt.run.jars}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <arg line="${jvmarg.newt}"/>
+                <!--
+                <arg line="-Dnewt.debug.EDT"/>
+                -->
                 <arg line="com.jogamp.newt.util.MainThread"/>
                 <arg line="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner"/>
                 <srcfile/>
@@ -174,11 +180,12 @@
         </for>
 
         <!-- Test*AWT* -->
-        <junit forkmode="once" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
 
             <!--
+            <jvmarg value="-Dnewt.debug.EDT"/>
             <jvmarg value="-Djogl.debug=all"/>
             <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
             <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>

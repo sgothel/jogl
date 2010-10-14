@@ -339,7 +339,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       int[] count = new int[1];
       XVisualInfo template = XVisualInfo.create();
       template.setVisualid(visualID);
-      XVisualInfo[] infos = X11Lib.XGetVisualInfo(display, X11Lib.VisualIDMask, template, count, 0);
+      XVisualInfo[] infos = X11Util.XGetVisualInfo(display, X11Lib.VisualIDMask, template, count, 0);
       if (infos == null || infos.length == 0) {
             return null;
       }  

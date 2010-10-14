@@ -69,28 +69,34 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     }
     AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities caps = (GLCapabilities) config.getChosenCapabilities();
+    AbstractGraphicsDevice adevice = config.getScreen().getDevice();
     GLDrawable result = null;
-    if(caps.isOnscreen()) {
-        if(DEBUG) {
-            System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target);
-        }
-        result = createOnscreenDrawable(target);
-    } else {
-        if( ! ( target instanceof SurfaceChangeable ) ) {
-            throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen: "+target);
-        }
-        if(caps.isPBuffer()) {
+    adevice.lock();
+    try {
+        if(caps.isOnscreen()) {
             if(DEBUG) {
-                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> PbufferDrawable: "+target);
+                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target);
             }
-            result = createGLPbufferDrawable(target);
-        }
-        if(null==result) {
-            if(DEBUG) {
-                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable: "+target);
+            result = createOnscreenDrawableImpl(target);
+        } else {
+            if( ! ( target instanceof SurfaceChangeable ) ) {
+                throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen: "+target);
             }
-            result = createOffscreenDrawable(target);
+            if(caps.isPBuffer() && canCreateGLPbuffer(adevice)) {
+                if(DEBUG) {
+                    System.err.println("GLDrawableFactoryImpl.createGLDrawable -> PbufferDrawable: "+target);
+                }
+                result = createGLPbufferDrawable(target);
+            }
+            if(null==result) {
+                if(DEBUG) {
+                    System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable: "+target);
+                }
+                result = createOffscreenDrawableImpl(target);
+            }
         }
+    } finally {
+        adevice.unlock();
     }
     if(DEBUG) {
         System.err.println("GLDrawableFactoryImpl.createGLDrawable: "+result);
@@ -103,23 +109,25 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   // Onscreen GLDrawable construction 
   //
 
-  protected abstract GLDrawableImpl createOnscreenDrawable(NativeSurface target);
+  protected abstract GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target);
 
   //---------------------------------------------------------------------------
   //
   // PBuffer GLDrawable construction 
   //
 
+  public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device);
+
   /** Target must implement SurfaceChangeable */
   protected abstract GLDrawableImpl createGLPbufferDrawableImpl(NativeSurface target);
 
-  protected GLDrawableImpl createGLPbufferDrawable(NativeSurface target) {
+  private GLDrawableImpl createGLPbufferDrawable(NativeSurface target) {
     if (!canCreateGLPbuffer(target.getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice())) {
         throw new GLException("Pbuffer support not available with current graphics card");
     }
     return createGLPbufferDrawableImpl(target);
   }
-
+  
   public GLDrawable createGLPbufferDrawable(GLCapabilities capabilities,
                                             GLCapabilitiesChooser chooser,
                                             int width,
@@ -131,7 +139,12 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     capabilities.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
     capabilities.setOnscreen(false);
     capabilities.setPBuffer(true);
-    return createGLPbufferDrawable( createOffscreenSurface(capabilities, chooser, height, height) );
+    NativeWindowFactory.getDefaultToolkitLock().lock();
+    try {
+        return createGLPbufferDrawable( createOffscreenSurfaceImpl(capabilities, chooser, height, height) );
+    } finally {
+        NativeWindowFactory.getDefaultToolkitLock().unlock();
+    }
   }
 
   public GLPbuffer createGLPbuffer(GLCapabilities capabilities,
@@ -149,7 +162,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   // Offscreen GLDrawable construction 
   //
 
-  protected abstract GLDrawableImpl createOffscreenDrawable(NativeSurface target) ;
+  protected abstract GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) ;
 
   public GLDrawable createOffscreenDrawable(GLCapabilities capabilities,
                                             GLCapabilitiesChooser chooser,
@@ -162,16 +175,53 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     capabilities.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
     capabilities.setOnscreen(false);
     capabilities.setPBuffer(false);
-    return createOffscreenDrawable( createOffscreenSurface(capabilities, chooser, width, height) );
+    NativeWindowFactory.getDefaultToolkitLock().lock();
+    try {
+        return createOffscreenDrawableImpl( createOffscreenSurfaceImpl(capabilities, chooser, width, height) );
+    } finally {
+        NativeWindowFactory.getDefaultToolkitLock().unlock();
+    }
   }
 
   /**
    * creates an offscreen NativeSurface, which must implement SurfaceChangeable as well,
    * so the windowing system related implementation is able to set the surface handle.
    */
-  protected abstract NativeSurface createOffscreenSurface(GLCapabilities capabilities, GLCapabilitiesChooser chooser,
+  protected abstract NativeSurface createOffscreenSurfaceImpl(GLCapabilities capabilities, GLCapabilitiesChooser chooser,
                                                         int width, int height);
 
+  //---------------------------------------------------------------------------
+  //
+  // External GLDrawable construction
+  //
+
+  protected abstract GLContext createExternalGLContextImpl();
+  
+  public GLContext createExternalGLContext() {
+    NativeWindowFactory.getDefaultToolkitLock().lock();
+    try {
+        return createExternalGLContextImpl();
+    } finally {
+        NativeWindowFactory.getDefaultToolkitLock().unlock();
+    }
+  }
+
+  protected abstract GLDrawable createExternalGLDrawableImpl();
+
+  public GLDrawable createExternalGLDrawable() {
+    NativeWindowFactory.getDefaultToolkitLock().lock();
+    try {
+        return createExternalGLDrawableImpl();
+    } finally {
+        NativeWindowFactory.getDefaultToolkitLock().unlock();
+    }
+  }
+
+
+  //---------------------------------------------------------------------------
+  //
+  // GLDrawableFactoryImpl details
+  //
   protected abstract GLDrawableImpl getSharedDrawable();
   protected abstract GLContextImpl getSharedContext();
   protected abstract void shutdown();

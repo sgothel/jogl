@@ -44,13 +44,11 @@ import com.jogamp.newt.*;
 import java.io.IOException;
 
 public class TestGLProfile01NEWT extends UITestCase {
-    static {
-        GLProfile.initSingleton();
-    }
     static GLProfile glp;
 
     @BeforeClass
     public static void initClass() {
+        GLProfile.initSingleton(true);
         glp = GLProfile.getDefault();
         Assert.assertNotNull(glp);
     }

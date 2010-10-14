@@ -53,8 +53,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   private static final DesktopGLDynamicLookupHelper x11GLXDynamicLookupHelper;
 
   static {
-    X11Util.initSingleton(); // ensure it's loaded and setup
-
     DesktopGLDynamicLookupHelper tmp = null;
     try {
         tmp = new DesktopGLDynamicLookupHelper(new X11GLXDynamicLibraryBundleInfo());
@@ -80,35 +78,45 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     new X11GLXGraphicsConfigurationFactory();
     try {
       ReflectionUtil.createInstance("com.jogamp.opengl.impl.x11.glx.awt.X11AWTGLXGraphicsConfigurationFactory", 
-                                    new Object[] {}, getClass().getClassLoader());
+                                    null, getClass().getClassLoader());
     } catch (JogampRuntimeException jre) { /* n/a .. */ }
 
     // init shared resources ..
-    long tlsDisplay = X11Util.createThreadLocalDisplay(null);
-    X11GraphicsDevice sharedDevice = new X11GraphicsDevice(tlsDisplay);
-    vendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
-    isVendorATI = GLXUtil.isVendorATI(vendorName);
-    isVendorNVIDIA = GLXUtil.isVendorNVIDIA(vendorName);
-    sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
-    sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, GLProfile.getDefault());
-    if(isVendorATI() && GLProfile.isAWTAvailable()) {
-        X11Util.markThreadLocalDisplayUncloseable(tlsDisplay); // failure to close with ATI and AWT usage
-    }
-    if(null==sharedScreen || null==sharedDrawable) {
-        throw new GLException("Couldn't init shared screen("+sharedScreen+")/drawable("+sharedDrawable+")");
-    }
-    // We have to keep this within this thread,
-    // since we have a 'chicken-and-egg' problem otherwise on the <init> lock of this thread.
-    try{
-        X11GLXContext ctx  = (X11GLXContext) sharedDrawable.createContext(null);
-        ctx.makeCurrent();
-        ctx.release();
-        sharedContext = ctx;
-    } catch (Throwable t) {
-        throw new GLException("X11GLXDrawableFactory - Could not initialize shared resources", t);
-    }
-    if(null==sharedContext) {
-        throw new GLException("X11GLXDrawableFactory - Shared Context is null");
+    NativeWindowFactory.getDefaultToolkitLock().lock(); // OK
+    try {
+        long tlsDisplay = X11Util.createThreadLocalDisplay(null);
+        X11Util.XLockDisplay(tlsDisplay);
+        try {
+            X11GraphicsDevice sharedDevice = new X11GraphicsDevice(tlsDisplay);
+            vendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
+            isVendorATI = GLXUtil.isVendorATI(vendorName);
+            isVendorNVIDIA = GLXUtil.isVendorNVIDIA(vendorName);
+            sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
+            sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, GLProfile.getDefault());
+            if(isVendorATI() && GLProfile.isAWTAvailable()) {
+                X11Util.markThreadLocalDisplayUncloseable(tlsDisplay); // failure to close with ATI and AWT usage
+            }
+            if(null==sharedScreen || null==sharedDrawable) {
+                throw new GLException("Couldn't init shared screen("+sharedScreen+")/drawable("+sharedDrawable+")");
+            }
+            // We have to keep this within this thread,
+            // since we have a 'chicken-and-egg' problem otherwise on the <init> lock of this thread.
+            try{
+                X11GLXContext ctx  = (X11GLXContext) sharedDrawable.createContext(null);
+                ctx.makeCurrent();
+                ctx.release();
+                sharedContext = ctx;
+            } catch (Throwable t) {
+                throw new GLException("X11GLXDrawableFactory - Could not initialize shared resources", t);
+            }
+            if(null==sharedContext) {
+                throw new GLException("X11GLXDrawableFactory - Shared Context is null");
+            }
+        } finally {
+            X11Util.XUnlockDisplay(tlsDisplay);
+        }
+    } finally {
+        NativeWindowFactory.getDefaultToolkitLock().unlock(); // OK
     }
     if (DEBUG) {
       System.err.println("!!! Vendor: "+vendorName+", ATI: "+isVendorATI+", NV: "+isVendorNVIDIA);
@@ -122,9 +130,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   private boolean isVendorATI;
   private boolean isVendorNVIDIA;
 
-  public String getVendorName() { return vendorName; }
-  public boolean isVendorATI() { return isVendorATI; }
-  public boolean isVendorNVIDIA() { return isVendorNVIDIA; }
+  protected String getVendorName() { return vendorName; }
+  protected boolean isVendorATI() { return isVendorATI; }
+  protected boolean isVendorNVIDIA() { return isVendorNVIDIA; }
 
   private X11DummyGLXDrawable sharedDrawable=null;
   private X11GLXContext sharedContext=null;
@@ -165,14 +173,14 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     X11Util.shutdown( false, DEBUG );
   }
 
-  public GLDrawableImpl createOnscreenDrawable(NativeSurface target) {
+  protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
     return new X11OnscreenGLXDrawable(this, target);
   }
 
-  protected GLDrawableImpl createOffscreenDrawable(NativeSurface target) {
+  protected GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -185,7 +193,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
   private boolean glxVersionsQueried = false;
   private int     glxVersionMajor=0, glxVersionMinor=0;
-  public boolean glxVersionGreaterEqualThan(AbstractGraphicsDevice device, int majorReq, int minorReq) { 
+  protected final boolean glxVersionGreaterEqualThan(AbstractGraphicsDevice device, int majorReq, int minorReq) {
     if (!glxVersionsQueried) {
         if(null == device) {
             device = (X11GraphicsDevice) sharedScreen.getDevice();
@@ -193,19 +201,24 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         if(null == device) {
             throw new GLException("FIXME: No AbstractGraphicsDevice (passed or shared-device");
         }
-        long display = device.getHandle();
-        int[] major = new int[1];
-        int[] minor = new int[1];
+        device.lock(); // OK
+        try {
+            long display = device.getHandle();
+            int[] major = new int[1];
+            int[] minor = new int[1];
 
-        GLXUtil.getGLXVersion(display, major, minor);
-        if (DEBUG) {
-          System.err.println("!!! GLX version: major " + major[0] +
-                             ", minor " + minor[0]);
+            GLXUtil.getGLXVersion(display, major, minor);
+            if (DEBUG) {
+              System.err.println("!!! GLX version: major " + major[0] +
+                                 ", minor " + minor[0]);
+            }
+
+            glxVersionMajor = major[0];
+            glxVersionMinor = minor[0];
+            glxVersionsQueried = true;
+        } finally {
+            device.unlock(); // OK
         }
-
-        glxVersionMajor = major[0];
-        glxVersionMinor = minor[0];
-        glxVersionsQueried = true;        
     }
     return ( glxVersionMajor > majorReq ) || ( glxVersionMajor == majorReq && glxVersionMinor >= minorReq ) ;
   }
@@ -239,7 +252,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
 
-  protected NativeSurface createOffscreenSurface(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
+  protected NativeSurface createOffscreenSurfaceImpl(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
     ProxySurface ns = new ProxySurface(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, sharedScreen));
     if(ns != null) {
         ns.setSize(width, height);
@@ -247,7 +260,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return ns;
   }
 
-  public GLContext createExternalGLContext() {
+  protected GLContext createExternalGLContextImpl() {
     return X11ExternalGLXContext.create(this, null);
   }
 
@@ -255,7 +268,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return canCreateGLPbuffer(device);
   }
 
-  public GLDrawable createExternalGLDrawable() {
+  protected GLDrawable createExternalGLDrawableImpl() {
     return X11ExternalGLXDrawable.create(this, null);
   }
 
@@ -282,9 +295,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     long display = sharedScreen.getDevice().getHandle();
 
     int[] size = new int[1];
-    boolean res = X11Lib.XF86VidModeGetGammaRampSize(display,
-                                                  X11Lib.DefaultScreen(display),
-                                                  size, 0);
+    boolean res = X11Util.XF86VidModeGetGammaRampSize(display,
+                                                      X11Util.DefaultScreen(display),
+                                                      size, 0);
     if (!res) {
       return 0;
     }
@@ -301,8 +314,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     long display = sharedScreen.getDevice().getHandle();
-    boolean res = X11Lib.XF86VidModeSetGammaRamp(display,
-                                              X11Lib.DefaultScreen(display),
+    boolean res = X11Util.XF86VidModeSetGammaRamp(display,
+                                              X11Util.DefaultScreen(display),
                                               rampData.length,
                                               rampData, 0,
                                               rampData, 0,
@@ -323,8 +336,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
     long display = sharedScreen.getDevice().getHandle();
-    boolean res = X11Lib.XF86VidModeGetGammaRamp(display,
-                                              X11Lib.DefaultScreen(display),
+    boolean res = X11Util.XF86VidModeGetGammaRamp(display,
+                                              X11Util.DefaultScreen(display),
                                               size,
                                               redRampData,
                                               greenRampData,
@@ -354,8 +367,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
     long display = sharedScreen.getDevice().getHandle();
-    X11Lib.XF86VidModeSetGammaRamp(display,
-                                X11Lib.DefaultScreen(display),
+    X11Util.XF86VidModeSetGammaRamp(display,
+                                X11Util.DefaultScreen(display),
                                 size,
                                 redRampData,
                                 greenRampData,

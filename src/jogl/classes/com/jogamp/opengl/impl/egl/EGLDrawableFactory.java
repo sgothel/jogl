@@ -115,14 +115,14 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     protected final GLDrawableImpl getSharedDrawable() { return null; }
     protected final GLContextImpl getSharedContext() { return null; }
 
-    public GLDrawableImpl createOnscreenDrawable(NativeSurface target) {
+    protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
         if (target == null) {
           throw new IllegalArgumentException("Null target");
         }
         return new EGLOnscreenDrawable(this, target);
     }
 
-    protected GLDrawableImpl createOffscreenDrawable(NativeSurface target) {
+    protected GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) {
         throw new GLException("Not yet implemented");
     }
 
@@ -134,13 +134,13 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return new EGLPbufferDrawable(this, target);
     }
 
-    protected NativeSurface createOffscreenSurface(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
+    protected NativeSurface createOffscreenSurfaceImpl(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
         ProxySurface ns = new ProxySurface(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(capabilities, chooser));
         ns.setSize(width, height);
         return ns;
     }
 
-    public GLContext createExternalGLContext() {
+    protected GLContext createExternalGLContextImpl() {
         AbstractGraphicsScreen absScreen = DefaultGraphicsScreen.createScreenDevice(0);
         return new EGLExternalContext(absScreen);
     }
@@ -149,7 +149,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return false;
     }
 
-    public GLDrawable createExternalGLDrawable() {
+    protected GLDrawable createExternalGLDrawableImpl() {
         throw new GLException("Not yet implemented");
     }
 

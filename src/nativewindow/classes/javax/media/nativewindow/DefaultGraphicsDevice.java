@@ -32,18 +32,46 @@
 
 package javax.media.nativewindow;
 
+import com.jogamp.nativewindow.impl.NativeWindowFactoryImpl;
+
 public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice {
     private String type;
     protected long handle;
+    protected ToolkitLock toolkitLock;
 
+    /**
+     * Create an instance with the system default {@link ToolkitLock},
+     * gathered via {@link NativeWindowFactory#createDefaultToolkitLock()}.
+     * @param type
+     */
     public DefaultGraphicsDevice(String type) {
         this.type = type;
         this.handle = 0;
+        setToolkitLock( NativeWindowFactory.getDefaultToolkitLock(type) );
     }
 
+    /**
+     * Create an instance with the system default {@link ToolkitLock}.
+     * gathered via {@link NativeWindowFactory#createDefaultToolkitLock()}.
+     * @param type
+     * @param handle
+     */
     public DefaultGraphicsDevice(String type, long handle) {
         this.type = type;
         this.handle = handle;
+        setToolkitLock( NativeWindowFactory.createDefaultToolkitLock(type, handle) );
+    }
+
+    /**
+     * Create an instance with the given {@link ToolkitLock} instance.
+     * @param type
+     * @param handle
+     * @param locker
+     */
+    public DefaultGraphicsDevice(String type, long handle, ToolkitLock locker) {
+        this.type = type;
+        this.handle = handle;
+        setToolkitLock( locker );
     }
 
     public Object clone() {
@@ -62,10 +90,46 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         return handle;
     }
 
-    public void lock() {
+    /**
+     * Set the internal ToolkitLock, which is used within the 
+     * {@link #lock()} and {@link #unlock()} implementation.
+     * 
+     * @param locker the ToolkitLock, if null, {@link com.jogamp.nativewindow.impl.NullToolkitLock} is being used
+     */
+    protected void setToolkitLock(ToolkitLock locker) {
+        this.toolkitLock = ( null == locker ) ? NativeWindowFactoryImpl.getNullToolkitLock() : locker ;
     }
 
-    public void unlock() {
+    /**
+     * @return the used ToolkitLock
+     *
+     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long)
+     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, javax.media.nativewindow.ToolkitLock)
+     */
+    public final ToolkitLock getToolkitLock() {
+         return toolkitLock;
+    }
+
+    /**
+     * No lock is performed on the graphics device per default,
+     * instead the aggregated recursive {@link ToolkitLock#lock()} is invoked.
+     *
+     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long)
+     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, javax.media.nativewindow.ToolkitLock)
+     */
+    public final void lock() {
+        toolkitLock.lock();
+    }
+
+    /** 
+     * No lock is performed on the graphics device per default,
+     * instead the aggregated recursive {@link ToolkitLock#unlock()} is invoked.
+     *
+     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long)
+     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, javax.media.nativewindow.ToolkitLock)
+     */
+    public final void unlock() {
+        toolkitLock.unlock();
     }
 
     public String toString() {

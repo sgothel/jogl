@@ -53,16 +53,12 @@ import static javax.swing.SwingUtilities.*;
  * @author Michael Bien
  */
 public class TestSwingAWT01GLn extends UITestCase {
-    static {
-        GLProfile.initSingleton();
-    }
-
-
     private Window[] windows;
 
 
     @BeforeClass
     public static void startup() {
+        GLProfile.initSingleton(true);
         System.out.println("GLProfile <static> "+GLProfile.glAvailabilityToString());
     }
 

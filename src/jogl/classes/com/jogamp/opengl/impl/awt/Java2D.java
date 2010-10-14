@@ -178,7 +178,7 @@ public class Java2D {
                   fbObjectSupportInitialized = false;
                   if (DEBUG && VERBOSE) {
                     e.printStackTrace();
-                    System.err.println("Disabling Java2D/JOGL FBO support");
+                    System.err.println("Info: Disabling Java2D/JOGL FBO support");
                   }
                 }
 
@@ -192,7 +192,7 @@ public class Java2D {
                 } catch (Exception e) {
                   if (DEBUG && VERBOSE) {
                     e.printStackTrace();
-                    System.err.println("GL_ARB_texture_rectangle FBO support disabled");
+                    System.err.println("Info: GL_ARB_texture_rectangle FBO support disabled");
                   }
                 }
 
@@ -205,7 +205,7 @@ public class Java2D {
                 } catch (Exception e) {
                   if (DEBUG && VERBOSE) {
                     e.printStackTrace();
-                    System.err.println("Unable to find class sun.java2d.opengl.CGLSurfaceData for OS X");
+                    System.err.println("Info: Unable to find class sun.java2d.opengl.CGLSurfaceData for OS X");
                   }
                 }
                 if (cglSurfaceData != null) {
@@ -236,7 +236,7 @@ public class Java2D {
               } catch (Exception e) {
                 if (DEBUG && VERBOSE) {
                   e.printStackTrace();
-                  System.err.println("Disabling Java2D/JOGL integration");
+                  System.err.println("Info: Disabling Java2D/JOGL integration");
                 }
                 isOGLPipelineActive = false;
               }
@@ -265,7 +265,7 @@ public class Java2D {
     checkActive();
 
     try {
-      return ((Boolean) isQueueFlusherThreadMethod.invoke(null, new Object[] {})).booleanValue();
+      return ((Boolean) isQueueFlusherThreadMethod.invoke(null, null)).booleanValue();
     } catch (InvocationTargetException e) {
       throw new GLException(e.getTargetException());
     } catch (Exception e) {

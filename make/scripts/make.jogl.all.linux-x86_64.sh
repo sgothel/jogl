@@ -55,6 +55,7 @@ echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $LOGF
 ant  \
     $CUSTOMLIBDIR \
     -Dbuild.noarchives=true \
+    -Dc.compiler.debug=true \
     -Djogl.cg=1 \
     -Drootrel.build=build-x86_64 \
     -DuseKD=true \

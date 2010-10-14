@@ -65,7 +65,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     if(realized) {
         createPbuffer();
     } else {
-        destroy();
+        destroyImpl();
     }
   }
 
@@ -73,7 +73,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     return new X11PbufferGLXContext(this, shareWith);
   }
 
-  public void destroy() {
+  protected void destroyImpl() {
     NativeSurface ns = getNativeSurface();
     if (ns.getSurfaceHandle() != 0) {
       GLX.glXDestroyPbuffer(ns.getDisplayHandle(), ns.getSurfaceHandle());

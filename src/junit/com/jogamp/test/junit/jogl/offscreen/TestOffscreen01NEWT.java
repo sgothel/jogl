@@ -54,10 +54,6 @@ import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import java.io.IOException;
 
 public class TestOffscreen01NEWT extends UITestCase {
-    static {
-        GLProfile.initSingleton();
-    }
-
     static GLProfile glpDefault;
     static GLDrawableFactory glDrawableFactory;
     static int width, height;
@@ -65,6 +61,7 @@ public class TestOffscreen01NEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
+        GLProfile.initSingleton(true);
         glpDefault = GLProfile.getDefault();
         Assert.assertNotNull(glpDefault);
         glDrawableFactory = GLDrawableFactory.getFactory(glpDefault);

@@ -16,6 +16,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.newt.Display;
@@ -32,12 +33,13 @@ import java.io.IOException;
  */
 public class TestTransformFeedbackVeryingsBug407NEWT extends UITestCase {
 
-    static {
-        //NativeUtil.preloadNativeLibs(); // internal method
-        GLProfile.initSingleton();
-    }
     private GLContext context;
     private String VERTEX_SHADER_TEXT;
+
+    @BeforeClass
+    public static void initClass() {
+        GLProfile.initSingleton(true);
+    }
 
     @Before
     public void setUp() {

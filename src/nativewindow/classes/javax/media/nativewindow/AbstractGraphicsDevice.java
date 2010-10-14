@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -56,7 +57,15 @@ public interface AbstractGraphicsDevice extends Cloneable {
      */
     public long getHandle();
 
+    /**
+     * Optionally locking the device, utilizing eg {@link javax.media.nativewindow.ToolkitLock}.
+     * The lock implementation must be recursive.
+     */
     public void lock();
 
+    /** 
+     * Optionally unlocking the device, utilizing eg {@link javax.media.nativewindow.ToolkitLock}.
+     * The lock implementation must be recursive.
+     */
     public void unlock();
 }

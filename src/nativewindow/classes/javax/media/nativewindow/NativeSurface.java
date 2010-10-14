@@ -1,6 +1,5 @@
 /**
  * Copyright 2010 JogAmp Community. All rights reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -63,14 +62,17 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * This call allows recursion from the same thread.<P>
    *
    * The implementation may want to aquire the 
-   * application level {@link com.jogamp.common.util.RecursiveToolkitLock}
+   * application level {@link com.jogamp.common.util.locks.RecursiveLock}
    * first before proceeding with a native surface lock. <P>
+   *
+   * The implementation shall also invoke {@link AbstractGraphicsDevice#lock()}
+   * for the initial lock (recursive count zero).<P>
    *
    * @return {@link #LOCK_SUCCESS}, {@link #LOCK_SURFACE_CHANGED} or {@link #LOCK_SURFACE_NOT_READY}.
    *
    * @throws RuntimeException after timeout when waiting for the surface lock
    *
-   * @see com.jogamp.common.util.RecursiveToolkitLock
+   * @see com.jogamp.common.util.locks.RecursiveLock
    */
   public int lockSurface();
 
@@ -79,10 +81,13 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    *
    * Shall not modify the surface handle, see {@link #lockSurface()} <P>
    *
+   * The implementation shall also invoke {@link AbstractGraphicsDevice#unlock()}
+   * for the final unlock (recursive count zero).<P>
+   *
    * @throws RuntimeException if surface is not locked
    *
    * @see #lockSurface
-   * @see com.jogamp.common.util.RecursiveToolkitLock
+   * @see com.jogamp.common.util.locks.RecursiveLock
    */
   public void unlockSurface() throws NativeWindowException ;
 
@@ -100,14 +105,6 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * Return the locking owner's Thread, or null if not locked.
    */
   public Thread getSurfaceLockOwner();
-
-  /**
-   * Return the lock-exception, or null if not locked.
-   *
-   * The lock-exception is created at {@link #lockSurface()}
-   * and hence holds the locker's call stack.
-   */
-  public Exception getSurfaceLockStack();
 
   /**
    * Provide a mechanism to utilize custom (pre-) swap surface

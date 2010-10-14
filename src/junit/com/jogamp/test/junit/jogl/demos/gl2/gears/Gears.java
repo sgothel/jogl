@@ -3,10 +3,12 @@ package com.jogamp.test.junit.jogl.demos.gl2.gears;
 
 import javax.media.opengl.*;
 import javax.media.opengl.awt.*;
+import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.event.awt.*;
 
 import java.awt.Component;
+import java.awt.Frame;
 import com.jogamp.newt.Window;
 
 /**
@@ -24,8 +26,44 @@ public class Gears implements GLEventListener {
   private int prevMouseX, prevMouseY;
   private boolean mouseRButtonDown = false;
 
+  public static void main(String[] args) {
+    // set argument 'NotFirstUIActionOnProcess' in the JNLP's application-desc tag for example
+    // <application-desc main-class="demos.j2d.TextCube"/>
+    //   <argument>NotFirstUIActionOnProcess</argument> 
+    // </application-desc>
+    boolean firstUIActionOnProcess = 0==args.length || !args[0].equals("NotFirstUIActionOnProcess") ;
+    GLProfile.initSingleton(firstUIActionOnProcess);
+
+    Frame frame = new Frame("Gear Demo");
+    GLCanvas canvas = new GLCanvas();
+    // GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+    // GLCanvas canvas = new GLCanvas(caps);
+
+    final Gears gears = new Gears();
+    canvas.addGLEventListener(gears);
+
+    frame.add(canvas);
+    frame.setSize(300, 300);
+    final Animator animator = new Animator(canvas);
+    frame.addWindowListener(new java.awt.event.WindowAdapter() {
+        public void windowClosing(java.awt.event.WindowEvent e) {
+          // Run this on another thread than the AWT event queue to
+          // make sure the call to Animator.stop() completes before
+          // exiting
+          new Thread(new Runnable() {
+              public void run() {
+                animator.stop();
+                System.exit(0);
+              }
+            }).start();
+        }
+      });
+    frame.setVisible(true);
+    animator.start();
+  }
+
   public void init(GLAutoDrawable drawable) {
-    System.out.println("Gears: Init");
+    System.err.println("Gears: Init");
     // Use debug pipeline
     // drawable.setGL(new DebugGL(drawable.getGL()));
 
@@ -78,7 +116,7 @@ public class Gears implements GLEventListener {
   }
     
   public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-    System.out.println("Gears: Reshape");
+    System.err.println("Gears: Reshape");
     GL2 gl = drawable.getGL().getGL2();
 
     float h = (float)height / (float)width;
@@ -93,7 +131,7 @@ public class Gears implements GLEventListener {
   }
 
   public void dispose(GLAutoDrawable drawable) {
-    System.out.println("Gears: Dispose");
+    System.err.println("Gears: Dispose");
   }
 
   public void display(GLAutoDrawable drawable) {
@@ -103,14 +141,13 @@ public class Gears implements GLEventListener {
     // Get the GL corresponding to the drawable we are animating
     GL2 gl = drawable.getGL().getGL2();
 
-    /**
     // Special handling for the case where the GLJPanel is translucent
     // and wants to be composited with other Java 2D content
     if ((drawable instanceof GLJPanel) &&
         !((GLJPanel) drawable).isOpaque() &&
         ((GLJPanel) drawable).shouldPreserveColorBufferIfTranslucent()) {
       gl.glClear(GL2.GL_DEPTH_BUFFER_BIT);
-    } else */  {
+    } else {
       gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
     }
             

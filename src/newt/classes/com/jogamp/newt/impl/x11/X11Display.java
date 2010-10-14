@@ -76,7 +76,7 @@ public class X11Display extends DisplayImpl {
             X11Util.closeDisplay(handle);
             throw e;
         }
-        aDevice = new X11GraphicsDevice(handle);
+        aDevice = new X11GraphicsDevice(handle, NativeWindowFactory.getNullToolkitLock());
     }
 
     protected void closeNativeImpl() {

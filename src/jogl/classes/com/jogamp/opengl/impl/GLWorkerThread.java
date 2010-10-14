@@ -254,7 +254,7 @@ public class GLWorkerThread {
               Runnable curAsync = (Runnable) queue.remove(0);
               curAsync.run();
             } catch (Throwable t) {
-              System.out.println("Exception occurred on JOGL OpenGL worker thread:");
+              System.err.println("Exception occurred on JOGL OpenGL worker thread:");
               t.printStackTrace();
             }
           }

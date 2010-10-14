@@ -32,6 +32,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <errno.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 /* Linux headers don't work properly */
@@ -85,30 +86,12 @@ Bool XF86VidModeSetGammaRamp(
 
 #ifdef VERBOSE_ON
     // Workaround for ancient compiler on Solaris/SPARC
-    // #define DBG_PRINT(args...) fprintf(stderr, args);
-    #define DBG_PRINT0(str) fprintf(stderr, str);
-    #define DBG_PRINT1(str, arg1) fprintf(stderr, str, arg1);
-    #define DBG_PRINT2(str, arg1, arg2) fprintf(stderr, str, arg1, arg2);
-    #define DBG_PRINT3(str, arg1, arg2, arg3) fprintf(stderr, str, arg1, arg2, arg3);
-    #define DBG_PRINT4(str, arg1, arg2, arg3, arg4) fprintf(stderr, str, arg1, arg2, arg3, arg4);
-    #define DBG_PRINT5(str, arg1, arg2, arg3, arg4, arg5) fprintf(stderr, str, arg1, arg2, arg3, arg4, arg5);
-    #define DBG_PRINT6(str, arg1, arg2, arg3, arg4, arg5, arg6) fprintf(stderr, str, arg1, arg2, arg3, arg4, arg5, arg6);
-    #define DBG_PRINT7(str, arg1, arg2, arg3, arg4, arg5, arg6, arg7) fprintf(stderr, str, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
-    #define DBG_PRINT8(str, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) fprintf(stderr, str, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+    #define DBG_PRINT(args...) fprintf(stderr, args);
 
 #else
 
     // Workaround for ancient compiler on Solaris/SPARC
-    // #define DBG_PRINT(args...)
-    #define DBG_PRINT0(str)
-    #define DBG_PRINT1(str, arg1)
-    #define DBG_PRINT2(str, arg1, arg2)
-    #define DBG_PRINT3(str, arg1, arg2, arg3)
-    #define DBG_PRINT4(str, arg1, arg2, arg3, arg4)
-    #define DBG_PRINT5(str, arg1, arg2, arg3, arg4, arg5)
-    #define DBG_PRINT6(str, arg1, arg2, arg3, arg4, arg5, arg6)
-    #define DBG_PRINT7(str, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
-    #define DBG_PRINT8(str, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+    #define DBG_PRINT(args...)
 
 #endif
 
@@ -201,18 +184,29 @@ static XErrorHandler origErrorHandler = NULL ;
 
 static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
 {
-    _throwNewRuntimeException(NULL, x11ErrorHandlerJNIEnv, "Nativewindow X11 Error: Display %p, Code 0x%X", dpy, e->error_code);
+    fprintf(stderr, "Nativewindow X11 Error: Display %p, Code 0x%X, errno %s\n", dpy, e->error_code, strerror(errno));
+    _throwNewRuntimeException(NULL, x11ErrorHandlerJNIEnv, "Nativewindow X11 Error: Display %p, Code 0x%X, errno %s", 
+        dpy, e->error_code, strerror(errno));
+    if(NULL!=origErrorHandler) {
+        origErrorHandler(dpy, e);
+    }
 
     return 0;
 }
 
-static void x11ErrorHandlerEnable(int onoff, JNIEnv * env) {
+static void x11ErrorHandlerEnable(Display *dpy, int onoff, JNIEnv * env) {
     if(onoff) {
         if(NULL==origErrorHandler) {
             x11ErrorHandlerJNIEnv = env;
+            if(NULL!=dpy) {
+                XSync(dpy, False);
+            }
             origErrorHandler = XSetErrorHandler(x11ErrorHandler);
         }
     } else {
+        if(NULL!=dpy) {
+            XSync(dpy, False);
+        }
         XSetErrorHandler(origErrorHandler);
         origErrorHandler = NULL;
     }
@@ -223,8 +217,11 @@ static XIOErrorHandler origIOErrorHandler = NULL;
 
 static int x11IOErrorHandler(Display *dpy)
 {
-    _FatalError(x11ErrorHandlerJNIEnv, "Nativewindow X11 IOError: Display %p not available", dpy);
-    origIOErrorHandler(dpy);
+    fprintf(stderr, "Nativewindow X11 IOError: Display %p (%s): %s\n", dpy, XDisplayName(NULL), strerror(errno));
+    // _FatalError(x11ErrorHandlerJNIEnv, "Nativewindow X11 IOError: Display %p (%s): %s", dpy, XDisplayName(NULL), strerror(errno));
+    if(NULL!=origIOErrorHandler) {
+        origIOErrorHandler(dpy);
+    }
     return 0;
 }
 
@@ -243,9 +240,9 @@ static void x11IOErrorHandlerEnable(int onoff, JNIEnv * env) {
 static int _initialized=0;
 
 JNIEXPORT void JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize(JNIEnv *env, jclass _unused, jboolean initConcurrentThreadSupport) {
+Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize(JNIEnv *env, jclass _unused, jboolean firstUIActionOnProcess) {
     if(0==_initialized) {
-        if( JNI_TRUE == initConcurrentThreadSupport ) {
+        if( JNI_TRUE == firstUIActionOnProcess ) {
             if( 0 == XInitThreads() ) {
                 fprintf(stderr, "Warning: XInitThreads() failed\n");
             } else {
@@ -256,7 +253,6 @@ Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize(JNIEnv *env, jclass _un
         }
 
         _initClazzAccess(env);
-        x11ErrorHandlerEnable(1, env);
         x11IOErrorHandlerEnable(1, env);
         _initialized=1;
     }
@@ -284,7 +280,9 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XGetVisualInfo1__JJLjava_nio_ByteBu
   if (arg3 != NULL) {
     _ptr3 = (int *) (((char*) (*env)->GetPrimitiveArrayCritical(env, arg3, NULL)) + arg3_byte_offset);
   }
+  x11ErrorHandlerEnable((Display *) (intptr_t) arg0, 1, env);
   _res = XGetVisualInfo((Display *) (intptr_t) arg0, (long) arg1, (XVisualInfo *) _ptr2, (int *) _ptr3);
+  x11ErrorHandlerEnable((Display *) (intptr_t) arg0, 0, env);
   count = _ptr3[0];
   if (arg3 != NULL) {
     (*env)->ReleasePrimitiveArrayCritical(env, arg3, _ptr3, 0);
@@ -305,7 +303,9 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_DefaultVisualID(JNIEnv *env, jclass
     if(0==display) {
         _FatalError(env, "invalid display connection..");
     }
+  x11ErrorHandlerEnable((Display *) (intptr_t) display, 1, env);
   r = (jlong) XVisualIDFromVisual( DefaultVisual( (Display*) (intptr_t) display, screen ) );
+  x11ErrorHandlerEnable((Display *) (intptr_t) display, 0, env);
   return r;
 }
 
@@ -346,7 +346,9 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XCloseDisplay__J(JNIEnv *env, jclas
   if(0==display) {
       _FatalError(env, "invalid display connection..");
   }
+  x11ErrorHandlerEnable((Display *) (intptr_t) display, 1, env);
   _res = XCloseDisplay((Display *) (intptr_t) display);
+  x11ErrorHandlerEnable(NULL, 0, env);
   return _res;
 }
 
@@ -384,7 +386,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
         return 0;
     }
 
-    XSync(dpy, False);
+    x11ErrorHandlerEnable(dpy, 1, env);
 
     scrn = ScreenOfDisplay(dpy, scrn_idx);
 
@@ -400,10 +402,11 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
         XFree(pVisualQuery);
         pVisualQuery=NULL;
     }
-    DBG_PRINT5( "X11: [CreateWindow] trying given (dpy %p, screen %d, visualID: %d, parent %p) found: %p\n", dpy, scrn_idx, (int)visualID, windowParent, visual);
+    DBG_PRINT( "X11: [CreateWindow] trying given (dpy %p, screen %d, visualID: %d, parent %p) found: %p\n", dpy, scrn_idx, (int)visualID, windowParent, visual);
 
     if (visual==NULL)
     { 
+        x11ErrorHandlerEnable(dpy, 0, env);
         _throwNewRuntimeException(dpy, env, "could not query Visual by given VisualID, bail out!");
         return 0;
     } 
@@ -440,9 +443,9 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
                            attrMask,
                            &xswa);
 
-    XSync(dpy, False);
+    x11ErrorHandlerEnable(dpy, 0, env);
 
-    DBG_PRINT2( "X11: [CreateWindow] created window %p on display %p\n", window, dpy);
+    DBG_PRINT( "X11: [CreateWindow] created window %p on display %p\n", window, dpy);
 
     return (jlong) window;
 }
@@ -464,9 +467,10 @@ JNIEXPORT void JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_DestroyDummy
         return;
     }
 
-    XSync(dpy, False);
+    x11ErrorHandlerEnable(dpy, 1, env);
     XUnmapWindow(dpy, w);
     XSync(dpy, False);
     XDestroyWindow(dpy, w);
-    XSync(dpy, False);
+    x11ErrorHandlerEnable(dpy, 0, env);
 }
+

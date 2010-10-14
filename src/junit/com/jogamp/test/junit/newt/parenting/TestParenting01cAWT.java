@@ -62,16 +62,13 @@ import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
 public class TestParenting01cAWT extends UITestCase {
-    static {
-        GLProfile.initSingleton();
-    }
-
     static int width, height;
     static long durationPerTest = 800;
     static GLCapabilities glCaps;
 
     @BeforeClass
     public static void initClass() {
+        GLProfile.initSingleton(true);
         width  = 640;
         height = 480;
         glCaps = new GLCapabilities(null);

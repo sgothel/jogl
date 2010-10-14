@@ -85,7 +85,7 @@ public class ImmModeSink {
 
   public void draw(GL gl, boolean disableBufferAfterDraw) {
     if(DEBUG_DRAW) {
-        Exception e = new Exception("ImmModeSink.draw(disableBufferAfterDraw: "+disableBufferAfterDraw+"):\n\t"+this);
+        Exception e = new Exception("Info: ImmModeSink.draw(disableBufferAfterDraw: "+disableBufferAfterDraw+"):\n\t"+this);
         e.printStackTrace();
     }
     int n=0;
@@ -96,7 +96,7 @@ public class ImmModeSink {
 
   public void draw(GL gl, Buffer indices, boolean disableBufferAfterDraw) {
     if(DEBUG_DRAW) {
-        Exception e = new Exception("ImmModeSink.draw(disableBufferAfterDraw: "+disableBufferAfterDraw+"):\n\t"+this);
+        Exception e = new Exception("Info: ImmModeSink.draw(disableBufferAfterDraw: "+disableBufferAfterDraw+"):\n\t"+this);
         e.printStackTrace();
     }
     int n=0;
@@ -107,7 +107,7 @@ public class ImmModeSink {
 
   public void glBegin(int mode) {
     if(DEBUG_BEGIN_END) {
-        Exception e = new Exception("ImmModeSink.glBegin("+vboSet.mode+"):\n\t"+this);
+        Exception e = new Exception("Info: ImmModeSink.glBegin("+vboSet.mode+"):\n\t"+this);
         e.printStackTrace();
     }
     vboSet.modeOrig = mode;
@@ -141,7 +141,7 @@ public class ImmModeSink {
 
   private void glEnd(GL gl, Buffer indices, boolean immediateDraw) {
     if(DEBUG_BEGIN_END) {
-        Exception e = new Exception("ImmModeSink START glEnd(immediate: "+immediateDraw+"):\n\t"+this);
+        Exception e = new Exception("Info: ImmModeSink START glEnd(immediate: "+immediateDraw+"):\n\t"+this);
         e.printStackTrace();
     }
     if(immediateDraw) {
@@ -328,7 +328,7 @@ public class ImmModeSink {
     protected void draw(GL gl, Buffer indices, boolean disableBufferAfterDraw, int i)
     {
         if(DEBUG_DRAW) {
-            Exception e = new Exception("ImmModeSink.draw["+i+"](disableBufferAfterDraw: "+disableBufferAfterDraw+"):\n\t"+this);
+            Exception e = new Exception("Info: ImmModeSink.draw["+i+"](disableBufferAfterDraw: "+disableBufferAfterDraw+"):\n\t"+this);
             e.printStackTrace();
         }
         enableBuffer(gl, true);

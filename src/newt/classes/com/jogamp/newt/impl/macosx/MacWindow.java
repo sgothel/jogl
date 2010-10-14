@@ -35,7 +35,7 @@
 package com.jogamp.newt.impl.macosx;
 
 import javax.media.nativewindow.*;
-import com.jogamp.common.util.RecursiveToolkitLock;
+import com.jogamp.common.util.locks.RecursiveLock;
 
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.*;
@@ -132,7 +132,6 @@ public class MacWindow extends WindowImpl {
     private volatile long surfaceHandle;
 
     // non fullscreen dimensions ..
-    private int nfs_width, nfs_height, nfs_x, nfs_y;
     private final Insets insets = new Insets(0,0,0,0);
 
     static {
@@ -158,7 +157,7 @@ public class MacWindow extends WindowImpl {
             }
         } catch (Throwable t) {
             if(DEBUG_IMPLEMENTATION) { 
-                Exception e = new Exception("closeNative failed - "+Thread.currentThread().getName(), t);
+                Exception e = new Exception("Warning: closeNative failed - "+Thread.currentThread().getName(), t);
                 e.printStackTrace();
             }
         } finally {
@@ -184,7 +183,7 @@ public class MacWindow extends WindowImpl {
         }
     }
 
-    private RecursiveToolkitLock nsViewLock = new RecursiveToolkitLock();
+    private RecursiveLock nsViewLock = new RecursiveLock();
 
     protected int lockSurfaceImpl() {
         nsViewLock.lock();
@@ -394,7 +393,7 @@ public class MacWindow extends WindowImpl {
                     }
                     setWindowHandle(createWindow0(getParentWindowHandle(),
                                                  x, y, width, height, fullscreen,
-                                                 (isUndecorated(fullscreen) ?
+                                                 (isUndecorated() ?
                                                  NSBorderlessWindowMask :
                                                  NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask),
                                                  NSBackingStoreBuffered, 

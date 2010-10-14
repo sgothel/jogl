@@ -76,7 +76,7 @@ public class WindowsWindow extends WindowImpl {
             long _hmon = MonitorFromWindow0(getWindowHandle());
             if (hmon != _hmon) {
                 if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                    Exception e = new Exception("!!! Window Device Changed "+Thread.currentThread().getName()+
+                    Exception e = new Exception("Info: Window Device Changed "+Thread.currentThread().getName()+
                                                 ", HMON "+toHexString(hmon)+" -> "+toHexString(_hmon));
                     e.printStackTrace();
                 }
@@ -102,7 +102,7 @@ public class WindowsWindow extends WindowImpl {
         }
         windowHandleClose = getWindowHandle();
         if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-            Exception e = new Exception("!!! Window new window handle "+Thread.currentThread().getName()+
+            Exception e = new Exception("Info: Window new window handle "+Thread.currentThread().getName()+
                                         " (Parent HWND "+toHexString(getParentWindowHandle())+
                                         ") : HWND "+toHexString(getWindowHandle())+", "+Thread.currentThread());
             e.printStackTrace();
@@ -116,7 +116,7 @@ public class WindowsWindow extends WindowImpl {
                     ReleaseDC0(windowHandleClose, hdc);
                 } catch (Throwable t) {
                     if(DEBUG_IMPLEMENTATION) { 
-                        Exception e = new Exception("closeNativeImpl failed - "+Thread.currentThread().getName(), t);
+                        Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
                         e.printStackTrace();
                     }
                 }
@@ -128,7 +128,7 @@ public class WindowsWindow extends WindowImpl {
                 DestroyWindow0(windowHandleClose);
             } catch (Throwable t) {
                 if(DEBUG_IMPLEMENTATION) {
-                    Exception e = new Exception("closeNativeImpl failed - "+Thread.currentThread().getName(), t);
+                    Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
                     e.printStackTrace();
                 }
             } finally {
@@ -157,7 +157,7 @@ public class WindowsWindow extends WindowImpl {
     }
 
     protected void reconfigureWindowImpl(int x, int y, int width, int height) {
-        reconfigureWindow0(fullscreen?0:getParentWindowHandle(), getWindowHandle(), x, y, width, height, isUndecorated(fullscreen));
+        reconfigureWindow0(fullscreen?0:getParentWindowHandle(), getWindowHandle(), x, y, width, height, isUndecorated());
     }
 
     protected boolean reparentWindowImpl() {

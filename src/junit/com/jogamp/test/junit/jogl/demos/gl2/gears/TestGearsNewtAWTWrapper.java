@@ -46,15 +46,12 @@ import org.junit.After;
 import org.junit.Test;
 
 public class TestGearsNewtAWTWrapper extends UITestCase {
-    static {
-        GLProfile.initSingleton();
-    }
-
     static GLProfile glp;
     static int width, height;
 
     @BeforeClass
     public static void initClass() {
+        GLProfile.initSingleton(true);
         glp = GLProfile.getDefault();
         Assert.assertNotNull(glp);
         width  = 512;

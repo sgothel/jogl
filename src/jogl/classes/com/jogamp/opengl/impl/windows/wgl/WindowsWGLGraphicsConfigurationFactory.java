@@ -52,9 +52,8 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.windows.WindowsGraphicsDevice.class, this);
     }
 
-    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
-                                                                     CapabilitiesChooser chooser,
-                                                                     AbstractGraphicsScreen absScreen) {
+    protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
+            Capabilities capabilities, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
         GLCapabilities caps = (GLCapabilities)capabilities;
         return chooseGraphicsConfigurationStatic(caps, chooser, absScreen);
     }
@@ -107,10 +106,12 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         GLProfile glProfile = capabilities.getGLProfile();
         long hdc = ns.getSurfaceHandle();
 
-        if (DEBUG) {
-          Exception ex = new Exception("WindowsWGLGraphicsConfigurationFactory got HDC "+toHexString(hdc));
+        if(0==hdc) {
+          throw new GLException("Error: HDC is null "+toHexString(hdc));
+        }
+        if(DEBUG) {
+          Exception ex = new Exception("Info: WindowsWGLGraphicsConfigurationFactory got HDC "+toHexString(hdc));
           ex.printStackTrace();
-          System.err.println("WindowsWGLGraphicsConfigurationFactory got NW    "+ns);
         }
 
         PIXELFORMATDESCRIPTOR pfd = null;
@@ -120,7 +121,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
 
         if (onscreen) {
           if ((pixelFormat = GDI.GetPixelFormat(hdc)) != 0) {
-            // Pixelformat already set by either 
+            // Pixelformat already set by either
             //  - a previous updateGraphicsConfiguration() call on the same HDC,
             //  - the graphics driver, copying the HDC's pixelformat to the new one,
             //  - or the Java2D/OpenGL pipeline's configuration

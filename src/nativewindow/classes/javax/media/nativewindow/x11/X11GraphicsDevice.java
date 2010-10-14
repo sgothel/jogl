@@ -33,16 +33,27 @@
 package javax.media.nativewindow.x11;
 
 import javax.media.nativewindow.*;
-import com.jogamp.nativewindow.impl.*;
-import com.jogamp.nativewindow.impl.x11.X11Util;
 
 /** Encapsulates a graphics device on X11 platforms.
  */
 
 public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
-    /** Constructs a new X11GraphicsDevice corresponding to the given native display handle. */
+    /** Constructs a new X11GraphicsDevice corresponding to the given native display handle and default
+     *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#createDefaultToolkitLock(java.lang.String, long)}.
+     */
     public X11GraphicsDevice(long display) {
         super(NativeWindowFactory.TYPE_X11, display);
+        if(0==display) {
+            throw new NativeWindowException("null display");
+        }
+    }
+
+    /**
+     * @param display the Display connection
+     * @param locker custom {@link javax.media.nativewindow.ToolkitLock}, eg to force null locking in NEWT
+     */
+    public X11GraphicsDevice(long display, ToolkitLock locker) {
+        super(NativeWindowFactory.TYPE_X11, display, locker);
         if(0==display) {
             throw new NativeWindowException("null display");
         }
@@ -51,14 +62,5 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     public Object clone() {
       return super.clone();
     }
-
-    public void lock() {
-        X11Util.XLockDisplay(handle);
-    }
-
-    public void unlock() {
-        X11Util.XUnlockDisplay(handle);
-    }
-
 }
 

@@ -72,7 +72,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     if(realized) {
         throw new GLException("Recreation via setRealized not supported.");
     } else {
-        destroy();
+        destroyImpl();
     }
   }
 
@@ -80,7 +80,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     return new WindowsPbufferWGLContext(this, shareWith);
   }
 
-  public void destroy() {
+  protected void destroyImpl() {
     NativeSurface ns = getNativeSurface();
     if(0!=buffer) {
         WGLExt wglExt = cachedWGLExt;

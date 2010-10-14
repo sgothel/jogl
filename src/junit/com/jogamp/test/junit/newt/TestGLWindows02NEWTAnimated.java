@@ -54,16 +54,13 @@ import com.jogamp.test.junit.util.MiscUtils;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
 public class TestGLWindows02NEWTAnimated extends UITestCase {
-    static {
-        GLProfile.initSingleton();
-    }
-
     static GLProfile glp;
     static int width, height;
     static long durationPerTest = 100; // ms
 
     @BeforeClass
     public static void initClass() {
+        GLProfile.initSingleton(true);
         width  = 640;
         height = 480;
         glp = GLProfile.getDefault();

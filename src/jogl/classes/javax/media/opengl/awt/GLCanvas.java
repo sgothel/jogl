@@ -45,7 +45,6 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
 
 import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.jawt.JAWTUtil;
 
 import java.awt.Canvas;
 import java.awt.Color;
@@ -54,7 +53,6 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
-import java.awt.Container;
 import java.awt.Window;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowAdapter;
@@ -79,9 +77,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   private static final GLProfile defaultGLProfile;
 
   static {
-      NativeWindowFactory.initSingleton();
-      defaultGLProfile = GLProfile.getDefault();
       DEBUG = Debug.debug("GLCanvas");
+      defaultGLProfile = GLProfile.getDefault();
   }
 
   private GLProfile glProfile;
@@ -234,7 +231,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         final GraphicsConfiguration compatible = (null!=config)?config.getGraphicsConfiguration():null;
         boolean equalCaps = config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities());
         if(DEBUG) {
-            Exception e = new Exception("Call Stack: "+Thread.currentThread().getName());
+            Exception e = new Exception("Info: Call Stack: "+Thread.currentThread().getName());
             e.printStackTrace();
             System.err.println("!!! Created Config (n): HAVE    GC "+chosen);
             System.err.println("!!! Created Config (n): THIS    GC "+gc);
@@ -313,7 +310,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
   protected void dispose(boolean regenerate) {
     if(DEBUG) {
-        Exception ex1 = new Exception("dispose("+regenerate+") - start");
+        Exception ex1 = new Exception("Info: dispose("+regenerate+") - start");
         ex1.printStackTrace();
     }
 
@@ -381,7 +378,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
                    (int) ((getHeight() + bounds.getHeight()) / 2));
       return;
     }
-    if( this.drawableHelper.isExternalAnimatorAnimating() ) {
+    if( ! this.drawableHelper.isExternalAnimatorAnimating() ) {
         display();
     }
   }
@@ -408,11 +405,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         /*
          * Save the chosen capabilities for use in getGraphicsConfiguration().
          */
-        JAWTUtil.lockToolkit();
+        NativeWindowFactory.getDefaultToolkitLock().lock();
         try {
             awtConfig = chooseGraphicsConfiguration(capabilities, chooser, device);
             if(DEBUG) {
-                Exception e = new Exception("Created Config: "+awtConfig);
+                Exception e = new Exception("Info: Created Config: "+awtConfig);
                 e.printStackTrace();
             }
             if(null!=awtConfig) {
@@ -427,7 +424,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
             context = (GLContextImpl) drawable.createContext(shareWith);
             context.setSynchronized(true);
         } finally {
-            JAWTUtil.unlockToolkit();
+            NativeWindowFactory.getDefaultToolkitLock().unlock();
         }
 
         if(DEBUG) {
@@ -446,7 +443,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       <DL><DD><CODE>removeNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void removeNotify() {
     if(DEBUG) {
-        Exception ex1 = new Exception("removeNotify - start");
+        Exception ex1 = new Exception("Info: removeNotify - start");
         ex1.printStackTrace();
     }
 
@@ -461,7 +458,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       }
     }
     if(DEBUG) {
-        System.out.println("removeNotify - end");
+        System.err.println("Info: removeNotify - end");
     }
   }
 
@@ -580,7 +577,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   }
 
   public String toString() {
-    return "AWT-GLCanvas[ "+awtConfig+", "+((null!=drawable)?drawable.getClass().getName():"null-drawable")+", "+drawableHelper+"]";
+    return "AWT-GLCanvas[ "+awtConfig+", "+((null!=drawable)?drawable.getClass().getName():"null-drawable")+"]";
   }
 
   //----------------------------------------------------------------------

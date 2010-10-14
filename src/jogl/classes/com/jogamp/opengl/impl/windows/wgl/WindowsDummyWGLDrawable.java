@@ -89,7 +89,7 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
     return new WindowsWGLContext(this, shareWith);
   }
 
-  public void destroy() {
+  protected void destroyImpl() {
     if (hdc != 0) {
       GDI.ReleaseDC(hwnd, hdc);
       hdc = 0;

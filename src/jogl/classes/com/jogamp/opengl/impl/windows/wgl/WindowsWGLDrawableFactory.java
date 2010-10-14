@@ -82,9 +82,10 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     new WindowsWGLGraphicsConfigurationFactory();
     try {
       ReflectionUtil.createInstance("com.jogamp.opengl.impl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory", 
-                                    new Object[] {}, getClass().getClassLoader());
+                                    null, getClass().getClassLoader());
     } catch (JogampRuntimeException jre) { /* n/a .. */ }
 
+    NativeWindowFactory.getDefaultToolkitLock().lock(); // OK
     try {
         sharedDrawable = new WindowsDummyWGLDrawable(this, null);
         WindowsWGLContext ctx  = (WindowsWGLContext) sharedDrawable.createContext(null);
@@ -94,6 +95,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         sharedContext = ctx;
     } catch (Throwable t) {
         throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources", t);
+    } finally {
+        NativeWindowFactory.getDefaultToolkitLock().unlock(); // OK
     }
     if(null==sharedContext) {
         throw new GLException("WindowsWGLDrawableFactory - Shared Context is null");
@@ -135,14 +138,14 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
      }
   }
 
-  public GLDrawableImpl createOnscreenDrawable(NativeSurface target) {
+  protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
     return new WindowsOnscreenWGLDrawable(this, target);
   }
 
-  protected GLDrawableImpl createOffscreenDrawable(NativeSurface target) {
+  protected GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -185,7 +188,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return (GLDrawableImpl) returnList.get(0);
   }
 
-  protected NativeSurface createOffscreenSurface(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
+  protected NativeSurface createOffscreenSurfaceImpl(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
     AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault();
     ProxySurface ns = new ProxySurface(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
                                      capabilities, chooser, screen) );
@@ -193,7 +196,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return ns;
   }
  
-  public GLContext createExternalGLContext() {
+  protected GLContext createExternalGLContextImpl() {
     return WindowsExternalWGLContext.create(this, null);
   }
 
@@ -201,7 +204,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return true;
   }
 
-  public GLDrawable createExternalGLDrawable() {
+  protected GLDrawable createExternalGLDrawableImpl() {
     return WindowsExternalWGLDrawable.create(this, null);
   }
 

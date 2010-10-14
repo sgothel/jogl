@@ -51,9 +51,8 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GraphicsConfiguration
         GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.macosx.MacOSXGraphicsDevice.class, this);
     }
 
-    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
-                                                                     CapabilitiesChooser chooser,
-                                                                     AbstractGraphicsScreen absScreen) {
+    protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
+            Capabilities capabilities, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
         return chooseGraphicsConfigurationStatic(capabilities, chooser, absScreen, false);
     }
 

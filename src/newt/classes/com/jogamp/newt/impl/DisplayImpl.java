@@ -349,7 +349,7 @@ public abstract class DisplayImpl extends Display {
         if(!isEDTRunning()) {
             // oops .. we are already dead
             if(DEBUG) {
-                Throwable t = new Throwable("EDT already stopped: wait:="+wait+", "+e);
+                Throwable t = new Throwable("Warning: EDT already stopped: wait:="+wait+", "+e);
                 t.printStackTrace();
             }
             return;
@@ -369,14 +369,6 @@ public abstract class DisplayImpl extends Display {
                 }
             }
         }
-    }
-
-    public void lock() { 
-        aDevice.lock();
-    }
-
-    public void unlock() { 
-        aDevice.unlock();
     }
 
     protected EDTUtil edtUtil = null;

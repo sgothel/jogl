@@ -127,7 +127,7 @@ public abstract class GLDrawableFactory {
           tmp = (GLDrawableFactory) ReflectionUtil.createInstance(factoryClassName, cl);
       } catch (JogampRuntimeException jre) { 
           if (GLProfile.DEBUG) {
-              System.err.println("GLDrawableFactory.static - Native Platform: "+nativeOSType+" - not available: "+factoryClassName);
+              System.err.println("Info: GLDrawableFactory.static - Native Platform: "+nativeOSType+" - not available: "+factoryClassName);
               jre.printStackTrace();
           }
       }
@@ -139,7 +139,7 @@ public abstract class GLDrawableFactory {
         tmp = (GLDrawableFactory) ReflectionUtil.createInstance("com.jogamp.opengl.impl.egl.EGLDrawableFactory", cl);
     } catch (JogampRuntimeException jre) {
         if (GLProfile.DEBUG) {
-            System.err.println("GLDrawableFactory.static - EGLDrawableFactory - not available");
+            System.err.println("Info: GLDrawableFactory.static - EGLDrawableFactory - not available");
             jre.printStackTrace();
         }
     }

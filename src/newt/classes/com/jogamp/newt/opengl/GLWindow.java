@@ -405,23 +405,34 @@ public class GLWindow implements GLAutoDrawable, Window {
     }
 
     public void addGLEventListener(GLEventListener listener) {
-        helper.addGLEventListener(listener);
+        if(null!=helper) {
+            helper.addGLEventListener(listener);
+        }
     }
 
     public void addGLEventListener(int index, GLEventListener listener) {
-        helper.addGLEventListener(index, listener);
+        if(null!=helper) {
+            helper.addGLEventListener(index, listener);
+        }
     }
 
     public void removeGLEventListener(GLEventListener listener) {
-        helper.removeGLEventListener(listener);
+        if(null!=helper) {
+            helper.removeGLEventListener(listener);
+        }
     }
 
     public void setAnimator(GLAnimatorControl animatorControl) {
-        helper.setAnimator(animatorControl);
+        if(null!=helper) {
+            helper.setAnimator(animatorControl);
+        }
     }
 
     public GLAnimatorControl getAnimator() {
-        return helper.getAnimator();
+        if(null!=helper) {
+            return helper.getAnimator();
+        }
+        return null;
     }
 
     public boolean getPerfLogEnabled() { return perfLog; }
@@ -431,7 +442,9 @@ public class GLWindow implements GLAutoDrawable, Window {
     }
 
     public void invoke(boolean wait, GLRunnable glRunnable) {
-        helper.invoke(this, wait, glRunnable);
+        if(null!=helper) {
+            helper.invoke(this, wait, glRunnable);
+        }
     }
 
     public void display() {
@@ -468,12 +481,17 @@ public class GLWindow implements GLAutoDrawable, Window {
 
     /** This implementation uses a static value */
     public void setAutoSwapBufferMode(boolean onOrOff) {
-        helper.setAutoSwapBufferMode(onOrOff);
+        if(null!=helper) {
+            helper.setAutoSwapBufferMode(onOrOff);
+        }
     }
 
     /** This implementation uses a static value */
     public boolean getAutoSwapBufferMode() {
-        return helper.getAutoSwapBufferMode();
+        if(null!=helper) {
+            return helper.getAutoSwapBufferMode();
+        }
+        return false;
     }
 
     public void swapBuffers() {
@@ -764,10 +782,6 @@ public class GLWindow implements GLAutoDrawable, Window {
     public final Thread getSurfaceLockOwner() {
         return window.getSurfaceLockOwner();
 
-    }
-
-    public final Exception getSurfaceLockStack() {
-        return window.getSurfaceLockStack();
     }
 
     public final boolean surfaceSwap() {

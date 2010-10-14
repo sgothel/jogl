@@ -117,6 +117,9 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
     public static void setup() throws InterruptedException, InvocationTargetException, AWTException {
         int count;
 
+        // GLProfile.initSingleton(false);
+        // GLProfile.initSingleton(true);
+
         // simulate AWT usage before JOGL's initialization of X11 threading
         windowClosing=false;
         border = BorderFactory.createLineBorder (Color.yellow, 2);
@@ -166,14 +169,18 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
 
         System.err.println("Clean End of Pre-JOGL-Swing");
 
-        GLProfile.initSingleton();
+        GLProfile.initSingleton(false);
     }
 
     @AfterClass
-    public static void release() {
+    public static void release() throws InterruptedException, InvocationTargetException {
         robot = null;
         Assert.assertNotNull(frame);
-        frame.dispose();
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.dispose();
+            }
+        });
         frame=null;
     }
 

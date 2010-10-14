@@ -152,11 +152,11 @@ public class GLPipelineFactory {
             instance = cstr.newInstance( cstrArgs ) ;
         } catch (Throwable t) { t.printStackTrace(); }
         if(null==instance) {
-            throw new GLException("Couldn't create instance of pipeline: "+upstreamClazz.getName()+
+            throw new GLException("Error: Couldn't create instance of pipeline: "+upstreamClazz.getName()+
                                   " ( "+getArgsClassNameList(downstreamClazz, additionalArgs) +" )");
         }
         if( ! (instance instanceof GL) ) {
-            throw new GLException(upstreamClazz.getName()+" not an instance of GL");
+            throw new GLException("Error: "+upstreamClazz.getName()+" not an instance of GL");
         }
         return (GL) instance;
     }

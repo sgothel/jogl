@@ -54,16 +54,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class TestTexture01AWT extends UITestCase {
-    static {
-        GLProfile.initSingleton();
-    }
-
     static GLProfile glp;
     static GLCapabilities caps;
     BufferedImage textureImage;
 
     @BeforeClass
     public static void initClass() {
+        GLProfile.initSingleton(true);
         glp = GLProfile.get(GLProfile.GL2GL3);
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);

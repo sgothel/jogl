@@ -1,4 +1,23 @@
-../doc/Implementation/properties/jogl.debug.all.txt
+../doc/Implementation/runtime-properties-temp/gluegen-rt.debug.txt
+----------------------------------------
+    jogamp.debug.JNILibLoader
+    jogamp.debug.JVMUtil
+    jogamp.debug.Lock
+    jogamp.debug.ReflectionUtil
+
+
+
+../doc/Implementation/runtime-properties-temp/gluegen-rt.ipd.debug.txt
+----------------------------------------
+    jnlp.launcher.class
+    jogamp.common.utils.locks.Lock.timeout
+    jogamp.debug.Lock.TraceLock
+    sun.boot.library.path
+    sun.jnlp.applet.launcher
+
+
+
+../doc/Implementation/runtime-properties-temp/jogl.debug.all.txt
 ----------------------------------------
     jogl.debug.Animator
     jogl.debug.BuildMipmap
@@ -22,23 +41,26 @@
 
 
 
-../doc/Implementation/properties/jogl.ipd.debug.txt
+../doc/Implementation/runtime-properties-temp/jogl.ipd.debug.txt
 ----------------------------------------
+    jogl.1thread
     jogl.debug.ExtensionAvailabilityCache
     jogl.debug.GLDrawable.profiling
     jogl.debug.GLSLCode
     jogl.debug.GLSLState
     jogl.debug.TextRenderer
     jogl.glcontext.forcetracking
+    jogl.gldrawablefactory.class.name
     jogl.gljpanel.nohw
     jogl.gljpanel.noogl
     jogl.gljpanel.nosw
+    jogl.screenchange.action
     jogl.texture.nonpot
     jogl.texture.notexrect
 
 
 
-../doc/Implementation/properties/nativewindow.debug.txt
+../doc/Implementation/runtime-properties-temp/nativewindow.debug.txt
 ----------------------------------------
     nativewindow.debug.DefaultCapabilitiesChooser
     nativewindow.debug.GraphicsConfiguration
@@ -48,12 +70,14 @@
 
 
 
-../doc/Implementation/properties/nativewindow.ipd.debug.txt
+../doc/Implementation/runtime-properties-temp/nativewindow.ipd.debug.txt
 ----------------------------------------
+    java.awt.headless
+    nativewindow.ws.name
 
 
 
-../doc/Implementation/properties/newt.debug.txt
+../doc/Implementation/runtime-properties-temp/newt.debug.txt
 ----------------------------------------
     newt.debug.Display
     newt.debug.EDT
@@ -65,10 +89,13 @@
 
 
 
-../doc/Implementation/properties/newt.ipd.debug.txt
+../doc/Implementation/runtime-properties-temp/newt.ipd.debug.txt
 ----------------------------------------
+    newt.MainThread.force
     newt.test.EDTMainThread
     newt.test.Window.reparent.incompatible
+    newt.ws.sheight
+    newt.ws.swidth
 
 
 

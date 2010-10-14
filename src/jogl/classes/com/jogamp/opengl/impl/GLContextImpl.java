@@ -122,7 +122,7 @@ public abstract class GLContextImpl extends GLContext {
     if(DEBUG) {
         String sgl1 = (null!=this.gl)?this.gl.getClass().toString()+", "+this.gl.toString():"<null>";
         String sgl2 = (null!=gl)?gl.getClass().toString()+", "+gl.toString():"<null>";
-        Exception e = new Exception("setGL (OpenGL "+getGLVersion()+"): "+Thread.currentThread()+", "+sgl1+" -> "+sgl2);
+        Exception e = new Exception("Info: setGL (OpenGL "+getGLVersion()+"): "+Thread.currentThread()+", "+sgl1+" -> "+sgl2);
         e.printStackTrace();
     }
     this.gl = gl;
@@ -1053,7 +1053,7 @@ public abstract class GLContextImpl extends GLContext {
         e.printStackTrace();
         // FIXME: refactor desktop OpenGL dependencies and make this
         // class work properly for OpenGL ES
-        System.err.println("ExtensionAvailabilityCache: FunctionAvailabilityCache.Version.<init>: "+e);
+        System.err.println("Info: ExtensionAvailabilityCache: FunctionAvailabilityCache.Version.<init>: "+e);
         major = 1;
         minor = 0;
         /*

@@ -51,7 +51,7 @@ import com.jogamp.test.junit.util.*;
 /**
  * This simple program will throw a {@link RuntimeException} when the application is closed.
  */
-public class TestEventSourceNotNEWTBug extends UITestCase {
+public class TestEventSourceNotAWTBug extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
@@ -92,7 +92,7 @@ public class TestEventSourceNotNEWTBug extends UITestCase {
     }
 
     public static void main(String args[]) throws IOException {
-        String tstname = TestEventSourceNotNEWTBug.class.getName();
+        String tstname = TestEventSourceNotAWTBug.class.getName();
         /*
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,

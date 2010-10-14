@@ -117,9 +117,4 @@ public class AWTUtil {
         }
     }
   }
-
-  public static boolean isToolkitLocked() {
-    return JAWTUtil.isToolkitLocked();
-  }
-
 }

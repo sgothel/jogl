@@ -43,10 +43,10 @@ import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.SurfaceChangeable;
 
-import com.jogamp.common.util.RecursiveToolkitLock;
+import com.jogamp.common.util.locks.RecursiveLock;
 
 public class ProxySurface implements NativeSurface, SurfaceChangeable {
-  private RecursiveToolkitLock recurLock = new RecursiveToolkitLock();
+  private RecursiveLock recurLock = new RecursiveLock();
   protected int width, height, scrnIndex;
   protected long surfaceHandle, displayHandle;
   protected AbstractGraphicsConfiguration config;
@@ -78,29 +78,34 @@ public class ProxySurface implements NativeSurface, SurfaceChangeable {
     surfaceHandle=0;
   }
 
-  public synchronized int lockSurface() throws NativeWindowException {
+  public final int lockSurface() throws NativeWindowException {
     recurLock.lock();
+
+    if(recurLock.getRecursionCount() == 0) {
+        config.getScreen().getDevice().lock();
+    }
     return LOCK_SUCCESS;
   }
 
-  public synchronized void unlockSurface() {
+  public final void unlockSurface() {
+    recurLock.validateLocked();
+
+    if(recurLock.getRecursionCount()==0) {
+        config.getScreen().getDevice().unlock();
+    }
     recurLock.unlock();
   }
 
-  public synchronized boolean isSurfaceLockedByOtherThread() {
+  public final boolean isSurfaceLockedByOtherThread() {
     return recurLock.isLockedByOtherThread();
   }
 
-  public synchronized boolean isSurfaceLocked() {
+  public final boolean isSurfaceLocked() {
     return recurLock.isLocked();
   }
 
-  public Thread getSurfaceLockOwner() {
+  public final Thread getSurfaceLockOwner() {
     return recurLock.getOwner();
-  }
-
-  public Exception getSurfaceLockStack() {
-    return recurLock.getLockedStack();
   }
 
   public boolean surfaceSwap() {

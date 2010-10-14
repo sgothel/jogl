@@ -56,7 +56,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     if(realized) {
         create();
     } else {
-        destroy();
+        destroyImpl();
     }
   }
 
@@ -74,14 +74,14 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     long dpy = aDevice.getHandle();
     int screen = aScreen.getIndex();
 
-    pixmap = X11Lib.XCreatePixmap(dpy, X11Lib.RootWindow(dpy, screen),
+    pixmap = X11Util.XCreatePixmap(dpy, X11Util.RootWindow(dpy, screen),
                                   surface.getWidth(), surface.getHeight(), bitsPerPixel);
     if (pixmap == 0) {
         throw new GLException("XCreatePixmap failed");
     }
     long drawable = GLX.glXCreateGLXPixmap(dpy, vis, pixmap);
     if (drawable == 0) {
-        X11Lib.XFreePixmap(dpy, pixmap);
+        X11Util.XFreePixmap(dpy, pixmap);
         pixmap = 0;
         throw new GLException("glXCreateGLXPixmap failed");
     }
@@ -93,7 +93,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     }
   }
 
-  public void destroy() {
+  protected void destroyImpl() {
     if (pixmap == 0) return;
 
     NativeSurface ns = getNativeSurface();
@@ -122,7 +122,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     GLX.glXMakeCurrent(display, 0, 0);
 
     GLX.glXDestroyGLXPixmap(display, drawable);
-    X11Lib.XFreePixmap(display, pixmap);
+    X11Util.XFreePixmap(display, pixmap);
     drawable = 0;
     pixmap = 0;
     ((SurfaceChangeable)ns).setSurfaceHandle(0);

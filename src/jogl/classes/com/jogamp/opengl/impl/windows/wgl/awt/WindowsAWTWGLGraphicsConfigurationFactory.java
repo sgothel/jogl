@@ -53,9 +53,8 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
         GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.awt.AWTGraphicsDevice.class, this);
     }
 
-    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
-                                                                     CapabilitiesChooser chooser,
-                                                                     AbstractGraphicsScreen absScreen) {
+    protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
+            Capabilities capabilities, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
         GraphicsDevice device = null;
         if (absScreen != null &&
             !(absScreen instanceof AWTGraphicsScreen)) {
@@ -107,8 +106,7 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
         if(DEBUG) {
             System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: chosen "+winConfig);
         }
-
-        // FIXME: we have nothing to match .. so choose the default
+        
         return new AWTGraphicsConfiguration(awtScreen, winConfig.getChosenCapabilities(), winConfig.getRequestedCapabilities(), gc, winConfig);
     }
 }

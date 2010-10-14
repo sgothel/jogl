@@ -80,7 +80,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
 
     try {
       ReflectionUtil.createInstance("com.jogamp.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory", 
-                                    new Object[] {}, getClass().getClassLoader());
+                                    null, getClass().getClassLoader());
     } catch (JogampRuntimeException jre) { /* n/a .. */ }
   }
 
@@ -88,14 +88,14 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   protected final GLDrawableImpl getSharedDrawable() { return null; }
   protected final GLContextImpl getSharedContext() { return null; }
 
-  public GLDrawableImpl createOnscreenDrawable(NativeSurface target) {
+  protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
     return new MacOSXOnscreenCGLDrawable(this, target);
   }
 
-  protected GLDrawableImpl createOffscreenDrawable(NativeSurface target) {
+  protected GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) {
     return new MacOSXOffscreenCGLDrawable(this, target);
   }
 
@@ -120,14 +120,14 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     return new MacOSXPbufferCGLDrawable(this, target);
   }
 
-  protected NativeSurface createOffscreenSurface(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
+  protected NativeSurface createOffscreenSurfaceImpl(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
     AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault();
     ProxySurface ns = new ProxySurface(MacOSXCGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, screen, true));
     ns.setSize(width, height);
     return ns;
   }
 
-  public GLContext createExternalGLContext() {
+  protected GLContext createExternalGLContextImpl() {
     return MacOSXExternalCGLContext.create(this, null);
   }
 
@@ -135,7 +135,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     return false;
   }
 
-  public GLDrawable createExternalGLDrawable() {
+  protected GLDrawable createExternalGLDrawableImpl() {
     // FIXME
     throw new GLException("Not yet implemented");
   }

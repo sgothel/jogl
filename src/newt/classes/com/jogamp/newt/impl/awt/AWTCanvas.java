@@ -90,7 +90,7 @@ public class AWTCanvas extends Canvas {
      */
     awtConfig = chooseGraphicsConfiguration(capabilities, device);
     if(Window.DEBUG_IMPLEMENTATION) {
-        Exception e = new Exception("Created Config: "+awtConfig);
+        Exception e = new Exception("Info: Created Config: "+awtConfig);
         e.printStackTrace();
     }
     if(null!=awtConfig) {
@@ -157,7 +157,7 @@ public class AWTCanvas extends Canvas {
         AWTGraphicsConfiguration config = chooseGraphicsConfiguration((Capabilities)awtConfig.getRequestedCapabilities(), gc.getDevice());
         final GraphicsConfiguration compatible = (null!=config)?config.getGraphicsConfiguration():null;
         if(Window.DEBUG_IMPLEMENTATION) {
-            Exception e = new Exception("Call Stack: "+Thread.currentThread().getName());
+            Exception e = new Exception("Info: Call Stack: "+Thread.currentThread().getName());
             e.printStackTrace();
             System.err.println("!!! Created Config (n): HAVE    GC "+chosen);
             System.err.println("!!! Created Config (n): THIS    GC "+gc);

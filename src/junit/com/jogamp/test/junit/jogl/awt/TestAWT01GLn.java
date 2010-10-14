@@ -47,15 +47,12 @@ import org.junit.Test;
 
 
 public class TestAWT01GLn extends UITestCase {
-    static {
-        GLProfile.initSingleton();
-    }
-
     Frame frame=null;
     GLCanvas glCanvas=null;
 
     @BeforeClass
     public static void startup() {
+        GLProfile.initSingleton(true);
         System.out.println("GLProfile <static> "+GLProfile.glAvailabilityToString());
     }
 

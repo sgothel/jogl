@@ -64,10 +64,6 @@ import com.jogamp.test.junit.util.*;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
 public class TestParenting03AWT extends UITestCase {
-    static {
-        GLProfile.initSingleton();
-    }
-
     static Dimension size;
     static long durationPerTest = 800;
     static long waitAdd2nd = 500;
@@ -75,6 +71,7 @@ public class TestParenting03AWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
+        GLProfile.initSingleton(true);
         size = new Dimension(400,200);
         glCaps = new GLCapabilities(null);
     }

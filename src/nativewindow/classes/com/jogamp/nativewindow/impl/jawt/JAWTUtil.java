@@ -40,27 +40,28 @@ import com.jogamp.nativewindow.impl.*;
 
 import javax.media.nativewindow.*;
 
-import com.jogamp.common.util.RecursiveToolkitLock;
+import com.jogamp.common.util.locks.RecursiveLock;
 
 import java.awt.GraphicsEnvironment;
 import java.lang.reflect.*;
 import java.security.*;
 
 public class JAWTUtil {
+  protected static final boolean DEBUG = Debug.debug("JAWT");
 
   // See whether we're running in headless mode
   private static final boolean headlessMode;
 
   // Java2D magic ..
-  private static final Class j2dClazz;
   private static final Method isQueueFlusherThread;
   private static final boolean j2dExist;
 
   private static Class   sunToolkitClass;
   private static Method  sunToolkitAWTLockMethod;
   private static Method  sunToolkitAWTUnlockMethod;
-  private static final boolean hasSunToolkitAWTLock;
-  private static final boolean useSunToolkitAWTLock;
+  private static boolean hasSunToolkitAWTLock;
+
+  private static final JAWTToolkitLock jawtToolkitLock;
 
   static {
     JAWTJNILibLoader.loadAWTImpl();
@@ -68,45 +69,53 @@ public class JAWTUtil {
 
     headlessMode = GraphicsEnvironment.isHeadless();
 
-    boolean ok=false;
-    Class jC=null;
-    Method m=null;
-    if(!headlessMode) {
+    boolean ok = false;
+    Class jC = null;
+    Method m = null;
+    if (!headlessMode) {
         try {
             jC = Class.forName("com.jogamp.opengl.impl.awt.Java2D");
             m = jC.getMethod("isQueueFlusherThread", null);
             ok = true;
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
-    j2dClazz = jC;
     isQueueFlusherThread = m;
     j2dExist = ok;
 
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          try {
-            sunToolkitClass = Class.forName("sun.awt.SunToolkit");
-            sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[] {});
-            sunToolkitAWTLockMethod.setAccessible(true);
-            sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[] {});
-            sunToolkitAWTUnlockMethod.setAccessible(true);
-          } catch (Exception e) {
-            // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
-          }
-          return null;
+            try {
+                sunToolkitClass = Class.forName("sun.awt.SunToolkit");
+                sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
+                sunToolkitAWTLockMethod.setAccessible(true);
+                sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});
+                sunToolkitAWTUnlockMethod.setAccessible(true);
+            } catch (Exception e) {
+                // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
+            }
+            return null;
         }
-      });
-      boolean _hasSunToolkitAWTLock = false;
-      if ( null!=sunToolkitAWTLockMethod && null!=sunToolkitAWTUnlockMethod ) {
-          try {
-                sunToolkitAWTLockMethod.invoke(null, null);
-                sunToolkitAWTUnlockMethod.invoke(null, null);
-                _hasSunToolkitAWTLock = true;
-          } catch (Exception e) {}
-      }
-      hasSunToolkitAWTLock = _hasSunToolkitAWTLock;
-      // useSunToolkitAWTLock = hasSunToolkitAWTLock;
-      useSunToolkitAWTLock = false;
+    });
+    boolean _hasSunToolkitAWTLock = false;
+    if (null != sunToolkitAWTLockMethod && null != sunToolkitAWTUnlockMethod) {
+        try {
+            sunToolkitAWTLockMethod.invoke(null, null);
+            sunToolkitAWTUnlockMethod.invoke(null, null);
+            _hasSunToolkitAWTLock = true;
+        } catch (Exception e) {
+        }
+    }
+    hasSunToolkitAWTLock = _hasSunToolkitAWTLock;
+    // hasSunToolkitAWTLock = false;
+
+    jawtToolkitLock = new JAWTToolkitLock();
+
+    if (DEBUG) {
+        System.err.println("JAWTUtil: Has sun.awt.SunToolkit.awtLock/awtUnlock " + hasSunToolkitAWTLock);
+        System.err.println("JAWTUtil: Has Java2D " + j2dExist);
+        System.err.println("JAWTUtil: Is headless " + headlessMode);
+    }
   }
 
   public static void initSingleton() {
@@ -132,8 +141,14 @@ public class JAWTUtil {
     return headlessMode;
   }
 
-  private static void awtLock() {
-    if(useSunToolkitAWTLock) {
+  /**
+   * Locks the AWT's global ReentrantLock.<br>
+   *
+   * JAWT's native Lock() function calls SunToolkit.awtLock(),
+   * which just uses AWT's global ReentrantLock.<br>
+   */
+  public static void awtLock() {
+    if(hasSunToolkitAWTLock) {
         try {
             sunToolkitAWTLockMethod.invoke(null, null);
         } catch (Exception e) {
@@ -144,8 +159,14 @@ public class JAWTUtil {
     }
   }
 
-  private static void awtUnlock() {
-    if(useSunToolkitAWTLock) {
+  /**
+   * Unlocks the AWT's global ReentrantLock.<br>
+   *
+   * JAWT's native Unlock() function calls SunToolkit.awtUnlock(),
+   * which just uses AWT's global ReentrantLock.<br>
+   */
+  public static void awtUnlock() {
+    if(hasSunToolkitAWTLock) {
         try {
             sunToolkitAWTUnlockMethod.invoke(null, null);
         } catch (Exception e) {
@@ -156,36 +177,20 @@ public class JAWTUtil {
     }
   }
 
-  private static RecursiveToolkitLock recurLock = new RecursiveToolkitLock();
-
-  public static synchronized void lockToolkit() throws NativeWindowException {
-    recurLock.lock();
-
-    if(recurLock.getRecursionCount()==0 &&
-       !isJava2DQueueFlusherThread() && 
-       !headlessMode) {
+  public static void lockToolkit() throws NativeWindowException {
+    if(!isJava2DQueueFlusherThread() && !headlessMode) {
         awtLock();
     }
   }
 
-  public static synchronized void unlockToolkit() {
-    recurLock.validateLocked();
-
-    if(recurLock.getRecursionCount()==0 &&
-       !isJava2DQueueFlusherThread() && 
-       !headlessMode) {
+  public static void unlockToolkit() {
+    if(!isJava2DQueueFlusherThread() && !headlessMode) {
         awtUnlock();
     }
-
-    recurLock.unlock();
   }
 
-  public static boolean isToolkitLocked() {
-    return recurLock.isLocked();
-  }
-
-  public static Exception getLockedStack() {
-    return recurLock.getLockedStack();
+  public static JAWTToolkitLock getJAWTToolkitLock() {
+    return jawtToolkitLock;
   }
 }
 

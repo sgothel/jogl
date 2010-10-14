@@ -60,79 +60,65 @@ public class X11JAWTWindow extends JAWTWindow {
         if(0==displayHandle) {
             displayHandle = X11Util.createThreadLocalDisplay(null);
         }
-        awtDevice.setHandle(displayHandle);
+        awtDevice.setSubType(NativeWindowFactory.TYPE_X11, displayHandle);
     }
   }
 
   protected int lockSurfaceImpl() throws NativeWindowException {
-    // JAWTUtil.lockToolkit();
-    // config.getNativeGraphicsConfiguration().getScreen().getDevice().lock();
-    try {
-        int ret = NativeWindow.LOCK_SUCCESS;
-        ds = JAWT.getJAWT().GetDrawingSurface(component);
-        if (ds == null) {
-          // Widget not yet realized
-          unlockSurface();
-          return LOCK_SURFACE_NOT_READY;
-        }
-        int res = ds.Lock();
-        dsLocked = ( 0 == ( res & JAWTFactory.JAWT_LOCK_ERROR ) ) ;
-        if (!dsLocked) {
-          unlockSurface();
-          throw new NativeWindowException("Unable to lock surface");
-        }
-        // See whether the surface changed and if so destroy the old
-        // OpenGL context so it will be recreated (NOTE: removeNotify
-        // should handle this case, but it may be possible that race
-        // conditions can cause this code to be triggered -- should test
-        // more)
-        if ((res & JAWTFactory.JAWT_LOCK_SURFACE_CHANGED) != 0) {
-          ret = LOCK_SURFACE_CHANGED;
-        }
-        dsi = ds.GetDrawingSurfaceInfo();
-        if (dsi == null) {
-          unlockSurface();
-          return LOCK_SURFACE_NOT_READY;
-        }
-        x11dsi = (JAWT_X11DrawingSurfaceInfo) dsi.platformInfo();
-        if (x11dsi == null) {
-          unlockSurface();
-          return LOCK_SURFACE_NOT_READY;
-        }
-        drawable = x11dsi.getDrawable();
-        if (drawable == 0) {
-          unlockSurface();
-          return LOCK_SURFACE_NOT_READY;
-        } else {
-          updateBounds(dsi.getBounds());
-        }
-        return ret;
-    } finally {
-        // config.getNativeGraphicsConfiguration().getScreen().getDevice().unlock();
-        // JAWTUtil.unlockToolkit();
+    int ret = NativeWindow.LOCK_SUCCESS;
+    ds = JAWT.getJAWT().GetDrawingSurface(component);
+    if (ds == null) {
+      // Widget not yet realized
+      unlockSurface();
+      return LOCK_SURFACE_NOT_READY;
     }
+    int res = ds.Lock();
+    dsLocked = ( 0 == ( res & JAWTFactory.JAWT_LOCK_ERROR ) ) ;
+    if (!dsLocked) {
+      unlockSurface();
+      throw new NativeWindowException("Unable to lock surface");
+    }
+    // See whether the surface changed and if so destroy the old
+    // OpenGL context so it will be recreated (NOTE: removeNotify
+    // should handle this case, but it may be possible that race
+    // conditions can cause this code to be triggered -- should test
+    // more)
+    if ((res & JAWTFactory.JAWT_LOCK_SURFACE_CHANGED) != 0) {
+      ret = LOCK_SURFACE_CHANGED;
+    }
+    dsi = ds.GetDrawingSurfaceInfo();
+    if (dsi == null) {
+      unlockSurface();
+      return LOCK_SURFACE_NOT_READY;
+    }
+    x11dsi = (JAWT_X11DrawingSurfaceInfo) dsi.platformInfo();
+    if (x11dsi == null) {
+      unlockSurface();
+      return LOCK_SURFACE_NOT_READY;
+    }
+    drawable = x11dsi.getDrawable();
+    if (drawable == 0) {
+      unlockSurface();
+      return LOCK_SURFACE_NOT_READY;
+    } else {
+      updateBounds(dsi.getBounds());
+    }
+    return ret;
   }
 
   protected void unlockSurfaceImpl() throws NativeWindowException {
-    // JAWTUtil.lockToolkit();
-    // config.getNativeGraphicsConfiguration().getScreen().getDevice().lock();
-    try {
-        if(null!=ds) {
-            if (null!=dsi) {
-                ds.FreeDrawingSurfaceInfo(dsi);
-            }
-            if (dsLocked) {
-                ds.Unlock();
-            }
-            JAWT.getJAWT().FreeDrawingSurface(ds);
+    if(null!=ds) {
+        if (null!=dsi) {
+            ds.FreeDrawingSurfaceInfo(dsi);
         }
-        ds = null;
-        dsi = null;
-        x11dsi = null;
-    } finally {
-        // config.getNativeGraphicsConfiguration().getScreen().getDevice().unlock();
-        // JAWTUtil.unlockToolkit();
+        if (dsLocked) {
+            ds.Unlock();
+        }
+        JAWT.getJAWT().FreeDrawingSurface(ds);
     }
+    ds = null;
+    dsi = null;
+    x11dsi = null;
   }
 
   // Variables for lockSurface/unlockSurface

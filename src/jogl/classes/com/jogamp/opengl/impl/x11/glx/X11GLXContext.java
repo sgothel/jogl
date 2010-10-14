@@ -119,7 +119,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         }
     } catch (RuntimeException re) {
         if(DEBUG) {
-          System.err.println("X11GLXContext.glXMakeContextCurrent failed: "+re+", with "+
+          System.err.println("Warning: X11GLXContext.glXMakeContextCurrent failed: "+re+", with "+
             "dpy "+toHexString(dpy)+
             ", write "+toHexString(writeDrawable)+
             ", read "+toHexString(readDrawable)+
@@ -191,7 +191,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         ctx = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
     } catch (RuntimeException re) {
         if(DEBUG) {
-          System.err.println("X11GLXContext.createContextARB glXCreateContextAttribsARB failed: "+re+", with "+getGLVersion(major, minor, ctp, "@creation"));
+          System.err.println("Warning: X11GLXContext.createContextARB glXCreateContextAttribsARB failed: "+re+", with "+getGLVersion(major, minor, ctp, "@creation"));
           re.printStackTrace();
         }
     }
@@ -335,7 +335,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         if (!glXMakeContextCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
           throw new GLException("Error making context current: "+this);
         }
-        if (DEBUG && (VERBOSE || isCreated())) {
+        if (DEBUG && (VERBOSE || newCreated)) {
           System.err.println(getThreadName() + ": glXMakeCurrent(display " + 
                              toHexString(dpy)+
                              ", drawable " + toHexString(drawable.getHandle()) +

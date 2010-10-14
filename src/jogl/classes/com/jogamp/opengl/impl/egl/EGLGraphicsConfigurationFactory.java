@@ -53,9 +53,8 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.egl.EGLGraphicsDevice.class, this);
     }
 
-    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
-                                                                     CapabilitiesChooser chooser,
-                                                                     AbstractGraphicsScreen absScreen) {
+    protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl (
+            Capabilities capabilities, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
         if (absScreen == null) {
             throw new IllegalArgumentException("This NativeWindowFactory accepts only AbstractGraphicsDevice objects");
         }
@@ -75,7 +74,7 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
                                                  absScreen);
     }
 
-    public static EGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilities capabilities,
+    private static EGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilities capabilities,
                                                                              GLCapabilitiesChooser chooser,
                                                                              AbstractGraphicsScreen absScreen) {
         if (capabilities == null) {

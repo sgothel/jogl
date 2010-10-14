@@ -48,7 +48,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   private long origbitmap;
   private long hbitmap;
 
-  public WindowsOffscreenWGLDrawable(GLDrawableFactory factory, NativeSurface target) {
+  protected WindowsOffscreenWGLDrawable(GLDrawableFactory factory, NativeSurface target) {
     super(factory, target, true);
     create();
   }
@@ -57,7 +57,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
     if(realized) {
         create();
     } else {
-        destroy();
+        destroyImpl();
     }
   }
 
@@ -113,11 +113,10 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
       hdc = 0;
       throw new GLException("Error selecting bitmap into new device context");
     }
-        
     config.updateGraphicsConfiguration(getFactory(), ns);
   }
   
-  public void destroy() {
+  protected void destroyImpl() {
     NativeSurface ns = getNativeSurface();
     if (ns.getSurfaceHandle() != 0) {
       // Must destroy bitmap and device context

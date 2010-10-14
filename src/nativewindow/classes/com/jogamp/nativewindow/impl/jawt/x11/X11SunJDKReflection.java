@@ -89,7 +89,7 @@ public class X11SunJDKReflection {
     }
 
     try {
-      return ((Integer) x11GraphicsDeviceGetScreenMethod.invoke(device, new Object[] {})).intValue();
+      return ((Integer) x11GraphicsDeviceGetScreenMethod.invoke(device, null)).intValue();
     } catch (Exception e) {
       return 0;
     }
@@ -101,7 +101,7 @@ public class X11SunJDKReflection {
     }
 
     try {
-      return ((Long) x11GraphicsDeviceGetDisplayMethod.invoke(device, new Object[] {})).longValue();
+      return ((Long) x11GraphicsDeviceGetDisplayMethod.invoke(device, null)).longValue();
     } catch (Exception e) {
       return 0;
     }
@@ -124,7 +124,7 @@ public class X11SunJDKReflection {
     }
 
     try {
-      return ((Integer) x11GraphicsConfigGetVisualMethod.invoke(config, new Object[] {})).intValue();
+      return ((Integer) x11GraphicsConfigGetVisualMethod.invoke(config, null)).intValue();
     } catch (Exception e) {
       return 0;
     }

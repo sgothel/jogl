@@ -67,6 +67,14 @@ public abstract class GLDrawableImpl implements GLDrawable {
   /** For offscreen GLDrawables (pbuffers and "pixmap" drawables),
       indicates that native resources should be reclaimed. */
   public void destroy() {
+      surface.getGraphicsConfiguration().getScreen().getDevice().lock();
+      try {
+          destroyImpl();
+      } finally {
+          surface.getGraphicsConfiguration().getScreen().getDevice().unlock();
+      }
+  }
+  protected void destroyImpl() {
     throw new GLException("Should not call this (should only be called for offscreen GLDrawables)");
   }
 
@@ -129,35 +137,41 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return factory;
   }
 
-  public final void setRealized(boolean realized) {
-    if ( this.realized != realized ) {
+  public final synchronized void setRealized(boolean realizedArg) {
+    if ( realized != realizedArg ) {
         if(DEBUG) {
-            System.err.println("setRealized: "+getClass().getName()+" "+this.realized+" -> "+realized);
+            System.err.println("setRealized: "+getClass().getName()+" "+realized+" -> "+realizedArg);
         }
-        this.realized = realized;
-        if(realized && NativeSurface.LOCK_SURFACE_NOT_READY == lockSurface()) {
-          throw new GLException("X11GLXDrawable.setRealized(true): lockSurface - surface not ready");
+        realized = realizedArg;
+        AbstractGraphicsDevice aDevice = surface.getGraphicsConfiguration().getScreen().getDevice();
+        if(realizedArg) {
+            if(NativeSurface.LOCK_SURFACE_NOT_READY >= lockSurface()) {
+                throw new GLException("X11GLXDrawable.setRealized(true): already realized, but surface not ready (lockSurface)");
+            }
+        } else {
+            aDevice.lock();
         }
-        try {
-            AbstractGraphicsDevice aDevice = getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
-            if(!realized) {
+        try {            
+            setRealizedImpl();
+            if(realizedArg) {
+                updateHandle();
+            } else {
                 destroyHandle();
             }
-            setRealizedImpl();
-            if(realized) {
-                updateHandle();
-            }
         } finally {
-            if(realized) {
+            if(realizedArg) {
                 unlockSurface();
+            } else {
+                aDevice.unlock();
             }
         }
     } else if(DEBUG) {
-        System.err.println("setRealized: "+getClass().getName()+" "+this.realized+" == "+realized);
+        System.err.println("setRealized: "+getClass().getName()+" "+this.realized+" == "+realizedArg);
     }
   }
   protected abstract void setRealizedImpl();
-  public boolean isRealized() {
+  
+  public synchronized boolean isRealized() {
     return realized;
   }
 

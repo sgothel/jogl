@@ -41,6 +41,12 @@ import javax.media.nativewindow.*;
 public class NativeWindowFactoryImpl extends NativeWindowFactory {
     protected static final boolean DEBUG = Debug.debug("NativeWindow");
 
+    private static final ToolkitLock nullToolkitLock = new NullToolkitLock();
+
+    public static ToolkitLock getNullToolkitLock() {
+            return nullToolkitLock;
+    }
+
     // This subclass of NativeWindowFactory handles the case of
     // NativeWindows being passed in
     protected NativeWindow getNativeWindowImpl(Object winObj, AbstractGraphicsConfiguration config) throws IllegalArgumentException {
@@ -56,7 +62,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
             throw new IllegalArgumentException("AbstractGraphicsConfiguration is null with a non NativeWindow object");
         }
 
-        if (ReflectionUtil.instanceOf(winObj, AWTComponentClassName)) {
+        if (NativeWindowFactory.isAWTAvailable() && ReflectionUtil.instanceOf(winObj, AWTComponentClassName)) {
             return getAWTNativeWindow(winObj, config);
         }
 

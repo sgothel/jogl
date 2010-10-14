@@ -34,12 +34,8 @@
 
 package com.jogamp.newt;
 
-import com.jogamp.common.util.ReflectionUtil;
 import javax.media.nativewindow.*;
-import java.util.ArrayList;
-import java.util.Iterator;
 import com.jogamp.common.jvm.JVMUtil;
-import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.impl.DisplayImpl;
 import com.jogamp.newt.impl.ScreenImpl;
@@ -53,6 +49,7 @@ public class NewtFactory {
     // between native Newt and (apparently) Fmod
     static {
         JVMUtil.initSingleton();
+        NativeWindowFactory.initSingleton(false); // last resort ..
         WindowImpl.init(NativeWindowFactory.getNativeWindowType(true));
     }
 

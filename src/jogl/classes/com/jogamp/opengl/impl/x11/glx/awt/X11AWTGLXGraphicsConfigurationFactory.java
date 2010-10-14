@@ -32,6 +32,7 @@
 
 package com.jogamp.opengl.impl.x11.glx.awt;
 
+import com.jogamp.nativewindow.impl.jawt.JAWTUtil;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import javax.media.nativewindow.*;
@@ -50,9 +51,8 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
         GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.awt.AWTGraphicsDevice.class, this);
     }
 
-    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
-                                                                     CapabilitiesChooser chooser,
-                                                                     AbstractGraphicsScreen absScreen) {
+    protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
+            Capabilities capabilities, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
         GraphicsDevice device = null;
         if (absScreen != null &&
             !(absScreen instanceof AWTGraphicsScreen)) {
@@ -93,7 +93,7 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
                 System.err.println("X11AWTGLXGraphicsConfigurationFactory: using AWT X11 display 0x"+Long.toHexString(displayHandle));
             }
         }
-        ((AWTGraphicsDevice)awtScreen.getDevice()).setHandle(displayHandle);
+        ((AWTGraphicsDevice)awtScreen.getDevice()).setSubType(NativeWindowFactory.TYPE_X11, displayHandle);
         X11GraphicsDevice x11Device = new X11GraphicsDevice(displayHandle);
 
         X11GraphicsScreen x11Screen = new X11GraphicsScreen(x11Device, awtScreen.getIndex());

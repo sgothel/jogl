@@ -78,7 +78,7 @@ public abstract class GraphicsConfigurationFactory {
         if (NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {
             try {
                 GraphicsConfigurationFactory factory = (GraphicsConfigurationFactory)
-                    ReflectionUtil.createInstance("com.jogamp.nativewindow.impl.x11.X11GraphicsConfigurationFactory", new Object[] {}, 
+                    ReflectionUtil.createInstance("com.jogamp.nativewindow.impl.x11.X11GraphicsConfigurationFactory", null,
                                                   GraphicsConfigurationFactory.class.getClassLoader());
                 registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, factory);
             } catch (Exception e) {
@@ -198,8 +198,28 @@ public abstract class GraphicsConfigurationFactory {
      * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
      * @see javax.media.nativewindow.DefaultGraphicsConfiguration#setChosenCapabilities(Capabilities caps)
      */
-    public abstract AbstractGraphicsConfiguration
+    public final AbstractGraphicsConfiguration
         chooseGraphicsConfiguration(Capabilities capabilities,
+                                    CapabilitiesChooser chooser,
+                                    AbstractGraphicsScreen screen)
+        throws IllegalArgumentException, NativeWindowException {
+        if(null==screen) {
+            throw new NativeWindowException("Screen is null");
+        }
+        AbstractGraphicsDevice device =  screen.getDevice();
+        if(null==device) {
+            throw new NativeWindowException("Screen's Device is null");
+        }
+        device.lock();
+        try {
+            return chooseGraphicsConfigurationImpl(capabilities, chooser, screen);            
+        } finally {
+            device.unlock();
+        }
+    }
+
+    protected abstract AbstractGraphicsConfiguration
+        chooseGraphicsConfigurationImpl(Capabilities capabilities,
                                     CapabilitiesChooser chooser,
                                     AbstractGraphicsScreen screen)
         throws IllegalArgumentException, NativeWindowException;

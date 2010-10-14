@@ -138,8 +138,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   private int viewportY;
 
   static {
-    NativeWindowFactory.initSingleton();
-
     // Force eager initialization of part of the Java2D class since
     // otherwise it's likely it will try to be initialized while on
     // the Queue Flusher Thread, which is not allowed
@@ -212,7 +210,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
 
   protected void dispose(boolean regenerate) {
     if(DEBUG) {
-        Exception ex1 = new Exception("dispose("+regenerate+") - start");
+        Exception ex1 = new Exception("Info: dispose("+regenerate+") - start");
         ex1.printStackTrace();
     }
     if (backend != null) {
@@ -287,10 +285,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       return;
     }
 
-    if ( drawableHelper.isExternalAnimatorAnimating() ) {
-        return;
-    }
-
     if (backend == null || !isInitialized) {
       createAndInitializeBackend();
     }
@@ -334,7 +328,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       <DL><DD><CODE>removeNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void removeNotify() {
     if(DEBUG) {
-        Exception ex1 = new Exception("removeNotify - start");
+        Exception ex1 = new Exception("Info: removeNotify - start");
         ex1.printStackTrace();
     }
     dispose(false);
@@ -345,7 +339,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     isInitialized = false;
     super.removeNotify();
     if(DEBUG) {
-        System.out.println("removeNotify - end");
+        System.err.println("Info: removeNotify - end");
     }
   }
 
@@ -617,7 +611,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   }
 
   public String toString() {
-    return "AWT-GLJPanel[ "+((null!=backend)?backend.getDrawable().getClass().getName():"null-drawable")+", "+drawableHelper+"]";
+    return "AWT-GLJPanel[ "+((null!=backend)?backend.getDrawable().getClass().getName():"null-drawable")+"]";
   }
 
   private boolean disposeRegenerate;
@@ -1034,7 +1028,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       } catch (GLException e) {
         if (DEBUG) {
           e.printStackTrace();
-          System.err.println("GLJPanel: Falling back on software rendering because of problems creating pbuffer");
+          System.err.println("Info: GLJPanel: Falling back on software rendering because of problems creating pbuffer");
         }
         hardwareAccelerationDisabled = true;
         backend = null;
@@ -1111,7 +1105,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
             readBackWidthInPixels  = Math.max(1, panelWidth);
             readBackHeightInPixels = Math.max(1, panelHeight);
             if (DEBUG) {
-              System.err.println("WARNING: falling back to software rendering due to bugs in OpenGL drivers");
+              System.err.println("Warning: falling back to software rendering due to bugs in OpenGL drivers");
               e.printStackTrace();
             }
             createAndInitializeBackend();
