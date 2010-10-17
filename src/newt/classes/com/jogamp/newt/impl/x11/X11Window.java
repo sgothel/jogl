@@ -33,8 +33,6 @@
 
 package com.jogamp.newt.impl.x11;
 
-import com.jogamp.newt.*;
-import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.WindowImpl;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
@@ -105,7 +103,8 @@ public class X11Window extends WindowImpl {
 
     protected void reconfigureWindowImpl(int x, int y, int width, int height) {
         reconfigureWindow0(fullscreen?0:getParentWindowHandle(), getDisplayHandle(), getScreenIndex(), getWindowHandle(),
-                            x, y, width, height, isUndecorated(), isVisible());
+                            x, y, width, height, isUndecorated(), isVisible(),isFullscreen());
+
     }
 
     protected boolean reparentWindowImpl() {
@@ -136,13 +135,13 @@ public class X11Window extends WindowImpl {
     private        native void setVisible0(long display, long windowHandle, boolean visible);
     private        native void setSize0(long display, long windowHandle, int width, int height);
     private        native void reconfigureWindow0(long parentWindowHandle, long display, int screen_index, long windowHandle, 
-                                                  int x, int y, int width, int height, boolean undecorated, boolean isVisible);
+                                                  int x, int y, int width, int height, boolean undecorated, boolean isVisible, boolean fullscreen);
     private        native void setTitle0(long display, long windowHandle, String title);
     private        native void requestFocus0(long display, long windowHandle, boolean reparented);
     private        native void setPosition0(long parentWindowHandle, long display, long windowHandle, int x, int y);
     private        native void reparentWindow0(long parentWindowHandle, long display, int screen_index, long windowHandle, 
                                                int x, int y, boolean undecorated, boolean isVisible);
-
+    
     private void windowCreated(long windowHandle) {
         setWindowHandle(windowHandle);
     }

@@ -29,6 +29,9 @@
 package com.jogamp.newt;
 
 import com.jogamp.newt.impl.Debug;
+import com.jogamp.newt.impl.ScreenMode;
+import com.jogamp.newt.impl.ScreensModeState;
+
 import javax.media.nativewindow.AbstractGraphicsScreen;
 
 public interface Screen {
@@ -67,4 +70,35 @@ public interface Screen {
     int getHeight();
 
     Display getDisplay();
+    
+    /** Get the screen fully qualified name
+     *  which can be used to get the screen controller 
+     *  associated with this screen
+     */
+    String getScreenFQN();
+    
+    /**
+     * Get the Current Desktop Screen mode index
+     * returns -1 if functionality not implemented
+     * for screen platform
+     */
+    int getDesktopScreenModeIndex();
+    
+    /** Get the current screen rate
+     *  returns -1 if not natively implemented
+     */
+    short getCurrentScreenRate();
+    
+    /** 
+     * Get list of available screen modes
+     * null if not implemented for screen platform
+     */
+    ScreenMode[] getScreenModes();
+    
+    /** 
+     * change the screen mode
+     * @param modeIndex mode index from the list of available screen modes
+     * @param rate the desired rate should be one of the available rates.
+     */
+    void setScreenMode(int modeIndex, short rate);
 }

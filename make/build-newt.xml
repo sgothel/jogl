@@ -239,11 +239,13 @@
 
       <linker id="linker.cfg.freebsd.newt.x11" extends="linker.cfg.freebsd">
         <syslibset dir="/usr/local/lib" libs="X11"/>
+        <syslibset libs="Xrandr"/>
         <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.freebsd.amd64.newt.x11" extends="linker.cfg.freebsd.amd64">
         <syslibset dir="/usr/local/lib" libs="X11"/>
+        <syslibset libs="Xrandr"/>
         <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
       </linker>
 
@@ -254,11 +256,13 @@
 
       <linker id="linker.cfg.linux.newt.x11" extends="linker.cfg.linux">
         <syslibset libs="X11"/>
+        <syslibset libs="Xrandr"/>
         <syslibset libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.amd64.newt.x11" extends="linker.cfg.linux.amd64">
         <syslibset libs="X11"/>
+        <syslibset libs="Xrandr"/>
         <syslibset libs="Xxf86vm" />
       </linker>
 
@@ -531,8 +535,14 @@
 
     <target name="c.build.newt.prepare.desktop" unless="setup.nodesktop">
       <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="com.jogamp.newt.impl.windows.WindowsWindow" />
+      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="com.jogamp.newt.impl.windows.WindowsScreen" />
+      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="com.jogamp.newt.impl.windows.WindowsDisplay" />
       <javah destdir="${src.generated.c}/MacOSX" classpath="${classes}" class="com.jogamp.newt.impl.macosx.MacWindow" />
+      <javah destdir="${src.generated.c}/MacOSX" classpath="${classes}" class="com.jogamp.newt.impl.macosx.MacScreen" />
+      <javah destdir="${src.generated.c}/MacOSX" classpath="${classes}" class="com.jogamp.newt.impl.macosx.MacDisplay" />
       <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="com.jogamp.newt.impl.x11.X11Window" />
+      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="com.jogamp.newt.impl.x11.X11Screen" />
+      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="com.jogamp.newt.impl.x11.X11Display" />
     </target>
 
     <target name="c.build.newt.prepare" depends="c.build.newt.prepare.KD,c.build.newt.prepare.IntelGDL,c.build.newt.prepare.BroadcomEGL,c.build.newt.prepare.desktop" />

@@ -29,7 +29,7 @@ spath=`dirname $0`
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01bAWT $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01cAWT $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting01cSwingAWT $*
-$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting02AWT $*
+# $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting02AWT $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.TestParenting03AWT $*
 
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.jogl.awt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
@@ -38,6 +38,10 @@ $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.parenting.Test
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestFocus01SwingAWTRobot $*
 # $spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot $*
 
-$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestEventSourceNotAWTBug $*
+#$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestEventSourceNotAWTBug $*
+
+$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestScreenMode01NEWT $*
+
+
 
 $spath/count-edt-start.sh java-run.log
