@@ -122,7 +122,7 @@ public abstract class ScreenImpl implements Screen {
 		String screenFQN = display.getFQName()+idx;
 		setScreenFQN(screenFQN);
 		ScreenModeStatus screenModeStatus = new ScreenModeStatus(screenFQN , 
-				getDesktopScreenModeIndex(), getCurrentScreenRate());
+				getDesktopScreenModeIndex(), getCurrentScreenRate(),getCurrentScreenRotation());
 		screenModeStatus.setScreenModes(screenModes);
 
 		screensModeState.setScreenModeController(screenModeStatus);
@@ -130,12 +130,19 @@ public abstract class ScreenImpl implements Screen {
 
 	private void resetScreenMode() {
 		ScreenModeStatus sms = screensModeState.getScreenModeController(getScreenFQN());
+		
 		/**Revert the screen mode and rate 
 		 * to original state of creation
 		 */
 		if(!sms.isOriginalMode()) {
 			setScreenMode(sms.getOriginalScreenMode(), 
 					sms.getOriginalScreenRate());
+		}
+		/**Revert Screen Rotation
+		 * to original value
+		 */
+		if(!sms.isOriginalRotation()) {
+			setScreenRotation(sms.getOriginalScreenRotation());
 		}
 	}
 
@@ -215,6 +222,19 @@ public abstract class ScreenImpl implements Screen {
 		ScreenModeStatus sms = screensModeState.getScreenModeController(getScreenFQN());
 		if(sms != null){
 			return sms.getCurrentScreenRate();
+		}
+		return -1;
+	}
+
+
+	public void setScreenRotation(int rot) {
+				
+	}
+	
+	public int getCurrentScreenRotation() {
+		ScreenModeStatus sms = screensModeState.getScreenModeController(getScreenFQN());
+		if(sms != null) {
+			return sms.getCurrentScreenRotation();
 		}
 		return -1;
 	}

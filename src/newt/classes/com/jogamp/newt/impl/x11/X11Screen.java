@@ -98,7 +98,7 @@ public class X11Screen extends ScreenImpl {
     	}
 
     	
-    	setScreenMode0(display.getHandle(), idx, selectedMode, selectedRate);	
+    	setScreenMode0(display.getHandle(), idx, selectedMode, selectedRate, getCurrentScreenRotation());	
 		sms.setCurrentScreenMode(selectedMode);
     	sms.setCurrentScreenRate(selectedRate);
     }
@@ -145,6 +145,35 @@ public class X11Screen extends ScreenImpl {
     	return screenMode;
     }
     
+	public void setScreenRotation(int rot) {
+		if(!isRotationValid(rot)){
+			return;
+		}
+		ScreenModeStatus sms = screensModeState.getScreenModeController(getScreenFQN());
+		setScreenRotation0(display.getHandle(), idx, rot);
+		sms.setCurrentScreenRotation(rot);
+	}
+
+	/** Check if this rotation is valid for platform
+	 * @param rot user requested rotation angle
+	 * @return true if is valid
+	 */
+	private boolean isRotationValid(int rot){
+		if((rot == ScreenMode.ROTATE_0) || (rot == ScreenMode.ROTATE_90) || 
+				(rot == ScreenMode.ROTATE_180) || (rot == ScreenMode.ROTATE_270)) {
+			return true;
+		}
+		return false;
+	}
+	
+	public int getCurrentScreenRotation() {
+		int rotation = super.getCurrentScreenRotation();
+		if(rotation == -1){
+			rotation = getCurrentScreenRotation0(display.getHandle(), idx);
+		}
+		return rotation;
+	}
+    
     //----------------------------------------------------------------------
     // Internals only
     //
@@ -156,7 +185,10 @@ public class X11Screen extends ScreenImpl {
     private native int getDesktopScreenModeIndex0(long display, int screen_index);
     private native short getCurrentScreenRate0(long display, int screen_index);
     
-    private native void setScreenMode0(long display, int screen_index, int mode_index, short freq);
+    private native int getCurrentScreenRotation0(long display, int screen_index);
+    private native void setScreenRotation0(long display, int screen_index, int rot);
+    
+    private native void setScreenMode0(long display, int screen_index, int mode_index, short freq, int rot);
     
     private native int[] getScreenMode0(long display, int screen_index, int mode_index);
     private native int getNumScreenModes0(long display, int screen_index);

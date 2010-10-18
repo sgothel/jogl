@@ -28,7 +28,9 @@
  
 package com.jogamp.test.junit.newt;
 
+
 import java.io.IOException;
+
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindowFactory;
 
@@ -43,11 +45,11 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.impl.ScreenMode;
 import com.jogamp.test.junit.util.UITestCase;
 
-public class TestScreenMode01NEWT extends UITestCase {
+public class TestScreenMode02NEWT extends UITestCase {
     static int width, height;
     
     static int waitTimeShort = 1000; //1 sec
-    static int waitTimeLong = 6000; //6 sec
+    static int waitTimeLong = 4000; //4 sec
     
 
     @BeforeClass
@@ -99,30 +101,7 @@ public class TestScreenMode01NEWT extends UITestCase {
     }
     
     @Test
-    public void testFullscreenChange01() throws InterruptedException {
-    	Capabilities caps = new Capabilities();
-        Assert.assertNotNull(caps);
-        Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
-
-        Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-
-        window.setFullscreen(true);
-        
-        Assert.assertEquals(true, window.isFullscreen());
-        
-        Thread.sleep(waitTimeShort);
-        
-        window.setFullscreen(false);
-        Assert.assertEquals(false, window.isFullscreen());
-        
-        destroyWindow(display, screen, window);    	
-    }
-
-    @Test
-    public void testScreenModeChange01() throws InterruptedException {
+    public void testScreenRotationChange01() throws InterruptedException {
         Capabilities caps = new Capabilities();
         Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
@@ -137,9 +116,112 @@ public class TestScreenMode01NEWT extends UITestCase {
         
         int originalScreenMode = screen.getDesktopScreenModeIndex();
         short originalScreenRate = screen.getCurrentScreenRate();
+        int originalScreenRotation = screen.getCurrentScreenRotation();
         
         Assert.assertNotSame(-1, originalScreenMode);
         Assert.assertNotSame(-1, originalScreenRate);
+        Assert.assertNotSame(-1, originalScreenRotation);
+        System.out.println("Original Rotation: " + originalScreenRotation);
+        
+        screen.setScreenRotation(ScreenMode.ROTATE_90);
+        Assert.assertEquals(ScreenMode.ROTATE_90, screen.getCurrentScreenRotation());
+        
+        Thread.sleep(waitTimeShort);
+        
+        screen.setScreenRotation(originalScreenRotation);
+        Assert.assertEquals(originalScreenRotation, screen.getCurrentScreenRotation());
+        
+        destroyWindow(display, screen, window);    
+    }
+
+    @Test
+    public void testScreenRotationChange02() throws InterruptedException {
+        Capabilities caps = new Capabilities();
+        Assert.assertNotNull(caps);
+        Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+
+        Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+
+        ScreenMode[] screenModes = screen.getScreenModes();
+        Assert.assertNotNull(screenModes);
+        
+        int originalScreenMode = screen.getDesktopScreenModeIndex();
+        short originalScreenRate = screen.getCurrentScreenRate();
+        int originalScreenRotation = screen.getCurrentScreenRotation();
+        
+        Assert.assertNotSame(-1, originalScreenMode);
+        Assert.assertNotSame(-1, originalScreenRate);
+        Assert.assertNotSame(-1, originalScreenRotation);
+        System.out.println("Original Rotation: " + originalScreenRotation);
+        
+        screen.setScreenRotation(ScreenMode.ROTATE_180);
+        Assert.assertEquals(ScreenMode.ROTATE_180, screen.getCurrentScreenRotation());
+        
+        Thread.sleep(waitTimeShort);
+        
+        screen.setScreenRotation(originalScreenRotation);
+        Assert.assertEquals(originalScreenRotation, screen.getCurrentScreenRotation());
+        
+        destroyWindow(display, screen, window);    
+    }
+
+    @Test
+    public void testScreenRotationChange03() throws InterruptedException {
+        Capabilities caps = new Capabilities();
+        Assert.assertNotNull(caps);
+        Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+
+        Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+
+        ScreenMode[] screenModes = screen.getScreenModes();
+        Assert.assertNotNull(screenModes);
+        
+        int originalScreenMode = screen.getDesktopScreenModeIndex();
+        short originalScreenRate = screen.getCurrentScreenRate();
+        int originalScreenRotation = screen.getCurrentScreenRotation();
+        
+        Assert.assertNotSame(-1, originalScreenMode);
+        Assert.assertNotSame(-1, originalScreenRate);
+        Assert.assertNotSame(-1, originalScreenRotation);
+        
+        screen.setScreenRotation(ScreenMode.ROTATE_270);
+        Assert.assertEquals(ScreenMode.ROTATE_270, screen.getCurrentScreenRotation());
+        
+        Thread.sleep(waitTimeShort);
+        
+        screen.setScreenRotation(originalScreenRotation);
+        Assert.assertEquals(originalScreenRotation, screen.getCurrentScreenRotation());
+        
+        destroyWindow(display, screen, window);    
+    }
+    
+    @Test
+    public void testScreenModeChangeWithRotate01() throws InterruptedException {
+        Capabilities caps = new Capabilities();
+        Assert.assertNotNull(caps);
+        Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+
+        Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+
+        ScreenMode[] screenModes = screen.getScreenModes();
+        Assert.assertNotNull(screenModes);
+        
+        int originalScreenMode = screen.getDesktopScreenModeIndex();
+        short originalScreenRate = screen.getCurrentScreenRate();
+        int originalScreenRotation = screen.getCurrentScreenRotation();
+        
+        Assert.assertNotSame(-1, originalScreenMode);
+        Assert.assertNotSame(-1, originalScreenRate);
+        Assert.assertNotSame(-1, originalScreenRotation);
         
         int modeIndex = 1;
         
@@ -153,6 +235,16 @@ public class TestScreenMode01NEWT extends UITestCase {
         Assert.assertEquals(modeRate, screen.getCurrentScreenRate());
         
         Thread.sleep(waitTimeLong);
+        
+        screen.setScreenRotation(ScreenMode.ROTATE_180);
+        Assert.assertEquals(ScreenMode.ROTATE_180, screen.getCurrentScreenRotation());
+        
+        Thread.sleep(waitTimeShort);
+        
+        screen.setScreenRotation(originalScreenRotation);
+        Assert.assertEquals(originalScreenRotation, screen.getCurrentScreenRotation());
+        
+        Thread.sleep(waitTimeShort);
         
         screen.setScreenMode(-1, (short)-1);
         Assert.assertEquals(originalScreenMode, screen.getDesktopScreenModeIndex());
@@ -161,100 +253,9 @@ public class TestScreenMode01NEWT extends UITestCase {
         destroyWindow(display, screen, window);
     }
 
-    @Test
-    public void testScreenModeChangeWithFS01() throws InterruptedException {
-        Capabilities caps = new Capabilities();
-        Assert.assertNotNull(caps);
-        Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
-
-        Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-
-        ScreenMode[] screenModes = screen.getScreenModes();
-        Assert.assertNotNull(screenModes);
-        
-        int originalScreenMode = screen.getDesktopScreenModeIndex();
-        short originalScreenRate = screen.getCurrentScreenRate();
-        
-        Assert.assertNotSame(-1, originalScreenMode);
-        Assert.assertNotSame(-1, originalScreenRate);
-        
-        int modeIndex = 1;
-        
-        ScreenMode screenMode = screenModes[modeIndex];
-        Assert.assertNotNull(screenMode);
-        
-        short modeRate = screenMode.getRates()[0];
-        screen.setScreenMode(modeIndex, modeRate);
-        
-        Assert.assertEquals(modeIndex, screen.getDesktopScreenModeIndex());
-        Assert.assertEquals(modeRate, screen.getCurrentScreenRate());
-        
-        window.setFullscreen(true);
-        Assert.assertEquals(true, window.isFullscreen());
-        
-        Thread.sleep(waitTimeLong);
-        
-        window.setFullscreen(false);
-        Assert.assertEquals(false, window.isFullscreen());
-        
-        screen.setScreenMode(-1, (short)-1);
-        Assert.assertEquals(originalScreenMode, screen.getDesktopScreenModeIndex());
-        Assert.assertEquals(originalScreenRate, screen.getCurrentScreenRate());
-        
-        destroyWindow(display, screen, window);    
-    }
-    
-    @Test
-    public void testScreenModeChangeWithFS02() throws InterruptedException {
-        Capabilities caps = new Capabilities();
-        Assert.assertNotNull(caps);
-        Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
-
-        Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-
-        ScreenMode[] screenModes = screen.getScreenModes();
-        Assert.assertNotNull(screenModes);
-        
-        int originalScreenMode = screen.getDesktopScreenModeIndex();
-        short originalScreenRate = screen.getCurrentScreenRate();
-        
-        Assert.assertNotSame(-1, originalScreenMode);
-        Assert.assertNotSame(-1, originalScreenRate);
-        
-        int modeIndex = 1;
-        
-        ScreenMode screenMode = screenModes[modeIndex];
-        Assert.assertNotNull(screenMode);
-        
-        short modeRate = screenMode.getRates()[0];
-        screen.setScreenMode(modeIndex, modeRate);
-        
-        Assert.assertEquals(modeIndex, screen.getDesktopScreenModeIndex());
-        Assert.assertEquals(modeRate, screen.getCurrentScreenRate());
-        
-        window.setFullscreen(true);
-        Assert.assertEquals(true, window.isFullscreen());
-        
-        Thread.sleep(waitTimeLong);
-        
-        screen.setScreenMode(-1, (short)-1);
-        Assert.assertEquals(originalScreenMode, screen.getDesktopScreenModeIndex());
-        Assert.assertEquals(originalScreenRate, screen.getCurrentScreenRate());
-        
-        window.setFullscreen(false);
-        Assert.assertEquals(false, window.isFullscreen());
-        
-        destroyWindow(display, screen, window);    
-    }
 
     public static void main(String args[]) throws IOException {
-        String tstname = TestScreenMode01NEWT.class.getName();
+        String tstname = TestScreenMode02NEWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

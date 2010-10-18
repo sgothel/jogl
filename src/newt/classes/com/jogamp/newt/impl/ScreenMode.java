@@ -1,6 +1,11 @@
 package com.jogamp.newt.impl;
 
 public class ScreenMode {
+	public static final int ROTATE_0   = 0;
+	public static final int ROTATE_90  = 90;
+	public static final int ROTATE_180 = 180;
+	public static final int ROTATE_270 = 270;
+	
 	private int index;
 	private int width;
 	private int height;

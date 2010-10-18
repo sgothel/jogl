@@ -30,8 +30,6 @@ package com.jogamp.newt;
 
 import com.jogamp.newt.impl.Debug;
 import com.jogamp.newt.impl.ScreenMode;
-import com.jogamp.newt.impl.ScreensModeState;
-
 import javax.media.nativewindow.AbstractGraphicsScreen;
 
 public interface Screen {
@@ -101,4 +99,15 @@ public interface Screen {
      * @param rate the desired rate should be one of the available rates.
      */
     void setScreenMode(int modeIndex, short rate);
+    
+    /** Change the Screen Rotation to 
+     * one of the rotations defined in ScreenMode
+     * @param rot rotation id, example ScreenMode.ROTATE_0
+     */
+    public void setScreenRotation(int rot);
+	
+	/** Get the Current screen rotation
+	 *  returns -1 if not implemented natively
+	 */
+	public int getCurrentScreenRotation();
 }

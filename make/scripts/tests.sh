@@ -40,7 +40,9 @@ spath=`dirname $0`
 
 #$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestEventSourceNotAWTBug $*
 
-$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestScreenMode01NEWT $*
+#$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestScreenMode01NEWT $*
+
+$spath/java-run-all.sh ../build-x86_64 com.jogamp.test.junit.newt.TestScreenMode02NEWT $*
 
 
 

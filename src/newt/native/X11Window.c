@@ -756,16 +756,30 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getDesktopScreenM
    return (jint)original_size_id;   
 }
 
-static void X11Screen_changeScreenMode(Display* dpy, Window root, int screen_indx, XRRScreenSize *xrrs, int screenModeIndex, short freq)
+static void X11Screen_changeScreenMode(Display* dpy, Window root, int screen_indx, XRRScreenSize *xrrs, int screenModeIndex, short freq, int rotation)
 { 
     int num_rates; //number of available rates for selected mode index
     short *rates = XRRRates(dpy, screen_indx, screenModeIndex, &num_rates);
     
     XRRScreenConfiguration  *conf = XRRGetScreenInfo(dpy, root);
     
+    int rot = RR_Rotate_0;
+    
+    if(rotation == 90) 
+    {
+      rot = RR_Rotate_90;
+    }
+    else if(rotation == 180) 
+    {
+      rot = RR_Rotate_180;
+    }
+    else if(rotation == 270) 
+    {
+      rot = RR_Rotate_270;
+    }
     // Change the resolution
     DBG_PRINT("\nCHANGED TO %i x %i PIXELS, %i Hz\n\n", xrrs[screenModeIndex].width, xrrs[screenModeIndex].height, selectedFreq);
-    XRRSetScreenConfigAndRate(dpy, conf, root, screenModeIndex, RR_Rotate_0, freq, CurrentTime);   
+    XRRSetScreenConfigAndRate(dpy, conf, root, screenModeIndex, rot, freq, CurrentTime);   
    
     //free
     XRRFreeScreenConfigInfo(conf);
@@ -777,7 +791,7 @@ static void X11Screen_changeScreenMode(Display* dpy, Window root, int screen_ind
  * Signature: (JIIS)V
  */
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_setScreenMode0
-  (JNIEnv *env, jobject object, jlong display, jint scrn_indx, jint mode_indx, jshort freq)
+  (JNIEnv *env, jobject object, jlong display, jint scrn_indx, jint mode_indx, jshort freq, jint rotation)
 {
     Display *dpy = (Display *) (intptr_t) display;
     Window root = RootWindow(dpy, (int)scrn_indx);
@@ -792,7 +806,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_setScreenMode0
        return;
     }
    
-    X11Screen_changeScreenMode(dpy, root, (int)scrn_indx, xrrs, screenModeIndex, (short)freq);
+    X11Screen_changeScreenMode(dpy, root, (int)scrn_indx, xrrs, screenModeIndex, (short)freq, (int)rotation);
 }
 
 #define NUM_SCREEN_MODE_PROPERTIES 3
@@ -883,6 +897,90 @@ JNIEXPORT jshort JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScree
     XRRFreeScreenConfigInfo(conf);
     
     return original_rate;
+}
+
+/*
+ * Class:     com_jogamp_newt_impl_x11_X11Screen
+ * Method:    getCurrentScreenRotation0
+ * Signature: (JI)I
+ */
+JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenRotation0
+  (JNIEnv *env, jobject object, jlong display, jint scrn_indx)
+{
+    Display *dpy = (Display *) (intptr_t) display;
+    Window root = RootWindow(dpy, (int)scrn_indx);
+    
+    //get current resolutions and frequencies
+    XRRScreenConfiguration  *conf = XRRGetScreenInfo(dpy, root);
+    
+    Rotation rotation;
+    XRRConfigCurrentConfiguration(conf, &rotation);
+
+    //free
+    XRRFreeScreenConfigInfo(conf);
+    
+    int rot = -1;
+    
+    if(rotation == RR_Rotate_0) {
+      rot = 0;
+    }
+    else if(rotation == RR_Rotate_90) {
+      rot = 90;
+    }
+    else if(rotation == RR_Rotate_180) {
+      rot = 180;
+    }
+    else if(rotation == RR_Rotate_270) {
+      rot = 270;
+    }
+    
+    return rot;
+}
+
+/*
+ * Class:     com_jogamp_newt_impl_x11_X11Screen
+ * Method:    setScreenRotation0
+ * Signature: (JII)V
+ */
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_setScreenRotation0
+  (JNIEnv *env, jobject object, jlong display, jint scrn_indx, jint rotation)
+{
+    Display *dpy = (Display *) (intptr_t) display;
+    Window root = RootWindow(dpy, (int)scrn_indx);
+    
+    int rot = -1;
+    
+    if(rotation == 0) 
+    {
+      rot = RR_Rotate_0;
+    }
+    else if(rotation == 90) 
+    {
+      rot = RR_Rotate_90;
+    }
+    else if(rotation == 180) 
+    {
+      rot = RR_Rotate_180;
+    }
+    else if(rotation == 270) 
+    {
+      rot = RR_Rotate_270;
+    }
+    else 
+    {
+      return;
+    }
+    
+    XRRScreenConfiguration  *conf = XRRGetScreenInfo(dpy, root);
+    
+    Rotation current_rotation;
+    SizeID current_mode_id = XRRConfigCurrentConfiguration(conf, &current_rotation);
+    short current_rate = XRRConfigCurrentRate(conf);
+
+    XRRSetScreenConfigAndRate(dpy, conf, root, current_mode_id, rot, current_rate, CurrentTime);
+    
+    //free
+    XRRFreeScreenConfigInfo(conf);
 }
 
 /**

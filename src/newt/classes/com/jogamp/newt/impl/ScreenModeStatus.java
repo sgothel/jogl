@@ -6,18 +6,34 @@ public class ScreenModeStatus {
 	
 	private int currentScreenMode = -1;
 	private short currentScreenRate = -1;
-
+	private int currentScreenRotation = -1;
+	
 	private int originalScreenMode = -1;
 	private short originalScreenRate = -1;
+	private int originalScreenRotation = -1;
 	
 	public ScreenModeStatus(String screenFQN, int originalScreenMode,
-			short originalScreenRate) {
+			short originalScreenRate, int originalScreenRotation) {
 		this.screenFQN = screenFQN;
 		this.originalScreenMode = originalScreenMode;
 		this.originalScreenRate = originalScreenRate;
+		this.originalScreenRotation = originalScreenRotation;
 		
 		this.currentScreenMode = originalScreenMode;
 		this.currentScreenRate = originalScreenRate;
+		this.currentScreenRotation = originalScreenRotation;
+	}
+
+	public void setCurrentScreenRotation(int currentScreenRotation) {
+		this.currentScreenRotation = currentScreenRotation;
+	}
+
+	public int getCurrentScreenRotation() {
+		return currentScreenRotation;
+	}
+
+	public int getOriginalScreenRotation() {
+		return originalScreenRotation;
 	}
 
 	public int getCurrentScreenMode() {
@@ -54,6 +70,11 @@ public class ScreenModeStatus {
 	public boolean isOriginalMode(){
 		if(currentScreenMode == originalScreenMode
 				&& currentScreenRate == originalScreenRate)
+			return true;
+		return false;
+	}
+	public boolean isOriginalRotation(){
+		if(currentScreenRotation == originalScreenRotation)
 			return true;
 		return false;
 	}
