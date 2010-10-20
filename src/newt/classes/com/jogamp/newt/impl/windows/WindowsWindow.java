@@ -157,7 +157,7 @@ public class WindowsWindow extends WindowImpl {
     }
 
     protected void reconfigureWindowImpl(int x, int y, int width, int height) {
-        reconfigureWindow0(fullscreen?0:getParentWindowHandle(), getWindowHandle(), x, y, width, height, isUndecorated());
+        reconfigureWindow0(fullscreen?0:getParentWindowHandle(), getWindowHandle(), x, y, width, height, isUndecorated(), isFullscreen());
     }
 
     protected boolean reparentWindowImpl() {
@@ -194,7 +194,7 @@ public class WindowsWindow extends WindowImpl {
     private        native void setSize0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height);
     private static native void setPosition0(long parentWindowHandle, long windowHandle, int x, int y /*, int width, int height*/);
     private        native void reconfigureWindow0(long parentWindowHandle, long windowHandle, 
-                                                  int x, int y, int width, int height, boolean isUndecorated);
+                                                  int x, int y, int width, int height, boolean isUndecorated, boolean fullscreen);
     private        native void reparentWindow0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height, boolean isUndecorated);
     private static native void setTitle0(long windowHandle, String title);
     private        native void requestFocus0(long windowHandle, boolean reparented);

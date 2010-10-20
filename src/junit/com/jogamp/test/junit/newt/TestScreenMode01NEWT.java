@@ -29,8 +29,9 @@
 package com.jogamp.test.junit.newt;
 
 import java.io.IOException;
-import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -41,13 +42,17 @@ import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.impl.ScreenMode;
+import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import com.jogamp.test.junit.util.UITestCase;
 
 public class TestScreenMode01NEWT extends UITestCase {
+	static GLProfile glp;
     static int width, height;
     
-    static int waitTimeShort = 1000; //1 sec
-    static int waitTimeLong = 6000; //6 sec
+    static int waitTimeShort = 4; //1 sec
+    static int waitTimeLong = 6; //6 sec
+    
     
 
     @BeforeClass
@@ -55,34 +60,19 @@ public class TestScreenMode01NEWT extends UITestCase {
         NativeWindowFactory.initSingleton(true);
         width  = 640;
         height = 480;
+        glp = GLProfile.getDefault();
     }
 
-    static Window createWindow(Screen screen, Capabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
+    static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
         Assert.assertNotNull(caps);
         caps.setOnscreen(onscreen);
-        // Create native windowing resources .. X11/Win/OSX
-        // 
-        Window window = NewtFactory.createWindow(screen, caps);
+
+        boolean destroyWhenUnused = screen.getDestroyWhenUnused();
+        GLWindow window = GLWindow.create(screen, caps);
+        window.addGLEventListener(new Gears());
         Assert.assertNotNull(window);
-        window.setUndecorated(onscreen && undecorated);
-        window.setSize(width, height);
-        Assert.assertEquals(false,window.isNativeValid());
-        Assert.assertEquals(false,window.isVisible());
+        Assert.assertEquals(destroyWhenUnused, window.getScreen().getDestroyWhenUnused());
         window.setVisible(true);
-        Assert.assertEquals(true,window.isVisible());
-        Assert.assertEquals(true,window.isNativeValid());
-
-        //
-        // Create native OpenGL resources .. XGL/WGL/CGL .. 
-        // equivalent to GLAutoDrawable methods: setVisible(true)
-        // 
-        caps = window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
-        Assert.assertNotNull(caps);
-        Assert.assertTrue(caps.getGreenBits()>5);
-        Assert.assertTrue(caps.getBlueBits()>5);
-        Assert.assertTrue(caps.getRedBits()>5);
-        Assert.assertEquals(caps.isOnscreen(),onscreen);
-
         return window;
     }
 
@@ -100,21 +90,21 @@ public class TestScreenMode01NEWT extends UITestCase {
     
     @Test
     public void testFullscreenChange01() throws InterruptedException {
-    	Capabilities caps = new Capabilities();
+    	GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
 
-        Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-
-        window.setFullscreen(true);
+        GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
         
+        window.setFullscreen(true);
         Assert.assertEquals(true, window.isFullscreen());
         
-        Thread.sleep(waitTimeShort);
-        
+        for(int state=0; state<waitTimeShort; state++) {
+            Thread.sleep(100);
+        }
         window.setFullscreen(false);
         Assert.assertEquals(false, window.isFullscreen());
         
@@ -123,14 +113,14 @@ public class TestScreenMode01NEWT extends UITestCase {
 
     @Test
     public void testScreenModeChange01() throws InterruptedException {
-        Capabilities caps = new Capabilities();
+        GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
 
-        Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+        GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
 
         ScreenMode[] screenModes = screen.getScreenModes();
         Assert.assertNotNull(screenModes);
@@ -152,7 +142,9 @@ public class TestScreenMode01NEWT extends UITestCase {
         Assert.assertEquals(modeIndex, screen.getDesktopScreenModeIndex());
         Assert.assertEquals(modeRate, screen.getCurrentScreenRate());
         
-        Thread.sleep(waitTimeLong);
+        for(int state=0; state<waitTimeLong; state++) {
+            Thread.sleep(100);
+        }
         
         screen.setScreenMode(-1, (short)-1);
         Assert.assertEquals(originalScreenMode, screen.getDesktopScreenModeIndex());
@@ -163,15 +155,14 @@ public class TestScreenMode01NEWT extends UITestCase {
 
     @Test
     public void testScreenModeChangeWithFS01() throws InterruptedException {
-        Capabilities caps = new Capabilities();
+    	GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
 
-        Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-
+        GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
         ScreenMode[] screenModes = screen.getScreenModes();
         Assert.assertNotNull(screenModes);
         
@@ -195,7 +186,9 @@ public class TestScreenMode01NEWT extends UITestCase {
         window.setFullscreen(true);
         Assert.assertEquals(true, window.isFullscreen());
         
-        Thread.sleep(waitTimeLong);
+        for(int state=0; state<waitTimeLong; state++) {
+            Thread.sleep(100);
+        }
         
         window.setFullscreen(false);
         Assert.assertEquals(false, window.isFullscreen());
@@ -209,14 +202,14 @@ public class TestScreenMode01NEWT extends UITestCase {
     
     @Test
     public void testScreenModeChangeWithFS02() throws InterruptedException {
-        Capabilities caps = new Capabilities();
+        GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
 
-        Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+        GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
 
         ScreenMode[] screenModes = screen.getScreenModes();
         Assert.assertNotNull(screenModes);
@@ -241,7 +234,9 @@ public class TestScreenMode01NEWT extends UITestCase {
         window.setFullscreen(true);
         Assert.assertEquals(true, window.isFullscreen());
         
-        Thread.sleep(waitTimeLong);
+        for(int state=0; state<waitTimeLong; state++) {
+            Thread.sleep(100);
+        }
         
         screen.setScreenMode(-1, (short)-1);
         Assert.assertEquals(originalScreenMode, screen.getDesktopScreenModeIndex());
@@ -267,5 +262,4 @@ public class TestScreenMode01NEWT extends UITestCase {
             "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
             "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
     }
-
 }

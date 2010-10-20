@@ -90,6 +90,8 @@
 #define MONITOR_DEFAULTTONEAREST 2
 #endif
 
+#include "com_jogamp_newt_impl_windows_WindowsDisplay.h"
+#include "com_jogamp_newt_impl_windows_WindowsScreen.h"
 #include "com_jogamp_newt_impl_windows_WindowsWindow.h"
 
 #include "MouseEvent.h"
@@ -1066,6 +1068,220 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_getHeight
 }
 
 /*
+ * Class:     com_jogamp_newt_impl_windows_WindowsScreen
+ * Method:    getCurrentScreenRate0
+ * Signature: (I)S
+ */
+JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_getCurrentScreenRate0
+  (JNIEnv *env, jobject object, jint scrn_idx)
+{
+	DEVMODE dm;
+    // initialize the DEVMODE structure
+    ZeroMemory(&dm, sizeof(dm));
+    dm.dmSize = sizeof(dm);
+	
+	int rate = -1;
+	if (0 != EnumDisplaySettings(NULL /*current display device*/, ENUM_CURRENT_SETTINGS, &dm))
+	{
+		rate = dm.dmDisplayFrequency;
+	}
+	
+	return rate;
+}
+
+/*
+ * Class:     com_jogamp_newt_impl_windows_WindowsScreen
+ * Method:    getScreenMode0
+ * Signature: (II)[I
+ */
+JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_getScreenMode0
+  (JNIEnv *env, jobject obj, jint scrn_idx, jint mode_idx)
+{
+    int propIndex = 0;
+	int prop_size = 4; //wxhxbxf
+	
+	DEVMODE dm;
+    // initialize the DEVMODE structure
+    ZeroMemory(&dm, sizeof(dm));
+    dm.dmSize = sizeof(dm);
+	
+	int devModeID = (int)mode_idx;
+	
+	if(devModeID == -1)
+	{
+		devModeID = ENUM_CURRENT_SETTINGS;
+	}
+
+    jintArray properties = (*env)->NewIntArray(env, prop_size);
+
+	 //Fill the properties in temp jint array
+    jint prop[prop_size];
+	if (0 == EnumDisplaySettings(NULL /*current display device*/, devModeID, &dm))
+	{
+		return NULL;
+	}
+	prop[propIndex++] = dm.dmPelsWidth;
+	prop[propIndex++] = dm.dmPelsHeight;
+	prop[propIndex++] = dm.dmBitsPerPel;
+	prop[propIndex++] = dm.dmDisplayFrequency;
+
+	(*env)->SetIntArrayRegion(env, properties, 0, prop_size, prop);
+	
+	return properties;
+}
+
+#define SCREEN_MODE_NOERROR 0
+#define SCREEN_MODE_ERROR 1
+/*
+ * Class:     com_jogamp_newt_impl_windows_WindowsScreen
+ * Method:    setScreenMode0
+ * Signature: (IIIIS)I
+ */
+JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_setScreenMode0
+  (JNIEnv *env, jobject object, jint scrn_idx, jint width, jint height, jint bits, jshort rate)
+{
+	DEVMODE dm;
+    // initialize the DEVMODE structure
+    ZeroMemory(&dm, sizeof(dm));
+    dm.dmSize = sizeof(dm);
+
+	if (0 == EnumDisplaySettings(NULL /*current display device*/, ENUM_CURRENT_SETTINGS, &dm))
+	{
+		return SCREEN_MODE_ERROR;
+	}
+	
+	dm.dmPelsWidth = (int)width;
+	dm.dmPelsHeight = (int)height;
+	dm.dmBitsPerPel = (int)bits;
+	dm.dmDisplayFrequency = (int)rate;
+	dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL | DM_DISPLAYFREQUENCY;
+	
+	long result = ChangeDisplaySettings(&dm, 0); 
+	if(result == DISP_CHANGE_SUCCESSFUL)
+	{
+		return SCREEN_MODE_NOERROR;
+	}
+	return SCREEN_MODE_ERROR;
+}
+
+#define SCREEN_ROT_ERROR -1
+/*
+ * Class:     com_jogamp_newt_impl_windows_WindowsScreen
+ * Method:    getCurrentScreenRotation0
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_getCurrentScreenRotation0
+  (JNIEnv *env, jobject object, jint scrn_idx)
+{
+	DEVMODE dm;
+    // initialize the DEVMODE structure
+    ZeroMemory(&dm, sizeof(dm));
+    dm.dmSize = sizeof(dm);
+
+	if (0 == EnumDisplaySettings(NULL /*current display device*/, ENUM_CURRENT_SETTINGS, &dm))
+	{
+		return SCREEN_ROT_ERROR;
+	}
+	
+	int currentRotation = -1;
+	switch (dm.dmDisplayOrientation)
+	{
+		case DMDO_DEFAULT:
+			currentRotation = 0;
+		break;
+		case DMDO_270:
+			currentRotation = 270;
+		break;
+		case DMDO_180:
+			currentRotation = 180;
+		break;
+		case DMDO_90:
+			currentRotation = 90;
+		break;
+		default:
+		break;
+	}
+	return currentRotation;
+}
+/*
+ * Class:     com_jogamp_newt_impl_windows_WindowsScreen
+ * Method:    setScreenRotation0
+ * Signature: (II)I
+ */
+JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_setScreenRotation0
+  (JNIEnv *env, jobject object, jint scrn_idx, jint rot)
+{
+	DEVMODE dm;
+    // initialize the DEVMODE structure
+    ZeroMemory(&dm, sizeof(dm));
+    dm.dmSize = sizeof(dm);
+
+	if (0 == EnumDisplaySettings(NULL /*current display device*/, ENUM_CURRENT_SETTINGS, &dm))
+	{
+		return SCREEN_MODE_ERROR;
+	}
+	int requestedRotation = dm.dmDisplayOrientation;
+	int currentRotation = dm.dmDisplayOrientation;
+	
+	int shouldFlipDims = 0;
+	
+	int rotation = (int)rot;
+	switch (rotation)
+	{
+		case 0:
+			requestedRotation = DMDO_DEFAULT;
+			if (currentRotation == DMDO_90 || currentRotation == DMDO_270) 
+			{
+				shouldFlipDims = 1;
+			}
+		break;
+		case 270:
+			requestedRotation = DMDO_270;
+			if (currentRotation == DMDO_DEFAULT || currentRotation == DMDO_180) 
+			{
+				shouldFlipDims = 1;
+			}
+		break;
+		case 180:
+			requestedRotation = DMDO_180;
+			if (currentRotation == DMDO_90 || currentRotation == DMDO_270) 
+			{
+				shouldFlipDims = 1;
+			}
+		break;
+		case 90:
+			requestedRotation = DMDO_90;
+			if (currentRotation == DMDO_DEFAULT || currentRotation == DMDO_180) 
+			{
+				shouldFlipDims = 1;
+			}
+		break;
+		default:
+			//requested rotation not available
+			return SCREEN_MODE_ERROR; 
+		break;
+	}
+	/** swap width and height if changing from vertical to horizantal 
+	  *  or horizantal to vertical
+	  */
+	if (shouldFlipDims)
+	{
+		int tempWidth = dm.dmPelsWidth;
+		dm.dmPelsWidth = dm.dmPelsHeight;
+		dm.dmPelsHeight = tempWidth;
+	}
+	dm.dmDisplayOrientation = requestedRotation;
+	dm.dmFields = DM_DISPLAYORIENTATION | DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL | DM_DISPLAYFREQUENCY;
+	
+	long result = ChangeDisplaySettings(&dm, 0); 
+	if(result == DISP_CHANGE_SUCCESSFUL)
+	{
+		return SCREEN_MODE_NOERROR;
+	}
+	return SCREEN_MODE_ERROR;
+}
+
+/*
  * Class:     com_jogamp_newt_impl_windows_WindowsWindow
  * Method:    initIDs0
  * Signature: ()Z
@@ -1365,13 +1581,45 @@ static void NewtWindows_reparentWindow(JNIEnv *env, jobject obj, HWND hwndP, HWN
     DBG_PRINT("*** WindowsWindow: reparentWindow.X\n");
 }
 
+#define FULLSCREEN_NOERROR 0
+#define FULLSCREEN_ERROR 1
+
+static int NewtWindows_setFullScreen(jboolean fullscreen)
+{
+	int flags = 0;
+	DEVMODE dm;
+    // initialize the DEVMODE structure
+    ZeroMemory(&dm, sizeof(dm));
+    dm.dmSize = sizeof(dm);
+
+	if (0 == EnumDisplaySettings(NULL /*current display device*/, ENUM_CURRENT_SETTINGS, &dm))
+	{
+		return FULLSCREEN_ERROR;
+	}
+	
+	if(fullscreen == JNI_TRUE)
+	{
+		flags = CDS_FULLSCREEN; //set fullscreen temporary
+	}	
+	else
+	{
+		flags = CDS_RESET; // reset to registery values
+	}
+	long result = ChangeDisplaySettings(&dm, flags); 
+	if(result == DISP_CHANGE_SUCCESSFUL)
+	{
+		return FULLSCREEN_NOERROR;
+	}
+	return FULLSCREEN_ERROR;
+}
+
 /*
  * Class:     com_jogamp_newt_impl_windows_WindowsWindow
  * Method:    reconfigureWindow0
  * Signature: (JIIIIZ)V
  */
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_reconfigureWindow0
-  (JNIEnv *env, jobject obj, jlong parent, jlong window, jint x, jint y, jint width, jint height, jboolean bIsUndecorated)
+  (JNIEnv *env, jobject obj, jlong parent, jlong window, jint x, jint y, jint width, jint height, jboolean bIsUndecorated, jboolean isFullscreen)
 {
     UINT flags;
     HWND hwndP = (HWND) (intptr_t) parent;
@@ -1382,9 +1630,18 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_reconfigu
     DBG_PRINT("*** WindowsWindow: reconfigureWindow0.1 parent %p, window %p, %d/%d %dx%d undeco %d visible\n", 
         parent, window, x, y, width, height, bIsUndecorated, isVisible);
 
+	if(isFullscreen == JNI_FALSE)
+	{
+		NewtWindows_setFullScreen(isFullscreen);
+	}
     NewtWindows_reparentWindow(env, obj, hwndP, hwnd, FALSE, x, y, width, height, bIsUndecorated);
-
-    if ( NULL == hwndP ) {
+	
+	if(isFullscreen == JNI_TRUE)
+	{
+		NewtWindows_setFullScreen(isFullscreen);
+	}
+    
+	if ( NULL == hwndP ) {
         flags = SWP_SHOWWINDOW;
         hWndInsertAfter = HWND_TOPMOST;
     } else {

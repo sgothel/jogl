@@ -121,7 +121,6 @@ public class TestScreenMode02NEWT extends UITestCase {
         Assert.assertNotSame(-1, originalScreenMode);
         Assert.assertNotSame(-1, originalScreenRate);
         Assert.assertNotSame(-1, originalScreenRotation);
-        System.out.println("Original Rotation: " + originalScreenRotation);
         
         screen.setScreenRotation(ScreenMode.ROTATE_90);
         Assert.assertEquals(ScreenMode.ROTATE_90, screen.getCurrentScreenRotation());
@@ -155,7 +154,6 @@ public class TestScreenMode02NEWT extends UITestCase {
         Assert.assertNotSame(-1, originalScreenMode);
         Assert.assertNotSame(-1, originalScreenRate);
         Assert.assertNotSame(-1, originalScreenRotation);
-        System.out.println("Original Rotation: " + originalScreenRotation);
         
         screen.setScreenRotation(ScreenMode.ROTATE_180);
         Assert.assertEquals(ScreenMode.ROTATE_180, screen.getCurrentScreenRotation());
@@ -223,8 +221,12 @@ public class TestScreenMode02NEWT extends UITestCase {
         Assert.assertNotSame(-1, originalScreenRate);
         Assert.assertNotSame(-1, originalScreenRotation);
         
-        int modeIndex = 1;
         
+        int modeIndex = 1;
+        if(screenModes.length > 4)
+        {
+        	modeIndex = screenModes.length - 2;
+        }
         ScreenMode screenMode = screenModes[modeIndex];
         Assert.assertNotNull(screenMode);
         

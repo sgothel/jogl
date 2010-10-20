@@ -1165,7 +1165,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     h = nfs_height;
                 }
                 if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                    System.err.println("X11Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated()+", "+screen);
+                    System.err.println("Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated()+", "+screen);
                 }
                 this.fullscreen = fullscreen;
                 reconfigureWindowImpl(x, y, w, h);
