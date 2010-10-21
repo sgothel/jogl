@@ -34,6 +34,7 @@
 
 package com.jogamp.newt.impl;
 
+import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.*;
 
 import javax.media.nativewindow.*;

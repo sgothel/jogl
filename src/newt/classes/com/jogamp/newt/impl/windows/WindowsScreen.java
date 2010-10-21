@@ -37,7 +37,7 @@ import java.util.ArrayList;
 
 import com.jogamp.newt.*;
 import com.jogamp.newt.impl.ScreenImpl;
-import com.jogamp.newt.impl.ScreenMode;
+import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.impl.ScreenModeStatus;
 
 import javax.media.nativewindow.*;

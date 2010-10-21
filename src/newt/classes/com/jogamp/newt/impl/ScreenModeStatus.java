@@ -1,5 +1,7 @@
 package com.jogamp.newt.impl;
 
+import com.jogamp.newt.ScreenMode;
+
 public class ScreenModeStatus {
 	private String screenFQN = null;
 	private ScreenMode[] screenModes = null;

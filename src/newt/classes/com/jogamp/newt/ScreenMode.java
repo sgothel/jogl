@@ -1,4 +1,4 @@
-package com.jogamp.newt.impl;
+package com.jogamp.newt;
 
 public class ScreenMode {
 	public static final int ROTATE_0   = 0;

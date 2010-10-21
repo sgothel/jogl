@@ -41,7 +41,7 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
-import com.jogamp.newt.impl.ScreenMode;
+import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import com.jogamp.test.junit.util.UITestCase;

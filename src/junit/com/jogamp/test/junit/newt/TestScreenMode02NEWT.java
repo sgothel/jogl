@@ -42,7 +42,7 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
-import com.jogamp.newt.impl.ScreenMode;
+import com.jogamp.newt.ScreenMode;
 import com.jogamp.test.junit.util.UITestCase;
 
 public class TestScreenMode02NEWT extends UITestCase {

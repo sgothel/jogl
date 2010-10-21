@@ -29,11 +29,10 @@
 package com.jogamp.newt;
 
 import com.jogamp.newt.impl.Debug;
-import com.jogamp.newt.impl.ScreenMode;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 
 public interface Screen {
-    public static final boolean DEBUG = Debug.debug("Display");
+    public static final boolean DEBUG = Debug.debug("Screen");
 
     boolean isNativeValid();
 
