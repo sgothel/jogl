@@ -41,11 +41,10 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.util.Point;
 
 public class KDWindow extends WindowImpl {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
-    // non fullscreen dimensions ..
-    private int nfs_width, nfs_height, nfs_x, nfs_y;
 
     static {
         KDDisplay.initSingleton();
@@ -85,30 +84,40 @@ public class KDWindow extends WindowImpl {
         }
     }
 
-    protected void setVisibleImpl(boolean visible) {
+    protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
         setVisible0(eglWindowHandle, visible);
+        reconfigureWindowImpl(x, y, width, height, false, 0, 0);
+        visibleChanged(visible);
     }
 
     protected void requestFocusImpl(boolean reparented) { }
 
-    protected void setSizeImpl(int width, int height) {
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, 
+                                            boolean parentChange, int fullScreenChange, int decorationChange) {
         if(0!=eglWindowHandle) {
-            setSize0(eglWindowHandle, width, height);
-        }
-    }
-
-    protected void setPositionImpl(int x, int y) {
-        // n/a in KD
-        System.err.println("setPosition n/a in KD");
-    }
-
-    protected void reconfigureWindowImpl(int x, int y, int width, int height) {
-        if(0!=eglWindowHandle) {
-            setFullScreen0(eglWindowHandle, fullscreen);
-            if(!fullscreen) {
-                setSize0(eglWindowHandle, width, height);
+            if(0!=fullScreenChange) {
+                boolean fs = fullScreenChange > 0;
+                setFullScreen0(eglWindowHandle, fs);
+                if(fs) {
+                    return true;
+                }
+            }
+            // int _x=(x>=0)?x:this.x;
+            // int _y=(x>=0)?y:this.y;
+            int _w=(width>0)?width:this.width;
+            int _h=(height>0)?height:this.height;
+            if(width>0 || height>0) {
+                setSize0(eglWindowHandle, _w, _h);
+            }
+            if(x>=0 || y>=0) {
+                System.err.println("setPosition n/a in KD");
             }
         }
+        return true;
+    }
+
+    protected Point getLocationOnScreenImpl(int x, int y) {
+        return new Point(x,y);
     }
 
     //----------------------------------------------------------------------
@@ -127,11 +136,11 @@ public class KDWindow extends WindowImpl {
         windowUserData=userData;
     }
 
-    protected void sizeChanged(int newWidth, int newHeight) {
+    protected void sizeChanged(int newWidth, int newHeight, boolean force) {
         if(fullscreen) {
             ((KDScreen)getScreen()).setScreenSize(width, height);
         }
-        super.sizeChanged(newWidth, newHeight);
+        super.sizeChanged(newWidth, newHeight, force);
     }
 
     private long   eglWindowHandle;

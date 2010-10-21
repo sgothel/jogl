@@ -37,6 +37,7 @@ package com.jogamp.newt.impl.windows;
 import javax.media.nativewindow.*;
 import com.jogamp.newt.impl.WindowImpl;
 import javax.media.nativewindow.util.Insets;
+import javax.media.nativewindow.util.Point;
 
 public class WindowsWindow extends WindowImpl {
 
@@ -142,31 +143,20 @@ public class WindowsWindow extends WindowImpl {
         super.windowDestroyed();
     }
 
-    protected void setVisibleImpl(boolean visible) {
-        setVisible0(getWindowHandle(), visible);
+    protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
+        setVisible0(getWindowHandle(), visible, (getParentWindowHandle()==0)?true:false, x, y, width, height);
+        visibleChanged(visible);
     }
 
-    protected void setSizeImpl(int width, int height) {
-        // this width/height will be set by sizeChanged, called by Windows
-        setSize0(getParentWindowHandle(), getWindowHandle(), x, y, width, height);
-    }
-
-    protected void setPositionImpl(int x, int y) {
-        // this x/y will be set by positionChanged, called by Windows
-        setPosition0(getParentWindowHandle(), getWindowHandle(), x , y /*, width, height*/);
-    }
-
-    protected void reconfigureWindowImpl(int x, int y, int width, int height) {
-        reconfigureWindow0(fullscreen?0:getParentWindowHandle(), getWindowHandle(), x, y, width, height, isUndecorated(), isFullscreen());
-    }
-
-    protected boolean reparentWindowImpl() {
-        reparentWindow0(fullscreen?0:getParentWindowHandle(), getWindowHandle(), x, y, width, height, isUndecorated());
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, 
+                                            boolean parentChange, int fullScreenChange, int decorationChange) {
+        reconfigureWindow0( (fullScreenChange>0)?0:getParentWindowHandle(), 
+                             getWindowHandle(), x, y, width, height, isVisible(), parentChange, fullScreenChange, decorationChange);
         return true;
     }
 
-    protected void requestFocusImpl(boolean reparented) {
-        requestFocus0(getWindowHandle(), reparented);
+    protected void requestFocusImpl(boolean force) {
+        requestFocus0(getWindowHandle(), force);
     }
 
     protected void setTitleImpl(final String title) {
@@ -177,34 +167,42 @@ public class WindowsWindow extends WindowImpl {
         return (Insets)insets.clone();
     }
 
+    protected Point getLocationOnScreenImpl(int x, int y) {
+        return (Point) getRelativeLocation0( getWindowHandle(), 0 /*root win*/, x, y);
+    }
+
     //----------------------------------------------------------------------
     // Internals only
     //
     protected static native boolean initIDs0();
-    private        native long CreateWindow0(long parentWindowHandle, 
+    private native long CreateWindow0(long parentWindowHandle, 
                                             int wndClassAtom, String wndName, 
                                             long hInstance, long visualID,
                                             boolean isUndecorated,
                                             int x, int y, int width, int height);
-    private        native void DestroyWindow0(long windowHandle);
-    private        native long GetDC0(long windowHandle);
-    private        native void ReleaseDC0(long windowHandle, long hdc);
-    private        native long MonitorFromWindow0(long windowHandle);
-    private static native void setVisible0(long windowHandle, boolean visible);
-    private        native void setSize0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height);
-    private static native void setPosition0(long parentWindowHandle, long windowHandle, int x, int y /*, int width, int height*/);
-    private        native void reconfigureWindow0(long parentWindowHandle, long windowHandle, 
-                                                  int x, int y, int width, int height, boolean isUndecorated, boolean fullscreen);
-    private        native void reparentWindow0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height, boolean isUndecorated);
+    private native void DestroyWindow0(long windowHandle);
+    private native long GetDC0(long windowHandle);
+    private native void ReleaseDC0(long windowHandle, long hdc);
+    private native long MonitorFromWindow0(long windowHandle);
+    private native void setVisible0(long windowHandle, boolean visible, boolean top, int x, int y, int width, int height);
+    private native void reconfigureWindow0(long parentWindowHandle, long windowHandle, 
+                                                  int x, int y, int width, int height, boolean isVisible,
+                                                  boolean parentChange, int fullScreenChange, int decorationChange);
     private static native void setTitle0(long windowHandle, String title);
-    private        native void requestFocus0(long windowHandle, boolean reparented);
+    private native void requestFocus0(long windowHandle, boolean force);
+    private native Object getRelativeLocation0(long src_win, long dest_win, int src_x, int src_y);
 
     private void insetsChanged(int left, int top, int right, int bottom) {
         if (left != -1 && top != -1 && right != -1 && bottom != -1) {
-            insets.left = left;
-            insets.top = top;
-            insets.right = right;
-            insets.bottom = bottom;
+            if (left != insets.left || top != insets.top || right != insets.right || bottom != insets.bottom) {
+                insets.left = left;
+                insets.top = top;
+                insets.right = right;
+                insets.bottom = bottom;
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window.insetsChanged: "+insets);
+                }
+            }
         }
     }
 }

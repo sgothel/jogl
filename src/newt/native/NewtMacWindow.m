@@ -100,12 +100,23 @@ jint GetDeltaY(NSEvent *event, jint javaMods) {
     }
 }
 
-/** FIXME: Tried child window: message reception ..
 - (void)viewWillDraw
 {
     fprintf(stderr, "*************** viewWillDraw: 0x%p", javaWindowObject); fflush(stderr);
     [super viewWillDraw];
-} */
+}
+
+- (void)viewDidHide
+{
+    (*env)->CallVoidMethod(env, javaWindowObject, visibleChangedID, JNI_FALSE);
+    [super viewDidHide];
+}
+
+- (void)viewDidUnhide
+{
+    (*env)->CallVoidMethod(env, javaWindowObject, visibleChangedID, JNI_TRUE);
+    [super viewDidUnhide];
+}
 
 @end
 
@@ -113,6 +124,7 @@ static jmethodID sendMouseEventID  = NULL;
 static jmethodID sendKeyEventID    = NULL;
 static jmethodID insetsChangedID   = NULL;
 static jmethodID sizeChangedID     = NULL;
+static jmethodID visibleChangedID = NULL;
 static jmethodID positionChangedID = NULL;
 static jmethodID focusChangedID    = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
@@ -124,13 +136,14 @@ static jmethodID windowDestroyedID = NULL;
 {
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
-    sizeChangedID     = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(II)V");
+    sizeChangedID     = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(IIZ)V");
+    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
     insetsChangedID     = (*env)->GetMethodID(env, clazz, "insetsChanged", "(IIII)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(Z)V");
     windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
     windowDestroyedID    = (*env)->GetMethodID(env, clazz, "windowDestroyed",    "()V");
-    if (sendMouseEventID && sendKeyEventID && sizeChangedID && insetsChangedID &&
+    if (sendMouseEventID && sendKeyEventID && sizeChangedID && visibleChangedID && insetsChangedID &&
         positionChangedID && focusChangedID && windowDestroyedID && windowDestroyNotifyID)
     {
         return YES;
@@ -398,7 +411,7 @@ static jint mods2JavaMods(NSUInteger mods)
 
     (*env)->CallVoidMethod(env, javaWindowObject, sizeChangedID,
                            (jint) contentRect.size.width,
-                           (jint) contentRect.size.height);
+                           (jint) contentRect.size.height, JNI_FALSE);
 }
 
 - (void)windowDidMove: (NSNotification*) notification

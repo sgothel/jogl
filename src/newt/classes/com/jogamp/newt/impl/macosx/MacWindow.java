@@ -40,6 +40,7 @@ import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.*;
 import javax.media.nativewindow.util.Insets;
+import javax.media.nativewindow.util.Point;
 
 public class MacWindow extends WindowImpl {
     
@@ -194,11 +195,11 @@ public class MacWindow extends WindowImpl {
         nsViewLock.unlock();
     }
 
-    protected void setVisibleImpl(final boolean visible) {
+    protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
         nsViewLock.lock();
         try {
             if (visible) {
-                createWindow(false, getX(), getY(), getWidth(), getHeight(), isFullscreen());
+                createWindow(false, x, y, width, height, isFullscreen());
                 if (getWindowHandle() != 0) {
                     makeKeyAndOrderFront0(getWindowHandle());
                 }
@@ -207,6 +208,7 @@ public class MacWindow extends WindowImpl {
                     orderOut0(getWindowHandle());
                 }
             }
+            visibleChanged(visible);
         } finally {
             nsViewLock.unlock();
         }
@@ -232,39 +234,38 @@ public class MacWindow extends WindowImpl {
         }
     }
     
-    protected void setSizeImpl(int width, int height) {
-        // this width/height will be set by sizeChanged, called by OSX
-        nsViewLock.lock();
-        try {
-            setContentSize0(getWindowHandle(), width, height);
-        } finally {
-            nsViewLock.unlock();
-        }
-    }
-    
-    protected void setPositionImpl(int x, int y) {
-        // this x/y will be set by positionChanged, called by OSX
-        nsViewLock.lock();
-        try {
-            setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), x, y);
-        } finally {
-            nsViewLock.unlock();
-        }
-    }
-    
-    protected void reconfigureWindowImpl(int x, int y, int width, int height) {
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, boolean parentChange, int fullScreenChange, int decorationChange) {
         nsViewLock.lock();
         try {
             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                System.err.println("MacWindow reconfig: "+fullscreen+" "+x+"/"+y+" "+width+"x"+height);
+                System.err.println("MacWindow reconfig: parentChange "+parentChange+", fullScreenChange "+fullScreenChange+", decorationChange "+decorationChange+" "+x+"/"+y+" "+width+"x"+height);
             }
-            createWindow(true, x, y, width, height, fullscreen);
-            if (getWindowHandle() != 0) {
-                makeKeyAndOrderFront0(getWindowHandle());
+            int _x=(x>=0)?x:this.x;
+            int _y=(x>=0)?y:this.y;
+            int _w=(width>0)?width:this.width;
+            int _h=(height>0)?height:this.height;
+
+            if(decorationChange!=0 || parentChange || fullScreenChange!=0) {
+                createWindow(true, _x, _y, _w, _h, fullScreenChange>0);
+                if (getWindowHandle() != 0) {
+                    makeKeyAndOrderFront0(getWindowHandle());
+                }
+            } else {
+                if(x>=0 || y>=0) {
+                    setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), _x, _y);
+                }
+                if(width>0 || height>0) {
+                    setContentSize0(getWindowHandle(), _w, _h);
+                }
             }
         } finally {
             nsViewLock.unlock();
         }
+        return true;
+    }
+
+    protected Point getLocationOnScreenImpl(int x, int y) {
+        return null;
     }
     
     private void insetsChanged(int left, int top, int right, int bottom) {

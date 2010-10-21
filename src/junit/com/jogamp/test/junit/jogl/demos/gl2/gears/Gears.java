@@ -22,9 +22,18 @@ public class Gears implements GLEventListener {
   private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
   private int gear1, gear2, gear3;
   private float angle = 0.0f;
+  private int swapInterval;
 
   private int prevMouseX, prevMouseY;
   private boolean mouseRButtonDown = false;
+
+  public Gears(int swapInterval) {
+    this.swapInterval = swapInterval;
+  }
+
+  public Gears() {
+    this.swapInterval = 1;
+  }
 
   public static void main(String[] args) {
     // set argument 'NotFirstUIActionOnProcess' in the JNLP's application-desc tag for example
@@ -69,12 +78,12 @@ public class Gears implements GLEventListener {
 
     GL2 gl = drawable.getGL().getGL2();
 
-    gl.setSwapInterval(1);
+    gl.setSwapInterval(swapInterval);
 
     float pos[] = { 5.0f, 5.0f, 10.0f, 0.0f };
-    float red[] = { 0.8f, 0.1f, 0.0f, 1.0f };
-    float green[] = { 0.0f, 0.8f, 0.2f, 1.0f };
-    float blue[] = { 0.2f, 0.2f, 1.0f, 1.0f };
+    float red[] = { 0.8f, 0.1f, 0.0f, 0.7f };
+    float green[] = { 0.0f, 0.8f, 0.2f, 0.7f };
+    float blue[] = { 0.2f, 0.2f, 1.0f, 0.7f };
 
     gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, pos, 0);
     gl.glEnable(GL2.GL_CULL_FACE);
@@ -116,7 +125,7 @@ public class Gears implements GLEventListener {
   }
     
   public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-    System.err.println("Gears: Reshape");
+    System.err.println("Gears: Reshape "+x+"/"+y+" "+width+"x"+height);
     GL2 gl = drawable.getGL().getGL2();
 
     float h = (float)height / (float)width;
@@ -140,6 +149,8 @@ public class Gears implements GLEventListener {
 
     // Get the GL corresponding to the drawable we are animating
     GL2 gl = drawable.getGL().getGL2();
+
+    gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     // Special handling for the case where the GLJPanel is translucent
     // and wants to be composited with other Java 2D content

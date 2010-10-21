@@ -63,10 +63,10 @@ import java.io.IOException;
 import com.jogamp.test.junit.util.*;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
-public class TestParenting03AWT extends UITestCase {
+public class TestParenting03bAWT extends UITestCase {
     static Dimension size;
-    static long durationPerTest = 400;
-    static long waitAdd2nd = 200;
+    static long durationPerTest = 800;
+    static long waitAdd2nd = 500;
     static GLCapabilities glCaps;
 
     @BeforeClass
@@ -74,8 +74,6 @@ public class TestParenting03AWT extends UITestCase {
         GLProfile.initSingleton(true);
         size = new Dimension(400,200);
         glCaps = new GLCapabilities(null);
-        glCaps.setAlphaBits(8);
-        glCaps.setBackgroundOpaque(false);
     }
 
     @Test
@@ -120,18 +118,55 @@ public class TestParenting03AWT extends UITestCase {
         GLAnimatorControl animator1 = new Animator(glWindow1);
         animator1.start();
 
+        GLWindow glWindow2 = GLWindow.create(glCaps);
+        glWindow2.enablePerfLog(true);
+        glWindow2.setUndecorated(true);
+        NewtCanvasAWT newtCanvasAWT2 = new NewtCanvasAWT(glWindow2);
+        newtCanvasAWT2.setPreferredSize(size);
+
+        GLEventListener demo2 = new Gears(1);
+        setDemoFields(demo2, glWindow2, false);
+        glWindow2.addGLEventListener(demo2);
+        final NewtCanvasAWT f_newtCanvasAWT2 = newtCanvasAWT2;
+        final GLWindow f_glWindow2 = glWindow2;
+        glWindow2.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                if(e.getKeyChar()=='d') {
+                    f_glWindow2.setUndecorated(!f_glWindow2.isUndecorated());
+                } else if(e.getKeyChar()=='f') {
+                    f_glWindow2.setFullscreen(!f_glWindow2.isFullscreen());
+                } else if(e.getKeyChar()=='r') {
+                    if(f_glWindow2.getParent()==null) {
+                        System.err.println("XXX glWin2 -> home");
+                        f_glWindow2.reparentWindow(f_newtCanvasAWT2.getNativeWindow());
+                    } else {
+                        System.err.println("XXX glWin2 -> TOP");
+                        f_glWindow2.reparentWindow(null);
+                    }
+                }
+            }
+        });
+        GLAnimatorControl animator2 = new Animator(glWindow2);
+        animator2.start();
+
         Container cont1 = new Container();
         cont1.setLayout(new BorderLayout());
         cont1.add(newtCanvasAWT1, BorderLayout.CENTER);
         cont1.setVisible(true);
         final Container f_cont1 = cont1;
 
+        Container cont2 = new Container();
+        cont2.setLayout(new BorderLayout());
+        cont2.add(newtCanvasAWT2, BorderLayout.CENTER);
+        cont2.setVisible(true);
+        final Container f_cont2 = cont2;
+
         Frame frame1 = new Frame("AWT Parent Frame");
         frame1.setLayout(new BorderLayout());
         frame1.add(cont1, BorderLayout.EAST);
         frame1.add(new Label("center"), BorderLayout.CENTER);
         frame1.setLocation(0, 0);
-        frame1.setSize((int)size.getWidth(), (int)size.getHeight());
+        frame1.setSize((int)size.getWidth()*2, (int)size.getHeight()*2);
         final Frame f_frame1 = frame1;
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
@@ -140,9 +175,23 @@ public class TestParenting03AWT extends UITestCase {
             }});
 
         Assert.assertEquals(newtCanvasAWT1.getNativeWindow(),glWindow1.getParent());
+        Assert.assertEquals(newtCanvasAWT2.getNativeWindow(),glWindow2.getParent());
+
         Assert.assertEquals(true, animator1.isAnimating());
         Assert.assertEquals(false, animator1.isPaused());
         Assert.assertNotNull(animator1.getThread());
+
+        Assert.assertEquals(true, animator2.isAnimating());
+        Assert.assertEquals(false, animator2.isPaused());
+        Assert.assertNotNull(animator2.getThread());
+
+        Thread.sleep(waitAdd2nd);
+
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                f_frame1.add(f_cont2, BorderLayout.WEST);
+                f_frame1.pack();
+            }});
 
         Thread.sleep(durationPerTest);
 
@@ -151,8 +200,14 @@ public class TestParenting03AWT extends UITestCase {
         Assert.assertEquals(false, animator1.isPaused());
         Assert.assertEquals(null, animator1.getThread());
 
+        animator2.stop();
+        Assert.assertEquals(false, animator2.isAnimating());
+        Assert.assertEquals(false, animator2.isPaused());
+        Assert.assertEquals(null, animator2.getThread());
+
         frame1.dispose();
         glWindow1.destroy(true);
+        glWindow2.destroy(true);
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
@@ -184,7 +239,7 @@ public class TestParenting03AWT extends UITestCase {
                 waitAdd2nd = atoi(args[++i]);
             }
         }
-        String tstname = TestParenting03AWT.class.getName();
+        String tstname = TestParenting03bAWT.class.getName();
         /*
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,

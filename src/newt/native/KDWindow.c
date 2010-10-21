@@ -93,6 +93,7 @@ typedef struct {
 
 static jmethodID windowCreatedID = NULL;
 static jmethodID sizeChangedID = NULL;
+static jmethodID visibleChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowDestroyedID = NULL;
 static jmethodID sendMouseEventID = NULL;
@@ -150,7 +151,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_opengl_kd_KDDisplay_DispatchMes
                                 KDint32 v[2];
                                 if(!kdGetWindowPropertyiv(kdWindow, KD_WINDOWPROPERTY_SIZE, v)) {
                                     DBG_PRINT( "event window size change : src: %p %dx%d\n", userData, v[0], v[1]);
-                                    (*env)->CallVoidMethod(env, javaWindow, sizeChangedID, (jint) v[0], (jint) v[1]);
+                                    (*env)->CallVoidMethod(env, javaWindow, sizeChangedID, (jint) v[0], (jint) v[1], JNI_FALSE);
                                 } else {
                                     DBG_PRINT( "event window size change error: src: %p %dx%d\n", userData, v[0], v[1]);
                                 }
@@ -164,6 +165,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_opengl_kd_KDDisplay_DispatchMes
                                 KDboolean visible;
                                 kdGetWindowPropertybv(kdWindow, KD_WINDOWPROPERTY_VISIBILITY, &visible);
                                 DBG_PRINT( "event window visibility: src: %p, v:%d\n", userData, visible);
+                                (*env)->CallVoidMethod(env, javaWindow, visibleChangedID, visible?JNI_TRUE:JNI_FALSE);
                             }
                             break;
                         default:
@@ -209,13 +211,15 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_opengl_kd_KDWindow_initIDs
     #endif
 #endif
     windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(J)V");
-    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
+    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(IIZ)V");
+    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     if (windowCreatedID == NULL ||
         sizeChangedID == NULL ||
+        visibleChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowDestroyedID == NULL ||
         sendMouseEventID == NULL ||
@@ -309,6 +313,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_opengl_kd_KDWindow_setVisible0
     KDboolean v = (visible==JNI_TRUE)?KD_TRUE:KD_FALSE;
     kdSetWindowPropertybv(w, KD_WINDOWPROPERTY_VISIBILITY, &v);
     DBG_PRINT( "[setVisible] v=%d\n", visible);
+    (*env)->CallVoidMethod(env, obj, visibleChangedID, visible); // FIXME: or send via event ?
 }
 
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_opengl_kd_KDWindow_setFullScreen0
@@ -332,6 +337,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_opengl_kd_KDWindow_setSize0
     DBG_PRINT( "[setSize] v=%dx%d, res=%d\n", width, height, res);
     (void)res;
 
-    (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
+    (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height, JNI_FALSE);
 }
 

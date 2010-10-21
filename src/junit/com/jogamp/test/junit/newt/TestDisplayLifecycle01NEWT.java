@@ -115,7 +115,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
         Assert.assertEquals(0,display.getReferenceCount());
         Assert.assertEquals(false,display.isNativeValid());
-        Assert.assertEquals(false,display.getEDTUtil().isRunning());
+        Assert.assertEquals(true,display.getEDTUtil().isRunning());
         Assert.assertEquals(0,screen.getReferenceCount());
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,window.isNativeValid());
