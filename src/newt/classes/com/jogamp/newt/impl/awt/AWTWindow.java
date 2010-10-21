@@ -46,6 +46,7 @@ import com.jogamp.newt.impl.WindowImpl;
 import java.awt.Insets;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
+import javax.media.nativewindow.util.Point;
 
 /** An implementation of the Newt Window class built using the
     AWT. This is provided for convenience of porting to platforms
@@ -74,8 +75,6 @@ public class AWTWindow extends WindowImpl {
     private Container container = null;
     private Frame frame = null; // same instance as container, just for impl. convenience
     private AWTCanvas canvas;
-    // non fullscreen dimensions ..
-    private int nfs_width, nfs_height, nfs_x, nfs_y;
 
     protected void requestFocusImpl(boolean reparented) {
         runOnEDT(true, new Runnable() {
@@ -176,13 +175,14 @@ public class AWTWindow extends WindowImpl {
         return res;
     }
 
-    protected void setVisibleImpl(final boolean visible) {
+    protected void setVisibleImpl(final boolean visible, int x, int y, int width, int height) {
         runOnEDT(true, new Runnable() {
                 public void run() {
                     container.setVisible(visible);
                 }
             });
 
+        reconfigureWindowImpl(x, y, width, height, false, 0, 0);
         config = canvas.getAWTGraphicsConfiguration();
 
         if (config == null) {
@@ -190,6 +190,7 @@ public class AWTWindow extends WindowImpl {
         }
 
         updateDeviceData();
+        visibleChanged(visible);
     }
 
     private void updateDeviceData() {
@@ -201,19 +202,6 @@ public class AWTWindow extends WindowImpl {
         int w = mode.getWidth();
         int h = mode.getHeight();
         ((AWTScreen)getScreen()).setScreenSize(w, h);
-    }
-
-    protected void setSizeImpl(final int width, final int height) {
-        if(null!=container) {
-            /** An AWT event on setSize() would bring us in a deadlock situation, hence invokeLater() */
-            runOnEDT(false, new Runnable() {
-                    public void run() {
-                        Insets insets = container.getInsets();
-                        container.setSize(width + insets.left + insets.right,
-                                          height + insets.top + insets.bottom);
-                    }
-                });
-        }
     }
 
     public javax.media.nativewindow.util.Insets getInsets() {
@@ -230,21 +218,11 @@ public class AWTWindow extends WindowImpl {
         return new javax.media.nativewindow.util.Insets(insets[0],insets[1],insets[2],insets[3]);
     }
 
-    protected void setPositionImpl(final int x, final int y) {
-        if(null!=container) {
-            runOnEDT(true, new Runnable() {
-                    public void run() {
-                        container.setLocation(x, y);
-                    }
-                });
-        }
-    }
-
-    protected void reconfigureWindowImpl(final int x, final int y, final int width, final int height) {
+    protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final boolean parentChange, final int fullScreenChange, final int decorationChange) {
         /** An AWT event on setSize() would bring us in a deadlock situation, hence invokeLater() */
         runOnEDT(false, new Runnable() {
                 public void run() {
-                    if(null!=frame) {
+                    if(decorationChange!=0 && null!=frame) {
                         if(!container.isDisplayable()) {
                             frame.setUndecorated(isUndecorated());
                         } else {
@@ -253,12 +231,26 @@ public class AWTWindow extends WindowImpl {
                             }
                         }
                     }
-                    container.setLocation(x, y);
-                    container.setSize(width, height);
+                    int _x=(x>=0)?x:AWTWindow.this.x;
+                    int _y=(x>=0)?y:AWTWindow.this.y;
+                    int _w=(width>0)?width:AWTWindow.this.width;
+                    int _h=(height>0)?height:AWTWindow.this.height;
+
+                    container.setLocation(_x, _y);
+                    Insets insets = container.getInsets();
+                    container.setSize(_w + insets.left + insets.right,
+                                      _h + insets.top + insets.bottom);
                 }
             });
+        return true;
     }
 
+    protected Point getLocationOnScreenImpl(int x, int y) {
+        java.awt.Point ap = canvas.getLocationOnScreen();
+        ap.translate(x, y);
+        return new Point((int)(ap.getX()+0.5),(int)(ap.getY()+0.5));
+    }
+   
     public Object getWrappedWindow() {
         return canvas;
     }

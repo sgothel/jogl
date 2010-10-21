@@ -86,7 +86,9 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
         return surfaceHandle;
     }
 
-    protected void setVisibleImpl(boolean visible) {
+    protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
+        sizeChanged(width, height, false);
+        visibleChanged(visible);
     }
 
     protected void requestFocusImpl(boolean reparented) {
@@ -94,27 +96,19 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
 
     public void setSize(int width, int height) {
         if(!visible) {
-            this.width = width;
-            this.height = height;
+            sizeChanged(width, height, false);
         }
     }
-    protected void setSizeImpl(int width, int height) {
-        shouldNotCallThis();
-    }
-
     public void setPosition(int x, int y) {
         // nop
     }
-    protected void setPositionImpl(int x, int y) {
-        shouldNotCallThis();
-    }
-
     public boolean setFullscreen(boolean fullscreen) {
         // nop
         return false;
     }
-    protected void reconfigureWindowImpl(int x, int y, int width, int height) {
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, boolean parentChange, int fullScreenChange, int decorationChange) {
         shouldNotCallThis();
+        return false;
     }
 
     public Point getLocationOnScreen(Point storage) {
@@ -124,6 +118,10 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
         return storage;
      }
      return new Point(0,0);
+    }
+
+    protected Point getLocationOnScreenImpl(int x, int y) {
+        return new Point(x,y);
     }
 }
 

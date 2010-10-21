@@ -37,6 +37,7 @@ import com.jogamp.opengl.impl.egl.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.GLCapabilities;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.util.Point;
 
 public class Window extends com.jogamp.newt.impl.WindowImpl {
     static {
@@ -70,7 +71,10 @@ public class Window extends com.jogamp.newt.impl.WindowImpl {
         }
     }
 
-    protected void setVisibleImpl(boolean visible) { }
+    protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
+        reconfigureWindowImpl(x, y, width, height, false, 0, 0);
+        visibleChanged(visible);
+    }
 
     protected void requestFocusImpl(boolean reparented) { }
 
@@ -84,15 +88,36 @@ public class Window extends com.jogamp.newt.impl.WindowImpl {
         }
     }
 
-    protected void setPositionImpl(int x, int y) {
-        // n/a in BroadcomEGL
-        System.err.println("BCEGL Window.setPositionImpl n/a in BroadcomEGL");
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, 
+                                            boolean parentChange, int fullScreenChange, int decorationChange) {
+        if(0!=getWindowHandle()) {
+            if(0!=fullScreenChange) {
+                if( fullScreenChange > 0 ) {
+                    // n/a in BroadcomEGL
+                    System.err.println("setFullscreen n/a in BroadcomEGL");
+                    return false;
+                }
+            }
+        }
+        if(width>0 || height>0) {
+            if(0!=getWindowHandle()) {
+                // n/a in BroadcomEGL
+                System.err.println("BCEGL Window.setSizeImpl n/a in BroadcomEGL with realized window");
+            } else {
+                this.width=(width>0)?width:this.width;
+                this.height=(height>0)?height:this.height;
+            }
+        }
+        if(x>=0 || y>=0) {
+            System.err.println("BCEGL Window.setPositionImpl n/a in BroadcomEGL");
+        }
+        return true;
     }
 
-    protected void reconfigureWindowImpl(int x, int y, int width, int height) {
-        // n/a in BroadcomEGL
-        System.err.println("setFullscreen n/a in BroadcomEGL");
+    protected Point getLocationOnScreenImpl(int x, int y) {
+        return new Point(x,y);
     }
+
 
     public boolean surfaceSwap() {
         SwapWindow(getDisplayHandle(), getWindowHandle());

@@ -90,7 +90,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(0,display.getReferenceCount());
         Assert.assertEquals(false,display.isNativeValid());
         Assert.assertNotNull(display.getEDTUtil());
-        Assert.assertEquals(false,display.getEDTUtil().isRunning());
+        Assert.assertEquals(true,display.getEDTUtil().isRunning());
         Assert.assertEquals(0,screen.getReferenceCount());
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
@@ -355,7 +355,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(0,display1.getReferenceCount());
         Assert.assertEquals(false,display1.isNativeValid());
         Assert.assertNotNull(display1.getEDTUtil());
-        Assert.assertEquals(false,display1.getEDTUtil().isRunning());
+        Assert.assertEquals(true,display1.getEDTUtil().isRunning());
         Assert.assertEquals(0,screen1.getReferenceCount());
         Assert.assertEquals(false,screen1.isNativeValid());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
@@ -372,7 +372,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(0,display2.getReferenceCount());
         Assert.assertEquals(false,display2.isNativeValid());
         Assert.assertNotNull(display2.getEDTUtil());
-        Assert.assertEquals(false,display2.getEDTUtil().isRunning());
+        Assert.assertEquals(true,display2.getEDTUtil().isRunning());
         Assert.assertEquals(0,screen2.getReferenceCount());
         Assert.assertEquals(false,screen2.isNativeValid());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
@@ -630,7 +630,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(0,display1.getReferenceCount());
         Assert.assertEquals(false,display1.isNativeValid());
         Assert.assertNotNull(display1.getEDTUtil());
-        Assert.assertEquals(false,display1.getEDTUtil().isRunning());
+        Assert.assertEquals(true,display1.getEDTUtil().isRunning());
         Assert.assertEquals(0,screen1.getReferenceCount());
         Assert.assertEquals(false,screen1.isNativeValid());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());

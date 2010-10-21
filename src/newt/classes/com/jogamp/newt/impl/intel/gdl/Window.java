@@ -34,6 +34,7 @@
 package com.jogamp.newt.impl.intel.gdl;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.util.Point;
 
 public class Window extends com.jogamp.newt.impl.WindowImpl {
     static {
@@ -77,42 +78,40 @@ public class Window extends com.jogamp.newt.impl.WindowImpl {
         }
     }
 
-    protected void setVisibleImpl(boolean visible) {
+    protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
+        reconfigureWindowImpl(x, y, width, height, false, 0, 0);
         if(visible) {
             ((Display)getScreen().getDisplay()).setFocus(this);
         }
+        this.visibleChanged(visible);
     }
 
-    protected void setSizeImpl(int width, int height) {
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, boolean parentChange, int fullScreenChange, int decorationChange) {
         Screen  screen = (Screen) getScreen();
-        if((x+width)>screen.getWidth()) {
-            width=screen.getWidth()-x;
-        }
-        if((y+height)>screen.getHeight()) {
-            height=screen.getHeight()-y;
-        }
-        if(0!=surfaceHandle) {
-            SetBounds0(surfaceHandle, screen.getWidth(), screen.getHeight(), x, y, width, height);
-        }
-    }
 
-    protected void setPositionImpl(int x, int y) {
-        Screen  screen = (Screen) getScreen();
-        if((x+width)>screen.getWidth()) {
-            x=screen.getWidth()-width;
-        }
-        if((y+height)>screen.getHeight()) {
-            y=screen.getHeight()-height;
-        }
-        if(0!=surfaceHandle) {
-            SetBounds0(surfaceHandle, screen.getWidth(), screen.getHeight(), x, y, width, height);
-        }
-    }
+        int _x=(x>=0)?x:this.x;
+        int _y=(x>=0)?y:this.y;
+        int _w=(width>0)?width:this.width;
+        int _h=(height>0)?height:this.height;
 
-    protected void reconfigureWindowImpl(int x, int y, int width, int height) {
-        if(0!=surfaceHandle) {
-            SetBounds0(surfaceHandle, getScreen().getWidth(), getScreen().getHeight(), x, y, width, height);
+        if(_w>screen.getWidth()) {
+            _w=screen.getWidth();
         }
+        if(_h>screen.getHeight()) {
+            _h=screen.getHeight();
+        }
+        if((_x+_w)>screen.getWidth()) {
+            _x=screen.getWidth()-_w;
+        }
+        if((_y+_h)>screen.getHeight()) {
+            _y=screen.getHeight()-_h;
+        }
+
+        if(0!=surfaceHandle) {
+            SetBounds0(surfaceHandle, getScreen().getWidth(), getScreen().getHeight(), _x, _y, _w, _h);
+        }
+
+        return true;
     }
 
     protected void requestFocusImpl(boolean reparented) {
@@ -121,6 +120,10 @@ public class Window extends com.jogamp.newt.impl.WindowImpl {
 
     public final long getSurfaceHandle() {
         return surfaceHandle;
+    }
+
+    protected Point getLocationOnScreenImpl(int x, int y) {
+        return new Point(x,y);
     }
 
     //----------------------------------------------------------------------
@@ -140,5 +143,4 @@ public class Window extends com.jogamp.newt.impl.WindowImpl {
     }
 
     private long   surfaceHandle;
-    private int nfs_width, nfs_height, nfs_x, nfs_y;
 }

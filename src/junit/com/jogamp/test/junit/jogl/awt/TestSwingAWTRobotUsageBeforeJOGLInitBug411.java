@@ -39,6 +39,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.Animator;
 
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
@@ -254,6 +255,8 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         GLWindow win0 = GLWindow.create(caps);
         win0.setSize(100,100);
         win0.setVisible(true);
+        Screen screen = win0.getScreen();
+        win0.setPosition(screen.getWidth()-150, screen.getHeight()-150);
         win0.addGLEventListener(new Gears());
         Animator anim0 = new Animator(win0);
         anim0.start();
@@ -277,6 +280,8 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         GLWindow win0 = GLWindow.create(caps);
         win0.setSize(100,100);
         win0.setVisible(true);
+        Screen screen = win0.getScreen();
+        win0.setPosition(screen.getWidth()-150, screen.getHeight()-150);
         win0.addGLEventListener(new Gears());
         Animator anim0 = new Animator(win0);
         anim0.start();
