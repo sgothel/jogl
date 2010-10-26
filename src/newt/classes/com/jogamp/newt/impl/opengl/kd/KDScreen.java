@@ -46,7 +46,7 @@ public class KDScreen extends ScreenImpl {
     }
 
     protected void createNativeImpl() {
-        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), idx);
+        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
     }
 
     protected void closeNativeImpl() { }

@@ -1,91 +1,207 @@
+/**
+ * Copyright 2010 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
+
 package com.jogamp.newt.impl;
 
+import com.jogamp.common.util.ArrayHashSet;
+import com.jogamp.common.util.IntIntHashMap;
+import com.jogamp.common.util.locks.RecursiveLock;
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.event.ScreenModeListener;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ScreenModeStatus {
-	private String screenFQN = null;
-	private ScreenMode[] screenModes = null;
-	
-	private int currentScreenMode = -1;
-	private short currentScreenRate = -1;
-	private int currentScreenRotation = -1;
-	
-	private int originalScreenMode = -1;
-	private short originalScreenRate = -1;
-	private int originalScreenRotation = -1;
-	
-	public ScreenModeStatus(String screenFQN, int originalScreenMode,
-			short originalScreenRate, int originalScreenRotation) {
-		this.screenFQN = screenFQN;
-		this.originalScreenMode = originalScreenMode;
-		this.originalScreenRate = originalScreenRate;
-		this.originalScreenRotation = originalScreenRotation;
-		
-		this.currentScreenMode = originalScreenMode;
-		this.currentScreenRate = originalScreenRate;
-		this.currentScreenRotation = originalScreenRotation;
-	}
+    private static boolean DEBUG = Screen.DEBUG;
 
-	public void setCurrentScreenRotation(int currentScreenRotation) {
-		this.currentScreenRotation = currentScreenRotation;
-	}
+    private RecursiveLock lock = new RecursiveLock();
+    private ArrayHashSet/*<ScreenMode>*/ screenModes;
+    private IntIntHashMap screenModesIdx2NativeIdx;
+    private ScreenMode currentScreenMode;
+    private ScreenMode originalScreenMode;
+    private ArrayList/*<ScreenModeChangeListener>*/ listener = new ArrayList();
 
-	public int getCurrentScreenRotation() {
-		return currentScreenRotation;
-	}
+    private static HashMap screenFQN2ScreenModeStatus = new HashMap();
+    private static RecursiveLock screen2ScreenModeStatusLock = new RecursiveLock();
 
-	public int getOriginalScreenRotation() {
-		return originalScreenRotation;
-	}
+    protected static void mapScreenModeStatus(String screenFQN, ScreenModeStatus sms) {
+        screen2ScreenModeStatusLock.lock();
+        try {
+            ScreenModeStatus _sms = (ScreenModeStatus) screenFQN2ScreenModeStatus.get(screenFQN);
+            if( null != _sms ) {
+                throw new RuntimeException("ScreenModeStatus "+_sms+" already mapped to "+screenFQN);
+            }
+            screenFQN2ScreenModeStatus.put(screenFQN, sms);
+            if(DEBUG) {
+                System.err.println("ScreenModeStatus.map "+screenFQN+" -> "+sms);
+            }
+        } finally {
+            screen2ScreenModeStatusLock.unlock();
+        }
+    }
 
-	public int getCurrentScreenMode() {
-		return currentScreenMode;
-	}
+    /**
+     * @param screen the prev user
+     * @return true if mapping is empty, ie no more usage of the mapped ScreenModeStatus
+     */
+    protected static void unmapScreenModeStatus(String screenFQN) {
+        screen2ScreenModeStatusLock.lock();
+        try {
+            ScreenModeStatus sms = (ScreenModeStatus) screenFQN2ScreenModeStatus.remove(screenFQN);
+            if(DEBUG) {
+                System.err.println("ScreenModeStatus.unmap "+screenFQN+" -> "+sms);
+            }
+        } finally {
+            screen2ScreenModeStatusLock.unlock();
+        }
+    }
 
-	public void setCurrentScreenMode(int currentScreenMode) {
-		this.currentScreenMode = currentScreenMode;
-	}
+    protected static ScreenModeStatus getScreenModeStatus(String screenFQN) {
+        screen2ScreenModeStatusLock.lock();
+        try {
+            return (ScreenModeStatus) screenFQN2ScreenModeStatus.get(screenFQN);
+        } finally {
+            screen2ScreenModeStatusLock.unlock();
+        }
+    }
 
-	public short getCurrentScreenRate() {
-		return currentScreenRate;
-	}
+    protected static void lockScreenModeStatus() {
+        screen2ScreenModeStatusLock.lock();
+    }
 
-	public void setCurrentScreenRate(short currentRate) {
-		this.currentScreenRate = currentRate;
-	}
+    protected static void unlockScreenModeStatus() {
+        screen2ScreenModeStatusLock.unlock();
+    }
+    
+    public ScreenModeStatus(ArrayHashSet/*<ScreenMode>*/ screenModes,
+                            IntIntHashMap screenModesIdx2NativeIdx) {
+        this.screenModes = screenModes;
+        this.screenModesIdx2NativeIdx = screenModesIdx2NativeIdx;
+    }
 
-	public String getScreenFQN() {
-		return screenFQN;
-	}
+    protected final void setOriginalScreenMode(ScreenMode originalScreenMode) {
+        this.originalScreenMode = originalScreenMode;
+        this.currentScreenMode = originalScreenMode;
+    }
 
-	public void setScreenFQN(String screenFQN) {
-		this.screenFQN = screenFQN;
-	}
+    public final ScreenMode getOriginalScreenMode() {
+        return originalScreenMode;
+    }
 
-	public ScreenMode[] getScreenModes() {
-		return screenModes;
-	}
+    public final ScreenMode getCurrentScreenMode() {
+        lock();
+        try {
+            return currentScreenMode;
+        } finally {
+            unlock();
+        }
+    }
 
-	public void setScreenModes(ScreenMode[] screenModes) {
-		this.screenModes = screenModes;
-	}
-	public boolean isOriginalMode(){
-		if(currentScreenMode == originalScreenMode
-				&& currentScreenRate == originalScreenRate)
-			return true;
-		return false;
-	}
-	public boolean isOriginalRotation(){
-		if(currentScreenRotation == originalScreenRotation)
-			return true;
-		return false;
-	}
-	
-	public int getOriginalScreenMode() {
-		return originalScreenMode;
-	}
+    public final boolean isOriginalMode() {
+        lock();
+        try {
+            if(null != currentScreenMode && null != originalScreenMode) {
+                return currentScreenMode.hashCode() == originalScreenMode.hashCode();
+            }
+            return true;
+        } finally {
+            unlock();
+        }
+    }
 
-	public short getOriginalScreenRate() {
-		return originalScreenRate;
-	}
+    protected final ArrayHashSet/*<ScreenMode>*/ getScreenModes() {
+        return screenModes;
+    }
+
+    protected final IntIntHashMap getScreenModesIdx2NativeIdx() {
+        return screenModesIdx2NativeIdx;
+    }
+
+    protected final int addListener(ScreenModeListener l) {
+        lock();
+        try {
+            listener.add(l);
+            if(DEBUG) {
+                System.err.println("ScreenModeStatus.addListener (size: "+listener.size()+"): "+l);
+            }
+            return listener.size();
+        } finally {
+            unlock();
+        }
+    }
+
+    protected final int removeListener(ScreenModeListener l) {
+        lock();
+        try {
+            if(!listener.remove(l)) {
+                throw new RuntimeException("ScreenModeListener "+l+" not contained");
+            }
+            if(DEBUG) {
+                System.err.println("ScreenModeStatus.removeListener (size: "+listener.size()+"): "+l);
+            }
+            return listener.size();
+        } finally {
+            unlock();
+        }
+    }
+
+    protected final void fireScreenModeChangeNotify(ScreenMode desiredScreenMode) {
+        lock();
+        try {
+            for(int i=0; i<listener.size(); i++) {
+                ((ScreenModeListener)listener.get(i)).screenModeChangeNotify(desiredScreenMode);
+            }
+        } finally {
+            unlock();
+        }
+    }
+
+    protected void fireScreenModeChanged(ScreenMode currentScreenMode, boolean success) {
+        lock();
+        try {
+            if(success) {
+                this.currentScreenMode = currentScreenMode;
+            }
+            for(int i=0; i<listener.size(); i++) {
+                ((ScreenModeListener)listener.get(i)).screenModeChanged(currentScreenMode, success);
+            }
+        } finally {
+            unlock();
+        }
+    }
+
+    protected final void lock() throws RuntimeException {
+        lock.lock();
+    }
+
+    protected final void unlock() throws RuntimeException {
+        lock.unlock();
+    }
+
 }

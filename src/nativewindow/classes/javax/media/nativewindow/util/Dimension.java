@@ -27,10 +27,9 @@
  * or implied, of JogAmp Community.
  */
  
-
 package javax.media.nativewindow.util;
 
-public class Dimension {
+public class Dimension implements Cloneable, DimensionReadOnly {
     int width;
     int height;
 
@@ -39,20 +38,35 @@ public class Dimension {
     }
 
     public Dimension(int width, int height) {
+        if(width<0 || height<0) {
+            throw new IllegalArgumentException("width and height must be within: ["+0+".."+Integer.MAX_VALUE+"]");
+        }
         this.width=width;
         this.height=height;
     }
+
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException ex) {
+            throw new InternalError();
+        }
+    }
+
     public int getWidth() { return width; }
     public int getHeight() { return height; }
-    public void setWidth(int width) { this.width = width; }
-    public void setHeight(int height) { this.height = height; }
 
+    public void setWidth(int width) {
+        this.width = width;
+    }
+    public void setHeight(int height) {
+        this.height = height;
+    }
     public Dimension scale(int s) {
         width *= s;
         height *= s;
         return this;
     }
-
     public Dimension add(Dimension pd) {
         width += pd.width ;
         height += pd.height ;
@@ -60,35 +74,23 @@ public class Dimension {
     }
 
     public String toString() {
-        return new String("Dimension["+width+"x"+height+"]");
+        return new String("Dimension["+width+" x "+height+"]");
     }
 
-    /**
-     * Checks whether two dimensions objects are equal. Two instances
-     * of <code>Dimension</code> are equal if the four integer values
-     * of the fields <code>height</code> and <code>width</code>
-     * are equal.
-     * @return      <code>true</code> if the two dimensions are equal;
-     *                          otherwise <code>false</code>.
-     */
     public boolean equals(Object obj) {
         if (obj instanceof Dimension) {
             Dimension p = (Dimension)obj;
-            return (height == p.height) && (width == p.width) &&
-                   (height == p.height) && (width == p.width);
+            return height == p.height && 
+                   width == p.width ;
         }
         return false;
     }
 
-    /**
-     * Returns the hash code for this Dimension.
-     *
-     * @return    a hash code for this Dimension.
-     */
     public int hashCode() {
-        int sum1 = width + height;
-        return sum1 * (sum1 + 1)/2 + width;
+        // 31 * x == (x << 5) - x
+        int hash = 31 + width;
+        hash = ((hash << 5) - hash) + height;
+        return hash;
     }
-
 }
 

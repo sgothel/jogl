@@ -78,8 +78,6 @@ public class Gears implements GLEventListener {
 
     GL2 gl = drawable.getGL().getGL2();
 
-    gl.setSwapInterval(swapInterval);
-
     float pos[] = { 5.0f, 5.0f, 10.0f, 0.0f };
     float red[] = { 0.8f, 0.1f, 0.0f, 0.7f };
     float green[] = { 0.0f, 0.8f, 0.2f, 0.7f };
@@ -127,6 +125,8 @@ public class Gears implements GLEventListener {
   public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     System.err.println("Gears: Reshape "+x+"/"+y+" "+width+"x"+height);
     GL2 gl = drawable.getGL().getGL2();
+
+    gl.setSwapInterval(swapInterval);
 
     float h = (float)height / (float)width;
             

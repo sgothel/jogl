@@ -4,14 +4,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- *
+ * 
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- *
+ * 
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -21,25 +21,30 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-
+ 
 package javax.media.nativewindow.util;
 
-public class Point implements Cloneable, PointReadOnly {
-    int x;
-    int y;
+/** Immutable SurfaceSize Class, consisting of it's read only components:<br>
+ * <ul>
+ *  <li>{@link javax.media.nativewindow.util.DimensionReadOnly} size in pixels</li>
+ *  <li><code>bits per pixel</code></li>
+ * </ul>
+ */
+public class SurfaceSize  implements Cloneable {
+    DimensionReadOnly resolution;
+    int bitsPerPixel;
 
-    public Point(int x, int y) {
-        this.x=x;
-        this.y=y;
-    }
-
-    public Point() {
-        this(0, 0);
+    public SurfaceSize(DimensionReadOnly resolution, int bitsPerPixel) {
+        if(null==resolution || bitsPerPixel<=0) {
+            throw new IllegalArgumentException("resolution must be set and bitsPerPixel greater 0");
+        }
+        this.resolution=resolution;
+        this.bitsPerPixel=bitsPerPixel;
     }
 
     public Object clone() {
@@ -50,46 +55,40 @@ public class Point implements Cloneable, PointReadOnly {
         }
     }
 
-    public boolean equals(Object obj) {
-        if (obj instanceof Point) {
-            Point p = (Point)obj;
-            return y == p.y && x == p.x;
+    public final DimensionReadOnly getResolution() {
+        return resolution;
+    }
+
+    public final int getBitsPerPixel() {
+        return bitsPerPixel;
+    }
+
+    public final String toString() {
+        return new String("SurfaceSize["+resolution+" x "+bitsPerPixel+" bpp]");
+    }
+
+    /**
+     * Checks whether two size objects are equal. Two instances
+     * of <code>SurfaceSize</code> are equal if the two components
+     * <code>resolution</code> and <code>bitsPerPixel</code>
+     * are equal.
+     * @return  <code>true</code> if the two dimensions are equal;
+     *          otherwise <code>false</code>.
+     */
+    public final boolean equals(Object obj) {
+        if (obj instanceof SurfaceSize) {
+            SurfaceSize p = (SurfaceSize)obj;
+            return getResolution().equals(p.getResolution()) &&
+                   getBitsPerPixel() == p.getBitsPerPixel();
         }
         return false;
     }
 
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public int hashCode() {
+    public final int hashCode() {
         // 31 * x == (x << 5) - x
-        int hash = 31 + x;
-        hash = ((hash << 5) - hash) + y;
+        int hash = 31 + getResolution().hashCode();
+        hash = ((hash << 5) - hash) + getBitsPerPixel();
         return hash;
     }
-
-    public String toString() {
-        return new String("Point[" + x + " / " + y + "]");
-    }
-
-    public void setX(int x) { this.x = x; }
-    public void setY(int y) { this.y = y; }
-
-    public Point translate(Point pd) {
-        x += pd.x ;
-        y += pd.y ;
-        return this;
-    }
-
-    public Point translate(int dx, int dy) {
-        x += dx ;
-        y += dy ;
-        return this;
-    }
-
 }
+

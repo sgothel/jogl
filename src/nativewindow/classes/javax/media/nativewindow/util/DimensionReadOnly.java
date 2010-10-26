@@ -29,67 +29,27 @@
 
 package javax.media.nativewindow.util;
 
-public class Point implements Cloneable, PointReadOnly {
-    int x;
-    int y;
+/** Immutable Dimension Interface, consisting of it's read only components:<br>
+ * <ul>
+ *  <li><code>width</code></li>
+ *  <li><code>height</code></li>
+ * </ul>
+ */
+public interface DimensionReadOnly extends Cloneable {
 
-    public Point(int x, int y) {
-        this.x=x;
-        this.y=y;
-    }
+    int getHeight();
 
-    public Point() {
-        this(0, 0);
-    }
+    int getWidth();
 
-    public Object clone() {
-        try {
-            return super.clone();
-        } catch (CloneNotSupportedException ex) {
-            throw new InternalError();
-        }
-    }
+    /**
+     * Checks whether two dimensions objects are equal. Two instances
+     * of <code>DimensionReadOnly</code> are equal if two components
+     * <code>height</code> and <code>width</code> are equal.
+     * @return  <code>true</code> if the two dimensions are equal;
+     *          otherwise <code>false</code>.
+     */
+    boolean equals(Object obj);
 
-    public boolean equals(Object obj) {
-        if (obj instanceof Point) {
-            Point p = (Point)obj;
-            return y == p.y && x == p.x;
-        }
-        return false;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public int hashCode() {
-        // 31 * x == (x << 5) - x
-        int hash = 31 + x;
-        hash = ((hash << 5) - hash) + y;
-        return hash;
-    }
-
-    public String toString() {
-        return new String("Point[" + x + " / " + y + "]");
-    }
-
-    public void setX(int x) { this.x = x; }
-    public void setY(int y) { this.y = y; }
-
-    public Point translate(Point pd) {
-        x += pd.x ;
-        y += pd.y ;
-        return this;
-    }
-
-    public Point translate(int dx, int dy) {
-        x += dx ;
-        y += dy ;
-        return this;
-    }
+    int hashCode();
 
 }

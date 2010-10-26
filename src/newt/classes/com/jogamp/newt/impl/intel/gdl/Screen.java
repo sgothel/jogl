@@ -47,8 +47,8 @@ public class Screen extends com.jogamp.newt.impl.ScreenImpl {
 
     protected void createNativeImpl() {
         AbstractGraphicsDevice adevice = getDisplay().getGraphicsDevice();
-        GetScreenInfo(adevice.getHandle(), idx);
-        aScreen = new DefaultGraphicsScreen(adevice, idx);
+        GetScreenInfo(adevice.getHandle(), screen_idx);
+        aScreen = new DefaultGraphicsScreen(adevice, screen_idx);
     }
 
     protected void closeNativeImpl() { }

@@ -62,5 +62,4 @@ public class AWTScreen extends ScreenImpl {
     }
 
     protected void closeNativeImpl() { }
-
 }

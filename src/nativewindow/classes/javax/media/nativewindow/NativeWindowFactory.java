@@ -51,22 +51,22 @@ import java.lang.reflect.Method;
 public abstract class NativeWindowFactory {
     protected static final boolean DEBUG = Debug.debug("NativeWindow");
 
-    /** OpenKODE/EGL type */
+    /** OpenKODE/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}*/
     public static final String TYPE_EGL = "EGL";
 
-    /** Microsoft Windows type */
+    /** Microsoft Windows type, as retrieved with {@link #getNativeWindowType(boolean)} */
     public static final String TYPE_WINDOWS = "Windows";
 
-    /** X11 type */
+    /** X11 type, as retrieved with {@link #getNativeWindowType(boolean)} */
     public static final String TYPE_X11 = "X11";
 
-    /** Mac OS X type */
+    /** Mac OS X type, as retrieved with {@link #getNativeWindowType(boolean)} */
     public static final String TYPE_MACOSX = "MacOSX";
 
-    /** Generic AWT type */
+    /** Generic AWT type, as retrieved with {@link #getNativeWindowType(boolean)} */
     public static final String TYPE_AWT = "AWT";
 
-    /** Generic DEFAULT type, where platform implementation don't care */
+    /** Generic DEFAULT type, where platform implementation don't care, as retrieved with {@link #getNativeWindowType(boolean)} */
     public static final String TYPE_DEFAULT = "default";
 
     private static NativeWindowFactory defaultFactory;
@@ -229,10 +229,18 @@ public abstract class NativeWindowFactory {
     /** @return true if not headless, AWT Component and NativeWindow's AWT part available */
     public static boolean isAWTAvailable() { return isAWTAvailable; }
 
+    /**
+     * @param useCustom if false return the native value, if true return a custom value if set, otherwise fallback to the native value.
+     * @return the native OS name
+     */
     public static String getNativeOSName(boolean useCustom) {
         return useCustom?nativeOSNameCustom:nativeOSNamePure;
     }
 
+    /**
+     * @param useCustom if false return the native value, if true return a custom value if set, otherwise fallback to the native value.
+     * @return a define native window type, like {@link #TYPE_X11}, ..
+     */
     public static String getNativeWindowType(boolean useCustom) {
         return useCustom?nativeWindowingTypeCustom:nativeWindowingTypePure;
     }

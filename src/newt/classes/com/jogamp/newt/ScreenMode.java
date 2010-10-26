@@ -1,76 +1,179 @@
+/**
+ * Copyright 2010 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
+
 package com.jogamp.newt;
 
-public class ScreenMode {
-	public static final int ROTATE_0   = 0;
-	public static final int ROTATE_90  = 90;
-	public static final int ROTATE_180 = 180;
-	public static final int ROTATE_270 = 270;
-	
-	private int index;
-	private int width;
-	private int height;
-	private int bitsPerPixel = -1;
-	
-	private short[] rates = null;
+import com.jogamp.newt.util.MonitorMode;
 
-	public ScreenMode(int index, int width, int height) {
-		this.index = index;
-		this.width = width;
-		this.height = height;
-	}
-	/** Not safe to use this on platforms 
-	 * other than windows. Since the mode ids
-	 * on X11 match the native ids. unlike windows
-	 * where the ids are generated .
-	 * @param index
-	 */
-	public void setIndex(int index) {
-		this.index = index;
-	}
-	public int getIndex() {
-		return index;
-	}
-	public int getWidth() {
-		return width;
-	}
-	public void setWidth(int width) {
-		this.width = width;
-	}
-	public int getHeight() {
-		return height;
-	}
-	public void setHeight(int height) {
-		this.height = height;
-	}
-	public short[] getRates() {
-		return rates;
-	}
-	public void setRates(short[] rates) {
-		this.rates = rates;
-	}
+/** Immutable ScreenMode Class, consisting of it's read only components:<br>
+ * <ul>
+ *  <li>{@link com.jogamp.newt.util.MonitorMode}</li>
+ *  <li><code>rotation</code></li>
+ * </ul>
+ *
+ * <i>Aquire and filter ScreenModes</i><br>
+ * <ul>
+ *  <li>A List of read only ScreenMode's is being returned by {@link com.jogamp.newt.Screen#getScreenModes()}.</li>
+ *  <li>You may utilize {@link com.jogamp.newt.util.ScreenModeUtil} to filter and select a desired ScreenMode.</li>
+ *  <li>The current ScreenMode can be obtained via {@link com.jogamp.newt.Screen#getCurrentScreenMode()}.</li>
+ *  <li>The initial original ScreenMode (at startup) can be obtained via {@link com.jogamp.newt.Screen#getOriginalScreenMode()}.</li>
+ * </ul>
+ * <br>
+ *
+ * <i>Changing ScreenModes</i><br>
+ * <ul>
+ *  <li> Use {@link com.jogamp.newt.Screen#setCurrentScreenMode(com.jogamp.newt.ScreenMode)}</li>
+ *       to change the current ScreenMode of all Screen's referenced via the full qualified name (FQN)
+ *       {@link com.jogamp.newt.Screen#getFQName()}.</li>
+ *  <li> When the last FQN referenced Screen closes, the original ScreenMode ({@link com.jogamp.newt.Screen#getOriginalScreenMode()})
+ * is restored.</li>
+ * </ul>
+ * <br>
+ * Example for changing the ScreenMode:
+ * <pre>
+        // determine target refresh rate
+        ScreenMode orig = screen.getOriginalScreenMode();
+        int freq = orig.getMonitorMode().getRefreshRate();
 
-	public int getBitsPerPixel() {
-		return bitsPerPixel;
-	}
+        // target resolution
+        Dimension res = new Dimension(800, 600);
 
-	public void setBitsPerPixel(int bitsPerPixel) {
-		this.bitsPerPixel = bitsPerPixel;
-	}
-	
-	public short getHighestAvailableRate(){
-		short highest = rates[0];
-		if(rates.length > 1){
-			for (int i = 1; i < rates.length; i++) {
-				if(rates[i] > highest){
-					highest = rates[i];
-				}
-			}
-		}
-		return highest;
-	}
-	
-	public String toString() {
-		return "ScreenMode: " + this.index + " - " + this.width + " x " 
-			+ this.height + " " + getHighestAvailableRate() + " Hz";
-	}
+        // target rotation
+        int rot = 0;
+
+        // filter available ScreenModes
+        List screenModes = screen.getScreenModes();
+        screenModes = ScreenModeUtil.filterByRate(screenModes, freq); // get the nearest ones
+        screenModes = ScreenModeUtil.filterByRotation(screenModes, rot);
+        screenModes = ScreenModeUtil.filterByResolution(screenModes, res); // get the nearest ones
+        screenModes = ScreenModeUtil.getHighestAvailableBpp(screenModes);
+
+        // pick 1st one ..
+        screen.setCurrentScreenMode((ScreenMode) screenModes.get(0)); 
+ * </pre>
+ *
+ * X11 / AMD just works<br>
+ * <br>
+ * X11 / NVidia difficulties
+ * <pre>
+    NVidia RANDR RefreshRate Bug
+        If NVidia's 'DynamicTwinView' is enabled, all refresh rates are
+        unique, ie consequent numbers starting with the default refresh, ie 50, 51, ..
+        The only way to workaround it is to disable 'DynamicTwinView'.
+        Read: http://us.download.nvidia.com/XFree86/Linux-x86/260.19.12/README/configtwinview.html
+
+        Check to see if 'DynamicTwinView' is enable:
+            nvidia-settings -q :0/DynamicTwinview
+
+        To disable it (workaround), add the following option to your xorg.conf device section:
+            Option "DynamicTwinView" "False"
+
+    NVidia RANDR Rotation:
+        To enable it, add the following option to your xorg.conf device section:
+            Option "RandRRotation" "on"
+ * </pre>
+ *
+ */
+public class ScreenMode implements Cloneable {
+    public static final int ROTATE_0   = 0;
+    public static final int ROTATE_90  = 90;
+    public static final int ROTATE_180 = 180;
+    public static final int ROTATE_270 = 270;
+
+    MonitorMode monitorMode;
+    int rotation;
+
+    public static boolean isRotationValid(int rotation) {
+        return rotation == ScreenMode.ROTATE_0 || rotation == ScreenMode.ROTATE_90 ||
+               rotation == ScreenMode.ROTATE_180 || rotation == ScreenMode.ROTATE_270 ;
+    }
+
+    /**
+     * @param monitorMode the monitor mode
+     * @param rotation the screen rotation
+     */
+    public ScreenMode(MonitorMode monitorMode, int rotation) {
+        if ( !isRotationValid(rotation) ) {
+            throw new RuntimeException("invalid rotation: "+rotation);
+        }
+        this.monitorMode = monitorMode;
+        this.rotation = rotation;
+    }
+
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException ex) {
+            throw new InternalError();
+        }
+    }
+
+    public final MonitorMode getMonitorMode() {
+        return monitorMode;
+    }
+
+    public final int getRotation() {
+        return rotation;
+    }
+
+    public final String toString() {
+        return "ScreenMode[" +  getMonitorMode() + ", " + rotation + " degr]";
+    }
+
+    /**
+     * Tests equality of two <code>ScreenMode</code> objects 
+     * by evaluating equality of it's components:<br>
+     * <ul>
+     *  <li><code>monitorMode</code></li>
+     *  <li><code>rotation</code></li>
+     * </ul>
+     * <br>
+     */
+    public final boolean equals(Object obj) {
+        if (obj instanceof ScreenMode) {
+            ScreenMode sm = (ScreenMode)obj;
+            return sm.getMonitorMode().equals(getMonitorMode()) &&
+                   sm.getRotation() == this.getRotation() ;
+        }
+        return false;
+    }
+
+    /**
+     * Returns a combined hash code of it's elements:<br>
+     * <ul>
+     *  <li><code>monitorMode</code></li>
+     *  <li><code>rotation</code></li>
+     * </ul>
+     */
+    public final int hashCode() {
+        // 31 * x == (x << 5) - x
+        int hash = 31 + getMonitorMode().hashCode();
+        hash = ((hash << 5) - hash) + getRotation();
+        return hash;
+    }
 }

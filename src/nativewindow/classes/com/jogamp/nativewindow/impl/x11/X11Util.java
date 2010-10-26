@@ -34,9 +34,6 @@ package com.jogamp.nativewindow.impl.x11;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.Iterator;
 import com.jogamp.common.util.LongObjectHashMap;
 import com.jogamp.common.util.locks.RecursiveLock;
 
@@ -46,7 +43,6 @@ import com.jogamp.nativewindow.impl.*;
 import java.nio.Buffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
-import java.security.AccessController;
 
 /**
  * Contains a thread safe X11 utility to retrieve thread local display connection,<br>

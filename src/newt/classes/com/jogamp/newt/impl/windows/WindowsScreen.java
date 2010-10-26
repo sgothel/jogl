@@ -30,182 +30,80 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
  */
-
 package com.jogamp.newt.impl.windows;
 
+import com.jogamp.common.util.ArrayHashSet;
 import java.util.ArrayList;
 
 import com.jogamp.newt.*;
 import com.jogamp.newt.impl.ScreenImpl;
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.impl.ScreenModeStatus;
+import com.jogamp.newt.util.ScreenModeUtil;
 
 import javax.media.nativewindow.*;
 
 public class WindowsScreen extends ScreenImpl {
+
     static {
         WindowsDisplay.initSingleton();
     }
-
 
     public WindowsScreen() {
     }
 
     protected void createNativeImpl() {
-        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), idx);
-        setScreenSize(getWidthImpl0(idx), getHeightImpl0(idx));
+        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
+        setScreenSize(getWidthImpl0(screen_idx), getHeightImpl0(screen_idx));
     }
 
-    protected void closeNativeImpl() { }
-    
-    public int getDesktopScreenModeIndex() {
-    	int index = super.getDesktopScreenModeIndex();
-    	if(index == -1) {
-        	/** Set the current screen mode to refering to index zero
-        	 *  dependent on the impl of getScreenModes which saves the 
-        	 *  current screen mode at index 0 which is the original screen mode
-        	 */
-	    	ScreenMode[] screenModes = getScreenModes();
-	    	if(screenModes != null) {
-	    		if(screenModes[0] != null) {
-	    			index = screenModes[0].getIndex();
-	    		}
-	    	}
-    	}
-    	return index;
+    protected void closeNativeImpl() {
     }
-    
-    public void setScreenMode(int modeIndex, short rate) {
-    	ScreenModeStatus sms = screensModeState.getScreenModeController(getScreenFQN());
-    	ScreenMode[] screenModes = sms.getScreenModes();
-    	
-    	short selectedRate = rate;
-    	int selectedMode = modeIndex;
-    	
-    	if(modeIndex < 0 || (modeIndex > screenModes.length)){
-    		selectedMode = sms.getOriginalScreenMode();
-    	}
-    	ScreenMode sm = screenModes[selectedMode];
-    	
-    	if(selectedRate == -1){
-    		selectedRate = sms.getOriginalScreenRate();
-    	}
-    	
-    	boolean rateAvailable = false;
-    	short[] rates = sm.getRates();
-    	for(int i=0;i<rates.length;i++){
-    		if(rates[i] == selectedRate){
-    			rateAvailable = true;
-    			break;
-    		}
-    	}
-    	if(!rateAvailable){
-    		selectedRate = rates[0];
-    	}
 
-    	if(0 == setScreenMode0(idx, sm.getWidth(), sm.getHeight(), sm.getBitsPerPixel(), selectedRate)){	
-    		sms.setCurrentScreenMode(selectedMode);
-    		sms.setCurrentScreenRate(selectedRate);
-    	}
+    private int[] getScreenModeIdx(int idx) {
+        int[] modeProps = getScreenMode0(screen_idx, idx);
+        if (null == modeProps) {
+            return null;
+        }
+        if(modeProps.length != ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL + 1) {
+            throw new RuntimeException("properties array too short, should be >= "+ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL+", is "+modeProps.length);
+        }
+        return modeProps;
     }
-    
-    public short getCurrentScreenRate() {
-    	short rate = super.getCurrentScreenRate();
-    	if(rate == -1){
-    		rate = (short)getCurrentScreenRate0(idx);
-    	}
-    	return rate;
-	}
-    
-    public ScreenMode[] getScreenModes() {
-    	ScreenMode[] screenModes = super.getScreenModes();
-    	if(screenModes == null) {
-    		ArrayList smTemp = new ArrayList();
 
-    		int modeID = -1;
-    		ScreenMode mySM = getScreenMode(modeID++);
-    		int currentBitsPerPixel = mySM.getBitsPerPixel();
-    		while(mySM != null){
-    			//filter out modes with diff bits per pixel
-    			if(mySM.getBitsPerPixel() == currentBitsPerPixel) {
-    				smTemp.add(mySM);
-    			}
-    			mySM = getScreenMode(modeID++);
-    		}
-    		int numModes = smTemp.size();
-    		if(numModes > 0) {
-    			screenModes = new ScreenMode[numModes];
-    			for(int i=0;i<numModes;i++) {
-    				ScreenMode sm = (ScreenMode)smTemp.get(i);
-    				sm.setIndex(i);
-    				screenModes[i] = sm;
-        		}
-    		}
-    	}
-    	return screenModes;
+    private int nativeModeIdx;
+
+    protected int[] getScreenModeFirstImpl() {
+        nativeModeIdx = 0;
+        return getScreenModeNextImpl();
     }
-    private ScreenMode getScreenMode(int modeIndex) {
-    	int[] modeProp = getScreenMode0(idx, modeIndex); 
-    	if(modeProp == null){
-    		return null;
-    	}
-    	int propIndex = 0;
-    	int width = modeProp[propIndex++];
-    	int height = modeProp[propIndex++];
-    	int bits = modeProp[propIndex++];
-    	short rate = (short)modeProp[propIndex++];
-    	
-    	ScreenMode screenMode = new ScreenMode(modeIndex+1, width, height);
-    	screenMode.setRates(new short[]{rate});
-    	screenMode.setBitsPerPixel(bits);
-    	return screenMode;
+
+    protected int[] getScreenModeNextImpl() {
+        int[] modeProps = getScreenModeIdx(nativeModeIdx);
+        if (null != modeProps) {
+            nativeModeIdx++;
+        }
+        return modeProps;
     }
-    
-    public void setScreenRotation(int rot) {
-    	if(!isRotationValid(rot)){
-			return;
-		}
-		ScreenModeStatus sms = screensModeState.getScreenModeController(getScreenFQN());
-		if(0 == setScreenRotation0(idx, rot)) {
-			sms.setCurrentScreenRotation(rot);
-		}
-	}
-    
-    /** Check if this rotation is valid for platform
-	 * @param rot user requested rotation angle
-	 * @return true if is valid
-	 */
-	private boolean isRotationValid(int rot){
-		if((rot == ScreenMode.ROTATE_0) || (rot == ScreenMode.ROTATE_90) || 
-				(rot == ScreenMode.ROTATE_180) || (rot == ScreenMode.ROTATE_270)) {
-			return true;
-		}
-		return false;
-	}
-	
-	public int getCurrentScreenRotation() {
-		int rot = super.getCurrentScreenRotation();
-    	if(rot == -1){
-    		return getCurrentScreenRotation0(idx);		
-    	}
-    	return rot;
-	}
-    
+
+    protected ScreenMode getCurrentScreenModeImpl() {
+        return ScreenModeUtil.streamIn(getScreenModeIdx(-1), 0);
+    }
+
+    protected boolean setCurrentScreenModeImpl(ScreenMode sm) {
+        return setScreenMode0(screen_idx, 
+                              sm.getMonitorMode().getSurfaceSize().getResolution().getWidth(),
+                              sm.getMonitorMode().getSurfaceSize().getResolution().getHeight(),
+                              sm.getMonitorMode().getSurfaceSize().getBitsPerPixel(),
+                              sm.getMonitorMode().getRefreshRate(),
+                              sm.getRotation());
+    }
+
     // Native calls
-
     private native int getWidthImpl0(int scrn_idx);
+
     private native int getHeightImpl0(int scrn_idx);
-    
-    private native int getCurrentScreenRate0(int scrn_idx);
+
     private native int[] getScreenMode0(int screen_index, int mode_index);
-    
-    /** Change screen mode and return zero if successful
-     */
-    private native int setScreenMode0(int screen_index, int width, int height, int bits, short freq);
-    
-    private native int getCurrentScreenRotation0(int screen_index);
-    
-    /** Change screen mode and return zero if successful
-     */
-    private native int setScreenRotation0(int screen_index, int rot);
+    private native boolean setScreenMode0(int screen_index, int width, int height, int bits, int freq, int rot);
 }

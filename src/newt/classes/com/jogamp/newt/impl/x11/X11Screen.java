@@ -30,12 +30,13 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
  */
-
 package com.jogamp.newt.impl.x11;
 
+import com.jogamp.nativewindow.impl.x11.X11Util;
 import com.jogamp.newt.impl.ScreenImpl;
 import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.impl.ScreenModeStatus;
+import com.jogamp.newt.util.ScreenModeUtil;
+import java.util.List;
 
 import javax.media.nativewindow.x11.*;
 
@@ -45,153 +46,221 @@ public class X11Screen extends ScreenImpl {
         X11Display.initSingleton();
     }
 
-
     public X11Screen() {
     }
 
     protected void createNativeImpl() {
-        long handle = GetScreen0(display.getHandle(), idx);
-        if (handle == 0 ) {
-            throw new RuntimeException("Error creating screen: "+idx);
+        long handle = GetScreen0(display.getHandle(), screen_idx);
+        if (handle == 0) {
+            throw new RuntimeException("Error creating screen: " + screen_idx);
         }
-        aScreen = new X11GraphicsScreen((X11GraphicsDevice)getDisplay().getGraphicsDevice(), idx);
-        setScreenSize(getWidth0(display.getHandle(), idx),
-                      getHeight0(display.getHandle(), idx));
+        aScreen = new X11GraphicsScreen((X11GraphicsDevice) getDisplay().getGraphicsDevice(), screen_idx);
+        setScreenSize(getWidth0(display.getHandle(), screen_idx),
+                getHeight0(display.getHandle(), screen_idx));
     }
 
-    protected void closeNativeImpl() { }
-    
-    public int getDesktopScreenModeIndex() {
-    	int index = super.getDesktopScreenModeIndex();
-    	if(index == -1){
-    		return getDesktopScreenModeIndex0(display.getHandle(), idx);
-    	}
-    	return index;
+    protected void closeNativeImpl() {
     }
-    
-    public void setScreenMode(int modeIndex, short rate) {
-    	ScreenModeStatus sms = screensModeState.getScreenModeController(getScreenFQN());
-    	ScreenMode[] screenModes = sms.getScreenModes();
-    	
-    	short selectedRate = rate;
-    	int selectedMode = modeIndex;
-    	
-    	if(modeIndex < 0 || (modeIndex > screenModes.length)){
-    		selectedMode = sms.getOriginalScreenMode();
-    	}
-    	ScreenMode screenMode = screenModes[selectedMode];
-    	
-    	if(selectedRate == -1){
-    		selectedRate = sms.getOriginalScreenRate();
-    	}
-    	
-    	boolean rateAvailable = false;
-    	short[] rates = screenMode.getRates();
-    	for(int i=0;i<rates.length;i++){
-    		if(rates[i] == selectedRate){
-    			rateAvailable = true;
-    			break;
-    		}
-    	}
-    	if(!rateAvailable){
-    		selectedRate = rates[0];
-    	}
 
-    	
-    	setScreenMode0(display.getHandle(), idx, selectedMode, selectedRate, getCurrentScreenRotation());	
-		sms.setCurrentScreenMode(selectedMode);
-    	sms.setCurrentScreenRate(selectedRate);
-    }
-    
-    public short getCurrentScreenRate() {
-    	short rate = super.getCurrentScreenRate();
-    	if(rate == -1){
-    		return getCurrentScreenRate0(display.getHandle(), idx);		
-    	}
-    	return rate;
-	}
-    
-    public ScreenMode[] getScreenModes() {
-    	ScreenMode[] screenModes = super.getScreenModes();
-    	if(screenModes == null){
-    		int numModes = getNumScreenModes0(display.getHandle(), idx);
-    		screenModes = new ScreenMode[numModes];
-	    	for(int i=0; i< numModes; i++){
-	    		screenModes[i] = getScreenMode(i);
-	    	}
-    	}
-    	return screenModes;
-    }
-    
-    private ScreenMode getScreenMode(int modeIndex){
-    	int[] modeProp = getScreenMode0(display.getHandle(), idx, modeIndex);
-    	
-    	if(modeProp == null){
-    		return null;
-    	}
-    	int propIndex = 0;
-    	int index = modeProp[propIndex++];
-    	int width = modeProp[propIndex++];
-    	int height = modeProp[propIndex++];
-    	
-    	ScreenMode screenMode = new ScreenMode(index, width, height);
-    	
-    	short[] rates = new short[modeProp.length - propIndex];
-    	for(int i= propIndex; i < modeProp.length; i++)
-    	{
-    		rates[i-propIndex] = (short) modeProp[i];
-    	}
-    	screenMode.setRates(rates);
-    	return screenMode;
-    }
-    
-	public void setScreenRotation(int rot) {
-		if(!isRotationValid(rot)){
-			return;
-		}
-		ScreenModeStatus sms = screensModeState.getScreenModeController(getScreenFQN());
-		setScreenRotation0(display.getHandle(), idx, rot);
-		sms.setCurrentScreenRotation(rot);
-	}
+    private int[] nrotations;
+    private int nrotation_index;
+    private int nres_number;
+    private int nres_index;
+    private int[] nrates;
+    private int nrate_index;
+    private int nmode_number;
 
-	/** Check if this rotation is valid for platform
-	 * @param rot user requested rotation angle
-	 * @return true if is valid
-	 */
-	private boolean isRotationValid(int rot){
-		if((rot == ScreenMode.ROTATE_0) || (rot == ScreenMode.ROTATE_90) || 
-				(rot == ScreenMode.ROTATE_180) || (rot == ScreenMode.ROTATE_270)) {
-			return true;
-		}
-		return false;
-	}
-	
-	public int getCurrentScreenRotation() {
-		int rotation = super.getCurrentScreenRotation();
-		if(rotation == -1){
-			rotation = getCurrentScreenRotation0(display.getHandle(), idx);
-		}
-		return rotation;
-	}
-    
+    protected int[] getScreenModeFirstImpl() {
+        // initialize iterators and static data
+        nrotations = getAvailableScreenModeRotations0(display.getHandle(), screen_idx);
+        if(null==nrotations) {
+            nrotations = new int[1];
+            nrotations[0]=0;
+        }
+        nrotation_index = 0;
+
+        nres_number = getNumScreenModeResolutions0(display.getHandle(), screen_idx);
+        nres_index = 0;
+
+        nrates = getScreenModeRates0(display.getHandle(), screen_idx, nres_index);
+        nrate_index = 0;
+
+        nmode_number = 0;
+
+        return getScreenModeNextImpl();
+    }
+
+    protected int[] getScreenModeNextImpl() {
+        // assemble: w x h x bpp x f x r        
+
+        /**
+        System.err.println("******** mode: "+nmode_number);
+        System.err.println("rot  "+nrotation_index);
+        System.err.println("rate "+nrate_index);
+        System.err.println("res  "+nres_index); */
+
+        int[] res = getScreenModeResolution0(display.getHandle(), screen_idx, nres_index);
+        if(null == res) {
+            throw new InternalError("null resolution received for res idx "+nres_index+"/"+nres_number);
+        }
+        if(0>=res[0] || 0>=res[1]) {
+            throw new InternalError("invalid resolution: "+res[0]+"x"+res[1]+" for res idx "+nres_index+"/"+nres_number);
+        }
+        int bpp = 32; // FIXME
+        int rate = nrates[nrate_index];
+        if(0>=rate) {
+            throw new InternalError("invalid rate: "+rate+" at index "+nrate_index+"/"+nrates.length);
+        }
+        int rotation = nrotations[nrotation_index];
+
+        int[] props = new int[ 1 + ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL ];
+        int i = 0;
+        props[i++] = nres_index; // use resolution index, not unique for native -> ScreenMode
+        props[i++] = 0; // set later for verification of iterator
+        props[i++] = res[0]; // width
+        props[i++] = res[1]; // height
+        props[i++] = bpp;    // bpp
+        props[i++] = res[2]; // widthmm
+        props[i++] = res[3]; // heightmm
+        props[i++] = rate;   // rate
+        props[i++] = rotation;
+        props[i - ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL] = i - 1; // count without extra element
+
+        nmode_number++;
+
+        // iteration: r -> f -> bpp -> [w x h]
+        nrotation_index++;
+        if(nrotation_index == nrotations.length) {
+            nrotation_index=0;
+            nrate_index++;
+            if(null == nrates || nrate_index == nrates.length){
+                nres_index++;
+                if(nres_index == nres_number) {
+                    // done
+                    nrates=null;
+                    nrotations=null;
+                    return null;
+                }
+
+                nrates = getScreenModeRates0(display.getHandle(), screen_idx, nres_index);
+                nrate_index = 0;
+            }
+        }
+
+        return props;
+    }
+
+    protected ScreenMode getCurrentScreenModeImpl() {
+        int resNumber = getNumScreenModeResolutions0(display.getHandle(), screen_idx);
+        int resIdx = getCurrentScreenResolutionIndex0(display.getHandle(), screen_idx);
+        if(0>resIdx || resIdx>=resNumber) {
+            throw new RuntimeException("Invalid resolution index: ! 0 < "+resIdx+" < "+resNumber);
+        }
+        int[] res = getScreenModeResolution0(display.getHandle(), screen_idx, resIdx);
+        if(null == res) {
+            throw new InternalError("null resolution received for res idx "+resIdx+"/"+resNumber);
+        }
+        if(0>=res[0] || 0>=res[1]) {
+            throw new InternalError("invalid resolution: "+res[0]+"x"+res[1]+" for res idx "+resIdx+"/"+resNumber);
+        }
+        int rate = getCurrentScreenRate0(display.getHandle(), screen_idx);
+        int rot = getCurrentScreenRotation0(display.getHandle(), screen_idx);
+
+        int[] props = new int[ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL];
+        int i = 0;
+        props[i++] = 0; // set later for verification of iterator
+        props[i++] = res[0]; // width
+        props[i++] = res[1]; // height
+        props[i++] = 32;     // FIXME: bpp
+        props[i++] = res[2]; // widthmm
+        props[i++] = res[3]; // heightmm
+        props[i++] = rate;   // rate
+        props[i++] = rot;
+        props[i - ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL] = i; // count
+        return ScreenModeUtil.streamIn(props, 0);
+    }
+
+    protected boolean setCurrentScreenModeImpl(ScreenMode screenMode) {
+        List screenModes = this.getScreenModesOrig();
+        int screenModeIdx = screenModes.indexOf(screenMode);
+        if(0>screenModeIdx) {
+            throw new RuntimeException("ScreenMode not element of ScreenMode list: "+screenMode);
+        }
+        int resNumber = getNumScreenModeResolutions0(display.getHandle(), screen_idx);
+        int resIdx = getScreenModesIdx2NativeIdx().get(screenModeIdx);
+        if(0>resIdx || resIdx>=resNumber) {
+            throw new RuntimeException("Invalid resolution index: ! 0 < "+resIdx+" < "+resNumber+", screenMode["+screenModeIdx+"] "+screenMode);
+        }
+        String tname = Thread.currentThread()+"-X11Screen.setCurrentScreenModeImpl()";
+        SetScreenModeAction setScreenModeAction = new SetScreenModeAction(screenMode, resIdx);
+        Thread randrTask = new Thread(setScreenModeAction, tname);
+        randrTask.start();
+        int to = SCREEN_MODE_CHANGE_TIMEOUT / 100 ;
+        while(to>0 && randrTask.isAlive()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) { }
+            to--;
+        }
+        if(0==to && DEBUG) {
+            System.err.println("X11Screen.setCurrentScreenModeImpl: TO ("+SCREEN_MODE_CHANGE_TIMEOUT+") reached: "+
+                               randrTask+", alive "+randrTask.isAlive());
+        }
+        return setScreenModeAction.getResult();
+    }
+
+    class SetScreenModeAction implements Runnable {
+        boolean res;
+        ScreenMode screenMode;
+        int resIdx;
+
+        public SetScreenModeAction(ScreenMode screenMode, int resIdx) {
+            this.screenMode = screenMode;
+            this.resIdx = resIdx;
+            this.res = false;
+        }
+
+        public boolean getResult() {
+            return res;
+        }
+
+        public void run() {
+            long dpy = X11Util.createDisplay(display.getName());
+            if( 0 == dpy ) {
+                throw new RuntimeException("Error creating display: "+display.getName());
+            }
+            try {
+                res = setCurrentScreenMode0(dpy, screen_idx, resIdx,
+                                            screenMode.getMonitorMode().getRefreshRate(), screenMode.getRotation());
+            } finally {
+                X11Util.closeDisplay(dpy);
+            }
+        }
+    }
+
     //----------------------------------------------------------------------
     // Internals only
     //
+    private static native long GetScreen0(long dpy, int scrn_idx);
 
-    private native long GetScreen0(long dpy, int scrn_idx);
-    private native int  getWidth0(long display, int scrn_idx);
-    private native int  getHeight0(long display, int scrn_idx);
+    private static native int getWidth0(long display, int scrn_idx);
 
-    private native int getDesktopScreenModeIndex0(long display, int screen_index);
-    private native short getCurrentScreenRate0(long display, int screen_index);
-    
-    private native int getCurrentScreenRotation0(long display, int screen_index);
-    private native void setScreenRotation0(long display, int screen_index, int rot);
-    
-    private native void setScreenMode0(long display, int screen_index, int mode_index, short freq, int rot);
-    
-    private native int[] getScreenMode0(long display, int screen_index, int mode_index);
-    private native int getNumScreenModes0(long display, int screen_index);
+    private static native int getHeight0(long display, int scrn_idx);
 
+    /** @return int[] { rot1, .. } */
+    private static native int[] getAvailableScreenModeRotations0(long display, int screen_index);
+
+    private static native int getNumScreenModeResolutions0(long display, int screen_index);
+
+    /** @return int[] { width, height, widthmm, heightmm } */
+    private static native int[] getScreenModeResolution0(long display, int screen_index, int mode_index);
+
+    private static native int[] getScreenModeRates0(long display, int screen_index, int mode_index);
+
+    private static native int getCurrentScreenResolutionIndex0(long display, int screen_index);
+    private static native int getCurrentScreenRate0(long display, int screen_index);
+    private static native int getCurrentScreenRotation0(long display, int screen_index);
+
+    /** needs own Display connection for XRANDR event handling */
+    private static native boolean setCurrentScreenMode0(long display, int screen_index, int mode_index, int freq, int rot);
 }
-

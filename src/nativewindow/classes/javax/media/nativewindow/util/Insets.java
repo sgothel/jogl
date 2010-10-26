@@ -43,6 +43,7 @@ public class Insets implements Cloneable {
     public int left;
     public int bottom;
     public int right;
+    public int hash;
 
     /**
      * Creates and initializes a new <code>Insets</code> object with the
@@ -57,6 +58,7 @@ public class Insets implements Cloneable {
         this.left = left;
         this.bottom = bottom;
         this.right = right;
+        this.hash = computeHashCode();
     }
 
     /**
@@ -82,12 +84,7 @@ public class Insets implements Cloneable {
      * @return    a hash code for this Insets.
      */
     public int hashCode() {
-        int sum1 = left + bottom;
-        int sum2 = right + top;
-        int val1 = sum1 * (sum1 + 1)/2 + left;
-        int val2 = sum2 * (sum2 + 1)/2 + top;
-        int sum3 = val1 + val2;
-        return sum3 * (sum3 + 1)/2 + val2;
+        return hash;
     }
 
     public String toString() {
@@ -103,4 +100,12 @@ public class Insets implements Cloneable {
         }
     }
 
+    protected int computeHashCode() {
+        int sum1 = left + bottom;
+        int sum2 = right + top;
+        int val1 = sum1 * (sum1 + 1)/2 + left;
+        int val2 = sum2 * (sum2 + 1)/2 + top;
+        int sum3 = val1 + val2;
+        return sum3 * (sum3 + 1)/2 + val2;
+    }
 }

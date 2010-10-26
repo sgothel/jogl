@@ -230,6 +230,14 @@ public class GLWindow implements GLAutoDrawable, Window {
         window.addChild(win);
     }
 
+    public void screenModeChangeNotify(ScreenMode sm) {
+        window.screenModeChangeNotify(sm);
+    }
+
+    public void screenModeChanged(ScreenMode sm, boolean success) {
+        window.screenModeChanged(sm, success);
+    }
+
     //----------------------------------------------------------------------
     // Window.LifecycleHook Implementation
     //

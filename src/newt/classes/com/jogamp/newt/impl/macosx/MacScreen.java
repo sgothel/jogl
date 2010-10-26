@@ -46,8 +46,8 @@ public class MacScreen extends ScreenImpl {
     }
 
     protected void createNativeImpl() {
-        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), idx);
-        setScreenSize(getWidthImpl0(idx), getHeightImpl0(idx));
+        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
+        setScreenSize(getWidthImpl0(screen_idx), getHeightImpl0(screen_idx));
     }
 
     protected void closeNativeImpl() { }

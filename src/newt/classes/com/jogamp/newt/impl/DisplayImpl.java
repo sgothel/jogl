@@ -81,7 +81,7 @@ public abstract class DisplayImpl extends Display {
             display.refCount=0;
             synchronized(displayList) {
                 display.id = serialno++;
-                display.fqname = getFQName(display.id, display.type, display.name);
+                display.fqname = getFQName(display.type, display.name, display.id);
                 displayList.add(display);
             }
             display.createEDTUtil();
@@ -191,7 +191,7 @@ public abstract class DisplayImpl extends Display {
         }
     }
 
-    protected synchronized final int addReference() {
+    public synchronized final int addReference() {
         if(DEBUG) {
             System.err.println("Display.addReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount+1));
         }
@@ -205,7 +205,7 @@ public abstract class DisplayImpl extends Display {
     }
 
 
-    protected synchronized final int removeReference() {
+    public synchronized final int removeReference() {
         if(DEBUG) {
             System.err.println("Display.removeReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount-1));
         }
@@ -251,7 +251,7 @@ public abstract class DisplayImpl extends Display {
         return ( null == name ) ? nilString : name ;
     }
 
-    public static final String getFQName(int id, String type, String name) {
+    protected static final String getFQName(String type, String name, int id) {
         if(null==type) type=nilString;
         if(null==name) name=nilString;
         StringBuffer sb = new StringBuffer();

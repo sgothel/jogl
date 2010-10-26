@@ -33,6 +33,8 @@ import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.opengl.util.Animator;
+
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -43,15 +45,18 @@ import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.util.ScreenModeUtil;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import com.jogamp.test.junit.util.UITestCase;
+import java.util.List;
+import javax.media.nativewindow.util.Dimension;
 
 public class TestScreenMode01NEWT extends UITestCase {
-	static GLProfile glp;
+    static GLProfile glp;
     static int width, height;
     
-    static int waitTimeShort = 4; //1 sec
-    static int waitTimeLong = 6; //6 sec
+    static int waitTimeShort = 1000; // 1 sec
+    static int waitTimeLong = 5000; // 5 sec
     
     
 
@@ -69,6 +74,7 @@ public class TestScreenMode01NEWT extends UITestCase {
 
         boolean destroyWhenUnused = screen.getDestroyWhenUnused();
         GLWindow window = GLWindow.create(screen, caps);
+        window.setSize(width, height);
         window.addGLEventListener(new Gears());
         Assert.assertNotNull(window);
         Assert.assertEquals(destroyWhenUnused, window.getScreen().getDestroyWhenUnused());
@@ -98,168 +104,184 @@ public class TestScreenMode01NEWT extends UITestCase {
         Assert.assertNotNull(screen);
 
         GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+        Animator animator = new Animator(window);
+        animator.start();
         
         window.setFullscreen(true);
         Assert.assertEquals(true, window.isFullscreen());
         
-        for(int state=0; state<waitTimeShort; state++) {
-            Thread.sleep(100);
-        }
+        Thread.sleep(waitTimeShort);
+
         window.setFullscreen(false);
         Assert.assertEquals(false, window.isFullscreen());
         
+        Thread.sleep(waitTimeShort);
+
+        animator.stop();
         destroyWindow(display, screen, window);    	
     }
 
     @Test
     public void testScreenModeChange01() throws InterruptedException {
+        Thread.sleep(waitTimeShort);
+
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
-
         GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+        Assert.assertNotNull(window);
 
-        ScreenMode[] screenModes = screen.getScreenModes();
-        Assert.assertNotNull(screenModes);
-        
-        int originalScreenMode = screen.getDesktopScreenModeIndex();
-        short originalScreenRate = screen.getCurrentScreenRate();
-        
-        Assert.assertNotSame(-1, originalScreenMode);
-        Assert.assertNotSame(-1, originalScreenRate);
-        
-        int modeIndex = 1;
-        
-        ScreenMode screenMode = screenModes[modeIndex];
-        Assert.assertNotNull(screenMode);
-        
-        short modeRate = screenMode.getRates()[0];
-        screen.setScreenMode(modeIndex, modeRate);
-        
-        Assert.assertEquals(modeIndex, screen.getDesktopScreenModeIndex());
-        Assert.assertEquals(modeRate, screen.getCurrentScreenRate());
-        
-        for(int state=0; state<waitTimeLong; state++) {
-            Thread.sleep(100);
+        List screenModes = screen.getScreenModes();
+        if(null==screenModes) {
+            // no support ..
+            destroyWindow(display, screen, window);
+            return;
         }
-        
-        screen.setScreenMode(-1, (short)-1);
-        Assert.assertEquals(originalScreenMode, screen.getDesktopScreenModeIndex());
-        Assert.assertEquals(originalScreenRate, screen.getCurrentScreenRate());
-        
-        destroyWindow(display, screen, window);
+        Assert.assertTrue(screenModes.size()>0);
+
+        Animator animator = new Animator(window);
+        animator.start();
+
+        ScreenMode smCurrent = screen.getCurrentScreenMode();
+        Assert.assertNotNull(smCurrent);
+        ScreenMode smOrig = screen.getOriginalScreenMode();
+        Assert.assertNotNull(smOrig);
+        Assert.assertEquals(smCurrent, smOrig);
+        System.err.println("[0] current/orig: "+smCurrent);
+
+        screenModes = ScreenModeUtil.filterByRate(screenModes, smOrig.getMonitorMode().getRefreshRate());
+        Assert.assertNotNull(screenModes);
+        Assert.assertTrue(screenModes.size()>0);
+        screenModes = ScreenModeUtil.filterByRotation(screenModes, 0);
+        Assert.assertNotNull(screenModes);
+        Assert.assertTrue(screenModes.size()>0);
+        screenModes = ScreenModeUtil.filterByResolution(screenModes, new Dimension(801, 601));
+        Assert.assertNotNull(screenModes);
+        Assert.assertTrue(screenModes.size()>0);
+        screenModes = ScreenModeUtil.getHighestAvailableBpp(screenModes);
+        Assert.assertNotNull(screenModes);
+        Assert.assertTrue(screenModes.size()>0);
+
+        ScreenMode sm = (ScreenMode) screenModes.get(0);
+        System.err.println("[0] set current: "+sm);
+        screen.setCurrentScreenMode(sm);
+        Assert.assertEquals(sm, screen.getCurrentScreenMode());
+        Assert.assertNotSame(smOrig, screen.getCurrentScreenMode());
+
+        Thread.sleep(waitTimeLong);
+
+        // check reset ..
+
+        ScreenMode saveOrigMode = (ScreenMode) smOrig.clone();
+
+        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertEquals(true,screen.isNativeValid());
+        Assert.assertEquals(true,window.isNativeValid());
+        Assert.assertEquals(true,window.isVisible());
+
+        animator.stop();
+        destroyWindow(null, screen, window);
+
+        Assert.assertEquals(false,window.isVisible());
+        Assert.assertEquals(false,window.isNativeValid());
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(true,display.isNativeValid());
+
+        screen  = NewtFactory.createScreen(display, 0); // screen 0
+        screen.addReference(); // trigger native creation
+
+        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertEquals(true,screen.isNativeValid());
+
+        smCurrent = screen.getCurrentScreenMode();
+        System.err.println("[1] current/orig: "+smCurrent);
+
+        Assert.assertNotNull(smCurrent);
+        Assert.assertEquals(saveOrigMode, smOrig);
+
+        destroyWindow(display, screen, null);
+
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(false,display.isNativeValid());
+
+        Thread.sleep(waitTimeShort);
     }
 
     @Test
-    public void testScreenModeChangeWithFS01() throws InterruptedException {
+    public void testScreenModeChangeWithFS01Pre() throws InterruptedException {
+        Thread.sleep(waitTimeShort);
+        testScreenModeChangeWithFS01Impl(true) ;
+        Thread.sleep(waitTimeShort);
+    }
+
+    @Test
+    public void testScreenModeChangeWithFS01Post() throws InterruptedException {
+        Thread.sleep(waitTimeShort);
+        testScreenModeChangeWithFS01Impl(false) ;
+        Thread.sleep(waitTimeShort);
+    }
+
+    protected void testScreenModeChangeWithFS01Impl(boolean preFS) throws InterruptedException {
     	GLCapabilities caps = new GLCapabilities(glp);
-        Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
-
         GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-        ScreenMode[] screenModes = screen.getScreenModes();
-        Assert.assertNotNull(screenModes);
-        
-        int originalScreenMode = screen.getDesktopScreenModeIndex();
-        short originalScreenRate = screen.getCurrentScreenRate();
-        
-        Assert.assertNotSame(-1, originalScreenMode);
-        Assert.assertNotSame(-1, originalScreenRate);
-        
-        int modeIndex = 1;
-        
-        ScreenMode screenMode = screenModes[modeIndex];
+        Animator animator = new Animator(window);
+        animator.start();
+
+        ScreenMode smOrig = screen.getOriginalScreenMode();
+        List screenModes = screen.getScreenModes();
+        screenModes = ScreenModeUtil.filterByRate(screenModes, smOrig.getMonitorMode().getRefreshRate());
+        screenModes = ScreenModeUtil.filterByRotation(screenModes, 0);
+        screenModes = ScreenModeUtil.filterByResolution(screenModes, new Dimension(801, 601));
+        screenModes = ScreenModeUtil.getHighestAvailableBpp(screenModes);
+
+        ScreenMode screenMode = (ScreenMode) screenModes.get(0);
         Assert.assertNotNull(screenMode);
         
-        short modeRate = screenMode.getRates()[0];
-        screen.setScreenMode(modeIndex, modeRate);
-        
-        Assert.assertEquals(modeIndex, screen.getDesktopScreenModeIndex());
-        Assert.assertEquals(modeRate, screen.getCurrentScreenRate());
-        
-        window.setFullscreen(true);
-        Assert.assertEquals(true, window.isFullscreen());
-        
-        for(int state=0; state<waitTimeLong; state++) {
-            Thread.sleep(100);
+        if(preFS) {
+            System.err.println("[0] set FS pre 0: "+window.isFullscreen());
+            window.setFullscreen(true);
+            Assert.assertEquals(true, window.isFullscreen());
+            System.err.println("[0] set FS pre X: "+window.isFullscreen());
         }
-        
-        window.setFullscreen(false);
-        Assert.assertEquals(false, window.isFullscreen());
-        
-        screen.setScreenMode(-1, (short)-1);
-        Assert.assertEquals(originalScreenMode, screen.getDesktopScreenModeIndex());
-        Assert.assertEquals(originalScreenRate, screen.getCurrentScreenRate());
-        
-        destroyWindow(display, screen, window);    
-    }
-    
-    @Test
-    public void testScreenModeChangeWithFS02() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(glp);
-        Assert.assertNotNull(caps);
-        Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
 
-        GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-
-        ScreenMode[] screenModes = screen.getScreenModes();
-        Assert.assertNotNull(screenModes);
+        System.err.println("[0] set current: "+screenMode);
+        screen.setCurrentScreenMode(screenMode);
         
-        int originalScreenMode = screen.getDesktopScreenModeIndex();
-        short originalScreenRate = screen.getCurrentScreenRate();
-        
-        Assert.assertNotSame(-1, originalScreenMode);
-        Assert.assertNotSame(-1, originalScreenRate);
-        
-        int modeIndex = 1;
-        
-        ScreenMode screenMode = screenModes[modeIndex];
-        Assert.assertNotNull(screenMode);
-        
-        short modeRate = screenMode.getRates()[0];
-        screen.setScreenMode(modeIndex, modeRate);
-        
-        Assert.assertEquals(modeIndex, screen.getDesktopScreenModeIndex());
-        Assert.assertEquals(modeRate, screen.getCurrentScreenRate());
-        
-        window.setFullscreen(true);
-        Assert.assertEquals(true, window.isFullscreen());
-        
-        for(int state=0; state<waitTimeLong; state++) {
-            Thread.sleep(100);
+        if(!preFS) {
+            System.err.println("[0] set FS post 0: "+window.isFullscreen());
+            window.setFullscreen(true);
+            Assert.assertEquals(true, window.isFullscreen());
+            System.err.println("[0] set FS post X: "+window.isFullscreen());
         }
+
+        Thread.sleep(waitTimeLong);
         
-        screen.setScreenMode(-1, (short)-1);
-        Assert.assertEquals(originalScreenMode, screen.getDesktopScreenModeIndex());
-        Assert.assertEquals(originalScreenRate, screen.getCurrentScreenRate());
-        
-        window.setFullscreen(false);
-        Assert.assertEquals(false, window.isFullscreen());
-        
-        destroyWindow(display, screen, window);    
+        // check reset ..
+
+        ScreenMode saveOrigMode = (ScreenMode) smOrig.clone();
+
+        animator.stop();
+        destroyWindow(null, screen, window);
+
+        screen  = NewtFactory.createScreen(display, 0); // screen 0
+        screen.addReference(); // trigger native creation
+
+        ScreenMode smCurrent = screen.getCurrentScreenMode();
+        System.err.println("[1] current/orig: "+smCurrent);
+
+        Assert.assertNotNull(smCurrent);
+        Assert.assertEquals(saveOrigMode, smOrig);
+
+        destroyWindow(display, screen, null);
     }
 
     public static void main(String args[]) throws IOException {
         String tstname = TestScreenMode01NEWT.class.getName();
-        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
-            tstname,
-            "filtertrace=true",
-            "haltOnError=false",
-            "haltOnFailure=false",
-            "showoutput=true",
-            "outputtoformatters=true",
-            "logfailedtests=true",
-            "logtestlistenerevents=true",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+        org.junit.runner.JUnitCore.main(tstname);
     }
 }

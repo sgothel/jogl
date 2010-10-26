@@ -1,6 +1,5 @@
 /**
  * Copyright 2010 JogAmp Community. All rights reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,69 +26,14 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow.util;
+package com.jogamp.newt.event;
 
-public class Point implements Cloneable, PointReadOnly {
-    int x;
-    int y;
+import com.jogamp.newt.ScreenMode;
 
-    public Point(int x, int y) {
-        this.x=x;
-        this.y=y;
-    }
+public interface ScreenModeListener {
+    /** called before the screen mode will be changed */
+    void screenModeChangeNotify(ScreenMode sm);
 
-    public Point() {
-        this(0, 0);
-    }
-
-    public Object clone() {
-        try {
-            return super.clone();
-        } catch (CloneNotSupportedException ex) {
-            throw new InternalError();
-        }
-    }
-
-    public boolean equals(Object obj) {
-        if (obj instanceof Point) {
-            Point p = (Point)obj;
-            return y == p.y && x == p.x;
-        }
-        return false;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public int hashCode() {
-        // 31 * x == (x << 5) - x
-        int hash = 31 + x;
-        hash = ((hash << 5) - hash) + y;
-        return hash;
-    }
-
-    public String toString() {
-        return new String("Point[" + x + " / " + y + "]");
-    }
-
-    public void setX(int x) { this.x = x; }
-    public void setY(int y) { this.y = y; }
-
-    public Point translate(Point pd) {
-        x += pd.x ;
-        y += pd.y ;
-        return this;
-    }
-
-    public Point translate(int dx, int dy) {
-        x += dx ;
-        y += dy ;
-        return this;
-    }
-
+    /** called after the screen mode has been changed */
+    void screenModeChanged(ScreenMode sm, boolean success);
 }

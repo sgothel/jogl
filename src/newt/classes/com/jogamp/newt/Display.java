@@ -54,24 +54,69 @@ public abstract class Display {
 
     public abstract void destroy();
 
+    /**
+     * @return the value set by {@link #setDestroyWhenUnused(boolean)}
+     * or the default <code>false</code>.
+     *
+     * @see #addReference()
+     * @see #removeReference()
+     */
     public abstract boolean getDestroyWhenUnused();
 
     /**
+     * Handles the lifecycle of the native Display instance.<br>
+     * If set to <code>true</code>, the last {@link #removeReference()} call
+     * will destroy this instance, otherwise it will stay alive.<br>
+     * Default is <code>false</code>.
      *
-     * @param v
+     * @see #addReference()
+     * @see #removeReference()
      */
     public abstract void setDestroyWhenUnused(boolean v);
 
+    /**
+     * The 1st call will initiate native creation,
+     * since we follow the lazy creation pattern.
+     *
+     * @return number of references after adding one
+     * @see #removeReference()
+     */
+    public abstract int addReference();
+
+    /**
+     * The last call may destroy this instance,
+     * if {@link #getDestroyWhenUnused()} returns <code>true</code>.
+     *
+     * @return number of references after removing one
+     * @see #addReference()
+     * @see #getDestroyWhenUnused()
+     * @see #setDestroyWhenUnused(boolean)
+     */
+    public abstract int removeReference();
+
     public abstract AbstractGraphicsDevice getGraphicsDevice();
 
+    /**
+     * @return the fully qualified Display name,
+     * which is a key of {@link #getType()} + {@link #getName()} + {@link #getId()}
+     */
     public abstract String getFQName();
 
     public abstract long getHandle();
 
+    /**
+     * @return this display internal serial id
+     */
     public abstract int getId();
 
+    /**
+     * @return this display instance name as defined at creation time
+     */
     public abstract String getName();
 
+    /**
+     * @return the native display type, ie {@link javax.media.nativewindow.NativeWindowFactory#getNativeWindowType(boolean)}
+     */
     public abstract String getType();
 
     public abstract EDTUtil getEDTUtil();

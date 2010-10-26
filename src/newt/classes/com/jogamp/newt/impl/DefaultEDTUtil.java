@@ -64,8 +64,10 @@ public class DefaultEDTUtil implements EDTUtil {
             waitUntilStopped();
             if(DEBUG) {
                 if(edt.tasks.size()>0) {
-                    Throwable t = new Throwable("Warning: EDT reset, remaining tasks: "+edt.tasks.size()+" - "+edt);
-                    t.printStackTrace();
+                    String msg = Thread.currentThread()+": EDT reset, remaining tasks: "+edt.tasks.size()+" - "+edt;
+                    System.err.println(msg);
+                    // Throwable t = new Throwable(msg);
+                    // t.printStackTrace();
                 }
                 System.err.println(Thread.currentThread()+": EDT reset - edt: "+edt);
             }
@@ -75,7 +77,7 @@ public class DefaultEDTUtil implements EDTUtil {
 
     public final void start() {
         synchronized(edtLock) { 
-            if(!edt.isRunning()) {
+            if(!edt.isRunning() && !edt.shouldStop) {
                 if(edt.isAlive()) {
                     throw new RuntimeException("EDT Thread.isAlive(): true, isRunning: "+edt.isRunning()+", edt: "+edt+", tasks: "+edt.tasks.size());
                 }
@@ -83,7 +85,10 @@ public class DefaultEDTUtil implements EDTUtil {
                 edt.setName(name+start_iter);
                 edt.shouldStop = false;
                 if(DEBUG) {
-                    System.err.println(Thread.currentThread()+": EDT START - edt: "+edt);
+                    String msg = Thread.currentThread()+": EDT START - edt: "+edt;
+                    System.err.println(msg);
+                    // Throwable t = new Throwable(msg);
+                    // t.printStackTrace();
                 }
                 edt.start();
             }
@@ -128,8 +133,10 @@ public class DefaultEDTUtil implements EDTUtil {
                 if(stop) {
                     edt.shouldStop = true;
                     if(DEBUG) {
-                        System.err.println(Thread.currentThread()+
-                                           ": EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - edt: "+edt);
+                        String msg = Thread.currentThread()+": EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - edt: "+edt;
+                        System.err.println(msg);
+                        // Throwable t = new Throwable(msg);
+                        // t.printStackTrace();
                     }
                 }
                 if( isCurrentThreadEDT() ) {
@@ -140,14 +147,15 @@ public class DefaultEDTUtil implements EDTUtil {
                         t.printStackTrace();
                     }
                 } else {
-                    start(); // start if not started yet
-                    rTask = new RunnableTask(task,
-                                             wait ? rTaskLock : null,
-                                             wait /* catch Exceptions if waiting for result */);
-                    if(stop) {
-                        rTask.setAttachment(new Boolean(true)); // mark final task
-                    }
                     synchronized(edt.tasks) {
+                        start(); // start if not started yet and !shouldStop
+                        wait = wait && edt.isRunning();
+                        rTask = new RunnableTask(task,
+                                                 wait ? rTaskLock : null,
+                                                 wait /* catch Exceptions if waiting for result */);
+                        if(stop) {
+                            rTask.setAttachment(new Boolean(true)); // mark final task
+                        }
                         // append task ..
                         edt.tasks.add(rTask);
                         edt.tasks.notifyAll();
@@ -178,6 +186,7 @@ public class DefaultEDTUtil implements EDTUtil {
             synchronized(edt.tasks) {
                 while(edt.isRunning() && edt.tasks.size()>0) {
                     try {
+                        edt.tasks.notifyAll();
                         edt.tasks.wait();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -190,11 +199,13 @@ public class DefaultEDTUtil implements EDTUtil {
     public void waitUntilStopped() {
         if(edt.isRunning() && edt != Thread.currentThread() ) {
             synchronized(edtLock) {
-                while(edt.isRunning()) {
-                    try {
-                        edtLock.wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                if(edt.isRunning() && edt != Thread.currentThread() ) {
+                    while(edt.isRunning()) {
+                        try {
+                            edtLock.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }

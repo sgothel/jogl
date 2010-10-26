@@ -25,13 +25,21 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-
 package com.jogamp.newt;
 
+import com.jogamp.newt.event.ScreenModeListener;
 import com.jogamp.newt.impl.Debug;
+import java.util.List;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 
 public interface Screen {
+
+    /**
+     * A 10s timeout for screen mode change. It is observed, that some platforms
+     * need a notable amount of time for this task, especially in case of rotation change.
+     */
+    public static final int SCREEN_MODE_CHANGE_TIMEOUT = 10000;
+
     public static final boolean DEBUG = Debug.debug("Screen");
 
     boolean isNativeValid();
@@ -44,69 +52,106 @@ public interface Screen {
 
     void destroy();
 
+    /**
+     * @return {@link Display#getDestroyWhenUnused()}
+     *
+     * @see #addReference()
+     * @see #removeReference()
+     * @see Display#setDestroyWhenUnused(boolean)
+     */
     boolean getDestroyWhenUnused();
 
+    /**
+     * calls {@link Display#setDestroyWhenUnused(boolean)}.
+     *
+     * @see #addReference()
+     * @see #removeReference()
+     * @see Display#setDestroyWhenUnused(boolean)
+     */
     void setDestroyWhenUnused(boolean v);
+
+    /**
+     * See {@link Display#addReference()}
+     *
+     * @see #removeReference()
+     * @see #setDestroyWhenUnused(boolean)
+     * @see #getDestroyWhenUnused()
+     */
+    int addReference();
+
+    /**
+     * See {@link Display#removeReference()}
+     *
+     * @see #addReference()
+     * @see #setDestroyWhenUnused(boolean)
+     * @see #getDestroyWhenUnused()
+     */
+    int removeReference();
 
     AbstractGraphicsScreen getGraphicsScreen();
 
+    /**
+     * @return this Screen index of all Screens of {@link #getDisplay()}.
+     */
     int getIndex();
 
     /**
-     * The actual implementation shall return the detected display value,
-     * if not we return 800.
-     * This can be overwritten with the user property 'newt.ws.swidth',
+     * @return the current screen width
      */
     int getWidth();
 
     /**
-     * The actual implementation shall return the detected display value,
-     * if not we return 480.
-     * This can be overwritten with the user property 'newt.ws.sheight',
+     * @return the current screen height
      */
     int getHeight();
 
-    Display getDisplay();
-    
-    /** Get the screen fully qualified name
-     *  which can be used to get the screen controller 
-     *  associated with this screen
-     */
-    String getScreenFQN();
-    
     /**
-     * Get the Current Desktop Screen mode index
-     * returns -1 if functionality not implemented
-     * for screen platform
+     * @return the associated Display
      */
-    int getDesktopScreenModeIndex();
-    
-    /** Get the current screen rate
-     *  returns -1 if not natively implemented
-     */
-    short getCurrentScreenRate();
-    
+    Display getDisplay();
+
     /** 
-     * Get list of available screen modes
-     * null if not implemented for screen platform
+     * @return the screen fully qualified Screen name,
+     * which is a key of {@link com.jogamp.newt.Display#getFQName()} + {@link #getIndex()}.
      */
-    ScreenMode[] getScreenModes();
-    
+    String getFQName();
+
+    /**
+     * @param sml ScreenModeListener to be added for ScreenMode change events
+     */
+    public void addScreenModeListener(ScreenModeListener sml);
+
+    /**
+     * @param sml ScreenModeListener to be removed from ScreenMode change events
+     */
+    public void removeScreenModeListener(ScreenModeListener sml);
+
     /** 
-     * change the screen mode
-     * @param modeIndex mode index from the list of available screen modes
-     * @param rate the desired rate should be one of the available rates.
+     * Return a list of available {@link com.jogamp.newt.ScreenMode}s.
+     * @return a shallow copy of the internal immutable {@link com.jogamp.newt.ScreenMode}s,
+     * or null if not implemented for this native type {@link com.jogamp.newt.Display#getType()}.
      */
-    void setScreenMode(int modeIndex, short rate);
-    
-    /** Change the Screen Rotation to 
-     * one of the rotations defined in ScreenMode
-     * @param rot rotation id, example ScreenMode.ROTATE_0
+    List/*<ScreenMode>*/ getScreenModes();
+
+    /**
+     * Return the original {@link com.jogamp.newt.ScreenMode}, as used at NEWT initialization.
+     * @return null if functionality not implemented,
+     * otherwise the original ScreenMode which is element of the list {@link #getScreenModes()}.
+     *
      */
-    public void setScreenRotation(int rot);
-	
-	/** Get the Current screen rotation
-	 *  returns -1 if not implemented natively
-	 */
-	public int getCurrentScreenRotation();
+    ScreenMode getOriginalScreenMode();
+
+    /**
+     * Return the current {@link com.jogamp.newt.ScreenMode}.
+     * @return null if functionality not implemented,
+     * otherwise the current ScreenMode which is element of the list {@link #getScreenModes()}.
+     */
+    ScreenMode getCurrentScreenMode();
+
+    /**
+     * Set the current {@link com.jogamp.newt.ScreenMode}.
+     * @param screenMode to be made current, must be element of the list {@link #getScreenModes()}.
+     * @return true if successful, otherwise false
+     */
+    boolean setCurrentScreenMode(ScreenMode screenMode);
 }
