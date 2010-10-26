@@ -62,7 +62,7 @@ public class GLDrawableHelper {
     reset();
   }
 
-  public void reset() {
+  public final void reset() {
     synchronized(listenersLock) {
         listeners = new ArrayList();
         listenersIter = false;
@@ -75,7 +75,7 @@ public class GLDrawableHelper {
     animatorCtrl = null;
   }
 
-  public String toString() {
+  public final String toString() {
     StringBuffer sb = new StringBuffer();
     sb.append("GLAnimatorControl: "+animatorCtrl+", ");
     synchronized(listenersLock) {
@@ -94,11 +94,11 @@ public class GLDrawableHelper {
     return sb.toString();
   }
 
-  public void addGLEventListener(GLEventListener listener) {
+  public final void addGLEventListener(GLEventListener listener) {
     addGLEventListener(-1, listener);
   }
 
-  public void addGLEventListener(int index, GLEventListener listener) {
+  public final void addGLEventListener(int index, GLEventListener listener) {
     synchronized(listenersLock) {
         if(0>index) {
             index = listeners.size();
@@ -116,7 +116,7 @@ public class GLDrawableHelper {
     }
   }
   
-  public void removeGLEventListener(GLEventListener listener) {
+  public final void removeGLEventListener(GLEventListener listener) {
     synchronized(listenersLock) {
         if(!listenersIter) {
             // fast path
@@ -131,7 +131,7 @@ public class GLDrawableHelper {
     }
   }
 
-  public void dispose(GLAutoDrawable drawable) {
+  public final void dispose(GLAutoDrawable drawable) {
     synchronized(listenersLock) {
         listenersIter = true;
         for (int i=0; i < listeners.size(); i++) {
@@ -154,7 +154,7 @@ public class GLDrawableHelper {
       return false;
   }
 
-  public void init(GLAutoDrawable drawable) {
+  public final void init(GLAutoDrawable drawable) {
     synchronized(listenersLock) {
         listenersIter = true;
         for (int i=0; i < listeners.size(); i++) {
@@ -167,7 +167,7 @@ public class GLDrawableHelper {
     }
   }
 
-  public void display(GLAutoDrawable drawable) {
+  public final void display(GLAutoDrawable drawable) {
     synchronized(listenersLock) {
         listenersIter = true;
         for (int i=0; i < listeners.size(); i++) {
@@ -190,7 +190,7 @@ public class GLDrawableHelper {
     listener.reshape(drawable, x, y, width, height);
   }
 
-  public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+  public final void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     synchronized(listenersLock) {
         listenersIter = true;
         for (int i=0; i < listeners.size(); i++) {
@@ -200,7 +200,7 @@ public class GLDrawableHelper {
     }
   }
 
-  private void execGLRunnables(GLAutoDrawable drawable) {
+  private final void execGLRunnables(GLAutoDrawable drawable) {
     if(glRunnables.size()>0) {
         // swap one-shot list asap
         ArrayList _glRunnables = null;
@@ -218,7 +218,7 @@ public class GLDrawableHelper {
     }
   }
 
-  public void setAnimator(GLAnimatorControl animator) throws GLException {
+  public final void setAnimator(GLAnimatorControl animator) throws GLException {
     synchronized(glRunnablesLock) {
         if(animatorCtrl!=animator && null!=animator && null!=animatorCtrl) {
             throw new GLException("Trying to register GLAnimatorControl "+animator+", where "+animatorCtrl+" is already registered. Unregister first.");
@@ -227,7 +227,7 @@ public class GLDrawableHelper {
     }
   }
 
-  public GLAnimatorControl getAnimator() {
+  public final GLAnimatorControl getAnimator() {
     synchronized(glRunnablesLock) {
         return animatorCtrl;
     }
@@ -237,7 +237,7 @@ public class GLDrawableHelper {
     return ( null != animatorCtrl ) ? animatorCtrl.isAnimating() && animatorCtrl.getThread() != Thread.currentThread() : false ;
   }
 
-  public void invoke(GLAutoDrawable drawable, boolean wait, GLRunnable glRunnable) {
+  public final void invoke(GLAutoDrawable drawable, boolean wait, GLRunnable glRunnable) {
     if( null == drawable || null == glRunnable ) {
         return;
     }
@@ -274,11 +274,11 @@ public class GLDrawableHelper {
     }
   }
 
-  public void setAutoSwapBufferMode(boolean onOrOff) {
+  public final void setAutoSwapBufferMode(boolean onOrOff) {
     autoSwapBufferMode = onOrOff;
   }
 
-  public boolean getAutoSwapBufferMode() {
+  public final boolean getAutoSwapBufferMode() {
     return autoSwapBufferMode;
   }
 
@@ -289,10 +289,10 @@ public class GLDrawableHelper {
       the GLContext's public APIs, and putting it into a separate
       class helps ensure that we don't inadvertently use private
       methods of the GLContext or its implementing classes. */
-  public void invokeGL(GLDrawable drawable,
-                       GLContext context,
-                       Runnable  runnable,
-                       Runnable  initAction) {
+  public final void invokeGL(GLDrawable drawable,
+                             GLContext context,
+                             Runnable  runnable,
+                             Runnable  initAction) {
     if(null==context) {
         if (DEBUG) {
             Exception e = new GLException(Thread.currentThread().getName()+"Info: GLDrawableHelper " + this + ".invokeGL(): NULL GLContext");

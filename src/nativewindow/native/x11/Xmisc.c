@@ -253,7 +253,7 @@ Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize(JNIEnv *env, jclass _un
         }
 
         _initClazzAccess(env);
-        // x11IOErrorHandlerEnable(1, env); // JAU FIXME: can't enable without disable
+        x11IOErrorHandlerEnable(1, env);
         _initialized=1;
     }
 }

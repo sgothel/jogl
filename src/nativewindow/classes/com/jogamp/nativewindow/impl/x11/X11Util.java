@@ -126,7 +126,7 @@ public class X11Util {
 
     private static ThreadLocal currentDisplayMap = new ThreadLocal();
 
-    public static class NamedDisplay extends RecursiveLock implements Cloneable {
+    public static class NamedDisplay {
         String name;
         long   handle;
         int    refCount;
@@ -142,6 +142,8 @@ public class X11Util {
         public final String getName() { return name; }
         public final long   getHandle() { return handle; }
         public final int    getRefCount() { return refCount; }
+
+        public void setUncloseable(boolean v) { unCloseable = v; }
         public final boolean isUncloseable() { return unCloseable; }
 
         public Object clone() throws CloneNotSupportedException {
@@ -158,9 +160,9 @@ public class X11Util {
       */
     public static int shutdown(boolean realXClosePendingDisplays, boolean verbose) {
         int num=0;
-        String msg = null;
         if(DEBUG||verbose) {
-            msg = "X11Util.Display: Shutdown (global: "+globalNamedDisplayMap.size()+ ")" ;
+            String msg = "X11Util.Display: Shutdown (closePendingDisplays: "+realXClosePendingDisplays+
+                         ", global: "+globalNamedDisplayMap.size()+ ")" ;
             if(DEBUG) {
                 Exception e = new Exception(msg);
                 e.printStackTrace();
@@ -269,7 +271,7 @@ public class X11Util {
             ndpy = (NamedDisplay) globalNamedDisplayMap.get(handle);
         }
         if( null != ndpy ) {
-            ndpy.unCloseable=true;
+            ndpy.setUncloseable(true);
             return true;
         }
         return false;
@@ -355,8 +357,19 @@ public class X11Util {
             throw new RuntimeException("X11Util.Display: Display(0x"+Long.toHexString(handle)+") Mapping error: "+namedDpy+". Thread "+Thread.currentThread().getName());
         }
 
+        if(DEBUG) {
+            Exception e = new Exception("X11Util.Display: Closing new "+namedDpy+". Thread "+Thread.currentThread().getName());
+            e.printStackTrace();
+        }
+
         if(!namedDpy.isUncloseable()) {
             XCloseDisplay(namedDpy.getHandle());
+        }
+    }
+
+    public static NamedDisplay getNamedDisplay(long handle) {
+        synchronized(globalLock) {
+            return (NamedDisplay) globalNamedDisplayMap.get(handle);
         }
     }
 

@@ -72,6 +72,7 @@ public class TestGLWindows01NEWT extends UITestCase {
         GLWindow glWindow;
         if(null!=screen) {
             boolean destroyWhenUnused = screen.getDestroyWhenUnused();
+            Assert.assertEquals(destroyWhenUnused, screen.getDisplay().getDestroyWhenUnused());
             glWindow = GLWindow.create(screen, caps);
             Assert.assertNotNull(glWindow);
             Assert.assertEquals(destroyWhenUnused, glWindow.getScreen().getDestroyWhenUnused());
@@ -244,14 +245,76 @@ public class TestGLWindows01NEWT extends UITestCase {
     }
 
     @Test
-    public void testWindowDecor03TwoWin() throws InterruptedException {
+    public void testWindowDecor03TwoWinOneDisplay() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        Assert.assertNotNull(caps);
+
+        Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+        display.setDestroyWhenUnused(true);
+
+        Screen screen1  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen1);
+        GLWindow window1 = createWindow(screen1, caps, width, height,
+                                       true /* onscreen */, false /* undecorated */, 
+                                       false /*addGLEventListenerAfterVisible*/);
+        Assert.assertNotNull(window1);
+
+        Screen screen2  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen2);
+        GLWindow window2 = createWindow(screen2, caps, width, height, 
+                                       true /* onscreen */, false /* undecorated */, 
+                                       false /*addGLEventListenerAfterVisible*/);
+        Assert.assertNotNull(window2);
+
+        Assert.assertEquals(1,Display.getActiveDisplayNumber());
+
+        Assert.assertEquals(2,display.getReferenceCount());
+        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertNotNull(display.getEDTUtil());
+        Assert.assertEquals(true,display.getEDTUtil().isRunning());
+
+        Assert.assertEquals(1,screen1.getReferenceCount());
+        Assert.assertEquals(true,screen1.isNativeValid());
+
+        Assert.assertEquals(1,screen2.getReferenceCount());
+        Assert.assertEquals(true,screen2.isNativeValid());
+
+        int state;
+        for(state=0; state*100<durationPerTest; state++) {
+            Thread.sleep(100);
+        }
+        System.out.println("duration1: "+window1.getDuration());
+        System.out.println("duration2: "+window2.getDuration());
+
+        destroyWindow(window2, null, null, true);
+        destroyWindow(window1, null, null, true);
+
+        Assert.assertEquals(0,Display.getActiveDisplayNumber());
+
+        Assert.assertEquals(0,display.getReferenceCount());
+        Assert.assertEquals(false,display.isNativeValid());
+        Assert.assertNotNull(display.getEDTUtil());
+        Assert.assertEquals(false,display.getEDTUtil().isRunning());
+
+        Assert.assertEquals(0,screen1.getReferenceCount());
+        Assert.assertEquals(false,screen1.isNativeValid());
+
+        Assert.assertEquals(0,screen2.getReferenceCount());
+        Assert.assertEquals(false,screen2.isNativeValid());
+    }
+
+    @Test
+    public void testWindowDecor03TwoWinTwoDisplays() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
 
         Display display1 = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display1);
+        display1.setDestroyWhenUnused(true);
         Display display2 = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display2);
+        display2.setDestroyWhenUnused(true);
         Assert.assertNotSame(display1, display2);
 
         Screen screen1  = NewtFactory.createScreen(display1, 0); // screen 0
@@ -291,8 +354,14 @@ public class TestGLWindows01NEWT extends UITestCase {
         System.out.println("duration1: "+window1.getDuration());
         System.out.println("duration2: "+window2.getDuration());
 
-        destroyWindow(window2, screen2, display2, true);
-        destroyWindow(window1, screen1, display1, true);
+        // It is observed that some X11 drivers, eg ATI, fglrx 8.78.6,
+        // are quite sensitive to multiple Display connections (NEWT Display -> X11 Display).
+        // In such cases, closing displays shall happen in the same order as
+        // opening them, otherwise some driver related bug appears.
+        // You may test this, ie just reverse the destroy order below.
+        // See also native test: jogl/test/native/displayMultiple02.c
+        destroyWindow(window1, null, null, true);
+        destroyWindow(window2, null, null, true);
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
@@ -308,7 +377,7 @@ public class TestGLWindows01NEWT extends UITestCase {
         Assert.assertNotNull(display2.getEDTUtil());
         Assert.assertEquals(false,display2.getEDTUtil().isRunning());
         Assert.assertEquals(0,screen2.getReferenceCount());
-        Assert.assertEquals(false,screen2.isNativeValid());
+        Assert.assertEquals(false,screen2.isNativeValid()); 
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow) {

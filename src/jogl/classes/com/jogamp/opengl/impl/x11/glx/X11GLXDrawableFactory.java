@@ -162,8 +162,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         sharedDrawable=null;
     }
     if(null!=sharedScreen) {
-         // may cause deadlock: X11Util.closeThreadLocalDisplay(null);
-         sharedScreen = null;
+        // may cause deadlock: X11Util.closeThreadLocalDisplay(sharedScreen.getDevice().getHandle());
+        sharedScreen = null;
     }
     // don't close pending XDisplay, since this might be a different thread as the opener
     X11Util.shutdown( false, DEBUG );
