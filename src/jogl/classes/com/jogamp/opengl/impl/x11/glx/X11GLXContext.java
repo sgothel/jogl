@@ -47,6 +47,7 @@ import javax.media.nativewindow.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
+import com.jogamp.nativewindow.impl.x11.X11Util;
 
 public abstract class X11GLXContext extends GLContextImpl {
   private boolean glXQueryExtensionsStringInitialized;
@@ -106,11 +107,18 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   protected Map/*<String, String>*/ getExtensionNameMap() { return extensionNameMap; }
 
+  protected static final boolean TRACE_CONTEXT_CURRENT = false; // true;
+
   protected boolean glXMakeContextCurrent(long dpy, long writeDrawable, long readDrawable, long ctx) {
     boolean res = false;
 
     try {
-        // at least on ATI we receive 'often' SEGV in case of 
+        if(TRACE_CONTEXT_CURRENT) {
+            Throwable t = new Throwable(Thread.currentThread()+" - glXMakeContextCurrent("+toHexString(dpy)+", "+
+                    toHexString(writeDrawable)+", "+toHexString(readDrawable)+", "+toHexString(ctx)+")");
+            t.printStackTrace();
+        }
+        // at least on ATI we receive 'often' SEGV in case of
         // highly multithreaded MakeContextCurrent calls with writeDrawable==readDrawable
         if(writeDrawable==readDrawable) {
             res = GLX.glXMakeCurrent(dpy, writeDrawable, ctx);

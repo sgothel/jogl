@@ -41,7 +41,12 @@ public class NullToolkitLock implements ToolkitLock {
     protected NullToolkitLock() { }
     
     public final void lock() {
-        if(TRACE_LOCK) { System.err.println("NullToolkitLock.lock()"); }
+        if(TRACE_LOCK) {
+            String msg = "NullToolkitLock.lock()";
+            System.err.println(msg);
+            // Throwable t = new Throwable(msg);
+            // t.printStackTrace();
+        }
     }
 
     public final void unlock() {
