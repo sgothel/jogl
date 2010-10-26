@@ -81,7 +81,7 @@ public class Rectangle implements Cloneable, RectangleReadOnly {
     }
 
     public String toString() {
-        return new String("Rect["+x+"/"+y+" "+width+"x"+height+"]");
+        return new String("[ "+x+" / "+y+"  "+width+" x "+height+" ]");
     }
 }
 

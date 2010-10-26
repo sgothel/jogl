@@ -64,7 +64,7 @@ public class SurfaceSize  implements Cloneable {
     }
 
     public final String toString() {
-        return new String("SurfaceSize["+resolution+" x "+bitsPerPixel+" bpp]");
+        return new String("[ "+resolution+" x "+bitsPerPixel+" bpp ]");
     }
 
     /**

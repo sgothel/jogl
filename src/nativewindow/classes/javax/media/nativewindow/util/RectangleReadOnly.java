@@ -29,7 +29,15 @@
 package javax.media.nativewindow.util;
 
 /** Immutable Rectangle interface */
-public interface RectangleReadOnly {
+public interface RectangleReadOnly extends Cloneable {
+
+    int getHeight();
+
+    int getWidth();
+
+    int getX();
+
+    int getY();
 
     /**
      * Checks whether two rect objects are equal. Two instances
@@ -40,14 +48,6 @@ public interface RectangleReadOnly {
      * otherwise <code>false</code>.
      */
     boolean equals(Object obj);
-
-    int getHeight();
-
-    int getWidth();
-
-    int getX();
-
-    int getY();
 
     int hashCode();
 

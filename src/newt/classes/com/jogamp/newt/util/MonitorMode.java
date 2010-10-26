@@ -73,7 +73,7 @@ public class MonitorMode  implements Cloneable {
     }
 
     public final String toString() {
-        return new String("MonitorMode["+surfaceSize+" x "+refreshRate+" Hz, "+screenSizeMM+" [mm]x[mm]]");
+        return new String("[ "+surfaceSize+" x "+refreshRate+" Hz, "+screenSizeMM+" mm ]");
     }
 
     /**

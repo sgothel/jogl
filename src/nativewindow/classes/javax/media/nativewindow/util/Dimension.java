@@ -74,7 +74,7 @@ public class Dimension implements Cloneable, DimensionReadOnly {
     }
 
     public String toString() {
-        return new String("Dimension["+width+" x "+height+"]");
+        return new String(width+" x "+height);
     }
 
     public boolean equals(Object obj) {

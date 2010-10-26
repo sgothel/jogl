@@ -142,7 +142,7 @@ public class ScreenMode implements Cloneable {
     }
 
     public final String toString() {
-        return "ScreenMode[" +  getMonitorMode() + ", " + rotation + " degr]";
+        return "[ " +  getMonitorMode() + ", " + rotation + " degr ]";
     }
 
     /**

@@ -74,7 +74,7 @@ public class Point implements Cloneable, PointReadOnly {
     }
 
     public String toString() {
-        return new String("Point[" + x + " / " + y + "]");
+        return new String( x + " / " + y );
     }
 
     public void setX(int x) { this.x = x; }
