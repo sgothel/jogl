@@ -28,19 +28,10 @@
  
 package com.jogamp.test.junit.newt;
 
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 
-import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 
 import com.jogamp.newt.*;
@@ -60,6 +51,7 @@ public class TestGLWindows01NEWT extends UITestCase {
     @BeforeClass
     public static void initClass() {
         GLProfile.initSingleton(true);
+        // GLProfile.initSingleton(false);
         width  = 640;
         height = 480;
         glp = GLProfile.getDefault();

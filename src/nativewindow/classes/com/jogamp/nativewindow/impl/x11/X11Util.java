@@ -43,6 +43,7 @@ import com.jogamp.nativewindow.impl.*;
 import java.nio.Buffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
+import java.security.AccessController;
 
 /**
  * Contains a thread safe X11 utility to retrieve thread local display connection,<br>
@@ -52,7 +53,8 @@ import java.nio.ShortBuffer;
  * where an application heavily utilizing this class on temporary new threads.<br>
  */
 public class X11Util {
-    private static final boolean DEBUG = Debug.debug("X11Util");    
+    private static final boolean DEBUG = Debug.debug("X11Util");
+    private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.getBooleanProperty("nativewindow.debug.X11Util.TraceDisplayLifecycle", true, AccessController.getContext());
 
     private static String nullDisplayName = null;
     private static boolean isFirstX11ActionOnProcess = false;
@@ -80,6 +82,20 @@ public class X11Util {
         return isFirstX11ActionOnProcess;
     }
 
+    public static void lockDefaultToolkit(long dpyHandle) {
+        NativeWindowFactory.getDefaultToolkitLock().lock();
+        if(!isFirstX11ActionOnProcess) {
+            X11Util.XLockDisplay(dpyHandle);
+        }
+    }
+
+    public static void unlockDefaultToolkit(long dpyHandle) {
+        if(!isFirstX11ActionOnProcess) {
+            X11Util.XUnlockDisplay(dpyHandle);
+        }
+        NativeWindowFactory.getDefaultToolkitLock().unlock();
+    }
+
     public static String getNullDisplayName() {
         if(null==nullDisplayName) {
             synchronized(X11Util.class) {
@@ -87,12 +103,7 @@ public class X11Util {
                     NativeWindowFactory.getDefaultToolkitLock().lock();
                     try {
                         long dpy = X11Lib.XOpenDisplay(null);
-                        X11Util.XLockDisplay(dpy);
-                        try {
-                            nullDisplayName = X11Lib.XDisplayString(dpy);
-                        } finally {
-                            X11Util.XUnlockDisplay(dpy);
-                        }
+                        nullDisplayName = X11Lib.XDisplayString(dpy);
                         X11Lib.XCloseDisplay(dpy);
                     } finally {
                         NativeWindowFactory.getDefaultToolkitLock().unlock();
@@ -371,118 +382,25 @@ public class X11Util {
     public static long XOpenDisplay(String arg0) {
         NativeWindowFactory.getDefaultToolkitLock().lock();
         try {
-            return X11Lib.XOpenDisplay(arg0);
-        } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
-        }
-    }
-    public static int XSync(long display, boolean discard) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
-        try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XSync(display, discard);
-            } finally {
-                X11Util.XUnlockDisplay(display);
+            long handle = X11Lib.XOpenDisplay(arg0);
+            if(TRACE_DISPLAY_LIFECYCLE) {
+                Throwable t = new Throwable(Thread.currentThread()+" - X11Util.XOpenDisplay("+arg0+") 0x"+Long.toHexString(handle));
+                t.printStackTrace();
             }
+            return handle;
         } finally {
             NativeWindowFactory.getDefaultToolkitLock().unlock();
         }
     }
 
-    public static boolean XSynchronize(long display, boolean onoff) {
+    public static int XCloseDisplay(long display) {
         NativeWindowFactory.getDefaultToolkitLock().lock();
         try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XSynchronize(display, onoff);
-            } finally {
-                X11Util.XUnlockDisplay(display);
+            if(TRACE_DISPLAY_LIFECYCLE) {
+                Throwable t = new Throwable(Thread.currentThread()+" - X11Util.XCloseDisplay() 0x"+Long.toHexString(display));
+                t.printStackTrace();
             }
-        } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
-        }
-    }
-
-    public static boolean XineramaEnabled(long display) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
-        try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XineramaEnabled(display);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
-        } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
-        }
-    }
-
-    public static int DefaultScreen(long display) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
-        try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.DefaultScreen(display);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
-        } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
-        }
-    }
-
-    public static long RootWindow(long display, int screen_number) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
-        try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.RootWindow(display, screen_number);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
-        } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
-        }
-    }
-
-    public static long XCreatePixmap(long display, long arg1, int arg2, int arg3, int arg4) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
-        try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XCreatePixmap(display, arg1, arg2, arg3, arg4);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
-        } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
-        }
-    }
-
-    public static String XDisplayString(long display) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
-        try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XDisplayString(display);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
-        } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
-        }
-    }
-
-    public static int XFlush(long display) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
-        try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XFlush(display);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
+            return X11Lib.XCloseDisplay(display);
         } finally {
             NativeWindowFactory.getDefaultToolkitLock().unlock();
         }
@@ -497,171 +415,174 @@ public class X11Util {
         }
     }
 
-    public static int XFreePixmap(long display, long arg1) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
+    public static int XSync(long display, boolean discard) {
+        lockDefaultToolkit(display);
         try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XFreePixmap(display, arg1);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
+            return X11Lib.XSync(display, discard);
         } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
+            unlockDefaultToolkit(display);
+        }
+    }
+
+    public static boolean XSynchronize(long display, boolean onoff) {
+        lockDefaultToolkit(display);
+        try {
+            return X11Lib.XSynchronize(display, onoff);
+        } finally {
+            unlockDefaultToolkit(display);
+        }
+    }
+
+    public static boolean XineramaEnabled(long display) {
+        lockDefaultToolkit(display);
+        try {
+            return X11Lib.XineramaEnabled(display);
+        } finally {
+            unlockDefaultToolkit(display);
+        }
+    }
+
+    public static int DefaultScreen(long display) {
+        lockDefaultToolkit(display);
+        try {
+            return X11Lib.DefaultScreen(display);
+        } finally {
+            unlockDefaultToolkit(display);
+        }
+    }
+
+    public static long RootWindow(long display, int screen_number) {
+        lockDefaultToolkit(display);
+        try {
+            return X11Lib.RootWindow(display, screen_number);
+        } finally {
+            unlockDefaultToolkit(display);
+        }
+    }
+
+    public static long XCreatePixmap(long display, long arg1, int arg2, int arg3, int arg4) {
+        lockDefaultToolkit(display);
+        try {
+            return X11Lib.XCreatePixmap(display, arg1, arg2, arg3, arg4);
+        } finally {
+            unlockDefaultToolkit(display);
+        }
+    }
+
+    public static String XDisplayString(long display) {
+        lockDefaultToolkit(display);
+        try {
+            return X11Lib.XDisplayString(display);
+        } finally {
+            unlockDefaultToolkit(display);
+        }
+    }
+
+    public static int XFlush(long display) {
+        lockDefaultToolkit(display);
+        try {
+            return X11Lib.XFlush(display);
+        } finally {
+            unlockDefaultToolkit(display);
+        }
+    }
+
+    public static int XFreePixmap(long display, long arg1) {
+        lockDefaultToolkit(display);
+        try {
+            return X11Lib.XFreePixmap(display, arg1);
+        } finally {
+            unlockDefaultToolkit(display);
         }
     }
 
     public static long DefaultVisualID(long display, int screen) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
+        lockDefaultToolkit(display);
         try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.DefaultVisualID(display, screen);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
+            return X11Lib.DefaultVisualID(display, screen);
         } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
+            unlockDefaultToolkit(display);
         }
     }
 
     public static long CreateDummyWindow(long display, int screen_index, long visualID) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
+        lockDefaultToolkit(display);
         try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.CreateDummyWindow(display, screen_index, visualID);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
+            return X11Lib.CreateDummyWindow(display, screen_index, visualID);
         } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
+            unlockDefaultToolkit(display);
         }
     }
 
     public static void DestroyDummyWindow(long display, long window) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
+        lockDefaultToolkit(display);
         try {
-            X11Util.XLockDisplay(display);
-            try {
-                X11Lib.DestroyDummyWindow(display, window);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
+            X11Lib.DestroyDummyWindow(display, window);
         } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
-        }
-    }
-
-    public static int XCloseDisplay(long display) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
-        try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XCloseDisplay(display);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
-        } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
+            unlockDefaultToolkit(display);
         }
     }
 
     public static XVisualInfo[] XGetVisualInfo(long display, long arg1, XVisualInfo arg2, int[] arg3, int arg3_offset) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
+        lockDefaultToolkit(display);
         try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XGetVisualInfo(display, arg1, arg2, arg3, arg3_offset);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
+            return X11Lib.XGetVisualInfo(display, arg1, arg2, arg3, arg3_offset);
         } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
+            unlockDefaultToolkit(display);
         }
     }
 
     public static boolean XF86VidModeGetGammaRamp(long display, int screen, int size, ShortBuffer red_array, ShortBuffer green_array, ShortBuffer blue_array)  {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
+        lockDefaultToolkit(display);
         try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XF86VidModeGetGammaRamp(display, screen, size, red_array, green_array, blue_array);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
+            return X11Lib.XF86VidModeGetGammaRamp(display, screen, size, red_array, green_array, blue_array);
         } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
+            unlockDefaultToolkit(display);
         }
     }
 
     public static boolean XF86VidModeGetGammaRamp(long display, int screen, int size, short[] red_array, int red_array_offset, short[] green_array, int green_array_offset, short[] blue_array, int blue_array_offset)  {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
+        lockDefaultToolkit(display);
         try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XF86VidModeGetGammaRamp(display, screen, size, red_array, red_array_offset, green_array, green_array_offset, blue_array, blue_array_offset);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
+            return X11Lib.XF86VidModeGetGammaRamp(display, screen, size, red_array, red_array_offset, green_array, green_array_offset, blue_array, blue_array_offset);
         } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
+            unlockDefaultToolkit(display);
         }
     }
 
     public static boolean XF86VidModeGetGammaRampSize(long display, int screen, IntBuffer size)  {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
+        lockDefaultToolkit(display);
         try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XF86VidModeGetGammaRampSize(display, screen, size);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
+            return X11Lib.XF86VidModeGetGammaRampSize(display, screen, size);
         } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
+            unlockDefaultToolkit(display);
         }
     }
 
     public static boolean XF86VidModeGetGammaRampSize(long display, int screen, int[] size, int size_offset)  {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
+        lockDefaultToolkit(display);
         try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XF86VidModeGetGammaRampSize(display, screen, size, size_offset);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
+            return X11Lib.XF86VidModeGetGammaRampSize(display, screen, size, size_offset);
         } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
+            unlockDefaultToolkit(display);
         }
     }
 
     public static boolean XF86VidModeSetGammaRamp(long display, int screen, int size, ShortBuffer red_array, ShortBuffer green_array, ShortBuffer blue_array)  {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
+        lockDefaultToolkit(display);
         try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XF86VidModeSetGammaRamp(display, screen, size, red_array, green_array, blue_array);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
+            return X11Lib.XF86VidModeSetGammaRamp(display, screen, size, red_array, green_array, blue_array);
         } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
+            unlockDefaultToolkit(display);
         }
     }
 
     public static boolean XF86VidModeSetGammaRamp(long display, int screen, int size, short[] red_array, int red_array_offset, short[] green_array, int green_array_offset, short[] blue_array, int blue_array_offset)  {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
+        lockDefaultToolkit(display);
         try {
-            X11Util.XLockDisplay(display);
-            try {
-                return X11Lib.XF86VidModeSetGammaRamp(display, screen, size, red_array, red_array_offset, green_array, green_array_offset, blue_array, blue_array_offset);
-            } finally {
-                X11Util.XUnlockDisplay(display);
-            }
+            return X11Lib.XF86VidModeSetGammaRamp(display, screen, size, red_array, red_array_offset, green_array, green_array_offset, blue_array, blue_array_offset);
         } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
+            unlockDefaultToolkit(display);
         }
     }
 

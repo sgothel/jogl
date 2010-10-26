@@ -82,41 +82,37 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     } catch (JogampRuntimeException jre) { /* n/a .. */ }
 
     // init shared resources ..
-    NativeWindowFactory.getDefaultToolkitLock().lock(); // OK
+
+    long tlsDisplay = X11Util.createThreadLocalDisplay(null);
+    X11Util.lockDefaultToolkit(tlsDisplay); // OK
     try {
-        long tlsDisplay = X11Util.createThreadLocalDisplay(null);
-        X11Util.XLockDisplay(tlsDisplay);
-        try {
-            X11GraphicsDevice sharedDevice = new X11GraphicsDevice(tlsDisplay);
-            vendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
-            isVendorATI = GLXUtil.isVendorATI(vendorName);
-            isVendorNVIDIA = GLXUtil.isVendorNVIDIA(vendorName);
-            sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
-            sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, GLProfile.getDefault());
-            if(isVendorATI() && GLProfile.isAWTAvailable()) {
-                X11Util.markThreadLocalDisplayUncloseable(tlsDisplay); // failure to close with ATI and AWT usage
-            }
-            if(null==sharedScreen || null==sharedDrawable) {
-                throw new GLException("Couldn't init shared screen("+sharedScreen+")/drawable("+sharedDrawable+")");
-            }
-            // We have to keep this within this thread,
-            // since we have a 'chicken-and-egg' problem otherwise on the <init> lock of this thread.
-            try{
-                X11GLXContext ctx  = (X11GLXContext) sharedDrawable.createContext(null);
-                ctx.makeCurrent();
-                ctx.release();
-                sharedContext = ctx;
-            } catch (Throwable t) {
-                throw new GLException("X11GLXDrawableFactory - Could not initialize shared resources", t);
-            }
-            if(null==sharedContext) {
-                throw new GLException("X11GLXDrawableFactory - Shared Context is null");
-            }
-        } finally {
-            X11Util.XUnlockDisplay(tlsDisplay);
+        X11GraphicsDevice sharedDevice = new X11GraphicsDevice(tlsDisplay);
+        vendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
+        isVendorATI = GLXUtil.isVendorATI(vendorName);
+        isVendorNVIDIA = GLXUtil.isVendorNVIDIA(vendorName);
+        sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
+        sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, GLProfile.getDefault());
+        if(isVendorATI() && GLProfile.isAWTAvailable()) {
+            X11Util.markThreadLocalDisplayUncloseable(tlsDisplay); // failure to close with ATI and AWT usage
+        }
+        if(null==sharedScreen || null==sharedDrawable) {
+            throw new GLException("Couldn't init shared screen("+sharedScreen+")/drawable("+sharedDrawable+")");
+        }
+        // We have to keep this within this thread,
+        // since we have a 'chicken-and-egg' problem otherwise on the <init> lock of this thread.
+        try{
+            X11GLXContext ctx  = (X11GLXContext) sharedDrawable.createContext(null);
+            ctx.makeCurrent();
+            ctx.release();
+            sharedContext = ctx;
+        } catch (Throwable t) {
+            throw new GLException("X11GLXDrawableFactory - Could not initialize shared resources", t);
+        }
+        if(null==sharedContext) {
+            throw new GLException("X11GLXDrawableFactory - Shared Context is null");
         }
     } finally {
-        NativeWindowFactory.getDefaultToolkitLock().unlock(); // OK
+        X11Util.unlockDefaultToolkit(tlsDisplay); // OK
     }
     if (DEBUG) {
       System.err.println("!!! Vendor: "+vendorName+", ATI: "+isVendorATI+", NV: "+isVendorNVIDIA);
