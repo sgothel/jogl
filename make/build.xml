@@ -161,6 +161,8 @@
 
     <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one-dir,tag.build,developer-zip-archive,source-archive" />
 
+    <target name="all.but-archives" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one-dir" />
+
     <target name="junit.compile">
       <ant antfile="build-junit.xml" target="junit.compile" inheritRefs="true" inheritAll="true"/>
     </target>

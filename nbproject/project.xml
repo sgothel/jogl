@@ -57,7 +57,7 @@
             <ide-actions>
                 <action name="build">
                     <script>${ant.script}</script>
-                    <target>all</target>
+                    <target>all.but-archives</target>
                 </action>
                 <action name="clean">
                     <script>${ant.script}</script>
@@ -66,7 +66,7 @@
                 <action name="rebuild">
                     <script>${ant.script}</script>
                     <target>clean</target>
-                    <target>all</target>
+                    <target>all.but-archives</target>
                 </action>
                 <action name="compile.single">
                     <script>nbproject/ide-file-targets.xml</script>
