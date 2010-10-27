@@ -35,7 +35,6 @@ package com.jogamp.newt.impl.x11;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
-import com.jogamp.newt.*;
 import com.jogamp.newt.impl.*;
 import com.jogamp.nativewindow.impl.x11.X11Util;
 
@@ -77,6 +76,9 @@ public class X11Display extends DisplayImpl {
             throw e;
         }
         aDevice = new X11GraphicsDevice(handle, NativeWindowFactory.getNullToolkitLock());
+        // aDevice = new X11GraphicsDevice(handle, NativeWindowFactory.createDefaultToolkitLockNoAWT(NativeWindowFactory.TYPE_X11, handle));
+        // aDevice = new X11GraphicsDevice(handle);
+
     }
 
     protected void closeNativeImpl() {

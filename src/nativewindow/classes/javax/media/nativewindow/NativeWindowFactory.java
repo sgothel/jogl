@@ -323,6 +323,18 @@ public abstract class NativeWindowFactory {
         return NativeWindowFactoryImpl.getNullToolkitLock();
     }
 
+    public static ToolkitLock createDefaultToolkitLockNoAWT(String type, long deviceHandle) {
+        if( TYPE_X11 == type ) {
+            if( 0== deviceHandle ) {
+                throw new RuntimeException("JAWTUtil.createDefaultToolkitLockNoAWT() called with NULL device but on X11");
+            }
+            if( !isFirstUIActionOnProcess() ) {
+                return createX11ToolkitLock(deviceHandle);
+            }
+        }
+        return NativeWindowFactoryImpl.getNullToolkitLock();
+    }
+
     protected static ToolkitLock createX11AWTToolkitLock(long deviceHandle) {
         try {
             return (ToolkitLock) x11JAWTToolkitLockConstructor.newInstance(new Object[]{new Long(deviceHandle)});

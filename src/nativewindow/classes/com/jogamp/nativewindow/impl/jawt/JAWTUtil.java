@@ -40,7 +40,6 @@ import com.jogamp.nativewindow.impl.*;
 
 import javax.media.nativewindow.*;
 
-import com.jogamp.common.util.locks.RecursiveLock;
 
 import java.awt.GraphicsEnvironment;
 import java.lang.reflect.*;
@@ -178,13 +177,13 @@ public class JAWTUtil {
   }
 
   public static void lockToolkit() throws NativeWindowException {
-    if(!isJava2DQueueFlusherThread() && !headlessMode) {
+    if(!headlessMode && !isJava2DQueueFlusherThread()) {
         awtLock();
     }
   }
 
   public static void unlockToolkit() {
-    if(!isJava2DQueueFlusherThread() && !headlessMode) {
+    if(!headlessMode && !isJava2DQueueFlusherThread()) {
         awtUnlock();
     }
   }

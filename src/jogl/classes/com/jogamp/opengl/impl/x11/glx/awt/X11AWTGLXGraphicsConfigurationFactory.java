@@ -32,7 +32,6 @@
 
 package com.jogamp.opengl.impl.x11.glx.awt;
 
-import com.jogamp.nativewindow.impl.jawt.JAWTUtil;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import javax.media.nativewindow.*;
