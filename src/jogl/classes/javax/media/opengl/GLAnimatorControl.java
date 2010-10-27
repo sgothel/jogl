@@ -129,7 +129,7 @@ public interface GLAnimatorControl {
      * @see #stop()
      * @see #isAnimating()
      * @see #getThread()
-     * @throws GLException if started and animating already
+     * @throws GLException if started already
      */
     void start();
 
@@ -144,7 +144,7 @@ public interface GLAnimatorControl {
      * @see #start()
      * @see #isAnimating()
      * @see #getThread()
-     * @throws GLException if not started or not animating
+     * @throws GLException if not started
      */
     void stop();
 

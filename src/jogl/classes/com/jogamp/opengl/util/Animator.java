@@ -40,14 +40,10 @@
 
 package com.jogamp.opengl.util;
 
-import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
 
-import com.jogamp.opengl.impl.Debug;
 
-import java.util.*;
 
 
 /** <P> An Animator can be attached to one or more {@link
@@ -154,9 +150,9 @@ public class Animator extends AnimatorBase {
                             }
                         }
                     }
-                    if ( !shouldStop ) {
+                    if ( !shouldStop && !shouldPause) {
                         display();
-                        if (!runAsFastAsPossible) {
+                        if ( !runAsFastAsPossible) {
                             // Avoid swamping the CPU
                             Thread.yield();
                         }
@@ -219,8 +215,8 @@ public class Animator extends AnimatorBase {
 
     public synchronized void stop() {
         boolean started = null != thread;
-        if ( !started || !isAnimating ) {
-            throw new GLException("Not running (started "+started+" (true), animating "+isAnimating+" (true) )");
+        if ( !started ) {
+            throw new GLException("Not started");
         }
         shouldStop = true;
         notifyAll();
@@ -230,7 +226,7 @@ public class Animator extends AnimatorBase {
         // use a couple of heuristics to determine whether we should do
         // the blocking wait().
         if (!impl.skipWaitForCompletion(thread)) {
-            while (isAnimating && thread != null) {
+            while (thread != null) {
                 try {
                     wait();
                 } catch (InterruptedException ie) {
