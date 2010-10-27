@@ -118,6 +118,8 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
     public static void setup() throws InterruptedException, InvocationTargetException, AWTException {
         int count;
 
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.setup(): Start Pre-JOGL-Swing");
+
         // GLProfile.initSingleton(false);
         // GLProfile.initSingleton(true);
 
@@ -168,13 +170,16 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         AWTRobotUtil.toFront(robot, frame);
         AWTRobotUtil.requestFocus(robot, button);
 
-        System.err.println("Clean End of Pre-JOGL-Swing");
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.setup(): Before JOGL init");
 
         GLProfile.initSingleton(false);
+
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.setup(): End Pre-JOGL-Swing");
     }
 
     @AfterClass
     public static void release() throws InterruptedException, InvocationTargetException {
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.release(): Start");
         robot = null;
         Assert.assertNotNull(frame);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -183,6 +188,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
             }
         });
         frame=null;
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.release(): End");
     }
 
     protected void runTestGL(final Canvas canvas, GLAutoDrawable drawable) 
@@ -249,6 +255,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
 
     @Test
     public void test01GLCanvas() throws AWTException, InterruptedException, InvocationTargetException {
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test01GLCanvas(): Start");
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
 
@@ -267,10 +274,13 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
 
         anim0.stop();
         win0.destroy(true);
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test01GLCanvas(): End");
     }
 
     @Test
     public void test02NewtCanvasAWT() throws AWTException, InterruptedException, InvocationTargetException {
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test02NewtCanvasAWT(): Start");
+
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
 
@@ -291,10 +301,12 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         runTestGL(newtCanvasAWT, (GLAutoDrawable)newtCanvasAWT.getNEWTChild());
         newtCanvasAWT.destroy(true);
 
-        winDummy.destroy(true);
-
         anim0.stop();
         win0.destroy(true);
+
+        winDummy.destroy(true);
+
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test02NewtCanvasAWT(): End");
     }
 
     static int atoi(String a) {
