@@ -146,6 +146,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         });
         frame.setContentPane(panel);
         frame.setSize(512, 512);
+        frame.setLocation(0, 0);
         frame.pack();
         frame.setVisible(true);
 
@@ -216,9 +217,6 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         colorPanel.setBackground(Color.blue);
         drawable.addGLEventListener(new SwingGLAction());
 
-        Animator animator = new Animator(drawable);
-        animator.start();
-
         Point p0 = canvas.getLocationOnScreen();
         Rectangle r0 = canvas.getBounds();
         robot.mouseMove( (int) ( p0.getX() + .5 ) ,
@@ -243,7 +241,6 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
                 frame.pack();
             }
         });
-        Assert.assertEquals(false, animator.isAnimating());
     }
 
     @Test
@@ -257,19 +254,22 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         win0.setSize(100,100);
         win0.setVisible(true);
         Screen screen = win0.getScreen();
-        win0.setPosition(screen.getWidth()-150, screen.getHeight()-150);
+        win0.setPosition(screen.getWidth()-150, 0);
         win0.addGLEventListener(new Gears());
         Animator anim0 = new Animator(win0);
         anim0.start();
 
-        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(GLWindow.create(caps));
-
-        runTestGL(newtCanvasAWT, (GLAutoDrawable)newtCanvasAWT.getNEWTChild());
+        GLWindow win1 = GLWindow.create(caps);
+        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(win1);
+        Animator anim1 = new Animator(win1);
+        anim1.start();
+        runTestGL(newtCanvasAWT, win1);
 
         win0.destroy(true);
         Assert.assertEquals(false, anim0.isAnimating());
 
         newtCanvasAWT.destroy(true);
+        Assert.assertEquals(false, anim1.isAnimating());
 
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test01NewtCanvasAWT(): End");
     }
@@ -284,17 +284,22 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         win0.setSize(100,100);
         win0.setVisible(true);
         Screen screen = win0.getScreen();
-        win0.setPosition(screen.getWidth()-150, screen.getHeight()-150);
+        win0.setPosition(screen.getWidth()-150, 0);
         win0.addGLEventListener(new Gears());
         Animator anim0 = new Animator(win0);        
         anim0.start();
 
         GLCanvas glCanvas = new GLCanvas(caps);
-
+        Animator anim1 = new Animator(glCanvas);
+        anim1.start();
         runTestGL(glCanvas, glCanvas);
+
+        Thread.sleep(100); // wait 1/10Hz to allow animation to be paused
+        Assert.assertEquals(false, anim1.isAnimating());
 
         win0.destroy(true);
         Assert.assertEquals(false, anim0.isAnimating());
+        
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test02GLCanvas(): End");
     }
 

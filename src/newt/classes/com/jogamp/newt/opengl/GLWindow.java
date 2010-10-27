@@ -280,10 +280,14 @@ public class GLWindow implements GLAutoDrawable, Window {
         /** Window.LifecycleHook */
         public synchronized void destroyActionPreLock(boolean unrecoverable) {
             GLAnimatorControl animator = GLWindow.this.getAnimator();
-            // since we have no 'recreation model' for dispose here yet,
-            // we simply stop the animator if started.
-            if(null!=animator && animator.isStarted()) {
-                animator.stop();
+            if(null!=animator) {
+                if(unrecoverable) {
+                    if(animator.isStarted()) {
+                        animator.stop();
+                    }
+                } else if(animator.isAnimating()) {
+                    animator.pause();
+                }
             }
         }
 

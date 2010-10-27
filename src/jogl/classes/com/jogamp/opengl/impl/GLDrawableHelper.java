@@ -320,11 +320,9 @@ public class GLDrawableHelper {
 
     if(null==initAction) {
         // disposal case
-
         if(!context.isCreated()) {
             throw new GLException("Dispose case (no init action given): Native context must be created: "+context);
         }
-
         GLAnimatorControl animCtrl =  getAnimator();
         if(null!=animCtrl && animCtrl.isAnimating()) {
             animCtrl.pause();

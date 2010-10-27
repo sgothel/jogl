@@ -266,8 +266,7 @@ public class TestGLWindows01NEWT extends UITestCase {
         Assert.assertNotNull(window2);
 
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
-
-        Assert.assertEquals(2,display.getReferenceCount());
+        Assert.assertEquals(1,display.getReferenceCount());
         Assert.assertEquals(true,display.isNativeValid());
         Assert.assertNotNull(display.getEDTUtil());
         Assert.assertEquals(true,display.getEDTUtil().isRunning());

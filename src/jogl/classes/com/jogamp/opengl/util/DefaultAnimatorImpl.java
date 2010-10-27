@@ -40,7 +40,7 @@ import javax.media.opengl.*;
     implementation in a way that still allows the FPSAnimator to pick
     up this behavior if desired. */
 
-class AnimatorImpl {
+class DefaultAnimatorImpl implements AnimatorBase.AnimatorImpl {
     public void display(AnimatorBase animator,
                         boolean ignoreExceptions,
                         boolean printExceptions) {

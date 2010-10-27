@@ -161,9 +161,11 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertNotNull(screen);
         GLWindow window1 = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
         Assert.assertNotNull(window1);
+        window1.setPosition(0, 0);
 
         GLWindow window2 = createWindow(screen, caps, width-10, height-10, true /* onscreen */, false /* undecorated */);
         Assert.assertNotNull(window2);
+        window2.setPosition(screen.getWidth()-width, 0);
 
         Animator animator1 = new Animator(window1);
         animator1.start();
@@ -194,11 +196,13 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertNotNull(screen1);
         GLWindow window1 = createWindow(screen1, caps, width, height, true /* onscreen */, false /* undecorated */);
         Assert.assertNotNull(window1);
+        window1.setPosition(0, 0);
 
         Screen screen2  = NewtFactory.createScreen(display2, 0); // screen 0
         Assert.assertNotNull(screen2);
         GLWindow window2 = createWindow(screen2, caps, width-10, height-10, true /* onscreen */, false /* undecorated */);
         Assert.assertNotNull(window2);
+        window2.setPosition(screen2.getWidth()-width, 0);
 
         Animator animator1 = new Animator(window1);
         animator1.start();

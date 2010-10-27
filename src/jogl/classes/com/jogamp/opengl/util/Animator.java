@@ -60,7 +60,8 @@ public class Animator extends AnimatorBase {
     protected ThreadGroup threadGroup;
     private Runnable runnable;
     private boolean runAsFastAsPossible;
-    protected volatile boolean isAnimating;
+    protected boolean isAnimating;
+    protected boolean isPaused;
     protected volatile boolean shouldPause;
     protected volatile boolean shouldStop;
 
@@ -118,6 +119,7 @@ public class Animator extends AnimatorBase {
 
                 synchronized (Animator.this) {
                     isAnimating = true;
+                    isPaused = false;
                     Animator.this.notifyAll();
                 }
 
@@ -127,11 +129,12 @@ public class Animator extends AnimatorBase {
                         synchronized (Animator.this) {
                             boolean wasPaused = false;
                             while ( !shouldStop && ( shouldPause || drawables.size() == 0 )  ) {
+                                isAnimating = false;
+                                isPaused = true;
+                                wasPaused = true;
                                 if(DEBUG) {
                                     System.err.println("Animator paused: "+Thread.currentThread());
                                 }
-                                isAnimating = false;
-                                wasPaused = true;
                                 Animator.this.notifyAll();
                                 try {
                                     Animator.this.wait();
@@ -142,10 +145,11 @@ public class Animator extends AnimatorBase {
                                 startTime = System.currentTimeMillis();
                                 curTime   = startTime;
                                 totalFrames = 0;
+                                isAnimating = true;
+                                isPaused = false;
                                 if(DEBUG) {
                                     System.err.println("Animator resumed: "+Thread.currentThread());
                                 }
-                                isAnimating = true;
                                 Animator.this.notifyAll();
                             }
                         }
@@ -167,6 +171,7 @@ public class Animator extends AnimatorBase {
                     shouldPause = false;
                     thread = null;
                     isAnimating = false;
+                    isPaused = false;
                     Animator.this.notifyAll();
                 }
             }
@@ -182,7 +187,35 @@ public class Animator extends AnimatorBase {
     }
 
     public final synchronized boolean isPaused() {
-        return (thread != null) && shouldPause;
+        return (thread != null) && isPaused;
+    }
+
+    interface Condition {
+        /**
+         * @return true if branching (cont waiting, action), otherwise false
+         */
+        boolean result();
+    }
+
+    private synchronized void finishLifecycleAction(Condition condition) {
+        // It's hard to tell whether the thread which changes the lifecycle has
+        // dependencies on the Animator's internal thread. Currently we
+        // use a couple of heuristics to determine whether we should do
+        // the blocking wait().
+        boolean doWait = !impl.skipWaitForCompletion(thread);
+        if (doWait) {
+            while (condition.result()) {
+                try {
+                    wait();
+                } catch (InterruptedException ie) {
+                }
+            }
+        }
+        if(DEBUG) {
+            System.err.println("finishLifecycleAction(" + condition.getClass().getName() + "): finished - waited " + doWait +
+                    ", started: " + isStarted() +", animating: " + isAnimating() +
+                    ", paused: " + isPaused());
+        }
     }
 
     public synchronized void start() {
@@ -203,15 +236,15 @@ public class Animator extends AnimatorBase {
         }
         thread.start();
 
-        if (!impl.skipWaitForCompletion(thread)) {
-            while (!isAnimating && thread != null) {
-                try {
-                    wait();
-                } catch (InterruptedException ie) {
-                }
-            }
+        finishLifecycleAction(waitForStartedCondition);
+    }
+    private class WaitForStartedCondition implements Condition {
+        public boolean result() {
+            // cont waiting until actually is animating
+            return !isAnimating || thread == null;
         }
     }
+    Condition waitForStartedCondition = new WaitForStartedCondition();
 
     public synchronized void stop() {
         boolean started = null != thread;
@@ -221,19 +254,14 @@ public class Animator extends AnimatorBase {
         shouldStop = true;
         notifyAll();
 
-        // It's hard to tell whether the thread which calls stop() has
-        // dependencies on the Animator's internal thread. Currently we
-        // use a couple of heuristics to determine whether we should do
-        // the blocking wait().
-        if (!impl.skipWaitForCompletion(thread)) {
-            while (thread != null) {
-                try {
-                    wait();
-                } catch (InterruptedException ie) {
-                }
-            }
+        finishLifecycleAction(waitForStoppedCondition);
+    }
+    private class WaitForStoppedCondition implements Condition {
+        public boolean result() {
+            return thread != null;
         }
     }
+    Condition waitForStoppedCondition = new WaitForStoppedCondition();
 
     public synchronized void pause() {
         boolean started = null != thread;
@@ -243,34 +271,33 @@ public class Animator extends AnimatorBase {
         shouldPause = true;
         notifyAll();
 
-        if (!impl.skipWaitForCompletion(thread)) {
-            while (isAnimating && thread != null) {
-                try {
-                    wait();
-                } catch (InterruptedException ie) {
-                }
-            }
+        finishLifecycleAction(waitForPausedCondition);
+    }
+    private class WaitForPausedCondition implements Condition {
+        public boolean result() {
+            // end waiting if stopped as well
+            return (!isPaused || isAnimating) && thread != null;
         }
     }
+    Condition waitForPausedCondition = new WaitForPausedCondition();
 
     public synchronized void resume() {
         boolean started = null != thread;
         if ( !started || !shouldPause ) {
             throw new GLException("Invalid state (started "+started+" (true), paused "+shouldPause+" (true) )");
-        }
+        }        
         shouldPause = false;
         notifyAll();
 
-        if (!impl.skipWaitForCompletion(thread)) {
-            while (!isAnimating && thread != null) {
-                try {
-                    wait();
-                } catch (InterruptedException ie) {
-                }
-            }
-        }
-        resetCounter();
+        finishLifecycleAction(waitForResumedCondition);
     }
+    private class WaitForResumedCondition implements Condition {
+        public boolean result() {
+            // end waiting if stopped as well
+            return (isPaused || !isAnimating) && thread != null;
+        }
+    }
+    Condition waitForResumedCondition = new WaitForResumedCondition();
 
     protected final boolean getShouldPause() {
         return shouldPause;

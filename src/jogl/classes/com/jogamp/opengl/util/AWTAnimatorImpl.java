@@ -45,7 +45,7 @@ import javax.media.opengl.*;
     implementation in a way that still allows the FPSAnimator to pick
     up this behavior if desired. */
 
-class AWTAnimatorImpl extends AnimatorImpl {
+class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
     // For efficient rendering of Swing components, in particular when
     // they overlap one another
     private List lightweights    = new ArrayList();

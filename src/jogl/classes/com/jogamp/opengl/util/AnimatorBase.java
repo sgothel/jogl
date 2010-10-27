@@ -31,7 +31,6 @@ package com.jogamp.opengl.util;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.impl.Debug;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
@@ -44,6 +43,11 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     protected static final boolean DEBUG = Debug.debug("Animator");
 
     private static int animatorCount = 0;
+
+    public interface AnimatorImpl {
+        void display(AnimatorBase animator, boolean ignoreExceptions, boolean printExceptions);
+        boolean skipWaitForCompletion(Thread thread);
+    }
 
     protected ArrayList/*<GLAutoDrawable>*/ drawables = new ArrayList();
     protected RecursiveLock drawablesLock = new RecursiveLock();
@@ -60,12 +64,12 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     public AnimatorBase() {
         if(GLProfile.isAWTAvailable()) {
             try {
-                impl = (AnimatorImpl) Class.forName("com.jogamp.opengl.util.awt.AWTAnimatorImpl").newInstance();
+                impl = (AnimatorImpl) Class.forName("com.jogamp.opengl.util.AWTAnimatorImpl").newInstance();
                 baseName = "AWTAnimator";
-            } catch (Exception e) { }
+            } catch (Exception e) { e.printStackTrace(); }
         }
         if(null==impl) {
-            impl = new AnimatorImpl();
+            impl = new DefaultAnimatorImpl();
             baseName = "Animator";
         }
         synchronized (Animator.class) {
