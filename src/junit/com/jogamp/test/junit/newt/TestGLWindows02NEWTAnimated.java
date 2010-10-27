@@ -130,8 +130,8 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         while(animator.isAnimating() && animator.getDuration()<durationPerTest) {
             Thread.sleep(100);
         }
-        animator.stop();
         destroyWindow(window, true);
+        Assert.assertEquals(false, animator.isAnimating());
     }
 
     @Test
@@ -144,13 +144,43 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         while(animator.isAnimating() && animator.getDuration()<durationPerTest) {
             Thread.sleep(100);
         }
-        animator.stop();
         destroyWindow(window, false);
         destroyWindow(window, true);
+        Assert.assertEquals(false, animator.isAnimating());
     }
 
     @Test
-    public void testWindowDecor03TwoWin() throws InterruptedException {
+    public void testWindowDecor03TwoWinOneDisplay() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        Assert.assertNotNull(caps);
+
+        Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+
+        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+        GLWindow window1 = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+        Assert.assertNotNull(window1);
+
+        GLWindow window2 = createWindow(screen, caps, width-10, height-10, true /* onscreen */, false /* undecorated */);
+        Assert.assertNotNull(window2);
+
+        Animator animator1 = new Animator(window1);
+        animator1.start();
+        Animator animator2 = new Animator(window2);
+        animator2.start();
+        while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
+            Thread.sleep(100);
+        }
+
+        destroyWindow(window2, true);
+        Assert.assertEquals(false, animator2.isAnimating());
+
+        destroyWindow(window1, true);
+        Assert.assertEquals(false, animator1.isAnimating());
+    }
+    @Test
+    public void testWindowDecor03TwoWinTwoDisplays() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
 
@@ -178,13 +208,11 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
             Thread.sleep(100);
         }
 
-        animator2.stop();
-        Assert.assertEquals(false, animator2.isAnimating());
-        destroyWindow(window2, false);
-
-        animator1.stop();
-        Assert.assertEquals(false, animator1.isAnimating());
         destroyWindow(window1, true);
+        Assert.assertEquals(false, animator1.isAnimating());
+
+        destroyWindow(window2, false);
+        Assert.assertEquals(false, animator2.isAnimating());
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow) {

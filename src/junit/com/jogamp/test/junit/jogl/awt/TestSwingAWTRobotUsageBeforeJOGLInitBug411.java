@@ -28,7 +28,6 @@
  
 package com.jogamp.test.junit.jogl.awt;
 
-import com.jogamp.test.junit.util.UITestCase;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import com.jogamp.test.junit.util.*;
 
@@ -43,19 +42,15 @@ import com.jogamp.newt.Screen;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
-import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.AWTException;
-import java.awt.LayoutManager;
 import java.awt.Robot;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -68,7 +63,6 @@ import javax.swing.BorderFactory;
 import javax.swing.border.Border;
 
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -238,11 +232,9 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         }
         robot.mouseRelease(InputEvent.BUTTON1_MASK);
 
-        for(int i=0; !windowClosing && i<durationPerTest/10; i++) {
-            Thread.sleep(10);
+        for(int i=0; !windowClosing && i<durationPerTest/100; i++) {
+            Thread.sleep(100);
         }
-
-        animator.stop();
 
         Assert.assertNotNull(canvas);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -251,41 +243,15 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
                 frame.pack();
             }
         });
+        Assert.assertEquals(false, animator.isAnimating());
     }
 
     @Test
-    public void test01GLCanvas() throws AWTException, InterruptedException, InvocationTargetException {
-        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test01GLCanvas(): Start");
-        GLProfile glp = GLProfile.getDefault();
-        GLCapabilities caps = new GLCapabilities(glp);
-
-        GLWindow win0 = GLWindow.create(caps);
-        win0.setSize(100,100);
-        win0.setVisible(true);
-        Screen screen = win0.getScreen();
-        win0.setPosition(screen.getWidth()-150, screen.getHeight()-150);
-        win0.addGLEventListener(new Gears());
-        Animator anim0 = new Animator(win0);
-        anim0.start();
-
-        GLCanvas glCanvas = new GLCanvas(caps);
-
-        runTestGL(glCanvas, glCanvas);
-
-        anim0.stop();
-        win0.destroy(true);
-        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test01GLCanvas(): End");
-    }
-
-    @Test
-    public void test02NewtCanvasAWT() throws AWTException, InterruptedException, InvocationTargetException {
-        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test02NewtCanvasAWT(): Start");
+    public void test01NewtCanvasAWT() throws AWTException, InterruptedException, InvocationTargetException {
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test01NewtCanvasAWT(): Start");
 
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
-
-        GLWindow winDummy = GLWindow.create(caps);
-        winDummy.addGLEventListener(new Gears());
 
         GLWindow win0 = GLWindow.create(caps);
         win0.setSize(100,100);
@@ -299,14 +265,37 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(GLWindow.create(caps));
 
         runTestGL(newtCanvasAWT, (GLAutoDrawable)newtCanvasAWT.getNEWTChild());
+
+        win0.destroy(true);
+        Assert.assertEquals(false, anim0.isAnimating());
+
         newtCanvasAWT.destroy(true);
 
-        anim0.stop();
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test01NewtCanvasAWT(): End");
+    }
+
+    @Test
+    public void test02GLCanvas() throws AWTException, InterruptedException, InvocationTargetException {
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test02GLCanvas(): Start");
+        GLProfile glp = GLProfile.getDefault();
+        GLCapabilities caps = new GLCapabilities(glp);
+
+        GLWindow win0 = GLWindow.create(caps);
+        win0.setSize(100,100);
+        win0.setVisible(true);
+        Screen screen = win0.getScreen();
+        win0.setPosition(screen.getWidth()-150, screen.getHeight()-150);
+        win0.addGLEventListener(new Gears());
+        Animator anim0 = new Animator(win0);        
+        anim0.start();
+
+        GLCanvas glCanvas = new GLCanvas(caps);
+
+        runTestGL(glCanvas, glCanvas);
+
         win0.destroy(true);
-
-        winDummy.destroy(true);
-
-        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test02NewtCanvasAWT(): End");
+        Assert.assertEquals(false, anim0.isAnimating());
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test02GLCanvas(): End");
     }
 
     static int atoi(String a) {

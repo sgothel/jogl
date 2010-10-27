@@ -131,6 +131,11 @@ public class GLDrawableHelper {
     }
   }
 
+  /**
+   * Issues {@link javax.media.opengl.GLEventListener#dispose(javax.media.opengl.GLAutoDrawable)}
+   * to all listeners.
+   * @param drawable
+   */
   public final void dispose(GLAutoDrawable drawable) {
     synchronized(listenersLock) {
         listenersIter = true;
@@ -283,12 +288,24 @@ public class GLDrawableHelper {
   }
 
   private static final ThreadLocal perThreadInitAction = new ThreadLocal();
+
   /** Principal helper method which runs a Runnable with the context
       made current. This could have been made part of GLContext, but a
-      desired goal is to be able to implement the GLCanvas in terms of
+      desired goal is to be able to implement GLAutoDrawable's in terms of
       the GLContext's public APIs, and putting it into a separate
       class helps ensure that we don't inadvertently use private
-      methods of the GLContext or its implementing classes. */
+      methods of the GLContext or its implementing classes.<br>
+   * <br>
+   * Remark: In case this method is called to dispose the GLDrawable/GLAutoDrawable,
+   * <code>initAction</code> shall be <code>null</code> to mark this cause.<br>
+   * In this case, the locally delegated {@link javax.media.opengl.GLAnimatorControl} via {@link #setAnimator(javax.media.opengl.GLAnimatorControl) setAnimator(animatorControl)}
+   * is paused first, if {@link javax.media.opengl.GLAnimatorControl#isAnimating()}.
+   *
+   * @param drawable
+   * @param context
+   * @param runnable
+   * @param initAction
+   */
   public final void invokeGL(GLDrawable drawable,
                              GLContext context,
                              Runnable  runnable,
@@ -300,6 +317,20 @@ public class GLDrawableHelper {
         }
         return;
     }
+
+    if(null==initAction) {
+        // disposal case
+
+        if(!context.isCreated()) {
+            throw new GLException("Dispose case (no init action given): Native context must be created: "+context);
+        }
+
+        GLAnimatorControl animCtrl =  getAnimator();
+        if(null!=animCtrl && animCtrl.isAnimating()) {
+            animCtrl.pause();
+        }
+    }
+
     // Support for recursive makeCurrent() calls as well as calling
     // other drawables' display() methods from within another one's
     GLContext lastContext    = GLContext.getCurrent();
@@ -308,9 +339,6 @@ public class GLDrawableHelper {
       lastContext.release();
     }
   
-    if(!context.isCreated() && null == initAction) {
-        throw new GLException("Context has to be created, but no initAction is given: "+context);
-    }
     int res = 0;
     try {
       res = context.makeCurrent();

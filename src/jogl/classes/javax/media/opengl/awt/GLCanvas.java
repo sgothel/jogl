@@ -315,6 +315,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
 
     if(null!=context) {
+        boolean animatorWasAnimating = false;
+        GLAnimatorControl animator =  getAnimator();
+        if(null!=animator) {
+            animatorWasAnimating = animator.isAnimating();
+        }
+
         disposeRegenerate=regenerate;
 
         if (Threading.isSingleThreaded() &&
@@ -335,6 +341,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
           }
         } else if(context.isCreated()) {
           drawableHelper.invokeGL(drawable, context, disposeAction, null);
+        }
+
+        if(regenerate && animatorWasAnimating && animator.isPaused()) {
+          animator.resume();
         }
     }
 
@@ -420,9 +430,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
             if(null==awtConfig) {
               throw new GLException("Error: AWTGraphicsConfiguration is null");
             }
-            drawable = GLDrawableFactory.getFactory(glProfile).createGLDrawable(NativeWindowFactory.getNativeWindow(this, awtConfig));
-            context = (GLContextImpl) drawable.createContext(shareWith);
-            context.setSynchronized(true);
+            // awtConfig.getScreen().getDevice().lock();
+            try {
+                drawable = GLDrawableFactory.getFactory(glProfile).createGLDrawable(NativeWindowFactory.getNativeWindow(this, awtConfig));
+                context = (GLContextImpl) drawable.createContext(shareWith);
+                context.setSynchronized(true);
+                drawable.setRealized(true);
+            } finally {
+                // awtConfig.getScreen().getDevice().unlock();
+            }
         } finally {
             NativeWindowFactory.getDefaultToolkitLock().unlock();
         }
@@ -430,7 +446,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         if(DEBUG) {
             System.err.println("Created Drawable: "+drawable);
         }
-        drawable.setRealized(true);
     }
   }
 

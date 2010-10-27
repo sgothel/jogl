@@ -253,16 +253,14 @@ public class TestGLWindows01NEWT extends UITestCase {
         Assert.assertNotNull(display);
         display.setDestroyWhenUnused(true);
 
-        Screen screen1  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen1);
-        GLWindow window1 = createWindow(screen1, caps, width, height,
+        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+        GLWindow window1 = createWindow(screen, caps, width, height,
                                        true /* onscreen */, false /* undecorated */, 
                                        false /*addGLEventListenerAfterVisible*/);
         Assert.assertNotNull(window1);
 
-        Screen screen2  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen2);
-        GLWindow window2 = createWindow(screen2, caps, width, height, 
+        GLWindow window2 = createWindow(screen, caps, width, height, 
                                        true /* onscreen */, false /* undecorated */, 
                                        false /*addGLEventListenerAfterVisible*/);
         Assert.assertNotNull(window2);
@@ -274,11 +272,8 @@ public class TestGLWindows01NEWT extends UITestCase {
         Assert.assertNotNull(display.getEDTUtil());
         Assert.assertEquals(true,display.getEDTUtil().isRunning());
 
-        Assert.assertEquals(1,screen1.getReferenceCount());
-        Assert.assertEquals(true,screen1.isNativeValid());
-
-        Assert.assertEquals(1,screen2.getReferenceCount());
-        Assert.assertEquals(true,screen2.isNativeValid());
+        Assert.assertEquals(2,screen.getReferenceCount());
+        Assert.assertEquals(true,screen.isNativeValid());
 
         int state;
         for(state=0; state*100<durationPerTest; state++) {
@@ -297,11 +292,8 @@ public class TestGLWindows01NEWT extends UITestCase {
         Assert.assertNotNull(display.getEDTUtil());
         Assert.assertEquals(false,display.getEDTUtil().isRunning());
 
-        Assert.assertEquals(0,screen1.getReferenceCount());
-        Assert.assertEquals(false,screen1.isNativeValid());
-
-        Assert.assertEquals(0,screen2.getReferenceCount());
-        Assert.assertEquals(false,screen2.isNativeValid());
+        Assert.assertEquals(0,screen.getReferenceCount());
+        Assert.assertEquals(false,screen.isNativeValid());
     }
 
     @Test

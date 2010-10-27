@@ -149,10 +149,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
 
         /** 
          * Invoked before Window destroy action, 
-         * allows releasing of resources depending on the native Window.
+         * allows releasing of resources depending on the native Window.<br>
+         * Surface not locked yet.<br>
+         * Called not necessarily from EDT.
+         */
+        void destroyActionPreLock(boolean unrecoverable);
+
+        /**
+         * Invoked before Window destroy action,
+         * allows releasing of resources depending on the native Window.<br>
+         * Surface locked.<br>
          * Called from EDT.
          */
-        void destroyAction(boolean unrecoverable);
+        void destroyActionInLock(boolean unrecoverable);
 
         /** Only informal, when starting reparenting */
         void reparentActionPre();
@@ -640,7 +649,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 }
 
                 if(null!=lifecycleHook) {
-                    lifecycleHook.destroyAction(unrecoverable);
+                    lifecycleHook.destroyActionInLock(unrecoverable);
                 }
 
                 // Now us ..
@@ -680,6 +689,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 //Exception ee = new Exception(msg);
                 //ee.printStackTrace();
             }            
+            if(null!=lifecycleHook) {
+                lifecycleHook.destroyActionPreLock(unrecoverable);
+            }
             DestroyAction destroyAction = new DestroyAction(unrecoverable);
             runOnEDTIfAvail(true, destroyAction);
         }

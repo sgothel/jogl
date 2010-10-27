@@ -278,7 +278,17 @@ public class GLWindow implements GLAutoDrawable, Window {
         DisposeAction disposeAction = new DisposeAction();
 
         /** Window.LifecycleHook */
-        public synchronized void destroyAction(boolean unrecoverable) {
+        public synchronized void destroyActionPreLock(boolean unrecoverable) {
+            GLAnimatorControl animator = GLWindow.this.getAnimator();
+            // since we have no 'recreation model' for dispose here yet,
+            // we simply stop the animator if started.
+            if(null!=animator && animator.isStarted()) {
+                animator.stop();
+            }
+        }
+
+        /** Window.LifecycleHook */
+        public synchronized void destroyActionInLock(boolean unrecoverable) {
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
                 String msg = new String("GLWindow.destroy("+unrecoverable+") "+Thread.currentThread()+", start");
                 System.err.println(msg);

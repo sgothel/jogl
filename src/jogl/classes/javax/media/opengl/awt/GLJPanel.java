@@ -213,7 +213,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         Exception ex1 = new Exception("Info: dispose("+regenerate+") - start");
         ex1.printStackTrace();
     }
+
     if (backend != null) {
+      boolean animatorWasAnimating = false;
+      GLAnimatorControl animator =  getAnimator();
+      if(null!=animator) {
+        animatorWasAnimating = animator.isAnimating();
+      }
+
       disposeRegenerate=regenerate;
       disposeContext=backend.getContext();
       disposeDrawable=backend.getDrawable();
@@ -241,6 +248,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       backend.setContext(disposeContext);
       if(null==disposeContext) {
         isInitialized = false;
+      }
+
+      if(regenerate && animatorWasAnimating && animator.isPaused()) {
+          animator.resume();
       }
     }
 
