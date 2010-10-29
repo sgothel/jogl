@@ -96,11 +96,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         return windowClass;
     }
 
-    public static WindowImpl create(String type, NativeWindow parentWindow, long parentWindowHandle, Screen screen, Capabilities caps) {
+    public static WindowImpl create(NativeWindow parentWindow, long parentWindowHandle, Screen screen, Capabilities caps) {
         try {
             Class windowClass;
             if(caps.isOnscreen()) {
-                windowClass = getWindowClass(type);
+                windowClass = getWindowClass(screen.getDisplay().getType());
             } else {
                 windowClass = OffscreenWindow.class;
             }
@@ -118,9 +118,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         }
     }
 
-    public static WindowImpl create(String type, Object[] cstrArguments, Screen screen, Capabilities caps) {
+    public static WindowImpl create(Object[] cstrArguments, Screen screen, Capabilities caps) {
         try {
-            Class windowClass = getWindowClass(type);
+            Class windowClass = getWindowClass(screen.getDisplay().getType());
             Class[] cstrArgumentTypes = getCustomConstructorArgumentTypes(windowClass);
             if(null==cstrArgumentTypes) {
                 throw new NativeWindowException("WindowClass "+windowClass+" doesn't support custom arguments in constructor");
@@ -790,7 +790,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 long newParentWindowHandle = 0 ;
 
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.reparent: START ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+", visible "+wasVisible+", old parentWindow: "+Display.hashCode(parentWindow)+", new parentWindow: "+Display.hashCode(newParentWindow)+", forceDestroyCreate "+forceDestroyCreate+", DEBUG_TEST_REPARENT_INCOMPATIBLE "+DEBUG_TEST_REPARENT_INCOMPATIBLE+" "+x+"/"+y+" "+width+"x"+height);
+                    System.err.println("Window.reparent: START ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+", visible "+wasVisible+", old parentWindow: "+Display.hashCodeNullSafe(parentWindow)+", new parentWindow: "+Display.hashCodeNullSafe(newParentWindow)+", forceDestroyCreate "+forceDestroyCreate+", DEBUG_TEST_REPARENT_INCOMPATIBLE "+DEBUG_TEST_REPARENT_INCOMPATIBLE+" "+x+"/"+y+" "+width+"x"+height);
                 }
 
                 if(null!=newParentWindow) {
@@ -996,7 +996,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 WindowImpl.this.height = height;
 
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.reparentWindow: END ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+ Display.hashCode(parentWindow)+" "+x+"/"+y+" "+width+"x"+height);
+                    System.err.println("Window.reparentWindow: END ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+x+"/"+y+" "+width+"x"+height);
                 }
             } finally {
                 windowLock.unlock();
@@ -1016,7 +1016,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
             try {
                 visible = true;
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.reparentWindow: ReparentActionRecreate ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+Display.hashCode(parentWindow));
+                    System.err.println("Window.reparentWindow: ReparentActionRecreate ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+Display.hashCodeNullSafe(parentWindow));
                 }
                 setVisible(true); // native creation
             } finally {

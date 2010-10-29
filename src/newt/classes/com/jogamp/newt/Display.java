@@ -39,6 +39,18 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 public abstract class Display {
     public static final boolean DEBUG = Debug.debug("Display");
 
+    /** return precomputed hashCode from FQN {@link #getFQName()} */
+    public abstract int hashCode();
+
+    /** return true if obj is of type Display and both FQN {@link #getFQName()} equals */
+    public boolean equals(Object obj) {
+        if (obj instanceof Display) {
+            Display d = (Display)obj;
+            return d.getFQName().equals(getFQName());
+        }
+        return false;
+    }
+
     /**
      * @return true if the native display handle is valid and ready to operate,
      * otherwise false.
@@ -140,6 +152,43 @@ public abstract class Display {
         }
     }
 
+    /**
+     * 
+     * @param type
+     * @param name
+     * @param fromIndex start index, then increasing until found or end of list     * 
+     * @return 
+     */
+    public static Display getFirstDisplayOf(String type, String name, int fromIndex) {
+        return getDisplayOfImpl(type, name, fromIndex, 1);
+    }
+
+    /**
+     *
+     * @param type
+     * @param name
+     * @param fromIndex start index, then decreasing until found or end of list. -1 is interpreted as size - 1.
+     * @return
+     */
+    public static Display getLastDisplayOf(String type, String name, int fromIndex) {
+        return getDisplayOfImpl(type, name, fromIndex, -1);
+    }
+
+    private static Display getDisplayOfImpl(String type, String name, int fromIndex, int incr) {
+        synchronized(displayList) {
+            int i = fromIndex >= 0 ? fromIndex : displayList.size() - 1 ;
+            while( ( incr > 0 ) ? i < displayList.size() : i >= 0 ) {
+                Display display = (Display) displayList.get(i);
+                if( display.getType().equals(type) &&
+                    display.getName().equals(name) ) {
+                    return display;
+                }
+                i+=incr;
+            }
+        }
+        return null;
+    }
+
     /** Returns the global display collection */
     public static Collection getAllDisplays() {
         ArrayList list;
@@ -167,7 +216,7 @@ public abstract class Display {
         return "0x" + Long.toHexString(hex);
     }
 
-    public static int hashCode(Object o) {
+    public static int hashCodeNullSafe(Object o) {
         return ( null != o ) ? o.hashCode() : 0;
     }
 }

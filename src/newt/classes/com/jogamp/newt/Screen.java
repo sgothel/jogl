@@ -29,10 +29,12 @@ package com.jogamp.newt;
 
 import com.jogamp.newt.event.ScreenModeListener;
 import com.jogamp.newt.impl.Debug;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 
-public interface Screen {
+public abstract class Screen {
 
     /**
      * A 10s timeout for screen mode change. It is observed, that some platforms
@@ -42,15 +44,27 @@ public interface Screen {
 
     public static final boolean DEBUG = Debug.debug("Screen");
 
-    boolean isNativeValid();
+    /** return precomputed hashCode from FQN {@link #getFQName()} */
+    public abstract int hashCode();
+
+    /** return true if obj is of type Display and both FQN {@link #getFQName()} equals */
+    public boolean equals(Object obj) {
+        if (obj instanceof Screen) {
+            Screen s = (Screen)obj;
+            return s.getFQName().equals(getFQName());
+        }
+        return false;
+    }
+    
+    public abstract boolean isNativeValid();
 
     /**
      *
      * @return number of references by Window
      */
-    int getReferenceCount();
+    public abstract int getReferenceCount();
 
-    void destroy();
+    public abstract void destroy();
 
     /**
      * @return {@link Display#getDestroyWhenUnused()}
@@ -59,7 +73,7 @@ public interface Screen {
      * @see #removeReference()
      * @see Display#setDestroyWhenUnused(boolean)
      */
-    boolean getDestroyWhenUnused();
+    public abstract boolean getDestroyWhenUnused();
 
     /**
      * calls {@link Display#setDestroyWhenUnused(boolean)}.
@@ -68,7 +82,7 @@ public interface Screen {
      * @see #removeReference()
      * @see Display#setDestroyWhenUnused(boolean)
      */
-    void setDestroyWhenUnused(boolean v);
+    public abstract void setDestroyWhenUnused(boolean v);
 
     /**
      * See {@link Display#addReference()}
@@ -77,7 +91,7 @@ public interface Screen {
      * @see #setDestroyWhenUnused(boolean)
      * @see #getDestroyWhenUnused()
      */
-    int addReference();
+    public abstract int addReference();
 
     /**
      * See {@link Display#removeReference()}
@@ -86,52 +100,52 @@ public interface Screen {
      * @see #setDestroyWhenUnused(boolean)
      * @see #getDestroyWhenUnused()
      */
-    int removeReference();
+    public abstract int removeReference();
 
-    AbstractGraphicsScreen getGraphicsScreen();
+    public abstract AbstractGraphicsScreen getGraphicsScreen();
 
     /**
      * @return this Screen index of all Screens of {@link #getDisplay()}.
      */
-    int getIndex();
+    public abstract int getIndex();
 
     /**
      * @return the current screen width
      */
-    int getWidth();
+    public abstract int getWidth();
 
     /**
      * @return the current screen height
      */
-    int getHeight();
+    public abstract int getHeight();
 
     /**
      * @return the associated Display
      */
-    Display getDisplay();
+    public abstract Display getDisplay();
 
     /** 
      * @return the screen fully qualified Screen name,
      * which is a key of {@link com.jogamp.newt.Display#getFQName()} + {@link #getIndex()}.
      */
-    String getFQName();
+    public abstract String getFQName();
 
     /**
      * @param sml ScreenModeListener to be added for ScreenMode change events
      */
-    public void addScreenModeListener(ScreenModeListener sml);
+    public abstract void addScreenModeListener(ScreenModeListener sml);
 
     /**
      * @param sml ScreenModeListener to be removed from ScreenMode change events
      */
-    public void removeScreenModeListener(ScreenModeListener sml);
+    public abstract void removeScreenModeListener(ScreenModeListener sml);
 
     /** 
      * Return a list of available {@link com.jogamp.newt.ScreenMode}s.
      * @return a shallow copy of the internal immutable {@link com.jogamp.newt.ScreenMode}s,
      * or null if not implemented for this native type {@link com.jogamp.newt.Display#getType()}.
      */
-    List/*<ScreenMode>*/ getScreenModes();
+    public abstract List/*<ScreenMode>*/ getScreenModes();
 
     /**
      * Return the original {@link com.jogamp.newt.ScreenMode}, as used at NEWT initialization.
@@ -139,19 +153,74 @@ public interface Screen {
      * otherwise the original ScreenMode which is element of the list {@link #getScreenModes()}.
      *
      */
-    ScreenMode getOriginalScreenMode();
+    public abstract ScreenMode getOriginalScreenMode();
 
     /**
      * Return the current {@link com.jogamp.newt.ScreenMode}.
      * @return null if functionality not implemented,
      * otherwise the current ScreenMode which is element of the list {@link #getScreenModes()}.
      */
-    ScreenMode getCurrentScreenMode();
+    public abstract ScreenMode getCurrentScreenMode();
 
     /**
      * Set the current {@link com.jogamp.newt.ScreenMode}.
      * @param screenMode to be made current, must be element of the list {@link #getScreenModes()}.
      * @return true if successful, otherwise false
      */
-    boolean setCurrentScreenMode(ScreenMode screenMode);
+    public abstract boolean setCurrentScreenMode(ScreenMode screenMode);
+
+    // Global Screens
+    protected static ArrayList screenList = new ArrayList();
+    protected static int screensActive = 0;
+
+    /**
+     *
+     * @param type
+     * @param name
+     * @param fromIndex start index, then increasing until found or end of list     *
+     * @return
+     */
+    public static Screen getFirstScreenOf(Display display, int idx, int fromIndex) {
+        return getScreenOfImpl(display, idx, fromIndex, 1);
+    }
+
+    /**
+     *
+     * @param type
+     * @param name
+     * @param fromIndex start index, then decreasing until found or end of list. -1 is interpreted as size - 1.
+     * @return
+     */
+    public static Screen getLastScreenOf(Display display, int idx, int fromIndex) {
+        return getScreenOfImpl(display, idx, fromIndex, -1);
+    }
+
+    private static Screen getScreenOfImpl(Display display, int idx, int fromIndex, int incr) {
+        synchronized(screenList) {
+            int i = fromIndex >= 0 ? fromIndex : screenList.size() - 1 ;
+            while( ( incr > 0 ) ? i < screenList.size() : i >= 0 ) {
+                Screen screen = (Screen) screenList.get(i);
+                if( screen.getDisplay().equals(display) &&
+                    screen.getIndex() == idx ) {
+                    return screen;
+                }
+                i+=incr;
+            }
+        }
+        return null;
+    }
+    /** Returns the global display collection */
+    public static Collection getAllScreens() {
+        ArrayList list;
+        synchronized(screenList) {
+            list = (ArrayList) screenList.clone();
+        }
+        return list;
+    }
+
+    public static int getActiveScreenNumber() {
+        synchronized(screenList) {
+            return screensActive;
+        }
+    }
 }

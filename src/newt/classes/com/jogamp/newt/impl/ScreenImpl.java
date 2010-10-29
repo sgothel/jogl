@@ -50,10 +50,11 @@ import java.security.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class ScreenImpl implements Screen, ScreenModeListener {
+public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     protected DisplayImpl display;
     protected int screen_idx;
     protected String fqname;
+    protected int hashCode;
     protected AbstractGraphicsScreen aScreen;
     protected int refCount; // number of Screen references by Window
     protected int width=-1, height=-1; // detected values: set using setScreenSize
@@ -84,24 +85,48 @@ public abstract class ScreenImpl implements Screen, ScreenModeListener {
         return screenClass;
     }
 
-    public static ScreenImpl create(String type, Display display, final int idx) {
+    public static Screen create(Display display, final int idx) {
         try {
             if(usrWidth<0 || usrHeight<0) {
-                usrWidth  = Debug.getIntProperty("newt.ws.swidth", true, localACC);
-                usrHeight = Debug.getIntProperty("newt.ws.sheight", true, localACC);
-                if(usrWidth>0 || usrHeight>0) {
-                    System.err.println("User screen size "+usrWidth+"x"+usrHeight);
+                synchronized (Screen.class) {
+                    if(usrWidth<0 || usrHeight<0) {
+                        usrWidth  = Debug.getIntProperty("newt.ws.swidth", true, localACC);
+                        usrHeight = Debug.getIntProperty("newt.ws.sheight", true, localACC);
+                        if(usrWidth>0 || usrHeight>0) {
+                            System.err.println("User screen size "+usrWidth+"x"+usrHeight);
+                        }
+                    }
                 }
             }
-            Class screenClass = getScreenClass(type);
-            ScreenImpl screen  = (ScreenImpl) screenClass.newInstance();
-            screen.display = (DisplayImpl) display;
-            screen.screen_idx = idx;
-            screen.fqname = display.getFQName()+idx;
-            return screen;
+            synchronized(screenList) {
+                {
+                    Screen screen0 = ScreenImpl.getLastScreenOf(display, idx, -1);
+                    if(null != screen0) {
+                        if(DEBUG) {
+                            System.err.println("Screen.create() REUSE: "+screen0+" "+Display.getThreadName());
+                        }
+                        return screen0;
+                    }
+                }
+                Class screenClass = getScreenClass(display.getType());
+                ScreenImpl screen  = (ScreenImpl) screenClass.newInstance();
+                screen.display = (DisplayImpl) display;
+                screen.screen_idx = idx;
+                screen.fqname = display.getFQName()+idx;
+                screen.hashCode = screen.fqname.hashCode();
+                screenList.add(screen);
+                if(DEBUG) {
+                    System.err.println("Screen.create() NEW: "+screen+" "+Display.getThreadName());
+                }
+                return screen;
+            }            
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public int hashCode() {
+        return hashCode;
     }
 
     protected  synchronized final void createNative() {
@@ -118,12 +143,20 @@ public abstract class ScreenImpl implements Screen, ScreenModeListener {
             if(DEBUG) {
                 System.err.println("Screen.createNative() END ("+DisplayImpl.getThreadName()+", "+this+")");
             }
+            synchronized(screenList) {
+                screensActive++;
+            }
         }
         initScreenModeStatus();
     }
 
     public synchronized final void destroy() {
         releaseScreenModeStatus();
+
+        synchronized(screenList) {
+            screenList.remove(this);
+            screensActive--;
+        }
 
         if ( null != aScreen ) {
             closeNativeImpl();

@@ -70,18 +70,28 @@ public abstract class DisplayImpl extends Display {
     }
 
     /** Make sure to reuse a Display with the same name */
-    public static DisplayImpl create(String type, String name, final long handle) {
+    public static Display create(String type, String name, final long handle, boolean reuse) {
         try {
             Class displayClass = getDisplayClass(type);
             DisplayImpl display = (DisplayImpl) displayClass.newInstance();
             name = display.validateDisplayName(name, handle);
-            display.name = name;
-            display.type=type;
-            display.destroyWhenUnused=false;
-            display.refCount=0;
             synchronized(displayList) {
+                if(reuse) {
+                    Display display0 = Display.getLastDisplayOf(type, name, -1);
+                    if(null != display0) {
+                        if(DEBUG) {
+                            System.err.println("Display.create() REUSE: "+display0+" "+getThreadName());
+                        }
+                        return display0;
+                    }
+                }
+                display.name = name;
+                display.type=type;
+                display.destroyWhenUnused=false;
+                display.refCount=0;
                 display.id = serialno++;
                 display.fqname = getFQName(display.type, display.name, display.id);
+                display.hashCode = display.fqname.hashCode();
                 displayList.add(display);
             }
             display.createEDTUtil();
@@ -92,6 +102,10 @@ public abstract class DisplayImpl extends Display {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public int hashCode() {
+        return hashCode;
     }
 
     protected  synchronized final void createNative() {
@@ -376,6 +390,7 @@ public abstract class DisplayImpl extends Display {
     protected String name;
     protected String type;
     protected String fqname;
+    protected int hashCode;
     protected int refCount; // number of Display references by Screen
     protected boolean destroyWhenUnused;
     protected AbstractGraphicsDevice aDevice;

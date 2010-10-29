@@ -33,7 +33,6 @@
 
 package com.jogamp.newt.impl.x11;
 
-import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.impl.WindowImpl;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
