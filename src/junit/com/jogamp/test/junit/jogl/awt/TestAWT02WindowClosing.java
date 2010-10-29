@@ -56,7 +56,16 @@ public class TestAWT02WindowClosing extends UITestCase {
         frame.setSize(500, 500);
         ClosingWindowAdapter closingWindowAdapter = new ClosingWindowAdapter(frame);
         frame.addWindowListener(closingWindowAdapter);
-        frame.setVisible(true);
+        final Frame _frame = frame;
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    _frame.setVisible(true);
+                }});
+        } catch (Throwable t) {
+            t.printStackTrace();
+            Assume.assumeNoException(t);
+        }
 
         Thread.sleep(durationPerTest);
         if(!closingWindowAdapter.closingCalled) {

@@ -281,8 +281,8 @@ public class TestGLWindows01NEWT extends UITestCase {
         System.out.println("duration1: "+window1.getDuration());
         System.out.println("duration2: "+window2.getDuration());
 
-        destroyWindow(window2, null, null, true);
         destroyWindow(window1, null, null, true);
+        destroyWindow(window2, null, null, true);
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
@@ -300,10 +300,10 @@ public class TestGLWindows01NEWT extends UITestCase {
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
 
-        Display display1 = NewtFactory.createDisplay(null); // local display
+        Display display1 = NewtFactory.createDisplay(null, false); // local display
         Assert.assertNotNull(display1);
         display1.setDestroyWhenUnused(true);
-        Display display2 = NewtFactory.createDisplay(null); // local display
+        Display display2 = NewtFactory.createDisplay(null, false); // local display
         Assert.assertNotNull(display2);
         display2.setDestroyWhenUnused(true);
         Assert.assertNotSame(display1, display2);

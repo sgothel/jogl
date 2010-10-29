@@ -28,21 +28,12 @@
  
 package com.jogamp.test.junit.newt.parenting;
 
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 
 import javax.media.opengl.*;
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.*;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.*;
@@ -58,6 +49,7 @@ import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 public class TestParenting01NEWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 500;
+    static int frameWait = 2000;
     static GLCapabilities glCaps;
 
     @BeforeClass
@@ -127,7 +119,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(0, glWindow2.getTotalFrames());
         glWindow1.setVisible(true);
         int wait;
-        for(wait=0; wait<10 && ( glWindow2.getTotalFrames()<1 || glWindow1.getTotalFrames()<1 ); wait++) { 
+        for(wait=0; wait<frameWait/100 && ( glWindow2.getTotalFrames()<1 || glWindow1.getTotalFrames()<1 ); wait++) {
             Thread.sleep(100); 
         }
         System.err.println("Frames for setVisible(true): A1: "+glWindow1.getTotalFrames()+", B1: "+glWindow2.getTotalFrames());
@@ -158,7 +150,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(0, glWindow1.getTotalFrames());
         Assert.assertEquals(0, glWindow2.getTotalFrames());
         glWindow1.setVisible(true);
-        for(wait=0; wait<10 && ( glWindow2.getTotalFrames()<1 || glWindow1.getTotalFrames()<1 ); wait++) { 
+        for(wait=0; wait<frameWait/100 && ( glWindow2.getTotalFrames()<1 || glWindow1.getTotalFrames()<1 ); wait++) {
             Thread.sleep(100); 
         }
         System.err.println("Frames for setVisible(true): A2: "+glWindow1.getTotalFrames()+", B2: "+glWindow2.getTotalFrames());
@@ -208,7 +200,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(true, animator2.isAnimating());
         Assert.assertEquals(false, animator2.isPaused());
         Assert.assertNotNull(animator2.getThread());
-        for(wait=0; wait<10 && ( glWindow2.getTotalFrames()<1 || glWindow1.getTotalFrames()<1 ); wait++) { 
+        for(wait=0; wait<frameWait/100 && ( glWindow2.getTotalFrames()<1 || glWindow1.getTotalFrames()<1 ); wait++) {
             Thread.sleep(100); 
         }
         System.err.println("Frames for setVisible(true): A4: "+glWindow1.getTotalFrames()+", B4: "+glWindow2.getTotalFrames());
@@ -270,7 +262,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(0, glWindow1.getTotalFrames());
         Assert.assertEquals(0, glWindow2.getTotalFrames());
         glWindow1.setVisible(true);
-        for(wait=0; wait<10 && ( glWindow2.getTotalFrames()<1 || glWindow1.getTotalFrames()<1 ); wait++) { 
+        for(wait=0; wait<frameWait/100 && ( glWindow2.getTotalFrames()<1 || glWindow1.getTotalFrames()<1 ); wait++) {
             Thread.sleep(100); 
         }
         System.err.println("Frames for setVisible(true): A3: "+glWindow1.getTotalFrames()+", B3: "+glWindow2.getTotalFrames());
@@ -337,8 +329,6 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
         Display display1 = null;
         Screen screen1 = null;
-        Display display2 = null;
-        Screen screen2 = null;
 
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
@@ -365,25 +355,22 @@ public class TestParenting01NEWT extends UITestCase {
         GLEventListener demo2 = new Gears();
         setDemoFields(demo2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
-        screen2 = glWindow2.getScreen();
-        display2 = screen2.getDisplay();
+        Assert.assertSame(screen1, glWindow2.getScreen());
+        Assert.assertSame(display1, glWindow2.getScreen().getDisplay());
 
-        Assert.assertEquals(true,display2.getDestroyWhenUnused());
-        Assert.assertEquals(0,display2.getReferenceCount());
-        Assert.assertEquals(false,display2.isNativeValid());
-        Assert.assertNotNull(display2.getEDTUtil());
-        Assert.assertEquals(true,display2.getEDTUtil().isRunning());
-        Assert.assertEquals(0,screen2.getReferenceCount());
-        Assert.assertEquals(false,screen2.isNativeValid());
+        Assert.assertEquals(true,display1.getDestroyWhenUnused());
+        Assert.assertEquals(0,display1.getReferenceCount());
+        Assert.assertEquals(false,display1.isNativeValid());
+        Assert.assertNotNull(display1.getEDTUtil());
+        Assert.assertEquals(true,display1.getEDTUtil().isRunning());
+        Assert.assertEquals(0,screen1.getReferenceCount());
+        Assert.assertEquals(false,screen1.isNativeValid());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
-
-        Assert.assertNotSame(screen1, screen2);
-        Assert.assertNotSame(display1, display2);
 
         Assert.assertEquals(0, glWindow1.getTotalFrames());
         glWindow1.setVisible(true);
         int wait=0;
-        while(wait<10 && glWindow1.getTotalFrames()<1) { Thread.sleep(100); wait++; }
+        while(wait<frameWait/100 && glWindow1.getTotalFrames()<1) { Thread.sleep(100); wait++; }
         System.err.println("Frames for setVisible(true) A1: "+glWindow1.getTotalFrames());
         Assert.assertTrue(0 < glWindow1.getTotalFrames());
 
@@ -398,7 +385,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(0, glWindow2.getTotalFrames());
         glWindow2.setVisible(true);
         wait=0;
-        while(wait<10 && glWindow2.getTotalFrames()<1) { Thread.sleep(100); wait++; }
+        while(wait<frameWait/100 && glWindow2.getTotalFrames()<1) { Thread.sleep(100); wait++; }
         System.err.println("Frames for setVisible(true) B1: "+glWindow2.getTotalFrames());
         Assert.assertTrue(0 < glWindow1.getTotalFrames());
 
@@ -406,17 +393,9 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(true,display1.isNativeValid());
         Assert.assertNotNull(display1.getEDTUtil());
         Assert.assertEquals(true,display1.getEDTUtil().isRunning());
-        Assert.assertEquals(1,screen1.getReferenceCount());
+        Assert.assertEquals(2,screen1.getReferenceCount());
         Assert.assertEquals(true,screen1.isNativeValid());
-
-        Assert.assertEquals(1,display2.getReferenceCount());
-        Assert.assertEquals(true,display2.isNativeValid());
-        Assert.assertNotNull(display2.getEDTUtil());
-        Assert.assertEquals(true,display2.getEDTUtil().isRunning());
-        Assert.assertEquals(1,screen2.getReferenceCount());
-        Assert.assertEquals(true,screen2.isNativeValid());
-
-        Assert.assertEquals(2,Display.getActiveDisplayNumber());
+        Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
@@ -435,7 +414,7 @@ public class TestParenting01NEWT extends UITestCase {
                     reparentAction = glWindow2.reparentWindow(glWindow1, reparentRecreate);
                     System.err.println("Frames(2) "+glWindow2.getTotalFrames());
                     Assert.assertTrue(Window.ReparentAction.ACTION_INVALID < reparentAction);
-                    for(wait=0; wait<10 && glWindow2.getTotalFrames()<1; wait++) { Thread.sleep(100); }
+                    for(wait=0; wait<frameWait/100 && glWindow2.getTotalFrames()<1; wait++) { Thread.sleep(100); }
                     System.err.println("Frames for reparentWindow(parent, "+reparentRecreate+"): "+reparentAction+", B2: "+glWindow2.getTotalFrames());
                     Assert.assertTrue(0 < glWindow2.getTotalFrames());
                     Assert.assertEquals(true, glWindow2.isVisible());
@@ -447,28 +426,10 @@ public class TestParenting01NEWT extends UITestCase {
                     Assert.assertNotNull(display1.getEDTUtil());
                     Assert.assertEquals(true,display1.getEDTUtil().isRunning());
                     Assert.assertEquals(true,screen1.isNativeValid());
-                    Assert.assertNotNull(display2.getEDTUtil());
-                    if(Window.ReparentAction.ACTION_NATIVE_REPARENTING >= reparentAction) {
-                        Assert.assertNotSame(screen1,glWindow2.getScreen());
-                        Assert.assertNotSame(display1,glWindow2.getScreen().getDisplay());
-                        Assert.assertEquals(1,screen1.getReferenceCount());
-                        Assert.assertEquals(1,display2.getReferenceCount());
-                        Assert.assertEquals(true,display2.isNativeValid());
-                        Assert.assertEquals(true,display2.getEDTUtil().isRunning());
-                        Assert.assertEquals(1,screen2.getReferenceCount());
-                        Assert.assertEquals(true,screen2.isNativeValid());
-                        Assert.assertEquals(2,Display.getActiveDisplayNumber());
-                    } else {
-                        Assert.assertSame(screen1,glWindow2.getScreen());
-                        Assert.assertSame(display1,glWindow2.getScreen().getDisplay());
-                        Assert.assertEquals(2,screen1.getReferenceCount());
-                        Assert.assertEquals(0,display2.getReferenceCount());
-                        Assert.assertEquals(false,display2.isNativeValid());
-                        Assert.assertEquals(false,display2.getEDTUtil().isRunning());
-                        Assert.assertEquals(0,screen2.getReferenceCount());
-                        Assert.assertEquals(false,screen2.isNativeValid());
-                        Assert.assertEquals(1,Display.getActiveDisplayNumber());
-                    }
+                    Assert.assertSame(screen1,glWindow2.getScreen());
+                    Assert.assertSame(display1,glWindow2.getScreen().getDisplay());
+                    Assert.assertEquals(2,screen1.getReferenceCount());
+                    Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
                     break;
 
@@ -478,7 +439,7 @@ public class TestParenting01NEWT extends UITestCase {
 
                     reparentAction = glWindow2.reparentWindow(null, reparentRecreate);
                     Assert.assertTrue(Window.ReparentAction.ACTION_INVALID < reparentAction);
-                    for(wait=0; wait<10 && glWindow2.getTotalFrames()<1; wait++) { Thread.sleep(100); }
+                    for(wait=0; wait<frameWait/100 && glWindow2.getTotalFrames()<1; wait++) { Thread.sleep(100); }
                     System.err.println("Frames for reparentWindow(parent, "+reparentRecreate+"): "+reparentAction+", B3: "+glWindow2.getTotalFrames());
                     Assert.assertTrue(0 < glWindow2.getTotalFrames());
                     Assert.assertEquals(true, glWindow2.isVisible());
@@ -490,28 +451,10 @@ public class TestParenting01NEWT extends UITestCase {
                     Assert.assertNotNull(display1.getEDTUtil());
                     Assert.assertEquals(true,display1.getEDTUtil().isRunning());
                     Assert.assertEquals(true,screen1.isNativeValid());
-                    Assert.assertNotNull(display2.getEDTUtil());
-                    if(Window.ReparentAction.ACTION_NATIVE_REPARENTING >= reparentAction) {
-                        Assert.assertNotSame(screen1,glWindow2.getScreen());
-                        Assert.assertNotSame(display1,glWindow2.getScreen().getDisplay());
-                        Assert.assertEquals(1,screen1.getReferenceCount());
-                        Assert.assertEquals(1,display2.getReferenceCount());
-                        Assert.assertEquals(true,display2.isNativeValid());
-                        Assert.assertEquals(true,display2.getEDTUtil().isRunning());
-                        Assert.assertEquals(1,screen2.getReferenceCount());
-                        Assert.assertEquals(true,screen2.isNativeValid());
-                        Assert.assertEquals(2,Display.getActiveDisplayNumber());
-                    } else {
-                        Assert.assertSame(screen1,glWindow2.getScreen());
-                        Assert.assertSame(display1,glWindow2.getScreen().getDisplay());
-                        Assert.assertEquals(2,screen1.getReferenceCount());
-                        Assert.assertEquals(0,display2.getReferenceCount());
-                        Assert.assertEquals(false,display2.isNativeValid());
-                        Assert.assertEquals(false,display2.getEDTUtil().isRunning());
-                        Assert.assertEquals(0,screen2.getReferenceCount());
-                        Assert.assertEquals(false,screen2.isNativeValid());
-                        Assert.assertEquals(1,Display.getActiveDisplayNumber());
-                    }
+                    Assert.assertSame(screen1,glWindow2.getScreen());
+                    Assert.assertSame(display1,glWindow2.getScreen().getDisplay());
+                    Assert.assertEquals(2,screen1.getReferenceCount());
+                    Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
                     break;
             }
@@ -531,26 +474,9 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(true,display1.isNativeValid());
         Assert.assertNotNull(display1.getEDTUtil());
         Assert.assertEquals(true,display1.getEDTUtil().isRunning());
-        Assert.assertNotNull(display2.getEDTUtil());
-        if(!reparentRecreate) { 
-            Assert.assertEquals(1,screen1.getReferenceCount());
-            Assert.assertEquals(true,screen1.isNativeValid());
-            Assert.assertEquals(1,display2.getReferenceCount());
-            Assert.assertEquals(true,display2.isNativeValid());
-            Assert.assertEquals(true,display2.getEDTUtil().isRunning());
-            Assert.assertEquals(1,screen2.getReferenceCount());
-            Assert.assertEquals(true,screen2.isNativeValid());
-            Assert.assertEquals(2,Display.getActiveDisplayNumber());
-        } else {
-            Assert.assertEquals(2,screen1.getReferenceCount());
-            Assert.assertEquals(true,screen1.isNativeValid());
-            Assert.assertEquals(0,display2.getReferenceCount());
-            Assert.assertEquals(false,display2.isNativeValid());
-            Assert.assertEquals(false,display2.getEDTUtil().isRunning());
-            Assert.assertEquals(0,screen2.getReferenceCount());
-            Assert.assertEquals(false,screen2.isNativeValid());
-            Assert.assertEquals(1,Display.getActiveDisplayNumber());
-        }
+        Assert.assertEquals(2,screen1.getReferenceCount());
+        Assert.assertEquals(true,screen1.isNativeValid());
+        Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
         // destroy glWindow2
         glWindow2.destroy(true);
@@ -563,13 +489,6 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(true,display1.getEDTUtil().isRunning());
         Assert.assertEquals(1,screen1.getReferenceCount());
         Assert.assertEquals(true,screen1.isNativeValid());
-
-        Assert.assertEquals(0,display2.getReferenceCount());
-        Assert.assertEquals(false,display2.isNativeValid());
-        Assert.assertNotNull(display2.getEDTUtil());
-        Assert.assertEquals(false,display2.getEDTUtil().isRunning());
-        Assert.assertEquals(0,screen2.getReferenceCount());
-        Assert.assertEquals(false,screen2.isNativeValid());
 
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
@@ -584,13 +503,6 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(false,display1.getEDTUtil().isRunning());
         Assert.assertEquals(0,screen1.getReferenceCount());
         Assert.assertEquals(false,screen1.isNativeValid());
-
-        Assert.assertEquals(0,display2.getReferenceCount());
-        Assert.assertEquals(false,display2.isNativeValid());
-        Assert.assertNotNull(display2.getEDTUtil());
-        Assert.assertEquals(false,display2.getEDTUtil().isRunning());
-        Assert.assertEquals(0,screen2.getReferenceCount());
-        Assert.assertEquals(false,screen2.isNativeValid());
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
     }
@@ -659,7 +571,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(0, glWindow2.getTotalFrames());
         glWindow1.setVisible(true);
         int wait;
-        for(wait=0; wait<10 && ( glWindow2.getTotalFrames()<1 || glWindow1.getTotalFrames()<1 ); wait++) { 
+        for(wait=0; wait<frameWait/100 && ( glWindow2.getTotalFrames()<1 || glWindow1.getTotalFrames()<1 ); wait++) {
             Thread.sleep(100); 
         }
         System.err.println("Frames for setVisible(): A1: "+glWindow1.getTotalFrames()+", B1: "+glWindow2.getTotalFrames());
@@ -691,7 +603,7 @@ public class TestParenting01NEWT extends UITestCase {
                     Assert.assertEquals(true, glWindow2.isVisible());
                     reparentAction = glWindow2.reparentWindow(null, reparentRecreate);
                     Assert.assertTrue(Window.ReparentAction.ACTION_INVALID < reparentAction);
-                    for(wait=0; wait<10 && glWindow2.getTotalFrames()<1; wait++) { Thread.sleep(100); }
+                    for(wait=0; wait<frameWait/100 && glWindow2.getTotalFrames()<1; wait++) { Thread.sleep(100); }
                     System.err.println("Frames for reparentWindow(parent, "+reparentRecreate+"): "+reparentAction+", B2: "+glWindow2.getTotalFrames());
                     Assert.assertTrue(0 < glWindow2.getTotalFrames());
                     Assert.assertEquals(true, glWindow2.isVisible());
@@ -705,7 +617,7 @@ public class TestParenting01NEWT extends UITestCase {
                     Assert.assertEquals(true, glWindow2.isVisible());
                     reparentAction = glWindow2.reparentWindow(glWindow1, reparentRecreate);
                     Assert.assertTrue(Window.ReparentAction.ACTION_INVALID < reparentAction);
-                    for(wait=0; wait<10 && glWindow2.getTotalFrames()<1; wait++) { Thread.sleep(100); }
+                    for(wait=0; wait<frameWait/100 && glWindow2.getTotalFrames()<1; wait++) { Thread.sleep(100); }
                     System.err.println("Frames for reparentWindow(parent, "+reparentRecreate+"): "+reparentAction+", B3 "+glWindow2.getTotalFrames());
                     Assert.assertTrue(0 < glWindow2.getTotalFrames());
                     Assert.assertEquals(true, glWindow2.isVisible());

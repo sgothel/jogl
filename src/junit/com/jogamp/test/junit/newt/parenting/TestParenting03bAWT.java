@@ -77,11 +77,11 @@ public class TestParenting03bAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting1AWT2NewtChilds01() throws InterruptedException, InvocationTargetException {
-        testWindowParenting1AWT2NewtChilds(true);
+    public void testWindowParenting1AWTTwoNewtChilds01() throws InterruptedException, InvocationTargetException {
+        testWindowParenting1AWTTwoNewtChilds();
     }
 
-    public void testWindowParenting1AWT2NewtChilds(boolean visibleChild2) throws InterruptedException, InvocationTargetException {
+    public void testWindowParenting1AWTTwoNewtChilds() throws InterruptedException, InvocationTargetException {
         int x = 0;
         int y = 0;
 

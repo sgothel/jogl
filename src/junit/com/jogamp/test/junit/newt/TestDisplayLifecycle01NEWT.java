@@ -259,7 +259,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
         // Create Display/Screen, pending lazy native creation
-        Display display = NewtFactory.createDisplay(null); 
+        Display display = NewtFactory.createDisplay(null);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         testDisplayCreate01(display, screen, false);
         testDisplayCreate01(display, screen, false);
@@ -272,7 +272,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
         // Create Display/Screen, pending lazy native creation
-        Display display = NewtFactory.createDisplay(null); 
+        Display display = NewtFactory.createDisplay(null);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         testDisplayCreate01(display, screen, true);
         testDisplayCreate01(display, screen, true);

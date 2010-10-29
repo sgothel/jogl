@@ -63,9 +63,9 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
     }
 
     protected void runTestGL(GLCapabilities caps) throws InterruptedException {
-        Display nDisplay = NewtFactory.createDisplay(NativeWindowFactory.TYPE_AWT, null); // local display
-        Screen nScreen  = NewtFactory.createScreen(NativeWindowFactory.TYPE_AWT, nDisplay, 0); // screen 0
-        Window nWindow = NewtFactory.createWindow(NativeWindowFactory.TYPE_AWT, nScreen, caps);
+        Display nDisplay = NewtFactory.createDisplay(NativeWindowFactory.TYPE_AWT, null, false); // local display
+        Screen nScreen  = NewtFactory.createScreen(nDisplay, 0); // screen 0
+        Window nWindow = NewtFactory.createWindow(nScreen, caps);
 
         GLWindow glWindow = GLWindow.create(nWindow);
         Assert.assertNotNull(glWindow);

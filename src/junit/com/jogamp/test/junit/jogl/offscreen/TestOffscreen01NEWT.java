@@ -251,7 +251,7 @@ public class TestOffscreen01NEWT extends UITestCase {
 
         for(i=0; i<winnum; i++) {
             System.out.println("Create Window "+i);
-            displays[i] = NewtFactory.createDisplay(null); // local display
+            displays[i] = NewtFactory.createDisplay(null, false); // local display
             Assert.assertNotNull(displays[i]);
             screens[i]  = NewtFactory.createScreen(displays[i], 0); // screen 0
             Assert.assertNotNull(screens[i]);

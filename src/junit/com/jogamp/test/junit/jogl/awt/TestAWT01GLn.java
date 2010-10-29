@@ -66,14 +66,17 @@ public class TestAWT01GLn extends UITestCase {
     public void release() {
         Assert.assertNotNull(frame);
         Assert.assertNotNull(glCanvas);
-        frame.setVisible(false);
         try {
-            frame.remove(glCanvas);
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setVisible(false);
+                    frame.remove(glCanvas);
+                    frame.dispose();
+                }});
         } catch (Throwable t) {
             t.printStackTrace();
             Assume.assumeNoException(t);
         }
-        frame.dispose();
         frame=null;
         glCanvas=null;
     }
@@ -88,8 +91,16 @@ public class TestAWT01GLn extends UITestCase {
 
         glCanvas.display(); // one in process display 
 
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setVisible(true);
+                }});
+        } catch (Throwable t) {
+            t.printStackTrace();
+            Assume.assumeNoException(t);
+        }
         Animator animator = new Animator(glCanvas);
-        frame.setVisible(true);
         animator.start();
 
         Thread.sleep(500); // 500 ms
