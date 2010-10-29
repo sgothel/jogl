@@ -275,8 +275,6 @@
         <property name="jogl.os.win.jar"                value="${build.jogl}/jogl.os.win.jar" />
         <property name="jogl.os.osx.jar"                value="${build.jogl}/jogl.os.osx.jar" />
 
-        <property name="jogl.gl2es12.jar"               value="${build.jogl}/jogl.gl2es12.jar" />
-
         <property name="jogl.gldesktop.jar"             value="${build.jogl}/jogl.gldesktop.jar" />
         <property name="jogl.gldesktop.dbg.jar"         value="${build.jogl}/jogl.gldesktop.dbg.jar" />
 
@@ -313,7 +311,6 @@
         <property name="jogl.os.x11.cdc.jar"            value="${build.jogl}/jogl.os.x11.cdc.jar" />
         <property name="jogl.os.win.cdc.jar"            value="${build.jogl}/jogl.os.win.cdc.jar" />
         <property name="jogl.os.osx.cdc.jar"            value="${build.jogl}/jogl.os.osx.cdc.jar" />
-        <property name="jogl.gl2es12.cdc.jar"           value="${build.jogl}/jogl.gl2es12.cdc.jar" />
         <property name="jogl.util.cdc.jar"              value="${build.jogl}/jogl.util.cdc.jar" />
         <property name="jogl.util.fixedfuncemu.cdc.jar" value="${build.jogl}/jogl.util.fixedfuncemu.cdc.jar" />
 

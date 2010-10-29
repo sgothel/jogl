@@ -28,12 +28,10 @@
  
 package com.jogamp.opengl.impl;
 
-import com.jogamp.common.os.DynamicLibraryBundleInfo;
 import java.util.List;
 import java.util.ArrayList;
 
 public abstract class DesktopGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
-    private static int posGlueLibGL2ES12;
     private static int posGlueLibGLDESKTOP;
     private static List/*<String>*/ glueLibNames;
     static {
@@ -41,15 +39,8 @@ public abstract class DesktopGLDynamicLibraryBundleInfo extends GLDynamicLibrary
 
         glueLibNames.addAll(getGlueLibNamesPreload());
 
-        posGlueLibGL2ES12 = glueLibNames.size();
-        glueLibNames.add("jogl_gl2es12");
-
         posGlueLibGLDESKTOP = glueLibNames.size();
         glueLibNames.add("jogl_desktop");
-    }
-
-    public static final int getGlueLibPosGL2ES12() { 
-        return posGlueLibGL2ES12; 
     }
 
     public static final int getGlueLibPosGLDESKTOP() { 

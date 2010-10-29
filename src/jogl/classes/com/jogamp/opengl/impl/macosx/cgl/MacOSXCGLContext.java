@@ -228,12 +228,30 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     if (DEBUG) {
       System.err.println("!!! Initializing CGL extension address table");
     }
-    if (cglExtProcAddressTable == null) {
-      // FIXME: cache ProcAddressTables by capability bits so we can
-      // share them among contexts with the same capabilities
-      cglExtProcAddressTable = new CGLExtProcAddressTable(new GLProcAddressResolver());
-    }          
-    resetProcAddressTable(getCGLExtProcAddressTable());
+    int key = compose8bit(major, minor, ctp, 0);
+    CGLExtProcAddressTable table = null;
+    synchronized(mappedProcAddressLock) {
+        table = (CGLExtProcAddressTable) mappedGLXProcAddress.get( key );
+    }
+    if(null != table) {
+        cglExtProcAddressTable = table;
+        if(DEBUG) {
+            System.err.println("GLContext CGL ProcAddressTable reusing key("+major+","+minor+","+ctp+") -> "+table.hashCode());
+        }
+    } else {
+        if (cglExtProcAddressTable == null) {
+          // FIXME: cache ProcAddressTables by capability bits so we can
+          // share them among contexts with the same capabilities
+          cglExtProcAddressTable = new CGLExtProcAddressTable(new GLProcAddressResolver());
+        }
+        resetProcAddressTable(getCGLExtProcAddressTable());
+        synchronized(mappedProcAddressLock) {
+            mappedGLXProcAddress.put(key, getCGLExtProcAddressTable());
+            if(DEBUG) {
+                System.err.println("GLContext CGL ProcAddressTable mapping key("+major+","+minor+","+ctp+") -> "+getCGLExtProcAddressTable().hashCode());
+            }
+        }
+    }
     super.updateGLProcAddressTable(major, minor, ctp);
   }
 	

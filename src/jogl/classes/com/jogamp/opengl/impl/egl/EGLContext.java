@@ -35,7 +35,6 @@
 
 package com.jogamp.opengl.impl.egl;
 
-import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
@@ -200,12 +199,30 @@ public abstract class EGLContext extends GLContextImpl {
         eglQueryStringInitialized = false;
         eglQueryStringAvailable = false;
 
-        if (eglExtProcAddressTable == null) {
-          // FIXME: cache ProcAddressTables by capability bits so we can
-          // share them among contexts with the same capabilities
-          eglExtProcAddressTable = new EGLExtProcAddressTable(new GLProcAddressResolver());
-        }          
-        resetProcAddressTable(getEGLExtProcAddressTable());
+        int key = compose8bit(major, minor, ctp, 0);
+        EGLExtProcAddressTable table = null;
+        synchronized(mappedProcAddressLock) {
+            table = (EGLExtProcAddressTable) mappedGLXProcAddress.get( key );
+        }
+        if(null != table) {
+            eglExtProcAddressTable = table;
+            if(DEBUG) {
+                System.err.println("GLContext EGL ProcAddressTable reusing key("+major+","+minor+","+ctp+") -> "+table.hashCode());
+            }
+        } else {
+            if (eglExtProcAddressTable == null) {
+              // FIXME: cache ProcAddressTables by capability bits so we can
+              // share them among contexts with the same capabilities
+              eglExtProcAddressTable = new EGLExtProcAddressTable(new GLProcAddressResolver());
+            }
+            resetProcAddressTable(getEGLExtProcAddressTable());
+            synchronized(mappedProcAddressLock) {
+                mappedGLXProcAddress.put(key, getEGLExtProcAddressTable());
+                if(DEBUG) {
+                    System.err.println("GLContext EGL ProcAddressTable mapping key("+major+","+minor+","+ctp+") -> "+getEGLExtProcAddressTable().hashCode());
+                }
+            }
+        }
         super.updateGLProcAddressTable(major, minor, ctp);
     }
   

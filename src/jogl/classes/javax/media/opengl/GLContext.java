@@ -42,6 +42,7 @@ package javax.media.opengl;
 
 import java.util.HashMap;
 import com.jogamp.common.util.IntIntHashMap;
+import com.jogamp.common.util.IntObjectHashMap;
 
 /** Abstraction for an OpenGL rendering context. In order to perform
     OpenGL rendering, a context must be "made current" on the current
@@ -505,7 +506,10 @@ public abstract class GLContext {
    */
   public static final boolean getGLVersionAvailable(int reqMajor, int reqProfile, int[] major, int minor[], int ctp[]) {
     int key = compose8bit(reqMajor, reqProfile, 0, 0);
-    int val = mappedVersionsAvailable.get( key );
+    int val;
+    synchronized(mappedVersionsAvailableLock) {
+        val = mappedVersionsAvailable.get( key );
+    }
     if(val<=0) {
         return false;
     }
@@ -556,15 +560,24 @@ public abstract class GLContext {
     return sb.toString();
   }
 
+  protected static final Object mappedVersionsAvailableLock;
   protected static final IntIntHashMap mappedVersionsAvailable;
   protected static volatile boolean mappedVersionsAvailableSet;
-  protected static final Object mappedVersionsAvailableLock;
+  
+  protected static final Object mappedProcAddressLock;
+  protected static final IntObjectHashMap mappedGLProcAddress;
+  protected static final IntObjectHashMap mappedGLXProcAddress;
 
   static {
       mappedVersionsAvailableLock = new Object();
       mappedVersionsAvailableSet = false;
       mappedVersionsAvailable = new IntIntHashMap();
       mappedVersionsAvailable.setKeyNotFoundValue(-1);
+      mappedProcAddressLock = new Object();
+      mappedGLProcAddress = new IntObjectHashMap();
+      mappedGLProcAddress.setKeyNotFoundValue(null);
+      mappedGLXProcAddress = new IntObjectHashMap();
+      mappedGLXProcAddress.setKeyNotFoundValue(null);
   }
 
   private static void validateProfileBits(int bits, String argName) {
@@ -594,7 +607,9 @@ public abstract class GLContext {
 
     int key = compose8bit(reqMajor, profile, 0, 0);
     int val = compose8bit(resMajor, resMinor, resCtp, 0);
-    mappedVersionsAvailable.put( key, val );
+    synchronized(mappedVersionsAvailableLock) {
+        mappedVersionsAvailable.put( key, val );
+    }
   }
 
   protected static int compose8bit(int one, int two, int three, int four) {

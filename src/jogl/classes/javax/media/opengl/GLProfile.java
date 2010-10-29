@@ -47,7 +47,6 @@ import com.jogamp.opengl.impl.DesktopGLDynamicLookupHelper;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.security.*;
-import java.util.ArrayList;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 import javax.media.nativewindow.NativeWindowFactory;
 
@@ -917,10 +916,6 @@ public class GLProfile {
         JVMUtil.initSingleton();
     }
 
-    // The intersection between desktop OpenGL and the union of the OpenGL ES profiles
-    // This is here only to avoid having separate GL2ES1Impl and GL2ES2Impl classes
-    private static final String GL2ES12 = "GL2ES12";
-
     private static /*final*/ boolean isAWTAvailable;
 
     private static /*final*/ boolean hasGL234Impl;
@@ -929,7 +924,6 @@ public class GLProfile {
     private static /*final*/ boolean hasGL3bcImpl;
     private static /*final*/ boolean hasGL3Impl;
     private static /*final*/ boolean hasGL2Impl;
-    private static /*final*/ boolean hasGL2ES12Impl;
     private static /*final*/ boolean hasGLES2Impl;
     private static /*final*/ boolean hasGLES1Impl;
 
@@ -964,11 +958,9 @@ public class GLProfile {
         hasGL3bcImpl   = hasGL234Impl;
         hasGL3Impl     = hasGL234Impl;
         hasGL2Impl     = hasGL234Impl;
-        hasGL2ES12Impl = ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.gl2es12.GL2ES12Impl", classloader);
         mappedProfiles = computeProfileMap();
 
         boolean hasDesktopGL = false;
-        boolean hasDesktopGLES12 = false;
         boolean hasNativeOSFactory = false;
         Throwable t;
 
@@ -989,7 +981,6 @@ public class GLProfile {
                 DesktopGLDynamicLookupHelper glLookupHelper = (DesktopGLDynamicLookupHelper) factory.getGLDynamicLookupHelper(0);
                 if(null!=glLookupHelper) {
                     hasDesktopGL = glLookupHelper.hasGLBinding();
-                    hasDesktopGLES12 = glLookupHelper.hasGLES12Binding();
                 }
             }
         } catch (LinkageError le) {
@@ -1021,7 +1012,6 @@ public class GLProfile {
             hasGL4Impl     = false;
             hasGL3bcImpl   = false;
             hasGL3Impl     = false;
-            hasGL2ES12Impl = false;
             hasGL2Impl     = false;
         } else {
             hasGL4bcImpl   = hasGL4bcImpl   && GLContext.isGL4bcAvailable();
@@ -1029,7 +1019,6 @@ public class GLProfile {
             hasGL3bcImpl   = hasGL3bcImpl   && GLContext.isGL3bcAvailable();
             hasGL3Impl     = hasGL3Impl     && GLContext.isGL3Available();
             hasGL2Impl     = hasGL2Impl     && GLContext.isGL2Available();
-            hasGL2ES12Impl = hasGL2ES12Impl && GLContext.isGL2Available();
         }
 
         if ( ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.egl.EGLDrawableFactory", classloader) ) {
@@ -1075,7 +1064,6 @@ public class GLProfile {
             System.err.println("GLProfile.init isAWTAvailable "+isAWTAvailable);
             System.err.println("GLProfile.init hasNativeOSFactory "+hasNativeOSFactory);
             System.err.println("GLProfile.init hasDesktopGL "+hasDesktopGL);
-            System.err.println("GLProfile.init hasDesktopGLES12 "+hasDesktopGLES12);
             System.err.println("GLProfile.init hasGL234Impl "+hasGL234Impl);
             System.err.println("GLProfile.init "+glAvailabilityToString());
         }
@@ -1165,8 +1153,6 @@ public class GLProfile {
              GL3.equals(profileImpl)   ||
              GL2.equals(profileImpl) ) {
             return "com.jogamp.opengl.impl.gl4.GL4bc";
-        } else if(GL2ES12.equals(profileImpl)) {
-            return "com.jogamp.opengl.impl.gl2es12.GL2ES12";
         } else if(GLES1.equals(profileImpl) || GL2ES1.equals(profileImpl)) {
             return "com.jogamp.opengl.impl.es1.GLES1";
         } else if(GLES2.equals(profileImpl) || GL2ES2.equals(profileImpl)) {
@@ -1181,9 +1167,7 @@ public class GLProfile {
      */
     private static String computeProfileImpl(String profile) {
         if (GL2ES1.equals(profile)) {
-            if(hasGL2ES12Impl) {
-                return GL2ES12;
-            } else if(hasGL2Impl) {
+            if(hasGL2Impl) {
                 return GL2;
             } else if(hasGL3bcImpl) {
                 return GL3bc;
@@ -1193,9 +1177,7 @@ public class GLProfile {
                 return GLES1;
             }
         } else if (GL2ES2.equals(profile)) {
-            if(hasGL2ES12Impl) {
-                return GL2ES12;
-            } else if(hasGL2Impl) {
+            if(hasGL2Impl) {
                 return GL2;
             } else if(hasGL3Impl) {
                 return GL3;

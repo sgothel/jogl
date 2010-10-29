@@ -392,12 +392,28 @@ public abstract class X11GLXContext extends GLContextImpl {
     glXQueryExtensionsStringInitialized = false;
     glXQueryExtensionsStringAvailable = false;
 
-    if (glXExtProcAddressTable == null) {
-      // FIXME: cache ProcAddressTables by OpenGL context type bits so we can
-      // share them among contexts classes (GL4, GL4bc, GL3, GL3bc, ..)
-      glXExtProcAddressTable = new GLXExtProcAddressTable(new GLProcAddressResolver());
-    }          
-    resetProcAddressTable(getGLXExtProcAddressTable());
+    int key = compose8bit(major, minor, ctp, 0);
+    GLXExtProcAddressTable table = null;
+    synchronized(mappedProcAddressLock) {
+        table = (GLXExtProcAddressTable) mappedGLXProcAddress.get( key );
+    }
+    if(null != table) {
+        glXExtProcAddressTable = table;
+        if(DEBUG) {
+            System.err.println("GLContext GLX ProcAddressTable reusing key("+major+","+minor+","+ctp+") -> "+table.hashCode());
+        }
+    } else {
+        if (glXExtProcAddressTable == null) {
+          glXExtProcAddressTable = new GLXExtProcAddressTable(new GLProcAddressResolver());
+        }
+        resetProcAddressTable(getGLXExtProcAddressTable());
+        synchronized(mappedProcAddressLock) {
+            mappedGLXProcAddress.put(key, getGLXExtProcAddressTable());
+            if(DEBUG) {
+                System.err.println("GLContext GLX ProcAddressTable mapping key("+major+","+minor+","+ctp+") -> "+getGLXExtProcAddressTable().hashCode());
+            }
+        }
+    }
     super.updateGLProcAddressTable(major, minor, ctp);
   }
 

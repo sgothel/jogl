@@ -340,12 +340,30 @@ public class WindowsWGLContext extends GLContextImpl {
     wglMakeContextCurrentInitialized=false;
     wglMakeContextCurrentAvailable=false;
 
-    if (wglExtProcAddressTable == null) {
-      // FIXME: cache ProcAddressTables by OpenGL context type bits so we can
-      // share them among contexts classes (GL4, GL4bc, GL3, GL3bc, ..)
-      wglExtProcAddressTable = new WGLExtProcAddressTable(new GLProcAddressResolver());
-    }          
-    resetProcAddressTable(getWGLExtProcAddressTable());
+    int key = compose8bit(major, minor, ctp, 0);
+    WGLExtProcAddressTable table = null;
+    synchronized(mappedProcAddressLock) {
+        table = (WGLExtProcAddressTable) mappedGLXProcAddress.get( key );
+    }
+    if(null != table) {
+        wglExtProcAddressTable = table;
+        if(DEBUG) {
+            System.err.println("GLContext WGL ProcAddressTable reusing key("+major+","+minor+","+ctp+") -> "+table.hashCode());
+        }
+    } else {
+        if (wglExtProcAddressTable == null) {
+          // FIXME: cache ProcAddressTables by OpenGL context type bits so we can
+          // share them among contexts classes (GL4, GL4bc, GL3, GL3bc, ..)
+          wglExtProcAddressTable = new WGLExtProcAddressTable(new GLProcAddressResolver());
+        }
+        resetProcAddressTable(getWGLExtProcAddressTable());
+        synchronized(mappedProcAddressLock) {
+            mappedGLXProcAddress.put(key, getWGLExtProcAddressTable());
+            if(DEBUG) {
+                System.err.println("GLContext WGL ProcAddressTable mapping key("+major+","+minor+","+ctp+") -> "+getWGLExtProcAddressTable().hashCode());
+            }
+        }
+    }
     super.updateGLProcAddressTable(major, minor, ctp);
   }
   
