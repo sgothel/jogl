@@ -39,13 +39,8 @@
 
 package com.jogamp.opengl.impl.macosx.cgl.awt;
 
-import java.lang.reflect.InvocationTargetException;
-import java.nio.*;
-import java.util.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.opengl.impl.awt.*;
 import com.jogamp.opengl.impl.macosx.cgl.*;
 
 public class MacOSXAWTCGLDrawableFactory extends MacOSXCGLDrawableFactory {

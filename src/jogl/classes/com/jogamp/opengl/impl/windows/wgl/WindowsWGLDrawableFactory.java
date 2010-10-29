@@ -43,7 +43,6 @@ package com.jogamp.opengl.impl.windows.wgl;
 import java.nio.*;
 import java.util.*;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.windows.*;
 import javax.media.opengl.*;
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
@@ -118,7 +117,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return sharedContext; 
   }
 
-  protected void shutdown() {
+  protected void shutdownInstance() {
      if (DEBUG) {
           System.err.println("!!! Shutdown Shared:");
           System.err.println("!!!          CTX     : "+sharedContext);

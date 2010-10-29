@@ -40,12 +40,17 @@
 
 package javax.media.opengl;
 
-import javax.media.nativewindow.*;
-
-import java.security.*;
 import com.jogamp.common.JogampRuntimeException;
-import com.jogamp.common.util.*;
-import com.jogamp.opengl.impl.*;
+import com.jogamp.common.impl.Debug;
+import com.jogamp.common.util.ReflectionUtil;
+
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowFactory;
 
 /** <P> Provides a virtual machine- and operating system-independent
     mechanism for creating {@link GLDrawable}s. </P>
@@ -69,10 +74,11 @@ import com.jogamp.opengl.impl.*;
     raising a {@link GLException}. The semantics of the rejection
     process are (unfortunately) left unspecified for now. The current
     implementation will cause a {@link GLException} to be raised
-    during the first repaint of the {@link GLCanvas} or {@link
-    GLJPanel} if the capabilities can not be met. Pbuffers are always
-    created immediately and their creation will fail with a {@link
-    GLException} if errors occur. </P>
+    during the first repaint of the {@link javax.media.opengl.awt.GLCanvas} or {@link
+    javax.media.opengl.awt.GLJPanel} if the capabilities can not be met.<br>
+    {@link javax.media.opengl.GLPbuffer} are always
+    created immediately and their creation will fail with a 
+    {@link javax.media.opengl.GLException} if errors occur. </P>
 
     <P> The concrete GLDrawableFactory subclass instantiated by {@link
     #getFactory getFactory} can be changed by setting the system
@@ -81,16 +87,14 @@ import com.jogamp.opengl.impl.*;
 */
 
 public abstract class GLDrawableFactory {
-  /** Creates a new GLDrawableFactory instance. End users do not need
-      to call this method. */
-  protected GLDrawableFactory() {
-  }
 
   private static final GLDrawableFactory eglFactory;
   private static final GLDrawableFactory nativeOSFactory;
   private static final String nativeOSType;
   static final String macosxFactoryClassNameCGL = "com.jogamp.opengl.impl.macosx.cgl.MacOSXCGLDrawableFactory";
   static final String macosxFactoryClassNameAWTCGL = "com.jogamp.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
+
+  protected static ArrayList/*<GLDrawableFactoryImpl>*/ glDrawableFactories = new ArrayList();
 
   /**
    * Instantiate singleton factories if available, EGLES1, EGLES2 and the OS native ones.
@@ -145,6 +149,24 @@ public abstract class GLDrawableFactory {
     }
     eglFactory = tmp;
   }
+
+  protected GLDrawableFactory() {
+    synchronized(glDrawableFactories) {
+        glDrawableFactories.add(this);
+    }
+  }
+
+  protected static void shutdown() {
+    synchronized(glDrawableFactories) {
+        for(int i=0; i<glDrawableFactories.size(); i++) {
+            GLDrawableFactory factory = (GLDrawableFactory) glDrawableFactories.get(i);
+            factory.shutdownInstance();
+        }
+        glDrawableFactories.clear();
+    }
+  }
+
+  protected abstract void shutdownInstance();
 
   /** 
    * Returns the sole GLDrawableFactory instance. 

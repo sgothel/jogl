@@ -84,7 +84,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     } catch (JogampRuntimeException jre) { /* n/a .. */ }
   }
 
-  protected void shutdown() {}
+  protected void shutdownInstance() {}
   protected final GLDrawableImpl getSharedDrawable() { return null; }
   protected final GLContextImpl getSharedContext() { return null; }
 

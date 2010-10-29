@@ -47,6 +47,7 @@ import com.jogamp.opengl.impl.DesktopGLDynamicLookupHelper;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.security.*;
+import java.util.ArrayList;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 import javax.media.nativewindow.NativeWindowFactory;
 
@@ -63,6 +64,68 @@ public class GLProfile {
     
     public static final boolean DEBUG = Debug.debug("GLProfile");
 
+    /**
+     * Static one time initialization of JOGL.
+     * <p>
+     * Applications shall call this methods <b>ASAP</b>, before any other UI invocation.<br>
+     * You may issue the call in your main function.<br>
+     * In case applications are able to initialize JOGL before any other UI action,<br>
+     * they shall invoke this method with <code>firstUIActionOnProcess=true</code> and benefit from fast native multithreading support on all platforms if possible.</P>
+     * <P>
+     * RCP Application (Applet's, Webstart, Netbeans, ..) using JOGL may not be able to initialize JOGL
+     * before the first UI action.<br>
+     * In such case you shall invoke this method with <code>firstUIActionOnProcess=false</code>.<br>
+     * On some platforms, notably X11 with AWT usage, JOGL will utilize special locking mechanisms which may slow down your
+     * application.</P>
+     * <P>
+     * Remark: NEWT is currently not affected by this behavior, ie always uses native multithreading.</P>
+     * <P>
+     * However, in case this method is not invoked, hence GLProfile is not initialized explicitly by the user,<br>
+     * the first call to {@link #getDefault()}, {@link #get(java.lang.String)}, etc, will initialize with <code>firstUIActionOnProcess=false</code>,<br>
+     * hence without the possibility to enable native multithreading.<br>
+     * This is not the recommended way, since it may has a performance impact, but it allows you to run code without explicit initialization.</P>
+     * <P>
+     * In case no explicit initialization was invoked and the implicit initialization didn't happen,<br>
+     * you may encounter the following exception:
+     * <pre>
+     *      javax.media.opengl.GLException: No default profile available
+     * </pre></P>
+     *
+     * @param firstUIActionOnProcess Should be <code>true</code> if called before the first UI action of the running program,
+     * otherwise <code>false</code>.
+     */
+    public static synchronized void initSingleton(final boolean firstUIActionOnProcess) {
+        if(!initialized) {
+            initialized = true;
+            // run the whole static initialization privileged to speed up,
+            // since this skips checking further access
+            AccessController.doPrivileged(new PrivilegedAction() {
+                public Object run() {
+                    registerFactoryShutdownHook();
+                    initProfiles(firstUIActionOnProcess);
+                    return null;
+                }
+            });
+
+            if(null==defaultGLProfile) {
+                throw new GLException("No profile available: "+array2String(GL_PROFILE_LIST_ALL)+", "+glAvailabilityToString());
+            }
+        }
+    }
+
+    /**
+     * Manual shutdown method, may be called after your last JOGL use
+     * within the running JVM.<br>
+     * This method is called via the JVM shutdown hook.<br>
+     * It releases all temporary created resources, ie issues {@link javax.media.opengl.GLDrawableFactory#shutdown()}.<br>
+     */
+    public static synchronized void shutdown() {
+        if(initialized) {
+            initialized = false;
+            GLDrawableFactory.shutdown();
+        }
+    }
+
     //
     // Query platform available OpenGL implementation
     //
@@ -76,16 +139,6 @@ public class GLProfile {
     public static final boolean isGLES1Available()   { return null != mappedProfiles.get(GLES1); }
     public static final boolean isGL2ES1Available()  { return null != mappedProfiles.get(GL2ES1); }
     public static final boolean isGL2ES2Available()  { return null != mappedProfiles.get(GL2ES2); }
-
-    private static final void glAvailabilityToString(StringBuffer sb, int major, int profile) {
-        String str = GLContext.getGLVersionAvailable(major, profile);
-        if(null==str) {
-            throw new GLException("Internal Error");
-        }
-        sb.append("[");
-        sb.append(str);
-        sb.append("]");
-    }
 
     public static final String glAvailabilityToString() {
         boolean avail;
@@ -400,22 +453,52 @@ public class GLProfile {
         return usesNativeGLES2(profileImpl) || usesNativeGLES1(profileImpl);
     }
 
-    private static final String getGLImplBaseClassName(String profileImpl) {
-        if ( GL4bc.equals(profileImpl) ||
-             GL4.equals(profileImpl)   ||
-             GL3bc.equals(profileImpl) ||
-             GL3.equals(profileImpl)   ||
-             GL2.equals(profileImpl) ) {
-            return "com.jogamp.opengl.impl.gl4.GL4bc";
-        } else if(GL2ES12.equals(profileImpl)) {
-            return "com.jogamp.opengl.impl.gl2es12.GL2ES12";
-        } else if(GLES1.equals(profileImpl) || GL2ES1.equals(profileImpl)) {
-            return "com.jogamp.opengl.impl.es1.GLES1";
-        } else if(GLES2.equals(profileImpl) || GL2ES2.equals(profileImpl)) {
-            return "com.jogamp.opengl.impl.es2.GLES2";
-        } else {
-            throw new GLException("unsupported profile \"" + profileImpl + "\"");
+    /** @return {@link javax.media.nativewindow.NativeWindowFactory#isAWTAvailable()} and
+        JOGL's AWT part */
+    public static boolean isAWTAvailable() { return isAWTAvailable; }
+
+    public static String getGLTypeName(int type) {
+        switch (type) {
+        case GL.GL_UNSIGNED_BYTE:
+            return "GL_UNSIGNED_BYTE";
+        case GL.GL_BYTE:
+            return "GL_BYTE";
+        case GL.GL_UNSIGNED_SHORT:
+            return "GL_UNSIGNED_SHORT";
+        case GL.GL_SHORT:
+            return "GL_SHORT";
+        case GL.GL_FLOAT:
+            return "GL_FLOAT";
+        case GL.GL_FIXED:
+            return "GL_FIXED";
+        case javax.media.opengl.GL2ES2.GL_INT:
+            return "GL_INT";
+        case javax.media.opengl.GL2ES2.GL_UNSIGNED_INT:
+            return "GL_UNSIGNED_INT";
+        case javax.media.opengl.GL2.GL_DOUBLE:
+            return "GL_DOUBLE";
+        case javax.media.opengl.GL2.GL_2_BYTES:
+            return "GL_2_BYTES";
+        case javax.media.opengl.GL2.GL_3_BYTES:
+            return "GL_3_BYTES";
+        case javax.media.opengl.GL2.GL_4_BYTES:
+            return "GL_4_BYTES";
         }
+        return null;
+    }
+
+    public static String getGLArrayName(int array) {
+        switch(array) {
+        case GLPointerFunc.GL_VERTEX_ARRAY:
+            return "GL_VERTEX_ARRAY";
+        case GLPointerFunc.GL_NORMAL_ARRAY:
+            return "GL_NORMAL_ARRAY";
+        case GLPointerFunc.GL_COLOR_ARRAY:
+            return "GL_COLOR_ARRAY";
+        case GLPointerFunc.GL_TEXTURE_COORD_ARRAY:
+            return "GL_TEXTURE_COORD_ARRAY";
+        }
+        return null;
     }
 
     public final String getGLImplBaseClassName() {
@@ -830,6 +913,10 @@ public class GLProfile {
         return "GLProfile[" + profile + "/" + profileImpl + "]";
     }
 
+    static {
+        JVMUtil.initSingleton();
+    }
+
     // The intersection between desktop OpenGL and the union of the OpenGL ES profiles
     // This is here only to avoid having separate GL2ES1Impl and GL2ES2Impl classes
     private static final String GL2ES12 = "GL2ES12";
@@ -851,6 +938,12 @@ public class GLProfile {
   
     /** All GLProfiles */
     private static /*final*/ HashMap/*<String, GLProfile>*/ mappedProfiles;
+
+    static boolean initialized = false;
+
+    // Shutdown hook mechanism for the factory
+    private static boolean factoryShutdownHookRegistered = false;
+    private static Thread factoryShutdownHook = null;
 
     /**
      * Tries the profiles implementation and native libraries.
@@ -988,58 +1081,22 @@ public class GLProfile {
         }
     }
 
-    static {
-        JVMUtil.initSingleton();
-    }
-
-    static boolean initialized = false;
-
-    /**
-     * Static one time initialization of JOGL.
-     * <p>
-     * Applications shall call this methods <b>ASAP</b>, before any other UI invocation.<br>
-     * You may issue the call in your main function.<br>
-     * In case applications are able to initialize JOGL before any other UI action,<br>
-     * they shall invoke this method with <code>firstUIActionOnProcess=true</code> and benefit from fast native multithreading support on all platforms if possible.</P>
-     * <P>
-     * RCP Application (Applet's, Webstart, Netbeans, ..) using JOGL may not be able to initialize JOGL
-     * before the first UI action.<br>
-     * In such case you shall invoke this method with <code>firstUIActionOnProcess=false</code>.<br>
-     * On some platforms, notably X11 with AWT usage, JOGL will utilize special locking mechanisms which may slow down your
-     * application.</P>
-     * <P>
-     * Remark: NEWT is currently not affected by this behavior, ie always uses native multithreading.</P>
-     * <P>
-     * However, in case this method is not invoked, hence GLProfile is not initialized explicitly by the user,<br>
-     * the first call to {@link #getDefault()}, {@link #get(java.lang.String)}, etc, will initialize with <code>firstUIActionOnProcess=false</code>,<br>
-     * hence without the possibility to enable native multithreading.<br>
-     * This is not the recommended way, since it may has a performance impact, but it allows you to run code without explicit initialization.</P>
-     * <P>
-     * In case no explicit initialization was invoked and the implicit initialization didn't happen,<br>
-     * you may encounter the following exception:
-     * <pre>
-     *      javax.media.opengl.GLException: No default profile available
-     * </pre></P>
-     * 
-     * @param firstUIActionOnProcess Should be <code>true</code> if called before the first UI action of the running program,
-     * otherwise <code>false</code>.
-     */
-    public static synchronized void initSingleton(final boolean firstUIActionOnProcess) {
-        if(!initialized) {
-            initialized = true;
-            // run the whole static initialization privileged to speed up,
-            // since this skips checking further access
-            AccessController.doPrivileged(new PrivilegedAction() {
-                public Object run() {
-                    initProfiles(firstUIActionOnProcess);
-                    return null;
-                }
-            });
-
-            if(null==defaultGLProfile) {
-                throw new GLException("No profile available: "+array2String(GL_PROFILE_LIST_ALL)+", "+glAvailabilityToString());
-            }
+    private static synchronized void registerFactoryShutdownHook() {
+        if (factoryShutdownHookRegistered) {
+            return;
         }
+        factoryShutdownHook = new Thread(new Runnable() {
+            public void run() {
+                GLDrawableFactory.shutdown();
+            }
+        });
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+                Runtime.getRuntime().addShutdownHook(factoryShutdownHook);
+                return null;
+            }
+        });
+        factoryShutdownHookRegistered = true;
     }
 
     private static void validateInitialization() {
@@ -1062,6 +1119,16 @@ public class GLProfile {
         }
         msg.append("]");
         return msg.toString();
+    }
+
+    private static final void glAvailabilityToString(StringBuffer sb, int major, int profile) {
+        String str = GLContext.getGLVersionAvailable(major, profile);
+        if(null==str) {
+            throw new GLException("Internal Error");
+        }
+        sb.append("[");
+        sb.append(str);
+        sb.append("]");
     }
 
     private static HashMap computeProfileMap() {
@@ -1089,6 +1156,24 @@ public class GLProfile {
             }
         }
         return _mappedProfiles;
+    }
+
+    private static final String getGLImplBaseClassName(String profileImpl) {
+        if ( GL4bc.equals(profileImpl) ||
+             GL4.equals(profileImpl)   ||
+             GL3bc.equals(profileImpl) ||
+             GL3.equals(profileImpl)   ||
+             GL2.equals(profileImpl) ) {
+            return "com.jogamp.opengl.impl.gl4.GL4bc";
+        } else if(GL2ES12.equals(profileImpl)) {
+            return "com.jogamp.opengl.impl.gl2es12.GL2ES12";
+        } else if(GLES1.equals(profileImpl) || GL2ES1.equals(profileImpl)) {
+            return "com.jogamp.opengl.impl.es1.GLES1";
+        } else if(GLES2.equals(profileImpl) || GL2ES2.equals(profileImpl)) {
+            return "com.jogamp.opengl.impl.es2.GLES2";
+        } else {
+            throw new GLException("unsupported profile \"" + profileImpl + "\"");
+        }
     }
 
     /**
@@ -1145,54 +1230,6 @@ public class GLProfile {
             return GLES2;
         } else if(GLES1.equals(profile) && hasGLES1Impl) {
             return GLES1;
-        }
-        return null;
-    }
-
-    /** @return {@link javax.media.nativewindow.NativeWindowFactory#isAWTAvailable()} and
-        JOGL's AWT part */
-    public static boolean isAWTAvailable() { return isAWTAvailable; }
-
-    public static String getGLTypeName(int type) {
-        switch (type) {
-        case GL.GL_UNSIGNED_BYTE:
-            return "GL_UNSIGNED_BYTE";
-        case GL.GL_BYTE:
-            return "GL_BYTE";
-        case GL.GL_UNSIGNED_SHORT:
-            return "GL_UNSIGNED_SHORT";
-        case GL.GL_SHORT:
-            return "GL_SHORT";
-        case GL.GL_FLOAT:
-            return "GL_FLOAT";
-        case GL.GL_FIXED:
-            return "GL_FIXED";
-        case javax.media.opengl.GL2ES2.GL_INT:
-            return "GL_INT";
-        case javax.media.opengl.GL2ES2.GL_UNSIGNED_INT:
-            return "GL_UNSIGNED_INT";
-        case javax.media.opengl.GL2.GL_DOUBLE:
-            return "GL_DOUBLE";
-        case javax.media.opengl.GL2.GL_2_BYTES:
-            return "GL_2_BYTES";
-        case javax.media.opengl.GL2.GL_3_BYTES:
-            return "GL_3_BYTES";
-        case javax.media.opengl.GL2.GL_4_BYTES:
-            return "GL_4_BYTES";
-        }
-        return null;
-    }
-
-    public static String getGLArrayName(int array) {
-        switch(array) {
-        case GLPointerFunc.GL_VERTEX_ARRAY:
-            return "GL_VERTEX_ARRAY";
-        case GLPointerFunc.GL_NORMAL_ARRAY:
-            return "GL_NORMAL_ARRAY";
-        case GLPointerFunc.GL_COLOR_ARRAY:
-            return "GL_COLOR_ARRAY";
-        case GLPointerFunc.GL_TEXTURE_COORD_ARRAY:
-            return "GL_TEXTURE_COORD_ARRAY";
         }
         return null;
     }

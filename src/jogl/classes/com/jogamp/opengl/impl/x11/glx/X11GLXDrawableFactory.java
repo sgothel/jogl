@@ -82,38 +82,11 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     } catch (JogampRuntimeException jre) { /* n/a .. */ }
 
     // init shared resources ..
+    sharedResourcesRunner = new SharedResourcesRunner();
+    sharedResourcesThread = new Thread(sharedResourcesRunner, Thread.currentThread().getName()+"-SharedResourcesRunner");
+    sharedResourcesThread.start();
+    sharedResourcesRunner.waitUntilInitialized();
 
-    long tlsDisplay = X11Util.createThreadLocalDisplay(null);
-    X11Util.lockDefaultToolkit(tlsDisplay); // OK
-    try {
-        X11GraphicsDevice sharedDevice = new X11GraphicsDevice(tlsDisplay);
-        vendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
-        isVendorATI = GLXUtil.isVendorATI(vendorName);
-        isVendorNVIDIA = GLXUtil.isVendorNVIDIA(vendorName);
-        sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
-        sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, GLProfile.getDefault());
-        if(isVendorATI() && GLProfile.isAWTAvailable()) {
-            X11Util.markThreadLocalDisplayUncloseable(tlsDisplay); // failure to close with ATI and AWT usage
-        }
-        if(null==sharedScreen || null==sharedDrawable) {
-            throw new GLException("Couldn't init shared screen("+sharedScreen+")/drawable("+sharedDrawable+")");
-        }
-        // We have to keep this within this thread,
-        // since we have a 'chicken-and-egg' problem otherwise on the <init> lock of this thread.
-        try{
-            X11GLXContext ctx  = (X11GLXContext) sharedDrawable.createContext(null);
-            ctx.makeCurrent();
-            ctx.release();
-            sharedContext = ctx;
-        } catch (Throwable t) {
-            throw new GLException("X11GLXDrawableFactory - Could not initialize shared resources", t);
-        }
-        if(null==sharedContext) {
-            throw new GLException("X11GLXDrawableFactory - Shared Context is null");
-        }
-    } finally {
-        X11Util.unlockDefaultToolkit(tlsDisplay); // OK
-    }
     if (DEBUG) {
       System.err.println("!!! Vendor: "+vendorName+", ATI: "+isVendorATI+", NV: "+isVendorNVIDIA);
       System.err.println("!!! SharedScreen: "+sharedScreen);
@@ -121,7 +94,124 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     }
   }
 
-  private X11GraphicsScreen sharedScreen;
+  class SharedResourcesRunner implements Runnable {
+      boolean initialized = false;
+      boolean released = false;
+      boolean shouldRelease = false;
+
+      public void waitUntilInitialized() {
+          synchronized (this) {
+              while (!this.initialized) {
+                  try {
+                      this.wait();
+                  } catch (InterruptedException ex) {
+                  }
+              }
+          }
+      }
+
+      public void releaseAndWait() {
+          synchronized (this) {
+              this.shouldRelease = true;
+              this.notifyAll();
+
+              while (!this.released) {
+                  try {
+                      this.wait();
+                  } catch (InterruptedException ex) {
+                  }
+              }
+          }
+      }
+
+      public void run() {
+          String threadName = Thread.currentThread().getName();
+          synchronized (this) {
+              if (DEBUG) {
+                  System.err.println(threadName+ " initializing START");
+              }
+              long tlsDisplay = X11Util.createDisplay(null);
+              X11Util.lockDefaultToolkit(tlsDisplay); // OK
+              try {
+                  X11GraphicsDevice sharedDevice = new X11GraphicsDevice(tlsDisplay);
+                  vendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
+                  isVendorATI = GLXUtil.isVendorATI(vendorName);
+                  isVendorNVIDIA = GLXUtil.isVendorNVIDIA(vendorName);
+                  sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
+                  sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, GLProfile.getDefault());
+                  /* if(isVendorATI() && GLProfile.isAWTAvailable()) {
+                    X11Util.markDisplayUncloseable(tlsDisplay); // failure to close with ATI and AWT usage
+                  } */
+                  if (null == sharedScreen || null == sharedDrawable) {
+                      throw new GLException("Couldn't init shared screen(" + sharedScreen + ")/drawable(" + sharedDrawable + ")");
+                  }
+                  // We have to keep this within this thread,
+                  // since we have a 'chicken-and-egg' problem otherwise on the <init> lock of this thread.
+                  try {
+                      X11GLXContext ctx = (X11GLXContext) sharedDrawable.createContext(null);
+                      ctx.makeCurrent();
+                      ctx.release();
+                      sharedContext = ctx;
+                  } catch (Throwable t) {
+                      throw new GLException("X11GLXDrawableFactory - Could not initialize shared resources", t);
+                  }
+                  if (null == sharedContext) {
+                      throw new GLException("X11GLXDrawableFactory - Shared Context is null");
+                  }
+              } finally {
+                  X11Util.unlockDefaultToolkit(tlsDisplay); // OK
+              }
+
+              if (DEBUG) {
+                  System.err.println(threadName+ " initializing DONE");
+              }
+              initialized = true;
+              notifyAll();
+          }
+
+          if (DEBUG) {
+              System.err.println(threadName+ " release WAIT");
+          }
+
+          synchronized(this) {
+              while (!this.shouldRelease) {
+                  try {
+                      this.wait();
+                  } catch (InterruptedException ex) {
+                  }
+              }
+              if (DEBUG) {
+                  System.err.println(threadName+ " release START");
+              }
+              if (null != sharedContext) {
+                  // may cause JVM SIGSEGV: sharedContext.destroy();
+                  sharedContext = null;
+              }
+
+              if (null != sharedDrawable) {
+                  // may cause JVM SIGSEGV: sharedDrawable.destroy();
+                  sharedDrawable = null;
+              }
+              if (null != sharedScreen) {
+                  // may cause JVM SIGSEGV:
+                  X11Util.closeDisplay(sharedScreen.getDevice().getHandle());
+                  sharedScreen = null;
+              }
+
+              if (DEBUG) {
+                  System.err.println(threadName+ " release END");
+              }
+              released = true;
+              notifyAll();
+          }
+      }
+  }
+
+  Thread sharedResourcesThread = null;
+  SharedResourcesRunner sharedResourcesRunner=null;
+  private X11GraphicsScreen sharedScreen=null;
+  private X11DummyGLXDrawable sharedDrawable=null;
+  private X11GLXContext sharedContext=null;
   private String vendorName;
   private boolean isVendorATI;
   private boolean isVendorNVIDIA;
@@ -129,9 +219,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   protected String getVendorName() { return vendorName; }
   protected boolean isVendorATI() { return isVendorATI; }
   protected boolean isVendorNVIDIA() { return isVendorNVIDIA; }
-
-  private X11DummyGLXDrawable sharedDrawable=null;
-  private X11GLXContext sharedContext=null;
 
   protected final GLDrawableImpl getSharedDrawable() {
     return sharedDrawable; 
@@ -141,7 +228,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return sharedContext; 
   }
 
-  protected void shutdown() {
+  protected void shutdownInstance() {
     if (DEBUG) {
           System.err.println("!!! Shutdown Shared:");
           System.err.println("!!!          CTX     : "+sharedContext);
@@ -149,22 +236,21 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
           System.err.println("!!!          Screen  : "+sharedScreen);
     }
 
-    // don't free native resources from this point on,
-    // since we might be in a critical shutdown hook sequence
+    // may cause JVM SIGSEGV ?
+    // X11Util.closePendingDisplayConnections();
 
-    if(null!=sharedContext) {
-        // may cause deadlock: sharedContext.destroy();
-        sharedContext=null;
+    sharedResourcesRunner.releaseAndWait();
+
+    if(X11Util.getOpenDisplayConnectionNumber() > 0) {
+        System.err.println("X11GLXDrawableFactory.shutdown(): Open (no close attempt) X11 Display Connection");
+        X11Util.dumpOpenDisplayConnections();
     }
 
-    if(null!=sharedDrawable) {
-        // may cause deadlock: sharedDrawable.destroy();
-        sharedDrawable=null;
+    if(X11Util.getPendingDisplayConnectionNumber()>0) {
+        System.err.println("X11GLXDrawableFactory.shutdown(): Pending X11 Display Connection");
+        X11Util.dumpPendingDisplayConnections();
     }
-    if(null!=sharedScreen) {
-        // may cause deadlock: X11Util.closeThreadLocalDisplay(sharedScreen.getDevice().getHandle());
-        sharedScreen = null;
-    }
+
     // don't close pending XDisplay, since this might be a different thread as the opener
     X11Util.shutdown( false, DEBUG );
   }

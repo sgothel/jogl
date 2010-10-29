@@ -43,7 +43,6 @@ package com.jogamp.opengl.impl;
 import java.nio.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import java.security.*;
 
 /** Extends GLDrawableFactory with a few methods for handling
     typically software-accelerated offscreen rendering (Device
@@ -53,6 +52,10 @@ import java.security.*;
 public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
 
+  protected GLDrawableFactoryImpl() {
+    super();
+  }
+  
   /** 
    * Returns the GLDynamicLookupHelper
    * @param profile if EGL/ES, profile <code>1</code> refers to ES1 and <code>2</code> to ES2,
@@ -224,36 +227,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   //
   protected abstract GLDrawableImpl getSharedDrawable();
   protected abstract GLContextImpl getSharedContext();
-  protected abstract void shutdown();
-
-  // Shutdown hook mechanism for the factory
-  private boolean factoryShutdownHookRegistered;
-  private Thread  factoryShutdownHook;
-  private synchronized void registerFactoryShutdownHook() {
-    if (factoryShutdownHookRegistered)
-      return;
-    if (factoryShutdownHook == null) {
-      factoryShutdownHook = new Thread(new Runnable() {
-          public void run() {
-            synchronized (GLDrawableFactoryImpl.this) {
-              shutdown();
-            }
-          }
-        });
-    }
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-              Runtime.getRuntime().addShutdownHook(factoryShutdownHook);
-              return null;
-            }
-    });
-    factoryShutdownHookRegistered = true;
-  }
-
-  protected GLDrawableFactoryImpl() {
-    super();
-    registerFactoryShutdownHook();
-  }
 
   protected void maybeDoSingleThreadedWorkaround(Runnable action) {
     if (Threading.isSingleThreaded() &&
