@@ -91,26 +91,6 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     }
 
     /**
-     * Set the internal ToolkitLock, which is used within the 
-     * {@link #lock()} and {@link #unlock()} implementation.
-     * 
-     * @param locker the ToolkitLock, if null, {@link com.jogamp.nativewindow.impl.NullToolkitLock} is being used
-     */
-    protected void setToolkitLock(ToolkitLock locker) {
-        this.toolkitLock = ( null == locker ) ? NativeWindowFactoryImpl.getNullToolkitLock() : locker ;
-    }
-
-    /**
-     * @return the used ToolkitLock
-     *
-     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long)
-     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, javax.media.nativewindow.ToolkitLock)
-     */
-    public final ToolkitLock getToolkitLock() {
-         return toolkitLock;
-    }
-
-    /**
      * No lock is performed on the graphics device per default,
      * instead the aggregated recursive {@link ToolkitLock#lock()} is invoked.
      *
@@ -132,7 +112,31 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         toolkitLock.unlock();
     }
 
+    public boolean close() {
+        return false;
+    }
+
     public String toString() {
         return getClass().toString()+"[type "+getType()+", handle 0x"+Long.toHexString(getHandle())+"]";
+    }
+
+    /**
+     * Set the internal ToolkitLock, which is used within the
+     * {@link #lock()} and {@link #unlock()} implementation.
+     *
+     * @param locker the ToolkitLock, if null, {@link com.jogamp.nativewindow.impl.NullToolkitLock} is being used
+     */
+    protected void setToolkitLock(ToolkitLock locker) {
+        this.toolkitLock = ( null == locker ) ? NativeWindowFactoryImpl.getNullToolkitLock() : locker ;
+    }
+
+    /**
+     * @return the used ToolkitLock
+     *
+     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long)
+     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, javax.media.nativewindow.ToolkitLock)
+     */
+    public final ToolkitLock getToolkitLock() {
+         return toolkitLock;
     }
 }

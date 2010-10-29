@@ -631,22 +631,34 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   private DisposeAction disposeAction = new DisposeAction();
 
   class DisposeAction implements Runnable {
-    public void run() {
-      updater.dispose(GLJPanel.this);
+      public void run() {
+          updater.dispose(GLJPanel.this);
 
-      if(null!=disposeContext) {
-          disposeContext.destroy();
-          disposeContext=null;
+          if (null != disposeContext) {
+              disposeContext.destroy();
+              disposeContext = null;
+          }
+          if (null != disposeDrawable) {
+              disposeDrawable.setRealized(false);
+          }
+          if (null != disposeDrawable) {
+              if (disposeRegenerate) {
+                  disposeDrawable.setRealized(true);
+                  disposeContext = (GLContextImpl) disposeDrawable.createContext(shareWith);
+                  disposeContext.setSynchronized(true);
+              } else {
+                  AbstractGraphicsDevice adevice = disposeDrawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
+                  String adeviceMsg=null;
+                  if(DEBUG) {
+                    adeviceMsg = adevice.toString();
+                  }
+                  boolean closed = adevice.close();
+                  if (DEBUG) {
+                      System.err.println("GLJPanel.dispose(false): closed GraphicsDevice: " + adeviceMsg + ", result: " + closed);
+                  }
+              }
+          }
       }
-      if(null!=disposeDrawable) {
-          disposeDrawable.setRealized(false);
-      }
-      if(disposeRegenerate && null!=disposeDrawable) {
-          disposeDrawable.setRealized(true);
-          disposeContext = (GLContextImpl) disposeDrawable.createContext(shareWith);
-          disposeContext.setSynchronized(true);
-      }
-    }
   }
 
   private DisposeOnEventDispatchThreadAction disposeOnEventDispatchThreadAction =

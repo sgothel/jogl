@@ -68,4 +68,16 @@ public interface AbstractGraphicsDevice extends Cloneable {
      * The lock implementation must be recursive.
      */
     public void unlock();
+
+    /**
+     * Optionally closing the device.<br>
+     * The default implementation is a NOP operation, returning false.<br>
+     * The specific implementing, ie {@link javax.media.nativewindow.x11.X11GraphicsDevice},
+     * shall have a enable/disable like {@link javax.media.nativewindow.x11.X11GraphicsDevice#setCloseDisplay(boolean, boolean)},<br>
+     * which shall be invoked at creation time to determine ownership/role of freeing the resource.<br>
+     *
+     * @return true if a specialized closing operation was successfully issued, otherwise false,
+     * ie no native closing operation was issued, which doesn't imply an error at all.
+     */
+    public boolean close();
 }

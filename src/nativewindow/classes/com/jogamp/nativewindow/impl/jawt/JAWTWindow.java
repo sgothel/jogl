@@ -37,12 +37,10 @@
 
 package com.jogamp.nativewindow.impl.jawt;
 
-import com.jogamp.nativewindow.impl.*;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 import java.awt.Component;
 import java.awt.Window;
-import java.awt.GraphicsEnvironment;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.Rectangle;
@@ -69,10 +67,10 @@ public abstract class JAWTWindow implements NativeWindow {
   protected void init(Component windowObject) throws NativeWindowException {
     invalidate();
     this.component = windowObject;
-    initNative();
+    validateNative();
   }
 
-  protected abstract void initNative() throws NativeWindowException;
+  protected abstract void validateNative() throws NativeWindowException;
 
   protected synchronized void invalidate() {
     component = null;

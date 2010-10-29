@@ -54,7 +54,7 @@ public class MacOSXJAWTWindow extends JAWTWindow {
     super(comp, config);
   }
 
-  protected void initNative() throws NativeWindowException {
+  protected void validateNative() throws NativeWindowException {
   }
 
   protected int lockSurfaceImpl() throws NativeWindowException {

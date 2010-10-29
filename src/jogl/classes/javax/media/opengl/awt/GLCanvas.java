@@ -49,6 +49,7 @@ import com.jogamp.opengl.impl.*;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.EventQueue;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
@@ -328,6 +329,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
           // Workaround for termination issues with applets --
           // sun.applet.AppletPanel should probably be performing the
           // remove() call on the EDT rather than on its own thread
+          // Hint: User should run remove from EDT.
           if (ThreadingImpl.isAWTMode() &&
               Thread.holdsLock(getTreeLock())) {
             // The user really should not be invoking remove() from this
@@ -346,6 +348,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         if(regenerate && animatorWasAnimating && animator.isPaused()) {
           animator.resume();
         }
+    }
+    if(!regenerate) {
+        disposeAbstractGraphicsDeviceAction.run();
     }
 
     if(DEBUG) {
@@ -401,6 +406,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       <B>Overrides:</B>
       <DL><DD><CODE>addNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void addNotify() {
+    if(DEBUG) {
+        Exception ex1 = new Exception(Thread.currentThread().getName()+" - Info: addNotify - start");
+        ex1.printStackTrace();
+    }
     super.addNotify();
     if (!Beans.isDesignTime()) {
         disableBackgroundErase();
@@ -419,8 +428,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         try {
             awtConfig = chooseGraphicsConfiguration(capabilities, chooser, device);
             if(DEBUG) {
-                Exception e = new Exception("Info: Created Config: "+awtConfig);
-                e.printStackTrace();
+                System.err.println(Thread.currentThread().getName()+" - Created Config: "+awtConfig);
             }
             if(null!=awtConfig) {
               // update ..
@@ -444,21 +452,25 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         }
 
         if(DEBUG) {
-            System.err.println("Created Drawable: "+drawable);
+            System.err.println(Thread.currentThread().getName()+" - Created Drawable: "+drawable);
         }
+    }
+    if(DEBUG) {
+        System.err.println(Thread.currentThread().getName()+" - Info: addNotify - end");
     }
   }
 
-  /** Overridden to track when this component is removed from a
+  /** <p>Overridden to track when this component is removed from a
       container. Subclasses which override this method must call
       super.removeNotify() in their removeNotify() method in order to
-      function properly. <P>
-
+      function properly. </p>
+      <p>User shall not call this method outside of EDT, read the AWT/Swing specs
+      about this.</p>
       <B>Overrides:</B>
       <DL><DD><CODE>removeNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void removeNotify() {
     if(DEBUG) {
-        Exception ex1 = new Exception("Info: removeNotify - start");
+        Exception ex1 = new Exception(Thread.currentThread().getName()+" - Info: removeNotify - start");
         ex1.printStackTrace();
     }
 
@@ -473,7 +485,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       }
     }
     if(DEBUG) {
-        System.err.println("Info: removeNotify - end");
+        System.err.println(Thread.currentThread().getName()+" - Info: removeNotify - end");
     }
   }
 
@@ -609,14 +621,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
   }
 
-  private boolean disposeRegenerate;
-  private DisposeAction disposeAction = new DisposeAction(this);
-
   class DisposeAction implements Runnable {
-    private GLCanvas canvas;
-    public DisposeAction(GLCanvas canvas) {
-        this.canvas = canvas;
-    }
     public void run() {
       drawableHelper.dispose(GLCanvas.this);
 
@@ -632,7 +637,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
       if(disposeRegenerate) {
           // recreate GLDrawable to reflect it's new graphics configuration
-          drawable = GLDrawableFactory.getFactory(glProfile).createGLDrawable(NativeWindowFactory.getNativeWindow(canvas, awtConfig));
+          drawable = GLDrawableFactory.getFactory(glProfile).createGLDrawable(NativeWindowFactory.getNativeWindow(GLCanvas.this, awtConfig));
           if(DEBUG) {
             System.err.println("GLCanvas.dispose(true): new drawable: "+drawable);
           }
@@ -643,6 +648,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       }
     }
   }
+  private boolean disposeRegenerate;
+  private DisposeAction disposeAction = new DisposeAction();
 
   private DisposeOnEventDispatchThreadAction disposeOnEventDispatchThreadAction =
     new DisposeOnEventDispatchThreadAction();
@@ -652,6 +659,25 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       drawableHelper.invokeGL(drawable, context, disposeAction, null);
     }
   }
+
+  class DisposeAbstractGraphicsDeviceAction implements Runnable {
+    public void run() {
+      AbstractGraphicsConfiguration aconfig = (null!=awtConfig) ? awtConfig.getNativeGraphicsConfiguration() : null;
+      AbstractGraphicsScreen ascreen = (null!=aconfig) ? aconfig.getScreen() : null;
+      AbstractGraphicsDevice adevice = (null!=ascreen) ? ascreen.getDevice() : null;
+      if(null!=adevice) {
+          String adeviceMsg=null;
+          if(DEBUG) {
+            adeviceMsg = adevice.toString();
+          }
+          boolean closed = adevice.close();
+          if(DEBUG) {
+            System.err.println("GLCanvas.dispose(false): closed GraphicsDevice: "+adeviceMsg+", result: "+closed);
+          }
+      }
+    }
+  }
+  DisposeAbstractGraphicsDeviceAction disposeAbstractGraphicsDeviceAction = new DisposeAbstractGraphicsDeviceAction();
 
   class InitAction implements Runnable {
     public void run() {

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -38,14 +39,10 @@ package com.jogamp.nativewindow.impl.jawt.x11;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
-import javax.media.nativewindow.x11.*;
 
 import com.jogamp.nativewindow.impl.x11.*;
 import com.jogamp.nativewindow.impl.jawt.*;
-import com.jogamp.nativewindow.impl.*;
 
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 
 public class X11JAWTWindow extends JAWTWindow {
 
@@ -53,15 +50,31 @@ public class X11JAWTWindow extends JAWTWindow {
     super(comp, config);
   }
 
-  protected void initNative() throws NativeWindowException {
-    if(0==config.getScreen().getDevice().getHandle()) {
-        AWTGraphicsDevice awtDevice = (AWTGraphicsDevice) config.getScreen().getDevice();
-        long displayHandle = X11SunJDKReflection.graphicsDeviceGetDisplay(awtDevice.getGraphicsDevice());
-        if(0==displayHandle) {
-            displayHandle = X11Util.createThreadLocalDisplay(null);
-        }
-        awtDevice.setSubType(NativeWindowFactory.TYPE_X11, displayHandle);
+  protected void validateNative() throws NativeWindowException {
+    AWTGraphicsDevice awtDevice = (AWTGraphicsDevice) config.getScreen().getDevice();
+
+    if(awtDevice.getHandle() != 0) {
+        // subtype and handle set already, done
+        return;
     }
+
+    long displayHandle = 0;
+    
+    // first try a pre-existing attached native configuration, ie native X11GraphicsDevice
+    AbstractGraphicsConfiguration aconfig = (null!=config) ? config.getNativeGraphicsConfiguration() : null;
+    AbstractGraphicsScreen ascreen = (null!=aconfig) ? aconfig.getScreen() : null;
+    AbstractGraphicsDevice adevice = (null!=ascreen) ? ascreen.getDevice() : null; // X11GraphicsDevice
+    if(null!=adevice) {
+        displayHandle = adevice.getHandle();
+    }
+
+    if(0 == displayHandle) {
+        displayHandle = X11SunJDKReflection.graphicsDeviceGetDisplay(awtDevice.getGraphicsDevice());
+    }
+    if(0==displayHandle) {
+        throw new InternalError("X11JAWTWindow: No X11 Display handle available");
+    }
+    awtDevice.setSubType(NativeWindowFactory.TYPE_X11, displayHandle);
   }
 
   protected int lockSurfaceImpl() throws NativeWindowException {

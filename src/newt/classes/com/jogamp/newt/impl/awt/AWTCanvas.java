@@ -37,12 +37,10 @@ import com.jogamp.newt.Window;
 
 import java.awt.Canvas;
 import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.GraphicsConfiguration;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
-import com.jogamp.newt.impl.Debug;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -99,6 +97,28 @@ public class AWTCanvas extends Canvas {
     }
     if(null==awtConfig) {
           throw new NativeWindowException("Error: AWTGraphicsConfiguration is null");
+    }
+  }
+
+  public void removeNotify() {
+      try {
+        dispose();
+      } finally {
+        super.removeNotify();
+      }
+  }
+
+  private void dispose() {
+    if(null != awtConfig) {
+        AbstractGraphicsDevice adevice = awtConfig.getNativeGraphicsConfiguration().getScreen().getDevice();
+        String adeviceMsg=null;
+        if(Window.DEBUG_IMPLEMENTATION) {
+            adeviceMsg = adevice.toString();
+        }
+        boolean closed = adevice.close();
+        if(Window.DEBUG_IMPLEMENTATION) {
+            System.err.println("AWTCanvas.dispose(): closed GraphicsDevice: "+adeviceMsg+", result: "+closed);
+        }
     }
   }
 

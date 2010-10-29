@@ -236,23 +236,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
           System.err.println("!!!          Screen  : "+sharedScreen);
     }
 
-    // may cause JVM SIGSEGV ?
-    // X11Util.closePendingDisplayConnections();
-
     sharedResourcesRunner.releaseAndWait();
 
-    if(X11Util.getOpenDisplayConnectionNumber() > 0) {
-        System.err.println("X11GLXDrawableFactory.shutdown(): Open (no close attempt) X11 Display Connection");
-        X11Util.dumpOpenDisplayConnections();
-    }
-
-    if(X11Util.getPendingDisplayConnectionNumber()>0) {
-        System.err.println("X11GLXDrawableFactory.shutdown(): Pending X11 Display Connection");
-        X11Util.dumpPendingDisplayConnections();
-    }
-
-    // don't close pending XDisplay, since this might be a different thread as the opener
-    X11Util.shutdown( false, DEBUG );
+    X11Util.shutdown( true, DEBUG );
   }
 
   protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
