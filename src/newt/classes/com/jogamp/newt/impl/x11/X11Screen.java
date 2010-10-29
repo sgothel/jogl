@@ -73,16 +73,21 @@ public class X11Screen extends ScreenImpl {
     protected int[] getScreenModeFirstImpl() {
         // initialize iterators and static data
         nrotations = getAvailableScreenModeRotations0(display.getHandle(), screen_idx);
-        if(null==nrotations) {
-            nrotations = new int[1];
-            nrotations[0]=0;
+        if(null==nrotations || 0==nrotations.length) {
+            return null;
         }
         nrotation_index = 0;
 
         nres_number = getNumScreenModeResolutions0(display.getHandle(), screen_idx);
+        if(0==nres_number) {
+            return null;
+        }
         nres_index = 0;
 
         nrates = getScreenModeRates0(display.getHandle(), screen_idx, nres_index);
+        if(null==nrates || 0==nrates.length) {
+            return null;
+        }
         nrate_index = 0;
 
         nmode_number = 0;
@@ -100,8 +105,8 @@ public class X11Screen extends ScreenImpl {
         System.err.println("res  "+nres_index); */
 
         int[] res = getScreenModeResolution0(display.getHandle(), screen_idx, nres_index);
-        if(null == res) {
-            throw new InternalError("null resolution received for res idx "+nres_index+"/"+nres_number);
+        if(null==res || 0==res.length) {
+            return null;
         }
         if(0>=res[0] || 0>=res[1]) {
             throw new InternalError("invalid resolution: "+res[0]+"x"+res[1]+" for res idx "+nres_index+"/"+nres_number);
@@ -143,6 +148,9 @@ public class X11Screen extends ScreenImpl {
                 }
 
                 nrates = getScreenModeRates0(display.getHandle(), screen_idx, nres_index);
+                if(null==nrates || 0==nrates.length) {
+                    return null;
+                }
                 nrate_index = 0;
             }
         }
@@ -152,19 +160,31 @@ public class X11Screen extends ScreenImpl {
 
     protected ScreenMode getCurrentScreenModeImpl() {
         int resNumber = getNumScreenModeResolutions0(display.getHandle(), screen_idx);
+        if(0==resNumber) {
+            return null;
+        }
         int resIdx = getCurrentScreenResolutionIndex0(display.getHandle(), screen_idx);
-        if(0>resIdx || resIdx>=resNumber) {
-            throw new RuntimeException("Invalid resolution index: ! 0 < "+resIdx+" < "+resNumber);
+        if(0>resIdx) {
+            return null;
+        }
+        if(resIdx>=resNumber) {
+            throw new RuntimeException("Invalid resolution index: ! "+resIdx+" < "+resNumber);
         }
         int[] res = getScreenModeResolution0(display.getHandle(), screen_idx, resIdx);
-        if(null == res) {
-            throw new InternalError("null resolution received for res idx "+resIdx+"/"+resNumber);
+        if(null==res || 0==res.length) {
+            return null;
         }
         if(0>=res[0] || 0>=res[1]) {
             throw new InternalError("invalid resolution: "+res[0]+"x"+res[1]+" for res idx "+resIdx+"/"+resNumber);
         }
         int rate = getCurrentScreenRate0(display.getHandle(), screen_idx);
+        if(0>rate) {
+            return null;
+        }
         int rot = getCurrentScreenRotation0(display.getHandle(), screen_idx);
+        if(0>rot) {
+            return null;
+        }
 
         int[] props = new int[ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL];
         int i = 0;

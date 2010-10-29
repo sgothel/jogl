@@ -1,7 +1,7 @@
 
 set BLD_SUB=build-win64
-set J2RE_HOME=c:\jre1.6.0_20_x64
-set JAVA_HOME=c:\jdk1.6.0_20_x64
+set J2RE_HOME=c:\jre1.6.0_21_x64
+set JAVA_HOME=c:\jdk1.6.0_21_x64
 set ANT_PATH=C:\apache-ant-1.8.1
 
 set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%PATH%
@@ -18,7 +18,7 @@ REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" 
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnativewindow.debug.TraceLock"
 REM set D_ARGS="-Dnativewindow.debug.TraceLock"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display"
-set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.EDT" "-Dnativewindow.debug=all" "-Djogamp.common.utils.locks.Lock.timeout=600000" "-Djogamp.debug.Lock" "-Djogamp.debug.Lock.TraceLock"
+set D_ARGS="-Dnewt.debug=all" "-Dnewt.debug.EDT" "-Dnativewindow.debug=all" "-Djogamp.common.utils.locks.Lock.timeout=600000" "-Djogamp.debug.Lock" "-Djogamp.debug.Lock.TraceLock"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display" "-Dnewt.test.Window.reparent.incompatible=true"
 
 set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true"

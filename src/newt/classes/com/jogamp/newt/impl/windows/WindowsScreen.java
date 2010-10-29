@@ -62,7 +62,7 @@ public class WindowsScreen extends ScreenImpl {
 
     private int[] getScreenModeIdx(int idx) {
         int[] modeProps = getScreenMode0(screen_idx, idx);
-        if (null == modeProps) {
+        if (null == modeProps || 0 == modeProps.length) {
             return null;
         }
         if(modeProps.length != ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL + 1) {
@@ -80,14 +80,19 @@ public class WindowsScreen extends ScreenImpl {
 
     protected int[] getScreenModeNextImpl() {
         int[] modeProps = getScreenModeIdx(nativeModeIdx);
-        if (null != modeProps) {
+        if (null != modeProps && 0 != modeProps.length) {
             nativeModeIdx++;
+            return modeProps;
         }
-        return modeProps;
+        return null;
     }
 
     protected ScreenMode getCurrentScreenModeImpl() {
-        return ScreenModeUtil.streamIn(getScreenModeIdx(-1), 0);
+        int[] modeProps = getScreenModeIdx(-1);
+        if (null != modeProps && 0 != modeProps.length) {
+            return ScreenModeUtil.streamIn(modeProps, 0);
+        }
+        return null;
     }
 
     protected boolean setCurrentScreenModeImpl(ScreenMode sm) {

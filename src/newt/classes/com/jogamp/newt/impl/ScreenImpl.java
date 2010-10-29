@@ -243,7 +243,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
     public final List/*<ScreenMode>*/ getScreenModes() {
         ArrayHashSet screenModes = getScreenModesOrig();
-        if(null != screenModes) {
+        if(null != screenModes || screenModes.size()>0) {
             return screenModes.toArrayList();
         }
         return null;

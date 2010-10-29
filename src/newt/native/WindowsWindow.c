@@ -97,10 +97,11 @@
 #include "MouseEvent.h"
 #include "InputEvent.h"
 #include "KeyEvent.h"
+#include "ScreenMode.h"
 
 #include "NewtCommon.h"
 
-// #define VERBOSE_ON 1
+#define VERBOSE_ON 1
 // #define DEBUG_KEYS 1
 
 #ifdef VERBOSE_ON
@@ -110,19 +111,6 @@
 #endif
 
 #define STD_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
-
-static void _FatalError(JNIEnv *env, const char* msg, ...)
-{
-    char buffer[512];
-    va_list ap;
-
-    va_start(ap, msg);
-    vsnprintf(buffer, sizeof(buffer), msg, ap);
-    va_end(ap);
-
-    fprintf(stderr, "%s\n", buffer);
-    (*env)->FatalError(env, buffer);
-}
 
 static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
 static const char * const ClazzAnyCstrName = "<init>";
@@ -1146,7 +1134,7 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_getHeight
     return (jint)GetSystemMetrics(SM_CYSCREEN);
 }
 
-static int NewtScreen_RotationNative2Newt(int native) {
+static int NewtScreen_RotationNative2Newt(JNIEnv *env, int native) {
     int rot;
     switch (native) {
         case DMDO_DEFAULT:
@@ -1168,18 +1156,18 @@ static int NewtScreen_RotationNative2Newt(int native) {
     return rot;
 }
 
-static LPCTSTR NewtScreen_getDisplayDeviceName(int scrn_idx) {
-    DISPLAY_DEVICE device;
-
-    if( FALSE == EnumDisplayDevices(NULL, scrn_idx, &device, 0) ) {
+static LPCTSTR NewtScreen_getDisplayDeviceName(DISPLAY_DEVICE * device, int scrn_idx) {
+    if( FALSE == EnumDisplayDevices(NULL, scrn_idx, device, 0) ) {
+        DBG_PRINT("*** WindowsWindow: getDisplayDeviceName.EnumDisplayDevices(scrn_idx %d) -> FALSE\n", scrn_idx);
         return NULL;
     }
 
-    if( 0 == ( device.StateFlags & DISPLAY_DEVICE_ACTIVE ) ) {
+    /* if( 0 == ( device->StateFlags & DISPLAY_DEVICE_ACTIVE ) ) {
+        DBG_PRINT("*** WindowsWindow: !DISPLAY_DEVICE_ACTIVE(scrn_idx %d)\n", scrn_idx);
         return NULL;
-    }
+    } */
 
-    return device.DeviceName;
+    return device->DeviceName;
 }
 
 static HDC NewtScreen_createDisplayDC(LPCTSTR displayDeviceName) {
@@ -1194,10 +1182,12 @@ static HDC NewtScreen_createDisplayDC(LPCTSTR displayDeviceName) {
 JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_getScreenMode0
   (JNIEnv *env, jobject obj, jint scrn_idx, jint mode_idx)
 {
+    DISPLAY_DEVICE device;
     int prop_num = NUM_SCREEN_MODE_PROPERTIES_ALL;
-    LPCTSTR deviceName = NewtScreen_getDisplayDeviceName(scrn_idx);
+    LPCTSTR deviceName = NewtScreen_getDisplayDeviceName(&device, scrn_idx);
     if(NULL == deviceName) {
-        return null;
+        DBG_PRINT("*** WindowsWindow: getScreenMode.getDisplayDeviceName(scrn_idx %d) -> NULL\n", scrn_idx);
+        return (*env)->NewIntArray(env, 0);
     }
 
     int widthmm, heightmm;
@@ -1214,21 +1204,21 @@ JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_getS
     
     int devModeID = (int)mode_idx;
     
-    if(devModeID == -1) {
+    if(-1 == devModeID) {
         devModeID = ENUM_CURRENT_SETTINGS;
+    } else {
         prop_num++; // add 1st extra prop, mode_idx
     }
 
-    if (0 == EnumDisplaySettings(deviceName, devModeID, &dm))
-    {
-        return NULL;
+    if (0 == EnumDisplaySettings(deviceName, devModeID, &dm)) {
+        DBG_PRINT("*** WindowsWindow: getScreenMode.EnumDisplaySettings(mode_idx %d/%d) -> NULL\n", mode_idx, devModeID);
+        return (*env)->NewIntArray(env, 0);
     }
-
     
     jint prop[ prop_num ];
     int propIndex = 0;
 
-    if(devModeID == -1) {
+    if(-1 < devModeID ) {
         prop[propIndex++] = mode_idx;
     }
     prop[propIndex++] = 0; // set later for verification of iterator
@@ -1238,8 +1228,8 @@ JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_getS
     prop[propIndex++] = widthmm;
     prop[propIndex++] = heightmm;
     prop[propIndex++] = dm.dmDisplayFrequency;
-    prop[propIndex++] = NewtScreen_RotationNative2Newt(dm.dmDisplayOrientation);
-    props[propIndex - NUM_SCREEN_MODE_PROPERTIES_ALL] = propIndex ; // count 
+    prop[propIndex++] = NewtScreen_RotationNative2Newt(env, dm.dmDisplayOrientation);
+    prop[propIndex - NUM_SCREEN_MODE_PROPERTIES_ALL] = propIndex ; // count 
 
     jintArray properties = (*env)->NewIntArray(env, prop_num);
     if (properties == NULL) {
@@ -1258,9 +1248,11 @@ JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_getS
 JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_setScreenMode0
   (JNIEnv *env, jobject object, jint scrn_idx, jint width, jint height, jint bits, jint rate, jint rot)
 {
-    LPCTSTR deviceName = NewtScreen_getDisplayDeviceName(scrn_idx);
+    DISPLAY_DEVICE device;
+    LPCTSTR deviceName = NewtScreen_getDisplayDeviceName(&device, scrn_idx);
     if(NULL == deviceName) {
-        return null;
+        DBG_PRINT("*** WindowsWindow: setScreenMode.getDisplayDeviceName(scrn_idx %d) -> NULL\n", scrn_idx);
+        return JNI_FALSE;
     }
 
     DEVMODE dm;
@@ -1269,6 +1261,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_setSc
     dm.dmSize = sizeof(dm);
 
     if (0 == EnumDisplaySettings(deviceName, ENUM_CURRENT_SETTINGS, &dm)) {
+        DBG_PRINT("*** WindowsWindow: setScreenMode.EnumDisplaySettings(ENUM_CURRENT_SETTINGS) -> NULL\n");
         return JNI_FALSE;
     }
     
@@ -1316,7 +1309,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_setSc
         break;
         default:
             //requested rotation not available
-            return SCREEN_MODE_ERROR; 
+            NewtCommon_throwNewRuntimeException(env, "invalid rotation: %d", rotation);
         break;
     }
     /** swap width and height if changing from vertical to horizantal 
@@ -1347,16 +1340,16 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_initI
     if(NULL==pointClz) {
         jclass c = (*env)->FindClass(env, ClazzNamePoint);
         if(NULL==c) {
-            _FatalError(env, "NEWT WindowsWindows: can't find %s", ClazzNamePoint);
+            NewtCommon_FatalError(env, "NEWT WindowsWindows: can't find %s", ClazzNamePoint);
         }
         pointClz = (jclass)(*env)->NewGlobalRef(env, c);
         (*env)->DeleteLocalRef(env, c);
         if(NULL==pointClz) {
-            _FatalError(env, "NEWT WindowsWindows: can't use %s", ClazzNamePoint);
+            NewtCommon_FatalError(env, "NEWT WindowsWindows: can't use %s", ClazzNamePoint);
         }
         pointCstr = (*env)->GetMethodID(env, pointClz, ClazzAnyCstrName, ClazzNamePointCstrSignature);
         if(NULL==pointCstr) {
-            _FatalError(env, "NEWT WindowsWindows: can't fetch %s.%s %s",
+            NewtCommon_FatalError(env, "NEWT WindowsWindows: can't fetch %s.%s %s",
                 ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
         }
     }

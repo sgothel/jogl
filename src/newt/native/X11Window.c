@@ -137,19 +137,6 @@ static jint X11KeySym2NewtVKey(KeySym keySym) {
     return keySym;
 }
 
-static void _FatalError(JNIEnv *env, const char* msg, ...)
-{
-    char buffer[512];
-    va_list ap;
-
-    va_start(ap, msg);
-    vsnprintf(buffer, sizeof(buffer), msg, ap);
-    va_end(ap);
-
-    fprintf(stderr, "%s\n", buffer);
-    (*env)->FatalError(env, buffer);
-}
-
 static const char * const ClazzNameNewtWindow = "com/jogamp/newt/Window";
 
 static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
@@ -235,28 +222,28 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Display_initIDs0
     if(NULL==newtWindowClz) {
         c = (*env)->FindClass(env, ClazzNameNewtWindow);
         if(NULL==c) {
-            _FatalError(env, "NEWT X11Window: can't find %s", ClazzNameNewtWindow);
+            NewtCommon_FatalError(env, "NEWT X11Window: can't find %s", ClazzNameNewtWindow);
         }
         newtWindowClz = (jclass)(*env)->NewGlobalRef(env, c);
         (*env)->DeleteLocalRef(env, c);
         if(NULL==newtWindowClz) {
-            _FatalError(env, "NEWT X11Window: can't use %s", ClazzNameNewtWindow);
+            NewtCommon_FatalError(env, "NEWT X11Window: can't use %s", ClazzNameNewtWindow);
         }
     }
 
     if(NULL==pointClz) {
         c = (*env)->FindClass(env, ClazzNamePoint);
         if(NULL==c) {
-            _FatalError(env, "NEWT X11Windows: can't find %s", ClazzNamePoint);
+            NewtCommon_FatalError(env, "NEWT X11Windows: can't find %s", ClazzNamePoint);
         }
         pointClz = (jclass)(*env)->NewGlobalRef(env, c);
         (*env)->DeleteLocalRef(env, c);
         if(NULL==pointClz) {
-            _FatalError(env, "NEWT X11Windows: can't use %s", ClazzNamePoint);
+            NewtCommon_FatalError(env, "NEWT X11Windows: can't use %s", ClazzNamePoint);
         }
         pointCstr = (*env)->GetMethodID(env, pointClz, ClazzAnyCstrName, ClazzNamePointCstrSignature);
         if(NULL==pointCstr) {
-            _FatalError(env, "NEWT X11Windows: can't fetch %s.%s %s",
+            NewtCommon_FatalError(env, "NEWT X11Windows: can't fetch %s.%s %s",
                 ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
         }
     }
@@ -276,7 +263,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_CompleteDisplay0
     jlong windowDeleteAtom;
 
     if(dpy==NULL) {
-        _FatalError(env, "invalid display connection..");
+        NewtCommon_FatalError(env, "invalid display connection..");
     }
 
     javaObjectAtom = (jlong) XInternAtom(dpy, "JOGL_JAVA_OBJECT", False);
@@ -328,7 +315,7 @@ static void setJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlon
     {
         jobject test = (jobject) getPtrOut32Long(jogl_java_object_data);
         if( ! (jwindow==test) ) {
-            _FatalError(env, "Internal Error .. Encoded Window ref not the same %p != %p !", jwindow, test);
+            NewtCommon_FatalError(env, "Internal Error .. Encoded Window ref not the same %p != %p !", jwindow, test);
         }
     }
 
@@ -789,7 +776,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_GetScreen0
     DBG_PRINT("X11: X11Screen_GetScreen0 dpy %p START\n", dpy);
 
     if(dpy==NULL) {
-        _FatalError(env, "invalid display connection..");
+        NewtCommon_FatalError(env, "invalid display connection..");
     }
 
     scrn = ScreenOfDisplay(dpy,screen_index);
@@ -865,7 +852,9 @@ JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getAvailable
     int major, minor;
 
     if(False == NewtScreen_getRANDRVersion(dpy, &major, &minor)) {
+        DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_getAvailableScreenModeRotations0: RANDR not available\n");
         fprintf(stderr, "RANDR not available\n");
+        return (*env)->NewIntArray(env, 0);
     }
 
     rotations_supported = XRRRotations (dpy, (int)scrn_idx, &cur_rotation);
@@ -887,8 +876,7 @@ JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getAvailable
 
     if(num_rotations>0) {
         properties = (*env)->NewIntArray(env, num_rotations);
-        if (properties == NULL) 
-        {
+        if (properties == NULL) {
             NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size %d", num_rotations);
         }
         
@@ -911,6 +899,7 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getNumScreenModeR
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
+        DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_getNumScreenModeResolutions0: RANDR not available\n");
         return 0;
     }
 
@@ -932,7 +921,8 @@ JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getScreenMod
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
-        return NULL;
+        DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_getScreenModeResolution0: RANDR not available\n");
+        return (*env)->NewIntArray(env, 0);
     }
 
     int num_sizes;   
@@ -974,7 +964,8 @@ JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getScreenMod
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
-        return NULL;
+        DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_getScreenModeRates0: RANDR not available\n");
+        return (*env)->NewIntArray(env, 0);
     }
 
     int num_sizes;   
@@ -1017,6 +1008,7 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenR
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
+        DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenRate0: RANDR not available\n");
         return -1;
     }
 
@@ -1042,6 +1034,7 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenR
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
+        DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenRotation0: RANDR not available\n");
         return -1;
     }
 
@@ -1070,6 +1063,7 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenR
    Window root = RootWindow(dpy, (int)scrn_idx);
   
    if(False == NewtScreen_hasRANDR(dpy)) {
+       DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenResolutionIndex0: RANDR not available\n");
        return -1;
    }
 
@@ -1099,6 +1093,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_setCurrentScr
     Window root = RootWindow(dpy, (int)screen_idx);
 
     if(False == NewtScreen_hasRANDR(dpy)) {
+        DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_setCurrentScreenMode0: RANDR not available\n");
         return JNI_FALSE;
     }
 
@@ -1170,6 +1165,8 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_setCurrentScr
     //free
     XRRFreeScreenConfigInfo(conf);
     XSync(dpy, False);
+
+    return JNI_TRUE;
 }
 
 /**
@@ -1248,7 +1245,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow0
     Atom wm_delete_atom;
 
     if(dpy==NULL) {
-        _FatalError(env, "invalid display connection..");
+        NewtCommon_FatalError(env, "invalid display connection..");
     }
 
     if(visualID<0) {
@@ -1263,7 +1260,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow0
         windowParent = XRootWindowOfScreen(scrn);
     }
     if( XRootWindowOfScreen(scrn) != XRootWindow(dpy, scrn_idx) ) {
-        _FatalError(env, "XRoot Malfunction: %p != %p"+XRootWindowOfScreen(scrn), XRootWindow(dpy, scrn_idx));
+        NewtCommon_FatalError(env, "XRoot Malfunction: %p != %p"+XRootWindowOfScreen(scrn), XRootWindow(dpy, scrn_idx));
     }
     DBG_PRINT( "X11: CreateWindow dpy %p, parent %p, %x/%d %dx%d, undeco %d\n", 
         (void*)dpy, (void*)windowParent, x, y, width, height, undecorated);
@@ -1364,7 +1361,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CloseWindow0
     jobject jwindow;
 
     if(dpy==NULL) {
-        _FatalError(env, "invalid display connection..");
+        NewtCommon_FatalError(env, "invalid display connection..");
     }
 
     DBG_PRINT( "X11: CloseWindow START dpy %p, win %p\n", (void*)dpy, (void*)w);
@@ -1426,7 +1423,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setVisible0
     DBG_PRINT( "X11: setVisible0 vis %d\n", visible);
 
     if(dpy==NULL) {
-        _FatalError(env, "invalid display connection..");
+        NewtCommon_FatalError(env, "invalid display connection..");
     }
 
     if(visible==JNI_TRUE) {
