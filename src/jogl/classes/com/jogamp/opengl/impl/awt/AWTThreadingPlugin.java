@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -55,13 +56,9 @@ public class AWTThreadingPlugin implements ThreadingPlugin {
   public boolean isOpenGLThread() throws GLException {
     switch (ThreadingImpl.getMode()) {
       case ThreadingImpl.AWT:
-        if (Java2D.isOGLPipelineActive()) {
-          // FIXME: ideally only the QFT would be considered to be the
-          // "OpenGL thread", but we can not currently run all of
-          // JOGL's OpenGL work on that thread. See the FIXME in
-          // invokeOnOpenGLThread.
-          return (Java2D.isQueueFlusherThread() ||
-                  (ThreadingImpl.isX11() && EventQueue.isDispatchThread()));
+        // FIXME: See the FIXME below in 'invokeOnOpenGLThread'
+        if (Java2D.isOGLPipelineActive() && !ThreadingImpl.isX11()) {
+          return Java2D.isQueueFlusherThread();
         } else {
           return EventQueue.isDispatchThread();
         }

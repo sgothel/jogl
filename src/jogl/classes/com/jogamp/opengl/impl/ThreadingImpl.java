@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -41,6 +42,7 @@ import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
 
 /** Implementation of the {@link javax.media.opengl.Threading} class. */
 
@@ -73,14 +75,11 @@ public class ThreadingImpl {
                         // while holding the AWT lock. The optimization of
                         // makeCurrent / release calls isn't worth these stability
                         // problems.
-                        hasAWT = ReflectionUtil.isClassAvailable("java.awt.Canvas", cl) &&
-                                 ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas", cl);
+                        hasAWT = GLProfile.isAWTAvailable();
 
                         String osType = NativeWindowFactory.getNativeWindowType(false);
                         _isX11 = NativeWindowFactory.TYPE_X11.equals(osType);
-                        // boolean isWindows = NativeWindowFactory.TYPE_WINDOWS.equals(osType);
 
-                        // int defaultMode = (isWindows ? WORKER : ( hasAWT ? AWT : WORKER ) );
                         int defaultMode = ( hasAWT ? AWT : WORKER );
 
                         mode = defaultMode;
@@ -92,7 +91,7 @@ public class ThreadingImpl {
                             } else if (workaround.equals("worker")) {
                                 singleThreaded = true;
                                 mode = WORKER;
-                            } else if (workaround.equals("awt")) {
+                            } else if (hasAWT && workaround.equals("awt")) {
                                 singleThreaded = true;
                                 mode = AWT;
                             } else {
@@ -102,10 +101,16 @@ public class ThreadingImpl {
                         printWorkaroundNotice();
 
                         Object threadingPluginObj=null;
-                        // try to fetch the AWTThreadingPlugin
-                        try {
-                            threadingPluginObj = ReflectionUtil.createInstance("com.jogamp.opengl.impl.awt.AWTThreadingPlugin", cl);
-                        } catch (JogampRuntimeException jre) { /* n/a .. */ }
+                        if(hasAWT) {
+                            // try to fetch the AWTThreadingPlugin
+                            Exception error=null;
+                            try {
+                                threadingPluginObj = ReflectionUtil.createInstance("com.jogamp.opengl.impl.awt.AWTThreadingPlugin", cl);
+                            } catch (JogampRuntimeException jre) { error = jre; }
+                            if(AWT == mode && null==threadingPluginObj) {                                
+                                throw new GLException("Mode is AWT, but class 'com.jogamp.opengl.impl.awt.AWTThreadingPlugin' is not available", error);
+                            }
+                        }
                         return threadingPluginObj;
                     }
                 });
@@ -161,12 +166,12 @@ public class ThreadingImpl {
         }
 
         switch (mode) {
-        case AWT:
-            return true;
-        case WORKER:
-            return GLWorkerThread.isWorkerThread();
-        default:
-            throw new InternalError("Illegal single-threading mode " + mode);
+            case AWT:
+                throw new InternalError();
+            case WORKER:
+                return GLWorkerThread.isWorkerThread();
+            default:
+                throw new InternalError("Illegal single-threading mode " + mode);
         }
     }
 
@@ -195,8 +200,7 @@ public class ThreadingImpl {
 
         switch (mode) {
             case AWT:
-                r.run();
-                break;
+                throw new InternalError();
 
             case WORKER:
                 if (!GLWorkerThread.isStarted()) {
