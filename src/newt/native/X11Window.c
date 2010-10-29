@@ -866,8 +866,6 @@ JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getAvailable
 
     if(False == NewtScreen_getRANDRVersion(dpy, &major, &minor)) {
         fprintf(stderr, "RANDR not available\n");
-    } else {
-        fprintf(stderr, "RANDR %d.%d available\n", major, minor);
     }
 
     rotations_supported = XRRRotations (dpy, (int)scrn_idx, &cur_rotation);
