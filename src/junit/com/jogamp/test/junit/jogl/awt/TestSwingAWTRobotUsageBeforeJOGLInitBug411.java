@@ -280,6 +280,10 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
 
+        /**
+         * Using GLCanvas _and_ NEWT side by side currently causes a deadlock
+         * in AWT with AMD drivers !
+         *
         GLWindow win0 = GLWindow.create(caps);
         win0.setSize(100,100);
         win0.setVisible(true);
@@ -288,6 +292,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         win0.addGLEventListener(new Gears());
         Animator anim0 = new Animator(win0);        
         anim0.start();
+         */
 
         GLCanvas glCanvas = new GLCanvas(caps);
         Animator anim1 = new Animator(glCanvas);
@@ -297,8 +302,10 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         Thread.sleep(100); // wait 1/10Hz to allow animation to be paused
         Assert.assertEquals(false, anim1.isAnimating());
 
+        /**
         win0.destroy(true);
         Assert.assertEquals(false, anim0.isAnimating());
+         */
         
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test02GLCanvas(): End");
     }
