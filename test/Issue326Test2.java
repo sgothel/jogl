@@ -1,8 +1,12 @@
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.event.*;
-import javax.media.opengl.*;
-import com.jogamp.opengl.util.j2d.*;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLEventListener;
+import javax.media.opengl.awt.GLCanvas;
+
+import com.jogamp.opengl.util.awt.*;
 
 /**
  * Another test case demonstrating corruption with older version of
@@ -37,9 +41,9 @@ public class Issue326Test2 extends Frame implements GLEventListener {
     }
 
     public void display(GLAutoDrawable drawable) {
-        GL gl = drawable.getGL();
+        GL2 gl = drawable.getGL().getGL2();
         gl.glClearColor(0, 0, 0, 0);
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT|GL.GL_DEPTH_BUFFER_BIT);
+        gl.glClear(GL2.GL_COLOR_BUFFER_BIT|GL2.GL_DEPTH_BUFFER_BIT);
 	    
         tr.beginRendering(drawable.getWidth(), drawable.getHeight());
         tr.draw("LA CLAPI\u00c8RE \nAlt: 1100-1700m \nGlissement de terrain majeur", 16, 80);
@@ -54,13 +58,14 @@ public class Issue326Test2 extends Frame implements GLEventListener {
     }
 
     public void reshape(GLAutoDrawable arg0, int x, int y, int w, int h) {
-        GL gl = arg0.getGL();
-        gl.glMatrixMode(GL.GL_PROJECTION);
+        GL2 gl = arg0.getGL().getGL2();
+        gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glLoadIdentity();
         gl.glOrtho(0.0, w, 0.0, h, -1, 1);
-        gl.glMatrixMode(GL.GL_MODELVIEW);
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
     }
-    public void displayChanged(GLAutoDrawable arg0, boolean arg1, boolean arg2) {}
+
+	public void dispose(GLAutoDrawable drawable) {}
 }
 

@@ -1,14 +1,15 @@
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.event.*;
 import java.awt.geom.*;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLEventListener;
+import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.glu.*;
-import com.jogamp.opengl.util.*;
-import com.jogamp.opengl.util.j2d.*;
+import com.jogamp.opengl.util.awt.TextRenderer;
 
 /** Test Code adapted from TextCube.java (in JOGL demos)
  *
@@ -50,14 +51,14 @@ public abstract class Issue344Base implements GLEventListener
                         }).start();
                 }
             });
-        frame.show();
+        frame.setVisible(true);
     }
 
     public void init(GLAutoDrawable drawable)
     {
-        GL gl = drawable.getGL();
+        GL2 gl = drawable.getGL().getGL2();
 
-        gl.glEnable(GL.GL_DEPTH_TEST);
+        gl.glEnable(GL2.GL_DEPTH_TEST);
 
         renderer = new TextRenderer(font, useMipMaps);
 
@@ -70,10 +71,10 @@ public abstract class Issue344Base implements GLEventListener
 
     public void display(GLAutoDrawable drawable)
     {
-        GL gl = drawable.getGL();
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        GL2 gl = drawable.getGL().getGL2();
+        gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
 
-        gl.glMatrixMode(GL.GL_MODELVIEW);
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
         glu.gluLookAt(0, 0, 10,
                       0, 0, 0,
@@ -94,14 +95,11 @@ public abstract class Issue344Base implements GLEventListener
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height)
     {
-        GL gl = drawable.getGL();
-        gl.glMatrixMode(GL.GL_PROJECTION);
+        GL2 gl = drawable.getGL().getGL2();
+        gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glLoadIdentity();
         glu.gluPerspective(15, (float) width / (float) height, 5, 15);
     }
 
-    public void displayChanged(GLAutoDrawable drawable, boolean modeChanged,
-                               boolean deviceChanged)
-    {
-    }
+	public void dispose(GLAutoDrawable drawable) {}
 }
