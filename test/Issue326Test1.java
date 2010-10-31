@@ -7,14 +7,14 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Random;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCanvas;
 import javax.media.opengl.GLEventListener;
+import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.glu.GLU;
 
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.awt.TextRenderer;
 
 /** 
  * Demonstrates corruption with older versions of TextRenderer. Two
@@ -52,16 +52,16 @@ public class Issue326Test1 extends Frame implements GLEventListener {
     }
 
     public void display(GLAutoDrawable drawable) {
-        GL gl = drawable.getGL();
+        GL2 gl = drawable.getGL().getGL2();
         gl.glClearColor(0, 0, 0, 0);
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT|GL.GL_DEPTH_BUFFER_BIT);
+        gl.glClear(GL2.GL_COLOR_BUFFER_BIT|GL2.GL_DEPTH_BUFFER_BIT);
 		
 	    
-        gl.glMatrixMode(GL.GL_PROJECTION);
+        gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glLoadIdentity();		
         //new GLU().gluPerspective(45f, (float)width/(float)height, 0.1f, 1000f);
         gl.glOrtho(0.0, 800, 0.0, 800, -100.0, 100.0);
-        gl.glMatrixMode(GL.GL_MODELVIEW);
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
 		
         tr.beginRendering(800,800);
@@ -79,13 +79,14 @@ public class Issue326Test1 extends Frame implements GLEventListener {
     public void reshape(GLAutoDrawable arg0, int arg1, int arg2, int arg3, int arg4) {
         width = arg3;
         height = arg4;
-        GL gl = arg0.getGL();
+        GL2 gl = arg0.getGL().getGL2();
         gl.glViewport(0, 0, width, height);
-        gl.glMatrixMode(GL.GL_PROJECTION);
+        gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glLoadIdentity();
         gl.glOrtho(0.0, 800, 0.0, 200, -100.0, 100.0);
-        gl.glMatrixMode(GL.GL_MODELVIEW);
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
     }
-    public void displayChanged(GLAutoDrawable arg0, boolean arg1, boolean arg2) {}
+
+	public void dispose(GLAutoDrawable drawable) {}
 }
