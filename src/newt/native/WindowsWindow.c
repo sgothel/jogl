@@ -101,7 +101,7 @@
 
 #include "NewtCommon.h"
 
-#define VERBOSE_ON 1
+// #define VERBOSE_ON 1
 // #define DEBUG_KEYS 1
 
 #ifdef VERBOSE_ON
