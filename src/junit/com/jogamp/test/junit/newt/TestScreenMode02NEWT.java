@@ -28,11 +28,12 @@
  
 package com.jogamp.test.junit.newt;
 
-
 import java.io.IOException;
-
-import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLProfile;
+
+import com.jogamp.opengl.util.Animator;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -43,48 +44,39 @@ import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.util.ScreenModeUtil;
+import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import com.jogamp.test.junit.util.UITestCase;
+import java.util.List;
+import javax.media.nativewindow.util.Dimension;
 
 public class TestScreenMode02NEWT extends UITestCase {
+    static GLProfile glp;
     static int width, height;
     
-    static int waitTimeShort = 1000; //1 sec
-    static int waitTimeLong = 4000; //4 sec
-    
+    static int waitTimeShort = 1000; // 1 sec
+    static int waitTimeLong = 5000; // 5 sec
 
     @BeforeClass
     public static void initClass() {
         NativeWindowFactory.initSingleton(true);
         width  = 640;
         height = 480;
+        glp = GLProfile.getDefault();
     }
 
-    static Window createWindow(Screen screen, Capabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
+    static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
         Assert.assertNotNull(caps);
         caps.setOnscreen(onscreen);
-        // Create native windowing resources .. X11/Win/OSX
-        // 
-        Window window = NewtFactory.createWindow(screen, caps);
-        Assert.assertNotNull(window);
-        window.setUndecorated(onscreen && undecorated);
+
+        boolean destroyWhenUnused = screen.getDestroyWhenUnused();
+        GLWindow window = GLWindow.create(screen, caps);
         window.setSize(width, height);
-        Assert.assertEquals(false,window.isNativeValid());
-        Assert.assertEquals(false,window.isVisible());
+        window.addGLEventListener(new Gears());
+        Assert.assertNotNull(window);
+        Assert.assertEquals(destroyWhenUnused, window.getScreen().getDestroyWhenUnused());
         window.setVisible(true);
-        Assert.assertEquals(true,window.isVisible());
-        Assert.assertEquals(true,window.isNativeValid());
-
-        //
-        // Create native OpenGL resources .. XGL/WGL/CGL .. 
-        // equivalent to GLAutoDrawable methods: setVisible(true)
-        // 
-        caps = window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
-        Assert.assertNotNull(caps);
-        Assert.assertTrue(caps.getGreenBits()>5);
-        Assert.assertTrue(caps.getBlueBits()>5);
-        Assert.assertTrue(caps.getRedBits()>5);
-        Assert.assertEquals(caps.isOnscreen(),onscreen);
-
         return window;
     }
 
@@ -102,34 +94,100 @@ public class TestScreenMode02NEWT extends UITestCase {
     
     @Test
     public void testScreenRotationChange01() throws InterruptedException {
-    }
+        Thread.sleep(waitTimeShort);
 
-    @Test
-    public void testScreenRotationChange02() throws InterruptedException {
-    }
+        GLCapabilities caps = new GLCapabilities(glp);
+        Assert.assertNotNull(caps);
+        Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+        GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+        Assert.assertNotNull(window);
 
-    @Test
-    public void testScreenRotationChange03() throws InterruptedException {
-    }
-    
-    @Test
-    public void testScreenModeChangeWithRotate01() throws InterruptedException {
-    }
+        List screenModes = screen.getScreenModes();
+        if(null==screenModes) {
+            // no support ..
+            destroyWindow(display, screen, window);
+            return;
+        }
+        Assert.assertTrue(screenModes.size()>0);
 
+        Animator animator = new Animator(window);
+        animator.start();
+
+        ScreenMode smCurrent = screen.getCurrentScreenMode();
+        Assert.assertNotNull(smCurrent);
+        ScreenMode smOrig = screen.getOriginalScreenMode();
+        Assert.assertNotNull(smOrig);
+        Assert.assertEquals(smCurrent, smOrig);
+        System.err.println("[0] current/orig: "+smCurrent);
+
+        screenModes = ScreenModeUtil.filterByRate(screenModes, smOrig.getMonitorMode().getRefreshRate());
+        Assert.assertNotNull(screenModes);
+        Assert.assertTrue(screenModes.size()>0);
+        screenModes = ScreenModeUtil.filterByRotation(screenModes, 90);
+        if(null==screenModes) {
+            // no rotation support ..
+            destroyWindow(display, screen, window);
+            return;
+        }
+        Assert.assertTrue(screenModes.size()>0);
+        screenModes = ScreenModeUtil.filterByResolution(screenModes, new Dimension(801, 601));
+        Assert.assertNotNull(screenModes);
+        Assert.assertTrue(screenModes.size()>0);
+        screenModes = ScreenModeUtil.getHighestAvailableBpp(screenModes);
+        Assert.assertNotNull(screenModes);
+        Assert.assertTrue(screenModes.size()>0);
+
+        ScreenMode sm = (ScreenMode) screenModes.get(0);
+        System.err.println("[0] set current: "+sm);
+        screen.setCurrentScreenMode(sm);
+        Assert.assertEquals(sm, screen.getCurrentScreenMode());
+        Assert.assertNotSame(smOrig, screen.getCurrentScreenMode());
+
+        Thread.sleep(waitTimeLong);
+
+        // check reset ..
+
+        ScreenMode saveOrigMode = (ScreenMode) smOrig.clone();
+
+        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertEquals(true,screen.isNativeValid());
+        Assert.assertEquals(true,window.isNativeValid());
+        Assert.assertEquals(true,window.isVisible());
+
+        animator.stop();
+        destroyWindow(null, screen, window);
+
+        Assert.assertEquals(false,window.isVisible());
+        Assert.assertEquals(false,window.isNativeValid());
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(true,display.isNativeValid());
+
+        screen  = NewtFactory.createScreen(display, 0); // screen 0
+        screen.addReference(); // trigger native creation
+
+        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertEquals(true,screen.isNativeValid());
+
+        smCurrent = screen.getCurrentScreenMode();
+        System.err.println("[1] current/orig: "+smCurrent);
+
+        Assert.assertNotNull(smCurrent);
+        Assert.assertEquals(saveOrigMode, smOrig);
+
+        destroyWindow(display, screen, null);
+
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(false,display.isNativeValid());
+
+        Thread.sleep(waitTimeShort);
+    }
 
     public static void main(String args[]) throws IOException {
         String tstname = TestScreenMode02NEWT.class.getName();
-        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
-            tstname,
-            "filtertrace=true",
-            "haltOnError=false",
-            "haltOnFailure=false",
-            "showoutput=true",
-            "outputtoformatters=true",
-            "logfailedtests=true",
-            "logtestlistenerevents=true",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+        org.junit.runner.JUnitCore.main(tstname);
     }
 
 }

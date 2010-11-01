@@ -234,6 +234,12 @@ public class TestScreenMode01NEWT extends UITestCase {
 
         ScreenMode smOrig = screen.getOriginalScreenMode();
         List screenModes = screen.getScreenModes();
+        if(null==screenModes) {
+            // no support ..
+            destroyWindow(display, screen, window);
+            return;
+        }
+        Assert.assertTrue(screenModes.size()>0);
         screenModes = ScreenModeUtil.filterByRate(screenModes, smOrig.getMonitorMode().getRefreshRate());
         screenModes = ScreenModeUtil.filterByRotation(screenModes, 0);
         screenModes = ScreenModeUtil.filterByResolution(screenModes, new Dimension(801, 601));

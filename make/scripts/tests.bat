@@ -16,7 +16,8 @@ REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.parenting.TestParentin
 
 REM scripts\java-win64.bat com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot
 scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestScreenMode00NEWT
-REM scripts\java-win64.bat com.jogamp.test.junit.newt.TestScreenMode01NEWT
+REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestScreenMode01NEWT
+REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestScreenMode02NEWT
 
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestDisplayLifecycle01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.parenting.TestParenting01NEWT
