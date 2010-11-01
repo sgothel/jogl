@@ -79,8 +79,8 @@ public class MonitorMode  implements Cloneable {
     /**
      * Checks whether two size objects are equal. Two instances
      * of <code>MonitorMode</code> are equal if the three components
-     * <code>surfaceSize</code>, <code>screenSizeMM</code> and <code>refreshRate</code>
-     * are equal.
+     * <code>surfaceSize</code> and <code>refreshRate</code>
+     * are equal. <code>screenSizeMM</code> is kept out intentional to reduce the requirements for finding the current mode.
      * @return  <code>true</code> if the two dimensions are equal;
      *          otherwise <code>false</code>.
      */
@@ -88,16 +88,20 @@ public class MonitorMode  implements Cloneable {
         if (obj instanceof MonitorMode) {
             MonitorMode p = (MonitorMode)obj;
             return getSurfaceSize().equals(p.getSurfaceSize()) &&
-                   getScreenSizeMM().equals(p.getScreenSizeMM()) &&
+                   /* getScreenSizeMM().equals(p.getScreenSizeMM()) && */
                    getRefreshRate() == p.getRefreshRate() ;
         }
         return false;
     }
 
+    /**
+     * returns a hash code over <code>surfaceSize</code> and <code>refreshRate</code>.
+     * <code>screenSizeMM</code> is kept out intentional to reduce the requirements for finding the current mode.
+     */
     public final int hashCode() {
         // 31 * x == (x << 5) - x
         int hash = 31 + getSurfaceSize().hashCode();
-        hash = ((hash << 5) - hash) + getScreenSizeMM().hashCode();
+        /* hash = ((hash << 5) - hash) + getScreenSizeMM().hashCode(); */
         hash = ((hash << 5) - hash) + getRefreshRate();
         return hash;
     }

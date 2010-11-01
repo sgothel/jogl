@@ -1084,7 +1084,7 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_windows_WindowsDisplay_Register
        its HINSTANCE -- see MSDN docs for DllMain */
     wc.hInstance = (HINSTANCE) (intptr_t) hInstance;
     wc.hIcon = NULL;
-    wc.hCursor = LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW));
+    wc.hCursor = LoadCursor( NULL, IDC_ARROW);
     wc.hbrBackground = GetStockObject(BLACK_BRUSH);
     wc.lpszMenuName = NULL;
 #ifdef UNICODE
@@ -1134,38 +1134,71 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_getHeight
     return (jint)GetSystemMetrics(SM_CYSCREEN);
 }
 
-static int NewtScreen_RotationNative2Newt(JNIEnv *env, int native) {
-    int rot;
+static int NewtScreen_RotationNativeCCW2NewtCCW(JNIEnv *env, int native) {
+    int newt;
     switch (native) {
         case DMDO_DEFAULT:
-            rot = 0;
-            break;
-        case DMDO_270:
-            rot = 270;
-            break;
-        case DMDO_180:
-            rot = 180;
+            newt = 0;
             break;
         case DMDO_90:
-            rot = 90;
+            newt = 90;
+            break;
+        case DMDO_180:
+            newt = 180;
+            break;
+        case DMDO_270:
+            newt = 270;
             break;
         default:
             NewtCommon_throwNewRuntimeException(env, "invalid native rotation: %d", native);
         break;
     }
-    return rot;
+    return newt;
 }
 
+static int NewtScreen_RotationNewtCCW2NativeCCW(JNIEnv *env, jint newt) {
+    int native;
+    switch (newt) {
+        case 0:
+            native = DMDO_DEFAULT;
+            break;
+        case 90:
+            native = DMDO_90;
+            break;
+        case 180:
+            native = DMDO_180;
+            break;
+        case 270:
+            native = DMDO_270;
+            break;
+        default:
+            NewtCommon_throwNewRuntimeException(env, "invalid newt rotation: %d", newt);
+    }
+    return native;
+}
+
+/*
+static void NewtScreen_scanDisplayDevices() {
+    DISPLAY_DEVICE device;
+    int i = 0;
+    LPCTSTR name;
+    while(NULL != (name = NewtScreen_getDisplayDeviceName(&device, i))) {
+        fprintf(stderr, "*** [%d]: <%s> active %d\n", i, name, ( 0 != ( device.StateFlags & DISPLAY_DEVICE_ACTIVE ) ) );
+        i++;
+    }
+}*/
+
 static LPCTSTR NewtScreen_getDisplayDeviceName(DISPLAY_DEVICE * device, int scrn_idx) {
+    device->cb = sizeof(DISPLAY_DEVICE);
     if( FALSE == EnumDisplayDevices(NULL, scrn_idx, device, 0) ) {
         DBG_PRINT("*** WindowsWindow: getDisplayDeviceName.EnumDisplayDevices(scrn_idx %d) -> FALSE\n", scrn_idx);
         return NULL;
     }
 
-    /* if( 0 == ( device->StateFlags & DISPLAY_DEVICE_ACTIVE ) ) {
+    if( 0 == ( device->StateFlags & DISPLAY_DEVICE_ACTIVE ) ) {
         DBG_PRINT("*** WindowsWindow: !DISPLAY_DEVICE_ACTIVE(scrn_idx %d)\n", scrn_idx);
         return NULL;
-    } */
+    }
 
     return device->DeviceName;
 }
@@ -1173,6 +1206,10 @@ static LPCTSTR NewtScreen_getDisplayDeviceName(DISPLAY_DEVICE * device, int scrn
 static HDC NewtScreen_createDisplayDC(LPCTSTR displayDeviceName) {
     return CreateDC("DISPLAY", displayDeviceName, NULL, NULL);
 }
+
+#ifndef EDS_ROTATEDMODE
+    #define EDS_ROTATEDMODE 0x00000004
+#endif
 
 /*
  * Class:     com_jogamp_newt_impl_windows_WindowsScreen
@@ -1190,35 +1227,42 @@ JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_getS
         return (*env)->NewIntArray(env, 0);
     }
 
+    int devModeID;
     int widthmm, heightmm;
-    {
+    if(-1 < mode_idx) {
+        // only at initialization time, where index >= 0
         HDC hdc = NewtScreen_createDisplayDC(deviceName);
         widthmm = GetDeviceCaps(hdc, HORZSIZE);
         heightmm = GetDeviceCaps(hdc, VERTSIZE);
         DeleteDC(hdc);
+        devModeID = (int) mode_idx;
+        prop_num++; // add 1st extra prop, mode_idx
+    } else {
+        widthmm = 0;
+        heightmm = 0;
+        devModeID = ENUM_CURRENT_SETTINGS;
     }
 
     DEVMODE dm;
     ZeroMemory(&dm, sizeof(dm));
     dm.dmSize = sizeof(dm);
     
-    int devModeID = (int)mode_idx;
-    
-    if(-1 == devModeID) {
-        devModeID = ENUM_CURRENT_SETTINGS;
-    } else {
-        prop_num++; // add 1st extra prop, mode_idx
-    }
-
-    if (0 == EnumDisplaySettings(deviceName, devModeID, &dm)) {
-        DBG_PRINT("*** WindowsWindow: getScreenMode.EnumDisplaySettings(mode_idx %d/%d) -> NULL\n", mode_idx, devModeID);
+    if (0 == EnumDisplaySettingsEx(deviceName, devModeID, &dm, ( ENUM_CURRENT_SETTINGS == devModeID ) ? 0 : EDS_ROTATEDMODE)) {
+        DBG_PRINT("*** WindowsWindow: getScreenMode.EnumDisplaySettingsEx(mode_idx %d/%d) -> NULL\n", mode_idx, devModeID);
         return (*env)->NewIntArray(env, 0);
     }
     
+    // swap width and height, since Windows reflects rotated dimension, we don't
+    if (DMDO_90 == dm.dmDisplayOrientation || DMDO_270 == dm.dmDisplayOrientation) {
+        int tempWidth = dm.dmPelsWidth;
+        dm.dmPelsWidth = dm.dmPelsHeight;
+        dm.dmPelsHeight = tempWidth;
+    }
+
     jint prop[ prop_num ];
     int propIndex = 0;
 
-    if(-1 < devModeID ) {
+    if( -1 < mode_idx ) {
         prop[propIndex++] = mode_idx;
     }
     prop[propIndex++] = 0; // set later for verification of iterator
@@ -1228,8 +1272,8 @@ JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_getS
     prop[propIndex++] = widthmm;
     prop[propIndex++] = heightmm;
     prop[propIndex++] = dm.dmDisplayFrequency;
-    prop[propIndex++] = NewtScreen_RotationNative2Newt(env, dm.dmDisplayOrientation);
-    prop[propIndex - NUM_SCREEN_MODE_PROPERTIES_ALL] = propIndex ; // count 
+    prop[propIndex++] = NewtScreen_RotationNativeCCW2NewtCCW(env, dm.dmDisplayOrientation);
+    prop[propIndex - NUM_SCREEN_MODE_PROPERTIES_ALL] = ( -1 < mode_idx ) ? propIndex-1 : propIndex ; // count == NUM_SCREEN_MODE_PROPERTIES_ALL
 
     jintArray properties = (*env)->NewIntArray(env, prop_num);
     if (properties == NULL) {
@@ -1259,69 +1303,19 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_windows_WindowsScreen_setSc
     // initialize the DEVMODE structure
     ZeroMemory(&dm, sizeof(dm));
     dm.dmSize = sizeof(dm);
-
-    if (0 == EnumDisplaySettings(deviceName, ENUM_CURRENT_SETTINGS, &dm)) {
-        DBG_PRINT("*** WindowsWindow: setScreenMode.EnumDisplaySettings(ENUM_CURRENT_SETTINGS) -> NULL\n");
-        return JNI_FALSE;
-    }
-    
     dm.dmPelsWidth = (int)width;
     dm.dmPelsHeight = (int)height;
     dm.dmBitsPerPel = (int)bits;
     dm.dmDisplayFrequency = (int)rate;
-    dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL | DM_DISPLAYFREQUENCY;
-    
-    int requestedRotation = dm.dmDisplayOrientation;
-    int currentRotation = dm.dmDisplayOrientation;
-    
-    int shouldFlipDims = 0;
-    
-    int rotation = (int)rot;
-    switch (rotation)
-    {
-        case 0:
-            requestedRotation = DMDO_DEFAULT;
-            if (currentRotation == DMDO_90 || currentRotation == DMDO_270) 
-            {
-                shouldFlipDims = 1;
-            }
-        break;
-        case 270:
-            requestedRotation = DMDO_270;
-            if (currentRotation == DMDO_DEFAULT || currentRotation == DMDO_180) 
-            {
-                shouldFlipDims = 1;
-            }
-        break;
-        case 180:
-            requestedRotation = DMDO_180;
-            if (currentRotation == DMDO_90 || currentRotation == DMDO_270) 
-            {
-                shouldFlipDims = 1;
-            }
-        break;
-        case 90:
-            requestedRotation = DMDO_90;
-            if (currentRotation == DMDO_DEFAULT || currentRotation == DMDO_180) 
-            {
-                shouldFlipDims = 1;
-            }
-        break;
-        default:
-            //requested rotation not available
-            NewtCommon_throwNewRuntimeException(env, "invalid rotation: %d", rotation);
-        break;
-    }
-    /** swap width and height if changing from vertical to horizantal 
-      *  or horizantal to vertical
-      */
-    if (shouldFlipDims)
-    {
+    dm.dmDisplayOrientation = NewtScreen_RotationNewtCCW2NativeCCW(env, rot);
+
+    // swap width and height, since Windows reflects rotated dimension, we don't
+    if ( DMDO_90 == dm.dmDisplayOrientation || DMDO_270 == dm.dmDisplayOrientation ) {
         int tempWidth = dm.dmPelsWidth;
         dm.dmPelsWidth = dm.dmPelsHeight;
         dm.dmPelsHeight = tempWidth;
     }
-    dm.dmDisplayOrientation = requestedRotation;
+
     dm.dmFields = DM_DISPLAYORIENTATION | DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL | DM_DISPLAYFREQUENCY;
     
     return ( DISP_CHANGE_SUCCESSFUL == ChangeDisplaySettings(&dm, 0) ) ? JNI_TRUE : JNI_FALSE ;
@@ -1592,10 +1586,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setVisibl
     }
 }
 
-#define FULLSCREEN_NOERROR 0
-#define FULLSCREEN_ERROR 1
-
-static int NewtWindows_setFullScreen(jboolean fullscreen)
+static jboolean NewtWindows_setFullScreen(jboolean fullscreen)
 {
     int flags = 0;
     DEVMODE dm;
@@ -1605,23 +1596,12 @@ static int NewtWindows_setFullScreen(jboolean fullscreen)
 
     if (0 == EnumDisplaySettings(NULL /*current display device*/, ENUM_CURRENT_SETTINGS, &dm))
     {
-        return FULLSCREEN_ERROR;
+        return JNI_FALSE;
     }
     
-    if(fullscreen == JNI_TRUE)
-    {
-        flags = CDS_FULLSCREEN; //set fullscreen temporary
-    }    
-    else
-    {
-        flags = CDS_RESET; // reset to registery values
-    }
-    long result = ChangeDisplaySettings(&dm, flags); 
-    if(result == DISP_CHANGE_SUCCESSFUL)
-    {
-        return FULLSCREEN_NOERROR;
-    }
-    return FULLSCREEN_ERROR;
+    flags = ( JNI_TRUE == fullscreen ) ? CDS_FULLSCREEN : CDS_RESET ;
+
+    return ( DISP_CHANGE_SUCCESSFUL == ChangeDisplaySettings(&dm, flags) ) ? JNI_TRUE : JNI_FALSE;
 }
 
 /*

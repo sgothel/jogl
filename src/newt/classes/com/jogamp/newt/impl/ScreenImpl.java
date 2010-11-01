@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ScreenImpl extends Screen implements ScreenModeListener {
+    protected static final boolean DisableScreenModeImpl = Debug.debug("Screen.DisableScreenModeImpl");
     protected DisplayImpl display;
     protected int screen_idx;
     protected String fqname;
@@ -243,7 +244,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
     public final List/*<ScreenMode>*/ getScreenModes() {
         ArrayHashSet screenModes = getScreenModesOrig();
-        if(null != screenModes || screenModes.size()>0) {
+        if(null != screenModes && 0 < screenModes.size()) {
             return screenModes.toArrayList();
         }
         return null;
@@ -258,7 +259,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         ScreenMode smU = null;
         ScreenModeStatus sms = ScreenModeStatus.getScreenModeStatus(this.getFQName());
         if(null != sms) {
-            ScreenMode sm0 = getCurrentScreenModeImpl();
+            ScreenMode sm0 = ( DisableScreenModeImpl ) ? null : getCurrentScreenModeImpl();
             if(null == sm0) {
                 return null;
             }
@@ -389,7 +390,6 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     /**
      * To be implemented by the native specification.<br>
      * Is called within a thread safe environment.<br>
-     * Is called only to collect the ScreenModes, usually at startup setting up modes.<br>
      */
     protected ScreenMode getCurrentScreenModeImpl() {
         return null;
@@ -414,11 +414,14 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 ArrayHashSet screenModes = collectNativeScreenModes(screenModesIdx2NativeIdx);
                 sms = new ScreenModeStatus(screenModes, screenModesIdx2NativeIdx);
                 if(null!=screenModes && screenModes.size()>0) {
-                    ScreenMode originalScreenMode = getCurrentScreenModeImpl();
-                    if(null == originalScreenMode) {
-                        throw new RuntimeException("Couldn't fetch current ScreenMode (null), but ScreenMode list size is: "+screenModes.size());
+                    ScreenMode originalScreenMode = ( DisableScreenModeImpl ) ? null : getCurrentScreenModeImpl();
+                    if(null != originalScreenMode) {
+                        ScreenMode originalScreenMode0 = (ScreenMode) screenModes.get(originalScreenMode); // unify via value hash
+                        if(null == originalScreenMode0) {
+                            throw new RuntimeException(originalScreenMode+" could not be hashed from ScreenMode list");
+                        }
+                        sms.setOriginalScreenMode(originalScreenMode0);
                     }
-                    sms.setOriginalScreenMode(originalScreenMode);
                 }
                 ScreenModeStatus.mapScreenModeStatus(this.getFQName(), sms);
             }
@@ -440,21 +443,23 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         int[] smProps = null;
         int num = 0;
         do {
-            if(0 == num) {
+            if(DisableScreenModeImpl) {
+                smProps = null;
+            } else if(0 == num) {
                 smProps = getScreenModeFirstImpl();
             } else {
                 smProps = getScreenModeNextImpl();
             }
-            if(null != smProps) {
+            if(null != smProps && 0 < smProps.length) {
                 int nativeId = smProps[0];
                 int screenModeIdx = ScreenModeUtil.streamIn(resolutionPool, surfaceSizePool, screenSizeMMPool,
                                                             monitorModePool, screenModePool, smProps, 1);
                 if(screenModeIdx >= 0) {
                     screenModesIdx2NativeId.put(screenModeIdx, nativeId);
                 }
+                num++;
             }
-            num++;
-        } while ( null != smProps );
+        } while ( null != smProps && 0 < smProps.length );
 
         ScreenModeUtil.validate(screenModePool, true);
 

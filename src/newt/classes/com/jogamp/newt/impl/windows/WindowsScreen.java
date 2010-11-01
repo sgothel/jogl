@@ -65,7 +65,7 @@ public class WindowsScreen extends ScreenImpl {
         if (null == modeProps || 0 == modeProps.length) {
             return null;
         }
-        if(modeProps.length != ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL + 1) {
+        if(modeProps.length < ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL) {
             throw new RuntimeException("properties array too short, should be >= "+ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL+", is "+modeProps.length);
         }
         return modeProps;
@@ -80,7 +80,7 @@ public class WindowsScreen extends ScreenImpl {
 
     protected int[] getScreenModeNextImpl() {
         int[] modeProps = getScreenModeIdx(nativeModeIdx);
-        if (null != modeProps && 0 != modeProps.length) {
+        if (null != modeProps && 0 < modeProps.length) {
             nativeModeIdx++;
             return modeProps;
         }
@@ -89,7 +89,7 @@ public class WindowsScreen extends ScreenImpl {
 
     protected ScreenMode getCurrentScreenModeImpl() {
         int[] modeProps = getScreenModeIdx(-1);
-        if (null != modeProps && 0 != modeProps.length) {
+        if (null != modeProps && 0 < modeProps.length) {
             return ScreenModeUtil.streamIn(modeProps, 0);
         }
         return null;

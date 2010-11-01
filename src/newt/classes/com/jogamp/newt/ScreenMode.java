@@ -32,8 +32,8 @@ import com.jogamp.newt.util.MonitorMode;
 
 /** Immutable ScreenMode Class, consisting of it's read only components:<br>
  * <ul>
- *  <li>{@link com.jogamp.newt.util.MonitorMode}</li>
- *  <li><code>rotation</code></li>
+ *  <li>{@link com.jogamp.newt.util.MonitorMode}, non rotated values</li>
+ *  <li><code>rotation</code>, measured counter clockwise (CCW)</li>
  * </ul>
  *
  * <i>Aquire and filter ScreenModes</i><br>
@@ -100,9 +100,16 @@ import com.jogamp.newt.util.MonitorMode;
  *
  */
 public class ScreenMode implements Cloneable {
+    /** zero rotation, compared to normal settings */
     public static final int ROTATE_0   = 0;
+
+    /**  90 degrees CCW rotation */
     public static final int ROTATE_90  = 90;
+
+    /** 180 degrees CCW rotation */
     public static final int ROTATE_180 = 180;
+
+    /** 270 degrees CCW rotation */
     public static final int ROTATE_270 = 270;
 
     MonitorMode monitorMode;
@@ -115,7 +122,7 @@ public class ScreenMode implements Cloneable {
 
     /**
      * @param monitorMode the monitor mode
-     * @param rotation the screen rotation
+     * @param rotation the screen rotation, measured counter clockwise (CCW)
      */
     public ScreenMode(MonitorMode monitorMode, int rotation) {
         if ( !isRotationValid(rotation) ) {
@@ -133,10 +140,12 @@ public class ScreenMode implements Cloneable {
         }
     }
 
+    /** Returns the unrotated <code>MonitorMode</code> */
     public final MonitorMode getMonitorMode() {
         return monitorMode;
     }
 
+    /** Returns the CCW rotation of this mode */
     public final int getRotation() {
         return rotation;
     }
