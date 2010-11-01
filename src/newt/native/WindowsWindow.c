@@ -1454,7 +1454,6 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_CreateWi
     (*env)->ReleaseStringUTFChars(env, jWndName, wndName);
 #endif
 
-
     return (jlong) (intptr_t) window;
 }
 

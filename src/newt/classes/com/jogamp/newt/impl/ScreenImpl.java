@@ -40,7 +40,6 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.Window;
 import com.jogamp.newt.event.ScreenModeListener;
 import com.jogamp.newt.util.ScreenModeUtil;
 
@@ -431,6 +430,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         }
     }
 
+    /** ignores bpp < 15 */
     private ArrayHashSet collectNativeScreenModes(IntIntHashMap screenModesIdx2NativeId) {
         ArrayHashSet resolutionPool  = new ArrayHashSet();
         ArrayHashSet surfaceSizePool = new ArrayHashSet();
@@ -442,6 +442,11 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
         int[] smProps = null;
         int num = 0;
+        final int idxBpp =   1 // native mode
+                           + 1 // count
+                           + ScreenModeUtil.NUM_RESOLUTION_PROPERTIES
+                           + ScreenModeUtil.NUM_SURFACE_SIZE_PROPERTIES
+                           - 1 ; // index 0 based
         do {
             if(DisableScreenModeImpl) {
                 smProps = null;
@@ -450,15 +455,15 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             } else {
                 smProps = getScreenModeNextImpl();
             }
-            if(null != smProps && 0 < smProps.length) {
+            if(null != smProps && 0 < smProps.length && smProps[idxBpp] >= 15) {
                 int nativeId = smProps[0];
                 int screenModeIdx = ScreenModeUtil.streamIn(resolutionPool, surfaceSizePool, screenSizeMMPool,
                                                             monitorModePool, screenModePool, smProps, 1);
                 if(screenModeIdx >= 0) {
                     screenModesIdx2NativeId.put(screenModeIdx, nativeId);
                 }
-                num++;
             }
+            num++;
         } while ( null != smProps && 0 < smProps.length );
 
         ScreenModeUtil.validate(screenModePool, true);

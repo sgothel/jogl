@@ -61,9 +61,9 @@ function testawt() {
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting01NEWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting02NEWT
 
-#testawt com.jogamp.test.junit.newt.TestScreenMode00NEWT
+testawt com.jogamp.test.junit.newt.TestScreenMode00NEWT
 #testawt com.jogamp.test.junit.newt.TestScreenMode01NEWT
-testawt com.jogamp.test.junit.newt.TestScreenMode02NEWT
+#testawt com.jogamp.test.junit.newt.TestScreenMode02NEWT
 
 #testawt com.jogamp.test.junit.newt.TestGLWindows01NEWT
 #testawt -Djava.awt.headless=true com.jogamp.test.junit.newt.TestGLWindows01NEWT
