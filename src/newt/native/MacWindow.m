@@ -68,6 +68,7 @@ void setFrameTopLeftPoint(NSWindow* pwin, NSWindow* win, jint x, jint y)
         NSView* pview = [pwin contentView];
         NSRect viewRect = [pview frame];
         d_pty = visibleRect.size.height - viewRect.size.height;
+        (void) d_ptx;
         //d_pty = visibleRect.origin.y - viewRect.size.height;
         //d_ptx = visibleRect.size.height - viewRect.size.height;
         fprintf(stderr, "pwin %lf/%lf %lfx%lf, pview %lf/%lf %lfx%lf -> %d/%d\n", 
@@ -79,7 +80,7 @@ void setFrameTopLeftPoint(NSWindow* pwin, NSWindow* win, jint x, jint y)
             viewRect.origin.y,
             viewRect.size.width,
             viewRect.size.height, 
-            x, y);
+            (int)x, (int)y);
 
     }
 
