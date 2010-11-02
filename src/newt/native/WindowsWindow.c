@@ -89,6 +89,12 @@
 #ifndef MONITOR_DEFAULTTONEAREST
 #define MONITOR_DEFAULTTONEAREST 2
 #endif
+#ifndef EDS_ROTATEDMODE
+#define EDS_ROTATEDMODE 0x00000004
+#endif
+#ifndef DISPLAY_DEVICE_ACTIVE
+#define DISPLAY_DEVICE_ACTIVE 0x00000001
+#endif
 
 #include "com_jogamp_newt_impl_windows_WindowsDisplay.h"
 #include "com_jogamp_newt_impl_windows_WindowsScreen.h"
@@ -1206,10 +1212,6 @@ static LPCTSTR NewtScreen_getDisplayDeviceName(DISPLAY_DEVICE * device, int scrn
 static HDC NewtScreen_createDisplayDC(LPCTSTR displayDeviceName) {
     return CreateDC("DISPLAY", displayDeviceName, NULL, NULL);
 }
-
-#ifndef EDS_ROTATEDMODE
-    #define EDS_ROTATEDMODE 0x00000004
-#endif
 
 /*
  * Class:     com_jogamp_newt_impl_windows_WindowsScreen
