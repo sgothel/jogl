@@ -38,7 +38,7 @@ import java.security.AccessController;
  * One use case is the AWT locking on X11, see {@link com.jogamp.nativewindow.impl.jawt.JAWTToolkitLock}.
  */
 public interface ToolkitLock {
-    public static final boolean TRACE_LOCK = Debug.isPropertyDefined("nativewindow.TraceLock", true, AccessController.getContext());
+    public static final boolean TRACE_LOCK = Debug.isPropertyDefined("nativewindow.debug.ToolkitLock.TraceLock", true, AccessController.getContext());
 
     public void lock();
     public void unlock();

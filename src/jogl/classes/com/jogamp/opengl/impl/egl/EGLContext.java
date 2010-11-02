@@ -207,7 +207,7 @@ public abstract class EGLContext extends GLContextImpl {
         if(null != table) {
             eglExtProcAddressTable = table;
             if(DEBUG) {
-                System.err.println("GLContext EGL ProcAddressTable reusing key("+major+","+minor+","+ctp+") -> "+table.hashCode());
+                System.err.println(getThreadName() + ": !!! GLContext EGL ProcAddressTable reusing key("+major+","+minor+","+ctp+") -> "+table.hashCode());
             }
         } else {
             if (eglExtProcAddressTable == null) {
@@ -219,7 +219,7 @@ public abstract class EGLContext extends GLContextImpl {
             synchronized(mappedProcAddressLock) {
                 mappedGLXProcAddress.put(key, getEGLExtProcAddressTable());
                 if(DEBUG) {
-                    System.err.println("GLContext EGL ProcAddressTable mapping key("+major+","+minor+","+ctp+") -> "+getEGLExtProcAddressTable().hashCode());
+                    System.err.println(getThreadName() + ": !!! GLContext EGL ProcAddressTable mapping key("+major+","+minor+","+ctp+") -> "+getEGLExtProcAddressTable().hashCode());
                 }
             }
         }

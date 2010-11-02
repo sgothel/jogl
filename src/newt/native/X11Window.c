@@ -289,8 +289,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_CompleteDisplay0
  * Window
  */
 
-#define WINDOW_EVENT_MASK ( FocusChangeMask | SubstructureNotifyMask | StructureNotifyMask | ExposureMask )
-
 static int putPtrIn32Long(unsigned long * dst, uintptr_t src) {
     int i=0;
         dst[i++] = (unsigned long) ( ( src >>  0 ) & 0xFFFFFFFF ) ;
@@ -1335,9 +1333,10 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow0
 
     {
         long xevent_mask = 0;
-        xevent_mask |= ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
-        xevent_mask |= KeyPressMask | KeyReleaseMask;
-        xevent_mask |= WINDOW_EVENT_MASK ;
+        xevent_mask |= ButtonPressMask | ButtonReleaseMask | PointerMotionMask ;
+        xevent_mask |= KeyPressMask | KeyReleaseMask ;
+        xevent_mask |= FocusChangeMask | SubstructureNotifyMask | StructureNotifyMask | ExposureMask ;
+
         XSelectInput(dpy, window, xevent_mask);
     }
 

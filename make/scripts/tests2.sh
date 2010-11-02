@@ -16,27 +16,35 @@ echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a java-run.log
 echo java $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 
 function jrun() {
+    awtarg=$1
+    shift
     # D_ARGS="-Djogamp.debug.TraceLock"
-    # D_ARGS="-Dnewt.debug.EDT -Dnativewindow.TraceLock -Dnativewindow.debug.NativeWindow"
+    # D_ARGS="-Dnewt.debug.EDT -Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.NativeWindow"
     # D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
-    # D_ARGS="-Dnewt.debug.EDT -Dnativewindow.TraceLock -Dnativewindow.debug.X11Util.TraceDisplayLifecycle=true"
+    # D_ARGS="-Dnewt.debug.EDT -Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.X11Util.TraceDisplayLifecycle=true"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
     # D_ARGS="-Dnewt.debug.Window -Dnewt.debug.EDT -Dnewt.debug.Display "
     #D_ARGS="-Dnewt.debug.EDT -Djogamp.common.utils.locks.Lock.timeout=600000 -Djogl.debug.Animator -Dnewt.debug.Display -Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.EDT -Dnewt.debug.Display -Dnativewindow.debug.X11Util -Djogl.debug.GLDrawable -Djogl.debug.GLCanvas"
     #D_ARGS="-Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT"
-    D_ARGS="-Dnewt.debug.EDT"
+    #D_ARGS="-Dnewt.debug.EDT"
+    D_ARGS="-Dnewt.debug.EDT -Djogl.debug=all -Dnativewindow.debug=all"
     # D_ARGS="-Djogl.debug=all"
-    java $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
+    java $awtarg $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 }
 
+function testnoawt() {
+    jrun -Djava.awt.headless=true $*
+}
 
 function testawt() {
-    jrun $*
+    jrun -Djava.awt.headless=false $*
 }
 
+testnoawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
+
 #testawt com.jogamp.test.junit.jogl.awt.TestAWT01GLn $*
 #testawt com.jogamp.test.junit.jogl.awt.TestAWT02WindowClosing
 #testawt com.jogamp.test.junit.jogl.awt.TestSwingAWT01GLn
@@ -46,7 +54,7 @@ function testawt() {
 #testawt com.jogamp.test.junit.jogl.texture.TestTexture01AWT
 #testawt com.jogamp.test.junit.newt.TestEventSourceNotAWTBug
 #testawt com.jogamp.test.junit.newt.TestFocus01SwingAWTRobot
-testawt com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot
+#testawt com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot
 #testawt com.jogamp.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting01aAWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting01bAWT

@@ -147,7 +147,7 @@ public class ProxySurface implements NativeSurface, SurfaceChangeable {
   }
 
   public String toString() {
-    return "NullWindow[config "+config+
+    return "ProxySurface[config "+config+
                 ", displayHandle 0x"+Long.toHexString(getDisplayHandle())+
                 ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
                 ", size "+getWidth()+"x"+getHeight()+"]";

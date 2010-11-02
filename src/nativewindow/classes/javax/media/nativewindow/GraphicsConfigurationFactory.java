@@ -71,8 +71,6 @@ public abstract class GraphicsConfigurationFactory {
     }
 
     private static void initialize() {
-        String factoryClassName = null;
-
         abstractGraphicsDeviceClass = javax.media.nativewindow.AbstractGraphicsDevice.class;
         
         if (NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {

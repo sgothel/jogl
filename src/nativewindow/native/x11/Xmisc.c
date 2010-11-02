@@ -420,13 +420,18 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
         windowParent = XRootWindowOfScreen(scrn);
     }
 
-    attrMask  = (CWBackPixel | CWBorderPixel | CWColormap | CWOverrideRedirect) ;
+    attrMask  = ( CWBackingStore | CWBackingPlanes | CWBackingPixel | CWBackPixel | 
+                  CWBorderPixel | CWColormap | CWOverrideRedirect ) ;
 
     memset(&xswa, 0, sizeof(xswa));
-    xswa.override_redirect = True; // not decorated
+    xswa.override_redirect = False; // use the window manager, always
     xswa.border_pixel = 0;
     xswa.background_pixel = 0;
-    xswa.event_mask = 0 ; // no events
+    xswa.backing_store=NotUseful; /* NotUseful, WhenMapped, Always */
+    xswa.backing_planes=0;        /* planes to be preserved if possible */
+    xswa.backing_pixel=0;         /* value to use in restoring planes */
+    xswa.event_mask = 0 ;         /* no events */
+
     xswa.colormap = XCreateColormap(dpy,
                                     XRootWindow(dpy, scrn_idx),
                                     visual,
@@ -442,6 +447,11 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
                            visual,
                            attrMask,
                            &xswa);
+
+    XSync(dpy, False);
+
+    XSelectInput(dpy, window, 0); // no events
+    XSync(dpy, False);
 
     x11ErrorHandlerEnable(dpy, 0, env);
 
