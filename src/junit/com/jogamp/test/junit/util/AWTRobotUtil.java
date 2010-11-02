@@ -301,7 +301,7 @@ public class AWTRobotUtil {
 
         centerMouse(robot, obj);
 
-        robot.delay(clickTO);
+        robot.delay(2*clickTO);
 
         int c0 = mouseClickCounter.getCount();
 

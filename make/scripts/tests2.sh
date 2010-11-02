@@ -25,7 +25,8 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.EDT -Djogamp.common.utils.locks.Lock.timeout=600000 -Djogl.debug.Animator -Dnewt.debug.Display -Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.EDT -Dnewt.debug.Display -Dnativewindow.debug.X11Util -Djogl.debug.GLDrawable -Djogl.debug.GLCanvas"
     #D_ARGS="-Dnewt.debug.EDT -Djogl.debug.GLContext"
-    D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT"
+    #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT"
+    D_ARGS="-Dnewt.debug.EDT"
     # D_ARGS="-Djogl.debug=all"
     java $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 }
@@ -45,7 +46,7 @@ function testawt() {
 #testawt com.jogamp.test.junit.jogl.texture.TestTexture01AWT
 #testawt com.jogamp.test.junit.newt.TestEventSourceNotAWTBug
 #testawt com.jogamp.test.junit.newt.TestFocus01SwingAWTRobot
-#testawt com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot
+testawt com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot
 #testawt com.jogamp.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting01aAWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting01bAWT
@@ -61,7 +62,7 @@ function testawt() {
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting01NEWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting02NEWT
 
-testawt com.jogamp.test.junit.newt.TestScreenMode00NEWT
+#testawt com.jogamp.test.junit.newt.TestScreenMode00NEWT
 #testawt com.jogamp.test.junit.newt.TestScreenMode01NEWT
 #testawt com.jogamp.test.junit.newt.TestScreenMode02NEWT
 

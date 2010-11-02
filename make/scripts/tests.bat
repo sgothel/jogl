@@ -9,13 +9,13 @@ REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.parenting.TestParentin
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestGLWindows01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestGLWindows02NEWTAnimated
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.parenting.TestParenting01NEWT
-REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot
+scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestFocus01SwingAWTRobot
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.nativewindow.TestRecursiveToolkitLockCORE
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.parenting.TestParenting03AWT -time 100000
 
 REM scripts\java-win64.bat com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot
-scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestScreenMode00NEWT
+REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestScreenMode00NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestScreenMode01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestScreenMode02NEWT
 
