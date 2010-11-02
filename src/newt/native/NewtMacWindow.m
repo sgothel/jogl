@@ -72,6 +72,16 @@ jint GetDeltaY(NSEvent *event, jint javaMods) {
     return 0;
 }
 
+static jmethodID sendMouseEventID  = NULL;
+static jmethodID sendKeyEventID    = NULL;
+static jmethodID insetsChangedID   = NULL;
+static jmethodID sizeChangedID     = NULL;
+static jmethodID visibleChangedID = NULL;
+static jmethodID positionChangedID = NULL;
+static jmethodID focusChangedID    = NULL;
+static jmethodID windowDestroyNotifyID = NULL;
+static jmethodID windowDestroyedID = NULL;
+
 @implementation NewtView
 - (void) setJNIEnv: (JNIEnv*) theEnv
 {
@@ -119,16 +129,6 @@ jint GetDeltaY(NSEvent *event, jint javaMods) {
 }
 
 @end
-
-static jmethodID sendMouseEventID  = NULL;
-static jmethodID sendKeyEventID    = NULL;
-static jmethodID insetsChangedID   = NULL;
-static jmethodID sizeChangedID     = NULL;
-static jmethodID visibleChangedID = NULL;
-static jmethodID positionChangedID = NULL;
-static jmethodID focusChangedID    = NULL;
-static jmethodID windowDestroyNotifyID = NULL;
-static jmethodID windowDestroyedID = NULL;
 
 @implementation NewtMacWindow
 
