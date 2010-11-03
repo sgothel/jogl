@@ -67,8 +67,4 @@ public class X11OffscreenGLXContext extends X11GLXContext {
     // of the Pixmap or GLXPixmap
     return true;
   }
-
-  protected boolean createImpl() {
-    return createContext(false);
-  }
 }

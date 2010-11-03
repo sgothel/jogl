@@ -101,9 +101,5 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
     Context(X11GLXDrawable drawable, GLContext shareWith) {
       super(drawable, shareWith);
     }
-
-    protected boolean createImpl() {
-      return createContext(true);
-    }
   }
 }

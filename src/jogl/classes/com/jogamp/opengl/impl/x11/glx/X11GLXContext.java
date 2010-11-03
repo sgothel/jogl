@@ -50,6 +50,8 @@ import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import com.jogamp.nativewindow.impl.x11.X11Util;
 
 public abstract class X11GLXContext extends GLContextImpl {
+  protected static final boolean TRACE_CONTEXT_CURRENT = false; // true;
+
   private boolean glXQueryExtensionsStringInitialized;
   private boolean glXQueryExtensionsStringAvailable;
   private static final Map/*<String, String>*/ functionNameMap;
@@ -58,6 +60,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   // Table that holds the addresses of the native C-language entry points for
   // GLX extension functions.
   private GLXExtProcAddressTable glXExtProcAddressTable;
+  private int hasSwapIntervalSGI = 0;
 
   // This indicates whether the context we have created is indirect
   // and therefore requires the toolkit to be locked around all GL
@@ -107,8 +110,6 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   protected Map/*<String, String>*/ getExtensionNameMap() { return extensionNameMap; }
 
-  protected static final boolean TRACE_CONTEXT_CURRENT = false; // true;
-
   protected boolean glXMakeContextCurrent(long dpy, long writeDrawable, long readDrawable, long ctx) {
     boolean res = false;
 
@@ -118,13 +119,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                     toHexString(writeDrawable)+", "+toHexString(readDrawable)+", "+toHexString(ctx)+")");
             t.printStackTrace();
         }
-        // at least on ATI we receive 'often' SEGV in case of
-        // highly multithreaded MakeContextCurrent calls with writeDrawable==readDrawable
-        if(writeDrawable==readDrawable) {
-            res = GLX.glXMakeCurrent(dpy, writeDrawable, ctx);
-        } else {
-            res = GLX.glXMakeContextCurrent(dpy, writeDrawable, readDrawable, ctx);
-        }
+        res = GLX.glXMakeContextCurrent(dpy, writeDrawable, readDrawable, ctx);
     } catch (RuntimeException re) {
         if(DEBUG) {
           System.err.println("Warning: X11GLXContext.glXMakeContextCurrent failed: "+re+", with "+
@@ -148,6 +143,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
     X11GLXDrawableFactory factory = (X11GLXDrawableFactory)drawable.getFactoryImpl();
+
     X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     long display = config.getScreen().getDevice().getHandle();
 
@@ -199,30 +195,45 @@ public abstract class X11GLXContext extends GLContextImpl {
         ctx = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
     } catch (RuntimeException re) {
         if(DEBUG) {
-          System.err.println("Warning: X11GLXContext.createContextARB glXCreateContextAttribsARB failed: "+re+", with "+getGLVersion(major, minor, ctp, "@creation"));
-          re.printStackTrace();
+          Throwable t = new Throwable("Info: X11GLXContext.createContextARBImpl glXCreateContextAttribsARB failed with "+getGLVersion(major, minor, ctp, "@creation"), re);
+          t.printStackTrace();
         }
     }
     if(0!=ctx) {
         if (!glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), ctx)) {
             if(DEBUG) {
-              System.err.println("X11GLXContext.createContextARB couldn't make current "+getGLVersion(major, minor, ctp, "@creation"));
+              System.err.println("X11GLXContext.createContextARBImpl couldn't make current "+getGLVersion(major, minor, ctp, "@creation"));
             }
+            // release & destroy
             glXMakeContextCurrent(display, 0, 0, 0);
             GLX.glXDestroyContext(display, ctx);
             ctx = 0;
+        } else {
+            if (DEBUG) {
+                System.err.println(getThreadName() + ": createContextARBImpl: OK "+getGLVersion(major, minor, ctp, "@creation")+", share "+share+", direct "+direct+", hasSharedContext "+(null!=factory.getSharedContext()));
+            }
         }
+    } else if (DEBUG) {
+        System.err.println(getThreadName() + ": createContextARBImpl: NO "+getGLVersion(major, minor, ctp, "@creation"));
     }
+
     return ctx;
   }
 
-  /**
-   * Creates and initializes an appropriate OpenGL context. Should only be
-   * called by {@link #create()}.
-   * Note: The direct parameter may be overwritten by the direct state of a shared context.
-   */
-  protected boolean createContext(boolean direct) {
-    isDirect = false; // default
+  protected boolean createImpl() {
+      // covers the whole context creation loop incl createContextARBImpl and destroyContextARBImpl
+      X11Util.setX11ErrorHandler(true);
+      try {
+          return createImplRaw();
+      } finally {
+          X11Util.setX11ErrorHandler(false);
+      }
+  }
+
+  private boolean createImplRaw() {
+    boolean direct = true; // try direct always
+    isDirect = false; // fall back
+
     X11GLXDrawableFactory factory = (X11GLXDrawableFactory)drawable.getFactoryImpl();
     X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     long display = config.getScreen().getDevice().getHandle();
@@ -255,6 +266,9 @@ public abstract class X11GLXContext extends GLContextImpl {
         }
         setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY); // use GL_VERSION
         isDirect = GLX.glXIsDirect(display, contextHandle);
+        if (DEBUG) {
+            System.err.println(getThreadName() + ": createContextImpl: OK (old-1) share "+share+", direct "+isDirect+"/"+direct);
+        }
         return true;
     }
 
@@ -265,11 +279,11 @@ public abstract class X11GLXContext extends GLContextImpl {
 
     // utilize the shared context's GLXExt in case it was using the ARB method and it already exists
     if(null!=factory.getSharedContext() && factory.getSharedContext().isCreatedWithARBMethod()) {
-        if(DEBUG) {
-          System.err.println("X11GLXContext.createContext using shared Context: "+factory.getSharedContext());
-        }
         contextHandle = createContextARB(share, direct, major, minor, ctp);
         createContextARBTried = true;
+        if (DEBUG && 0!=contextHandle) {
+            System.err.println(getThreadName() + ": createContextImpl: OK (ARB, using sharedContext) share "+share);
+        }
     }
 
     long temp_ctx = 0;
@@ -284,26 +298,18 @@ public abstract class X11GLXContext extends GLContextImpl {
           throw new GLException("Error making temp context(1) current: display "+toHexString(display)+", context "+toHexString(temp_ctx)+", drawable "+drawable);
         }
         setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY); // use GL_VERSION
+        glXMakeContextCurrent(display, 0, 0, 0); // release temp context
 
-        if( createContextARBTried ||
-            !isFunctionAvailable("glXCreateContextAttribsARB") ||
-            !isExtensionAvailable("GLX_ARB_create_context") ) {
-            if(glp.isGL3()) {
-              glXMakeContextCurrent(display, 0, 0, 0);
-              GLX.glXDestroyContext(display, temp_ctx);
-              throw new GLException("Unable to create OpenGL >= 3.1 context (failed GLX_ARB_create_context), GLProfile "+glp+", Drawable "+drawable);
+        if( !createContextARBTried &&
+            isFunctionAvailable("glXCreateContextAttribsARB") &&
+            isExtensionAvailable("GLX_ARB_create_context") ) {
+            // initial ARB context creation
+            contextHandle = createContextARB(share, direct, major, minor, ctp);
+            createContextARBTried=true;
+            if (DEBUG && 0!=contextHandle) {
+                System.err.println(getThreadName() + ": createContextImpl: OK (ARB, initial) share "+share);
             }
-            if(DEBUG) {
-              System.err.println("X11GLXContext.createContext: createContextARBTried "+createContextARBTried+", hasFunc glXCreateContextAttribsARB: "+isFunctionAvailable("glXCreateContextAttribsARB")+", hasExt GLX_ARB_create_context: "+isExtensionAvailable("GLX_ARB_create_context"));
-            }
-
-            // continue with temp context for GL < 3.0
-            contextHandle = temp_ctx;
-            isDirect = GLX.glXIsDirect(display, contextHandle);
-            return true;
         }
-        contextHandle = createContextARB(share, direct, major, minor, ctp);
-        createContextARBTried=true;
     }
 
     if(0!=contextHandle) {
@@ -318,10 +324,10 @@ public abstract class X11GLXContext extends GLContextImpl {
         if(glp.isGL3()) {
           glXMakeContextCurrent(display, 0, 0, 0);
           GLX.glXDestroyContext(display, temp_ctx);
-          throw new GLException("X11GLXContext.createContext failed, but context > GL2 requested "+getGLVersion(major[0], minor[0], ctp[0], "@creation")+", ");
+          throw new GLException("X11GLXContext.createContextImpl failed, but context > GL2 requested "+getGLVersion(major[0], minor[0], ctp[0], "@creation")+", ");
         }
         if(DEBUG) {
-          System.err.println("X11GLXContext.createContext failed, fall back to !ARB context "+getGLVersion(major[0], minor[0], ctp[0], "@creation"));
+          System.err.println("X11GLXContext.createContextImpl failed, fall back to !ARB context "+getGLVersion(major[0], minor[0], ctp[0], "@creation"));
         }
 
         // continue with temp context for GL <= 3.0
@@ -331,8 +337,14 @@ public abstract class X11GLXContext extends GLContextImpl {
           GLX.glXDestroyContext(display, temp_ctx);
           throw new GLException("Error making context(1) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
         }
+        if (DEBUG) {
+            System.err.println(getThreadName() + ": createContextImpl: OK (old-2) share "+share);
+        }
     }
     isDirect = GLX.glXIsDirect(display, contextHandle);
+    if (DEBUG) {
+        System.err.println(getThreadName() + ": createContextImpl: OK direct "+isDirect+"/"+direct);
+    }
     return true;
   }
 
@@ -400,7 +412,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     if(null != table) {
         glXExtProcAddressTable = table;
         if(DEBUG) {
-            System.err.println("GLContext GLX ProcAddressTable reusing key("+major+","+minor+","+ctp+") -> "+table.hashCode());
+            System.err.println(getThreadName() + ": !!! GLContext GLX ProcAddressTable reusing key("+major+","+minor+","+ctp+") -> "+table.hashCode());
         }
     } else {
         if (glXExtProcAddressTable == null) {
@@ -410,7 +422,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         synchronized(mappedProcAddressLock) {
             mappedGLXProcAddress.put(key, getGLXExtProcAddressTable());
             if(DEBUG) {
-                System.err.println("GLContext GLX ProcAddressTable mapping key("+major+","+minor+","+ctp+") -> "+getGLXExtProcAddressTable().hashCode());
+                System.err.println(getThreadName() + ": !!! GLContext GLX ProcAddressTable mapping key("+major+","+minor+","+ctp+") -> "+getGLXExtProcAddressTable().hashCode());
             }
         }
     }
@@ -443,9 +455,6 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
     return super.isExtensionAvailable(glExtensionName);
   }
-
-
-  private int hasSwapIntervalSGI = 0;
 
   protected void setSwapIntervalImpl(int interval) {
     X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();

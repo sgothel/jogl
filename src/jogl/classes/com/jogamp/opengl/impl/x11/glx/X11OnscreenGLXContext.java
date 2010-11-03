@@ -45,8 +45,4 @@ public class X11OnscreenGLXContext extends X11GLXContext {
     public X11OnscreenGLXContext(X11OnscreenGLXDrawable drawable, GLContext shareWith) {
         super(drawable, shareWith);
     }
-
-    protected boolean createImpl() {
-        return createContext(true);
-    }
 }
