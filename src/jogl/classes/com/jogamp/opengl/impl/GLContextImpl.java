@@ -496,11 +496,11 @@ public abstract class GLContextImpl extends GLContext {
     if (!mappedVersionsAvailableSet) {
         synchronized (mappedVersionsAvailableLock) {
             if (!mappedVersionsAvailableSet) {
-                createContextARBMapVersionsAvailable(4, false /* core   */);  // GL4
-                createContextARBMapVersionsAvailable(4, true  /* compat */);  // GL4bc
-                createContextARBMapVersionsAvailable(3, false /* core   */);  // GL3
-                createContextARBMapVersionsAvailable(3, true  /* compat */);  // GL3bc
                 createContextARBMapVersionsAvailable(2, true  /* compat */);  // GL2
+                createContextARBMapVersionsAvailable(3, true  /* compat */);  // GL3bc
+                createContextARBMapVersionsAvailable(3, false /* core   */);  // GL3
+                createContextARBMapVersionsAvailable(4, true  /* compat */);  // GL4bc
+                createContextARBMapVersionsAvailable(4, false /* core   */);  // GL4                                                                
                 mappedVersionsAvailableSet = true;
                 if (DEBUG) {
                     System.err.println(getThreadName() + ": !!! createContextARB: SET mappedVersionsAvailableSet " + mappedVersionsAvailableSet);
@@ -572,9 +572,12 @@ public abstract class GLContextImpl extends GLContext {
     if(0!=_context) {
         destroyContextARBImpl(_context);
         mapVersionAvailable(reqMajor, reqProfile, major[0], minor[0], ctp);
+        setGLFunctionAvailability(true, major[0], minor[0], ctp);
         if (DEBUG) {
-          System.err.println(getThreadName() + ": createContextARBMapVersionsAvailable: "+getGLVersionAvailable(reqMajor, reqProfile));
+          System.err.println(getThreadName() + ": !!! createContextARBMapVersionsAvailable HAVE: "+getGLVersionAvailable(reqMajor, reqProfile));
         }
+    } else if (DEBUG) {
+        System.err.println(getThreadName() + ": !!! createContextARBMapVersionsAvailable NOPE: "+reqMajor+"."+reqProfile);
     }
   }
 
@@ -590,6 +593,9 @@ public abstract class GLContextImpl extends GLContext {
             GLContext.isValidGLVersion(major[0], minor[0]) &&
             ( major[0]>majorMin || major[0]==majorMin && minor[0] >=minorMin ) ) {
 
+        if (DEBUG) {
+            System.err.println(getThreadName() + ": createContextARBVersions: share "+share+", direct "+direct+", version "+major[0]+"."+minor[0]);
+        }
         _context = createContextARBImpl(share, direct, ctxOptionFlags, major[0], minor[0]);
 
         if(0==_context) {
@@ -637,7 +643,6 @@ public abstract class GLContextImpl extends GLContext {
           if (version.isValid()) {
             ctxMajorVersion = version.getMajor();
             ctxMinorVersion = version.getMinor();
-
             ctxVersionString = getGLVersion(ctxMajorVersion, ctxMinorVersion, ctxOptions, versionStr);
             return;
           }
@@ -789,7 +794,7 @@ public abstract class GLContextImpl extends GLContext {
     if(null != table) {
         glProcAddressTable = table;
         if(DEBUG) {
-            System.err.println("GLContext GL ProcAddressTable reusing key("+major+","+minor+","+ctp+") -> "+table.hashCode());
+            System.err.println(getThreadName() + ": !!! GLContext GL ProcAddressTable reusing key("+major+","+minor+","+ctp+") -> "+table.hashCode());
         }
     } else {
         if (glProcAddressTable == null) {
@@ -801,7 +806,7 @@ public abstract class GLContextImpl extends GLContext {
         synchronized(mappedProcAddressLock) {
             mappedGLProcAddress.put(key, getGLProcAddressTable());
             if(DEBUG) {
-                System.err.println("GLContext GL ProcAddressTable mapping key("+major+","+minor+","+ctp+") -> "+getGLProcAddressTable().hashCode());
+                System.err.println(getThreadName() + ": !!! GLContext GL ProcAddressTable mapping key("+major+","+minor+","+ctp+") -> "+getGLProcAddressTable().hashCode());
             }
         }
     }
