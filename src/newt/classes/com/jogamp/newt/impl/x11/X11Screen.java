@@ -211,51 +211,34 @@ public class X11Screen extends ScreenImpl {
         if(0>resIdx || resIdx>=resNumber) {
             throw new RuntimeException("Invalid resolution index: ! 0 < "+resIdx+" < "+resNumber+", screenMode["+screenModeIdx+"] "+screenMode);
         }
-        String tname = Thread.currentThread()+"-X11Screen.setCurrentScreenModeImpl()";
-        SetScreenModeAction setScreenModeAction = new SetScreenModeAction(screenMode, resIdx);
-        Thread randrTask = new Thread(setScreenModeAction, tname);
-        randrTask.start();
-        int to = SCREEN_MODE_CHANGE_TIMEOUT / 100 ;
-        while(to>0 && randrTask.isAlive()) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ex) { }
-            to--;
+
+        long dpy = X11Util.createDisplay(display.getName());
+        if( 0 == dpy ) {
+            throw new RuntimeException("Error creating display: "+display.getName());
         }
-        if(0==to && DEBUG) {
+
+        boolean done = false;
+        long t0 = System.currentTimeMillis();
+        try {
+            int f = screenMode.getMonitorMode().getRefreshRate();
+            int r = screenMode.getRotation();
+            if( setCurrentScreenModeStart0(dpy, screen_idx, resIdx, f, r) ) {
+                while(!done && System.currentTimeMillis()-t0 < SCREEN_MODE_CHANGE_TIMEOUT) {
+                    done = setCurrentScreenModePollEnd0(dpy, screen_idx, resIdx, f, r);
+                    if(!done) {
+                        Thread.yield();
+                    }
+                }
+            }
+        } finally {
+            X11Util.closeDisplay(dpy);
+        }
+
+        if(!done) {
             System.err.println("X11Screen.setCurrentScreenModeImpl: TO ("+SCREEN_MODE_CHANGE_TIMEOUT+") reached: "+
-                               randrTask+", alive "+randrTask.isAlive());
+                               (System.currentTimeMillis()-t0)+"ms");
         }
-        return setScreenModeAction.getResult();
-    }
-
-    class SetScreenModeAction implements Runnable {
-        boolean res;
-        ScreenMode screenMode;
-        int resIdx;
-
-        public SetScreenModeAction(ScreenMode screenMode, int resIdx) {
-            this.screenMode = screenMode;
-            this.resIdx = resIdx;
-            this.res = false;
-        }
-
-        public boolean getResult() {
-            return res;
-        }
-
-        public void run() {
-            long dpy = X11Util.createDisplay(display.getName());
-            if( 0 == dpy ) {
-                throw new RuntimeException("Error creating display: "+display.getName());
-            }
-            try {
-                res = setCurrentScreenMode0(dpy, screen_idx, resIdx,
-                                            screenMode.getMonitorMode().getRefreshRate(), screenMode.getRotation());
-            } finally {
-                X11Util.closeDisplay(dpy);
-            }
-        }
+        return done;
     }
 
     //----------------------------------------------------------------------
@@ -282,5 +265,6 @@ public class X11Screen extends ScreenImpl {
     private static native int getCurrentScreenRotation0(long display, int screen_index);
 
     /** needs own Display connection for XRANDR event handling */
-    private static native boolean setCurrentScreenMode0(long display, int screen_index, int mode_index, int freq, int rot);
+    private static native boolean setCurrentScreenModeStart0(long display, int screen_index, int mode_index, int freq, int rot);
+    private static native boolean setCurrentScreenModePollEnd0(long display, int screen_index, int mode_index, int freq, int rot);
 }

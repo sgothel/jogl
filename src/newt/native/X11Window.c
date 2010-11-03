@@ -43,6 +43,7 @@
   #include <stdint.h>
 #endif
 #include <unistd.h>
+#include <errno.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
@@ -175,16 +176,15 @@ static XErrorHandler origErrorHandler = NULL ;
 
 static int displayDispatchErrorHandler(Display *dpy, XErrorEvent *e)
 {
-    fprintf(stderr, "Warning: NEWT X11 Error: DisplayDispatch %p, Code 0x%X\n", dpy, e->error_code);
+    fprintf(stderr, "Warning: NEWT X11 Error: DisplayDispatch %p, Code 0x%X, errno %s\n", dpy, e->error_code, strerror(errno));
     
-    if (e->error_code == BadAtom)
-    {
+    if (e->error_code == BadAtom) {
         fprintf(stderr, "         BadAtom (%p): Atom probably already removed\n", (void*)e->resourceid);
-    } else if (e->error_code == BadWindow)
-    {
+    } else if (e->error_code == BadWindow) {
         fprintf(stderr, "         BadWindow (%p): Window probably already removed\n", (void*)e->resourceid);
     } else {
-        NewtCommon_throwNewRuntimeException(x11ErrorHandlerJNIEnv, "NEWT X11 Error: Display %p, Code 0x%X", dpy, e->error_code);
+        NewtCommon_throwNewRuntimeException(x11ErrorHandlerJNIEnv, "NEWT X11 Error: Display %p, Code 0x%X, errno %s", 
+            dpy, e->error_code, strerror(errno));
     }
 
     return 0;
@@ -197,8 +197,10 @@ static void displayDispatchErrorHandlerEnable(int onoff, JNIEnv * env) {
             origErrorHandler = XSetErrorHandler(displayDispatchErrorHandler);
         }
     } else {
-        XSetErrorHandler(origErrorHandler);
-        origErrorHandler = NULL;
+        if(NULL!=origErrorHandler) {
+            XSetErrorHandler(origErrorHandler);
+            origErrorHandler = NULL;
+        }
     }
 }
 
@@ -850,7 +852,6 @@ JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getAvailable
     int major, minor;
 
     if(False == NewtScreen_getRANDRVersion(dpy, &major, &minor)) {
-        DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_getAvailableScreenModeRotations0: RANDR not available\n");
         fprintf(stderr, "RANDR not available\n");
         return (*env)->NewIntArray(env, 0);
     }
@@ -897,7 +898,7 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getNumScreenModeR
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_getNumScreenModeResolutions0: RANDR not available\n");
+        DBG_PRINT("Java_com_jogamp_newt_impl_x11_X11Screen_getNumScreenModeResolutions0: RANDR not available\n");
         return 0;
     }
 
@@ -919,7 +920,7 @@ JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getScreenMod
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_getScreenModeResolution0: RANDR not available\n");
+        DBG_PRINT("Java_com_jogamp_newt_impl_x11_X11Screen_getScreenModeResolution0: RANDR not available\n");
         return (*env)->NewIntArray(env, 0);
     }
 
@@ -962,7 +963,7 @@ JNIEXPORT jintArray JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getScreenMod
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_getScreenModeRates0: RANDR not available\n");
+        DBG_PRINT("Java_com_jogamp_newt_impl_x11_X11Screen_getScreenModeRates0: RANDR not available\n");
         return (*env)->NewIntArray(env, 0);
     }
 
@@ -1006,7 +1007,7 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenR
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenRate0: RANDR not available\n");
+        DBG_PRINT("Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenRate0: RANDR not available\n");
         return -1;
     }
 
@@ -1032,7 +1033,7 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenR
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenRotation0: RANDR not available\n");
+        DBG_PRINT("Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenRotation0: RANDR not available\n");
         return -1;
     }
 
@@ -1061,7 +1062,7 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenR
    Window root = RootWindow(dpy, (int)scrn_idx);
   
    if(False == NewtScreen_hasRANDR(dpy)) {
-       DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenResolutionIndex0: RANDR not available\n");
+       DBG_PRINT("Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenResolutionIndex0: RANDR not available\n");
        return -1;
    }
 
@@ -1080,23 +1081,19 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getCurrentScreenR
 
 /*
  * Class:     com_jogamp_newt_impl_x11_X11Screen
- * Method:    setScreenMode0
+ * Method:    setCurrentScreenModeStart0
  * Signature: (JIIII)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_setCurrentScreenMode0
+JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_setCurrentScreenModeStart0
   (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jint resMode_idx, jint freq, jint rotation)
 {
-    int randr_event_base, randr_error_base;
     Display *dpy = (Display *) (intptr_t) display;
     Window root = RootWindow(dpy, (int)screen_idx);
 
     if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT(stderr, "Java_com_jogamp_newt_impl_x11_X11Screen_setCurrentScreenMode0: RANDR not available\n");
+        DBG_PRINT("Java_com_jogamp_newt_impl_x11_X11Screen_setCurrentScreenModeStart0: RANDR not available\n");
         return JNI_FALSE;
     }
-
-    XRRQueryExtension(dpy, &randr_event_base, &randr_error_base);
-    DBG_PRINT("RANDR: event_base: %d\n", randr_event_base);
 
     int num_sizes;   
     XRRScreenSize *xrrs = XRRSizes(dpy, (int)screen_idx, &num_sizes); //get possible screen resolutions
@@ -1134,12 +1131,48 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_setCurrentScr
     XSync(dpy, False);
     XRRSetScreenConfigAndRate(dpy, conf, root, (int)resMode_idx, rot, (short)freq, CurrentTime);   
     XSync(dpy, False);
-   
+
+    //free
+    XRRFreeScreenConfigInfo(conf);
+    XSync(dpy, False);
+
+    return JNI_TRUE;
+}
+
+/*
+ * Class:     com_jogamp_newt_impl_x11_X11Screen
+ * Method:    setCurrentScreenModePollEnd0
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_setCurrentScreenModePollEnd0
+  (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jint resMode_idx, jint freq, jint rotation)
+{
+    Display *dpy = (Display *) (intptr_t) display;
+    int randr_event_base, randr_error_base;
     XEvent evt;
     XRRScreenChangeNotifyEvent * scn_event = (XRRScreenChangeNotifyEvent *) &evt;
+
+    if(False == NewtScreen_hasRANDR(dpy)) {
+        DBG_PRINT("Java_com_jogamp_newt_impl_x11_X11Screen_setCurrentScreenModePollEnd0: RANDR not available\n");
+        return JNI_FALSE;
+    }
+
+    int num_sizes;   
+    XRRScreenSize *xrrs = XRRSizes(dpy, (int)screen_idx, &num_sizes); //get possible screen resolutions
+    XRRScreenConfiguration *conf;
+    
+    if( 0 > resMode_idx || resMode_idx >= num_sizes ) {
+        NewtCommon_throwNewRuntimeException(env, "Invalid resolution index: ! 0 < %d < %d", resMode_idx, num_sizes);
+    }
+
+    XRRQueryExtension(dpy, &randr_event_base, &randr_error_base);
+
     int done = 0;
+    int rot;
     do {
-        // XWindowEvent(dpy, root, randr_event_base + RRScreenChangeNotify, &evt);
+        if ( 0 >= XEventsQueued(dpy, QueuedAfterFlush) ) {
+            return;
+        }
         XNextEvent(dpy, &evt);
 
         switch (evt.type - randr_event_base) {
@@ -1160,11 +1193,8 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_setCurrentScr
         XRRUpdateConfiguration(&evt);
     } while(!done);
 
-    //free
-    XRRFreeScreenConfigInfo(conf);
     XSync(dpy, False);
 
-    return JNI_TRUE;
 }
 
 /**

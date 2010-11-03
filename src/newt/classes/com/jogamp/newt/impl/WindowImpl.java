@@ -163,11 +163,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
          */
         void destroyActionInLock(boolean unrecoverable);
 
-        /** Only informal, when starting reparenting */
-        void reparentActionPre();
+        /**
+         * Invoked for expensive modifications, ie while reparenting and ScreenMode change.<br>
+         * No lock is hold when invoked.<br>
+         *
+         * @see #resumeRenderingAction()
+         */
+        void pauseRenderingAction();
 
-        /** Only informal, when finishing reparenting */
-        void reparentActionPost(int reparentActionType);
+        /**
+         * Invoked for expensive modifications, ie while reparenting and ScreenMode change.
+         * No lock is hold when invoked.<br>
+         *
+         * @see #pauseRenderingAction()
+         */
+        void resumeRenderingAction();
     }
 
     private LifecycleHook lifecycleHook = null;
@@ -475,13 +485,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
 
     class VisibleAction implements Runnable {
         boolean visible;
-        long timeOut;
         boolean nativeWindowCreated;
         boolean madeVisible;
 
-        public VisibleAction (boolean visible, long timeOut) {
+        public VisibleAction (boolean visible) {
             this.visible = visible;
-            this.timeOut = timeOut;
             this.nativeWindowCreated = false;
             this.madeVisible = false;
         }
@@ -510,13 +518,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 if(0==windowHandle && visible) {
                     if( 0<width*height ) {
                         nativeWindowCreated = createNative();
-                        WindowImpl.this.waitForVisible(visible, true, timeOut);
+                        WindowImpl.this.waitForVisible(visible, true);
                         madeVisible = visible;
                     }
                 } else if(WindowImpl.this.visible != visible) {
                     if(0 != windowHandle) {
                         setVisibleImpl(visible, x, y, width, height);
-                        WindowImpl.this.waitForVisible(visible, true, timeOut);
+                        WindowImpl.this.waitForVisible(visible, true);
                         madeVisible = visible;
                     }
                 }
@@ -545,17 +553,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
     }
 
     public void setVisible(boolean visible) {
-        setVisible(visible, TIMEOUT_NATIVEWINDOW);
-
-    }
-
-    protected final void setVisible(boolean visible, long timeOut) {
         if(isValid()) {
             if( 0==windowHandle && visible && 0>=width*height ) {
                 // fast-path: not realized yet, make visible, but zero size
                 return;
             }
-            VisibleAction visibleAction = new VisibleAction(visible, timeOut);
+            VisibleAction visibleAction = new VisibleAction(visible);
             runOnEDTIfAvail(true, visibleAction);
             if( visibleAction.getChanged() ) {
                 sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
@@ -1034,20 +1037,20 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         int reparentActionStrategy = ReparentAction.ACTION_INVALID;
         if(isValid()) {
             if(null!=lifecycleHook) {
-                lifecycleHook.reparentActionPre();
+                // pause animation
+                lifecycleHook.pauseRenderingAction();
             }
             try {
                 ReparentActionImpl reparentAction = new ReparentActionImpl(newParent, forceDestroyCreate);
                 runOnEDTIfAvail(true, reparentAction);
                 reparentActionStrategy = reparentAction.getStrategy();
-                if( isVisible() ) {
-                    sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
-                }
             } finally {
                 if(null!=lifecycleHook) {
-                    lifecycleHook.reparentActionPost(reparentActionStrategy);
+                    // resume animation
+                    lifecycleHook.resumeRenderingAction();
                 }
             }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
         return reparentActionStrategy;
     }
@@ -1379,7 +1382,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                     display.dispatchMessagesNative(); // status up2date
                     boolean wasVisible = isVisible();
                     setVisibleImpl(false, x, y, width, height);
-                    WindowImpl.this.waitForVisible(false, true, Screen.SCREEN_MODE_CHANGE_TIMEOUT);
+                    WindowImpl.this.waitForVisible(false, true);
                     display.dispatchMessagesNative(); // status up2date
 
                     // write back mirrored values, to be able to detect satisfaction
@@ -1429,29 +1432,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         return this.fullscreen;
     }
 
-    boolean screenModeChangeVisible;
-    boolean screenModeChangeFullscreen;
-
     public void screenModeChangeNotify(ScreenMode sm) {
         if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
             System.err.println("Window.screenModeChangeNotify: "+sm);
         }
-        screenModeChangeFullscreen = isFullscreen();
-        if(screenModeChangeFullscreen) {
-            setFullscreen(false);
+
+        if(null!=lifecycleHook) {
+            // pause animation
+            lifecycleHook.pauseRenderingAction();
         }
-        screenModeChangeVisible = isVisible();
-        if(screenModeChangeVisible) {
-            setVisible(false);
-        }
-        windowLock.lock();
     }
 
     public void screenModeChanged(ScreenMode sm, boolean success) {
         if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
             System.err.println("Window.screenModeChanged: "+sm+", success: "+success);
         }
-        windowLock.unlock();
 
         if(success) {
             DimensionReadOnly screenSize = sm.getMonitorMode().getSurfaceSize().getResolution();
@@ -1460,11 +1455,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 setSize(screenSize.getWidth(), screenSize.getHeight());
             }
         }
-        if(screenModeChangeFullscreen) {
-            setFullscreen(true);
-        }
-        if(screenModeChangeVisible) {
-            setVisible(true, Screen.SCREEN_MODE_CHANGE_TIMEOUT);
+
+        if(null!=lifecycleHook) {
+            // resume animation
+            lifecycleHook.resumeRenderingAction();
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
     }
 

@@ -367,7 +367,7 @@ public class GLWindow implements GLAutoDrawable, Window {
 
         boolean animatorPaused = false;
 
-        public synchronized void reparentActionPre() {
+        public synchronized void pauseRenderingAction() {
             GLAnimatorControl ctrl = GLWindow.this.getAnimator();
             if ( null!=ctrl && ctrl.isAnimating() && ctrl.getThread() != Thread.currentThread() ) {
                 animatorPaused = true;
@@ -375,7 +375,7 @@ public class GLWindow implements GLAutoDrawable, Window {
             }
         }
 
-        public synchronized void reparentActionPost(int reparentActionType) {
+        public synchronized void resumeRenderingAction() {
             resetCounter();
             GLAnimatorControl ctrl = GLWindow.this.getAnimator();
             if ( null!=ctrl && animatorPaused ) {
@@ -384,6 +384,7 @@ public class GLWindow implements GLAutoDrawable, Window {
             }
         }
     }
+
     //----------------------------------------------------------------------
     // OpenGL-related methods and state
     //
