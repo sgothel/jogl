@@ -76,13 +76,15 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
     new X11GLXGraphicsConfigurationFactory();
-    try {
-      ReflectionUtil.createInstance("com.jogamp.opengl.impl.x11.glx.awt.X11AWTGLXGraphicsConfigurationFactory", 
-                                    null, getClass().getClassLoader());
-    } catch (JogampRuntimeException jre) { /* n/a .. */ }
+    if(GLProfile.isAWTAvailable()) {
+        try {
+          ReflectionUtil.createInstance("com.jogamp.opengl.impl.x11.glx.awt.X11AWTGLXGraphicsConfigurationFactory",
+                                        null, getClass().getClassLoader());
+        } catch (JogampRuntimeException jre) { /* n/a .. */ }
+    }
 
     // init shared resources ..
-    sharedResourcesRunner = new SharedResourcesRunner();
+    sharedResourcesRunner = new SharedResourcesRunner();    
     sharedResourcesThread = new Thread(sharedResourcesRunner, Thread.currentThread().getName()+"-SharedResourcesRunner");
     sharedResourcesThread.start();
     sharedResourcesRunner.waitUntilInitialized();
@@ -126,27 +128,23 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
       public void run() {
           String threadName = Thread.currentThread().getName();
+          X11GraphicsDevice sharedDevice;
           synchronized (this) {
               if (DEBUG) {
                   System.err.println(threadName+ " initializing START");
               }
-              long tlsDisplay = X11Util.createDisplay(null);
-              X11Util.lockDefaultToolkit(tlsDisplay); // OK
+              sharedDevice = new X11GraphicsDevice(X11Util.createDisplay(null));
+              sharedDevice.setCloseDisplay(true);
+              X11Util.lockDefaultToolkit(sharedDevice.getHandle()); // OK
               try {
-                  X11GraphicsDevice sharedDevice = new X11GraphicsDevice(tlsDisplay);
                   vendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
                   isVendorATI = GLXUtil.isVendorATI(vendorName);
                   isVendorNVIDIA = GLXUtil.isVendorNVIDIA(vendorName);
                   sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
                   sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, GLProfile.getDefault());
-                  /* if(isVendorATI() && GLProfile.isAWTAvailable()) {
-                    X11Util.markDisplayUncloseable(tlsDisplay); // failure to close with ATI and AWT usage
-                  } */
                   if (null == sharedScreen || null == sharedDrawable) {
                       throw new GLException("Couldn't init shared screen(" + sharedScreen + ")/drawable(" + sharedDrawable + ")");
                   }
-                  // We have to keep this within this thread,
-                  // since we have a 'chicken-and-egg' problem otherwise on the <init> lock of this thread.
                   try {
                       X11GLXContext ctx = (X11GLXContext) sharedDrawable.createContext(null);
                       ctx.makeCurrent();
@@ -159,7 +157,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                       throw new GLException("X11GLXDrawableFactory - Shared Context is null");
                   }
               } finally {
-                  X11Util.unlockDefaultToolkit(tlsDisplay); // OK
+                  X11Util.unlockDefaultToolkit(sharedDevice.getHandle()); // OK
               }
 
               if (DEBUG) {
@@ -192,10 +190,14 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                   // may cause JVM SIGSEGV: sharedDrawable.destroy();
                   sharedDrawable = null;
               }
+
               if (null != sharedScreen) {
-                  // may cause JVM SIGSEGV:
-                  X11Util.closeDisplay(sharedScreen.getDevice().getHandle());
                   sharedScreen = null;
+              }
+
+              if (null != sharedDevice) {
+                  sharedDevice.close();
+                  sharedDevice = null;
               }
 
               if (DEBUG) {

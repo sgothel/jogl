@@ -79,10 +79,12 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
     new WindowsWGLGraphicsConfigurationFactory();
-    try {
-      ReflectionUtil.createInstance("com.jogamp.opengl.impl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory", 
-                                    null, getClass().getClassLoader());
-    } catch (JogampRuntimeException jre) { /* n/a .. */ }
+    if(GLProfile.isAWTAvailable()) {
+        try {
+          ReflectionUtil.createInstance("com.jogamp.opengl.impl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory",
+                                        null, getClass().getClassLoader());
+        } catch (JogampRuntimeException jre) { /* n/a .. */ }
+    }
 
     NativeWindowFactory.getDefaultToolkitLock().lock(); // OK
     try {
