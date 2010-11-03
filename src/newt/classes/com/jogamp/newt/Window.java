@@ -49,8 +49,8 @@ public interface Window extends NativeWindow, ScreenModeListener {
     public static final boolean DEBUG_WINDOW_EVENT = Debug.debug("Window.WindowEvent");
     public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
 
-    /** A 500ms timeout while waiting for a native action response, ie {@link #setVisible(boolean)}. */
-    public static final long TIMEOUT_NATIVEWINDOW = 500;
+    /** A 1s timeout while waiting for a native action response, ie {@link #setVisible(boolean)}. */
+    public static final long TIMEOUT_NATIVEWINDOW = 1000;
 
     //
     // Lifecycle

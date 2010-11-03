@@ -80,59 +80,14 @@ public class ScreenModeUtil {
     }
 
     /**
-     * Validate the given list of {@link com.jogamp.newt.ScreenMode}s, testing on:<br>
-     * <ul>
-     *   <li> unique {@link com.jogamp.newt.ScreenMode}s by equality and hash code
-     * </ul>
-     * This
-     * @param screenModes list of {@link com.jogamp.newt.ScreenMode}s
-     * @param throwException if true and invalid throw IllegalArgumentException
-     * @return true if valid, otherwise false or throw IllegalArgumentException
-     * @throws IllegalArgumentException if invalid
-     */
-    public static boolean validate(List/*<ScreenMode>*/ screenModes, boolean throwException) {
-        for (int j=0; null!=screenModes && j<screenModes.size(); j++) {
-            ScreenMode sm = (ScreenMode)screenModes.get(j);
-            List dups = new ArrayList();
-
-            /*** don't check slow-path 'equals' for now, hash is working
-            for (int i=0; i<screenModes.size(); i++) {
-                ScreenMode sm2 = (ScreenMode)screenModes.get(i);
-                if( i!=j && sm.equals(sm2) ) {
-                    dups.add(new Integer(i));
-                }
-            }
-            if(dups.size()>0) {
-                if(throwException) {
-                    throw new IllegalArgumentException("Element "+sm+" at index "+j+" is not unique (equality), duplicates: "+dups);
-                } else {
-                    return false;
-                }
-            } */
-
-            for (int i=0; null!=screenModes && i<screenModes.size(); i++) {
-                ScreenMode sm2 = (ScreenMode)screenModes.get(i);
-                if ( i!=j && sm.hashCode() == sm2.hashCode() ) {
-                    dups.add(new Integer(i));
-                }
-            }
-            if(dups.size()>0) {
-                if(throwException) {
-                    throw new IllegalArgumentException("Element "+sm+" at index "+j+" is not unique (hash), duplicates: "+dups);
-                } else {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
      * @param screenModes
      * @param resolution
      * @return modes with nearest resolution, or matching ones
      */
     public static List/*<ScreenMode>*/ filterByResolution(List/*<ScreenMode>*/ screenModes, DimensionReadOnly resolution) {
+        if(null==screenModes || screenModes.size()==0) {
+            return null;
+        }
         List out = new ArrayList();
         int resolution_sq = resolution.getHeight()*resolution.getWidth();
         int sm_dsq=resolution_sq, sm_dsq_idx=0;
@@ -158,6 +113,9 @@ public class ScreenModeUtil {
     }
 
     public static List/*<ScreenMode>*/ filterBySurfaceSize(List/*<ScreenMode>*/ screenModes, SurfaceSize surfaceSize) {
+        if(null==screenModes || screenModes.size()==0) {
+            return null;
+        }
         List out = new ArrayList();
         for (int i=0; null!=screenModes && i<screenModes.size(); i++) {
             ScreenMode sm = (ScreenMode)screenModes.get(i);
@@ -165,10 +123,13 @@ public class ScreenModeUtil {
                 out.add(sm);
             }
         }
-        return out;
+        return out.size()>0 ? out : null;
     }
 
     public static List/*<ScreenMode>*/ filterByRotation(List/*<ScreenMode>*/ screenModes, int rotation) {
+        if(null==screenModes || screenModes.size()==0) {
+            return null;
+        }
         List out = new ArrayList();
         for (int i=0; null!=screenModes && i<screenModes.size(); i++) {
             ScreenMode sm = (ScreenMode)screenModes.get(i);
@@ -176,10 +137,13 @@ public class ScreenModeUtil {
                 out.add(sm);
             }
         }
-        return out;
+        return out.size()>0 ? out : null;
     }
 
     public static List/*<ScreenMode>*/ filterByBpp(List/*<ScreenMode>*/ screenModes, int bitsPerPixel) {
+        if(null==screenModes || screenModes.size()==0) {
+            return null;
+        }
         List out = new ArrayList();
         for (int i=0; null!=screenModes && i<screenModes.size(); i++) {
             ScreenMode sm = (ScreenMode)screenModes.get(i);
@@ -187,7 +151,7 @@ public class ScreenModeUtil {
                 out.add(sm);
             }
         }
-        return out;
+        return out.size()>0 ? out : null;
     }
 
     /**
@@ -197,6 +161,9 @@ public class ScreenModeUtil {
      * @return modes with nearest refreshRate, or matching ones
      */
     public static List/*<ScreenMode>*/ filterByRate(List/*<ScreenMode>*/ screenModes, int refreshRate) {
+        if(null==screenModes || screenModes.size()==0) {
+            return null;
+        }
         int sm_dr = refreshRate;
         int sm_dr_idx = -1;
         List out = new ArrayList();
@@ -219,6 +186,9 @@ public class ScreenModeUtil {
     }
 
     public static List/*<ScreenMode>*/ getHighestAvailableBpp(List/*<ScreenMode>*/ screenModes) {
+        if(null==screenModes || screenModes.size()==0) {
+            return null;
+        }
         int highest = -1;
         for (int i=0; null!=screenModes && i < screenModes.size(); i++) {
             ScreenMode sm = (ScreenMode)screenModes.get(i);
@@ -231,6 +201,9 @@ public class ScreenModeUtil {
     }
 
     public static List/*<ScreenMode>*/ getHighestAvailableRate(List/*<ScreenMode>*/ screenModes) {
+        if(null==screenModes || screenModes.size()==0) {
+            return null;
+        }
         int highest = -1;
         for (int i=0; null!=screenModes && i < screenModes.size(); i++) {
             ScreenMode sm = (ScreenMode)screenModes.get(i);

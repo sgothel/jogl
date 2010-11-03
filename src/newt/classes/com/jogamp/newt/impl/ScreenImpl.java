@@ -466,8 +466,6 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             num++;
         } while ( null != smProps && 0 < smProps.length );
 
-        ScreenModeUtil.validate(screenModePool, true);
-
         if(DEBUG) {
             System.err.println("ScreenImpl.collectNativeScreenModes: ScreenMode number  : "+screenModePool.size());
             System.err.println("ScreenImpl.collectNativeScreenModes: MonitorMode number : "+monitorModePool.size());
