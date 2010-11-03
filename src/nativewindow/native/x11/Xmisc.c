@@ -181,20 +181,25 @@ static void _throwNewRuntimeException(Display * unlockDisplay, JNIEnv *env, cons
 
 static JNIEnv * x11ErrorHandlerJNIEnv = NULL;
 static XErrorHandler origErrorHandler = NULL ;
+static int errorHandlerBlocked = 0 ;
 
 static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
 {
-    fprintf(stderr, "Nativewindow X11 Error: Display %p, Code 0x%X, errno %s\n", dpy, e->error_code, strerror(errno));
-    _throwNewRuntimeException(NULL, x11ErrorHandlerJNIEnv, "Nativewindow X11 Error: Display %p, Code 0x%X, errno %s", 
+    _throwNewRuntimeException(NULL, x11ErrorHandlerJNIEnv, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s", 
         dpy, e->error_code, strerror(errno));
+
+#if 0
     if(NULL!=origErrorHandler) {
         origErrorHandler(dpy, e);
     }
+#endif
 
     return 0;
 }
 
 static void x11ErrorHandlerEnable(Display *dpy, int onoff, JNIEnv * env) {
+    if(errorHandlerBlocked) return;
+
     if(onoff) {
         if(NULL==origErrorHandler) {
             x11ErrorHandlerJNIEnv = env;
@@ -204,12 +209,20 @@ static void x11ErrorHandlerEnable(Display *dpy, int onoff, JNIEnv * env) {
             origErrorHandler = XSetErrorHandler(x11ErrorHandler);
         }
     } else {
-        if(NULL!=dpy) {
-            XSync(dpy, False);
+        if(NULL!=origErrorHandler) {
+            if(NULL!=dpy) {
+                XSync(dpy, False);
+            }
+            XSetErrorHandler(origErrorHandler);
+            origErrorHandler = NULL;
         }
-        XSetErrorHandler(origErrorHandler);
-        origErrorHandler = NULL;
     }
+}
+
+static void x11ErrorHandlerEnableBlocking(int onoff, JNIEnv * env) {
+    errorHandlerBlocked = 0 ;
+    x11ErrorHandlerEnable(NULL, onoff, env);
+    errorHandlerBlocked = onoff ;
 }
 
 
@@ -240,7 +253,7 @@ static void x11IOErrorHandlerEnable(int onoff, JNIEnv * env) {
 static int _initialized=0;
 
 JNIEXPORT void JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize(JNIEnv *env, jclass _unused, jboolean firstUIActionOnProcess) {
+Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize0(JNIEnv *env, jclass _unused, jboolean firstUIActionOnProcess) {
     if(0==_initialized) {
         if( JNI_TRUE == firstUIActionOnProcess ) {
             if( 0 == XInitThreads() ) {
@@ -256,6 +269,11 @@ Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize(JNIEnv *env, jclass _un
         x11IOErrorHandlerEnable(1, env);
         _initialized=1;
     }
+}
+
+JNIEXPORT void JNICALL 
+Java_com_jogamp_nativewindow_impl_x11_X11Util_setX11ErrorHandler0(JNIEnv *env, jclass _unused, jboolean onoff) {
+  x11ErrorHandlerEnableBlocking(( JNI_TRUE == onoff ) ? 1 : 0, env);
 }
 
 /*   Java->C glue code:

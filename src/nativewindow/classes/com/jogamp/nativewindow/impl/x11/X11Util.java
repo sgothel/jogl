@@ -33,8 +33,6 @@
 
 package com.jogamp.nativewindow.impl.x11;
 
-import java.util.HashMap;
-import java.util.Map;
 import com.jogamp.common.util.LongObjectHashMap;
 
 import javax.media.nativewindow.*;
@@ -58,6 +56,9 @@ public class X11Util {
     private static boolean isFirstX11ActionOnProcess = false;
     private static boolean isInit = false;
 
+    private static int setX11ErrorHandlerRecCount = 0;
+    private static Object setX11ErrorHandlerLock = new Object();
+
     public static synchronized void initSingleton(boolean firstX11ActionOnProcess) {
         if(!isInit) {
             NWJNILibLoader.loadNativeWindow("x11");
@@ -65,14 +66,33 @@ public class X11Util {
             /**
              * Always issue XInitThreads() since we have independent
              * off-thread created Display connections able to utilize multithreading, ie NEWT */
-            initialize( true );
-            // initialize( firstX11ActionOnProcess );
+            initialize0( true );
+            // initialize0( firstX11ActionOnProcess );
             isFirstX11ActionOnProcess = firstX11ActionOnProcess;
 
             if(DEBUG) {
                 System.out.println("X11Util.isFirstX11ActionOnProcess: "+isFirstX11ActionOnProcess);
             }
             isInit = true;
+        }
+    }
+
+    public static void setX11ErrorHandler(boolean onoff) {
+        synchronized(setX11ErrorHandlerLock) {
+            if(onoff) {
+                if(0==setX11ErrorHandlerRecCount) {
+                    setX11ErrorHandler0(true);
+                }
+                setX11ErrorHandlerRecCount++;
+            } else {
+                if(0 >= setX11ErrorHandlerRecCount) {
+                    throw new InternalError();
+                }
+                setX11ErrorHandlerRecCount--;
+                if(0==setX11ErrorHandlerRecCount) {
+                    setX11ErrorHandler0(false);
+                }
+            }
         }
     }
 
@@ -574,5 +594,6 @@ public class X11Util {
         X11Lib.XUnlockDisplay(handle);
     }
 
-    private static native void initialize(boolean firstUIActionOnProcess);
+    private static native void initialize0(boolean firstUIActionOnProcess);
+    private static native void setX11ErrorHandler0(boolean onoff);
 }
