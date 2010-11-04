@@ -351,24 +351,34 @@ public abstract class X11GLXContext extends GLContextImpl {
   protected void makeCurrentImpl(boolean newCreated) throws GLException {
     long dpy = drawable.getNativeSurface().getDisplayHandle();
 
-    if (GLX.glXGetCurrentContext() != contextHandle) {        
-        if (!glXMakeContextCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-          throw new GLException("Error making context current: "+this);
+    if (GLX.glXGetCurrentContext() != contextHandle) {
+        X11Util.setX11ErrorHandler(true);
+        try {
+            if (!glXMakeContextCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
+                throw new GLException("Error making context current: "+this);
+            }
+        } finally {
+            X11Util.setX11ErrorHandler(false);
         }
         if (DEBUG && (VERBOSE || newCreated)) {
-          System.err.println(getThreadName() + ": glXMakeCurrent(display " + 
-                             toHexString(dpy)+
-                             ", drawable " + toHexString(drawable.getHandle()) +
-                             ", drawableRead " + toHexString(drawableRead.getHandle()) +
-                             ", context " + toHexString(contextHandle) + ") succeeded");
+            System.err.println(getThreadName() + ": glXMakeCurrent(display " + 
+                               toHexString(dpy)+
+                               ", drawable " + toHexString(drawable.getHandle()) +
+                               ", drawableRead " + toHexString(drawableRead.getHandle()) +
+                               ", context " + toHexString(contextHandle) + ") succeeded");
         }
     }
   }
 
   protected void releaseImpl() throws GLException {
     long display = drawable.getNativeSurface().getDisplayHandle();
-    if (!glXMakeContextCurrent(display, 0, 0, 0)) {
-        throw new GLException("Error freeing OpenGL context");
+    X11Util.setX11ErrorHandler(true);
+    try {
+        if (!glXMakeContextCurrent(display, 0, 0, 0)) {
+            throw new GLException("Error freeing OpenGL context");
+        }
+    } finally {
+        X11Util.setX11ErrorHandler(false);
     }
   }
 
