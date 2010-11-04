@@ -52,18 +52,24 @@ public class GLExtensionNames {
     public static final String[] extensionsARB = { "ARB", "GL2", "OES", "KHR", "OML" };
     public static final String[] extensionsVEN = { "3DFX", 
                                                    "AMD",
+                                                   "ANGLE",
+                                                   "ARM",
                                                    "APPLE",
                                                    "ATI",
                                                    "EXT",
+                                                   "HI",
                                                    "HP",
                                                    "IBM",
+                                                   "IMG",
                                                    "MESA",
                                                    "MESAX",
                                                    "NV",
+                                                   "QCOM",
                                                    "SGI",
                                                    "SGIS",
                                                    "SGIX",
                                                    "SUN",
+                                                   "VIV",
                                                    "WIN"
                                                    };
 
