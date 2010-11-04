@@ -1,7 +1,7 @@
 #ifndef __gl_h_
 #define __gl_h_
 
-/* $Id$ */
+/* $Revision: 10601 $ on $Date:: 2010-03-04 22:15:27 -0800 #$ */
 
 #include <GLES/glplatform.h>
 
@@ -10,68 +10,38 @@ extern "C" {
 #endif
 
 /*
-** License Applicability. Except to the extent portions of this file are
-** made subject to an alternative license as permitted in the SGI Free
-** Software License B, Version 1.0 (the "License"), the contents of this
-** file are subject only to the provisions of the License. You may not use
-** this file except in compliance with the License. You may obtain a copy
-** of the License at Silicon Graphics, Inc., attn: Legal Services, 1600
-** Amphitheatre Parkway, Mountain View, CA 94043-1351, or at:
-**
-** http://oss.sgi.com/projects/FreeB
-**
-** Note that, as provided in the License, the Software is distributed on an
-** "AS IS" basis, with ALL EXPRESS AND IMPLIED WARRANTIES AND CONDITIONS
-** DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
-** CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A
-** PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
-**
-** Original Code. The Original Code is: OpenGL Sample Implementation,
-** Version 1.2.1, released January 26, 2000, developed by Silicon Graphics,
-** Inc. The Original Code is Copyright (c) 1991-2000 Silicon Graphics, Inc.
-** Copyright in any portions created by third parties is as indicated
-** elsewhere herein. All Rights Reserved.
-**
-** Additional Notice Provisions: The application programming interfaces
-** established by SGI in conjunction with the Original Code are The
-** OpenGL(R) Graphics System: A Specification (Version 1.2.1), released
-** April 1, 1999; The OpenGL(R) Graphics System Utility Library (Version
-** 1.3), released November 4, 1998; and OpenGL(R) Graphics with the X
-** Window System(R) (Version 1.3), released October 19, 1998. This software
-** was created using the OpenGL(R) version 1.2.1 Sample Implementation
-** published by SGI, but has not been independently verified as being
-** compliant with the OpenGL(R) version 1.2.1 Specification.
-*/
+ * This document is licensed under the SGI Free Software B License Version
+ * 2.0. For details, see http://oss.sgi.com/projects/FreeB/ .
+ */
 
-typedef unsigned int    GLenum;
-typedef unsigned char   GLboolean;
-typedef unsigned int    GLbitfield;
-typedef signed char     GLbyte;
-typedef short           GLshort;
-typedef int             GLint;
-typedef int             GLsizei;
-typedef unsigned char   GLubyte;
-typedef unsigned short  GLushort;
-typedef unsigned int    GLuint;
-typedef float           GLfloat;
-typedef float           GLclampf;
-typedef void            GLvoid;
-typedef int             GLfixed;
-typedef int             GLclampx;
+typedef void             GLvoid;
+typedef char             GLchar;
+typedef unsigned int     GLenum;
+typedef unsigned char    GLboolean;
+typedef unsigned int     GLbitfield;
+typedef khronos_int8_t   GLbyte;
+typedef short            GLshort;
+typedef int              GLint;
+typedef int              GLsizei;
+typedef khronos_uint8_t  GLubyte;
+typedef unsigned short   GLushort;
+typedef unsigned int     GLuint;
+typedef khronos_float_t  GLfloat;
+typedef khronos_float_t  GLclampf;
+typedef khronos_int32_t  GLfixed;
+typedef khronos_int32_t  GLclampx;
 
-typedef int             GLintptr;
-typedef int             GLsizeiptr;
+typedef khronos_intptr_t GLintptr;
+typedef khronos_ssize_t  GLsizeiptr;
 
 
 /*************************************************************/
 
 /* OpenGL ES core versions */
-#define GL_VERSION_ES_CM_1_0              1
-#define GL_VERSION_ES_CL_1_0              1
-#define GL_VERSION_ES_CM_1_1              1
-#define GL_VERSION_ES_CL_1_1              1
-
-#ifndef GL_VERSION_ES_1_0
+#define GL_VERSION_ES_CM_1_0          1
+#define GL_VERSION_ES_CL_1_0          1
+#define GL_VERSION_ES_CM_1_1          1
+#define GL_VERSION_ES_CL_1_1          1
 
 /* ClearBufferMask */
 #define GL_DEPTH_BUFFER_BIT               0x00000100
@@ -578,8 +548,6 @@ typedef int             GLsizeiptr;
 #define GL_DOT3_RGB                       0x86AE
 #define GL_DOT3_RGBA                      0x86AF
 
-#endif /* GL_VERSION_ES_1_0 */
-
 /*------------------------------------------------------------------------*
  * required OES extension tokens
  *------------------------------------------------------------------------*/
@@ -621,25 +589,21 @@ typedef int             GLsizeiptr;
 
 /*************************************************************/
 
-#ifndef GL_VERSION_ES_CM
-#define GL_VERSION_ES_CM 1
 /* Available only in Common profile */
 GL_API void GL_APIENTRY glAlphaFunc (GLenum func, GLclampf ref);
 GL_API void GL_APIENTRY glClearColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
-GL_API void GL_APIENTRY glClearDepthf (GLclampf d);
+GL_API void GL_APIENTRY glClearDepthf (GLclampf depth);
 GL_API void GL_APIENTRY glClipPlanef (GLenum plane, const GLfloat *equation);
 GL_API void GL_APIENTRY glColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
-GL_API void GL_APIENTRY glDepthRangef (GLclampf n, GLclampf f);
+GL_API void GL_APIENTRY glDepthRangef (GLclampf zNear, GLclampf zFar);
 GL_API void GL_APIENTRY glFogf (GLenum pname, GLfloat param);
 GL_API void GL_APIENTRY glFogfv (GLenum pname, const GLfloat *params);
 GL_API void GL_APIENTRY glFrustumf (GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar);
-/* FIXME: GlueGen generates incorrect code for this one */
-/* GL_API void GL_APIENTRY glGetClipPlanef (GLenum pname, GLfloat eqn[4]); */
-GL_API void GL_APIENTRY glGetClipPlanef (GLenum pname, GLfloat* eqn);
+GL_API void GL_APIENTRY glGetClipPlanef (GLenum pname, GLfloat eqn[4]);
 GL_API void GL_APIENTRY glGetFloatv (GLenum pname, GLfloat *params);
 GL_API void GL_APIENTRY glGetLightfv (GLenum light, GLenum pname, GLfloat *params);
 GL_API void GL_APIENTRY glGetMaterialfv (GLenum face, GLenum pname, GLfloat *params);
-GL_API void GL_APIENTRY glGetTexEnvfv (GLenum tenv, GLenum pname, GLfloat *params);
+GL_API void GL_APIENTRY glGetTexEnvfv (GLenum env, GLenum pname, GLfloat *params);
 GL_API void GL_APIENTRY glGetTexParameterfv (GLenum target, GLenum pname, GLfloat *params);
 GL_API void GL_APIENTRY glLightModelf (GLenum pname, GLfloat param);
 GL_API void GL_APIENTRY glLightModelfv (GLenum pname, const GLfloat *params);
@@ -664,10 +628,7 @@ GL_API void GL_APIENTRY glTexEnvfv (GLenum target, GLenum pname, const GLfloat *
 GL_API void GL_APIENTRY glTexParameterf (GLenum target, GLenum pname, GLfloat param);
 GL_API void GL_APIENTRY glTexParameterfv (GLenum target, GLenum pname, const GLfloat *params);
 GL_API void GL_APIENTRY glTranslatef (GLfloat x, GLfloat y, GLfloat z);
-#endif /* GL_VERSION_ES_CM */
 
-#ifndef GL_VERSION_ES_CL_CM
-#define GL_VERSION_ES_CL 1
 /* Available in both Common and Common-Lite profiles */
 GL_API void GL_APIENTRY glActiveTexture (GLenum texture);
 GL_API void GL_APIENTRY glAlphaFuncx (GLenum func, GLclampx ref);
@@ -710,9 +671,7 @@ GL_API void GL_APIENTRY glFrontFace (GLenum mode);
 GL_API void GL_APIENTRY glFrustumx (GLfixed left, GLfixed right, GLfixed bottom, GLfixed top, GLfixed zNear, GLfixed zFar);
 GL_API void GL_APIENTRY glGetBooleanv (GLenum pname, GLboolean *params);
 GL_API void GL_APIENTRY glGetBufferParameteriv (GLenum target, GLenum pname, GLint *params);
-/* FIXME: GlueGen generates incorrect code for this one */
-/* GL_API void GL_APIENTRY glGetClipPlanex (GLenum pname, GLfixed eqn[4]); */
-GL_API void GL_APIENTRY glGetClipPlanex (GLenum pname, GLfixed* eqn);
+GL_API void GL_APIENTRY glGetClipPlanex (GLenum pname, GLfixed eqn[4]);
 GL_API void GL_APIENTRY glGenBuffers (GLsizei n, GLuint *buffers);
 GL_API void GL_APIENTRY glGenTextures (GLsizei n, GLuint *textures);
 GL_API GLenum GL_APIENTRY glGetError (void);
@@ -720,10 +679,10 @@ GL_API void GL_APIENTRY glGetFixedv (GLenum pname, GLfixed *params);
 GL_API void GL_APIENTRY glGetIntegerv (GLenum pname, GLint *params);
 GL_API void GL_APIENTRY glGetLightxv (GLenum light, GLenum pname, GLfixed *params);
 GL_API void GL_APIENTRY glGetMaterialxv (GLenum face, GLenum pname, GLfixed *params);
-GL_API void GL_APIENTRY glGetPointerv (GLenum pname, void **params);
+GL_API void GL_APIENTRY glGetPointerv (GLenum pname, GLvoid **params);
 GL_API const GLubyte * GL_APIENTRY glGetString (GLenum name);
-GL_API void GL_APIENTRY glGetTexEnviv (GLenum tenv, GLenum pname, GLint *params);
-GL_API void GL_APIENTRY glGetTexEnvxv (GLenum tenv, GLenum pname, GLfixed *params);
+GL_API void GL_APIENTRY glGetTexEnviv (GLenum env, GLenum pname, GLint *params);
+GL_API void GL_APIENTRY glGetTexEnvxv (GLenum env, GLenum pname, GLfixed *params);
 GL_API void GL_APIENTRY glGetTexParameteriv (GLenum target, GLenum pname, GLint *params);
 GL_API void GL_APIENTRY glGetTexParameterxv (GLenum target, GLenum pname, GLfixed *params);
 GL_API void GL_APIENTRY glHint (GLenum target, GLenum mode);
@@ -777,7 +736,6 @@ GL_API void GL_APIENTRY glTexSubImage2D (GLenum target, GLint level, GLint xoffs
 GL_API void GL_APIENTRY glTranslatex (GLfixed x, GLfixed y, GLfixed z);
 GL_API void GL_APIENTRY glVertexPointer (GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
 GL_API void GL_APIENTRY glViewport (GLint x, GLint y, GLsizei width, GLsizei height);
-#endif /* GL_VERSION_ES_CL */
 
 /*------------------------------------------------------------------------*
  * Required OES extension functions
@@ -809,3 +767,4 @@ GL_API void GL_APIENTRY glPointSizePointerOES (GLenum type, GLsizei stride, cons
 #endif
 
 #endif /* __gl_h_ */
+
