@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,11 +29,6 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
- * You acknowledge that this software is not designed or intended for use
- * in the design, construction, operation or maintenance of any nuclear
- * facility.
- * 
  */
 
 /* This file contains a helper routine to be called by Java code to
@@ -53,9 +49,9 @@ typedef Status XineramaGetCenterHintFunc(Display* display, int screen_number,
 XineramaGetCenterHintFunc* XineramaSolarisCenterFunc = NULL;
 #include <dlfcn.h>
 
-#elif defined(__linux__)
+#else
 
-#include "Xinerama.h"
+#include <X11/extensions/Xinerama.h>
 
 #endif
 
@@ -100,7 +96,7 @@ Bool XineramaEnabled(Display* display) {
   }
   return usingXinerama;
   
-#elif defined(__linux__)
+#else
 
   char* XinExtName = "XINERAMA";
   int32_t major_opcode, first_event, first_error;
@@ -120,7 +116,6 @@ Bool XineramaEnabled(Display* display) {
   }
   return False;
 
-#else
-  return False;
 #endif
 }
+
