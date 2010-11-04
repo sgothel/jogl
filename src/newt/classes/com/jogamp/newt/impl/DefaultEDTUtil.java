@@ -157,7 +157,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         wait = wait && edt.isRunning();
                         rTask = new RunnableTask(task,
                                                  wait ? rTaskLock : null,
-                                                 wait /* catch Exceptions if waiting for result */);
+                                                 true /* always catch and report Exceptions, don't disturb EDT */);
                         if(stop) {
                             rTask.setAttachment(new Boolean(true)); // mark final task
                         }
@@ -268,6 +268,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         }
                     }
                     if(null!=task) {
+                        // Exceptions are always catched, see RunnableTask creation above
                         task.run();
                     }
                 } while(!shouldStop) ;
