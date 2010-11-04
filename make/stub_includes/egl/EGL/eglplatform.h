@@ -94,7 +94,13 @@ typedef Pixmap   EGLNativePixmapType;
 typedef Window   EGLNativeWindowType;
 
 #else
-#error "Platform not recognized"
+
+#warning "Info: Platform not recognized, using void pointer for EGLNativeDisplayType, EGLNativeWindowType and EGLNativePixmapType"
+
+typedef void* EGLNativeDisplayType;
+typedef void* EGLNativeWindowType;
+typedef void* EGLNativePixmapType;
+
 #endif
 
 /* EGL 1.2 types, renamed for consistency in EGL 1.3 */

@@ -79,7 +79,7 @@ typedef EGLBoolean (EGLAPIENTRYP PFNEGLUNLOCKSURFACEKHRPROC) (EGLDisplay display
 #define EGL_KHR_image 1
 #define EGL_NATIVE_PIXMAP_KHR			0x30B0	/* eglCreateImageKHR target */
 typedef void *EGLImageKHR;
-#define EGL_NO_IMAGE_KHR			((EGLImageKHR)0)
+/* Manual: #define EGL_NO_IMAGE_KHR ((EGLImageKHR)0) */
 #ifdef EGL_EGLEXT_PROTOTYPES
 EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list);
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroyImageKHR (EGLDisplay dpy, EGLImageKHR image);
@@ -283,6 +283,41 @@ EGLAPI EGLBoolean EGLAPIENTRY eglExportDRMImageMESA (EGLDisplay dpy, EGLImageKHR
 typedef EGLImageKHR (EGLAPIENTRYP PFNEGLCREATEDRMIMAGEMESAPROC) (EGLDisplay dpy, const EGLint *attrib_list);
 typedef EGLBoolean (EGLAPIENTRYP PFNEGLEXPORTDRMIMAGEMESAPROC) (EGLDisplay dpy, EGLImageKHR image, EGLint *name, EGLint *handle, EGLint *stride);
 #endif
+
+/**
+ * Added a few NVidia extensions here.
+ * FIXME: Double check if they are still 'active'
+ */
+
+/* EGL_NV_texture_rectangle (reuse analagous WGL enum) */
+#ifndef EGL_NV_texture_rectangle
+#define EGL_NV_texture_rectangle 1
+#define EGL_GL_TEXTURE_RECTANGLE_NV_KHR           0x30BB
+#define EGL_TEXTURE_RECTANGLE_NV       0x20A2
+#endif
+
+#ifndef EGL_NV_system_time
+#define EGL_NV_system_time 1
+#ifdef EGL_EGLEXT_PROTOTYPES
+EGLAPI EGLuint64NV EGLAPIENTRY eglGetSystemTimeFrequencyNV(void);
+EGLAPI EGLuint64NV EGLAPIENTRY eglGetSystemTimeNV(void);
+#endif
+typedef EGLuint64NV (EGLAPIENTRYP PFNEGLGETSYSTEMTIMEFREQUENCYNVPROC)(void);
+typedef EGLuint64NV (EGLAPIENTRYP PFNEGLGETSYSTEMTIMENVPROC)(void);
+#endif
+
+/* EGL_NV_omx_il_sink
+ */
+#ifndef EGL_NV_omx_il_sink
+#define EGL_NV_omx_il_sink
+#define EGL_OPENMAX_IL_BIT_NV  0x0010 /* EGL_RENDERABLE_TYPE bit */
+#define EGL_SURFACE_OMX_IL_EVENT_CALLBACK_NV 0x309A /* eglCreate*Surface attribute */
+#define EGL_SURFACE_OMX_IL_EMPTY_BUFFER_DONE_CALLBACK_NV 0x309B /* eglCreate*Surface attribute */
+#define EGL_SURFACE_OMX_IL_CALLBACK_DATA_NV 0x309C /* eglCreate*Surface attribute */
+#define EGL_SURFACE_COMPONENT_HANDLE_NV 0x309D /* eglQuerySurface attribute */
+#endif
+
+#define EGL_RMSURFACE_NV 0x30EF /* eglCreateImageKHR target */
 
 #ifdef __cplusplus
 }

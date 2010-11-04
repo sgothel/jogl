@@ -56,6 +56,8 @@ typedef void *EGLClientBuffer;
 #define EGL_VERSION_1_3			1
 #define EGL_VERSION_1_4			1
 
+#ifndef EGL_VERSION_1_X
+
 /* EGL Enumerants. Bitmasks and other exceptional cases aside, most
  * enums are assigned unique values starting at 0x3000.
  */
@@ -242,7 +244,10 @@ typedef void *EGLClientBuffer;
  * a bug in Khronos Bugzilla against task "Registry".
  */
 
+#endif /* EGL_VERSION_1_X */
 
+#ifndef EGL_VERSION_1_X
+#define EGL_VERSION_1_X 1
 
 /* EGL Functions */
 
@@ -313,14 +318,10 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
 EGLAPI EGLBoolean EGLAPIENTRY eglCopyBuffers(EGLDisplay dpy, EGLSurface surface,
 			  EGLNativePixmapType target);
 
-/* This is a generic function pointer type, whose name indicates it must
- * be cast to the proper type *and calling convention* before use.
- */
-typedef void (*__eglMustCastToProperFunctionPointerType)(void);
+typedef void (* EGLAPIENTRY __EGLFuncPtr)(void);
+EGLAPI __EGLFuncPtr eglGetProcAddress(const char *procname);
 
-/* Now, define eglGetProcAddress using the generic function ptr. type */
-EGLAPI __eglMustCastToProperFunctionPointerType EGLAPIENTRY
-       eglGetProcAddress(const char *procname);
+#endif /* EGL_VERSION_1_X */
 
 #ifdef __cplusplus
 }
