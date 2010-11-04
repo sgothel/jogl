@@ -88,38 +88,18 @@
         </jar>
     </target>
 
-    <target name="junit.run" depends="junit.compile">
-        <!-- Perform the junit tests-->
+    <target name="junit.run.setup" depends="junit.compile">
         <mkdir dir="${results.junit}" />
         <delete quiet="true">
             <fileset dir="${results.junit}" includes="**"/>
         </delete>
 
-        <condition property="jvmarg.newt" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
-        <condition property="jvmarg.newt" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
+        <condition property="jvmarg.newt.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
+        <condition property="jvmarg.newt.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
+    </target>
 
-        <!-- Test*CORE* -->
-        <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
-            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
-            <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
-            <!-- 
-            <jvmarg value="-Dnewt.debug.EDT"/>
-            -->
-
-            <formatter usefile="false" type="plain"/>
-            <formatter usefile="true" type="xml"/>
-            <classpath refid="junit_jogl_newt.run.classpath"/>
-
-            <batchtest todir="${results.junit}">
-              <fileset dir="${classes}">
-                  <include name="${java.dir.test}/**/Test*CORE*"/>
-                  <exclude name="**/*$$*"/>
-              </fileset>
-              <formatter usefile="false" type="brief"/>
-              <formatter usefile="true" type="xml"/>
-            </batchtest>
-        </junit>
-
+    <!-- NEWT is currently not supported on OSX -->
+    <target name="junit.run.newt.headless" depends="junit.run.setup" unless="isOSX">
         <!-- Test*NEWT* 
 
              Emulation of junit task,
@@ -144,7 +124,7 @@
                   <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
               </chainedmapper>
             </pathconvert>
-            <var name="test.class.result.file" value="${results.junit}/TEST-${test.class.fqn}.xml"/>
+            <var name="test.class.result.file" value="${results.junit}/TEST-headless-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -> ${test.class.result.file}"/>
             <apply dir="." executable="${java.home}/bin/java" 
                  parallel="false" 
@@ -155,7 +135,7 @@
                 <env key="${system.env.library.path}" path="${obj.all.paths}"/>
                 <env key="CLASSPATH" value="${junit_jogl_newt.run.jars}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
-                <arg line="${jvmarg.newt}"/>
+                <arg line="${jvmarg.newt.headless}"/>
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
                 -->
@@ -178,8 +158,12 @@
             </apply>
           </sequential>
         </for>
+    </target>
 
-        <!-- Test*AWT* -->
+    <!-- junit.run.newt is covered by junit.run.newt.headless, disable it for now, but may be checked manually -->
+    <!-- NEWT is currently not supported on OSX -->
+    <target name="junit.run.newt" depends="junit.run.setup" unless="isOSX">
+        <!-- Test*NEWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
@@ -203,15 +187,86 @@
 
             <batchtest todir="${results.junit}">
               <fileset dir="${classes}">
-                  <include name="${java.dir.test}/**/Test*AWT*"/>
+                  <include name="${java.dir.test}/**/Test*NEWT*"/>
                   <exclude name="**/*$$*"/>
               </fileset>
               <formatter usefile="false" type="brief"/>
               <formatter usefile="true" type="xml"/>
             </batchtest>
         </junit>
-
     </target>
+
+    <target name="junit.run.awt" depends="junit.run.setup">
+        <!-- Test*AWT* -->
+        <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+
+            <!--
+            <jvmarg value="-Dnewt.debug.EDT"/>
+            <jvmarg value="-Djogl.debug=all"/>
+            <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
+            <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
+            <jvmarg value="-Djogl.debug.GLSLState"/>
+            <jvmarg value="-Dnativewindow.debug=all"/>
+            <jvmarg value="-Dnewt.debug=all"/>
+            <jvmarg value="-verbose:jni"/> 
+            <jvmarg value="-client"/>
+            <jvmarg value="-d32"/>
+            -->
+
+            <formatter usefile="false" type="plain"/>
+            <formatter usefile="true" type="xml"/>
+            <classpath refid="junit_jogl_awt.run.classpath"/>
+
+            <batchtest todir="${results.junit}">
+              <fileset dir="${classes}">
+                  <include name="${java.dir.test}/**/Test*AWT*"/>
+                  <exclude name="**/*$$*"/>
+                  <exclude name="**/newt/**"/>
+              </fileset>
+              <formatter usefile="false" type="brief"/>
+              <formatter usefile="true" type="xml"/>
+            </batchtest>
+        </junit>
+    </target>
+
+    <!-- NEWT is currently not supported on OSX -->
+    <target name="junit.run.newt.awt" depends="junit.run.setup" unless="isOSX">
+        <!-- Test*AWT* -->
+        <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+
+            <!--
+            <jvmarg value="-Dnewt.debug.EDT"/>
+            <jvmarg value="-Djogl.debug=all"/>
+            <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
+            <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
+            <jvmarg value="-Djogl.debug.GLSLState"/>
+            <jvmarg value="-Dnativewindow.debug=all"/>
+            <jvmarg value="-Dnewt.debug=all"/>
+            <jvmarg value="-verbose:jni"/> 
+            <jvmarg value="-client"/>
+            <jvmarg value="-d32"/>
+            -->
+
+            <formatter usefile="false" type="plain"/>
+            <formatter usefile="true" type="xml"/>
+            <classpath refid="junit_jogl_newt_awt.run.classpath"/>
+
+            <batchtest todir="${results.junit}">
+              <fileset dir="${classes}">
+                  <include name="${java.dir.test}/**/newt/**/Test*AWT*"/>
+                  <exclude name="**/*$$*"/>
+              </fileset>
+              <formatter usefile="false" type="brief"/>
+              <formatter usefile="true" type="xml"/>
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="junit.run" depends="junit.run.newt.headless,junit.run.awt,junit.run.newt.awt"/>
 
     <!-- ================================================================== -->
     <!--

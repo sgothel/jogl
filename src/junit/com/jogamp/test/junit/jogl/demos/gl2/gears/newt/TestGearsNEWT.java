@@ -26,26 +26,28 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.test.junit.jogl.demos.gl2.gears;
+package com.jogamp.test.junit.jogl.demos.gl2.gears.newt;
 
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
+import com.jogamp.newt.event.KeyAdapter;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.test.junit.util.UITestCase;
+import com.jogamp.test.junit.util.QuitAdapter;
+
 import com.jogamp.opengl.util.Animator;
 
-import com.jogamp.test.junit.util.UITestCase;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
-import com.jogamp.newt.*;
-import com.jogamp.newt.event.*;
-import com.jogamp.newt.opengl.*;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLRunnable;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
-import org.junit.After;
 import org.junit.Test;
 
-public class TestGearsNewtAWTWrapper extends UITestCase {
+public class TestGearsNEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
 
@@ -63,21 +65,32 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
     }
 
     protected void runTestGL(GLCapabilities caps) throws InterruptedException {
-        Display nDisplay = NewtFactory.createDisplay(NativeWindowFactory.TYPE_AWT, null, false); // local display
-        Screen nScreen  = NewtFactory.createScreen(nDisplay, 0); // screen 0
-        Window nWindow = NewtFactory.createWindow(nScreen, caps);
-
-        GLWindow glWindow = GLWindow.create(nWindow);
+        GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
-        glWindow.setTitle("Gears NewtAWTWrapper Test");
+        glWindow.setTitle("Gears NEWT Test");
 
         glWindow.addGLEventListener(new Gears());
 
         Animator animator = new Animator(glWindow);
         QuitAdapter quitAdapter = new QuitAdapter();
 
-        glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
-        glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
+        //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
+        //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
+        glWindow.addKeyListener(quitAdapter);
+        glWindow.addWindowListener(quitAdapter);
+
+        final GLWindow f_glWindow = glWindow;
+        glWindow.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                if(e.getKeyChar()=='f') {
+                    f_glWindow.invoke(false, new GLRunnable() {
+                        public void run(GLAutoDrawable drawable) {
+                            GLWindow win = (GLWindow)drawable;
+                            win.setFullscreen(!win.isFullscreen());
+                        } });
+                }
+            }
+        });
 
         glWindow.setSize(width, height);
         glWindow.setVisible(true);
@@ -108,6 +121,6 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             }
         }
-        org.junit.runner.JUnitCore.main(TestGearsNewtAWTWrapper.class.getName());
+        org.junit.runner.JUnitCore.main(TestGearsNEWT.class.getName());
     }
 }

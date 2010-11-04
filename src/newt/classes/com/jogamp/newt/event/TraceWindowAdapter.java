@@ -28,8 +28,6 @@
  
 package com.jogamp.newt.event;
 
-import com.jogamp.newt.*;
-
 public class TraceWindowAdapter implements WindowListener {
 
     WindowListener downstream;

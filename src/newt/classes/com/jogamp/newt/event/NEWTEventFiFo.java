@@ -28,7 +28,6 @@
  
 package com.jogamp.newt.event;
 
-import com.jogamp.newt.*;
 import java.util.LinkedList;
 
 public class NEWTEventFiFo

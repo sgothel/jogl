@@ -28,8 +28,6 @@
  
 package com.jogamp.newt.event;
 
-import com.jogamp.newt.*;
-
 public abstract class WindowAdapter implements WindowListener
 {
     public void windowResized(WindowEvent e) {

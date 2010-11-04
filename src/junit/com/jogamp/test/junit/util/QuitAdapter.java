@@ -26,36 +26,28 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.test.junit.jogl.acore;
+package com.jogamp.test.junit.util;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.AfterClass;
-import org.junit.Test;
+import com.jogamp.opengl.util.Animator;
+import com.jogamp.newt.event.*;
 
-import javax.media.opengl.*;
-import com.jogamp.opengl.util.VersionInfo;
-import com.jogamp.common.os.Platform;
+public class QuitAdapter extends WindowAdapter implements WindowListener, KeyListener {
+    boolean shouldQuit = false;
 
-import java.io.IOException;
+    public boolean shouldQuit() { return shouldQuit; }
 
-public class DumpVersion implements GLEventListener {
-
-    public void init(GLAutoDrawable drawable) {
-        GL gl = drawable.getGL();
-
-        String prefix = Thread.currentThread().getName();
-
-        System.err.println(VersionInfo.getInfo(null, prefix, gl).toString());
+    public void windowDestroyNotify(WindowEvent e) {
+        System.out.println("QUIT Window "+Thread.currentThread());
+        shouldQuit = true;
     }
 
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public void keyTyped(KeyEvent e) {
+        if(e.getKeyChar()=='q') {
+            System.out.println("QUIT Key "+Thread.currentThread());
+            shouldQuit = true;
+        }
     }
-
-    public void display(GLAutoDrawable drawable) {
-    }
-
-    public void dispose(GLAutoDrawable drawable) {
-    }
+    public void keyPressed(KeyEvent e) {}
+    public void keyReleased(KeyEvent e) {}
 }
+

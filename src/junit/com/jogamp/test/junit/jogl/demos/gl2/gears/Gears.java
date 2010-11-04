@@ -2,18 +2,14 @@
 package com.jogamp.test.junit.jogl.demos.gl2.gears;
 
 import javax.media.opengl.*;
-import javax.media.opengl.awt.*;
-import com.jogamp.opengl.util.Animator;
+
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.event.awt.*;
-
-import java.awt.Component;
-import java.awt.Frame;
 import com.jogamp.newt.Window;
 
 /**
  * Gears.java <BR>
- * author: Brian Paul (converted to Java by Ron Cemer and Sven Goethel) <P>
+ * author: Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
  *
  * This version is equal to Brian Paul's version 1.2 1999/10/21
  */
@@ -24,8 +20,8 @@ public class Gears implements GLEventListener {
   private float angle = 0.0f;
   private int swapInterval;
 
-  private int prevMouseX, prevMouseY;
   private boolean mouseRButtonDown = false;
+  private int prevMouseX, prevMouseY;
 
   public Gears(int swapInterval) {
     this.swapInterval = swapInterval;
@@ -33,42 +29,6 @@ public class Gears implements GLEventListener {
 
   public Gears() {
     this.swapInterval = 1;
-  }
-
-  public static void main(String[] args) {
-    // set argument 'NotFirstUIActionOnProcess' in the JNLP's application-desc tag for example
-    // <application-desc main-class="demos.j2d.TextCube"/>
-    //   <argument>NotFirstUIActionOnProcess</argument> 
-    // </application-desc>
-    boolean firstUIActionOnProcess = 0==args.length || !args[0].equals("NotFirstUIActionOnProcess") ;
-    GLProfile.initSingleton(firstUIActionOnProcess);
-
-    Frame frame = new Frame("Gear Demo");
-    GLCanvas canvas = new GLCanvas();
-    // GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
-    // GLCanvas canvas = new GLCanvas(caps);
-
-    final Gears gears = new Gears();
-    canvas.addGLEventListener(gears);
-
-    frame.add(canvas);
-    frame.setSize(300, 300);
-    final Animator animator = new Animator(canvas);
-    frame.addWindowListener(new java.awt.event.WindowAdapter() {
-        public void windowClosing(java.awt.event.WindowEvent e) {
-          // Run this on another thread than the AWT event queue to
-          // make sure the call to Animator.stop() completes before
-          // exiting
-          new Thread(new Runnable() {
-              public void run() {
-                animator.stop();
-                System.exit(0);
-              }
-            }).start();
-        }
-      });
-    frame.setVisible(true);
-    animator.start();
   }
 
   public void init(GLAutoDrawable drawable) {
@@ -113,12 +73,12 @@ public class Gears implements GLEventListener {
     // MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
     MouseListener gearsMouse = new GearsMouseAdapter();
 
-    if (drawable instanceof Component) {
-        Component comp = (Component) drawable;
-        new AWTMouseAdapter(gearsMouse).addTo(comp);
-    } else if (drawable instanceof Window) {
+    if (drawable instanceof Window) {
         Window window = (Window) drawable;
         window.addMouseListener(gearsMouse);
+    } else if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
+        java.awt.Component comp = (java.awt.Component) drawable;
+        new AWTMouseAdapter(gearsMouse).addTo(comp);
     }
   }
     
@@ -154,9 +114,10 @@ public class Gears implements GLEventListener {
 
     // Special handling for the case where the GLJPanel is translucent
     // and wants to be composited with other Java 2D content
-    if ((drawable instanceof GLJPanel) &&
-        !((GLJPanel) drawable).isOpaque() &&
-        ((GLJPanel) drawable).shouldPreserveColorBufferIfTranslucent()) {
+    if (GLProfile.isAWTAvailable() && 
+        (drawable instanceof javax.media.opengl.awt.GLJPanel) &&
+        !((javax.media.opengl.awt.GLJPanel) drawable).isOpaque() &&
+        ((javax.media.opengl.awt.GLJPanel) drawable).shouldPreserveColorBufferIfTranslucent()) {
       gl.glClear(GL2.GL_DEPTH_BUFFER_BIT);
     } else {
       gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
@@ -335,8 +296,8 @@ public class Gears implements GLEventListener {
             Window window = (Window) source;
             width=window.getWidth();
             height=window.getHeight();
-        } else if (source instanceof Component) {
-            Component comp = (Component) source;
+        } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
+            java.awt.Component comp = (java.awt.Component) source;
             width=comp.getWidth();
             height=comp.getHeight();
         } else {

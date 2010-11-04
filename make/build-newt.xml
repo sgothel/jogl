@@ -692,6 +692,10 @@
             <fileset dir="${classes}"
                      includes="com/jogamp/newt/**" />
         </jar>
+        <jar manifest="tempversion" destfile="${newt.event.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="com/jogamp/newt/Display* com/jogamp/newt/Screen* com/jogamp/newt/Window* com/jogamp/newt/ScreenMode* com/jogamp/newt/event/** com/jogamp/newt/impl/Debug*" />
+        </jar>
     </target>
 
     <target name="build-jars-all-noawt" depends="setup-manifestfile">

@@ -28,8 +28,6 @@
  
 package com.jogamp.newt.event.awt;
 
-import java.awt.KeyboardFocusManager;
-
 /**
  * Specialized parent/client adapter,
  * where the NEWT child window really gets resized,

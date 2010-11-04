@@ -37,6 +37,7 @@ import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 
 import com.jogamp.test.junit.util.UITestCase;
+import com.jogamp.test.junit.util.QuitAdapter;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import java.awt.Frame;
 

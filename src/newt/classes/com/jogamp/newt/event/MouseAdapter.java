@@ -28,8 +28,6 @@
  
 package com.jogamp.newt.event;
 
-import com.jogamp.newt.*;
-
 public abstract class MouseAdapter implements MouseListener
 {
  public void mouseClicked(MouseEvent e) {

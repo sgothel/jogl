@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.test.junit.jogl.awt;
+package com.jogamp.test.junit.jogl.newt;
 
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import com.jogamp.test.junit.util.*;

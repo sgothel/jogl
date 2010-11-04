@@ -29,6 +29,7 @@
 package com.jogamp.test.junit.jogl.acore;
 
 import com.jogamp.test.junit.util.UITestCase;
+import com.jogamp.test.junit.util.DumpVersion;
 
 import org.junit.Assert;
 import org.junit.Before;

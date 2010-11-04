@@ -28,8 +28,6 @@
  
 package com.jogamp.newt.event;
 
-import com.jogamp.newt.*;
-
 public class TraceMouseAdapter implements MouseListener {
 
  MouseListener downstream;

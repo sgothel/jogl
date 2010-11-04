@@ -143,8 +143,13 @@ public class DefaultEDTUtil implements EDTUtil {
                     task.run();
                     wait = false; // running in same thread (EDT) -> no wait
                     if(stop && edt.tasks.size()>0) {
-                        Throwable t = new Throwable("Warning: EDT about (2) to stop, having remaining tasks: "+edt.tasks.size()+" - "+edt);
-                        t.printStackTrace();
+                        String msg = "Warning: EDT about (2) to stop, having remaining tasks: "+edt.tasks.size()+" - "+edt;
+                        if(DEBUG) {
+                            Throwable t = new Throwable(msg);
+                            t.printStackTrace();
+                        } else {
+                            System.err.println(msg);
+                        }
                     }
                 } else {
                     synchronized(edt.tasks) {

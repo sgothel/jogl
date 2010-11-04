@@ -34,8 +34,6 @@
 
 package com.jogamp.newt.event;
 
-import com.jogamp.newt.*;
-
 public interface WindowListener extends NEWTEventListener {
     /** Window is resized, your application shall respect the new window dimension. A repaint is recommended. */
     public void windowResized(WindowEvent e);
