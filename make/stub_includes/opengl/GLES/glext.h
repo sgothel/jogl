@@ -555,7 +555,9 @@ GL_API void GL_APIENTRY glDepthRangexOES (GLclampx zNear, GLclampx zFar);
 GL_API void GL_APIENTRY glFogxOES (GLenum pname, GLfixed param);
 GL_API void GL_APIENTRY glFogxvOES (GLenum pname, const GLfixed *params);
 GL_API void GL_APIENTRY glFrustumxOES (GLfixed left, GLfixed right, GLfixed bottom, GLfixed top, GLfixed zNear, GLfixed zFar);
-GL_API void GL_APIENTRY glGetClipPlanexOES (GLenum pname, GLfixed eqn[4]);
+/* FIXME: GlueGen generates incorrect code for this one */
+/* GL_API void GL_APIENTRY glGetClipPlanexOES (GLenum pname, GLfixed eqn[4]); */
+GL_API void GL_APIENTRY glGetClipPlanexOES (GLenum pname, GLfixed* eqn);
 GL_API void GL_APIENTRY glGetFixedvOES (GLenum pname, GLfixed *params);
 GL_API void GL_APIENTRY glGetLightxvOES (GLenum light, GLenum pname, GLfixed *params);
 GL_API void GL_APIENTRY glGetMaterialxvOES (GLenum face, GLenum pname, GLfixed *params);
@@ -595,7 +597,9 @@ typedef void (GL_APIENTRYP PFNGLDEPTHRANGEXOESPROC) (GLclampx zNear, GLclampx zF
 typedef void (GL_APIENTRYP PFNGLFOGXOESPROC) (GLenum pname, GLfixed param);
 typedef void (GL_APIENTRYP PFNGLFOGXVOESPROC) (GLenum pname, const GLfixed *params);
 typedef void (GL_APIENTRYP PFNGLFRUSTUMXOESPROC) (GLfixed left, GLfixed right, GLfixed bottom, GLfixed top, GLfixed zNear, GLfixed zFar);
-typedef void (GL_APIENTRYP PFNGLGETCLIPPLANEXOESPROC) (GLenum pname, GLfixed eqn[4]);
+/* FIXME: GlueGen generates incorrect code for this one */
+/* typedef void (GL_APIENTRYP PFNGLGETCLIPPLANEXOESPROC) (GLenum pname, GLfixed eqn[4]); */
+typedef void (GL_APIENTRYP PFNGLGETCLIPPLANEXOESPROC) (GLenum pname, GLfixed* eqn);
 typedef void (GL_APIENTRYP PFNGLGETFIXEDVOESPROC) (GLenum pname, GLfixed *params);
 typedef void (GL_APIENTRYP PFNGLGETLIGHTXVOESPROC) (GLenum light, GLenum pname, GLfixed *params);
 typedef void (GL_APIENTRYP PFNGLGETMATERIALXVOESPROC) (GLenum face, GLenum pname, GLfixed *params);
@@ -706,9 +710,12 @@ typedef void (GL_APIENTRYP PFNGLWEIGHTPOINTEROESPROC) (GLint size, GLenum type, 
 #ifndef GL_OES_query_matrix
 #define GL_OES_query_matrix 1
 #ifdef GL_GLEXT_PROTOTYPES
-GL_API GLbitfield GL_APIENTRY glQueryMatrixxOES (GLfixed mantissa[16], GLint exponent[16]);
+
+/* FIXME: GlueGen generates incorrect code for this one */
+/* GL_API GLbitfield GL_APIENTRY glQueryMatrixxOES (GLfixed mantissa[16], GLint exponent[16]); */
+GL_API GLbitfield GL_APIENTRY glQueryMatrixxOES (GLfixed * mantissa, GLint * exponent);
 #endif
-typedef GLbitfield (GL_APIENTRYP PFNGLQUERYMATRIXXOESPROC) (GLfixed mantissa[16], GLint exponent[16]);
+typedef GLbitfield (GL_APIENTRYP PFNGLQUERYMATRIXXOESPROC) (GLfixed * mantissa, GLint * exponent);
 #endif
 
 /* GL_OES_rgb8_rgba8 */

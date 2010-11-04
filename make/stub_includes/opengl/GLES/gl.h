@@ -43,6 +43,8 @@ typedef khronos_ssize_t  GLsizeiptr;
 #define GL_VERSION_ES_CM_1_1          1
 #define GL_VERSION_ES_CL_1_1          1
 
+#ifndef GL_VERSION_ES_1_0
+
 /* ClearBufferMask */
 #define GL_DEPTH_BUFFER_BIT               0x00000100
 #define GL_STENCIL_BUFFER_BIT             0x00000400
@@ -548,6 +550,8 @@ typedef khronos_ssize_t  GLsizeiptr;
 #define GL_DOT3_RGB                       0x86AE
 #define GL_DOT3_RGBA                      0x86AF
 
+#endif /* GL_VERSION_ES_1_0 */
+
 /*------------------------------------------------------------------------*
  * required OES extension tokens
  *------------------------------------------------------------------------*/
@@ -589,6 +593,9 @@ typedef khronos_ssize_t  GLsizeiptr;
 
 /*************************************************************/
 
+#ifndef GL_VERSION_ES_CM
+#define GL_VERSION_ES_CM 1
+
 /* Available only in Common profile */
 GL_API void GL_APIENTRY glAlphaFunc (GLenum func, GLclampf ref);
 GL_API void GL_APIENTRY glClearColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
@@ -599,7 +606,9 @@ GL_API void GL_APIENTRY glDepthRangef (GLclampf zNear, GLclampf zFar);
 GL_API void GL_APIENTRY glFogf (GLenum pname, GLfloat param);
 GL_API void GL_APIENTRY glFogfv (GLenum pname, const GLfloat *params);
 GL_API void GL_APIENTRY glFrustumf (GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar);
-GL_API void GL_APIENTRY glGetClipPlanef (GLenum pname, GLfloat eqn[4]);
+/* FIXME: GlueGen generates incorrect code for this one */
+/* GL_API void GL_APIENTRY glGetClipPlanef (GLenum pname, GLfloat eqn[4]); */
+GL_API void GL_APIENTRY glGetClipPlanef (GLenum pname, const GLfloat * eqn);
 GL_API void GL_APIENTRY glGetFloatv (GLenum pname, GLfloat *params);
 GL_API void GL_APIENTRY glGetLightfv (GLenum light, GLenum pname, GLfloat *params);
 GL_API void GL_APIENTRY glGetMaterialfv (GLenum face, GLenum pname, GLfloat *params);
@@ -628,6 +637,11 @@ GL_API void GL_APIENTRY glTexEnvfv (GLenum target, GLenum pname, const GLfloat *
 GL_API void GL_APIENTRY glTexParameterf (GLenum target, GLenum pname, GLfloat param);
 GL_API void GL_APIENTRY glTexParameterfv (GLenum target, GLenum pname, const GLfloat *params);
 GL_API void GL_APIENTRY glTranslatef (GLfloat x, GLfloat y, GLfloat z);
+
+#endif /* GL_VERSION_ES_CM */
+
+#ifndef GL_VERSION_ES_CL_CM
+#define GL_VERSION_ES_CL_CM 1
 
 /* Available in both Common and Common-Lite profiles */
 GL_API void GL_APIENTRY glActiveTexture (GLenum texture);
@@ -671,7 +685,9 @@ GL_API void GL_APIENTRY glFrontFace (GLenum mode);
 GL_API void GL_APIENTRY glFrustumx (GLfixed left, GLfixed right, GLfixed bottom, GLfixed top, GLfixed zNear, GLfixed zFar);
 GL_API void GL_APIENTRY glGetBooleanv (GLenum pname, GLboolean *params);
 GL_API void GL_APIENTRY glGetBufferParameteriv (GLenum target, GLenum pname, GLint *params);
-GL_API void GL_APIENTRY glGetClipPlanex (GLenum pname, GLfixed eqn[4]);
+/* FIXME: GlueGen generates incorrect code for this one */
+/* GL_API void GL_APIENTRY glGetClipPlanex (GLenum pname, GLfixed eqn[4]); */
+GL_API void GL_APIENTRY glGetClipPlanex (GLenum pname, GLfixed* eqn);
 GL_API void GL_APIENTRY glGenBuffers (GLsizei n, GLuint *buffers);
 GL_API void GL_APIENTRY glGenTextures (GLsizei n, GLuint *textures);
 GL_API GLenum GL_APIENTRY glGetError (void);
@@ -736,6 +752,8 @@ GL_API void GL_APIENTRY glTexSubImage2D (GLenum target, GLint level, GLint xoffs
 GL_API void GL_APIENTRY glTranslatex (GLfixed x, GLfixed y, GLfixed z);
 GL_API void GL_APIENTRY glVertexPointer (GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
 GL_API void GL_APIENTRY glViewport (GLint x, GLint y, GLsizei width, GLsizei height);
+
+#endif /* GL_VERSION_ES_CL_CM */
 
 /*------------------------------------------------------------------------*
  * Required OES extension functions
