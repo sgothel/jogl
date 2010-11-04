@@ -124,7 +124,7 @@
                   <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
               </chainedmapper>
             </pathconvert>
-            <var name="test.class.result.file" value="${results.junit}/TEST-headless-${test.class.fqn}.xml"/>
+            <var name="test.class.result.file" value="${results.junit}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -> ${test.class.result.file}"/>
             <apply dir="." executable="${java.home}/bin/java" 
                  parallel="false" 
@@ -160,8 +160,11 @@
         </for>
     </target>
 
-    <!-- junit.run.newt is covered by junit.run.newt.headless, disable it for now, but may be checked manually -->
-    <!-- NEWT is currently not supported on OSX -->
+    <!-- junit.run.newt is covered by junit.run.newt.headless, disable it for now, but may be checked manually.
+         This test target would also overwrite the test result XML files, we would also need a solution here for hudson,
+         if run in parallel.
+         NEWT is currently not supported on OSX 
+      -->
     <target name="junit.run.newt" depends="junit.run.setup" unless="isOSX">
         <!-- Test*NEWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
