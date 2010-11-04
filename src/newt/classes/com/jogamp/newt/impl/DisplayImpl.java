@@ -34,13 +34,16 @@
 
 package com.jogamp.newt.impl;
 
-import com.jogamp.newt.*;
-import javax.media.nativewindow.*;
-import com.jogamp.newt.event.*;
-import com.jogamp.newt.impl.event.*;
+import com.jogamp.newt.Display;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.event.NEWTEvent;
+import com.jogamp.newt.event.NEWTEventConsumer;
+import com.jogamp.newt.impl.event.NEWTEventTask;
 import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.newt.util.MainThread;
-import java.util.*;
+import java.util.ArrayList;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeWindowFactory;
 
 public abstract class DisplayImpl extends Display {
     public static final boolean DEBUG_TEST_EDT_MAINTHREAD = Debug.isPropertyDefined("newt.test.EDTMainThread", true); // JAU EDT Test ..
@@ -306,7 +309,7 @@ public abstract class DisplayImpl extends Display {
     protected abstract void dispatchMessagesNative();
 
     private Object eventsLock = new Object();
-    private LinkedList/*<NEWTEvent>*/ events = new LinkedList();
+    private ArrayList/*<NEWTEvent>*/ events = new ArrayList();
 
     class DispatchMessagesRunnable implements Runnable {
         public void run() {
@@ -320,20 +323,20 @@ public abstract class DisplayImpl extends Display {
         if(0==refCount) return; // no screens 
         if(null==getGraphicsDevice()) return; // no native device
 
-        LinkedList/*<NEWTEvent>*/ _events = null;
+        ArrayList/*<NEWTEvent>*/ _events = null;
 
-        if(!events.isEmpty()) {
+        if(events.size()>0) {
             // swap events list to free ASAP
             synchronized(eventsLock) {
-                if(!events.isEmpty()) {
+                if(events.size()>0) {
                     _events = events;
-                    events = new LinkedList();
+                    events = new ArrayList();
                 }
                 eventsLock.notifyAll();
             }
             if( null != _events ) {
-                for (Iterator iter = _events.iterator(); iter.hasNext(); ) {
-                    NEWTEventTask eventTask = (NEWTEventTask) iter.next();
+                for (int i=0; i < _events.size(); i++) {
+                    NEWTEventTask eventTask = (NEWTEventTask) _events.get(i);
                     NEWTEvent event = eventTask.get();
                     Object source = event.getSource();
                     if(source instanceof NEWTEventConsumer) {
@@ -349,14 +352,8 @@ public abstract class DisplayImpl extends Display {
             }
         }
 
-        // lock();
-        try {
-            // System.err.println("Display.dispatchMessages() NATIVE "+this+" "+getThreadName());
-            dispatchMessagesNative();
-        } finally {
-            // unlock();
-            // System.err.println("Display.dispatchMessages() X "+this+" "+getThreadName());
-        }
+        // System.err.println("Display.dispatchMessages() NATIVE "+this+" "+getThreadName());
+        dispatchMessagesNative();
     }
 
     public void enqueueEvent(boolean wait, NEWTEvent e) {
@@ -372,7 +369,7 @@ public abstract class DisplayImpl extends Display {
         NEWTEventTask eTask = new NEWTEventTask(e, wait?lock:null);
         synchronized(lock) {
             synchronized(eventsLock) {
-                events.addLast(eTask);
+                events.add(eTask);
                 eventsLock.notifyAll();
             }
             if( wait ) {

@@ -27,8 +27,8 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.EDT -Djogamp.common.utils.locks.Lock.timeout=600000 -Djogl.debug.Animator -Dnewt.debug.Display -Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.EDT -Dnewt.debug.Display -Dnativewindow.debug.X11Util -Djogl.debug.GLDrawable -Djogl.debug.GLCanvas"
     #D_ARGS="-Dnewt.debug.EDT -Djogl.debug.GLContext"
-    D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
-    #D_ARGS="-Dnewt.debug.EDT"
+    #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
+    D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.EDT -Djogl.debug=all -Dnativewindow.debug=all"
     # D_ARGS="-Djogl.debug=all"
     X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=false"
@@ -53,9 +53,9 @@ function testawt() {
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting01NEWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting02NEWT
 #testawt com.jogamp.test.junit.newt.TestScreenMode00NEWT
-testnoawt com.jogamp.test.junit.newt.TestScreenMode01NEWT
+#testnoawt com.jogamp.test.junit.newt.TestScreenMode01NEWT
 #testnoawt com.jogamp.test.junit.newt.TestScreenMode02NEWT
-#testawt com.jogamp.test.junit.newt.TestGLWindows01NEWT
+testawt com.jogamp.test.junit.newt.TestGLWindows01NEWT -time 1000000
 #testawt -Djava.awt.headless=true com.jogamp.test.junit.newt.TestGLWindows01NEWT
 #testawt com.jogamp.test.junit.newt.TestGLWindows02NEWTAnimated
 

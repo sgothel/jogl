@@ -34,19 +34,34 @@
 
 package com.jogamp.newt.impl;
 
+import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
-import com.jogamp.newt.event.*;
-
-import com.jogamp.common.util.*;
-import javax.media.nativewindow.*;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.KeyListener;
+import com.jogamp.newt.event.MouseEvent;
+import com.jogamp.newt.event.MouseListener;
+import com.jogamp.newt.event.NEWTEvent;
+import com.jogamp.newt.event.NEWTEventConsumer;
+import com.jogamp.newt.event.ScreenModeListener;
+import com.jogamp.newt.event.WindowEvent;
+import com.jogamp.newt.event.WindowListener;
+import com.jogamp.newt.event.WindowUpdateEvent;
 
 import java.util.ArrayList;
 import java.lang.reflect.Method;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.Capabilities;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.util.DimensionReadOnly;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
@@ -362,12 +377,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
 
         windowLock.lock();
 
-        screen.getDisplay().getGraphicsDevice().lock();
+        AbstractGraphicsDevice adevice = screen.getDisplay().getGraphicsDevice();
+        adevice.lock();
         try {
             res = lockSurfaceImpl();
         } finally {
             if(!isNativeValid()) {
-                screen.getDisplay().getGraphicsDevice().unlock();
+                adevice.unlock();
                 windowLock.unlock();
                 res = LOCK_SURFACE_NOT_READY;
             }
