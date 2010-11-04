@@ -1,26 +1,4 @@
-/*
-* Copyright (c) 2007 The Khronos Group Inc.
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject
-* to the following conditions:
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-* OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*/
-
+/* Reference KD/kd.h for OpenKODE Core 1.0.3  */
 #ifndef __kd_h_
 #define __kd_h_
 
@@ -106,7 +84,6 @@ typedef KDuint32 KDmode;
 #define KD_EOPNOTSUPP 31
 #define KD_EOVERFLOW 32
 #define KD_EPERM 33
-#define KD_EPIPE 34
 #define KD_ERANGE 35
 #define KD_ETIMEDOUT (36)
 #define KD_ETRY_AGAIN 37
@@ -309,7 +286,7 @@ KD_API void KD_APIENTRY kdFreeEvent(KDEvent *event);
  *******************************************************/
 
 /* kdMain: The application-defined main function. */
-KD_API KDint KD_APIENTRY kdMain(KDint argc, const KDchar *const *argv);
+KDint KD_APIENTRY kdMain(KDint argc, const KDchar *const *argv);
 
 /* kdExit: Exit the application. */
 KD_API KD_NORETURN void KD_APIENTRY kdExit(KDint status);
@@ -577,8 +554,8 @@ KD_API void KD_APIENTRY kdClearerr(KDFile *file);
 
 /* kdFseek: Reposition the file position indicator in a file. */
 typedef enum {
-    KD_SEEK_SET =  0,
-    KD_SEEK_CUR =  1,
+    KD_SEEK_SET =  0, 
+    KD_SEEK_CUR =  1, 
     KD_SEEK_END =  2
 } KDfileSeekOrigin;
 KD_API KDint KD_APIENTRY kdFseek(KDFile *file, KDoff offset, KDfileSeekOrigin origin);
@@ -707,7 +684,7 @@ KD_API KDint KD_APIENTRY kdInetAton(const KDchar *cp, KDuint32 *inp);
 /* kdInetNtop: Convert a network address to textual form. */
 #define KD_INET_ADDRSTRLEN 16
 typedef struct KDInAddr {
-    KDuint32 _s_addr; /* MSVC VC9 again .. couldn't handle s_addr here */
+    KDuint32 s_addr;
 } KDInAddr;
 KD_API const KDchar *KD_APIENTRY kdInetNtop(KDuint af, const void *src, KDchar *dst, KDsize cnt);
 
@@ -751,7 +728,7 @@ typedef struct KDEventNameLookup {
 
 /* KD_EVENT_STATE: State changed event. */
 #define KD_EVENT_STATE 55
-
+        
 typedef struct KDEventState {
     KDint32 index;
     union {
@@ -763,7 +740,7 @@ typedef struct KDEventState {
 
 /* KD_EVENT_INPUT: Input changed event. */
 #define KD_EVENT_INPUT 56
-
+        
 typedef struct KDEventInput {
     KDint32 index;
     union {
