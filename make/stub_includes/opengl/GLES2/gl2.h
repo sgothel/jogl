@@ -39,7 +39,7 @@ typedef khronos_intptr_t GLintptr;
 typedef khronos_ssize_t  GLsizeiptr;
 
 /* OpenGL ES core versions */
-#define GL_ES_VERSION_2_0                 1
+#ifndef GL_ES_VERSION_2_0
 
 /* ClearBufferMask */
 #define GL_DEPTH_BUFFER_BIT               0x00000100
@@ -467,9 +467,14 @@ typedef khronos_ssize_t  GLsizeiptr;
 
 #define GL_INVALID_FRAMEBUFFER_OPERATION  0x0506
 
+#endif /* GL_ES_VERSION_2_0 */
+
 /*-------------------------------------------------------------------------
  * GL core functions.
  *-----------------------------------------------------------------------*/
+
+#ifndef GL_ES_VERSION_2_0
+#define GL_ES_VERSION_2_0   1
 
 GL_APICALL void         GL_APIENTRY glActiveTexture (GLenum texture);
 GL_APICALL void         GL_APIENTRY glAttachShader (GLuint program, GLuint shader);
@@ -613,6 +618,8 @@ GL_APICALL void         GL_APIENTRY glVertexAttrib4f (GLuint indx, GLfloat x, GL
 GL_APICALL void         GL_APIENTRY glVertexAttrib4fv (GLuint indx, const GLfloat* values);
 GL_APICALL void         GL_APIENTRY glVertexAttribPointer (GLuint indx, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* ptr);
 GL_APICALL void         GL_APIENTRY glViewport (GLint x, GLint y, GLsizei width, GLsizei height);
+
+#endif /* GL_ES_VERSION_2_0 */
 
 #ifdef __cplusplus
 }
