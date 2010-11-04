@@ -106,23 +106,16 @@ public class TestSwingAWT01GLn extends UITestCase {
 
             };
 
-            //swing on EDT..
-            if(window instanceof JFrame) {
-                invokeAndWait(test);
-            }else{
-                test.run();
-            }
+            // AWT / Swing on EDT..
+            invokeAndWait(test);
 
             Animator animator = new Animator(glCanvas[0]);
             animator.start();
             Thread.sleep(500);
             animator.stop();
 
-            if(window instanceof JFrame) {
-                invokeAndWait(cleanup);
-            }else{
-                cleanup.run();
-            }
+            // AWT / Swing on EDT..
+            invokeAndWait(cleanup);
         }
     }
 
