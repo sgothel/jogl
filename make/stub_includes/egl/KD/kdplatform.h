@@ -7,8 +7,13 @@
 
 typedef int KDint32;
 typedef unsigned int KDuint32;
+#if defined(_MSC_VER)
+typedef signed __int64 KDint64;
+typedef unsigned __int64 KDuint64;
+#else
 typedef long long KDint64;
 typedef unsigned long long KDuint64;
+#endif
 typedef short KDint16;
 typedef unsigned short KDuint16;
 typedef unsigned long KDuintptr;
