@@ -111,7 +111,7 @@ public class TestSwingAWT01GLn extends UITestCase {
 
             Animator animator = new Animator(glCanvas[0]);
             animator.start();
-            Thread.sleep(500);
+            Thread.sleep(1000);
             animator.stop();
 
             // AWT / Swing on EDT..
