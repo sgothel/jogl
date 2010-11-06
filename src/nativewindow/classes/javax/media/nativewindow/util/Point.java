@@ -51,6 +51,7 @@ public class Point implements Cloneable, PointReadOnly {
     }
 
     public boolean equals(Object obj) {
+        if(this == obj)  { return true; }
         if (obj instanceof Point) {
             Point p = (Point)obj;
             return y == p.y && x == p.x;

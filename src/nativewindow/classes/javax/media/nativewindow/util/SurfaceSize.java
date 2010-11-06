@@ -76,6 +76,7 @@ public class SurfaceSize  implements Cloneable {
      *          otherwise <code>false</code>.
      */
     public final boolean equals(Object obj) {
+        if(this == obj)  { return true; }
         if (obj instanceof SurfaceSize) {
             SurfaceSize p = (SurfaceSize)obj;
             return getResolution().equals(p.getResolution()) &&

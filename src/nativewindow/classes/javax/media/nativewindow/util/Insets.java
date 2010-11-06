@@ -70,6 +70,7 @@ public class Insets implements Cloneable {
      *                          otherwise <code>false</code>.
      */
     public boolean equals(Object obj) {
+        if(this == obj)  { return true; }
         if (obj instanceof Insets) {
             Insets insets = (Insets)obj;
             return ((top == insets.top) && (left == insets.left) &&

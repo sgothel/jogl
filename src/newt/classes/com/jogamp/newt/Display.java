@@ -44,6 +44,7 @@ public abstract class Display {
 
     /** return true if obj is of type Display and both FQN {@link #getFQName()} equals */
     public boolean equals(Object obj) {
+        if (this == obj) { return true; }
         if (obj instanceof Display) {
             Display d = (Display)obj;
             return d.getFQName().equals(getFQName());

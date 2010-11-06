@@ -74,6 +74,7 @@ public class Capabilities implements Cloneable {
   }
 
   public boolean equals(Object obj) {
+    if(this == obj)  { return true; }
     if(!(obj instanceof Capabilities)) {
         return false;
     }

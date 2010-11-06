@@ -63,6 +63,7 @@ public class Rectangle implements Cloneable, RectangleReadOnly {
     public void setHeight(int height) { this.height = height; }
 
     public boolean equals(Object obj) {
+        if(this == obj)  { return true; }
         if (obj instanceof Rectangle) {
             Rectangle rect = (Rectangle)obj;
             return (y == rect.y) && (x == rect.x) &&

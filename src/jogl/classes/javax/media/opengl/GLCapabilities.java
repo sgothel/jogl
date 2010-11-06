@@ -93,6 +93,7 @@ public class GLCapabilities extends Capabilities implements Cloneable {
   }
 
   public boolean equals(Object obj) {
+    if(this == obj)  { return true; }
     if(!(obj instanceof GLCapabilities)) {
         return false;
     }

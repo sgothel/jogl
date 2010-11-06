@@ -1,6 +1,5 @@
 /**
  * Copyright 2010 JogAmp Community. All rights reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -85,6 +84,7 @@ public class MonitorMode  implements Cloneable {
      *          otherwise <code>false</code>.
      */
     public final boolean equals(Object obj) {
+        if (this == obj) { return true; }
         if (obj instanceof MonitorMode) {
             MonitorMode p = (MonitorMode)obj;
             return getSurfaceSize().equals(p.getSurfaceSize()) &&

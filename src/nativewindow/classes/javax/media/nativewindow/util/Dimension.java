@@ -78,6 +78,7 @@ public class Dimension implements Cloneable, DimensionReadOnly {
     }
 
     public boolean equals(Object obj) {
+        if(this == obj)  { return true; }
         if (obj instanceof Dimension) {
             Dimension p = (Dimension)obj;
             return height == p.height && 

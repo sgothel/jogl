@@ -164,6 +164,7 @@ public class ScreenMode implements Cloneable {
      * <br>
      */
     public final boolean equals(Object obj) {
+        if (this == obj) { return true; }
         if (obj instanceof ScreenMode) {
             ScreenMode sm = (ScreenMode)obj;
             return sm.getMonitorMode().equals(getMonitorMode()) &&

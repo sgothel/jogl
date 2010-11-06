@@ -510,6 +510,7 @@ public class GLProfile {
      *         if both, profile and profileImpl is equal with this.
      */
     public final boolean equals(Object o) {
+        if(this==o) { return true; }
         if(o instanceof GLProfile) {
             GLProfile glp = (GLProfile)o;
             return profile.equals(glp.getName()) && profileImpl.equals(glp.getImplName()) ;
