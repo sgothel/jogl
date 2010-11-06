@@ -10,8 +10,6 @@
   /** Common in ES1, GL2 and GL3 */
   public static final int GL_BLEND_SRC = 0x0BE1;
   /** Common in ES1, GL2 and GL3 */
-  public static final int GL_BUFFER_ACCESS = 0x88BB;
-  /** Common in ES1, GL2 and GL3 */
   public static final int GL_CLEAR = 0x1500;
   /** Common in ES1, GL2 and GL3 */
   public static final int GL_COLOR_LOGIC_OP = 0x0BF2;
@@ -19,10 +17,6 @@
   public static final int GL_COPY = 0x1503;
   /** Common in ES1, GL2 and GL3 */
   public static final int GL_COPY_INVERTED = 0x150C;
-  /** Common in ES1, GL2 and GL3 */
-  public static final int GL_DEPTH_COMPONENT24 = 0x81A6;
-  /** Common in ES1, GL2 and GL3 */
-  public static final int GL_DEPTH_COMPONENT32 = 0x81A7;
   /** Common in ES1, GL2 and GL3 */
   public static final int GL_EQUIV = 0x1509;
   /** Common in ES1, GL2 and GL3 */
@@ -57,12 +51,6 @@
   public static final int GL_SMOOTH_LINE_WIDTH_RANGE = 0x0B22;
   /** Common in ES1, GL2 and GL3 */
   public static final int GL_SMOOTH_POINT_SIZE_RANGE = 0x0B12;
-  /** Common in ES1, GL2 and GL3 */
-  public static final int GL_STENCIL_INDEX1 = 0x8D46;
-  /** Common in ES1, GL2 and GL3 */
-  public static final int GL_STENCIL_INDEX4 = 0x8D47;
-  /** Common in ES1, GL2 and GL3 */
-  public static final int GL_WRITE_ONLY = 0x88B9;
   /** Common in ES1, GL2 and GL3 */
   public static final int GL_XOR = 0x1506;
 
