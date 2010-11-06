@@ -62,7 +62,6 @@
 #endif
 
 #include <KD/kd.h>
-#include <KD/NV_extwindowprops.h>
 
 #include "com_jogamp_newt_impl_opengl_kd_KDWindow.h"
 
@@ -319,12 +318,18 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_opengl_kd_KDWindow_setVisible0
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_opengl_kd_KDWindow_setFullScreen0
   (JNIEnv *env, jobject obj, jlong window, jboolean fullscreen)
 {
+/** not supported, due to missing NV property ..
     KDWindow *w = (KDWindow*) (intptr_t) window;
     KDboolean v = fullscreen;
 
     int res = kdSetWindowPropertybv(w, KD_WINDOWPROPERTY_FULLSCREEN_NV, &v);
     DBG_PRINT( "[setFullScreen] v=%d, res=%d\n", fullscreen, res);
     (void)res;
+*/
+    (void)env;
+    (void)obj;
+    (void)window;
+    (void)fullscreen;
 }
 
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_opengl_kd_KDWindow_setSize0

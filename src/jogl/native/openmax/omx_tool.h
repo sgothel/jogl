@@ -1,3 +1,6 @@
+/**
+ * Uses the EGL Extensions: EGL_KHR_reusable_sync and EGL_KHR_fence_sync
+ */
 
 #ifndef _OMX_TOOL_H
 #define _OMX_TOOL_H
@@ -27,13 +30,12 @@
 #endif
 
 #include <OMX_Core.h>
+#include <OMX_Component.h>
 #include <OMX_Index.h>
-#include <OMX_Video.h>
-#include <OMX_Audio.h>
-#include <OMX_Other.h>
-#include <OMX_Image.h>
+
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+#include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <KD/kd.h>
 
@@ -80,6 +82,7 @@ typedef enum
 
 
 typedef struct {
+    EGLDisplay dpy;
     OMX_VERSIONTYPE version;
     OMX_HANDLETYPE comp[OMXAV_H_NUMBER];
     OMX_HANDLETYPE endComponent;
@@ -138,7 +141,7 @@ KDint OMXToolBasicAV_SetState(OMXToolBasicAV_t * pOMXAV, OMX_STATETYPE state, KD
 //
 // User related functionality, mutex managed
 //
-OMXToolBasicAV_t * OMXToolBasicAV_CreateInstance(); // #1
+OMXToolBasicAV_t * OMXToolBasicAV_CreateInstance(EGLDisplay dpy); // #1
 void OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, int vBufferNum, const KDchar * stream); // #2
 void OMXToolBasicAV_SetStreamEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, KDint i, GLuint tex, EGLImageKHR image, EGLSyncKHR sync); // #3
 void OMXToolBasicAV_ActivateStream(OMXToolBasicAV_t * pOMXAV); // #4

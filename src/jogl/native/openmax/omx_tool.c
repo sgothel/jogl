@@ -23,8 +23,6 @@
     #endif
 #endif
 
-#include <NVOMX_IndexExtensions.h>
-
 #define NOTSET_U8 ((OMX_U8)0xDE)
 #define NOTSET_U16 ((OMX_U16)0xDEDE)
 #define NOTSET_U32 ((OMX_U32)0xDEDEDEDE)
@@ -91,8 +89,7 @@ do { \
 } while (0);
 
 static PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR;
-static PFNEGLCREATEFENCESYNCKHRPROC eglCreateFenceSyncKHR;
-static PFNEGLFENCEKHRPROC eglFenceKHR;
+static PFNEGLCREATESYNCKHRPROC eglCreateSyncKHR;
 static PFNEGLGETSYNCATTRIBKHRPROC eglGetSyncAttribKHR;
 static PFNEGLSIGNALSYNCKHRPROC eglSignalSyncKHR;
 static int _hasEGLSync = 0;
@@ -134,11 +131,10 @@ static void InitStatic()
     vOMX.s.nStep = 0;
 
     GETEXTENSION(PFNEGLCREATEIMAGEKHRPROC,      eglCreateImageKHR);
-    GETEXTENSION(PFNEGLCREATEFENCESYNCKHRPROC,  eglCreateFenceSyncKHR);
-    GETEXTENSION(PFNEGLFENCEKHRPROC,            eglFenceKHR);
+    GETEXTENSION(PFNEGLCREATESYNCKHRPROC,       eglCreateSyncKHR);
     GETEXTENSION(PFNEGLGETSYNCATTRIBKHRPROC,    eglGetSyncAttribKHR);
     GETEXTENSION(PFNEGLSIGNALSYNCKHRPROC,       eglSignalSyncKHR);
-    if(NULL==eglFenceKHR||NULL==eglGetSyncAttribKHR||NULL==eglSignalSyncKHR) {
+    if(NULL==eglGetSyncAttribKHR||NULL==eglSignalSyncKHR) {
         _hasEGLSync = 0;
     } else {
         _hasEGLSync = 1;
@@ -515,7 +511,8 @@ static void DestroyInstanceUnlock(OMXToolBasicAV_t * pOMXAV)
 
 static OMX_ERRORTYPE AddFile(OMXToolBasicAV_t * pOMXAV, const KDchar* filename)
 {
-    // FIXME: Non NV case ..
+// FIXME: Non NV case ..
+#if 0 
     OMX_ERRORTYPE eError;
     NVX_PARAM_FILENAME oFilenameParam;
     OMX_INDEXTYPE eIndexParamFilename;
@@ -533,11 +530,15 @@ static OMX_ERRORTYPE AddFile(OMXToolBasicAV_t * pOMXAV, const KDchar* filename)
         return eError;
 
     return OMX_ErrorNone;
+#else
+    return OMX_ErrorNotImplemented;
+#endif
 }
 
 static OMX_ERRORTYPE ProbePort(OMXToolBasicAV_t * pOMXAV, int port, KDchar *codec, KDchar* component)
 {
-    // FIXME: Non NV case ..
+// FIXME: Non NV case ..
+#if 0 
     OMX_U32 roles = 1;
     OMX_ERRORTYPE err = OMX_ErrorNone;
     OMX_INDEXTYPE eParam;
@@ -599,6 +600,9 @@ static OMX_ERRORTYPE ProbePort(OMXToolBasicAV_t * pOMXAV, int port, KDchar *code
     }
 
     return err != OMX_ErrorNone ? err : roles ? OMX_ErrorNone : OMX_ErrorComponentNotFound;
+#else
+    return OMX_ErrorNotImplemented;
+#endif
 }
 
 static int StartClock(OMXToolBasicAV_t * pOMXAV, KDboolean start, KDfloat32 time) {
@@ -672,6 +676,8 @@ static int SetMediaPosition(OMXToolBasicAV_t * pOMXAV, KDfloat32 time) {
 
 static KDfloat32 GetMediaLength(OMXToolBasicAV_t * pOMXAV)
 {
+// FIXME: Non NV case ..
+#if 0 
     NVX_PARAM_DURATION oDuration;
     OMX_INDEXTYPE eParam;
 
@@ -682,6 +688,9 @@ static KDfloat32 GetMediaLength(OMXToolBasicAV_t * pOMXAV)
         return -1.0f;
 
     return (KDfloat32) (oDuration.nDuration * (1.0f/(1000.0f*1000.0f)));
+#else
+    return -1.0f;
+#endif
 }
 
 static OMX_ERRORTYPE UpdateStreamInfo(OMXToolBasicAV_t * pOMXAV, KDboolean issueCallback)
@@ -736,6 +745,8 @@ static OMX_ERRORTYPE UpdateStreamInfo(OMXToolBasicAV_t * pOMXAV, KDboolean issue
 
 static int AttachAudioRenderer(OMXToolBasicAV_t * pOMXAV)
 {
+// FIXME: Non NV case ..
+#if 0 
     int res=0;
     // Configure audio port
 
@@ -808,6 +819,9 @@ static int AttachAudioRenderer(OMXToolBasicAV_t * pOMXAV)
     OMXSAFE(OMX_SetupTunnel(pOMXAV->comp[OMXAV_H_CLOCK],  pOMXAV->audioPort, pOMXAV->comp[OMXAV_H_ARENDERER], 1));
 
     return OMX_ErrorNone;
+#else
+    return OMX_ErrorNotImplemented;
+#endif
 }
 
 static int AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
@@ -911,7 +925,7 @@ static int DetachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
     return 0;
 }
 
-OMXToolBasicAV_t * OMXToolBasicAV_CreateInstance()
+OMXToolBasicAV_t * OMXToolBasicAV_CreateInstance(EGLDisplay dpy)
 {
     int i;
     OMXToolBasicAV_t * pOMXAV = NULL;
@@ -923,6 +937,8 @@ OMXToolBasicAV_t * OMXToolBasicAV_CreateInstance()
         return NULL;
     }
     memset(pOMXAV, 0, sizeof(OMXToolBasicAV_t));
+
+    pOMXAV->dpy = dpy;
 
     pOMXAV->audioPort=-1;
     pOMXAV->videoPort=-1;
@@ -1410,7 +1426,7 @@ GLuint OMXToolBasicAV_GetNextTextureID(OMXToolBasicAV_t * pOMXAV) {
         {
             int attr;
             if ( !_hasEGLSync || (
-                 eglGetSyncAttribKHR(pOMXAV->buffers[pOMXAV->omxPos].sync, EGL_SYNC_STATUS_KHR, &attr) &&
+                 eglGetSyncAttribKHR(pOMXAV->dpy, pOMXAV->buffers[pOMXAV->omxPos].sync, EGL_SYNC_STATUS_KHR, &attr) &&
                  attr == EGL_SIGNALED_KHR )
                )
             {
@@ -1440,7 +1456,7 @@ GLuint OMXToolBasicAV_GetNextTextureID(OMXToolBasicAV_t * pOMXAV) {
         //
         // Only move on to rendering the next image if the insertion
         // was successfull.
-        if (!_hasEGLSync || eglFenceKHR(pOMXAV->buffers[pOMXAV->glPos].sync))
+        if (!_hasEGLSync || eglSignalSyncKHR(pOMXAV->dpy, pOMXAV->buffers[pOMXAV->glPos].sync, EGL_UNSIGNALED_KHR))
         {
             DBG_PRINT2( "GetNextTexture p3.2\n");
             pOMXAV->available--;
@@ -1591,7 +1607,7 @@ int ModuleTest()
 
     GETEXTENSION(PFNEGLDESTROYIMAGEKHRPROC,     eglDestroyImageKHR);
 
-    pOMXAV = OMXToolBasicAV_CreateInstance(3);
+    pOMXAV = OMXToolBasicAV_CreateInstance(eglDisplay);
     if(OMXToolBasicAV_SetStream(pOMXAV, file)) {
         return -1;
     }
@@ -1641,8 +1657,8 @@ int ModuleTest()
         }
         printf("5 eglGetError: 0x%x\n", eglGetError());
 
-        sync = eglCreateFenceSyncKHR(
-            eglDisplay, EGL_SYNC_PRIOR_COMMANDS_COMPLETE_KHR, &attrib);
+        sync = eglCreateSyncKHR(
+            eglDisplay, EGL_SYNC_FENCE_KHR, &attrib);
 
         printf("6 eglGetError: 0x%x\n", eglGetError());
 
@@ -1652,12 +1668,12 @@ int ModuleTest()
     }
     
     printf("7\n");
-    if( OMXToolBasicAV_ActivateStream(pOMXAV) ) {
+    if( OMXToolBasicAV_ActivateStream(eglDisplay, pOMXAV) ) {
         return -1;
     }
 
     printf("8\n");
-    if( OMXToolBasicAV_PlayStart(pOMXAV) ) {
+    if( OMXToolBasicAV_PlayStart(eglDisplay, pOMXAV) ) {
         return -1;
     }
 
@@ -1675,18 +1691,18 @@ int ModuleTest()
     }
     
     printf("9\n");
-    if( OMXToolBasicAV_PlayStop(pOMXAV) ) {
+    if( OMXToolBasicAV_PlayStop(eglDisplay, pOMXAV) ) {
         fprintf(stderr, "Err: Stop");
         return -1;
     }
     printf("A1\n");
-    OMXToolBasicAV_DetachVideoRenderer(pOMXAV); // Stop before ..
+    OMXToolBasicAV_DetachVideoRenderer(eglDisplay, pOMXAV); // Stop before ..
 
     printf("A2\n");
-    OMXToolBasicAV_AttachVideoRenderer(pOMXAV); // DetachVideoRenderer before ..
+    OMXToolBasicAV_AttachVideoRenderer(eglDisplay, pOMXAV); // DetachVideoRenderer before ..
 
     printf("B\n");
-    OMXToolBasicAV_DestroyInstance(pOMXAV);
+    OMXToolBasicAV_DestroyInstance(eglDisplay, pOMXAV);
 
     printf("C\n");
     eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
