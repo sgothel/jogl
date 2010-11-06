@@ -212,9 +212,9 @@ public class OMXInstance {
             // rendering the EGLImage texture before we tell OpenMAX to fill
             // it with a new frame.
             tmp[0] = EGL.EGL_NONE;
-            sync = eglExt.eglCreateFenceSyncKHR(
+            sync = eglExt.eglCreateSyncKHR(
                     eglDisplay,
-                    eglExt.EGL_SYNC_PRIOR_COMMANDS_COMPLETE_KHR, tmp, 0);
+                    eglExt.EGL_SYNC_FENCE_KHR, tmp, 0);
 
             _setStreamEGLImageTexture2D(moviePtr, i, tex, image, sync);
 
@@ -450,7 +450,7 @@ public class OMXInstance {
                             eglImgTexs[i].image);
                     }
                     if(0!=eglImgTexs[i].sync) {
-                        eglExt.eglDestroySyncKHR(eglImgTexs[i].sync);
+                        eglExt.eglDestroySyncKHR(eglDisplay, eglImgTexs[i].sync);
                     }
                     if(null!=gl) {
                         eglImgTexs[i].texture.destroy(gl);
