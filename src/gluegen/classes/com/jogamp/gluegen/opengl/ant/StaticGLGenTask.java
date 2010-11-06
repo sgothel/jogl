@@ -1,8 +1,9 @@
-package com.jogamp.gluegen.ant;
+package com.jogamp.gluegen.opengl.ant;
 
 /*
  * StaticGLGenTask.java
  * Copyright (C) 2003 Rob Grzywinski (rgrzywinski@realityinteractive.com)
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Copying, distribution and use of this software in source and binary
  * forms, with or without modification, is permitted provided that the

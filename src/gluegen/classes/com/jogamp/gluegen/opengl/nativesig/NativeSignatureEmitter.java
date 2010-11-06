@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,14 +37,15 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-package com.jogamp.gluegen.nativesig;
+package com.jogamp.gluegen.opengl.nativesig;
+
+import java.io.*;
+import java.util.*;
 
 import com.jogamp.gluegen.MethodBinding;
 import com.jogamp.gluegen.FunctionEmitter;
 import com.jogamp.gluegen.JavaMethodBindingEmitter;
 import com.jogamp.gluegen.JavaType;
-import java.io.*;
-import java.util.*;
 
 import com.jogamp.gluegen.*;
 import com.jogamp.gluegen.cgram.types.*;
