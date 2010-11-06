@@ -136,7 +136,7 @@ typedef khronos_utime_nanoseconds_t EGLTimeKHR;
 #define EGL_SYNC_REUSABLE_KHR			0x30FA
 #define EGL_SYNC_FLUSH_COMMANDS_BIT_KHR		0x0001	/* eglClientWaitSyncKHR <flags> bitfield */
 #define EGL_FOREVER_KHR				0xFFFFFFFFFFFFFFFFull
-#define EGL_NO_SYNC_KHR				((EGLSyncKHR)0)
+/* Manual: #define EGL_NO_SYNC_KHR				((EGLSyncKHR)0) */
 #ifdef EGL_EGLEXT_PROTOTYPES
 EGLAPI EGLSyncKHR EGLAPIENTRY eglCreateSyncKHR(EGLDisplay dpy, EGLenum type, const EGLint *attrib_list);
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync);
@@ -243,13 +243,13 @@ typedef EGLBoolean (EGLAPIENTRYP PFNEGLGETSYNCATTRIBNVPROC) (EGLSyncNV sync, EGL
  * Structure representing a client pixmap
  * (pixmap's data is in client-space memory).
  */
-struct EGLClientPixmapHI
+typedef struct EGLClientPixmapHI
 {
 	void*		pData;
 	EGLint		iWidth;
 	EGLint		iHeight;
 	EGLint		iStride;
-};
+} EGLClientPixmapHI;
 
 #ifdef EGL_EGLEXT_PROTOTYPES
 EGLAPI EGLSurface EGLAPIENTRY eglCreatePixmapSurfaceHI(EGLDisplay dpy, EGLConfig config, struct EGLClientPixmapHI* pixmap);
@@ -296,14 +296,16 @@ typedef EGLBoolean (EGLAPIENTRYP PFNEGLEXPORTDRMIMAGEMESAPROC) (EGLDisplay dpy, 
 #define EGL_TEXTURE_RECTANGLE_NV       0x20A2
 #endif
 
+#include "egl-64bit-types.h"
+
 #ifndef EGL_NV_system_time
 #define EGL_NV_system_time 1
 #ifdef EGL_EGLEXT_PROTOTYPES
-EGLAPI EGLuint64NV EGLAPIENTRY eglGetSystemTimeFrequencyNV(void);
-EGLAPI EGLuint64NV EGLAPIENTRY eglGetSystemTimeNV(void);
+EGLAPI EGLuint64 EGLAPIENTRY eglGetSystemTimeFrequencyNV(void);
+EGLAPI EGLuint64 EGLAPIENTRY eglGetSystemTimeNV(void);
 #endif
-typedef EGLuint64NV (EGLAPIENTRYP PFNEGLGETSYSTEMTIMEFREQUENCYNVPROC)(void);
-typedef EGLuint64NV (EGLAPIENTRYP PFNEGLGETSYSTEMTIMENVPROC)(void);
+typedef EGLuint64 (EGLAPIENTRYP PFNEGLGETSYSTEMTIMEFREQUENCYNVPROC)(void);
+typedef EGLuint64 (EGLAPIENTRYP PFNEGLGETSYSTEMTIMENVPROC)(void);
 #endif
 
 /* EGL_NV_omx_il_sink
