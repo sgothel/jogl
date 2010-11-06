@@ -2,23 +2,20 @@
 #ifndef __kdplatform_h_
 #define __kdplatform_h_
 
+#include <KHR/khrplatform.h>
+
 #define KD_API
 #define KD_APIENTRY
 
-typedef int KDint32;
-typedef unsigned int KDuint32;
-#if defined(_MSC_VER)
-typedef signed __int64 KDint64;
-typedef unsigned __int64 KDuint64;
-#else
-typedef long long KDint64;
-typedef unsigned long long KDuint64;
-#endif
-typedef short KDint16;
-typedef unsigned short KDuint16;
-typedef unsigned long KDuintptr;
-typedef unsigned long KDsize;
-typedef long KDssize;
+typedef khronos_int32_t KDint32;
+typedef khronos_uint32_t KDuint32;
+typedef khronos_int64_t KDint64;
+typedef khronos_uint64_t KDuint64;
+typedef khronos_int16_t KDint16;
+typedef khronos_uint16_t KDuint16;
+typedef khronos_uintptr_t KDuintptr;
+typedef khronos_usize_t KDsize;
+typedef khronos_ssize_t KDssize;
 #define KDINT_MIN (-0x7fffffff-1)
 #define KDINT_MAX 0x7fffffff
 #define KDUINT_MAX 0xffffffffU

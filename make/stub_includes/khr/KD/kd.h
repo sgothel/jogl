@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#include "kdplatform.h"
+#include <KD/kdplatform.h>
 
 
 

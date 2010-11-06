@@ -136,8 +136,11 @@
 
 
 /*
+ * Using <stddef.h>
  * Using <stdint.h>
  */
+#include <stddef.h>
+#define HAS_STDDEF 1
 #include <stdint.h>
 typedef int32_t                 khronos_int32_t;
 typedef uint32_t                khronos_uint32_t;
@@ -149,8 +152,11 @@ typedef uint64_t                khronos_uint64_t;
 #elif defined(__VMS ) || defined(__sgi)
 
 /*
+ * Using <stddef.h>
  * Using <inttypes.h>
  */
+#include <stddef.h>
+#define HAS_STDDEF 1
 #include <inttypes.h>
 typedef int32_t                 khronos_int32_t;
 typedef uint32_t                khronos_uint32_t;
@@ -185,6 +191,10 @@ typedef unsigned long int       khronos_uint64_t;
 typedef long long int           khronos_int64_t;
 typedef unsigned long long int  khronos_uint64_t;
 #endif /* __arch64__ */
+typedef signed   long  int      khronos_intptr_t;
+typedef unsigned long  int      khronos_uintptr_t;
+typedef signed   long  int      khronos_ssize_t;
+typedef unsigned long  int      khronos_usize_t;
 #define KHRONOS_SUPPORT_INT64   1
 #define KHRONOS_SUPPORT_FLOAT   1
 
@@ -202,7 +212,12 @@ typedef unsigned int            khronos_uint32_t;
 
 /*
  * Generic fallback
+ *
+ * Using <stddef.h>
+ * Using <stdint.h>
  */
+#include <stddef.h>
+#define HAS_STDDEF 1
 #include <stdint.h>
 typedef int32_t                 khronos_int32_t;
 typedef uint32_t                khronos_uint32_t;
@@ -221,10 +236,17 @@ typedef signed   char          khronos_int8_t;
 typedef unsigned char          khronos_uint8_t;
 typedef signed   short int     khronos_int16_t;
 typedef unsigned short int     khronos_uint16_t;
-typedef signed   long  int     khronos_intptr_t;
-typedef unsigned long  int     khronos_uintptr_t;
-typedef signed   long  int     khronos_ssize_t;
-typedef unsigned long  int     khronos_usize_t;
+#ifndef HAS_STDDEF
+    typedef signed   long  int      khronos_intptr_t;
+    typedef unsigned long  int      khronos_uintptr_t;
+    typedef signed   long  int      khronos_ssize_t;
+    typedef unsigned long  int      khronos_usize_t;
+#else
+    typedef ptrdiff_t               khronos_intptr_t;
+    typedef size_t                  khronos_uintptr_t;
+    typedef ptrdiff_t               khronos_ssize_t;
+    typedef size_t                  khronos_usize_t;
+#endif
 
 #if KHRONOS_SUPPORT_FLOAT
 /*
