@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.gluegen.opengl;
+package com.jogamp.gluegen.opengl;
 
 import java.io.*;
 import java.util.*;

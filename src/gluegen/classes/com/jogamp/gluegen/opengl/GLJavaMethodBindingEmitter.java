@@ -36,12 +36,12 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-package com.sun.gluegen.opengl;
+package com.jogamp.gluegen.opengl;
 
 import java.io.*;
-import com.sun.gluegen.*;
-import com.sun.gluegen.cgram.types.*;
-import com.sun.gluegen.procaddress.*;
+import com.jogamp.gluegen.*;
+import com.jogamp.gluegen.cgram.types.*;
+import com.jogamp.gluegen.procaddress.*;
 
 /** A specialization of the proc address emitter which knows how to
 change argument names to take into account Vertex Buffer Object /

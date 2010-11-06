@@ -36,9 +36,9 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-package com.sun.gluegen.opengl;
+package com.jogamp.gluegen.opengl;
 
-import com.sun.gluegen.*;
+import com.jogamp.gluegen.*;
 
 import java.lang.reflect.*;
 import java.io.*;
