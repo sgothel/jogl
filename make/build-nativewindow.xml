@@ -127,7 +127,8 @@
             <include name="${stub.includes}/macosx/**" />
             <include name="${stub.includes}/win32/**" />
             <include name="${stub.includes}/x11/**" />
-            <include name="${stub.includes}/common/**" />
+            <include name="${stub.includes}/gluegen/**" />
+            <include name="${stub.includes}/khr/**" />
             <include name="${stub.includes}/jni/**" />
         </dirset>
         <fileset id="stub.includes.dependencies.fileset.1" dir="${stub.includes}">
@@ -256,7 +257,7 @@
 
     <target name="java.generate.platforms" >
         <echo message="Generating platform-specifics: os: ${window.os.system}, cfgs: ${windowlib.os.cfg}, ${jawt.cfg}" />
-        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes}/${window.os.system}/** ${stub.includes}/common/**" />
+        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes}/${window.os.system}/** ${stub.includes}/gluegen/** ${stub.includes}/khr/**" />
         <antcall target="java.generate.windowlib" inheritRefs="true" />
         <antcall target="java.generate.jawt" inheritRefs="true" />
     </target>
@@ -266,7 +267,7 @@
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
-    <target name="java.generate" depends="common.gluegen.build, java.generate.check" unless="java.generate.skip">
+    <target name="java.generate" depends="init, common.gluegen.build, java.generate.check" unless="java.generate.skip">
 
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
         <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
@@ -362,21 +363,25 @@
       <linker id="linker.cfg.freebsd.nativewindow.x11" extends="linker.cfg.freebsd">
         <syslibset dir="/usr/local/lib" libs="X11"/>
         <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
+        <syslibset dir="/usr/local/lib" libs="Xinerama"/>
       </linker>
 
       <linker id="linker.cfg.freebsd.amd64.nativewindow.x11" extends="linker.cfg.freebsd.amd64">
         <syslibset dir="/usr/local/lib" libs="X11" />
         <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
+        <syslibset dir="/usr/local/lib" libs="Xinerama"/>
       </linker>
 
       <linker id="linker.cfg.linux.nativewindow.x11" extends="linker.cfg.linux">
         <syslibset libs="X11"/>
         <syslibset libs="Xxf86vm" />
+        <syslibset libs="Xinerama"/>
       </linker>
 
       <linker id="linker.cfg.linux.amd64.nativewindow.x11" extends="linker.cfg.linux.amd64">
         <syslibset libs="X11"/>
         <syslibset libs="Xxf86vm" />
+        <syslibset libs="Xinerama"/>
       </linker>
 
       <linker id="linker.cfg.solaris.nativewindow.x11" extends="linker.cfg.solaris">
@@ -412,6 +417,7 @@
 
       <linker id="linker.cfg.hpux.nativewindow" extends="linker.cfg.hpux">
         <syslibset dir="/usr/lib" libs="X11"/>
+        <syslibset dir="/usr/lib" libs="Xinerama"/>
       </linker>
     </target>
 
@@ -556,9 +562,6 @@
           <include name="${rootrel.generated.c}/X11/X11*.c" if="isX11"/>
           <include name="${rootrel.src.c}/x11/Xmisc.c" if="isX11"/>
           <include name="${rootrel.src.c}/x11/XineramaHelper.c" if="isX11"/>
-          <!-- Xinerama supporting functions for Linux only (for now) -->
-          <!-- Also supported on Solaris, but works differently -->
-          <include name="${rootrel.src.c}/x11/Xinerama.c" if="isLinux"/>
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
