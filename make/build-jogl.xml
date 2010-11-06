@@ -215,7 +215,8 @@
             <include name="${stub.includes}/macosx/**" />
             <include name="${stub.includes}/win32/**" />
             <include name="${stub.includes}/x11/**" />
-            <include name="${stub.includes}/common/**" />
+            <include name="${stub.includes}/gluegen/**" />
+            <include name="${stub.includes}/khr/**" />
             <include name="${stub.includes}/jni/**" />
         </dirset>
         <fileset id="stub.includes.dependencies.fileset.1" dir="${stub.includes}">
@@ -239,7 +240,8 @@
             <include name="${stub.includes}/macosx/**" />
             <include name="${stub.includes}/win32/**" />
             <include name="${stub.includes}/x11/**" />
-            <include name="${stub.includes}/common/**" />
+            <include name="${stub.includes}/gluegen/**" />
+            <include name="${stub.includes}/khr/**" />
         </dirset>
         <fileset id="stub.includes.cg.dependencies.fileset" dir=".">
             <include name="${stub.includes}/cg/**" />
@@ -404,7 +406,8 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
+                 emitter="com.sun.gluegen.opengl.GLEmitter"
+                 debug="false">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
@@ -440,7 +443,8 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl3-subset.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
+                 emitter="com.sun.gluegen.opengl.GLEmitter"
+                 debug="false">
             <classpath refid="gluegen.classpath" />
         </gluegen>
         <gluegen src="${stub.includes.opengl}/gl2.c" 
@@ -507,7 +511,8 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-gl4bc.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
+                 emitter="com.sun.gluegen.opengl.GLEmitter"
+                 debug="false">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
@@ -519,7 +524,8 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-es1.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
+                 emitter="com.sun.gluegen.opengl.GLEmitter"
+                 debug="false">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
@@ -599,12 +605,13 @@
     <target name="java.generate.window.system.es" if="window.es.cfg">
         <echo message="Generating EGL implementation class" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes}/${window.es.system}/** ${stub.includes}/common/**" />
+        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes}/${window.es.system}/** ${stub.includes}/gluegen/** ${stub.includes}/khr/**" />
         <gluegen src="${stub.includes}/${window.es.system}/window-system1.c"
                  outputRootDir="${build.jogl}"
                  config="${window.es.cfg}"
                  includeRefid="stub.includes.fileset.platform"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
+                 emitter="com.sun.gluegen.opengl.GLEmitter"
+                 debug="false">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
@@ -612,12 +619,13 @@
     <target name="java.generate.window.system.es.ext" if="window.es.ext.cfg">
         <echo message="Generating EGLExt implementation class" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes}/${window.es.system}/** ${stub.includes}/common/**" />
+        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes}/${window.es.system}/** ${stub.includes}/gluegen/** ${stub.includes}/khr/**" />
         <gluegen src="${stub.includes}/${window.es.system}/window-system-ext.c"
                  outputRootDir="${build.jogl}"
                  config="${window.es.ext.cfg}"
                  includeRefid="stub.includes.fileset.platform"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
+                 emitter="com.sun.gluegen.opengl.GLEmitter"
+                 debug="false">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
@@ -647,7 +655,7 @@
     </target>
 
     <target name="java.generate.gl.platforms" >
-        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes}/${window.os.system}/** ${stub.includes}/${window.es.system}/** ${stub.includes}/common/** ${stub.includes}/opengl/**" />
+        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes}/${window.os.system}/** ${stub.includes}/${window.es.system}/** ${stub.includes}/gluegen/** ${stub.includes}/khr/** ${stub.includes}/opengl/**" />
 
         <antcall target="java.generate.window.system.os0" inheritRefs="true" />
         <antcall target="java.generate.window.system.os1" inheritRefs="true" />
@@ -659,7 +667,7 @@
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
-    <target name="java.generate" depends="common.gluegen.build, java.generate.check" unless="java.generate.skip">
+    <target name="java.generate" depends="init, common.gluegen.build, java.generate.check" unless="java.generate.skip">
 
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
         <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
@@ -669,6 +677,17 @@
                  
         <!-- Use the GlueGen and BuildStaticGLInfo tasks to generate the 
            - Java files -->
+
+        <!-- Just to have a fast test of single interfaces .. 
+            <antcall target="java.generate.gl_if"      inheritRefs="true" />
+            <antcall target="java.generate.gl2_es1_if" inheritRefs="true" />
+            <antcall target="java.generate.gl2_es2_if" inheritRefs="true" />
+            <antcall target="java.generate.gl2_gl3_if" inheritRefs="true" />
+            <antcall target="java.generate.gles1" inheritRefs="true"/>
+            <antcall target="java.generate.window.system.es" inheritRefs="true" />
+            <antcall target="java.generate.window.system.es.ext" inheritRefs="true" />
+            <antcall target="java.generate.gl4bc" inheritRefs="true"/>
+            <fail/>  -->
 
         <echo message="Generating GL interface and implementation" />
         <antcall target="java.generate.gl.all"      inheritRefs="true" />
@@ -1333,8 +1352,9 @@
           <compiler extends="@{compiler.cfg.id}" >
             <sysincludepath path="${java.includes.dir}"/>
             <sysincludepath path="${java.includes.dir.platform}"/>
-            <includepath path="stub_includes/opengl"/>
+            <includepath path="stub_includes/khr"/>
             <includepath path="stub_includes/egl"/>
+            <includepath path="stub_includes/opengl"/>
             <includepath path="stub_includes/openmax" if="useOpenMAX"/>
             <includepath path="stub_includes/cg" if="jogl.cg"/>        
   

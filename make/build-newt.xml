@@ -481,6 +481,7 @@
           <compiler extends="@{compiler.cfg.id}" >
             <sysincludepath path="${java.includes.dir}"/>
             <sysincludepath path="${java.includes.dir.platform}"/>
+            <includepath path="stub_includes/khr"/>
             <includepath path="stub_includes/egl"/>
             <!-- This is for the generated headers for handwritten C code -->
             <includepath path="${src.generated.c}" />

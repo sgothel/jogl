@@ -80,7 +80,7 @@
         <property name="make"                       value="." />
         <property name="config"                     value="${make}/config" />
         <property name="stub.includes"              value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
-        <property name="stub.includes.common"       value="${stub.includes}/common" />
+        <property name="stub.includes.common"       value="${stub.includes}/gluegen" />
 
         <property file="${build}/artifact.properties"/>
         <property name="jogl.build.number" value="manual-build"/>
