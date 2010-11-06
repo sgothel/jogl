@@ -37,14 +37,17 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.gluegen.nativesig;
+package com.jogamp.gluegen.nativesig;
 
+import com.jogamp.gluegen.MethodBinding;
+import com.jogamp.gluegen.JavaMethodBindingEmitter;
+import com.jogamp.gluegen.JavaType;
 import java.io.*;
 
-import com.sun.gluegen.*;
-import com.sun.gluegen.cgram.types.*;
-import com.sun.gluegen.opengl.*;
-import com.sun.gluegen.procaddress.*;
+import com.jogamp.gluegen.*;
+import com.jogamp.gluegen.cgram.types.*;
+import com.jogamp.gluegen.opengl.*;
+import com.jogamp.gluegen.procaddress.*;
 
 public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBindingEmitter {
 

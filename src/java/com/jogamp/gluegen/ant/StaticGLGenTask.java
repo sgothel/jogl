@@ -1,4 +1,4 @@
-package com.sun.gluegen.ant;
+package com.jogamp.gluegen.ant;
 
 /*
  * StaticGLGenTask.java
@@ -55,7 +55,7 @@ import org.apache.tools.ant.util.JavaEnvUtils;
 
 /**
  * <p>An <a href="http://ant.apache.org">ANT</a> {@link org.apache.tools.ant.Task}
- * for using {@link com.sun.gluegen.opengl.BuildStaticGLInfo}.</p>
+ * for using {@link com.jogamp.gluegen.opengl.BuildStaticGLInfo}.</p>
  * 
  * <p>Usage:</p>
  * <pre>
@@ -70,14 +70,14 @@ import org.apache.tools.ant.util.JavaEnvUtils;
 public class StaticGLGenTask extends Task
 {
     /**
-     * <p>The {@link com.sun.gluegen.opengl.BuildStaticGLInfo} classname.</p>
+     * <p>The {@link com.jogamp.gluegen.opengl.BuildStaticGLInfo} classname.</p>
      */
-    private static final String GL_GEN = "com.sun.gluegen.opengl.BuildStaticGLInfo";
+    private static final String GL_GEN = "com.jogamp.gluegen.opengl.BuildStaticGLInfo";
     
     // =========================================================================
     /**
      * <p>The {@link org.apache.tools.ant.types.CommandlineJava} that is used
-     * to execute {@link com.sun.gluegen.opengl.BuildStaticGLInfo}.</p>
+     * to execute {@link com.jogamp.gluegen.opengl.BuildStaticGLInfo}.</p>
      */
     private CommandlineJava glgenCommandline;
 
@@ -170,7 +170,7 @@ public class StaticGLGenTask extends Task
     }
 
     /**
-     * <p>Add an optional classpath that defines the location of {@link com.sun.gluegen.opengl.BuildStaticGLInfo}
+     * <p>Add an optional classpath that defines the location of {@link com.jogamp.gluegen.opengl.BuildStaticGLInfo}
      * and <code>BuildStaticGLInfo</code>'s dependencies.</p>
      * 
      * @returns {@link org.apache.tools.ant.types.Path}
@@ -274,7 +274,7 @@ public class StaticGLGenTask extends Task
     }
 
     /** 
-     * <p>Execute {@link com.sun.gluegen.opengl.BuildStaticGLInfo} in a 
+     * <p>Execute {@link com.jogamp.gluegen.opengl.BuildStaticGLInfo} in a 
      * forked JVM.</p>
      * 
      * @throws BuildException
