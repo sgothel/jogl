@@ -1,2 +1,4 @@
-#define USE_GLUEGEN
+#define EGLAPI
+#define EGLAPIENTRY
+
 #include <EGL/egl.h>

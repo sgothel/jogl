@@ -9,3 +9,4 @@
 #define GL_GL3EXT_PROTOTYPES
 
 #include <GL3/gl3.h>
+#include <GL3/gl3ext.h>

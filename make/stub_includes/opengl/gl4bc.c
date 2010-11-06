@@ -5,6 +5,7 @@
 #define GL_GLEXT_PROTOTYPES
 
 #include <GL/gl.h>
+#include <GL/glext.h>
 
 // Define GL3_PROTOTYPES so that the OpenGL prototypes in
 // "gl3.h" are parsed.
