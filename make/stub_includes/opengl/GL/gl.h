@@ -694,7 +694,7 @@ GLAPI void GLAPIENTRY glDepthFunc( GLenum func );
 
 GLAPI void GLAPIENTRY glDepthMask( GLboolean flag );
 
-GLAPI void GLAPIENTRY glDepthRange( GLclampd near_val, GLclampd far_val );
+GLAPI void GLAPIENTRY glDepthRange( GLclampd zNear, GLclampd zFar );
 
 
 /*

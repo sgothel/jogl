@@ -95,7 +95,7 @@ typedef Window   EGLNativeWindowType;
 
 #else
 
-#warning "Info: Platform not recognized, using void pointer for EGLNativeDisplayType, EGLNativeWindowType and EGLNativePixmapType"
+#warning "Info: Using generic void pointer for EGLNativeDisplayType, EGLNativeWindowType and EGLNativePixmapType"
 
 typedef void* EGLNativeDisplayType;
 typedef void* EGLNativeWindowType;

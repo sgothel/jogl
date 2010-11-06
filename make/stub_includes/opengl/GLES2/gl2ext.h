@@ -294,6 +294,44 @@ typedef void* GLeglImageOES;
 /* GL_EXT_shader_texture_lod */
 /* No new tokens introduced by this extension. */
 
+/* GL_EXT_framebuffer_mixed_formats */
+#ifndef GL_EXT_framebuffer_mixed_formats
+#define GL_EXT_framebuffer_mixed_formats 1
+#endif
+
+/* GL_EXT_packed_float */
+#ifndef GL_EXT_packed_float
+#define GL_R11F_G11F_B10F_EXT                           0x8C3A
+#define GL_UNSIGNED_INT_10F_11F_11F_REV_EXT             0x8C3B
+#define GL_RGBA_SIGNED_COMPONENTS_EXT                   0x8C3C
+#endif
+#ifndef GL_EXT_packed_float
+#define GL_EXT_packed_float 1
+#endif
+
+/* GL_EXT_texture_array */
+#ifndef GL_EXT_texture_array
+#define GL_TEXTURE_2D_ARRAY_EXT           0x8C1A
+#define GL_SAMPLER_2D_ARRAY_EXT           0x8DC1
+#define GL_TEXTURE_BINDING_2D_ARRAY_EXT   0x8C1D
+#define GL_MAX_ARRAY_TEXTURE_LAYERS_EXT   0x88FF
+#define GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER_EXT 0x8CD4
+#endif
+#ifndef GL_EXT_texture_array
+#define GL_EXT_texture_array 1
+#endif
+
+/* GL_EXT_texture_compression_s3tc */
+#ifndef GL_EXT_texture_compression_s3tc
+/* GL_COMPRESSED_RGB_S3TC_DXT1_EXT defined in GL_EXT_texture_compression_dxt1 already. */
+/* GL_COMPRESSED_RGBA_S3TC_DXT1_EXT defined in GL_EXT_texture_compression_dxt1 already. */
+#define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT  0x83F2
+#define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT  0x83F3
+#endif
+#ifndef GL_EXT_texture_compression_s3tc
+#define GL_EXT_texture_compression_s3tc 1
+#endif
+
 /*------------------------------------------------------------------------*
  * IMG extension tokens
  *------------------------------------------------------------------------*/

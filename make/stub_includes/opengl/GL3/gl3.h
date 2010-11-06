@@ -1762,7 +1762,7 @@ GLAPI void APIENTRY glGetTexParameteriv (GLenum target, GLenum pname, GLint *par
 GLAPI void APIENTRY glGetTexLevelParameterfv (GLenum target, GLint level, GLenum pname, GLfloat *params);
 GLAPI void APIENTRY glGetTexLevelParameteriv (GLenum target, GLint level, GLenum pname, GLint *params);
 GLAPI GLboolean APIENTRY glIsEnabled (GLenum cap);
-GLAPI void APIENTRY glDepthRange (GLclampd near, GLclampd far);
+GLAPI void APIENTRY glDepthRange (GLclampd zNear, GLclampd zFar);
 GLAPI void APIENTRY glViewport (GLint x, GLint y, GLsizei width, GLsizei height);
 #endif /* GL3_PROTOTYPES */
 typedef void (APIENTRYP PFNGLCULLFACEPROC) (GLenum mode);
@@ -2900,8 +2900,8 @@ typedef void (APIENTRYP PFNGLGETQUERYINDEXEDIVPROC) (GLenum target, GLuint index
 GLAPI void APIENTRY glReleaseShaderCompiler (void);
 GLAPI void APIENTRY glShaderBinary (GLsizei count, const GLuint *shaders, GLenum binaryformat, const GLvoid *binary, GLsizei length);
 GLAPI void APIENTRY glGetShaderPrecisionFormat (GLenum shadertype, GLenum precisiontype, GLint *range, GLint *precision);
-GLAPI void APIENTRY glDepthRangef (GLclampf n, GLclampf f);
-GLAPI void APIENTRY glClearDepthf (GLclampf d);
+GLAPI void APIENTRY glDepthRangef (GLclampf zNear, GLclampf zFar);
+GLAPI void APIENTRY glClearDepthf (GLclampf depth);
 #endif /* GL3_PROTOTYPES */
 typedef void (APIENTRYP PFNGLRELEASESHADERCOMPILERPROC) (void);
 typedef void (APIENTRYP PFNGLSHADERBINARYPROC) (GLsizei count, const GLuint *shaders, GLenum binaryformat, const GLvoid *binary, GLsizei length);

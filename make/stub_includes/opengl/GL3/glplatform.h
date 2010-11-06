@@ -20,7 +20,9 @@
 #  define APIENTRY __stdcall
 #else
 /* non-Windows compilation */
-#  define GLAPI extern
+#  ifndef GLAPI
+#    define GLAPI extern
+#  endif
 #  define APIENTRY
 #endif /* WIN32 / CYGWIN bracket */
 

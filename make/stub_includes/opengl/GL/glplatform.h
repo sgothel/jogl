@@ -24,7 +24,9 @@
 #  define GLAPIENTRY __stdcall
 #else
 /* non-Windows compilation */
-#  define GLAPI extern
+#  ifndef GLAPI
+#    define GLAPI extern
+#  endif
 #  define GLAPIENTRY
 #endif /* WIN32 / CYGWIN bracket */
 
