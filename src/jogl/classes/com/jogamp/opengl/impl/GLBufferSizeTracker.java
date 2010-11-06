@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -40,7 +41,7 @@
 package com.jogamp.opengl.impl;
 
 import javax.media.opengl.*;
-import com.jogamp.common.util.IntIntHashMap;
+import com.jogamp.common.util.IntLongHashMap;
 
 /**
  * Tracks as closely as possible the sizes of allocated OpenGL buffer
@@ -93,17 +94,17 @@ public class GLBufferSizeTracker {
   // objects, which is probably sub-optimal. The expected usage
   // pattern of buffer objects indicates that the fact that this map
   // never shrinks is probably not that bad.
-  private IntIntHashMap bufferSizeMap;
+  private IntLongHashMap bufferSizeMap;
 
   protected static final boolean DEBUG = Debug.debug("GLStatusTracker");
 
   public GLBufferSizeTracker() {
-      bufferSizeMap = new IntIntHashMap();
+      bufferSizeMap = new IntLongHashMap();
       bufferSizeMap.setKeyNotFoundValue(-1);
   }
 
   public void setBufferSize(GLBufferStateTracker bufferStateTracker,
-                            int target, GL caller, int size) {
+                            int target, GL caller, long size) {
     // Need to do some similar queries to getBufferSize below
     int buffer = bufferStateTracker.getBoundBufferObject(target, caller);
     boolean valid = bufferStateTracker.isBoundBufferObjectKnown(target);
@@ -125,11 +126,11 @@ public class GLBufferSizeTracker {
     // left to do except drop this piece of information on the floor.
   }
 
-  public void setDirectStateBufferSize(int buffer, GL caller, int size) {
+  public void setDirectStateBufferSize(int buffer, GL caller, long size) {
       bufferSizeMap.put(buffer, size);
   }
 
-  public int getBufferSize(GLBufferStateTracker bufferStateTracker,
+  public long getBufferSize(GLBufferStateTracker bufferStateTracker,
                            int target,
                            GL caller) {
     // See whether we know what buffer is currently bound to the given
@@ -149,25 +150,29 @@ public class GLBufferSizeTracker {
       return getBufferSizeImpl(target, buffer, caller);
     }
     // We don't know what's going on in this case; query the GL for an answer
+    // FIXME: both functions return 'int' types, which is not suitable,
+    // since buffer lenght is 64bit ?
     int[] tmp = new int[1];
     caller.glGetBufferParameteriv(target, GL.GL_BUFFER_SIZE, tmp, 0);
     if (DEBUG) {
       System.err.println("GLBufferSizeTracker.getBufferSize(): no cached buffer information");
     }
-    return tmp[0];
+    return (long) tmp[0];
   }
 
-  public int getDirectStateBufferSize(int buffer, GL caller) {
+  public long getDirectStateBufferSize(int buffer, GL caller) {
       return getBufferSizeImpl(0, buffer, caller);
   }
 
-  private int getBufferSizeImpl(int target, int buffer, GL caller) {
+  private long getBufferSizeImpl(int target, int buffer, GL caller) {
       // See whether we know the size of this buffer object; at this
       // point we almost certainly should if the application is
       // written correctly
-      int sz = bufferSizeMap.get(buffer);
+      long sz = bufferSizeMap.get(buffer);
       if (0 > sz) {
         // For robustness, try to query this value from the GL as we used to
+        // FIXME: both functions return 'int' types, which is not suitable,
+        // since buffer lenght is 64bit ?
         int[] tmp = new int[1];
         if(0==target) {
             // DirectState ..
@@ -186,7 +191,7 @@ public class GLBufferSizeTracker {
                                 " was zero; probably application error");
         }
         // Assume we just don't know what's happening
-        sz = tmp[0];
+        sz = (long) tmp[0];
         bufferSizeMap.put(buffer, sz);
         if (DEBUG) {
           System.err.println("GLBufferSizeTracker.getBufferSize(): made slow query to cache size " +

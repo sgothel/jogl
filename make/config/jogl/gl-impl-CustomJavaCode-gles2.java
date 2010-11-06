@@ -259,32 +259,7 @@ private boolean checkPackPBOEnabled(boolean throwException) {
     return false;
 }
 
-// Attempt to return the same ByteBuffer object from glMapBufferARB if
-// the vertex buffer object's base address and size haven't changed
-private static class ARBVBOKey {
-  private long addr;
-  private int  capacity;
-
-  ARBVBOKey(long addr, int capacity) {
-    this.addr = addr;
-    this.capacity = capacity;
-  }
-
-  public int hashCode() {
-    return (int) addr;
-  }
-
-  public boolean equals(Object o) {
-    if ((o == null) || (!(o instanceof ARBVBOKey))) {
-      return false;
-    }
-
-    ARBVBOKey other = (ARBVBOKey) o;
-    return ((addr == other.addr) && (capacity == other.capacity));
-  }
-}
-
-private Map/*<ARBVBOKey, ByteBuffer>*/ arbVBOCache = new HashMap();
+private HashMap/*<MemoryObject>*/ arbMemCache = new HashMap();
 
 /** Entry point to C language function: <br> <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
 public java.nio.ByteBuffer glMapBuffer(int target, int access) {
@@ -292,32 +267,40 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
   if (__addr_ == 0) {
     throw new GLException("Method \"glMapBuffer\" not available");
   }
-  int sz = bufferSizeTracker.getBufferSize(bufferStateTracker,
-                                           target,
-                                           this);
+  final long sz = bufferSizeTracker.getBufferSize(bufferStateTracker, target, this);
   if (0 == sz) {
     return null;
   }
-  long addr;
-  addr = dispatch_glMapBuffer(target, access, __addr_);
+  final long addr = dispatch_glMapBuffer(target, access, __addr_);
   if (0 == addr) {
     return null;
   }
-  ARBVBOKey key = new ARBVBOKey(addr, sz);
-  java.nio.ByteBuffer _res = (java.nio.ByteBuffer) arbVBOCache.get(key);
-  if (_res == null) {
-    _res = newDirectByteBuffer(addr, sz);
-    Buffers.nativeOrder(_res);
-    arbVBOCache.put(key, _res);
+  ByteBuffer buffer;
+  MemoryObject memObj0 = new MemoryObject(addr, sz); // object and key
+  MemoryObject memObj1 = MemoryObject.getOrAddSafe(arbMemCache, memObj0);
+  if(memObj0 == memObj1) {
+    // just added ..
+    if(null != memObj0.getBuffer()) {
+        throw new InternalError();
+    }
+    buffer = newDirectByteBuffer(addr, sz);
+    Buffers.nativeOrder(buffer);
+    memObj0.setBuffer(buffer);
+  } else {
+    // already mapped
+    buffer = memObj1.getBuffer();
+    if(null == buffer) {
+        throw new InternalError();
+    }
   }
-  _res.position(0);
-  return _res;
+  buffer.position(0);
+  return buffer;
 }
 
 /** Encapsulates function pointer for OpenGL function <br>: <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
 native private long dispatch_glMapBuffer(int target, int access, long glProcAddress);
 
-native private ByteBuffer newDirectByteBuffer(long addr, int capacity);
+native private ByteBuffer newDirectByteBuffer(long addr, long capacity);
 
 public void glClearDepth(double depth) {
     glClearDepthf((float)depth); 
