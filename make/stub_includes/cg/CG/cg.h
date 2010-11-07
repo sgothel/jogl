@@ -66,17 +66,17 @@
 
 // Set up for either Win32 import/export/lib.
 #ifndef CGDLL_API
-#ifdef WIN32
-    #ifdef CGDLL_EXPORTS
-    #define CGDLL_API /*__declspec(dllexport) */
-    #elif defined (CG_LIB)
-    #define CGDLL_API
+    #ifdef WIN32
+        #ifdef CGDLL_EXPORTS
+            #define CGDLL_API /*__declspec(dllexport) */
+        #elif defined (CG_LIB)
+            #define CGDLL_API
+        #else
+            #define CGDLL_API /* __declspec(dllimport) */
+        #endif
     #else
-    #define CGDLL_API __declspec(dllimport)
+        #define CGDLL_API
     #endif
-#else
-    #define CGDLL_API
-#endif
 #endif
 
 /*************************************************************************/

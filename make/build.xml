@@ -167,7 +167,6 @@
       <ant antfile="build-junit.xml" target="junit.compile" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="test" depends="junit.run"/>
     <target name="junit.run" description="Run JUNIT tests in nativewindow, jogl and newt projects">
       <ant antfile="build-junit.xml" target="junit.run" inheritRefs="true" inheritAll="true"/>
     </target>
