@@ -42,10 +42,6 @@ package com.jogamp.gluegen.opengl.nativesig;
 
 import java.io.*;
 
-import com.jogamp.gluegen.MethodBinding;
-import com.jogamp.gluegen.JavaMethodBindingEmitter;
-import com.jogamp.gluegen.JavaType;
-
 import com.jogamp.gluegen.*;
 import com.jogamp.gluegen.cgram.types.*;
 import com.jogamp.gluegen.opengl.*;
@@ -57,8 +53,8 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     super(methodToWrap);
   }
 
-  public NativeSignatureJavaMethodBindingEmitter(ProcAddressJavaMethodBindingEmitter methodToWrap) {
-    super(methodToWrap, false);
+  public NativeSignatureJavaMethodBindingEmitter(ProcAddressJavaMethodBindingEmitter methodToWrap, GLEmitter emitter, boolean bufferObjectVariant) {
+    super(methodToWrap, emitter, bufferObjectVariant);
   }
 
   public NativeSignatureJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap, NativeSignatureEmitter emitter) {
@@ -297,14 +293,14 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
 
       // Only one call being made in this body, going to indirect
       // buffer / array entry point
-      emitCall(binding, writer, false);
+      emitCall(binding, writer);
       if (returnType.isString() || returnType.isNIOByteBuffer()) {
         writer.print(")");
       }
       writer.print(";");
       writer.println();
     } else {
-      emitCall(binding, writer, true);
+      emitCall(binding, writer);
       if (returnType.isString() || returnType.isNIOByteBuffer()) {
         writer.print(")");
       }
@@ -325,7 +321,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
           writer.print("return ");
         }
       }
-      emitCall(binding, writer, false);
+      emitCall(binding, writer);
       writer.print(";");
       writer.println();
       writer.println("    }");

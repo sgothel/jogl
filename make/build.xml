@@ -22,7 +22,7 @@
         <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames},${javadoc.spec.packagenames},com.jogamp.opengl.util.*,com.jogamp.newt, com.jogamp.newt.event.*, com.jogamp.newt.opengl" />
 
         <property name="javadoc.dev" value="${build}/javadoc_dev" />
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.opengl.impl.*,com.jogamp.nativewindow.impl.*,com.jogamp.newt.*,com.sun.gluegen,com.jogamp.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.opengl.impl.*,com.jogamp.nativewindow.impl.*,com.jogamp.newt.*,com.jogamp.gluegen,com.jogamp.gluegen.runtime" />
 
         <property name="java.excludes.javadoc.packagenames" value="com.jogamp.opengl.impl.gl2.fixme.*,com.jogamp.audio.windows.waveout.TestSpatialization"/>
         <property name="javadoc.bottom" value="Copyright 2010 JogAmp Community." />
@@ -104,7 +104,7 @@
         </copy>
         <mkdir dir="${archive}/lib" />
         <copy todir="${archive}/lib">
-            <fileset dir="${gluegen.root}/${rootrel.build}" includes="gluegen-rt.jar gluegen-rt-cdc.jar" />
+            <fileset dir="${gluegen.root}/${rootrel.build}" includes="gluegen-rt.jar gluegen-rt.cdc.jar" />
             <fileset dir="${gluegen.root}/${rootrel.build}/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
             <fileset dir="${build}/jogl" includes="*.jar" excludes="*natives*.jar" />
             <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />

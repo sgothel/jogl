@@ -22,7 +22,7 @@
    -   clean:        clean all built
    -   javadoc:      create the standard developer Javadoc (recommended)
    -                 (Note: should build all first - may be dependence in the future)
-   -   javadoc.spec: create the standard developer Javadoc but exclude com.sun.* classes
+   -   javadoc.spec: create the standard developer Javadoc but exclude com.jogamp.* classes
    -   javadoc.dev:  create the internal developer Javadoc.  This includes the
    -                       Java and C file generators. Note that it is only supported
    -                       to create the Javadoc for the platform on which you are

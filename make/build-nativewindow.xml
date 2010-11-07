@@ -22,7 +22,7 @@
    -   clean:        clean all built
    -   javadoc:      create the standard developer Javadoc (recommended)
    -                 (Note: should build all first - may be dependence in the future)
-   -   javadoc.spec: create the standard developer Javadoc but exclude com.sun.* classes
+   -   javadoc.spec: create the standard developer Javadoc but exclude com.jogamp.* classes
    -   javadoc.dev:  create the internal developer Javadoc.  This includes the
    -                       Java and C file generators. Note that it is only supported
    -                       to create the Javadoc for the platform on which you are
@@ -36,7 +36,7 @@
    - directory.
    -   
    - Thanks to Rob Grzywinski and Artur Biesiadowski for the bulk of the
-   - ANT build, including the GlueGen and StaticGLInfo tasks, the building of
+   - ANT build, including the GlueGen tasks, the building of
    - the Java generated sources, the first and second phase Java compiles, and
    - the building of the jar file. Thanks to Alex Radeski for the bulk of the
    - port to the ant-contrib CPPTask framework. Thanks to Athomas Goldberg for
@@ -156,7 +156,7 @@
 
         <property name="javadoc.packagenames" value="${javadoc.spec.packagenames}" />
 
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.nativewindow.util.*,com.jogamp.nativewindow.impl.*,com.sun.gluegen,com.jogamp.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.nativewindow.util.*,com.jogamp.nativewindow.impl.*,com.jogamp.gluegen,com.jogamp.gluegen.runtime" />
     <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
     
@@ -226,7 +226,7 @@
                  outputRootDir="${build.nativewindow}"
                  config="${windowlib.os.cfg}"
                  includeRefid="stub.includes.fileset.platform"
-                 emitter="com.sun.gluegen.JavaEmitter">
+                 emitter="com.jogamp.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
         <copy todir="${src.generated.java-cdc}">
@@ -246,7 +246,7 @@
                  config="${jawt.cfg}"
                  literalInclude="${stub.includes}/jni"
                  includeRefid="stub.includes.fileset.platform"
-                 emitter="com.sun.gluegen.JavaEmitter">
+                 emitter="com.jogamp.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
         <copy todir="${src.generated.java-cdc}">
@@ -269,14 +269,11 @@
       -->
     <target name="java.generate" depends="init, common.gluegen.build, java.generate.check" unless="java.generate.skip">
 
-        <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
-        <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
-                 classpathref="gluegen.classpath" />
-        <taskdef name="staticglgen" classname="com.sun.gluegen.ant.StaticGLGenTask"
+        <!-- Add the GlueGen task to ANT -->
+        <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
                  classpathref="gluegen.classpath" />
                  
-        <!-- Use the GlueGen and BuildStaticGLInfo tasks to generate the 
-           - Java files -->
+        <!-- Use the GlueGen task to generate the Java files -->
 
         <echo message="Generating platform-specifics: X11" />
         <antcall target="java.generate.platforms" inheritRefs="true">
@@ -303,7 +300,7 @@
         <!-- Inform the user that the generators have successfully created 
            - the necessary Java files -->
         <echo message="" />
-        <echo message="GlueGen and BuildStaticGLInfo have successfully generated files." />
+        <echo message="GlueGen has successfully generated files." />
     
     </target>      
 
@@ -317,7 +314,7 @@
         <javac destdir="${classes-cdc}"
                excludes="${java.part.awt} ${java.excludes.all}"
                source="${target.sourcelevel}"
-               classpath="${gluegen-rt-cdc.jar}"
+               classpath="${gluegen-rt.cdc.jar}"
                bootclasspath="${javac.bootclasspath-cdc.jar}"
                fork="yes"
                includeAntRuntime="false"
@@ -802,7 +799,7 @@
         <javadoc packagenames="${javadoc.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"        
-                 classpath="${gluegen-rt-cdc.jar}"
+                 classpath="${gluegen-rt.cdc.jar}"
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="1.4"
@@ -816,7 +813,7 @@
         <javadoc packagenames="${javadoc.spec.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"
-                 classpath="${gluegen-rt-cdc.jar}"
+                 classpath="${gluegen-rt.cdc.jar}"
                  destdir="${javadoc.spec}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}"
                  source="1.4"
@@ -830,7 +827,7 @@
         <javadoc packagenames="${javadoc.dev.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"        
-                 classpath="${gluegen-rt-cdc.jar}"
+                 classpath="${gluegen-rt.cdc.jar}"
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="1.4"

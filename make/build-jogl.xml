@@ -22,7 +22,7 @@
    -   clean:        clean all built
    -   javadoc:      create the standard developer Javadoc (recommended)
    -                 (Note: should build all first - may be dependence in the future)
-   -   javadoc.spec:   create the standard developer Javadoc but exclude com.sun.* classes
+   -   javadoc.spec:   create the standard developer Javadoc but exclude com.jogamp.* classes
    -   javadoc.dev.all: create the internal developer Javadoc.  This includes the
    -                       Java and C file generators. Note that it is only supported
    -                       to create the Javadoc for the platform on which you are
@@ -67,8 +67,11 @@
        - Base initialization and detection of operating system.
       -->
     <target name="partitioning.setup" depends="common.init">
+        <property name="java.part.gluegen-gl" 
+                  value="com/jogamp/gluegen/opengl/** com/jogamp/gluegen/runtime/opengl/*"/>
+
         <property name="java.part.core" 
-                  value="javax/media/opengl/* javax/media/opengl/fixedfunc/* javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* com/jogamp/opengl/impl/* com/jogamp/opengl/impl/glu/* com/jogamp/opengl/impl/glu/error/*"/>
+                  value="javax/media/opengl/* javax/media/opengl/fixedfunc/* javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* com/jogamp/gluegen/runtime/opengl/* com/jogamp/opengl/impl/* com/jogamp/opengl/impl/glu/* com/jogamp/opengl/impl/glu/error/*"/>
         <property name="java.part.core.exclude" value="javax/media/opengl/Debug* javax/media/opengl/Trace*"/>
 
         <property name="java.part.nv-cg"
@@ -268,7 +271,7 @@
 
         <property name="javadoc.packagenames" value="${javadoc.spec.packagenames},com.jogamp.opengl.util.*" />
 
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.opengl.impl.*,com.sun.gluegen,com.jogamp.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.opengl.impl.*,com.jogamp.gluegen,com.jogamp.gluegen.runtime" />
     <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
     
@@ -406,9 +409,9 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter"
                  debug="false">
-            <classpath refid="gluegen.classpath" />
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -419,8 +422,8 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl2_es1.cfg" 
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -431,8 +434,8 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl2_es2.cfg" 
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -443,16 +446,16 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl3-subset.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter"
                  debug="false">
-            <classpath refid="gluegen.classpath" />
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
         <gluegen src="${stub.includes.opengl}/gl2.c" 
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl2_gl3.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -463,8 +466,8 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl2.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -475,8 +478,8 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl3.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -487,8 +490,8 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl3bc.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -499,8 +502,8 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl4.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -511,9 +514,9 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-gl4bc.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter"
                  debug="false">
-            <classpath refid="gluegen.classpath" />
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -524,9 +527,9 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-es1.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter"
                  debug="false">
-            <classpath refid="gluegen.classpath" />
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -537,8 +540,8 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-es2.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -549,8 +552,8 @@
         <gluegen src="${gl.c}" 
                  config="${gl.cfg.nsig}"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.nativesig.NativeSignatureEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.nativesig.NativeSignatureEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target> -->
 
@@ -561,8 +564,8 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/glu-base.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -573,8 +576,8 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/glu-gl2es1.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -585,8 +588,8 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/glu-gl2.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -597,8 +600,8 @@
                  outputRootDir="${build.jogl}"
                  config="${glext.platform.cfg}"
                  includeRefid="stub.includes.fileset.all.gldesktop"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -610,9 +613,9 @@
                  outputRootDir="${build.jogl}"
                  config="${window.es.cfg}"
                  includeRefid="stub.includes.fileset.platform"
-                 emitter="com.sun.gluegen.opengl.GLEmitter"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter"
                  debug="false">
-            <classpath refid="gluegen.classpath" />
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -624,9 +627,9 @@
                  outputRootDir="${build.jogl}"
                  config="${window.es.ext.cfg}"
                  includeRefid="stub.includes.fileset.platform"
-                 emitter="com.sun.gluegen.opengl.GLEmitter"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter"
                  debug="false">
-            <classpath refid="gluegen.classpath" />
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -637,8 +640,8 @@
                  outputRootDir="${build.jogl}"
                  config="${window.os0.cfg}"
                  includeRefid="stub.includes.fileset.platform"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -649,8 +652,8 @@
                  outputRootDir="${build.jogl}"
                  config="${window.os1.cfg}"
                  includeRefid="stub.includes.fileset.platform"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -667,16 +670,32 @@
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
-    <target name="java.generate" depends="init, common.gluegen.build, java.generate.check" unless="java.generate.skip">
+    <target name="build.gluegen-gl.jar" depends="init, common.gluegen.build, setup-manifestfile">
+        <javac destdir="${classes}"
+               includes="${java.part.gluegen-gl}"
+               fork="yes"
+               memoryMaximumSize="${javac.memorymax}"
+               includeAntRuntime="true"
+               source="1.5" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="gluegen-gl.classpath"/>
+            <src path="${src.java}" />
+        </javac>
+
+        <jar manifest="${build.jogl}/tempversion" destfile="${gluegen-gl.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.gluegen-gl}"/>
+        </jar>
+    </target>
+
+    <target name="java.generate" depends="build.gluegen-gl.jar, java.generate.check" unless="java.generate.skip">
 
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
-        <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
+        <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
                  classpathref="gluegen.classpath" />
-        <taskdef name="staticglgen" classname="com.sun.gluegen.ant.StaticGLGenTask"
-                 classpathref="gluegen.classpath" />
+        <taskdef name="staticglgen" classname="com.jogamp.gluegen.opengl.ant.StaticGLGenTask"
+                 classpathref="gluegen-gl.classpath" />
                  
-        <!-- Use the GlueGen and BuildStaticGLInfo tasks to generate the 
-           - Java files -->
+        <!-- Use the GlueGen and BuildStaticGLInfo tasks to generate the Java files -->
 
         <!-- Just to have a fast test of single interfaces .. 
             <antcall target="java.generate.gl_if"      inheritRefs="true" />
@@ -753,20 +772,20 @@
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
-    <target name="java.generate.cg" depends="java.generate.cg.check" if="jogl.cg" unless="java.generate.cg.skip">
+    <target name="java.generate.cg" depends="build.gluegen-gl.jar,java.generate.cg.check" if="jogl.cg" unless="java.generate.cg.skip">
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
-        <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
+        <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
                  classpathref="gluegen.classpath" />
-        <taskdef name="staticglgen" classname="com.sun.gluegen.ant.StaticGLGenTask"
-                 classpathref="gluegen.classpath" />
+        <taskdef name="staticglgen" classname="com.jogamp.gluegen.opengl.ant.StaticGLGenTask"
+                 classpathref="gluegen-gl.classpath" />
 
         <!-- Generate CgGL interface class -->
         <gluegen src="${stub.includes.opengl}/cg.c" 
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/cg-common.cfg"
                  includeRefid="stub.includes.cg.fileset.all"
-                 emitter="com.sun.gluegen.procaddress.ProcAddressEmitter">
-            <classpath refid="gluegen.classpath" />
+                 emitter="com.jogamp.gluegen.procaddress.ProcAddressEmitter">
+            <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
 
@@ -852,12 +871,12 @@
     </target>        
 
     <target name="java.generate.composable.pipeline.es1" depends="java.generate.composable.pipeline.check.es1" unless="java.generate.composable.pipeline.skip.es1">
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GLES1" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL2ES1" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
@@ -869,12 +888,12 @@
     </target>          
 
     <target name="java.generate.composable.pipeline.es2" depends="java.generate.composable.pipeline.check.es2" unless="java.generate.composable.pipeline.skip.es2">
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GLES2" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL2ES2" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
@@ -886,12 +905,12 @@
     </target>          
 
     <target name="java.generate.composable.pipeline.gl2" depends="java.generate.composable.pipeline.check.gl2" unless="java.generate.composable.pipeline.skip.gl2">
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL2" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL2GL3" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
@@ -903,7 +922,7 @@
     </target>          
 
     <target name="java.generate.composable.pipeline.gl3" depends="java.generate.composable.pipeline.check.gl3" unless="java.generate.composable.pipeline.skip.gl3">
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL3" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
@@ -913,7 +932,7 @@
                      includes="javax/media/opengl/DebugGL3.java javax/media/opengl/TraceGL3.java" />
         </copy>
 
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL3bc" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
@@ -925,7 +944,7 @@
     </target>          
 
     <target name="java.generate.composable.pipeline.gl4" depends="java.generate.composable.pipeline.check.gl4" unless="java.generate.composable.pipeline.skip.gl4">
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL4" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
@@ -935,7 +954,7 @@
                      includes="javax/media/opengl/DebugGL4.java javax/media/opengl/TraceGL4.java" />
         </copy>
 
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL4bc" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
@@ -966,7 +985,7 @@
                   targetfile="${src.generated.java}/com/jogamp/opengl/util/glsl/fixedfunc/impl/FixedFuncImpl.java" />
     </target>        
     <target name="java.generate.composable.pipeline.custom.glfixfunc" depends="java.generate.composable.pipeline.custom.check.glfixfunc" unless="java.generate.composable.pipeline.custom.skip.glfixfunc">
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL2ES1" />
             <arg value="${src.generated.java}/com/jogamp/opengl/util/glsl/fixedfunc/impl" />
             <arg value="com.jogamp.opengl.util.glsl.fixedfunc.impl.FixedFuncImpl" />

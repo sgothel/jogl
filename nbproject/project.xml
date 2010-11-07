@@ -13,20 +13,21 @@
             </properties>
             <folders>
                 <source-folder>
-                    <label>JOGL.GlueGen</label>
-                    <location>.</location>
+                    <label>nativewindow gensrc</label>
+                    <type>java</type>
+                    <location>build/nativewindow/gensrc/classes</location>
+                    <encoding>UTF-8</encoding>
+                </source-folder>
+                <source-folder>
+                    <label>nativewindow</label>
+                    <type>java</type>
+                    <location>src/nativewindow/classes</location>
                     <encoding>UTF-8</encoding>
                 </source-folder>
                 <source-folder>
                     <label>jogl gensrc</label>
                     <type>java</type>
                     <location>build/jogl/gensrc/classes</location>
-                    <encoding>UTF-8</encoding>
-                </source-folder>
-                <source-folder>
-                    <label>nativewindow gensrc</label>
-                    <type>java</type>
-                    <location>build/nativewindow/gensrc/classes</location>
                     <encoding>UTF-8</encoding>
                 </source-folder>
                 <source-folder>
@@ -42,15 +43,14 @@
                     <encoding>UTF-8</encoding>
                 </source-folder>
                 <source-folder>
-                    <label>nativewindow</label>
-                    <type>java</type>
-                    <location>src/nativewindow/classes</location>
-                    <encoding>UTF-8</encoding>
-                </source-folder>
-                <source-folder>
                     <label>src/junit</label>
                     <type>java</type>
                     <location>src/junit</location>
+                    <encoding>UTF-8</encoding>
+                </source-folder>
+                <source-folder>
+                    <label>JOGL</label>
+                    <location>.</location>
                     <encoding>UTF-8</encoding>
                 </source-folder>
             </folders>
@@ -146,23 +146,27 @@
                 <type>folder</type>
                 <location>bin</location>
                 <script>${ant.script}</script>
-                <build-target>all</build-target>
+                <build-target>all.but-archives</build-target>
             </export>
             <export>
                 <type>folder</type>
                 <location>bin</location>
                 <script>${ant.script}</script>
-                <build-target>all</build-target>
+                <build-target>all.but-archives</build-target>
             </export>
             <view>
                 <items>
                     <source-folder style="packages">
-                        <label>jogl gensrc</label>
-                        <location>build/jogl/gensrc/classes</location>
-                    </source-folder>
-                    <source-folder style="packages">
                         <label>nativewindow gensrc</label>
                         <location>build/nativewindow/gensrc/classes</location>
+                    </source-folder>
+                    <source-folder style="packages">
+                        <label>nativewindow</label>
+                        <location>src/nativewindow/classes</location>
+                    </source-folder>
+                    <source-folder style="packages">
+                        <label>jogl gensrc</label>
+                        <location>build/jogl/gensrc/classes</location>
                     </source-folder>
                     <source-folder style="packages">
                         <label>jogl</label>
@@ -171,10 +175,6 @@
                     <source-folder style="packages">
                         <label>newt</label>
                         <location>src/newt/classes</location>
-                    </source-folder>
-                    <source-folder style="packages">
-                        <label>nativewindow</label>
-                        <location>src/nativewindow/classes</location>
                     </source-folder>
                     <source-folder style="packages">
                         <label>src/junit</label>
@@ -201,7 +201,7 @@
                 <package-root>src/nativewindow/classes</package-root>
                 <package-root>build/jogl/gensrc/classes</package-root>
                 <package-root>build/nativewindow/gensrc/classes</package-root>
-                <classpath mode="compile">../gluegen/build/gluegen-rt.jar</classpath>
+                <classpath mode="compile">../gluegen/build/gluegen.jar:../gluegen/build/gluegen-rt.jar</classpath>
                 <built-to>bin</built-to>
                 <source-level>1.4</source-level>
             </compilation-unit>

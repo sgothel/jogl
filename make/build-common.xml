@@ -167,6 +167,13 @@
           <pathelement location="${antlr.jar}" />
         </path>
 
+        <property name="gluegen-gl.jar"             value="${build.jogl}/gluegen-gl.jar" />
+
+        <path id="gluegen-gl.classpath">
+          <pathelement location="${gluegen.jar}" />
+          <pathelement location="${gluegen-gl.jar}" />
+        </path>
+
         <!-- JavaSE combinations -->
         <property name="gluegen-rt.jar"             value="${build.gluegen}/gluegen-rt.jar" />
         <property name="jogl.test.jar"              value="${build.jogl}/jogl.test.jar"/>
@@ -253,25 +260,26 @@
         </path>
 
         <!-- CDC combinations . NO.AWT -->
-        <property name="gluegen-rt-cdc.jar"         value="${build.gluegen}/gluegen-rt-cdc.jar" />
+        <property name="gluegen-rt.cdc.jar"         value="${build.gluegen}/gluegen-rt.cdc.jar" />
+        <property name="gluegen-gl.cdc.jar"         value="${build.jogl}/gluegen-gl.cdc.jar" />
 
         <property name="nativewindow.all.cdc.jar"   value="${build.nativewindow}/nativewindow.all.cdc.jar" />
         <property name="jogl.all.cdc.jar"           value="${build.jogl}/jogl.all.cdc.jar" />
         <property name="newt.all.cdc.jar"           value="${build.newt}/newt.all.cdc.jar" />
 
         <path id="nativewindow_gluegen.classpath-cdc">
-            <pathelement location="${gluegen-rt-cdc.jar}" />
+            <pathelement location="${gluegen-rt.cdc.jar}" />
             <pathelement location="${nativewindow.all.cdc.jar}" />
         </path>
 
         <path id="nativewindow_gluegen_jogl.classpath-cdc">
-            <pathelement location="${gluegen-rt-cdc.jar}" />
+            <pathelement location="${gluegen-rt.cdc.jar}" />
             <pathelement location="${nativewindow.all.cdc.jar}" />
             <pathelement location="${jogl.all.cdc.jar}" />
         </path>
 
         <path id="jogl_newt_all.classpath-cdc">
-            <pathelement location="${gluegen-rt-cdc.jar}" />
+            <pathelement location="${gluegen-rt.cdc.jar}" />
             <pathelement location="${nativewindow.all.cdc.jar}" />
             <pathelement location="${jogl.all.cdc.jar}" />
             <pathelement location="${newt.all.cdc.jar}" />
