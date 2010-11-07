@@ -40,9 +40,23 @@
 
 package com.jogamp.gluegen.opengl;
 
-import java.io.*;
-import java.util.*;
-import java.util.regex.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
   /**
    * Builds the StaticGLInfo class from the OpenGL header files (i.e., gl.h

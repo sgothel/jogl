@@ -39,12 +39,29 @@
  */
 package com.jogamp.gluegen.opengl;
 
-import java.io.*;
-import java.util.*;
-import com.jogamp.gluegen.*;
-import com.jogamp.gluegen.cgram.types.*;
-import com.jogamp.gluegen.procaddress.*;
+import com.jogamp.gluegen.ConstantDefinition;
+import com.jogamp.gluegen.FunctionEmitter;
+import com.jogamp.gluegen.GlueEmitterControls;
+import com.jogamp.gluegen.JavaConfiguration;
+import com.jogamp.gluegen.JavaEmitter;
+import com.jogamp.gluegen.JavaMethodBindingEmitter;
+import com.jogamp.gluegen.JavaType;
+import com.jogamp.gluegen.MethodBinding;
+import com.jogamp.gluegen.SymbolFilter;
+import com.jogamp.gluegen.cgram.types.FunctionSymbol;
+import com.jogamp.gluegen.procaddress.ProcAddressEmitter;
+import com.jogamp.gluegen.procaddress.ProcAddressJavaMethodBindingEmitter;
 import com.jogamp.gluegen.runtime.opengl.GLExtensionNames;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A subclass of ProcAddressEmitter with special OpenGL-specific

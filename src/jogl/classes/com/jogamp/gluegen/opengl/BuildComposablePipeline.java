@@ -39,13 +39,21 @@
  */
 package com.jogamp.gluegen.opengl;
 
-import com.jogamp.gluegen.*;
-
-import java.lang.reflect.*;
-import java.io.*;
+import com.jogamp.gluegen.CodeGenUtils;
+import com.jogamp.gluegen.JavaType;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.reflect.Method;
 import java.nio.Buffer;
-import java.util.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 public class BuildComposablePipeline {
 

@@ -39,12 +39,21 @@
  */
 package com.jogamp.gluegen.opengl;
 
-import java.io.*;
-import java.util.*;
-
-import com.jogamp.gluegen.*;
-import com.jogamp.gluegen.procaddress.*;
+import com.jogamp.gluegen.GlueEmitterControls;
+import com.jogamp.gluegen.MethodBinding;
+import com.jogamp.gluegen.procaddress.ProcAddressConfiguration;
 import com.jogamp.gluegen.runtime.opengl.GLExtensionNames;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.StringTokenizer;
 
 public class GLConfiguration extends ProcAddressConfiguration {
 

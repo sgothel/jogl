@@ -40,12 +40,14 @@
 
 package com.jogamp.gluegen.opengl.nativesig;
 
-import java.io.*;
-
-import com.jogamp.gluegen.*;
-import com.jogamp.gluegen.cgram.types.*;
-import com.jogamp.gluegen.opengl.*;
-import com.jogamp.gluegen.procaddress.*;
+import com.jogamp.gluegen.JavaMethodBindingEmitter;
+import com.jogamp.gluegen.JavaType;
+import com.jogamp.gluegen.MethodBinding;
+import com.jogamp.gluegen.cgram.types.Type;
+import com.jogamp.gluegen.opengl.GLEmitter;
+import com.jogamp.gluegen.opengl.GLJavaMethodBindingEmitter;
+import com.jogamp.gluegen.procaddress.ProcAddressJavaMethodBindingEmitter;
+import java.io.PrintWriter;
 
 public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBindingEmitter {
 
