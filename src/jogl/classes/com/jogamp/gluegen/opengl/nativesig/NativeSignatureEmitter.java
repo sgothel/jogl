@@ -39,18 +39,18 @@
  */
 package com.jogamp.gluegen.opengl.nativesig;
 
-import java.io.*;
-import java.util.*;
-
-import com.jogamp.gluegen.MethodBinding;
 import com.jogamp.gluegen.FunctionEmitter;
 import com.jogamp.gluegen.JavaMethodBindingEmitter;
 import com.jogamp.gluegen.JavaType;
-
-import com.jogamp.gluegen.*;
-import com.jogamp.gluegen.cgram.types.*;
-import com.jogamp.gluegen.opengl.*;
-import com.jogamp.gluegen.procaddress.*;
+import com.jogamp.gluegen.MethodBinding;
+import com.jogamp.gluegen.cgram.types.FunctionSymbol;
+import com.jogamp.gluegen.opengl.GLEmitter;
+import com.jogamp.gluegen.opengl.GLJavaMethodBindingEmitter;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Emitter producing NativeSignature attributes.
@@ -122,8 +122,6 @@ public class NativeSignatureEmitter extends GLEmitter {
             NativeSignatureJavaMethodBindingEmitter newEmitter = null;
             if (javaEmitter instanceof GLJavaMethodBindingEmitter) {
                 newEmitter = new NativeSignatureJavaMethodBindingEmitter((GLJavaMethodBindingEmitter) javaEmitter);
-            } else if (javaEmitter instanceof ProcAddressJavaMethodBindingEmitter) {
-                newEmitter = new NativeSignatureJavaMethodBindingEmitter((ProcAddressJavaMethodBindingEmitter) javaEmitter);
             } else {
                 newEmitter = new NativeSignatureJavaMethodBindingEmitter(javaEmitter, this);
             }
