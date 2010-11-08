@@ -1,5 +1,11 @@
 JOGL as a whole may be used under the terms of the New BSD 3-clause license,
-which is the common denominator of the following used 5 BSD licenses.
+which is the common denominator of the following used 5 BSD licenses L.1 - L.5.
+
++++
+
+Additional licenses compatible with the BSD 3-clause license are listed below A.1 - A...
+
++++
 
 L.1) The JOGL source tree contains code from the JogAmp Community
      which is covered by the Simplified BSD 2-clause license:
@@ -162,4 +168,16 @@ L.5) The JOGL source tree also contains a Java port of Brian Paul's Tile
    REGARDLESS OF THE THEORY OF LIABILITY, ARISING OUT OF THE USE OF OR
    INABILITY TO USE THIS SOFTWARE, EVEN IF THE COPYRIGHT HOLDERS OR
    CONTRIBUTORS HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+A.1) The JOGL source tree also contains header files from Khronos,
+     reflecting OpenKODE, EGL, OpenGL ES1, OpenGL ES2 and OpenGL.
+     The Khronos license, actually a 'non license' states:
+
+     Using a Khronos API Word or Logo Trademark
+     ------------------------------------------
+     Any developer or company can freely download the available Khronos API Specifications 
+     and implement and ship products using the specification completely free of charge, royalty or licensing. 
+     Use of the related Khronos API Word or Logo Trademark however has certain requirements.
+
+     http://www.khronos.org/legal/license/
 
