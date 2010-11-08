@@ -387,13 +387,6 @@ DECLARE_HANDLE(HPBUFFEREXT);
 #ifndef SKIP_WGL_HANDLE_DEFINITIONS
 DECLARE_HANDLE(HGPUNV);
 #endif /* !SKIP_WGL_HANDLE_DEFINITIONS */
-typedef struct tagRECT {
-    LONG left;
-    LONG top;
-    LONG right;
-    LONG bottom;
-} RECT;
-
 typedef struct _GPU_DEVICE {
     DWORD  cb;
     CHAR   DeviceName[32];

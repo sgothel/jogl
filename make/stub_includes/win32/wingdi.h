@@ -11,13 +11,6 @@
 
 #ifndef WGL_GDI_VERSION_1_X
 
-typedef struct tagRECT {
-    LONG left;
-    LONG top;
-    LONG right;
-    LONG bottom;
-} RECT;
-
 typedef struct tagRGBQUAD {
     BYTE rgbBlue;
     BYTE rgbGreen;

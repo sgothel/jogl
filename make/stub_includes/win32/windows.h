@@ -39,3 +39,11 @@ typedef unsigned short      WORD;
 typedef HANDLE              HPBUFFERARB;
 typedef HANDLE              HPBUFFEREXT;
 typedef HANDLE              HGPUNV;
+
+typedef struct tagRECT {
+    LONG left;
+    LONG top;
+    LONG right;
+    LONG bottom;
+} RECT;
+
