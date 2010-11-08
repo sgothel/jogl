@@ -191,10 +191,6 @@ typedef unsigned long int       khronos_uint64_t;
 typedef long long int           khronos_int64_t;
 typedef unsigned long long int  khronos_uint64_t;
 #endif /* __arch64__ */
-typedef signed   long  int      khronos_intptr_t;
-typedef unsigned long  int      khronos_uintptr_t;
-typedef signed   long  int      khronos_ssize_t;
-typedef unsigned long  int      khronos_usize_t;
 #define KHRONOS_SUPPORT_INT64   1
 #define KHRONOS_SUPPORT_FLOAT   1
 
