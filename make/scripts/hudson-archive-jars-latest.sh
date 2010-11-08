@@ -53,7 +53,7 @@ cp -a $gluegenmaster/build/artifact.properties $dest/javadoc/gluegen-master.arti
 mkdir $dest/javadoc/gluegen
 cp -a $gluegenmaster/build/javadoc.zip $dest/javadoc/gluegen
 cd $dest/javadoc/gluegen
-unzip javadoc.zip
+unzip -q javadoc.zip
 cd $rootdir
 
 joglslave=`lslatest jogl-b`
@@ -79,21 +79,21 @@ mkdir $dest/javadoc/jogl
 cp -a $joglmaster/build/javadoc*.zip $dest/javadoc/jogl
 cd $dest/javadoc/jogl
 for i in *.zip ; do 
-    unzip $i
+    unzip -q $i
 done
 cd $rootdir
 
-jogldemosslave=`lslatest jogl-demos-b`
-bjogldemosslave=`buildnumber_3 $jogldemosslave`
+jogldemosmaster=`lslatest jogl-demos-master-b`
+bjogldemosmaster=`buildnumber_4 $jogldemosmaster`
 echo
 echo JOGL DEMOS
 echo
-echo slave  build $bjogldemosslave - $jogldemosslave
+echo master  build $bjogldemosmaster - $jogldemosmaster
 echo
-echo "jogl-demos.build.number=$bjogldemosslave" >> $dest/aggregated.artifact.properties
+echo "jogl-demos.build.number=$bjogldemosmaster" >> $dest/aggregated.artifact.properties
 
-cp -a $jogldemosslave/build/jogl-demos*jar $dest/
-cp -a $jogldemosslave/build/artifact.properties $dest/jogl-demos.artifact.properties
+cp -a $jogldemosmaster/build/jogl-demos*jar $dest/
+cp -a $jogldemosmaster/build/artifact.properties $dest/jogl-demos.artifact.properties
 
 
 
@@ -116,7 +116,7 @@ cp -a $joclmaster/artifact.properties $dest/javadoc/jocl-master.artifact.propert
 mkdir $dest/javadoc/jocl
 cp -a $joclmaster/jocl-javadoc.zip $dest/javadoc/jocl/
 cd $dest/javadoc/jocl
-unzip jocl-javadoc.zip
+unzip -q jocl-javadoc.zip
 cd $rootdir
 
 jocldemosslave=`lslatest jocl-demos-b`
