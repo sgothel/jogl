@@ -1,9 +1,12 @@
-/*
- * Essential wgl and supporting routines and data structures extracted
- * from WINGDI.H.
+/**
  *
- * Copyright (c) 1985-1997, Microsoft Corp. All rights reserved.
+ * This file is derived from w64 mingw-runtime package's mingw64/x86_64-w64-mingw32/include/wingdi.h file
+ * and states: 
  *
+ *     This file has no copyright assigned and is placed in the Public Domain.
+ *     No warranty is given; refer to the file DISCLAIMER.PD within this package.
+ *
+ * Editions / Removals and a split (wingdi.h -> wingdi.h + winwgl.h) were made by the JogAmp Community, 2010
  */
 
 #ifndef WGL_GDI_VERSION_1_X
@@ -46,8 +49,7 @@
 #ifndef WGL_GDI_VERSION_1_X
 #define WGL_GDI_VERSION_1_X
 
-// OpenGL-related routines
-WINGDIAPI BOOL  WINAPI wglCopyContext(HGLRC, HGLRC, UINT);
+WINGDIAPI BOOL  WINAPI wglCopyContext(HGLRC,HGLRC,UINT);
 WINGDIAPI HGLRC WINAPI wglCreateContext(HDC);
 WINGDIAPI BOOL  WINAPI wglDeleteContext(HGLRC);
 WINGDIAPI HGLRC WINAPI wglGetCurrentContext(VOID);
