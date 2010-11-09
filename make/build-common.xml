@@ -27,7 +27,7 @@
     <import file="versions.xml" />
 
     <tstamp>
-         <format property="version.timestamp" pattern="yyyyMMdd"/>
+         <format property="version.timestamp" pattern="yyyyMMddHHmm"/>
     </tstamp>
 
     <target name="nativewindow.setup-version-RI" if="nativewindow.ri">

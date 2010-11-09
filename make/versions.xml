@@ -22,7 +22,7 @@
 
   <!-- Base version of the NativeWindow interface, following the same
        rules as above -->
-  <property name="nativewindow_base_version" value="1.0" />
+  <property name="nativewindow_base_version" value="2.0" />
 
   <!-- Uncomment this property in order to produce a NativeWindow
        build without running the "RI" (Reference Implementation)
@@ -33,7 +33,7 @@
 
   <!-- Base version of the Newt library, following the same
        rules as above -->
-  <property name="newt_base_version" value="1.0" />
+  <property name="newt_base_version" value="2.0" />
 
   <!-- Newt isn't covered by a JSR at the moment, so there is little
        value in having a different reference implementation
