@@ -76,9 +76,9 @@ AUTOBUILD=0
 
 if [ ! -z "$JOGL_BUILD_DIR" -a -e "$JOGL_BUILD_DIR" ] ; then
     AUTOBUILD=0
-elif [ -e $THISDIR/../lib ] ; then
+elif [ -e $THISDIR/jar ] ; then
     # Autobuild
-    JOGL_BUILD_DIR=$THISDIR/../lib
+    JOGL_BUILD_DIR=$THISDIR/jar
     AUTOBUILD=1
 else
     echo invalid JOGL_BUILD_DIR $JOGL_BUILD_DIR and no AUTOBUILD
@@ -91,7 +91,7 @@ if [ $AUTOBUILD -eq 0 ] ; then
     JOGL_LIB_DIR=$JOGL_BUILD_DIR/nativewindow/obj:$JOGL_BUILD_DIR/jogl/obj:$JOGL_BUILD_DIR/newt/obj
 else
     # Autobuild
-    JOGL_LIB_DIR=$THISDIR/../lib
+    JOGL_LIB_DIR=$THISDIR/lib
 fi
 export JOGL_LIB_DIR
 
