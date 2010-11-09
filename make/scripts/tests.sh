@@ -46,7 +46,7 @@ function testawt() {
 #
 # newt (testnoawt and testawt)
 #
-#testnoawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
+testnoawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testawt com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT
 #testawt com.jogamp.test.junit.newt.TestDisplayLifecycle01NEWT
@@ -55,7 +55,7 @@ function testawt() {
 #testawt com.jogamp.test.junit.newt.TestScreenMode00NEWT
 #testnoawt com.jogamp.test.junit.newt.TestScreenMode01NEWT
 #testnoawt com.jogamp.test.junit.newt.TestScreenMode02NEWT
-testawt com.jogamp.test.junit.newt.TestGLWindows01NEWT -time 1000000
+#testawt com.jogamp.test.junit.newt.TestGLWindows01NEWT -time 1000000
 #testawt -Djava.awt.headless=true com.jogamp.test.junit.newt.TestGLWindows01NEWT
 #testawt com.jogamp.test.junit.newt.TestGLWindows02NEWTAnimated
 
