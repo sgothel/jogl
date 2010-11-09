@@ -7,4 +7,8 @@ echo CP_ALL %CP_ALL%
 
 set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true"
 
-%J2RE_HOME%\bin\java -classpath %CP_ALL% "-Djava.library.path=%LIB_DIR%" %X_ARGS% %1 %2 %3 %4 %5 %6 %7 %8 %9 > java-win64.log 2>&1
+REM java -classpath %CP_ALL% "-Djava.library.path=%LIB_DIR%" %X_ARGS% javax.media.opengl.awt.GLCanvas > java-win64.log 2>&1
+
+java -classpath %CP_ALL% "-Djava.library.path=%LIB_DIR%" %X_ARGS% com.jogamp.newt.opengl.GLWindow > test.log 2>&1
+
+type test.log
