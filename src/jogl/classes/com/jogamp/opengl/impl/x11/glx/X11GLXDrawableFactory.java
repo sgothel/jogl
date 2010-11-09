@@ -83,9 +83,11 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         } catch (JogampRuntimeException jre) { /* n/a .. */ }
     }
 
-    // init shared resources ..
+    // Init shared resources via own thread
+    // Will be released via ShutdownHook
     sharedResourcesRunner = new SharedResourcesRunner();    
     sharedResourcesThread = new Thread(sharedResourcesRunner, Thread.currentThread().getName()+"-SharedResourcesRunner");
+    sharedResourcesThread.setDaemon(true); // Allow JVM to exit, even if this one is running
     sharedResourcesThread.start();
     sharedResourcesRunner.waitUntilInitialized();
 
