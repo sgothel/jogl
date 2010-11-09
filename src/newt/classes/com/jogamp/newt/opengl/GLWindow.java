@@ -41,6 +41,7 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.GLDrawableHelper;
+import com.jogamp.opengl.util.VersionInfo;
 import javax.media.nativewindow.util.Insets;
 
 /**
@@ -840,4 +841,35 @@ public class GLWindow implements GLAutoDrawable, Window {
     public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
         window.surfaceUpdated(updater, ns, when);
     }
+
+    /**
+     * A most simple JOGL AWT test entry
+     */
+    public static void main(String args[]) {
+        GLCapabilities caps = new GLCapabilities( GLProfile.getDefault() );
+
+        GLWindow glWindow = GLWindow.create(caps);
+        glWindow.setSize(128, 128);
+
+        glWindow.addGLEventListener(new GLEventListener() {
+            public void init(GLAutoDrawable drawable) {
+                GL gl = drawable.getGL();
+                String prefix = "JOGL NEWT Test " + Thread.currentThread().getName();
+                System.err.println(VersionInfo.getInfo(null, prefix, gl).toString());
+            }
+
+            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+            }
+
+            public void display(GLAutoDrawable drawable) {
+            }
+
+            public void dispose(GLAutoDrawable drawable) {
+            }
+        });
+
+        glWindow.setVisible(true);
+        glWindow.destroy(true);
+    }
+
 }

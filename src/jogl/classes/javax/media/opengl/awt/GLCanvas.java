@@ -45,12 +45,14 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
 
 import com.jogamp.opengl.impl.*;
+import com.jogamp.opengl.util.VersionInfo;
 
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.FontMetrics;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -787,4 +789,57 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
     return config;
   }
+  
+  /**
+   * A most simple JOGL AWT test entry
+   */
+  public static void main(String args[]) {
+    GLCapabilities caps = new GLCapabilities( GLProfile.getDefault() );
+    Frame frame = new Frame("JOGL AWT Test");
+
+    GLCanvas glCanvas = new GLCanvas(caps);
+    frame.add(glCanvas);
+    frame.setSize(128, 128);
+
+    glCanvas.addGLEventListener(new GLEventListener() {
+        public void init(GLAutoDrawable drawable) {
+            GL gl = drawable.getGL();
+            String prefix = "JOGL AWT Test " + Thread.currentThread().getName();
+            System.err.println(VersionInfo.getInfo(null, prefix, gl).toString());
+        }
+
+        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+        }
+
+        public void display(GLAutoDrawable drawable) {
+        }
+
+        public void dispose(GLAutoDrawable drawable) {
+        }
+    });
+
+    final Frame _frame = frame;
+    final GLCanvas _glCanvas = glCanvas;
+
+    try {
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                _frame.setVisible(true);
+            }});
+    } catch (Throwable t) {
+        t.printStackTrace();
+    }
+    glCanvas.display();
+    try {
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                _frame.setVisible(false);
+                _frame.remove(_glCanvas);
+                _frame.dispose();
+            }});
+    } catch (Throwable t) {
+        t.printStackTrace();
+    }
+  }
+
 }

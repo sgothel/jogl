@@ -78,6 +78,8 @@ public class VersionInfo {
             sb = new StringBuffer();
         }
 
+        sb.append(prefix+" "+GLProfile.glAvailabilityToString());
+        sb.append(Platform.getNewline());
         sb.append(prefix+" Swap Interval " + gl.getSwapInterval());
         sb.append(Platform.getNewline());
         sb.append(prefix+" GL Profile    " + gl.getGLProfile());
