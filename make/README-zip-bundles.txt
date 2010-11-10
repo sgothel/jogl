@@ -1,45 +1,61 @@
 
-Java (TM) Binding for the OpenGL (r) API, version @VERSION@
--------------------------------------------------------
+Java (TM) Binding for the OpenGL (r) API, version @BASEVERSION@
+-----------------------------------------------------------------------------
 
-This software is licensed by Sun Microsystems, as specified
-in the LICENSE.txt file.  You must use this software 
-in accordance with the terms under which the code is licensed.
+This software is licensed as specified in the LICENSE.txt file.  
+You must use this software in accordance with the terms 
+under which the code is licensed.
 
+This is build version @VERSION@, based on:
+              branch  @SCM_BRANCH@
+              commit  @SCM_COMMIT@
 
-
-Instructions for unzipping Java Binding for the OpenGL API, version @VERSION@
---------------------------------------------------------------------
+Instructions for unzipping Java Binding for the OpenGL API, version @BASEVERSION@
+----------------------------------------------------------------------------------
 
 After downloading and unzipping the zip file containing the 
 JOGL release for your target platform, you will see the 
 following files in the top directory:
   
-  COPYRIGHT.txt
   LICENSE.txt
   Userguide.html
   README.txt                  README file (you are reading it now)
 
 and the following subdirectory:
 
-  lib                         contains JOGL implementation
+  etc                         contains JOGL shell scripts
+  jar                         contains JOGL implementation, JAR files
+  lib                         contains JOGL implementation, native libraries
+  jnlp-files                  contains JOGL jnlp-file templates
 
-All of the JOGL implementation files (jar files and native 
-libraries) are in the lib subdirectory.  For instructions on 
-how to use these implementation files to build or run a JOGL 
-program see the enclosed JOGL user guide (Userguide.html).
+For instructions on how to use these implementation files 
+to build or run a JOGL program look at:
+    http://jogamp.org/
+    http://jogamp.org/jogl/
+    http://jogamp.org/wiki/index.php/Jogl_Tutorial
+    http://jogamp.org/wiki/index.php/Jogl_FAQ
 
+You can verify the version of the build via the JOGL self test:
+    etc/test.sh   (Linux, FreeBSD, MacOSX, ..)
+    etc\test.bat  (Windows)
 
+You may also have a look at the (outdated) enclosed JOGL user guide, Userguide.html
 
 Project source code and getting assistance
 ------------------------------------------
 
-JOGL source code and project information can be found at:
+JOGL source code can be found at:
 
-  https://jogl.dev.java.net/
+  http://jogamp.org/git/
+  http://github.com/sgothel/jogl
+  http://github.com/sgothel/gluegen
 
 
-Numerous answers to common questions can be found on the JOGL
-forum:
+You can address the JogAmp Community via:
+------------------------------------------
+   Web                http://jogamp.org/
+   Forum/Mailinglist  http://jogamp.762907.n3.nabble.com/
+   JogAmp Channel     server: conference.jabber.org room: jogamp
+   Repository         http://jogamp.org/git/
+   Email              mediastream _at_ jogamp _dot_ org
 
-  http://www.javagaming.org/index.php/board,25.0.html

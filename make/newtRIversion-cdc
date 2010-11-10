@@ -1,9 +1,0 @@
-Specification-Title: NEWT API Specification CDC
-Specification-Version: @BASEVERSION@
-Specification-Vendor: JogAmp community
-Implementation-Title: NEWT Runtime Environment CDC
-Implementation-Version: @BASEVERSION@
-Implementation-Vendor: JogAmp community
-Extension-Name: com.jogamp.newt
-Implementation-Vendor-Id: com.jogamp
-Trusted-Library: true

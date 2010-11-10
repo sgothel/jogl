@@ -3,6 +3,8 @@ Specification-Version: @BASEVERSION@
 Specification-Vendor: JogAmp community
 Implementation-Title: NEWT Runtime Environment
 Implementation-Version: @VERSION@
+Implementation-Branch: @SCM_BRANCH@
+Implementation-Commit: @SCM_COMMIT@
 Implementation-Vendor: JogAmp community
 Extension-Name: com.jogamp.newt
 Implementation-Vendor-Id: com.jogamp

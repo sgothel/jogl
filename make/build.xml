@@ -101,6 +101,9 @@
             overwrite="true">
             <filterset>
                 <filter token="VERSION" value="${jogl.version}"/>
+                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+                <filter token="BASEVERSION" value="${jogl_base_version}"/>
             </filterset>
         </copy>
         <mkdir dir="${archive}/jar" />
@@ -129,8 +132,12 @@
 
     <target name="tag.build" depends="init">
         <copy file="${build.gluegen}/artifact.properties" todir="${build}" overwrite="true"/>
-        <echo file="${build}/artifact.properties" message='jogl.build.number=${jogl.build.number}${line.separator}' append="true"/>
+        <echo message='jogl.build.number=${jogl.build.number}${line.separator}' file="${build}/artifact.properties" append="true"/>
+        <echo message='jogl.build.id=${jogl.build.id}${line.separator}'         file="${build}/artifact.properties" append="true"/>
+        <echo message='jogl.build.branch=${jogl.build.branch}${line.separator}' file="${build}/artifact.properties" append="true"/>
+        <echo message='jogl.build.commit=${jogl.build.commit}${line.separator}' file="${build}/artifact.properties" append="true"/>
     </target>
+
 
     <!-- ================================================================== -->
     <!--

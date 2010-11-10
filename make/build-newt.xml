@@ -468,14 +468,6 @@
             exceptions="false"
             rtti="false">
 
-          <!-- TODO: versioninfo  companyname="java.net"
-                        legalcopyright="Copyright"
-                        productname="JOGL"
-                        productversion="x.y.z"
-                        description="Description"
-                        fileversion="x.y.z"
-                        filecomments="File Comment" /-->
-
           <fileset dir="${project.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
 
           <compiler extends="@{compiler.cfg.id}" >
@@ -578,38 +570,28 @@
     <target name="build-jars" depends="gluegen.cpptasks.detect.os,build-jars-javase,build-jars-cdc" />
 
     <target name="setup-manifestfile">
-        <condition property="manifestfile" value="newtRIversion">
-          <isset property="newt.ri" />
-        </condition>
-        <condition property="manifestfile" value="newtversion">
-          <not>
-            <isset property="newt.ri" />
-          </not>
-        </condition>
+        <property name="manifestfile" value="newtversion"/>
         <copy file="${manifestfile}"
           tofile="tempversion"
           overwrite="true">
           <filterset>
               <filter token="VERSION" value="${newt.version}"/>
+              <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+              <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
               <filter token="BASEVERSION" value="${newt_base_version}"/>
           </filterset>
         </copy>
     </target>
 
     <target name="setup-manifestfile-cdc">
-        <condition property="manifestfile" value="newtRIversion-cdc">
-          <isset property="newt.ri" />
-        </condition>
-        <condition property="manifestfile" value="newtversion-cdc">
-          <not>
-            <isset property="newt.ri" />
-          </not>
-        </condition>
+        <property name="manifestfile" value="newtversion-cdc"/>
         <copy file="${manifestfile}"
           tofile="tempversion-cdc"
           overwrite="true">
           <filterset>
               <filter token="VERSION" value="${newt.version}"/>
+              <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+              <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
               <filter token="BASEVERSION" value="${newt_base_version}"/>
           </filterset>
         </copy>
@@ -816,16 +798,4 @@
         <echo message="${newt.version}" file="${build.newt}/version.txt" />
     </target>
 
-    <!-- ================================================================== -->
-    <!--
-       - Build everything and use Sun's Implementation tag in the manifest to
-       - indicate this is the Reference Implementation.
-      -->
-    <target name="RI">
-        <!-- Set property for using the RI manifest file so newt.jar is versioned
-           - properly
-          -->
-          <property name="newt.ri" value="true" />
-          <antcall target="all" inheritRefs="true" />
-    </target>
 </project>

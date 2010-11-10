@@ -1,9 +1,0 @@
-Specification-Title: Native Window Interface API Specification
-Specification-Version: @BASEVERSION@
-Specification-Vendor: JogAmp community
-Implementation-Title: Native Window Interface Runtime Environment
-Implementation-Version: @BASEVERSION@
-Implementation-Vendor: JogAmp community
-Extension-Name: javax.media.nativewindow
-Implementation-Vendor-Id: com.jogamp
-Trusted-Library: true

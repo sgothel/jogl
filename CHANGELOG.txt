@@ -1,6 +1,8 @@
 Changes between JOGL 1.1.1 and today:
 
- - Please refere to the repository log file
+ - Please refere to the online repository history at:
+      http://jogamp.org/git/
+      http://github.com/sgothel/jogl
 
 Changes between JOGL 1.1.0 and 1.1.1:
 

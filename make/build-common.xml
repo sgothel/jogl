@@ -26,40 +26,11 @@
 
     <import file="versions.xml" />
 
-    <tstamp>
-         <format property="version.timestamp" pattern="yyyyMMddHHmm"/>
-    </tstamp>
-
-    <target name="nativewindow.setup-version-RI" if="nativewindow.ri">
-        <property name="nativewindow.version" value="${nativewindow_base_version}" />
-    </target>
-
-    <target name="nativewindow.setup-version-non-RI" unless="nativewindow.ri">
-        <property name="nativewindow.version" value="${nativewindow_base_version}-pre-${version.timestamp}" />
-    </target>
-    <target name="jogl.setup-version-RI" if="jogl.ri">
-        <property name="jogl.version" value="${jogl_base_version}" />
-    </target>
-
-    <target name="jogl.setup-version-non-RI" unless="jogl.ri">
-        <property name="jogl.version" value="${jogl_base_version}-pre-${version.timestamp}" />
-    </target>
-
-    <target name="newt.setup-version-RI" if="newt.ri">
-        <property name="newt.version" value="${newt_base_version}" />
-    </target>
-
-    <target name="newt.setup-version-non-RI" unless="newt.ri">
-        <property name="newt.version" value="${newt_base_version}-pre-${version.timestamp}" />
-    </target>
-
-    <target name="setup-versions" depends="nativewindow.setup-version-RI, nativewindow.setup-version-non-RI, jogl.setup-version-RI, jogl.setup-version-non-RI, newt.setup-version-RI, newt.setup-version-non-RI"/>
-
     <!-- ================================================================== -->
     <!-- 
        - Base initialization of properties and detection of operating system.
       -->
-    <target name="common.init" depends="gluegen.cpptasks.detect.os,setup-versions" unless="common.init.done">
+    <target name="common.init" depends="gluegen.cpptasks.detect.os" unless="common.init.done">
         <property name="common.init.done" value="true" />
 
         <!-- Set the project root directory to be up one directory. -->
@@ -68,9 +39,6 @@
         <property name="src"                        value="${project.root}/src" />
         <property name="lib"                        value="${build}/lib" />
         <property name="jar"                        value="${build}/jar" />
-
-        <property name="archive.name"               value="jogl-${jogl.version}-${os.and.arch}" />
-        <property name="archive"                    value="${build}/${archive.name}" />
 
         <property name="all.srcj.path" value="${src}/nativewindow/classes;${src}/jogl/classes;${src}/newt/classes" />
         <!-- No generated classes for Newt at the present time -->
@@ -82,8 +50,22 @@
         <property name="stub.includes"              value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
         <property name="stub.includes.common"       value="${stub.includes}/gluegen" />
 
+        <tstamp>
+             <format property="version.timestamp" pattern="yyyyMMdd"/>
+        </tstamp>
+
         <property file="${build}/artifact.properties"/>
-        <property name="jogl.build.number" value="manual-build"/>
+        <property name="jogl.build.number" value="manual"/>
+        <property name="jogl.build.id"     value="${version.timestamp}"/>
+        <property name="jogl.build.branch" value="master"/>
+        <property name="jogl.build.commit" value="manual"/>
+
+        <property name="nativewindow.version" value="${nativewindow_base_version}-b${jogl.build.number}-${version.timestamp}" />
+        <property name="jogl.version"         value="${jogl_base_version}-b${jogl.build.number}-${version.timestamp}" />
+        <property name="newt.version"         value="${newt_base_version}-b${jogl.build.number}-${version.timestamp}" />
+
+        <property name="archive.name"               value="jogl-${jogl.version}-${os.and.arch}" />
+        <property name="archive"                    value="${build}/${archive.name}" />
 
         <condition property="setup.nodesktop">
             <and>

@@ -84,6 +84,7 @@ Alban Cousinié
 Athomas Goldberg
 Yuri Vladimir Gushchin
 Gregory Pierce
+Rami Santina
 Carsten Weisse
 
 The JogAmp Community is grateful for the support of the

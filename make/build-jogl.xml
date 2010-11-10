@@ -1358,14 +1358,6 @@
             exceptions="false" 
             rtti="false">   
   
-          <!-- TODO: versioninfo  companyname="java.net"
-                        legalcopyright="Copyright"
-                        productname="JOGL" 
-                        productversion="x.y.z"
-                        description="Description"
-                        fileversion="x.y.z" 
-                        filecomments="File Comment" /-->      
-  
           <fileset dir="${project.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
   
           <compiler extends="@{compiler.cfg.id}" >
@@ -1475,49 +1467,29 @@
       -->
     <target name="build-jars" depends="gluegen.cpptasks.detect.os,build-jars-javase,build-jars-cdc" />
 
-    <target name="setup-manifestfile">
-        <condition property="manifestfile" value="joglRIversion">
-            <isset property="jogl.ri" />
-        </condition>
-        <condition property="manifestfile" value="joglversion">
-            <not>
-                <isset property="jogl.ri" />
-            </not>
-        </condition>
-        <tstamp>
-             <format property="timestamp" pattern="yyyyMMdd-HH:mm:ss"/>
-        </tstamp>
+    <target name="setup-manifestfile" depends="common.init">
+        <property name="manifestfile" value="joglversion"/>
         <copy file="${manifestfile}"
             tofile="${build.jogl}/tempversion"
             overwrite="true">
             <filterset>
-                <!-- This token only exists in the non-RI version of the manifest -->
-                <filter token="VERSION" value="${jogl_base_version}-pre-${timestamp}"/>
-                <!-- This token exists in both the RI and non-RI versions of the manifest -->
+                <filter token="VERSION" value="${jogl.version}"/>
+                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
                 <filter token="BASEVERSION" value="${jogl_base_version}"/>
             </filterset>
         </copy>
     </target>
 
-    <target name="setup-manifestfile-cdc" unless="setup.noCDC">
-        <condition property="manifestfile" value="joglRIversion-cdc">
-            <isset property="jogl.ri" />
-        </condition>
-        <condition property="manifestfile" value="joglversion-cdc">
-            <not>
-                <isset property="jogl.ri" />
-            </not>
-        </condition>
-        <tstamp>
-             <format property="timestamp" pattern="yyyyMMdd-HH:mm:ss"/>
-        </tstamp>
+    <target name="setup-manifestfile-cdc" unless="setup.noCDC" depends="common.init">
+        <property name="manifestfile" value="joglversion-cdc"/>
         <copy file="${manifestfile}"
             tofile="${build.jogl}/tempversion-cdc"
             overwrite="true">
             <filterset>
-                <!-- This token only exists in the non-RI version of the manifest -->
-                <filter token="VERSION" value="${jogl_base_version}-pre-${timestamp}"/>
-                <!-- This token exists in both the RI and non-RI versions of the manifest -->
+                <filter token="VERSION" value="${jogl.version}"/>
+                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
                 <filter token="BASEVERSION" value="${jogl_base_version}"/>
             </filterset>
         </copy>
@@ -1884,16 +1856,4 @@
         <echo message="${jogl.version}" file="${build.jogl}/version.txt" />
     </target>
 
-    <!-- ================================================================== -->
-    <!--
-       - Build everything and use Sun's Implementation tag in the manifest to
-       - indicate this is the Reference Implementation.
-      -->
-    <target name="RI">
-        <!-- Set property for using the RI manifest file so jogl.jar is versioned
-           - properly
-          -->
-          <property name="jogl.ri" value="true" />
-          <antcall target="all" inheritRefs="true" />
-    </target>
 </project>
