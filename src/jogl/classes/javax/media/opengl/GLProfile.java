@@ -39,6 +39,7 @@ package javax.media.opengl;
 
 import com.jogamp.common.jvm.JVMUtil;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.VersionUtil;
 import com.jogamp.opengl.util.VersionInfo;
 import com.jogamp.opengl.impl.Debug;
 import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
@@ -1059,8 +1060,8 @@ public class GLProfile {
         mappedProfiles = computeProfileMap();
 
         if (DEBUG) {
-            System.err.println(VersionInfo.getPackageInfo(null, "GLProfile.init", "javax.media.opengl", "GL"));
-            System.err.println(VersionInfo.getPlatformInfo(null, "GLProfile.init"));
+            System.err.print(VersionUtil.getPlatformInfo(null, "GLProfile.init"));
+            System.err.print(VersionUtil.getManifestInfo(GLProfile.class.getClassLoader(), "GLProfile.init", "javax.media.opengl", "GL", null));
             System.err.println("GLProfile.init firstUIActionOnProcess "+firstUIActionOnProcess);
             System.err.println("GLProfile.init isAWTAvailable "+isAWTAvailable);
             System.err.println("GLProfile.init hasNativeOSFactory "+hasNativeOSFactory);

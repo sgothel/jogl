@@ -39,6 +39,7 @@ echo
 # D_ARGS="-Djogl.debug=all"
 X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=false"
 
+java $X_ARGS $ARGS_AWT  $D_ARGS com.jogamp.opengl.util.VersionInfo 2>&1 | tee -a $logfile
 #java $X_ARGS $ARGS_AWT  $D_ARGS javax.media.opengl.awt.GLCanvas 2>&1 | tee -a $logfile
 java $X_ARGS $ARGS_NEWT $D_ARGS com.jogamp.newt.opengl.GLWindow 2>&1 | tee -a $logfile
 

@@ -30,45 +30,25 @@ package com.jogamp.opengl.util;
 
 import javax.media.opengl.*;
 import com.jogamp.common.os.Platform;
-
-import java.io.IOException;
+import com.jogamp.common.util.VersionUtil;
 
 public class VersionInfo {
+
+    public static StringBuffer getInfo(StringBuffer sb, String prefix) {
+        return VersionUtil.getInfo(VersionInfo.class.getClassLoader(), prefix, "javax.media.opengl", "GL", sb);
+    }
 
     public static StringBuffer getInfo(StringBuffer sb, String prefix, GL gl) {
         if(null==sb) {
             sb = new StringBuffer();
         }
 
-        sb.append(Platform.getNewline());
+        VersionUtil.getInfo(VersionInfo.class.getClassLoader(), prefix, "javax.media.opengl", "GL", sb);
         sb.append("-----------------------------------------------------------------------------------------------------");
-        sb.append(Platform.getNewline());
-        getPackageInfo(sb, prefix, "javax.media.opengl", "GL");
-        sb.append(Platform.getNewline());
-        sb.append(Platform.getNewline());
-        getPlatformInfo(sb, prefix);
-        sb.append(Platform.getNewline());
         sb.append(Platform.getNewline());
         getOpenGLInfo(sb, prefix, gl);
-        sb.append(Platform.getNewline());
-        sb.append(Platform.getNewline());
         sb.append("-----------------------------------------------------------------------------------------------------");
         sb.append(Platform.getNewline());
-
-        return sb;
-    }
-
-    public static StringBuffer getPlatformInfo(StringBuffer sb, String prefix) {
-        if(null==sb) {
-            sb = new StringBuffer();
-        }
-
-        sb.append(prefix+" Platform: " + Platform.getOS() + " " + Platform.getOSVersion() + " (os), " + Platform.getArch() + " (arch)");
-        sb.append(Platform.getNewline());
-        sb.append(prefix+" Platform: littleEndian " + Platform.isLittleEndian() + ", 32Bit "+Platform.is32Bit() + ", a-ptr bit-size "+Platform.getPointerSizeInBits());
-        sb.append(Platform.getNewline());
-        sb.append(prefix+" Platform: Java " + Platform.getJavaVersion()+", "
-            +Platform.getJavaVendor()+", "+Platform.getJavaVendorURL()+", is JavaSE: "+Platform.isJavaSE());
 
         return sb;
     }
@@ -93,45 +73,13 @@ public class VersionInfo {
         sb.append(prefix+" GL_EXTENSIONS ");
         sb.append(Platform.getNewline());
         sb.append(prefix+"               " + gl.glGetString(gl.GL_EXTENSIONS));
+        sb.append(Platform.getNewline());
 
         return sb;
     }
 
-    public static StringBuffer getPackageInfo(StringBuffer sb, String prefix,
-                                              String pkgName, String className) {
-        try {
-            ClassLoader classLoader = VersionInfo.class.getClassLoader();
-            classLoader.loadClass(pkgName + "." + className);
-
-            if(null==sb) {
-                sb = new StringBuffer();
-            }
-
-            Package p = Package.getPackage(pkgName);
-            if (p == null) {
-                sb.append(prefix+" WARNING: Package.getPackage(" + pkgName + ") is null");
-                sb.append(Platform.getNewline());
-            }
-            else {
-                sb.append(prefix+" "+p);
-                sb.append(Platform.getNewline());
-                sb.append(prefix+" Specification Title = " + p.getSpecificationTitle());
-                sb.append(Platform.getNewline());
-                sb.append(prefix+" Specification Vendor = " + p.getSpecificationVendor());
-                sb.append(Platform.getNewline());
-                sb.append(prefix+" Specification Version = " + p.getSpecificationVersion());
-                sb.append(Platform.getNewline());
-
-                sb.append(prefix+" Implementation Vendor = " + p.getImplementationVendor());
-                sb.append(Platform.getNewline());
-                sb.append(prefix+" Implementation Version = " + p.getImplementationVersion());
-            }
-        }
-        catch (ClassNotFoundException e) {
-            sb.append(Platform.getNewline());
-            sb.append(prefix+" Unable to load " + pkgName);
-        }
-        return sb;
+    public static void main(String args[]) {
+        System.err.println(VersionInfo.getInfo(null, "JOGL"));
     }
 }
 

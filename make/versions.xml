@@ -9,7 +9,7 @@
        and a timestamp automatically added to this version number. For
        intermediate release builds, this should be in the form, for
        example, "2.0-beta1" or "2.0-rc1". For large releases, push
-       betas before release candidates to give the community time to
+       betas before release candidates to give the Community time to
        react.-->
   <property name="jogl_base_version" value="2.0" />
 
