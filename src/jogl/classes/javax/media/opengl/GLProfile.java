@@ -37,14 +37,16 @@
 
 package javax.media.opengl;
 
+import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.jvm.JVMUtil;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionUtil;
-import com.jogamp.opengl.util.VersionInfo;
+import com.jogamp.nativewindow.NativeWindowVersion;
 import com.jogamp.opengl.impl.Debug;
 import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
 import com.jogamp.opengl.impl.GLDynamicLookupHelper;
 import com.jogamp.opengl.impl.DesktopGLDynamicLookupHelper;
+import com.jogamp.opengl.JoglVersion;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.security.*;
@@ -1060,8 +1062,9 @@ public class GLProfile {
         mappedProfiles = computeProfileMap();
 
         if (DEBUG) {
-            System.err.print(VersionUtil.getPlatformInfo(null, "GLProfile.init"));
-            System.err.print(VersionUtil.getManifestInfo(GLProfile.class.getClassLoader(), "GLProfile.init", "javax.media.opengl", "GL", null));
+            System.err.println(GlueGenVersion.getInstance().getInfo(null));
+            System.err.println(NativeWindowVersion.getInstance().getInfo(null));
+            System.err.print(JoglVersion.getInstance().getInfo(null));
             System.err.println("GLProfile.init firstUIActionOnProcess "+firstUIActionOnProcess);
             System.err.println("GLProfile.init isAWTAvailable "+isAWTAvailable);
             System.err.println("GLProfile.init hasNativeOSFactory "+hasNativeOSFactory);

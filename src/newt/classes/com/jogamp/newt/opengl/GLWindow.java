@@ -34,6 +34,9 @@
 
 package com.jogamp.newt.opengl;
 
+import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.util.VersionUtil;
+import com.jogamp.nativewindow.NativeWindowVersion;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.WindowImpl;
@@ -41,7 +44,7 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.GLDrawableHelper;
-import com.jogamp.opengl.util.VersionInfo;
+import com.jogamp.opengl.JoglVersion;
 import javax.media.nativewindow.util.Insets;
 
 /**
@@ -846,6 +849,10 @@ public class GLWindow implements GLAutoDrawable, Window {
      * A most simple JOGL AWT test entry
      */
     public static void main(String args[]) {
+        System.err.println(GlueGenVersion.getInstance().getInfo(null));
+        System.err.println(NativeWindowVersion.getInstance().getInfo(null));
+        System.err.print(JoglVersion.getInstance().getInfo(null));
+        System.err.println(NewtVersion.getInstance().getInfo(null));
         GLCapabilities caps = new GLCapabilities( GLProfile.getDefault() );
 
         GLWindow glWindow = GLWindow.create(caps);
@@ -854,8 +861,7 @@ public class GLWindow implements GLAutoDrawable, Window {
         glWindow.addGLEventListener(new GLEventListener() {
             public void init(GLAutoDrawable drawable) {
                 GL gl = drawable.getGL();
-                String prefix = "JOGL NEWT Test " + Thread.currentThread().getName();
-                System.err.println(VersionInfo.getInfo(null, prefix, gl).toString());
+                System.err.println(JoglVersion.getInstance().getGLInfo(gl, null));
             }
 
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {

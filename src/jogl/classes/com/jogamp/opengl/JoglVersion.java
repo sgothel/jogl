@@ -26,60 +26,73 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.util;
+package com.jogamp.opengl;
 
 import javax.media.opengl.*;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
+import com.jogamp.common.util.JogampVersion;
+import java.util.jar.Manifest;
 
-public class VersionInfo {
+public class JoglVersion extends JogampVersion {
 
-    public static StringBuffer getInfo(StringBuffer sb, String prefix) {
-        return VersionUtil.getInfo(VersionInfo.class.getClassLoader(), prefix, "javax.media.opengl", "GL", sb);
+    protected static JoglVersion jogampCommonVersionInfo;
+
+    protected JoglVersion(String packageName, Manifest mf) {
+        super(packageName, mf);
     }
 
-    public static StringBuffer getInfo(StringBuffer sb, String prefix, GL gl) {
-        if(null==sb) {
-            sb = new StringBuffer();
+    public static JoglVersion getInstance() {
+        if(null == jogampCommonVersionInfo) {
+            synchronized(JoglVersion.class) {
+                if( null == jogampCommonVersionInfo ) {
+                    final String packageName = "javax.media.opengl";
+                    final String fullClazzName = "javax.media.opengl.GL";
+                    final Manifest mf = VersionUtil.getManifest(JoglVersion.class.getClassLoader(), fullClazzName);
+                    jogampCommonVersionInfo = new JoglVersion(packageName, mf);
+                }
+            }
         }
+        return jogampCommonVersionInfo;
+    }
 
-        VersionUtil.getInfo(VersionInfo.class.getClassLoader(), prefix, "javax.media.opengl", "GL", sb);
-        sb.append("-----------------------------------------------------------------------------------------------------");
-        sb.append(Platform.getNewline());
-        getOpenGLInfo(sb, prefix, gl);
+    public StringBuffer getInfo(GL gl, StringBuffer sb) {
+        sb = super.getInfo(sb);
+
+        getGLInfo(gl, sb);
         sb.append("-----------------------------------------------------------------------------------------------------");
         sb.append(Platform.getNewline());
 
         return sb;
     }
 
-    public static StringBuffer getOpenGLInfo(StringBuffer sb, String prefix, GL gl) {
+    public static StringBuffer getGLInfo(GL gl, StringBuffer sb) {
         if(null==sb) {
             sb = new StringBuffer();
         }
 
-        sb.append(prefix+" "+GLProfile.glAvailabilityToString());
+        sb.append(GLProfile.glAvailabilityToString());
         sb.append(Platform.getNewline());
-        sb.append(prefix+" Swap Interval " + gl.getSwapInterval());
+        sb.append("Swap Interval ").append(gl.getSwapInterval());
         sb.append(Platform.getNewline());
-        sb.append(prefix+" GL Profile    " + gl.getGLProfile());
+        sb.append("GL Profile    ").append(gl.getGLProfile());
         sb.append(Platform.getNewline());
-        sb.append(prefix+" CTX VERSION   " + gl.getContext().getGLVersion());
+        sb.append("CTX VERSION   ").append(gl.getContext().getGLVersion());
         sb.append(Platform.getNewline());
-        sb.append(prefix+" GL            " + gl);
+        sb.append("GL            ").append(gl);
         sb.append(Platform.getNewline());
-        sb.append(prefix+" GL_VERSION    " + gl.glGetString(gl.GL_VERSION));
+        sb.append("GL_VERSION    ").append(gl.glGetString(gl.GL_VERSION));
         sb.append(Platform.getNewline());
-        sb.append(prefix+" GL_EXTENSIONS ");
+        sb.append("GL_EXTENSIONS ");
         sb.append(Platform.getNewline());
-        sb.append(prefix+"               " + gl.glGetString(gl.GL_EXTENSIONS));
+        sb.append("              ").append(gl.glGetString(gl.GL_EXTENSIONS));
         sb.append(Platform.getNewline());
 
         return sb;
     }
 
     public static void main(String args[]) {
-        System.err.println(VersionInfo.getInfo(null, "JOGL"));
+        System.err.println(JoglVersion.getInstance().getInfo(null));
     }
 }
 

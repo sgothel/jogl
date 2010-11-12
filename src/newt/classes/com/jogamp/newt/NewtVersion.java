@@ -26,27 +26,35 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.test.junit.util;
+package com.jogamp.newt;
 
+import com.jogamp.common.util.JogampVersion;
+import com.jogamp.common.util.VersionUtil;
+import java.util.jar.Manifest;
 
-import javax.media.opengl.*;
-import com.jogamp.opengl.JoglVersion;
+public class NewtVersion extends JogampVersion {
 
+    protected static NewtVersion jogampCommonVersionInfo;
 
-public class DumpVersion implements GLEventListener {
-
-    public void init(GLAutoDrawable drawable) {
-        GL gl = drawable.getGL();
-
-        System.err.println(JoglVersion.getInstance().getInfo(gl, null));
+    protected NewtVersion(String packageName, Manifest mf) {
+        super(packageName, mf);
     }
 
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public static NewtVersion getInstance() {
+        if(null == jogampCommonVersionInfo) {
+            synchronized(NewtVersion.class) {
+                if( null == jogampCommonVersionInfo ) {
+                    final String packageName = "com.jogamp.newt";
+                    final String fullClazzName = NewtVersion.class.getName();
+                    final Manifest mf = VersionUtil.getManifest(NewtVersion.class.getClassLoader(), fullClazzName);
+                    jogampCommonVersionInfo = new NewtVersion(packageName, mf);
+                }
+            }
+        }
+        return jogampCommonVersionInfo;
     }
 
-    public void display(GLAutoDrawable drawable) {
-    }
-
-    public void dispose(GLAutoDrawable drawable) {
+    public static void main(String args[]) {
+        System.err.println(NewtVersion.getInstance().getInfo(null));
     }
 }

@@ -26,27 +26,35 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.test.junit.util;
+package com.jogamp.nativewindow;
 
+import com.jogamp.common.util.JogampVersion;
+import com.jogamp.common.util.VersionUtil;
+import java.util.jar.Manifest;
 
-import javax.media.opengl.*;
-import com.jogamp.opengl.JoglVersion;
+public class NativeWindowVersion extends JogampVersion {
 
+    protected static NativeWindowVersion jogampCommonVersionInfo;
 
-public class DumpVersion implements GLEventListener {
-
-    public void init(GLAutoDrawable drawable) {
-        GL gl = drawable.getGL();
-
-        System.err.println(JoglVersion.getInstance().getInfo(gl, null));
+    protected NativeWindowVersion(String packageName, Manifest mf) {
+        super(packageName, mf);
     }
 
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public static NativeWindowVersion getInstance() {
+        if(null == jogampCommonVersionInfo) {
+            synchronized(NativeWindowVersion.class) {
+                if( null == jogampCommonVersionInfo ) {
+                    final String packageName = "javax.media.nativewindow";
+                    final String fullClazzName = NativeWindowVersion.class.getName();
+                    final Manifest mf = VersionUtil.getManifest(NativeWindowVersion.class.getClassLoader(), fullClazzName);
+                    jogampCommonVersionInfo = new NativeWindowVersion(packageName, mf);
+                }
+            }
+        }
+        return jogampCommonVersionInfo;
     }
 
-    public void display(GLAutoDrawable drawable) {
-    }
-
-    public void dispose(GLAutoDrawable drawable) {
+    public static void main(String args[]) {
+        System.err.println(NativeWindowVersion.getInstance().getInfo(null));
     }
 }

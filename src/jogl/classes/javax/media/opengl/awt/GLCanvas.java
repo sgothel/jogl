@@ -40,17 +40,19 @@
 
 package javax.media.opengl.awt;
 
+import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.util.VersionUtil;
+import com.jogamp.nativewindow.NativeWindowVersion;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
 
 import com.jogamp.opengl.impl.*;
-import com.jogamp.opengl.util.VersionInfo;
+import com.jogamp.opengl.JoglVersion;
 
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.EventQueue;
 import java.awt.FontMetrics;
 import java.awt.Frame;
 import java.awt.Graphics;
@@ -90,7 +92,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   private AWTGraphicsConfiguration awtConfig;
   private GLDrawable drawable;
   private GLContextImpl context;
-  private boolean autoSwapBufferMode = true;
   private boolean sendReshape = false;
   
   // copy of the cstr args ..
@@ -794,6 +795,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
    * A most simple JOGL AWT test entry
    */
   public static void main(String args[]) {
+    System.err.println(GlueGenVersion.getInstance().getInfo(null));
+    System.err.println(NativeWindowVersion.getInstance().getInfo(null));
+    System.err.print(JoglVersion.getInstance().getInfo(null));
+
     GLCapabilities caps = new GLCapabilities( GLProfile.getDefault() );
     Frame frame = new Frame("JOGL AWT Test");
 
@@ -804,8 +809,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     glCanvas.addGLEventListener(new GLEventListener() {
         public void init(GLAutoDrawable drawable) {
             GL gl = drawable.getGL();
-            String prefix = "JOGL AWT Test " + Thread.currentThread().getName();
-            System.err.println(VersionInfo.getInfo(null, prefix, gl).toString());
+            System.err.println(JoglVersion.getInstance().getGLInfo(gl, null));
         }
 
         public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
