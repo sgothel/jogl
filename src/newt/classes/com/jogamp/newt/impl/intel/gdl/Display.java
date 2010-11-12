@@ -68,7 +68,7 @@ public class Display extends com.jogamp.newt.impl.DisplayImpl {
             }
             initCounter++;
         }
-        aDevice = new DefaultGraphicsDevice(NativeWindowFactory.TYPE_DEFAULT, displayHandle);
+        aDevice = new DefaultGraphicsDevice(NativeWindowFactory.TYPE_DEFAULT, AbstractGraphicsDevice.DEFAULT_CONNECTION, displayHandle);
     }
 
     protected void closeNativeImpl() {

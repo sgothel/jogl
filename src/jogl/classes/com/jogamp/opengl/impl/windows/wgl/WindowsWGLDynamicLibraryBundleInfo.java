@@ -29,12 +29,7 @@
 package com.jogamp.opengl.impl.windows.wgl;
 
 import com.jogamp.opengl.impl.*;
-import com.jogamp.common.os.DynamicLookupHelper;
-import com.jogamp.common.os.NativeLibrary;
-import com.jogamp.common.os.Platform;
 import java.util.*;
-import java.security.*;
-import javax.media.opengl.GLException;
 
 public class WindowsWGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundleInfo  {
     protected WindowsWGLDynamicLibraryBundleInfo() {

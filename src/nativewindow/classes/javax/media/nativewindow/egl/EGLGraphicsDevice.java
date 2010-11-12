@@ -40,7 +40,7 @@ import javax.media.nativewindow.*;
 public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
     /** Constructs a new EGLGraphicsDevice corresponding to the given EGL display handle. */
     public EGLGraphicsDevice(long eglDisplay) {
-        super(NativeWindowFactory.TYPE_EGL, eglDisplay);
+        super(NativeWindowFactory.TYPE_EGL, AbstractGraphicsDevice.DEFAULT_CONNECTION, eglDisplay);
     }
 
     public Object clone() {

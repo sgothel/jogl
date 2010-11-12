@@ -40,7 +40,7 @@ import javax.media.nativewindow.*;
 public class WindowsGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
     /** Constructs a new WindowsGraphicsDevice */
     public WindowsGraphicsDevice() {
-        super(NativeWindowFactory.TYPE_WINDOWS);
+        super(NativeWindowFactory.TYPE_WINDOWS, AbstractGraphicsDevice.DEFAULT_CONNECTION);
     }
 
     public Object clone() {

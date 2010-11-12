@@ -37,6 +37,7 @@ import com.jogamp.nativewindow.impl.NativeWindowFactoryImpl;
 
 public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice {
     private String type;
+    protected String connection;
     protected long handle;
     protected ToolkitLock toolkitLock;
 
@@ -45,8 +46,9 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * gathered via {@link NativeWindowFactory#createDefaultToolkitLock()}.
      * @param type
      */
-    public DefaultGraphicsDevice(String type) {
+    public DefaultGraphicsDevice(String type, String connection) {
         this.type = type;
+        this.connection = connection;
         this.handle = 0;
         setToolkitLock( NativeWindowFactory.getDefaultToolkitLock(type) );
     }
@@ -57,8 +59,9 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * @param type
      * @param handle
      */
-    public DefaultGraphicsDevice(String type, long handle) {
+    public DefaultGraphicsDevice(String type, String connection, long handle) {
         this.type = type;
+        this.connection = connection;
         this.handle = handle;
         setToolkitLock( NativeWindowFactory.createDefaultToolkitLock(type, handle) );
     }
@@ -69,8 +72,9 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * @param handle
      * @param locker
      */
-    public DefaultGraphicsDevice(String type, long handle, ToolkitLock locker) {
+    public DefaultGraphicsDevice(String type, String connection, long handle, ToolkitLock locker) {
         this.type = type;
+        this.connection = connection;
         this.handle = handle;
         setToolkitLock( locker );
     }
@@ -83,11 +87,15 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         }
     }
 
-    public String getType() {
+    public final String getType() {
         return type;
     }
 
-    public long getHandle() {
+    public final String getConnection() {
+        return connection;
+    }
+
+    public final long getHandle() {
         return handle;
     }
 
@@ -118,7 +126,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     }
 
     public String toString() {
-        return getClass().toString()+"[type "+getType()+", handle 0x"+Long.toHexString(getHandle())+"]";
+        return getClass().toString()+"[type "+getType()+", connection "+getConnection()+", handle 0x"+Long.toHexString(getHandle())+"]";
     }
 
     /**

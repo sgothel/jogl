@@ -52,7 +52,7 @@ public class AWTGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
   private String subType;
 
   protected AWTGraphicsDevice(GraphicsDevice device) {
-    super(NativeWindowFactory.TYPE_AWT);
+    super(NativeWindowFactory.TYPE_AWT, device.getIDstring());
     this.device = device;
     this.subType = null;
   }
@@ -90,7 +90,7 @@ public class AWTGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
   }
 
   public String toString() {
-    return getClass().toString()+"[type "+getType()+"[subType "+getSubType()+"], awtDevice "+device+", handle 0x"+Long.toHexString(getHandle())+"]";
+    return getClass().toString()+"[type "+getType()+"[subType "+getSubType()+"], connection "+getConnection()+", awtDevice "+device+", handle 0x"+Long.toHexString(getHandle())+"]";
   }
 }
 

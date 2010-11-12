@@ -40,7 +40,7 @@ import javax.media.nativewindow.*;
 public class MacOSXGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
     /** Constructs a new MacOSXGraphicsDevice */
     public MacOSXGraphicsDevice() {
-        super(NativeWindowFactory.TYPE_MACOSX);
+        super(NativeWindowFactory.TYPE_MACOSX, AbstractGraphicsDevice.DEFAULT_CONNECTION);
     }
 
     public Object clone() {

@@ -45,7 +45,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#createDefaultToolkitLock(java.lang.String, long)}.
      */
     public X11GraphicsDevice(long display) {
-        super(NativeWindowFactory.TYPE_X11, display);
+        super(NativeWindowFactory.TYPE_X11, X11Util.XDisplayString(display), display);
         if(0==display) {
             throw new NativeWindowException("null display");
         }
@@ -56,7 +56,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      * @param locker custom {@link javax.media.nativewindow.ToolkitLock}, eg to force null locking in NEWT
      */
     public X11GraphicsDevice(long display, ToolkitLock locker) {
-        super(NativeWindowFactory.TYPE_X11, display, locker);
+        super(NativeWindowFactory.TYPE_X11, X11Util.XDisplayString(display), display, locker);
         if(0==display) {
             throw new NativeWindowException("null display");
         }

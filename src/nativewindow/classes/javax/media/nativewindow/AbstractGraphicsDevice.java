@@ -45,11 +45,26 @@ package javax.media.nativewindow;
  */
 
 public interface AbstractGraphicsDevice extends Cloneable {
+    /** Dummy connection value for a default connection where no native support for multiple devices is available */
+    public static String DEFAULT_CONNECTION = "decon";
+
+    /** Dummy connection value for an external connection where no native support for multiple devices is available */
+    public static String EXTERNAL_CONNECTION = "excon";
+
     /**
      * Returns the type of the underlying subsystem, ie
      * NativeWindowFactory.TYPE_KD, NativeWindowFactory.TYPE_X11, ..
      */
     public String getType();
+
+    /**
+     * Returns the semantic GraphicsDevice connection.<br>
+     * On platforms supporting multiple devices, local or network, 
+     * the implementation shall return a unique name.<br>
+     * On X11 for example, the <code>DISPLAY</code> connection string, 
+     * eg. <code>:0.0</code>, could be returned.<br>
+     */
+    public String getConnection();
 
     /**
      * Returns the native handle of the underlying native device,
