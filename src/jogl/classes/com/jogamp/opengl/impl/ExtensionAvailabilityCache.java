@@ -42,9 +42,6 @@ package com.jogamp.opengl.impl;
 
 import javax.media.opengl.*;
 import java.util.*;
-// FIXME: refactor Java SE dependencies
-//import java.util.regex.*;
-import java.lang.reflect.*;
 
 /**
  * A utility object intended to be used by implementations to act as a cache
@@ -109,13 +106,15 @@ public final class ExtensionAvailabilityCache {
     // of extensions that are in the GL_EXTENSIONS string
     if (availableExtensionCache.isEmpty() || !initialized) {
       if (DEBUG) {
-         System.err.println("ExtensionAvailabilityCache: Pre-caching init "+gl+", OpenGL "+context.getGLVersion());
+         System.err.println(context.getThreadName() + ":ExtensionAvailabilityCache: Pre-caching init "+gl+", OpenGL "+context.getGLVersion());
       }
 
       boolean useGetStringi = false;
 
-      if ( gl.isGL2GL3() ) {
-          if ( ! gl.isFunctionAvailable("glGetStringi") ) {
+      // Use 'glGetStringi' only for ARB GL3 context,
+      // on GL2 platforms the function might be available, but not working.
+      if ( context.isGL3() ) {
+          if ( ! context.isFunctionAvailable("glGetStringi") ) {
             if(DEBUG) {
                 System.err.println("GLContext: GL >= 3.1 usage, but no glGetStringi");
             }
@@ -125,7 +124,7 @@ public final class ExtensionAvailabilityCache {
       }
 
       if (DEBUG) {
-        System.err.println("ExtensionAvailabilityCache: Pre-caching extension availability OpenGL "+context.getGLVersion()+
+        System.err.println(context.getThreadName() + ":ExtensionAvailabilityCache: Pre-caching extension availability OpenGL "+context.getGLVersion()+
                            ", use "+ ( useGetStringi ? "glGetStringi" : "glGetString" ) );
       }
 
@@ -140,6 +139,9 @@ public final class ExtensionAvailabilityCache {
                 sb.append(" ");
             }
         }
+        if (DEBUG) {
+            System.err.println(context.getThreadName() + ":ExtensionAvailabilityCache: GL_EXTENSIONS: "+numExtensions[0]);
+        }
       } else {
         sb.append(gl.glGetString(GL.GL_EXTENSIONS));
       }
@@ -151,8 +153,7 @@ public final class ExtensionAvailabilityCache {
 
       String allAvailableExtensions = sb.toString();
       if (DEBUG_AVAILABILITY) {
-        System.err.println("ExtensionAvailabilityCache: Available extensions: " + allAvailableExtensions);
-        System.err.println("ExtensionAvailabilityCache: GL vendor: " + gl.glGetString(GL.GL_VENDOR));
+        System.err.println(context.getThreadName() + ":ExtensionAvailabilityCache: GL vendor: " + gl.glGetString(GL.GL_VENDOR));
       }
       StringTokenizer tok = new StringTokenizer(allAvailableExtensions);
       while (tok.hasMoreTokens()) {
@@ -160,23 +161,19 @@ public final class ExtensionAvailabilityCache {
         availableExt = availableExt.intern();
         availableExtensionCache.add(availableExt);
         if (DEBUG_AVAILABILITY) {
-          System.err.println("ExtensionAvailabilityCache:   Available: " + availableExt);
+          System.err.println(context.getThreadName() + ":ExtensionAvailabilityCache: Available: " + availableExt);
         }
+      }
+      if (DEBUG) {
+        System.err.println(context.getThreadName() + ":ExtensionAvailabilityCache: ALL EXTENSIONS: "+availableExtensionCache.size());
       }
 
       int major[] = new int[] { context.getGLVersionMajor() };
       int minor[] = new int[] { context.getGLVersionMinor() };
-      if( !gl.isGL3() && !gl.isGL4() &&
-            ( major[0] > 3 ||
-              ( major[0] == 3 && minor[0] >= 1 ) ) ) {
-            // downsize version to 3.0 in case we are not using GL3 (>=3.1)
-            major[0] = 3;
-            minor[0] = 0;
-      }
       while (GLContext.isValidGLVersion(major[0], minor[0])) {
         availableExtensionCache.add("GL_VERSION_" + major[0] + "_" + minor[0]);
         if (DEBUG) {
-            System.err.println("ExtensionAvailabilityCache: Added GL_VERSION_" + major[0] + "_" + minor[0] + " to known extensions");
+            System.err.println(context.getThreadName() + ":ExtensionAvailabilityCache: Added GL_VERSION_" + major[0] + "_" + minor[0] + " to known extensions");
         }
         if(!GLContext.decrementGLVersion(major, minor)) break;
       }

@@ -33,6 +33,7 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.JogampVersion;
 import java.util.jar.Manifest;
+import javax.media.nativewindow.AbstractGraphicsDevice;
 
 public class JoglVersion extends JogampVersion {
 
