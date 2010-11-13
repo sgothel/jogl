@@ -4,7 +4,10 @@
     jogamp.debug.JVMUtil
     jogamp.debug.Lock
     jogamp.debug.ReflectionUtil
-
+    jogamp.debug.NativeLibrary
+    jogamp.debug.NativeLibrary.Lookup
+    jogamp.debug.ProcAddressHelper
+    jogamp.debug.ProcAddressHelper.prefix
 
 
 ../doc/Implementation/runtime-properties-temp/gluegen-rt.ipd.debug.txt
@@ -14,7 +17,6 @@
     jogamp.debug.Lock.TraceLock
     sun.boot.library.path
     sun.jnlp.applet.launcher
-
 
 
 ../doc/Implementation/runtime-properties-temp/jogl.debug.all.txt
@@ -40,7 +42,6 @@
     jogl.debug.Threading
 
 
-
 ../doc/Implementation/runtime-properties-temp/jogl.ipd.debug.txt
 ----------------------------------------
     jogl.1thread
@@ -59,22 +60,22 @@
     jogl.texture.notexrect
 
 
-
 ../doc/Implementation/runtime-properties-temp/nativewindow.debug.txt
 ----------------------------------------
     nativewindow.debug.DefaultCapabilitiesChooser
     nativewindow.debug.GraphicsConfiguration
+    nativewindow.debug.    if(Debug.debugAll()) {
     nativewindow.debug.JAWT
     nativewindow.debug.NativeWindow
     nativewindow.debug.X11Util
 
 
-
 ../doc/Implementation/runtime-properties-temp/nativewindow.ipd.debug.txt
 ----------------------------------------
     java.awt.headless
+    nativewindow.debug.ToolkitLock.TraceLock
+    nativewindow.debug.X11Util.TraceDisplayLifecycle
     nativewindow.ws.name
-
 
 
 ../doc/Implementation/runtime-properties-temp/newt.debug.txt
@@ -82,11 +83,12 @@
     newt.debug.Display
     newt.debug.EDT
     newt.debug.MainThread
+    newt.debug.Screen
+    newt.debug.Screen.DisableScreenModeImpl
     newt.debug.Window
     newt.debug.Window.KeyEvent
     newt.debug.Window.MouseEvent
     newt.debug.Window.WindowEvent
-
 
 
 ../doc/Implementation/runtime-properties-temp/newt.ipd.debug.txt
@@ -96,6 +98,5 @@
     newt.test.Window.reparent.incompatible
     newt.ws.sheight
     newt.ws.swidth
-
 
 

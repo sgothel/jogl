@@ -18,12 +18,15 @@ function cleanup() {
     sed -e 's/\".*$//g' -i $tfile
     sed -e "s/^/$domain/g" -i $tfile
 
-    sort -u $tfile > $ffile
+    sort -u $tfile >> $ffile
     rm -f $tfile
 }
 
-grep -hRI "Debug\.debug" ../../gluegen/src/java/com/jogamp | sort -u > $dest/gluegen-rt.debug.tmp1.txt
+grep -hRI "Debug\.debug" ../../gluegen/src/java/com/jogamp | sort -u > $dest/gluegen-rt.debug.tmp1.txt 
+grep -hRI "System.getProperty(\"jogamp" ../../gluegen/src/java/com/jogamp | sort -u > $dest/gluegen-rt.debug.tmp2.txt
 cleanup $dest/gluegen-rt.debug.tmp1.txt $dest/gluegen-rt.debug.txt jogamp.debug.
+cleanup $dest/gluegen-rt.debug.tmp2.txt $dest/gluegen-rt.debug.txt
+
 grep -hRI -e "Debug\.isPropertyDefined" -e "Debug\.get" ../../gluegen/src/java/com/jogamp | sort -u > $dest/gluegen-rt.debug.ipd.tmp1.txt
 cleanup $dest/gluegen-rt.debug.ipd.tmp1.txt $dest/gluegen-rt.ipd.debug.txt
 
