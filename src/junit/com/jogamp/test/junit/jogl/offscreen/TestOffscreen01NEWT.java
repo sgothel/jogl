@@ -28,13 +28,15 @@
  
 package com.jogamp.test.junit.jogl.offscreen;
 
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
+import com.jogamp.newt.Display;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
+import com.jogamp.newt.Window;
+import com.jogamp.newt.event.MouseListener;
+import com.jogamp.newt.event.WindowListener;
+import com.jogamp.newt.opengl.GLWindow;
 import org.junit.AfterClass;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
@@ -44,12 +46,7 @@ import org.junit.Test;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 
-import com.jogamp.newt.*;
-import com.jogamp.newt.event.*;
-import com.jogamp.newt.opengl.*;
-
 import com.jogamp.test.junit.util.UITestCase;
-import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import java.io.IOException;
 
