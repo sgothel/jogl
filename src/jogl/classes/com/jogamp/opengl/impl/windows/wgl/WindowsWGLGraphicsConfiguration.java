@@ -65,7 +65,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
             throw new GLException("Invalid pixelformat id "+pfdID);
         }
         if(null==glp) {
-          glp = GLProfile.getDefault();
+          glp = GLProfile.getDefault(screen.getDevice());
         }
         PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor();
         if (GDI.DescribePixelFormat(hdc, pfdID, pfd.size(), pfd) == 0) {

@@ -81,7 +81,7 @@ public class GLCapabilities extends Capabilities implements Cloneable {
     * @param glp GLProfile, or null for the default GLProfile
     */
   public GLCapabilities(GLProfile glp) {
-      glProfile = (null!=glp)?glp:GLProfile.getDefault();
+      glProfile = (null!=glp)?glp:GLProfile.getDefault(GLProfile.getDefaultDevice());
   }
 
   public Object clone() {

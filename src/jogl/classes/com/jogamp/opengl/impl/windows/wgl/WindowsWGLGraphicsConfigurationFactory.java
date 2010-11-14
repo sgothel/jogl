@@ -98,8 +98,13 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilitiesChooser objects");
         }
 
-        boolean choosenBywGLPixelFormat = false;
         WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        AbstractGraphicsDevice device = config.getScreen().getDevice();
+        WindowsWGLContext sharedContext = (WindowsWGLContext) factory.getOrCreateSharedContextImpl(device);
+        if(null==sharedContext) {
+            throw new InternalError("SharedContext is null: "+device);
+        }
+        boolean choosenBywGLPixelFormat = false;
         GLCapabilities capabilities = (GLCapabilities) config.getRequestedCapabilities();
         boolean onscreen = capabilities.isOnscreen();
         boolean usePBuffer = capabilities.isPBuffer();
@@ -138,12 +143,11 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
           // Produce a recommended pixel format selection for the GLCapabilitiesChooser.
           // Use wglChoosePixelFormatARB if user requested multisampling and if we have it available
           int recommendedPixelFormat = pixelFormat; // 1-based pixel format
-          boolean gotAvailableCaps = false;
-          synchronized(factory.sharedContext) {
-              factory.sharedContext.makeCurrent();
+          boolean gotAvailableCaps = false;          
+          synchronized(sharedContext) {
+              sharedContext.makeCurrent();
               try {
-                  WGLExt wglExt = factory.sharedContext.getWGLExt();
-
+                  WGLExt wglExt = sharedContext.getWGLExt();
                   boolean haveWGLChoosePixelFormatARB = false;
                   if (wglExt != null) {
                       haveWGLChoosePixelFormatARB = wglExt.isExtensionAvailable("WGL_ARB_pixel_format");
@@ -198,7 +202,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
                       }
                   }
               } finally {
-                  factory.sharedContext.release();
+                  sharedContext.release();
               }
           } // synchronized(factory.sharedContext)
 

@@ -48,6 +48,7 @@ import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.ProxySurface;
+import javax.media.nativewindow.windows.WindowsGraphicsDevice;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final boolean VERBOSE = Debug.verbose();
@@ -86,57 +87,112 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         } catch (JogampRuntimeException jre) { /* n/a .. */ }
     }
 
-    NativeWindowFactory.getDefaultToolkitLock().lock(); // OK
-    try {
-        sharedDrawable = new WindowsDummyWGLDrawable(this, null);
-        WindowsWGLContext ctx  = (WindowsWGLContext) sharedDrawable.createContext(null);
-        ctx.makeCurrent();
-        canCreateGLPbuffer = ctx.getGL().isExtensionAvailable("GL_ARB_pbuffer");
-        ctx.release();
-        sharedContext = ctx;
-    } catch (Throwable t) {
-        throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources", t);
-    } finally {
-        NativeWindowFactory.getDefaultToolkitLock().unlock(); // OK
-    }
-    if(null==sharedContext) {
-        throw new GLException("WindowsWGLDrawableFactory - Shared Context is null");
-    }
-    if (DEBUG) {
-      System.err.println("!!! SharedContext: "+sharedContext+", pbuffer supported "+canCreateGLPbuffer);
-    }
+    /** FIXME:
+    * find out the Windows semantics of a device connection {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection()}
+    * to actually use multiple devices.
+    */
+    defaultDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION);
   }
 
-  WindowsDummyWGLDrawable sharedDrawable=null;
-  WindowsWGLContext sharedContext=null;
-  boolean canCreateGLPbuffer = false;
+  static class SharedResource {
+      private WindowsDummyWGLDrawable drawable;
+      private WindowsWGLContext context;
+      private boolean canCreateGLPbuffer;
 
-  protected final GLDrawableImpl getSharedDrawable() {
-    return sharedDrawable; 
+      SharedResource(WindowsDummyWGLDrawable draw, WindowsWGLContext ctx, boolean canPbuffer) {
+          drawable = draw;
+          context = ctx;
+          canCreateGLPbuffer = canPbuffer;
+      }
+  }
+  HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
+  WindowsGraphicsDevice defaultDevice;
+
+  public final AbstractGraphicsDevice getDefaultDevice() {
+      return defaultDevice;
   }
 
-  protected final GLContextImpl getSharedContext() {
-    return sharedContext; 
+  public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
+      if(device instanceof WindowsGraphicsDevice) {
+          return true;
+      }
+      return false;
+  }
+
+  HashSet devicesTried = new HashSet();
+  private final boolean getDeviceTried(String connection) {
+      synchronized(devicesTried) {
+          return devicesTried.contains(connection);
+      }
+  }
+  private final void addDeviceTried(String connection) {
+      synchronized(devicesTried) {
+          devicesTried.add(connection);
+      }
+  }
+
+  protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
+    String connection = device.getConnection();
+    SharedResource sr;
+    synchronized(sharedMap) {
+        sr = (SharedResource) sharedMap.get(connection);
+    }
+    if(null==sr && !getDeviceTried(connection)) {
+        addDeviceTried(connection);
+        NativeWindowFactory.getDefaultToolkitLock().lock(); // OK
+        try {
+            WindowsDummyWGLDrawable sharedDrawable = new WindowsDummyWGLDrawable(this, null);
+            WindowsWGLContext ctx  = (WindowsWGLContext) sharedDrawable.createContext(null);
+            ctx.makeCurrent();
+            boolean canCreateGLPbuffer = ctx.getGL().isExtensionAvailable("GL_ARB_pbuffer");
+            ctx.release();
+            sr = new SharedResource(sharedDrawable, ctx, canCreateGLPbuffer);
+            synchronized(sharedMap) {
+                sharedMap.put(device.getConnection(), sr);
+            }
+            if (DEBUG) {
+              System.err.println("!!! SharedContext: "+ctx+", pbuffer supported "+canCreateGLPbuffer);
+            }
+
+        } catch (Throwable t) {
+            throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources", t);
+        } finally {
+            NativeWindowFactory.getDefaultToolkitLock().unlock(); // OK
+        }
+    }
+    if(null!=sr) {
+      return sr.context;
+    }
+    return null;
   }
 
   protected void shutdownInstance() {
-     if (DEBUG) {
+    if (DEBUG) {
+        Exception e = new Exception("Debug");
+        e.printStackTrace();
+    }
+    Collection/*<SharedResource>*/ sharedResources = sharedMap.values();
+    for(Iterator iter=sharedResources.iterator(); iter.hasNext(); ) {
+        SharedResource sr = (SharedResource) iter.next();
+
+        if (DEBUG) {
           System.err.println("!!! Shutdown Shared:");
-          System.err.println("!!!          CTX     : "+sharedContext);
-          System.err.println("!!!          Drawable: "+sharedDrawable);
-          Exception e = new Exception("Debug");
-          e.printStackTrace();
-     }
-    // don't free native resources from this point on,
-    // since we might be in a critical shutdown hook sequence
-     if(null!=sharedContext) {
-        // may cause deadlock: sharedContext.destroy(); // implies release, if current
-        sharedContext=null;
-     }
-     if(null!=sharedDrawable) {
-        // may cause deadlock: sharedDrawable.destroy();
-        sharedDrawable=null;
-     }
+          System.err.println("!!!          Drawable: "+sr.drawable);
+          System.err.println("!!!          CTX     : "+sr.context);
+        }
+
+        if (null != sr.context) {
+          // may cause JVM SIGSEGV: sharedContext.destroy();
+          sr.context = null;
+        }
+
+        if (null != sr.drawable) {
+          // may cause JVM SIGSEGV: sharedDrawable.destroy();
+          sr.drawable = null;
+        }
+
+    }
+    sharedMap.clear();
   }
 
   protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
@@ -154,12 +210,28 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
-    return canCreateGLPbuffer;
+    SharedResource sr;
+    synchronized(sharedMap) {
+        sr = (SharedResource) sharedMap.get(device.getConnection());
+    }
+    if(null!=sr) {
+        return sr.canCreateGLPbuffer;
+    }
+    return false;
   }
 
   protected GLDrawableImpl createGLPbufferDrawableImpl(final NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
+    }
+    final AbstractGraphicsDevice device = target.getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
+
+    final SharedResource sr;
+    synchronized(sharedMap) {
+        sr = (SharedResource) sharedMap.get(device.getConnection());
+    }
+    if(null==sr) {
+        return null;
     }
     final List returnList = new ArrayList();
     Runnable r = new Runnable() {
@@ -168,16 +240,16 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
           if (lastContext != null) {
             lastContext.release();
           }
-          synchronized(WindowsWGLDrawableFactory.this.sharedContext) {
-              WindowsWGLDrawableFactory.this.sharedContext.makeCurrent();
+          synchronized(sr.context) {
+              sr.context.makeCurrent();
               try {
-                WGLExt wglExt = WindowsWGLDrawableFactory.this.sharedContext.getWGLExt();
+                WGLExt wglExt = sr.context.getWGLExt();
                 GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(WindowsWGLDrawableFactory.this, target,
-                                                                               WindowsWGLDrawableFactory.this.sharedDrawable,
+                                                                               sr.drawable,
                                                                                wglExt);
                 returnList.add(pbufferDrawable);
               } finally {
-                WindowsWGLDrawableFactory.this.sharedContext.release();
+                sr.context.release();
                 if (lastContext != null) {
                   lastContext.makeCurrent();
                 }

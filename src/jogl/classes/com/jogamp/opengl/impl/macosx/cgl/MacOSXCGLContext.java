@@ -224,19 +224,18 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
   }
 
-  protected void updateGLProcAddressTable(int major, int minor, int ctp) {
+  protected final void updateGLXProcAddressTable(int major, int minor, int ctp) {
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing CGL extension address table");
     }
-    int key = compose8bit(major, minor, ctp, 0);
     CGLExtProcAddressTable table = null;
-    synchronized(mappedProcAddressLock) {
-        table = (CGLExtProcAddressTable) mappedGLXProcAddress.get( key );
+    synchronized(mappedContextTypeObjectLock) {
+        table = (CGLExtProcAddressTable) mappedGLXProcAddress.get( contextFQN );
     }
     if(null != table) {
         cglExtProcAddressTable = table;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable reusing key("+major+","+minor+","+ctp+") -> "+table.hashCode());
+            System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable reusing key("+contextFQN+") -> "+table.hashCode());
         }
     } else {
         if (cglExtProcAddressTable == null) {
@@ -245,14 +244,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           cglExtProcAddressTable = new CGLExtProcAddressTable(new GLProcAddressResolver());
         }
         resetProcAddressTable(getCGLExtProcAddressTable());
-        synchronized(mappedProcAddressLock) {
-            mappedGLXProcAddress.put(key, getCGLExtProcAddressTable());
+        synchronized(mappedContextTypeObjectLock) {
+            mappedGLXProcAddress.put(contextFQN, getCGLExtProcAddressTable());
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable mapping key("+major+","+minor+","+ctp+") -> "+getCGLExtProcAddressTable().hashCode());
+                System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable mapping key("+contextFQN+") -> "+getCGLExtProcAddressTable().hashCode());
             }
         }
     }
-    super.updateGLProcAddressTable(major, minor, ctp);
   }
 	
   public String getPlatformExtensionsString()

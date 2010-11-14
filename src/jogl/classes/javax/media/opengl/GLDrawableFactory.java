@@ -47,6 +47,7 @@ import com.jogamp.common.util.ReflectionUtil;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
@@ -150,6 +151,8 @@ public abstract class GLDrawableFactory {
     eglFactory = tmp;
   }
 
+  private AbstractGraphicsDevice defaultSharedDevice = null;
+
   protected GLDrawableFactory() {
     synchronized(glDrawableFactories) {
         glDrawableFactories.add(this);
@@ -167,6 +170,55 @@ public abstract class GLDrawableFactory {
   }
 
   protected abstract void shutdownInstance();
+
+  /**
+   * Retrieve the default <code>device</code> {@link AbstractGraphicsDevice#getConnection()}. for this factory<br>
+   * The implementation must return a non <code>null</code> default device, which must not be opened, ie. it's native handle may be <code>null</code>.
+   * @return the default shared device for this factory, eg. :0.0 on X11 desktop.
+   */
+  public abstract AbstractGraphicsDevice getDefaultDevice();
+
+  /**
+   * @return true if the device is compatible with this factory, ie. if it can be used for creation. Otherwise false.
+   */
+  public abstract boolean getIsDeviceCompatible(AbstractGraphicsDevice device);
+
+  /**
+   * Returns true if a shared context is already mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
+   * or if a new shared context could be created and mapped. Otherwise return false.<br>
+   * Creation of the shared context is tried only once.
+   *
+   * @param device if <code>null</code>, the platform default device is being used
+   */
+  public final boolean getIsSharedContextAvailable(AbstractGraphicsDevice device) {
+      return null != getOrCreateSharedContext(device);
+  }
+
+  /**
+   * Returns the shared context mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
+   * either a preexisting or newly created, or <code>null</code> if creation failed or not supported.<br>
+   * Creation of the shared context is tried only once.
+   *
+   * @param device if <code>null</code>, the platform default device is being used
+   */
+  protected final GLContext getOrCreateSharedContext(AbstractGraphicsDevice device) {
+      if(null==device) {
+          device = getDefaultDevice();
+          if(null==device) {
+              throw new InternalError("no default device");
+          }
+          if (GLProfile.DEBUG) {
+              System.err.println("Info: GLDrawableFactory.getOrCreateSharedContext: using default device : "+device);
+          }
+      } else if( !getIsDeviceCompatible(device) ) {
+          if (GLProfile.DEBUG) {
+              System.err.println("Info: GLDrawableFactory.getOrCreateSharedContext: device not compatible : "+device);
+          }
+          return null;
+      }
+      return getOrCreateSharedContextImpl(device);
+  }
+  protected abstract GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device);
 
   /** 
    * Returns the sole GLDrawableFactory instance. 

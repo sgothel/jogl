@@ -225,8 +225,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   //
   // GLDrawableFactoryImpl details
   //
-  protected abstract GLDrawableImpl getSharedDrawable();
-  protected abstract GLContextImpl getSharedContext();
 
   protected void maybeDoSingleThreadedWorkaround(Runnable action) {
     if (Threading.isSingleThreaded() &&

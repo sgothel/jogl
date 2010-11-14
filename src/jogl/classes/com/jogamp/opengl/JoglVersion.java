@@ -57,8 +57,8 @@ public class JoglVersion extends JogampVersion {
         return jogampCommonVersionInfo;
     }
 
-    public StringBuffer getInfo(GL gl, StringBuffer sb) {
-        sb = super.getInfo(sb);
+    public StringBuffer toStringBuffer(GL gl, StringBuffer sb) {
+        sb = super.toStringBuffer(sb);
 
         getGLInfo(gl, sb);
         sb.append("-----------------------------------------------------------------------------------------------------");
@@ -67,12 +67,18 @@ public class JoglVersion extends JogampVersion {
         return sb;
     }
 
+    public String toString(GL gl) {
+        return toStringBuffer(gl, null).toString();
+    }
+
     public static StringBuffer getGLInfo(GL gl, StringBuffer sb) {
         if(null==sb) {
             sb = new StringBuffer();
         }
 
-        sb.append(GLProfile.glAvailabilityToString());
+        sb.append("Default Desktop ").append(GLProfile.getDefaultDesktopDevice().getConnection()).append(": ").append(GLProfile.glAvailabilityToString(GLProfile.getDefaultDesktopDevice()));
+        sb.append(Platform.getNewline());
+        sb.append("Default EGL ").append(GLProfile.getDefaultEGLDevice().getConnection()).append(": ").append(GLProfile.glAvailabilityToString(GLProfile.getDefaultEGLDevice()));
         sb.append(Platform.getNewline());
         sb.append("Swap Interval ").append(gl.getSwapInterval());
         sb.append(Platform.getNewline());
@@ -93,7 +99,7 @@ public class JoglVersion extends JogampVersion {
     }
 
     public static void main(String args[]) {
-        System.err.println(JoglVersion.getInstance().getInfo(null));
+        System.err.println(JoglVersion.getInstance());
     }
 }
 

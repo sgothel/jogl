@@ -1275,7 +1275,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
 
     public GLProfile getGLProfile() {
       // FIXME: should do better than this; is it possible to using only platform-independent code?
-      return GLProfile.getDefault();
+      return GLProfile.getDefault(GLProfile.getDefaultDesktopDevice());
     }
 
     public void handleReshape() {

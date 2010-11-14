@@ -47,6 +47,8 @@ import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.ProxySurface;
+import java.util.HashMap;
+import javax.media.nativewindow.macosx.MacOSXGraphicsDevice;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final DesktopGLDynamicLookupHelper macOSXCGLDynamicLookupHelper;
@@ -83,11 +85,43 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                                         null, getClass().getClassLoader());
         } catch (JogampRuntimeException jre) { /* n/a .. */ }
     }
+
+    /** FIXME:
+    * find out the Windows semantics of a device connection {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection()}
+    * to actually use multiple devices.
+    */
+    defaultDevice = new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION);
+  }
+
+  static class SharedResource {
+      private MacOSXCGLDrawable drawable;
+      private MacOSXCGLContext context;
+
+      SharedResource(MacOSXCGLDrawable draw, MacOSXCGLContext ctx) {
+          drawable = draw;
+          context = ctx;
+      }
+  }
+  HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
+  MacOSXGraphicsDevice defaultDevice;
+
+  public final AbstractGraphicsDevice getDefaultDevice() {
+      return defaultDevice;
+  }
+
+  public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
+      if(device instanceof MacOSXGraphicsDevice) {
+          return true;
+      }
+      return false;
+  }
+
+  protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
+        // FIXME: not implemented .. needs a dummy OSX surface
+        return null;
   }
 
   protected void shutdownInstance() {}
-  protected final GLDrawableImpl getSharedDrawable() { return null; }
-  protected final GLContextImpl getSharedContext() { return null; }
 
   protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
     if (target == null) {

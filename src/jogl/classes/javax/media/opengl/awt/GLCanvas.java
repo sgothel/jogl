@@ -83,7 +83,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
   static {
       DEBUG = Debug.debug("GLCanvas");
-      defaultGLProfile = GLProfile.getDefault();
+      defaultGLProfile = GLProfile.getDefault(GLProfile.getDefaultDesktopDevice());
   }
 
   private GLProfile glProfile;
@@ -795,11 +795,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
    * A most simple JOGL AWT test entry
    */
   public static void main(String args[]) {
-    System.err.println(GlueGenVersion.getInstance().getInfo(null));
-    System.err.println(NativeWindowVersion.getInstance().getInfo(null));
-    System.err.print(JoglVersion.getInstance().getInfo(null));
+    System.err.println(GlueGenVersion.getInstance());
+    System.err.println(NativeWindowVersion.getInstance());
+    System.err.print(JoglVersion.getInstance());
 
-    GLCapabilities caps = new GLCapabilities( GLProfile.getDefault() );
+    GLCapabilities caps = new GLCapabilities( GLProfile.getDefault(GLProfile.getDefaultDesktopDevice()) );
     Frame frame = new Frame("JOGL AWT Test");
 
     GLCanvas glCanvas = new GLCanvas(caps);
@@ -809,7 +809,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     glCanvas.addGLEventListener(new GLEventListener() {
         public void init(GLAutoDrawable drawable) {
             GL gl = drawable.getGL();
-            System.err.println(JoglVersion.getInstance().getGLInfo(gl, null));
+            System.err.println(JoglVersion.getInstance().toString(gl));
         }
 
         public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {

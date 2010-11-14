@@ -47,6 +47,10 @@ import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
 import com.jogamp.nativewindow.impl.ProxySurface;
 import com.jogamp.nativewindow.impl.x11.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   
@@ -83,43 +87,61 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         } catch (JogampRuntimeException jre) { /* n/a .. */ }
     }
 
+    defaultDevice = new X11GraphicsDevice(X11Util.getNullDisplayName());
+
     // Init shared resources via own thread
     // Will be released via ShutdownHook
     sharedResourcesRunner = new SharedResourcesRunner();    
     sharedResourcesThread = new Thread(sharedResourcesRunner, Thread.currentThread().getName()+"-SharedResourcesRunner");
     sharedResourcesThread.setDaemon(true); // Allow JVM to exit, even if this one is running
     sharedResourcesThread.start();
-    sharedResourcesRunner.waitUntilInitialized();
-
-    if (DEBUG) {
-      System.err.println("!!! Vendor: "+vendorName+", ATI: "+isVendorATI+", NV: "+isVendorNVIDIA);
-      System.err.println("!!! SharedScreen: "+sharedScreen);
-      System.err.println("!!! SharedContext: "+sharedContext);
-    }
   }
 
   class SharedResourcesRunner implements Runnable {
-      boolean initialized = false;
+      boolean ready = false;
       boolean released = false;
       boolean shouldRelease = false;
+      String initConnection = null;
+      SharedResource result = null;
 
-      public void waitUntilInitialized() {
+      public final void initializeAndWait(String connection) {
+          // wait until thread becomes ready to init new device,
+          // pass the device and release the sync
+          String threadName = Thread.currentThread().getName();
+          if (DEBUG) {
+              System.err.println(threadName+ " initializeAndWait START: "+connection);
+          }
           synchronized (this) {
-              while (!this.initialized) {
+              while (!ready) {
                   try {
                       this.wait();
-                  } catch (InterruptedException ex) {
-                  }
+                  } catch (InterruptedException ex) { }
               }
-          }
-      }
-
-      public void releaseAndWait() {
-          synchronized (this) {
-              this.shouldRelease = true;
+              if (DEBUG) {
+                  System.err.println(threadName+ " initializeAndWait set command: "+connection);
+              }
+              initConnection = connection;
               this.notifyAll();
 
-              while (!this.released) {
+              // wait until thread has initialized the device
+              while (!ready || null != initConnection) {
+                  try {
+                      this.wait();
+                  } catch (InterruptedException ex) { }
+              }
+              if (DEBUG) {
+                  System.err.println(threadName+ " initializeAndWait done: "+connection);
+              }
+          }
+          // done
+      }
+
+      public final void releaseAndWait() {
+          synchronized (this) {
+              shouldRelease = true;
+              this.notifyAll();
+
+              while (!released) {
                   try {
                       this.wait();
                   } catch (InterruptedException ex) {
@@ -128,118 +150,244 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
           }
       }
 
-      public void run() {
+      public final void run() {
           String threadName = Thread.currentThread().getName();
-          X11GraphicsDevice sharedDevice;
+
           synchronized (this) {
               if (DEBUG) {
-                  System.err.println(threadName+ " initializing START");
+                  System.err.println(threadName+ " STARTED -> ready");
               }
-              sharedDevice = new X11GraphicsDevice(X11Util.createDisplay(null));
-              sharedDevice.setCloseDisplay(true);
-              X11Util.lockDefaultToolkit(sharedDevice.getHandle()); // OK
-              try {
-                  vendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
-                  isVendorATI = GLXUtil.isVendorATI(vendorName);
-                  isVendorNVIDIA = GLXUtil.isVendorNVIDIA(vendorName);
-                  sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
-                  sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, GLProfile.getDefault());
-                  if (null == sharedScreen || null == sharedDrawable) {
-                      throw new GLException("Couldn't init shared screen(" + sharedScreen + ")/drawable(" + sharedDrawable + ")");
-                  }
+
+              while (!shouldRelease) {
                   try {
-                      X11GLXContext ctx = (X11GLXContext) sharedDrawable.createContext(null);
-                      ctx.makeCurrent();
-                      ctx.release();
-                      sharedContext = ctx;
-                  } catch (Throwable t) {
-                      throw new GLException("X11GLXDrawableFactory - Could not initialize shared resources", t);
-                  }
-                  if (null == sharedContext) {
-                      throw new GLException("X11GLXDrawableFactory - Shared Context is null");
-                  }
-              } finally {
-                  X11Util.unlockDefaultToolkit(sharedDevice.getHandle()); // OK
-              }
-
-              if (DEBUG) {
-                  System.err.println(threadName+ " initializing DONE");
-              }
-              initialized = true;
-              notifyAll();
-          }
-
-          if (DEBUG) {
-              System.err.println(threadName+ " release WAIT");
-          }
-
-          synchronized(this) {
-              while (!this.shouldRelease) {
-                  try {
+                      // wait for stop or init
+                      ready = true;
                       this.wait();
-                  } catch (InterruptedException ex) {
+                  } catch (InterruptedException ex) { }
+                  ready = false;
+
+                  if(!shouldRelease && null!=initConnection) {
+                      if (DEBUG) {
+                          System.err.println(threadName+ " create Shared for: "+initConnection);
+                      }
+                      SharedResource sr = createSharedResource(initConnection);
+                      if(null!=sr) {
+                        synchronized(sharedMap) {
+                            sharedMap.put(initConnection, sr);
+                        }
+                      }
+                      if (DEBUG) {
+                          String msg = "Info: (" + threadName + ") initializedSharedResource for device connection: "+initConnection+" -> ready";
+                          System.err.println(msg);
+                          Throwable t = new Throwable(msg);
+                          t.printStackTrace();
+                      }
                   }
+                  initConnection = null;
+                  notifyAll();
               }
+
               if (DEBUG) {
                   System.err.println(threadName+ " release START");
               }
-              if (null != sharedContext) {
-                  // may cause JVM SIGSEGV: sharedContext.destroy();
-                  sharedContext = null;
-              }
 
-              if (null != sharedDrawable) {
-                  // may cause JVM SIGSEGV: sharedDrawable.destroy();
-                  sharedDrawable = null;
-              }
-
-              if (null != sharedScreen) {
-                  sharedScreen = null;
-              }
-
-              if (null != sharedDevice) {
-                  sharedDevice.close();
-                  sharedDevice = null;
-              }
+              releaseSharedResources();
 
               if (DEBUG) {
                   System.err.println(threadName+ " release END");
               }
+
               released = true;
+              ready = false;
               notifyAll();
           }
       }
-  }
+          
+      private final SharedResource createSharedResource(String connection) {
+          X11GraphicsDevice sharedDevice = new X11GraphicsDevice(X11Util.createDisplay(connection));
+          sharedDevice.setCloseDisplay(true);
+          X11Util.lockDefaultToolkit(sharedDevice.getHandle()); // OK
+          try {
+              String vendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
+              X11GraphicsScreen sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
+              X11DummyGLXDrawable sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, GLProfile.getDefault(sharedDevice));
+              if (null == sharedScreen || null == sharedDrawable) {
+                  throw new GLException("Couldn't init shared screen(" + sharedScreen + ")/drawable(" + sharedDrawable + ")");
+              }
+              X11GLXContext sharedContext;
+              try {
+                  X11GLXContext ctx = (X11GLXContext) sharedDrawable.createContext(null);
+                  ctx.makeCurrent();
+                  ctx.release();
+                  sharedContext = ctx;
+              } catch (Throwable t) {
+                  throw new GLException("X11GLXDrawableFactory - Could not initialize shared resources", t);
+              }
+              if (null == sharedContext) {
+                  throw new GLException("X11GLXDrawableFactory - Shared Context is null");
+              }
+              if (DEBUG) {
+                  System.err.println("!!! SharedDevice: "+sharedDevice);
+                  System.err.println("!!! SharedScreen: "+sharedScreen);
+                  System.err.println("!!! SharedContext: "+sharedContext);
+                  System.err.println("!!! Vendor: "+vendorName);
+              }
+              return new SharedResource(sharedDevice, sharedScreen, sharedDrawable, sharedContext, vendorName);
+          } finally {
+              X11Util.unlockDefaultToolkit(sharedDevice.getHandle()); // OK
+          }
+      }
 
+      private final void releaseSharedResources() {
+          Collection/*<SharedResource>*/ sharedResources = sharedMap.values();
+          for(Iterator iter=sharedResources.iterator(); iter.hasNext(); ) {
+              SharedResource sr = (SharedResource) iter.next();
+
+              if (DEBUG) {
+                  System.err.println("!!! Shutdown Shared:");
+                  System.err.println("!!!          Device  : "+sr.device);
+                  System.err.println("!!!          Screen  : "+sr.screen);
+                  System.err.println("!!!          Drawable: "+sr.drawable);
+                  System.err.println("!!!          CTX     : "+sr.context);
+              }
+
+              if (null != sr.context) {
+                  // may cause JVM SIGSEGV: sharedContext.destroy();
+                  sr.context = null;
+              }
+
+              if (null != sr.drawable) {
+                  // may cause JVM SIGSEGV: sharedDrawable.destroy();
+                  sr.drawable = null;
+              }
+
+              if (null != sr.screen) {
+                  sr.screen = null;
+              }
+
+              if (null != sr.device) {
+                  sr.device.close();
+                  sr.device=null;
+              }
+          }
+          sharedMap.clear();
+      }
+  }
   Thread sharedResourcesThread = null;
   SharedResourcesRunner sharedResourcesRunner=null;
-  private X11GraphicsScreen sharedScreen=null;
-  private X11DummyGLXDrawable sharedDrawable=null;
-  private X11GLXContext sharedContext=null;
-  private String vendorName;
-  private boolean isVendorATI;
-  private boolean isVendorNVIDIA;
 
-  protected String getVendorName() { return vendorName; }
-  protected boolean isVendorATI() { return isVendorATI; }
-  protected boolean isVendorNVIDIA() { return isVendorNVIDIA; }
+  static class SharedResource {
+      private X11GraphicsDevice device;
+      private X11GraphicsScreen screen;
+      private X11DummyGLXDrawable drawable;
+      private X11GLXContext context;
+      private String vendorName;
+      private boolean isVendorATI;
+      private boolean isVendorNVIDIA;
+      
+      SharedResource(X11GraphicsDevice dev, X11GraphicsScreen scrn, X11DummyGLXDrawable draw, X11GLXContext ctx, String vendor) {
+          device = dev;
+          screen = scrn;
+          drawable = draw;
+          context = ctx;
+          vendorName = vendor;
+          isVendorATI = GLXUtil.isVendorATI(vendorName);
+          isVendorNVIDIA = GLXUtil.isVendorNVIDIA(vendorName);          
+      }
+  }
+  HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
+  SharedResource defaultShare;
+  X11GraphicsDevice defaultDevice;
 
-  protected final GLDrawableImpl getSharedDrawable() {
-    return sharedDrawable; 
+  public final AbstractGraphicsDevice getDefaultDevice() {
+      return defaultDevice;
   }
 
-  protected final GLContextImpl getSharedContext() {
-    return sharedContext; 
+  public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
+      if(device instanceof X11GraphicsDevice) {
+          return true;
+      }
+      return false;
+  }
+
+  HashSet devicesTried = new HashSet();
+  private final boolean getDeviceTried(String connection) {
+      synchronized(devicesTried) {
+          return devicesTried.contains(connection);
+      }
+  }
+  private final void addDeviceTried(String connection) {
+      synchronized(devicesTried) {
+          devicesTried.add(connection);
+      }
+  }
+
+  protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
+    String connection = device.getConnection();
+    boolean deviceTried = getDeviceTried(connection);
+    SharedResource sr;
+    synchronized(sharedMap) {
+      sr = (SharedResource) sharedMap.get(connection);
+    }
+
+    if (DEBUG) {
+      System.err.println("getOrCreateSharedContext() "+connection+": has shared "+(null!=sr)+", already tried "+deviceTried);
+    }
+
+    if(null==sr && !deviceTried) {
+        if (DEBUG) {
+          System.err.println("getOrCreateSharedContext() "+connection+": trying");
+        }
+        addDeviceTried(connection);
+        sharedResourcesRunner.initializeAndWait(connection);
+        synchronized(sharedMap) {
+            sr = (SharedResource) sharedMap.get(connection);
+        }
+        if(DEBUG) {
+            Throwable t = new Throwable("getOrCreateSharedContextImpl() "+connection+": done");
+            t.printStackTrace();
+        }
+    }
+    if(null!=sr) {
+      return sr.context;
+    }
+    return null;
+  }
+
+  protected final String getVendorName(AbstractGraphicsDevice device) {
+    SharedResource sr;
+    synchronized(sharedMap) {
+      sr = (SharedResource) sharedMap.get(device.getConnection());
+    }
+    if(null!=sr) {
+      return sr.vendorName;
+    }
+    return null;
+  }
+
+  protected final boolean isVendorATI(AbstractGraphicsDevice device) {
+    SharedResource sr;
+    synchronized(sharedMap) {
+      sr = (SharedResource) sharedMap.get(device.getConnection());
+    }
+    if(null!=sr) {
+      return sr.isVendorATI;
+    }
+    return false;
+  }
+
+  protected final boolean isVendorNVIDIA(AbstractGraphicsDevice device) {
+    SharedResource sr;
+    synchronized(sharedMap) {
+      sr = (SharedResource) sharedMap.get(device.getConnection());
+    }
+    if(null!=sr) {
+      return sr.isVendorNVIDIA;
+    }
+    return false;
   }
 
   protected void shutdownInstance() {
-    if (DEBUG) {
-          System.err.println("!!! Shutdown Shared:");
-          System.err.println("!!!          CTX     : "+sharedContext);
-          System.err.println("!!!          Drawable: "+sharedDrawable);
-          System.err.println("!!!          Screen  : "+sharedScreen);
-    }
-
     sharedResourcesRunner.releaseAndWait();
 
     X11Util.shutdown( true, DEBUG );
@@ -268,7 +416,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   protected final boolean glxVersionGreaterEqualThan(AbstractGraphicsDevice device, int majorReq, int minorReq) {
     if (!glxVersionsQueried) {
         if(null == device) {
-            device = (X11GraphicsDevice) sharedScreen.getDevice();
+            device = (X11GraphicsDevice) defaultShare.screen.getDevice();
         }
         if(null == device) {
             throw new GLException("FIXME: No AbstractGraphicsDevice (passed or shared-device");
@@ -302,19 +450,26 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
     GLDrawableImpl pbufferDrawable;
 
+    AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    AbstractGraphicsDevice device = config.getScreen().getDevice();
+
     /** 
      * Due to the ATI Bug https://bugzilla.mozilla.org/show_bug.cgi?id=486277,
      * we need to have a context current on the same Display to create a PBuffer.
      * The dummy context shall also use the same Display,
      * since switching Display in this regard is another ATI bug.
      */
-    if( isVendorATI() && null == GLContext.getCurrent() ) {
-        synchronized(sharedContext) {
-            sharedContext.makeCurrent();
+    SharedResource sr;
+    synchronized(sharedMap) {
+      sr = (SharedResource) sharedMap.get(device.getConnection());
+    }
+    if( sr.isVendorATI && null == GLContext.getCurrent() ) {
+        synchronized(sr.context) {
+            sr.context.makeCurrent();
             try {
                 pbufferDrawable = new X11PbufferGLXDrawable(this, target);
             } finally {
-                sharedContext.release();
+                sr.context.release();
             }
         }
     } else {
@@ -325,7 +480,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
 
   protected NativeSurface createOffscreenSurfaceImpl(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
-    ProxySurface ns = new ProxySurface(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, sharedScreen));
+    ProxySurface ns = new ProxySurface(
+               X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, defaultShare.screen));
     if(ns != null) {
         ns.setSize(width, height);
     }
@@ -364,7 +520,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       return gammaRampLength;
     }
 
-    long display = sharedScreen.getDevice().getHandle();
+    long display = defaultShare.screen.getDevice().getHandle();
 
     int[] size = new int[1];
     boolean res = X11Util.XF86VidModeGetGammaRampSize(display,
@@ -385,7 +541,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       rampData[i] = (short) (ramp[i] * 65535);
     }
 
-    long display = sharedScreen.getDevice().getHandle();
+    long display = defaultShare.screen.getDevice().getHandle();
     boolean res = X11Util.XF86VidModeSetGammaRamp(display,
                                               X11Util.DefaultScreen(display),
                                               rampData.length,
@@ -407,7 +563,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     rampData.position(2 * size);
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
-    long display = sharedScreen.getDevice().getHandle();
+    long display = defaultShare.screen.getDevice().getHandle();
     boolean res = X11Util.XF86VidModeGetGammaRamp(display,
                                               X11Util.DefaultScreen(display),
                                               size,
@@ -438,7 +594,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     rampData.position(2 * size);
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
-    long display = sharedScreen.getDevice().getHandle();
+    long display = defaultShare.screen.getDevice().getHandle();
     X11Util.XF86VidModeSetGammaRamp(display,
                                 X11Util.DefaultScreen(display),
                                 size,

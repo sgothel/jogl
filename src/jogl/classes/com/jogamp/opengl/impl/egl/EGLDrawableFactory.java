@@ -42,6 +42,8 @@ import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.ProxySurface;
+import java.util.HashMap;
+import javax.media.nativewindow.egl.EGLGraphicsDevice;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
   
@@ -93,6 +95,39 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     public EGLDrawableFactory() {
         super();
+        /** FIXME:
+        * find out the Windows semantics of a device connection {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection()}
+        * to actually use multiple devices.
+        */
+        defaultDevice = new EGLGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION);
+    }
+
+    static class SharedResource {
+      private EGLDrawable drawable;
+      private EGLContext context;
+
+      SharedResource(EGLDrawable draw, EGLContext ctx) {
+          drawable = draw;
+          context = ctx;
+      }
+    }
+    HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
+    EGLGraphicsDevice defaultDevice;
+
+    public final AbstractGraphicsDevice getDefaultDevice() {
+      return defaultDevice;
+    }
+
+    public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
+      if(device instanceof EGLGraphicsDevice) {
+          return true;
+      }
+      return false;
+    }
+
+    protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
+        // FIXME: not implemented .. needs a dummy EGL surface
+        return null;
     }
 
     public GLDynamicLookupHelper getGLDynamicLookupHelper(int esProfile) {
@@ -112,8 +147,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     protected void shutdownInstance() {}
-    protected final GLDrawableImpl getSharedDrawable() { return null; }
-    protected final GLContextImpl getSharedContext() { return null; }
 
     protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
         if (target == null) {
@@ -141,7 +174,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     protected GLContext createExternalGLContextImpl() {
-        AbstractGraphicsScreen absScreen = DefaultGraphicsScreen.createScreenDevice(0);
+        AbstractGraphicsScreen absScreen = DefaultGraphicsScreen.createScreenDevice(AbstractGraphicsDevice.EXTERNAL_CONNECTION, 0);
         return new EGLExternalContext(absScreen);
     }
 

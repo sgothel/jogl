@@ -67,7 +67,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
           throw new GLException("FBConfig null of "+toHexString(fbcfgID));
       }
       if(null==glp) {
-        glp = GLProfile.getDefault();
+        glp = GLProfile.getDefault(x11Screen.getDevice());
       }
       GLCapabilities caps = GLXFBConfig2GLCapabilities(glp, display, fbcfg, true, true, true, GLXUtil.isMultisampleAvailable(display));
       if(null==caps) {

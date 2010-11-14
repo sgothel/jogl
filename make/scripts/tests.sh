@@ -18,6 +18,12 @@ echo java $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 function jrun() {
     awtarg=$1
     shift
+
+    #D_ARGS="-Djogl.debug.ExtensionAvailabilityCache -Djogl.debug=all -Dnativewindow.debug=all -Djogamp.debug.ProcAddressHelper=true -Djogamp.debug.NativeLibrary=true -Djogamp.debug.NativeLibrary.Lookup=true"
+    #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
+    #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.ExtensionAvailabilityCache"
+    #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile -Djogl.debug.GLDrawable"
+    #D_ARGS="-Djogl.debug.GLProfile"
     # D_ARGS="-Djogamp.debug.TraceLock"
     # D_ARGS="-Dnewt.debug.EDT -Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.NativeWindow"
     # D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
@@ -28,9 +34,8 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.EDT -Dnewt.debug.Display -Dnativewindow.debug.X11Util -Djogl.debug.GLDrawable -Djogl.debug.GLCanvas"
     #D_ARGS="-Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
-    D_ARGS="-Dnewt.debug.EDT"
-    #D_ARGS="-Dnewt.debug.EDT -Djogl.debug=all -Dnativewindow.debug=all"
-    # D_ARGS="-Djogl.debug=all"
+    #D_ARGS="-Dnewt.debug.EDT"
+    #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
     X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=false"
     java $awtarg $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 }
@@ -46,7 +51,11 @@ function testawt() {
 #
 # newt (testnoawt and testawt)
 #
-testnoawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
+#testnoawt com.jogamp.newt.opengl.GLWindow $*
+#testnoawt com.jogamp.test.junit.newt.TestRemoteWindow01NEWT -time 1000000
+testnoawt com.jogamp.test.junit.newt.TestRemoteGLWindows01NEWT -time 1000000
+#testawt javax.media.opengl.awt.GLCanvas $*
+#testnoawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testawt com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT
 #testawt com.jogamp.test.junit.newt.TestDisplayLifecycle01NEWT

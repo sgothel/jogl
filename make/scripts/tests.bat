@@ -1,4 +1,5 @@
-scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.acore.TestGLProfile01CORE
+scripts\java-win64-dbg.bat com.jogamp.newt.opengl.GLWindow
+scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT -time 30000
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
 
