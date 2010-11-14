@@ -38,6 +38,17 @@ import javax.media.nativewindow.*;
  */
 
 public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
+    /**
+     * Note that this is not an open connection, ie no native display handle exist.
+     * This constructor exist to setup a default device connection.<br>
+     * FIXME:<br>
+     * find out the EGL semantics of a device connection {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection()}
+     * to actually use multiple devices.
+     */
+    public EGLGraphicsDevice(String connection) {
+        super(NativeWindowFactory.TYPE_EGL, connection);
+    }
+
     /** Constructs a new EGLGraphicsDevice corresponding to the given EGL display handle. */
     public EGLGraphicsDevice(long eglDisplay) {
         super(NativeWindowFactory.TYPE_EGL, AbstractGraphicsDevice.DEFAULT_CONNECTION, eglDisplay);

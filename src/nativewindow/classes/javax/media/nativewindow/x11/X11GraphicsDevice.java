@@ -41,6 +41,15 @@ import javax.media.nativewindow.*;
 public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
     boolean closeDisplay = false;
 
+    /** Constructs a new X11GraphicsDevice corresponding to the given connection and default
+     *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#createDefaultToolkitLock(java.lang.String, long)}.<br>
+     *  Note that this is not an open connection, ie no native display handle exist.
+     *  This constructor exist to setup a default device connection.
+     */
+    public X11GraphicsDevice(String connection) {
+        super(NativeWindowFactory.TYPE_X11, connection);
+    }
+
     /** Constructs a new X11GraphicsDevice corresponding to the given native display handle and default
      *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#createDefaultToolkitLock(java.lang.String, long)}.
      */
