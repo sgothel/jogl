@@ -42,8 +42,6 @@ package com.jogamp.opengl.impl.egl;
 
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.egl.*;
-import com.jogamp.opengl.impl.*;
 
 public class EGLPbufferDrawable extends EGLDrawable {
     private int texFormat;
