@@ -849,10 +849,10 @@ public class GLWindow implements GLAutoDrawable, Window {
      * A most simple JOGL AWT test entry
      */
     public static void main(String args[]) {
-        System.err.println(GlueGenVersion.getInstance().getInfo(null));
-        System.err.println(NativeWindowVersion.getInstance().getInfo(null));
-        System.err.print(JoglVersion.getInstance().getInfo(null));
-        System.err.println(NewtVersion.getInstance().getInfo(null));
+        System.err.println(GlueGenVersion.getInstance());
+        System.err.println(NativeWindowVersion.getInstance());
+        System.err.print(JoglVersion.getInstance());
+        System.err.println(NewtVersion.getInstance());
         GLCapabilities caps = new GLCapabilities( GLProfile.getDefault() );
 
         GLWindow glWindow = GLWindow.create(caps);
@@ -861,7 +861,7 @@ public class GLWindow implements GLAutoDrawable, Window {
         glWindow.addGLEventListener(new GLEventListener() {
             public void init(GLAutoDrawable drawable) {
                 GL gl = drawable.getGL();
-                System.err.println(JoglVersion.getInstance().getGLInfo(gl, null));
+                System.err.println(JoglVersion.getInstance().toString(gl));
             }
 
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {

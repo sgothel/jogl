@@ -55,6 +55,6 @@ public class NewtVersion extends JogampVersion {
     }
 
     public static void main(String args[]) {
-        System.err.println(NewtVersion.getInstance().getInfo(null));
+        System.err.println(NewtVersion.getInstance());
     }
 }

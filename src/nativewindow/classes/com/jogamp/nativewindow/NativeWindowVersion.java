@@ -55,6 +55,6 @@ public class NativeWindowVersion extends JogampVersion {
     }
 
     public static void main(String args[]) {
-        System.err.println(NativeWindowVersion.getInstance().getInfo(null));
+        System.err.println(NativeWindowVersion.getInstance());
     }
 }
