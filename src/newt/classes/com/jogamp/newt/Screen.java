@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.NativeWindowException;
 
 public abstract class Screen {
 
@@ -56,16 +57,19 @@ public abstract class Screen {
         }
         return false;
     }
-    
-    public abstract boolean isNativeValid();
 
     /**
-     *
-     * @return number of references by Window
+     * Manual trigger the native creation.<br>
+     * This is useful to be able to request the {@link javax.media.nativewindow.AbstractGraphicsScreen}, via
+     * {@link #getGraphicsScreen()}. Otherwise the abstract device won't be available before the dependent component (Window)
+     * is realized.
+     * @throws NativeWindowException if the native creation failed.
      */
-    public abstract int getReferenceCount();
+    public abstract void createNative() throws NativeWindowException;
 
     public abstract void destroy();
+
+    public abstract boolean isNativeValid();
 
     /**
      * @return {@link Display#getDestroyWhenUnused()}
@@ -86,13 +90,20 @@ public abstract class Screen {
     public abstract void setDestroyWhenUnused(boolean v);
 
     /**
+     *
+     * @return number of references by Window
+     */
+    public abstract int getReferenceCount();
+
+    /**
      * See {@link Display#addReference()}
      *
+     * @throws NativeWindowException if the native creation failed.
      * @see #removeReference()
      * @see #setDestroyWhenUnused(boolean)
      * @see #getDestroyWhenUnused()
      */
-    public abstract int addReference();
+    public abstract int addReference() throws NativeWindowException;
 
     /**
      * See {@link Display#removeReference()}

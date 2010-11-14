@@ -129,7 +129,9 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         return hashCode;
     }
 
-    protected  synchronized final void createNative() {
+    public synchronized final void createNative()
+            throws NativeWindowException
+    {
         if(null == aScreen) {
             if(DEBUG) {
                 System.err.println("Screen.createNative() START ("+DisplayImpl.getThreadName()+", "+this+")");
@@ -138,7 +140,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             display.addReference();
             createNativeImpl();
             if(null == aScreen) {
-                throw new RuntimeException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
+                throw new NativeWindowException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
             }
             if(DEBUG) {
                 System.err.println("Screen.createNative() END ("+DisplayImpl.getThreadName()+", "+this+")");
@@ -166,7 +168,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         display.removeReference();
     }
 
-    public synchronized final int addReference() {
+    public synchronized final int addReference() throws NativeWindowException {
         if(DEBUG) {
             System.err.println("Screen.addReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount+1));
         }
@@ -174,7 +176,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             createNative();
         }
         if(null == aScreen) {
-            throw new RuntimeException("Screen.addReference() (refCount "+refCount+") null AbstractGraphicsScreen");
+            throw new NativeWindowException("Screen.addReference() (refCount "+refCount+") null AbstractGraphicsScreen");
         }
         return ++refCount;
     }

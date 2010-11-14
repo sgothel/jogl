@@ -43,6 +43,7 @@ import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.newt.util.MainThread;
 import java.util.ArrayList;
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
 
 public abstract class DisplayImpl extends Display {
@@ -111,18 +112,24 @@ public abstract class DisplayImpl extends Display {
         return hashCode;
     }
 
-    protected  synchronized final void createNative() {
+    public  synchronized final void createNative()
+        throws NativeWindowException
+    {
         if(null==aDevice) {
             if(DEBUG) {
                 System.err.println("Display.createNative() START ("+getThreadName()+", "+this+")");
             }
             final DisplayImpl f_dpy = this;
-            runOnEDTIfAvail(true, new Runnable() {
-                public void run() {
-                    f_dpy.createNativeImpl();
-                }});
+            try {
+                runOnEDTIfAvail(true, new Runnable() {
+                    public void run() {
+                        f_dpy.createNativeImpl();
+                    }});
+            } catch (Throwable t) {
+                throw new NativeWindowException(t);
+            }
             if(null==aDevice) {
-                throw new RuntimeException("Display.createNative() failed to instanciate an AbstractGraphicsDevice");
+                throw new NativeWindowException("Display.createNative() failed to instanciate an AbstractGraphicsDevice");
             }
             if(DEBUG) {
                 System.err.println("Display.createNative() END ("+getThreadName()+", "+this+")");
@@ -216,7 +223,7 @@ public abstract class DisplayImpl extends Display {
             createNative();
         }
         if(null == aDevice) {
-            throw new RuntimeException("Display.addReference() (refCount "+refCount+") null AbstractGraphicsDevice");
+            throw new NativeWindowException ("Display.addReference() (refCount "+refCount+") null AbstractGraphicsDevice");
         }
         return ++refCount;
     }

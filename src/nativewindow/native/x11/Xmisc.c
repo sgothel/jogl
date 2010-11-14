@@ -185,8 +185,14 @@ static int errorHandlerBlocked = 0 ;
 
 static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
 {
+    fprintf(stderr, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s", dpy, e->error_code, strerror(errno));
+#if 0
+    // Since the X11 Error may happen anytime, a exception could mess up the JVM completely.
+    // Experienced this for remote displays issuing non supported commands, eg. glXCreateContextAttribsARB(..)
+    //
     _throwNewRuntimeException(NULL, x11ErrorHandlerJNIEnv, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s", 
         dpy, e->error_code, strerror(errno));
+#endif
 
 #if 0
     if(NULL!=origErrorHandler) {

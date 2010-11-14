@@ -38,9 +38,9 @@
 package com.jogamp.newt.impl;
 
 import com.jogamp.common.util.RunnableTask;
-import com.jogamp.newt.Display;
 import com.jogamp.newt.util.EDTUtil;
 import java.util.*;
+import javax.media.nativewindow.NativeWindowException;
 
 public class DefaultEDTUtil implements EDTUtil {
     public static final boolean DEBUG = Debug.debug("EDT");
@@ -177,6 +177,9 @@ public class DefaultEDTUtil implements EDTUtil {
                     throwable = rTask.getThrowable();
                 }
                 if(null!=throwable) {
+                    if(throwable instanceof NativeWindowException) {
+                        throw (NativeWindowException)throwable;
+                    }
                     throw new RuntimeException(throwable);
                 }
             }

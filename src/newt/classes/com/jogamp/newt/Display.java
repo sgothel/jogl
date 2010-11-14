@@ -35,6 +35,7 @@ import com.jogamp.newt.impl.DisplayImpl;
 import java.util.*;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeWindowException;
 
 public abstract class Display {
     public static final boolean DEBUG = Debug.debug("Display");
@@ -53,19 +54,23 @@ public abstract class Display {
     }
 
     /**
+     * Manual trigger the native creation.<br>
+     * This is useful to be able to request the {@link javax.media.nativewindow.AbstractGraphicsDevice}, via
+     * {@link #getGraphicsDevice()}. Otherwise the abstract device won't be available before the dependent components (Screen and Window)
+     * are realized.
+     * @throws NativeWindowException if the native creation failed.
+     */
+    public abstract void createNative() throws NativeWindowException;
+
+    public abstract void destroy();
+
+    /**
      * @return true if the native display handle is valid and ready to operate,
      * otherwise false.
      *
      * @see #destroy()
      */
     public abstract boolean isNativeValid();
-
-    /**
-     * @return number of references by Screen
-     */
-    public abstract int getReferenceCount();
-
-    public abstract void destroy();
 
     /**
      * @return the value set by {@link #setDestroyWhenUnused(boolean)}
@@ -88,13 +93,19 @@ public abstract class Display {
     public abstract void setDestroyWhenUnused(boolean v);
 
     /**
+     * @return number of references by Screen
+     */
+    public abstract int getReferenceCount();
+
+    /**
      * The 1st call will initiate native creation,
      * since we follow the lazy creation pattern.
      *
      * @return number of references after adding one
+     * @throws NativeWindowException if the native creation failed.
      * @see #removeReference()
      */
-    public abstract int addReference();
+    public abstract int addReference() throws NativeWindowException ;
 
     /**
      * The last call may destroy this instance,
