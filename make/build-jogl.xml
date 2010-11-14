@@ -71,7 +71,7 @@
                   value="com/jogamp/gluegen/opengl/** com/jogamp/gluegen/runtime/opengl/*"/>
 
         <property name="java.part.core" 
-                  value="javax/media/opengl/* javax/media/opengl/fixedfunc/* javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* com/jogamp/gluegen/runtime/opengl/* com/jogamp/opengl/impl/* com/jogamp/opengl/impl/glu/* com/jogamp/opengl/impl/glu/error/*"/>
+                  value="javax/media/opengl/* javax/media/opengl/fixedfunc/* javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* com/jogamp/gluegen/runtime/opengl/* com/jogamp/opengl/* com/jogamp/opengl/impl/* com/jogamp/opengl/impl/glu/* com/jogamp/opengl/impl/glu/error/*"/>
         <property name="java.part.core.exclude" value="javax/media/opengl/Debug* javax/media/opengl/Trace*"/>
 
         <property name="java.part.nv-cg"

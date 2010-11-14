@@ -73,7 +73,7 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="javax/media/nativewindow/*, javax/media/nativewindow/util/*, javax/media/nativewindow/egl/*, javax/media/nativewindow/macosx/*, javax/media/nativewindow/windows/*, com/jogamp/nativewindow/impl/*, com/jogamp/nativewindow/impl/jvm/*"/>
+                  value="javax/media/nativewindow/*, javax/media/nativewindow/util/*, javax/media/nativewindow/egl/*, javax/media/nativewindow/macosx/*, javax/media/nativewindow/windows/*, com/jogamp/nativewindow/*, com/jogamp/nativewindow/impl/*, com/jogamp/nativewindow/impl/jvm/*"/>
 
         <property name="java.part.awt"
                   value="javax/media/nativewindow/awt/*, com/jogamp/nativewindow/impl/jawt/**, com/jogamp/nativewindow/impl/**/awt/**"/>
