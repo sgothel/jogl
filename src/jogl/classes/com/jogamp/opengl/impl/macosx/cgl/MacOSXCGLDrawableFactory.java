@@ -121,7 +121,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
         return null;
   }
 
-  protected void shutdownInstance() {}
+  protected final void shutdownInstance() {}
 
   protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
     if (target == null) {

@@ -146,7 +146,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
 
-    protected void shutdownInstance() {}
+    protected final void shutdownInstance() {}
 
     protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
         if (target == null) {
