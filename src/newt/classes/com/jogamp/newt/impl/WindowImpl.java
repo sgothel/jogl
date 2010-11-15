@@ -800,7 +800,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
 
         public void run() {
             boolean wasVisible;
-            boolean displayChanged = false;
 
             // mirror pos/size so native change notification can get overwritten
             int x = WindowImpl.this.x;
@@ -851,7 +850,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                         // It may be created properly when the parent is made visible.
                         destroy(false);
                         setScreen( (ScreenImpl) newParentWindowNEWT.getScreen() );
-                        displayChanged = true;
                         reparentAction = ACTION_NATIVE_CREATION_PENDING;
                     } else if(newParentWindow != getParent()) {
                         // Case: Parent's native window realized and changed
@@ -866,7 +864,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                                     // auto destroy on-the-fly created Screen/Display
                                     newScreen.setDestroyWhenUnused(true);
                                     setScreen( (ScreenImpl) newScreen );
-                                    displayChanged = true;
                                 }
                             }
                             if( 0<width*height ) {
@@ -886,7 +883,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                                 setScreen( (ScreenImpl) NewtFactory.createCompatibleScreen(newParentWindow, getScreen()) );
                                 screen.setDestroyWhenUnused(true);
                             }
-                            displayChanged = true;
                             reparentAction = ACTION_NATIVE_CREATION;
                         } else {
                             // Mark it for native reparenting
@@ -1003,6 +999,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                                 // reset pos/size .. due to some native impl flakyness
                                 reconfigureWindowImpl(x, y, width, height, false, 0, 0);
                                 display.dispatchMessagesNative(); // status up2date
+                                WindowImpl.this.waitForVisible(true, false);
+                                display.dispatchMessagesNative(); // status up2date
                             }
                         }
                     }
@@ -1036,14 +1034,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 windowLock.unlock();
             }
 
-            if( ACTION_NATIVE_REPARENTING == reparentAction ) {
-                sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
-            }
+            if(wasVisible) {
+                switch (reparentAction) {
+                    case ACTION_NATIVE_REPARENTING:
+                        // trigger a resize/relayout and repaint to listener
+                        sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
+                        break;
 
-            if( ACTION_NATIVE_CREATION == reparentAction && wasVisible ) {
-                // This may run on the Display/Screen connection,
-                // hence a new EDT task
-                runOnEDTIfAvail(true, reparentActionRecreate);
+                    case ACTION_NATIVE_CREATION:
+                        // This may run on the Display/Screen connection,
+                        // hence a new EDT task
+                        runOnEDTIfAvail(true, reparentActionRecreate);
+                        break;
+                }
             }
         }
     }

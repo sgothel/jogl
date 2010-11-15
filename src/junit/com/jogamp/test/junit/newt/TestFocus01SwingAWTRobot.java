@@ -29,18 +29,12 @@
 package com.jogamp.test.junit.newt;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Test;
 
 import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Robot;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.media.opengl.GLCapabilities;
@@ -49,18 +43,12 @@ import javax.media.opengl.GLProfile;
 import javax.swing.JFrame;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Iterator;
 import java.io.IOException;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
-import com.jogamp.newt.event.KeyAdapter;
-import com.jogamp.newt.event.KeyEvent;
-import com.jogamp.newt.event.WindowAdapter;
-import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
@@ -69,8 +57,8 @@ import com.jogamp.test.junit.util.*;
 
 public class TestFocus01SwingAWTRobot extends UITestCase {
     static int width, height;
-
     static long durationPerTest = 800;
+    static long awtWaitTimeout = 1000;
 
     static GLCapabilities glCaps;
 
@@ -144,8 +132,10 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         frame1.setVisible(true);
         Assert.assertTrue(AWTRobotUtil.toFront(robot, frame1));
 
+        int wait=0;
+        while(wait<awtWaitTimeout/100 && glWindow1.getTotalFrames()<1) { Thread.sleep(awtWaitTimeout/10); wait++; }
+        System.err.println("Frames for initial setVisible(true): "+glWindow1.getTotalFrames());
         Assert.assertTrue(glWindow1.isVisible());
-        System.out.println("Frames for initial setVisible(true): "+glWindow1.getTotalFrames());
         Assert.assertTrue(0 < glWindow1.getTotalFrames());
 
         // Continuous animation ..

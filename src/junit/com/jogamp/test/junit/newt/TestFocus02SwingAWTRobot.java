@@ -59,6 +59,7 @@ import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 public class TestFocus02SwingAWTRobot extends UITestCase {
     static int width, height;
     static long durationPerTest = 800;
+    static long awtWaitTimeout = 1000;
     static long waitReparent = 0;
     static GLCapabilities glCaps;
 
@@ -162,8 +163,10 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         jFrame1.setVisible(true); // from here on, we need to run modifications on EDT
         Assert.assertTrue(AWTRobotUtil.toFront(robot, jFrame1));
 
+        int wait=0;
+        while(wait<awtWaitTimeout/100 && glWindow1.getTotalFrames()<1) { Thread.sleep(awtWaitTimeout/10); wait++; }
+        System.err.println("Frames for initial setVisible(true): "+glWindow1.getTotalFrames());
         Assert.assertTrue(glWindow1.isVisible());
-        System.out.println("Frames for initial setVisible(true): "+glWindow1.getTotalFrames());
         Assert.assertTrue(0 < glWindow1.getTotalFrames());
 
         // Continuous animation ..
