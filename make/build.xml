@@ -5,8 +5,9 @@
 
     <target name="init" depends="common.init">
         <!-- The javadoc dirs. -->
-        <property name="javadoc" value="${build}/javadoc" />
-        <property name="gluegen.link" value="http://jogamp.org/deployment/gluegen-next/javadoc/" />
+        <property name="javadoc" value="${build}/javadoc" />            <!-- http://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/    -->
+        <property name="gluegen.link" value="../../gluegen/javadoc/" /> <!-- http://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/ -->
+        <!--property name="javadoc.link" value="http://download.oracle.com/javase/1.4.2/docs/api/"/-->
         <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
         <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
 
