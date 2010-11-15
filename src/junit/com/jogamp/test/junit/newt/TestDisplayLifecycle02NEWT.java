@@ -111,10 +111,6 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         // lazy native creation sequence: Display, Screen and Window
         Assert.assertEquals(0, window.getTotalFrames());
         window.setVisible(true);
-        int wait=0;
-        while(wait<10 && window.getTotalFrames()<1) { Thread.sleep(100); wait++; }
-        System.err.println("Frames for setVisible(true) 1: "+window.getTotalFrames());
-        Assert.assertTrue(0 < window.getTotalFrames());
 
         Assert.assertEquals(screen,window.getScreen());
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
@@ -126,6 +122,8 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
+        System.err.println("Frames for setVisible(true) 1: "+window.getTotalFrames());
+        Assert.assertTrue(0 < window.getTotalFrames());
 
         while(window.getDuration()<1*durationPerTest) {
             window.display();
@@ -142,11 +140,9 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         window.resetCounter();
         Assert.assertEquals(0, window.getTotalFrames());
         window.setVisible(true);
-        wait=0;
-        while(wait<10 && window.getTotalFrames()<1) { Thread.sleep(100); wait++; }
-        System.err.println("Frames for setVisible(true) 1: "+window.getTotalFrames());
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
+        System.err.println("Frames for setVisible(true) 1: "+window.getTotalFrames());
         Assert.assertTrue(0 < window.getTotalFrames());
 
         while(window.getDuration()<2*durationPerTest) {
@@ -179,10 +175,6 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
 
         // recover Window
         window.setVisible(true);
-        wait=0;
-        while(wait<10 && window.getTotalFrames()<1) { Thread.sleep(100); wait++; }
-        System.err.println("Frames for setVisible(true) 2: "+window.getTotalFrames());
-        Assert.assertTrue(0 < window.getTotalFrames());
 
         Assert.assertEquals(screen,window.getScreen());
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
@@ -194,6 +186,8 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
+        System.err.println("Frames for setVisible(true) 2: "+window.getTotalFrames());
+        Assert.assertTrue(0 < window.getTotalFrames());
 
         while(window.getDuration()<1*durationPerTest) {
             window.display();
@@ -264,10 +258,6 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         // lazy native creation sequence: Display, Screen and Window
         Assert.assertEquals(0, window1.getTotalFrames());
         window1.setVisible(true);
-        int wait=0;
-        while(wait<10 && window1.getTotalFrames()<1) { Thread.sleep(100); wait++; }
-        System.err.println("Frames for setVisible(true) 1: "+window1.getTotalFrames());
-        Assert.assertTrue(0 < window1.getTotalFrames());
 
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
         Assert.assertEquals(1,display.getReferenceCount());
@@ -278,13 +268,11 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window1.isNativeValid());
         Assert.assertEquals(true,window1.isVisible());
+        System.err.println("Frames for setVisible(true) 1: "+window1.getTotalFrames());
+        Assert.assertTrue(0 < window1.getTotalFrames());
 
         Assert.assertEquals(0, window2.getTotalFrames());
         window2.setVisible(true);
-        wait=0;
-        while(wait<10 && window2.getTotalFrames()<1) { Thread.sleep(100); wait++; }
-        System.err.println("Frames for setVisible(true) 2: "+window2.getTotalFrames());
-        Assert.assertTrue(0 < window2.getTotalFrames());
 
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
         Assert.assertEquals(1,display.getReferenceCount());
@@ -295,6 +283,8 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window2.isNativeValid());
         Assert.assertEquals(true,window2.isVisible());
+        System.err.println("Frames for setVisible(true) 2: "+window2.getTotalFrames());
+        Assert.assertTrue(0 < window2.getTotalFrames());
 
         while(window1.getDuration()<1*durationPerTest) {
             window1.display();

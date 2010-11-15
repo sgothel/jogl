@@ -330,9 +330,16 @@ public class GLWindow implements GLAutoDrawable, Window {
         }
 
         /** Window.LifecycleHook */
-        public synchronized void setVisibleAction(boolean visible, boolean nativeWindowCreated) {
+        public synchronized void resetCounter() {
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
-                String msg = new String("GLWindow.setVisibleAction("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", start");
+                System.err.println("GLWindow.resetCounter() "+Thread.currentThread());
+            }
+            GLWindow.this.resetCounter();
+        }
+
+        public synchronized void setVisibleActionPost(boolean visible, boolean nativeWindowCreated) {
+            if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
+                String msg = new String("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", start");
                 System.err.println(msg);
                 // Exception e1 = new Exception(msg);
                 // e1.printStackTrace();
@@ -357,12 +364,9 @@ public class GLWindow implements GLAutoDrawable, Window {
                 }
                 drawable.setRealized(true);
                 context = drawable.createContext(null);
-                resetCounter();
-            } else if(!visible) {
-                resetCounter();
             }
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
-                String msg = new String("GLWindow.setVisibleAction("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", fin");
+                String msg = new String("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", fin");
                 System.err.println(msg);
                 //Exception e1 = new Exception(msg);
                 //e1.printStackTrace();
@@ -380,7 +384,6 @@ public class GLWindow implements GLAutoDrawable, Window {
         }
 
         public synchronized void resumeRenderingAction() {
-            resetCounter();
             GLAnimatorControl ctrl = GLWindow.this.getAnimator();
             if ( null!=ctrl && animatorPaused ) {
                 animatorPaused = false;

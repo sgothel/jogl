@@ -44,8 +44,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Iterator;
 
 import javax.media.opengl.*;
 
@@ -164,9 +162,8 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         jFrame1.setVisible(true); // from here on, we need to run modifications on EDT
         Assert.assertTrue(AWTRobotUtil.toFront(robot, jFrame1));
 
-        int wait=0;
-        while(wait<10 && glWindow1.getTotalFrames()<1) { Thread.sleep(100); wait++; }
-        System.err.println("Frames for initial setVisible(true): "+glWindow1.getTotalFrames());
+        Assert.assertTrue(glWindow1.isVisible());
+        System.out.println("Frames for initial setVisible(true): "+glWindow1.getTotalFrames());
         Assert.assertTrue(0 < glWindow1.getTotalFrames());
 
         // Continuous animation ..

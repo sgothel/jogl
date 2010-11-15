@@ -144,8 +144,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         frame1.setVisible(true);
         Assert.assertTrue(AWTRobotUtil.toFront(robot, frame1));
 
-        int wait=0;
-        while(wait<10 && glWindow1.getTotalFrames()<1) { Thread.sleep(100); wait++; }
+        Assert.assertTrue(glWindow1.isVisible());
         System.out.println("Frames for initial setVisible(true): "+glWindow1.getTotalFrames());
         Assert.assertTrue(0 < glWindow1.getTotalFrames());
 

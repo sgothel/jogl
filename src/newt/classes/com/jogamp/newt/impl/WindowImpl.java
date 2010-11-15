@@ -155,12 +155,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
     }
 
     public static interface LifecycleHook {
+        /**
+         * Reset of internal state counter, ie totalFrames, etc.
+         * Called from EDT while window is locked.
+         */
+        public abstract void resetCounter();
+
         /** 
          * Invoked after Window setVisible, 
          * allows allocating resources depending on the native Window.
-         * Called from EDT.
+         * Called from EDT while window is locked.
          */
-        void setVisibleAction(boolean visible, boolean nativeWindowCreated);
+        void setVisibleActionPost(boolean visible, boolean nativeWindowCreated);
 
         /** 
          * Invoked before Window destroy action, 
@@ -174,7 +180,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
          * Invoked before Window destroy action,
          * allows releasing of resources depending on the native Window.<br>
          * Surface locked.<br>
-         * Called from EDT.
+         * Called from EDT while window is locked.
          */
         void destroyActionInLock(boolean unrecoverable);
 
@@ -521,6 +527,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                     String msg = new String("Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+" -> "+visible+", parentWindowHandle "+toHexString(WindowImpl.this.parentWindowHandle)+", parentWindow "+(null!=WindowImpl.this.parentWindow)/*+", "+this*/);
                     System.err.println(msg);
                 }
+
+                if(null!=lifecycleHook) {
+                    lifecycleHook.resetCounter();
+                }
+
                 if(!visible && childWindows.size()>0) {
                   synchronized(childWindowsLock) {
                     for(int i = 0; i < childWindows.size(); i++ ) {
@@ -546,7 +557,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 }
 
                 if(null!=lifecycleHook) {
-                    lifecycleHook.setVisibleAction(visible, nativeWindowCreated);
+                    lifecycleHook.setVisibleActionPost(visible, nativeWindowCreated);
                 }
 
                 if(0!=windowHandle && visible && childWindows.size()>0) {
@@ -565,6 +576,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
             } finally {
                 windowLock.unlock();
             }
+            if( getChanged() ) {
+                sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
+            }
         }
     }
 
@@ -576,9 +590,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
             }
             VisibleAction visibleAction = new VisibleAction(visible);
             runOnEDTIfAvail(true, visibleAction);
-            if( visibleAction.getChanged() ) {
-                sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
-            }
         }
     }
 
@@ -812,6 +823,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                     System.err.println("Window.reparent: START ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+", visible "+wasVisible+", old parentWindow: "+Display.hashCodeNullSafe(parentWindow)+", new parentWindow: "+Display.hashCodeNullSafe(newParentWindow)+", forceDestroyCreate "+forceDestroyCreate+", DEBUG_TEST_REPARENT_INCOMPATIBLE "+DEBUG_TEST_REPARENT_INCOMPATIBLE+" "+x+"/"+y+" "+width+"x"+height);
                 }
 
+                if(null!=lifecycleHook) {
+                    lifecycleHook.resetCounter();
+                }
+
                 if(null!=newParentWindow) {
                     // reset position to 0/0 within parent space
                     x = 0;
@@ -1021,6 +1036,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 windowLock.unlock();
             }
 
+            if( ACTION_NATIVE_REPARENTING == reparentAction ) {
+                sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
+            }
+
             if( ACTION_NATIVE_CREATION == reparentAction && wasVisible ) {
                 // This may run on the Display/Screen connection,
                 // hence a new EDT task
@@ -1066,7 +1085,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                     lifecycleHook.resumeRenderingAction();
                 }
             }
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
         return reparentActionStrategy;
     }

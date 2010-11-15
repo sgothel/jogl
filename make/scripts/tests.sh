@@ -26,7 +26,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLProfile"
     # D_ARGS="-Djogamp.debug.TraceLock"
     # D_ARGS="-Dnewt.debug.EDT -Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.NativeWindow"
-    # D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
+    D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
     # D_ARGS="-Dnewt.debug.EDT -Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.X11Util.TraceDisplayLifecycle=true"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
     # D_ARGS="-Dnewt.debug.Window -Dnewt.debug.EDT -Dnewt.debug.Display "
@@ -53,13 +53,13 @@ function testawt() {
 #
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.test.junit.newt.TestRemoteWindow01NEWT -time 1000000
-testnoawt com.jogamp.test.junit.newt.TestRemoteGLWindows01NEWT -time 1000000
+#testnoawt com.jogamp.test.junit.newt.TestRemoteGLWindows01NEWT -time 1000000
 #testawt javax.media.opengl.awt.GLCanvas $*
 #testnoawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testawt com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT
 #testawt com.jogamp.test.junit.newt.TestDisplayLifecycle01NEWT
-#testawt com.jogamp.test.junit.newt.parenting.TestParenting01NEWT
+testawt com.jogamp.test.junit.newt.parenting.TestParenting01NEWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting02NEWT
 #testawt com.jogamp.test.junit.newt.TestScreenMode00NEWT
 #testnoawt com.jogamp.test.junit.newt.TestScreenMode01NEWT
