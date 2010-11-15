@@ -176,8 +176,8 @@
                  maxmemory="1024m"
                  bottom="${javadoc.bottom}" >
             <classpath refid="jogl_newt_all.classpath"/>
-            <link offline="true" href="${javadoc.link}" packagelistLoc="../../gluegen/make/142-packages" />
-            <link offline="true" href="${gluegen.link}" packagelistLoc="../../gluegen/make/gluegen-packages" />
+            <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
+            <link offline="true" href="${gluegen.link}" packagelistLoc="${gluegen.root}/make/gluegen-packages" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
@@ -197,8 +197,8 @@
                  maxmemory="1024m"
                  bottom="${javadoc.bottom}" >
             <classpath refid="jogl_newt_all.classpath"/>
-            <link offline="true" href="${javadoc.link}" packagelistLoc="../../gluegen/make/142-packages" />
-            <link offline="true" href="${gluegen.link}" packagelistLoc="../../gluegen/make/gluegen-packages" />
+            <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
+            <link offline="true" href="${gluegen.link}" packagelistLoc="${gluegen.root}/make/gluegen-packages" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <link offline="false" href="${javadoc.nw.spec}" />
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
@@ -219,8 +219,8 @@
                  maxmemory="1024m"
                  bottom="${javadoc.bottom}" >
             <classpath refid="jogl_newt_all.classpath"/>
-            <link offline="true" href="${javadoc.link}" packagelistLoc="../../gluegen/make/142-packages" />
-            <link offline="true" href="${gluegen.link}" packagelistLoc="../../gluegen/make/gluegen-packages" />
+            <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
+            <link offline="true" href="${gluegen.link}" packagelistLoc="${gluegen.root}/make/gluegen-packages" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
@@ -240,8 +240,8 @@
                  maxmemory="1024m"
                  bottom="${javadoc.bottom}" >
             <classpath refid="jogl_newt_all.classpath"/>
-            <link offline="true" href="${javadoc.link}" packagelistLoc="../../gluegen/make/142-packages" />
-            <link offline="true" href="${gluegen.link}" packagelistLoc="../../gluegen/make/gluegen-packages" />
+            <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
+            <link offline="true" href="${gluegen.link}" packagelistLoc="${gluegen.root}/make/gluegen-packages" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
