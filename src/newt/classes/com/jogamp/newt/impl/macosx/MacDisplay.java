@@ -68,7 +68,7 @@ public class MacDisplay extends DisplayImpl {
     }
     
     protected void createNativeImpl() {
-        aDevice = new MacOSXGraphicsDevice();
+        aDevice = new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
     protected void closeNativeImpl() { }

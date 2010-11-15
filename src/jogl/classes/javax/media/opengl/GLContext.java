@@ -557,26 +557,22 @@ public abstract class GLContext {
   private static /*final*/ HashSet/*<UniqueDeviceString>*/ deviceVersionsAvailableSet = new HashSet();
 
   protected static String getContextFQN(AbstractGraphicsDevice device, int major, int minor, int ctp) {
-      return getUniqueDeviceString(device) + "-" + toHexString(compose8bit(major, minor, ctp, 0));
+      return device.getUniqueID() + "-" + toHexString(compose8bit(major, minor, ctp, 0));
   }
 
   protected static String getDeviceVersionAvailableKey(AbstractGraphicsDevice device, int major, int profile) {
-      return getUniqueDeviceString(device) + "-" + toHexString(compose8bit(major, profile, 0, 0));
-  }
-
-  protected static String getUniqueDeviceString(AbstractGraphicsDevice device) {
-      return device.getType() + "_" + device.getConnection() ;
+      return device.getUniqueID() + "-" + toHexString(compose8bit(major, profile, 0, 0));
   }
 
   protected static boolean getAvailableGLVersionsSet(AbstractGraphicsDevice device) {
       synchronized ( deviceVersionsAvailableSet ) {
-        return deviceVersionsAvailableSet.contains(getUniqueDeviceString(device));
+        return deviceVersionsAvailableSet.contains(device.getUniqueID());
       }
   }
 
   protected static void setAvailableGLVersionsSet(AbstractGraphicsDevice device) {
       synchronized ( deviceVersionsAvailableSet ) {
-          String devKey = getUniqueDeviceString(device);
+          String devKey = device.getUniqueID();
           if ( deviceVersionsAvailableSet.contains(devKey) ) {
               throw new InternalError("Already set: "+devKey);
           }

@@ -97,7 +97,7 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
         System.err.println("MacOSXExternalCGLContext Create "+caps);
     }
 
-    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
+    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_MACOSX);
     MacOSXCGLGraphicsConfiguration cfg = new MacOSXCGLGraphicsConfiguration(aScreen, caps, caps, pixelFormat);
 
     ProxySurface ns = new ProxySurface(cfg);

@@ -95,11 +95,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     public EGLDrawableFactory() {
         super();
-        /** FIXME:
-        * find out the Windows semantics of a device connection {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection()}
-        * to actually use multiple devices.
-        */
-        defaultDevice = new EGLGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION);
+        defaultDevice = new EGLGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
     static class SharedResource {
@@ -174,7 +170,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     protected GLContext createExternalGLContextImpl() {
-        AbstractGraphicsScreen absScreen = DefaultGraphicsScreen.createScreenDevice(AbstractGraphicsDevice.EXTERNAL_CONNECTION, 0);
+        AbstractGraphicsScreen absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_EGL);
         return new EGLExternalContext(absScreen);
     }
 

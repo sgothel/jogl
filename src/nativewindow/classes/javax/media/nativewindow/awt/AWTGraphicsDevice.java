@@ -51,17 +51,18 @@ public class AWTGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
   private GraphicsDevice device;
   private String subType;
 
-  protected AWTGraphicsDevice(GraphicsDevice device) {
-    super(NativeWindowFactory.TYPE_AWT, device.getIDstring());
+  protected AWTGraphicsDevice(GraphicsDevice device, int unitID) {
+    super(NativeWindowFactory.TYPE_AWT, device.getIDstring(), unitID);
     this.device = device;
     this.subType = null;
   }
 
-  public static AbstractGraphicsDevice createDevice(GraphicsDevice awtDevice) {
+  public static AbstractGraphicsDevice createDevice(GraphicsDevice awtDevice, int unitID) {
     if(null==awtDevice) {
         awtDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        unitID = AbstractGraphicsDevice.DEFAULT_UNIT; 
     }
-    return new AWTGraphicsDevice(awtDevice);
+    return new AWTGraphicsDevice(awtDevice, unitID);
   }
 
   public Object clone() {
@@ -90,7 +91,7 @@ public class AWTGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
   }
 
   public String toString() {
-    return getClass().toString()+"[type "+getType()+"[subType "+getSubType()+"], connection "+getConnection()+", awtDevice "+device+", handle 0x"+Long.toHexString(getHandle())+"]";
+    return getClass().toString()+"[type "+getType()+"[subType "+getSubType()+"], connection "+getConnection()+", unitID "+getUnitID()+", awtDevice "+device+", handle 0x"+Long.toHexString(getHandle())+"]";
   }
 }
 

@@ -62,7 +62,7 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
         }
 
         if(null==absScreen) {
-            absScreen = AWTGraphicsScreen.createScreenDevice(-1);
+            absScreen = AWTGraphicsScreen.createScreenDevice(-1, AbstractGraphicsDevice.DEFAULT_UNIT);
         }
         AWTGraphicsScreen awtScreen = (AWTGraphicsScreen) absScreen;
         device = ((AWTGraphicsDevice)awtScreen.getDevice()).getGraphicsDevice();
@@ -88,7 +88,7 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
 
         long displayHandle = 0;
 
-        WindowsGraphicsDevice winDevice = new WindowsGraphicsDevice();
+        WindowsGraphicsDevice winDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         DefaultGraphicsScreen winScreen = new DefaultGraphicsScreen(winDevice, awtScreen.getIndex());
         if(DEBUG) {
             System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: made "+winScreen);

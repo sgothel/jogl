@@ -87,11 +87,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         } catch (JogampRuntimeException jre) { /* n/a .. */ }
     }
 
-    /** FIXME:
-    * find out the Windows semantics of a device connection {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection()}
-    * to actually use multiple devices.
-    */
-    defaultDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION);
+    defaultDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
   }
 
   static class SharedResource {
@@ -261,7 +257,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   protected final NativeSurface createOffscreenSurfaceImpl(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
-    AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault();
+    AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
     ProxySurface ns = new ProxySurface(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
                                      capabilities, chooser, screen) );
     ns.setSize(width, height);

@@ -227,7 +227,7 @@ public class AWTCanvas extends Canvas {
 
   private static AWTGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
                                                                       GraphicsDevice device) {
-    AbstractGraphicsScreen aScreen = AWTGraphicsScreen.createScreenDevice(device);
+    AbstractGraphicsScreen aScreen = AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT);
     AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
       GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capabilities,
                                                                                                    null,

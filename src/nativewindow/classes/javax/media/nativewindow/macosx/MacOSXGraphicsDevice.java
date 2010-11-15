@@ -38,20 +38,9 @@ import javax.media.nativewindow.*;
  */
 
 public class MacOSXGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
-    /**
-     * Note that this is not an open connection, ie no native display handle exist.
-     * This constructor exist to setup a default device connection.<br>
-     * FIXME:<br>
-     * find out the EGL semantics of a device connection {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection()}
-     * to actually use multiple devices.
-     */
-    public MacOSXGraphicsDevice(String connection) {
-        super(NativeWindowFactory.TYPE_MACOSX, connection);
-    }
-
     /** Constructs a new MacOSXGraphicsDevice */
-    public MacOSXGraphicsDevice() {
-        super(NativeWindowFactory.TYPE_MACOSX, AbstractGraphicsDevice.DEFAULT_CONNECTION);
+    public MacOSXGraphicsDevice(int unitID) {
+        super(NativeWindowFactory.TYPE_MACOSX, AbstractGraphicsDevice.DEFAULT_CONNECTION, unitID);
     }
 
     public Object clone() {

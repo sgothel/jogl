@@ -86,11 +86,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
         } catch (JogampRuntimeException jre) { /* n/a .. */ }
     }
 
-    /** FIXME:
-    * find out the Windows semantics of a device connection {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection()}
-    * to actually use multiple devices.
-    */
-    defaultDevice = new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION);
+    defaultDevice = new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
   }
 
   static class SharedResource {
@@ -156,7 +152,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   protected NativeSurface createOffscreenSurfaceImpl(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
-    AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault();
+    AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_MACOSX);
     ProxySurface ns = new ProxySurface(MacOSXCGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, screen, true));
     ns.setSize(width, height);
     return ns;

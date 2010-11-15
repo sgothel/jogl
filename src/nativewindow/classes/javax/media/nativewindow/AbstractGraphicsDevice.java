@@ -51,6 +51,9 @@ public interface AbstractGraphicsDevice extends Cloneable {
     /** Dummy connection value for an external connection where no native support for multiple devices is available */
     public static String EXTERNAL_CONNECTION = "excon";
 
+    /** Default unit id for the 1st device: 0 */
+    public static int DEFAULT_UNIT = 0;
+
     /**
      * Returns the type of the underlying subsystem, ie
      * NativeWindowFactory.TYPE_KD, NativeWindowFactory.TYPE_X11, ..
@@ -59,12 +62,34 @@ public interface AbstractGraphicsDevice extends Cloneable {
 
     /**
      * Returns the semantic GraphicsDevice connection.<br>
-     * On platforms supporting multiple devices, local or network, 
-     * the implementation shall return a unique name.<br>
-     * On X11 for example, the <code>DISPLAY</code> connection string, 
-     * eg. <code>:0.0</code>, could be returned.<br>
+     * On platforms supporting remote devices, eg via tcp/ip network,
+     * the implementation shall return a unique name for each remote address.<br>
+     * On X11 for example, the connection string should be as the following example.<br>
+     * <ul>
+     *   <li><code>:0.0</code> for a local connection</li>
+     *   <li><code>remote.host.net:0.0</code> for a remote connection</li>
+     * </ul>
+     *
+     * To support multiple local device, see {@link #getUnitID()}.
      */
     public String getConnection();
+
+    /**
+     * Returns the graphics device <code>unit ID</code>.<br>
+     * The <code>unit ID</code> support multiple graphics device configurations
+     * on a local machine.<br>
+     * To support remote device, see {@link #getConnection()}.
+     * @return
+     */
+    public int getUnitID();
+
+    /**
+     * Returns a unique ID String of this device using {@link #getType() type},
+     * {@link #getConnection() connection} and {@link #getUnitID() unitID}.<br>
+     * The unique ID does not reflect the instance of the device, hence the handle is not included.<br>
+     * The unique ID may be used as a key for semantic device mapping.
+     */
+    public String getUniqueID();
 
     /**
      * Returns the native handle of the underlying native device,

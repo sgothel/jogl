@@ -46,15 +46,16 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      *  Note that this is not an open connection, ie no native display handle exist.
      *  This constructor exist to setup a default device connection.
      */
-    public X11GraphicsDevice(String connection) {
-        super(NativeWindowFactory.TYPE_X11, connection);
+    public X11GraphicsDevice(String connection, int unitID) {
+        super(NativeWindowFactory.TYPE_X11, connection, unitID);
     }
 
     /** Constructs a new X11GraphicsDevice corresponding to the given native display handle and default
      *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#createDefaultToolkitLock(java.lang.String, long)}.
      */
-    public X11GraphicsDevice(long display) {
-        super(NativeWindowFactory.TYPE_X11, X11Util.XDisplayString(display), display);
+    public X11GraphicsDevice(long display, int unitID) {
+        // FIXME: derive unitID from connection could be buggy, one DISPLAY for all screens for example..
+        super(NativeWindowFactory.TYPE_X11, X11Util.XDisplayString(display), unitID, display);
         if(0==display) {
             throw new NativeWindowException("null display");
         }
@@ -64,8 +65,8 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      * @param display the Display connection
      * @param locker custom {@link javax.media.nativewindow.ToolkitLock}, eg to force null locking in NEWT
      */
-    public X11GraphicsDevice(long display, ToolkitLock locker) {
-        super(NativeWindowFactory.TYPE_X11, X11Util.XDisplayString(display), display, locker);
+    public X11GraphicsDevice(long display, int unitID, ToolkitLock locker) {
+        super(NativeWindowFactory.TYPE_X11, X11Util.XDisplayString(display), unitID, display, locker);
         if(0==display) {
             throw new NativeWindowException("null display");
         }
@@ -79,6 +80,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         closeDisplay = close;
     }
     public boolean close() {
+        // FIXME: shall we respect the unitID ?
         if(closeDisplay && 0 != handle) {
             X11Util.closeDisplay(handle);
             handle = 0;

@@ -779,7 +779,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       return null;
     }
 
-    AbstractGraphicsScreen aScreen = AWTGraphicsScreen.createScreenDevice(device);
+    AbstractGraphicsScreen aScreen = AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT);
     AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
       GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capabilities,
                                                                                                    chooser,

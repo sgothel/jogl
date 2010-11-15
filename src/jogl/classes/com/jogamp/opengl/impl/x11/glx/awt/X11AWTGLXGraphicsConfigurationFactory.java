@@ -59,7 +59,7 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
         }
 
         if(null==absScreen) {
-            absScreen = AWTGraphicsScreen.createScreenDevice(-1);
+            absScreen = AWTGraphicsScreen.createScreenDevice(-1, AbstractGraphicsDevice.DEFAULT_UNIT);
         }
         AWTGraphicsScreen awtScreen = (AWTGraphicsScreen) absScreen;
         device = ((AWTGraphicsDevice)awtScreen.getDevice()).getGraphicsDevice();
@@ -95,7 +95,7 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
             displayHandle = X11Util.createDisplay(name);
         }
         ((AWTGraphicsDevice)awtScreen.getDevice()).setSubType(NativeWindowFactory.TYPE_X11, displayHandle);
-        X11GraphicsDevice x11Device = new X11GraphicsDevice(displayHandle);
+        X11GraphicsDevice x11Device = new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT);
         x11Device.setCloseDisplay(true);
         X11GraphicsScreen x11Screen = new X11GraphicsScreen(x11Device, awtScreen.getIndex());
         if(DEBUG) {

@@ -61,7 +61,7 @@ public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
       throw new GLException("Error: attempted to make an external GLContext without a valid pixelformat");
     }
 
-    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
+    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
     WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.create(hdc, pfdID, glp, aScreen, true, true);
 
     ProxySurface ns = new ProxySurface(cfg);

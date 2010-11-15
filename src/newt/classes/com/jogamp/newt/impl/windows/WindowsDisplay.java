@@ -61,7 +61,7 @@ public class WindowsDisplay extends DisplayImpl {
     }
 
     protected void createNativeImpl() {
-        aDevice = new WindowsGraphicsDevice();
+        aDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
     protected void closeNativeImpl() { 

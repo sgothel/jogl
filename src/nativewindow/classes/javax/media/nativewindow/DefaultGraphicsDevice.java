@@ -36,8 +36,11 @@ package javax.media.nativewindow;
 import com.jogamp.nativewindow.impl.NativeWindowFactoryImpl;
 
 public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice {
+    private static final String separator = "_";
     private String type;
     protected String connection;
+    protected int unitID;
+    protected String uniqueID;
     protected long handle;
     protected ToolkitLock toolkitLock;
 
@@ -46,9 +49,11 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * gathered via {@link NativeWindowFactory#createDefaultToolkitLock()}.
      * @param type
      */
-    public DefaultGraphicsDevice(String type, String connection) {
+    public DefaultGraphicsDevice(String type, String connection, int unitID) {
         this.type = type;
         this.connection = connection;
+        this.unitID = unitID;
+        this.uniqueID = getUniqueID(type, connection, unitID);
         this.handle = 0;
         setToolkitLock( NativeWindowFactory.getDefaultToolkitLock(type) );
     }
@@ -59,9 +64,11 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * @param type
      * @param handle
      */
-    public DefaultGraphicsDevice(String type, String connection, long handle) {
+    public DefaultGraphicsDevice(String type, String connection, int unitID, long handle) {
         this.type = type;
         this.connection = connection;
+        this.unitID = unitID;
+        this.uniqueID = getUniqueID(type, connection, unitID);
         this.handle = handle;
         setToolkitLock( NativeWindowFactory.createDefaultToolkitLock(type, handle) );
     }
@@ -72,9 +79,11 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * @param handle
      * @param locker
      */
-    public DefaultGraphicsDevice(String type, String connection, long handle, ToolkitLock locker) {
+    public DefaultGraphicsDevice(String type, String connection, int unitID, long handle, ToolkitLock locker) {
         this.type = type;
         this.connection = connection;
+        this.unitID = unitID;
+        this.uniqueID = getUniqueID(type, connection, unitID);
         this.handle = handle;
         setToolkitLock( locker );
     }
@@ -93,6 +102,14 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
 
     public final String getConnection() {
         return connection;
+    }
+
+    public final int getUnitID() {
+        return unitID;
+    }
+
+    public final String getUniqueID() {
+      return uniqueID;
     }
 
     public final long getHandle() {
@@ -126,7 +143,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     }
 
     public String toString() {
-        return getClass().toString()+"[type "+getType()+", connection "+getConnection()+", handle 0x"+Long.toHexString(getHandle())+"]";
+        return getClass().toString()+"[type "+getType()+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+"]";
     }
 
     /**
@@ -147,5 +164,9 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      */
     public final ToolkitLock getToolkitLock() {
          return toolkitLock;
+    }
+
+    protected static String getUniqueID(String type, String connection, int unitID) {
+      return (type + separator + connection + separator + unitID).intern();
     }
 }

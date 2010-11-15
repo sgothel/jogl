@@ -84,13 +84,13 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
           awtGraphicsDevice = awtGfxConfig.getDevice();
           if(null!=awtGraphicsDevice) {
               // Create Device/Screen
-              awtDevice = new AWTGraphicsDevice(awtGraphicsDevice);
+              awtDevice = new AWTGraphicsDevice(awtGraphicsDevice, AbstractGraphicsDevice.DEFAULT_UNIT);
               awtScreen = new AWTGraphicsScreen(awtDevice);
           }
       }
       if(null==awtScreen) {
           // use defaults since no native peer is available yet
-          awtScreen = (AWTGraphicsScreen) AWTGraphicsScreen.createScreenDevice(-1);
+          awtScreen = (AWTGraphicsScreen) AWTGraphicsScreen.createScreenDevice(-1, AbstractGraphicsDevice.DEFAULT_UNIT);
           awtDevice = (AWTGraphicsDevice) awtScreen.getDevice();
           awtGraphicsDevice = awtDevice.getGraphicsDevice();
       }

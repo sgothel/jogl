@@ -282,7 +282,7 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         if (!EGL.eglInitialize(eglDisplay, null, null)) {
             throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
         }
-        EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay);
+        EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay, AbstractGraphicsDevice.DEFAULT_UNIT);
         DefaultGraphicsScreen s = new DefaultGraphicsScreen(e, 0);
         EGLGraphicsConfiguration eglConfig = chooseGraphicsConfigurationStatic(caps, chooser, s);
         if (null == eglConfig) {

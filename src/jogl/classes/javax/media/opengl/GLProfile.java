@@ -1476,7 +1476,7 @@ public class GLProfile {
         if(null==device) {
             device = defaultDevice;
         }
-        String deviceKey = GLContext.getUniqueDeviceString(device);
+        String deviceKey = device.getUniqueID();
         HashMap map = (HashMap) deviceConn2ProfileMap.get(deviceKey);
         if(null==map) {
             map = new HashMap();
@@ -1491,7 +1491,7 @@ public class GLProfile {
     private static void setProfileMap(AbstractGraphicsDevice device, HashMap/*<GL-String, GLProfile>*/mappedProfiles) {
         validateInitialization();
         synchronized ( deviceConn2ProfileMap ) {
-            deviceConn2ProfileMap.put(GLContext.getUniqueDeviceString(device), mappedProfiles);
+            deviceConn2ProfileMap.put(device.getUniqueID(), mappedProfiles);
         }
     }
 

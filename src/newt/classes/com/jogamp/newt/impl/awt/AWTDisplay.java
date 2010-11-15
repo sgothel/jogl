@@ -46,7 +46,7 @@ public class AWTDisplay extends DisplayImpl {
     }
 
     protected void createNativeImpl() {
-        aDevice = (AWTGraphicsDevice) AWTGraphicsDevice.createDevice(null); // default 
+        aDevice = (AWTGraphicsDevice) AWTGraphicsDevice.createDevice(null, AbstractGraphicsDevice.DEFAULT_UNIT); // default
     }
 
     protected void setAWTGraphicsDevice(AWTGraphicsDevice d) {

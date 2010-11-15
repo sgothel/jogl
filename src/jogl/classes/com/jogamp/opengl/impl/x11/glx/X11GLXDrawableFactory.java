@@ -87,7 +87,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         } catch (JogampRuntimeException jre) { /* n/a .. */ }
     }
 
-    defaultDevice = new X11GraphicsDevice(X11Util.getNullDisplayName());
+    defaultDevice = new X11GraphicsDevice(X11Util.getNullDisplayName(), AbstractGraphicsDevice.DEFAULT_UNIT);
 
     // Init shared resources via own thread
     // Will be released via ShutdownHook
@@ -204,7 +204,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       }
           
       private final SharedResource createSharedResource(String connection) {
-          X11GraphicsDevice sharedDevice = new X11GraphicsDevice(X11Util.createDisplay(connection));
+          X11GraphicsDevice sharedDevice = new X11GraphicsDevice(X11Util.createDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT);
           sharedDevice.setCloseDisplay(true);
           X11Util.lockDefaultToolkit(sharedDevice.getHandle()); // OK
           try {

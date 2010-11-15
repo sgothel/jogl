@@ -38,20 +38,9 @@ import javax.media.nativewindow.*;
  * Encapsulates a graphics device on Windows platforms.<br>
  */
 public class WindowsGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
-    /**
-     * Note that this is not an open connection, ie no native display handle exist.
-     * This constructor exist to setup a default device connection.<br>
-     * FIXME:<br>
-     * find out the Windows semantics of a device connection {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection()}
-     * to actually use multiple devices.
-     */
-    public WindowsGraphicsDevice(String connection) {
-        super(NativeWindowFactory.TYPE_WINDOWS, connection);
-    }
-
     /** Constructs a new WindowsGraphicsDevice */
-    public WindowsGraphicsDevice() {
-        super(NativeWindowFactory.TYPE_WINDOWS, AbstractGraphicsDevice.DEFAULT_CONNECTION);
+    public WindowsGraphicsDevice(int unitID) {
+        super(NativeWindowFactory.TYPE_WINDOWS, AbstractGraphicsDevice.DEFAULT_CONNECTION, unitID);
     }
 
     public Object clone() {

@@ -65,7 +65,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         caps.setPBuffer   (usePBuffer);
 
         if(null==absScreen) {
-            absScreen = DefaultGraphicsScreen.createScreenDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, 0);
+            absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
         }
         return new WindowsWGLGraphicsConfiguration(absScreen, caps, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps), -1, null);
 
@@ -75,7 +75,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
                                                                                        CapabilitiesChooser chooser,
                                                                                        AbstractGraphicsScreen absScreen) {
         if(null==absScreen) {
-            absScreen = DefaultGraphicsScreen.createScreenDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, 0);
+            absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
         }
         GLCapabilities caps2 = (GLCapabilities) caps.clone();
         if(!caps2.isOnscreen()) {

@@ -166,7 +166,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                 if (!EGL.eglInitialize(eglDisplay, null, null)) {
                     throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
                 }
-                EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay);
+                EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay, AbstractGraphicsDevice.DEFAULT_UNIT);
                 DefaultGraphicsScreen s = new DefaultGraphicsScreen(e, aConfig.getScreen().getIndex());
                 GLCapabilities caps = (GLCapabilities) aConfig.getChosenCapabilities(); // yes, use the already choosen Capabilities (x11,win32,..)
                 eglConfig = (EGLGraphicsConfiguration) GraphicsConfigurationFactory.getFactory(e).chooseGraphicsConfiguration(caps, null, s);

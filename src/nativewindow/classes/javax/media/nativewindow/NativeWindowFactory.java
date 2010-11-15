@@ -245,6 +245,18 @@ public abstract class NativeWindowFactory {
         return useCustom?nativeWindowingTypeCustom:nativeWindowingTypePure;
     }
 
+    /** Don't know if we shall add this factory here .. 
+    public static AbstractGraphicsDevice createGraphicsDevice(String type, String connection, int unitID, long handle, ToolkitLock locker) {
+        if(type.equals(TYPE_EGL)) {
+            return new
+        } else if(type.equals(TYPE_X11)) {
+        } else if(type.equals(TYPE_WINDOWS)) {
+        } else if(type.equals(TYPE_MACOSX)) {
+        } else if(type.equals(TYPE_AWT)) {
+        } else if(type.equals(TYPE_DEFAULT)) {
+        }
+    } */
+
     /** Sets the default NativeWindowFactory. */
     public static void setDefaultFactory(NativeWindowFactory factory) {
         defaultFactory = factory;
