@@ -77,11 +77,11 @@ public class X11Util {
         }
     }
 
-    public static void setX11ErrorHandler(boolean onoff) {
+    public static void setX11ErrorHandler(boolean onoff, boolean quiet) {
         synchronized(setX11ErrorHandlerLock) {
             if(onoff) {
                 if(0==setX11ErrorHandlerRecCount) {
-                    setX11ErrorHandler0(true);
+                    setX11ErrorHandler0(true, quiet);
                 }
                 setX11ErrorHandlerRecCount++;
             } else {
@@ -90,7 +90,7 @@ public class X11Util {
                 }
                 setX11ErrorHandlerRecCount--;
                 if(0==setX11ErrorHandlerRecCount) {
-                    setX11ErrorHandler0(false);
+                    setX11ErrorHandler0(false, false);
                 }
             }
         }
@@ -595,5 +595,5 @@ public class X11Util {
     }
 
     private static native void initialize0(boolean firstUIActionOnProcess);
-    private static native void setX11ErrorHandler0(boolean onoff);
+    private static native void setX11ErrorHandler0(boolean onoff, boolean quiet);
 }

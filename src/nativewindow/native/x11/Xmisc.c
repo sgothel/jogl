@@ -182,10 +182,13 @@ static void _throwNewRuntimeException(Display * unlockDisplay, JNIEnv *env, cons
 static JNIEnv * x11ErrorHandlerJNIEnv = NULL;
 static XErrorHandler origErrorHandler = NULL ;
 static int errorHandlerBlocked = 0 ;
+static int errorHandlerQuiet = 0 ;
 
 static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
 {
-    fprintf(stderr, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s", dpy, e->error_code, strerror(errno));
+    if(!errorHandlerQuiet) {
+        fprintf(stderr, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s\n", dpy, e->error_code, strerror(errno));
+    }
 #if 0
     // Since the X11 Error may happen anytime, a exception could mess up the JVM completely.
     // Experienced this for remote displays issuing non supported commands, eg. glXCreateContextAttribsARB(..)
@@ -225,10 +228,11 @@ static void x11ErrorHandlerEnable(Display *dpy, int onoff, JNIEnv * env) {
     }
 }
 
-static void x11ErrorHandlerEnableBlocking(int onoff, JNIEnv * env) {
+static void x11ErrorHandlerEnableBlocking(JNIEnv * env, int onoff, int quiet) {
     errorHandlerBlocked = 0 ;
     x11ErrorHandlerEnable(NULL, onoff, env);
     errorHandlerBlocked = onoff ;
+    errorHandlerQuiet = quiet;
 }
 
 
@@ -278,8 +282,8 @@ Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize0(JNIEnv *env, jclass _u
 }
 
 JNIEXPORT void JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Util_setX11ErrorHandler0(JNIEnv *env, jclass _unused, jboolean onoff) {
-  x11ErrorHandlerEnableBlocking(( JNI_TRUE == onoff ) ? 1 : 0, env);
+Java_com_jogamp_nativewindow_impl_x11_X11Util_setX11ErrorHandler0(JNIEnv *env, jclass _unused, jboolean onoff, jboolean quiet) {
+  x11ErrorHandlerEnableBlocking(env, ( JNI_TRUE == onoff ) ? 1 : 0, ( JNI_TRUE == quiet ) ? 1 : 0);
 }
 
 /*   Java->C glue code:
