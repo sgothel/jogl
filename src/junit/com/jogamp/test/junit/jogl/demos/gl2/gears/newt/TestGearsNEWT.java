@@ -101,7 +101,7 @@ public class TestGearsNEWT extends UITestCase {
         }
 
         animator.stop();
-        glWindow.destroy(true);
+        glWindow.invalidate();
     }
 
     @Test

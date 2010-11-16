@@ -78,7 +78,6 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertNull(glWindow1.getParent());
         screen = glWindow1.getScreen();
         display = screen.getDisplay();
-        Assert.assertEquals(true,display.getDestroyWhenUnused());
         Assert.assertEquals(0,display.getReferenceCount());
         Assert.assertEquals(false,display.isNativeValid());
         Assert.assertNotNull(display.getEDTUtil());
@@ -105,7 +104,6 @@ public class TestParenting01NEWT extends UITestCase {
         setDemoFields(demo2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
 
-        Assert.assertEquals(true,display.getDestroyWhenUnused());
         Assert.assertEquals(0,display.getReferenceCount());
         Assert.assertEquals(false,display.isNativeValid());
         Assert.assertNotNull(display.getEDTUtil());
@@ -226,7 +224,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(true,display.isNativeValid());
         Assert.assertNotNull(display.getEDTUtil());
         Assert.assertEquals(true,display.getEDTUtil().isRunning());
-        Assert.assertEquals(2,screen.getReferenceCount());
+        Assert.assertEquals(1,screen.getReferenceCount());
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
@@ -238,13 +236,13 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(false, glWindow2.isNativeValid());
         Assert.assertEquals(true,  glWindow2.isValid());
 
-        Assert.assertEquals(1,display.getReferenceCount());
-        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertEquals(0,display.getReferenceCount());
+        Assert.assertEquals(false,display.isNativeValid());
         Assert.assertNotNull(display.getEDTUtil());
-        Assert.assertEquals(true,display.getEDTUtil().isRunning());
-        Assert.assertEquals(2,screen.getReferenceCount());
-        Assert.assertEquals(true,screen.isNativeValid());
-        Assert.assertEquals(1,Display.getActiveDisplayNumber());
+        Assert.assertEquals(false,display.getEDTUtil().isRunning());
+        Assert.assertEquals(0,screen.getReferenceCount());
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
         // recreation ..
         glWindow1.resetCounter();
@@ -269,11 +267,11 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
-        // cannot be recreated, will drop Display/Screen refs
-        glWindow1.destroy(true); 
-        Assert.assertEquals(false, glWindow1.isValid());
+        // chain glwindow1 -> glwindow2 ; can be recreated ..
+        glWindow1.destroy();
+        Assert.assertEquals(true, glWindow1.isValid());
         Assert.assertEquals(false, glWindow1.isNativeValid());
-        Assert.assertEquals(false, glWindow2.isValid());
+        Assert.assertEquals(true, glWindow2.isValid());
         Assert.assertEquals(false, glWindow2.isNativeValid());
         Assert.assertEquals(0,display.getReferenceCount());
         Assert.assertEquals(false,display.isNativeValid());
@@ -283,9 +281,13 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
-        // test double destroy ..
-        glWindow2.destroy(true);
-        Assert.assertEquals(false,  glWindow2.isValid());
+        glWindow1.invalidate();
+        Assert.assertEquals(false, glWindow1.isValid());
+        Assert.assertEquals(false, glWindow2.isValid());
+
+        // test double destroy/invalidate ..
+        glWindow2.invalidate();
+        Assert.assertEquals(false, glWindow2.isValid());
 
         Assert.assertEquals(0,display.getReferenceCount());
         Assert.assertEquals(false,display.isNativeValid());
@@ -328,7 +330,6 @@ public class TestParenting01NEWT extends UITestCase {
         screen1 = glWindow1.getScreen();
         display1 = screen1.getDisplay();
 
-        Assert.assertEquals(true,display1.getDestroyWhenUnused());
         Assert.assertEquals(0,display1.getReferenceCount());
         Assert.assertEquals(false,display1.isNativeValid());
         Assert.assertNotNull(display1.getEDTUtil());
@@ -345,7 +346,6 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertSame(screen1, glWindow2.getScreen());
         Assert.assertSame(display1, glWindow2.getScreen().getDisplay());
 
-        Assert.assertEquals(true,display1.getDestroyWhenUnused());
         Assert.assertEquals(0,display1.getReferenceCount());
         Assert.assertEquals(false,display1.isNativeValid());
         Assert.assertNotNull(display1.getEDTUtil());
@@ -442,6 +442,10 @@ public class TestParenting01NEWT extends UITestCase {
             }
             state++;
         }
+        //
+        // both windows are now top level
+        //
+
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
         Assert.assertEquals(false, animator1.isPaused());
@@ -461,9 +465,13 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
         // destroy glWindow2
-        glWindow2.destroy(true);
+        glWindow2.destroy();
         Assert.assertEquals(true,  glWindow1.isValid());
-        Assert.assertEquals(false, glWindow2.isValid());
+        Assert.assertEquals(true,  glWindow1.isNativeValid());
+        Assert.assertEquals(true,  glWindow1.isVisible());
+        Assert.assertEquals(true,  glWindow2.isValid());
+        Assert.assertEquals(false, glWindow2.isNativeValid());
+        Assert.assertEquals(false, glWindow2.isVisible());
 
         Assert.assertEquals(1,display1.getReferenceCount());
         Assert.assertEquals(true,display1.isNativeValid());
@@ -475,9 +483,13 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
         // destroy glWindow1
-        glWindow1.destroy(true);
-        Assert.assertEquals(false, glWindow1.isValid());
-        Assert.assertEquals(false, glWindow2.isValid());
+        glWindow1.destroy();
+        Assert.assertEquals(true,  glWindow1.isValid());
+        Assert.assertEquals(false, glWindow1.isNativeValid());
+        Assert.assertEquals(false, glWindow1.isVisible());
+        Assert.assertEquals(true,  glWindow2.isValid());
+        Assert.assertEquals(false, glWindow2.isNativeValid());
+        Assert.assertEquals(false, glWindow2.isVisible());
 
         Assert.assertEquals(0,display1.getReferenceCount());
         Assert.assertEquals(false,display1.isNativeValid());
@@ -487,6 +499,13 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(false,screen1.isNativeValid());
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
+
+        glWindow1.invalidate();
+        Assert.assertEquals(false, glWindow1.isValid());
+        Assert.assertEquals(true,  glWindow2.isValid());
+
+        glWindow2.invalidate();
+        Assert.assertEquals(false, glWindow2.isValid());
     }
 
     @Test
@@ -520,7 +539,6 @@ public class TestParenting01NEWT extends UITestCase {
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
-        Assert.assertEquals(true,display1.getDestroyWhenUnused());
         Assert.assertEquals(0,display1.getReferenceCount());
         Assert.assertEquals(false,display1.isNativeValid());
         Assert.assertNotNull(display1.getEDTUtil());
@@ -537,7 +555,6 @@ public class TestParenting01NEWT extends UITestCase {
         setDemoFields(demo2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
 
-        Assert.assertEquals(true,display2.getDestroyWhenUnused());
         Assert.assertEquals(0,display2.getReferenceCount());
         Assert.assertEquals(false,display2.isNativeValid());
         Assert.assertNotNull(display2.getEDTUtil());
@@ -556,7 +573,6 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertTrue(0 < glWindow2.getTotalFrames());
         Assert.assertTrue(0 < glWindow1.getTotalFrames());
 
-        Assert.assertEquals(true,display1.getDestroyWhenUnused());
         Assert.assertEquals(1,display1.getReferenceCount());
         Assert.assertEquals(true,display1.isNativeValid());
         Assert.assertNotNull(display1.getEDTUtil());
@@ -606,6 +622,10 @@ public class TestParenting01NEWT extends UITestCase {
             }
             state++;
         }
+        //
+        // glwindow2 is child of glwindow1
+        //
+
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
         Assert.assertEquals(false, animator1.isPaused());
@@ -615,7 +635,6 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(false, animator2.isPaused());
         Assert.assertEquals(null, animator2.getThread());
 
-        Assert.assertEquals(true,display1.getDestroyWhenUnused());
         Assert.assertEquals(1,display1.getReferenceCount());
         Assert.assertEquals(true,display1.isNativeValid());
         Assert.assertNotNull(display1.getEDTUtil());
@@ -627,11 +646,14 @@ public class TestParenting01NEWT extends UITestCase {
 
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
-        glWindow1.destroy(true); // should destroy both windows, actually, since glWindow2 is a child
-        Assert.assertEquals(false, glWindow1.isValid());
-        Assert.assertEquals(false, glWindow2.isValid());
+        glWindow1.destroy(); // should destroy both windows, actually, since glWindow2 is a child
+        Assert.assertEquals(true,  glWindow1.isValid());
+        Assert.assertEquals(false, glWindow1.isNativeValid());
+        Assert.assertEquals(false, glWindow1.isVisible());
+        Assert.assertEquals(true,  glWindow2.isValid());
+        Assert.assertEquals(false, glWindow2.isNativeValid());
+        Assert.assertEquals(false, glWindow2.isVisible());
 
-        Assert.assertEquals(true,display1.getDestroyWhenUnused());
         Assert.assertEquals(0,display1.getReferenceCount());
         Assert.assertEquals(false,display1.isNativeValid());
         Assert.assertNotNull(display1.getEDTUtil());
@@ -639,7 +661,6 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(0,screen1.getReferenceCount());
         Assert.assertEquals(false,screen1.isNativeValid());
 
-        Assert.assertEquals(true,display2.getDestroyWhenUnused());
         Assert.assertEquals(0,display2.getReferenceCount());
         Assert.assertEquals(false,display2.isNativeValid());
         Assert.assertNotNull(display2.getEDTUtil());
@@ -649,7 +670,11 @@ public class TestParenting01NEWT extends UITestCase {
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
-        glWindow2.destroy(true);
+        glWindow2.destroy(); // dbl destroy check ..
+        Assert.assertEquals(false, glWindow1.isNativeValid());
+        Assert.assertEquals(false, glWindow2.isNativeValid());
+
+        glWindow1.invalidate(); // parent -> child
         Assert.assertEquals(false, glWindow1.isValid());
         Assert.assertEquals(false, glWindow2.isValid());
 
@@ -698,3 +723,4 @@ public class TestParenting01NEWT extends UITestCase {
     }
 
 }
+

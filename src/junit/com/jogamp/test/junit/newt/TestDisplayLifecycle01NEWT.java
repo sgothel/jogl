@@ -92,7 +92,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         return glWindow;
     }
 
-    private void testDisplayCreate01(Display display, Screen screen, boolean destroyWhenUnused) throws InterruptedException {
+    private void testDisplayCreate01(Display display, Screen screen) throws InterruptedException {
         // start-state == end-state
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
         Assert.assertEquals(0,display.getReferenceCount());
@@ -101,13 +101,6 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(false,display.getEDTUtil().isRunning());
         Assert.assertEquals(0,screen.getReferenceCount());
         Assert.assertEquals(false,screen.isNativeValid());
-
-        // Setup/Verify default DestroyWhenUnused behavior
-        if(destroyWhenUnused) {
-            screen.setDestroyWhenUnused(true);
-        }
-        Assert.assertEquals(destroyWhenUnused,display.getDestroyWhenUnused());
-        Assert.assertEquals(destroyWhenUnused,screen.getDestroyWhenUnused());
 
         // Create Window, pending lazy native creation
         GLWindow window = createWindow(screen, caps, width, height);
@@ -118,6 +111,9 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(true,display.getEDTUtil().isRunning());
         Assert.assertEquals(0,screen.getReferenceCount());
         Assert.assertEquals(false,screen.isNativeValid());
+
+        Assert.assertNotNull(window.getScreen());
+        Assert.assertEquals(true,window.isValid());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
@@ -163,16 +159,17 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         }
         System.err.println("duration: "+window.getDuration());
 
-        // recoverable destruction, ie Display/Screen untouched
-        window.destroy(false);
+        // destruction ..
+        window.destroy();
         Assert.assertEquals(screen,window.getScreen());
-        Assert.assertEquals(1,Display.getActiveDisplayNumber());
-        Assert.assertEquals(1,display.getReferenceCount());
-        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertEquals(0,Display.getActiveDisplayNumber());
+        Assert.assertEquals(0,display.getReferenceCount());
+        Assert.assertEquals(false,display.isNativeValid());
         Assert.assertNotNull(display.getEDTUtil());
-        Assert.assertEquals(true,display.getEDTUtil().isRunning());
-        Assert.assertEquals(1,screen.getReferenceCount());
-        Assert.assertEquals(true,screen.isNativeValid());
+        Assert.assertEquals(false,display.getEDTUtil().isRunning());
+        Assert.assertEquals(0,screen.getReferenceCount());
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(true, window.isValid());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
         window.resetCounter();
@@ -205,35 +202,9 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         }
         System.err.println("duration: "+window.getDuration());
 
-        // unrecoverable destruction, ie Display/Screen will be unreferenced
-        window.destroy(true);
-        Assert.assertEquals(null,window.getScreen());
+        // destruction ..
+        window.destroy();
         display.dumpDisplayList("Post destroy(true)");
-        if(!destroyWhenUnused) {
-            // display/screen untouched when unused, default
-            Assert.assertEquals(1,Display.getActiveDisplayNumber());
-            Assert.assertEquals(1,display.getReferenceCount());
-            Assert.assertEquals(true,display.isNativeValid());
-            Assert.assertNotNull(display.getEDTUtil());
-            Assert.assertEquals(true,display.getEDTUtil().isRunning());
-            Assert.assertEquals(0,screen.getReferenceCount());
-            Assert.assertEquals(true,screen.isNativeValid());
-
-            // manual destruction: Screen
-            screen.destroy();
-            Assert.assertEquals(1,Display.getActiveDisplayNumber());
-            Assert.assertEquals(0,display.getReferenceCount());
-            Assert.assertEquals(true,display.isNativeValid());
-            Assert.assertNotNull(display.getEDTUtil());
-            Assert.assertEquals(true,display.getEDTUtil().isRunning());
-            Assert.assertEquals(0,screen.getReferenceCount());
-            Assert.assertEquals(false,screen.isNativeValid());
-
-            // manual destruction: Display
-            display.destroy();
-        } else {
-            // display/screen destroyed when unused
-        }
 
         // end-state == start-state
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
@@ -244,32 +215,21 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(0,screen.getReferenceCount());
         Assert.assertEquals(false,screen.isNativeValid());
 
+        Assert.assertNotNull(window.getScreen());
+        Assert.assertEquals(true,window.isValid());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
     }
 
     @Test
-    public void testDisplayCreate01_DestroyWhenUnused_False() throws InterruptedException {
+    public void testDisplayCreate01_AutoDestroyLifecycle() throws InterruptedException {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
         // Create Display/Screen, pending lazy native creation
         Display display = NewtFactory.createDisplay(null);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        testDisplayCreate01(display, screen, false);
-        testDisplayCreate01(display, screen, false);
-
-        Assert.assertEquals(0,Display.getActiveDisplayNumber());
-    }
-
-    @Test
-    public void testDisplayCreate01_DestroyWhenUnused_True() throws InterruptedException {
-        Assert.assertEquals(0,Display.getActiveDisplayNumber());
-
-        // Create Display/Screen, pending lazy native creation
-        Display display = NewtFactory.createDisplay(null);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        testDisplayCreate01(display, screen, true);
-        testDisplayCreate01(display, screen, true);
+        testDisplayCreate01(display, screen);
+        testDisplayCreate01(display, screen);
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
     }
@@ -298,17 +258,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         }
         System.err.println("durationPerTest: "+durationPerTest);
         String tstname = TestDisplayLifecycle01NEWT.class.getName();
-        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
-            tstname,
-            "filtertrace=true",
-            "haltOnError=false",
-            "haltOnFailure=false",
-            "showoutput=true",
-            "outputtoformatters=true",
-            "logfailedtests=true",
-            "logtestlistenerevents=true",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+        org.junit.runner.JUnitCore.main(tstname);
     }
 
 }

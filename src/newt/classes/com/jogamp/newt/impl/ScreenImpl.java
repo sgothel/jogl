@@ -50,7 +50,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ScreenImpl extends Screen implements ScreenModeListener {
-    protected static final boolean DisableScreenModeImpl = Debug.debug("Screen.DisableScreenModeImpl");
+    protected static final boolean DEBUG_TEST_SCREENMODE_DISABLED = Debug.isPropertyDefined("newt.test.Screen.disableScreenMode", true);
+
     protected DisplayImpl display;
     protected int screen_idx;
     protected String fqname;
@@ -112,7 +113,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 ScreenImpl screen  = (ScreenImpl) screenClass.newInstance();
                 screen.display = (DisplayImpl) display;
                 screen.screen_idx = idx;
-                screen.fqname = display.getFQName()+idx;
+                screen.fqname = (display.getFQName()+idx).intern();
                 screen.hashCode = screen.fqname.hashCode();
                 screenList.add(screen);
                 if(DEBUG) {
@@ -157,7 +158,9 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
         synchronized(screenList) {
             screenList.remove(this);
-            screensActive--;
+            if(0 < screensActive) {
+                screensActive--;
+            }
         }
 
         if ( null != aScreen ) {
@@ -183,24 +186,21 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
     public synchronized final int removeReference() {
         if(DEBUG) {
-            System.err.println("Screen.removeReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount-1));
+            String msg = "Screen.removeReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount-1);
+            // Throwable t = new Throwable(msg);
+            // t.printStackTrace();
+            System.err.println(msg);
         }
-        refCount--; // could become < 0, in case of forced destruction without actual creation/addReference
-        if(0>=refCount && getDestroyWhenUnused()) {
+        refCount--; // could become < 0, in case of manual destruction without actual creation/addReference
+        if(0>=refCount) {
             destroy();
+            refCount=0; // fix < 0
         }
         return refCount;
     }
 
     public synchronized final int getReferenceCount() {
         return refCount;
-    }
-
-    public final boolean getDestroyWhenUnused() { 
-        return display.getDestroyWhenUnused(); 
-    }
-    public final void setDestroyWhenUnused(boolean v) { 
-        display.setDestroyWhenUnused(v); 
     }
 
     protected abstract void createNativeImpl();
@@ -260,7 +260,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         ScreenMode smU = null;
         ScreenModeStatus sms = ScreenModeStatus.getScreenModeStatus(this.getFQName());
         if(null != sms) {
-            ScreenMode sm0 = ( DisableScreenModeImpl ) ? null : getCurrentScreenModeImpl();
+            ScreenMode sm0 = ( DEBUG_TEST_SCREENMODE_DISABLED ) ? null : getCurrentScreenModeImpl();
             if(null == sm0) {
                 return null;
             }
@@ -415,7 +415,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 ArrayHashSet screenModes = collectNativeScreenModes(screenModesIdx2NativeIdx);
                 sms = new ScreenModeStatus(screenModes, screenModesIdx2NativeIdx);
                 if(null!=screenModes && screenModes.size()>0) {
-                    ScreenMode originalScreenMode = ( DisableScreenModeImpl ) ? null : getCurrentScreenModeImpl();
+                    ScreenMode originalScreenMode = ( DEBUG_TEST_SCREENMODE_DISABLED ) ? null : getCurrentScreenModeImpl();
                     if(null != originalScreenMode) {
                         ScreenMode originalScreenMode0 = (ScreenMode) screenModes.get(originalScreenMode); // unify via value hash
                         if(null == originalScreenMode0) {
@@ -450,7 +450,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                            + ScreenModeUtil.NUM_SURFACE_SIZE_PROPERTIES
                            - 1 ; // index 0 based
         do {
-            if(DisableScreenModeImpl) {
+            if(DEBUG_TEST_SCREENMODE_DISABLED) {
                 smProps = null;
             } else if(0 == num) {
                 smProps = getScreenModeFirstImpl();

@@ -88,8 +88,9 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
 
     static void destroyWindow(GLWindow glWindow) {
         if(null!=glWindow) {
-            glWindow.destroy(true);
+            glWindow.invalidate();
             Assert.assertEquals(false,glWindow.isNativeValid());
+            Assert.assertEquals(false,glWindow.isValid());
         }
     }
 
@@ -109,7 +110,6 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
 
         // Eager initialization of NEWT Display -> AbstractGraphicsDevice -> GLProfile (device)
         Display display2 = NewtFactory.createDisplay("charelle:0.0"); // remote display
-        display2.setDestroyWhenUnused(true);
         try {
             display2.createNative(); 
         } catch (NativeWindowException nwe) {

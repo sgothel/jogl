@@ -265,10 +265,10 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         anim1.start();
         runTestGL(newtCanvasAWT, win1);
 
-        win0.destroy(true);
+        win0.destroy();
         Assert.assertEquals(false, anim0.isAnimating());
 
-        newtCanvasAWT.destroy(true);
+        newtCanvasAWT.destroy();
         Assert.assertEquals(false, anim1.isAnimating());
 
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test01NewtCanvasAWT(): End");
@@ -303,7 +303,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         Assert.assertEquals(false, anim1.isAnimating());
 
         /**
-        win0.destroy(true);
+        win0.destroy();
         Assert.assertEquals(false, anim0.isAnimating());
          */
         

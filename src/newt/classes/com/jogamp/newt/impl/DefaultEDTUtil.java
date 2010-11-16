@@ -57,6 +57,7 @@ public class DefaultEDTUtil implements EDTUtil {
         this.name=new String(Thread.currentThread().getName()+"-"+name+"-EDT-");
         this.dispatchMessages=dispatchMessages;
         this.edt = new EventDispatchThread(threadGroup, name);
+        this.edt.setDaemon(true); // don't stop JVM from shutdown ..
     }
 
     public final void reset() {
@@ -72,6 +73,7 @@ public class DefaultEDTUtil implements EDTUtil {
                 System.err.println(Thread.currentThread()+": EDT reset - edt: "+edt);
             }
             this.edt = new EventDispatchThread(threadGroup, name);
+            this.edt.setDaemon(true); // don't stop JVM from shutdown ..
         }
     }
 

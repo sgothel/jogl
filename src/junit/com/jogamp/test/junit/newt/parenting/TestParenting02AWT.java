@@ -213,7 +213,7 @@ public class TestParenting02AWT extends UITestCase {
         }
         Thread.sleep(waitReparent);
 
-        glWindow.destroy(true);
+        glWindow.invalidate();
         if(useLayout) {
             frame.remove(newtCanvasAWT);
         }

@@ -206,8 +206,8 @@ public class TestParenting03bAWT extends UITestCase {
         Assert.assertEquals(null, animator2.getThread());
 
         frame1.dispose();
-        glWindow1.destroy(true);
-        glWindow2.destroy(true);
+        glWindow1.invalidate();
+        glWindow2.invalidate();
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {

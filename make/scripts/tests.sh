@@ -36,6 +36,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
+    D_ARGS="-Dnewt.debug=all"
     X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=false"
     java $awtarg $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 }
@@ -59,6 +60,7 @@ function testawt() {
 #testawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testawt com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT
 #testawt com.jogamp.test.junit.newt.TestDisplayLifecycle01NEWT
+#testawt com.jogamp.test.junit.newt.TestDisplayLifecycle02NEWT
 testawt com.jogamp.test.junit.newt.parenting.TestParenting01NEWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting02NEWT
 #testawt com.jogamp.test.junit.newt.TestScreenMode00NEWT

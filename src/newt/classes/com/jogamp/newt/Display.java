@@ -54,15 +54,31 @@ public abstract class Display {
     }
 
     /**
-     * Manual trigger the native creation.<br>
+     * Manual trigger the native creation, if it is not done yet.<br>
      * This is useful to be able to request the {@link javax.media.nativewindow.AbstractGraphicsDevice}, via
-     * {@link #getGraphicsDevice()}. Otherwise the abstract device won't be available before the dependent components (Screen and Window)
-     * are realized.
+     * {@link #getGraphicsDevice()}.<br>
+     * Otherwise the abstract device won't be available before the dependent components (Screen and Window) are realized.
+     * <p>
+     * This method is usually invoke by {@link #addReference()}
+     * </p>
      * @throws NativeWindowException if the native creation failed.
      */
     public abstract void createNative() throws NativeWindowException;
 
+    /**
+     * Manually trigger the destruction, incl. native destruction.<br>
+     * <p>
+     * This method is usually invoke by {@link #removeReference()}
+     * </p>
+     */
     public abstract void destroy();
+
+    /**
+     * Validate EDT running state.<br>
+     * Stop the running EDT in case this display is destroyed already.<br>
+     * @return true if EDT has been stopped (destroyed but running), otherwise false.
+     */
+    public abstract boolean validateEDT();
 
     /**
      * @return true if the native display handle is valid and ready to operate,
@@ -71,26 +87,6 @@ public abstract class Display {
      * @see #destroy()
      */
     public abstract boolean isNativeValid();
-
-    /**
-     * @return the value set by {@link #setDestroyWhenUnused(boolean)}
-     * or the default <code>false</code>.
-     *
-     * @see #addReference()
-     * @see #removeReference()
-     */
-    public abstract boolean getDestroyWhenUnused();
-
-    /**
-     * Handles the lifecycle of the native Display instance.<br>
-     * If set to <code>true</code>, the last {@link #removeReference()} call
-     * will destroy this instance, otherwise it will stay alive.<br>
-     * Default is <code>false</code>.
-     *
-     * @see #addReference()
-     * @see #removeReference()
-     */
-    public abstract void setDestroyWhenUnused(boolean v);
 
     /**
      * @return number of references by Screen

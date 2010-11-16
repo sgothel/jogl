@@ -162,7 +162,6 @@ public class NewtFactory {
                 Display display = NewtFactory.createDisplay(type, null, true); // local display
                 screen  = NewtFactory.createScreen(display, 0); // screen 0
             }
-            screen.setDestroyWhenUnused(true);
         }
         final Window win = createWindowImpl(nParentWindow, screen, caps);
 
@@ -189,7 +188,6 @@ public class NewtFactory {
     protected static Window createWindowImpl(String type, Capabilities caps) {
         Display display = NewtFactory.createDisplay(type, null, true); // local display
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        screen.setDestroyWhenUnused(true);
         return WindowImpl.create(null, 0, screen, caps);
     }
 

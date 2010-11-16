@@ -87,8 +87,9 @@ public class TestGLWindows00NEWT extends UITestCase {
 
     static void destroyWindow(GLWindow glWindow) {
         if(null!=glWindow) {
-            glWindow.destroy(true);
+            glWindow.invalidate();
             Assert.assertEquals(false,glWindow.isNativeValid());
+            Assert.assertEquals(false,glWindow.isValid());
         }
     }
 

@@ -71,6 +71,59 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
 {
     public static final boolean DEBUG_TEST_REPARENT_INCOMPATIBLE = Debug.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
     
+    private RecursiveLock windowLock = new RecursiveLock();
+    private long   windowHandle;
+    private ScreenImpl screen;
+    private boolean screenReferenceAdded = false;
+    private NativeWindow parentWindow;
+    private long parentWindowHandle;
+    protected AbstractGraphicsConfiguration config;
+    protected Capabilities caps;
+    protected boolean fullscreen, visible, hasFocus;
+    protected int width, height, x, y;
+    protected int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen dimensions ..
+    protected String title = "Newt Window";
+    protected boolean undecorated = false;
+    private LifecycleHook lifecycleHook = null;
+
+    private DestroyAction destroyAction = new DestroyAction();
+    private boolean handleDestroyNotify = true;
+
+    private ReparentActionRecreate reparentActionRecreate = new ReparentActionRecreate();
+
+    private RequestFocusAction requestFocusAction = new RequestFocusAction();
+    private FocusRunnable focusAction = null;
+
+    private Object surfaceUpdatedListenersLock = new Object();
+    private ArrayList surfaceUpdatedListeners;
+
+    private Object childWindowsLock = new Object();
+    private ArrayList childWindows;
+
+    private ArrayList mouseListeners;
+    private int  mouseButtonPressed;  // current pressed mouse button number
+    private long lastMousePressed;    // last time when a mouse button was pressed
+    private int  lastMouseClickCount; // last mouse button click count
+
+    private ArrayList keyListeners;
+
+    private ArrayList windowListeners;
+    private boolean repaintQueued = false;
+
+    private void initializeStates() {
+        invalidate(true);
+
+        childWindows = new ArrayList();
+        surfaceUpdatedListeners = new ArrayList();
+        windowListeners =  new ArrayList();
+        mouseListeners = new ArrayList();
+
+        mouseButtonPressed = 0; // current pressed mouse button number
+        lastMousePressed = 0; // last time when a mouse button was pressed
+        lastMouseClickCount = 0; // last mouse button click count
+        keyListeners = new ArrayList();
+    }
+
     // Workaround for initialization order problems on Mac OS X
     // between native Newt and (apparently) Fmod -- if Fmod is
     // initialized first then the connection to the window server
@@ -89,8 +142,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
     // Construction Methods
     //
 
-    private static Class getWindowClass(String type) 
-        throws ClassNotFoundException 
+    private static Class getWindowClass(String type)
+        throws ClassNotFoundException
     {
         Class windowClass = NewtFactory.getCustomClass(type, "Window");
         if(null==windowClass) {
@@ -120,7 +173,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 windowClass = OffscreenWindow.class;
             }
             WindowImpl window = (WindowImpl) windowClass.newInstance();
-            window.invalidate(true);
+            window.initializeStates();
             window.parentWindow = parentWindow;
             window.parentWindowHandle = parentWindowHandle;
             window.screen = (ScreenImpl) screen;
@@ -145,7 +198,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 throw new NativeWindowException("WindowClass "+windowClass+" constructor mismatch at argument #"+argsChecked+"; Constructor: "+getTypeStrList(cstrArgumentTypes)+", arguments: "+getArgsStrList(cstrArguments));
             }
             WindowImpl window = (WindowImpl) ReflectionUtil.createInstance( windowClass, cstrArgumentTypes, cstrArguments ) ;
-            window.invalidate(true);
+            window.initializeStates();
             window.screen = (ScreenImpl) screen;
             window.caps = (Capabilities)caps.clone();
             return window;
@@ -174,7 +227,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
          * Surface not locked yet.<br>
          * Called not necessarily from EDT.
          */
-        void destroyActionPreLock(boolean unrecoverable);
+        void destroyActionPreLock();
 
         /**
          * Invoked before Window destroy action,
@@ -182,7 +235,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
          * Surface locked.<br>
          * Called from EDT while window is locked.
          */
-        void destroyActionInLock(boolean unrecoverable);
+        void destroyActionInLock();
+
+        /**
+         * Invoked after destruction from Window's invalidate method.<br>
+         * Called while window is locked.
+         * @param unrecoverable
+         */
+        void invalidate(boolean unrecoverable);
 
         /**
          * Invoked for expensive modifications, ie while reparenting and ScreenMode change.<br>
@@ -201,41 +261,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         void resumeRenderingAction();
     }
 
-    private LifecycleHook lifecycleHook = null;
-    private RecursiveLock windowLock = new RecursiveLock();
-    private long   windowHandle;
-    private ScreenImpl screen;
-    private boolean screenReferenced = false;
-    private NativeWindow parentWindow;
-    private long parentWindowHandle;
-
-    protected AbstractGraphicsConfiguration config;
-    protected Capabilities caps;
-    protected boolean fullscreen, visible, hasFocus;
-    protected int width, height, x, y;
-    protected int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen dimensions ..
-
-    protected String title = "Newt Window";
-    protected boolean undecorated = false;
-    private boolean handleDestroyNotify = true;
-
-    private final void destroyScreen() {
-        if(null!=screen) {
-            if(screenReferenced) {
-                screen.removeReference();
-                screenReferenced = false;
-            }
-            screen = null;
-        }
-    }
-    private final void setScreen(ScreenImpl newScreen) {
-        if(screenReferenced) {
-            screenReferenced = false;
-            screen.removeReference();
-        }
-        screen = newScreen;
-    }
-
     private boolean createNative() {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.createNative() START ("+getThreadName()+", "+this+")");
@@ -246,10 +271,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         }
         try {
             if(validateParentWindowHandle()) {
-                if(!screenReferenced) {
-                    screenReferenced = true;
-                    screen.addReference();
+                if(screenReferenceAdded) {
+                    throw new InternalError("XXX");
                 }
+                screen.addReference();
+                screenReferenceAdded = true;
                 createNativeImpl();
                 setVisibleImpl(true, x, y, width, height);
                 screen.addScreenModeListener(this);
@@ -263,6 +289,36 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
             System.err.println("Window.createNative() END ("+getThreadName()+", "+this+")");
         }
         return 0 != windowHandle ;
+    }
+
+    private void removeScreenReference() {
+        if(screenReferenceAdded) {
+            // be nice, probably already called recursive via
+            //   closeAndInvalidate() -> closeNativeIml() -> .. -> windowDestroyed() -> closeAndInvalidate() !
+            // or via reparentWindow .. etc
+            screenReferenceAdded = false;
+            screen.removeReference();
+        }
+    }
+
+    private void closeAndInvalidate() {
+        windowLock.lock();
+        try {
+            if( null != screen ) {
+                if( 0 != windowHandle ) {
+                    screen.removeScreenModeListener(WindowImpl.this);
+                    closeNativeImpl();
+                    removeScreenReference();
+                }
+                Display dpy = screen.getDisplay();
+                if(null != dpy) {
+                    dpy.validateEDT();
+                }
+            }
+            invalidate(false);
+        } finally {
+            windowLock.unlock();
+        }
     }
 
     private boolean validateParentWindowHandle() {
@@ -446,9 +502,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
     // NativeWindow
     //
 
-    public final void destroy() {
-        destroy(false);
-    }
+    // public final void destroy() - see below
 
     public final NativeWindow getParent() {
         return parentWindow;
@@ -649,11 +703,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
     }
 
     class DestroyAction implements Runnable {
-        boolean unrecoverable;
-
-        public DestroyAction(boolean unrecoverable) {
-            this.unrecoverable = unrecoverable;
-        }
         public void run() {
             windowLock.lock();
             try {
@@ -663,47 +712,29 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
 
                 // Childs first ..
                 synchronized(childWindowsLock) {
-                  // avoid ConcurrentModificationException: parent -> child -> parent.removeChild(this)
-                  ArrayList clonedChildWindows = (ArrayList) childWindows.clone(); 
-                  while( clonedChildWindows.size() > 0 ) {
-                    NativeWindow nw = (NativeWindow) clonedChildWindows.remove(0);
-                    if(nw instanceof WindowImpl) {
-                        ((WindowImpl)nw).sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
-                        if(unrecoverable) {
-                            ((WindowImpl)nw).destroy(unrecoverable);
-                        }
-                    } else {
-                        nw.destroy();
+                  if(childWindows.size()>0) {
+                    // avoid ConcurrentModificationException: parent -> child -> parent.removeChild(this)
+                    ArrayList clonedChildWindows = (ArrayList) childWindows.clone();
+                    while( clonedChildWindows.size() > 0 ) {
+                      NativeWindow nw = (NativeWindow) clonedChildWindows.remove(0);
+                      if(nw instanceof WindowImpl) {
+                          ((WindowImpl)nw).sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
+                          ((WindowImpl)nw).destroy();
+                      } else {
+                          nw.destroy();
+                      }
                     }
                   }
                 }
 
                 if(null!=lifecycleHook) {
-                    lifecycleHook.destroyActionInLock(unrecoverable);
+                    lifecycleHook.destroyActionInLock();
                 }
 
-                // Now us ..
-                if(unrecoverable) {
-                    if(null!=parentWindow && parentWindow instanceof Window) {
-                        ((Window)parentWindow).removeChild(WindowImpl.this);
-                    }
-                    synchronized(childWindowsLock) {
-                        childWindows = new ArrayList();
-                    }
-                    synchronized(surfaceUpdatedListenersLock) {
-                        surfaceUpdatedListeners = new ArrayList();
-                    }
-                    windowListeners = new ArrayList();
-                    mouseListeners = new ArrayList();
-                    keyListeners = new ArrayList();
-                }
-                if( null != screen && 0 != windowHandle ) {
-                    screen.removeScreenModeListener(WindowImpl.this);
-                    closeNativeImpl();
-                }
-                invalidate(unrecoverable);
+                closeAndInvalidate();
+
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.destroy(unrecoverable: "+unrecoverable+") END "+getThreadName()/*+", "+WindowImpl.this*/);
+                    System.err.println("Window.destroy() END "+getThreadName()/*+", "+WindowImpl.this*/);
                 }
             } finally {
                 windowLock.unlock();
@@ -711,36 +742,27 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         }
     }
 
-    public void destroy(boolean unrecoverable) {
+    public void destroy() {
         if( isValid() ) {
             if(DEBUG_IMPLEMENTATION) {
-                String msg = new String("Window.destroy(unrecoverable: "+unrecoverable+") START "+getThreadName()/*+", "+this*/);
+                String msg = new String("Window.destroy() START "+getThreadName()/*+", "+this*/);
                 System.err.println(msg);
                 //Exception ee = new Exception(msg);
                 //ee.printStackTrace();
-            }            
-            if(null!=lifecycleHook) {
-                lifecycleHook.destroyActionPreLock(unrecoverable);
             }
-            DestroyAction destroyAction = new DestroyAction(unrecoverable);
+            if(null!=lifecycleHook) {
+                lifecycleHook.pauseRenderingAction();
+            }
+            if(null!=lifecycleHook) {
+                lifecycleHook.destroyActionPreLock();
+            }
             runOnEDTIfAvail(true, destroyAction);
         }
     }
 
-    /**
-     * <p>
-     * render all native window information invalid,
-     * as if the native window was destroyed.<br></p>
-     * <p>
-     * all other resources and states are kept intact,
-     * ie listeners, parent handles and size, position etc.<br></p>
-     *
-     * @see #destroy()
-     * @see #destroy(boolean)
-     * @see #invalidate(boolean)
-     */
     public final void invalidate() {
-        invalidate(false);
+        destroy();
+        invalidate(true);
     }
 
     /**
@@ -757,16 +779,49 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
                 String msg = new String("!!! Window Invalidate(unrecoverable: "+unrecoverable+") "+getThreadName());
                 System.err.println(msg);
-                // Exception e = new Exception(msg);
-                // e.printStackTrace();
+                // Throwable t = new Throwable(msg);
+                // t.printStackTrace();
             }
+
+            // Childs first ..
+            synchronized(childWindowsLock) {
+              // avoid ConcurrentModificationException: parent -> child -> parent.removeChild(this)
+              if(null!=childWindows && childWindows.size()>0) {
+                ArrayList clonedChildWindows = (ArrayList) childWindows.clone();
+                while( clonedChildWindows.size() > 0 ) {
+                  NativeWindow nw = (NativeWindow) clonedChildWindows.remove(0);
+                  if(nw instanceof WindowImpl) {
+                      ((WindowImpl)nw).invalidate(unrecoverable);
+                  }
+                }
+              }
+            }
+
+            if(null!=lifecycleHook) {
+                lifecycleHook.invalidate(unrecoverable);
+            }
+
             windowHandle = 0;
             visible = false;
             fullscreen = false;
             hasFocus = false;
 
             if(unrecoverable) {
-                destroyScreen();
+                if(null!=parentWindow && parentWindow instanceof Window) {
+                    ((Window)parentWindow).removeChild(WindowImpl.this);
+                }
+                screen = null;
+
+                synchronized(childWindowsLock) {
+                    childWindows = null;
+                }
+                synchronized(surfaceUpdatedListenersLock) {
+                    surfaceUpdatedListeners = null;
+                }
+                windowListeners = null;
+                mouseListeners = null;
+                keyListeners = null;
+
                 parentWindowHandle = 0;
                 parentWindow = null;
                 caps = null;
@@ -794,8 +849,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
             this.reparentAction = -1; // ensure it's set
         }
 
-        public int getStrategy() {
+        public final int getStrategy() {
             return reparentAction;
+        }
+
+        private final void setScreen(ScreenImpl newScreen) {
+            WindowImpl.this.removeScreenReference();
+            screen = newScreen;
         }
 
         public void run() {
@@ -846,9 +906,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                         if(null==newParentWindowNEWT) {
                             throw new NativeWindowException("Reparenting with non NEWT Window type only available after it's realized: "+newParentWindow);
                         }
-                        // Destroy this window (handle screen + native) and use parent's Screen.
+                        // Destroy this window and use parent's Screen.
                         // It may be created properly when the parent is made visible.
-                        destroy(false);
+                        destroy();
                         setScreen( (ScreenImpl) newParentWindowNEWT.getScreen() );
                         reparentAction = ACTION_NATIVE_CREATION_PENDING;
                     } else if(newParentWindow != getParent()) {
@@ -862,7 +922,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                                 Screen newScreen = NewtFactory.createCompatibleScreen(newParentWindow, getScreen());
                                 if( getScreen() != newScreen ) {
                                     // auto destroy on-the-fly created Screen/Display
-                                    newScreen.setDestroyWhenUnused(true);
                                     setScreen( (ScreenImpl) newScreen );
                                 }
                             }
@@ -873,15 +932,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                             }
                         } else if ( DEBUG_TEST_REPARENT_INCOMPATIBLE || forceDestroyCreate ||
                                     !NewtFactory.isScreenCompatible(newParentWindow, getScreen()) ) {
-                            // Destroy this window (handle screen + native) and
-                            // may create a new compatible Screen/Display and
-                            // mark it for creation.
-                            destroy(false);
+                            // Destroy this window, may create a new compatible Screen/Display,
+                            // and mark it for creation.
+                            destroy();
                             if(null!=newParentWindowNEWT) {
                                 setScreen( (ScreenImpl) newParentWindowNEWT.getScreen() );
                             } else {
                                 setScreen( (ScreenImpl) NewtFactory.createCompatibleScreen(newParentWindow, getScreen()) );
-                                screen.setDestroyWhenUnused(true);
                             }
                             reparentAction = ACTION_NATIVE_CREATION;
                         } else {
@@ -906,9 +963,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                         // Already Top Window
                         reparentAction = ACTION_UNCHANGED;
                     } else if( !isNativeValid() || DEBUG_TEST_REPARENT_INCOMPATIBLE || forceDestroyCreate ) {
-                        // Destroy this window (handle screen + native),
-                        // keep Screen/Display and mark it for creation.
-                        destroy(false);
+                        // Destroy this window and mark it for [pending] creation.
+                        destroy();
                         if( 0<width*height ) {
                             reparentAction = ACTION_NATIVE_CREATION;
                         } else {
@@ -1015,7 +1071,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                         if(DEBUG_IMPLEMENTATION) {
                             System.err.println("Window.reparent: native reparenting failed ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+" -> "+toHexString(newParentWindowHandle)+" - Trying recreation");
                         }
-                        destroy(false);
+                        destroy();
                         reparentAction = ACTION_NATIVE_CREATION ;
                     }
                 }
@@ -1065,7 +1121,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
             }
         }
     }
-    private ReparentActionRecreate reparentActionRecreate = new ReparentActionRecreate();
 
     public final int reparentWindow(NativeWindow newParent) {
         return reparentWindow(newParent, false);
@@ -1075,7 +1130,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         int reparentActionStrategy = ReparentAction.ACTION_INVALID;
         if(isValid()) {
             if(null!=lifecycleHook) {
-                // pause animation
                 lifecycleHook.pauseRenderingAction();
             }
             try {
@@ -1084,7 +1138,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 reparentActionStrategy = reparentAction.getStrategy();
             } finally {
                 if(null!=lifecycleHook) {
-                    // resume animation
                     lifecycleHook.resumeRenderingAction();
                 }
             }
@@ -1316,7 +1369,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
             WindowImpl.this.requestFocusImpl(false);
         }
     }
-    RequestFocusAction requestFocusAction = new RequestFocusAction();
 
     protected void enqueueRequestFocus(boolean wait) {
         runOnEDTIfAvail(wait, requestFocusAction);
@@ -1345,7 +1397,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         }
         return res;
     }
-    protected FocusRunnable focusAction = null;
 
     class SetPositionActionImpl implements Runnable {
         int x, y;
@@ -1475,7 +1526,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         }
 
         if(null!=lifecycleHook) {
-            // pause animation
             lifecycleHook.pauseRenderingAction();
         }
     }
@@ -1494,7 +1544,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         }
 
         if(null!=lifecycleHook) {
-            // resume animation
             lifecycleHook.resumeRenderingAction();
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
@@ -1503,9 +1552,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
     //----------------------------------------------------------------------
     // Child Window Management
     // 
-
-    private ArrayList childWindows = new ArrayList();
-    private Object childWindowsLock = new Object();
 
     public final void removeChild(NativeWindow win) {
         synchronized(childWindowsLock) {
@@ -1591,14 +1637,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         }
         return true;
     }
-    protected boolean repaintQueued = false;
 
     //
     // SurfaceUpdatedListener Support
     //
-
-    private ArrayList surfaceUpdatedListeners = new ArrayList();
-    private Object surfaceUpdatedListenersLock = new Object();
 
     public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
         addSurfaceUpdatedListener(-1, l);
@@ -1660,11 +1702,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
     //
     // MouseListener/Event Support
     //
-    private ArrayList mouseListeners = new ArrayList();
-    private int  mouseButtonPressed = 0; // current pressed mouse button number
-    private long lastMousePressed = 0; // last time when a mouse button was pressed
-    private int  lastMouseClickCount = 0; // last mouse button click count
-
     public void sendMouseEvent(int eventType, int modifiers,
                                int x, int y, int button, int rotation) {
         doMouseEvent(false, false, eventType, modifiers, x, y, button, rotation);
@@ -1857,8 +1894,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         return (KeyListener[]) keyListeners.toArray();
     }
 
-    private ArrayList keyListeners = new ArrayList();
-
     protected void consumeKeyEvent(KeyEvent e) {
         if(DEBUG_KEY_EVENT) {
             System.err.println("consumeKeyEvent: "+e);
@@ -1891,8 +1926,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
     public void enqueueWindowEvent(boolean wait, int eventType) {
         enqueueEvent( wait, new WindowEvent(eventType, this, System.currentTimeMillis()) );
     }
-
-    private ArrayList windowListeners = new ArrayList();
 
     public void addWindowListener(WindowListener l) {
         addWindowListener(-1, l);
@@ -2055,7 +2088,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.windowDestroyed "+getThreadName());
         }
-        invalidate();
+        closeAndInvalidate();
     }
 
     public void windowRepaint(int x, int y, int width, int height) {

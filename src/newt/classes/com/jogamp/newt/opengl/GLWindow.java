@@ -246,8 +246,8 @@ public class GLWindow implements GLAutoDrawable, Window {
     // Window.LifecycleHook Implementation
     //
 
-    public final void destroy(boolean unrecoverable) {
-        window.destroy(unrecoverable);
+    public final void destroy() {
+        window.destroy();
     }
 
     public final void setVisible(boolean visible) {
@@ -282,23 +282,14 @@ public class GLWindow implements GLAutoDrawable, Window {
         DisposeAction disposeAction = new DisposeAction();
 
         /** Window.LifecycleHook */
-        public synchronized void destroyActionPreLock(boolean unrecoverable) {
-            GLAnimatorControl animator = GLWindow.this.getAnimator();
-            if(null!=animator) {
-                if(unrecoverable) {
-                    if(animator.isStarted()) {
-                        animator.stop();
-                    }
-                } else if(animator.isAnimating()) {
-                    animator.pause();
-                }
-            }
+        public synchronized void destroyActionPreLock() {
+            // nop
         }
 
         /** Window.LifecycleHook */
-        public synchronized void destroyActionInLock(boolean unrecoverable) {
+        public synchronized void destroyActionInLock() {
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
-                String msg = new String("GLWindow.destroy("+unrecoverable+") "+Thread.currentThread()+", start");
+                String msg = new String("GLWindow.destroy() "+Thread.currentThread()+", start");
                 System.err.println(msg);
                 //Exception e1 = new Exception(msg);
                 //e1.printStackTrace();
@@ -320,12 +311,25 @@ public class GLWindow implements GLAutoDrawable, Window {
             context = null;
             drawable = null;
 
-            if(unrecoverable) {
-                helper=null;
-            }
-
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
-                System.err.println("GLWindow.destroy("+unrecoverable+") "+Thread.currentThread()+", fin");
+                System.err.println("GLWindow.destroy() "+Thread.currentThread()+", fin");
+            }
+        }
+
+        /** Window.LifecycleHook */
+        public synchronized void invalidate(boolean unrecoverable) {
+            if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
+                String msg = new String("GLWindow.invalidate("+unrecoverable+") "+Thread.currentThread()+", start");
+                System.err.println(msg);
+                //Exception e1 = new Exception(msg);
+                //e1.printStackTrace();
+            }
+            if(unrecoverable) {
+                GLAnimatorControl ctrl = GLWindow.this.getAnimator();
+                if ( null!=ctrl && ctrl.isStarted() ) {
+                    ctrl.stop();
+                }
+                helper=null;
             }
         }
 
@@ -635,10 +639,6 @@ public class GLWindow implements GLAutoDrawable, Window {
         return null!=drawable ? drawable.getHandle() : 0;
     }
 
-    public final void destroy() {
-        window.destroy();
-    }
-
     public final int getX() {
         return window.getX();
     }
@@ -878,7 +878,7 @@ public class GLWindow implements GLAutoDrawable, Window {
         });
 
         glWindow.setVisible(true);
-        glWindow.destroy(true);
+        glWindow.invalidate();
     }
 
 }

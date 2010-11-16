@@ -87,30 +87,24 @@ public interface Window extends NativeWindow, ScreenModeListener {
     Capabilities getChosenCapabilities();
 
     /**
-     *
+     * Destroy the Window and it's children, incl. native destruction.<br>
+     * The Window can be recreate via {@link #setVisible(boolean) setVisible(true)}.
      * <p>
-     * destroys the window and children and releases
-     * windowing related resources.<br></p>
-     * <p>
-     * all other resources and states are kept intact,
-     * ie listeners, parent handles, size, position and Screen reference.<br></p>
-     *
-     * @see #destroy(boolean)
+     * This method invokes {@link Screen#removeReference()} after it's own destruction,<br>
+     * which will issue {@link Screen#destroy()} if the reference count becomes 0.<br>
+     * This destruction sequence shall end up in {@link Display#destroy()}, if all reference counts become 0.
+     * </p>
      * @see #invalidate()
+     * @see #setVisible(boolean)
      */
     void destroy();
 
     /**
-     *
-     * Destroys the Window and it's children.
-     * @param unrecoverable If true, all resources, ie listeners, parent handles,
-     * size, position and reference to it's Screen will be destroyed as well.
-     * Otherwise you can recreate the window, via <code>setVisible(true)</code>.
-     * @see #destroy()
-     * @see #invalidate(boolean)
-     * @see #setVisible(boolean)
+     * Destroys the Window via {@link #destroy()} and clears all Object references,
+     * eg. all states, size, position, parent handles, list of child Windows and reference to it's Screen.<br>
+     * This Window cannot be recreated after calling this method anymore.<br>
      */
-    void destroy(boolean unrecoverable);
+    void invalidate();
 
     /**
      * <p>

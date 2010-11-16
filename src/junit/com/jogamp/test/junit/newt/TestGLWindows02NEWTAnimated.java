@@ -114,9 +114,9 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         return glWindow;
     }
 
-    static void destroyWindow(GLWindow glWindow, boolean deep) {
+    static void destroyWindow(GLWindow glWindow) {
         if(null!=glWindow) {
-            glWindow.destroy(deep);
+            glWindow.destroy();
         }
     }
 
@@ -130,7 +130,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         while(animator.isAnimating() && animator.getDuration()<durationPerTest) {
             Thread.sleep(100);
         }
-        destroyWindow(window, true);
+        destroyWindow(window);
         Assert.assertEquals(false, animator.isAnimating());
     }
 
@@ -144,8 +144,8 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         while(animator.isAnimating() && animator.getDuration()<durationPerTest) {
             Thread.sleep(100);
         }
-        destroyWindow(window, false);
-        destroyWindow(window, true);
+        destroyWindow(window);
+        destroyWindow(window);
         Assert.assertEquals(false, animator.isAnimating());
     }
 
@@ -175,10 +175,10 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
             Thread.sleep(100);
         }
 
-        destroyWindow(window1, true);
+        destroyWindow(window1);
         Assert.assertEquals(false, animator1.isAnimating());
 
-        destroyWindow(window2, true);
+        destroyWindow(window2);
         Assert.assertEquals(false, animator2.isAnimating());
     }
     @Test
@@ -212,10 +212,10 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
             Thread.sleep(100);
         }
 
-        destroyWindow(window1, true);
+        destroyWindow(window1);
         Assert.assertEquals(false, animator1.isAnimating());
 
-        destroyWindow(window2, true);
+        destroyWindow(window2);
         Assert.assertEquals(false, animator2.isAnimating());
     }
 
@@ -242,17 +242,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
             }
         }
         String tstname = TestGLWindows02NEWTAnimated.class.getName();
-        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
-            tstname,
-            "filtertrace=true",
-            "haltOnError=false",
-            "haltOnFailure=false",
-            "showoutput=true",
-            "outputtoformatters=true",
-            "logfailedtests=true",
-            "logtestlistenerevents=true",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+        org.junit.runner.JUnitCore.main(tstname);
     }
 
 }

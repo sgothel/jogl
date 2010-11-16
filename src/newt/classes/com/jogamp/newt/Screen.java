@@ -59,38 +59,36 @@ public abstract class Screen {
     }
 
     /**
-     * Manual trigger the native creation.<br>
+     * Manual trigger the native creation, if it is not done yet..<br>
      * This is useful to be able to request the {@link javax.media.nativewindow.AbstractGraphicsScreen}, via
-     * {@link #getGraphicsScreen()}. Otherwise the abstract device won't be available before the dependent component (Window)
-     * is realized.
+     * {@link #getGraphicsScreen()}.<br>
+     * Otherwise the abstract device won't be available before the dependent component (Window) is realized.
+     * <p>
+     * This method is usually invoke by {@link #addReference()}
+     * </p>
+     * <p>
+     * This method invokes {@link Display#addReference()} after creating the native peer,<br>
+     * which will issue {@link Display#createNative()} if the reference count was 0.
+     * </p>
      * @throws NativeWindowException if the native creation failed.
      */
     public abstract void createNative() throws NativeWindowException;
 
+    /**
+     * Manually trigger the destruction, incl. native destruction.<br>
+     * <p>
+     * This method is usually invoke by {@link #removeReference()}
+     * </p>
+     * <p>
+     * This method invokes {@link Display#removeReference()} after it's own destruction,<br>
+     * which will issue {@link Display#destroy()} if the reference count becomes 0.
+     * </p>
+     */
     public abstract void destroy();
 
     public abstract boolean isNativeValid();
 
     /**
-     * @return {@link Display#getDestroyWhenUnused()}
-     *
-     * @see #addReference()
-     * @see #removeReference()
-     * @see Display#setDestroyWhenUnused(boolean)
-     */
-    public abstract boolean getDestroyWhenUnused();
-
-    /**
-     * calls {@link Display#setDestroyWhenUnused(boolean)}.
-     *
-     * @see #addReference()
-     * @see #removeReference()
-     * @see Display#setDestroyWhenUnused(boolean)
-     */
-    public abstract void setDestroyWhenUnused(boolean v);
-
-    /**
-     *
      * @return number of references by Window
      */
     public abstract int getReferenceCount();

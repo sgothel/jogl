@@ -261,7 +261,7 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
                     _jFrame1.dispose();
                 } });
 
-        glWindow1.destroy(true);
+        glWindow1.invalidate();
     }
 
     @Test

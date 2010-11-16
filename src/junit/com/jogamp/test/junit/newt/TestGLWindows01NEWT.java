@@ -71,15 +71,11 @@ public class TestGLWindows01NEWT extends UITestCase {
         // 
         GLWindow glWindow;
         if(null!=screen) {
-            boolean destroyWhenUnused = screen.getDestroyWhenUnused();
-            Assert.assertEquals(destroyWhenUnused, screen.getDisplay().getDestroyWhenUnused());
             glWindow = GLWindow.create(screen, caps);
             Assert.assertNotNull(glWindow);
-            Assert.assertEquals(destroyWhenUnused, glWindow.getScreen().getDestroyWhenUnused());
         } else {
             glWindow = GLWindow.create(caps);
             Assert.assertNotNull(glWindow);
-            Assert.assertTrue(glWindow.getScreen().getDestroyWhenUnused());
         }
 
         glWindow.setUndecorated(onscreen && undecorated);
@@ -121,18 +117,11 @@ public class TestGLWindows01NEWT extends UITestCase {
         return glWindow;
     }
 
-    static void destroyWindow(GLWindow glWindow, Screen screen, Display display, boolean unrecoverable) {
+    static void destroyWindow(GLWindow glWindow) {
         if(null!=glWindow) {
-            glWindow.destroy(unrecoverable);
+            glWindow.invalidate();
             Assert.assertEquals(false,glWindow.isNativeValid());
-        }
-        if(null!=screen) {
-            screen.destroy();
-            Assert.assertEquals(false,screen.isNativeValid());
-        }
-        if(null!=display) {
-            display.destroy();
-            Assert.assertEquals(false,display.isNativeValid());
+            Assert.assertEquals(false,glWindow.isValid());
         }
     }
 
@@ -146,7 +135,7 @@ public class TestGLWindows01NEWT extends UITestCase {
 
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
-        window.destroy(false);
+        window.destroy();
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
@@ -162,7 +151,7 @@ public class TestGLWindows01NEWT extends UITestCase {
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
-        destroyWindow(window, null, null, true);
+        destroyWindow(window);
     }
 
     @Test
@@ -175,7 +164,7 @@ public class TestGLWindows01NEWT extends UITestCase {
 
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
-        window.destroy(false);
+        window.destroy();
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
@@ -191,7 +180,7 @@ public class TestGLWindows01NEWT extends UITestCase {
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
-        destroyWindow(window, null, null, true);
+        destroyWindow(window);
     }
 
     @Test
@@ -207,7 +196,7 @@ public class TestGLWindows01NEWT extends UITestCase {
             Thread.sleep(100);
         }
         System.out.println("duration: "+window.getDuration());
-        destroyWindow(window, null, null, true);
+        destroyWindow(window);
     }
 
     @Test
@@ -223,7 +212,7 @@ public class TestGLWindows01NEWT extends UITestCase {
             Thread.sleep(100);
         }
         System.out.println("duration: "+window.getDuration());
-        destroyWindow(window, null, null, true);
+        destroyWindow(window);
     }
 
     @Test
@@ -238,8 +227,7 @@ public class TestGLWindows01NEWT extends UITestCase {
             Thread.sleep(100);
         }
         System.out.println("duration: "+window.getDuration());
-        destroyWindow(window, null, null, false);
-        destroyWindow(window, null, null, true);
+        destroyWindow(window);
     }
 
     @Test
@@ -249,7 +237,6 @@ public class TestGLWindows01NEWT extends UITestCase {
 
         Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
-        display.setDestroyWhenUnused(true);
 
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
@@ -279,8 +266,8 @@ public class TestGLWindows01NEWT extends UITestCase {
         System.out.println("duration1: "+window1.getDuration());
         System.out.println("duration2: "+window2.getDuration());
 
-        destroyWindow(window1, null, null, true);
-        destroyWindow(window2, null, null, true);
+        destroyWindow(window1);
+        destroyWindow(window2);
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
@@ -300,10 +287,8 @@ public class TestGLWindows01NEWT extends UITestCase {
 
         Display display1 = NewtFactory.createDisplay(null, false); // local display
         Assert.assertNotNull(display1);
-        display1.setDestroyWhenUnused(true);
         Display display2 = NewtFactory.createDisplay(null, false); // local display
         Assert.assertNotNull(display2);
-        display2.setDestroyWhenUnused(true);
         Assert.assertNotSame(display1, display2);
 
         Screen screen1  = NewtFactory.createScreen(display1, 0); // screen 0
@@ -349,8 +334,8 @@ public class TestGLWindows01NEWT extends UITestCase {
         // opening them, otherwise some driver related bug appears.
         // You may test this, ie just reverse the destroy order below.
         // See also native test: jogl/test/native/displayMultiple02.c
-        destroyWindow(window1, null, null, true);
-        destroyWindow(window2, null, null, true);
+        destroyWindow(window1);
+        destroyWindow(window2);
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
@@ -393,17 +378,7 @@ public class TestGLWindows01NEWT extends UITestCase {
         }
         System.out.println("durationPerTest: "+durationPerTest);
         String tstname = TestGLWindows01NEWT.class.getName();
-        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
-            tstname,
-            "filtertrace=true",
-            "haltOnError=false",
-            "haltOnFailure=false",
-            "showoutput=true",
-            "outputtoformatters=true",
-            "logfailedtests=true",
-            "logtestlistenerevents=true",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+        org.junit.runner.JUnitCore.main(tstname);
     }
 
 }

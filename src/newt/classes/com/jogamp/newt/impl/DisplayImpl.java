@@ -181,13 +181,29 @@ public abstract class DisplayImpl extends Display {
         }
     }
 
+    public boolean validateEDT() {
+        if(0==refCount && null==aDevice && null != edtUtil && edtUtil.isRunning()) {
+            stopEDT( new Runnable() {
+                public void run() {
+                    // nop
+                }
+            } );
+            edtUtil.waitUntilStopped();
+            edtUtil.reset();
+            return true;
+        }
+        return false;
+    }
+
     public synchronized final void destroy() {
         if(DEBUG) {
             dumpDisplayList("Display.destroy("+getFQName()+") BEGIN");
         }
         synchronized(displayList) {
             displayList.remove(this);
-            displaysActive--;
+            if(0 < displaysActive) {
+                displaysActive--;
+            }
         }
         if(DEBUG) {
             System.err.println("Display.destroy(): "+this+" "+getThreadName());
@@ -225,7 +241,7 @@ public abstract class DisplayImpl extends Display {
         if(null == aDevice) {
             throw new NativeWindowException ("Display.addReference() (refCount "+refCount+") null AbstractGraphicsDevice");
         }
-        return ++refCount;
+        return refCount++;
     }
 
 
@@ -233,9 +249,10 @@ public abstract class DisplayImpl extends Display {
         if(DEBUG) {
             System.err.println("Display.removeReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount-1));
         }
-        refCount--; // could become < 0, in case of forced destruction without actual creation/addReference
-        if(0>=refCount && getDestroyWhenUnused()) {
+        refCount--; // could become < 0, in case of manual destruction without actual creation/addReference
+        if(0>=refCount) {
             destroy();
+            refCount=0; // fix < 0
         }
         return refCount;
     }
@@ -243,9 +260,6 @@ public abstract class DisplayImpl extends Display {
     public synchronized final int getReferenceCount() {
         return refCount;
     }
-
-    public final boolean getDestroyWhenUnused() { return destroyWhenUnused; }
-    public final void setDestroyWhenUnused(boolean v) { destroyWhenUnused=v; }
 
     protected abstract void createNativeImpl();
     protected abstract void closeNativeImpl();
@@ -275,7 +289,7 @@ public abstract class DisplayImpl extends Display {
         return ( null == name ) ? nilString : name ;
     }
 
-    protected static final String getFQName(String type, String name, int id) {
+    private static final String getFQName(String type, String name, int id) {
         if(null==type) type=nilString;
         if(null==name) name=nilString;
         StringBuffer sb = new StringBuffer();
@@ -284,7 +298,7 @@ public abstract class DisplayImpl extends Display {
         sb.append(name);
         sb.append("-");
         sb.append(id);
-        return sb.toString();
+        return sb.toString().intern();
     }
 
     public final long getHandle() {

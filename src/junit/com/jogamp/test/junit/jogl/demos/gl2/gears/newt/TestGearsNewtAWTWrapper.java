@@ -89,7 +89,7 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
         }
 
         animator.stop();
-        glWindow.destroy(true);
+        glWindow.invalidate();
     }
 
     @Test

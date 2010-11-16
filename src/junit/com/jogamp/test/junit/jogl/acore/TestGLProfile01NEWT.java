@@ -150,7 +150,7 @@ public class TestGLProfile01NEWT extends UITestCase {
         glWindow.setSize(128, 128);
         glWindow.setVisible(true);
         glWindow.display();
-        glWindow.destroy(true);
+        glWindow.invalidate();
     }
 
     public static void main(String args[]) throws IOException {

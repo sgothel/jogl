@@ -94,9 +94,6 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Screen screen = window.getScreen();
         Display display = screen.getDisplay();
 
-        Assert.assertEquals(true,display.getDestroyWhenUnused());
-        Assert.assertEquals(true,screen.getDestroyWhenUnused());
-
         Assert.assertEquals(screen,window.getScreen());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
         Assert.assertEquals(0,display.getReferenceCount());
@@ -151,19 +148,22 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         }
         System.err.println("duration: "+window.getDuration());
 
-        // recoverable destruction, ie Display/Screen untouched
-        window.destroy(false);
+        // destruction.. ref count down, but keep all
+        window.destroy();
         Assert.assertEquals(screen,window.getScreen());
-        Assert.assertEquals(1,Display.getActiveDisplayNumber());
-        Assert.assertEquals(1,display.getReferenceCount());
-        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertEquals(0,Display.getActiveDisplayNumber());
+        Assert.assertEquals(0,display.getReferenceCount());
+        Assert.assertEquals(false,display.isNativeValid());
         Assert.assertNotNull(display.getEDTUtil());
-        Assert.assertEquals(true,display.getEDTUtil().isRunning());
-        Assert.assertEquals(1,Screen.getActiveScreenNumber());
-        Assert.assertEquals(1,screen.getReferenceCount());
-        Assert.assertEquals(true,screen.isNativeValid());
+        Assert.assertEquals(false,display.getEDTUtil().isRunning());
+        Assert.assertEquals(0,Screen.getActiveScreenNumber());
+        Assert.assertEquals(0,screen.getReferenceCount());
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertNotNull(window.getScreen());
+        Assert.assertEquals(true,window.isValid());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
+
         window.resetCounter();
         Assert.assertEquals(0, window.getTotalFrames());
 
@@ -179,6 +179,7 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(screen,window.getScreen());
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
         Assert.assertEquals(1,display.getReferenceCount());
+        Assert.assertEquals(true,window.isValid());
         Assert.assertEquals(true,display.isNativeValid());
         Assert.assertEquals(true,display.getEDTUtil().isRunning());
         Assert.assertEquals(1,Screen.getActiveScreenNumber());
@@ -195,9 +196,10 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         }
         System.err.println("duration: "+window.getDuration());
 
-        // unrecoverable destruction, ie Display/Screen will be unreferenced
-        window.destroy(true);
-        Assert.assertEquals(null,window.getScreen());
+        // destruction + invalidate, ie Display/Screen will be unreferenced
+        window.invalidate();
+        Assert.assertNull(window.getScreen());
+        Assert.assertEquals(false,window.isValid());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
@@ -239,9 +241,6 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertSame(screen, window2.getScreen());
         Assert.assertSame(display, window2.getScreen().getDisplay());
         window2.setPosition(screen.getWidth()-width, 0);
-
-        Assert.assertEquals(true,display.getDestroyWhenUnused());
-        Assert.assertEquals(true,screen.getDestroyWhenUnused());
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
         Assert.assertEquals(0,display.getReferenceCount());
@@ -297,9 +296,10 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(true,window1.isNativeValid());
         Assert.assertEquals(false,window1.isVisible());
 
-        // unrecoverable destruction, ie Display/Screen will be unreferenced
-        window1.destroy(true);
-        Assert.assertEquals(null,window1.getScreen());
+        // destruction ...
+        window1.destroy();
+        Assert.assertNotNull(window1.getScreen());
+        Assert.assertEquals(true,window1.isValid());
         Assert.assertEquals(false,window1.isNativeValid());
         Assert.assertEquals(false,window1.isVisible());
 
@@ -312,9 +312,10 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(1,screen.getReferenceCount());
         Assert.assertEquals(true,screen.isNativeValid());
 
-        // unrecoverable destruction, ie Display/Screen will be unreferenced
-        window2.destroy(true);
-        Assert.assertEquals(null,window2.getScreen());
+        // destruction
+        window2.destroy();
+        Assert.assertNotNull(window2.getScreen());
+        Assert.assertEquals(true,window2.isValid());
         Assert.assertEquals(false,window2.isNativeValid());
         Assert.assertEquals(false,window2.isVisible());
 
@@ -327,6 +328,20 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(0,Screen.getActiveScreenNumber());
         Assert.assertEquals(0,screen.getReferenceCount());
         Assert.assertEquals(false,screen.isNativeValid());
+
+        // invalidate .. remove all refs
+        window1.invalidate();
+        Assert.assertNull(window1.getScreen());
+        Assert.assertEquals(false,window1.isValid());
+        Assert.assertEquals(false,window1.isNativeValid());
+        Assert.assertEquals(false,window1.isVisible());
+
+        // invalidate .. remove all refs
+        window2.invalidate();
+        Assert.assertNull(window2.getScreen());
+        Assert.assertEquals(false,window2.isValid());
+        Assert.assertEquals(false,window2.isNativeValid());
+        Assert.assertEquals(false,window2.isVisible());
 
     }
 
@@ -365,17 +380,7 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         }
         System.err.println("durationPerTest: "+durationPerTest);
         String tstname = TestDisplayLifecycle02NEWT.class.getName();
-        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
-            tstname,
-            "filtertrace=true",
-            "haltOnError=false",
-            "haltOnFailure=false",
-            "showoutput=true",
-            "outputtoformatters=true",
-            "logfailedtests=true",
-            "logtestlistenerevents=true",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+        org.junit.runner.JUnitCore.main(tstname);
     }
 
 }

@@ -189,7 +189,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
                 } });
         Assert.assertEquals(true, glWindow1.isValid());
 
-        glWindow1.destroy(true);
+        glWindow1.invalidate();
         //Assert.assertEquals(false, glWindow1.isValid());
     }
 
@@ -324,7 +324,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
                 } });
         Assert.assertEquals(true, glWindow1.isValid());
 
-        glWindow1.destroy(true);
+        glWindow1.invalidate();
         //Assert.assertEquals(false, glWindow1.isValid());
     }
 

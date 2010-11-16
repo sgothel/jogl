@@ -143,7 +143,7 @@ public class TestParenting01aAWT extends UITestCase {
         frame1.dispose();
         Assert.assertEquals(true, glWindow1.isValid());
 
-        glWindow1.destroy(true);
+        glWindow1.invalidate();
         //Assert.assertEquals(false, glWindow1.isValid());
     }
 
@@ -188,7 +188,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(false, animator1.isAnimating());
 
         frame.dispose();
-        glWindow1.destroy(true);
+        glWindow1.invalidate();
     }
 
     @Test
@@ -223,7 +223,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(true, animator1.isAnimating()); // !!!
 
         frame.dispose();
-        glWindow1.destroy(true);
+        glWindow1.invalidate();
     }
 
     @Test
@@ -273,7 +273,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(false, animator1.isAnimating());
 
         frame.dispose();
-        glWindow1.destroy(true);
+        glWindow1.invalidate();
     }
 
     @Test
@@ -328,7 +328,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(false, animator1.isAnimating());
 
         frame.dispose();
-        glWindow1.destroy(true);
+        glWindow1.invalidate();
     }
 
     @Test
@@ -393,7 +393,7 @@ public class TestParenting01aAWT extends UITestCase {
 
         frame1.dispose();
         frame2.dispose();
-        glWindow1.destroy(true);
+        glWindow1.invalidate();
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {

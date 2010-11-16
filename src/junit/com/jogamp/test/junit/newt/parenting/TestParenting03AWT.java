@@ -152,7 +152,7 @@ public class TestParenting03AWT extends UITestCase {
         Assert.assertEquals(null, animator1.getThread());
 
         frame1.dispose();
-        glWindow1.destroy(true);
+        glWindow1.invalidate();
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {

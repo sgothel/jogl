@@ -119,7 +119,7 @@ public class TestListenerCom01AWT extends UITestCase {
         Assert.assertEquals(false, animator1.isAnimating());
 
         frame.dispose();
-        glWindow.destroy(true);
+        glWindow.invalidate();
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {

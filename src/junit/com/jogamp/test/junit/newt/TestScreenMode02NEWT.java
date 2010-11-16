@@ -70,25 +70,18 @@ public class TestScreenMode02NEWT extends UITestCase {
         Assert.assertNotNull(caps);
         caps.setOnscreen(onscreen);
 
-        boolean destroyWhenUnused = screen.getDestroyWhenUnused();
         GLWindow window = GLWindow.create(screen, caps);
         window.setSize(width, height);
         window.addGLEventListener(new Gears());
         Assert.assertNotNull(window);
-        Assert.assertEquals(destroyWhenUnused, window.getScreen().getDestroyWhenUnused());
         window.setVisible(true);
+        Assert.assertTrue(window.isVisible());
         return window;
     }
 
-    static void destroyWindow(Display display, Screen screen, Window window) {
+    static void destroyWindow(Window window) {
         if(null!=window) {
             window.destroy();
-        }
-        if(null!=screen) {
-            screen.destroy();
-        }
-        if(null!=display) {
-            display.destroy();
         }
     }
     
@@ -108,7 +101,8 @@ public class TestScreenMode02NEWT extends UITestCase {
         List screenModes = screen.getScreenModes();
         if(null==screenModes) {
             // no support ..
-            destroyWindow(display, screen, window);
+            System.err.println("Your platform has no ScreenMode change support, sorry");
+            destroyWindow(window);
             return;
         }
         Assert.assertTrue(screenModes.size()>0);
@@ -129,7 +123,8 @@ public class TestScreenMode02NEWT extends UITestCase {
         screenModes = ScreenModeUtil.filterByRotation(screenModes, 90);
         if(null==screenModes) {
             // no rotation support ..
-            destroyWindow(display, screen, window);
+            System.err.println("Your platform has no rotation support, sorry");
+            destroyWindow(window);
             return;
         }
         Assert.assertTrue(screenModes.size()>0);
@@ -158,15 +153,14 @@ public class TestScreenMode02NEWT extends UITestCase {
         Assert.assertEquals(true,window.isVisible());
 
         animator.stop();
-        destroyWindow(null, screen, window);
+        destroyWindow(window);
 
         Assert.assertEquals(false,window.isVisible());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,screen.isNativeValid());
-        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertEquals(false,display.isNativeValid());
 
-        screen  = NewtFactory.createScreen(display, 0); // screen 0
-        screen.addReference(); // trigger native creation
+        screen.createNative(); // trigger native re-creation
 
         Assert.assertEquals(true,display.isNativeValid());
         Assert.assertEquals(true,screen.isNativeValid());
@@ -177,7 +171,7 @@ public class TestScreenMode02NEWT extends UITestCase {
         Assert.assertNotNull(smCurrent);
         Assert.assertEquals(saveOrigMode, smOrig);
 
-        destroyWindow(display, screen, null);
+        screen.destroy();
 
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
