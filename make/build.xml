@@ -3,12 +3,41 @@
 
     <import file="build-common.xml"/>
 
-    <target name="init" depends="common.init">
-        <!-- The javadoc dirs. -->
-        <property name="javadoc" value="${build}/javadoc" />            <!-- http://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/    -->
-        <property name="gluegen.link" value="../../gluegen/javadoc/" /> <!-- http://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/ -->
-        <!--property name="javadoc.link" value="http://download.oracle.com/javase/1.4.2/docs/api/"/-->
+    <target name="javadoc-base.init" depends="common.init">
         <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
+        <!--property name="javadoc.link" value="http://download.oracle.com/javase/1.4.2/docs/api/"/-->
+
+        <property name="gluegen.link" value="../../gluegen/javadoc/" /> <!-- http://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/ -->
+        <property name="javadoc" value="${build}/javadoc" />            <!-- http://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/    -->
+
+        <!-- Link offline with relative URLs does not work.
+             Link online with relative URLs works, 
+             so we have to assume the same relative online folder structure:
+
+                 http://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/
+                 http://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/
+
+             gluegen rel URL: ../../gluegen/javadoc
+
+             build structure:
+
+                 jogl.root:    build/javadoc
+                 gluegen.root: build/javadoc
+
+            to match the online gluegen rel URL, we need:
+
+                 jogl.root:    gluegen/javadoc
+          -->
+
+        <delete dir="${project.root}/gluegen" includeEmptyDirs="true" quiet="true" failonerror="false" />
+        <mkdir dir="${project.root}/gluegen" />
+        <mkdir dir="${project.root}/gluegen/javadoc" />
+        <copy todir="${project.root}/gluegen/javadoc">
+            <fileset dir="${gluegen.root}/${rootrel.build}/javadoc/" includes="**" />
+        </copy>
+    </target>
+
+    <target name="init" depends="javadoc-base.init">
         <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
 
         <property name="javadoc.nw.overview" value="../src/nativewindow/classes/javax/media/nativewindow/package.html" />
@@ -161,8 +190,9 @@
         <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="clean" inheritRefs="true" inheritAll="true"/>
         <ant antfile="${jogl.build.xml}" dir="${jogl.make}" target="clean" inheritRefs="true" inheritAll="true"/>
         <ant antfile="${newt.build.xml}" dir="${newt.make}" target="clean" inheritRefs="true" inheritAll="true"/>
-        <delete includeEmptyDirs="true" quiet="true">
+        <delete includeEmptyDirs="true" quiet="true" failonerror="false">
             <fileset dir="${build}" />
+            <fileset dir="${project.root}/gluegen" />
         </delete>
     </target>        
 
@@ -178,8 +208,8 @@
                  bottom="${javadoc.bottom}" >
             <classpath refid="jogl_newt_all.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
-            <link offline="true" href="${gluegen.link}" packagelistLoc="${gluegen.root}/make/gluegen-packages" />
-            <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
+            <link offline="false" href="${gluegen.link}" />
+            <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/> 
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
         <zip destfile="${build}/javadoc.zip"
@@ -199,7 +229,7 @@
                  bottom="${javadoc.bottom}" >
             <classpath refid="jogl_newt_all.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
-            <link offline="true" href="${gluegen.link}" packagelistLoc="${gluegen.root}/make/gluegen-packages" />
+            <link offline="false" href="${gluegen.link}" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <link offline="false" href="${javadoc.nw.spec}" />
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
@@ -221,7 +251,7 @@
                  bottom="${javadoc.bottom}" >
             <classpath refid="jogl_newt_all.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
-            <link offline="true" href="${gluegen.link}" packagelistLoc="${gluegen.root}/make/gluegen-packages" />
+            <link offline="false" href="${gluegen.link}" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
@@ -242,7 +272,7 @@
                  bottom="${javadoc.bottom}" >
             <classpath refid="jogl_newt_all.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
-            <link offline="true" href="${gluegen.link}" packagelistLoc="${gluegen.root}/make/gluegen-packages" />
+            <link offline="false" href="${gluegen.link}" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
