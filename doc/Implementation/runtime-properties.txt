@@ -84,7 +84,6 @@
     newt.debug.EDT
     newt.debug.MainThread
     newt.debug.Screen
-    newt.debug.Screen.DisableScreenModeImpl
     newt.debug.Window
     newt.debug.Window.KeyEvent
     newt.debug.Window.MouseEvent
@@ -96,6 +95,7 @@
     newt.MainThread.force
     newt.test.EDTMainThread
     newt.test.Window.reparent.incompatible
+    newt.test.Screen.disableScreenMode
     newt.ws.sheight
     newt.ws.swidth
 

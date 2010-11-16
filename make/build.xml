@@ -3,62 +3,48 @@
 
     <import file="build-common.xml"/>
 
-    <target name="javadoc-base.init" depends="common.init">
-        <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
-        <!--property name="javadoc.link" value="http://download.oracle.com/javase/1.4.2/docs/api/"/-->
+    <!-- ================================================================== -->
+    <!--
+       - Main build target.
+      -->
 
-        <property name="gluegen.link" value="../../gluegen/javadoc/" /> <!-- http://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/ -->
-        <property name="javadoc" value="${build}/javadoc" />            <!-- http://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/    -->
+    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one.dir,tag.build,developer-zip-archive" />
 
-        <!-- Link offline with relative URLs does not work.
-             Link online with relative URLs works, 
-             so we have to assume the same relative online folder structure:
+    <target name="all.but-archives" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one.dir,tag.build" />
 
-                 http://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/
-                 http://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/
-
-             gluegen rel URL: ../../gluegen/javadoc
-
-             build structure:
-
-                 jogl.root:    build/javadoc
-                 gluegen.root: build/javadoc
-
-            to match the online gluegen rel URL, we need:
-
-                 jogl.root:    gluegen/javadoc
-          -->
-
-        <delete dir="${project.root}/gluegen" includeEmptyDirs="true" quiet="true" failonerror="false" />
-        <mkdir dir="${project.root}/gluegen" />
-        <mkdir dir="${project.root}/gluegen/javadoc" />
-        <copy todir="${project.root}/gluegen/javadoc">
-            <fileset dir="${gluegen.root}/${rootrel.build}/javadoc/" includes="**" />
-        </copy>
+    <target name="junit.compile">
+      <ant antfile="build-junit.xml" target="junit.compile" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="init" depends="javadoc-base.init">
-        <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
-
-        <property name="javadoc.nw.overview" value="../src/nativewindow/classes/javax/media/nativewindow/package.html" />
-        <property name="javadoc.nw.spec" value="${build}/javadoc_nativewindow_spec" />
-        <property name="javadoc.nw.spec.windowtitle" value="NativeWindow API -- ${nativewindow_base_version} Specification" />
-        <property name="javadoc.nw.spec.packagenames" value="javax.media.nativewindow.*" />
-
-        <property name="javadoc.spec" value="${build}/javadoc_jogl_spec" />
-        <property name="javadoc.spec.windowtitle" value="JOGL API -- JSR-231 ${jogl_base_version} Specification" />
-        <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
-
-        <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />
-        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames}, ${javadoc.spec.packagenames}, com.jogamp.opengl, com.jogamp.opengl.util.*, com.jogamp.nativewindow, com.jogamp.newt, com.jogamp.newt.event.*, com.jogamp.newt.opengl" />
-
-        <property name="javadoc.dev" value="${build}/javadoc_dev" />
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames}, com.jogamp.opengl.*, com.jogamp.nativewindow.*, com.jogamp.newt.*, com.jogamp.gluegen.opengl.*, com.jogamp.gluegen.runtime.opengl.*" />
-
-        <property name="java.excludes.javadoc.packagenames" value="com.jogamp.opengl.impl.gl2.fixme.*,com.jogamp.audio.windows.waveout.TestSpatialization"/>
-        <property name="javadoc.bottom" value="Copyright 2010 JogAmp Community." />
-
+    <target name="junit.run" description="Run JUNIT tests in nativewindow, jogl and newt projects">
+      <ant antfile="build-junit.xml" target="junit.run" inheritRefs="true" inheritAll="true"/>
     </target>
+
+    <target name="javadoc.spec.zip" depends="javadoc.init, javadoc.spec, javadoc.zip"/>
+
+    <target name="javadoc.all.zip" depends="javadoc.init, javadoc.all, javadoc.zip"/>
+
+    <target name="javadoc.spec" description="Build Specifications JOGL and Nativewindow" 
+                                depends="javadoc.init, javadoc.nw.spec, javadoc.jogl.spec" />
+
+    <target name="javadoc.all" description="Build all NativeWindow, JOGL and NEWT docs" 
+                               depends="javadoc.init, javadoc.nw.spec, javadoc.jogl.spec, javadoc.public, javadoc.dev"/>
+
+    <target name="clean" depends="init">
+        <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="clean" inheritRefs="true" inheritAll="true"/>
+        <ant antfile="${jogl.build.xml}" dir="${jogl.make}" target="clean" inheritRefs="true" inheritAll="true"/>
+        <ant antfile="${newt.build.xml}" dir="${newt.make}" target="clean" inheritRefs="true" inheritAll="true"/>
+        <delete includeEmptyDirs="true" quiet="true" failonerror="false">
+            <fileset dir="${build}" />
+        </delete>
+    </target>        
+
+    <!-- ================================================================== -->
+    <!--
+       - Local targets.
+      -->
+
+    <target name="init" depends="common.init" />
 
     <target name="build.nativewindow" depends="init">
         <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="all" inheritRefs="true" inheritAll="true"/>
@@ -72,7 +58,7 @@
         <ant antfile="${newt.build.xml}" dir="${newt.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="one-lib-dir" depends="init,gluegen.cpptasks.detect.os">
+    <target name="one.lib.dir" depends="init,gluegen.cpptasks.detect.os">
         <delete includeEmptyDirs="true" quiet="true" dir="${lib}" failonerror="false" />
         <mkdir dir="${lib}" />
         <copy todir="${lib}">
@@ -83,7 +69,7 @@
         </copy>
     </target>
 
-    <target name="one-jar-dir" depends="init,gluegen.cpptasks.detect.os">
+    <target name="one.jar.dir" depends="init,gluegen.cpptasks.detect.os">
         <delete includeEmptyDirs="true" quiet="true" dir="${jar}" failonerror="false" />
         <mkdir dir="${jar}" />
         <copy todir="${jar}">
@@ -94,9 +80,9 @@
         </copy>
     </target>
 
-    <target name="one-dir" depends="one-lib-dir,one-jar-dir"/>
+    <target name="one.dir" depends="one.lib.dir,one.jar.dir"/>
 
-    <target name="repack-jars" depends="one-jar-dir">
+    <target name="repack-jars" depends="one.jar.dir">
         <!-- Re-pack jars we have the intent to compress later, after signing -->
         <mkdir dir="${jar}/orig" />
         <copy todir="${jar}/orig">
@@ -171,38 +157,91 @@
 
     <!-- ================================================================== -->
     <!--
-       - Main build target.
+       - Javadoc build target.
       -->
 
-    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one-dir,tag.build,developer-zip-archive" />
+    <!-- copies ${gluegen-javadoc.path}/** to ${javadoc.root.path}/gluegen/ 
+         gluegen-javadoc.path is the parent folder of package-list:
+            gluegen-javadoc.path := build/javadoc/gluegen 
+            with build/javadoc/gluegen/javadoc/package-list
+      -->
+    <target name="javadoc.gluegen" depends="init" if="gluegen-javadoc.path">
+        <delete dir="${javadoc.root.path}/gluegen" includeEmptyDirs="true" quiet="true" failonerror="false" />
+        <mkdir dir="${javadoc.root.path}/gluegen" />
 
-    <target name="all.but-archives" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one-dir" />
-
-    <target name="junit.compile">
-      <ant antfile="build-junit.xml" target="junit.compile" inheritRefs="true" inheritAll="true"/>
+        <copy todir="${javadoc.root.path}/gluegen" failonerror="false">
+            <fileset dir="${gluegen-javadoc.path}" includes="**" />
+        </copy>
     </target>
 
-    <target name="junit.run" description="Run JUNIT tests in nativewindow, jogl and newt projects">
-      <ant antfile="build-junit.xml" target="junit.run" inheritRefs="true" inheritAll="true"/>
+    <target name="javadoc.init" depends="init">
+        <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
+        <!--property name="javadoc.link" value="http://download.oracle.com/javase/1.4.2/docs/api/"/-->
+
+        <!-- Link offline with relative URLs does not work.
+             Link online with relative URLs works, 
+             so we have to assume the same relative online folder structure:
+
+                 http://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/
+                 http://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/
+                 http://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc_dev/
+                 http://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc_jogl_spec/
+                 http://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc_nativewindow_spec/
+
+             gluegen rel URL: ../../gluegen/javadoc
+
+             build structure:
+
+                 jogl.root:    build/javadoc/jogl/<javadoc-type>  (we have javadoc, javadoc_dev and javadoc_jogl_spec, ..)
+                 gluegen.root: build/javadoc/gluegen/javadoc
+
+            to match the online gluegen rel URL, we need:
+
+                 jogl.root:    build/javadoc/gluegen/javadoc
+          -->
+        <property name="gluegen.link" value="../../gluegen/javadoc" /> 
+        <property name="javadoc.root.path" value="${build}/javadoc" />
+        <property name="javadoc.jogl.public.path" value="${javadoc.root.path}/jogl/javadoc" />
+        <property name="javadoc.jogl.dev.path"    value="${javadoc.root.path}/jogl/javadoc_dev" />
+        <property name="javadoc.jogl.spec.path"   value="${javadoc.root.path}/jogl/javadoc_jogl_spec" />
+        <property name="javadoc.nw.spec.path"     value="${javadoc.root.path}/jogl/javadoc_nativewindow_spec" />
+
+        <!-- if gluegen-javadoc.path is not set, check in default location, 
+             ${gluegen.root}/${rootrel.build}/javadoc/gluegen -->
+        <available file="${gluegen.root}/${rootrel.build}/javadoc/gluegen/javadoc/package-list" 
+                   type="file"
+                   property="gluegen-javadoc.path"
+                   value="${gluegen.root}/${rootrel.build}/javadoc/gluegen" />
+        <antcall target="javadoc.gluegen" inheritRefs="true" />
+
+        <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
+
+        <property name="javadoc.nw.overview" value="../src/nativewindow/classes/javax/media/nativewindow/package.html" />
+        <property name="javadoc.nw.spec.windowtitle" value="NativeWindow API -- ${nativewindow_base_version} Specification" />
+        <property name="javadoc.nw.spec.packagenames" value="javax.media.nativewindow.*" />
+
+        <property name="javadoc.spec.windowtitle" value="JOGL API -- JSR-231 ${jogl_base_version} Specification" />
+        <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
+
+        <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />
+        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames}, ${javadoc.spec.packagenames}, com.jogamp.opengl, com.jogamp.opengl.util.*, com.jogamp.nativewindow, com.jogamp.newt, com.jogamp.newt.event.*, com.jogamp.newt.opengl" />
+
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames}, com.jogamp.opengl.*, com.jogamp.nativewindow.*, com.jogamp.newt.*, com.jogamp.gluegen.opengl.*, com.jogamp.gluegen.runtime.opengl.*" />
+
+        <property name="java.excludes.javadoc.packagenames" value="com.jogamp.opengl.impl.gl2.fixme.*,com.jogamp.audio.windows.waveout.TestSpatialization"/>
+        <property name="javadoc.bottom" value="Copyright 2010 JogAmp Community." />
     </target>
 
-    <target name="clean" depends="init">
-        <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="clean" inheritRefs="true" inheritAll="true"/>
-        <ant antfile="${jogl.build.xml}" dir="${jogl.make}" target="clean" inheritRefs="true" inheritAll="true"/>
-        <ant antfile="${newt.build.xml}" dir="${newt.make}" target="clean" inheritRefs="true" inheritAll="true"/>
-        <delete includeEmptyDirs="true" quiet="true" failonerror="false">
-            <fileset dir="${build}" />
-            <fileset dir="${project.root}/gluegen" />
-        </delete>
-    </target>        
-
-    <target name="javadoc" depends="init">
+    <target name="javadoc.public" depends="javadoc.init">
         <!-- Build the general public Javadoc -->
+        <mkdir dir="${javadoc.jogl.public.path}" />
         <javadoc packagenames="${javadoc.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${all.srcj.path};${all.genj.path}"
-                 destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
+                 destdir="${javadoc.jogl.public.path}" 
+                 windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
+                 access="public"
                  source="1.4"
                  maxmemory="1024m"
                  bottom="${javadoc.bottom}" >
@@ -212,18 +251,18 @@
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/> 
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
-        <zip destfile="${build}/javadoc.zip"
-             basedir="${build}"
-             includes="javadoc/**" />
     </target>
 
-    <target name="javadoc.jogl.spec" depends="init,javadoc.nw.spec">
+    <target name="javadoc.jogl.spec" depends="javadoc.init,javadoc.nw.spec">
         <!-- Build the specification Javadoc -->
+        <mkdir dir="${javadoc.jogl.spec.path}" />
         <javadoc packagenames="${javadoc.spec.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${all.srcj.path};${all.genj.path}"
-                 destdir="${javadoc.spec}" windowtitle="${javadoc.spec.windowtitle}"
+                 destdir="${javadoc.jogl.spec.path}" 
+                 windowtitle="${javadoc.spec.windowtitle}"
                  overview="${javadoc.overview}"
+                 access="public"
                  source="1.4"
                  maxmemory="1024m"
                  bottom="${javadoc.bottom}" >
@@ -231,21 +270,21 @@
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
             <link offline="false" href="${gluegen.link}" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
-            <link offline="false" href="${javadoc.nw.spec}" />
+            <link offline="false" href="../javadoc_nativewindow_spec" />
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
-        <zip destfile="${build}/javadoc_jogl_spec.zip"
-             basedir="${build}"
-             includes="javadoc_jogl_spec/**" />
     </target>
                                                                                                                                    
-    <target name="javadoc.dev" depends="init">
+    <target name="javadoc.dev" depends="javadoc.init">
         <!-- Build the internal developer Javadoc -->
+        <mkdir dir="${javadoc.jogl.dev.path}" />
         <javadoc packagenames="${javadoc.dev.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${all.srcj.path};${all.genj.path}"
-                 destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
+                 destdir="${javadoc.jogl.dev.path}" 
+                 windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
+                 access="protected"
                  source="1.4"
                  maxmemory="1024m"
                  bottom="${javadoc.bottom}" >
@@ -255,18 +294,18 @@
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
-        <zip destfile="${build}/javadoc_dev.zip"
-             basedir="${build}"
-             includes="javadoc_dev/**" />
     </target>
 
-    <target name="javadoc.nw.spec" depends="init">
+    <target name="javadoc.nw.spec" depends="javadoc.init">
         <!-- Build the general Javadoc -->
+        <mkdir dir="${javadoc.nw.spec.path}" />
         <javadoc packagenames="${javadoc.nw.spec.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${all.srcj.path};${all.genj.path}"
-                 destdir="${javadoc.nw.spec}" windowtitle="${javadoc.nw.spec.windowtitle}"
+                 destdir="${javadoc.nw.spec.path}" 
+                 windowtitle="${javadoc.nw.spec.windowtitle}"
                  overview="${javadoc.nw.overview}"
+                 access="public"
                  source="1.4"
                  maxmemory="1024m"
                  bottom="${javadoc.bottom}" >
@@ -276,14 +315,13 @@
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
-        <zip destfile="${build}/javadoc_nativewindow_spec.zip"
-             basedir="${build}"
-             includes="javadoc_nativewindow_spec/**" />
     </target>
                                                                                                                                    
-    <target name="javadoc.spec" description="Build Specifications JOGL and Nativewindow" depends="init,javadoc.jogl.spec" />
-
-    <target name="all.doc" description="Build NativeWindow, JOGL and NEWT docs" depends="init,javadoc,javadoc.spec,javadoc.dev" />
+    <target name="javadoc.zip" depends="javadoc.init">
+        <zip destfile="${build}/javadoc.zip"
+             basedir="${javadoc.root.path}"
+             includes="jogl/**" />
+    </target>
 
 </project>
 
