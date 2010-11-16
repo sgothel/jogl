@@ -40,8 +40,10 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
     public DefaultGraphicsConfiguration(AbstractGraphicsScreen screen, 
                                         Capabilities capsChosen, Capabilities capsRequested) {
         this.screen = screen;
-        this.capabilitiesChosen = capsChosen;
-        this.capabilitiesRequested = capsRequested;
+
+        // Create "immutable" copies of capabilities.
+        this.capabilitiesChosen = (Capabilities) capsChosen.clone();
+        this.capabilitiesRequested = (Capabilities) capsRequested.clone();
     }
 
     public Object clone() {
@@ -56,12 +58,14 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
         return screen;
     }
 
+    // TODO: Return immutable instance.
     public Capabilities getChosenCapabilities() {
-        return (null!=capabilitiesChosen)?(Capabilities)capabilitiesChosen.clone():null;
+        return capabilitiesChosen;
     }
 
+    // TODO: Return immutable instance.
     public Capabilities getRequestedCapabilities() {
-        return (null!=capabilitiesRequested)?(Capabilities)capabilitiesRequested.clone():null;
+        return capabilitiesRequested;
     }
 
     public AbstractGraphicsConfiguration getNativeGraphicsConfiguration() {
