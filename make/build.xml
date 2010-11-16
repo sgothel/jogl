@@ -20,9 +20,11 @@
       <ant antfile="build-junit.xml" target="junit.run" inheritRefs="true" inheritAll="true"/>
     </target>
 
+    <target name="javadoc.all.zip" depends="javadoc.init, javadoc.all, javadoc.zip"/>
+
     <target name="javadoc.spec.zip" depends="javadoc.init, javadoc.spec, javadoc.zip"/>
 
-    <target name="javadoc.all.zip" depends="javadoc.init, javadoc.all, javadoc.zip"/>
+    <target name="javadoc.nw.spec.zip" depends="javadoc.init, javadoc.nw.spec, javadoc.zip"/>
 
     <target name="javadoc.spec" description="Build Specifications JOGL and Nativewindow" 
                                 depends="javadoc.init, javadoc.nw.spec, javadoc.jogl.spec" />
