@@ -50,10 +50,10 @@
         <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
 
         <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />
-        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames},${javadoc.spec.packagenames},com.jogamp.opengl.util.*,com.jogamp.newt, com.jogamp.newt.event.*, com.jogamp.newt.opengl" />
+        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames}, ${javadoc.spec.packagenames}, com.jogamp.opengl, com.jogamp.opengl.util.*, com.jogamp.nativewindow, com.jogamp.newt, com.jogamp.newt.event.*, com.jogamp.newt.opengl" />
 
         <property name="javadoc.dev" value="${build}/javadoc_dev" />
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.opengl.impl.*,com.jogamp.nativewindow.impl.*,com.jogamp.newt.*,com.jogamp.gluegen,com.jogamp.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames}, com.jogamp.opengl.*, com.jogamp.nativewindow.*, com.jogamp.newt.*, com.jogamp.gluegen.opengl.*, com.jogamp.gluegen.runtime.opengl.*" />
 
         <property name="java.excludes.javadoc.packagenames" value="com.jogamp.opengl.impl.gl2.fixme.*,com.jogamp.audio.windows.waveout.TestSpatialization"/>
         <property name="javadoc.bottom" value="Copyright 2010 JogAmp Community." />
