@@ -89,7 +89,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
 
     protected void updateGraphicsConfiguration() {
         X11GLXGraphicsConfiguration newConfig = (X11GLXGraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(getRequestedCapabilities(),
+            GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(getRequestedCapabilities().cloneCapabilites(),
                                                                                                          chooser,
                                                                                                          getScreen());
         if(null!=newConfig) {

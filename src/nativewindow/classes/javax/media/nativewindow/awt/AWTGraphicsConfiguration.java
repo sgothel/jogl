@@ -56,14 +56,14 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
   AbstractGraphicsConfiguration encapsulated;
 
   public AWTGraphicsConfiguration(AWTGraphicsScreen screen, 
-                                  Capabilities capsChosen, Capabilities capsRequested,
+                                  CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
                                   GraphicsConfiguration config, AbstractGraphicsConfiguration encapsulated) {
     super(screen, capsChosen, capsRequested);
     this.config = config;
     this.encapsulated=encapsulated;
   }
 
-  public AWTGraphicsConfiguration(AWTGraphicsScreen screen, Capabilities capsChosen, Capabilities capsRequested, GraphicsConfiguration config) {
+  public AWTGraphicsConfiguration(AWTGraphicsScreen screen, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, GraphicsConfiguration config) {
     super(screen, capsChosen, capsRequested);
     this.config = config;
     this.encapsulated=null;
@@ -74,7 +74,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
    *        with the graphics capabilties of the AWT Component to produce the chosen Capabilties.
    *        Otherwise the <code>capsChosen</code> is used.
    */
-  public static AWTGraphicsConfiguration create(Component awtComp, Capabilities capsChosen, Capabilities capsRequested)
+  public static AWTGraphicsConfiguration create(Component awtComp, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested)
   {
       AWTGraphicsScreen awtScreen = null;
       AWTGraphicsDevice awtDevice = null;
@@ -96,9 +96,8 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
       }
 
       if(null==capsChosen) {
-          capsChosen = (Capabilities) capsRequested.clone() ;
           GraphicsConfiguration gc = awtGraphicsDevice.getDefaultConfiguration();
-          setupCapabilitiesRGBABits(capsChosen, gc);
+          capsChosen = setupCapabilitiesRGBABits(capsRequested.cloneCapabilites(), gc);
       }
       return new AWTGraphicsConfiguration(awtScreen, capsChosen, capsRequested, awtGfxConfig);
   }

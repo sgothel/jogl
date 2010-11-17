@@ -127,7 +127,7 @@ public class TestParenting02NEWT extends UITestCase {
         // glWindow1.addGLEventListener(demo1);
 
         glWindow1.setVisible(true);
-        Capabilities capsChosen = glWindow1.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        CapabilitiesImmutable capsChosen = glWindow1.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
         Assert.assertNotNull(capsChosen);
         Assert.assertTrue(capsChosen.isOnscreen()==true);
 

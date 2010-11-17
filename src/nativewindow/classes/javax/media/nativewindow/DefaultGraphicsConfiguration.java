@@ -34,14 +34,16 @@ package javax.media.nativewindow;
 
 public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphicsConfiguration {
     private AbstractGraphicsScreen screen;
-    protected Capabilities capabilitiesChosen;
-    protected Capabilities capabilitiesRequested;
+    protected CapabilitiesImmutable capabilitiesChosen;
+    protected CapabilitiesImmutable capabilitiesRequested;
 
     public DefaultGraphicsConfiguration(AbstractGraphicsScreen screen, 
-                                        Capabilities capsChosen, Capabilities capsRequested) {
+                                        CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested) {
         this.screen = screen;
-        this.capabilitiesChosen = capsChosen;
-        this.capabilitiesRequested = capsRequested;
+
+        // Create "immutable" copies of capabilities.
+        this.capabilitiesChosen = capsChosen.cloneCapabilites();
+        this.capabilitiesRequested = capsRequested.cloneCapabilites();
     }
 
     public Object clone() {
@@ -56,12 +58,12 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
         return screen;
     }
 
-    public Capabilities getChosenCapabilities() {
-        return (null!=capabilitiesChosen)?(Capabilities)capabilitiesChosen.clone():null;
+    public CapabilitiesImmutable getChosenCapabilities() {
+        return capabilitiesChosen;
     }
 
-    public Capabilities getRequestedCapabilities() {
-        return (null!=capabilitiesRequested)?(Capabilities)capabilitiesRequested.clone():null;
+    public CapabilitiesImmutable getRequestedCapabilities() {
+        return capabilitiesRequested;
     }
 
     public AbstractGraphicsConfiguration getNativeGraphicsConfiguration() {
@@ -78,8 +80,9 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
      *
      * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
      */
-    protected void setChosenCapabilities(Capabilities capsChosen) {
-        capabilitiesChosen = (Capabilities) capsChosen.clone();
+    protected void setChosenCapabilities(CapabilitiesImmutable capsChosen) {
+        // Create "immutable" copy of capabilities.
+        capabilitiesChosen = (CapabilitiesImmutable) capsChosen.cloneCapabilites();
     }
 
     /**

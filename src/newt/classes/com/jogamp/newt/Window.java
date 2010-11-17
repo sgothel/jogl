@@ -33,7 +33,7 @@ import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.ScreenModeListener;
 import com.jogamp.newt.impl.Debug;
-import javax.media.nativewindow.Capabilities;
+import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.util.Insets;
@@ -79,11 +79,18 @@ public interface Window extends NativeWindow, ScreenModeListener {
     Screen getScreen();
 
     /**
-     * @return The requested capabilities
+     * Gets an immutable set of requested capabilities.
+     *
+     * @return the requested capabilities
      */
-    Capabilities getRequestedCapabilities();
+    CapabilitiesImmutable getRequestedCapabilities();
 
-    Capabilities getChosenCapabilities();
+    /**
+     * Gets an immutable set of chosen capabilities.
+     * 
+     * @return the chosen capabilities
+     */
+    CapabilitiesImmutable getChosenCapabilities();
 
     /**
      * Destroy the Window and it's children, incl. native destruction.<br>

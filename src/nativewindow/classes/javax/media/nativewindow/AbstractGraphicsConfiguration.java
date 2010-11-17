@@ -52,9 +52,10 @@ public interface AbstractGraphicsConfiguration extends Cloneable {
      * Return the capabilities reflecting this graphics configuration,
      * which may differ from the capabilites used to choose this configuration.
      *
-     * @return A copy of the Capabilities to avoid mutation by the user.
+     * @return An immutable instance of the Capabilities to avoid mutation by
+     * the user.
      */
-    public Capabilities getChosenCapabilities();
+    public CapabilitiesImmutable getChosenCapabilities();
 
     /**
      * Return the capabilities used to choose this graphics configuration.
@@ -62,9 +63,10 @@ public interface AbstractGraphicsConfiguration extends Cloneable {
      * These may be used to reconfigure the NativeWindow in case
      * the device changes in a multi screen environment.
      *
-     * @return A copy of the Capabilities to avoid mutation by the user.
+     * @return An immutable instance of the Capabilities to avoid mutation by
+     * the user.
      */
-    public Capabilities getRequestedCapabilities();
+    public CapabilitiesImmutable getRequestedCapabilities();
 
     /**
      * In case this instance already reflects a native configuration,

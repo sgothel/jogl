@@ -83,7 +83,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
 
     protected void updateGraphicsConfiguration() {
         EGLGraphicsConfiguration newConfig = (EGLGraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(getRequestedCapabilities(),
+            GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(getRequestedCapabilities().cloneCapabilites(),
                                                                                                          chooser,
                                                                                                          getScreen());
         if(null!=newConfig) {
