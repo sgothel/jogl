@@ -33,7 +33,6 @@ import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.AfterClass;
 
-import java.lang.reflect.InvocationTargetException;
 
 public abstract class UITestCase {
 

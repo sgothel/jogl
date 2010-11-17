@@ -29,29 +29,19 @@
 package com.jogamp.test.junit.newt.parenting;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 
 import java.awt.Button;
 import java.awt.BorderLayout;
-import java.awt.Canvas;
 import java.awt.Container;
-import java.awt.Frame;
-import java.awt.Dimension;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import javax.media.opengl.*;
-import javax.media.nativewindow.*;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.*;
@@ -63,7 +53,6 @@ import java.io.IOException;
 
 import com.jogamp.test.junit.util.*;
 import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
-import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
 public class TestParenting01cSwingAWT extends UITestCase {
     static int width, height;

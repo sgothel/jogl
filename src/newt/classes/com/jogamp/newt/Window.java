@@ -37,7 +37,6 @@ import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.util.Insets;
-import javax.media.nativewindow.util.Point;
 
 /**
  * Specifying the public Window functionality for the
