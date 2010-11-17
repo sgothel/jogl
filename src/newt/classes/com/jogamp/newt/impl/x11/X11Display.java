@@ -86,10 +86,10 @@ public class X11Display extends DisplayImpl {
     }
 
     protected void dispatchMessagesNative() {
-        if(0==getHandle()) {
-            throw new RuntimeException("display handle null");
+        long dpy = getHandle();
+        if(0!=dpy) {
+            DispatchMessages0(dpy, javaObjectAtom, windowDeleteAtom);
         }
-        DispatchMessages0(getHandle(), javaObjectAtom, windowDeleteAtom);
     }
 
     protected long getJavaObjectAtom() { return javaObjectAtom; }

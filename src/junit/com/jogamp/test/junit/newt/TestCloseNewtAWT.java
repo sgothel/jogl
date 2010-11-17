@@ -30,16 +30,20 @@ package com.jogamp.test.junit.newt;
 
 import org.junit.Test;
 
+import java.lang.reflect.InvocationTargetException;
+import java.awt.EventQueue;
+import java.awt.Toolkit;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-import java.awt.EventQueue;
-import java.lang.reflect.InvocationTargetException;
 
+import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.awt.NewtCanvasAWT;
+import com.jogamp.newt.event.WindowAdapter;
+import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.test.junit.util.UITestCase;
 
@@ -71,8 +75,13 @@ public class TestCloseNewtAWT extends UITestCase {
                                        ", holds AWTTreeLock: "+Thread.holdsLock(MyCanvas.this.getTreeLock()));
 
                     // Critical: Within NEWT EDT, while AWT is locked
-                    Point p = MyCanvas.this.getNativeWindow().getLocationOnScreen(null);
-                    System.err.println("MyCanvas On NEWT-EDT: position: "+p);
+                    NativeWindow nw = MyCanvas.this.getNativeWindow();
+                    if(null != nw) {
+                        Point p = nw.getLocationOnScreen(null);
+                        System.err.println("MyCanvas On NEWT-EDT: position: "+p);
+                    } else {
+                        System.err.println("MyCanvas On NEWT-EDT: position n/a, null NativeWindow");
+                    }
                 }
             });
             System.err.println("MyCanvas passed critical: "+Thread.currentThread()+", holds AWTTreeLock: "+Thread.holdsLock(this.getTreeLock()));
@@ -83,14 +92,29 @@ public class TestCloseNewtAWT extends UITestCase {
          }
     }
 
+    class NEWTWindowClosingAdapter extends WindowAdapter {
+        public void windowDestroyNotify(WindowEvent e) {
+            System.err.println("Destroy NEWT: windowDestroyNotify "+Thread.currentThread() + ", "+ e);
+        }
+    }
+
+    class AWTClosingWindowAdapter extends java.awt.event.WindowAdapter {
+        public void windowClosing(WindowEvent ev) {
+                System.err.println("Destroy AWT: windowClosing "+Thread.currentThread() + ", "+ ev);
+        }
+    }
+
+
     @Test
     public void testCloseNewtAWT() throws InterruptedException, InvocationTargetException {
         newtWindow = GLWindow.create(new GLCapabilities(GLProfile.getDefault()));
+        newtWindow.addWindowListener(new NEWTWindowClosingAdapter());
         newtCanvas = new MyCanvas(newtWindow);
 
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 frame = new JFrame("NEWT Close Test");
+                frame.addWindowListener(new AWTClosingWindowAdapter());
                 frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 frame.getContentPane().add(newtCanvas);
                 frame.pack();
@@ -100,12 +124,11 @@ public class TestCloseNewtAWT extends UITestCase {
         });
         Thread.sleep(1000);
 
-        // programatically close window
-        EventQueue.invokeAndWait(new Runnable() {
-            public void run() {
-                frame.dispose();
-            }
-        });
+        // programatically issue windowClosing
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        EventQueue evtQ = tk.getSystemEventQueue();
+        evtQ.postEvent(new java.awt.event.WindowEvent(frame, java.awt.event.WindowEvent.WINDOW_CLOSING));
+        Thread.sleep(200);            
 
         GLProfile.shutdown();
     }
