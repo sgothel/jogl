@@ -40,13 +40,23 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
-import java.nio.*;
-import java.util.*;
-import javax.media.opengl.*;
-import javax.media.nativewindow.*;
-import com.jogamp.opengl.impl.*;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLException;
+
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
+import com.jogamp.nativewindow.impl.windows.GDI;
+import com.jogamp.opengl.impl.GLContextImpl;
+import com.jogamp.opengl.impl.GLContextShareSet;
+import com.jogamp.opengl.impl.GLDrawableImpl;
+
 
 public class WindowsWGLContext extends GLContextImpl {
   private static final Map/*<String, String>*/ functionNameMap;
@@ -86,7 +96,7 @@ public class WindowsWGLContext extends GLContextImpl {
     wglGetExtensionsStringEXTAvailable=false;
     wglMakeContextCurrentInitialized=false;
     wglMakeContextCurrentAvailable=false;
-    // no inner state wglExt=null;
+    // no inner state _wglExt=null;
     wglExtProcAddressTable=null;
   }
   
@@ -102,7 +112,7 @@ public class WindowsWGLContext extends GLContextImpl {
   }
 
   public boolean wglMakeContextCurrent(long hDrawDC, long hReadDC, long ctx) {
-    WGLExt wglExt = getWGLExt();
+    WGLExt _wglExt = getWGLExt();
     if (!wglMakeContextCurrentInitialized) {
       wglMakeContextCurrentAvailable = isFunctionAvailable("wglMakeContextCurrent");
       wglMakeContextCurrentInitialized = true;
@@ -111,7 +121,7 @@ public class WindowsWGLContext extends GLContextImpl {
       }
     }
     if(wglMakeContextCurrentAvailable) {
-        return wglExt.wglMakeContextCurrent(hDrawDC, hReadDC, ctx);
+        return _wglExt.wglMakeContextCurrent(hDrawDC, hReadDC, ctx);
     }
     return WGL.wglMakeCurrent(hDrawDC, ctx);
   }

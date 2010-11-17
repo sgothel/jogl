@@ -34,6 +34,7 @@
 
 package com.jogamp.newt.impl.windows;
 
+import com.jogamp.nativewindow.impl.windows.GDI;
 import javax.media.nativewindow.*;
 import com.jogamp.newt.impl.WindowImpl;
 import javax.media.nativewindow.util.Insets;
@@ -168,7 +169,7 @@ public class WindowsWindow extends WindowImpl {
     }
 
     protected Point getLocationOnScreenImpl(int x, int y) {
-        return (Point) getRelativeLocation0( getWindowHandle(), 0 /*root win*/, x, y);
+        return (Point) GDI.GetRelativeLocation( getWindowHandle(), 0 /*root win*/, x, y);
     }
 
     //----------------------------------------------------------------------
@@ -190,7 +191,6 @@ public class WindowsWindow extends WindowImpl {
                                                   boolean parentChange, int fullScreenChange, int decorationChange);
     private static native void setTitle0(long windowHandle, String title);
     private native void requestFocus0(long windowHandle, boolean force);
-    private native Object getRelativeLocation0(long src_win, long dest_win, int src_x, int src_y);
 
     private void insetsChanged(int left, int top, int right, int bottom) {
         if (left != -1 && top != -1 && right != -1 && bottom != -1) {

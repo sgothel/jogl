@@ -40,9 +40,14 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
-import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLProfile;
+
 import com.jogamp.nativewindow.impl.ProxySurface;
+import com.jogamp.nativewindow.impl.windows.GDI;
+import com.jogamp.nativewindow.impl.windows.PIXELFORMATDESCRIPTOR;
 
 public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
   private long hwnd, hdc;

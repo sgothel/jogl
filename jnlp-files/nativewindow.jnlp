@@ -19,48 +19,51 @@
     </resources>
 
     <resources os="Windows" arch="x86">
+      <jar href="nativewindow.os.windows.jar" main="true" />
       <nativelib href = "nativewindow-natives-windows-i586.jar" />
     </resources>
     <resources os="Windows" arch="amd64">
+      <jar href="nativewindow.os.windows.jar" main="true" />
       <nativelib href = "nativewindow-natives-windows-amd64.jar" />
     </resources>
     <resources os="Windows" arch="x86_64">
+      <jar href="nativewindow.os.windows.jar" main="true" />
       <nativelib href = "nativewindow-natives-windows-amd64.jar" />
     </resources>
     <resources os="SunOS" arch="sparc">
-      <jar href="nativewindow.x11.jar" main="true" />
+      <jar href="nativewindow.os.x11.jar" main="true" />
       <nativelib href = "nativewindow-natives-solaris-sparc.jar" />
     </resources>
     <resources os="SunOS" arch="sparcv9">
-      <jar href="nativewindow.x11.jar" main="true" />
+      <jar href="nativewindow.os.x11.jar" main="true" />
       <nativelib href = "nativewindow-natives-solaris-sparcv9.jar" />
     </resources>
     <resources os="SunOS" arch="x86">
-      <jar href="nativewindow.x11.jar" main="true" />
+      <jar href="nativewindow.os.x11.jar" main="true" />
       <nativelib href = "nativewindow-natives-solaris-i586.jar" />
     </resources>
     <resources os="SunOS" arch="amd64">
-      <jar href="nativewindow.x11.jar" main="true" />
+      <jar href="nativewindow.os.x11.jar" main="true" />
       <nativelib href = "nativewindow-natives-solaris-amd64.jar" />
     </resources>
     <resources os="SunOS" arch="x86_64">
-      <jar href="nativewindow.x11.jar" main="true" />
+      <jar href="nativewindow.os.x11.jar" main="true" />
       <nativelib href = "nativewindow-natives-solaris-amd64.jar" />
     </resources>
     <resources os="Linux" arch="i386">
-      <jar href="nativewindow.x11.jar" main="true" />
+      <jar href="nativewindow.os.x11.jar" main="true" />
       <nativelib href = "nativewindow-natives-linux-i586.jar" />
     </resources>
     <resources os="Linux" arch="x86">
-      <jar href="nativewindow.x11.jar" main="true" />
+      <jar href="nativewindow.os.x11.jar" main="true" />
       <nativelib href = "nativewindow-natives-linux-i586.jar" />
     </resources>
     <resources os="Linux" arch="amd64">
-      <jar href="nativewindow.x11.jar" main="true" />
+      <jar href="nativewindow.os.x11.jar" main="true" />
       <nativelib href = "nativewindow-natives-linux-amd64.jar" />
     </resources>
     <resources os="Linux" arch="x86_64">
-      <jar href="nativewindow.x11.jar" main="true" />
+      <jar href="nativewindow.os.x11.jar" main="true" />
       <nativelib href = "nativewindow-natives-linux-amd64.jar" />
     </resources>
     <resources os="Mac OS X" arch="i386">

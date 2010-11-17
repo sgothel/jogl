@@ -81,6 +81,9 @@
         <property name="java.part.x11"
                   value="com/jogamp/nativewindow/impl/x11/** javax/media/nativewindow/x11/*" />
 
+        <property name="java.part.windows"
+                  value="com/jogamp/nativewindow/impl/windows/** javax/media/nativewindow/windows/*" />
+
         <!-- condition excludes -->
 
         <condition property="java.excludes.awt"
@@ -231,7 +234,7 @@
         </gluegen>
         <copy todir="${src.generated.java-cdc}">
             <fileset dir="${src.generated.java}"
-                     includes="com/jogamp/nativewindow/impl/x11/**" />
+                     includes="com/jogamp/nativewindow/impl/x11/** com/jogamp/nativewindow/impl/windows/**" />
         </copy>
     </target>
 
@@ -286,6 +289,7 @@
         <echo message="Generating platform-specifics: Win32" />
         <antcall target="java.generate.platforms" inheritRefs="true">
             <param name="window.os.system"                       value="win32"/>
+            <param name="windowlib.os.cfg"                       value="${config.nativewindow}/win32-lib.cfg" />
             <param name="jawt.cfg"                               value="${config.nativewindow}/jawt-win32.cfg" />
             <param name="jawt.platform.header"                   value="${stub.includes}/jni/win32/jawt_md.h" />
         </antcall>          
@@ -406,7 +410,7 @@
       <linker id="linker.cfg.win32.msvc.nativewindow" extends="linker.cfg.win32.msvc">
         <syslibset libs="gdi32, user32, kernel32" />
       </linker>
-
+      
       <linker id="linker.cfg.macosx.nativewindow" extends="linker.cfg.macosx">
         <linkerarg value="-framework" />
         <linkerarg value="Cocoa" />
@@ -561,6 +565,11 @@
           <include name="${rootrel.src.c}/x11/XineramaHelper.c" if="isX11"/>
         </patternset>
 
+        <patternset id="c.src.files.windows">
+          <include name="${rootrel.generated.c}/Windows/GDI*.c" if="isWindows"/>
+          <include name="${rootrel.src.c}/windows/GDImisc.c"    if="isWindows"/>
+        </patternset>
+
         <echo message="Compiling @{output.lib.name}" />
 
         <cc outtype="shared" 
@@ -641,11 +650,20 @@
                linker.cfg.id="${linker.cfg.id.oswin}"/>
     </target>
 
-    <target name="c.build.nativewindow.windowlib" depends="c.build.nativewindow.windowlib.x11"/>
+    <target name="c.build.nativewindow.windowlib.windows" if="isWindows">
+      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="com.jogamp.nativewindow.impl.windows.GDI" />
+
+      <c.build c.compiler.src.files="c.src.files.windows"
+               output.lib.name="nativewindow_win32"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.oswin}"/>
+    </target>
+    <target name="c.build.nativewindow.windowlib" depends="c.build.nativewindow.windowlib.x11, c.build.nativewindow.windowlib.windows"/>
 
     <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
       <msvc.manifest objdir="${obj.nativewindow}" dllname="nativewindow_awt" />
+      <msvc.manifest objdir="${obj.nativewindow}" dllname="nativewindow_win32" />
     </target>
 
     <target name="c.build.nativewindow" depends="c.configure,c.build.nativewindow.windowlib,c.build.nativewindow.awt">
@@ -712,6 +730,19 @@
         </jar>
     </target>
 
+    <target name="build-jars-windows" depends="setup-manifestfile">
+        <jar manifest="tempversion" destfile="${nativewindow.os.windows.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.windows}" />
+        </jar>
+    </target>
+    <target name="build-jars-windows-cdc" depends="setup-manifestfile-cdc">
+        <jar manifest="tempversion-cdc" destfile="${nativewindow.os.windows.cdc.jar}" filesonly="true">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.windows}" />
+        </jar>
+    </target>
+
     <target name="build-jars-all" depends="setup-manifestfile" unless="setup.noAWT">
         <jar manifest="tempversion" destfile="${nativewindow.all.jar}" filesonly="true">
             <fileset dir="${classes}"
@@ -732,11 +763,11 @@
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-all,build-jars-all-noawt">
+    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-windows,build-jars-all,build-jars-all-noawt">
         <jar manifest="tempversion" destfile="${nativewindow.core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
-                     excludes="${java.part.awt} ${java.part.x11}"/>
+                     excludes="${java.part.awt} ${java.part.x11} ${java.part.windows}"/>
         </jar>
         <jar manifest="tempversion" destfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}.jar" filesonly="true">
             <fileset dir="${obj.nativewindow}">
@@ -746,11 +777,11 @@
         <delete file="tempversion"/>
     </target>
 
-    <target name="build-jars-cdc" depends="setup-manifestfile-cdc,build-jars-x11-cdc,build-jars-all-cdc">
+    <target name="build-jars-cdc" depends="setup-manifestfile-cdc,build-jars-x11-cdc,build-jars-windows-cdc,build-jars-all-cdc">
         <jar manifest="tempversion-cdc" destfile="${nativewindow.core.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.core}"
-                     excludes="${java.part.awt} ${java.part.x11}"/>
+                     excludes="${java.part.awt} ${java.part.x11} ${java.part.windows}"/>
         </jar>
         <jar manifest="tempversion-cdc" destfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}-cdc.jar" filesonly="true">
             <fileset dir="${obj.nativewindow}">

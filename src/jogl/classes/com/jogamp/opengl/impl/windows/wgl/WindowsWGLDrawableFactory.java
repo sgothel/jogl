@@ -40,19 +40,39 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
-import java.nio.*;
-import java.util.*;
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
-import com.jogamp.common.JogampRuntimeException;
-import com.jogamp.common.util.*;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.ProxySurface;
+import java.nio.Buffer;
+import java.nio.ShortBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.DefaultGraphicsScreen;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.windows.WindowsGraphicsDevice;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+
+import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.nativewindow.impl.ProxySurface;
+import com.jogamp.nativewindow.impl.windows.GDI;
+import com.jogamp.opengl.impl.Debug;
+import com.jogamp.opengl.impl.DesktopGLDynamicLookupHelper;
+import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
+import com.jogamp.opengl.impl.GLDrawableImpl;
+import com.jogamp.opengl.impl.GLDynamicLookupHelper;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
-  private static final boolean VERBOSE = Debug.verbose();
-
   private static final DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper;
 
   static {

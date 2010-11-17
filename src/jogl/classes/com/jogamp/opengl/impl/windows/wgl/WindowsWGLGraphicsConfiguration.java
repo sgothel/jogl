@@ -33,9 +33,22 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.DefaultGraphicsConfiguration;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.opengl.DefaultGLCapabilitiesChooser;
+import javax.media.opengl.GL;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLPbuffer;
+import javax.media.opengl.GLProfile;
+
+import com.jogamp.nativewindow.impl.windows.GDI;
+import com.jogamp.nativewindow.impl.windows.PIXELFORMATDESCRIPTOR;
+import com.jogamp.opengl.impl.GLContextImpl;
 
 public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
     // Keep this under the same debug flag as the drawable factory for convenience

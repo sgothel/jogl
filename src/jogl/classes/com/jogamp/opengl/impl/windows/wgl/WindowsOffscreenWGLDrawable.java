@@ -40,9 +40,16 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
-import javax.media.opengl.*;
-import javax.media.nativewindow.*;
-import com.jogamp.opengl.impl.*;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+
+import com.jogamp.nativewindow.impl.windows.BITMAPINFO;
+import com.jogamp.nativewindow.impl.windows.BITMAPINFOHEADER;
+import com.jogamp.nativewindow.impl.windows.GDI;
 
 public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   private long origbitmap;

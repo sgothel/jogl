@@ -274,6 +274,7 @@
         <property name="nativewindow.core.jar"         value="${build.nativewindow}/nativewindow.core.jar" />
         <property name="nativewindow.awt.jar"          value="${build.nativewindow}/nativewindow.awt.jar"  />
         <property name="nativewindow.os.x11.jar"       value="${build.nativewindow}/nativewindow.os.x11.jar"  />
+        <property name="nativewindow.os.windows.jar"   value="${build.nativewindow}/nativewindow.os.windows.jar"  />
         
         <property name="jogl.core.jar"                  value="${build.jogl}/jogl.core.jar" />
         <property name="jogl.cg.jar"                    value="${build.jogl}/jogl.cg.jar" />
@@ -312,8 +313,9 @@
         <property name="newt.intelgdl.jar"              value="${build.newt}/newt.intelgdl.jar" />
 
         <!-- Atomic CDC JARS -->
-        <property name="nativewindow.core.cdc.jar"      value="${build.nativewindow}/nativewindow.core.cdc.jar" />
-        <property name="nativewindow.os.x11.cdc.jar"    value="${build.nativewindow}/nativewindow.os.x11.cdc.jar"  />
+        <property name="nativewindow.core.cdc.jar"       value="${build.nativewindow}/nativewindow.core.cdc.jar" />
+        <property name="nativewindow.os.x11.cdc.jar"     value="${build.nativewindow}/nativewindow.os.x11.cdc.jar"  />
+        <property name="nativewindow.os.windows.cdc.jar" value="${build.nativewindow}/nativewindow.os.windows.cdc.jar"  />
 
         <property name="jogl.core.cdc.jar"              value="${build.jogl}/jogl.core.cdc.jar" />
         <property name="jogl.gles1.cdc.jar"             value="${build.jogl}/jogl.gles1.cdc.jar" />

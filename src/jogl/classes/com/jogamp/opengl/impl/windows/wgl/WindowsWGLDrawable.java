@@ -40,22 +40,22 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
-import java.security.*;
+import java.security.AccessController;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+
+import com.jogamp.nativewindow.impl.windows.GDI;
+import com.jogamp.opengl.impl.Debug;
+import com.jogamp.opengl.impl.GLDrawableImpl;
+import com.jogamp.opengl.impl.GLDynamicLookupHelper;
+
 
 public abstract class WindowsWGLDrawable extends GLDrawableImpl {
-  private static final int MAX_SET_PIXEL_FORMAT_FAIL_COUNT = 5;
   private static final boolean PROFILING = Debug.isPropertyDefined("jogl.debug.GLDrawable.profiling", true, AccessController.getContext());
   private static final int PROFILING_TICKS = 200;
-  private int  profilingLockSurfaceTicks;
-  private long profilingLockSurfaceTime;
-  private int  profilingUnlockSurfaceTicks;
-  private long profilingUnlockSurfaceTime;
   private int  profilingSwapBuffersTicks;
   private long profilingSwapBuffersTime;
-
 
   public WindowsWGLDrawable(GLDrawableFactory factory, NativeSurface comp, boolean realized) {
     super(factory, comp, realized);

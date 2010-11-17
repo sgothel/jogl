@@ -724,7 +724,6 @@
 
         <antcall target="java.generate.gl.platforms" inheritRefs="true">
             <param name="window.os.system"                       value="win32"/>
-            <param name="window.os0.cfg"                         value="${config.jogl}/gdi-win32.cfg" />
             <param name="window.os1.cfg"                         value="${config.jogl}/wgl-win32.cfg" />
             <param name="glext.platform.cfg"                     value="${config.jogl}/wglext.cfg" />
             <param name="glext.platform.header"                  value="${stub.includes}/win32/wglext.c" />

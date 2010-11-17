@@ -33,12 +33,24 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.windows.*;
-import com.jogamp.nativewindow.impl.*;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.Capabilities;
+import javax.media.nativewindow.CapabilitiesChooser;
+import javax.media.nativewindow.DefaultGraphicsScreen;
+import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
 
-import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
+import com.jogamp.nativewindow.impl.windows.GDI;
+import com.jogamp.nativewindow.impl.windows.PIXELFORMATDESCRIPTOR;
 
 /** Subclass of GraphicsConfigurationFactory used when non-AWT tookits
     are used on Windows platforms. Toolkits will likely need to delegate

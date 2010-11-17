@@ -40,10 +40,19 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
-import javax.media.opengl.*;
-import javax.media.nativewindow.*;
-import com.jogamp.opengl.impl.*;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.DefaultGraphicsScreen;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+
 import com.jogamp.nativewindow.impl.ProxySurface;
+import com.jogamp.nativewindow.impl.windows.GDI;
+import com.jogamp.opengl.impl.GLContextShareSet;
+
 
 public class WindowsExternalWGLContext extends WindowsWGLContext {
   private boolean firstMakeCurrent = true;

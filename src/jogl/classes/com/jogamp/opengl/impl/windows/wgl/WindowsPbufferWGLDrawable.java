@@ -40,12 +40,20 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
-import javax.media.opengl.*;
-import javax.media.nativewindow.*;
-import com.jogamp.opengl.impl.*;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.opengl.GL;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLPbuffer;
+import javax.media.opengl.GLProfile;
+
+import com.jogamp.nativewindow.impl.windows.GDI;
+import com.jogamp.nativewindow.impl.windows.PIXELFORMATDESCRIPTOR;
 
 public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
-  private long cachedParentHdc;
   private WGLExt cachedWGLExt; // cached WGLExt instance from parent GLCanvas,
                                // needed to destroy pbuffer
   private long buffer; // pbuffer handle
@@ -270,8 +278,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     // Set up instance variables
     buffer = tmpBuffer;
     ((SurfaceChangeable)ns).setSurfaceHandle(tmpHdc);
-    cachedWGLExt = wglExt;
-    cachedParentHdc = parentHdc;
+    cachedWGLExt = wglExt;   
 
     // Re-query chosen pixel format
     {

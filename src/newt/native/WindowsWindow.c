@@ -118,13 +118,6 @@
 
 #define STD_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
 
-static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
-static const char * const ClazzAnyCstrName = "<init>";
-static const char * const ClazzNamePointCstrSignature = "(II)V";
-
-static jclass pointClz = NULL;
-static jmethodID pointCstr = NULL;
-
 static jmethodID insetsChangedID = NULL;
 static jmethodID sizeChangedID = NULL;
 static jmethodID positionChangedID = NULL;
@@ -1333,23 +1326,6 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_initI
 {
     NewtCommon_init(env);
 
-    if(NULL==pointClz) {
-        jclass c = (*env)->FindClass(env, ClazzNamePoint);
-        if(NULL==c) {
-            NewtCommon_FatalError(env, "NEWT WindowsWindows: can't find %s", ClazzNamePoint);
-        }
-        pointClz = (jclass)(*env)->NewGlobalRef(env, c);
-        (*env)->DeleteLocalRef(env, c);
-        if(NULL==pointClz) {
-            NewtCommon_FatalError(env, "NEWT WindowsWindows: can't use %s", ClazzNamePoint);
-        }
-        pointCstr = (*env)->GetMethodID(env, pointClz, ClazzAnyCstrName, ClazzNamePointCstrSignature);
-        if(NULL==pointCstr) {
-            NewtCommon_FatalError(env, "NEWT WindowsWindows: can't fetch %s.%s %s",
-                ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
-        }
-    }
-
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(IIII)V");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(IIZ)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
@@ -1708,24 +1684,4 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_requestFo
     NewtWindows_requestFocus ( env, obj, (HWND) (intptr_t) window, force) ;
 }
 
-/*
- * Class:     com_jogamp_newt_impl_windows_WindowsWindows
- * Method:    getRelativeLocation0
- * Signature: (JJII)Ljavax/media/nativewindow/util/Point;
- */
-JNIEXPORT jobject JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_getRelativeLocation0
-  (JNIEnv *env, jobject obj, jlong jsrc_win, jlong jdest_win, jint src_x, jint src_y)
-{
-    HWND src_win = (HWND) (intptr_t) jsrc_win;
-    HWND dest_win = (HWND) (intptr_t) jdest_win;
-    POINT dest = { src_x, src_y } ;
-    int res;
-
-    res = MapWindowPoints(src_win, dest_win, &dest, 1);
-
-    DBG_PRINT("*** WindowsWindow: getRelativeLocation0: %p %d/%d -> %p %d/%d - ok: %d\n",
-        (void*)src_win, src_x, src_y, (void*)dest_win, (int)dest.x, (int)dest.y, res);
-
-    return (*env)->NewObject(env, pointClz, pointCstr, (jint)dest.x, (jint)dest.y);
-}
 
