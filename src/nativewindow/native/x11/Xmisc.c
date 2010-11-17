@@ -85,14 +85,9 @@ Bool XF86VidModeSetGammaRamp(
 // #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
-    // Workaround for ancient compiler on Solaris/SPARC
     #define DBG_PRINT(args...) fprintf(stderr, args);
-
 #else
-
-    // Workaround for ancient compiler on Solaris/SPARC
     #define DBG_PRINT(args...)
-
 #endif
 
 /* Need to pull this in as we don't have a stub header for it */
@@ -116,10 +111,15 @@ static const char * const ClazzNameBuffersStaticCstrName = "copyByteBuffer";
 static const char * const ClazzNameBuffersStaticCstrSignature = "(Ljava/nio/ByteBuffer;)Ljava/nio/ByteBuffer;";
 static const char * const ClazzNameByteBuffer = "java/nio/ByteBuffer";
 static const char * const ClazzNameRuntimeException = "java/lang/RuntimeException";
+static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
+static const char * const ClazzAnyCstrName = "<init>";
+static const char * const ClazzNamePointCstrSignature = "(II)V";
 static jclass clazzBuffers = NULL;
 static jmethodID cstrBuffers = NULL;
 static jclass clazzByteBuffer = NULL;
 static jclass clazzRuntimeException=NULL;
+static jclass pointClz = NULL;
+static jmethodID pointCstr = NULL;
 
 static void _initClazzAccess(JNIEnv *env) {
     jclass c;
@@ -128,38 +128,53 @@ static void _initClazzAccess(JNIEnv *env) {
 
     c = (*env)->FindClass(env, ClazzNameRuntimeException);
     if(NULL==c) {
-        _FatalError(env, "Nativewindow X11Lib: can't find %s", ClazzNameRuntimeException);
+        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNameRuntimeException);
     }
     clazzRuntimeException = (jclass)(*env)->NewGlobalRef(env, c);
     (*env)->DeleteLocalRef(env, c);
     if(NULL==clazzRuntimeException) {
-        _FatalError(env, "FatalError: NEWT X11Window: can't use %s", ClazzNameRuntimeException);
+        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameRuntimeException);
     }
 
     c = (*env)->FindClass(env, ClazzNameBuffers);
     if(NULL==c) {
-        _FatalError(env, "FatalError: Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNameBuffers);
+        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNameBuffers);
     }
     clazzBuffers = (jclass)(*env)->NewGlobalRef(env, c);
     (*env)->DeleteLocalRef(env, c);
     if(NULL==clazzBuffers) {
-        _FatalError(env, "FatalError: Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameBuffers);
+        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameBuffers);
     }
     c = (*env)->FindClass(env, ClazzNameByteBuffer);
     if(NULL==c) {
-        _FatalError(env, "FatalError: Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNameByteBuffer);
+        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNameByteBuffer);
     }
     clazzByteBuffer = (jclass)(*env)->NewGlobalRef(env, c);
     (*env)->DeleteLocalRef(env, c);
     if(NULL==c) {
-        _FatalError(env, "FatalError: Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameByteBuffer);
+        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameByteBuffer);
     }
 
     cstrBuffers = (*env)->GetStaticMethodID(env, clazzBuffers, 
                             ClazzNameBuffersStaticCstrName, ClazzNameBuffersStaticCstrSignature);
     if(NULL==cstrBuffers) {
-        _FatalError(env, "FatalError: Java_com_jogamp_nativewindow_impl_x11_X11Lib:: can't create %s.%s %s",
+        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't create %s.%s %s",
             ClazzNameBuffers, ClazzNameBuffersStaticCstrName, ClazzNameBuffersStaticCstrSignature);
+    }
+
+    c = (*env)->FindClass(env, ClazzNamePoint);
+    if(NULL==c) {
+        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNamePoint);
+    }
+    pointClz = (jclass)(*env)->NewGlobalRef(env, c);
+    (*env)->DeleteLocalRef(env, c);
+    if(NULL==pointClz) {
+        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNamePoint);
+    }
+    pointCstr = (*env)->GetMethodID(env, pointClz, ClazzAnyCstrName, ClazzNamePointCstrSignature);
+    if(NULL==pointCstr) {
+        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't fetch %s.%s %s",
+            ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
     }
 }
 
@@ -386,7 +401,7 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XCloseDisplay__J(JNIEnv *env, jclas
  * Signature: (JIJ)J
  */
 JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummyWindow
-  (JNIEnv *env, jobject obj, jlong display, jint screen_index, jlong visualID)
+  (JNIEnv *env, jclass unused, jlong display, jint screen_index, jlong visualID)
 {
     Display * dpy  = (Display *)(intptr_t)display;
     int       scrn_idx = (int)screen_index;
@@ -495,7 +510,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_DestroyDummyWindow
-  (JNIEnv *env, jobject obj, jlong display, jlong window)
+  (JNIEnv *env, jclass unused, jlong display, jlong window)
 {
     Display * dpy = (Display *)(intptr_t)display;
     Window      w = (Window) window;
@@ -510,5 +525,38 @@ JNIEXPORT void JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_DestroyDummy
     XSync(dpy, False);
     XDestroyWindow(dpy, w);
     x11ErrorHandlerEnable(dpy, 0, env);
+}
+
+/*
+ * Class:     com_jogamp_nativewindow_impl_x11_X11Lib
+ * Method:    GetRelativeLocation
+ * Signature: (JIJJII)Ljavax/media/nativewindow/util/Point;
+ */
+JNIEXPORT jobject JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_GetRelativeLocation0
+  (JNIEnv *env, jclass unused, jlong jdisplay, jint screen_index, jlong jsrc_win, jlong jdest_win, jint src_x, jint src_y)
+{
+    Display * dpy = (Display *) (intptr_t) jdisplay;
+    Screen * scrn = ScreenOfDisplay(dpy, (int)screen_index);
+    Window root = XRootWindowOfScreen(scrn);
+    Window src_win = (Window)jsrc_win;
+    Window dest_win = (Window)jdest_win;
+    int dest_x=-1;
+    int dest_y=-1;
+    Window child;
+    Bool res;
+
+    if( 0 == jdest_win ) { dest_win = root; }
+    if( 0 == jsrc_win ) { src_win = root; }
+
+    x11ErrorHandlerEnable(dpy, 1, env);
+
+    res = XTranslateCoordinates(dpy, src_win, dest_win, src_x, src_y, &dest_x, &dest_y, &child);
+
+    x11ErrorHandlerEnable(dpy, 0, env);
+
+    DBG_PRINT( "X11: GetRelativeLocation0: %p %d/%d -> %p %d/%d - ok: %d\n",
+        (void*)src_win, src_x, src_y, (void*)dest_win, dest_x, dest_y, (int)res);
+
+    return (*env)->NewObject(env, pointClz, pointCstr, (jint)dest_x, (jint)dest_y);
 }
 

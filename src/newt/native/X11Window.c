@@ -140,14 +140,7 @@ static jint X11KeySym2NewtVKey(KeySym keySym) {
 
 static const char * const ClazzNameNewtWindow = "com/jogamp/newt/Window";
 
-static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
-static const char * const ClazzAnyCstrName = "<init>";
-static const char * const ClazzNamePointCstrSignature = "(II)V";
-
 static jclass    newtWindowClz=NULL;
-
-static jclass pointClz = NULL;
-static jmethodID pointCstr = NULL;
 
 static jmethodID sizeChangedID = NULL;
 static jmethodID positionChangedID = NULL;
@@ -233,22 +226,6 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Display_initIDs0
         }
     }
 
-    if(NULL==pointClz) {
-        c = (*env)->FindClass(env, ClazzNamePoint);
-        if(NULL==c) {
-            NewtCommon_FatalError(env, "NEWT X11Windows: can't find %s", ClazzNamePoint);
-        }
-        pointClz = (jclass)(*env)->NewGlobalRef(env, c);
-        (*env)->DeleteLocalRef(env, c);
-        if(NULL==pointClz) {
-            NewtCommon_FatalError(env, "NEWT X11Windows: can't use %s", ClazzNamePoint);
-        }
-        pointCstr = (*env)->GetMethodID(env, pointClz, ClazzAnyCstrName, ClazzNamePointCstrSignature);
-        if(NULL==pointCstr) {
-            NewtCommon_FatalError(env, "NEWT X11Windows: can't fetch %s.%s %s",
-                ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
-        }
-    }
     return JNI_TRUE;
 }
 
@@ -1594,40 +1571,5 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setTitle0
         }
     }
 #endif
-}
-
-
-
-/*
- * Class:     com_jogamp_newt_impl_x11_X11Window
- * Method:    getRelativeLocation0
- * Signature: (JIJJII)Ljavax/media/nativewindow/util/Point;
- */
-JNIEXPORT jobject JNICALL Java_com_jogamp_newt_impl_x11_X11Window_getRelativeLocation0
-  (JNIEnv *env, jobject obj, jlong jdisplay, jint screen_index, jlong jsrc_win, jlong jdest_win, jint src_x, jint src_y)
-{
-    Display * dpy = (Display *) (intptr_t) jdisplay;
-    Screen * scrn = ScreenOfDisplay(dpy, (int)screen_index);
-    Window root = XRootWindowOfScreen(scrn);
-    Window src_win = (Window)jsrc_win;
-    Window dest_win = (Window)jdest_win;
-    int dest_x=-1;
-    int dest_y=-1;
-    Window child;
-    Bool res;
-
-    if( 0 == jdest_win ) { dest_win = root; }
-    if( 0 == jsrc_win ) { src_win = root; }
-
-    displayDispatchErrorHandlerEnable(1, env);
-
-    res = XTranslateCoordinates(dpy, src_win, dest_win, src_x, src_y, &dest_x, &dest_y, &child);
-
-    displayDispatchErrorHandlerEnable(0, env);
-
-    DBG_PRINT( "X11: getRelativeLocation0: %p %d/%d -> %p %d/%d - ok: %d\n",
-        (void*)src_win, src_x, src_y, (void*)dest_win, dest_x, dest_y, (int)res);
-
-    return (*env)->NewObject(env, pointClz, pointCstr, (jint)dest_x, (jint)dest_y);
 }
 

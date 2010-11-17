@@ -29,6 +29,11 @@
   public static native long CreateDummyWindow(long display, int screen_index, long visualID);
   public static native void DestroyDummyWindow(long display, long window);
 
+  public static Point GetRelativeLocation(long display, int screen_index, long src_win, long dest_win, int src_x, int src_y) {
+    return (Point) GetRelativeLocation0(display, screen_index, src_win, dest_win, src_x, src_y);
+  }
+  private static native Object GetRelativeLocation0(long display, int screen_index, long src_win, long dest_win, int src_x, int src_y);
+
   public static native int XCloseDisplay(long display);
   public static native void XUnlockDisplay(long display);
   public static native void XLockDisplay(long display);

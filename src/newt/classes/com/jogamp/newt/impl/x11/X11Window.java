@@ -33,6 +33,7 @@
 
 package com.jogamp.newt.impl.x11;
 
+import com.jogamp.nativewindow.impl.x11.X11Util;
 import com.jogamp.newt.impl.WindowImpl;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
@@ -114,7 +115,7 @@ public class X11Window extends WindowImpl {
     }
 
     protected Point getLocationOnScreenImpl(int x, int y) {
-        return (Point) getRelativeLocation0( getDisplayHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
+        return X11Util.GetRelativeLocation( getDisplayHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
     }
 
     //----------------------------------------------------------------------

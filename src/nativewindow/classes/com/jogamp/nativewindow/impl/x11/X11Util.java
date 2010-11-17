@@ -44,6 +44,7 @@ import java.nio.ShortBuffer;
 import java.security.AccessController;
 import java.util.ArrayList;
 import java.util.List;
+import javax.media.nativewindow.util.Point;
 
 /**
  * Contains a thread safe X11 utility to retrieve display connections.
@@ -512,6 +513,15 @@ public class X11Util {
         lockDefaultToolkit(display);
         try {
             X11Lib.DestroyDummyWindow(display, window);
+        } finally {
+            unlockDefaultToolkit(display);
+        }
+    }
+
+    public static Point GetRelativeLocation(long display, int screen_index, long src_win, long dest_win, int src_x, int src_y) {
+        lockDefaultToolkit(display);
+        try {
+            return X11Lib.GetRelativeLocation(display, screen_index, src_win, dest_win, src_x, src_y);
         } finally {
             unlockDefaultToolkit(display);
         }
