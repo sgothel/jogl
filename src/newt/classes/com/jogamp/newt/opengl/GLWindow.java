@@ -141,7 +141,7 @@ public class GLWindow implements GLAutoDrawable, Window {
     // Window Access
     //
 
-    public final Capabilities getChosenCapabilities() {
+    public final CapabilitiesImmutable getChosenCapabilities() {
         if (drawable == null) {
             return window.getChosenCapabilities();
         }
@@ -149,7 +149,7 @@ public class GLWindow implements GLAutoDrawable, Window {
         return drawable.getChosenGLCapabilities();
     }
 
-    public final Capabilities getRequestedCapabilities() {
+    public final CapabilitiesImmutable getRequestedCapabilities() {
         return window.getRequestedCapabilities();
     }
 

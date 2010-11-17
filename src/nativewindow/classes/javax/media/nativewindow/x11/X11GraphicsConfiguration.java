@@ -45,7 +45,7 @@ public class X11GraphicsConfiguration extends DefaultGraphicsConfiguration imple
     private XVisualInfo info;
 
     public X11GraphicsConfiguration(X11GraphicsScreen screen, 
-                                    Capabilities capsChosen, Capabilities capsRequested,
+                                    CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
                                     XVisualInfo info) {
         super(screen, capsChosen, capsRequested);
         this.info = info;

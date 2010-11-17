@@ -65,14 +65,14 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         return XVisualInfo.create(xvis[0]);
     }
 
-    public static XVisualInfo getXVisualInfo(AbstractGraphicsScreen screen, Capabilities capabilities)
+    public static XVisualInfo getXVisualInfo(AbstractGraphicsScreen screen, CapabilitiesImmutable capabilities)
     {
         XVisualInfo xv = getXVisualInfoImpl(screen, capabilities, 4 /* TrueColor */);
         if(null!=xv) return xv;
         return getXVisualInfoImpl(screen, capabilities, 5 /* DirectColor */);
     }
 
-    private static XVisualInfo getXVisualInfoImpl(AbstractGraphicsScreen screen, Capabilities capabilities, int c_class)
+    private static XVisualInfo getXVisualInfoImpl(AbstractGraphicsScreen screen, CapabilitiesImmutable capabilities, int c_class)
     {
         XVisualInfo ret = null;
         int[] num = { -1 };

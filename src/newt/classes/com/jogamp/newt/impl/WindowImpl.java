@@ -57,6 +57,7 @@ import java.lang.reflect.Method;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.Capabilities;
+import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
@@ -1145,12 +1146,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         return reparentActionStrategy;
     }
 
-    public final Capabilities getChosenCapabilities() {
+    public final CapabilitiesImmutable getChosenCapabilities() {
         return config.getNativeGraphicsConfiguration().getChosenCapabilities();
     }
 
-    public final Capabilities getRequestedCapabilities() {
-        return (Capabilities)caps.clone();
+    public final CapabilitiesImmutable getRequestedCapabilities() {
+        return caps;
     }
 
     public String getTitle() {

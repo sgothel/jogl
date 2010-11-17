@@ -82,12 +82,12 @@ public class TestWindows01NEWT extends UITestCase {
         // Create native OpenGL resources .. XGL/WGL/CGL .. 
         // equivalent to GLAutoDrawable methods: setVisible(true)
         // 
-        caps = window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
-        Assert.assertNotNull(caps);
-        Assert.assertTrue(caps.getGreenBits()>5);
-        Assert.assertTrue(caps.getBlueBits()>5);
-        Assert.assertTrue(caps.getRedBits()>5);
-        Assert.assertEquals(caps.isOnscreen(),onscreen);
+        CapabilitiesImmutable chosenCapabilities = window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        Assert.assertNotNull(chosenCapabilities);
+        Assert.assertTrue(chosenCapabilities.getGreenBits()>5);
+        Assert.assertTrue(chosenCapabilities.getBlueBits()>5);
+        Assert.assertTrue(chosenCapabilities.getRedBits()>5);
+        Assert.assertEquals(chosenCapabilities.isOnscreen(),onscreen);
 
         return window;
     }
