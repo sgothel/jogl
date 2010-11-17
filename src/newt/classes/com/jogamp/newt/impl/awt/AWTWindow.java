@@ -119,7 +119,7 @@ public class AWTWindow extends WindowImpl {
                         frame.setTitle(getTitle());
                     }
                     container.setLayout(new BorderLayout());
-                    canvas = new AWTCanvas(capsRequested);
+                    canvas = new AWTCanvas(capsRequested, AWTWindow.this.capabilitiesChooser);
 
                     addWindowListener(new LocalWindowListener());
 

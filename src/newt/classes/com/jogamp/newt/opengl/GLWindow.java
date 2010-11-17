@@ -140,6 +140,10 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
     // Window Access
     //
 
+    public CapabilitiesChooser setCapabilitiesChooser(CapabilitiesChooser chooser) {
+        return window.setCapabilitiesChooser(chooser);
+    }
+
     public final CapabilitiesImmutable getChosenCapabilities() {
         if (drawable == null) {
             return window.getChosenCapabilities();

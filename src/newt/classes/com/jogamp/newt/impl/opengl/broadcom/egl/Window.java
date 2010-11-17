@@ -54,7 +54,7 @@ public class Window extends com.jogamp.newt.impl.WindowImpl {
         // query a good configuration .. even thought we drop this one 
         // and reuse the EGLUtil choosen one later.
         config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(
-                capsRequested, capsRequested, null, getScreen().getGraphicsScreen());
+                capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }

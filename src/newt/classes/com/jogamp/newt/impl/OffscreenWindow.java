@@ -55,7 +55,7 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
         }
         AbstractGraphicsScreen aScreen = getScreen().getGraphicsScreen();
         config = GraphicsConfigurationFactory.getFactory(aScreen.getDevice()).chooseGraphicsConfiguration(
-                capsRequested, capsRequested, null, aScreen);
+                capsRequested, capsRequested, capabilitiesChooser, aScreen);
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }

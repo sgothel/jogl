@@ -238,7 +238,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
 
   public static GLCapabilitiesImmutable GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg,
                                                                    boolean relaxed, boolean onscreen, boolean usePBuffer,
-                                                                   boolean isMultisampleEnabled) {
+                                                                   boolean isMultisampleAvailable) {
     int[] tmp = new int[1];
     int val;
     val = glXGetFBConfig(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0);
@@ -276,7 +276,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     res.setAccumGreenBits(glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_GREEN_SIZE, tmp, 0));
     res.setAccumBlueBits (glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
     res.setAccumAlphaBits(glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
-    if (isMultisampleEnabled) {
+    if (isMultisampleAvailable) {
       res.setSampleBuffers(glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
       res.setNumSamples   (glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLES,        tmp, 0));
     }

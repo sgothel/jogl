@@ -33,6 +33,7 @@ import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.ScreenModeListener;
 import com.jogamp.newt.impl.Debug;
+import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.SurfaceUpdatedListener;
@@ -77,6 +78,14 @@ public interface Window extends NativeWindow, ScreenModeListener {
      * @return The associated Screen
      */
     Screen getScreen();
+
+    /**
+     * Set the CapabilitiesChooser to help determine the native visual type.
+     * 
+     * @param chooser the new CapabilitiesChooser
+     * @return the previous CapabilitiesChooser
+     */
+    CapabilitiesChooser setCapabilitiesChooser(CapabilitiesChooser chooser);
 
     /**
      * Gets an immutable set of requested capabilities.

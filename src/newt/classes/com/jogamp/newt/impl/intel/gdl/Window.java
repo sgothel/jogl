@@ -53,7 +53,8 @@ public class Window extends com.jogamp.newt.impl.WindowImpl {
         AbstractGraphicsScreen aScreen = getScreen().getGraphicsScreen();
         AbstractGraphicsDevice aDevice = getScreen().getDisplay().getGraphicsDevice();
 
-        config = GraphicsConfigurationFactory.getFactory(aDevice).chooseGraphicsConfiguration(capsRequested, capsRequested, null, aScreen);
+        config = GraphicsConfigurationFactory.getFactory(aDevice).chooseGraphicsConfiguration(
+                capsRequested, capsRequested, capabilitiesChooser, aScreen);
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }

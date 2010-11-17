@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.lang.reflect.Method;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
@@ -79,6 +80,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
     private long parentWindowHandle;
     protected AbstractGraphicsConfiguration config;
     protected CapabilitiesImmutable capsRequested;
+    protected CapabilitiesChooser capabilitiesChooser = null; // default null -> default
     protected boolean fullscreen, visible, hasFocus;
     protected int width, height, x, y;
     protected int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen dimensions ..
@@ -1143,6 +1145,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
             }
         }
         return reparentActionStrategy;
+    }
+
+    public CapabilitiesChooser setCapabilitiesChooser(CapabilitiesChooser chooser) {
+        CapabilitiesChooser old = this.capabilitiesChooser;
+        this.capabilitiesChooser = chooser;
+        return old;
     }
 
     public final CapabilitiesImmutable getChosenCapabilities() {
