@@ -60,7 +60,7 @@ import javax.media.nativewindow.util.Insets;
  * via {@link #invoke(boolean, javax.media.opengl.GLRunnable)} to the OpenGL command stream.<br>
  * <p>
  */
-public class GLWindow implements GLAutoDrawable, Window {
+public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
     private WindowImpl window;
 
     /**
@@ -684,6 +684,13 @@ public class GLWindow implements GLAutoDrawable, Window {
         }
 
         return drawable.getGLProfile();
+    }
+
+    //----------------------------------------------------------------------
+    // NEWTEventConsumer 
+    //
+    public boolean consumeEvent(NEWTEvent event) {
+        return window.consumeEvent(event);
     }
 
     //----------------------------------------------------------------------
