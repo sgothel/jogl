@@ -69,8 +69,8 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         return eglConfig;
     }
 
-    public GLCapabilities getChosenGLCapabilities() {
-        return (null==eglConfig)?super.getChosenGLCapabilities():(GLCapabilities)eglConfig.getChosenCapabilities();
+    public GLCapabilitiesImmutable getChosenGLCapabilities() {
+        return (null==eglConfig)?super.getChosenGLCapabilities():(GLCapabilitiesImmutable)eglConfig.getChosenCapabilities();
     }
 
     public abstract GLContext createContext(GLContext shareWith);
@@ -168,8 +168,11 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                 }
                 EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay, AbstractGraphicsDevice.DEFAULT_UNIT);
                 DefaultGraphicsScreen s = new DefaultGraphicsScreen(e, aConfig.getScreen().getIndex());
-                GLCapabilities caps = (GLCapabilities) aConfig.getChosenCapabilities(); // yes, use the already choosen Capabilities (x11,win32,..)
-                eglConfig = (EGLGraphicsConfiguration) GraphicsConfigurationFactory.getFactory(e).chooseGraphicsConfiguration(caps, null, s);
+                // yes, use the already choosen/requested Capabilities (x11,win32,..)
+                GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable) aConfig.getChosenCapabilities();
+                GLCapabilitiesImmutable capsRequested = (GLCapabilitiesImmutable) aConfig.getRequestedCapabilities();
+                eglConfig = (EGLGraphicsConfiguration) GraphicsConfigurationFactory.getFactory(e).chooseGraphicsConfiguration(
+                        capsChosen, capsRequested, null, s);
                 if (null == eglConfig) {
                     throw new GLException("Couldn't create EGLGraphicsConfiguration from "+s);
                 } else if(DEBUG) {

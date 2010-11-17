@@ -35,9 +35,9 @@ package com.jogamp.newt.impl.opengl.broadcom.egl;
 
 import com.jogamp.opengl.impl.egl.*;
 import javax.media.nativewindow.*;
-import javax.media.opengl.GLCapabilities;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Point;
+import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class Window extends com.jogamp.newt.impl.WindowImpl {
     static {
@@ -53,7 +53,8 @@ public class Window extends com.jogamp.newt.impl.WindowImpl {
         }
         // query a good configuration .. even thought we drop this one 
         // and reuse the EGLUtil choosen one later.
-        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
+        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(
+                capsRequested, capsRequested, null, getScreen().getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
@@ -149,7 +150,7 @@ public class Window extends com.jogamp.newt.impl.WindowImpl {
     private void windowCreated(int cfgID, int width, int height) {
         this.width = width;
         this.height = height;
-        GLCapabilities capsReq = (GLCapabilities) config.getRequestedCapabilities();
+        GLCapabilitiesImmutable capsReq = (GLCapabilitiesImmutable) config.getRequestedCapabilities();
         config = EGLGraphicsConfiguration.create(capsReq, getScreen().getGraphicsScreen(), cfgID);
         if (config == null) {
             throw new NativeWindowException("Error creating EGLGraphicsConfiguration from id: "+cfgID+", "+this);

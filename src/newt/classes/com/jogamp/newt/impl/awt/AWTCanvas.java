@@ -50,11 +50,11 @@ public class AWTCanvas extends Canvas {
   private GraphicsConfiguration chosen;
   private AWTGraphicsConfiguration awtConfig;
 
-  private Capabilities capabilities;
+  private CapabilitiesImmutable capabilities;
 
   private boolean displayConfigChanged=false;
 
-  public AWTCanvas(Capabilities capabilities) {
+  public AWTCanvas(CapabilitiesImmutable capabilities) {
     super();
 
     if(null==capabilities) {
@@ -86,7 +86,7 @@ public class AWTCanvas extends Canvas {
     /*
      * Save the chosen capabilities for use in getGraphicsConfiguration().
      */
-    awtConfig = chooseGraphicsConfiguration(capabilities, device);
+    awtConfig = chooseGraphicsConfiguration(capabilities, capabilities, device);
     if(Window.DEBUG_IMPLEMENTATION) {
         Exception e = new Exception("Info: Created Config: "+awtConfig);
         e.printStackTrace();
@@ -174,7 +174,7 @@ public class AWTCanvas extends Canvas {
          * block, both devices should have the same visual list, and the
          * same configuration should be selected here.
          */
-        AWTGraphicsConfiguration config = chooseGraphicsConfiguration((Capabilities)awtConfig.getRequestedCapabilities(), gc.getDevice());
+        AWTGraphicsConfiguration config = chooseGraphicsConfiguration(awtConfig.getChosenCapabilities(), awtConfig.getRequestedCapabilities(), gc.getDevice());
         final GraphicsConfiguration compatible = (null!=config)?config.getGraphicsConfiguration():null;
         if(Window.DEBUG_IMPLEMENTATION) {
             Exception e = new Exception("Info: Call Stack: "+Thread.currentThread().getName());
@@ -225,13 +225,13 @@ public class AWTCanvas extends Canvas {
     return gc;
   }
 
-  private static AWTGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
+  private static AWTGraphicsConfiguration chooseGraphicsConfiguration(CapabilitiesImmutable capsChosen,
+                                                                      CapabilitiesImmutable capsRequested,
                                                                       GraphicsDevice device) {
     AbstractGraphicsScreen aScreen = AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT);
     AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
-      GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capabilities,
-                                                                                                   null,
-                                                                                                   aScreen);
+      GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capsChosen, capsRequested,
+                                                                                                   null, aScreen);
     if (config == null) {
       throw new NativeWindowException("Error: Couldn't fetch AWTGraphicsConfiguration");
     }

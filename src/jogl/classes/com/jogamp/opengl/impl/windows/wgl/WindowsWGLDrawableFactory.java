@@ -55,7 +55,6 @@ import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.windows.WindowsGraphicsDevice;
-import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
@@ -66,11 +65,11 @@ import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.impl.ProxySurface;
 import com.jogamp.nativewindow.impl.windows.GDI;
-import com.jogamp.opengl.impl.Debug;
 import com.jogamp.opengl.impl.DesktopGLDynamicLookupHelper;
 import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
 import com.jogamp.opengl.impl.GLDrawableImpl;
 import com.jogamp.opengl.impl.GLDynamicLookupHelper;
+import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper;
@@ -157,7 +156,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         addDeviceTried(connection);
         NativeWindowFactory.getDefaultToolkitLock().lock(); // OK
         try {
-            WindowsDummyWGLDrawable sharedDrawable = new WindowsDummyWGLDrawable(this, null);
+            WindowsDummyWGLDrawable sharedDrawable = WindowsDummyWGLDrawable.create(this, null);
             WindowsWGLContext ctx  = (WindowsWGLContext) sharedDrawable.createContext(null);
             ctx.makeCurrent();
             boolean canCreateGLPbuffer = ctx.getGL().isExtensionAvailable("GL_ARB_pbuffer");
@@ -276,10 +275,10 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return (GLDrawableImpl) returnList.get(0);
   }
 
-  protected final NativeSurface createOffscreenSurfaceImpl(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
+  protected final NativeSurface createOffscreenSurfaceImpl(GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
     AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
     ProxySurface ns = new ProxySurface(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
-                                     capabilities, chooser, screen) );
+                                     capsChosen, capsRequested, chooser, screen) );
     ns.setSize(width, height);
     return ns;
   }

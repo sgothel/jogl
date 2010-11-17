@@ -92,7 +92,8 @@ public class WindowsWindow extends WindowImpl {
     protected void createNativeImpl() {
         WindowsScreen  screen = (WindowsScreen) getScreen();
         WindowsDisplay display = (WindowsDisplay) screen.getDisplay();
-        config = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, screen.getGraphicsScreen());
+        config = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice()).chooseGraphicsConfiguration(
+                capsRequested, capsRequested, null, screen.getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }

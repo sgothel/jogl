@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -51,7 +52,8 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            Capabilities capabilities, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
+            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
+            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
         GraphicsDevice device = null;
         if (absScreen != null &&
             !(absScreen instanceof AWTGraphicsScreen)) {
@@ -64,9 +66,12 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
         AWTGraphicsScreen awtScreen = (AWTGraphicsScreen) absScreen;
         device = ((AWTGraphicsDevice)awtScreen.getDevice()).getGraphicsDevice();
 
-        if (capabilities != null &&
-            !(capabilities instanceof GLCapabilities)) {
-            throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only GLCapabilities objects");
+        if ( !(capsChosen instanceof GLCapabilitiesImmutable) ) {
+            throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only GLCapabilities objects - chosen");
+        }
+
+        if ( !(capsRequested instanceof GLCapabilitiesImmutable) ) {
+            throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only GLCapabilities objects - requested");
         }
 
         if (chooser != null &&
@@ -103,14 +108,14 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
         }
 
         gc = device.getDefaultConfiguration();
-        AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capabilities, gc);
+        capsChosen = AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capsChosen, gc);
         if(DEBUG) {
-            System.err.println("AWT Colormodel compatible: "+capabilities);
+            System.err.println("AWT Colormodel compatible: "+capsChosen);
         }
         GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(x11Device);
-        x11Config = (X11GraphicsConfiguration)factory.chooseGraphicsConfiguration(capabilities, chooser, x11Screen);
+        x11Config = (X11GraphicsConfiguration)factory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, x11Screen);
         if (x11Config == null) {
-            throw new GLException("Unable to choose a GraphicsConfiguration: "+capabilities+",\n\t"+chooser+"\n\t"+x11Screen);
+            throw new GLException("Unable to choose a GraphicsConfiguration: "+capsChosen+",\n\t"+chooser+"\n\t"+x11Screen);
         }
 
         long visualID = x11Config.getVisualID();

@@ -58,7 +58,7 @@ public class TestGLWindows00NEWT extends UITestCase {
         glp = GLProfile.getDefault();
     }
 
-    static GLWindow createWindow(Screen screen, GLCapabilities caps)
+    static GLWindow createWindow(Screen screen, GLCapabilitiesImmutable caps)
         throws InterruptedException
     {
         Assert.assertNotNull(caps);

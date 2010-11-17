@@ -36,7 +36,6 @@ package com.jogamp.opengl.impl.windows.wgl;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
@@ -51,6 +50,8 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.nativewindow.impl.windows.GDI;
 import com.jogamp.nativewindow.impl.windows.PIXELFORMATDESCRIPTOR;
+import javax.media.nativewindow.CapabilitiesImmutable;
+import javax.media.opengl.GLCapabilitiesImmutable;
 
 /** Subclass of GraphicsConfigurationFactory used when non-AWT tookits
     are used on Windows platforms. Toolkits will likely need to delegate
@@ -65,36 +66,44 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            Capabilities capabilities, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
-        GLCapabilities caps = (GLCapabilities)capabilities;
-        return chooseGraphicsConfigurationStatic(caps, chooser, absScreen);
+            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
+
+        if (! (capsChosen instanceof GLCapabilitiesImmutable) ) {
+            throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilities objects - chosen");
+        }
+
+        if (! (capsRequested instanceof GLCapabilitiesImmutable) ) {
+            throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilities objects - requested");
+        }
+
+        return chooseGraphicsConfigurationStatic((GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested, chooser, absScreen);
     }
 
-    protected static WindowsWGLGraphicsConfiguration createDefaultGraphicsConfiguration(GLProfile glp, AbstractGraphicsScreen absScreen, boolean onscreen, boolean usePBuffer) {
-        GLCapabilities caps = new GLCapabilities(glp);
-        caps.setDoubleBuffered(onscreen); // FIXME DBLBUFOFFSCRN
-        caps.setOnscreen  (onscreen);
-        caps.setPBuffer   (usePBuffer);
-
+    protected static WindowsWGLGraphicsConfiguration createDefaultGraphicsConfiguration(GLCapabilitiesImmutable caps,
+                                                                                        AbstractGraphicsScreen absScreen) {
         if(null==absScreen) {
             absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
         }
         return new WindowsWGLGraphicsConfiguration(absScreen, caps, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps), -1, null);
-
     }
 
-    protected static WindowsWGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilities caps,
+    protected static WindowsWGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
+                                                                                       GLCapabilitiesImmutable capsReq,
                                                                                        CapabilitiesChooser chooser,
                                                                                        AbstractGraphicsScreen absScreen) {
         if(null==absScreen) {
             absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
         }
-        GLCapabilities caps2 = (GLCapabilities) caps.clone();
-        if(!caps2.isOnscreen()) {
+
+        if(!capsChosen.isOnscreen() && capsChosen.getDoubleBuffered()) {
             // OFFSCREEN !DOUBLE_BUFFER // FIXME DBLBUFOFFSCRN
+            GLCapabilities caps2 = (GLCapabilities) capsChosen.cloneMutable();
             caps2.setDoubleBuffered(false);
+            capsChosen = caps2;
         }
-        return new WindowsWGLGraphicsConfiguration(absScreen, caps2, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps2), -1, 
+
+        return new WindowsWGLGraphicsConfiguration(absScreen, capsChosen, capsReq,
+                                                   WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(capsChosen), -1,
                                                    (GLCapabilitiesChooser)chooser);
     }
 
@@ -117,7 +126,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
             throw new InternalError("SharedContext is null: "+device);
         }
         boolean choosenBywGLPixelFormat = false;
-        GLCapabilities capabilities = (GLCapabilities) config.getRequestedCapabilities();
+        GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         boolean onscreen = capabilities.isOnscreen();
         boolean usePBuffer = capabilities.isPBuffer();
         GLProfile glProfile = capabilities.getGLProfile();
@@ -134,7 +143,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         PIXELFORMATDESCRIPTOR pfd = null;
         int pixelFormat = -1; // 1-based pixel format
         boolean pixelFormatSet = false;
-        GLCapabilities chosenCaps = null;
+        GLCapabilitiesImmutable chosenCaps = null;
 
         if (onscreen) {
           if ((pixelFormat = GDI.GetPixelFormat(hdc)) != 0) {
@@ -149,7 +158,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
             pixelFormatSet = true;
           }
 
-          GLCapabilities[] availableCaps = null;
+          GLCapabilitiesImmutable[] availableCaps = null;
           int numFormats = 0;
           pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
           // Produce a recommended pixel format selection for the GLCapabilitiesChooser.
@@ -234,7 +243,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
               throw new GLException("Unable to enumerate pixel formats of window " +
                                     toHexString(hdc) + " for GLCapabilitiesChooser (LastError: "+GDI.GetLastError()+")");
             }
-            availableCaps = new GLCapabilities[numFormats];
+            availableCaps = new GLCapabilitiesImmutable[numFormats];
             for (int i = 0; i < numFormats; i++) {
               if (GDI.DescribePixelFormat(hdc, 1 + i, pfd.size(), pfd) == 0) {
                 throw new GLException("Error describing pixel format " + (1 + i) + " of device context");
@@ -255,7 +264,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
                     pixelFormat = chooser.chooseCapabilities(capabilities, availableCaps, recommendedPixelFormat) + 1;
                   } catch (NativeWindowException e) {
                     if(DEBUG) {
-                          e.printStackTrace();
+                        e.printStackTrace();
                     }
                     pixelFormat = -1;
                   }
@@ -315,11 +324,12 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         config.setCapsPFD(capabilities, pfd, pixelFormat, choosenBywGLPixelFormat);
     }
 
-  protected static String getThreadName() {
-    return Thread.currentThread().getName();
-  }
-  public static String toHexString(long hex) {
-      return "0x" + Long.toHexString(hex);
-  }
+    protected static String getThreadName() {
+        return Thread.currentThread().getName();
+    }
+
+    public static String toHexString(long hex) {
+        return "0x" + Long.toHexString(hex);
+    }
 }
 

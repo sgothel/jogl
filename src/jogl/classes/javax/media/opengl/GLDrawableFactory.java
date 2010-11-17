@@ -329,7 +329,7 @@ public abstract class GLDrawableFactory {
    * @throws GLException if any window system-specific errors caused
    *         the creation of the Offscreen to fail.
    */
-  public abstract GLDrawable createOffscreenDrawable(GLCapabilities capabilities,
+  public abstract GLDrawable createOffscreenDrawable(GLCapabilitiesImmutable capabilities,
                                                      GLCapabilitiesChooser chooser,
                                                      int width, int height)
     throws GLException;
@@ -347,7 +347,7 @@ public abstract class GLDrawableFactory {
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLPbuffer to fail.
    */
-  public abstract GLDrawable createGLPbufferDrawable(GLCapabilities capabilities,
+  public abstract GLDrawable createGLPbufferDrawable(GLCapabilitiesImmutable capabilities,
                                                      GLCapabilitiesChooser chooser,
                                                      int initialWidth,
                                                      int initialHeight)
@@ -362,7 +362,7 @@ public abstract class GLDrawableFactory {
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLPbuffer to fail.
    */
-  public abstract GLPbuffer createGLPbuffer(GLCapabilities capabilities,
+  public abstract GLPbuffer createGLPbuffer(GLCapabilitiesImmutable capabilities,
                                             GLCapabilitiesChooser chooser,
                                             int initialWidth,
                                             int initialHeight,

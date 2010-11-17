@@ -89,7 +89,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
   protected void makeCurrentImpl(boolean newCreated) throws GLException {
     super.makeCurrentImpl(newCreated);
     if (newCreated) {
-      GLCapabilities capabilities = drawable.getChosenGLCapabilities();
+      GLCapabilitiesImmutable capabilities = drawable.getChosenGLCapabilities();
 
       // Initialize render-to-texture support if requested
       GL gl = getGL();

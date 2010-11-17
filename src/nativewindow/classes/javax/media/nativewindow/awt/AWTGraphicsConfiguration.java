@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -63,7 +64,8 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     this.encapsulated=encapsulated;
   }
 
-  public AWTGraphicsConfiguration(AWTGraphicsScreen screen, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, GraphicsConfiguration config) {
+  public AWTGraphicsConfiguration(AWTGraphicsScreen screen, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
+                                  GraphicsConfiguration config) {
     super(screen, capsChosen, capsRequested);
     this.config = config;
     this.encapsulated=null;
@@ -97,7 +99,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
 
       if(null==capsChosen) {
           GraphicsConfiguration gc = awtGraphicsDevice.getDefaultConfiguration();
-          capsChosen = setupCapabilitiesRGBABits(capsRequested.cloneCapabilites(), gc);
+          capsChosen = setupCapabilitiesRGBABits(capsChosen, gc);
       }
       return new AWTGraphicsConfiguration(awtScreen, capsChosen, capsRequested, awtGfxConfig);
   }
@@ -121,7 +123,9 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
    * @param gc the GraphicsConfiguration from which to derive the RGBA bit depths
    * @return the passed Capabilities
    */
-  public static Capabilities setupCapabilitiesRGBABits(Capabilities capabilities, GraphicsConfiguration gc) {
+  public static CapabilitiesImmutable setupCapabilitiesRGBABits(CapabilitiesImmutable capabilitiesIn, GraphicsConfiguration gc) {
+    Capabilities capabilities = (Capabilities) capabilitiesIn.cloneMutable();
+    
     int cmTransparency = capabilities.isBackgroundOpaque()?Transparency.OPAQUE:Transparency.TRANSLUCENT;
     ColorModel cm = gc.getColorModel(cmTransparency);
     if(null==cm && !capabilities.isBackgroundOpaque()) {

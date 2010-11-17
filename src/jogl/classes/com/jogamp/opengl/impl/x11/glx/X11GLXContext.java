@@ -268,7 +268,7 @@ public abstract class X11GLXContext extends GLContextImpl {
       direct = GLX.glXIsDirect(display, share);
     }
 
-    GLCapabilities glCaps = (GLCapabilities) config.getChosenCapabilities();
+    GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     GLProfile glp = glCaps.getGLProfile();
     isVendorATI = factory.isVendorATI(device);
 
@@ -494,7 +494,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   protected void setSwapIntervalImpl(int interval) {
     X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities glCaps = (GLCapabilities) config.getChosenCapabilities();
+    GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     if(!glCaps.isOnscreen()) return;
 
     GLXExt glXExt = getGLXExt();

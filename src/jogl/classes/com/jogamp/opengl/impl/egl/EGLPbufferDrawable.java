@@ -40,8 +40,11 @@
 
 package com.jogamp.opengl.impl.egl;
 
-import javax.media.opengl.*;
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLException;
 
 public class EGLPbufferDrawable extends EGLDrawable {
     private int texFormat;
@@ -52,7 +55,8 @@ public class EGLPbufferDrawable extends EGLDrawable {
         ownEGLDisplay = true;
 
         // get choosen ones ..
-        GLCapabilities caps = (GLCapabilities) getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)
+                   getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
 
         if(useTexture) {
             this.texFormat = caps.getAlphaBits() > 0 ? EGL.EGL_TEXTURE_RGBA : EGL.EGL_TEXTURE_RGB ;

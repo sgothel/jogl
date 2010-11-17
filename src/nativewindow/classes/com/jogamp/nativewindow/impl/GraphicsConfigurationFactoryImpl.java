@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,7 +37,7 @@ import javax.media.nativewindow.*;
 
 public class GraphicsConfigurationFactoryImpl extends GraphicsConfigurationFactory {
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            Capabilities capabilities, CapabilitiesChooser chooser, AbstractGraphicsScreen screen) {
-        return new DefaultGraphicsConfiguration(screen, capabilities, capabilities);
+            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen screen) {
+        return new DefaultGraphicsConfiguration(screen, capsChosen, capsRequested);
     }
 }

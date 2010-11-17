@@ -63,7 +63,7 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps) throws InterruptedException {
+    protected void runTestGL(GLCapabilitiesImmutable caps) throws InterruptedException {
         Display nDisplay = NewtFactory.createDisplay(NativeWindowFactory.TYPE_AWT, null, false); // local display
         Screen nScreen  = NewtFactory.createScreen(nDisplay, 0); // screen 0
         Window nWindow = NewtFactory.createWindow(nScreen, caps);
@@ -94,7 +94,7 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        GLCapabilitiesImmutable caps = new GLCapabilities(GLProfile.getDefault());
         runTestGL(caps);
     }
 

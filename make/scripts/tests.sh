@@ -97,7 +97,8 @@ function testawt() {
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting03AWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting03AWT -time 100000
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting03bAWT -time 100000
-testawt com.jogamp.test.junit.newt.TestCloseNewtAWT
+#testawt com.jogamp.test.junit.newt.TestCloseNewtAWT
+testawt com.jogamp.test.junit.jogl.caps.Multisample
 
 #testawt $*
 

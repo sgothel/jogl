@@ -49,6 +49,7 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.nativewindow.impl.windows.GDI;
 import com.jogamp.nativewindow.impl.windows.PIXELFORMATDESCRIPTOR;
 import com.jogamp.opengl.impl.GLContextImpl;
+import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
     // Keep this under the same debug flag as the drawable factory for convenience
@@ -63,7 +64,8 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     private GLCapabilitiesChooser chooser;
     private boolean choosenByWGLPixelFormat=false;
 
-    public WindowsWGLGraphicsConfiguration(AbstractGraphicsScreen screen, GLCapabilities capsChosen, GLCapabilities capsRequested,
+    public WindowsWGLGraphicsConfiguration(AbstractGraphicsScreen screen, 
+                                           GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
                                            PIXELFORMATDESCRIPTOR pixelfmt, int pixelfmtID, GLCapabilitiesChooser chooser) {
         super(screen, capsChosen, capsRequested);
         this.chooser=chooser;
@@ -85,7 +87,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
             throw new GLException("Unable to describe pixel format " + pfdID);
         }
 
-        GLCapabilities caps = PFD2GLCapabilities(glp, pfd, onscreen, usePBuffer);
+        GLCapabilitiesImmutable caps = PFD2GLCapabilities(glp, pfd, onscreen, usePBuffer);
         if(null==caps) {
             throw new GLException("Couldn't choose Capabilities by: HDC 0x"+Long.toHexString(hdc)+", pfdID "+pfdID);
         }
@@ -108,7 +110,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     protected void updateCapabilitiesByWGL(GLContextImpl context) {
         if(choosenByWGLPixelFormat) return; // already done ..
 
-        GLCapabilities capabilities = (GLCapabilities) getRequestedCapabilities();
+        GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable) getRequestedCapabilities();
         boolean onscreen = capabilities.isOnscreen();
         boolean usePBuffer = capabilities.isPBuffer();
         GLProfile glp = capabilities.getGLProfile();
@@ -118,13 +120,13 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         NativeSurface ns = drawable.getNativeSurface();
         long hdc = ns.getSurfaceHandle();
 
-        GLCapabilities[] caps = HDC2GLCapabilities(wglExt, hdc, getPixelFormatID(), glp, true, onscreen, usePBuffer);
+        GLCapabilitiesImmutable[] caps = HDC2GLCapabilities(wglExt, hdc, getPixelFormatID(), glp, true, onscreen, usePBuffer);
         if(null!=caps && null!=caps[0]) {
             setCapsPFD(caps[0], getPixelFormat(), getPixelFormatID(), true);
         }
     }
 
-    protected void setCapsPFD(GLCapabilities caps, PIXELFORMATDESCRIPTOR pfd, int pfdID, boolean choosenByWGLPixelFormat) {
+    protected void setCapsPFD(GLCapabilitiesImmutable caps, PIXELFORMATDESCRIPTOR pfd, int pfdID, boolean choosenByWGLPixelFormat) {
         this.pixelfmt = pfd;
         this.pixelfmtID = pfdID;
         setChosenCapabilities(caps);
@@ -146,8 +148,8 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     private static int haveWGLChoosePixelFormatARB = -1;
     private static int haveWGLARBMultisample = -1;
 
-    public static GLCapabilities[] HDC2GLCapabilities(WGLExt wglExt, long hdc, int pfdIDOnly,
-                                                      GLProfile glp, boolean relaxed, boolean onscreen, boolean usePBuffer) {
+    public static GLCapabilitiesImmutable[] HDC2GLCapabilities(WGLExt wglExt, long hdc, int pfdIDOnly,
+                                                               GLProfile glp, boolean relaxed, boolean onscreen, boolean usePBuffer) {
     
         if(haveWGLChoosePixelFormatARB<0) {
             haveWGLChoosePixelFormatARB = wglExt.isExtensionAvailable("WGL_ARB_pixel_format")?1:0;
@@ -168,7 +170,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         // "HardwareAccelerated" bit, which is basically
         // meaningless, and put in whether it can render to a
         // window, to a pbuffer, or to a pixmap)
-        GLCapabilities[] availableCaps = null;
+        GLCapabilitiesImmutable[] availableCaps = null;
         int numFormats = 0;
         int niattribs = 0;
         int[] iattributes = new int  [2*MAX_ATTRIBS];
@@ -212,14 +214,14 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
           }
 
           if(pfdIDOnly>0) {
-              availableCaps = new GLCapabilities[1];
+              availableCaps = new GLCapabilitiesImmutable[1];
               if (!wglExt.wglGetPixelFormatAttribivARB(hdc, pfdIDOnly, 0, niattribs, iattributes, 0, iresults, 0)) {
                   throw new GLException("Error getting pixel format attributes for pixel format " + pfdIDOnly + " of device context");
               }
               availableCaps[0] = AttribList2GLCapabilities(glp, iattributes, niattribs, iresults, 
                                                            relaxed, onscreen, usePBuffer);
           } else {
-              availableCaps = new GLCapabilities[numFormats];
+              availableCaps = new GLCapabilitiesImmutable[numFormats];
               for (int i = 0; i < numFormats; i++) {
                 if (!wglExt.wglGetPixelFormatAttribivARB(hdc, i+1, 0, niattribs, iattributes, 0, iresults, 0)) {
                   throw new GLException("Error getting pixel format attributes for pixel format " + (i + 1) + " of device context");
@@ -238,11 +240,11 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return availableCaps;
     }
 
-    public static boolean GLCapabilities2AttribList(GLCapabilities caps,
-                                                  int[] iattributes,
-                                                  WGLExt wglExt,
-                                                  boolean pbuffer,
-                                                  int[] floatMode) throws GLException {
+    public static boolean GLCapabilities2AttribList(GLCapabilitiesImmutable caps,
+                                                    int[] iattributes,
+                                                    WGLExt wglExt,
+                                                    boolean pbuffer,
+                                                    int[] floatMode) throws GLException {
         if (!wglExt.isExtensionAvailable("WGL_ARB_pixel_format")) {
           return false;
         }
@@ -436,7 +438,8 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return res;
     }
 
-    public static GLCapabilities AttribList2GLCapabilities(GLProfile glp, int[] iattribs,
+    public static GLCapabilitiesImmutable AttribList2GLCapabilities(
+                                                         GLProfile glp, int[] iattribs,
                                                          int niattribs,
                                                          int[] iresults,
                                                          boolean relaxed, boolean onscreen, boolean usePBuffer) {
@@ -552,7 +555,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
 
   // PIXELFORMAT
 
-    public static GLCapabilities PFD2GLCapabilities(GLProfile glp, PIXELFORMATDESCRIPTOR pfd, boolean onscreen, boolean usePBuffer) {
+    public static GLCapabilitiesImmutable PFD2GLCapabilities(GLProfile glp, PIXELFORMATDESCRIPTOR pfd, boolean onscreen, boolean usePBuffer) {
         if ((pfd.getDwFlags() & GDI.PFD_SUPPORT_OPENGL) == 0) {
           return null;
         }
@@ -586,7 +589,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return res;
   }
 
-  public static PIXELFORMATDESCRIPTOR GLCapabilities2PFD(GLCapabilities caps) {
+  public static PIXELFORMATDESCRIPTOR GLCapabilities2PFD(GLCapabilitiesImmutable caps) {
     int colorDepth = (caps.getRedBits() +
                       caps.getGreenBits() +
                       caps.getBlueBits());

@@ -92,7 +92,7 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     if (0 == pixelFormat) {
       throw new GLException("Error: current pixelformat of current Context 0x"+Long.toHexString(contextHandle)+" is null");
     }
-    GLCapabilities caps = MacOSXCGLGraphicsConfiguration.CGLPixelFormat2GLCapabilities(glp, pixelFormat);
+    GLCapabilitiesImmutable caps = MacOSXCGLGraphicsConfiguration.CGLPixelFormat2GLCapabilities(glp, pixelFormat);
     if(DEBUG) {
         System.err.println("MacOSXExternalCGLContext Create "+caps);
     }

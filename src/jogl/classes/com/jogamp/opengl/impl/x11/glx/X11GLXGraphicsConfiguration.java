@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -48,7 +49,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     private GLCapabilitiesChooser chooser; 
 
     public X11GLXGraphicsConfiguration(X11GraphicsScreen screen, 
-                                       GLCapabilities capsChosen, GLCapabilities capsRequested, GLCapabilitiesChooser chooser,
+                                       GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser,
                                        XVisualInfo info, long fbcfg, int fbcfgID) {
         super(screen, capsChosen, capsRequested, info);
         this.chooser=chooser;
@@ -69,7 +70,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       if(null==glp) {
         glp = GLProfile.getDefault(x11Screen.getDevice());
       }
-      GLCapabilities caps = GLXFBConfig2GLCapabilities(glp, display, fbcfg, true, true, true, GLXUtil.isMultisampleAvailable(display));
+      GLCapabilitiesImmutable caps = GLXFBConfig2GLCapabilities(glp, display, fbcfg, true, true, true, GLXUtil.isMultisampleAvailable(display));
       if(null==caps) {
           throw new GLException("GLCapabilities null of "+toHexString(fbcfg));
       }
@@ -89,9 +90,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
 
     protected void updateGraphicsConfiguration() {
         X11GLXGraphicsConfiguration newConfig = (X11GLXGraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(getRequestedCapabilities().cloneCapabilites(),
-                                                                                                         chooser,
-                                                                                                         getScreen());
+            GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(
+                getChosenCapabilities(), getRequestedCapabilities(), chooser, getScreen());
         if(null!=newConfig) {
             // FIXME: setScreen( ... );
             setXVisualInfo(newConfig.getXVisualInfo());
@@ -108,7 +108,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         return value != 0 ? value : (int)GLX.GLX_DONT_CARE ;
     }
 
-    public static int[] GLCapabilities2AttribList(GLCapabilities caps,
+    public static int[] GLCapabilities2AttribList(GLCapabilitiesImmutable caps,
                                                   boolean forFBAttr,
                                                   boolean isMultisampleAvailable,
                                                   long display,
@@ -236,8 +236,9 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return res;
   }
 
-  public static GLCapabilities GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg, 
-                                                          boolean relaxed, boolean onscreen, boolean usePBuffer, boolean isMultisampleEnabled) {
+  public static GLCapabilitiesImmutable GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg,
+                                                                   boolean relaxed, boolean onscreen, boolean usePBuffer,
+                                                                   boolean isMultisampleEnabled) {
     int[] tmp = new int[1];
     int val;
     val = glXGetFBConfig(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0);
@@ -351,7 +352,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       return res;
   }
 
-  public static GLCapabilities XVisualInfo2GLCapabilities(GLProfile glp, long display, XVisualInfo info, boolean onscreen, boolean usePBuffer, boolean isMultisampleEnabled) {
+  public static GLCapabilitiesImmutable XVisualInfo2GLCapabilities(GLProfile glp, long display, XVisualInfo info,
+                                                                   boolean onscreen, boolean usePBuffer, boolean isMultisampleEnabled) {
     int[] tmp = new int[1];
     int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp, 0);
     if (val == 0) {

@@ -53,7 +53,7 @@ import javax.media.nativewindow.Capabilities;
 
     It currently contains the minimal number of routines which allow
     configuration on all supported window systems. */
-public class GLCapabilities extends Capabilities implements Cloneable {
+public class GLCapabilities extends Capabilities implements Cloneable, GLCapabilitiesImmutable {
   private GLProfile glProfile = null;
   private boolean pbuffer = false;
   private boolean doubleBuffered = true;
@@ -84,6 +84,10 @@ public class GLCapabilities extends Capabilities implements Cloneable {
       glProfile = (null!=glp)?glp:GLProfile.getDefault(GLProfile.getDefaultDevice());
   }
 
+  public Object cloneMutable() {
+    return clone();
+  }
+
   public Object clone() {
     try {
       return super.clone();
@@ -92,12 +96,32 @@ public class GLCapabilities extends Capabilities implements Cloneable {
     }
   }
 
+  public int hashCode() {
+    // 31 * x == (x << 5) - x
+    int hash = 31 + this.glProfile.hashCode() ;
+    hash = ((hash << 5) - hash) + ( this.pbuffer ? 1 : 0 );
+    hash = ((hash << 5) - hash) + ( this.stereo ? 1 : 0 );
+    hash = ((hash << 5) - hash) + ( this.hardwareAccelerated ? 1 : 0 );
+    hash = ((hash << 5) - hash) + this.depthBits;
+    hash = ((hash << 5) - hash) + this.stencilBits;
+    hash = ((hash << 5) - hash) + this.accumRedBits;
+    hash = ((hash << 5) - hash) + this.accumGreenBits;
+    hash = ((hash << 5) - hash) + this.accumBlueBits;
+    hash = ((hash << 5) - hash) + this.accumAlphaBits;
+    hash = ((hash << 5) - hash) + ( this.sampleBuffers ? 1 : 0 );
+    hash = ((hash << 5) - hash) + this.numSamples;
+    hash = ((hash << 5) - hash) + ( this.pbufferFloatingPointBuffers ? 1 : 0 );
+    hash = ((hash << 5) - hash) + ( this.pbufferRenderToTexture ? 1 : 0 );
+    hash = ((hash << 5) - hash) + ( this.pbufferRenderToTextureRectangle ? 1 : 0 );
+    return hash;
+  }
+
   public boolean equals(Object obj) {
     if(this == obj)  { return true; }
-    if(!(obj instanceof GLCapabilities)) {
+    if(!(obj instanceof GLCapabilitiesImmutable)) {
         return false;
     }
-    GLCapabilities other = (GLCapabilities)obj;
+    GLCapabilitiesImmutable other = (GLCapabilitiesImmutable)obj;
     boolean res = super.equals(obj) &&
                   other.getGLProfile()==glProfile &&
                   other.isPBuffer()==pbuffer &&

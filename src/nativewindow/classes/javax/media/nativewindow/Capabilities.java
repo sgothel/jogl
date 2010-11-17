@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -43,7 +44,6 @@ package javax.media.nativewindow;
     must support, such as color depth per channel. It currently
     contains the minimal number of routines which allow configuration
     on all supported window systems. */
-
 public class Capabilities implements CapabilitiesImmutable, Cloneable {
   private int     redBits        = 8;
   private int     greenBits      = 8;
@@ -65,8 +65,8 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     */
   public Capabilities() {}
 
-    public Capabilities cloneCapabilites() {
-      return (Capabilities) clone();
+  public Object cloneMutable() {
+    return clone();
   }
   
   public Object clone() {
@@ -77,12 +77,27 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     }
   }
 
+  public int hashCode() {
+    // 31 * x == (x << 5) - x
+    int hash = 31 + this.redBits;
+    hash = ((hash << 5) - hash) + this.greenBits;
+    hash = ((hash << 5) - hash) + this.blueBits;
+    hash = ((hash << 5) - hash) + this.alphaBits;
+    hash = ((hash << 5) - hash) + ( this.backgroundOpaque ? 1 : 0 );
+    hash = ((hash << 5) - hash) + this.transparentValueRed;
+    hash = ((hash << 5) - hash) + this.transparentValueGreen;
+    hash = ((hash << 5) - hash) + this.transparentValueBlue;
+    hash = ((hash << 5) - hash) + this.transparentValueAlpha;
+    hash = ((hash << 5) - hash) + ( this.onscreen ? 1 : 0 );
+    return hash;
+  }
+
   public boolean equals(Object obj) {
     if(this == obj)  { return true; }
-    if(!(obj instanceof Capabilities)) {
+    if(!(obj instanceof CapabilitiesImmutable)) {
         return false;
     }
-    Capabilities other = (Capabilities)obj;
+    CapabilitiesImmutable other = (CapabilitiesImmutable)obj;
     boolean res = other.getRedBits()==redBits &&
                   other.getGreenBits()==greenBits &&
                   other.getBlueBits()==blueBits &&

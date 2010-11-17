@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -34,18 +35,16 @@ package com.jogamp.nativewindow.impl.x11;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
-import com.jogamp.nativewindow.impl.x11.XVisualInfo;
-import com.jogamp.nativewindow.impl.x11.X11Lib;
 
 public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactory {
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-        Capabilities capabilities, CapabilitiesChooser chooser, AbstractGraphicsScreen screen)
+        CapabilitiesImmutable  capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen screen)
         throws IllegalArgumentException, NativeWindowException {
 
         if(!(screen instanceof X11GraphicsScreen)) {
             throw new NativeWindowException("Only valid X11GraphicsScreen are allowed");
         }
-        return new X11GraphicsConfiguration((X11GraphicsScreen)screen, capabilities, capabilities, getXVisualInfo(screen, capabilities));
+        return new X11GraphicsConfiguration((X11GraphicsScreen)screen,  capsChosen, capsRequested, getXVisualInfo(screen, capsChosen));
     }
 
     public static XVisualInfo getXVisualInfo(AbstractGraphicsScreen screen, long visualID)

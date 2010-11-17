@@ -163,8 +163,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return new EGLPbufferDrawable(this, target);
     }
 
-    protected NativeSurface createOffscreenSurfaceImpl(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
-        ProxySurface ns = new ProxySurface(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(capabilities, chooser));
+    protected NativeSurface createOffscreenSurfaceImpl(GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
+        ProxySurface ns = new ProxySurface(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(capsChosen, capsRequested, chooser));
         ns.setSize(width, height);
         return ns;
     }

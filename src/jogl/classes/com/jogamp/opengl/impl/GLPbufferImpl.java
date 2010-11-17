@@ -64,7 +64,7 @@ public class GLPbufferImpl implements GLPbuffer {
 
   public GLPbufferImpl(GLDrawableImpl pbufferDrawable,
                        GLContext parentContext) {
-    GLCapabilities caps = (GLCapabilities) 
+    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)
          pbufferDrawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
     if(caps.isOnscreen()) {
         if(caps.isPBuffer()) {
@@ -195,14 +195,14 @@ public class GLPbufferImpl implements GLPbuffer {
     context.releasePbufferFromTexture();
   }
 
-  public GLCapabilities getChosenGLCapabilities() {
+  public GLCapabilitiesImmutable getChosenGLCapabilities() {
     if (pbufferDrawable == null)
       return null;
 
     return pbufferDrawable.getChosenGLCapabilities();
   }
 
-  public GLCapabilities getRequestedGLCapabilities() {
+  public GLCapabilitiesImmutable getRequestedGLCapabilities() {
     if (pbufferDrawable == null)
       return null;
 

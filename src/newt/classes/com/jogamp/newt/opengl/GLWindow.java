@@ -35,7 +35,6 @@
 package com.jogamp.newt.opengl;
 
 import com.jogamp.common.GlueGenVersion;
-import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.NativeWindowVersion;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
@@ -101,7 +100,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
      * <P>
      * The resulting GLWindow owns the Window, Screen and Device, ie it will be destructed.
      */
-    public static GLWindow create(GLCapabilities caps) {
+    public static GLWindow create(GLCapabilitiesImmutable caps) {
         return new GLWindow(NewtFactory.createWindow(caps));
     }
 
@@ -111,7 +110,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
      * <P>
      * The resulting GLWindow owns the Window, ie it will be destructed.
      */
-    public static GLWindow create(Screen screen, GLCapabilities caps) {
+    public static GLWindow create(Screen screen, GLCapabilitiesImmutable caps) {
         return new GLWindow(NewtFactory.createWindow(screen, caps));
     }
 
@@ -133,7 +132,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
      * <P>
      * The resulting GLWindow owns the Window, ie it will be destructed. 
      */
-    public static GLWindow create(NativeWindow parentNativeWindow, GLCapabilities caps) {
+    public static GLWindow create(NativeWindow parentNativeWindow, GLCapabilitiesImmutable caps) {
         return new GLWindow(NewtFactory.createWindow(parentNativeWindow, caps));
     }
 
@@ -359,7 +358,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
                 } else {
                     nw = window;
                 }
-                GLCapabilities glCaps = (GLCapabilities) nw.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+                GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) nw.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
                 if(null==factory) {
                     factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
                 }
@@ -670,7 +669,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
         return ( null != drawable ) ? drawable.isRealized() : false;
     }
 
-    public final GLCapabilities getChosenGLCapabilities() {
+    public final GLCapabilitiesImmutable getChosenGLCapabilities() {
         if (drawable == null) {
             throw new GLException("No drawable yet");
         }
@@ -863,7 +862,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
         System.err.println(NativeWindowVersion.getInstance());
         System.err.print(JoglVersion.getInstance());
         System.err.println(NewtVersion.getInstance());
-        GLCapabilities caps = new GLCapabilities( GLProfile.getDefault() );
+        GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault() );
 
         GLWindow glWindow = GLWindow.create(caps);
         glWindow.setSize(128, 128);

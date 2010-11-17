@@ -116,13 +116,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       }
     }
     MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities capabilitiesRequested = (GLCapabilities)config.getRequestedCapabilities();
+    GLCapabilitiesImmutable capabilitiesRequested = (GLCapabilitiesImmutable) config.getRequestedCapabilities();
     GLProfile glProfile = capabilitiesRequested.getGLProfile();
     if(glProfile.isGL3()) {
         throw new GLException("GL3 profile currently not supported on MacOSX, due to the lack of a OpenGL 3.1 implementation");
     }
     // HACK .. bring in OnScreen/PBuffer selection to the DrawableFactory !!
-    GLCapabilities capabilities = (GLCapabilities) capabilitiesRequested.clone();
+    GLCapabilities capabilities = (GLCapabilities) capabilitiesRequested.cloneMutable();
     capabilities.setPBuffer(pbuffer);
     capabilities.setPbufferFloatingPointBuffers(floatingPoint);
 
@@ -154,7 +154,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           CGL.setContextOpacity(contextHandle, 0);
       }
 
-      GLCapabilities caps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(glProfile, pixelFormat);
+      GLCapabilitiesImmutable caps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(glProfile, pixelFormat);
       config.setChosenCapabilities(caps);
     } finally {
       CGL.deletePixelFormat(pixelFormat);
@@ -260,7 +260,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 	
   protected void swapBuffers() {
     DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities caps = (GLCapabilities)config.getChosenCapabilities();
+    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
     if(caps.isOnscreen()) {
         if(isNSContext) {
             if (!CGL.flushBuffer(contextHandle)) {

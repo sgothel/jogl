@@ -63,8 +63,8 @@ package javax.media.nativewindow;
 public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
   private static final boolean DEBUG = false; // FIXME: Debug.debug("DefaultCapabilitiesChooser");
 
-  public int chooseCapabilities(Capabilities desired,
-                                Capabilities[] available,
+  public int chooseCapabilities(CapabilitiesImmutable desired,
+                                CapabilitiesImmutable[] available,
                                 int windowSystemRecommendedChoice) {
     if (DEBUG) {
       System.err.println("Desired: " + desired);
@@ -93,7 +93,7 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
     }
     // Compute score for each
     for (int i = 0; i < scores.length; i++) {
-      Capabilities cur = available[i];
+      CapabilitiesImmutable cur = available[i];
       if (cur == null) {
         continue;
       }

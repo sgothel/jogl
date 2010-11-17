@@ -210,7 +210,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
           try {
               String vendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
               X11GraphicsScreen sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
-              X11DummyGLXDrawable sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, GLProfile.getDefault(sharedDevice));
+              X11DummyGLXDrawable sharedDrawable = X11DummyGLXDrawable.create(sharedScreen, X11GLXDrawableFactory.this,
+                                                                              GLProfile.getDefault(sharedDevice));
               if (null == sharedScreen || null == sharedDrawable) {
                   throw new GLException("Couldn't init shared screen(" + sharedScreen + ")/drawable(" + sharedDrawable + ")");
               }
@@ -482,7 +483,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
 
-  protected final NativeSurface createOffscreenSurfaceImpl(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
+  protected final NativeSurface createOffscreenSurfaceImpl(GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser,
+                                                           int width, int height) {
     X11GraphicsScreen screen = null;
     SharedResource sr = getOrCreateShared(defaultDevice);
     if(null!=sr) {
@@ -493,7 +495,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     ProxySurface ns = new ProxySurface(
-               X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, screen) );
+               X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen) );
     if(ns != null) {
         ns.setSize(width, height);
     }

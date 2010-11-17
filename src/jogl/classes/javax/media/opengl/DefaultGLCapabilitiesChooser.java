@@ -40,9 +40,9 @@
 
 package javax.media.opengl;
 
-import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindowException;
 import com.jogamp.opengl.impl.Debug;
+import javax.media.nativewindow.CapabilitiesImmutable;
 
 /** <P> The default implementation of the {@link
     GLCapabilitiesChooser} interface, which provides consistent visual
@@ -85,11 +85,11 @@ import com.jogamp.opengl.impl.Debug;
 public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
   private static final boolean DEBUG = Debug.debug("CapabilitiesChooser");
 
-  public int chooseCapabilities(Capabilities desired,
-                                Capabilities[] available,
+  public int chooseCapabilities(CapabilitiesImmutable desired,
+                                CapabilitiesImmutable[] available,
                                 int windowSystemRecommendedChoice) {
-    GLCapabilities _desired = (GLCapabilities) desired;
-    GLCapabilities[] _available = (GLCapabilities[]) available;
+    GLCapabilitiesImmutable _desired = (GLCapabilitiesImmutable) desired;
+    GLCapabilitiesImmutable[] _available = (GLCapabilitiesImmutable[]) available;
     int availnum = 0;
 
     for (int i = 0; i < _available.length; i++) {
@@ -132,7 +132,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     }
     // Compute score for each
     for (int i = 0; i < scores.length; i++) {
-      GLCapabilities cur = _available[i];
+      GLCapabilitiesImmutable cur = _available[i];
       if (cur == null) {
         continue;
       }
@@ -177,7 +177,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       if (score == NO_SCORE) {
         continue;
       }
-      GLCapabilities cur = _available[i];
+      GLCapabilitiesImmutable cur = _available[i];
       if (cur.getHardwareAccelerated()) {
         int absScore = Math.abs(score);
         if (!gotHW ||
@@ -193,7 +193,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
         if (score == NO_SCORE) {
           continue;
         }
-        GLCapabilities cur = _available[i];
+        GLCapabilitiesImmutable cur = _available[i];
         if (!cur.getHardwareAccelerated()) {
           if (score <= 0) {
             score -= maxAbsoluteHWScore;

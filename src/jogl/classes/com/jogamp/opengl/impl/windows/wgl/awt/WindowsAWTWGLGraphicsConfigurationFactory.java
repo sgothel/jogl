@@ -32,19 +32,27 @@
 
 package com.jogamp.opengl.impl.windows.wgl.awt;
 
+
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.windows.*;
-import javax.media.nativewindow.awt.*;
-import javax.media.opengl.*;
-import javax.media.opengl.awt.*;
 
-import com.jogamp.opengl.impl.*;
-import com.jogamp.opengl.impl.windows.wgl.*;
-import com.jogamp.nativewindow.impl.jawt.*;
-import com.jogamp.nativewindow.impl.jawt.windows.*;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.CapabilitiesChooser;
+import javax.media.nativewindow.CapabilitiesImmutable;
+import javax.media.nativewindow.DefaultGraphicsScreen;
+import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
+import javax.media.nativewindow.awt.AWTGraphicsDevice;
+import javax.media.nativewindow.awt.AWTGraphicsScreen;
+import javax.media.nativewindow.windows.WindowsGraphicsDevice;
+
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLException;
+
+import com.jogamp.opengl.impl.windows.wgl.WindowsWGLGraphicsConfiguration;
 
 public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
     protected static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug("GraphicsConfiguration");
@@ -54,7 +62,8 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            Capabilities capabilities, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
+            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
+            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
         GraphicsDevice device = null;
         if (absScreen != null &&
             !(absScreen instanceof AWTGraphicsScreen)) {
@@ -67,9 +76,12 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
         AWTGraphicsScreen awtScreen = (AWTGraphicsScreen) absScreen;
         device = ((AWTGraphicsDevice)awtScreen.getDevice()).getGraphicsDevice();
 
-        if (capabilities != null &&
-            !(capabilities instanceof GLCapabilities)) {
-            throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only GLCapabilities objects");
+        if ( !(capsChosen instanceof GLCapabilitiesImmutable) ) {
+            throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only GLCapabilities objects - chosen");
+        }
+
+        if ( !(capsRequested instanceof GLCapabilitiesImmutable) ) {
+            throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only GLCapabilities objects - requested");
         }
 
         if (chooser != null &&
@@ -81,12 +93,10 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
             System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: got "+absScreen);
         }
         GraphicsConfiguration gc = device.getDefaultConfiguration();
-        AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capabilities, gc);
+        capsChosen = AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capsChosen, gc);
         if(DEBUG) {
-            System.err.println("AWT Colormodel compatible: "+capabilities);
+            System.err.println("AWT Colormodel compatible: "+capsChosen);
         }
-
-        long displayHandle = 0;
 
         WindowsGraphicsDevice winDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         DefaultGraphicsScreen winScreen = new DefaultGraphicsScreen(winDevice, awtScreen.getIndex());
@@ -95,12 +105,12 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
         }
 
         WindowsWGLGraphicsConfiguration winConfig = (WindowsWGLGraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(winDevice).chooseGraphicsConfiguration(capabilities,
-                                                                                           chooser,
-                                                                                           winScreen);
+            GraphicsConfigurationFactory.getFactory(winDevice).chooseGraphicsConfiguration(capsChosen,
+                                                                                           capsRequested,
+                                                                                           chooser, winScreen);
 
         if (winConfig == null) {
-            throw new GLException("Unable to choose a GraphicsConfiguration: "+capabilities+",\n\t"+chooser+"\n\t"+winScreen);
+            throw new GLException("Unable to choose a GraphicsConfiguration: "+capsChosen+",\n\t"+chooser+"\n\t"+winScreen);
         }
 
         if(DEBUG) {

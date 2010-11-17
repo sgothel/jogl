@@ -62,7 +62,7 @@ public interface CapabilitiesChooser {
       invoked by users directly, unless it is desired to delegate the
       choice to some other CapabilitiesChooser object.
   */
-  public int chooseCapabilities(Capabilities desired,
-                                Capabilities[] available,
+  public int chooseCapabilities(CapabilitiesImmutable desired,
+                                CapabilitiesImmutable[] available,
                                 int windowSystemRecommendedChoice);
 }

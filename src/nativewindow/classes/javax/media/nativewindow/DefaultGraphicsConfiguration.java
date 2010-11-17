@@ -41,9 +41,8 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
                                         CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested) {
         this.screen = screen;
 
-        // Create "immutable" copies of capabilities.
-        this.capabilitiesChosen = capsChosen.cloneCapabilites();
-        this.capabilitiesRequested = capsRequested.cloneCapabilites();
+        this.capabilitiesChosen = capsChosen;
+        this.capabilitiesRequested = capsRequested;
     }
 
     public Object clone() {
@@ -76,13 +75,12 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
      * The use case for setting the Capabilities at a later time is
      * a change of the graphics device in a multi-screen environment.<br>
      *
-     * A copy of the passed object is being used.
+     * The objects reference is being used.
      *
      * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
      */
     protected void setChosenCapabilities(CapabilitiesImmutable capsChosen) {
-        // Create "immutable" copy of capabilities.
-        capabilitiesChosen = (CapabilitiesImmutable) capsChosen.cloneCapabilites();
+        capabilitiesChosen = capsChosen;
     }
 
     /**

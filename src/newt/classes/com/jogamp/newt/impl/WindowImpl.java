@@ -56,7 +56,6 @@ import java.util.ArrayList;
 import java.lang.reflect.Method;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
@@ -79,7 +78,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
     private NativeWindow parentWindow;
     private long parentWindowHandle;
     protected AbstractGraphicsConfiguration config;
-    protected Capabilities caps;
+    protected CapabilitiesImmutable capsRequested;
     protected boolean fullscreen, visible, hasFocus;
     protected int width, height, x, y;
     protected int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen dimensions ..
@@ -165,7 +164,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         return windowClass;
     }
 
-    public static WindowImpl create(NativeWindow parentWindow, long parentWindowHandle, Screen screen, Capabilities caps) {
+    public static WindowImpl create(NativeWindow parentWindow, long parentWindowHandle, Screen screen, CapabilitiesImmutable caps) {
         try {
             Class windowClass;
             if(caps.isOnscreen()) {
@@ -178,7 +177,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
             window.parentWindow = parentWindow;
             window.parentWindowHandle = parentWindowHandle;
             window.screen = (ScreenImpl) screen;
-            window.caps = (Capabilities)caps.clone();
+            window.capsRequested = (CapabilitiesImmutable) caps.cloneMutable();
             window.setUndecorated(0!=parentWindowHandle);
             return window;
         } catch (Throwable t) {
@@ -187,7 +186,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         }
     }
 
-    public static WindowImpl create(Object[] cstrArguments, Screen screen, Capabilities caps) {
+    public static WindowImpl create(Object[] cstrArguments, Screen screen, CapabilitiesImmutable caps) {
         try {
             Class windowClass = getWindowClass(screen.getDisplay().getType());
             Class[] cstrArgumentTypes = getCustomConstructorArgumentTypes(windowClass);
@@ -201,7 +200,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
             WindowImpl window = (WindowImpl) ReflectionUtil.createInstance( windowClass, cstrArgumentTypes, cstrArguments ) ;
             window.initializeStates();
             window.screen = (ScreenImpl) screen;
-            window.caps = (Capabilities)caps.clone();
+            window.capsRequested = (CapabilitiesImmutable) caps.cloneMutable();
             return window;
         } catch (Throwable t) {
             throw new NativeWindowException(t);
@@ -825,7 +824,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
 
                 parentWindowHandle = 0;
                 parentWindow = null;
-                caps = null;
+                capsRequested = null;
                 lifecycleHook = null;
 
                 // Default position and dimension will be re-set immediately by user
@@ -1151,7 +1150,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
     }
 
     public final CapabilitiesImmutable getRequestedCapabilities() {
-        return caps;
+        return capsRequested;
     }
 
     public String getTitle() {

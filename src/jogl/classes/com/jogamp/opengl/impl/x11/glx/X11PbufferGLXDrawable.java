@@ -94,7 +94,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
 
       NativeSurface ns = getNativeSurface();
     
-      GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
+      GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
 
       if (capabilities.getPbufferRenderToTexture()) {
         throw new GLException("Render-to-texture pbuffers not supported yet on X11");

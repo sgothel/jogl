@@ -42,7 +42,6 @@ package com.jogamp.opengl.impl.windows.wgl;
 
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.SurfaceChangeable;
-import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
@@ -50,6 +49,7 @@ import javax.media.opengl.GLException;
 import com.jogamp.nativewindow.impl.windows.BITMAPINFO;
 import com.jogamp.nativewindow.impl.windows.BITMAPINFOHEADER;
 import com.jogamp.nativewindow.impl.windows.GDI;
+import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   private long origbitmap;
@@ -75,7 +75,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   private void create() {
     NativeSurface ns = getNativeSurface();
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities capabilities = (GLCapabilities)config.getRequestedCapabilities();
+    GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getRequestedCapabilities();
     int width = getWidth();
     int height = getHeight();
     BITMAPINFO info = BITMAPINFO.create();

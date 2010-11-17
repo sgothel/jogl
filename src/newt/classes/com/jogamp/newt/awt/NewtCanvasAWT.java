@@ -168,8 +168,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
 
       newtChild.setFocusAction(null); // no AWT focus traversal ..
       if(add) {
-          nativeWindow = NewtFactoryAWT.getNativeWindow(this,
-                  newtChild.getRequestedCapabilities().cloneCapabilites());
+          nativeWindow = NewtFactoryAWT.getNativeWindow(this, newtChild.getRequestedCapabilities());
           if(null!=nativeWindow) {
               if(DEBUG) {
                 System.err.println("NewtCanvasAWT.reparentWindow: "+newtChild);

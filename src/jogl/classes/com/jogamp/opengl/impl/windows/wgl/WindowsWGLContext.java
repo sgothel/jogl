@@ -46,7 +46,6 @@ import java.util.Map;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 
@@ -56,6 +55,7 @@ import com.jogamp.nativewindow.impl.windows.GDI;
 import com.jogamp.opengl.impl.GLContextImpl;
 import com.jogamp.opengl.impl.GLContextShareSet;
 import com.jogamp.opengl.impl.GLDrawableImpl;
+import javax.media.opengl.GLCapabilitiesImmutable;
 
 
 public class WindowsWGLContext extends GLContextImpl {
@@ -232,7 +232,7 @@ public class WindowsWGLContext extends GLContextImpl {
     AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     AbstractGraphicsDevice device = config.getScreen().getDevice();
     WindowsWGLContext sharedContext = (WindowsWGLContext) factory.getOrCreateSharedContextImpl(device);
-    GLCapabilities glCaps = drawable.getChosenGLCapabilities();
+    GLCapabilitiesImmutable glCaps = drawable.getChosenGLCapabilities();
 
     // Windows can set up sharing of display lists after creation time
     WindowsWGLContext other = (WindowsWGLContext) GLContextShareSet.getShareContext(this);

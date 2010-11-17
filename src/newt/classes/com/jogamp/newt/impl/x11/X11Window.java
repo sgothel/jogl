@@ -52,7 +52,8 @@ public class X11Window extends WindowImpl {
     protected void createNativeImpl() {
         X11Screen screen = (X11Screen) getScreen();
         X11Display display = (X11Display) screen.getDisplay();
-        config = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, screen.getGraphicsScreen());
+        config = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice()).chooseGraphicsConfiguration(
+                capsRequested, capsRequested, null, screen.getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }

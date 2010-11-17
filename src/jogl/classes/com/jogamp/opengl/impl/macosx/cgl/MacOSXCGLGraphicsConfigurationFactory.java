@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,12 +33,14 @@
 
 package com.jogamp.opengl.impl.macosx.cgl;
 
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.macosx.*;
-import com.jogamp.nativewindow.impl.*;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.CapabilitiesChooser;
+import javax.media.nativewindow.CapabilitiesImmutable;
+import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLCapabilitiesImmutable;
 
-import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
 
 /** Subclass of GraphicsConfigurationFactory used when non-AWT tookits
     are used on OSX platforms. Toolkits will likely need to delegate
@@ -52,20 +55,25 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GraphicsConfiguration
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            Capabilities capabilities, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
-        return chooseGraphicsConfigurationStatic(capabilities, chooser, absScreen, false);
+            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
+            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
+        return chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, absScreen, false);
     }
 
-    protected static MacOSXCGLGraphicsConfiguration chooseGraphicsConfigurationStatic(Capabilities capabilities,
-                                                                                   CapabilitiesChooser chooser,
-                                                                                   AbstractGraphicsScreen absScreen, boolean usePBuffer) {
+    protected static MacOSXCGLGraphicsConfiguration chooseGraphicsConfigurationStatic(CapabilitiesImmutable capsChosen,
+                                                                                      CapabilitiesImmutable capsRequested,
+                                                                                      CapabilitiesChooser chooser,
+                                                                                      AbstractGraphicsScreen absScreen, boolean usePBuffer) {
         if (absScreen == null) {
             throw new IllegalArgumentException("AbstractGraphicsScreen is null");
         }
 
-        if (capabilities != null &&
-            !(capabilities instanceof GLCapabilities)) {
-            throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilities objects");
+        if (! (capsChosen instanceof GLCapabilitiesImmutable) ) {
+            throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilities objects - chosen");
+        }
+
+        if (! (capsRequested instanceof GLCapabilitiesImmutable) ) {
+            throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilities objects - requested");
         }
 
         if (chooser != null &&
@@ -73,11 +81,6 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GraphicsConfiguration
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilitiesChooser objects");
         }
 
-        if (capabilities == null) {
-            capabilities = new GLCapabilities(null);
-        }
-
-        return new MacOSXCGLGraphicsConfiguration(absScreen, (GLCapabilities)capabilities, (GLCapabilities)capabilities, 0);
+        return new MacOSXCGLGraphicsConfiguration(absScreen, (GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested, 0);
     }
 }
-

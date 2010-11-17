@@ -43,7 +43,6 @@ package com.jogamp.opengl.impl.windows.wgl;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.SurfaceChangeable;
 import javax.media.opengl.GL;
-import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
@@ -52,6 +51,7 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.nativewindow.impl.windows.GDI;
 import com.jogamp.nativewindow.impl.windows.PIXELFORMATDESCRIPTOR;
+import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   private WGLExt cachedWGLExt; // cached WGLExt instance from parent GLCanvas,
@@ -134,7 +134,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     int     width, height;
 
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities capabilities = (GLCapabilities)config.getRequestedCapabilities();
+    GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getRequestedCapabilities();
     GLProfile glProfile = capabilities.getGLProfile();
 
     if (DEBUG) {
@@ -302,7 +302,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
       int[] ivalues = new int[niattribs];
       if (wglExt.wglGetPixelFormatAttribivARB(parentHdc, pformats[whichFormat], 0, niattribs, iattributes, 0, ivalues, 0)) {
-        GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.AttribList2GLCapabilities(glProfile, iattributes, niattribs, ivalues, true, false, true);
+        GLCapabilitiesImmutable newCaps = WindowsWGLGraphicsConfiguration.AttribList2GLCapabilities(glProfile, iattributes, niattribs, ivalues, true, false, true);
         PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
         if (GDI.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
           if (DEBUG) {
@@ -318,7 +318,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         if (GDI.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
           throw new GLException("Unable to describe pixel format " + pformats[whichFormat]);
         }
-        GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, pfd, false, true);
+        GLCapabilitiesImmutable newCaps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, pfd, false, true);
         if(newCaps.isOnscreen()) {
           throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps+"\n\t"+newCaps);
         }

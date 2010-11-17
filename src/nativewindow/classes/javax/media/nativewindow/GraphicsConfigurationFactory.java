@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008-2009 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,7 +33,6 @@
 
 package javax.media.nativewindow;
 
-import java.lang.reflect.*;
 import java.util.*;
 
 import com.jogamp.common.util.*;
@@ -187,6 +187,12 @@ public abstract class GraphicsConfigurationFactory {
      * javax.media.nativewindow.x11.X11GraphicsConfiguration
      * X11GraphicsConfiguration} objects.</P>
      *
+     * @param capsChosen     the intermediate chosen capabilities to be refined by this implementation, may be equal to capsRequested
+     * @param capsRequested  the original requested capabilities
+     * @param chooser        the choosing implementation
+     * @param screen         the referring Screen
+     * @return               the complete GraphicsConfiguration
+     *
      * @throws IllegalArgumentException if the data type of the passed
      *         AbstractGraphicsDevice is not supported by this
      *         NativeWindowFactory.
@@ -197,10 +203,16 @@ public abstract class GraphicsConfigurationFactory {
      * @see javax.media.nativewindow.DefaultGraphicsConfiguration#setChosenCapabilities(Capabilities caps)
      */
     public final AbstractGraphicsConfiguration
-        chooseGraphicsConfiguration(Capabilities capabilities,
+        chooseGraphicsConfiguration(CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
                                     CapabilitiesChooser chooser,
                                     AbstractGraphicsScreen screen)
         throws IllegalArgumentException, NativeWindowException {
+        if(null==capsChosen) {
+            throw new NativeWindowException("Chosen Capabilities are null");
+        }
+        if(null==capsRequested) {
+            throw new NativeWindowException("Requested Capabilities are null");
+        }
         if(null==screen) {
             throw new NativeWindowException("Screen is null");
         }
@@ -210,15 +222,14 @@ public abstract class GraphicsConfigurationFactory {
         }
         device.lock();
         try {
-            return chooseGraphicsConfigurationImpl(capabilities, chooser, screen);            
+            return chooseGraphicsConfigurationImpl(capsChosen, capsRequested, chooser, screen);
         } finally {
             device.unlock();
         }
     }
 
     protected abstract AbstractGraphicsConfiguration
-        chooseGraphicsConfigurationImpl(Capabilities capabilities,
-                                    CapabilitiesChooser chooser,
-                                    AbstractGraphicsScreen screen)
+        chooseGraphicsConfigurationImpl(CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
+                                        CapabilitiesChooser chooser, AbstractGraphicsScreen screen)
         throws IllegalArgumentException, NativeWindowException;
 }

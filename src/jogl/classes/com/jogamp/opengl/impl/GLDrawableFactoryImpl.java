@@ -71,7 +71,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
       throw new IllegalArgumentException("Null target");
     }
     AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities caps = (GLCapabilities) config.getChosenCapabilities();
+    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     AbstractGraphicsDevice adevice = config.getScreen().getDevice();
     GLDrawable result = null;
     adevice.lock();
@@ -131,7 +131,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     return createGLPbufferDrawableImpl(target);
   }
   
-  public GLDrawable createGLPbufferDrawable(GLCapabilities capabilities,
+  public GLDrawable createGLPbufferDrawable(GLCapabilitiesImmutable capsRequested,
                                             GLCapabilitiesChooser chooser,
                                             int width,
                                             int height) {
@@ -139,18 +139,28 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         throw new GLException("Width and height of pbuffer must be positive (were (" +
                         width + ", " + height + "))");
     }
-    capabilities.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
-    capabilities.setOnscreen(false);
-    capabilities.setPBuffer(true);
+
+    GLCapabilitiesImmutable capsChosen;
+
+    if( capsRequested.getDoubleBuffered() || capsRequested.isOnscreen() || !capsRequested.isPBuffer()) {
+        // fix caps ..
+        GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
+        caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
+        caps2.setOnscreen(false);
+        caps2.setPBuffer(true);
+        capsChosen = caps2;
+    } else {
+        capsChosen = capsRequested;
+    }
     NativeWindowFactory.getDefaultToolkitLock().lock();
     try {
-        return createGLPbufferDrawable( createOffscreenSurfaceImpl(capabilities, chooser, height, height) );
+        return createGLPbufferDrawable( createOffscreenSurfaceImpl(capsChosen, capsRequested, chooser, height, height) );
     } finally {
         NativeWindowFactory.getDefaultToolkitLock().unlock();
     }
   }
 
-  public GLPbuffer createGLPbuffer(GLCapabilities capabilities,
+  public GLPbuffer createGLPbuffer(GLCapabilitiesImmutable capabilities,
                                    GLCapabilitiesChooser chooser,
                                    int width,
                                    int height,
@@ -167,7 +177,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   protected abstract GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) ;
 
-  public GLDrawable createOffscreenDrawable(GLCapabilities capabilities,
+  public GLDrawable createOffscreenDrawable(GLCapabilitiesImmutable capsRequested,
                                             GLCapabilitiesChooser chooser,
                                             int width,
                                             int height) {
@@ -175,12 +185,21 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         throw new GLException("Width and height of pbuffer must be positive (were (" +
                         width + ", " + height + "))");
     }
-    capabilities.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
-    capabilities.setOnscreen(false);
-    capabilities.setPBuffer(false);
+    GLCapabilitiesImmutable capsChosen;
+
+    if( capsRequested.getDoubleBuffered() || capsRequested.isOnscreen() || capsRequested.isPBuffer()) {
+        // fix caps ..
+        GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
+        caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
+        caps2.setOnscreen(false);
+        caps2.setPBuffer(false);
+        capsChosen = caps2;
+    } else {
+        capsChosen = capsRequested;
+    }
     NativeWindowFactory.getDefaultToolkitLock().lock();
     try {
-        return createOffscreenDrawableImpl( createOffscreenSurfaceImpl(capabilities, chooser, width, height) );
+        return createOffscreenDrawableImpl( createOffscreenSurfaceImpl(capsChosen, capsRequested, chooser, width, height) );
     } finally {
         NativeWindowFactory.getDefaultToolkitLock().unlock();
     }
@@ -190,8 +209,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * creates an offscreen NativeSurface, which must implement SurfaceChangeable as well,
    * so the windowing system related implementation is able to set the surface handle.
    */
-  protected abstract NativeSurface createOffscreenSurfaceImpl(GLCapabilities capabilities, GLCapabilitiesChooser chooser,
-                                                        int width, int height);
+  protected abstract NativeSurface createOffscreenSurfaceImpl(GLCapabilitiesImmutable capabilities, GLCapabilitiesImmutable capsRequested,
+                                                              GLCapabilitiesChooser chooser,
+                                                              int width, int height);
 
   //---------------------------------------------------------------------------
   //

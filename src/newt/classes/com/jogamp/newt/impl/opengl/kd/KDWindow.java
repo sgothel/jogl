@@ -33,15 +33,12 @@
 
 package com.jogamp.newt.impl.opengl.kd;
 
-import com.jogamp.newt.*;
-import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.*;
 import com.jogamp.opengl.impl.egl.*;
 import javax.media.nativewindow.*;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Point;
+import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class KDWindow extends WindowImpl {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
@@ -57,12 +54,13 @@ public class KDWindow extends WindowImpl {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
-        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
+        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(
+                capsRequested, capsRequested, null, getScreen().getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
 
-        GLCapabilities eglCaps = (GLCapabilities)config.getChosenCapabilities();
+        GLCapabilitiesImmutable eglCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         int[] eglAttribs = EGLGraphicsConfiguration.GLCapabilities2AttribList(eglCaps);
 
         eglWindowHandle = CreateWindow(getDisplayHandle(), eglAttribs);

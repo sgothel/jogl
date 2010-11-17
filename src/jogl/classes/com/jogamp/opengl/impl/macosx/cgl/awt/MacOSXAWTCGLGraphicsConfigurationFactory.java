@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -34,17 +35,24 @@ package com.jogamp.opengl.impl.macosx.cgl.awt;
 
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.macosx.*;
-import javax.media.nativewindow.awt.*;
-import javax.media.opengl.*;
-import javax.media.opengl.awt.*;
 
-import com.jogamp.opengl.impl.*;
-import com.jogamp.opengl.impl.macosx.cgl.*;
-import com.jogamp.nativewindow.impl.jawt.*;
-import com.jogamp.nativewindow.impl.jawt.macosx.*;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.CapabilitiesChooser;
+import javax.media.nativewindow.CapabilitiesImmutable;
+import javax.media.nativewindow.DefaultGraphicsScreen;
+import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
+import javax.media.nativewindow.awt.AWTGraphicsDevice;
+import javax.media.nativewindow.awt.AWTGraphicsScreen;
+import javax.media.nativewindow.macosx.MacOSXGraphicsDevice;
+
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLException;
+
+import com.jogamp.opengl.impl.macosx.cgl.MacOSXCGLGraphicsConfiguration;
 
 public class MacOSXAWTCGLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
     protected static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug("GraphicsConfiguration");
@@ -54,7 +62,8 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GraphicsConfigurat
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            Capabilities capabilities, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
+            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
+            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
         GraphicsDevice device = null;
         if (absScreen != null &&
             !(absScreen instanceof AWTGraphicsScreen)) {
@@ -67,9 +76,12 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GraphicsConfigurat
         AWTGraphicsScreen awtScreen = (AWTGraphicsScreen) absScreen;
         device = ((AWTGraphicsDevice)awtScreen.getDevice()).getGraphicsDevice();
 
-        if (capabilities != null &&
-            !(capabilities instanceof GLCapabilities)) {
-            throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only GLCapabilities objects");
+        if ( !(capsChosen instanceof GLCapabilitiesImmutable) ) {
+            throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only GLCapabilities objects - chosen");
+        }
+
+        if ( !(capsRequested instanceof GLCapabilitiesImmutable) ) {
+            throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only GLCapabilities objects - requested");
         }
 
         if (chooser != null &&
@@ -81,8 +93,6 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GraphicsConfigurat
             System.err.println("MacOSXAWTCGLGraphicsConfigurationFactory: got "+absScreen);
         }
 
-        long displayHandle = 0;
-
         MacOSXGraphicsDevice macDevice = new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         DefaultGraphicsScreen macScreen = new DefaultGraphicsScreen(macDevice, awtScreen.getIndex());
         if(DEBUG) {
@@ -90,18 +100,18 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GraphicsConfigurat
         }
 
         GraphicsConfiguration gc = device.getDefaultConfiguration();
-        AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capabilities, gc);
+        capsChosen = (GLCapabilitiesImmutable) AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capsChosen, gc);
         if(DEBUG) {
-            System.err.println("AWT Colormodel compatible: "+capabilities);
+            System.err.println("AWT Colormodel compatible: "+capsChosen);
         }
 
         MacOSXCGLGraphicsConfiguration macConfig = (MacOSXCGLGraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(macDevice).chooseGraphicsConfiguration(capabilities,
-                                                                                           chooser,
-                                                                                           macScreen);
+            GraphicsConfigurationFactory.getFactory(macDevice).chooseGraphicsConfiguration(capsChosen,
+                                                                                           capsRequested,
+                                                                                           chooser, macScreen);
 
         if (macConfig == null) {
-            throw new GLException("Unable to choose a GraphicsConfiguration: "+capabilities+",\n\t"+chooser+"\n\t"+macScreen);
+            throw new GLException("Unable to choose a GraphicsConfiguration: "+capsChosen+",\n\t"+chooser+"\n\t"+macScreen);
         }
 
         // FIXME: we have nothing to match .. so choose the default

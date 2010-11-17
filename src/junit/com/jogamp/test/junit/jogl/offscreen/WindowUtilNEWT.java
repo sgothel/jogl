@@ -41,7 +41,7 @@ import com.jogamp.newt.opengl.*;
 public class WindowUtilNEWT {
 
     public static GLCapabilities fixCaps(GLCapabilities caps, boolean onscreen, boolean pbuffer, boolean undecorated) {
-        GLCapabilities caps2 = (GLCapabilities) caps.clone();
+        GLCapabilities caps2 = (GLCapabilities) caps.cloneMutable();
         caps2.setOnscreen(onscreen);
         caps2.setPBuffer(!onscreen && pbuffer);
         caps2.setDoubleBuffered(!onscreen);

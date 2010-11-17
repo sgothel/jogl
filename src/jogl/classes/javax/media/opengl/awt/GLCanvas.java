@@ -41,7 +41,6 @@
 package javax.media.opengl.awt;
 
 import com.jogamp.common.GlueGenVersion;
-import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.NativeWindowVersion;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
@@ -95,7 +94,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   private boolean sendReshape = false;
   
   // copy of the cstr args ..
-  private GLCapabilities capabilities;
+  private GLCapabilitiesImmutable capabilities;
   private GLCapabilitiesChooser chooser;
   private GLContext shareWith;
   private GraphicsDevice device;
@@ -110,8 +109,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   /** Creates a new GLCanvas component with the requested set of
       OpenGL capabilities, using the default OpenGL capabilities
       selection mechanism, on the default screen device. */
-  public GLCanvas(GLCapabilities capabilities) {
-    this(capabilities, null, null, null);
+  public GLCanvas(GLCapabilitiesImmutable capsReqUser) {
+    this(capsReqUser, null, null, null);
   }
 
   /** Creates a new GLCanvas component. The passed GLCapabilities
@@ -129,7 +128,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       which to create the GLCanvas; the GLDrawableFactory uses the
       default screen device of the local GraphicsEnvironment if null
       is passed for this argument. */
-  public GLCanvas(GLCapabilities capabilities,
+  public GLCanvas(GLCapabilitiesImmutable capsReqUser,
                   GLCapabilitiesChooser chooser,
                   GLContext shareWith,
                   GraphicsDevice device) {
@@ -141,12 +140,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
      */
     super();
 
-    if(null==capabilities) {
+    if(null==capsReqUser) {
         capabilities = new GLCapabilities(defaultGLProfile);
+    } else {
+        // don't allow the user to change data
+        capabilities = (GLCapabilitiesImmutable) capsReqUser.cloneMutable();
     }
     glProfile = capabilities.getGLProfile();
 
-    this.capabilities = capabilities;
     this.chooser = chooser;
     this.shareWith=shareWith;
     this.device = device;
@@ -231,7 +232,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
          * block, both devices should have the same visual list, and the
          * same configuration should be selected here.
          */
-        AWTGraphicsConfiguration config = chooseGraphicsConfiguration((GLCapabilities)awtConfig.getRequestedCapabilities(), chooser, gc.getDevice());
+        AWTGraphicsConfiguration config = chooseGraphicsConfiguration( (GLCapabilitiesImmutable)awtConfig.getChosenCapabilities(),
+                                                                       (GLCapabilitiesImmutable)awtConfig.getRequestedCapabilities(),
+                                                                       chooser, gc.getDevice());
         final GraphicsConfiguration compatible = (null!=config)?config.getGraphicsConfiguration():null;
         boolean equalCaps = config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities());
         if(DEBUG) {
@@ -429,7 +432,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
          */
         NativeWindowFactory.getDefaultToolkitLock().lock();
         try {
-            awtConfig = chooseGraphicsConfiguration(capabilities, chooser, device);
+            awtConfig = chooseGraphicsConfiguration(capabilities, capabilities, chooser, device);
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName()+" - Created Config: "+awtConfig);
             }
@@ -578,20 +581,20 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     return glProfile;
   }
 
-  public GLCapabilities getChosenGLCapabilities() {
+  public GLCapabilitiesImmutable getChosenGLCapabilities() {
     if (awtConfig == null) {
         throw new GLException("No AWTGraphicsConfiguration: "+this);
     }
 
-    return (GLCapabilities)awtConfig.getChosenCapabilities();
+    return (GLCapabilitiesImmutable)awtConfig.getChosenCapabilities();
   }
 
-  public GLCapabilities getRequestedGLCapabilities() {
+  public GLCapabilitiesImmutable getRequestedGLCapabilities() {
     if (awtConfig == null) {
         throw new GLException("No AWTGraphicsConfiguration: "+this);
     }
 
-    return (GLCapabilities)awtConfig.getRequestedCapabilities();
+    return (GLCapabilitiesImmutable)awtConfig.getRequestedCapabilities();
   }
 
   public NativeSurface getNativeSurface() {
@@ -771,7 +774,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
   }
 
-  private static AWTGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
+  private static AWTGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilitiesImmutable capsChosen,
+                                                                      GLCapabilitiesImmutable capsRequested,
                                                                       GLCapabilitiesChooser chooser,
                                                                       GraphicsDevice device) {
     // Make GLCanvas behave better in NetBeans GUI builder
@@ -781,9 +785,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
     AbstractGraphicsScreen aScreen = AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT);
     AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
-      GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capabilities,
-                                                                                                   chooser,
-                                                                                                   aScreen);
+      GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capsChosen,
+                                                                                                   capsRequested,
+                                                                                                   chooser, aScreen);
     if (config == null) {
       throw new GLException("Error: Couldn't fetch AWTGraphicsConfiguration");
     }
@@ -799,7 +803,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     System.err.println(NativeWindowVersion.getInstance());
     System.err.print(JoglVersion.getInstance());
 
-    GLCapabilities caps = new GLCapabilities( GLProfile.getDefault(GLProfile.getDefaultDesktopDevice()) );
+    GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault(GLProfile.getDefaultDesktopDevice()) );
     Frame frame = new Frame("JOGL AWT Test");
 
     GLCanvas glCanvas = new GLCanvas(caps);

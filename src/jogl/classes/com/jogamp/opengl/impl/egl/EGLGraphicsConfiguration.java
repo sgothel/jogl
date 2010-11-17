@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,7 +37,6 @@
 package com.jogamp.opengl.impl.egl;
 
 import com.jogamp.common.nio.PointerBuffer;
-import java.util.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 import javax.media.opengl.*;
@@ -54,7 +54,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     }
 
     public EGLGraphicsConfiguration(AbstractGraphicsScreen absScreen, 
-                                    GLCapabilities capsChosen, GLCapabilities capsRequested, GLCapabilitiesChooser chooser,
+                                    GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser,
                                     long cfg, int cfgID) {
         super(absScreen, capsChosen, capsRequested);
         this.chooser = chooser;
@@ -62,7 +62,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         configID = cfgID;
     }
 
-    public static EGLGraphicsConfiguration create(GLCapabilities capsRequested, AbstractGraphicsScreen absScreen, int cfgID) {
+    public static EGLGraphicsConfiguration create(GLCapabilitiesImmutable capsRequested, AbstractGraphicsScreen absScreen, int cfgID) {
         AbstractGraphicsDevice absDevice = absScreen.getDevice();
         if(null==absDevice || !(absDevice instanceof EGLGraphicsDevice)) {
             throw new GLException("GraphicsDevice must be a valid EGLGraphicsDevice");
@@ -73,7 +73,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         }
         GLProfile glp = capsRequested.getGLProfile();
         long cfg = EGLConfigId2EGLConfig(glp, dpy, cfgID);
-        GLCapabilities caps = EGLConfig2Capabilities(glp, dpy, cfg, false, capsRequested.isOnscreen(), capsRequested.isPBuffer());
+        GLCapabilitiesImmutable caps = EGLConfig2Capabilities(glp, dpy, cfg, false, capsRequested.isOnscreen(), capsRequested.isPBuffer());
         return new EGLGraphicsConfiguration(absScreen, caps, capsRequested, new DefaultGLCapabilitiesChooser(), cfg, cfgID);
     }
 
@@ -83,9 +83,8 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
 
     protected void updateGraphicsConfiguration() {
         EGLGraphicsConfiguration newConfig = (EGLGraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(getRequestedCapabilities().cloneCapabilites(),
-                                                                                                         chooser,
-                                                                                                         getScreen());
+            GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(
+                getChosenCapabilities(), getRequestedCapabilities(), chooser, getScreen());
         if(null!=newConfig) {
             // FIXME: setScreen( ... );
             setChosenCapabilities(newConfig.getChosenCapabilities());
@@ -132,8 +131,8 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return res;
     }
 
-    public static GLCapabilities EGLConfig2Capabilities(GLProfile glp, long display, long config, 
-                                                        boolean relaxed, boolean onscreen, boolean usePBuffer) {
+    public static GLCapabilitiesImmutable EGLConfig2Capabilities(GLProfile glp, long display, long config,
+                                                                 boolean relaxed, boolean onscreen, boolean usePBuffer) {
         GLCapabilities caps = new GLCapabilities(glp);
         int[] val = new int[1];
 
@@ -200,7 +199,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return caps;
     }
 
-    public static int[] GLCapabilities2AttribList(GLCapabilities caps) {
+    public static int[] GLCapabilities2AttribList(GLCapabilitiesImmutable caps) {
         int[] attrs = new int[32];
         int idx=0;
 

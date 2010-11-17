@@ -87,7 +87,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     if (newCreated) {
       // Initialize render-to-texture support if requested
       DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-      GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
+      GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
       GL gl = getGL();
       boolean rect = gl.isGL2GL3() && capabilities.getPbufferRenderToTextureRectangle();
       if (rect) {
@@ -136,7 +136,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
 
   protected boolean createImpl() throws GLException {
     DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
+    GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
     if (capabilities.getPbufferFloatingPointBuffers() &&
 	!isTigerOrLater) {
       throw new GLException("Floating-point pbuffers supported only on OS X 10.4 or later");
@@ -224,7 +224,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     public boolean isNSContext() { return true; }
     public long create() {
       DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-      GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
+      GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
       if (capabilities.getPbufferFloatingPointBuffers() &&
           !isTigerOrLater) {
         throw new GLException("Floating-point pbuffers supported only on OS X 10.4 or later");
@@ -288,7 +288,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       int i = 0;
       attrs[i++] = CGL.kCGLPFAPBuffer;
       DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-      GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
+      GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
       if (capabilities.getPbufferFloatingPointBuffers())
         attrs[i++] = CGL.kCGLPFAColorFloat;
       if (capabilities.getDoubleBuffered())

@@ -43,10 +43,10 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
    * we cannot switch the Display as we please, 
    * hence we reuse the target's screen configuration. 
    */
-  public X11DummyGLXDrawable(X11GraphicsScreen screen, GLDrawableFactory factory, GLProfile glp) {
+  public X11DummyGLXDrawable(X11GraphicsScreen screen, GLDrawableFactory factory, GLCapabilitiesImmutable caps) {
     super(factory, 
           new ProxySurface(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
-            new GLCapabilities(glp), null, screen)));
+            caps, caps, null, screen)));
     this.realized = true;
 
     ProxySurface ns = (ProxySurface) getNativeSurface();
@@ -61,6 +61,11 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
     ns.setSurfaceHandle( dummyWindow );
 
     updateHandle();
+  }
+
+  public static X11DummyGLXDrawable create(X11GraphicsScreen screen, GLDrawableFactory factory, GLProfile glp) {
+      GLCapabilities caps = new GLCapabilities(glp);
+      return new X11DummyGLXDrawable(screen, factory, caps);
   }
 
   public void setSize(int width, int height) {

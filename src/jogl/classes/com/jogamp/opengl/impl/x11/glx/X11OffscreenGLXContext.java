@@ -55,7 +55,7 @@ public class X11OffscreenGLXContext extends X11GLXContext {
   }
   
   public int getOffscreenContextReadBuffer() {
-    GLCapabilities caps = (GLCapabilities)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
     if (caps.getDoubleBuffered()) {
       return GL.GL_BACK;
     }

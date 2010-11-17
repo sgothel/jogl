@@ -52,7 +52,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
       this.factory = factory;
       this.surface = comp;
       this.realized = realized;
-      this.requestedCapabilities = (GLCapabilities)surface.getGraphicsConfiguration().getNativeGraphicsConfiguration().getRequestedCapabilities(); // a copy ..
+      this.requestedCapabilities = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getNativeGraphicsConfiguration().getRequestedCapabilities();
   }
 
   /** 
@@ -79,7 +79,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   public final void swapBuffers() throws GLException {
-    GLCapabilities caps = (GLCapabilities)surface.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)surface.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
     if ( caps.getDoubleBuffered() ) {
         if(!surface.surfaceSwap()) {
             int lockRes = lockSurface(); // it's recursive, so it's ok within [makeCurrent .. release]
@@ -114,11 +114,11 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return requestedCapabilities.getGLProfile();
   }
 
-  public GLCapabilities getChosenGLCapabilities() {
-    return  (GLCapabilities)surface.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities(); // a copy
+  public GLCapabilitiesImmutable getChosenGLCapabilities() {
+    return  (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
   }
 
-  public GLCapabilities getRequestedGLCapabilities() {
+  public GLCapabilitiesImmutable getRequestedGLCapabilities() {
     return requestedCapabilities;
   }
 
@@ -204,7 +204,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   protected GLDrawableFactory factory;
   protected NativeSurface surface;
-  protected GLCapabilities requestedCapabilities;
+  protected GLCapabilitiesImmutable requestedCapabilities;
 
   // Indicates whether the surface (if an onscreen context) has been
   // realized. Plausibly, before the surface is realized the JAWT

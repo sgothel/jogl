@@ -91,7 +91,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   private volatile boolean isInitialized;
 
   // Data used for either pbuffers or pixmap-based offscreen surfaces
-  private GLCapabilities        offscreenCaps;
+  private GLCapabilitiesImmutable offscreenCaps;
   private GLProfile             glProfile;
   private GLDrawableFactoryImpl factory;
   private GLCapabilitiesChooser chooser;
@@ -158,8 +158,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   /** Creates a new GLJPanel component with the requested set of
       OpenGL capabilities, using the default OpenGL capabilities
       selection mechanism. */
-  public GLJPanel(GLCapabilities capabilities) {
-    this(capabilities, null, null);
+  public GLJPanel(GLCapabilitiesImmutable userCapsRequest) {
+    this(userCapsRequest, null, null);
   }
 
   /** Creates a new GLJPanel component. The passed GLCapabilities
@@ -176,17 +176,21 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       Note: Sharing cannot be enabled using J2D OpenGL FBO sharing,
       since J2D GL Context must be shared and we can only share one context.
   */
-  public GLJPanel(GLCapabilities capabilities, GLCapabilitiesChooser chooser, GLContext shareWith) {
+  public GLJPanel(GLCapabilitiesImmutable userCapsRequest, GLCapabilitiesChooser chooser, GLContext shareWith) {
     super();
 
     // Works around problems on many vendors' cards; we don't need a
     // back buffer for the offscreen surface anyway
-    if (capabilities != null) {
-        offscreenCaps = (GLCapabilities) capabilities.clone();
-    } else {
-        offscreenCaps = new GLCapabilities(null);
+    {
+        GLCapabilities caps;
+        if (userCapsRequest != null) {
+            caps = (GLCapabilities) userCapsRequest.cloneMutable();
+        } else {
+            caps = new GLCapabilities(null);
+        }
+        caps.setDoubleBuffered(false);
+        offscreenCaps = caps;
     }
-    offscreenCaps.setDoubleBuffered(false);
     this.glProfile = offscreenCaps.getGLProfile();
     this.factory = GLDrawableFactoryImpl.getFactoryImpl(glProfile);
     this.chooser = ((chooser != null) ? chooser : new DefaultGLCapabilitiesChooser());
@@ -485,7 +489,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     return oglPipelineEnabled;
   }
 
-  public GLCapabilities getChosenGLCapabilities() {
+  public GLCapabilitiesImmutable getChosenGLCapabilities() {
     return backend.getChosenGLCapabilities();
   }
 
@@ -748,7 +752,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     public GLDrawable getDrawable();
 
     // Called to fetch the "real" GLCapabilities for the backend
-    public GLCapabilities getChosenGLCapabilities();
+    public GLCapabilitiesImmutable getChosenGLCapabilities();
 
     // Called to fetch the "real" GLProfile for the backend
     public GLProfile getGLProfile();
@@ -992,7 +996,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         return offscreenDrawable;
     }
 
-    public GLCapabilities getChosenGLCapabilities() {
+    public GLCapabilitiesImmutable getChosenGLCapabilities() {
       if (offscreenDrawable == null) {
         return null;
       }
@@ -1090,7 +1094,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         return pbuffer;
     }
 
-    public GLCapabilities getChosenGLCapabilities() {
+    public GLCapabilitiesImmutable getChosenGLCapabilities() {
       if (pbuffer == null) {
         return null;
       }
@@ -1268,7 +1272,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         return joglDrawable;
     }
 
-    public GLCapabilities getChosenGLCapabilities() {
+    public GLCapabilitiesImmutable getChosenGLCapabilities() {
       // FIXME: should do better than this; is it possible to using only platform-independent code?
       return new GLCapabilities(null);
     }

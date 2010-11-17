@@ -51,7 +51,7 @@ public class NewtFactoryAWT extends NewtFactory {
    *
    * @param awtCompObject must be of type java.awt.Component
    */
-  public static NativeWindow getNativeWindow(Object awtCompObject, Capabilities capsRequested) {
+  public static NativeWindow getNativeWindow(Object awtCompObject, CapabilitiesImmutable capsRequested) {
       if(null==awtCompObject) {
         throw new NativeWindowException("Null AWT Component");
       }
@@ -61,9 +61,8 @@ public class NewtFactoryAWT extends NewtFactory {
       return getNativeWindow( (java.awt.Component) awtCompObject, capsRequested );
   }
 
-  public static NativeWindow getNativeWindow(java.awt.Component awtComp, Capabilities capsRequested) {
-      DefaultGraphicsConfiguration config = 
-          AWTGraphicsConfiguration.create(awtComp, (Capabilities) capsRequested.clone(), capsRequested);
+  public static NativeWindow getNativeWindow(java.awt.Component awtComp, CapabilitiesImmutable capsRequested) {
+      DefaultGraphicsConfiguration config = AWTGraphicsConfiguration.create(awtComp, capsRequested, capsRequested);
       NativeWindow awtNative = NativeWindowFactory.getNativeWindow(awtComp, config); // a JAWTWindow
       if(DEBUG_IMPLEMENTATION) {
         System.err.println("NewtFactoryAWT.getNativeWindow: "+awtComp+" -> "+awtNative);

@@ -42,7 +42,8 @@ import javax.media.opengl.*;
 public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
     long pixelformat;
 
-    public MacOSXCGLGraphicsConfiguration(AbstractGraphicsScreen screen, GLCapabilities capsChosen, GLCapabilities capsRequested,
+    public MacOSXCGLGraphicsConfiguration(AbstractGraphicsScreen screen, 
+                                          GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
                                           long pixelformat) {
         super(screen, capsChosen, capsRequested);
         this.pixelformat=pixelformat;
@@ -56,7 +57,7 @@ public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration
         this.pixelformat=pixelformat;
     }
 
-    protected void setChosenCapabilities(GLCapabilities caps) {
+    protected void setChosenCapabilities(GLCapabilitiesImmutable caps) {
         super.setChosenCapabilities(caps);
     }
 
@@ -73,7 +74,7 @@ public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration
         CGL.NSOpenGLPFASampleBuffers,
         CGL.NSOpenGLPFASamples };
 
-    protected static int[] GLCapabilities2AttribList(GLCapabilities caps) {
+    protected static int[] GLCapabilities2AttribList(GLCapabilitiesImmutable caps) {
         int[] ivalues = new int[cglInternalAttributeToken.length];
 
         for (int idx = 0; idx < cglInternalAttributeToken.length; idx++) {
@@ -130,20 +131,20 @@ public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration
         return ivalues;
     }
 
-    protected static long GLCapabilities2NSPixelFormat(GLCapabilities caps) {
+    protected static long GLCapabilities2NSPixelFormat(GLCapabilitiesImmutable caps) {
         int[] ivalues = GLCapabilities2AttribList(caps);
         return CGL.createPixelFormat(cglInternalAttributeToken, 0, cglInternalAttributeToken.length, ivalues, 0);
     }
 
-    protected static GLCapabilities NSPixelFormat2GLCapabilities(GLProfile glp, long pixelFormat) {
+    protected static GLCapabilitiesImmutable NSPixelFormat2GLCapabilities(GLProfile glp, long pixelFormat) {
         return PixelFormat2GLCapabilities(glp, pixelFormat, true);
     }
 
-    protected static GLCapabilities CGLPixelFormat2GLCapabilities(GLProfile glp, long pixelFormat) {
+    protected static GLCapabilitiesImmutable CGLPixelFormat2GLCapabilities(GLProfile glp, long pixelFormat) {
         return PixelFormat2GLCapabilities(glp, pixelFormat, false);
     }
 
-    private static GLCapabilities PixelFormat2GLCapabilities(GLProfile glp, long pixelFormat, boolean nsUsage) {
+    private static GLCapabilitiesImmutable PixelFormat2GLCapabilities(GLProfile glp, long pixelFormat, boolean nsUsage) {
         int[] ivalues = new int[cglInternalAttributeToken.length];
 
         // On this platform the pixel format is associated with the

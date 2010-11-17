@@ -151,9 +151,9 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     return new MacOSXPbufferCGLDrawable(this, target);
   }
 
-  protected NativeSurface createOffscreenSurfaceImpl(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
+  protected NativeSurface createOffscreenSurfaceImpl(GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
     AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_MACOSX);
-    ProxySurface ns = new ProxySurface(MacOSXCGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, screen, true));
+    ProxySurface ns = new ProxySurface(MacOSXCGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen, true));
     ns.setSize(width, height);
     return ns;
   }

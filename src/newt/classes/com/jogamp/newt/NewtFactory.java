@@ -112,14 +112,14 @@ public class NewtFactory {
      * The Display/Screen is created and owned, ie destructed atomatically.<br>
      * A new Display is only created if no preexisting one could be found via {@link Display#getLastDisplayOf(java.lang.String, java.lang.String, int)}.
      */
-    public static Window createWindow(Capabilities caps) {
+    public static Window createWindow(CapabilitiesImmutable caps) {
         return createWindowImpl(NativeWindowFactory.getNativeWindowType(true), caps);
     }
 
     /**
      * Create a top level Window entity, incl native creation
      */
-    public static Window createWindow(Screen screen, Capabilities caps) {
+    public static Window createWindow(Screen screen, CapabilitiesImmutable caps) {
         return createWindowImpl(screen, caps);
     }
 
@@ -140,7 +140,7 @@ public class NewtFactory {
      *
      * @param parentWindowObject either a NativeWindow instance
      */
-    public static Window createWindow(NativeWindow nParentWindow, Capabilities caps) {
+    public static Window createWindow(NativeWindow nParentWindow, CapabilitiesImmutable caps) {
         final String type = NativeWindowFactory.getNativeWindowType(true);
 
         Screen screen  = null;
@@ -173,19 +173,19 @@ public class NewtFactory {
         return win;
     }
 
-    protected static Window createWindowImpl(NativeWindow parentNativeWindow, Screen screen, Capabilities caps) {
+    protected static Window createWindowImpl(NativeWindow parentNativeWindow, Screen screen, CapabilitiesImmutable caps) {
         return WindowImpl.create(parentNativeWindow, 0, screen, caps);
     }
 
-    protected static Window createWindowImpl(long parentWindowHandle, Screen screen, Capabilities caps) {
+    protected static Window createWindowImpl(long parentWindowHandle, Screen screen, CapabilitiesImmutable caps) {
         return WindowImpl.create(null, parentWindowHandle, screen, caps);
     }
 
-    protected static Window createWindowImpl(Screen screen, Capabilities caps) {
+    protected static Window createWindowImpl(Screen screen, CapabilitiesImmutable caps) {
         return WindowImpl.create(null, 0, screen, caps);
     }
 
-    protected static Window createWindowImpl(String type, Capabilities caps) {
+    protected static Window createWindowImpl(String type, CapabilitiesImmutable caps) {
         Display display = NewtFactory.createDisplay(type, null, true); // local display
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         return WindowImpl.create(null, 0, screen, caps);
@@ -197,7 +197,7 @@ public class NewtFactory {
      * @param parentWindowObject the native parent window handle
      * @param undecorated only impacts if the window is in top-level state, while attached to a parent window it's rendered undecorated always
      */
-    public static Window createWindow(long parentWindowHandle, Screen screen, Capabilities caps) {
+    public static Window createWindow(long parentWindowHandle, Screen screen, CapabilitiesImmutable caps) {
         return createWindowImpl(parentWindowHandle, screen, caps);
     }
 
@@ -208,7 +208,7 @@ public class NewtFactory {
      *
      * @param undecorated only impacts if the window is in top-level state, while attached to a parent window it's rendered undecorated always
      */
-    public static Window createWindow(Object[] cstrArguments, Screen screen, Capabilities caps) {
+    public static Window createWindow(Object[] cstrArguments, Screen screen, CapabilitiesImmutable caps) {
         return WindowImpl.create(cstrArguments, screen, caps);
     }
 
@@ -219,7 +219,7 @@ public class NewtFactory {
       return DisplayImpl.create(type, null, handle, false);
     }
 
-    private static final boolean instanceOf(Object obj, String clazzName) {
+    private static boolean instanceOf(Object obj, String clazzName) {
         Class clazz = obj.getClass();
         do {
             if(clazz.getName().equals(clazzName)) {

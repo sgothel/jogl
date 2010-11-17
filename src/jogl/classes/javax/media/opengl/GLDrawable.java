@@ -40,7 +40,9 @@
 
 package javax.media.opengl;
 
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.NativeSurface;
+
 
 /** An abstraction for an OpenGL rendering target. A GLDrawable's
     primary functionality is to create OpenGL contexts which can be
@@ -139,7 +141,7 @@ public interface GLDrawable {
       automatically and should not be called by the end user. */
   public void swapBuffers() throws GLException;
 
-  /** Fetches the {@link GLCapabilities} corresponding to the chosen
+  /** Fetches the {@link GLCapabilitiesImmutable} corresponding to the chosen
       OpenGL capabilities (pixel format / visual / GLProfile) for this drawable.<br>
       On some platforms, the pixel format is not directly associated
       with the drawable; a best attempt is made to return a reasonable
@@ -149,7 +151,7 @@ public interface GLDrawable {
       they should reflect those as well.
       @return A copy of the queried object.
     */
-  public GLCapabilities getChosenGLCapabilities();
+  public GLCapabilitiesImmutable getChosenGLCapabilities();
 
   /** Fetches the {@link GLProfile} for this drawable.
       Returns the GLProfile object, no copy.

@@ -57,7 +57,7 @@ public class TestGLWindows01NEWT extends UITestCase {
         glp = GLProfile.getDefault();
     }
 
-    static GLWindow createWindow(Screen screen, GLCapabilities caps, 
+    static GLWindow createWindow(Screen screen, GLCapabilities caps,
                                  int width, int height, boolean onscreen, boolean undecorated,
                                  boolean addGLEventListenerAfterVisible) 
         throws InterruptedException
@@ -102,12 +102,12 @@ public class TestGLWindows01NEWT extends UITestCase {
         // Create native OpenGL resources .. XGL/WGL/CGL .. 
         // equivalent to GLAutoDrawable methods: setVisible(true)
         // 
-        caps = glWindow.getChosenGLCapabilities();
-        Assert.assertNotNull(caps);
-        Assert.assertTrue(caps.getGreenBits()>5);
-        Assert.assertTrue(caps.getBlueBits()>5);
-        Assert.assertTrue(caps.getRedBits()>5);
-        Assert.assertEquals(caps.isOnscreen(),onscreen);
+        GLCapabilitiesImmutable caps2 = glWindow.getChosenGLCapabilities();
+        Assert.assertNotNull(caps2);
+        Assert.assertTrue(caps2.getGreenBits()>=5);
+        Assert.assertTrue(caps2.getBlueBits()>=5);
+        Assert.assertTrue(caps2.getRedBits()>=5);
+        Assert.assertEquals(caps2.isOnscreen(),onscreen);
 
         if(addGLEventListenerAfterVisible) {
             glWindow.addGLEventListener(demo);
