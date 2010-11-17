@@ -169,7 +169,7 @@ public class WindowsWindow extends WindowImpl {
     }
 
     protected Point getLocationOnScreenImpl(int x, int y) {
-        return (Point) GDI.GetRelativeLocation( getWindowHandle(), 0 /*root win*/, x, y);
+        return GDI.GetRelativeLocation( getWindowHandle(), 0 /*root win*/, x, y);
     }
 
     //----------------------------------------------------------------------

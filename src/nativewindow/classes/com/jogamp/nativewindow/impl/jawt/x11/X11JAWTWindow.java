@@ -37,12 +37,20 @@
 
 package com.jogamp.nativewindow.impl.jawt.x11;
 
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.awt.*;
-
-import com.jogamp.nativewindow.impl.x11.*;
-import com.jogamp.nativewindow.impl.jawt.*;
-
+import com.jogamp.nativewindow.impl.jawt.JAWT;
+import com.jogamp.nativewindow.impl.jawt.JAWTFactory;
+import com.jogamp.nativewindow.impl.jawt.JAWTWindow;
+import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurface;
+import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurfaceInfo;
+import com.jogamp.nativewindow.impl.x11.X11Util;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.awt.AWTGraphicsDevice;
+import javax.media.nativewindow.util.Point;
 
 public class X11JAWTWindow extends JAWTWindow {
 
@@ -134,6 +142,10 @@ public class X11JAWTWindow extends JAWTWindow {
     x11dsi = null;
   }
 
+  protected Point getLocationOnScreenImpl(int x, int y) {
+    return X11Util.GetRelativeLocation( getDisplayHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
+  }
+  
   // Variables for lockSurface/unlockSurface
   private JAWT_DrawingSurface ds;
   private boolean dsLocked;

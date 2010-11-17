@@ -40,10 +40,17 @@
 
 package com.jogamp.nativewindow.impl.jawt.windows;
 
-import com.jogamp.nativewindow.impl.*;
-import com.jogamp.nativewindow.impl.jawt.*;
+import com.jogamp.nativewindow.impl.jawt.JAWT;
+import com.jogamp.nativewindow.impl.jawt.JAWTFactory;
+import com.jogamp.nativewindow.impl.jawt.JAWTWindow;
+import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurface;
+import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurfaceInfo;
+import com.jogamp.nativewindow.impl.windows.GDI;
 
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.util.Point;
 
 public class WindowsJAWTWindow extends JAWTWindow {
 
@@ -150,6 +157,10 @@ public class WindowsJAWTWindow extends JAWTWindow {
 
   public long getWindowHandle() {
     return windowHandle;
+  }
+
+  protected Point getLocationOnScreenImpl(int x, int y) {
+    return GDI.GetRelativeLocation( getWindowHandle(), 0 /*root win*/, x, y);
   }
 
   // Variables for lockSurface/unlockSurface

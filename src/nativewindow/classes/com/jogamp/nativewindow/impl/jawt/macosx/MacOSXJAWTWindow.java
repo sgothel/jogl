@@ -47,6 +47,7 @@ import java.awt.GraphicsEnvironment;
 
 import javax.media.nativewindow.*;
 import java.security.*;
+import javax.media.nativewindow.util.Point;
 
 public class MacOSXJAWTWindow extends JAWTWindow {
 
@@ -123,6 +124,10 @@ public class MacOSXJAWTWindow extends JAWTWindow {
     ds = null;
     dsi = null;
     macosxdsi = null;
+  }
+
+  protected Point getLocationOnScreenImpl(int x, int y) {
+    return null; // FIXME
   }
 
   // Variables for lockSurface/unlockSurface

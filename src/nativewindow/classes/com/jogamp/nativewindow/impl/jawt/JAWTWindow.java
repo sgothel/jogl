@@ -41,7 +41,10 @@ import com.jogamp.common.util.locks.RecursiveLock;
 
 import java.awt.Component;
 import java.awt.Window;
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.Rectangle;
 
@@ -64,12 +67,11 @@ public abstract class JAWTWindow implements NativeWindow {
     init((Component)comp);
   }
 
-  protected void init(Component windowObject) throws NativeWindowException {
+  private final void init(Component windowObject) throws NativeWindowException {
     invalidate();
     this.component = windowObject;
     validateNative();
   }
-
   protected abstract void validateNative() throws NativeWindowException;
 
   protected synchronized void invalidate() {
@@ -78,7 +80,7 @@ public abstract class JAWTWindow implements NativeWindow {
     bounds = new Rectangle();
   }
 
-  protected void updateBounds(JAWT_Rectangle jawtBounds) {
+  protected final void updateBounds(JAWT_Rectangle jawtBounds) {
     bounds.setX(jawtBounds.getX());
     bounds.setY(jawtBounds.getY());
     bounds.setWidth(jawtBounds.getWidth());
@@ -86,9 +88,9 @@ public abstract class JAWTWindow implements NativeWindow {
   }
 
   /** @return the JAWT_DrawingSurfaceInfo's (JAWT_Rectangle) bounds, updated with lock */
-  public Rectangle getBounds() { return bounds; }
+  public final Rectangle getBounds() { return bounds; }
 
-  public Component getAWTComponent() {
+  public final Component getAWTComponent() {
     return component;
   }
 
@@ -96,7 +98,7 @@ public abstract class JAWTWindow implements NativeWindow {
   // SurfaceUpdateListener
   //
 
-  public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+  public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
       // nop
   }
   
@@ -158,36 +160,36 @@ public abstract class JAWTWindow implements NativeWindow {
     return recurLock.getOwner();
   }
 
-  public boolean surfaceSwap() {
+  public final boolean surfaceSwap() {
     return false;
   }
 
-  public void surfaceUpdated(Object updater, NativeWindow window, long when) { }
+  public final void surfaceUpdated(Object updater, NativeWindow window, long when) { }
 
-  public long getSurfaceHandle() {
+  public final long getSurfaceHandle() {
     return drawable;
   }
-  public AbstractGraphicsConfiguration getGraphicsConfiguration() {
+  public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
     return config;
   }
 
-  public long getDisplayHandle() {
+  public final long getDisplayHandle() {
     return config.getScreen().getDevice().getHandle();
   }
 
-  public int getScreenIndex() {
+  public final int getScreenIndex() {
     return config.getScreen().getIndex();
   }
 
-  public void setSize(int width, int height) {
+  public final void setSize(int width, int height) {
     component.setSize(width, height);
   }
 
-  public int getWidth() {
+  public final int getWidth() {
     return component.getWidth();
   }
 
-  public int getHeight() {
+  public final int getHeight() {
     return component.getHeight();
   }
 
@@ -204,7 +206,7 @@ public abstract class JAWTWindow implements NativeWindow {
     invalidate();
   }
 
-  public NativeWindow getParent() {
+  public final NativeWindow getParent() {
       return null;
   }
 
@@ -212,23 +214,45 @@ public abstract class JAWTWindow implements NativeWindow {
     return drawable;
   }
 
-  public int getX() {
+  public final int getX() {
       return component.getX();
   }
 
-  public int getY() {
+  public final int getY() {
       return component.getY();
   }
 
-  public Point getLocationOnScreen(Point point) {
+  public Point getLocationOnScreen(Point storage) {
+        if( 0 != getWindowHandle() ) {
+            Point d;
+            // windowLock.lock();
+            try {
+                d = getLocationOnScreenImpl(0, 0);
+            } finally {
+                // windowLock.unlock();
+            }
+            if(null!=d) {
+                if(null!=storage) {
+                    storage.translate(d.getX(),d.getY());
+                    return storage;
+                }
+                return d;
+            }
+            // fall through intended ..
+        }
+
+        if(!Thread.holdsLock(component.getTreeLock())) {
+            return null; // avoid deadlock ..
+        }
         java.awt.Point awtLOS = component.getLocationOnScreen();
         int dx = (int) ( awtLOS.getX() + .5 ) ;
         int dy = (int) ( awtLOS.getY() + .5 ) ;
-        if(null!=point) {
-            return point.translate(dx, dy);
+        if(null!=storage) {
+            return storage.translate(dx, dy);
         }
         return new Point(dx, dy);
   }
+  protected abstract Point getLocationOnScreenImpl(int x, int y);
 
   public String toString() {
     StringBuffer sb = new StringBuffer();
