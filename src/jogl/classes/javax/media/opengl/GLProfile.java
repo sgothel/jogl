@@ -103,7 +103,6 @@ public class GLProfile {
             // since this skips checking further access
             AccessController.doPrivileged(new PrivilegedAction() {
                 public Object run() {
-                    registerFactoryShutdownHook();
                     initProfilesForDefaultDevices(firstUIActionOnProcess);
                     return null;
                 }
@@ -122,8 +121,9 @@ public class GLProfile {
     /**
      * Manual shutdown method, may be called after your last JOGL use
      * within the running JVM.<br>
-     * This method is called via the JVM shutdown hook.<br>
      * It releases all temporary created resources, ie issues {@link javax.media.opengl.GLDrawableFactory#shutdown()}.<br>
+     * The shutdown implementation is called via the JVM shutdown hook, if not manually invoked here.<br>
+     * Invoke <code>shutdown()</code> manually is recommended, due to the unreliable JVM state within the shutdown hook.<br>
      */
     public static synchronized void shutdown() {
         if(initialized) {
@@ -1065,10 +1065,6 @@ public class GLProfile {
 
     static boolean initialized = false;
 
-    // Shutdown hook mechanism for the factory
-    private static boolean factoryShutdownHookRegistered = false;
-    private static Thread factoryShutdownHook = null;
-
     /**
      * Tries the profiles implementation and native libraries.
      * Throws an GLException if no profile could be found at all.
@@ -1297,24 +1293,6 @@ public class GLProfile {
     public static AbstractGraphicsDevice getDefaultEGLDevice() {
         validateInitialization();
         return defaultEGLDevice;
-    }
-
-    private static synchronized void registerFactoryShutdownHook() {
-        if (factoryShutdownHookRegistered) {
-            return;
-        }
-        factoryShutdownHook = new Thread(new Runnable() {
-            public void run() {
-                GLDrawableFactory.shutdown();
-            }
-        });
-        AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
-                Runtime.getRuntime().addShutdownHook(factoryShutdownHook);
-                return null;
-            }
-        });
-        factoryShutdownHookRegistered = true;
     }
 
     private static void validateInitialization() {

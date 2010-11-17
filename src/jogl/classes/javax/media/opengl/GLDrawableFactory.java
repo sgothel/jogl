@@ -97,10 +97,21 @@ public abstract class GLDrawableFactory {
 
   protected static ArrayList/*<GLDrawableFactoryImpl>*/ glDrawableFactories = new ArrayList();
 
+  // Shutdown hook mechanism for the factory
+  private static boolean factoryShutdownHookRegistered = false;
+  private static Thread factoryShutdownHook = null;
+
   /**
    * Instantiate singleton factories if available, EGLES1, EGLES2 and the OS native ones.
    */
   static {
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+            registerFactoryShutdownHook();
+            return null;
+        }
+    });
+
     nativeOSType = NativeWindowFactory.getNativeWindowType(true);
 
     GLDrawableFactory tmp = null;
@@ -151,21 +162,62 @@ public abstract class GLDrawableFactory {
     eglFactory = tmp;
   }
 
-  private AbstractGraphicsDevice defaultSharedDevice = null;
-
-  protected GLDrawableFactory() {
-    synchronized(glDrawableFactories) {
-        glDrawableFactories.add(this);
+  private static synchronized void registerFactoryShutdownHook() {
+    if (factoryShutdownHookRegistered) {
+        return;
     }
+    factoryShutdownHook = new Thread(new Runnable() {
+        public void run() {
+            GLDrawableFactory.shutdownImpl();
+        }
+    });
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+            Runtime.getRuntime().addShutdownHook(factoryShutdownHook);
+            return null;
+        }
+    });
+    factoryShutdownHookRegistered = true;
   }
 
-  protected static void shutdown() {
+  private static synchronized void unregisterFactoryShutdownHook() {
+    if (!factoryShutdownHookRegistered) {
+        return;
+    }
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+            Runtime.getRuntime().removeShutdownHook(factoryShutdownHook);
+            return null;
+        }
+    });
+    factoryShutdownHookRegistered = false;
+  }
+
+  private static void shutdownImpl() {
     synchronized(glDrawableFactories) {
         for(int i=0; i<glDrawableFactories.size(); i++) {
             GLDrawableFactory factory = (GLDrawableFactory) glDrawableFactories.get(i);
             factory.shutdownInstance();
         }
         glDrawableFactories.clear();
+    }
+  }
+
+  protected static void shutdown() {
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+            unregisterFactoryShutdownHook();
+            return null;
+        }
+    });
+    shutdownImpl();
+  }
+
+  private AbstractGraphicsDevice defaultSharedDevice = null;
+
+  protected GLDrawableFactory() {
+    synchronized(glDrawableFactories) {
+        glDrawableFactories.add(this);
     }
   }
 
