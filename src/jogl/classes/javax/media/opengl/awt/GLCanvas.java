@@ -41,6 +41,7 @@
 package javax.media.opengl.awt;
 
 import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.NativeWindowVersion;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
@@ -799,6 +800,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
    * A most simple JOGL AWT test entry
    */
   public static void main(String args[]) {
+    System.err.println(VersionUtil.getPlatformInfo());
     System.err.println(GlueGenVersion.getInstance());
     System.err.println(NativeWindowVersion.getInstance());
     System.err.print(JoglVersion.getInstance());

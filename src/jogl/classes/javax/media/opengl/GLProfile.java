@@ -40,6 +40,7 @@ package javax.media.opengl;
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.jvm.JVMUtil;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.NativeWindowVersion;
 import com.jogamp.opengl.impl.Debug;
 import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
@@ -1172,6 +1173,7 @@ public class GLProfile {
         addedAnyProfile = addedAnyProfile || initProfilesForDevice(defaultEGLDevice);
 
         if(DEBUG) {
+            System.err.println(VersionUtil.getPlatformInfo());
             System.err.println(GlueGenVersion.getInstance());
             System.err.println(NativeWindowVersion.getInstance());
             System.err.print(JoglVersion.getInstance());
