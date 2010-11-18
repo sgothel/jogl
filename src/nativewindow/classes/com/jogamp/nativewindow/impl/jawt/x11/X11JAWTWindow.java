@@ -37,12 +37,6 @@
 
 package com.jogamp.nativewindow.impl.jawt.x11;
 
-import com.jogamp.nativewindow.impl.jawt.JAWT;
-import com.jogamp.nativewindow.impl.jawt.JAWTFactory;
-import com.jogamp.nativewindow.impl.jawt.JAWTWindow;
-import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurface;
-import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurfaceInfo;
-import com.jogamp.nativewindow.impl.x11.X11Util;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
@@ -51,6 +45,13 @@ import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.awt.AWTGraphicsDevice;
 import javax.media.nativewindow.util.Point;
+
+import com.jogamp.nativewindow.impl.jawt.JAWT;
+import com.jogamp.nativewindow.impl.jawt.JAWTFactory;
+import com.jogamp.nativewindow.impl.jawt.JAWTWindow;
+import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurface;
+import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurfaceInfo;
+import com.jogamp.nativewindow.impl.x11.X11Util;
 
 public class X11JAWTWindow extends JAWTWindow {
 
@@ -90,13 +91,13 @@ public class X11JAWTWindow extends JAWTWindow {
     ds = JAWT.getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
-      unlockSurface();
+      unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     }
     int res = ds.Lock();
     dsLocked = ( 0 == ( res & JAWTFactory.JAWT_LOCK_ERROR ) ) ;
     if (!dsLocked) {
-      unlockSurface();
+      unlockSurfaceImpl();
       throw new NativeWindowException("Unable to lock surface");
     }
     // See whether the surface changed and if so destroy the old
@@ -109,17 +110,17 @@ public class X11JAWTWindow extends JAWTWindow {
     }
     dsi = ds.GetDrawingSurfaceInfo();
     if (dsi == null) {
-      unlockSurface();
+      unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     }
     x11dsi = (JAWT_X11DrawingSurfaceInfo) dsi.platformInfo();
     if (x11dsi == null) {
-      unlockSurface();
+      unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     }
     drawable = x11dsi.getDrawable();
     if (drawable == 0) {
-      unlockSurface();
+      unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     } else {
       updateBounds(dsi.getBounds());
