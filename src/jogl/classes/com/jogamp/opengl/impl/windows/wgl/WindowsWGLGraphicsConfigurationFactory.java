@@ -179,18 +179,21 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
 
                           if(WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(capabilities,
                                                                                        iattributes,
-                                                                                       wglExt,
+                                                                                       sharedContext,
                                                                                        false,
                                                                                        null)) {
                             int[] pformats = new int[WindowsWGLGraphicsConfiguration.MAX_PFORMATS];
                             int[] numFormatsTmp = new int[1];
                             if (wglExt.wglChoosePixelFormatARB(hdc,
-                                                                 iattributes, 0,
-                                                                 fattributes, 0,
-                                                                 WindowsWGLGraphicsConfiguration.MAX_PFORMATS,
-                                                                 pformats, 0,
-                                                                 numFormatsTmp, 0)) {
+                                                               iattributes, 0,
+                                                               fattributes, 0,
+                                                               WindowsWGLGraphicsConfiguration.MAX_PFORMATS,
+                                                               pformats, 0,
+                                                               numFormatsTmp, 0)) {
                               numFormats = numFormatsTmp[0];
+                              if (DEBUG) {
+                                System.err.println(getThreadName() + ": NumFormats (wglChoosePixelFormatARB) " + numFormats);
+                              }
                               if (recommendedPixelFormat<=0 && numFormats > 0) {
                                 recommendedPixelFormat = pformats[0];
                                 if (DEBUG) {
@@ -215,7 +218,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
                           }
                         }
 
-                        availableCaps = WindowsWGLGraphicsConfiguration.HDC2GLCapabilities(wglExt, hdc, -1, glProfile, pixelFormatSet, onscreen, usePBuffer);
+                        availableCaps = WindowsWGLGraphicsConfiguration.HDC2GLCapabilities(sharedContext, hdc, -1, glProfile, pixelFormatSet, onscreen, usePBuffer);
                         gotAvailableCaps = null!=availableCaps ;
                         choosenBywGLPixelFormat = gotAvailableCaps ;
                       } else if (DEBUG) {
@@ -243,6 +246,10 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
               throw new GLException("Unable to enumerate pixel formats of window " +
                                     toHexString(hdc) + " for GLCapabilitiesChooser (LastError: "+GDI.GetLastError()+")");
             }
+            if (DEBUG) {
+                System.err.println(getThreadName() + ": NumFormats (DescribePixelFormat) " + numFormats);
+            }
+
             availableCaps = new GLCapabilitiesImmutable[numFormats];
             for (int i = 0; i < numFormats; i++) {
               if (GDI.DescribePixelFormat(hdc, 1 + i, pfd.size(), pfd) == 0) {

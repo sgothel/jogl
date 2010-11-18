@@ -86,8 +86,8 @@ public class TestSwingAWT01GLn extends UITestCase {
                     glCanvas[0].addGLEventListener(new Gears());
                     window.add(glCanvas[0]);
                     window.setSize(512, 512);
-                    glCanvas[0].display();
                     window.setVisible(true);
+                    glCanvas[0].display();
                 }
             };
 

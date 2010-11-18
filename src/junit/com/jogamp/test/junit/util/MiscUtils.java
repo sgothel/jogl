@@ -32,8 +32,7 @@ package com.jogamp.test.junit.util;
 import java.lang.reflect.*;
 
 public class MiscUtils {
-    @Deprecated
-    public static int str2int(String str, int def) {
+    public static int atoi(String str, int def) {
         try {
             return Integer.parseInt(str);
         } catch (Exception ex) {

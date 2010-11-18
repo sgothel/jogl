@@ -40,6 +40,11 @@
 
 package com.jogamp.nativewindow.impl.jawt.windows;
 
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.util.Point;
+
 import com.jogamp.nativewindow.impl.jawt.JAWT;
 import com.jogamp.nativewindow.impl.jawt.JAWTFactory;
 import com.jogamp.nativewindow.impl.jawt.JAWTWindow;
@@ -47,15 +52,7 @@ import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurface;
 import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurfaceInfo;
 import com.jogamp.nativewindow.impl.windows.GDI;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.util.Point;
-
 public class WindowsJAWTWindow extends JAWTWindow {
-
-  public static final boolean PROFILING = false; // FIXME
-  public static final int PROFILING_TICKS = 600; // FIXME
 
   public WindowsJAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
     super(comp, config);
@@ -71,20 +68,16 @@ public class WindowsJAWTWindow extends JAWTWindow {
 
   protected int lockSurfaceImpl() throws NativeWindowException {
     int ret = NativeWindow.LOCK_SUCCESS;
-    long startTime;
-    if (PROFILING) {
-      startTime = System.currentTimeMillis();
-    }
     ds = JAWT.getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
-      unlockSurface();
+      unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     }
     int res = ds.Lock();
     dsLocked = ( 0 == ( res & JAWTFactory.JAWT_LOCK_ERROR ) ) ;
     if (!dsLocked) {
-      unlockSurface();
+      unlockSurfaceImpl();
       throw new NativeWindowException("Unable to lock surface");
     }
     // See whether the surface changed and if so destroy the old
@@ -97,40 +90,27 @@ public class WindowsJAWTWindow extends JAWTWindow {
     }
     dsi = ds.GetDrawingSurfaceInfo();
     if (dsi == null) {
-      unlockSurface();
+      unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     }
     win32dsi = (JAWT_Win32DrawingSurfaceInfo) dsi.platformInfo();
     if (win32dsi == null) {
-      unlockSurface();
+      unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     }
     windowHandle = win32dsi.getHandle();
     drawable = win32dsi.getHdc();
     if (windowHandle == 0 || drawable == 0) {
-      unlockSurface();
+      unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     } else {
       updateBounds(dsi.getBounds());
-    }
-    if (PROFILING) {
-      long endTime = System.currentTimeMillis();
-      profilingLockSurfaceTime += (endTime - startTime);
-      if (++profilingLockSurfaceTicks == PROFILING_TICKS) {
-        System.err.println("LockSurface calls: " + profilingLockSurfaceTime + " ms / " + PROFILING_TICKS + " calls (" +
-                           ((float) profilingLockSurfaceTime / (float) PROFILING_TICKS) + " ms/call)");
-        profilingLockSurfaceTime = 0;
-        profilingLockSurfaceTicks = 0;
-      }
     }
     return ret;
   }
 
   protected void unlockSurfaceImpl() throws NativeWindowException {
     long startTime = 0;
-    if (PROFILING) {
-      startTime = System.currentTimeMillis();
-    }
     if(null!=ds) {
         if (null!=dsi) {
             ds.FreeDrawingSurfaceInfo(dsi);
@@ -143,16 +123,6 @@ public class WindowsJAWTWindow extends JAWTWindow {
     ds = null;
     dsi = null;
     win32dsi = null;
-    if (PROFILING) {
-      long endTime = System.currentTimeMillis();
-      profilingUnlockSurfaceTime += (endTime - startTime);
-      if (++profilingUnlockSurfaceTicks == PROFILING_TICKS) {
-        System.err.println("UnlockSurface calls: " + profilingUnlockSurfaceTime + " ms / " + PROFILING_TICKS + " calls (" +
-                           ((float) profilingUnlockSurfaceTime / (float) PROFILING_TICKS) + " ms/call)");
-        profilingUnlockSurfaceTime = 0;
-        profilingUnlockSurfaceTicks = 0;
-      }
-    }
   }
 
   public long getWindowHandle() {
@@ -168,10 +138,6 @@ public class WindowsJAWTWindow extends JAWTWindow {
   private boolean dsLocked;
   private JAWT_DrawingSurfaceInfo dsi;
   private JAWT_Win32DrawingSurfaceInfo win32dsi;
-  private long profilingLockSurfaceTime = 0;
-  private int  profilingLockSurfaceTicks = 0;
-  private long profilingUnlockSurfaceTime = 0;
-  private int  profilingUnlockSurfaceTicks = 0;
 
   // lifetime: valid after lock, forever until invalidate
   protected long windowHandle;

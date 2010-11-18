@@ -89,8 +89,6 @@ public class TestAWT01GLn extends UITestCase {
 
         glCanvas.addGLEventListener(new Gears());
 
-        glCanvas.display(); // one in process display 
-
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -100,6 +98,9 @@ public class TestAWT01GLn extends UITestCase {
             t.printStackTrace();
             Assume.assumeNoException(t);
         }
+
+        glCanvas.display(); // one in process display
+
         Animator animator = new Animator(glCanvas);
         animator.start();
 

@@ -93,11 +93,6 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
             System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: got "+absScreen);
         }
         GraphicsConfiguration gc = device.getDefaultConfiguration();
-        capsChosen = AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capsChosen, gc);
-        if(DEBUG) {
-            System.err.println("AWT Colormodel compatible: "+capsChosen);
-        }
-
         WindowsGraphicsDevice winDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         DefaultGraphicsScreen winScreen = new DefaultGraphicsScreen(winDevice, awtScreen.getIndex());
         if(DEBUG) {
@@ -116,7 +111,9 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
         if(DEBUG) {
             System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: chosen "+winConfig);
         }
-        
-        return new AWTGraphicsConfiguration(awtScreen, winConfig.getChosenCapabilities(), winConfig.getRequestedCapabilities(), gc, winConfig);
+
+        // We have nothing to match .. so choose the default
+        return new AWTGraphicsConfiguration(awtScreen, winConfig.getChosenCapabilities(), winConfig.getRequestedCapabilities(),
+                                            gc, winConfig);
     }
 }

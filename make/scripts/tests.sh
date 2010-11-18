@@ -36,8 +36,8 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
-    #D_ARGS="-Dnewt.debug=all"
-    X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=false"
+    #D_ARGS="-Djogl.debug=all"
+    #X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=false"
     java $awtarg $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 }
 
@@ -98,7 +98,8 @@ function testawt() {
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting03AWT -time 100000
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting03bAWT -time 100000
 #testawt com.jogamp.test.junit.newt.TestCloseNewtAWT
-testawt com.jogamp.test.junit.jogl.caps.Multisample
+testawt com.jogamp.test.junit.jogl.caps.TestMultisampleAWT $*
+#testawt com.jogamp.test.junit.jogl.caps.TestMultisampleNEWT $*
 
 #testawt $*
 

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,15 +40,19 @@
 
 package com.jogamp.nativewindow.impl.jawt.macosx;
 
-import com.jogamp.nativewindow.impl.*;
-import com.jogamp.nativewindow.impl.jawt.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-
-import javax.media.nativewindow.*;
-import java.security.*;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Point;
+
+import com.jogamp.nativewindow.impl.jawt.JAWT;
+import com.jogamp.nativewindow.impl.jawt.JAWTFactory;
+import com.jogamp.nativewindow.impl.jawt.JAWTWindow;
+import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurface;
+import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurfaceInfo;
 
 public class MacOSXJAWTWindow extends JAWTWindow {
 
@@ -63,13 +68,13 @@ public class MacOSXJAWTWindow extends JAWTWindow {
     ds = JAWT.getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
-      unlockSurface();
+      unlockSurfaceImpl();
       return NativeWindow.LOCK_SURFACE_NOT_READY;
     }
     int res = ds.Lock();
     dsLocked = ( 0 == ( res & JAWTFactory.JAWT_LOCK_ERROR ) ) ;
     if (!dsLocked) {
-      unlockSurface();
+      unlockSurfaceImpl();
       throw new NativeWindowException("Unable to lock surface");
     }
     // See whether the surface changed and if so destroy the old
@@ -91,19 +96,19 @@ public class MacOSXJAWTWindow extends JAWTWindow {
       dsi = ds.GetDrawingSurfaceInfo();
     }
     if (dsi == null) {
-      unlockSurface();
+      unlockSurfaceImpl();
       return NativeWindow.LOCK_SURFACE_NOT_READY;
     }
     firstLock = false;
     macosxdsi = (JAWT_MacOSXDrawingSurfaceInfo) dsi.platformInfo();
     if (macosxdsi == null) {
-      unlockSurface();
+      unlockSurfaceImpl();
       return NativeWindow.LOCK_SURFACE_NOT_READY;
     }
     drawable = macosxdsi.getCocoaViewRef();
 
     if (drawable == 0) {
-      unlockSurface();
+      unlockSurfaceImpl();
       return NativeWindow.LOCK_SURFACE_NOT_READY;
     } else {
       updateBounds(dsi.getBounds());

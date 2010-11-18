@@ -51,6 +51,7 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.nativewindow.impl.windows.GDI;
 import com.jogamp.nativewindow.impl.windows.PIXELFORMATDESCRIPTOR;
+import com.jogamp.opengl.impl.GLContextImpl;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
@@ -62,14 +63,14 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
   public WindowsPbufferWGLDrawable(GLDrawableFactory factory, NativeSurface target,
                                    WindowsWGLDrawable dummyDrawable,
-                                   WGLExt wglExt) {
+                                   WindowsWGLContext sharedCtx) {
     super(factory, target, true);
 
     if (DEBUG) {
         System.out.println("Pbuffer config: " + getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration());
     }
 
-    createPbuffer(dummyDrawable.getNativeSurface().getSurfaceHandle(), wglExt);
+    createPbuffer(dummyDrawable.getNativeSurface().getSurfaceHandle(), sharedCtx);
 
     if (DEBUG) {
         System.err.println("Created pbuffer " + this);
@@ -126,12 +127,13 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     }
   }
 
-  private void createPbuffer(long parentHdc, WGLExt wglExt) {
+  private void createPbuffer(long parentHdc, WindowsWGLContext sharedCtx) {
     int[]   iattributes = new int  [2*WindowsWGLGraphicsConfiguration.MAX_ATTRIBS];
     float[] fattributes = new float[1];
     int[]   floatModeTmp = new int[1];
     int     niattribs   = 0;
     int     width, height;
+    WGLExt wglExt = sharedCtx.getWGLExt();
 
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getRequestedCapabilities();
@@ -144,7 +146,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
     if(!WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(capabilities,
                                     iattributes,
-                                    wglExt,
+                                    sharedCtx,
                                     true,
                                     floatModeTmp)){
       throw new GLException("Pbuffer-related extensions not supported");
@@ -176,7 +178,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       throw new GLException("pbuffer creation error: Couldn't find a suitable pixel format");
     }
 
-    boolean haveMultisample = wglExt.isExtensionAvailable("WGL_ARB_multisample");
+    boolean haveMultisample = sharedCtx.isExtensionAvailable("WGL_ARB_multisample");
 
     if (DEBUG) {
       System.err.println("" + nformats + " suitable pixel formats found");

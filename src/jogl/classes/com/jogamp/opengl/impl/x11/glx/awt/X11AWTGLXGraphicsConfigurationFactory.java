@@ -43,6 +43,8 @@ import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.jawt.x11.*;
 import com.jogamp.nativewindow.impl.x11.*;
+import com.jogamp.opengl.impl.x11.glx.X11GLXGraphicsConfigurationFactory;
+import java.awt.image.ColorModel;
 
 public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
@@ -83,12 +85,11 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
             System.err.println("X11AWTGLXGraphicsConfigurationFactory: got "+absScreen);
         }
         
-        GraphicsConfiguration gc;
-        X11GraphicsConfiguration x11Config;
-
         long displayHandle = X11SunJDKReflection.graphicsDeviceGetDisplay(device);
+        boolean owner = false;
         if(0==displayHandle) {
             displayHandle = X11Util.createDisplay(null);
+            owner = true;
             if(DEBUG) {
                 System.err.println("X11AWTGLXGraphicsConfigurationFactory: using a thread local X11 display");
             }
@@ -96,47 +97,81 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
             if(DEBUG) {
                 System.err.println("X11AWTGLXGraphicsConfigurationFactory: using AWT X11 display 0x"+Long.toHexString(displayHandle));
             }
-            String name = X11Util.XDisplayString(displayHandle);
-            displayHandle = X11Util.createDisplay(name);
+            /**
+             * May cause an exception at X11 Display destruction,
+             * so reuse AWT's display for now, which seems to work nicely.
+                String name = X11Util.XDisplayString(displayHandle);
+                displayHandle = X11Util.createDisplay(name);
+                owner = true;
+             */
         }
         ((AWTGraphicsDevice)awtScreen.getDevice()).setSubType(NativeWindowFactory.TYPE_X11, displayHandle);
         X11GraphicsDevice x11Device = new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT);
-        x11Device.setCloseDisplay(true);
+        x11Device.setCloseDisplay(owner);
         X11GraphicsScreen x11Screen = new X11GraphicsScreen(x11Device, awtScreen.getIndex());
         if(DEBUG) {
             System.err.println("X11AWTGLXGraphicsConfigurationFactory: made "+x11Screen);
         }
-
-        gc = device.getDefaultConfiguration();
-        capsChosen = AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capsChosen, gc);
-        if(DEBUG) {
-            System.err.println("AWT Colormodel compatible: "+capsChosen);
-        }
         GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(x11Device);
-        x11Config = (X11GraphicsConfiguration)factory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, x11Screen);
-        if (x11Config == null) {
-            throw new GLException("Unable to choose a GraphicsConfiguration: "+capsChosen+",\n\t"+chooser+"\n\t"+x11Screen);
-        }
-
-        long visualID = x11Config.getVisualID();
-        // Now figure out which GraphicsConfiguration corresponds to this
-        // visual by matching the visual ID
         GraphicsConfiguration[] configs = device.getConfigurations();
+
+        //
+        // Match the X11/GL Visual with AWT:
+        //   - choose a config AWT agnostic and then
+        //   - try to find the visual within the GraphicsConfiguration
+        //
+        // The resulting GraphicsConfiguration has to be 'forced' on the AWT native peer,
+        // ie. returned by GLCanvas's getGraphicsConfiguration() befor call by super.addNotify().
+        //
+        X11GraphicsConfiguration x11Config = (X11GraphicsConfiguration) factory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, x11Screen);
+        if (x11Config == null) {
+            throw new GLException("Unable to choose a GraphicsConfiguration (1): "+capsChosen+",\n\t"+chooser+"\n\t"+x11Screen);
+        }
+        long visualID = x11Config.getVisualID();
         for (int i = 0; i < configs.length; i++) {
-            GraphicsConfiguration config = configs[i];
-            if (config != null) {
-                if (X11SunJDKReflection.graphicsConfigurationGetVisualID(config) == visualID) {
-                    return new AWTGraphicsConfiguration(awtScreen, x11Config.getChosenCapabilities(), x11Config.getRequestedCapabilities(), 
-                                                        config, x11Config);
+            GraphicsConfiguration gc = configs[i];
+            if (gc != null) {
+                if (X11SunJDKReflection.graphicsConfigurationGetVisualID(gc) == visualID) {
+                    if(DEBUG) {
+                        System.err.println("Found matching AWT visual: 0x"+Long.toHexString(visualID) +" -> "+x11Config);
+                    }
+                    return new AWTGraphicsConfiguration(awtScreen,
+                                                        x11Config.getChosenCapabilities(), x11Config.getRequestedCapabilities(),
+                                                        gc, x11Config);
                 }
             }
         }
+
+        // try again using an AWT Colormodel compatible configuration
+        GraphicsConfiguration gc = device.getDefaultConfiguration();
+        capsChosen = AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capsChosen, gc);
+        x11Config = (X11GraphicsConfiguration) factory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, x11Screen);
+        if (x11Config == null) {
+            throw new GLException("Unable to choose a GraphicsConfiguration (2): "+capsChosen+",\n\t"+chooser+"\n\t"+x11Screen);
+        }
+        visualID = x11Config.getVisualID();
+        for (int i = 0; i < configs.length; i++) {
+            gc = configs[i];
+            if (gc != null) {
+                if (X11SunJDKReflection.graphicsConfigurationGetVisualID(gc) == visualID) {
+                    if(DEBUG) {
+                        System.err.println("Found matching default AWT visual: 0x"+Long.toHexString(visualID) +" -> "+x11Config);
+                    }
+                    return new AWTGraphicsConfiguration(awtScreen,
+                                                        x11Config.getChosenCapabilities(), x11Config.getRequestedCapabilities(),
+                                                        gc, x11Config);
+                }
+            }
+        }
+
         // Either we weren't able to reflectively introspect on the
         // X11GraphicsConfig or something went wrong in the steps above;
         // Let's take the default configuration as used on Windows and MacOSX then ..
         if(DEBUG) {
             System.err.println("!!! Using default configuration");
         }
+
+        gc = device.getDefaultConfiguration();
         return new AWTGraphicsConfiguration(awtScreen, x11Config.getChosenCapabilities(), x11Config.getRequestedCapabilities(), gc, x11Config);
     }
 }
