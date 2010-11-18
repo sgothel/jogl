@@ -257,10 +257,9 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
           synchronized(sr.context) {
               sr.context.makeCurrent();
               try {
-                WGLExt wglExt = sr.context.getWGLExt();
                 GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(WindowsWGLDrawableFactory.this, target,
                                                                                sr.drawable,
-                                                                               wglExt);
+                                                                               sr.context);
                 returnList.add(pbufferDrawable);
               } finally {
                 sr.context.release();

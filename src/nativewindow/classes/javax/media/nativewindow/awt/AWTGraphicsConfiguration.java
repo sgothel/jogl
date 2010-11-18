@@ -44,7 +44,6 @@ import javax.media.nativewindow.*;
 import java.awt.Component;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
-import java.awt.Transparency;
 import java.awt.image.ColorModel;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.impl.Debug;
@@ -125,14 +124,8 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
    */
   public static CapabilitiesImmutable setupCapabilitiesRGBABits(CapabilitiesImmutable capabilitiesIn, GraphicsConfiguration gc) {
     Capabilities capabilities = (Capabilities) capabilitiesIn.cloneMutable();
-    
-    int cmTransparency = capabilities.isBackgroundOpaque()?Transparency.OPAQUE:Transparency.TRANSLUCENT;
-    ColorModel cm = gc.getColorModel(cmTransparency);
-    if(null==cm && !capabilities.isBackgroundOpaque()) {
-        capabilities.setBackgroundOpaque(true);
-        cmTransparency = Transparency.OPAQUE;
-        cm = gc.getColorModel(cmTransparency);
-    }
+
+    ColorModel cm = gc.getColorModel();
     if(null==cm) {
         throw new NativeWindowException("Could not determine AWT ColorModel");
     }

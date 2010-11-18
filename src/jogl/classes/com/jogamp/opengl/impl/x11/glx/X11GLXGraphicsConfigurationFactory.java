@@ -176,6 +176,28 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
         return res;
     }
 
+    protected static X11GLXGraphicsConfiguration fetchGraphicsConfigurationFBConfig(X11GraphicsScreen x11Screen, int fbID, GLProfile glp) {
+        AbstractGraphicsDevice absDevice = x11Screen.getDevice();
+        long display = absDevice.getHandle();
+        int screen = x11Screen.getIndex();
+
+        long fbcfg = X11GLXGraphicsConfiguration.glXFBConfigID2FBConfig(display, screen, fbID);
+        if( !X11GLXGraphicsConfiguration.GLXFBConfigValid( display, fbcfg ) ) {
+            if(DEBUG) {
+                System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: Failed - GLX FBConfig invalid: ("+x11Screen+","+toHexString(fbID)+"): fbcfg: "+toHexString(fbcfg));
+            }
+            return null;
+        }
+        XVisualInfo visualInfo = GLX.glXGetVisualFromFBConfig(display, fbcfg);
+        if (visualInfo==null) {
+            System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: Failed glXGetVisualFromFBConfig ("+x11Screen+", "+toHexString(fbcfg)+")");
+            return null;
+        }
+        GLCapabilitiesImmutable caps = X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(glp, display, fbcfg, true, true, true, GLXUtil.isMultisampleAvailable(display));
+        return new X11GLXGraphicsConfiguration(x11Screen, caps, caps, new DefaultGLCapabilitiesChooser(), visualInfo, fbcfg, fbID);
+
+    }
+
     private static X11GLXGraphicsConfiguration chooseGraphicsConfigurationFBConfig(GLCapabilitiesImmutable capsChosen,
                                                                                    GLCapabilitiesImmutable capsReq,
                                                                                    GLCapabilitiesChooser chooser,

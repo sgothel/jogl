@@ -94,10 +94,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   private boolean sendReshape = false;
   
   // copy of the cstr args ..
-  private GLCapabilitiesImmutable capabilities;
   private GLCapabilitiesChooser chooser;
   private GLContext shareWith;
-  private GraphicsDevice device;
 
   /** Creates a new GLCanvas component with a default set of OpenGL
       capabilities, using the default OpenGL capabilities selection
@@ -133,31 +131,54 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
                   GLContext shareWith,
                   GraphicsDevice device) {
     /*
-     * Workaround for Xinerama, always pass null so we can detect whether
-     * super.getGraphicsConfiguration() is returning the Canvas' GC (null),
-     * or an ancestor component's GC (non-null) in the overridden version
-     * below.
+     * Determination of the native window is made in 'super.addNotify()',
+     * which creates the native peer using AWT's GraphicsConfiguration.
+     * GraphicsConfiguration is returned by this class overwritten
+     * 'getGraphicsConfiguration()', which returns our OpenGL compatible
+     * 'chosen' GraphicsConfiguration.
      */
     super();
 
     if(null==capsReqUser) {
-        capabilities = new GLCapabilities(defaultGLProfile);
+        capsReqUser = new GLCapabilities(defaultGLProfile);
     } else {
         // don't allow the user to change data
-        capabilities = (GLCapabilitiesImmutable) capsReqUser.cloneMutable();
+        capsReqUser = (GLCapabilitiesImmutable) capsReqUser.cloneMutable();
     }
-    glProfile = capabilities.getGLProfile();
 
+    if(null==device) {
+        GraphicsConfiguration gc = super.getGraphicsConfiguration();
+        if(null!=gc) {
+            device = gc.getDevice();
+        }
+    }
+
+    this.glProfile = capsReqUser.getGLProfile();
     this.chooser = chooser;
-    this.shareWith=shareWith;
-    this.device = device;
+    this.shareWith = shareWith;
+
+    /*
+     * Save the 'chosen' GraphicsConfiguration for use in getGraphicsConfiguration().
+     */
+    awtConfig = chooseGraphicsConfiguration(capsReqUser, capsReqUser, chooser, device);
+    if(null==awtConfig) {
+        throw new GLException("Error: NULL AWTGraphicsConfiguration");
+    }
+    chosen = awtConfig.getGraphicsConfiguration();
+
+    if (!Beans.isDesignTime()) {
+        // no lock required, since this resource ain't available yet
+        drawable = GLDrawableFactory.getFactory(glProfile).createGLDrawable(NativeWindowFactory.getNativeWindow(this, awtConfig));
+        context = (GLContextImpl) drawable.createContext(shareWith);
+        context.setSynchronized(true);
+    }
   }
 
   protected interface DestroyMethod {
     public void destroyMethod();
   }
 
-  protected final static Object  addClosingListener(Component c, final DestroyMethod d) {
+  protected final static Object addClosingListener(Component c, final DestroyMethod d) {
     WindowAdapter cl = null;
     Window w = getWindow(c);
     if(null!=w) {
@@ -303,6 +324,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   private Object closingListenerLock = new Object();
 
   public void display() {
+    if(!drawable.isRealized()) {
+        return; // not yet available ..
+    }
     maybeDoSingleThreadedWorkaround(displayOnEventDispatchThreadAction,
                                     displayAction);
     if(null==closingListener) {
@@ -416,49 +440,18 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         Exception ex1 = new Exception(Thread.currentThread().getName()+" - Info: addNotify - start");
         ex1.printStackTrace();
     }
+    // 'super.addNotify()' determines the GraphicsConfiguration,
+    // while calling this class's overriden 'getGraphicsConfiguration()' method.
+    // Then it creates the native peer.
+    // Hence we chose the proper GraphicsConfiguration beforehand (see constructor).
     super.addNotify();
+
     if (!Beans.isDesignTime()) {
+        // no lock required, since this resource ain't available yet
         disableBackgroundErase();
-
-        if(null==device) {
-            GraphicsConfiguration gc = super.getGraphicsConfiguration();
-            if(null!=gc) {
-                device = gc.getDevice();
-            }
-        }
-
-        /*
-         * Save the chosen capabilities for use in getGraphicsConfiguration().
-         */
-        NativeWindowFactory.getDefaultToolkitLock().lock();
-        try {
-            awtConfig = chooseGraphicsConfiguration(capabilities, capabilities, chooser, device);
-            if(DEBUG) {
-                System.err.println(Thread.currentThread().getName()+" - Created Config: "+awtConfig);
-            }
-            if(null!=awtConfig) {
-              // update ..
-              chosen = awtConfig.getGraphicsConfiguration();
-
-            }
-            if(null==awtConfig) {
-              throw new GLException("Error: AWTGraphicsConfiguration is null");
-            }
-            // awtConfig.getScreen().getDevice().lock();
-            try {
-                drawable = GLDrawableFactory.getFactory(glProfile).createGLDrawable(NativeWindowFactory.getNativeWindow(this, awtConfig));
-                context = (GLContextImpl) drawable.createContext(shareWith);
-                context.setSynchronized(true);
-                drawable.setRealized(true);
-            } finally {
-                // awtConfig.getScreen().getDevice().unlock();
-            }
-        } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
-        }
-
+        drawable.setRealized(true);
         if(DEBUG) {
-            System.err.println(Thread.currentThread().getName()+" - Created Drawable: "+drawable);
+            System.err.println(Thread.currentThread().getName()+" - Realized Drawable: "+drawable);
         }
     }
     if(DEBUG) {
@@ -785,9 +778,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
     AbstractGraphicsScreen aScreen = AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT);
     AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
-      GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capsChosen,
-                                                                                                   capsRequested,
-                                                                                                   chooser, aScreen);
+          GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capsChosen,
+                                                                                                       capsRequested,
+                                                                                                       chooser, aScreen);
     if (config == null) {
       throw new GLException("Error: Couldn't fetch AWTGraphicsConfiguration");
     }

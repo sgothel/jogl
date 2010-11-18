@@ -107,7 +107,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     }
 
     /** Update config - after having a valid and current context */
-    protected void updateCapabilitiesByWGL(GLContextImpl context) {
+    protected void updateCapabilitiesByWGL(WindowsWGLContext context) {
         if(choosenByWGLPixelFormat) return; // already done ..
 
         GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable) getRequestedCapabilities();
@@ -115,12 +115,11 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         boolean usePBuffer = capabilities.isPBuffer();
         GLProfile glp = capabilities.getGLProfile();
 
-        WGLExt wglExt = (WGLExt) context.getPlatformGLExtensions();
         GLDrawable drawable = context.getGLDrawable();
         NativeSurface ns = drawable.getNativeSurface();
         long hdc = ns.getSurfaceHandle();
 
-        GLCapabilitiesImmutable[] caps = HDC2GLCapabilities(wglExt, hdc, getPixelFormatID(), glp, true, onscreen, usePBuffer);
+        GLCapabilitiesImmutable[] caps = HDC2GLCapabilities(context, hdc, getPixelFormatID(), glp, true, onscreen, usePBuffer);
         if(null!=caps && null!=caps[0]) {
             setCapsPFD(caps[0], getPixelFormat(), getPixelFormatID(), true);
         }
@@ -145,19 +144,17 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     public int getPixelFormatID() { return pixelfmtID; }
     public boolean isChoosenByWGL() { return choosenByWGLPixelFormat; }
 
-    private static int haveWGLChoosePixelFormatARB = -1;
-    private static int haveWGLARBMultisample = -1;
-
-    public static GLCapabilitiesImmutable[] HDC2GLCapabilities(WGLExt wglExt, long hdc, int pfdIDOnly,
+    public static GLCapabilitiesImmutable[] HDC2GLCapabilities(WindowsWGLContext sharedCtx, long hdc, int pfdIDOnly,
                                                                GLProfile glp, boolean relaxed, boolean onscreen, boolean usePBuffer) {
     
-        if(haveWGLChoosePixelFormatARB<0) {
-            haveWGLChoosePixelFormatARB = wglExt.isExtensionAvailable("WGL_ARB_pixel_format")?1:0;
+        boolean haveWGLChoosePixelFormatARB = sharedCtx.isExtensionAvailable("WGL_ARB_pixel_format");
+        boolean haveWGLARBMultisample = sharedCtx.isExtensionAvailable("WGL_ARB_multisample");
+        if(DEBUG) {
+            System.err.println("HDC2GLCapabilities: ARB_pixel_format: "+haveWGLChoosePixelFormatARB);
+            System.err.println("HDC2GLCapabilities: ARB_multisample : "+haveWGLARBMultisample);
         }
-        if(haveWGLARBMultisample<0) {
-            haveWGLARBMultisample = wglExt.isExtensionAvailable("WGL_ARB_multisample")?1:0;
-        }
-        if (0==haveWGLChoosePixelFormatARB) {
+
+        if (!haveWGLChoosePixelFormatARB) {
             return null;
         }
 
@@ -176,6 +173,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         int[] iattributes = new int  [2*MAX_ATTRIBS];
         int[] iresults    = new int  [2*MAX_ATTRIBS];
 
+        WGLExt wglExt = sharedCtx.getWGLExt();
         iattributes[0] = WGLExt.WGL_NUMBER_PIXEL_FORMATS_ARB;
         if (wglExt.wglGetPixelFormatAttribivARB(hdc, 0, 0, 1, iattributes, 0, iresults, 0)) {
           numFormats = iresults[0];
@@ -208,7 +206,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
           iattributes[niattribs++] = WGLExt.WGL_ACCUM_GREEN_BITS_ARB;
           iattributes[niattribs++] = WGLExt.WGL_ACCUM_BLUE_BITS_ARB;
           iattributes[niattribs++] = WGLExt.WGL_ACCUM_ALPHA_BITS_ARB;
-          if (1==haveWGLARBMultisample) {
+          if (haveWGLARBMultisample) {
             iattributes[niattribs++] = WGLExt.WGL_SAMPLE_BUFFERS_ARB;
             iattributes[niattribs++] = WGLExt.WGL_SAMPLES_ARB;
           }
@@ -242,10 +240,17 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
 
     public static boolean GLCapabilities2AttribList(GLCapabilitiesImmutable caps,
                                                     int[] iattributes,
-                                                    WGLExt wglExt,
+                                                    GLContextImpl sharedCtx,
                                                     boolean pbuffer,
                                                     int[] floatMode) throws GLException {
-        if (!wglExt.isExtensionAvailable("WGL_ARB_pixel_format")) {
+        boolean haveWGLChoosePixelFormatARB = sharedCtx.isExtensionAvailable("WGL_ARB_pixel_format");
+        boolean haveWGLARBMultisample = sharedCtx.isExtensionAvailable("WGL_ARB_multisample");
+        if(DEBUG) {
+            System.err.println("HDC2GLCapabilities: ARB_pixel_format: "+haveWGLChoosePixelFormatARB);
+            System.err.println("HDC2GLCapabilities: ARB_multisample : "+haveWGLARBMultisample);
+        }
+
+        if (!haveWGLChoosePixelFormatARB) {
           return false;
         }
 
@@ -306,13 +311,11 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
           iattributes[niattribs++] = caps.getAccumAlphaBits();
         }
 
-        if (wglExt.isExtensionAvailable("WGL_ARB_multisample")) {
-          if (caps.getSampleBuffers()) {
+        if (caps.getSampleBuffers() && haveWGLARBMultisample) {
             iattributes[niattribs++] = WGLExt.WGL_SAMPLE_BUFFERS_ARB;
             iattributes[niattribs++] = GL.GL_TRUE;
             iattributes[niattribs++] = WGLExt.WGL_SAMPLES_ARB;
             iattributes[niattribs++] = caps.getNumSamples();
-          }
         }
 
         boolean rtt      = caps.getPbufferRenderToTexture();
@@ -326,19 +329,19 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
           }
 
           if (rect) {
-            if (!wglExt.isExtensionAvailable("GL_NV_texture_rectangle")) {
+            if (!sharedCtx.isExtensionAvailable("GL_NV_texture_rectangle")) {
               throw new GLException("Render-to-texture-rectangle requires GL_NV_texture_rectangle extension");
             }
           }
 
           if (useFloat) {
-            if (!wglExt.isExtensionAvailable("WGL_ATI_pixel_format_float") &&
-                !wglExt.isExtensionAvailable("WGL_NV_float_buffer")) {
+            if (!sharedCtx.isExtensionAvailable("WGL_ATI_pixel_format_float") &&
+                !sharedCtx.isExtensionAvailable("WGL_NV_float_buffer")) {
               throw new GLException("Floating-point pbuffers not supported by this hardware");
             }
 
             // Prefer NVidia extension over ATI
-            if (wglExt.isExtensionAvailable("WGL_NV_float_buffer")) {
+            if (sharedCtx.isExtensionAvailable("WGL_NV_float_buffer")) {
               ati = false;
               floatMode[0] = GLPbuffer.NV_FLOAT;
             } else {

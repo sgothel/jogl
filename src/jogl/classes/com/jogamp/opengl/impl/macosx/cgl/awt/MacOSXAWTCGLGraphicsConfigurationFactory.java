@@ -100,11 +100,6 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GraphicsConfigurat
         }
 
         GraphicsConfiguration gc = device.getDefaultConfiguration();
-        capsChosen = (GLCapabilitiesImmutable) AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capsChosen, gc);
-        if(DEBUG) {
-            System.err.println("AWT Colormodel compatible: "+capsChosen);
-        }
-
         MacOSXCGLGraphicsConfiguration macConfig = (MacOSXCGLGraphicsConfiguration)
             GraphicsConfigurationFactory.getFactory(macDevice).chooseGraphicsConfiguration(capsChosen,
                                                                                            capsRequested,
@@ -114,7 +109,8 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GraphicsConfigurat
             throw new GLException("Unable to choose a GraphicsConfiguration: "+capsChosen+",\n\t"+chooser+"\n\t"+macScreen);
         }
 
-        // FIXME: we have nothing to match .. so choose the default
-        return new AWTGraphicsConfiguration(awtScreen, macConfig.getChosenCapabilities(), macConfig.getRequestedCapabilities(), gc, macConfig);
+        // We have nothing to match .. so choose the default
+        return new AWTGraphicsConfiguration(awtScreen, macConfig.getChosenCapabilities(), macConfig.getRequestedCapabilities(),
+                                            gc, macConfig);
     }
 }

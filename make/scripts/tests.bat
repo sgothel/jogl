@@ -24,4 +24,6 @@ REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestScreenMode02NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestDisplayLifecycle01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.parenting.TestParenting01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.parenting.TestParenting02NEWT
-scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestCloseNewtAWT
+REM scripts\java-win64.bat com.jogamp.test.junit.newt.TestCloseNewtAWT
+scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.caps.TestMultisampleAWT -time 10000
+REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.caps.TestMultisampleNEWT -time 10000
