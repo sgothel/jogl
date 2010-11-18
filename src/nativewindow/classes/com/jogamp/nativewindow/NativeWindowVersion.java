@@ -34,7 +34,7 @@ import java.util.jar.Manifest;
 
 public class NativeWindowVersion extends JogampVersion {
 
-    protected static NativeWindowVersion jogampCommonVersionInfo;
+    protected static volatile NativeWindowVersion jogampCommonVersionInfo;
 
     protected NativeWindowVersion(String packageName, Manifest mf) {
         super(packageName, mf);
@@ -45,8 +45,7 @@ public class NativeWindowVersion extends JogampVersion {
             synchronized(NativeWindowVersion.class) {
                 if( null == jogampCommonVersionInfo ) {
                     final String packageName = "javax.media.nativewindow";
-                    final String fullClazzName = NativeWindowVersion.class.getName();
-                    final Manifest mf = VersionUtil.getManifest(NativeWindowVersion.class.getClassLoader(), fullClazzName);
+                    final Manifest mf = VersionUtil.getManifest(NativeWindowVersion.class.getClassLoader(), packageName);
                     jogampCommonVersionInfo = new NativeWindowVersion(packageName, mf);
                 }
             }

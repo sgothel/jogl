@@ -33,11 +33,10 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.JogampVersion;
 import java.util.jar.Manifest;
-import javax.media.nativewindow.AbstractGraphicsDevice;
 
 public class JoglVersion extends JogampVersion {
 
-    protected static JoglVersion jogampCommonVersionInfo;
+    protected static volatile JoglVersion jogampCommonVersionInfo;
 
     protected JoglVersion(String packageName, Manifest mf) {
         super(packageName, mf);
@@ -48,8 +47,7 @@ public class JoglVersion extends JogampVersion {
             synchronized(JoglVersion.class) {
                 if( null == jogampCommonVersionInfo ) {
                     final String packageName = "javax.media.opengl";
-                    final String fullClazzName = "javax.media.opengl.GL";
-                    final Manifest mf = VersionUtil.getManifest(JoglVersion.class.getClassLoader(), fullClazzName);
+                    final Manifest mf = VersionUtil.getManifest(JoglVersion.class.getClassLoader(), packageName);
                     jogampCommonVersionInfo = new JoglVersion(packageName, mf);
                 }
             }
@@ -57,8 +55,8 @@ public class JoglVersion extends JogampVersion {
         return jogampCommonVersionInfo;
     }
 
-    public StringBuffer toStringBuffer(GL gl, StringBuffer sb) {
-        sb = super.toStringBuffer(sb);
+    public StringBuffer toString(GL gl, StringBuffer sb) {
+        sb = super.toString(sb);
 
         getGLInfo(gl, sb);
         sb.append("-----------------------------------------------------------------------------------------------------");
@@ -68,7 +66,7 @@ public class JoglVersion extends JogampVersion {
     }
 
     public String toString(GL gl) {
-        return toStringBuffer(gl, null).toString();
+        return toString(gl, null).toString();
     }
 
     public static StringBuffer getGLInfo(GL gl, StringBuffer sb) {

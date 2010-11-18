@@ -34,7 +34,7 @@ import java.util.jar.Manifest;
 
 public class NewtVersion extends JogampVersion {
 
-    protected static NewtVersion jogampCommonVersionInfo;
+    protected static volatile NewtVersion jogampCommonVersionInfo;
 
     protected NewtVersion(String packageName, Manifest mf) {
         super(packageName, mf);
@@ -45,8 +45,7 @@ public class NewtVersion extends JogampVersion {
             synchronized(NewtVersion.class) {
                 if( null == jogampCommonVersionInfo ) {
                     final String packageName = "com.jogamp.newt";
-                    final String fullClazzName = NewtVersion.class.getName();
-                    final Manifest mf = VersionUtil.getManifest(NewtVersion.class.getClassLoader(), fullClazzName);
+                    final Manifest mf = VersionUtil.getManifest(NewtVersion.class.getClassLoader(), packageName);
                     jogampCommonVersionInfo = new NewtVersion(packageName, mf);
                 }
             }
