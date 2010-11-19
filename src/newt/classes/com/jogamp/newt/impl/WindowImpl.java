@@ -759,6 +759,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 lifecycleHook.destroyActionPreLock();
             }
             runOnEDTIfAvail(true, destroyAction);
+            if(null!=lifecycleHook) {
+                lifecycleHook.resumeRenderingAction();
+            }
         }
     }
 
