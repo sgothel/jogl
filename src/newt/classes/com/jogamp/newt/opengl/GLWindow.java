@@ -87,26 +87,21 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
                 public void windowDestroyNotify(WindowEvent e) {
                     // Is an animator thread perform rendering?
                     if (GLWindow.this.helper.isExternalAnimatorAnimating()) {
-                        // Pause animations before initiating destroy.
-                        GLAnimatorControl ctrl = GLWindow.this.helper
-                                .getAnimator();
+                        // Pause animations before initiating safe destroy.
+                        GLAnimatorControl ctrl = GLWindow.this.helper.getAnimator();
                         ctrl.pause();
 
                         destroy();
 
-                        // Resume animations.
                         ctrl.resume();
-                    }
-                    // Is the surface locked another thread?
-                    else if (GLWindow.this.window
-                            .isSurfaceLockedByOtherThread()) {
+                    } else if (GLWindow.this.window.isSurfaceLockedByOtherThread()) {
+                        // Surface is locked by another thread
                         // Flag that destroy should be performed on the next
                         // attempt to display.
                         sendDestroy = true;
-                    }
-                    else {
+                    } else {
                         // Without an external thread animating or locking the
-                        // surface, we should be safe.
+                        // surface, we are safe.
                         destroy ();
                     }
                 }
