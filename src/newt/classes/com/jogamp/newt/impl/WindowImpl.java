@@ -68,7 +68,7 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.Rectangle;
 
-public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenModeListener
+public abstract class WindowImpl implements Window, NEWTEventConsumer
 {
     public static final boolean DEBUG_TEST_REPARENT_INCOMPATIBLE = Debug.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
     
@@ -111,6 +111,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
 
     private ArrayList windowListeners;
     private boolean repaintQueued = false;
+
+    ScreenModeListenerImpl screenModeListenerImpl = new ScreenModeListenerImpl();
 
     private void initializeStates() {
         invalidate(true);
@@ -250,9 +252,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
          * Invoked for expensive modifications, ie while reparenting and ScreenMode change.<br>
          * No lock is hold when invoked.<br>
          *
+         * @return true is paused, otherwise false. If true {@link #resumeRenderingAction()} shall be issued.
+         *
          * @see #resumeRenderingAction()
          */
-        void pauseRenderingAction();
+        boolean pauseRenderingAction();
 
         /**
          * Invoked for expensive modifications, ie while reparenting and ScreenMode change.
@@ -280,7 +284,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 screenReferenceAdded = true;
                 createNativeImpl();
                 setVisibleImpl(true, x, y, width, height);
-                screen.addScreenModeListener(this);
+                screen.addScreenModeListener(screenModeListenerImpl);
             }
         } finally {
             if(null!=parentWindow) {
@@ -308,7 +312,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         try {
             if( null != screen ) {
                 if( 0 != windowHandle ) {
-                    screen.removeScreenModeListener(WindowImpl.this);
+                    screen.removeScreenModeListener(screenModeListenerImpl);
                     closeNativeImpl();
                     removeScreenReference();
                 }
@@ -438,19 +442,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
 
     public final int lockSurface() {
         int res = LOCK_SURFACE_NOT_READY;
-
         windowLock.lock();
 
-        AbstractGraphicsDevice adevice = screen.getDisplay().getGraphicsDevice();
-        adevice.lock();
-        try {
-            res = lockSurfaceImpl();
-        } finally {
-            if(!isNativeValid()) {
-                adevice.unlock();
-                windowLock.unlock();
-                res = LOCK_SURFACE_NOT_READY;
+        if(isNativeValid()) {
+            AbstractGraphicsDevice adevice = screen.getDisplay().getGraphicsDevice();
+            adevice.lock();
+            try {
+                res = lockSurfaceImpl();
+            } finally {
+                if( LOCK_SURFACE_NOT_READY == res ) {
+                    adevice.unlock();
+                }
             }
+        }
+        if( LOCK_SURFACE_NOT_READY == res ) {
+            windowLock.unlock();
         }
 
         return res;
@@ -752,14 +758,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
                 //Exception ee = new Exception(msg);
                 //ee.printStackTrace();
             }
+            boolean animatorPaused = false;
             if(null!=lifecycleHook) {
-                lifecycleHook.pauseRenderingAction();
+                animatorPaused = lifecycleHook.pauseRenderingAction();
             }
             if(null!=lifecycleHook) {
                 lifecycleHook.destroyActionPreLock();
             }
             runOnEDTIfAvail(true, destroyAction);
-            if(null!=lifecycleHook) {
+            if(animatorPaused) {
                 lifecycleHook.resumeRenderingAction();
             }
         }
@@ -1134,15 +1141,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
     public int reparentWindow(NativeWindow newParent, boolean forceDestroyCreate) {
         int reparentActionStrategy = ReparentAction.ACTION_INVALID;
         if(isValid()) {
+            boolean animatorPaused = false;
             if(null!=lifecycleHook) {
-                lifecycleHook.pauseRenderingAction();
+                animatorPaused = lifecycleHook.pauseRenderingAction();
             }
             try {
                 ReparentActionImpl reparentAction = new ReparentActionImpl(newParent, forceDestroyCreate);
                 runOnEDTIfAvail(true, reparentAction);
                 reparentActionStrategy = reparentAction.getStrategy();
             } finally {
-                if(null!=lifecycleHook) {
+                if(animatorPaused) {
                     lifecycleHook.resumeRenderingAction();
                 }
             }
@@ -1531,31 +1539,35 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer, ScreenMod
         return this.fullscreen;
     }
 
-    public void screenModeChangeNotify(ScreenMode sm) {
-        if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-            System.err.println("Window.screenModeChangeNotify: "+sm);
-        }
+    class ScreenModeListenerImpl implements ScreenModeListener {
+        boolean animatorPaused = false;
 
-        if(null!=lifecycleHook) {
-            lifecycleHook.pauseRenderingAction();
-        }
-    }
+        public void screenModeChangeNotify(ScreenMode sm) {
+            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                System.err.println("Window.screenModeChangeNotify: "+sm);
+            }
 
-    public void screenModeChanged(ScreenMode sm, boolean success) {
-        if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-            System.err.println("Window.screenModeChanged: "+sm+", success: "+success);
-        }
-
-        if(success) {
-            DimensionReadOnly screenSize = sm.getMonitorMode().getSurfaceSize().getResolution();
-            if ( getHeight() > screenSize.getHeight()  ||
-                 getWidth() > screenSize.getWidth() ) {
-                setSize(screenSize.getWidth(), screenSize.getHeight());
+            if(null!=lifecycleHook) {
+                animatorPaused = lifecycleHook.pauseRenderingAction();
             }
         }
 
-        if(null!=lifecycleHook) {
-            lifecycleHook.resumeRenderingAction();
+        public void screenModeChanged(ScreenMode sm, boolean success) {
+            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                System.err.println("Window.screenModeChanged: "+sm+", success: "+success);
+            }
+
+            if(success) {
+                DimensionReadOnly screenSize = sm.getMonitorMode().getSurfaceSize().getResolution();
+                if ( getHeight() > screenSize.getHeight()  ||
+                     getWidth() > screenSize.getWidth() ) {
+                    setSize(screenSize.getWidth(), screenSize.getHeight());
+                }
+            }
+
+            if(animatorPaused) {
+                lifecycleHook.resumeRenderingAction();
+            }
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
     }

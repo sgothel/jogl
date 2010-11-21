@@ -88,16 +88,31 @@ public class FPSAnimator extends AnimatorBase {
         this.scheduleAtFixedRate = scheduleAtFixedRate;
     }
 
-    public final synchronized boolean isStarted() {
-        return (timer != null);
+    public final boolean isStarted() {
+        stateSync.lock();
+        try {
+            return (timer != null);
+        } finally {
+            stateSync.unlock();
+        }
     }
 
-    public final synchronized boolean isAnimating() {
-        return (timer != null) && (task != null);
+    public final boolean isAnimating() {
+        stateSync.lock();
+        try {
+            return (timer != null) && (task != null);
+        } finally {
+            stateSync.unlock();
+        }
     }
 
-    public final synchronized boolean isPaused() {
-        return (timer != null) && (task == null);
+    public final boolean isPaused() {
+        stateSync.lock();
+        try {
+            return (timer != null) && (task == null);
+        } finally {
+            stateSync.unlock();
+        }
     }
 
     private void startTask() {
@@ -105,7 +120,8 @@ public class FPSAnimator extends AnimatorBase {
         task = new TimerTask() {
             public void run() {
                 if(FPSAnimator.this.shouldRun) {
-                    FPSAnimator.this.thread = Thread.currentThread();
+                    FPSAnimator.this.animThread = Thread.currentThread();
+                    // display impl. uses synchronized block on the animator instance
                     display();
                 }
             }
@@ -125,8 +141,13 @@ public class FPSAnimator extends AnimatorBase {
         if (timer != null) {
             throw new GLException("Already started");
         }
-        timer = new Timer();
-        startTask();
+        stateSync.lock();
+        try {
+            timer = new Timer();
+            startTask();
+        } finally {
+            stateSync.unlock();
+        }
     }
 
     /** Stops this FPSAnimator. Due to the implementation of the
@@ -136,36 +157,43 @@ public class FPSAnimator extends AnimatorBase {
         if (timer == null) {
             throw new GLException("Already stopped");
         }
-        shouldRun = false;
-        task.cancel();
-        task = null;
-        timer.cancel();
-        timer = null;
-        thread = null;
+        stateSync.lock();
+        try {
+            shouldRun = false;
+            task.cancel();
+            task = null;
+            timer.cancel();
+            timer = null;
+            animThread = null;
+        } finally {
+            stateSync.unlock();
+        }
     }
 
     public synchronized void pause() {
         if (timer == null) {
             throw new GLException("Not running");
         }
-        shouldRun = false;
-        task.cancel();
-        task = null;
-        thread = null;
+        stateSync.lock();
+        try {
+            shouldRun = false;
+            task.cancel();
+            task = null;
+            animThread = null;
+        } finally {
+            stateSync.unlock();
+        }
     }
 
     public synchronized void resume() {
         if (timer == null) {
             throw new GLException("Not running");
         }
-        startTask();
-    }
-
-    protected final boolean getShouldPause() {
-        return (timer != null) && (task == null);
-    }
-
-    protected final boolean getShouldStop() {
-        return (timer == null);
+        stateSync.lock();
+        try {
+            startTask();
+        } finally {
+            stateSync.unlock();
+        }        
     }
 }

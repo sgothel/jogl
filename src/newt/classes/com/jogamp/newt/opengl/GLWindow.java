@@ -86,11 +86,11 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
 
                 public void windowDestroyNotify(WindowEvent e) {
                     // Is an animator thread perform rendering?
-                    if (GLWindow.this.helper.isExternalAnimatorAnimating()) {
+                    if (GLWindow.this.helper.isExternalAnimatorRunning()) {
                         // Pause animations before initiating safe destroy.
                         GLAnimatorControl ctrl = GLWindow.this.helper.getAnimator();
                         ctrl.pause();
-
+                        
                         destroy();
 
                         ctrl.resume();
@@ -251,15 +251,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
     public final void addChild(NativeWindow win) {
         window.addChild(win);
     }
-
-    public void screenModeChangeNotify(ScreenMode sm) {
-        window.screenModeChangeNotify(sm);
-    }
-
-    public void screenModeChanged(ScreenMode sm, boolean success) {
-        window.screenModeChanged(sm, success);
-    }
-
+    
     //----------------------------------------------------------------------
     // Window.LifecycleHook Implementation
     //
@@ -299,12 +291,10 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
         }
         DisposeAction disposeAction = new DisposeAction();
 
-        /** Window.LifecycleHook */
         public synchronized void destroyActionPreLock() {
             // nop
         }
 
-        /** Window.LifecycleHook */
         public synchronized void destroyActionInLock() {
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
                 String msg = new String("GLWindow.destroy() "+Thread.currentThread()+", start");
@@ -334,7 +324,6 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
             }
         }
 
-        /** Window.LifecycleHook */
         public synchronized void invalidate(boolean unrecoverable) {
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
                 String msg = new String("GLWindow.invalidate("+unrecoverable+") "+Thread.currentThread()+", start");
@@ -344,14 +333,13 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
             }
             if(unrecoverable) {
                 GLAnimatorControl ctrl = GLWindow.this.getAnimator();
-                if ( null!=ctrl && ctrl.isStarted() ) {
-                    ctrl.stop();
+                if ( null!=ctrl ) {
+                    ctrl.remove(GLWindow.this);
                 }
                 helper=null;
             }
         }
 
-        /** Window.LifecycleHook */
         public synchronized void resetCounter() {
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
                 System.err.println("GLWindow.resetCounter() "+Thread.currentThread());
@@ -394,21 +382,20 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
                 //e1.printStackTrace();
             }
         }
-
-        boolean animatorPaused = false;
-
-        public synchronized void pauseRenderingAction() {
+        
+        public synchronized boolean pauseRenderingAction() {
+            boolean animatorPaused = false;
             GLAnimatorControl ctrl = GLWindow.this.getAnimator();
-            if ( null!=ctrl && ctrl.isAnimating() && ctrl.getThread() != Thread.currentThread() ) {
+            if ( null!=ctrl && ctrl.isStarted() && !ctrl.isPaused()) {
                 animatorPaused = true;
                 ctrl.pause();
             }
+            return animatorPaused;
         }
 
         public synchronized void resumeRenderingAction() {
             GLAnimatorControl ctrl = GLWindow.this.getAnimator();
-            if ( null!=ctrl && animatorPaused ) {
-                animatorPaused = false;
+            if ( null!=ctrl && ctrl.isPaused() ) {
                 ctrl.resume();
             }
         }
@@ -517,10 +504,11 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
             setVisible(true);
         }
 
-        if( isVisible() && isNativeValid() && null != context ) {
-            if(forceReshape) {
-                sendReshape = true;
-            }
+        if(forceReshape) {
+            sendReshape = true;
+        }
+        
+        if( isVisible() && null != context ) {
             if( NativeSurface.LOCK_SURFACE_NOT_READY < lockSurface() ) {
                 try {
                     helper.invokeGL(drawable, context, displayAction, initAction);

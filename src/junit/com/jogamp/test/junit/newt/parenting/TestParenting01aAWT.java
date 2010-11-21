@@ -216,6 +216,8 @@ public class TestParenting01aAWT extends UITestCase {
 
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
+        Assert.assertEquals(true, animator1.isStarted());
+        Assert.assertEquals(true, animator1.isAnimating());
         while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
             Thread.sleep(100);
         }

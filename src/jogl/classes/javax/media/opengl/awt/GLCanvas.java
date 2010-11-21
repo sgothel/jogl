@@ -347,10 +347,17 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
 
     if(null!=context) {
-        boolean animatorWasAnimating = false;
+        boolean animatorPaused = false;
         GLAnimatorControl animator =  getAnimator();
         if(null!=animator) {
-            animatorWasAnimating = animator.isAnimating();
+            if(regenerate) {
+                if(animator.isStarted() && !animator.isPaused()) {
+                    animator.pause();
+                    animatorPaused = true;
+                }
+            } else {
+                animator.remove(this);
+            }
         }
 
         disposeRegenerate=regenerate;
@@ -376,8 +383,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
           drawableHelper.invokeGL(drawable, context, disposeAction, null);
         }
 
-        if(regenerate && animatorWasAnimating && animator.isPaused()) {
-          animator.resume();
+        if(animatorPaused) {
+            animator.resume();
         }
     }
     if(!regenerate) {

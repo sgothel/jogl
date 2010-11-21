@@ -238,6 +238,10 @@ public class GLDrawableHelper {
     }
   }
 
+  public final boolean isExternalAnimatorRunning() {
+    return ( null != animatorCtrl ) ? animatorCtrl.isStarted() && animatorCtrl.getThread() != Thread.currentThread() : false ;
+  }
+
   public final boolean isExternalAnimatorAnimating() {
     return ( null != animatorCtrl ) ? animatorCtrl.isAnimating() && animatorCtrl.getThread() != Thread.currentThread() : false ;
   }
@@ -298,8 +302,6 @@ public class GLDrawableHelper {
    * <br>
    * Remark: In case this method is called to dispose the GLDrawable/GLAutoDrawable,
    * <code>initAction</code> shall be <code>null</code> to mark this cause.<br>
-   * In this case, the locally delegated {@link javax.media.opengl.GLAnimatorControl} via {@link #setAnimator(javax.media.opengl.GLAnimatorControl) setAnimator(animatorControl)}
-   * is paused first, if {@link javax.media.opengl.GLAnimatorControl#isAnimating()}.
    *
    * @param drawable
    * @param context
@@ -322,10 +324,6 @@ public class GLDrawableHelper {
         // disposal case
         if(!context.isCreated()) {
             throw new GLException("Dispose case (no init action given): Native context must be created: "+context);
-        }
-        GLAnimatorControl animCtrl =  getAnimator();
-        if(null!=animCtrl && animCtrl.isAnimating()) {
-            animCtrl.pause();
         }
     }
 

@@ -36,10 +36,16 @@ package com.jogamp.opengl.util;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Rectangle;
-import java.util.*;
-import javax.swing.*;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import javax.swing.JComponent;
+import javax.swing.RepaintManager;
+import javax.swing.SwingUtilities;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GLAutoDrawable;
 
 /** Abstraction to factor out AWT dependencies from the Animator's
     implementation in a way that still allows the FPSAnimator to pick
@@ -52,37 +58,34 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
     private Map  repaintManagers = new IdentityHashMap();
     private Map  dirtyRegions    = new IdentityHashMap();
 
-    public void display(AnimatorBase animator,
+    public void display(ArrayList drawables,
                         boolean ignoreExceptions,
                         boolean printExceptions) {
-        List drawables = animator.acquireDrawables();
-        try {
-            for (int i=0;
-                 animator.isAnimating() && !animator.getShouldStop() && !animator.getShouldPause() && i<drawables.size();
-                 i++) {
-                GLAutoDrawable drawable = (GLAutoDrawable) drawables.get(i);
-                if (drawable instanceof JComponent) {
-                    // Lightweight components need a more efficient drawing
-                    // scheme than simply forcing repainting of each one in
-                    // turn since drawing one can force another one to be
-                    // drawn in turn
+        for (int i=0; i<drawables.size(); i++) {
+            GLAutoDrawable drawable = (GLAutoDrawable) drawables.get(i);
+            if (drawable instanceof JComponent) {
+                // Lightweight components need a more efficient drawing
+                // scheme than simply forcing repainting of each one in
+                // turn since drawing one can force another one to be
+                // drawn in turn
+                if(drawable.isRealized()) {
                     lightweights.add(drawable);
-                } else {
-                    try {
+                }
+            } else {
+                try {
+                    if(drawable.isRealized()) {
                         drawable.display();
-                    } catch (RuntimeException e) {
-                        if (ignoreExceptions) {
-                            if (printExceptions) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            throw(e);
+                    }
+                } catch (RuntimeException e) {
+                    if (ignoreExceptions) {
+                        if (printExceptions) {
+                            e.printStackTrace();
                         }
+                    } else {
+                        throw(e);
                     }
                 }
             }
-        } finally {
-            animator.releaseDrawables();
         }
 
         if (lightweights.size() > 0) {

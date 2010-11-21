@@ -28,19 +28,11 @@
  
 package com.jogamp.test.junit.newt;
 
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 
-import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
@@ -131,7 +123,8 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
             Thread.sleep(100);
         }
         destroyWindow(window);
-        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(true, animator.isAnimating());
+        animator.stop();
     }
 
     @Test
@@ -146,7 +139,8 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         }
         destroyWindow(window);
         destroyWindow(window);
-        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(true, animator.isAnimating());
+        animator.stop();
     }
 
     @Test
@@ -167,20 +161,44 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertNotNull(window2);
         window2.setPosition(screen.getWidth()-width, 0);
 
-        Animator animator1 = new Animator(window1);
-        animator1.start();
-        Animator animator2 = new Animator(window2);
-        animator2.start();
-        while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
+        Animator animator = new Animator();
+        Assert.assertEquals(false, animator.isStarted());
+        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
+
+        animator.start();
+        Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
+
+        animator.add(window1);
+        Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(true, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
+
+        animator.add(window2);
+        Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(true, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
+
+        while(animator.isAnimating() && animator.getDuration()<durationPerTest) {
             Thread.sleep(100);
         }
+        window1.invalidate();
+        Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(true, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
 
-        destroyWindow(window1);
-        Assert.assertEquals(false, animator1.isAnimating());
-
-        destroyWindow(window2);
-        Assert.assertEquals(false, animator2.isAnimating());
+        while(animator.isAnimating() && animator.getDuration()<2*durationPerTest) {
+            Thread.sleep(100);
+        }
+        window2.invalidate();
+        Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
+        animator.stop();
     }
+
     @Test
     public void testWindowDecor03TwoWinTwoDisplays() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);
@@ -204,19 +222,56 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertNotNull(window2);
         window2.setPosition(screen2.getWidth()-width, 0);
 
-        Animator animator1 = new Animator(window1);
-        animator1.start();
-        Animator animator2 = new Animator(window2);
-        animator2.start();
-        while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
+        Animator animator = new Animator();
+        Assert.assertEquals(false, animator.isStarted());
+        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
+
+        animator.start();
+        Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
+
+        animator.add(window1);
+        Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(true, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
+
+        animator.add(window2);
+        Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(true, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
+
+        while(animator.isAnimating() && animator.getDuration()<durationPerTest) {
             Thread.sleep(100);
         }
-
         destroyWindow(window1);
-        Assert.assertEquals(false, animator1.isAnimating());
+        Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(true, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
 
+        while(animator.isAnimating() && animator.getDuration()<2*durationPerTest) {
+            Thread.sleep(100);
+        }
         destroyWindow(window2);
-        Assert.assertEquals(false, animator2.isAnimating());
+        Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(true, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
+
+        animator.pause();
+        Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(true, animator.isPaused());
+
+        animator.resume();
+        Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(true, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
+
+        animator.stop();
+        Assert.assertEquals(false, animator.isStarted());
+        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow) {

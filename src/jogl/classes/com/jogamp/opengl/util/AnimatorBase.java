@@ -31,13 +31,18 @@ package com.jogamp.opengl.util;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.impl.Debug;
 import java.util.ArrayList;
-import java.util.List;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLProfile;
 
 /**
- * Base implementation of GLAnimatorControl
+ * Base implementation of GLAnimatorControl<br>
+ * <p>
+ * The change synchronization is done via synchronized blocks on the AnimatorBase instance.<br>
+ * Status get / set activity is synced with a RecursiveLock, used as a memory barrier.<br>
+ * This is suitable, since all change requests are allowed to be expensive
+ * as they are not expected to be called at every frame.
+ * </p>
  */
 public abstract class AnimatorBase implements GLAnimatorControl {
     protected static final boolean DEBUG = Debug.debug("Animator");
@@ -45,20 +50,21 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     private static int animatorCount = 0;
 
     public interface AnimatorImpl {
-        void display(AnimatorBase animator, boolean ignoreExceptions, boolean printExceptions);
+        void display(ArrayList drawables, boolean ignoreExceptions, boolean printExceptions);
         boolean skipWaitForCompletion(Thread thread);
     }
 
     protected ArrayList/*<GLAutoDrawable>*/ drawables = new ArrayList();
-    protected RecursiveLock drawablesLock = new RecursiveLock();
+    protected boolean drawablesEmpty;
     protected AnimatorImpl impl;
     protected String baseName;
-    protected Thread thread;
+    protected Thread animThread;
     protected boolean ignoreExceptions;
     protected boolean printExceptions;
     protected long startTime;
     protected long curTime;
     protected int  totalFrames;
+    protected RecursiveLock stateSync = new RecursiveLock();
 
     /** Creates a new, empty Animator. */
     public AnimatorBase() {
@@ -75,6 +81,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         synchronized (Animator.class) {
             animatorCount++;
             baseName = baseName.concat("-"+animatorCount);
+            drawablesEmpty = true;
         }
         resetCounter();
     }
@@ -82,25 +89,54 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     protected abstract String getBaseName(String prefix);
 
     public synchronized void add(GLAutoDrawable drawable) {
-        drawablesLock.lock();
+        if(DEBUG) {
+            System.err.println("Animator add: "+drawable.hashCode()+" - "+Thread.currentThread());
+        }
+        // drawables list may be in use by display
+        stateSync.lock();
         try {
-            drawables.add(drawable);
+            ArrayList newDrawables = (ArrayList) drawables.clone();
+            newDrawables.add(drawable);
+            drawables = newDrawables;
+            drawablesEmpty = drawables.size() == 0;
             drawable.setAnimator(this);
         } finally {
-            drawablesLock.unlock();
+            stateSync.unlock();
         }
         notifyAll();
+        if(!impl.skipWaitForCompletion(animThread)) {
+            while(isStarted() && !isPaused() && !isAnimating()) {
+                try {
+                    wait();
+                } catch (InterruptedException ie) { }
+            }
+        }
     }
 
     public synchronized void remove(GLAutoDrawable drawable) {
-        drawablesLock.lock();
+        if(DEBUG) {
+            System.err.println("Animator remove: "+drawable.hashCode()+" - "+Thread.currentThread());
+        }
+
+        // drawables list may be in use by display
+        stateSync.lock();
         try {
-            drawables.remove(drawable);
+            ArrayList newDrawables = (ArrayList) drawables.clone();
+            newDrawables.remove(drawable);
+            drawables = newDrawables;
+            drawablesEmpty = drawables.size() == 0;
             drawable.setAnimator(null);
         } finally {
-            drawablesLock.unlock();
+            stateSync.unlock();
         }
         notifyAll();
+        if(!impl.skipWaitForCompletion(animThread)) {
+            while(isStarted() && drawablesEmpty && isAnimating()) {
+                try {
+                    wait();
+                } catch (InterruptedException ie) { }
+            }
+        }
     }
 
     /** Called every frame to cause redrawing of all of the
@@ -109,18 +145,16 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         components this Animator manages, in particular when multiple
         lightweight widgets are continually being redrawn. */
     protected void display() {
-        impl.display(this, ignoreExceptions, printExceptions);
+        ArrayList dl;
+        stateSync.lock();
+        try {
+            dl = drawables;
+        } finally {
+            stateSync.unlock();
+        }
+        impl.display(dl, ignoreExceptions, printExceptions);
         curTime = System.currentTimeMillis();
         totalFrames++;
-    }
-
-    public List acquireDrawables() {
-        drawablesLock.lock();
-        return drawables;
-    }
-
-    public void releaseDrawables() {
-        drawablesLock.unlock();
     }
 
     public long getCurrentTime() {
@@ -139,14 +173,19 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         return totalFrames;
     }
 
+    public final Thread getThread() {
+        stateSync.lock();
+        try {
+            return animThread;
+        } finally {
+            stateSync.unlock();
+        }
+    }
+
     public synchronized void resetCounter() {
         startTime = System.currentTimeMillis(); // overwrite startTime to real init one
         curTime   = startTime;
         totalFrames = 0;
-    }
-
-    public final synchronized Thread getThread() {
-        return thread;
     }
 
     /** Sets a flag causing this Animator to ignore exceptions produced
@@ -165,10 +204,6 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     }
 
     public String toString() {
-        return getClass().getName()+"[started "+isStarted()+", animating "+isAnimating()+", paused "+isPaused()+", frames "+getTotalFrames()+"]";
+        return getClass().getName()+"[started "+isStarted()+", animating "+isAnimating()+", paused "+isPaused()+", frames "+getTotalFrames()+", drawable "+drawables.size()+"]";
     }
-
-    protected abstract boolean getShouldPause();
-
-    protected abstract boolean getShouldStop();
 }

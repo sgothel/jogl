@@ -709,17 +709,7 @@ public class TestParenting01NEWT extends UITestCase {
         }
         System.err.println("durationPerTest: "+durationPerTest);
         String tstname = TestParenting01NEWT.class.getName();
-        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
-            tstname,
-            "filtertrace=true",
-            "haltOnError=false",
-            "haltOnFailure=false",
-            "showoutput=true",
-            "outputtoformatters=true",
-            "logfailedtests=true",
-            "logtestlistenerevents=true",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+        org.junit.runner.JUnitCore.main(tstname);
     }
 
 }

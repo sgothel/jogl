@@ -59,7 +59,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   private boolean doubleBuffered = true;
   private boolean stereo         = false;
   private boolean hardwareAccelerated = true;
-  private int     depthBits      = 24;
+  private int     depthBits      = 16;
   private int     stencilBits    = 0;
   private int     accumRedBits   = 0;
   private int     accumGreenBits = 0;

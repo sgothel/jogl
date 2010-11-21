@@ -79,7 +79,7 @@ public interface GLAnimatorControl {
     public void resetCounter();
 
     /**
-     * Indicates whether this animator is currently running, ie started.
+     * Indicates whether this animator is running, ie. has been started and not stopped.
      *
      * @see #start()
      * @see #stop()
@@ -89,7 +89,8 @@ public interface GLAnimatorControl {
     boolean isStarted();
 
     /**
-     * Indicates whether this animator is currently running and not paused.
+     * Indicates whether this animator is running and animating,<br>
+     * the latter is true if it has {@link GLAutoDrawable}s to render and is not paused.
      *
      * @see #start()
      * @see #stop()
@@ -99,7 +100,7 @@ public interface GLAnimatorControl {
     boolean isAnimating();
 
     /**
-     * Indicates whether this animator is currently running and paused.
+     * Indicates whether this animator is running and paused.
      *
      * @see #start()
      * @see #stop()
@@ -109,7 +110,7 @@ public interface GLAnimatorControl {
     boolean isPaused();
 
     /**
-     * @return The animation thread if started, ie running.
+     * @return The animation thread if running, otherwise null.
      *
      * @see #start()
      * @see #stop()
@@ -158,7 +159,7 @@ public interface GLAnimatorControl {
      *
      * @see #resume()
      * @see #isAnimating()
-     * @throws GLException if not started or not animating or already paused
+     * @throws GLException if not started or already paused
      */
     void pause();
 
@@ -177,4 +178,15 @@ public interface GLAnimatorControl {
      * @throws GLException if not started or not paused
      */
     void resume();
+
+    /**
+     * Removes a drawable from the animator's list of rendering drawables.<br>
+     * This method should get called in case a drawable becomes invalid,
+     * and will not be recovered.<br>
+     * This allows the animator thread to become idle in case the last drawable
+     * has reached it's end of life.<br>
+     * 
+     * @param drawable the to be removed drawable
+     */
+    void remove(GLAutoDrawable drawable);
 }

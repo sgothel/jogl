@@ -31,7 +31,6 @@ package com.jogamp.newt;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseListener;
-import com.jogamp.newt.event.ScreenModeListener;
 import com.jogamp.newt.impl.Debug;
 import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
@@ -43,7 +42,7 @@ import javax.media.nativewindow.util.Insets;
  * Specifying the public Window functionality for the
  * using a Window and for shadowing one like {@link com.jogamp.newt.opengl.GLWindow}.
  */
-public interface Window extends NativeWindow, ScreenModeListener {
+public interface Window extends NativeWindow {
     public static final boolean DEBUG_MOUSE_EVENT = Debug.debug("Window.MouseEvent");
     public static final boolean DEBUG_KEY_EVENT = Debug.debug("Window.KeyEvent");
     public static final boolean DEBUG_WINDOW_EVENT = Debug.debug("Window.WindowEvent");

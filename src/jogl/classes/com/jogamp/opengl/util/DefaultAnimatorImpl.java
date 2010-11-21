@@ -33,37 +33,32 @@
 
 package com.jogamp.opengl.util;
 
-import java.util.*;
-import javax.media.opengl.*;
+import java.util.ArrayList;
+import javax.media.opengl.GLAutoDrawable;
 
 /** Abstraction to factor out AWT dependencies from the Animator's
     implementation in a way that still allows the FPSAnimator to pick
     up this behavior if desired. */
 
 class DefaultAnimatorImpl implements AnimatorBase.AnimatorImpl {
-    public void display(AnimatorBase animator,
+    public void display(ArrayList drawables,
                         boolean ignoreExceptions,
                         boolean printExceptions) {
-        List drawables = animator.acquireDrawables();
-        try {
-            for (int i=0;
-                 animator.isAnimating() && !animator.getShouldStop() && !animator.getShouldPause() && i<drawables.size();
-                 i++) {
-                GLAutoDrawable drawable = (GLAutoDrawable) drawables.get(i);
-                try {
+        for (int i=0; i<drawables.size(); i++) {
+            GLAutoDrawable drawable = (GLAutoDrawable) drawables.get(i);
+            try {
+                if(drawable.isRealized()) {
                     drawable.display();
-                } catch (RuntimeException e) {
-                    if (ignoreExceptions) {
-                        if (printExceptions) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        throw(e);
+                }
+            } catch (RuntimeException e) {
+                if (ignoreExceptions) {
+                    if (printExceptions) {
+                        e.printStackTrace();
                     }
+                } else {
+                    throw(e);
                 }
             }
-        } finally {
-            animator.releaseDrawables();
         }
     }
 

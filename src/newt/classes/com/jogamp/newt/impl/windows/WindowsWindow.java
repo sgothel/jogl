@@ -59,7 +59,7 @@ public class WindowsWindow extends WindowImpl {
             hdc = GetDC0(getWindowHandle());
             hmon = MonitorFromWindow0(getWindowHandle());
         }
-        return LOCK_SUCCESS;
+        return ( 0 != hdc ) ? LOCK_SUCCESS : LOCK_SURFACE_NOT_READY;
     }
 
     protected void unlockSurfaceImpl() {

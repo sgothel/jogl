@@ -256,20 +256,25 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         Screen screen = win0.getScreen();
         win0.setPosition(screen.getWidth()-150, 0);
         win0.addGLEventListener(new Gears());
-        Animator anim0 = new Animator(win0);
-        anim0.start();
+        Animator anim = new Animator(win0);
+        anim.start();
 
         GLWindow win1 = GLWindow.create(caps);
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(win1);
-        Animator anim1 = new Animator(win1);
-        anim1.start();
+        anim.add(win1);
         runTestGL(newtCanvasAWT, win1);
 
         win0.destroy();
-        Assert.assertEquals(false, anim0.isAnimating());
+        Assert.assertEquals(true, anim.isAnimating());
 
         newtCanvasAWT.destroy();
-        Assert.assertEquals(false, anim1.isAnimating());
+
+        win0.invalidate();
+        Assert.assertEquals(true, anim.isAnimating());
+        win1.invalidate();
+        Assert.assertEquals(false, anim.isAnimating());
+
+        anim.stop();
 
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test01NewtCanvasAWT(): End");
     }
@@ -279,6 +284,9 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test02GLCanvas(): Start");
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
+
+        Animator anim = new Animator();
+        anim.start();
 
         /**
          * Using GLCanvas _and_ NEWT side by side currently causes a deadlock
@@ -290,23 +298,18 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         Screen screen = win0.getScreen();
         win0.setPosition(screen.getWidth()-150, 0);
         win0.addGLEventListener(new Gears());
-        Animator anim0 = new Animator(win0);        
-        anim0.start();
+        anim.add(win0);
          */
 
         GLCanvas glCanvas = new GLCanvas(caps);
-        Animator anim1 = new Animator(glCanvas);
-        anim1.start();
+        anim.add(glCanvas);
         runTestGL(glCanvas, glCanvas);
-
-        Thread.sleep(100); // wait 1/10Hz to allow animation to be paused
-        Assert.assertEquals(false, anim1.isAnimating());
 
         /**
         win0.destroy();
-        Assert.assertEquals(false, anim0.isAnimating());
+        Assert.assertEquals(true, anim.isAnimating());
          */
-        
+        anim.stop();
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test02GLCanvas(): End");
     }
 
