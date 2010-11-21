@@ -98,12 +98,13 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
                 System.err.println("X11AWTGLXGraphicsConfigurationFactory: using AWT X11 display 0x"+Long.toHexString(displayHandle));
             }
             /**
-             * May cause an exception at X11 Display destruction,
-             * so reuse AWT's display for now, which seems to work nicely.
-                String name = X11Util.XDisplayString(displayHandle);
-                displayHandle = X11Util.createDisplay(name);
-                owner = true;
+             * May cause an exception on NVidia X11 Display destruction,
+             * when destruction happen immediately after construction, around 10ms.
+             * However, the own Display handle is required for AMD gpus.
              */
+            String name = X11Util.XDisplayString(displayHandle);
+            displayHandle = X11Util.createDisplay(name);
+            owner = true;
         }
         ((AWTGraphicsDevice)awtScreen.getDevice()).setSubType(NativeWindowFactory.TYPE_X11, displayHandle);
         X11GraphicsDevice x11Device = new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT);
