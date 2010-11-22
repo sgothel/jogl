@@ -55,11 +55,7 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
 
   protected WindowsDummyWGLDrawable(GLDrawableFactory factory, GLCapabilitiesImmutable caps) {
     super(factory, new ProxySurface(WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(caps, null)), true);
-    // All entries to CreateDummyWindow must synchronize on one object
-    // to avoid accidentally registering the dummy window class twice
-    synchronized (WindowsDummyWGLDrawable.class) {
-      hwnd = GDI.CreateDummyWindow(0, 0, 1, 1);
-    }
+    hwnd = GDI.CreateDummyWindow(0, 0, 1, 1);
     hdc = GDI.GetDC(hwnd);
     ProxySurface ns = (ProxySurface) getNativeSurface();
     ns.setSurfaceHandle(hdc);
