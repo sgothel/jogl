@@ -17,6 +17,10 @@
     return hInstance;
   }
 
+  public static long CreateDummyWindow(int x, int y, int width, int height) {
+      return CreateDummyWindow0(getModuleHandle(), x, y, width, height);
+  }
+
   public static Point GetRelativeLocation(long src_win, long dest_win, int src_x, int src_y) {
     return (Point) GetRelativeLocation0(src_win, dest_win, src_x, src_y);
   }

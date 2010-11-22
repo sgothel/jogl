@@ -66,7 +66,7 @@ LRESULT CALLBACK DummyWndProc( HWND   hWnd, UINT   uMsg, WPARAM wParam, LPARAM l
   return DefWindowProc(hWnd,uMsg,wParam,lParam);
 }
 
-HWND CreateDummyWindow(HINSTANCE hInstance, int x, int y, int width, int height ) {
+HWND CreateDummyWindow0(HINSTANCE hInstance, int x, int y, int width, int height ) {
   DWORD     dwExStyle;
   DWORD     dwStyle;
   HWND      hWnd;

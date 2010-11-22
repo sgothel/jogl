@@ -168,7 +168,7 @@ WINGDIAPI HGDIOBJ WINAPI SelectObject(HDC, HGDIOBJ);
 // Routines for creation of a dummy window, device context and OpenGL
 // context for the purposes of getting wglChoosePixelFormatARB and
 // associated routines
-           HWND        CreateDummyWindow( int x, int y, int width, int height ) ;
+           HWND        CreateDummyWindow0( HINSTANCE hInstance, int x, int y, int width, int height ) ;
 WINUSERAPI BOOL WINAPI ShowWindow(HWND hWnd, int nCmdShow);
 WINUSERAPI HDC  WINAPI GetDC(HWND);
 WINUSERAPI int  WINAPI ReleaseDC(HWND hWnd, HDC hDC);
