@@ -394,7 +394,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   protected final void shutdownInstance() {
     sharedResourcesRunner.releaseAndWait();
 
-    X11Util.shutdown( true, DEBUG );
+    // Don't really close pending Display connections,
+    // since this may trigger a JVM exception
+    X11Util.shutdown( false, DEBUG );
   }
 
   protected final GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
