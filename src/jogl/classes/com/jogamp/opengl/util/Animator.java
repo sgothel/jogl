@@ -294,9 +294,9 @@ public class Animator extends AnimatorBase {
     }
     Condition waitForStoppedCondition = new WaitForStoppedCondition();
 
-    public synchronized void pause() {
+    public synchronized boolean pause() {
         if ( !isStartedImpl() || pauseIssued ) {
-            throw new GLException("Pause: Invalid state (started "+isStartedImpl()+" (true), paused "+pauseIssued+" (false) )");
+            return false;
         }
         stateSync.lock();
         try {
@@ -306,6 +306,7 @@ public class Animator extends AnimatorBase {
         }
         notifyAll();
         finishLifecycleAction(waitForPausedCondition);
+        return true;
     }
     private class WaitForPausedCondition implements Condition {
         public boolean result() {
@@ -315,9 +316,9 @@ public class Animator extends AnimatorBase {
     }
     Condition waitForPausedCondition = new WaitForPausedCondition();
 
-    public synchronized void resume() {
+    public synchronized boolean resume() {
         if ( !isStartedImpl() || !pauseIssued ) {
-            throw new GLException("Resume: Invalid state (started "+isStartedImpl()+" (true), paused "+pauseIssued+" (true) )");
+            return false;
         }
         stateSync.lock();
         try {
@@ -327,6 +328,7 @@ public class Animator extends AnimatorBase {
         }
         notifyAll();
         finishLifecycleAction(waitForResumeCondition);
+        return true;
     }
     private class WaitForResumeCondition implements Condition {
         public boolean result() {

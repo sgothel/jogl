@@ -351,10 +351,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         GLAnimatorControl animator =  getAnimator();
         if(null!=animator) {
             if(regenerate) {
-                if(animator.isStarted() && !animator.isPaused()) {
-                    animator.pause();
-                    animatorPaused = true;
-                }
+                animatorPaused = animator.pause();
             } else {
                 animator.remove(this);
             }

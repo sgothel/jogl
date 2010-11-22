@@ -89,11 +89,11 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
                     if (GLWindow.this.helper.isExternalAnimatorRunning()) {
                         // Pause animations before initiating safe destroy.
                         GLAnimatorControl ctrl = GLWindow.this.helper.getAnimator();
-                        ctrl.pause();
-                        
+                        boolean isPaused = ctrl.pause();
                         destroy();
-
-                        ctrl.resume();
+                        if(isPaused) {
+                            ctrl.resume();
+                        }
                     } else if (GLWindow.this.window.isSurfaceLockedByOtherThread()) {
                         // Surface is locked by another thread
                         // Flag that destroy should be performed on the next
@@ -386,9 +386,8 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
         public synchronized boolean pauseRenderingAction() {
             boolean animatorPaused = false;
             GLAnimatorControl ctrl = GLWindow.this.getAnimator();
-            if ( null!=ctrl && ctrl.isStarted() && !ctrl.isPaused()) {
-                animatorPaused = true;
-                ctrl.pause();
+            if ( null!=ctrl ) {
+                animatorPaused = ctrl.pause();
             }
             return animatorPaused;
         }

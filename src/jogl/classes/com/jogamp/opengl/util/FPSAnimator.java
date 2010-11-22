@@ -170,9 +170,9 @@ public class FPSAnimator extends AnimatorBase {
         }
     }
 
-    public synchronized void pause() {
+    public synchronized boolean pause() {
         if (timer == null) {
-            throw new GLException("Not running");
+            return false;
         }
         stateSync.lock();
         try {
@@ -183,17 +183,19 @@ public class FPSAnimator extends AnimatorBase {
         } finally {
             stateSync.unlock();
         }
+        return true;
     }
 
-    public synchronized void resume() {
+    public synchronized boolean resume() {
         if (timer == null) {
-            throw new GLException("Not running");
+            return false;
         }
         stateSync.lock();
         try {
             startTask();
         } finally {
             stateSync.unlock();
-        }        
+        }
+        return true;
     }
 }

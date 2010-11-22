@@ -171,22 +171,22 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertTrue(0 < glWindow1.getTotalFrames());
         Assert.assertTrue(0 < glWindow2.getTotalFrames());
 
-        animator1.pause();
+        Assert.assertEquals(true, animator1.pause());
         Assert.assertEquals(false, animator1.isAnimating());
         Assert.assertEquals(true, animator1.isPaused());
         Assert.assertNotNull(animator1.getThread());
-        animator2.pause();
+        Assert.assertEquals(true, animator2.pause());
         Assert.assertEquals(false, animator2.isAnimating());
         Assert.assertEquals(true, animator2.isPaused());
         Assert.assertNotNull(animator2.getThread());
 
         glWindow1.resetCounter();
         glWindow2.resetCounter();
-        animator1.resume();
+        Assert.assertEquals(true, animator1.resume());
         Assert.assertEquals(true, animator1.isAnimating());
         Assert.assertEquals(false, animator1.isPaused());
         Assert.assertNotNull(animator1.getThread());
-        animator2.resume();
+        Assert.assertEquals(true, animator2.resume());
         Assert.assertEquals(true, animator2.isAnimating());
         Assert.assertEquals(false, animator2.isPaused());
         Assert.assertNotNull(animator2.getThread());

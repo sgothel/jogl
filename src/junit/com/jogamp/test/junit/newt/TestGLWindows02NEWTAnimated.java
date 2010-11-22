@@ -258,12 +258,12 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertEquals(true, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
 
-        animator.pause();
+        Assert.assertEquals(true, animator.pause());
         Assert.assertEquals(true, animator.isStarted());
         Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(true, animator.isPaused());
 
-        animator.resume();
+        Assert.assertEquals(true, animator.resume());
         Assert.assertEquals(true, animator.isStarted());
         Assert.assertEquals(true, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
