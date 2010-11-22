@@ -7,7 +7,7 @@
 #define _Xconst const
 #endif /* _Xconst */
 
-extern Bool XSynchronize(Display *display, Bool onoff);
+extern intptr_t XSynchronize(Display *display, Bool onoff);
 
 extern int XFlush(Display *display);
 extern int XSync(Display *display, Bool discard);

@@ -419,10 +419,10 @@ public class X11Util {
         }
     }
 
-    public static boolean XSynchronize(long display, boolean onoff) {
+    public static void XSynchronize(long display, boolean onoff) {
         lockDefaultToolkit(display);
         try {
-            return X11Lib.XSynchronize(display, onoff);
+            X11Lib.XSynchronize(display, onoff);
         } finally {
             unlockDefaultToolkit(display);
         }
