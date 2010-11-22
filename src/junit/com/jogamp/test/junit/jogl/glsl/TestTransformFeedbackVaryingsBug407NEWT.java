@@ -31,7 +31,7 @@ import java.io.IOException;
  * Bug 'Function glTransformFeedbackVaryings incorrectly passes argument'
  * http://jogamp.org/bugzilla/show_bug.cgi?id=407
  */
-public class TestTransformFeedbackVeryingsBug407NEWT extends UITestCase {
+public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
 
     private GLContext context;
     private String VERTEX_SHADER_TEXT;
@@ -143,7 +143,7 @@ public class TestTransformFeedbackVeryingsBug407NEWT extends UITestCase {
         // then
 
         if(!ShaderUtil.isProgramValid(gl, shaderProgram, pbaos)) {
-            System.out.println("testGlTransformFeedbackVaryings_WhenVarNameOK:postLink: "+baos.toString());
+            System.out.println("Error (unexpected link error) - testGlTransformFeedbackVaryings_WhenVarNameOK:postLink: "+baos.toString());
             Assert.assertTrue(false);
         }
         pbaos.flush(); baos.reset();
@@ -173,7 +173,7 @@ public class TestTransformFeedbackVeryingsBug407NEWT extends UITestCase {
         // then
 
         if(!ShaderUtil.isProgramValid(gl, shaderProgram, pbaos)) {
-            System.out.println("testGlTransformFeedbackVaryings_WhenVarNameWrong:postLink: "+baos.toString());
+            System.out.println("GOOD (expected link error) - testGlTransformFeedbackVaryings_WhenVarNameWrong:postLink: "+baos.toString());
             // should be invalid, due to wrong var name
         } else {
             Assert.assertTrue(false);
@@ -185,7 +185,7 @@ public class TestTransformFeedbackVeryingsBug407NEWT extends UITestCase {
     }
 
     public static void main(String args[]) throws IOException {
-        String tstname = TestTransformFeedbackVeryingsBug407NEWT.class.getName();
+        String tstname = TestTransformFeedbackVaryingsBug407NEWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",
