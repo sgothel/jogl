@@ -66,7 +66,7 @@ public class TestGLSLSimple01NEWT extends UITestCase {
         System.err.println("class tear down end");
     }
 
-    @Test(timeout=5000)
+    @Test(timeout=60000)
     public void testGLSLCompilation01() {
         GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
         Assert.assertNotNull(glp);
@@ -102,7 +102,7 @@ public class TestGLSLSimple01NEWT extends UITestCase {
         window.destroy();
     }
 
-    @Test(timeout=5000)
+    @Test(timeout=60000)
     public void testGLSLUse01() throws InterruptedException {
         GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
         Assert.assertNotNull(glp);

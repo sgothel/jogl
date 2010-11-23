@@ -134,7 +134,7 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
         }
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=60000)
     public void testGlTransformFeedbackVaryings_WhenVarNameOK() {
         if(!GLProfile.isGL3Available()) {
             return;
@@ -176,7 +176,7 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
         Assert.assertFalse(error);
     }
 
-    @Test(timeout=1000)
+    @Test(timeout=60000)
     public void testGlTransformFeedbackVaryings_WhenVarNameWrong() {
         if(!GLProfile.isGL3Available()) {
             return;
