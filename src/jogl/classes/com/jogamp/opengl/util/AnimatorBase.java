@@ -92,18 +92,13 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         if(DEBUG) {
             System.err.println("Animator add: "+drawable.hashCode()+" - "+Thread.currentThread());
         }
-        // drawables list may be in use by display
-        stateSync.lock();
-        try {
-            ArrayList newDrawables = (ArrayList) drawables.clone();
-            newDrawables.add(drawable);
-            drawables = newDrawables;
-            drawablesEmpty = drawables.size() == 0;
-            drawable.setAnimator(this);
-        } finally {
-            stateSync.unlock();
+        boolean paused = pause();
+        drawables.add(drawable);
+        drawablesEmpty = drawables.size() == 0;
+        drawable.setAnimator(this);
+        if(paused) {
+            resume();
         }
-        notifyAll();
         if(!impl.skipWaitForCompletion(animThread)) {
             while(isStarted() && !isPaused() && !isAnimating()) {
                 try {
@@ -111,6 +106,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
                 } catch (InterruptedException ie) { }
             }
         }
+        notifyAll();
     }
 
     public synchronized void remove(GLAutoDrawable drawable) {
@@ -118,18 +114,13 @@ public abstract class AnimatorBase implements GLAnimatorControl {
             System.err.println("Animator remove: "+drawable.hashCode()+" - "+Thread.currentThread());
         }
 
-        // drawables list may be in use by display
-        stateSync.lock();
-        try {
-            ArrayList newDrawables = (ArrayList) drawables.clone();
-            newDrawables.remove(drawable);
-            drawables = newDrawables;
-            drawablesEmpty = drawables.size() == 0;
-            drawable.setAnimator(null);
-        } finally {
-            stateSync.unlock();
+        boolean paused = pause();
+        drawables.remove(drawable);
+        drawablesEmpty = drawables.size() == 0;
+        drawable.setAnimator(null);
+        if(paused) {
+            resume();
         }
-        notifyAll();
         if(!impl.skipWaitForCompletion(animThread)) {
             while(isStarted() && drawablesEmpty && isAnimating()) {
                 try {
@@ -137,6 +128,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
                 } catch (InterruptedException ie) { }
             }
         }
+        notifyAll();
     }
 
     /** Called every frame to cause redrawing of all of the
@@ -145,14 +137,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         components this Animator manages, in particular when multiple
         lightweight widgets are continually being redrawn. */
     protected void display() {
-        ArrayList dl;
-        stateSync.lock();
-        try {
-            dl = drawables;
-        } finally {
-            stateSync.unlock();
-        }
-        impl.display(dl, ignoreExceptions, printExceptions);
+        impl.display(drawables, ignoreExceptions, printExceptions);
         curTime = System.currentTimeMillis();
         totalFrames++;
     }
