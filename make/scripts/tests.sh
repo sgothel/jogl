@@ -57,8 +57,8 @@ function testawt() {
 #testawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
-#testnoawt com.jogamp.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT $*
-testnoawt com.jogamp.test.junit.jogl.glsl.TestGLSLSimple01NEWT $*
+testnoawt com.jogamp.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT $*
+#testnoawt com.jogamp.test.junit.jogl.glsl.TestGLSLSimple01NEWT $*
 #testnoawt com.jogamp.test.junit.newt.TestRemoteWindow01NEWT -time 1000000
 #testnoawt com.jogamp.test.junit.newt.TestRemoteGLWindows01NEWT -time 1000000
 #testawt com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT
