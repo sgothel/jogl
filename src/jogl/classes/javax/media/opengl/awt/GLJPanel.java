@@ -219,10 +219,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     }
 
     if (backend != null) {
-      boolean animatorWasAnimating = false;
+      boolean animatorPaused = false;
       GLAnimatorControl animator =  getAnimator();
       if(null!=animator) {
-        animatorWasAnimating = animator.isAnimating();
+        if(regenerate) {
+            animatorPaused = animator.pause();
+        } else {
+            animator.remove(this);
+        }
       }
 
       disposeRegenerate=regenerate;
@@ -254,8 +258,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         isInitialized = false;
       }
 
-      if(regenerate && animatorWasAnimating && animator.isPaused()) {
-          animator.resume();
+      if(animatorPaused) {
+        animator.resume();
       }
     }
 
@@ -1581,9 +1585,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
                         System.err.println("-- Created Context: "+joglContext);
                     }
                   }
-                  if (DEBUG) {
+                  /*if (DEBUG) {
                     joglContext.setGL(new DebugGL2(joglContext.getGL().getGL2()));
-                  }
+                  }*/
 
                   if (Java2D.isFBOEnabled() &&
                       Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT &&

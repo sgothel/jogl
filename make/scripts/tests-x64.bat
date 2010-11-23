@@ -1,8 +1,9 @@
 REM scripts\java-win64-dbg.bat com.jogamp.newt.opengl.GLWindow
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT -time 30000
+scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT -time 5000
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
-scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT
+REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.glsl.TestGLSLSimple01NEWT -time 2000
 
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.TestParenting01AWT

@@ -36,9 +36,9 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
-    #D_ARGS="-Djogl.debug=all"
+    D_ARGS="-Djogl.debug=all"
     #D_ARGS="-Djogl.debug.GraphicsConfiguration"
-    #X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=false"
+    #X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=true"
     java $awtarg $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 }
 
@@ -57,7 +57,7 @@ function testawt() {
 #testawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
-testnoawt com.jogamp.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT $*
+#testnoawt com.jogamp.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT $*
 #testnoawt com.jogamp.test.junit.jogl.glsl.TestGLSLSimple01NEWT $*
 #testnoawt com.jogamp.test.junit.newt.TestRemoteWindow01NEWT -time 1000000
 #testnoawt com.jogamp.test.junit.newt.TestRemoteGLWindows01NEWT -time 1000000
@@ -82,6 +82,7 @@ testnoawt com.jogamp.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEW
 #testawt com.jogamp.test.junit.jogl.awt.TestAWT02WindowClosing
 #testawt com.jogamp.test.junit.jogl.awt.TestSwingAWT01GLn
 #testawt com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsAWT
+testawt com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT
 #testawt com.jogamp.test.junit.jogl.texture.TestTexture01AWT
 
 #
