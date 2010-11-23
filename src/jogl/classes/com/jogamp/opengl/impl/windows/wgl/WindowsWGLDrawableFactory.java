@@ -213,6 +213,9 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
 
     }
     sharedMap.clear();
+    if (DEBUG) {
+      System.err.println("!!! Shutdown Shared Finished");
+    }
   }
 
   protected final GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {

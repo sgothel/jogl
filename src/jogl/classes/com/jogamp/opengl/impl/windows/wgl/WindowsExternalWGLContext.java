@@ -66,7 +66,9 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     }
     GLContextShareSet.contextCreated(this);
     setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
-    cfg.updateCapabilitiesByWGL(this);
+    WindowsWGLGraphicsConfiguration config = 
+        (WindowsWGLGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    config.updateGraphicsConfiguration(drawable.getFactory(), drawable.getNativeSurface());
     getGLStateTracker().setEnabled(false); // external context usage can't track state in Java
   }
 

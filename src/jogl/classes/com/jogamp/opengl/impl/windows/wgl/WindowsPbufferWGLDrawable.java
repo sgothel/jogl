@@ -51,7 +51,6 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.nativewindow.impl.windows.GDI;
 import com.jogamp.nativewindow.impl.windows.PIXELFORMATDESCRIPTOR;
-import com.jogamp.opengl.impl.GLContextImpl;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
@@ -145,10 +144,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     }
 
     if(!WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(capabilities,
-                                    iattributes,
-                                    sharedCtx,
-                                    true,
-                                    floatModeTmp)){
+                                    iattributes, sharedCtx, -1, true, floatModeTmp)){
       throw new GLException("Pbuffer-related extensions not supported");
     }
 
@@ -166,11 +162,11 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     int   nformats;
     int[] nformatsTmp = new int[1];
     if (!wglExt.wglChoosePixelFormatARB(parentHdc,
-                                     iattributes, 0,
-                                     fattributes, 0,
-                                     WindowsWGLGraphicsConfiguration.MAX_PFORMATS,
-                                     pformats, 0,
-                                     nformatsTmp, 0)) {
+                                        iattributes, 0,
+                                        fattributes, 0,
+                                        WindowsWGLGraphicsConfiguration.MAX_PFORMATS,
+                                        pformats, 0,
+                                        nformatsTmp, 0)) {
       throw new GLException("pbuffer creation error: wglChoosePixelFormat() failed");
     }
     nformats = nformatsTmp[0];
@@ -304,15 +300,15 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
       int[] ivalues = new int[niattribs];
       if (wglExt.wglGetPixelFormatAttribivARB(parentHdc, pformats[whichFormat], 0, niattribs, iattributes, 0, ivalues, 0)) {
-        GLCapabilitiesImmutable newCaps = WindowsWGLGraphicsConfiguration.AttribList2GLCapabilities(glProfile, iattributes, niattribs, ivalues, true, false, true);
+        GLCapabilitiesImmutable newCaps = WindowsWGLGraphicsConfiguration.AttribList2GLCapabilities(glProfile, iattributes, niattribs, ivalues, false, true);
+        if(null == newCaps|| newCaps.isOnscreen() || !newCaps.isPBuffer()) {
+            throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps);
+        }
         PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
         if (GDI.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
           if (DEBUG) {
               System.err.println("Unable to describe pixel format (Continue: true) " + whichFormat + "/" + nformats + " pfdID " + pformats[whichFormat]+":\n\t"+newCaps);
           }
-        }
-        if(newCaps.isOnscreen()) {
-          throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps+"\n\t"+newCaps);
         }
         config.setCapsPFD(newCaps, pfd, pformats[whichFormat], true);
       } else {

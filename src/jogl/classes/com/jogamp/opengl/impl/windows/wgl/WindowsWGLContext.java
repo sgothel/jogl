@@ -344,12 +344,6 @@ public class WindowsWGLContext extends GLContextImpl {
         }
       }
     }
-
-    if (newCreated) {
-      WindowsWGLGraphicsConfiguration config = 
-        (WindowsWGLGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-      config.updateCapabilitiesByWGL(this);
-    }
   }
 
   protected void releaseImpl() throws GLException {
