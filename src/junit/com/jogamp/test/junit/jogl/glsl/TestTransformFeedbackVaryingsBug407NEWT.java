@@ -118,6 +118,8 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
         window.setVisible(true);
         Assert.assertTrue(window.isNativeValid());
 
+        window.getContext().setSynchronized(true);
+
         // trigger native creation of drawable/context
         window.display();
         Assert.assertTrue(window.isRealized());
