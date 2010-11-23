@@ -6,6 +6,7 @@ Implementation-Version: @VERSION@
 Implementation-Branch: @SCM_BRANCH@
 Implementation-Commit: @SCM_COMMIT@
 Implementation-Vendor: JogAmp Community
+Implementation-URL: http://jogamp.org/
 Extension-Name: javax.media.nativewindow
 Implementation-Vendor-Id: com.jogamp
 Trusted-Library: true
