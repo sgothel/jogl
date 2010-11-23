@@ -42,6 +42,7 @@ import javax.swing.SwingUtilities;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestGearsGLJPanelAWT extends UITestCase {
@@ -105,7 +106,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
                 } } );
     }
 
-    @Test
+    @Ignore("not ready yet") @Test
     public void test01()
             throws AWTException, InterruptedException, InvocationTargetException
     {
