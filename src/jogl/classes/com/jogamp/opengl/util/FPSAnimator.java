@@ -137,9 +137,9 @@ public class FPSAnimator extends AnimatorBase {
         }
     }
 
-    public synchronized void start() {
+    public synchronized boolean  start() {
         if (timer != null) {
-            throw new GLException("Already started");
+            return false;
         }
         stateSync.lock();
         try {
@@ -148,14 +148,15 @@ public class FPSAnimator extends AnimatorBase {
         } finally {
             stateSync.unlock();
         }
+        return true;
     }
 
     /** Stops this FPSAnimator. Due to the implementation of the
     FPSAnimator it is not guaranteed that the FPSAnimator will be
     completely stopped by the time this method returns. */
-    public synchronized void stop() {
+    public synchronized boolean stop() {
         if (timer == null) {
-            throw new GLException("Already stopped");
+            return false;
         }
         stateSync.lock();
         try {
@@ -168,6 +169,7 @@ public class FPSAnimator extends AnimatorBase {
         } finally {
             stateSync.unlock();
         }
+        return true;
     }
 
     public synchronized boolean pause() {

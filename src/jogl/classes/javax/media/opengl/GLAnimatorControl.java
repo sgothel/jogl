@@ -31,10 +31,6 @@ package javax.media.opengl;
 /**
  * An animator control interface, 
  * which implementation may drive a {@link javax.media.opengl.GLAutoDrawable} animation.
- * <P>
- * Note that the methods {@link #start()} and {@link #stop()}
- * shall be implemented fail-fast, ie {@link #start()} fails if not started, etc.
- * This way an implementation can find implementation errors faster.
  */
 public interface GLAnimatorControl {
 
@@ -127,12 +123,14 @@ public interface GLAnimatorControl {
      * <P>
      * If started, all counters (time, frames, ..) are reset to zero.
      *
+     * @return true is started due to this call,
+     *         otherwise false, ie started already or unable to start.
+     *
      * @see #stop()
      * @see #isAnimating()
      * @see #getThread()
-     * @throws GLException if started already
      */
-    void start();
+    boolean start();
 
     /**
      * Stops this animator.
@@ -142,12 +140,14 @@ public interface GLAnimatorControl {
      * or in some cases from an implementation-internal thread like the
      * AWT event queue thread.
      *
+     * @return true is stopped due to this call,
+     *         otherwise false, ie not started or unable to stop.
+     *
      * @see #start()
      * @see #isAnimating()
      * @see #getThread()
-     * @throws GLException if not started
      */
-    void stop();
+    boolean stop();
 
     /**
      * Pauses this animator.

@@ -253,9 +253,9 @@ public class Animator extends AnimatorBase {
         }
     }
 
-    public synchronized void start() {
+    public synchronized boolean start() {
         if ( isStartedImpl() ) {
-            throw new GLException("Start: Already running (started "+isStartedImpl()+" (false))");
+            return false;
         }
         if (runnable == null) {
             runnable = new MainLoop();
@@ -271,7 +271,9 @@ public class Animator extends AnimatorBase {
         thread.setDaemon(true); // don't stop JVM from shutdown ..
         thread.start();
         finishLifecycleAction(waitForStartedCondition);
+        return true;
     }
+
     private class WaitForStartedCondition implements Condition {
         public boolean result() {
             return !isStartedImpl() || (!drawablesEmpty && !isAnimating) ;
@@ -279,13 +281,14 @@ public class Animator extends AnimatorBase {
     }
     Condition waitForStartedCondition = new WaitForStartedCondition();
 
-    public synchronized void stop() {
+    public synchronized boolean stop() {
         if ( !isStartedImpl() ) {
-            throw new GLException("Stop: Not running (started "+isStartedImpl()+" (true))");
+            return false;
         }
         stopIssued = true;
         notifyAll();
         finishLifecycleAction(waitForStoppedCondition);
+        return true;
     }
     private class WaitForStoppedCondition implements Condition {
         public boolean result() {
