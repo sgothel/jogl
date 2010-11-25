@@ -38,6 +38,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all"
     #D_ARGS="-Djogl.debug.GraphicsConfiguration"
+    #D_ARGS="-Djogl.debug.GLCanvas"
     #X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=true"
     java $awtarg $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 }
@@ -79,6 +80,7 @@ function testawt() {
 #
 #testawt javax.media.opengl.awt.GLCanvas $*
 #testawt com.jogamp.test.junit.jogl.awt.TestAWT01GLn $*
+testawt com.jogamp.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
 #testawt com.jogamp.test.junit.jogl.awt.TestAWT02WindowClosing
 #testawt com.jogamp.test.junit.jogl.awt.TestSwingAWT01GLn
 #testawt com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsAWT
@@ -97,7 +99,7 @@ function testawt() {
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting01aAWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting01bAWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting01cAWT
-testawt com.jogamp.test.junit.newt.parenting.TestParenting01cSwingAWT
+#testawt com.jogamp.test.junit.newt.parenting.TestParenting01cSwingAWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting02AWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting03AWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting03AWT -time 100000
