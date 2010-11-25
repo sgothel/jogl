@@ -86,17 +86,17 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       defaultGLProfile = GLProfile.getDefault(GLProfile.getDefaultDesktopDevice());
   }
 
-  private GLProfile glProfile;
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
-  private GraphicsConfiguration chosen;
   private AWTGraphicsConfiguration awtConfig;
   private GLDrawable drawable;
   private GLContextImpl context;
   private boolean sendReshape = false;
   
-  // copy of the cstr args ..
+  // copy of the cstr args, mainly for recreation
+  private GLCapabilitiesImmutable capsReqUser;
   private GLCapabilitiesChooser chooser;
-  private GLContext shareWith;
+  private GLContext shareWith;  
+  private GraphicsDevice device;
 
   /** Creates a new GLCanvas component with a default set of OpenGL
       capabilities, using the default OpenGL capabilities selection
@@ -154,25 +154,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         }
     }
 
-    this.glProfile = capsReqUser.getGLProfile();
+    // instantiation will be issued in addNotify()
+    this.capsReqUser = capsReqUser;
     this.chooser = chooser;
     this.shareWith = shareWith;
-
-    /*
-     * Save the 'chosen' GraphicsConfiguration for use in getGraphicsConfiguration().
-     */
-    awtConfig = chooseGraphicsConfiguration(capsReqUser, capsReqUser, chooser, device);
-    if(null==awtConfig) {
-        throw new GLException("Error: NULL AWTGraphicsConfiguration");
-    }
-    chosen = awtConfig.getGraphicsConfiguration();
-
-    if (!Beans.isDesignTime()) {
-        // no lock required, since this resource ain't available yet
-        drawable = GLDrawableFactory.getFactory(glProfile).createGLDrawable(NativeWindowFactory.getNativeWindow(this, awtConfig));
-        context = (GLContextImpl) drawable.createContext(shareWith);
-        context.setSynchronized(true);
-    }
+    this.device = device;
   }
 
   protected interface DestroyMethod {
@@ -230,6 +216,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
      * otherwise it is from an ancestor component that this Canvas is being
      * added to, and we go into this block.
      */
+    GraphicsConfiguration chosen =  awtConfig.getGraphicsConfiguration();
+
     if (gc != null && chosen != null && !chosen.equals(gc)) {
       /*
        * Check for compatibility with gc. If they differ by only the
@@ -350,11 +338,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         boolean animatorPaused = false;
         GLAnimatorControl animator =  getAnimator();
         if(null!=animator) {
-            if(regenerate) {
-                animatorPaused = animator.pause();
-            } else {
-                animator.remove(this);
-            }
+            // can't remove us from animator for recreational addNotify()
+            animatorPaused = animator.pause();
         }
 
         disposeRegenerate=regenerate;
@@ -445,16 +430,36 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         Exception ex1 = new Exception(Thread.currentThread().getName()+" - Info: addNotify - start");
         ex1.printStackTrace();
     }
-    // 'super.addNotify()' determines the GraphicsConfiguration,
-    // while calling this class's overriden 'getGraphicsConfiguration()' method.
-    // Then it creates the native peer.
-    // Hence we chose the proper GraphicsConfiguration beforehand (see constructor).
+
+    /**
+     * 'super.addNotify()' determines the GraphicsConfiguration,
+     * while calling this class's overriden 'getGraphicsConfiguration()' method
+     * after which it creates the native peer.
+     * Hence we have to set the 'awtConfig' before since it's GraphicsConfiguration
+     * is being used in getGraphicsConfiguration().
+     * This code order also allows recreation, ie re-adding the GLCanvas.
+     */
+    awtConfig = chooseGraphicsConfiguration(capsReqUser, capsReqUser, chooser, device);
+    if(null==awtConfig) {
+        throw new GLException("Error: NULL AWTGraphicsConfiguration");
+    }
+
+    if (!Beans.isDesignTime()) {
+        // no lock required, since this resource ain't available yet
+        drawable = GLDrawableFactory.getFactory(capsReqUser.getGLProfile())
+                       .createGLDrawable(NativeWindowFactory.getNativeWindow(this, awtConfig));
+        context = (GLContextImpl) drawable.createContext(shareWith);
+        context.setSynchronized(true);
+    }
+
+    // issues getGraphicsConfiguration() and creates the native peer
     super.addNotify();
 
     if (!Beans.isDesignTime()) {
         // no lock required, since this resource ain't available yet
         disableBackgroundErase();
         drawable.setRealized(true);
+        sendReshape=true; // ensure a reshape is being send ..
         if(DEBUG) {
             System.err.println(Thread.currentThread().getName()+" - Realized Drawable: "+drawable);
         }
@@ -576,7 +581,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   }
 
   public GLProfile getGLProfile() {
-    return glProfile;
+    return capsReqUser.getGLProfile();
   }
 
   public GLCapabilitiesImmutable getChosenGLCapabilities() {
@@ -641,7 +646,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
       if(disposeRegenerate) {
           // recreate GLDrawable to reflect it's new graphics configuration
-          drawable = GLDrawableFactory.getFactory(glProfile).createGLDrawable(NativeWindowFactory.getNativeWindow(GLCanvas.this, awtConfig));
+          drawable = GLDrawableFactory.getFactory(capsReqUser.getGLProfile())
+                        .createGLDrawable(NativeWindowFactory.getNativeWindow(GLCanvas.this, awtConfig));
           if(DEBUG) {
             System.err.println("GLCanvas.dispose(true): new drawable: "+drawable);
           }
@@ -693,6 +699,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   class DisplayAction implements Runnable {
     public void run() {
       if (sendReshape) {
+        if(DEBUG) {
+            System.err.println(Thread.currentThread().getName()+" - reshape: "+getWidth()+"x"+getHeight());
+        }
         // Note: we ignore the given x and y within the parent component
         // since we are drawing directly into this heavyweight component.
         drawableHelper.reshape(GLCanvas.this, 0, 0, getWidth(), getHeight());
