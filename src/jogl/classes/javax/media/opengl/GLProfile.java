@@ -1073,7 +1073,12 @@ public class GLProfile {
     private static void initProfilesForDefaultDevices(boolean firstUIActionOnProcess) {
 
         if(DEBUG) {
-            System.err.println("GLProfile.init firstUIActionOnProcess "+firstUIActionOnProcess);
+            System.err.println("GLProfile.init firstUIActionOnProcess: "+ firstUIActionOnProcess
+                               + ", thread: " + Thread.currentThread().getName());
+            System.err.println(VersionUtil.getPlatformInfo());
+            System.err.println(GlueGenVersion.getInstance());
+            System.err.println(NativeWindowVersion.getInstance());
+            System.err.println(JoglVersion.getInstance());
         }
 
         NativeWindowFactory.initSingleton(firstUIActionOnProcess);
@@ -1173,11 +1178,6 @@ public class GLProfile {
         addedAnyProfile = addedAnyProfile || initProfilesForDevice(defaultEGLDevice);
 
         if(DEBUG) {
-            System.err.println(VersionUtil.getPlatformInfo());
-            System.err.println(GlueGenVersion.getInstance());
-            System.err.println(NativeWindowVersion.getInstance());
-            System.err.print(JoglVersion.getInstance());
-
             System.err.println("GLProfile.init isAWTAvailable       "+isAWTAvailable);
             System.err.println("GLProfile.init has desktopFactory   "+(null!=desktopFactory));
             System.err.println("GLProfile.init hasDesktopGL         "+hasDesktopGL);
