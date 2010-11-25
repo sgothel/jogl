@@ -125,7 +125,7 @@
               </chainedmapper>
             </pathconvert>
             <var name="test.class.result.file" value="${results.junit}/TEST-${test.class.fqn}.xml"/>
-            <echo message="Testing ${test.class.fqn} -> ${test.class.result.file}"/>
+            <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <apply dir="." executable="${java.home}/bin/java" 
                  parallel="false" 
                  timeout="${batchtest.timeout}"

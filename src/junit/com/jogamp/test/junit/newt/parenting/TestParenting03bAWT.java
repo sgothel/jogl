@@ -106,10 +106,10 @@ public class TestParenting03bAWT extends UITestCase {
                     f_glWindow1.setFullscreen(!f_glWindow1.isFullscreen());
                 } else if(e.getKeyChar()=='r') {
                     if(f_glWindow1.getParent()==null) {
-                        System.err.println("XXX glWin1 -> home");
+                        System.err.println("XXX glWin1 to home");
                         f_glWindow1.reparentWindow(f_newtCanvasAWT1.getNativeWindow());
                     } else {
-                        System.err.println("XXX glWin1 -> TOP");
+                        System.err.println("XXX glWin1 to TOP");
                         f_glWindow1.reparentWindow(null);
                     }
                 }
@@ -137,10 +137,10 @@ public class TestParenting03bAWT extends UITestCase {
                     f_glWindow2.setFullscreen(!f_glWindow2.isFullscreen());
                 } else if(e.getKeyChar()=='r') {
                     if(f_glWindow2.getParent()==null) {
-                        System.err.println("XXX glWin2 -> home");
+                        System.err.println("XXX glWin2 to home");
                         f_glWindow2.reparentWindow(f_newtCanvasAWT2.getNativeWindow());
                     } else {
-                        System.err.println("XXX glWin2 -> TOP");
+                        System.err.println("XXX glWin2 to TOP");
                         f_glWindow2.reparentWindow(null);
                     }
                 }

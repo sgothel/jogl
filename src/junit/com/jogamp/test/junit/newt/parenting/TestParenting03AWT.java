@@ -108,10 +108,10 @@ public class TestParenting03AWT extends UITestCase {
                     f_glWindow1.setFullscreen(!f_glWindow1.isFullscreen());
                 } else if(e.getKeyChar()=='r') {
                     if(f_glWindow1.getParent()==null) {
-                        System.err.println("XXX glWin1 -> home");
+                        System.err.println("XXX glWin1 to home");
                         f_glWindow1.reparentWindow(f_newtCanvasAWT1.getNativeWindow());
                     } else {
-                        System.err.println("XXX glWin1 -> TOP");
+                        System.err.println("XXX glWin1 to TOP");
                         f_glWindow1.reparentWindow(null);
                     }
                 }

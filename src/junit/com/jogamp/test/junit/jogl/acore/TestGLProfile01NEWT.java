@@ -73,7 +73,7 @@ public class TestGLProfile01NEWT extends UITestCase {
 
     @Test
     public void test01GLProfileDefault() {
-        System.out.println("GLProfile <static> "+GLProfile.glAvailabilityToString());
+        System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
         GLProfile glp = GLProfile.getDefault();
         dumpVersion(glp);
     }
@@ -82,7 +82,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     public void test02GLProfileMaxFixedFunc() {
         // Assuming at least one fixed profile is available
         GLProfile glp = GLProfile.getMaxFixedFunc();
-        System.out.println("GLProfile <static> getMaxFixedFunc(): "+glp);
+        System.out.println("GLProfile getMaxFixedFunc(): "+glp);
         if(glp.getName().equals(GLProfile.GL4bc)) {
             Assert.assertTrue(GLProfile.isGL4bcAvailable());
             Assert.assertTrue(GLProfile.isGL3bcAvailable());
@@ -108,7 +108,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     public void test03GLProfileMaxProgrammable() {
         // Assuming at least one programmable profile is available
         GLProfile glp = GLProfile.getMaxProgrammable();
-        System.out.println("GLProfile <static> getMaxProgrammable(): "+glp);
+        System.out.println("GLProfile getMaxProgrammable(): "+glp);
         if(glp.getName().equals(GLProfile.GL4)) {
             Assert.assertTrue(GLProfile.isGL4Available());
             Assert.assertTrue(GLProfile.isGL3Available());
@@ -137,7 +137,7 @@ public class TestGLProfile01NEWT extends UITestCase {
             return;
         }
         GLProfile glp = GLProfile.getGL2ES1();
-        System.out.println("GLProfile <static> GL2ES1: "+glp);
+        System.out.println("GLProfile GL2ES1: "+glp);
         dumpVersion(glp);
     }
 
@@ -148,7 +148,7 @@ public class TestGLProfile01NEWT extends UITestCase {
             return;
         }
         GLProfile glp = GLProfile.getGL2ES2();
-        System.out.println("GLProfile <static> GL2ES2: "+glp);
+        System.out.println("GLProfile GL2ES2: "+glp);
         dumpVersion(glp);
     }
 
