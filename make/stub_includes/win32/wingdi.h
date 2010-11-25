@@ -105,8 +105,9 @@ typedef struct tagPIXELFORMATDESCRIPTOR {
 #define PFD_DOUBLEBUFFER_DONTCARE 0x40000000
 #define PFD_STEREO_DONTCARE 0x80000000
 
-/* OpenGL error codes (from winerror.h) */
+/* error codes (from winerror.h) */
 /* FIXME: these should have a trailing "L" but apparently PCPP doesn't handle that syntax */
+#define ERROR_SUCCESS                    0
 #define ERROR_INVALID_PIXEL_FORMAT       2000
 #define ERROR_NO_SYSTEM_RESOURCES        1450
 #define ERROR_INVALID_DATA               13

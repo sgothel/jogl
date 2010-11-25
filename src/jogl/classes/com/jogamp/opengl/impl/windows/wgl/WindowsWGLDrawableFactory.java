@@ -301,6 +301,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     long err = GDI.GetLastError();
     String detail = null;
     switch ((int) err) {
+      case GDI.ERROR_SUCCESS:              detail = "ERROR_SUCCESS";                    break;
       case GDI.ERROR_INVALID_PIXEL_FORMAT: detail = "ERROR_INVALID_PIXEL_FORMAT";       break;
       case GDI.ERROR_NO_SYSTEM_RESOURCES:  detail = "ERROR_NO_SYSTEM_RESOURCES";        break;
       case GDI.ERROR_INVALID_DATA:         detail = "ERROR_INVALID_DATA";               break;

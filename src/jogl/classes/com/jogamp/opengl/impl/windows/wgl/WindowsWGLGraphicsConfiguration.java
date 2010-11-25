@@ -154,8 +154,8 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         int[] out = new int[1];
         in[0] = WGLExt.WGL_COLOR_BITS_ARB;
         if (!sharedCtx.getWGLExt().wglGetPixelFormatAttribivARB(hdc, pfdID, 0, 1, in, 0, out, 0)) {
-            // Intel Extreme graphics 'fails' with a zero error code
-            return GDI.GetLastError() == 0 ;
+            // Some GPU's falsely fails with a zero error code (success)
+            return GDI.GetLastError() == GDI.ERROR_SUCCESS ;
         }
         return true;
     }
@@ -315,9 +315,9 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
             }
         } else {
             long lastErr = GDI.GetLastError();
-            // Intel Extreme graphics fails with a zero error code
-            if (lastErr != 0) {
-                throw new GLException("wglARBAllPFIDs2GLCapabilities: Unable to enumerate pixel formats of window using wglGetPixelFormatAttribivARB: error code " + GDI.GetLastError());
+            // Some GPU's falsely fails with a zero error code (success)
+            if (lastErr != GDI.ERROR_SUCCESS) {
+                throw new GLException("wglARBAllPFIDs2GLCapabilities: Unable to enumerate pixel formats of window using wglGetPixelFormatAttribivARB: error code " + lastErr);
             }
         }
         return availableCaps;

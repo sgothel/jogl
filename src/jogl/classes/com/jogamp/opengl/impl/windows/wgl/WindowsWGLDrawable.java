@@ -80,7 +80,7 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
       startTime = System.currentTimeMillis();
     }
 
-    if (!GDI.SwapBuffers(getHandle()) && (GDI.GetLastError() != 0)) {
+    if (!GDI.SwapBuffers(getHandle()) && (GDI.GetLastError() != GDI.ERROR_SUCCESS)) {
       throw new GLException("Error swapping buffers");
     }
 

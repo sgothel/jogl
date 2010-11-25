@@ -280,8 +280,9 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
 
         if (pixelFormatSet <= 0) {
             if (!GDI.SetPixelFormat(hdc, pfdID, pfd)) {
-                long lastError = GDI.GetLastError();
-                throw new GLException("Unable to set pixel format " + pfdID + " for device context " + toHexString(hdc) + ": error code " + lastError);
+                throw new GLException("Unable to set pixel format " + pfdID +
+                                      " for device context " + toHexString(hdc) +
+                                      ": error code " + GDI.GetLastError());
             }
         }
 
@@ -405,8 +406,9 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
 
         if (pixelFormatSet <= 0) {
             if (!GDI.SetPixelFormat(hdc, pfdID, pfd)) {
-                long lastError = GDI.GetLastError();
-                throw new GLException("Unable to set pixel format " + pfdID + " for device context " + toHexString(hdc) + ": error code " + lastError);
+                throw new GLException("Unable to set pixel format " + pfdID +
+                                      " for device context " + toHexString(hdc) +
+                                      ": error code " + GDI.GetLastError());
             }
         }
 
