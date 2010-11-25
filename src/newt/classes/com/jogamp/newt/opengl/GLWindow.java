@@ -867,7 +867,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(GlueGenVersion.getInstance());
         System.err.println(NativeWindowVersion.getInstance());
-        System.err.print(JoglVersion.getInstance());
+        System.err.println(JoglVersion.getInstance());
         System.err.println(NewtVersion.getInstance());
         GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault() );
 
@@ -877,7 +877,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
         glWindow.addGLEventListener(new GLEventListener() {
             public void init(GLAutoDrawable drawable) {
                 GL gl = drawable.getGL();
-                System.err.println(JoglVersion.getInstance().toString(gl));
+                System.err.println(JoglVersion.getInstance().getGLInfo(gl, null));
             }
 
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {

@@ -28,8 +28,11 @@
  
 package com.jogamp.test.junit.jogl.acore;
 
+import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.util.VersionUtil;
+import com.jogamp.nativewindow.NativeWindowVersion;
 import com.jogamp.test.junit.util.UITestCase;
-import com.jogamp.test.junit.util.DumpVersion;
+import com.jogamp.test.junit.util.DumpGLInfo;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -42,6 +45,7 @@ import com.jogamp.newt.*;
 import com.jogamp.newt.opengl.*;
 
 import com.jogamp.newt.*;
+import com.jogamp.opengl.JoglVersion;
 import java.io.IOException;
 
 public class TestGLProfile01NEWT extends UITestCase {
@@ -56,6 +60,15 @@ public class TestGLProfile01NEWT extends UITestCase {
 
     @AfterClass
     public static void releaseClass() {
+    }
+
+    @Test
+    public void test00Version() {
+        System.err.println(VersionUtil.getPlatformInfo());
+        System.err.println(GlueGenVersion.getInstance());
+        System.err.println(NativeWindowVersion.getInstance());
+        System.err.println(JoglVersion.getInstance());
+        System.err.println(NewtVersion.getInstance());
     }
 
     @Test
@@ -145,7 +158,7 @@ public class TestGLProfile01NEWT extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("TestGLProfile01NEWT");
 
-        glWindow.addGLEventListener(new DumpVersion());
+        glWindow.addGLEventListener(new DumpGLInfo());
 
         glWindow.setSize(128, 128);
         glWindow.setVisible(true);

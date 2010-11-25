@@ -28,6 +28,7 @@
  
 package com.jogamp.nativewindow;
 
+import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.JogampVersion;
 import com.jogamp.common.util.VersionUtil;
 import java.util.jar.Manifest;
@@ -55,6 +56,7 @@ public class NativeWindowVersion extends JogampVersion {
 
     public static void main(String args[]) {
         System.err.println(VersionUtil.getPlatformInfo());
+        System.err.println(GlueGenVersion.getInstance());
         System.err.println(NativeWindowVersion.getInstance());
     }
 }

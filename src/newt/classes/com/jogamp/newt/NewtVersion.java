@@ -28,8 +28,10 @@
  
 package com.jogamp.newt;
 
+import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.JogampVersion;
 import com.jogamp.common.util.VersionUtil;
+import com.jogamp.nativewindow.NativeWindowVersion;
 import java.util.jar.Manifest;
 
 public class NewtVersion extends JogampVersion {
@@ -55,6 +57,8 @@ public class NewtVersion extends JogampVersion {
 
     public static void main(String args[]) {
         System.err.println(VersionUtil.getPlatformInfo());
+        System.err.println(GlueGenVersion.getInstance());
+        System.err.println(NativeWindowVersion.getInstance());
         System.err.println(NewtVersion.getInstance());
     }
 }

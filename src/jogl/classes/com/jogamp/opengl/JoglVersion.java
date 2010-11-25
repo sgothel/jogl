@@ -28,10 +28,12 @@
  
 package com.jogamp.opengl;
 
+import com.jogamp.common.GlueGenVersion;
 import javax.media.opengl.*;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.JogampVersion;
+import com.jogamp.nativewindow.NativeWindowVersion;
 import java.util.jar.Manifest;
 
 public class JoglVersion extends JogampVersion {
@@ -56,12 +58,8 @@ public class JoglVersion extends JogampVersion {
     }
 
     public StringBuffer toString(GL gl, StringBuffer sb) {
-        sb = super.toString(sb);
-
+        sb = super.toString(sb).append(Platform.getNewline());
         getGLInfo(gl, sb);
-        sb.append("-----------------------------------------------------------------------------------------------------");
-        sb.append(Platform.getNewline());
-
         return sb;
     }
 
@@ -74,6 +72,7 @@ public class JoglVersion extends JogampVersion {
             sb = new StringBuffer();
         }
 
+        sb.append(VersionUtil.SEPERATOR).append(Platform.getNewline());
         sb.append("Default Desktop ").append(GLProfile.getDefaultDesktopDevice().getConnection()).append(": ").append(GLProfile.glAvailabilityToString(GLProfile.getDefaultDesktopDevice()));
         sb.append(Platform.getNewline());
         sb.append("Default EGL ").append(GLProfile.getDefaultEGLDevice().getConnection()).append(": ").append(GLProfile.glAvailabilityToString(GLProfile.getDefaultEGLDevice()));
@@ -92,12 +91,15 @@ public class JoglVersion extends JogampVersion {
         sb.append(Platform.getNewline());
         sb.append("              ").append(gl.glGetString(gl.GL_EXTENSIONS));
         sb.append(Platform.getNewline());
+        sb.append(VersionUtil.SEPERATOR);
 
         return sb;
     }
 
     public static void main(String args[]) {
         System.err.println(VersionUtil.getPlatformInfo());
+        System.err.println(GlueGenVersion.getInstance());
+        System.err.println(NativeWindowVersion.getInstance());
         System.err.println(JoglVersion.getInstance());
     }
 }

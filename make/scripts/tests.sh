@@ -40,23 +40,31 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLCanvas"
     #X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=true"
-    java $awtarg $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
+    echo
+    echo "Test Start: $*"
+    echo
+    java $awtarg $X_ARGS $D_ARGS $*
+    echo
+    echo "Test End: $*"
+    echo
 }
 
 function testnoawt() {
-    jrun -Djava.awt.headless=true $*
+    jrun -Djava.awt.headless=true $* 2>&1 | tee -a java-run.log
 }
 
 function testawt() {
-    jrun -Djava.awt.headless=false $*
+    jrun -Djava.awt.headless=false $* 2>&1 | tee -a java-run.log
 }
 
 #
 # newt (testnoawt and testawt)
 #
-#testnoawt com.jogamp.newt.opengl.GLWindow $*
-#testawt com.jogamp.newt.opengl.GLWindow $*
-#testnoawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
+testnoawt com.jogamp.nativewindow.NativeWindowVersion $*
+testnoawt com.jogamp.opengl.JoglVersion $*
+testnoawt com.jogamp.newt.NewtVersion $*
+testnoawt com.jogamp.newt.opengl.GLWindow $*
+testnoawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT $*
 #testnoawt com.jogamp.test.junit.jogl.glsl.TestGLSLSimple01NEWT $*
@@ -78,9 +86,9 @@ function testawt() {
 #
 # awt (testawt)
 #
-#testawt javax.media.opengl.awt.GLCanvas $*
+testawt javax.media.opengl.awt.GLCanvas $*
 #testawt com.jogamp.test.junit.jogl.awt.TestAWT01GLn $*
-testawt com.jogamp.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
+#testawt com.jogamp.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
 #testawt com.jogamp.test.junit.jogl.awt.TestAWT02WindowClosing
 #testawt com.jogamp.test.junit.jogl.awt.TestSwingAWT01GLn
 #testawt com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsAWT
