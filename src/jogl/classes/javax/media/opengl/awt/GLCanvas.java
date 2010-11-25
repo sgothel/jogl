@@ -165,7 +165,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     public void destroyMethod();
   }
 
-  protected final static Object addClosingListener(Component c, final DestroyMethod d) {
+  /* package private */ final static Object addClosingListener(Component c, final DestroyMethod d) {
     WindowAdapter cl = null;
     Window w = getWindow(c);
     if(null!=w) {
@@ -181,7 +181,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     return cl;
   }
 
-  protected final static Window getWindow(Component c) {
+  private final static Window getWindow(Component c) {
     while ( c!=null && ! ( c instanceof Window ) ) {
         c = c.getParent();
     }
@@ -328,7 +328,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
   }
 
-  protected void dispose(boolean regenerate) {
+  private void dispose(boolean regenerate) {
     if(DEBUG) {
         Exception ex1 = new Exception("Info: dispose("+regenerate+") - start");
         ex1.printStackTrace();
@@ -687,7 +687,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       }
     }
   }
-  DisposeAbstractGraphicsDeviceAction disposeAbstractGraphicsDeviceAction = new DisposeAbstractGraphicsDeviceAction();
+  private DisposeAbstractGraphicsDeviceAction disposeAbstractGraphicsDeviceAction = new DisposeAbstractGraphicsDeviceAction();
 
   class InitAction implements Runnable {
     public void run() {
