@@ -50,7 +50,7 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 public class MacOSXCGLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
     protected static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug("GraphicsConfiguration");
 
-    public MacOSXCGLGraphicsConfigurationFactory() {
+    MacOSXCGLGraphicsConfigurationFactory() {
         GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.macosx.MacOSXGraphicsDevice.class, this);
     }
 
@@ -60,10 +60,10 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GraphicsConfiguration
         return chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, absScreen, false);
     }
 
-    protected static MacOSXCGLGraphicsConfiguration chooseGraphicsConfigurationStatic(CapabilitiesImmutable capsChosen,
-                                                                                      CapabilitiesImmutable capsRequested,
-                                                                                      CapabilitiesChooser chooser,
-                                                                                      AbstractGraphicsScreen absScreen, boolean usePBuffer) {
+    static MacOSXCGLGraphicsConfiguration chooseGraphicsConfigurationStatic(CapabilitiesImmutable capsChosen,
+                                                                            CapabilitiesImmutable capsRequested,
+                                                                            CapabilitiesChooser chooser,
+                                                                            AbstractGraphicsScreen absScreen, boolean usePBuffer) {
         if (absScreen == null) {
             throw new IllegalArgumentException("AbstractGraphicsScreen is null");
         }

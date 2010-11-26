@@ -62,7 +62,7 @@ import com.jogamp.common.nio.PointerBuffer;
 public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
     protected static final boolean DEBUG = GraphicsConfigurationFactory.DEBUG || com.jogamp.opengl.impl.Debug.debug("EGL");
 
-    public EGLGraphicsConfigurationFactory() {
+    EGLGraphicsConfigurationFactory() {
         // become the selector for KD/EGL ..
         GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.egl.EGLGraphicsDevice.class, this);
     }
@@ -220,10 +220,10 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         throw new GLException("Graphics configuration failed [direct caps, eglGetConfig/chooser and fixed-caps(1-3)]");
     }
 
-    protected static EGLGraphicsConfiguration eglChooseConfig(long eglDisplay, 
-                                                              GLCapabilitiesImmutable capsChosen0, GLCapabilitiesImmutable capsRequested,
-                                                              GLCapabilitiesChooser chooser,
-                                                              AbstractGraphicsScreen absScreen) {
+    static EGLGraphicsConfiguration eglChooseConfig(long eglDisplay, 
+                                                    GLCapabilitiesImmutable capsChosen0, GLCapabilitiesImmutable capsRequested,
+                                                    GLCapabilitiesChooser chooser,
+                                                    AbstractGraphicsScreen absScreen) {
         GLProfile glp = capsChosen0.getGLProfile();
         int[] attrs = EGLGraphicsConfiguration.GLCapabilities2AttribList(capsChosen0);
         PointerBuffer configs = PointerBuffer.allocateDirect(1);
@@ -275,8 +275,8 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         return null;
     }
 
-    protected static GLCapabilitiesImmutable[] eglConfigs2GLCaps(GLProfile glp, long eglDisplay, PointerBuffer configs, int num,
-                                                                 boolean onscreen, boolean usePBuffer) {
+    static GLCapabilitiesImmutable[] eglConfigs2GLCaps(GLProfile glp, long eglDisplay, PointerBuffer configs, int num,
+                                                       boolean onscreen, boolean usePBuffer) {
         GLCapabilitiesImmutable[] caps = new GLCapabilitiesImmutable[num];
         for(int i=0; i<num; i++) {
             caps[i] = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs.get(i),
@@ -285,13 +285,13 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         return caps;
     }
 
-    protected static void printCaps(String prefix, GLCapabilitiesImmutable[] caps, PrintStream out) {
+    static void printCaps(String prefix, GLCapabilitiesImmutable[] caps, PrintStream out) {
         for(int i=0; i<caps.length; i++) {
             out.println(prefix+"["+i+"] "+caps[i]);
         }
     }
 
-    protected static EGLGraphicsConfiguration createOffscreenGraphicsConfiguration(GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsReq, GLCapabilitiesChooser chooser) {
+    static EGLGraphicsConfiguration createOffscreenGraphicsConfiguration(GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsReq, GLCapabilitiesChooser chooser) {
         if(capsChosen.isOnscreen()) {
             throw new GLException("Error: Onscreen set: "+capsChosen);
         }

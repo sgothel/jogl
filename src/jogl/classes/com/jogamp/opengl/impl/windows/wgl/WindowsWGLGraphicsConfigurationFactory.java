@@ -62,7 +62,7 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
     protected static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug("GraphicsConfiguration");
 
-    public WindowsWGLGraphicsConfigurationFactory() {
+    WindowsWGLGraphicsConfigurationFactory() {
         GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.windows.WindowsGraphicsDevice.class, this);
     }
 
@@ -80,18 +80,18 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         return chooseGraphicsConfigurationStatic((GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested, chooser, absScreen);
     }
 
-    protected static WindowsWGLGraphicsConfiguration createDefaultGraphicsConfiguration(GLCapabilitiesImmutable caps,
-                                                                                        AbstractGraphicsScreen absScreen) {
+    static WindowsWGLGraphicsConfiguration createDefaultGraphicsConfiguration(GLCapabilitiesImmutable caps,
+                                                                              AbstractGraphicsScreen absScreen) {
         if(null==absScreen) {
             absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
         }
         return new WindowsWGLGraphicsConfiguration(absScreen, caps, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps), -1, null);
     }
 
-    protected static WindowsWGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
-                                                                                       GLCapabilitiesImmutable capsReq,
-                                                                                       CapabilitiesChooser chooser,
-                                                                                       AbstractGraphicsScreen absScreen) {
+    static WindowsWGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
+                                                                             GLCapabilitiesImmutable capsReq,
+                                                                             CapabilitiesChooser chooser,
+                                                                             AbstractGraphicsScreen absScreen) {
         if(null==absScreen) {
             absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
         }
@@ -108,8 +108,8 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
                                                    (GLCapabilitiesChooser)chooser);
     }
 
-    protected static void updateGraphicsConfiguration(CapabilitiesChooser chooser,
-                                                      GLDrawableFactory _factory, NativeSurface ns) {
+    static void updateGraphicsConfiguration(CapabilitiesChooser chooser,
+                                            GLDrawableFactory _factory, NativeSurface ns) {
         if (ns == null) {
             throw new IllegalArgumentException("NativeSurface is null");
         }
@@ -132,8 +132,8 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         }
     }
 
-    protected static boolean updateGraphicsConfigurationARB(long hdc, WindowsWGLGraphicsConfiguration config,
-                                                            CapabilitiesChooser chooser, WindowsWGLDrawableFactory factory) {
+    private static boolean updateGraphicsConfigurationARB(long hdc, WindowsWGLGraphicsConfiguration config,
+                                                          CapabilitiesChooser chooser, WindowsWGLDrawableFactory factory) {
         AbstractGraphicsDevice device = config.getScreen().getDevice();
         WindowsWGLContext sharedContext = (WindowsWGLContext) factory.getOrCreateSharedContextImpl(device);
         if (null == sharedContext) {
@@ -290,8 +290,8 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         return true;
     }
 
-    protected static boolean updateGraphicsConfigurationGDI(long hdc, WindowsWGLGraphicsConfiguration config,
-                                                            CapabilitiesChooser chooser, WindowsWGLDrawableFactory factory) {
+    private static boolean updateGraphicsConfigurationGDI(long hdc, WindowsWGLGraphicsConfiguration config,
+                                                          CapabilitiesChooser chooser, WindowsWGLDrawableFactory factory) {
         AbstractGraphicsDevice device = config.getScreen().getDevice();
         WindowsWGLContext sharedContext = (WindowsWGLContext) factory.getOrCreateSharedContextImpl(device);
         if (null == sharedContext) {
@@ -417,11 +417,11 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
 
     }
 
-    protected static String getThreadName() {
+    static String getThreadName() {
         return Thread.currentThread().getName();
     }
 
-    public static String toHexString(long hex) {
+    static String toHexString(long hex) {
         return "0x" + Long.toHexString(hex);
     }
 }

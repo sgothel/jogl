@@ -42,9 +42,9 @@ import javax.media.opengl.*;
 public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
     long pixelformat;
 
-    public MacOSXCGLGraphicsConfiguration(AbstractGraphicsScreen screen, 
-                                          GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
-                                          long pixelformat) {
+    MacOSXCGLGraphicsConfiguration(AbstractGraphicsScreen screen, 
+                                   GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
+                                   long pixelformat) {
         super(screen, capsChosen, capsRequested);
         this.pixelformat=pixelformat;
     }
@@ -53,15 +53,15 @@ public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration
         return super.clone();
     }
 
-    protected void setChosenPixelFormat(long pixelformat) {
+    void setChosenPixelFormat(long pixelformat) {
         this.pixelformat=pixelformat;
     }
 
-    protected void setChosenCapabilities(GLCapabilitiesImmutable caps) {
+    void setChosenCapabilities(GLCapabilitiesImmutable caps) {
         super.setChosenCapabilities(caps);
     }
 
-    protected static final int[] cglInternalAttributeToken = new int[] {
+    static final int[] cglInternalAttributeToken = new int[] {
         CGL.kCGLPFAColorFloat,
         CGL.NSOpenGLPFAPixelBuffer,
         CGL.NSOpenGLPFADoubleBuffer,
@@ -74,7 +74,7 @@ public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration
         CGL.NSOpenGLPFASampleBuffers,
         CGL.NSOpenGLPFASamples };
 
-    protected static int[] GLCapabilities2AttribList(GLCapabilitiesImmutable caps) {
+    static int[] GLCapabilities2AttribList(GLCapabilitiesImmutable caps) {
         int[] ivalues = new int[cglInternalAttributeToken.length];
 
         for (int idx = 0; idx < cglInternalAttributeToken.length; idx++) {
@@ -131,16 +131,16 @@ public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration
         return ivalues;
     }
 
-    protected static long GLCapabilities2NSPixelFormat(GLCapabilitiesImmutable caps) {
+    static long GLCapabilities2NSPixelFormat(GLCapabilitiesImmutable caps) {
         int[] ivalues = GLCapabilities2AttribList(caps);
         return CGL.createPixelFormat(cglInternalAttributeToken, 0, cglInternalAttributeToken.length, ivalues, 0);
     }
 
-    protected static GLCapabilitiesImmutable NSPixelFormat2GLCapabilities(GLProfile glp, long pixelFormat) {
+    static GLCapabilitiesImmutable NSPixelFormat2GLCapabilities(GLProfile glp, long pixelFormat) {
         return PixelFormat2GLCapabilities(glp, pixelFormat, true);
     }
 
-    protected static GLCapabilitiesImmutable CGLPixelFormat2GLCapabilities(GLProfile glp, long pixelFormat) {
+    static GLCapabilitiesImmutable CGLPixelFormat2GLCapabilities(GLProfile glp, long pixelFormat) {
         return PixelFormat2GLCapabilities(glp, pixelFormat, false);
     }
 

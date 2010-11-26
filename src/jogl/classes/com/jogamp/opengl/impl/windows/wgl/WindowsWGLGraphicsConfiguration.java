@@ -40,7 +40,6 @@ import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
-import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLPbuffer;
@@ -64,17 +63,17 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     private GLCapabilitiesChooser chooser;
     private boolean choosenByWGLPixelFormat=false;
 
-    public WindowsWGLGraphicsConfiguration(AbstractGraphicsScreen screen, 
-                                           GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
-                                           PIXELFORMATDESCRIPTOR pixelfmt, int pixelfmtID, GLCapabilitiesChooser chooser) {
+    WindowsWGLGraphicsConfiguration(AbstractGraphicsScreen screen, 
+                                    GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
+                                    PIXELFORMATDESCRIPTOR pixelfmt, int pixelfmtID, GLCapabilitiesChooser chooser) {
         super(screen, capsChosen, capsRequested);
         this.chooser=chooser;
         this.pixelfmt = pixelfmt;
         this.pixelfmtID = pixelfmtID;
     }
 
-    public static WindowsWGLGraphicsConfiguration create(long hdc, int pfdID, 
-                                                         GLProfile glp, AbstractGraphicsScreen screen, boolean onscreen, boolean usePBuffer)
+    static WindowsWGLGraphicsConfiguration create(long hdc, int pfdID, 
+                                                  GLProfile glp, AbstractGraphicsScreen screen, boolean onscreen, boolean usePBuffer)
     {
         if(pfdID<=0) {
             throw new GLException("Invalid pixelformat id "+pfdID);
@@ -101,11 +100,11 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return super.clone();
     }
 
-    protected void updateGraphicsConfiguration(GLDrawableFactory factory, NativeSurface ns) {
+    final void updateGraphicsConfiguration(GLDrawableFactory factory, NativeSurface ns) {
         WindowsWGLGraphicsConfigurationFactory.updateGraphicsConfiguration(chooser, factory, ns);
     }
 
-    protected void setCapsPFD(GLCapabilitiesImmutable caps, PIXELFORMATDESCRIPTOR pfd, int pfdID, boolean choosenByWGLPixelFormat) {
+    void setCapsPFD(GLCapabilitiesImmutable caps, PIXELFORMATDESCRIPTOR pfd, int pfdID, boolean choosenByWGLPixelFormat) {
         this.pixelfmt = pfd;
         this.pixelfmtID = pfdID;
         setChosenCapabilities(caps);
@@ -124,7 +123,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     public int getPixelFormatID() { return pixelfmtID; }
     public boolean isChoosenByWGL() { return choosenByWGLPixelFormat; }
 
-    private static int fillAttribsForGeneralWGLARBQuery(boolean haveWGLARBMultisample, int[] iattributes) {
+    static int fillAttribsForGeneralWGLARBQuery(boolean haveWGLARBMultisample, int[] iattributes) {
         int niattribs = 0;
         iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_WINDOW_ARB;
         iattributes[niattribs++] = WGLExt.WGL_ACCELERATION_ARB;
@@ -149,7 +148,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return niattribs;
     }
 
-    public static boolean wglARBPFIDValid(WindowsWGLContext sharedCtx, long hdc, int pfdID) {
+    static boolean wglARBPFIDValid(WindowsWGLContext sharedCtx, long hdc, int pfdID) {
         int[] in = new int[1];
         int[] out = new int[1];
         in[0] = WGLExt.WGL_COLOR_BITS_ARB;
@@ -160,7 +159,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return true;
     }
 
-    public static GLCapabilitiesImmutable wglARBPFID2GLCapabilities(WindowsWGLContext sharedCtx, long hdc, int pfdID,
+    static GLCapabilitiesImmutable wglARBPFID2GLCapabilities(WindowsWGLContext sharedCtx, long hdc, int pfdID,
                                                                 GLProfile glp, boolean onscreen, boolean usePBuffer) {
         boolean haveWGLChoosePixelFormatARB = sharedCtx.isExtensionAvailable("WGL_ARB_pixel_format");
         if (!haveWGLChoosePixelFormatARB) {
@@ -190,10 +189,10 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return null;
     }
 
-    protected static int wglChoosePixelFormatARB(long hdc, WindowsWGLContext sharedContext,
-                                                 GLCapabilitiesImmutable capabilities,
-                                                 int[] iattributes, int accelerationMode, float[] fattributes,
-                                                 int[] pformats)
+    static int wglChoosePixelFormatARB(long hdc, WindowsWGLContext sharedContext,
+                                       GLCapabilitiesImmutable capabilities,
+                                       int[] iattributes, int accelerationMode, float[] fattributes,
+                                       int[] pformats)
     {
       int numFormats = -1;
 
@@ -230,8 +229,8 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
       return numFormats;
     }
 
-    public static GLCapabilitiesImmutable[] wglARBPFIDs2GLCapabilities(WindowsWGLContext sharedCtx, long hdc, int[] pfdIDs, int numFormats,
-                                                                      GLProfile glp, boolean onscreen, boolean usePBuffer) {
+    static GLCapabilitiesImmutable[] wglARBPFIDs2GLCapabilities(WindowsWGLContext sharedCtx, long hdc, int[] pfdIDs, int numFormats,
+                                                                GLProfile glp, boolean onscreen, boolean usePBuffer) {
         boolean haveWGLChoosePixelFormatARB = sharedCtx.isExtensionAvailable("WGL_ARB_pixel_format");
         if (!haveWGLChoosePixelFormatARB) {
             return null;
@@ -269,8 +268,8 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
      * @param pfIDs stores the PIXELFORMAT ID for the GLCapabilitiesImmutable[]
      * @return the resulting GLCapabilitiesImmutable[]
      */
-    public static GLCapabilitiesImmutable[] wglARBAllPFIDs2GLCapabilities(WindowsWGLContext sharedCtx, long hdc,
-                                                                          GLProfile glp, boolean onscreen, boolean usePBuffer, int[] pfIDs) {
+    static GLCapabilitiesImmutable[] wglARBAllPFIDs2GLCapabilities(WindowsWGLContext sharedCtx, long hdc,
+                                                                   GLProfile glp, boolean onscreen, boolean usePBuffer, int[] pfIDs) {
         boolean haveWGLChoosePixelFormatARB = sharedCtx.isExtensionAvailable("WGL_ARB_pixel_format");
         if (!haveWGLChoosePixelFormatARB) {
             return null;
@@ -323,12 +322,12 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return availableCaps;
     }
 
-    public static boolean GLCapabilities2AttribList(GLCapabilitiesImmutable caps,
-                                                    int[] iattributes,
-                                                    GLContextImpl sharedCtx,
-                                                    int accellerationValue,
-                                                    boolean pbuffer,
-                                                    int[] floatMode) throws GLException {
+    static boolean GLCapabilities2AttribList(GLCapabilitiesImmutable caps,
+                                             int[] iattributes,
+                                             GLContextImpl sharedCtx,
+                                             int accellerationValue,
+                                             boolean pbuffer,
+                                             int[] floatMode) throws GLException {
         boolean haveWGLChoosePixelFormatARB = sharedCtx.isExtensionAvailable("WGL_ARB_pixel_format");
         boolean haveWGLARBMultisample = sharedCtx.isExtensionAvailable("WGL_ARB_multisample");
         if(DEBUG) {
@@ -493,9 +492,9 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     public static final int BITMAP_BIT  = 1 << 1 ;
     public static final int PBUFFER_BIT = 1 << 2 ;
 
-    public static int WGLConfig2DrawableTypeBits(int[] iattribs,
-                                                 int niattribs,
-                                                 int[] iresults) {
+    static int WGLConfig2DrawableTypeBits(int[] iattribs,
+                                          int niattribs,
+                                          int[] iresults) {
         int val = 0;
 
         for (int i = 0; i < niattribs; i++) {
@@ -515,7 +514,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return val;
     }
 
-    public static boolean WGLConfigDrawableTypeVerify(int val, boolean onscreen, boolean usePBuffer) {
+    static boolean WGLConfigDrawableTypeVerify(int val, boolean onscreen, boolean usePBuffer) {
         boolean res;
 
         if ( onscreen ) {
@@ -531,11 +530,11 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return res;
     }
 
-    public static GLCapabilitiesImmutable AttribList2GLCapabilities(
-                                                         GLProfile glp, int[] iattribs,
-                                                         int niattribs,
-                                                         int[] iresults,
-                                                         boolean onscreen, boolean usePBuffer) {
+    static GLCapabilitiesImmutable AttribList2GLCapabilities(
+                                                 GLProfile glp, int[] iattribs,
+                                                 int niattribs,
+                                                 int[] iresults,
+                                                 boolean onscreen, boolean usePBuffer) {
         GLCapabilities res = new GLCapabilities(glp);
         int drawableTypeBits = WGLConfig2DrawableTypeBits(iattribs, niattribs, iresults);
         if(WGLConfigDrawableTypeVerify(drawableTypeBits, onscreen, usePBuffer)) {
@@ -645,7 +644,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
 
   // PIXELFORMAT
 
-    public static GLCapabilitiesImmutable PFD2GLCapabilities(GLProfile glp, PIXELFORMATDESCRIPTOR pfd, boolean onscreen, boolean usePBuffer) {
+    static GLCapabilitiesImmutable PFD2GLCapabilities(GLProfile glp, PIXELFORMATDESCRIPTOR pfd, boolean onscreen, boolean usePBuffer) {
         if ((pfd.getDwFlags() & GDI.PFD_SUPPORT_OPENGL) == 0) {
           return null;
         }
@@ -679,7 +678,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return res;
   }
 
-  public static PIXELFORMATDESCRIPTOR GLCapabilities2PFD(GLCapabilitiesImmutable caps) {
+  static PIXELFORMATDESCRIPTOR GLCapabilities2PFD(GLCapabilitiesImmutable caps) {
     int colorDepth = (caps.getRedBits() +
                       caps.getGreenBits() +
                       caps.getBlueBits());
@@ -731,7 +730,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     return pfd;
   }
 
-  public static PIXELFORMATDESCRIPTOR createPixelFormatDescriptor() {
+  static PIXELFORMATDESCRIPTOR createPixelFormatDescriptor() {
     PIXELFORMATDESCRIPTOR pfd = PIXELFORMATDESCRIPTOR.create();
     pfd.setNSize((short) pfd.size());
     pfd.setNVersion((short) 1);

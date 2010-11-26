@@ -63,7 +63,7 @@ import com.jogamp.opengl.impl.Debug;
 public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
 
-    public X11GLXGraphicsConfigurationFactory() {
+    X11GLXGraphicsConfigurationFactory() {
         GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, this);
     }
 
@@ -89,7 +89,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
     }
 
     /**
-    protected static X11GLXGraphicsConfiguration createDefaultGraphicsConfigurationFBConfig(AbstractGraphicsScreen absScreen, boolean onscreen, boolean usePBuffer) {
+    static X11GLXGraphicsConfiguration createDefaultGraphicsConfigurationFBConfig(AbstractGraphicsScreen absScreen, boolean onscreen, boolean usePBuffer) {
       if (absScreen == null) {
         throw new IllegalArgumentException("AbstractGraphicsScreen is null");
       }
@@ -138,10 +138,10 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
       return new X11GLXGraphicsConfiguration(x11Screen, (null!=capsFB)?capsFB:availableCaps, availableCaps, null, xvis, fbcfg, fbid);
     } */
 
-    protected static X11GLXGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
-                                                                                   GLCapabilitiesImmutable capsReq,
-                                                                                   GLCapabilitiesChooser chooser,
-                                                                                   X11GraphicsScreen x11Screen) {
+    static X11GLXGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
+                                                                         GLCapabilitiesImmutable capsReq,
+                                                                         GLCapabilitiesChooser chooser,
+                                                                         X11GraphicsScreen x11Screen) {
         if (x11Screen == null) {
             throw new IllegalArgumentException("AbstractGraphicsScreen is null");
         }
@@ -176,7 +176,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
         return res;
     }
 
-    protected static X11GLXGraphicsConfiguration fetchGraphicsConfigurationFBConfig(X11GraphicsScreen x11Screen, int fbID, GLProfile glp) {
+    static X11GLXGraphicsConfiguration fetchGraphicsConfigurationFBConfig(X11GraphicsScreen x11Screen, int fbID, GLProfile glp) {
         AbstractGraphicsDevice absDevice = x11Screen.getDevice();
         long display = absDevice.getHandle();
         int screen = x11Screen.getIndex();
@@ -411,11 +411,11 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
         return new X11GLXGraphicsConfiguration(x11Screen, caps[chosen], capsReq, chooser, retXVisualInfo, 0, -1);
     }
 
-    public static String toHexString(int val) {
+    static String toHexString(int val) {
         return "0x"+Integer.toHexString(val);
     }
 
-    public static String toHexString(long val) {
+    static String toHexString(long val) {
         return "0x"+Long.toHexString(val);
     }
 

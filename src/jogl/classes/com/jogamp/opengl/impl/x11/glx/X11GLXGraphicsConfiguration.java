@@ -48,16 +48,16 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     private int  fbConfigID;
     private GLCapabilitiesChooser chooser; 
 
-    public X11GLXGraphicsConfiguration(X11GraphicsScreen screen, 
-                                       GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser,
-                                       XVisualInfo info, long fbcfg, int fbcfgID) {
+    X11GLXGraphicsConfiguration(X11GraphicsScreen screen, 
+                                GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser,
+                                XVisualInfo info, long fbcfg, int fbcfgID) {
         super(screen, capsChosen, capsRequested, info);
         this.chooser=chooser;
         fbConfig = fbcfg;
         fbConfigID = fbcfgID;
     }
 
-    public static X11GLXGraphicsConfiguration create(GLProfile glp, X11GraphicsScreen x11Screen, int fbcfgID) {
+    static X11GLXGraphicsConfiguration create(GLProfile glp, X11GraphicsScreen x11Screen, int fbcfgID) {
       long display = x11Screen.getDevice().getHandle();
       if(0==display) {
           throw new GLException("Display null of "+x11Screen);
@@ -88,7 +88,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     public long getFBConfig()   { return fbConfig; }
     public int  getFBConfigID() { return fbConfigID; }
 
-    protected void updateGraphicsConfiguration() {
+    void updateGraphicsConfiguration() {
         X11GLXGraphicsConfiguration newConfig = (X11GLXGraphicsConfiguration)
             GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(
                 getChosenCapabilities(), getRequestedCapabilities(), chooser, getScreen());
@@ -108,11 +108,11 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         return value != 0 ? value : (int)GLX.GLX_DONT_CARE ;
     }
 
-    public static int[] GLCapabilities2AttribList(GLCapabilitiesImmutable caps,
-                                                  boolean forFBAttr,
-                                                  boolean isMultisampleAvailable,
-                                                  long display,
-                                                  int screen) 
+    static int[] GLCapabilities2AttribList(GLCapabilitiesImmutable caps,
+                                           boolean forFBAttr,
+                                           boolean isMultisampleAvailable,
+                                           long display,
+                                           int screen) 
     {
         int colorDepth = (caps.getRedBits() +
                           caps.getGreenBits() +
@@ -212,7 +212,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
 
   // FBConfig
 
-  public static boolean GLXFBConfigValid(long display, long fbcfg) {
+  static boolean GLXFBConfigValid(long display, long fbcfg) {
     int[] tmp = new int[1];
     if(GLX.GLX_BAD_ATTRIBUTE == GLX.glXGetFBConfigAttrib(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0)) {
       return false;
@@ -220,7 +220,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return true;
   }
 
-  public static boolean GLXFBConfigDrawableTypeVerify(int val, boolean onscreen, boolean usePBuffer) {
+  static boolean GLXFBConfigDrawableTypeVerify(int val, boolean onscreen, boolean usePBuffer) {
     boolean res;
 
     if ( onscreen ) {
@@ -236,9 +236,9 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return res;
   }
 
-  public static GLCapabilitiesImmutable GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg,
-                                                                   boolean relaxed, boolean onscreen, boolean usePBuffer,
-                                                                   boolean isMultisampleAvailable) {
+  static GLCapabilitiesImmutable GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg,
+                                                            boolean relaxed, boolean onscreen, boolean usePBuffer,
+                                                            boolean isMultisampleAvailable) {
     int[] tmp = new int[1];
     int val;
     val = glXGetFBConfig(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0);
@@ -308,7 +308,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
   }
 
-  public static int glXGetFBConfig(long display, long cfg, int attrib, int[] tmp, int tmp_offset) {
+  static int glXGetFBConfig(long display, long cfg, int attrib, int[] tmp, int tmp_offset) {
     if (display == 0) {
       throw new GLException("No display connection");
     }
@@ -319,12 +319,12 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return tmp[tmp_offset];
   }
 
-  public static int glXFBConfig2FBConfigID(long display, long cfg) {
+  static int glXFBConfig2FBConfigID(long display, long cfg) {
       int[] tmpID = new int[1];
       return glXGetFBConfig(display, cfg, GLX.GLX_FBCONFIG_ID, tmpID, 0);
   }
 
-  public static long glXFBConfigID2FBConfig(long display, int screen, int id) {
+  static long glXFBConfigID2FBConfig(long display, int screen, int id) {
       int[] attribs = new int[] { GLX.GLX_FBCONFIG_ID, id, 0 };
       int[] count = { -1 };
       PointerBuffer fbcfgsL = GLX.glXChooseFBConfig(display, screen, attribs, 0, count, 0);
@@ -336,7 +336,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
 
   // Visual Info
 
-  public static XVisualInfo XVisualID2XVisualInfo(long display, long visualID) {
+  static XVisualInfo XVisualID2XVisualInfo(long display, long visualID) {
       int[] count = new int[1];
       XVisualInfo template = XVisualInfo.create();
       template.setVisualid(visualID);
@@ -352,8 +352,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       return res;
   }
 
-  public static GLCapabilitiesImmutable XVisualInfo2GLCapabilities(GLProfile glp, long display, XVisualInfo info,
-                                                                   boolean onscreen, boolean usePBuffer, boolean isMultisampleEnabled) {
+  static GLCapabilitiesImmutable XVisualInfo2GLCapabilities(GLProfile glp, long display, XVisualInfo info,
+                                                            boolean onscreen, boolean usePBuffer, boolean isMultisampleEnabled) {
     int[] tmp = new int[1];
     int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp, 0);
     if (val == 0) {
@@ -406,7 +406,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
   }
 
-  public static int glXGetConfig(long display, XVisualInfo info, int attrib, int[] tmp, int tmp_offset) {
+  static int glXGetConfig(long display, XVisualInfo info, int attrib, int[] tmp, int tmp_offset) {
     if (display == 0) {
       throw new GLException("No display connection");
     }
@@ -417,11 +417,11 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return tmp[tmp_offset];
   }
 
-  public static String toHexString(int val) {
+  static String toHexString(int val) {
     return "0x"+Integer.toHexString(val);
   }
 
-  public static String toHexString(long val) {
+  static String toHexString(long val) {
     return "0x"+Long.toHexString(val);
   }
 

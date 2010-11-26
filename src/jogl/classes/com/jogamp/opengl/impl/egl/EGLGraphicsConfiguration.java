@@ -53,9 +53,9 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return configID;
     }
 
-    public EGLGraphicsConfiguration(AbstractGraphicsScreen absScreen, 
-                                    GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser,
-                                    long cfg, int cfgID) {
+    EGLGraphicsConfiguration(AbstractGraphicsScreen absScreen, 
+                             GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser,
+                             long cfg, int cfgID) {
         super(absScreen, capsChosen, capsRequested);
         this.chooser = chooser;
         config = cfg;
@@ -81,7 +81,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return super.clone();
     }
 
-    protected void updateGraphicsConfiguration() {
+    void updateGraphicsConfiguration() {
         EGLGraphicsConfiguration newConfig = (EGLGraphicsConfiguration)
             GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(
                 getChosenCapabilities(), getRequestedCapabilities(), chooser, getScreen());
@@ -115,7 +115,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return configs.get(0);
     }
 
-    public static boolean EGLConfigDrawableTypeVerify(int val, boolean onscreen, boolean usePBuffer) {
+    static boolean EGLConfigDrawableTypeVerify(int val, boolean onscreen, boolean usePBuffer) {
         boolean res;
 
         if ( onscreen ) {
