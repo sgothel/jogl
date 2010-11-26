@@ -85,6 +85,8 @@ public class JoglVersion extends JogampVersion {
         sb.append(Platform.getNewline());
         sb.append("GL            ").append(gl);
         sb.append(Platform.getNewline());
+        sb.append("GL_VENDOR     ").append(gl.glGetString(gl.GL_VENDOR));
+        sb.append(Platform.getNewline());
         sb.append("GL_VERSION    ").append(gl.glGetString(gl.GL_VERSION));
         sb.append(Platform.getNewline());
         sb.append("GL_EXTENSIONS ");
