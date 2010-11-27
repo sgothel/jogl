@@ -85,7 +85,13 @@ public class TestSwingAWT01GLn extends UITestCase {
                     glCanvas[0] = new GLCanvas(caps);
                     glCanvas[0].addGLEventListener(new Gears());
                     window.add(glCanvas[0]);
+
+                    // Revalidate size/layout.
+                    // Always validate if component added/removed.
+                    // Ensure 1st paint of GLCanvas will have a valid size, hence drawable gets created.
                     window.setSize(512, 512);
+                    window.validate();
+
                     window.setVisible(true);
                     glCanvas[0].display();
                 }

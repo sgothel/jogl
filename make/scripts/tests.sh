@@ -60,11 +60,11 @@ function testawt() {
 #
 # newt (testnoawt and testawt)
 #
-testnoawt com.jogamp.nativewindow.NativeWindowVersion $*
-testnoawt com.jogamp.opengl.JoglVersion $*
-testnoawt com.jogamp.newt.NewtVersion $*
-testnoawt com.jogamp.newt.opengl.GLWindow $*
-testnoawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
+#testnoawt com.jogamp.nativewindow.NativeWindowVersion $*
+#testnoawt com.jogamp.opengl.JoglVersion $*
+#testnoawt com.jogamp.newt.NewtVersion $*
+#testnoawt com.jogamp.newt.opengl.GLWindow $*
+#testnoawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT $*
 #testnoawt com.jogamp.test.junit.jogl.glsl.TestGLSLSimple01NEWT $*
@@ -86,11 +86,11 @@ testnoawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #
 # awt (testawt)
 #
-testawt javax.media.opengl.awt.GLCanvas $*
-#testawt com.jogamp.test.junit.jogl.awt.TestAWT01GLn $*
+#testawt javax.media.opengl.awt.GLCanvas $*
+testawt com.jogamp.test.junit.jogl.awt.TestAWT01GLn $*
+#testawt com.jogamp.test.junit.jogl.awt.TestSwingAWT01GLn
 #testawt com.jogamp.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
 #testawt com.jogamp.test.junit.jogl.awt.TestAWT02WindowClosing
-#testawt com.jogamp.test.junit.jogl.awt.TestSwingAWT01GLn
 #testawt com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsAWT
 #testawt com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT
 #testawt com.jogamp.test.junit.jogl.texture.TestTexture01AWT

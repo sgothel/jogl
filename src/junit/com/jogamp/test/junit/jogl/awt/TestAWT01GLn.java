@@ -85,7 +85,12 @@ public class TestAWT01GLn extends UITestCase {
         glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
         frame.add(glCanvas);
+
+        // Revalidate size/layout.
+        // Always validate if component added/removed.
+        // Ensure 1st paint of GLCanvas will have a valid size, hence drawable gets created.
         frame.setSize(512, 512);
+        frame.validate();
 
         glCanvas.addGLEventListener(new Gears());
 

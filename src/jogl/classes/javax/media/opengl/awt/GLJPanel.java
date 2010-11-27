@@ -61,13 +61,13 @@ import com.jogamp.opengl.impl.awt.*;
 /** A lightweight Swing component which provides OpenGL rendering
     support. Provided for compatibility with Swing user interfaces
     when adding a heavyweight doesn't work either because of
-    Z-ordering or LayoutManager problems. <P>
-
+    Z-ordering or LayoutManager problems.
+    <P>
     The GLJPanel can be made transparent by creating it with a
     GLCapabilities object with alpha bits specified and calling {@link
     #setOpaque}(false). Pixels with resulting OpenGL alpha values less
-    than 1.0 will be overlaid on any underlying Swing rendering. <P>
-
+    than 1.0 will be overlaid on any underlying Swing rendering. </P>
+    <P>
     Notes specific to the Reference Implementation: This component 
     attempts to use hardware-accelerated rendering via pbuffers and 
     falls back on to software rendering if problems occur. 
@@ -79,8 +79,10 @@ import com.jogamp.opengl.impl.awt.*;
     This behavior is correct, as the textures and display lists for
     the GLJPanel will have been lost during the resize operation. The
     application should attempt to make its GLEventListener.init()
-    methods as side-effect-free as possible. <P>
-
+    methods as side-effect-free as possible. </P>
+    <P>
+ *  Please read <A HREF="GLCanvas.html#java2dgl">Java2D OpenGL Remarks</A>.
+ *  </P>
 */
 
 public class GLJPanel extends JPanel implements AWTGLAutoDrawable {

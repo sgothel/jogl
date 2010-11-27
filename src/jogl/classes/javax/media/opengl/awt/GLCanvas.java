@@ -71,10 +71,38 @@ import java.security.*;
 // GLEventListeners
 
 /** A heavyweight AWT component which provides OpenGL rendering
-    support. This is the primary implementation of {@link GLDrawable};
+    support. This is the primary implementation of an AWT {@link GLDrawable};
     {@link GLJPanel} is provided for compatibility with Swing user
     interfaces when adding a heavyweight doesn't work either because
-    of Z-ordering or LayoutManager problems. */
+    of Z-ordering or LayoutManager problems.
+ *
+ * <h5><A NAME="java2dgl">Java2D OpenGL Remarks</A></h5>
+ *
+ * To avoid any conflicts with a potential Java2D OpenGL context,<br>
+ * you shall consider setting the following JVM properties:<br>
+ * <ul>
+ *    <li><pre>sun.java2d.opengl=false</pre></li>
+ *    <li><pre>sun.java2d.noddraw=true</pre></li>
+ * </ul>
+ * This is especially true in case you want to utilize a GLProfile other than
+ * {@link GLProfile#GL2}, eg. using {@link GLProfile#getMaxFixedFunc()}.<br>
+ * On the other hand, if you like to experiment with GLJPanel's utilization
+ * of Java2D's OpenGL pipeline, you have to set them to
+ * <ul>
+ *    <li><pre>sun.java2d.opengl=true</pre></li>
+ *    <li><pre>sun.java2d.noddraw=true</pre></li>
+ * </ul>
+ *
+ * <h5><A NAME="backgrounderase">Disable Background Erase</A></h5>
+ *
+ * GLCanvas tries to disable background erase for the AWT Canvas
+ * before native peer creation (X11) and after it (Windows), <br>
+ * utilizing the optional {@link java.awt.Toolkit} method <code>disableBeackgroundErase(java.awt.Canvas)</code>.<br>
+ * However if this does not give you the desired results, you may want to disable AWT background erase in general:
+ * <ul>
+ *   <li><pre>sun.awt.noerasebackground=true</pre></li>
+ * </ul>
+ */
 
 public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
@@ -313,7 +341,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   private Object closingListenerLock = new Object();
 
   public void display() {
-    if(!drawable.isRealized()) {
+    if( !validateGLDrawable() ) {
         return; // not yet available ..
     }
     maybeDoSingleThreadedWorkaround(displayOnEventDispatchThreadAction,
@@ -427,7 +455,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       <DL><DD><CODE>addNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void addNotify() {
     if(DEBUG) {
-        Exception ex1 = new Exception(Thread.currentThread().getName()+" - Info: addNotify - start");
+        Exception ex1 = new Exception(Thread.currentThread().getName()+" - Info: addNotify - start, bounds: "+this.getBounds());
         ex1.printStackTrace();
     }
 
@@ -452,21 +480,41 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         context.setSynchronized(true);
     }
 
+    // before native peer is valid: X11
+    disableBackgroundErase();
+
     // issues getGraphicsConfiguration() and creates the native peer
     super.addNotify();
 
-    if (!Beans.isDesignTime()) {
-        // no lock required, since this resource ain't available yet
-        disableBackgroundErase();
-        drawable.setRealized(true);
-        sendReshape=true; // ensure a reshape is being send ..
-        if(DEBUG) {
-            System.err.println(Thread.currentThread().getName()+" - Realized Drawable: "+drawable);
-        }
-    }
+    // after native peer is valid: Windows
+    disableBackgroundErase();
+
+    validateGLDrawable();
+
     if(DEBUG) {
         System.err.println(Thread.currentThread().getName()+" - Info: addNotify - end");
     }
+  }
+
+  private boolean validateGLDrawable() {
+    boolean realized = false;
+    if (!Beans.isDesignTime()) {
+        if ( null != drawable ) {
+            realized = drawable.isRealized();
+            if ( !realized && 0 < drawable.getWidth() * drawable.getHeight() ) {
+                drawable.setRealized(true);
+                realized = true;
+                sendReshape=true; // ensure a reshape is being send ..
+                if(DEBUG) {
+                    String msg = Thread.currentThread().getName()+" - Realized Drawable: "+drawable.toString();
+                    // System.err.println(msg);
+                    Throwable t = new Throwable(msg);
+                    t.printStackTrace();
+                }
+            }
+        }
+    }
+    return realized;
   }
 
   /** <p>Overridden to track when this component is removed from a
@@ -770,13 +818,22 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       } catch (Exception e) {
       }
       disableBackgroundEraseInitialized = true;
+      if(DEBUG) {
+        System.err.println("GLCanvas: TK disableBackgroundErase method found: "+
+                (null!=disableBackgroundEraseMethod));
+      }
     }
     if (disableBackgroundEraseMethod != null) {
+      Throwable t=null;
       try {
         disableBackgroundEraseMethod.invoke(getToolkit(), new Object[] { this });
       } catch (Exception e) {
         // FIXME: workaround for 6504460 (incorrect backport of 6333613 in 5.0u10)
         // throw new GLException(e);
+        t = e;
+      }
+      if(DEBUG) {
+        System.err.println("GLCanvas: TK disableBackgroundErase error: "+t);
       }
     }
   }
