@@ -287,7 +287,7 @@
                  windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  access="protected"
-                 source="1.4"
+                 source="1.5"
                  maxmemory="1024m"
                  bottom="${javadoc.bottom}" >
             <classpath refid="jogl_newt_all.classpath"/>
