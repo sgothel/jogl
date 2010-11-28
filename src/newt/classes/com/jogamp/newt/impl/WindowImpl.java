@@ -594,7 +594,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     lifecycleHook.resetCounter();
                 }
 
-                if(!visible && childWindows.size()>0) {
+                if(!visible && null!=childWindows && childWindows.size()>0) {
                   synchronized(childWindowsLock) {
                     for(int i = 0; i < childWindows.size(); i++ ) {
                         NativeWindow nw = (NativeWindow) childWindows.get(i);
@@ -622,7 +622,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     lifecycleHook.setVisibleActionPost(visible, nativeWindowCreated);
                 }
 
-                if(0!=windowHandle && visible && childWindows.size()>0) {
+                if(0!=windowHandle && visible && null!=childWindows && childWindows.size()>0) {
                   synchronized(childWindowsLock) {
                     for(int i = 0; i < childWindows.size(); i++ ) {
                         NativeWindow nw = (NativeWindow) childWindows.get(i);
