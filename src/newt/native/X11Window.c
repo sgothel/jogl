@@ -1297,14 +1297,14 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow0
         pVisualQuery=NULL;
     }
 
-    attrMask  = ( CWBackingStore | CWBackingPlanes | CWBackingPixel | CWBackPixel | 
+    attrMask  = ( CWBackingStore | CWBackingPlanes | CWBackingPixel | CWBackPixmap |
                   CWBorderPixel | CWColormap | CWOverrideRedirect ) ;
 
     memset(&xswa, 0, sizeof(xswa));
     // xswa.override_redirect = ( 0 != parent ) ? False : True;
     xswa.override_redirect = False; // use the window manager, always
     xswa.border_pixel = 0;
-    xswa.background_pixel = 0;
+    xswa.background_pixmap = None;
     xswa.backing_store=NotUseful; /* NotUseful, WhenMapped, Always */
     xswa.backing_planes=0;        /* planes to be preserved if possible */
     xswa.backing_pixel=0;         /* value to use in restoring planes */
