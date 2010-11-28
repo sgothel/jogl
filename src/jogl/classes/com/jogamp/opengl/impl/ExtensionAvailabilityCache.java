@@ -48,7 +48,7 @@ import java.util.*;
  * of which OpenGL extensions are currently available on both the host machine
  * and display.
  */
-public final class ExtensionAvailabilityCache {
+final class ExtensionAvailabilityCache {
   protected static final boolean DEBUG = GLContextImpl.DEBUG;
   private static final boolean DEBUG_AVAILABILITY = Debug.isPropertyDefined("jogl.debug.ExtensionAvailabilityCache", true);
 
@@ -61,7 +61,7 @@ public final class ExtensionAvailabilityCache {
    * Flush the cache. The cache will be rebuilt lazily as calls to {@link
    * #isExtensionAvailable(String)} are received.
    */
-  public void flush()
+  final void flush()
   {
     if(DEBUG) {
         System.out.println("ExtensionAvailabilityCache: Flush availability OpenGL "+context.getGLVersion());
@@ -73,26 +73,26 @@ public final class ExtensionAvailabilityCache {
   /**
    * Flush the cache and rebuild the cache.
    */
-  public void reset() {
+  final void reset() {
     flush();
     initAvailableExtensions();
   }
 
-  public boolean isInitialized() {
+  final boolean isInitialized() {
     return initialized && !availableExtensionCache.isEmpty() ;
   }
 
-  public boolean isExtensionAvailable(String glExtensionName) {
+  final boolean isExtensionAvailable(String glExtensionName) {
     initAvailableExtensions();
     return availableExtensionCache.contains(mapGLExtensionName(glExtensionName));
   }
 
-  public String getPlatformExtensionsString() {
+  final String getPlatformExtensionsString() {
     initAvailableExtensions();
     return glXExtensions;
   }
 
-  public String getGLExtensions() {
+  final String getGLExtensionsString() {
     initAvailableExtensions();
     if(DEBUG) {
         System.err.println("ExtensionAvailabilityCache: getGLExtensions() called");
@@ -100,7 +100,7 @@ public final class ExtensionAvailabilityCache {
     return glExtensions;
   }
 
-  private void initAvailableExtensions() {
+  private final void initAvailableExtensions() {
     GL gl = context.getGL();
     // if hash is empty (meaning it was flushed), pre-cache it with the list
     // of extensions that are in the GL_EXTENSIONS string
@@ -211,7 +211,7 @@ public final class ExtensionAvailabilityCache {
   private HashSet availableExtensionCache = new HashSet(50);
   private GLContextImpl context;
 
-  protected static String getThreadName() {
+  static String getThreadName() {
     return Thread.currentThread().getName();
   }
 

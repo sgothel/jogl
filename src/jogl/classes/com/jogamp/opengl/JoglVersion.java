@@ -71,6 +71,7 @@ public class JoglVersion extends JogampVersion {
         if(null==sb) {
             sb = new StringBuffer();
         }
+        GLContext ctx = gl.getContext();
 
         sb.append(VersionUtil.SEPERATOR).append(Platform.getNewline());
         sb.append("Default Desktop ").append(GLProfile.getDefaultDesktopDevice().getConnection()).append(": ").append(GLProfile.glAvailabilityToString(GLProfile.getDefaultDesktopDevice()));
@@ -91,7 +92,11 @@ public class JoglVersion extends JogampVersion {
         sb.append(Platform.getNewline());
         sb.append("GL_EXTENSIONS ");
         sb.append(Platform.getNewline());
-        sb.append("              ").append(gl.glGetString(gl.GL_EXTENSIONS));
+        sb.append("              ").append(ctx.getGLExtensionsString());
+        sb.append(Platform.getNewline());
+        sb.append("GLX_EXTENSIONS ");
+        sb.append(Platform.getNewline());
+        sb.append("              ").append(ctx.getPlatformExtensionsString());
         sb.append(Platform.getNewline());
         sb.append(VersionUtil.SEPERATOR);
 

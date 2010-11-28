@@ -90,8 +90,7 @@ public class Dimension implements Cloneable, DimensionReadOnly {
     public int hashCode() {
         // 31 * x == (x << 5) - x
         int hash = 31 + width;
-        hash = ((hash << 5) - hash) + height;
-        return hash;
+        return ((hash << 5) - hash) + height;
     }
 }
 
