@@ -51,6 +51,12 @@ import javax.media.opengl.GLException;
     calls to <code>display()</code> are performed. After each drawable
     has been redrawn, a brief pause is performed to avoid swamping the
     CPU, unless {@link #setRunAsFastAsPossible} has been called.  </P>
+
+ * <p>
+ * The Animator execution thread does not run as a daemon thread,
+ * so it is able to keep an application from terminating.<br>
+ * Call {@link #stop() } to terminate the animation and it's execution thread.
+ * </p>
 */
 
 public class Animator extends AnimatorBase {
@@ -268,7 +274,6 @@ public class Animator extends AnimatorBase {
         } else {
             thread = new Thread(threadGroup, runnable, threadName);
         }
-        thread.setDaemon(true); // don't stop JVM from shutdown ..
         thread.start();
         finishLifecycleAction(waitForStartedCondition);
         return true;
