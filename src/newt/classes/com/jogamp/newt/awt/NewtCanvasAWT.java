@@ -140,8 +140,16 @@ public class NewtCanvasAWT extends java.awt.Canvas {
     }
 
     public void addNotify() {
-        super.addNotify();
+
+        // before native peer is valid: X11
         disableBackgroundErase();
+
+        // creates the native peer
+        super.addNotify();
+
+        // after native peer is valid: Windows
+        disableBackgroundErase();
+
         java.awt.Container cont = getContainer(this);
         if(DEBUG) {
             // if ( isShowing() == false ) -> Container was not visible yet.
@@ -304,13 +312,22 @@ public class NewtCanvasAWT extends java.awt.Canvas {
       } catch (Exception e) {
       }
       disableBackgroundEraseInitialized = true;
+      if(DEBUG) {
+        System.err.println("NewtCanvasAWT: TK disableBackgroundErase method found: "+
+                (null!=disableBackgroundEraseMethod));
+      }
     }
     if (disableBackgroundEraseMethod != null) {
+      Throwable t=null;
       try {
         disableBackgroundEraseMethod.invoke(getToolkit(), new Object[] { this });
       } catch (Exception e) {
         // FIXME: workaround for 6504460 (incorrect backport of 6333613 in 5.0u10)
         // throw new GLException(e);
+        t = e;
+      }
+      if(DEBUG) {
+        System.err.println("NewtCanvasAWT: TK disableBackgroundErase error: "+t);
       }
     }
   }
