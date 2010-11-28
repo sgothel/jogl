@@ -15,9 +15,10 @@ echo CP_ALL %CP_ALL%
 
 REM set D_ARGS="-Djogl.debug.ExtensionAvailabilityCache" "-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug.ProcAddressHelper=true" "-Djogamp.debug.NativeLibrary=true" "-Djogamp.debug.NativeLibrary.Lookup=true"
 REM set D_ARGS="-Djogl.debug.GLContext" "-Djogl.debug.ExtensionAvailabilityCache" "-Djogamp.debug.ProcAddressHelper=true"
-set D_ARGS="-Djogl.debug.GraphicsConfiguration"
+REM set D_ARGS="-Djogl.debug.GraphicsConfiguration"
 REM set D_ARGS="-Djogamp.debug.JNILibLoader=true" "-Djogamp.debug.NativeLibrary=true" "-Djogamp.debug.NativeLibrary.Lookup=true" "-Djogl.debug.GLProfile=true"
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug.Lock" "-Djogamp.debug.Lock.TraceLock"
+set D_ARGS="-Djogl.debug=all"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnativewindow.debug.TraceLock"
 REM set D_ARGS="-Dnativewindow.debug.TraceLock"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display"

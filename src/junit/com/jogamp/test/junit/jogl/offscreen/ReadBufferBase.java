@@ -65,7 +65,7 @@ public class ReadBufferBase implements GLEventListener {
 
         System.out.println(_gl);
 
-        _gl.getContext().setGLDrawableRead(externalRead);
+        _gl.getContext().setGLReadDrawable(externalRead);
         if(_gl.isGL2GL3()) {
             _gl.getGL2GL3().glReadBuffer(GL2GL3.GL_FRONT);
         }

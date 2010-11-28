@@ -113,12 +113,18 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       private WindowsDummyWGLDrawable drawable;
       private WindowsWGLContext context;
       private boolean canCreateGLPbuffer;
+      private boolean readDrawableAvailable;
 
-      SharedResource(WindowsDummyWGLDrawable draw, WindowsWGLContext ctx, boolean canPbuffer) {
+      SharedResource(WindowsDummyWGLDrawable draw, WindowsWGLContext ctx, boolean readBufferAvail, boolean canPbuffer) {
           drawable = draw;
           context = ctx;
           canCreateGLPbuffer = canPbuffer;
+          readDrawableAvailable = readBufferAvail;
       }
+      WindowsWGLContext getContext() { return context; }
+      boolean canCreateGLPbuffer() { return canCreateGLPbuffer; }
+      boolean isReadDrawableAvailable() { return readDrawableAvailable; }
+
   }
   HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
   WindowsGraphicsDevice defaultDevice;
@@ -146,7 +152,11 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       }
   }
 
-  private final SharedResource getOrCreateShared(AbstractGraphicsDevice device) {
+  final static String GL_ARB_pbuffer = "GL_ARB_pbuffer";
+  final static String WGL_ARB_make_current_read = "WGL_ARB_make_current_read";
+  final static String wglMakeContextCurrent = "wglMakeContextCurrent";
+
+  protected final SharedResource getOrCreateShared(AbstractGraphicsDevice device) {
     String connection = device.getConnection();
     SharedResource sr;
     synchronized(sharedMap) {
@@ -159,14 +169,17 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             WindowsDummyWGLDrawable sharedDrawable = WindowsDummyWGLDrawable.create(this, null);
             WindowsWGLContext ctx  = (WindowsWGLContext) sharedDrawable.createContext(null);
             ctx.makeCurrent();
-            boolean canCreateGLPbuffer = ctx.getGL().isExtensionAvailable("GL_ARB_pbuffer");
+            boolean canCreateGLPbuffer = ctx.getGL().isExtensionAvailable(GL_ARB_pbuffer);
+            boolean readDrawableAvailable = ctx.isExtensionAvailable(WGL_ARB_make_current_read) &&
+                                                     ctx.isFunctionAvailable(wglMakeContextCurrent);
             ctx.release();
-            sr = new SharedResource(sharedDrawable, ctx, canCreateGLPbuffer);
+            sr = new SharedResource(sharedDrawable, ctx, readDrawableAvailable, canCreateGLPbuffer);
             synchronized(sharedMap) {
                 sharedMap.put(device.getConnection(), sr);
             }
             if (DEBUG) {
-              System.err.println("!!! SharedContext: "+ctx+", pbuffer supported "+canCreateGLPbuffer);
+              System.err.println("!!! SharedContext: "+ctx+", pbuffer supported "+canCreateGLPbuffer+
+                                 ", readDrawable supported "+readDrawableAvailable);
             }
 
         } catch (Throwable t) {
@@ -181,7 +194,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
     SharedResource sr = getOrCreateShared(device);
     if(null!=sr) {
-      return sr.context;
+      return sr.getContext();
     }
     return null;
   }
@@ -232,10 +245,18 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return new WindowsOffscreenWGLDrawable(this, target);
   }
 
+  public final boolean isReadDrawableAvailable(AbstractGraphicsDevice device) {
+    SharedResource sr = getOrCreateShared((null!=device)?device:defaultDevice);
+    if(null!=sr) {
+        return sr.isReadDrawableAvailable();
+    }
+    return false;
+  }
+
   public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
     SharedResource sr = getOrCreateShared((null!=device)?device:defaultDevice);
     if(null!=sr) {
-        return sr.canCreateGLPbuffer;
+        return sr.canCreateGLPbuffer();
     }
     return false;
   }

@@ -40,6 +40,7 @@
 
 package com.jogamp.opengl.impl.x11.glx;
 
+import com.jogamp.common.util.VersionNumber;
 import java.nio.*;
 import java.util.*;
 import javax.media.opengl.*;
@@ -48,13 +49,14 @@ import com.jogamp.opengl.impl.*;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import com.jogamp.nativewindow.impl.x11.X11Util;
-import javax.media.nativewindow.x11.X11GraphicsDevice;
 
 public abstract class X11GLXContext extends GLContextImpl {
   protected static final boolean TRACE_CONTEXT_CURRENT = false; // true;
 
   private static final Map/*<String, String>*/ functionNameMap;
   private static final Map/*<String, String>*/ extensionNameMap;
+  private VersionNumber glXVersion;
+  private boolean glXVersionOneThreeCapable;
   private boolean glXQueryExtensionsStringInitialized;
   private boolean glXQueryExtensionsStringAvailable;
   private GLXExt glXExt;
@@ -78,17 +80,14 @@ public abstract class X11GLXContext extends GLContextImpl {
     extensionNameMap.put("GL_ARB_pixel_format", "GLX_SGIX_pbuffer"); // good enough
   }
 
-  public X11GLXContext(GLDrawableImpl drawable, GLDrawableImpl drawableRead,
-                      GLContext shareWith) {
-    super(drawable, drawableRead, shareWith);
-  }
-
-  public X11GLXContext(GLDrawableImpl drawable,
-                      GLContext shareWith) {
-    this(drawable, null, shareWith);
+  X11GLXContext(GLDrawableImpl drawable,
+                GLContext shareWith) {
+    super(drawable, shareWith);
   }
   
   protected void resetState() {
+    glXVersion = null;
+    glXVersionOneThreeCapable = false;
     glXQueryExtensionsStringInitialized=false;
     glXQueryExtensionsStringAvailable=false;
     // no inner state glXExt=null;
@@ -120,16 +119,38 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   protected Map/*<String, String>*/ getExtensionNameMap() { return extensionNameMap; }
 
-  protected boolean glXMakeContextCurrent(long dpy, long writeDrawable, long readDrawable, long ctx) {
+  public final boolean isGLReadDrawableAvailable() {
+    if(null == glXVersion) {
+        X11GLXDrawableFactory factory = (X11GLXDrawableFactory)drawable.getFactoryImpl();
+
+        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        AbstractGraphicsDevice device = config.getScreen().getDevice();
+
+        glXVersion = factory.getGLXVersion(device);
+        if( null != glXVersion ) {
+            glXVersionOneThreeCapable = glXVersion.compareTo(factory.versionOneThree)>=0;
+        }
+    }
+    return glXVersionOneThreeCapable;
+  }
+
+  private final boolean glXMakeContextCurrent(long dpy, long writeDrawable, long readDrawable, long ctx) {
     boolean res = false;
 
     try {
         if(TRACE_CONTEXT_CURRENT) {
             Throwable t = new Throwable(Thread.currentThread()+" - glXMakeContextCurrent("+toHexString(dpy)+", "+
-                    toHexString(writeDrawable)+", "+toHexString(readDrawable)+", "+toHexString(ctx)+")");
+                    toHexString(writeDrawable)+", "+toHexString(readDrawable)+", "+toHexString(ctx)+") - GLX >= 1.3 "+ glXVersionOneThreeCapable);
             t.printStackTrace();
         }
-        res = GLX.glXMakeContextCurrent(dpy, writeDrawable, readDrawable, ctx);
+        if ( glXVersionOneThreeCapable ) {
+            res = GLX.glXMakeContextCurrent(dpy, writeDrawable, readDrawable, ctx);
+        } else if ( writeDrawable == readDrawable ) {
+            res = GLX.glXMakeCurrent(dpy, writeDrawable, ctx);
+        } else {
+            // should not happen due to 'isGLReadDrawableAvailable()' query in GLContextImpl
+            throw new InternalError("Given readDrawable but no driver support");
+        }
     } catch (RuntimeException re) {
         if(DEBUG) {
           System.err.println("Warning: X11GLXContext.glXMakeContextCurrent failed: "+re+", with "+
@@ -258,6 +279,8 @@ public abstract class X11GLXContext extends GLContextImpl {
     X11GLXContext sharedContext = (X11GLXContext) factory.getOrCreateSharedContextImpl(device);
     long display = device.getHandle();
 
+    isGLReadDrawableAvailable(); // trigger setup glXVersionOneThreeCapable
+
     X11GLXContext other = (X11GLXContext) GLContextShareSet.getShareContext(this);
     long share = 0;
     if (other != null) {
@@ -270,7 +293,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
     GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     GLProfile glp = glCaps.getGLProfile();
-    isVendorATI = factory.isVendorATI(device);
+    isVendorATI = factory.isGLXVendorATI(device);
 
     if(config.getFBConfigID()<0) {
         // not able to use FBConfig
@@ -388,7 +411,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         } finally {
             X11Util.setX11ErrorHandler(false, false);
         }
-        if (DEBUG && (VERBOSE || newCreated)) {
+        if (DEBUG && newCreated) {
             System.err.println(getThreadName() + ": glXMakeCurrent(display " + 
                                toHexString(dpy)+
                                ", drawable " + toHexString(drawable.getHandle()) +

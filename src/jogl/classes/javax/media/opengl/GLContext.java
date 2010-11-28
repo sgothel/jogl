@@ -116,17 +116,32 @@ public abstract class GLContext {
   public abstract GLDrawable getGLDrawable();
 
   /**
-   * Set the GLDrawable from which this context may be used to
-   * read.<br>
-   * If read is null, the default write drawable will be used.
+   * Return availability of GL read drawable.
+   * @return true if a GL read drawable is supported with your driver, otherwise false.
    */
-  public abstract void setGLDrawableRead(GLDrawable read);
+  public abstract boolean isGLReadDrawableAvailable();
 
   /**
-   * Returns the GLDrawable from which this context may be used to
-   * read.
+   * Set the read GLDrawable for read framebuffer operations.<br>
+   * The caller should query if this feature is supported via {@link #isGLReadDrawableAvailable()}.
+   *
+   * @param read the read GLDrawable for read framebuffer operations.
+   * If null is passed, the default write drawable will be set.
+   *
+   * @throws GLException in case a read drawable is not supported
+   *         and the given drawable is not null and not equal to the internal write drawable.
+   *
+   * @see #isGLReadDrawableAvailable()
+   * @see #getGLReadDrawable()
    */
-  public abstract GLDrawable getGLDrawableRead();
+  public abstract void setGLReadDrawable(GLDrawable read);
+
+  /**
+   * Returns the read GLDrawable this context uses for read framebuffer operations.
+   * @see #isGLReadDrawableAvailable()
+   * @see #setGLReadDrawable(javax.media.opengl.GLDrawable)
+   */
+  public abstract GLDrawable getGLReadDrawable();
 
   /**
    * Makes this GLContext current on the calling thread.
@@ -341,13 +356,13 @@ public abstract class GLContext {
     sb.append(toHexString(contextHandle));
     sb.append(", ");
     sb.append(getGL());
-    if(getGLDrawable()!=getGLDrawableRead()) {
-        sb.append(",\n\tDrawable Read : ");
-        sb.append(getGLDrawableRead());
-        sb.append(",\n\tDrawable Write: ");
+    if(getGLDrawable()!=getGLReadDrawable()) {
+        sb.append(",\n\tRead Drawable : ");
+        sb.append(getGLReadDrawable());
+        sb.append(",\n\tWrite Drawable: ");
         sb.append(getGLDrawable());
     } else {
-        sb.append(",\n\tDrawable Read/Write: ");
+        sb.append(",\n\tDrawable: ");
         sb.append(getGLDrawable());
     }
     return sb;
@@ -358,6 +373,14 @@ public abstract class GLContext {
       GLX) extensions. Can only be called while this context is
       current. */
   public abstract String getPlatformExtensionsString();
+
+  /** Returns a non-null (but possibly empty) string containing the
+      space-separated list of available extensions.
+      Can only be called while this context is current.
+      This is equivalent to
+      {@link javax.media.opengl.GL#glGetString(int) glGetString}({@link javax.media.opengl.GL#GL_EXTENSIONS GL_EXTENSIONS})
+   */
+  public abstract String getGLExtensionsString();
 
   public final int getGLVersionMajor() { return ctxMajorVersion; }
   public final int getGLVersionMinor() { return ctxMinorVersion; }

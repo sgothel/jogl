@@ -62,7 +62,7 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
   // rethink this in particular if using FBOs to implement the
   // Java2D/OpenGL pipeline on Mac OS X
 
-  public MacOSXJava2DCGLContext(GLContext shareWith) {
+  MacOSXJava2DCGLContext(GLContext shareWith) {
     super(null, shareWith);
   }
 

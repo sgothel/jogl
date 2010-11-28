@@ -50,14 +50,9 @@ public abstract class EGLContext extends GLContextImpl {
     // EGL extension functions.
     private EGLExtProcAddressTable eglExtProcAddressTable;
 
-    public EGLContext(GLDrawableImpl drawable, GLDrawableImpl drawableRead,
-                      GLContext shareWith) {
-        super(drawable, drawableRead, shareWith);
-    }
-
-    public EGLContext(GLDrawableImpl drawable,
-                      GLContext shareWith) {
-        this(drawable, null, shareWith);
+    EGLContext(GLDrawableImpl drawable,
+               GLContext shareWith) {
+        super(drawable, shareWith);
     }
 
     public Object getPlatformGLExtensions() {
@@ -82,6 +77,10 @@ public abstract class EGLContext extends GLContextImpl {
     protected Map/*<String, String>*/ getFunctionNameMap() { return null; }
 
     protected Map/*<String, String>*/ getExtensionNameMap() { return null; }
+
+    public final boolean isGLReadDrawableAvailable() {
+        return true;
+    }
 
     protected void makeCurrentImpl(boolean newCreated) throws GLException {
         if(EGL.EGL_NO_DISPLAY==((EGLDrawable)drawable).getDisplay() ) {

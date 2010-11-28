@@ -1,5 +1,5 @@
-REM scripts\java-win64-dbg.bat com.jogamp.newt.opengl.GLWindow
-scripts\java-win64.bat com.jogamp.test.junit.jogl.awt.TestAWT01GLn
+scripts\java-win64-dbg.bat com.jogamp.newt.opengl.GLWindow
+REM scripts\java-win64.bat com.jogamp.test.junit.jogl.awt.TestAWT01GLn
 REM scripts\java-win64.bat com.jogamp.test.junit.jogl.awt.TestSwingAWT01GLn
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT -time 30000

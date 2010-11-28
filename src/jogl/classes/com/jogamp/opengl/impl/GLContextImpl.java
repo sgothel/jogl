@@ -62,7 +62,6 @@ import javax.media.opengl.GLProfile;
 
 public abstract class GLContextImpl extends GLContext {
   protected static final boolean DEBUG = Debug.debug("GLContext");
-  protected static final boolean VERBOSE = Debug.verbose();
 
   protected GLContextLock lock = new GLContextLock();
 
@@ -102,7 +101,7 @@ public abstract class GLContextImpl extends GLContext {
       mappedGLXProcAddress = new HashMap();
   }
 
-  public GLContextImpl(GLDrawableImpl drawable, GLDrawableImpl drawableRead, GLContext shareWith) {
+  public GLContextImpl(GLDrawableImpl drawable, GLContext shareWith) {
     super();
 
     if (shareWith != null) {
@@ -111,11 +110,7 @@ public abstract class GLContextImpl extends GLContext {
     GLContextShareSet.registerForBufferObjectSharing(shareWith, this);
 
     this.drawable = drawable;
-    setGLDrawableRead(drawableRead);
-  }
-
-  public GLContextImpl(GLDrawableImpl drawable, GLContext shareWith) {
-    this(drawable, null, shareWith);
+    this.drawableRead = drawable;
   }
 
   protected void resetStates() {
@@ -144,7 +139,10 @@ public abstract class GLContextImpl extends GLContext {
       super.resetStates();
   }
 
-  public void setGLDrawableRead(GLDrawable read) {
+  public final void setGLReadDrawable(GLDrawable read) {
+    if(null!=read && drawable!=read && !isGLReadDrawableAvailable()) {
+        throw new GLException("GL Read Drawable not available");
+    }
     boolean lockHeld = lock.isHeld();
     if(lockHeld) {
         release();
@@ -155,15 +153,15 @@ public abstract class GLContextImpl extends GLContext {
     }
   }
 
-  public GLDrawable getGLDrawable() {
-    return drawable;
-  }
-
-  public GLDrawable getGLDrawableRead() {
+  public final GLDrawable getGLReadDrawable() {
     return drawableRead;
   }
 
-  public GLDrawableImpl getDrawableImpl() {
+  public final GLDrawable getGLDrawable() {
+    return drawable;
+  }
+
+  public final GLDrawableImpl getDrawableImpl() {
     return (GLDrawableImpl) getGLDrawable();
   }
 
@@ -685,7 +683,7 @@ public abstract class GLContextImpl extends GLContext {
           ctxOptions = ctp;
 
           // Set version
-          Version version = new Version(versionStr);
+          GLVersionNumber version = new GLVersionNumber(versionStr);
           if (version.isValid()) {
             ctxMajorVersion = version.getMajor();
             ctxMinorVersion = version.getMinor();
@@ -980,14 +978,14 @@ public abstract class GLContextImpl extends GLContext {
       return null;
   }
 
-  public String getGLExtensions() {
+  public String getGLExtensionsString() {
       if(null!=extensionAvailability) {
-        return extensionAvailability.getGLExtensions();
+        return extensionAvailability.getGLExtensionsString();
       }
       return null;
   }
 
-  public boolean isExtensionCacheInitialized() {
+  public final boolean isExtensionCacheInitialized() {
       if(null!=extensionAvailability) {
         return extensionAvailability.isInitialized();
       }
@@ -1037,188 +1035,5 @@ public abstract class GLContextImpl extends GLContext {
   public boolean hasWaiters() {
     return lock.hasWaiters();
   }
-
-  /* FIXME: needed only by the Java 2D / JOGL bridge; refactor
-
-  public GLContextImpl(GLContext shareWith) {
-    this(shareWith, false);
-  }
-  
-  public GLContextImpl(GLContext shareWith, boolean dontShareWithJava2D) {
-    extensionAvailability = new ExtensionAvailabilityCache(this);
-    GLContext shareContext = shareWith;
-    if (!dontShareWithJava2D) {
-      shareContext = Java2D.filterShareContext(shareWith);
-    }
-    if (shareContext != null) {
-      GLContextShareSet.registerSharing(this, shareContext);
-    }
-    // Always indicate real behind-the-scenes sharing to track deleted objects
-    if (shareContext == null) {
-      shareContext = Java2D.filterShareContext(shareWith);
-    }
-    GLContextShareSet.registerForObjectTracking(shareWith, this, shareContext);
-    GLContextShareSet.registerForBufferObjectSharing(shareWith, this);
-    // This must occur after the above calls into the
-    // GLContextShareSet, which set up state needed by the GL object
-    setGL(createGL());
-  }
-
-  //---------------------------------------------------------------------------
-  // Helpers for integration with Java2D/OpenGL pipeline when FBOs are
-  // being used
-  //
-
-  public void setObjectTracker(GLObjectTracker tracker) {
-    this.tracker = tracker;
-  }
-  
-  public GLObjectTracker getObjectTracker() {
-    return tracker;
-  }
-
-  public void setDeletedObjectTracker(GLObjectTracker deletedObjectTracker) {
-    this.deletedObjectTracker = deletedObjectTracker;
-  }
-
-  public GLObjectTracker getDeletedObjectTracker() {
-    return deletedObjectTracker;
-  }
-
-  // Tracks creation and deletion of server-side OpenGL objects when
-  // the Java2D/OpenGL pipeline is active and using FBOs to render
-  private GLObjectTracker tracker;
-  // Supports deletion of these objects when no other context is
-  // current which can support immediate deletion of them
-  private GLObjectTracker deletedObjectTracker;
-
-  */
-
-  /**
-   * A class for storing and comparing OpenGL version numbers.
-   * This only works for desktop OpenGL at the moment.
-   */
-  private static class Version implements Comparable
-  {
-    private boolean valid;
-    private int major, minor, sub;
-    public Version(int majorRev, int minorRev, int subMinorRev)
-    {
-      major = majorRev;
-      minor = minorRev;
-      sub = subMinorRev;
-    }
-
-    /**
-     * @param versionString must be of the form "GL_VERSION_X" or
-     * "GL_VERSION_X_Y" or "GL_VERSION_X_Y_Z" or "X.Y", where X, Y,
-     * and Z are integers.
-     *
-     * @exception IllegalArgumentException if the argument is not a valid
-     * OpenGL version identifier
-     */
-    public Version(String versionString)
-    {
-      try 
-      {
-        if (versionString.startsWith("GL_VERSION_"))
-        {
-          StringTokenizer tok = new StringTokenizer(versionString, "_");
-
-          tok.nextToken(); // GL_
-          tok.nextToken(); // VERSION_ 
-          if (!tok.hasMoreTokens()) { major = 0; return; }
-          major = Integer.valueOf(tok.nextToken()).intValue();
-          if (!tok.hasMoreTokens()) { minor = 0; return; }
-          minor = Integer.valueOf(tok.nextToken()).intValue();
-          if (!tok.hasMoreTokens()) { sub = 0; return; }
-          sub = Integer.valueOf(tok.nextToken()).intValue();
-        }
-        else
-        {
-          int radix = 10;
-          if (versionString.length() > 2) {
-            if (Character.isDigit(versionString.charAt(0)) &&
-                versionString.charAt(1) == '.' &&
-                Character.isDigit(versionString.charAt(2))) {
-              major = Character.digit(versionString.charAt(0), radix);
-              minor = Character.digit(versionString.charAt(2), radix);
-
-              // See if there's version-specific information which might
-              // imply a more recent OpenGL version
-              StringTokenizer tok = new StringTokenizer(versionString, " ");
-              if (tok.hasMoreTokens()) {
-                tok.nextToken();
-                if (tok.hasMoreTokens()) {
-                  String token = tok.nextToken();
-                  int i = 0;
-                  while (i < token.length() && !Character.isDigit(token.charAt(i))) {
-                    i++;
-                  }
-                  if (i < token.length() - 2 &&
-                      Character.isDigit(token.charAt(i)) &&
-                      token.charAt(i+1) == '.' &&
-                      Character.isDigit(token.charAt(i+2))) {
-                    int altMajor = Character.digit(token.charAt(i), radix);
-                    int altMinor = Character.digit(token.charAt(i+2), radix);
-                    // Avoid possibly confusing situations by putting some
-                    // constraints on the upgrades we do to the major and
-                    // minor versions
-                    if ((altMajor == major && altMinor > minor) ||
-                        altMajor == major + 1) {
-                      major = altMajor;
-                      minor = altMinor;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        valid = true;
-      }
-      catch (Exception e)
-      {
-        e.printStackTrace();
-        // FIXME: refactor desktop OpenGL dependencies and make this
-        // class work properly for OpenGL ES
-        System.err.println("Info: ExtensionAvailabilityCache: FunctionAvailabilityCache.Version.<init>: "+e);
-        major = 1;
-        minor = 0;
-        /*
-        throw (IllegalArgumentException)
-          new IllegalArgumentException(
-            "Illegally formatted version identifier: \"" + versionString + "\"")
-              .initCause(e);
-        */
-      }
-    }
-
-    public boolean isValid() {
-      return valid;
-    }
-
-    public int compareTo(Object o)
-    {
-      Version vo = (Version)o;
-      if (major > vo.major) return 1; 
-      else if (major < vo.major) return -1; 
-      else if (minor > vo.minor) return 1; 
-      else if (minor < vo.minor) return -1; 
-      else if (sub > vo.sub) return 1; 
-      else if (sub < vo.sub) return -1; 
-
-      return 0; // they are equal
-    }
-
-    public int getMajor() {
-      return major;
-    }
-
-    public int getMinor() {
-      return minor;
-    }
-    
-  } // end class Version
 
 }

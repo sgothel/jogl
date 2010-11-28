@@ -56,14 +56,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   // CGL extension functions.
   private CGLExtProcAddressTable cglExtProcAddressTable;
   
-  public MacOSXCGLContext(GLDrawableImpl drawable, GLDrawableImpl drawableRead,
-                          GLContext shareWith) {
-    super(drawable, drawableRead, shareWith);
-  }
-
-  public MacOSXCGLContext(GLDrawableImpl drawable,
-                          GLContext shareWith) {
-    this(drawable, null, shareWith);
+  protected MacOSXCGLContext(GLDrawableImpl drawable,
+                   GLContext shareWith) {
+    super(drawable, shareWith);
   }
   
   public Object getPlatformGLExtensions() {
@@ -97,6 +92,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
   protected void destroyContextARBImpl(long _context) {
       // FIXME
+  }
+
+  public final boolean isGLReadDrawableAvailable() {
+    return false;
   }
 
   /**
@@ -292,11 +291,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     throw new GLException("Not yet implemented");
   }
 
-  public boolean isFunctionAvailable(String glFunctionName)
-  {
-    return super.isFunctionAvailable(glFunctionName);
-  }
-  
   public boolean isExtensionAvailable(String glExtensionName) {
     if (glExtensionName.equals("GL_ARB_pbuffer") ||
         glExtensionName.equals("GL_ARB_pixel_format")) {
