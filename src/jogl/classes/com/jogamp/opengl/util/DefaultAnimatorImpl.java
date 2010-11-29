@@ -47,9 +47,7 @@ class DefaultAnimatorImpl implements AnimatorBase.AnimatorImpl {
         for (int i=0; i<drawables.size(); i++) {
             GLAutoDrawable drawable = (GLAutoDrawable) drawables.get(i);
             try {
-                if(drawable.isRealized()) {
-                    drawable.display();
-                }
+                drawable.display();
             } catch (RuntimeException e) {
                 if (ignoreExceptions) {
                     if (printExceptions) {

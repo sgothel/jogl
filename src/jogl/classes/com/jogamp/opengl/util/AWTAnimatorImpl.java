@@ -68,14 +68,10 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
                 // scheme than simply forcing repainting of each one in
                 // turn since drawing one can force another one to be
                 // drawn in turn
-                if(drawable.isRealized()) {
-                    lightweights.add(drawable);
-                }
+                lightweights.add(drawable);
             } else {
                 try {
-                    if(drawable.isRealized()) {
-                        drawable.display();
-                    }
+                    drawable.display();
                 } catch (RuntimeException e) {
                     if (ignoreExceptions) {
                         if (printExceptions) {
