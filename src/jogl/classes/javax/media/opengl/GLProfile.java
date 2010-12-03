@@ -423,6 +423,17 @@ public class GLProfile {
      */
     public static final String[] GL_PROFILE_LIST_GL2ES1 = new String[] { GL2ES1, GL2, GL3bc, GL4bc, GLES1 };
 
+    /**
+     * All GLES Profiles in the order of default detection.
+     *
+     * <ul>
+     *  <li> GLES2
+     *  <li> GLES1
+     * </ul>
+     *
+     */
+    public static final String[] GL_PROFILE_LIST_GLES = new String[] { GLES2, GLES1 };
+
     /** Returns a default GLProfile object, reflecting the best for the running platform.
      * It selects the first of the set {@link GLProfile#GL_PROFILE_LIST_ALL}
      * @see #GL_PROFILE_LIST_ALL
@@ -1174,8 +1185,8 @@ public class GLProfile {
             }
         }
 
-        boolean addedAnyProfile = initProfilesForDevice(defaultDesktopDevice);
-        addedAnyProfile = addedAnyProfile || initProfilesForDevice(defaultEGLDevice);
+        boolean addedAnyProfile = initProfilesForDevice(defaultDesktopDevice) ||
+                                  initProfilesForDevice(defaultEGLDevice);
 
         if(DEBUG) {
             System.err.println("GLProfile.init isAWTAvailable       "+isAWTAvailable);
@@ -1212,7 +1223,8 @@ public class GLProfile {
             return null != GLProfile.getDefault(device);
         }
 
-        boolean addedAnyProfile = false;
+        boolean addedDesktopProfile = false;
+        boolean addedEGLProfile = false;
 
         if( hasDesktopGL && desktopFactory.getIsDeviceCompatible(device)) {
             // 1st pretend we have all Desktop and EGL profiles ..
@@ -1232,11 +1244,9 @@ public class GLProfile {
                                                 1, 5, GLContext.CTX_PROFILE_COMPAT|GLContext.CTX_OPTION_ANY);
             }
             computeProfileMap(device, false /* desktopCtxUndef*/, false /* eglCtxUndef */);
-            addedAnyProfile = null != GLProfile.getDefault(device);
-        } else {
-            if(DEBUG) {
-                System.err.println("GLProfile: DesktopFactory - Device is not available: "+device.getConnection());
-            }
+            addedDesktopProfile = null != GLProfile.getDefault(device);
+        } else if(DEBUG) {
+            System.err.println("GLProfile: DesktopFactory - Device is not available: "+device.getConnection());
         }
 
         if( null!=eglFactory && ( hasGLES2Impl || hasGLES1Impl ) && eglFactory.getIsDeviceCompatible(device)) {
@@ -1264,22 +1274,42 @@ public class GLProfile {
                                                 1, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_OPTION_ANY);
             }
             computeProfileMap(device, false /* desktopCtxUndef*/, false /* eglCtxUndef */);
-            addedAnyProfile = addedAnyProfile || null != GLProfile.getDefault(device);
-        } else {
-            if(DEBUG) {
-                System.err.println("GLProfile: EGLFactory - Device is not available: "+device.getConnection());
-            }
+            addedEGLProfile = null != GLProfile.get(device, GL_PROFILE_LIST_GLES);
+        } else if(DEBUG) {
+            System.err.println("GLProfile: EGLFactory - Device is not available: "+device.getConnection());
         }
+
         if(!GLContext.getAvailableGLVersionsSet(device)) {
             GLContext.setAvailableGLVersionsSet(device);
         }
 
         if (DEBUG) {
-            System.err.println("GLProfile.initProfilesForDevice: "+device.getConnection()+": added profile(s): "+addedAnyProfile);
+            System.err.println("GLProfile.initProfilesForDevice: "+device.getConnection()+": added profile(s): desktop "+addedDesktopProfile+", egl "+addedEGLProfile);
             System.err.println("GLProfile.initProfilesForDevice: "+device.getConnection()+": "+glAvailabilityToString(device));
+            if(addedDesktopProfile) {
+                dumpGLInfo(desktopFactory, device);
+            }
+            if(addedEGLProfile) {
+                dumpGLInfo(eglFactory, device);
+            }
         }
 
-        return addedAnyProfile;
+        return addedDesktopProfile || addedEGLProfile;
+    }
+
+    private static void dumpGLInfo(GLDrawableFactoryImpl factory, AbstractGraphicsDevice device)  {
+        GLContext ctx = factory.getOrCreateSharedContext(device);
+        AbstractGraphicsDevice nativeDevice = ctx.getGLDrawable().getNativeSurface()
+                                                 .getGraphicsConfiguration().getNativeGraphicsConfiguration()
+                                                 .getScreen().getDevice();
+        nativeDevice.unlock();
+        try {
+            ctx.makeCurrent();
+            System.err.println(JoglVersion.getGLInfo(ctx.getGL(), null));
+            ctx.release();
+        } finally {
+          nativeDevice.unlock();
+        }
     }
 
     public static AbstractGraphicsDevice getDefaultDevice() {

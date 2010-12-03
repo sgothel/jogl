@@ -602,9 +602,9 @@ public abstract class GLContext {
           deviceVersionsAvailableSet.add(devKey);
           if (DEBUG0) {
             String msg = getThreadName() + ": !!! createContextARB: SET mappedVersionsAvailableSet "+devKey;
-            Throwable t = new Throwable(msg);
-            t.printStackTrace();
-            // System.err.println(msg);
+            // Throwable t = new Throwable(msg);
+            // t.printStackTrace();
+            System.err.println(msg);
           }
       }
   }
