@@ -95,17 +95,20 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     public EGLDrawableFactory() {
         super();
-        defaultDevice = new EGLGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+        defaultDevice = new EGLGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
     static class SharedResource {
-      private EGLDrawable drawable;
-      private EGLContext context;
+      private EGLGraphicsDevice device;
+      //private EGLDrawable drawable;
+      //private EGLContext context;
 
-      SharedResource(EGLDrawable draw, EGLContext ctx) {
-          drawable = draw;
-          context = ctx;
+      SharedResource(EGLGraphicsDevice dev /*, EGLDrawable draw, EGLContext ctx */) {
+          device = dev;
+          // drawable = draw;
+          // context = ctx;
       }
+      EGLGraphicsDevice getDevice() { return device; }
     }
     HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
     EGLGraphicsDevice defaultDevice;
@@ -121,8 +124,45 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
       return false;
     }
 
+    private SharedResource getOrCreateShared(AbstractGraphicsDevice device) {
+        String connection = device.getConnection();
+        SharedResource sr;
+        synchronized(sharedMap) {
+            sr = (SharedResource) sharedMap.get(connection);
+        }
+        if(null==sr) {
+            long eglDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
+            if (eglDisplay == EGL.EGL_NO_DISPLAY) {
+                throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
+            } else if(DEBUG) {
+                System.err.println("eglDisplay(EGL_DEFAULT_DISPLAY): 0x"+Long.toHexString(eglDisplay));
+            }
+            if (!EGL.eglInitialize(eglDisplay, null, null)) {
+                throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
+            }
+            EGLGraphicsDevice sharedDevice = new EGLGraphicsDevice(eglDisplay, connection, device.getUnitID());
+            sr = new SharedResource(sharedDevice);
+            synchronized(sharedMap) {
+                sharedMap.put(connection, sr);
+            }
+            if (DEBUG) {
+              System.err.println("!!! SharedDevice: "+sharedDevice);
+            }
+        }
+        return sr;
+    }
+
+
     protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
-        // FIXME: not implemented .. needs a dummy EGL surface
+        // FIXME: not implemented .. needs a dummy EGL surface - NEEDED ?
+        return null;
+    }
+
+    protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {
+        SharedResource sr = getOrCreateShared(device);
+        if(null!=sr) {
+            return sr.getDevice();
+        }
         return null;
     }
 
@@ -152,19 +192,24 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     protected GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) {
-        throw new GLException("Not yet implemented");
+        if (target == null) {
+          throw new IllegalArgumentException("Null target");
+        }
+        AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+        if(!caps.isPBuffer()) {
+            throw new GLException("Not yet implemented");
+        }
+        // PBuffer GLDrawable Creation
+        return new EGLPbufferDrawable(this, target);
     }
 
     public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
         return true;
     }
 
-    protected GLDrawableImpl createGLPbufferDrawableImpl(NativeSurface target) {
-        return new EGLPbufferDrawable(this, target);
-    }
-
-    protected NativeSurface createOffscreenSurfaceImpl(GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
-        ProxySurface ns = new ProxySurface(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(capsChosen, capsRequested, chooser));
+    protected NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device, GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
+        ProxySurface ns = new ProxySurface(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(device, capsChosen, capsRequested, chooser));
         ns.setSize(width, height);
         return ns;
     }

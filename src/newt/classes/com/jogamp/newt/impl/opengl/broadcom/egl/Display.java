@@ -61,7 +61,7 @@ public class Display extends com.jogamp.newt.impl.DisplayImpl {
         if (handle == EGL.EGL_NO_DISPLAY) {
             throw new NativeWindowException("BC EGL CreateDisplay failed");
         }
-        aDevice = new EGLGraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT);
+        aDevice = new EGLGraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
     protected void closeNativeImpl() {

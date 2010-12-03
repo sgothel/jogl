@@ -51,11 +51,11 @@ import com.jogamp.nativewindow.impl.windows.BITMAPINFOHEADER;
 import com.jogamp.nativewindow.impl.windows.GDI;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
-public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
+public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
   private long origbitmap;
   private long hbitmap;
 
-  protected WindowsOffscreenWGLDrawable(GLDrawableFactory factory, NativeSurface target) {
+  protected WindowsBitmapWGLDrawable(GLDrawableFactory factory, NativeSurface target) {
     super(factory, target, true);
     create();
   }
@@ -69,7 +69,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   }
 
   public GLContext createContext(GLContext shareWith) {
-    return new WindowsOffscreenWGLContext(this, shareWith);
+    return new WindowsBitmapWGLContext(this, shareWith);
   }
 
   private void create() {

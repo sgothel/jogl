@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -40,10 +41,9 @@
 package com.jogamp.opengl.impl.windows.wgl;
 
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
 
-public class WindowsOffscreenWGLContext extends WindowsWGLContext {
-  public WindowsOffscreenWGLContext(WindowsOffscreenWGLDrawable drawable,
+public class WindowsBitmapWGLContext extends WindowsWGLContext {
+  public WindowsBitmapWGLContext(WindowsBitmapWGLDrawable drawable,
                                    GLContext shareWith) {
     super(drawable, shareWith);
   }

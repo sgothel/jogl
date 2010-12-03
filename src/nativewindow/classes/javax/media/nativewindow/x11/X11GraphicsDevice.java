@@ -86,7 +86,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
             handle = 0;
             return true;
         }
-        return true;
+        return false;
     }
 }
 

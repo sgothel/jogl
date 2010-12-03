@@ -966,6 +966,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     public void initialize() {
       // Fall-through path: create an offscreen context instead
       offscreenDrawable = (GLDrawableImpl) factory.createOffscreenDrawable(
+                                                null /* default platform device */,
                                                 offscreenCaps,
                                                 chooser,
                                                 Math.max(1, panelWidth),
@@ -1051,7 +1052,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         throw new InternalError("Creating pbuffer twice without destroying it (memory leak / correctness bug)");
       }
       try {
-        pbuffer = factory.createGLPbuffer(offscreenCaps,
+        pbuffer = factory.createGLPbuffer(null /* default platform device */,
+                                          offscreenCaps,
                                           null,
                                           pbufferWidth,
                                           pbufferHeight,

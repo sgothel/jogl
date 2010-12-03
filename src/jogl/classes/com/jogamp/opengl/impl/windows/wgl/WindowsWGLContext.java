@@ -111,10 +111,15 @@ public class WindowsWGLContext extends GLContextImpl {
         WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
         AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
         AbstractGraphicsDevice device = config.getScreen().getDevice();
-        WindowsWGLDrawableFactory.SharedResource sr = factory.getOrCreateShared(device);
-        if(null != sr) {
-            wglMakeContextCurrentAvailable = factory.isReadDrawableAvailable(device);
-            wglMakeContextCurrentInitialized=true;
+        switch( factory.isReadDrawableAvailable(device) ) {
+            case  1:
+                wglMakeContextCurrentAvailable = true;
+                wglMakeContextCurrentInitialized=true;
+                break;
+            case  0:
+                wglMakeContextCurrentAvailable = false;
+                wglMakeContextCurrentInitialized=true;
+                break;
         }
     }
     return wglMakeContextCurrentAvailable;

@@ -44,10 +44,10 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.nativewindow.impl.x11.*;
 
-public class X11OffscreenGLXDrawable extends X11GLXDrawable {
+public class X11PixmapGLXDrawable extends X11GLXDrawable {
   private long pixmap;
 
-  protected X11OffscreenGLXDrawable(GLDrawableFactory factory, NativeSurface target) {
+  protected X11PixmapGLXDrawable(GLDrawableFactory factory, NativeSurface target) {
     super(factory, target, true);
     create();
   }
@@ -61,7 +61,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
   }
 
   public GLContext createContext(GLContext shareWith) {
-    return new X11OffscreenGLXContext(this, shareWith);
+    return new X11PixmapGLXContext(this, shareWith);
   }
   
   private void create() {

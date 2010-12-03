@@ -207,7 +207,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       private final SharedResource createSharedResource(String connection) {
           X11GraphicsDevice sharedDevice = new X11GraphicsDevice(X11Util.createDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT);
           sharedDevice.setCloseDisplay(true);
-          X11Util.lockDefaultToolkit(sharedDevice.getHandle()); // OK
+          sharedDevice.lock();
           try {
               String glXVendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
               X11GraphicsScreen sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
@@ -245,7 +245,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
               }
               return new SharedResource(sharedDevice, sharedScreen, sharedDrawable, sharedContext, glXVersion, glXVendorName);
           } finally {
-              X11Util.unlockDefaultToolkit(sharedDevice.getHandle()); // OK
+              sharedDevice.unlock();
           }
       }
 
@@ -343,23 +343,18 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       }
   }
 
-  protected final SharedResource getOrCreateShared(AbstractGraphicsDevice device) {
+  private SharedResource getOrCreateShared(AbstractGraphicsDevice device) {
     String connection = device.getConnection();
-    boolean deviceTried = getDeviceTried(connection);
     SharedResource sr;
     synchronized(sharedMap) {
       sr = (SharedResource) sharedMap.get(connection);
     }
 
-    if (DEBUG) {
-      System.err.println("getOrCreateShared() "+connection+": has shared "+(null!=sr)+", already tried "+deviceTried);
-    }
-
-    if(null==sr && !deviceTried) {
+    if(null==sr && !getDeviceTried(connection)) {
+        addDeviceTried(connection);
         if (DEBUG) {
           System.err.println("getOrCreateShared() "+connection+": trying");
         }
-        addDeviceTried(connection);
         sharedResourcesRunner.initializeAndWait(connection);
         synchronized(sharedMap) {
             sr = (SharedResource) sharedMap.get(connection);
@@ -376,6 +371,14 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     SharedResource sr = getOrCreateShared(device);
     if(null!=sr) {
       return sr.getContext();
+    }
+    return null;
+  }
+
+  protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {
+    SharedResource sr = getOrCreateShared(device);
+    if(null!=sr) {
+        return sr.getDevice();
     }
     return null;
   }
@@ -439,35 +442,17 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    return new X11OffscreenGLXDrawable(this, target);
-  }
-
-  public final boolean glXVersionGreaterEqualOneThree(AbstractGraphicsDevice device) {
-      VersionNumber glXVersion = getGLXVersion(device);
-      return ( null != glXVersion ) ? glXVersion.compareTo(versionOneThree) >= 0 : false ;
-  }
-
-  public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
-      if(null == device) {
-        SharedResource sr = getOrCreateShared(defaultDevice);
-        if(null!=sr) {
-            device = sr.getDevice();
-        }
-      }
-      return glXVersionGreaterEqualOneThree(device);
-  }
-
-  protected final GLDrawableImpl createGLPbufferDrawableImpl(final NativeSurface target) {
-    if (target == null) {
-      throw new IllegalArgumentException("Null target");
+    AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+    if(!caps.isPBuffer()) {
+        return new X11PixmapGLXDrawable(this, target);
     }
 
+    // PBuffer GLDrawable Creation
     GLDrawableImpl pbufferDrawable;
-
-    AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     AbstractGraphicsDevice device = config.getScreen().getDevice();
 
-    /** 
+    /**
      * Due to the ATI Bug https://bugzilla.mozilla.org/show_bug.cgi?id=486277,
      * we need to have a context current on the same Display to create a PBuffer.
      * The dummy context shall also use the same Display,
@@ -489,11 +474,27 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return pbufferDrawable;
   }
 
+  public final boolean glXVersionGreaterEqualOneThree(AbstractGraphicsDevice device) {
+      VersionNumber glXVersion = getGLXVersion(device);
+      return ( null != glXVersion ) ? glXVersion.compareTo(versionOneThree) >= 0 : false ;
+  }
 
-  protected final NativeSurface createOffscreenSurfaceImpl(GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser,
+  public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
+      if(null == device) {
+        SharedResource sr = getOrCreateShared(defaultDevice);
+        if(null!=sr) {
+            device = sr.getDevice();
+        }
+      }
+      return glXVersionGreaterEqualOneThree(device);
+  }
+
+  protected final NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device,
+                                                           GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
+                                                           GLCapabilitiesChooser chooser,
                                                            int width, int height) {
     X11GraphicsScreen screen = null;
-    SharedResource sr = getOrCreateShared(defaultDevice);
+    SharedResource sr = getOrCreateShared(device);
     if(null!=sr) {
         screen = sr.getScreen();
     }

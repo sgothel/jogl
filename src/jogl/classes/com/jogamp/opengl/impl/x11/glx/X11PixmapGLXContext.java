@@ -42,9 +42,9 @@ package com.jogamp.opengl.impl.x11.glx;
 
 import javax.media.opengl.*;
 
-public class X11OffscreenGLXContext extends X11GLXContext {
+public class X11PixmapGLXContext extends X11GLXContext {
 
-  public X11OffscreenGLXContext(X11OffscreenGLXDrawable drawable,
+  public X11PixmapGLXContext(X11PixmapGLXDrawable drawable,
                                GLContext shareWith) {
     super(drawable, shareWith);
   }

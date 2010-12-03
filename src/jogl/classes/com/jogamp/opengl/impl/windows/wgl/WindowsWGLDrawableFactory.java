@@ -69,6 +69,7 @@ import com.jogamp.opengl.impl.DesktopGLDynamicLookupHelper;
 import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
 import com.jogamp.opengl.impl.GLDrawableImpl;
 import com.jogamp.opengl.impl.GLDynamicLookupHelper;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
@@ -110,17 +111,21 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   static class SharedResource {
+      private WindowsGraphicsDevice device;
       private WindowsDummyWGLDrawable drawable;
       private WindowsWGLContext context;
       private boolean canCreateGLPbuffer;
       private boolean readDrawableAvailable;
 
-      SharedResource(WindowsDummyWGLDrawable draw, WindowsWGLContext ctx, boolean readBufferAvail, boolean canPbuffer) {
+      SharedResource(WindowsGraphicsDevice dev, WindowsDummyWGLDrawable draw, WindowsWGLContext ctx,
+                     boolean readBufferAvail, boolean canPbuffer) {
+          device = dev;
           drawable = draw;
           context = ctx;
           canCreateGLPbuffer = canPbuffer;
           readDrawableAvailable = readBufferAvail;
       }
+      WindowsGraphicsDevice getDevice() { return device; }
       WindowsWGLContext getContext() { return context; }
       boolean canCreateGLPbuffer() { return canCreateGLPbuffer; }
       boolean isReadDrawableAvailable() { return readDrawableAvailable; }
@@ -156,7 +161,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   final static String WGL_ARB_make_current_read = "WGL_ARB_make_current_read";
   final static String wglMakeContextCurrent = "wglMakeContextCurrent";
 
-  protected final SharedResource getOrCreateShared(AbstractGraphicsDevice device) {
+  private SharedResource getOrCreateShared(AbstractGraphicsDevice device) {
     String connection = device.getConnection();
     SharedResource sr;
     synchronized(sharedMap) {
@@ -166,16 +171,19 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         addDeviceTried(connection);
         NativeWindowFactory.getDefaultToolkitLock().lock(); // OK
         try {
-            WindowsDummyWGLDrawable sharedDrawable = WindowsDummyWGLDrawable.create(this, null);
+            WindowsGraphicsDevice sharedDevice = new WindowsGraphicsDevice(connection, AbstractGraphicsDevice.DEFAULT_UNIT);
+            GLProfile glp = GLProfile.getDefault(/*sharedDevice*/); // can't fetch device profile, which shared resource we create here
+            AbstractGraphicsScreen absScreen = new DefaultGraphicsScreen(sharedDevice, 0);
+            WindowsDummyWGLDrawable sharedDrawable = WindowsDummyWGLDrawable.create(this, glp, absScreen);
             WindowsWGLContext ctx  = (WindowsWGLContext) sharedDrawable.createContext(null);
             ctx.makeCurrent();
             boolean canCreateGLPbuffer = ctx.getGL().isExtensionAvailable(GL_ARB_pbuffer);
             boolean readDrawableAvailable = ctx.isExtensionAvailable(WGL_ARB_make_current_read) &&
                                                      ctx.isFunctionAvailable(wglMakeContextCurrent);
             ctx.release();
-            sr = new SharedResource(sharedDrawable, ctx, readDrawableAvailable, canCreateGLPbuffer);
+            sr = new SharedResource(sharedDevice, sharedDrawable, ctx, readDrawableAvailable, canCreateGLPbuffer);
             synchronized(sharedMap) {
-                sharedMap.put(device.getConnection(), sr);
+                sharedMap.put(connection, sr);
             }
             if (DEBUG) {
               System.err.println("!!! SharedContext: "+ctx+", pbuffer supported "+canCreateGLPbuffer+
@@ -195,6 +203,14 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     SharedResource sr = getOrCreateShared(device);
     if(null!=sr) {
       return sr.getContext();
+    }
+    return null;
+  }
+
+  protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {
+    SharedResource sr = getOrCreateShared(device);
+    if(null!=sr) {
+        return sr.getDevice();
     }
     return null;
   }
@@ -238,38 +254,22 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return new WindowsOnscreenWGLDrawable(this, target);
   }
 
-  protected final GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) {
+  protected final GLDrawableImpl createOffscreenDrawableImpl(final NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    return new WindowsOffscreenWGLDrawable(this, target);
-  }
-
-  public final boolean isReadDrawableAvailable(AbstractGraphicsDevice device) {
-    SharedResource sr = getOrCreateShared((null!=device)?device:defaultDevice);
-    if(null!=sr) {
-        return sr.isReadDrawableAvailable();
+    AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+    if(!caps.isPBuffer()) {
+        return new WindowsBitmapWGLDrawable(this, target);
     }
-    return false;
-  }
 
-  public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
-    SharedResource sr = getOrCreateShared((null!=device)?device:defaultDevice);
-    if(null!=sr) {
-        return sr.canCreateGLPbuffer();
-    }
-    return false;
-  }
-
-  protected final GLDrawableImpl createGLPbufferDrawableImpl(final NativeSurface target) {
-    if (target == null) {
-      throw new IllegalArgumentException("Null target");
-    }
-    final AbstractGraphicsDevice device = target.getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
+    // PBuffer GLDrawable Creation
+    final AbstractGraphicsDevice device = config.getScreen().getDevice();
 
     final SharedResource sr = getOrCreateShared(device);
     if(null==sr) {
-        return null;
+        throw new IllegalArgumentException("No shared resource for "+device);
     }
     final List returnList = new ArrayList();
     Runnable r = new Runnable() {
@@ -298,7 +298,27 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return (GLDrawableImpl) returnList.get(0);
   }
 
-  protected final NativeSurface createOffscreenSurfaceImpl(GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
+  /**
+   * @return 1 if read drawable extension is available, 0 if not
+   *           and -1 if undefined yet, ie no shared device exist at this point.
+   */
+  public final int isReadDrawableAvailable(AbstractGraphicsDevice device) {
+    SharedResource sr = getOrCreateShared((null!=device)?device:defaultDevice);
+    if(null!=sr) {
+        return sr.isReadDrawableAvailable() ? 1 : 0 ;
+    }
+    return -1; // undefined
+  }
+
+  public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
+    SharedResource sr = getOrCreateShared((null!=device)?device:defaultDevice);
+    if(null!=sr) {
+        return sr.canCreateGLPbuffer();
+    }
+    return false;
+  }
+
+  protected final NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device,GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
     AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
     ProxySurface ns = new ProxySurface(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
                                      capsChosen, capsRequested, chooser, screen) );

@@ -117,6 +117,10 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
         return null;
   }
 
+  protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {
+      return device; // nothing to do, no native open device
+  }
+
   protected final void shutdownInstance() {}
 
   protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
@@ -127,15 +131,14 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   protected GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) {
-    return new MacOSXOffscreenCGLDrawable(this, target);
-  }
+    AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+    if(!caps.isPBuffer()) {
+        return new MacOSXOffscreenCGLDrawable(this, target);
+    }
 
-  public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
-    return true;
-  }
-
-  protected GLDrawableImpl createGLPbufferDrawableImpl(final NativeSurface target) {
-    /** 
+    // PBuffer GLDrawable Creation
+    /**
      * FIXME: Think about this ..
      * should not be necessary ? ..
     final List returnList = new ArrayList();
@@ -151,7 +154,11 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     return new MacOSXPbufferCGLDrawable(this, target);
   }
 
-  protected NativeSurface createOffscreenSurfaceImpl(GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
+  public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
+    return true;
+  }
+
+  protected NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device,GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
     AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_MACOSX);
     ProxySurface ns = new ProxySurface(MacOSXCGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen, true));
     ns.setSize(width, height);

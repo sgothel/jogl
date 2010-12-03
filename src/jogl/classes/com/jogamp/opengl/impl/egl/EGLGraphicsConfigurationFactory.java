@@ -291,7 +291,7 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         }
     }
 
-    static EGLGraphicsConfiguration createOffscreenGraphicsConfiguration(GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsReq, GLCapabilitiesChooser chooser) {
+    static EGLGraphicsConfiguration createOffscreenGraphicsConfiguration(AbstractGraphicsDevice device, GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsReq, GLCapabilitiesChooser chooser) {
         if(capsChosen.isOnscreen()) {
             throw new GLException("Error: Onscreen set: "+capsChosen);
         }
@@ -303,21 +303,10 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
             capsChosen = caps2;
         }
 
-        long eglDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
-        if (eglDisplay == EGL.EGL_NO_DISPLAY) {
-            throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
-        } else if(DEBUG) {
-            System.err.println("eglDisplay(EGL_DEFAULT_DISPLAY): 0x"+Long.toHexString(eglDisplay));
-        }
-        if (!EGL.eglInitialize(eglDisplay, null, null)) {
-            throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
-        }
-        EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay, AbstractGraphicsDevice.DEFAULT_UNIT);
-        DefaultGraphicsScreen s = new DefaultGraphicsScreen(e, 0);
-        EGLGraphicsConfiguration eglConfig = chooseGraphicsConfigurationStatic(capsChosen, capsReq, chooser, s);
+        DefaultGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
+        EGLGraphicsConfiguration eglConfig = chooseGraphicsConfigurationStatic(capsChosen, capsReq, chooser, screen);
         if (null == eglConfig) {
-            EGL.eglTerminate(eglDisplay);
-            throw new GLException("Couldn't create EGLGraphicsConfiguration from "+s);
+            throw new GLException("Couldn't create EGLGraphicsConfiguration from "+screen);
         } else if(DEBUG) {
             System.err.println("Chosen eglConfig: "+eglConfig);
         }

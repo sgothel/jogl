@@ -88,56 +88,6 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
                                                  (GLCapabilitiesChooser)chooser, (X11GraphicsScreen)absScreen);
     }
 
-    /**
-    static X11GLXGraphicsConfiguration createDefaultGraphicsConfigurationFBConfig(AbstractGraphicsScreen absScreen, boolean onscreen, boolean usePBuffer) {
-      if (absScreen == null) {
-        throw new IllegalArgumentException("AbstractGraphicsScreen is null");
-      }
-      if (!(absScreen instanceof X11GraphicsScreen)) {
-        throw new IllegalArgumentException("Only X11GraphicsScreen are allowed here");
-      }
-      X11GraphicsScreen x11Screen = (X11GraphicsScreen)absScreen;
-
-      GLProfile glProfile = GLProfile.getDefault();
-      GLCapabilities availableCaps=null;
-      XVisualInfo xvis=null;
-      long fbcfg = 0;
-      int fbid = -1;
-
-      // Utilizing FBConfig
-      //
-      GLCapabilities capsFB = null;
-      long display = x11Screen.getDevice().getHandle();
-
-      try {
-          int screen = x11Screen.getIndex();
-          boolean isMultisampleAvailable = GLXUtil.isMultisampleAvailable(display);
-
-          long visID = X11Util.DefaultVisualID(display, x11Screen.getIndex());
-          xvis = X11GLXGraphicsConfiguration.XVisualID2XVisualInfo(display, visID);
-          availableCaps = X11GLXGraphicsConfiguration.XVisualInfo2GLCapabilities(glProfile, display, xvis, onscreen, usePBuffer, isMultisampleAvailable);
-
-          int[] attribs = X11GLXGraphicsConfiguration.GLCapabilities2AttribList(availableCaps, true, isMultisampleAvailable, display, screen);
-          int[] count = { -1 };
-          PointerBuffer fbcfgsL = GLX.glXChooseFBConfig(display, screen, attribs, 0, count, 0);
-          if (fbcfgsL == null || fbcfgsL.limit()<1) {
-              throw new Exception("Could not fetch FBConfig for "+availableCaps);
-          }
-          fbcfg = fbcfgsL.get(0);
-          capsFB = X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(glProfile, display, fbcfg, true, onscreen, usePBuffer, isMultisampleAvailable);
-
-          fbid = X11GLXGraphicsConfiguration.glXFBConfig2FBConfigID(display, fbcfg);
-
-          xvis = GLX.glXGetVisualFromFBConfig(display, fbcfg);
-          if (xvis==null) {
-            throw new GLException("Error: Choosen FBConfig has no visual");
-          }
-      } catch (Throwable t) {
-      }
-
-      return new X11GLXGraphicsConfiguration(x11Screen, (null!=capsFB)?capsFB:availableCaps, availableCaps, null, xvis, fbcfg, fbid);
-    } */
-
     static X11GLXGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
                                                                          GLCapabilitiesImmutable capsReq,
                                                                          GLCapabilitiesChooser chooser,

@@ -66,7 +66,7 @@ public class KDDisplay extends DisplayImpl {
         if (!EGL.eglInitialize(handle, null, null)) {
             throw new NativeWindowException("eglInitialize failed");
         }
-        aDevice = new EGLGraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT);
+        aDevice = new EGLGraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
     protected void closeNativeImpl() {

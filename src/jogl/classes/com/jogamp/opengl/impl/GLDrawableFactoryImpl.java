@@ -55,7 +55,33 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   protected GLDrawableFactoryImpl() {
     super();
   }
-  
+
+  /**
+   * Returns the shared device mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
+   * either a preexisting or newly created, or <code>null</code> if creation failed or not supported.<br>
+   * Creation of the shared context is tried only once.
+   *
+   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
+   */
+  protected final AbstractGraphicsDevice getOrCreateSharedDevice(AbstractGraphicsDevice device) {
+      if(null==device) {
+          device = getDefaultDevice();
+          if(null==device) {
+              throw new InternalError("no default device");
+          }
+          if (GLProfile.DEBUG) {
+              System.err.println("Info: GLDrawableFactoryImpl.getOrCreateSharedContext: using default device : "+device);
+          }
+      } else if( !getIsDeviceCompatible(device) ) {
+          if (GLProfile.DEBUG) {
+              System.err.println("Info: GLDrawableFactoryImpl.getOrCreateSharedContext: device not compatible : "+device);
+          }
+          return null;
+      }
+      return getOrCreateSharedDeviceImpl(device);
+  }
+  protected abstract AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device);
+
   /** 
    * Returns the GLDynamicLookupHelper
    * @param profile if EGL/ES, profile <code>1</code> refers to ES1 and <code>2</code> to ES2,
@@ -85,18 +111,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
             if( ! ( target instanceof SurfaceChangeable ) ) {
                 throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen: "+target);
             }
-            if(caps.isPBuffer() && canCreateGLPbuffer(adevice)) {
-                if(DEBUG) {
-                    System.err.println("GLDrawableFactoryImpl.createGLDrawable -> PbufferDrawable: "+target);
-                }
-                result = createGLPbufferDrawable(target);
+            if(DEBUG) {
+                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable (PBuffer: "+caps.isPBuffer()+"): "+target);
             }
-            if(null==result) {
-                if(DEBUG) {
-                    System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable: "+target);
-                }
-                result = createOffscreenDrawableImpl(target);
-            }
+            result = createOffscreenDrawableImpl(target);
         }
     } finally {
         adevice.unlock();
@@ -121,26 +139,27 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device);
 
-  /** Target must implement SurfaceChangeable */
-  protected abstract GLDrawableImpl createGLPbufferDrawableImpl(NativeSurface target);
-
-  private GLDrawableImpl createGLPbufferDrawable(NativeSurface target) {
-    if (!canCreateGLPbuffer(target.getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice())) {
-        throw new GLException("Pbuffer support not available with current graphics card");
-    }
-    return createGLPbufferDrawableImpl(target);
-  }
-  
-  public GLDrawable createGLPbufferDrawable(GLCapabilitiesImmutable capsRequested,
-                                            GLCapabilitiesChooser chooser,
-                                            int width,
-                                            int height) {
+  public GLPbuffer createGLPbuffer(AbstractGraphicsDevice deviceReq,
+                                   GLCapabilitiesImmutable capsRequested,
+                                   GLCapabilitiesChooser chooser,
+                                   int width,
+                                   int height,
+                                   GLContext shareWith) {
     if(height<=0 || height<=0) {
         throw new GLException("Width and height of pbuffer must be positive (were (" +
                         width + ", " + height + "))");
     }
 
     GLCapabilitiesImmutable capsChosen;
+
+    AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
+    if(null == device) {
+        throw new GLException("No shared device for requested: "+deviceReq);
+    }
+
+    if (!canCreateGLPbuffer(device)) {
+        throw new GLException("Pbuffer support not available with device: "+device);
+    }
 
     if( capsRequested.getDoubleBuffered() || capsRequested.isOnscreen() || !capsRequested.isPBuffer()) {
         // fix caps ..
@@ -152,21 +171,19 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     } else {
         capsChosen = capsRequested;
     }
-    NativeWindowFactory.getDefaultToolkitLock().lock();
-    try {
-        return createGLPbufferDrawable( createOffscreenSurfaceImpl(capsChosen, capsRequested, chooser, height, height) );
-    } finally {
-        NativeWindowFactory.getDefaultToolkitLock().unlock();
-    }
-  }
 
-  public GLPbuffer createGLPbuffer(GLCapabilitiesImmutable capabilities,
-                                   GLCapabilitiesChooser chooser,
-                                   int width,
-                                   int height,
-                                   GLContext shareWith) {
-    return new GLPbufferImpl( (GLDrawableImpl) createGLPbufferDrawable(capabilities, chooser, height, height),
-                              shareWith);
+    GLDrawableImpl drawable = null;
+    device.lock();
+    try {
+        drawable = (GLDrawableImpl) createGLDrawable( createOffscreenSurfaceImpl(device, capsChosen, capsRequested, chooser, height, height) );
+    } finally {
+        device.unlock();
+    }
+
+    if(null==drawable) {
+        throw new GLException("Could not create Pbuffer drawable for: "+device+", "+capsChosen+", "+width+"x"+height);
+    }
+    return new GLPbufferImpl( drawable, shareWith);
   }
 
 
@@ -177,13 +194,18 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   protected abstract GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) ;
 
-  public GLDrawable createOffscreenDrawable(GLCapabilitiesImmutable capsRequested,
+  public GLDrawable createOffscreenDrawable(AbstractGraphicsDevice deviceReq,
+                                            GLCapabilitiesImmutable capsRequested,
                                             GLCapabilitiesChooser chooser,
                                             int width,
                                             int height) {
     if(width<=0 || height<=0) {
         throw new GLException("Width and height of pbuffer must be positive (were (" +
                         width + ", " + height + "))");
+    }
+    AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
+    if(null == device) {
+        throw new GLException("No shared device for requested: "+deviceReq);
     }
     GLCapabilitiesImmutable capsChosen;
 
@@ -192,16 +214,49 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
         caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
         caps2.setOnscreen(false);
-        caps2.setPBuffer(false);
+        if(caps2.isPBuffer() && !canCreateGLPbuffer(device)) {
+            caps2.setPBuffer(false);
+        }
         capsChosen = caps2;
     } else {
         capsChosen = capsRequested;
     }
-    NativeWindowFactory.getDefaultToolkitLock().lock();
+    device.lock();
     try {
-        return createOffscreenDrawableImpl( createOffscreenSurfaceImpl(capsChosen, capsRequested, chooser, width, height) );
+        return createGLDrawable( createOffscreenSurfaceImpl(device, capsChosen, capsRequested, chooser, width, height) );
     } finally {
-        NativeWindowFactory.getDefaultToolkitLock().unlock();
+        device.unlock();
+    }
+  }
+
+  public NativeSurface createOffscreenSurface(AbstractGraphicsDevice deviceReq,
+                                              GLCapabilitiesImmutable capsRequested,
+                                              GLCapabilitiesChooser chooser,
+                                              int width, int height) {
+    GLCapabilitiesImmutable capsChosen;
+
+    AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
+    if(null == device) {
+        throw new GLException("No shared device for requested: "+deviceReq);
+    }
+
+    if( capsRequested.getDoubleBuffered() || capsRequested.isOnscreen() || capsRequested.isPBuffer()) {
+        // fix caps ..
+        GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
+        caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
+        caps2.setOnscreen(false);
+        if(caps2.isPBuffer() && !canCreateGLPbuffer(device)) {
+            caps2.setPBuffer(false);
+        }
+        capsChosen = caps2;
+    } else {
+        capsChosen = capsRequested;
+    }
+    device.lock();
+    try {
+        return createOffscreenSurfaceImpl(device, capsChosen, capsRequested, chooser, width, height);
+    } finally {
+        device.unlock();
     }
   }
 
@@ -209,7 +264,8 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * creates an offscreen NativeSurface, which must implement SurfaceChangeable as well,
    * so the windowing system related implementation is able to set the surface handle.
    */
-  protected abstract NativeSurface createOffscreenSurfaceImpl(GLCapabilitiesImmutable capabilities, GLCapabilitiesImmutable capsRequested,
+  protected abstract NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device,
+                                                              GLCapabilitiesImmutable capabilities, GLCapabilitiesImmutable capsRequested,
                                                               GLCapabilitiesChooser chooser,
                                                               int width, int height);
 
