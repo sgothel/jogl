@@ -135,9 +135,22 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
   /** Creates a new GLCanvas component with the requested set of
       OpenGL capabilities, using the default OpenGL capabilities
-      selection mechanism, on the default screen device. */
+      selection mechanism, on the default screen device. 
+   * @see GLCanvas#GLCanvas(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, javax.media.opengl.GLContext, java.awt.GraphicsDevice)
+   */
   public GLCanvas(GLCapabilitiesImmutable capsReqUser) {
     this(capsReqUser, null, null, null);
+  }
+
+  /** Creates a new GLCanvas component with the requested set of
+      OpenGL capabilities, using the default OpenGL capabilities
+      selection mechanism, on the default screen device.
+   *  This constructor variant also supports using a shared GLContext.
+   *
+   * @see GLCanvas#GLCanvas(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, javax.media.opengl.GLContext, java.awt.GraphicsDevice)
+   */
+  public GLCanvas(GLCapabilitiesImmutable capsReqUser, GLContext shareWith) {
+    this(capsReqUser, null, shareWith, null);
   }
 
   /** Creates a new GLCanvas component. The passed GLCapabilities
