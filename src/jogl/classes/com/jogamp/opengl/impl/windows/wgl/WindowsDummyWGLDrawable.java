@@ -44,38 +44,42 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLProfile;
 
+import javax.media.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.impl.ProxySurface;
 import com.jogamp.nativewindow.impl.windows.GDI;
-import com.jogamp.nativewindow.impl.windows.PIXELFORMATDESCRIPTOR;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLException;
 
 public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
   private long hwnd, hdc;
 
-  protected WindowsDummyWGLDrawable(GLDrawableFactory factory, GLCapabilitiesImmutable caps) {
-    super(factory, new ProxySurface(WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(caps, null)), true);
+  protected WindowsDummyWGLDrawable(GLDrawableFactory factory, GLCapabilitiesImmutable caps, AbstractGraphicsScreen absScreen) {
+    super(factory, new ProxySurface(WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(caps, absScreen)), true);
     hwnd = GDI.CreateDummyWindow(0, 0, 1, 1);
     hdc = GDI.GetDC(hwnd);
     ProxySurface ns = (ProxySurface) getNativeSurface();
     ns.setSurfaceHandle(hdc);
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    // Choose a (hopefully hardware-accelerated) OpenGL pixel format for this device context
-    PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.GLCapabilities2PFD((GLCapabilitiesImmutable)config.getChosenCapabilities());
-    int pixelFormat = GDI.ChoosePixelFormat(hdc, pfd);
-    if ((pixelFormat == 0) ||
-        (!GDI.SetPixelFormat(hdc, pixelFormat, pfd))) {
-      destroy();
+
+    try {
+        config.updateGraphicsConfiguration(factory, ns);
+        if (DEBUG) {
+          System.err.println("!!! WindowsDummyWGLDrawable: "+config);
+        }
+    } catch (Throwable t) {
+        destroyImpl();
+        throw new GLException(t);
     }
   }
 
-  public static WindowsDummyWGLDrawable create(GLDrawableFactory factory, GLProfile glp) {
+  public static WindowsDummyWGLDrawable create(GLDrawableFactory factory, GLProfile glp, AbstractGraphicsScreen absScreen) {
       GLCapabilities caps = new GLCapabilities(glp);
       caps.setDepthBits(16);
       caps.setDoubleBuffered(true);
       caps.setOnscreen  (true);
       caps.setPBuffer   (true);
-      return new WindowsDummyWGLDrawable(factory, caps);
+      return new WindowsDummyWGLDrawable(factory, caps, absScreen);
   }
 
   public void setSize(int width, int height) {

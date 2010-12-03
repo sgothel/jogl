@@ -137,7 +137,10 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         AbstractGraphicsDevice device = config.getScreen().getDevice();
         WindowsWGLContext sharedContext = (WindowsWGLContext) factory.getOrCreateSharedContextImpl(device);
         if (null == sharedContext) {
-            throw new InternalError("SharedContext is null: " + device);
+            if (DEBUG) {
+                System.err.println("updateGraphicsConfigurationARB: SharedContext is null: "+device);
+            }
+            return false;
         }
         GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         boolean onscreen = capsChosen.isOnscreen();
@@ -152,17 +155,6 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         int numFormats = -1;
         int recommendedIndex = -1;
 
-        if ((pixelFormatSet = GDI.GetPixelFormat(hdc)) != 0) {
-            // Pixelformat already set by either
-            //  - a previous updateGraphicsConfiguration() call on the same HDC,
-            //  - the graphics driver, copying the HDC's pixelformat to the new one,
-            //  - or the Java2D/OpenGL pipeline's configuration
-            if (DEBUG) {
-                System.err.println("updateGraphicsConfigurationARB: Pixel format already chosen for HDC: " + toHexString(hdc)
-                        + ", pixelformat " + pixelFormatSet);
-            }
-        }
-
         synchronized (sharedContext) {
             sharedContext.makeCurrent();
             try {
@@ -172,10 +164,18 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
                     }
                     return false;
                 }
-                if (pixelFormatSet >= 1) {
+                if ((pixelFormatSet = GDI.GetPixelFormat(hdc)) >= 1) {
+                    // Pixelformat already set by either
+                    //  - a previous updateGraphicsConfiguration() call on the same HDC,
+                    //  - the graphics driver, copying the HDC's pixelformat to the new one,
+                    //  - or the Java2D/OpenGL pipeline's configuration
+                    if (DEBUG) {
+                        System.err.println("updateGraphicsConfigurationARB: Pixel format already chosen for HDC: " + toHexString(hdc)
+                                + ", pixelformat " + pixelFormatSet);
+                    }
+
                     // only fetch the specific one ..
-                    pixelFormatCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedContext, hdc, pixelFormatSet,
-                                                                                                glProfile, onscreen, usePBuffer);
+                    pixelFormatCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedContext, hdc, pixelFormatSet,                                                                                                glProfile, onscreen, usePBuffer);
                 } else {
                     int[] iattributes = new int[2 * WindowsWGLGraphicsConfiguration.MAX_ATTRIBS];
                     float[] fattributes = new float[1];
@@ -292,11 +292,6 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
 
     private static boolean updateGraphicsConfigurationGDI(long hdc, WindowsWGLGraphicsConfiguration config,
                                                           CapabilitiesChooser chooser, WindowsWGLDrawableFactory factory) {
-        AbstractGraphicsDevice device = config.getScreen().getDevice();
-        WindowsWGLContext sharedContext = (WindowsWGLContext) factory.getOrCreateSharedContextImpl(device);
-        if (null == sharedContext) {
-            throw new InternalError("SharedContext is null: " + device);
-        }
         GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         boolean onscreen = capsChosen.isOnscreen();
         boolean usePBuffer = capsChosen.isPBuffer();
