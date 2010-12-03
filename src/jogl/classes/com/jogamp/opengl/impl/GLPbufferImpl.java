@@ -40,16 +40,19 @@
 
 package com.jogamp.opengl.impl;
 
-/**
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.event.*;
-import java.beans.PropertyChangeListener;
- */
-
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
 import com.jogamp.common.util.locks.RecursiveLock;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.opengl.GL;
+import javax.media.opengl.GLAnimatorControl;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLPbuffer;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLRunnable;
 
 /** Platform-independent class exposing pbuffer functionality to
     applications. This class is not exposed in the public API as it
@@ -92,6 +95,27 @@ public class GLPbufferImpl implements GLPbuffer {
     return true;
   }
 
+  class DisposeAction implements Runnable {
+    public void run() {
+        // Lock: Covered by DestroyAction ..
+        drawableHelper.dispose(GLPbufferImpl.this);
+    }
+  }
+  DisposeAction disposeAction = new DisposeAction();
+
+  public void destroy() {
+    if (null != context) {
+        try {
+            drawableHelper.invokeGL(pbufferDrawable, context, disposeAction, null);
+        } catch (GLException gle) {
+            gle.printStackTrace();
+        }
+        drawableHelper.reset();
+        context.destroy();
+    }
+    pbufferDrawable.destroy();
+  }
+
   public void setSize(int width, int height) {
     // FIXME
     throw new GLException("Not yet implemented");
@@ -118,9 +142,7 @@ public class GLPbufferImpl implements GLPbuffer {
   }
 
   public void display() {
-    maybeDoSingleThreadedWorkaround(displayOnEventDispatchThreadAction,
-                                    displayAction,
-                                    false);
+    invokeGL(displayAction);
   }
 
   public void repaint() {
@@ -180,7 +202,7 @@ public class GLPbufferImpl implements GLPbuffer {
   }
 
   public void swapBuffers() {
-    maybeDoSingleThreadedWorkaround(swapBuffersOnEventDispatchThreadAction, swapBuffersAction, false);
+    invokeGL(swapBuffersAction);
   }
 
   public void bindTexture() {
@@ -235,47 +257,6 @@ public class GLPbufferImpl implements GLPbuffer {
     return recurLock.getLockedStack();
   }
 
-  //----------------------------------------------------------------------
-  // No-ops for ComponentEvents
-  //
-
-  /*
-  public void addComponentListener(ComponentListener l) {}
-  public void removeComponentListener(ComponentListener l) {}
-  public void addFocusListener(FocusListener l) {}
-  public void removeFocusListener(FocusListener l) {}
-  public void addHierarchyBoundsListener(HierarchyBoundsListener l) {}
-  public void removeHierarchyBoundsListener(HierarchyBoundsListener l) {}
-  public void addHierarchyListener(HierarchyListener l) {}
-  public void removeHierarchyListener(HierarchyListener l) {}
-  public void addInputMethodListener(InputMethodListener l) {}
-  public void removeInputMethodListener(InputMethodListener l) {}
-  public void addKeyListener(KeyListener l) {}
-  public void removeKeyListener(KeyListener l) {}
-  public void addMouseListener(MouseListener l) {}
-  public void removeMouseListener(MouseListener l) {}
-  public void addMouseMotionListener(MouseMotionListener l) {}
-  public void removeMouseMotionListener(MouseMotionListener l) {}
-  public void addMouseWheelListener(MouseWheelListener l) {}
-  public void removeMouseWheelListener(MouseWheelListener l) {}
-  public void addPropertyChangeListener(PropertyChangeListener listener) {}
-  public void removePropertyChangeListener(PropertyChangeListener listener) {}
-  public void addPropertyChangeListener(String propertyName,
-                                        PropertyChangeListener listener) {}
-  public void removePropertyChangeListener(String propertyName,
-                                           PropertyChangeListener listener) {}
-                                           */
-
-  public void destroy() {
-    // FIXME: not calling event listeners .. see GLAutoDrawable spec
-    if (Threading.isSingleThreaded() &&
-        !Threading.isOpenGLThread()) {
-      Threading.invokeOnOpenGLThread(destroyAction);
-    } else {
-      destroyAction.run();
-    }
-  }
-
   public int getFloatingPointMode() {
     if (floatMode == 0) {
       throw new GLException("Pbuffer not initialized, or floating-point support not requested");
@@ -287,16 +268,10 @@ public class GLPbufferImpl implements GLPbuffer {
   // Internals only below this point
   //
 
-  private void maybeDoSingleThreadedWorkaround(Runnable eventDispatchThreadAction,
-                                               Runnable invokeGLAction,
-                                               boolean  isReshape) {
-    if (Threading.isSingleThreaded() &&
-        !Threading.isOpenGLThread()) {
-      Threading.invokeOnOpenGLThread(eventDispatchThreadAction);
-    } else {
-      drawableHelper.invokeGL(pbufferDrawable, context, invokeGLAction, initAction);
-    }
+  private void invokeGL(Runnable invokeGLAction) {
+    drawableHelper.invokeGL(pbufferDrawable, context, invokeGLAction, initAction);
   }
+
 
   class InitAction implements Runnable {
     public void run() {
@@ -319,32 +294,4 @@ public class GLPbufferImpl implements GLPbuffer {
     }
   }
   private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
-
-  // Workaround for ATI driver bugs related to multithreading issues
-  // like simultaneous rendering via Animators to canvases that are
-  // being resized on the AWT event dispatch thread
-  class DisplayOnEventDispatchThreadAction implements Runnable {
-    public void run() {
-      drawableHelper.invokeGL(pbufferDrawable, context, displayAction, initAction);
-    }
-  }
-  private DisplayOnEventDispatchThreadAction displayOnEventDispatchThreadAction =
-    new DisplayOnEventDispatchThreadAction();
-  class SwapBuffersOnEventDispatchThreadAction implements Runnable {
-    public void run() {
-      drawableHelper.invokeGL(pbufferDrawable, context, swapBuffersAction, initAction);
-    }
-  }
-  private SwapBuffersOnEventDispatchThreadAction swapBuffersOnEventDispatchThreadAction =
-    new SwapBuffersOnEventDispatchThreadAction();
-
-  class DestroyAction implements Runnable {
-    public void run() {
-      if (null != context) {
-          context.destroy();
-      }
-      pbufferDrawable.destroy();
-    }
-  }
-  private DestroyAction destroyAction = new DestroyAction();
 }
