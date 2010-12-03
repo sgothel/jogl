@@ -285,6 +285,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 createNativeImpl();
                 setVisibleImpl(true, x, y, width, height);
                 screen.addScreenModeListener(screenModeListenerImpl);
+                setTitleImpl(title);
             }
         } finally {
             if(null!=parentWindow) {
