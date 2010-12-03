@@ -373,7 +373,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
                     drawable = factory.createGLDrawable(nw);
                 }
                 drawable.setRealized(true);
-                context = drawable.createContext(null);
+                context = drawable.createContext(sharedContext);
             }
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
                 String msg = new String("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", fin");
@@ -404,6 +404,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
     // OpenGL-related methods and state
     //
 
+    private GLContext sharedContext = null;
     private GLDrawableFactory factory;
     private GLDrawable drawable;
     private GLContext context;
@@ -417,6 +418,18 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
 
     public GLDrawableFactory getFactory() {
         return factory;
+    }
+
+    /**
+     * Specifies an {@link javax.media.opengl.GLContext OpenGL context} to share with.<br>
+     * At native creation, {@link #setVisible(boolean) setVisible(true)},
+     * a {@link javax.media.opengl.GLDrawable drawable} and {@link javax.media.opengl.GLContext context} is created besides the native Window itself,<br>
+     * hence you shall set the shared context before.
+     *
+     * @param sharedContext The OpenGL context shared by this GLWindow's one
+     */
+    public void setSharedContext(GLContext sharedContext) {
+        this.sharedContext = sharedContext;
     }
 
     public void setContext(GLContext newCtx) {

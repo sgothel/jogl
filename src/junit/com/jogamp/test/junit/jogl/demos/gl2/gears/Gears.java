@@ -16,7 +16,7 @@ import com.jogamp.newt.Window;
 
 public class Gears implements GLEventListener {
   private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
-  private int gear1, gear2, gear3;
+  private int gear1=0, gear2=0, gear3=0;
   private float angle = 0.0f;
   private int swapInterval;
 
@@ -30,6 +30,27 @@ public class Gears implements GLEventListener {
   public Gears() {
     this.swapInterval = 1;
   }
+
+  public void setGears(int g1, int g2, int g3) {
+      gear1 = g1;
+      gear2 = g2;
+      gear3 = g3;
+  }
+
+  /**
+   * @return display list gear1
+   */
+  public int getGear1() { return gear1; }
+
+  /**
+   * @return display list gear2
+   */
+  public int getGear2() { return gear2; }
+
+  /**
+   * @return display list gear3
+   */
+  public int getGear3() { return gear3; }
 
   public void init(GLAutoDrawable drawable) {
     System.err.println("Gears: Init");
@@ -50,23 +71,38 @@ public class Gears implements GLEventListener {
     gl.glEnable(GL2.GL_DEPTH_TEST);
             
     /* make the gears */
-    gear1 = gl.glGenLists(1);
-    gl.glNewList(gear1, GL2.GL_COMPILE);
-    gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE, red, 0);
-    gear(gl, 1.0f, 4.0f, 1.0f, 20, 0.7f);
-    gl.glEndList();
+    if(0>=gear1) {
+        gear1 = gl.glGenLists(1);
+        gl.glNewList(gear1, GL2.GL_COMPILE);
+        gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE, red, 0);
+        gear(gl, 1.0f, 4.0f, 1.0f, 20, 0.7f);
+        gl.glEndList();
+        System.err.println("gear1 list created: "+gear1);
+    } else {
+        System.err.println("gear1 list reused: "+gear1);
+    }
             
-    gear2 = gl.glGenLists(1);
-    gl.glNewList(gear2, GL2.GL_COMPILE);
-    gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE, green, 0);
-    gear(gl, 0.5f, 2.0f, 2.0f, 10, 0.7f);
-    gl.glEndList();
+    if(0>=gear2) {
+        gear2 = gl.glGenLists(1);
+        gl.glNewList(gear2, GL2.GL_COMPILE);
+        gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE, green, 0);
+        gear(gl, 0.5f, 2.0f, 2.0f, 10, 0.7f);
+        gl.glEndList();
+        System.err.println("gear2 list created: "+gear2);
+    } else {
+        System.err.println("gear2 list reused: "+gear2);
+    }
             
-    gear3 = gl.glGenLists(1);
-    gl.glNewList(gear3, GL2.GL_COMPILE);
-    gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE, blue, 0);
-    gear(gl, 1.3f, 2.0f, 0.5f, 10, 0.7f);
-    gl.glEndList();
+    if(0>=gear3) {
+        gear3 = gl.glGenLists(1);
+        gl.glNewList(gear3, GL2.GL_COMPILE);
+        gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE, blue, 0);
+        gear(gl, 1.3f, 2.0f, 0.5f, 10, 0.7f);
+        gl.glEndList();
+        System.err.println("gear3 list created: "+gear3);
+    } else {
+        System.err.println("gear3 list reused: "+gear3);
+    }
             
     gl.glEnable(GL2.GL_NORMALIZE);
                 
