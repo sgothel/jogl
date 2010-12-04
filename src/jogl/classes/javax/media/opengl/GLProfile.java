@@ -1302,7 +1302,7 @@ public class GLProfile {
         AbstractGraphicsDevice nativeDevice = ctx.getGLDrawable().getNativeSurface()
                                                  .getGraphicsConfiguration().getNativeGraphicsConfiguration()
                                                  .getScreen().getDevice();
-        nativeDevice.unlock();
+        nativeDevice.lock();
         try {
             ctx.makeCurrent();
             System.err.println(JoglVersion.getGLInfo(ctx.getGL(), null));
