@@ -52,14 +52,16 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLException;
 
 public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
+  private static final int f_dim = 128;
   private long hwnd, hdc;
 
   protected WindowsDummyWGLDrawable(GLDrawableFactory factory, GLCapabilitiesImmutable caps, AbstractGraphicsScreen absScreen) {
     super(factory, new ProxySurface(WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(caps, absScreen)), true);
-    hwnd = GDI.CreateDummyWindow(0, 0, 1, 1);
+    hwnd = GDI.CreateDummyWindow(0, 0, f_dim, f_dim);
     hdc = GDI.GetDC(hwnd);
     ProxySurface ns = (ProxySurface) getNativeSurface();
     ns.setSurfaceHandle(hdc);
+    ns.setSize(f_dim, f_dim);
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
 
     try {
