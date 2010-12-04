@@ -398,10 +398,10 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XCloseDisplay__J(JNIEnv *env, jclas
 /*
  * Class:     com_jogamp_nativewindow_impl_x11_X11Lib
  * Method:    CreateDummyWindow
- * Signature: (JIJ)J
+ * Signature: (JIJII)J
  */
 JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummyWindow
-  (JNIEnv *env, jclass unused, jlong display, jint screen_index, jlong visualID)
+  (JNIEnv *env, jclass unused, jlong display, jint screen_index, jlong visualID, jint width, jint height)
 {
     Display * dpy  = (Display *)(intptr_t)display;
     int       scrn_idx = (int)screen_index;
@@ -463,17 +463,16 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
         windowParent = XRootWindowOfScreen(scrn);
     }
 
-    attrMask  = ( CWBackingStore | CWBackingPlanes | CWBackingPixel | CWBackPixel | 
+    attrMask  = ( CWBackingStore | CWBackingPlanes | CWBackingPixel | CWBackPixmap | 
                   CWBorderPixel | CWColormap | CWOverrideRedirect ) ;
 
     memset(&xswa, 0, sizeof(xswa));
     xswa.override_redirect = False; // use the window manager, always
     xswa.border_pixel = 0;
-    xswa.background_pixel = 0;
+    xswa.background_pixmap = None;
     xswa.backing_store=NotUseful; /* NotUseful, WhenMapped, Always */
     xswa.backing_planes=0;        /* planes to be preserved if possible */
     xswa.backing_pixel=0;         /* value to use in restoring planes */
-    xswa.event_mask = 0 ;         /* no events */
 
     xswa.colormap = XCreateColormap(dpy,
                                     XRootWindow(dpy, scrn_idx),
@@ -483,7 +482,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
     window = XCreateWindow(dpy,
                            windowParent,
                            0, 0,
-                           64, 64,
+                           width, height,
                            0, // border width
                            depth,
                            InputOutput,

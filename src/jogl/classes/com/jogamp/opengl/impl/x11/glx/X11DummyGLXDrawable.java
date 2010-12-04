@@ -35,7 +35,7 @@ import com.jogamp.nativewindow.impl.*;
 import com.jogamp.nativewindow.impl.x11.*;
 
 public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
-
+  private static final int f_dim = 128;
   private long dummyWindow = 0;
 
   /** 
@@ -57,8 +57,9 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
     int scrn = screen.getIndex();
     long visualID = config.getVisualID();
 
-    dummyWindow = X11Util.CreateDummyWindow(dpy, scrn, visualID);
+    dummyWindow = X11Util.CreateDummyWindow(dpy, scrn, visualID, f_dim, f_dim);
     ns.setSurfaceHandle( dummyWindow );
+    ns.setSize(f_dim, f_dim);
 
     updateHandle();
   }

@@ -500,10 +500,10 @@ public class X11Util {
         }
     }
 
-    public static long CreateDummyWindow(long display, int screen_index, long visualID) {
+    public static long CreateDummyWindow(long display, int screen_index, long visualID, int width, int height) {
         lockDefaultToolkit(display);
         try {
-            return X11Lib.CreateDummyWindow(display, screen_index, visualID);
+            return X11Lib.CreateDummyWindow(display, screen_index, visualID, width, height);
         } finally {
             unlockDefaultToolkit(display);
         }
