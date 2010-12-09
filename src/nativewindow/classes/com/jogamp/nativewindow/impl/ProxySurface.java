@@ -47,14 +47,21 @@ import com.jogamp.common.util.locks.RecursiveLock;
 
 public class ProxySurface implements NativeSurface, SurfaceChangeable {
   private RecursiveLock recurLock = new RecursiveLock();
-  protected int width, height, scrnIndex;
-  protected long surfaceHandle, displayHandle;
   protected AbstractGraphicsConfiguration config;
+  protected long displayHandle;
+  protected long surfaceHandle;
+  protected int scrnIndex;
+  protected int width, height;
 
   public ProxySurface(AbstractGraphicsConfiguration cfg) {
+      this(cfg, 0);
+  }
+
+  public ProxySurface(AbstractGraphicsConfiguration cfg, long handle) {
     invalidate();
     config = cfg;
     displayHandle=cfg.getScreen().getDevice().getHandle();
+    surfaceHandle=handle;
     scrnIndex=cfg.getScreen().getIndex();
   }
 
@@ -94,6 +101,14 @@ public class ProxySurface implements NativeSurface, SurfaceChangeable {
         config.getScreen().getDevice().unlock();
     }
     recurLock.unlock();
+  }
+
+  public final void validateSurfaceLocked() {
+      recurLock.validateLocked();
+  }
+
+  public final int getSurfaceRecursionCount() {
+    return recurLock.getRecursionCount();
   }
 
   public final boolean isSurfaceLockedByOtherThread() {
