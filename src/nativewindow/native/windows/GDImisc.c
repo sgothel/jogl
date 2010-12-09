@@ -61,27 +61,48 @@ static jmethodID pointCstr = NULL;
 
 #define NATIVEWINDOW_DUMMY_WINDOW_NAME "__nativewindow_dummy_window"
 static ATOM nativewindowClass = 0;
+static HINSTANCE nativeHInstance = NULL;
 
 LRESULT CALLBACK DummyWndProc( HWND   hWnd, UINT   uMsg, WPARAM wParam, LPARAM lParam) {
   return DefWindowProc(hWnd,uMsg,wParam,lParam);
 }
 
-HWND CreateDummyWindow0(HINSTANCE hInstance, int x, int y, int width, int height ) {
-  DWORD     dwExStyle;
-  DWORD     dwStyle;
-  HWND      hWnd;
+HWND CreateDummyWindow0(int x, int y, int width, int height ) {
+    DWORD     dwExStyle;
+    DWORD     dwStyle;
+    HWND      hWnd;
+    HINSTANCE hInstance = GetModuleHandle(NULL);
+    if( nativeHInstance != hInstance || 0 == nativewindowClass ) {
+        nativeHInstance=hInstance;
+        WNDCLASS  wc;
+        ZeroMemory( &wc, sizeof( wc ) );
+        wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+        wc.lpfnWndProc = (WNDPROC) DummyWndProc;
+        wc.cbClsExtra = 0;
+        wc.cbWndExtra = 0;
+        wc.hInstance = hInstance;
+        wc.hIcon = NULL;
+        wc.hCursor = NULL;
+        wc.hbrBackground = NULL;
+        wc.lpszMenuName = NULL;
+        wc.lpszClassName = NATIVEWINDOW_DUMMY_WINDOW_NAME;
+        if( !(nativewindowClass = RegisterClass( &wc )) ) {
+          fprintf(stderr, "FatalError com_jogamp_nativewindow_impl_windows_GDI: RegisterClass Failed: %d\n", GetLastError() );
+          return( 0 );
+        }
+    }
 
-  dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-  dwStyle = WS_OVERLAPPEDWINDOW;
-  if( !(hWnd=CreateWindowEx( dwExStyle,
+    dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+    dwStyle = WS_OVERLAPPEDWINDOW;
+    if( !(hWnd=CreateWindowEx( dwExStyle,
                              NATIVEWINDOW_DUMMY_WINDOW_NAME,
                              NATIVEWINDOW_DUMMY_WINDOW_NAME,
                              dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
                              x, y, width, height,
                              NULL, NULL, hInstance, NULL ) ) ) {
-    return( 0 );
-  }
-  return( hWnd );
+        return( 0 );
+    }
+    return( hWnd );
 }
 
 /*
@@ -89,7 +110,7 @@ HWND CreateDummyWindow0(HINSTANCE hInstance, int x, int y, int width, int height
  * Method:    initIDs0
  * Signature: ()Z
  */
-JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_windows_GDI_initIDs0
+JNIEXPORT jboolean JNICALL Java_com_jogamp_nativewindow_impl_windows_GDI_initIDs0
   (JNIEnv *env, jclass clazz)
 {
     if(NULL==pointClz) {
@@ -108,25 +129,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_windows_GDI_initIDs0
                 ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
         }
     }
-    HINSTANCE hInstance = GetModuleHandle(NULL);
-    if( !nativewindowClass ) {
-        WNDCLASS  wc;
-        ZeroMemory( &wc, sizeof( wc ) );
-        wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-        wc.lpfnWndProc = (WNDPROC) DummyWndProc;
-        wc.cbClsExtra = 0;
-        wc.cbWndExtra = 0;
-        wc.hInstance = hInstance;
-        wc.hIcon = NULL;
-        wc.hCursor = NULL;
-        wc.hbrBackground = NULL;
-        wc.lpszMenuName = NULL;
-        wc.lpszClassName = NATIVEWINDOW_DUMMY_WINDOW_NAME;
-        if( !(nativewindowClass = RegisterClass( &wc )) ) {
-          _FatalError(env, "FatalError com_jogamp_nativewindow_impl_windows_GDI: RegisterClass Failed: %d", GetLastError() );
-        }
-    }
-    return (jlong) hInstance;
+    return JNI_TRUE;
 }
 
 /*
