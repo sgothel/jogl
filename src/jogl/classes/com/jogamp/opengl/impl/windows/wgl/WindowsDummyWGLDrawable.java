@@ -47,31 +47,36 @@ import javax.media.opengl.GLProfile;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.impl.ProxySurface;
 import com.jogamp.nativewindow.impl.windows.GDI;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLException;
 
 public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
-  private static final int f_dim = 128;
+  private static final int f_dim = 64;
   private long hwnd, hdc;
 
   protected WindowsDummyWGLDrawable(GLDrawableFactory factory, GLCapabilitiesImmutable caps, AbstractGraphicsScreen absScreen) {
     super(factory, new ProxySurface(WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(caps, absScreen)), true);
     hwnd = GDI.CreateDummyWindow(0, 0, f_dim, f_dim);
-    hdc = GDI.GetDC(hwnd);
     ProxySurface ns = (ProxySurface) getNativeSurface();
-    ns.setSurfaceHandle(hdc);
     ns.setSize(f_dim, f_dim);
-    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-
+    
+    if(NativeSurface.LOCK_SURFACE_NOT_READY >= lockSurface()) {
+        throw new GLException("WindowsDummyWGLDrawable: surface not ready (lockSurface)");
+    }
     try {
-        config.updateGraphicsConfiguration(factory, ns);
+        WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        config.updateGraphicsConfiguration(factory, ns, null);
         if (DEBUG) {
           System.err.println("!!! WindowsDummyWGLDrawable: "+config);
         }
     } catch (Throwable t) {
         destroyImpl();
         throw new GLException(t);
+    } finally {
+        unlockSurface();
     }
   }
 
@@ -82,6 +87,48 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
       caps.setOnscreen  (true);
       caps.setPBuffer   (true);
       return new WindowsDummyWGLDrawable(factory, caps, absScreen);
+  }
+
+  public int lockSurface() throws GLException {
+    int res = NativeSurface.LOCK_SURFACE_NOT_READY;
+    ProxySurface ns = (ProxySurface) getNativeSurface();
+    AbstractGraphicsDevice adevice = ns.getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
+    adevice.lock();
+    try {
+        res = ns.lockSurface();
+        if(NativeSurface.LOCK_SUCCESS == res && 0 != hwnd && 0 == hdc) {
+            hdc = GDI.GetDC(hwnd);
+            ns.setSurfaceHandle(hdc);
+            if(0 == hdc) {
+                throw new GLException("Error hdc 0, werr: "+GDI.GetLastError());
+            }
+        } else {
+            Throwable t = new Throwable("Error lock failed - res "+res+", hwnd "+toHexString(hwnd)+", hdc "+toHexString(hdc));
+            t.printStackTrace();
+        }
+    } finally {
+        if( NativeSurface.LOCK_SURFACE_NOT_READY == res ) {
+            adevice.unlock();
+        }
+    }
+    return res;
+  }
+
+  public void unlockSurface() {
+    ProxySurface ns = (ProxySurface) getNativeSurface();
+    ns.validateSurfaceLocked();
+    AbstractGraphicsDevice adevice = ns.getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
+    
+    try {
+        if ( 0 != hdc && 0 != hwnd && ns.getSurfaceRecursionCount() == 0) {
+            GDI.ReleaseDC(hwnd, hdc);
+            hdc=0;
+            ns.setSurfaceHandle(hdc);
+        }
+        surface.unlockSurface();
+    } finally {
+        adevice.unlock();
+    }
   }
 
   public void setSize(int width, int height) {
@@ -96,10 +143,6 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
   }
 
   public GLContext createContext(GLContext shareWith) {
-    if (hdc == 0) {
-      // Construction failed
-      return null;
-    }
     // FIXME: figure out how to hook back in the Java 2D / JOGL bridge
     return new WindowsWGLContext(this, shareWith);
   }
@@ -108,6 +151,8 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
     if (hdc != 0) {
       GDI.ReleaseDC(hwnd, hdc);
       hdc = 0;
+      ProxySurface ns = (ProxySurface) getNativeSurface();
+      ns.setSurfaceHandle(hdc);
     }
     if (hwnd != 0) {
       GDI.ShowWindow(hwnd, GDI.SW_HIDE);

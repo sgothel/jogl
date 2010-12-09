@@ -35,7 +35,7 @@ import com.jogamp.nativewindow.impl.*;
 import com.jogamp.nativewindow.impl.x11.*;
 
 public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
-  private static final int f_dim = 128;
+  private static final int f_dim = 64;
   private long dummyWindow = 0;
 
   /** 
