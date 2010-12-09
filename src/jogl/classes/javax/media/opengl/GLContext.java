@@ -579,10 +579,6 @@ public abstract class GLContext {
    */
   private static /*final*/ HashSet/*<UniqueDeviceString>*/ deviceVersionsAvailableSet = new HashSet();
 
-  protected static String getContextFQN(AbstractGraphicsDevice device, int major, int minor, int ctp) {
-      return device.getUniqueID() + "-" + toHexString(compose8bit(major, minor, ctp, 0));
-  }
-
   protected static String getDeviceVersionAvailableKey(AbstractGraphicsDevice device, int major, int profile) {
       return device.getUniqueID() + "-" + toHexString(compose8bit(major, profile, 0, 0));
   }

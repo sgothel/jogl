@@ -223,18 +223,21 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
   }
 
-  protected final void updateGLXProcAddressTable(int major, int minor, int ctp) {
+  protected final void updateGLXProcAddressTable() {
+    AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
+    String key = adevice.getUniqueID();
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Initializing CGL extension address table");
+      System.err.println(getThreadName() + ": !!! Initializing CGL extension address table: "+key);
     }
     CGLExtProcAddressTable table = null;
     synchronized(mappedContextTypeObjectLock) {
-        table = (CGLExtProcAddressTable) mappedGLXProcAddress.get( contextFQN );
+        table = (CGLExtProcAddressTable) mappedGLXProcAddress.get( key );
     }
     if(null != table) {
         cglExtProcAddressTable = table;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable reusing key("+contextFQN+") -> "+table.hashCode());
+            System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable reusing key("+key+") -> "+table.hashCode());
         }
     } else {
         if (cglExtProcAddressTable == null) {
@@ -244,9 +247,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         }
         resetProcAddressTable(getCGLExtProcAddressTable());
         synchronized(mappedContextTypeObjectLock) {
-            mappedGLXProcAddress.put(contextFQN, getCGLExtProcAddressTable());
+            mappedGLXProcAddress.put(key, getCGLExtProcAddressTable());
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable mapping key("+contextFQN+") -> "+getCGLExtProcAddressTable().hashCode());
+                System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable mapping key("+key+") -> "+getCGLExtProcAddressTable().hashCode());
             }
         }
     }

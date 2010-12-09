@@ -67,9 +67,9 @@ public abstract class GLContextImpl extends GLContext {
 
   /**
    * Context full qualified name: display_type + display_connection + major + minor + ctp.
-   * This is the key for all cached ProcAddressTables, etc, to support multi display/device setups.
+   * This is the key for all cached GL ProcAddressTables, etc, to support multi display/device setups.
    */
-  protected String contextFQN;
+  private String contextFQN;
 
   // Cache of the functions that are available to be called at the current
   // moment in time
@@ -810,7 +810,6 @@ public abstract class GLContextImpl extends GLContext {
    *
    * @see #setContextVersion
    */
-
   protected final void setGLFunctionAvailability(boolean force, int major, int minor, int ctp) {
     if(null!=this.gl && null!=glProcAddressTable && !force) {
         return; // already done and not forced
@@ -819,14 +818,14 @@ public abstract class GLContextImpl extends GLContext {
         setGL(createGL(getGLDrawable().getGLProfile()));
     }
 
+    updateGLXProcAddressTable();
+
     AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
     contextFQN = getContextFQN(adevice, major, minor, ctp);
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Context FQN: "+contextFQN);
     }
-
-    updateGLXProcAddressTable(major, minor, ctp);
 
     //
     // UpdateGLProcAddressTable functionality
@@ -899,7 +898,7 @@ public abstract class GLContextImpl extends GLContext {
   /**
    * Updates the platform's 'GLX' function cache
    */
-  protected abstract void updateGLXProcAddressTable(int major, int minor, int ctp);
+  protected abstract void updateGLXProcAddressTable();
 
   protected boolean hasNativeES2Methods = false;
 
@@ -992,6 +991,14 @@ public abstract class GLContextImpl extends GLContext {
       return false;
   }
 
+  protected static String getContextFQN(AbstractGraphicsDevice device, int major, int minor, int ctp) {
+      return device.getUniqueID() + "-" + toHexString(compose8bit(major, minor, ctp, 0));
+  }
+
+  protected String getContextFQN() {
+      return contextFQN;
+  }
+
   /** Indicates which floating-point pbuffer implementation is in
       use. Returns one of GLPbuffer.APPLE_FLOAT, GLPbuffer.ATI_FLOAT,
       or GLPbuffer.NV_FLOAT. */
@@ -1007,6 +1014,7 @@ public abstract class GLContextImpl extends GLContext {
 
   /** Only called for offscreen contexts; needed by glReadPixels */
   public abstract int getOffscreenContextPixelDataType();
+
 
   //----------------------------------------------------------------------
   // Helpers for buffer object optimizations

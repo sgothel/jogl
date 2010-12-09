@@ -41,6 +41,8 @@ import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import java.nio.*;
 import java.util.*;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
 
 public abstract class EGLContext extends GLContextImpl {
     private boolean eglQueryStringInitialized;
@@ -191,21 +193,24 @@ public abstract class EGLContext extends GLContextImpl {
         return true;
     }
 
-    protected final void updateGLXProcAddressTable(int major, int minor, int ctp) {
+    protected final void updateGLXProcAddressTable() {
+        AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
+        String key = adevice.getUniqueID();
         if (DEBUG) {
-          System.err.println(getThreadName() + ": !!! Initializing EGL extension address table");
+          System.err.println(getThreadName() + ": !!! Initializing EGLextension address table: "+key);
         }
         eglQueryStringInitialized = false;
         eglQueryStringAvailable = false;
 
         EGLExtProcAddressTable table = null;
         synchronized(mappedContextTypeObjectLock) {
-            table = (EGLExtProcAddressTable) mappedGLXProcAddress.get( contextFQN );
+            table = (EGLExtProcAddressTable) mappedGLXProcAddress.get( key );
         }
         if(null != table) {
             eglExtProcAddressTable = table;
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext EGL ProcAddressTable reusing key("+contextFQN+") -> "+table.hashCode());
+                System.err.println(getThreadName() + ": !!! GLContext EGL ProcAddressTable reusing key("+key+") -> "+table.hashCode());
             }
         } else {
             if (eglExtProcAddressTable == null) {
@@ -215,9 +220,9 @@ public abstract class EGLContext extends GLContextImpl {
             }
             resetProcAddressTable(getEGLExtProcAddressTable());
             synchronized(mappedContextTypeObjectLock) {
-                mappedGLXProcAddress.put(contextFQN, getEGLExtProcAddressTable());
+                mappedGLXProcAddress.put(key, getEGLExtProcAddressTable());
                 if(DEBUG) {
-                    System.err.println(getThreadName() + ": !!! GLContext EGL ProcAddressTable mapping key("+contextFQN+") -> "+getEGLExtProcAddressTable().hashCode());
+                    System.err.println(getThreadName() + ": !!! GLContext EGL ProcAddressTable mapping key("+key+") -> "+getEGLExtProcAddressTable().hashCode());
                 }
             }
         }

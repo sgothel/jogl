@@ -162,15 +162,13 @@ public class WindowsWGLContext extends GLContextImpl {
   }
 
   protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
-    WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
-    AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    AbstractGraphicsDevice device = config.getScreen().getDevice();
-    WindowsWGLContext sharedContext = (WindowsWGLContext) factory.getOrCreateSharedContextImpl(device);
-    WGLExt _wglExt;
-    if(null==sharedContext) {
-        _wglExt = getWGLExt();
-    } else {
-        _wglExt = sharedContext.getWGLExt();
+    WGLExt _wglExt = getWGLExt();
+    updateGLXProcAddressTable();
+    if(DEBUG) {
+      System.err.println("WindowWGLContext.createContextARBImpl: "+getGLVersion(major, minor, ctp, "@creation") + 
+                         ", handle "+toHexString(drawable.getHandle()) + ", share "+toHexString(share)+", direct "+direct+
+                         ", wglCreateContextAttribsARB: "+toHexString(wglExtProcAddressTable._addressof_wglCreateContextAttribsARB));
+      Thread.dumpStack();
     }
 
     boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
@@ -221,8 +219,7 @@ public class WindowsWGLContext extends GLContextImpl {
     }
 
     if(0!=ctx) {
-        // cannot use wglMakeContextCurrent since WGLExt ProcAddressTable is not ready yet.
-        if( !WGL.wglMakeCurrent(drawable.getHandle(), ctx) ) {
+        if (!wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), ctx)) {
             if(DEBUG) {
               System.err.println("WindowsWGLContext.createContextARB couldn't make current "+getGLVersion(major, minor, ctp, "@creation"));
             }
@@ -231,7 +228,7 @@ public class WindowsWGLContext extends GLContextImpl {
             ctx = 0;
         } else {
             if (DEBUG) {
-                System.err.println(getThreadName() + ": createContextARBImpl: OK "+getGLVersion(major, minor, ctp, "@creation")+", share "+share+", direct "+direct+", hasSharedContext "+(null!=sharedContext));
+                System.err.println(getThreadName() + ": createContextARBImpl: OK "+getGLVersion(major, minor, ctp, "@creation")+", share "+share+", direct "+direct);
             }
             // the following is issued by the caller 'GLContextImpl.createContextARB()'
             // setGLFunctionAvailability(true, major, minor, ctp);
@@ -315,12 +312,12 @@ public class WindowsWGLContext extends GLContextImpl {
     
     if(0!=contextHandle) {
         share = 0; // mark as shared thx to the ARB create method
-        WGL.wglMakeCurrent(0, 0); // the ARB create method used WGL.wglMakeCurrent(0, 0)
-        if(0!=temp_ctx) {            
+        if(0!=temp_ctx) {
+            WGL.wglMakeCurrent(0, 0);
             WGL.wglDeleteContext(temp_ctx);
-        }
-        if (!wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-            throw new GLException("Cannot make previous verified context current: 0x" + toHexString(contextHandle) + ", werr: " + GDI.GetLastError());
+            if (!wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
+                throw new GLException("Cannot make previous verified context current: 0x" + toHexString(contextHandle) + ", werr: " + GDI.GetLastError());
+            }
         }
     } else {
         if(glCaps.getGLProfile().isGL3()) {
@@ -385,9 +382,12 @@ public class WindowsWGLContext extends GLContextImpl {
     }
   }
 
-  protected final void updateGLXProcAddressTable(int major, int minor, int ctp) {
+  protected final void updateGLXProcAddressTable() {
+    AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
+    String key = adevice.getUniqueID();
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Initializing WGL extension address table for " + this);
+      System.err.println(getThreadName() + ": !!! Initializing WGL extension address table: "+key);
     }
     wglGetExtensionsStringEXTInitialized=false;
     wglGetExtensionsStringEXTAvailable=false;
@@ -396,12 +396,12 @@ public class WindowsWGLContext extends GLContextImpl {
 
     WGLExtProcAddressTable table = null;
     synchronized(mappedContextTypeObjectLock) {
-        table = (WGLExtProcAddressTable) mappedGLXProcAddress.get( contextFQN );
+        table = (WGLExtProcAddressTable) mappedGLXProcAddress.get( key );
     }
     if(null != table) {
         wglExtProcAddressTable = table;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! GLContext WGL ProcAddressTable reusing key("+contextFQN+") -> "+table.hashCode());
+            System.err.println(getThreadName() + ": !!! GLContext WGL ProcAddressTable reusing key("+key+") -> "+table.hashCode());
         }
     } else {
         if (wglExtProcAddressTable == null) {
@@ -411,9 +411,9 @@ public class WindowsWGLContext extends GLContextImpl {
         }
         resetProcAddressTable(getWGLExtProcAddressTable());
         synchronized(mappedContextTypeObjectLock) {
-            mappedGLXProcAddress.put(contextFQN, getWGLExtProcAddressTable());
+            mappedGLXProcAddress.put(key, getWGLExtProcAddressTable());
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext WGL ProcAddressTable mapping key("+contextFQN+") -> "+getWGLExtProcAddressTable().hashCode());
+                System.err.println(getThreadName() + ": !!! GLContext WGL ProcAddressTable mapping key("+key+") -> "+getWGLExtProcAddressTable().hashCode());
             }
         }
     }

@@ -173,18 +173,13 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
-    X11GLXDrawableFactory factory = (X11GLXDrawableFactory)drawable.getFactoryImpl();
-
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    AbstractGraphicsDevice device = config.getScreen().getDevice();
-    X11GLXContext sharedContext = (X11GLXContext) factory.getOrCreateSharedContextImpl(device);
-    long display = device.getHandle();
-
-    GLXExt glXExt;
-    if(null==sharedContext) {
-        glXExt = getGLXExt();
-    } else {
-        glXExt = sharedContext.getGLXExt();
+    updateGLXProcAddressTable();
+    GLXExt _glXExt = getGLXExt();
+    if(DEBUG) {
+      System.err.println("X11GLXContext.createContextARBImpl: "+getGLVersion(major, minor, ctp, "@creation") +
+                         ", handle "+toHexString(drawable.getHandle()) + ", share "+toHexString(share)+", direct "+direct+
+                         ", glXCreateContextAttribsARB: "+toHexString(glXExtProcAddressTable._addressof_glXCreateContextAttribsARB));
+      Thread.dumpStack();
     }
 
     boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
@@ -224,11 +219,15 @@ public abstract class X11GLXContext extends GLContextImpl {
         }
     }
 
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    AbstractGraphicsDevice device = config.getScreen().getDevice();
+    long display = device.getHandle();
+
     try {
         // critical path, a remote display might not support this command,
         // hence we need to catch the X11 Error within this block.
         X11Util.XSync(display, false);
-        ctx = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
+        ctx = _glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
         X11Util.XSync(display, false);
     } catch (RuntimeException re) {
         if(DEBUG) {
@@ -247,7 +246,7 @@ public abstract class X11GLXContext extends GLContextImpl {
             ctx = 0;
         } else {
             if (DEBUG) {
-                System.err.println(getThreadName() + ": createContextARBImpl: OK "+getGLVersion(major, minor, ctp, "@creation")+", share "+share+", direct "+direct+", hasSharedContext "+(null!=sharedContext));
+                System.err.println(getThreadName() + ": createContextARBImpl: OK "+getGLVersion(major, minor, ctp, "@creation")+", share "+share+", direct "+direct);
             }
             // the following is issued by the caller 'GLContextImpl.createContextARB()'
             // setGLFunctionAvailability(true, major, minor, ctp);
@@ -458,21 +457,24 @@ public abstract class X11GLXContext extends GLContextImpl {
     // Should check for X errors and raise GLException
   }
 
-  protected final void updateGLXProcAddressTable(int major, int minor, int ctp) {
+  protected final void updateGLXProcAddressTable() {
+    AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
+    String key = adevice.getUniqueID();
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Initializing GLX extension address table");
+      System.err.println(getThreadName() + ": !!! Initializing GLX extension address table: "+key);
     }
     glXQueryExtensionsStringInitialized = false;
     glXQueryExtensionsStringAvailable = false;
 
     GLXExtProcAddressTable table = null;
     synchronized(mappedContextTypeObjectLock) {
-        table = (GLXExtProcAddressTable) mappedGLXProcAddress.get( contextFQN );
+        table = (GLXExtProcAddressTable) mappedGLXProcAddress.get( key );
     }
     if(null != table) {
         glXExtProcAddressTable = table;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! GLContext GLX ProcAddressTable reusing key("+contextFQN+") -> "+table.hashCode());
+            System.err.println(getThreadName() + ": !!! GLContext GLX ProcAddressTable reusing key("+key+") -> "+table.hashCode());
         }
     } else {
         if (glXExtProcAddressTable == null) {
@@ -480,9 +482,10 @@ public abstract class X11GLXContext extends GLContextImpl {
         }
         resetProcAddressTable(getGLXExtProcAddressTable());
         synchronized(mappedContextTypeObjectLock) {
-            mappedGLXProcAddress.put(contextFQN, getGLXExtProcAddressTable());
+            mappedGLXProcAddress.put(key, getGLXExtProcAddressTable());
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext GLX ProcAddressTable mapping key("+contextFQN+") -> "+getGLXExtProcAddressTable().hashCode());
+                System.err.println(getThreadName() + ": !!! GLContext GLX ProcAddressTable mapping key("+key+") -> "+getGLXExtProcAddressTable().hashCode());
+                Thread.dumpStack();
             }
         }
     }
