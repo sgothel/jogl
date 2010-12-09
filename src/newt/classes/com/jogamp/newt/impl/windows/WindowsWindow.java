@@ -56,7 +56,7 @@ public class WindowsWindow extends WindowImpl {
 
     protected int lockSurfaceImpl() {
         if( 0 != getWindowHandle() && 0 == hdc ) {
-            hdc = GetDC0(getWindowHandle());
+            hdc = GDI.GetDC(getWindowHandle());
             hmon = MonitorFromWindow0(getWindowHandle());
         }
         return ( 0 != hdc ) ? LOCK_SUCCESS : LOCK_SURFACE_NOT_READY;
@@ -64,7 +64,7 @@ public class WindowsWindow extends WindowImpl {
 
     protected void unlockSurfaceImpl() {
         if ( 0 != hdc && 0 != getWindowHandle() && getWindowLockRecursionCount() == 0) {
-            ReleaseDC0(getWindowHandle(), hdc);
+            GDI.ReleaseDC(getWindowHandle(), hdc);
             hdc=0;
         }
     }
@@ -116,7 +116,7 @@ public class WindowsWindow extends WindowImpl {
         if (hdc != 0) {
             if(windowHandleClose != 0) {
                 try {
-                    ReleaseDC0(windowHandleClose, hdc);
+                    GDI.ReleaseDC(windowHandleClose, hdc);
                 } catch (Throwable t) {
                     if(DEBUG_IMPLEMENTATION) { 
                         Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
@@ -183,8 +183,6 @@ public class WindowsWindow extends WindowImpl {
                                             boolean isUndecorated,
                                             int x, int y, int width, int height);
     private native void DestroyWindow0(long windowHandle);
-    private native long GetDC0(long windowHandle);
-    private native void ReleaseDC0(long windowHandle, long hdc);
     private native long MonitorFromWindow0(long windowHandle);
     private native void setVisible0(long windowHandle, boolean visible, boolean top, int x, int y, int width, int height);
     private native void reconfigureWindow0(long parentWindowHandle, long windowHandle, 

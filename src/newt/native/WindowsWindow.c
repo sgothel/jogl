@@ -1449,28 +1449,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_DestroyWi
 
 /*
  * Class:     com_jogamp_newt_impl_windows_WindowsWindow
- * Method:    GetDC
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_GetDC0
-  (JNIEnv *env, jobject obj, jlong window)
-{
-    return (jlong) (intptr_t) GetDC((HWND) (intptr_t) window);
-}
-
-/*
- * Class:     com_jogamp_newt_impl_windows_WindowsWindow
- * Method:    ReleaseDC
- * Signature: (JJ)V
- */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_ReleaseDC0
-  (JNIEnv *env, jobject obj, jlong window, jlong dc)
-{
-    ReleaseDC((HWND) (intptr_t) window, (HDC) (intptr_t) dc);
-}
-
-/*
- * Class:     com_jogamp_newt_impl_windows_WindowsWindow
  * Method:    MonitorFromWindow
  * Signature: (J)J
  */
