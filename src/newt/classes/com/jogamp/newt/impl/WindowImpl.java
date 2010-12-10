@@ -466,11 +466,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public final void unlockSurface() {
         // may throw RuntimeException if not locked
         windowLock.validateLocked();
+        AbstractGraphicsDevice adevice = screen.getDisplay().getGraphicsDevice();
 
         try {
             unlockSurfaceImpl();
         } finally {
-            screen.getDisplay().getGraphicsDevice().unlock();
+            adevice.unlock();
         }
         windowLock.unlock();
     }
@@ -586,11 +587,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         public void run() {
             windowLock.lock();
             try {
-                if(DEBUG_IMPLEMENTATION) {
-                    String msg = new String("Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+" -> "+visible+", parentWindowHandle "+toHexString(WindowImpl.this.parentWindowHandle)+", parentWindow "+(null!=WindowImpl.this.parentWindow)/*+", "+this*/);
-                    System.err.println(msg);
-                }
-
                 if(null!=lifecycleHook) {
                     lifecycleHook.resetCounter();
                 }
@@ -650,6 +646,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if( 0==windowHandle && visible && 0>=width*height ) {
                 // fast-path: not realized yet, make visible, but zero size
                 return;
+            }
+
+            if(DEBUG_IMPLEMENTATION) {
+                String msg = new String("Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow)/*+", "+this*/);
+                System.err.println(msg);
+                Thread.dumpStack();
             }
             VisibleAction visibleAction = new VisibleAction(visible);
             runOnEDTIfAvail(true, visibleAction);
