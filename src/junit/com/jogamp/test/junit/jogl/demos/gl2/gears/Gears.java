@@ -137,6 +137,7 @@ public class Gears implements GLEventListener {
 
   public void dispose(GLAutoDrawable drawable) {
     System.err.println("Gears: Dispose");
+    setGears(0, 0, 0);
   }
 
   public void display(GLAutoDrawable drawable) {
