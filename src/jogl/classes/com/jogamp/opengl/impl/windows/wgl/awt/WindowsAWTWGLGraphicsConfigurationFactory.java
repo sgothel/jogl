@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -33,6 +34,9 @@
 package com.jogamp.opengl.impl.windows.wgl.awt;
 
 
+import com.jogamp.common.util.ArrayHashSet;
+import com.jogamp.nativewindow.impl.jawt.windows.Win32SunJDKReflection;
+import com.jogamp.opengl.impl.GLGraphicsConfigurationFactoryImpl;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 
@@ -53,8 +57,9 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLException;
 
 import com.jogamp.opengl.impl.windows.wgl.WindowsWGLGraphicsConfiguration;
+import javax.media.opengl.GLDrawableFactory;
 
-public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
+public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactoryImpl {
     protected static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug("GraphicsConfiguration");
 
     public WindowsAWTWGLGraphicsConfigurationFactory() {
@@ -72,6 +77,9 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
 
         if(null==absScreen) {
             absScreen = AWTGraphicsScreen.createScreenDevice(-1, AbstractGraphicsDevice.DEFAULT_UNIT);
+            if(DEBUG) {
+                System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: creating default device: "+absScreen);
+            }
         }
         AWTGraphicsScreen awtScreen = (AWTGraphicsScreen) absScreen;
         device = ((AWTGraphicsDevice)awtScreen.getDevice()).getGraphicsDevice();
@@ -92,28 +100,74 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
         if(DEBUG) {
             System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: got "+absScreen);
         }
-        GraphicsConfiguration gc = device.getDefaultConfiguration();
+
         WindowsGraphicsDevice winDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         DefaultGraphicsScreen winScreen = new DefaultGraphicsScreen(winDevice, awtScreen.getIndex());
-        if(DEBUG) {
-            System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: made "+winScreen);
-        }
+        GraphicsConfigurationFactory configFactory = GraphicsConfigurationFactory.getFactory(winDevice);
+        GLDrawableFactory drawableFactory = GLDrawableFactory.getFactory( ((GLCapabilitiesImmutable)capsChosen).getGLProfile() );
 
         WindowsWGLGraphicsConfiguration winConfig = (WindowsWGLGraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(winDevice).chooseGraphicsConfiguration(capsChosen,
-                                                                                           capsRequested,
-                                                                                           chooser, winScreen);
-
+                                                       configFactory.chooseGraphicsConfiguration(capsChosen,
+                                                                                                 capsRequested,
+                                                                                                 chooser, winScreen);
         if (winConfig == null) {
             throw new GLException("Unable to choose a GraphicsConfiguration: "+capsChosen+",\n\t"+chooser+"\n\t"+winScreen);
         }
 
-        if(DEBUG) {
-            System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: chosen "+winConfig);
+        GraphicsConfiguration chosenGC = null;
+
+        // 1st Choice: Create an AWT GraphicsConfiguration with the desired PFD
+        // This gc will probably not be able to support GDI (WGL_SUPPORT_GDI_ARB, PFD_SUPPORT_GDI)
+        // however on most GPUs this is the current situation for Windows,
+        // otherwise no hardware accelerated PFD could be achieved.
+        //   - preselect with no constrains
+        //   - try to create dedicated GC
+        winConfig.preselectGraphicsConfiguration(drawableFactory, null);
+        if ( 1 <= winConfig.getPixelFormatID() ) {
+            chosenGC = Win32SunJDKReflection.graphicsConfigurationGet(device, winConfig.getPixelFormatID());
+            if(DEBUG) {
+                System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: Found new AWT PFD ID "+winConfig.getPixelFormatID()+" -> "+winConfig);
+            }
         }
 
-        // We have nothing to match .. so choose the default
+        if( null == chosenGC ) {
+            // 2nd Choice: Choose and match the GL Visual with AWT:
+            //   - collect all AWT PFDs
+            //   - choose a GL config from the pool of AWT PFDs
+            //
+            // The resulting GraphicsConfiguration has to be 'forced' on the AWT native peer,
+            // ie. returned by GLCanvas's getGraphicsConfiguration() befor call by super.addNotify().
+            //
+
+            // collect all available PFD IDs
+            GraphicsConfiguration[] configs = device.getConfigurations();
+            int[] pfdIDs = new int[configs.length];
+            ArrayHashSet pfdIDOSet = new ArrayHashSet();
+            for (int i = 0; i < configs.length; i++) {
+                GraphicsConfiguration gc = configs[i];
+                pfdIDs[i] = Win32SunJDKReflection.graphicsConfigurationGetPixelFormatID(gc);
+                pfdIDOSet.add(new Integer(pfdIDs[i]));
+                if(DEBUG) {
+                    System.err.println("AWT pfd["+i+"] "+pfdIDs[i]);
+                }
+            }
+            if(DEBUG) {
+                System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: PFD IDs: "+pfdIDs.length+", unique: "+pfdIDOSet.size());
+            }
+            winConfig.preselectGraphicsConfiguration(drawableFactory, pfdIDs);
+            int gcIdx = pfdIDOSet.indexOf(new Integer(winConfig.getPixelFormatID()));
+            if( 0 > gcIdx ) {
+                chosenGC = configs[gcIdx];
+                if(DEBUG) {
+                    System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: Found matching AWT PFD ID "+winConfig.getPixelFormatID()+" -> "+winConfig);
+                }
+            }
+        }
+
+        if ( null == chosenGC ) {
+            throw new GLException("Unable to determine GraphicsConfiguration: "+winConfig);
+        }
         return new AWTGraphicsConfiguration(awtScreen, winConfig.getChosenCapabilities(), winConfig.getRequestedCapabilities(),
-                                            gc, winConfig);
+                                            chosenGC, winConfig);
     }
 }

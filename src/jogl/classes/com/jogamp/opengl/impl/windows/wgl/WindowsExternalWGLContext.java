@@ -66,9 +66,6 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     }
     GLContextShareSet.contextCreated(this);
     setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
-    WindowsWGLGraphicsConfiguration config = 
-        (WindowsWGLGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    config.updateGraphicsConfiguration(drawable.getFactory(), drawable.getNativeSurface());
     getGLStateTracker().setEnabled(false); // external context usage can't track state in Java
   }
 
@@ -87,12 +84,8 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     }
 
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
-    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.create(hdc, pfdID, glp, aScreen, true, true);
-
-    ProxySurface ns = new ProxySurface(cfg);
-    ns.setSurfaceHandle(hdc);
-
-    return new WindowsExternalWGLContext(new Drawable(factory, ns), ctx, cfg);
+    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.create(factory, hdc, pfdID, glp, aScreen, true, true);
+    return new WindowsExternalWGLContext(new Drawable(factory, new ProxySurface(cfg, hdc)), ctx, cfg);
   }
 
   public int makeCurrent() throws GLException {

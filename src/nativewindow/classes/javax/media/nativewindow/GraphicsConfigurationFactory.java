@@ -33,10 +33,13 @@
 
 package javax.media.nativewindow;
 
-import java.util.*;
+import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.nativewindow.impl.Debug;
+import com.jogamp.nativewindow.impl.DefaultGraphicsConfigurationFactoryImpl;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
-import com.jogamp.common.util.*;
-import com.jogamp.nativewindow.impl.*;
 
 /**
  * Provides the mechanism by which the graphics configuration for a
@@ -88,7 +91,7 @@ public abstract class GraphicsConfigurationFactory {
         // AWTGraphicsDevice instances -- the OpenGL binding will take
         // care of handling AWTGraphicsDevices on X11 platforms (as
         // well as X11GraphicsDevices in non-AWT situations)
-        registerFactory(abstractGraphicsDeviceClass, new GraphicsConfigurationFactoryImpl());
+        registerFactory(abstractGraphicsDeviceClass, new DefaultGraphicsConfigurationFactoryImpl());
     }
 
     /** Returns the factory for use with the given type of
@@ -232,4 +235,5 @@ public abstract class GraphicsConfigurationFactory {
         chooseGraphicsConfigurationImpl(CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
                                         CapabilitiesChooser chooser, AbstractGraphicsScreen screen)
         throws IllegalArgumentException, NativeWindowException;
+
 }

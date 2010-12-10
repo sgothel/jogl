@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.nativewindow.impl.jawt.x11;
+package com.jogamp.nativewindow.impl.jawt.windows;
 
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -54,24 +54,23 @@ import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
     inside a few data structures in the AWT implementation on X11 for
     the purposes of correctly enumerating the available visuals. */
 
-public class X11SunJDKReflection {
-  private static Class   x11GraphicsDeviceClass;
-  private static Method  x11GraphicsDeviceGetDisplayMethod;
-  private static Class   x11GraphicsConfigClass;
-  private static Method  x11GraphicsConfigGetVisualMethod;
+public class Win32SunJDKReflection {
+  private static Class   win32GraphicsDeviceClass;
+  private static Class   win32GraphicsConfigClass;
+  private static Method  win32GraphicsConfigGetConfigMethod;
+  private static Method  win32GraphicsConfigGetVisualMethod;
   private static boolean initted;
 
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
           try {
-            x11GraphicsDeviceClass = Class.forName("sun.awt.X11GraphicsDevice");
-            x11GraphicsDeviceGetDisplayMethod = x11GraphicsDeviceClass.getDeclaredMethod("getDisplay", new Class[] {});
-            x11GraphicsDeviceGetDisplayMethod.setAccessible(true);
-
-            x11GraphicsConfigClass = Class.forName("sun.awt.X11GraphicsConfig");
-            x11GraphicsConfigGetVisualMethod = x11GraphicsConfigClass.getDeclaredMethod("getVisual", new Class[] {});
-            x11GraphicsConfigGetVisualMethod.setAccessible(true);
+            win32GraphicsDeviceClass = Class.forName("sun.awt.Win32GraphicsDevice");
+            win32GraphicsConfigClass = Class.forName("sun.awt.Win32GraphicsConfig");
+            win32GraphicsConfigGetConfigMethod = win32GraphicsConfigClass.getDeclaredMethod("getConfig", new Class[] { win32GraphicsDeviceClass, int.class });
+            win32GraphicsConfigGetConfigMethod.setAccessible(true);
+            win32GraphicsConfigGetVisualMethod = win32GraphicsConfigClass.getDeclaredMethod("getVisual", new Class[] {});
+            win32GraphicsConfigGetVisualMethod.setAccessible(true);
             initted = true;
           } catch (Exception e) {
             // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
@@ -81,22 +80,22 @@ public class X11SunJDKReflection {
       });
   }
 
-  public static long graphicsDeviceGetDisplay(GraphicsDevice device) {
+  public static GraphicsConfiguration graphicsConfigurationGet(GraphicsDevice device, int pfdID) {
     if (!initted) {
-      return 0;
+      return null;
     }
 
     try {
-      return ((Long) x11GraphicsDeviceGetDisplayMethod.invoke(device, null)).longValue();
+      return (GraphicsConfiguration) win32GraphicsConfigGetConfigMethod.invoke(null, new Object[] { device, new Integer(pfdID) });
     } catch (Exception e) {
-      return 0;
+      return null;
     }
   }
 
-  public static int graphicsConfigurationGetVisualID(AbstractGraphicsConfiguration config) {
+  public static int graphicsConfigurationGetPixelFormatID(AbstractGraphicsConfiguration config) {
       try {
           if (config instanceof AWTGraphicsConfiguration) {
-              return graphicsConfigurationGetVisualID(((AWTGraphicsConfiguration) config).getGraphicsConfiguration());
+              return graphicsConfigurationGetPixelFormatID(((AWTGraphicsConfiguration) config).getGraphicsConfiguration());
           }
           return 0;
       } catch (Exception e) {
@@ -104,13 +103,13 @@ public class X11SunJDKReflection {
       }
   }
 
-  public static int graphicsConfigurationGetVisualID(GraphicsConfiguration config) {
+  public static int graphicsConfigurationGetPixelFormatID(GraphicsConfiguration config) {
     if (!initted) {
       return 0;
     }
 
     try {
-      return ((Integer) x11GraphicsConfigGetVisualMethod.invoke(config, null)).intValue();
+      return ((Integer) win32GraphicsConfigGetVisualMethod.invoke(config, null)).intValue();
     } catch (Exception e) {
       return 0;
     }

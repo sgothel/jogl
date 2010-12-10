@@ -43,10 +43,8 @@ import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.jawt.x11.*;
 import com.jogamp.nativewindow.impl.x11.*;
-import com.jogamp.opengl.impl.x11.glx.X11GLXGraphicsConfigurationFactory;
-import java.awt.image.ColorModel;
 
-public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
+public class X11AWTGLXGraphicsConfigurationFactory extends GLGraphicsConfigurationFactoryImpl {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
 
     public X11AWTGLXGraphicsConfigurationFactory() {
@@ -153,15 +151,13 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
         visualID = x11Config.getVisualID();
         for (int i = 0; i < configs.length; i++) {
             gc = configs[i];
-            if (gc != null) {
-                if (X11SunJDKReflection.graphicsConfigurationGetVisualID(gc) == visualID) {
-                    if(DEBUG) {
-                        System.err.println("Found matching default AWT visual: 0x"+Long.toHexString(visualID) +" -> "+x11Config);
-                    }
-                    return new AWTGraphicsConfiguration(awtScreen,
-                                                        x11Config.getChosenCapabilities(), x11Config.getRequestedCapabilities(),
-                                                        gc, x11Config);
+            if (X11SunJDKReflection.graphicsConfigurationGetVisualID(gc) == visualID) {
+                if(DEBUG) {
+                    System.err.println("Found matching default AWT visual: 0x"+Long.toHexString(visualID) +" -> "+x11Config);
                 }
+                return new AWTGraphicsConfiguration(awtScreen,
+                                                    x11Config.getChosenCapabilities(), x11Config.getRequestedCapabilities(),
+                                                    gc, x11Config);
             }
         }
 

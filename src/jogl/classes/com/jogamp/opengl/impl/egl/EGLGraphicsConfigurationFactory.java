@@ -52,6 +52,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.PointerBuffer;
+import com.jogamp.opengl.impl.GLGraphicsConfigurationFactoryImpl;
 
 
 /** Subclass of GraphicsConfigurationFactory used when non-AWT tookits
@@ -59,7 +60,7 @@ import com.jogamp.common.nio.PointerBuffer;
     to this one to change the accepted and returned types of the
     GraphicsDevice and GraphicsConfiguration abstractions. */
 
-public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
+public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactoryImpl {
     protected static final boolean DEBUG = GraphicsConfigurationFactory.DEBUG || com.jogamp.opengl.impl.Debug.debug("EGL");
 
     EGLGraphicsConfigurationFactory() {

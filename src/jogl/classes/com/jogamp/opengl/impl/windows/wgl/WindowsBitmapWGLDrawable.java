@@ -120,7 +120,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
       hdc = 0;
       throw new GLException("Error selecting bitmap into new device context");
     }
-    config.updateGraphicsConfiguration(getFactory(), ns);
+    config.updateGraphicsConfiguration(getFactory(), ns, null);
   }
   
   protected void destroyImpl() {

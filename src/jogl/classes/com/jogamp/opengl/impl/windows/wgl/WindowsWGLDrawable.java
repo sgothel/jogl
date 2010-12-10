@@ -68,7 +68,7 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
 
     NativeSurface ns = getNativeSurface();
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    config.updateGraphicsConfiguration(getFactory(), ns);
+    config.updateGraphicsConfiguration(getFactory(), ns, null);
     if (DEBUG) {
       System.err.println("!!! WindowsWGLDrawable.setRealized(true): "+config);
     }

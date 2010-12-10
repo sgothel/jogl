@@ -53,6 +53,7 @@ import com.jogamp.nativewindow.impl.x11.X11Lib;
 import com.jogamp.nativewindow.impl.x11.X11Util;
 import com.jogamp.nativewindow.impl.x11.XVisualInfo;
 import com.jogamp.opengl.impl.Debug;
+import com.jogamp.opengl.impl.GLGraphicsConfigurationFactoryImpl;
 
 
 /** Subclass of GraphicsConfigurationFactory used when non-AWT toolkits
@@ -60,7 +61,7 @@ import com.jogamp.opengl.impl.Debug;
     to this one to change the accepted and returned types of the
     GraphicsDevice and GraphicsConfiguration abstractions. */
 
-public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
+public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationFactoryImpl {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
 
     X11GLXGraphicsConfigurationFactory() {
@@ -225,51 +226,13 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
             }
         }
 
-        if( recommendedIndex < 1 && null==chooser) {
-            chooser = new DefaultGLCapabilitiesChooser();
-        }
-
-        int chosenIndex = recommendedIndex;
-        try {
-          if(null != chooser) {
-            chosenIndex = chooser.chooseCapabilities(capsChosen, availableCaps, recommendedIndex);
-            if(DEBUG) {
-              System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig chooser: idx "+chosenIndex);
-              System.err.println("!!! user     caps " + capsChosen);
-              System.err.println("!!! chosen   caps " + availableCaps[chosenIndex]);
-            }
-          }
-        } catch (NativeWindowException e) {
-          if(DEBUG) {
-              e.printStackTrace();
-          }
-        }
-
-        if (chosenIndex < 0) {
-          // keep on going ..
-          // seek first available one ..
-          for(chosenIndex = 0; chosenIndex < availableCaps.length && availableCaps[chosenIndex]==null; chosenIndex++) {
-              // nop
-          }
-          if(chosenIndex==availableCaps.length) {
-            // give up ..
-            if(DEBUG) {
-              System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig Failed .. nothing available, bail out");
-            }
-            return null;
-          }
-          if(DEBUG) {
-              System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig Failed .. unable to choose config, using first available idx: "+chosenIndex);
-              System.err.println("!!! user     caps " + capsChosen);
-              System.err.println("!!! fallback caps " + availableCaps[chosenIndex]);
-          }
-        } else if (chosenIndex >= availableCaps.length) {
-            if(DEBUG) {
-              System.err.println("GLCapabilitiesChooser specified invalid index (expected 0.." + (availableCaps.length - 1) + ", got "+chosenIndex+")");
+        int chosenIndex = chooseCapabilities(chooser, capsChosen, availableCaps, recommendedIndex);
+        if ( 0 > chosenIndex ) {
+            if (DEBUG) {
+                Thread.dumpStack();
             }
             return null;
         }
-
         retFBID = X11GLXGraphicsConfiguration.glXFBConfig2FBConfigID(display, fbcfgsL.get(chosenIndex));
 
         retXVisualInfo = GLX.glXGetVisualFromFBConfig(display, fbcfgsL.get(chosenIndex));
@@ -300,10 +263,9 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
 
         GLProfile glProfile = capsChosen.getGLProfile();
         boolean onscreen = capsChosen.isOnscreen();
-        GLCapabilitiesImmutable[] caps = null;
+        GLCapabilitiesImmutable[] availableCaps = null;
         int recommendedIndex = -1;
         XVisualInfo retXVisualInfo = null;
-        int chosen=-1;
 
         AbstractGraphicsDevice absDevice = x11Screen.getDevice();
         long display = absDevice.getHandle();
@@ -329,36 +291,24 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
         if (infos == null || infos.length<1) {
             throw new GLException("Error while enumerating available XVisualInfos");
         }
-        caps = new GLCapabilitiesImmutable[infos.length];
+        availableCaps = new GLCapabilitiesImmutable[infos.length];
         for (int i = 0; i < infos.length; i++) {
-            caps[i] = X11GLXGraphicsConfiguration.XVisualInfo2GLCapabilities(glProfile, display, infos[i], onscreen, false, isMultisampleAvailable);
+            availableCaps[i] = X11GLXGraphicsConfiguration.XVisualInfo2GLCapabilities(glProfile, display, infos[i], onscreen, false, isMultisampleAvailable);
             // Attempt to find the visual chosenIndex by glXChooseVisual
             if (recommendedVis != null && recommendedVis.getVisualid() == infos[i].getVisualid()) {
                 recommendedIndex = i;
             }
         }
-        try {
-          chosen = chooser.chooseCapabilities(capsChosen, caps, recommendedIndex);
-        } catch (NativeWindowException e) {
-          if(DEBUG) {
-              e.printStackTrace();
-          }
-          chosen = -1;
+        int chosenIndex = chooseCapabilities(chooser, capsChosen, availableCaps, recommendedIndex);
+        if ( 0 > chosenIndex ) {
+            if (DEBUG) {
+                Thread.dumpStack();
+            }
+            return null;
         }
-        if (chosen < 0) {
-          // keep on going ..
-          if(DEBUG) {
-              System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationXVisual Failed .. unable to choose config, using first");
-          }
-          chosen = 0; // default ..
-        } else if (chosen >= caps.length) {
-            throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
-        }
-        if (infos[chosen] == null) {
-            throw new GLException("GLCapabilitiesChooser chose an invalid visual for "+caps[chosen]);
-        }
-        retXVisualInfo = XVisualInfo.create(infos[chosen]);
-        return new X11GLXGraphicsConfiguration(x11Screen, caps[chosen], capsReq, chooser, retXVisualInfo, 0, -1);
+
+        retXVisualInfo = XVisualInfo.create(infos[chosenIndex]);
+        return new X11GLXGraphicsConfiguration(x11Screen, availableCaps[chosenIndex], capsReq, chooser, retXVisualInfo, 0, -1);
     }
 
     static String toHexString(int val) {

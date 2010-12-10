@@ -220,6 +220,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
               VersionNumber glXVersion;
               try {
                   X11GLXContext ctx = (X11GLXContext) sharedDrawable.createContext(null);
+                  ctx.setSynchronized(true);
                   ctx.makeCurrent();
                   {
                       int[] major = new int[1];

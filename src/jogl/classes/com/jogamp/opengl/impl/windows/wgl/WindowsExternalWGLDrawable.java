@@ -69,14 +69,8 @@ public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
     }
 
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
-    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.create(hdc, pfdID, glp, aScreen, true, true);
-
-    ProxySurface ns = new ProxySurface(cfg);
-    ns.setSurfaceHandle(hdc);
-
-    cfg.updateGraphicsConfiguration(factory, ns);
-
-    return new WindowsExternalWGLDrawable(factory, ns);
+    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.create(factory, hdc, pfdID, glp, aScreen, true, true);
+    return new WindowsExternalWGLDrawable(factory, new ProxySurface(cfg, hdc));
   }
 
 

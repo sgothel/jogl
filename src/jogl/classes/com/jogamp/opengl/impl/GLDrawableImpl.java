@@ -146,7 +146,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
         AbstractGraphicsDevice aDevice = surface.getGraphicsConfiguration().getScreen().getDevice();
         if(realizedArg) {
             if(NativeSurface.LOCK_SURFACE_NOT_READY >= lockSurface()) {
-                throw new GLException("X11GLXDrawable.setRealized(true): already realized, but surface not ready (lockSurface)");
+                throw new GLException("GLDrawableImpl.setRealized(true): already realized, but surface not ready (lockSurface)");
             }
         } else {
             aDevice.lock();

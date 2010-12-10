@@ -126,6 +126,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
           readDrawableAvailable = readBufferAvail;
       }
       WindowsGraphicsDevice getDevice() { return device; }
+      WindowsWGLDrawable getDrawable() { return drawable; }
       WindowsWGLContext getContext() { return context; }
       boolean canCreateGLPbuffer() { return canCreateGLPbuffer; }
       boolean isReadDrawableAvailable() { return readDrawableAvailable; }
@@ -176,20 +177,20 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             AbstractGraphicsScreen absScreen = new DefaultGraphicsScreen(sharedDevice, 0);
             WindowsDummyWGLDrawable sharedDrawable = WindowsDummyWGLDrawable.create(this, glp, absScreen);
             WindowsWGLContext ctx  = (WindowsWGLContext) sharedDrawable.createContext(null);
+            ctx.setSynchronized(true);
             ctx.makeCurrent();
             boolean canCreateGLPbuffer = ctx.getGL().isExtensionAvailable(GL_ARB_pbuffer);
             boolean readDrawableAvailable = ctx.isExtensionAvailable(WGL_ARB_make_current_read) &&
-                                                     ctx.isFunctionAvailable(wglMakeContextCurrent);
+                                            ctx.isFunctionAvailable(wglMakeContextCurrent);
+            if (DEBUG) {
+              System.err.println("!!! SharedContext: "+ctx+", pbuffer supported "+canCreateGLPbuffer+
+                                 ", readDrawable supported "+readDrawableAvailable);
+            }
             ctx.release();
             sr = new SharedResource(sharedDevice, sharedDrawable, ctx, readDrawableAvailable, canCreateGLPbuffer);
             synchronized(sharedMap) {
                 sharedMap.put(connection, sr);
             }
-            if (DEBUG) {
-              System.err.println("!!! SharedContext: "+ctx+", pbuffer supported "+canCreateGLPbuffer+
-                                 ", readDrawable supported "+readDrawableAvailable);
-            }
-
         } catch (Throwable t) {
             throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources", t);
         } finally {
@@ -211,6 +212,14 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     SharedResource sr = getOrCreateShared(device);
     if(null!=sr) {
         return sr.getDevice();
+    }
+    return null;
+  }
+
+  protected WindowsWGLDrawable getSharedDrawable(AbstractGraphicsDevice device) {
+    SharedResource sr = getOrCreateShared(device);
+    if(null!=sr) {
+        return sr.getDrawable();
     }
     return null;
   }

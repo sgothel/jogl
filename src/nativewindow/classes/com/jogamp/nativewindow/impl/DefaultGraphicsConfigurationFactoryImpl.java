@@ -35,7 +35,7 @@ package com.jogamp.nativewindow.impl;
 
 import javax.media.nativewindow.*;
 
-public class GraphicsConfigurationFactoryImpl extends GraphicsConfigurationFactory {
+public class DefaultGraphicsConfigurationFactoryImpl extends GraphicsConfigurationFactory {
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen screen) {
         return new DefaultGraphicsConfiguration(screen, capsChosen, capsRequested);
