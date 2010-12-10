@@ -35,13 +35,9 @@ import com.jogamp.test.junit.util.UITestCase;
 import com.jogamp.test.junit.util.DumpGLInfo;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.AfterClass;
 import org.junit.Test;
 
 import javax.media.opengl.*;
-import com.jogamp.newt.*;
 import com.jogamp.newt.opengl.*;
 
 import com.jogamp.newt.*;
@@ -49,21 +45,9 @@ import com.jogamp.opengl.JoglVersion;
 import java.io.IOException;
 
 public class TestGLProfile01NEWT extends UITestCase {
-    static GLProfile glp;
-
-    @BeforeClass
-    public static void initClass() {
-        GLProfile.initSingleton(true);
-        glp = GLProfile.getDefault();
-        Assert.assertNotNull(glp);
-    }
-
-    @AfterClass
-    public static void releaseClass() {
-    }
 
     @Test
-    public void test00Version() {
+    public void test00Version() throws InterruptedException {
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(GlueGenVersion.getInstance());
         System.err.println(NativeWindowVersion.getInstance());
@@ -72,14 +56,14 @@ public class TestGLProfile01NEWT extends UITestCase {
     }
 
     @Test
-    public void test01GLProfileDefault() {
+    public void test01GLProfileDefault() throws InterruptedException {
         System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
         GLProfile glp = GLProfile.getDefault();
         dumpVersion(glp);
     }
 
     @Test
-    public void test02GLProfileMaxFixedFunc() {
+    public void test02GLProfileMaxFixedFunc() throws InterruptedException {
         // Assuming at least one fixed profile is available
         GLProfile glp = GLProfile.getMaxFixedFunc();
         System.out.println("GLProfile getMaxFixedFunc(): "+glp);
@@ -105,7 +89,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     }
 
     @Test
-    public void test03GLProfileMaxProgrammable() {
+    public void test03GLProfileMaxProgrammable() throws InterruptedException {
         // Assuming at least one programmable profile is available
         GLProfile glp = GLProfile.getMaxProgrammable();
         System.out.println("GLProfile getMaxProgrammable(): "+glp);
@@ -131,7 +115,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     }
 
     @Test
-    public void test04GLProfileGL2ES1() {
+    public void test04GLProfileGL2ES1() throws InterruptedException {
         if(!GLProfile.isGL2ES1Available()) {
             System.out.println("GLProfile GL2ES1 n/a");
             return;
@@ -142,7 +126,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     }
 
     @Test
-    public void test05GLProfileGL2ES2() {
+    public void test05GLProfileGL2ES2() throws InterruptedException {
         if(!GLProfile.isGL2ES2Available()) {
             System.out.println("GLProfile GL2ES2 n/a");
             return;
@@ -152,7 +136,7 @@ public class TestGLProfile01NEWT extends UITestCase {
         dumpVersion(glp);
     }
 
-    protected void dumpVersion(GLProfile glp) {
+    protected void dumpVersion(GLProfile glp) throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
@@ -162,7 +146,9 @@ public class TestGLProfile01NEWT extends UITestCase {
 
         glWindow.setSize(128, 128);
         glWindow.setVisible(true);
+
         glWindow.display();
+        Thread.sleep(100);
         glWindow.invalidate();
     }
 

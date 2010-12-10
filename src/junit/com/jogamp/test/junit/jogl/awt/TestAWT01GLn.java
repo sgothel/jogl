@@ -84,6 +84,7 @@ public class TestAWT01GLn extends UITestCase {
     protected void runTestGL(GLCapabilities caps) throws InterruptedException {
         glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
+        glCanvas.addGLEventListener(new Gears());
         frame.add(glCanvas);
 
         // Revalidate size/layout.
@@ -91,8 +92,6 @@ public class TestAWT01GLn extends UITestCase {
         // Ensure 1st paint of GLCanvas will have a valid size, hence drawable gets created.
         frame.setSize(512, 512);
         frame.validate();
-
-        glCanvas.addGLEventListener(new Gears());
 
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
