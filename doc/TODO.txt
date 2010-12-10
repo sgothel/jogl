@@ -1,16 +1,11 @@
-This list is probably completely out of date...
-anyone the guts to remove it? :)
--mbien
+WIP:
+
+- Protected access for Impl classes
 
 Random, somewhat old to-do list:
 
 - Non-const array types must be properly released with JNI_COMMIT in
   order to see side effects if the array was copied.
-
-- Think about e.g. protected access for Impl classes
-
-- Fix glProgramStringARB and glGetProgramString{NV,ARB} so that they
-  use Strings and/or StringBuffers insteead of GLUbyte* and void*
 
 - figure out how to deal with WGL entry points:
     WINGDIAPI HGLRC WINAPI wglCreateLayerContext(HDC, int);
@@ -33,9 +28,3 @@ Random, somewhat old to-do list:
 - Throw an exception if native calls to GetPrimitiveArrayCritical
   return null.
 
-- Before emitting functions and constants, sort them first by
-  extension suffix (i.e., ARB, ATI, NV, etc) and then by name. This
-  will organize them in the file more logically. When writing the
-  code, the sort function can check the last substring that's all caps,
-  and treat this as the extension owner. Be careful though, some end
-  in "3D" and that's not an extension.
