@@ -42,6 +42,7 @@ package javax.media.opengl.awt;
 
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionUtil;
+import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.nativewindow.NativeWindowVersion;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
@@ -370,52 +371,57 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   }
 
   private void dispose(boolean regenerate) {
-    if(DEBUG) {
-        Exception ex1 = new Exception("Info: dispose("+regenerate+") - start");
-        ex1.printStackTrace();
-    }
-
-    if(null!=context) {
-        boolean animatorPaused = false;
-        GLAnimatorControl animator =  getAnimator();
-        if(null!=animator) {
-            // can't remove us from animator for recreational addNotify()
-            animatorPaused = animator.pause();
+    drawableSync.lock();
+    try {
+        if(DEBUG) {
+            Exception ex1 = new Exception("Info: dispose("+regenerate+") - start");
+            ex1.printStackTrace();
         }
 
-        disposeRegenerate=regenerate;
-
-        if (Threading.isSingleThreaded() &&
-            !Threading.isOpenGLThread()) {
-          // Workaround for termination issues with applets --
-          // sun.applet.AppletPanel should probably be performing the
-          // remove() call on the EDT rather than on its own thread
-          // Hint: User should run remove from EDT.
-          if (ThreadingImpl.isAWTMode() &&
-              Thread.holdsLock(getTreeLock())) {
-            // The user really should not be invoking remove() from this
-            // thread -- but since he/she is, we can not go over to the
-            // EDT at this point. Try to destroy the context from here.
-            if(context.isCreated()) {
-                drawableHelper.invokeGL(drawable, context, disposeAction, null);
+        if(null!=context) {
+            boolean animatorPaused = false;
+            GLAnimatorControl animator =  getAnimator();
+            if(null!=animator) {
+                // can't remove us from animator for recreational addNotify()
+                animatorPaused = animator.pause();
             }
-          } else if(context.isCreated()) {
-            Threading.invokeOnOpenGLThread(disposeOnEventDispatchThreadAction);
-          }
-        } else if(context.isCreated()) {
-          drawableHelper.invokeGL(drawable, context, disposeAction, null);
+
+            disposeRegenerate=regenerate;
+
+            if (Threading.isSingleThreaded() &&
+                !Threading.isOpenGLThread()) {
+              // Workaround for termination issues with applets --
+              // sun.applet.AppletPanel should probably be performing the
+              // remove() call on the EDT rather than on its own thread
+              // Hint: User should run remove from EDT.
+              if (ThreadingImpl.isAWTMode() &&
+                  Thread.holdsLock(getTreeLock())) {
+                // The user really should not be invoking remove() from this
+                // thread -- but since he/she is, we can not go over to the
+                // EDT at this point. Try to destroy the context from here.
+                if(context.isCreated()) {
+                    drawableHelper.invokeGL(drawable, context, disposeAction, null);
+                }
+              } else if(context.isCreated()) {
+                Threading.invokeOnOpenGLThread(disposeOnEventDispatchThreadAction);
+              }
+            } else if(context.isCreated()) {
+              drawableHelper.invokeGL(drawable, context, disposeAction, null);
+            }
+
+            if(animatorPaused) {
+                animator.resume();
+            }
+        }
+        if(!regenerate) {
+            disposeAbstractGraphicsDeviceAction.run();
         }
 
-        if(animatorPaused) {
-            animator.resume();
+        if(DEBUG) {
+            System.err.println("dispose("+regenerate+") - stop");
         }
-    }
-    if(!regenerate) {
-        disposeAbstractGraphicsDeviceAction.run();
-    }
-
-    if(DEBUG) {
-        System.err.println("dispose("+regenerate+") - stop");
+    } finally {
+        drawableSync.unlock();
     }
   }
 
@@ -459,6 +465,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
   }
 
+  RecursiveLock drawableSync = new RecursiveLock();
+
   /** Overridden to track when this component is added to a container.
       Subclasses which override this method must call
       super.addNotify() in their addNotify() method in order to
@@ -472,59 +480,69 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         ex1.printStackTrace();
     }
 
-    /**
-     * 'super.addNotify()' determines the GraphicsConfiguration,
-     * while calling this class's overriden 'getGraphicsConfiguration()' method
-     * after which it creates the native peer.
-     * Hence we have to set the 'awtConfig' before since it's GraphicsConfiguration
-     * is being used in getGraphicsConfiguration().
-     * This code order also allows recreation, ie re-adding the GLCanvas.
-     */
-    awtConfig = chooseGraphicsConfiguration(capsReqUser, capsReqUser, chooser, device);
-    if(null==awtConfig) {
-        throw new GLException("Error: NULL AWTGraphicsConfiguration");
-    }
+    drawableSync.lock();
+    try {
+        /**
+         * 'super.addNotify()' determines the GraphicsConfiguration,
+         * while calling this class's overriden 'getGraphicsConfiguration()' method
+         * after which it creates the native peer.
+         * Hence we have to set the 'awtConfig' before since it's GraphicsConfiguration
+         * is being used in getGraphicsConfiguration().
+         * This code order also allows recreation, ie re-adding the GLCanvas.
+         */
+        awtConfig = chooseGraphicsConfiguration(capsReqUser, capsReqUser, chooser, device);
+        if(null==awtConfig) {
+            throw new GLException("Error: NULL AWTGraphicsConfiguration");
+        }
 
-    if (!Beans.isDesignTime()) {
-        // no lock required, since this resource ain't available yet
-        drawable = GLDrawableFactory.getFactory(capsReqUser.getGLProfile())
-                       .createGLDrawable(NativeWindowFactory.getNativeWindow(this, awtConfig));
-        context = (GLContextImpl) drawable.createContext(shareWith);
-        context.setSynchronized(true);
-    }
+        if (!Beans.isDesignTime()) {
+            // no lock required, since this resource ain't available yet
+            drawable = GLDrawableFactory.getFactory(capsReqUser.getGLProfile())
+                           .createGLDrawable(NativeWindowFactory.getNativeWindow(this, awtConfig));
+            context = (GLContextImpl) drawable.createContext(shareWith);
+            context.setSynchronized(true);
+        }
 
-    // before native peer is valid: X11
-    disableBackgroundErase();
+        // before native peer is valid: X11
+        disableBackgroundErase();
 
-    // issues getGraphicsConfiguration() and creates the native peer
-    super.addNotify();
+        // issues getGraphicsConfiguration() and creates the native peer
+        super.addNotify();
 
-    // after native peer is valid: Windows
-    disableBackgroundErase();
+        // after native peer is valid: Windows
+        disableBackgroundErase();
 
-    validateGLDrawable();
+        validateGLDrawable();
 
-    if(DEBUG) {
-        System.err.println(Thread.currentThread().getName()+" - Info: addNotify - end");
+        if(DEBUG) {
+            System.err.println(Thread.currentThread().getName()+" - Info: addNotify - end: peer: "+getPeer());
+        }
+    } finally {
+       drawableSync.unlock();
     }
   }
 
   private boolean validateGLDrawable() {
     boolean realized = false;
     if (!Beans.isDesignTime()) {
-        if ( null != drawable ) {
-            realized = drawable.isRealized();
-            if ( !realized && 0 < drawable.getWidth() * drawable.getHeight() ) {
-                drawable.setRealized(true);
-                realized = true;
-                sendReshape=true; // ensure a reshape is being send ..
-                if(DEBUG) {
-                    String msg = Thread.currentThread().getName()+" - Realized Drawable: "+drawable.toString();
-                    // System.err.println(msg);
-                    Throwable t = new Throwable(msg);
-                    t.printStackTrace();
+        drawableSync.lock();
+        try {
+            if ( null != drawable ) {
+                realized = drawable.isRealized();
+                if ( !realized && 0 < drawable.getWidth() * drawable.getHeight() ) {
+                    drawable.setRealized(true);
+                    realized = true;
+                    sendReshape=true; // ensure a reshape is being send ..
+                    if(DEBUG) {
+                        String msg = Thread.currentThread().getName()+" - Realized Drawable: "+drawable.toString();
+                        // System.err.println(msg);
+                        Throwable t = new Throwable(msg);
+                        t.printStackTrace();
+                    }
                 }
             }
+        } finally {
+           drawableSync.unlock();
         }
     }
     return realized;
@@ -547,15 +565,18 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     if (Beans.isDesignTime()) {
       super.removeNotify();
     } else {
+      drawableSync.lock();
       try {
         dispose(false);
       } finally {
         drawable=null;
+        awtConfig=null;
         super.removeNotify();
+        drawableSync.unlock();
       }
     }
     if(DEBUG) {
-        System.err.println(Thread.currentThread().getName()+" - Info: removeNotify - end");
+        System.err.println(Thread.currentThread().getName()+" - Info: removeNotify - end, peer: "+getPeer());
     }
   }
 
