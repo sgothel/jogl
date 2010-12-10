@@ -133,6 +133,24 @@ typedef struct tagPIXELFORMATDESCRIPTOR {
 #define SW_FORCEMINIMIZE    11
 #define SW_MAX              11
 
+/**
+ * GetObjectType() Command
+ */
+#define OBJ_PEN 1
+#define OBJ_BRUSH 2
+#define OBJ_DC 3
+#define OBJ_METADC 4
+#define OBJ_PAL 5
+#define OBJ_FONT 6
+#define OBJ_BITMAP 7
+#define OBJ_REGION 8
+#define OBJ_METAFILE 9
+#define OBJ_MEMDC 10
+#define OBJ_EXTPEN 11
+#define OBJ_ENHMETADC 12
+#define OBJ_ENHMETAFILE 13
+#define OBJ_COLORSPACE 14
+
 #endif /*  WGL_GDI_VERSION_1_X */
 
 #ifndef WGL_GDI_VERSION_1_X
@@ -174,6 +192,7 @@ WINUSERAPI BOOL WINAPI ShowWindow(HWND hWnd, int nCmdShow);
 WINUSERAPI HDC  WINAPI GetDC(HWND);
 WINUSERAPI int  WINAPI ReleaseDC(HWND hWnd, HDC hDC);
 WINUSERAPI BOOL WINAPI DestroyWindow(HWND hWnd);
+WINUSERAPI DWORD WINAPI GetObjectType(HGDIOBJ h);
 
 // Routines for changing gamma ramp of display device
 WINGDIAPI BOOL        WINAPI GetDeviceGammaRamp(HDC,LPVOID);
