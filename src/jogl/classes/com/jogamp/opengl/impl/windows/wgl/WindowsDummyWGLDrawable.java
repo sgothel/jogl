@@ -60,23 +60,37 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
   protected WindowsDummyWGLDrawable(GLDrawableFactory factory, GLCapabilitiesImmutable caps, AbstractGraphicsScreen absScreen) {
     super(factory, new ProxySurface(WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(caps, absScreen)), true);
     hwnd = GDI.CreateDummyWindow(0, 0, f_dim, f_dim);
+    if(0 == hwnd) {
+        throw new GLException("Error hwnd 0, werr: "+GDI.GetLastError());
+    }
     ProxySurface ns = (ProxySurface) getNativeSurface();
     ns.setSize(f_dim, f_dim);
-    
-    if(NativeSurface.LOCK_SURFACE_NOT_READY >= lockSurface()) {
-        throw new GLException("WindowsDummyWGLDrawable: surface not ready (lockSurface)");
-    }
+
+    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    AbstractGraphicsDevice adevice = config.getScreen().getDevice();
+    adevice.lock();
     try {
-        WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-        config.updateGraphicsConfiguration(factory, ns, null);
-        if (DEBUG) {
-          System.err.println("!!! WindowsDummyWGLDrawable: "+config);
+        if(NativeSurface.LOCK_SURFACE_NOT_READY >= ns.lockSurface()) {
+            throw new GLException("WindowsDummyWGLDrawable: surface not ready (lockSurface)");
         }
-    } catch (Throwable t) {
-        destroyImpl();
-        throw new GLException(t);
+        try {
+            hdc = GDI.GetDC(hwnd);
+            if(0 == hdc) {
+                throw new GLException("Error hdc 0, werr: "+GDI.GetLastError());
+            }
+            ns.setSurfaceHandle(hdc);
+            config.updateGraphicsConfiguration(factory, ns, null);
+            if (DEBUG) {
+              System.err.println("!!! WindowsDummyWGLDrawable: hdc "+toHexString(hdc)+", "+config);
+            }
+        } catch (Throwable t) {
+            destroyImpl();
+            throw new GLException(t);
+        } finally {
+            ns.unlockSurface();
+        }
     } finally {
-        unlockSurface();
+        adevice.unlock();
     }
   }
 
@@ -87,48 +101,6 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
       caps.setOnscreen  (true);
       caps.setPBuffer   (true);
       return new WindowsDummyWGLDrawable(factory, caps, absScreen);
-  }
-
-  public int lockSurface() throws GLException {
-    int res = NativeSurface.LOCK_SURFACE_NOT_READY;
-    ProxySurface ns = (ProxySurface) getNativeSurface();
-    AbstractGraphicsDevice adevice = ns.getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
-    adevice.lock();
-    try {
-        res = ns.lockSurface();
-        if(NativeSurface.LOCK_SUCCESS == res && 0 != hwnd && 0 == hdc) {
-            hdc = GDI.GetDC(hwnd);
-            ns.setSurfaceHandle(hdc);
-            if(0 == hdc) {
-                throw new GLException("Error hdc 0, werr: "+GDI.GetLastError());
-            }
-        } else {
-            Throwable t = new Throwable("Error lock failed - res "+res+", hwnd "+toHexString(hwnd)+", hdc "+toHexString(hdc));
-            t.printStackTrace();
-        }
-    } finally {
-        if( NativeSurface.LOCK_SURFACE_NOT_READY == res ) {
-            adevice.unlock();
-        }
-    }
-    return res;
-  }
-
-  public void unlockSurface() {
-    ProxySurface ns = (ProxySurface) getNativeSurface();
-    ns.validateSurfaceLocked();
-    AbstractGraphicsDevice adevice = ns.getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
-    
-    try {
-        if ( 0 != hdc && 0 != hwnd && ns.getSurfaceRecursionCount() == 0) {
-            GDI.ReleaseDC(hwnd, hdc);
-            hdc=0;
-            ns.setSurfaceHandle(hdc);
-        }
-        surface.unlockSurface();
-    } finally {
-        adevice.unlock();
-    }
   }
 
   public void setSize(int width, int height) {
