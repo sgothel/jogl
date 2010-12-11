@@ -66,9 +66,11 @@ import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.impl.ProxySurface;
 import com.jogamp.nativewindow.impl.windows.GDI;
 import com.jogamp.opengl.impl.DesktopGLDynamicLookupHelper;
+import com.jogamp.opengl.impl.GLContextImpl;
 import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
 import com.jogamp.opengl.impl.GLDrawableImpl;
 import com.jogamp.opengl.impl.GLDynamicLookupHelper;
+import com.jogamp.opengl.impl.SharedResourceRunner;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
@@ -108,32 +110,141 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     defaultDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+
+    // Init shared resources off thread
+    // Will be released via ShutdownHook
+    sharedResourceImpl = new SharedResourceImplementation();
+    sharedResourceRunner = new SharedResourceRunner(sharedResourceImpl);
+    sharedResourceThread = new Thread(sharedResourceRunner, Thread.currentThread().getName()+"-SharedResourceRunner");
+    sharedResourceThread.setDaemon(true); // Allow JVM to exit, even if this one is running
+    sharedResourceThread.start();
   }
 
-  static class SharedResource {
+  WindowsGraphicsDevice defaultDevice;
+  SharedResourceImplementation sharedResourceImpl;
+  SharedResourceRunner sharedResourceRunner;
+  Thread sharedResourceThread;
+  HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
+
+  static class SharedResource implements SharedResourceRunner.Resource {
       private WindowsGraphicsDevice device;
+      private AbstractGraphicsScreen screen;
       private WindowsDummyWGLDrawable drawable;
       private WindowsWGLContext context;
       private boolean canCreateGLPbuffer;
       private boolean readDrawableAvailable;
 
-      SharedResource(WindowsGraphicsDevice dev, WindowsDummyWGLDrawable draw, WindowsWGLContext ctx,
+      SharedResource(WindowsGraphicsDevice dev, AbstractGraphicsScreen scrn, WindowsDummyWGLDrawable draw, WindowsWGLContext ctx,
                      boolean readBufferAvail, boolean canPbuffer) {
           device = dev;
+          screen = scrn;
           drawable = draw;
           context = ctx;
           canCreateGLPbuffer = canPbuffer;
           readDrawableAvailable = readBufferAvail;
       }
-      WindowsGraphicsDevice getDevice() { return device; }
-      WindowsWGLDrawable getDrawable() { return drawable; }
-      WindowsWGLContext getContext() { return context; }
+      public AbstractGraphicsDevice getDevice() { return device; }
+      public AbstractGraphicsScreen getScreen() { return screen; }
+      public GLDrawableImpl getDrawable() { return drawable; }
+      public GLContextImpl getContext() { return context; }
+
       boolean canCreateGLPbuffer() { return canCreateGLPbuffer; }
       boolean isReadDrawableAvailable() { return readDrawableAvailable; }
-
   }
-  HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
-  WindowsGraphicsDevice defaultDevice;
+
+  class SharedResourceImplementation implements SharedResourceRunner.Implementation {
+        public void clear() {
+            synchronized(sharedMap) {
+                sharedMap.clear();
+            }
+        }
+        public SharedResourceRunner.Resource mapPut(String connection, SharedResourceRunner.Resource resource) {
+            synchronized(sharedMap) {
+                return (SharedResourceRunner.Resource) sharedMap.put(connection, resource);
+            }
+        }
+        public SharedResourceRunner.Resource mapGet(String connection) {
+            synchronized(sharedMap) {
+                return (SharedResourceRunner.Resource) sharedMap.get(connection);
+            }
+        }
+        public Collection/*<Resource>*/ mapValues() {
+            synchronized(sharedMap) {
+                return sharedMap.values();
+            }
+        }
+
+        public SharedResourceRunner.Resource createSharedResource(String connection) {
+            WindowsGraphicsDevice sharedDevice = new WindowsGraphicsDevice(connection, AbstractGraphicsDevice.DEFAULT_UNIT);
+            sharedDevice.lock();
+            try {
+                AbstractGraphicsScreen absScreen = new DefaultGraphicsScreen(sharedDevice, 0);
+                if (null == absScreen) {
+                    throw new GLException("Couldn't create shared screen for device: "+sharedDevice+", idx 0");
+                }
+                GLProfile glp = GLProfile.getDefault(sharedDevice);
+                if (null == glp) {
+                    throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
+                }
+                WindowsDummyWGLDrawable sharedDrawable = WindowsDummyWGLDrawable.create(WindowsWGLDrawableFactory.this, glp, absScreen);
+                if (null == sharedDrawable) {
+                    throw new GLException("Couldn't create shared drawable for screen: "+absScreen+", "+glp);
+                }
+                WindowsWGLContext sharedContext  = (WindowsWGLContext) sharedDrawable.createContext(null);
+                if (null == sharedContext) {
+                    throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
+                }
+                sharedContext.setSynchronized(true);
+                sharedContext.makeCurrent();
+                boolean canCreateGLPbuffer = sharedContext.getGL().isExtensionAvailable(GL_ARB_pbuffer);
+                boolean readDrawableAvailable = sharedContext.isExtensionAvailable(WGL_ARB_make_current_read) &&
+                                                sharedContext.isFunctionAvailable(wglMakeContextCurrent);
+                sharedContext.release();
+                if (DEBUG) {
+                    System.err.println("!!! SharedDevice:  " + sharedDevice);
+                    System.err.println("!!! SharedScreen:  " + absScreen);
+                    System.err.println("!!! SharedContext: " + sharedContext);
+                    System.err.println("!!! pbuffer avail: " + canCreateGLPbuffer);
+                    System.err.println("!!! readDrawable:  " + readDrawableAvailable);
+                }
+                return new SharedResource(sharedDevice, absScreen, sharedDrawable, sharedContext, readDrawableAvailable, canCreateGLPbuffer);
+            } catch (Throwable t) {
+                throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources for "+connection, t);
+            } finally {
+                sharedDevice.unlock();
+            }
+        }
+
+        public void releaseSharedResource(SharedResourceRunner.Resource shared) {
+            SharedResource sr = (SharedResource) shared;
+            if (DEBUG) {
+              System.err.println("!!! Shutdown Shared:");
+              System.err.println("!!!   Device  : " + sr.device);
+              System.err.println("!!!   Screen  : " + sr.screen);
+              System.err.println("!!!   Drawable: " + sr.drawable);
+              System.err.println("!!!   CTX     : " + sr.context);
+            }
+
+            if (null != sr.context) {
+                // may cause JVM SIGSEGV: sharedContext.destroy();
+                sr.context = null;
+            }
+
+            if (null != sr.drawable) {
+                // may cause JVM SIGSEGV: sharedDrawable.destroy();
+                sr.drawable = null;
+            }
+
+            if (null != sr.screen) {
+                sr.screen = null;
+            }
+
+            if (null != sr.device) {
+                sr.device.close();
+                sr.device = null;
+            }
+        }
+  }
 
   public final AbstractGraphicsDevice getDefaultDevice() {
       return defaultDevice;
@@ -146,62 +257,12 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       return false;
   }
 
-  HashSet devicesTried = new HashSet();
-  private final boolean getDeviceTried(String connection) {
-      synchronized(devicesTried) {
-          return devicesTried.contains(connection);
-      }
-  }
-  private final void addDeviceTried(String connection) {
-      synchronized(devicesTried) {
-          devicesTried.add(connection);
-      }
-  }
-
   final static String GL_ARB_pbuffer = "GL_ARB_pbuffer";
   final static String WGL_ARB_make_current_read = "WGL_ARB_make_current_read";
   final static String wglMakeContextCurrent = "wglMakeContextCurrent";
 
-  private SharedResource getOrCreateShared(AbstractGraphicsDevice device) {
-    String connection = device.getConnection();
-    SharedResource sr;
-    synchronized(sharedMap) {
-        sr = (SharedResource) sharedMap.get(connection);
-    }
-    if(null==sr && !getDeviceTried(connection)) {
-        addDeviceTried(connection);
-        NativeWindowFactory.getDefaultToolkitLock().lock(); // OK
-        try {
-            WindowsGraphicsDevice sharedDevice = new WindowsGraphicsDevice(connection, AbstractGraphicsDevice.DEFAULT_UNIT);
-            GLProfile glp = GLProfile.getDefault(/*sharedDevice*/); // can't fetch device profile, which shared resource we create here
-            AbstractGraphicsScreen absScreen = new DefaultGraphicsScreen(sharedDevice, 0);
-            WindowsDummyWGLDrawable sharedDrawable = WindowsDummyWGLDrawable.create(this, glp, absScreen);
-            WindowsWGLContext ctx  = (WindowsWGLContext) sharedDrawable.createContext(null);
-            ctx.setSynchronized(true);
-            ctx.makeCurrent();
-            boolean canCreateGLPbuffer = ctx.getGL().isExtensionAvailable(GL_ARB_pbuffer);
-            boolean readDrawableAvailable = ctx.isExtensionAvailable(WGL_ARB_make_current_read) &&
-                                            ctx.isFunctionAvailable(wglMakeContextCurrent);
-            if (DEBUG) {
-              System.err.println("!!! SharedContext: "+ctx+", pbuffer supported "+canCreateGLPbuffer+
-                                 ", readDrawable supported "+readDrawableAvailable);
-            }
-            ctx.release();
-            sr = new SharedResource(sharedDevice, sharedDrawable, ctx, readDrawableAvailable, canCreateGLPbuffer);
-            synchronized(sharedMap) {
-                sharedMap.put(connection, sr);
-            }
-        } catch (Throwable t) {
-            throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources", t);
-        } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock(); // OK
-        }
-    }
-    return sr;
-  }
-
   protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
-    SharedResource sr = getOrCreateShared(device);
+    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
     if(null!=sr) {
       return sr.getContext();
     }
@@ -209,7 +270,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {
-    SharedResource sr = getOrCreateShared(device);
+    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
     if(null!=sr) {
         return sr.getDevice();
     }
@@ -217,43 +278,15 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   protected WindowsWGLDrawable getSharedDrawable(AbstractGraphicsDevice device) {
-    SharedResource sr = getOrCreateShared(device);
+    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
     if(null!=sr) {
-        return sr.getDrawable();
+        return (WindowsWGLDrawable) sr.getDrawable();
     }
     return null;
   }
 
   protected final void shutdownInstance() {
-    if (DEBUG) {
-        Exception e = new Exception("Debug");
-        e.printStackTrace();
-    }
-    Collection/*<SharedResource>*/ sharedResources = sharedMap.values();
-    for(Iterator iter=sharedResources.iterator(); iter.hasNext(); ) {
-        SharedResource sr = (SharedResource) iter.next();
-
-        if (DEBUG) {
-          System.err.println("!!! Shutdown Shared:");
-          System.err.println("!!!          Drawable: "+sr.drawable);
-          System.err.println("!!!          CTX     : "+sr.context);
-        }
-
-        if (null != sr.context) {
-          // may cause JVM SIGSEGV: sharedContext.destroy();
-          sr.context = null;
-        }
-
-        if (null != sr.drawable) {
-          // may cause JVM SIGSEGV: sharedDrawable.destroy();
-          sr.drawable = null;
-        }
-
-    }
-    sharedMap.clear();
-    if (DEBUG) {
-      System.err.println("!!! Shutdown Shared Finished");
-    }
+    sharedResourceRunner.releaseAndWait();
   }
 
   protected final GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
@@ -276,7 +309,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     // PBuffer GLDrawable Creation
     final AbstractGraphicsDevice device = config.getScreen().getDevice();
 
-    final SharedResource sr = getOrCreateShared(device);
+    final SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared(device);
     if(null==sr) {
         throw new IllegalArgumentException("No shared resource for "+device);
     }
@@ -287,19 +320,17 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
           if (lastContext != null) {
             lastContext.release();
           }
-          synchronized(sr.context) {
-              sr.context.makeCurrent();
-              try {
-                GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(WindowsWGLDrawableFactory.this, target,
-                                                                               sr.drawable,
-                                                                               sr.context);
-                returnList.add(pbufferDrawable);
-              } finally {
-                sr.context.release();
-                if (lastContext != null) {
-                  lastContext.makeCurrent();
-                }
-              }
+          sr.context.makeCurrent();
+          try {
+            GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(WindowsWGLDrawableFactory.this, target,
+                                                                           sr.drawable,
+                                                                           sr.context);
+            returnList.add(pbufferDrawable);
+          } finally {
+            sr.context.release();
+            if (lastContext != null) {
+              lastContext.makeCurrent();
+            }
           }
         }
       };
@@ -312,7 +343,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
    *           and -1 if undefined yet, ie no shared device exist at this point.
    */
   public final int isReadDrawableAvailable(AbstractGraphicsDevice device) {
-    SharedResource sr = getOrCreateShared((null!=device)?device:defaultDevice);
+    SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared((null!=device)?device:defaultDevice);
     if(null!=sr) {
         return sr.isReadDrawableAvailable() ? 1 : 0 ;
     }
@@ -320,7 +351,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
-    SharedResource sr = getOrCreateShared((null!=device)?device:defaultDevice);
+    SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared((null!=device)?device:defaultDevice);
     if(null!=sr) {
         return sr.canCreateGLPbuffer();
     }
