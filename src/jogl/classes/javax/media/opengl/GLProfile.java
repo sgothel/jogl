@@ -1083,6 +1083,8 @@ public class GLProfile {
      */
     private static void initProfilesForDefaultDevices(boolean firstUIActionOnProcess) {
 
+        NativeWindowFactory.initSingleton(firstUIActionOnProcess);
+
         if(DEBUG) {
             System.err.println("GLProfile.init firstUIActionOnProcess: "+ firstUIActionOnProcess
                                + ", thread: " + Thread.currentThread().getName());
@@ -1091,8 +1093,6 @@ public class GLProfile {
             System.err.println(NativeWindowVersion.getInstance());
             System.err.println(JoglVersion.getInstance());
         }
-
-        NativeWindowFactory.initSingleton(firstUIActionOnProcess);
 
         ClassLoader classloader = GLProfile.class.getClassLoader();
 
