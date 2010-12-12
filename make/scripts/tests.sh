@@ -97,13 +97,13 @@ function testawt() {
 #testawt com.jogamp.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
 #testawt com.jogamp.test.junit.jogl.awt.TestAWT02WindowClosing
 #testawt com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsAWT
-testawt com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT $*
+#testawt com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.test.junit.jogl.texture.TestTexture01AWT
 
 #
 # newt.awt (testawt)
 #
-#testawt com.jogamp.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
+testawt com.jogamp.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
 #testawt com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNewtAWTWrapper
 #testawt com.jogamp.test.junit.newt.TestEventSourceNotAWTBug
 #testawt com.jogamp.test.junit.newt.TestFocus01SwingAWTRobot

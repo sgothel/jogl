@@ -70,6 +70,10 @@ public class GLProfile {
     /**
      * Static one time initialization of JOGL.
      * <p>
+     * The parameter <code>firstUIActionOnProcess</code> has an impact on concurrent locking,<br>
+     * see {@link javax.media.nativewindow.NativeWindowFactory#initSingleton(boolean) NativeWindowFactory.initSingleton(firstUIActionOnProcess)}.
+     * </p>
+     * <p>
      * Applications shall call this methods <b>ASAP</b>, before any other UI invocation.<br>
      * You may issue the call in your main function.<br>
      * In case applications are able to initialize JOGL before any other UI action,<br>
