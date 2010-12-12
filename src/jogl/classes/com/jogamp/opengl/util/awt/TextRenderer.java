@@ -1582,6 +1582,12 @@ public class TextRenderer {
                 fullRunGlyphVector = font.createGlyphVector(getFontRenderContext(), iter);
                 fullGlyphVectorCache.put(inString.toString(), fullRunGlyphVector);
             }
+            boolean complex = (fullRunGlyphVector.getLayoutFlags() != 0);
+            if (complex || DISABLE_GLYPH_CACHE) {
+                // Punt to the robust version of the renderer
+                glyphsOutput.add(new Glyph(inString.toString(), false));
+                return glyphsOutput;
+            }
 
             int lengthInGlyphs = fullRunGlyphVector.getNumGlyphs();
             int i = 0;
