@@ -34,10 +34,11 @@
 package com.jogamp.nativewindow.impl.x11;
 
 import com.jogamp.common.util.LongObjectHashMap;
+import com.jogamp.nativewindow.impl.Debug;
+import com.jogamp.nativewindow.impl.NWJNILibLoader;
 
 import javax.media.nativewindow.*;
 
-import com.jogamp.nativewindow.impl.*;
 import java.nio.Buffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;

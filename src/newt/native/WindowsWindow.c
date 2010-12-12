@@ -1047,71 +1047,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsDisplay_Dispatch
 }
 
 /*
- * Class:     com_jogamp_newt_impl_windows_WindowsDisplay
- * Method:    LoadLibraryW
- * Signature: (Ljava/lang/String;)J
- */
-JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsDisplay_LoadLibraryW0
-  (JNIEnv *env, jclass clazz, jstring dllName)
-{
-    jchar* _dllName = NewtCommon_GetNullTerminatedStringChars(env, dllName);
-    HMODULE lib = LoadLibraryW(_dllName);
-    free(_dllName);
-    return (jlong) (intptr_t) lib;
-}
-
-/*
- * Class:     com_jogamp_newt_impl_windows_WindowsDisplay
- * Method:    RegisterWindowClass
- * Signature: (Ljava/lang/String;J)I
- */
-JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_windows_WindowsDisplay_RegisterWindowClass0
-  (JNIEnv *env, jclass clazz, jstring wndClassName, jlong hInstance)
-{
-    ATOM res;
-    WNDCLASS wc;
-#ifndef UNICODE
-    const char* _wndClassName = NULL;
-#endif
-
-    /* register class */
-    wc.style = CS_HREDRAW | CS_VREDRAW;
-    wc.lpfnWndProc = (WNDPROC)wndProc;
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
-    /* This cast is legal because the HMODULE for a DLL is the same as
-       its HINSTANCE -- see MSDN docs for DllMain */
-    wc.hInstance = (HINSTANCE) (intptr_t) hInstance;
-    wc.hIcon = NULL;
-    wc.hCursor = LoadCursor( NULL, IDC_ARROW);
-    wc.hbrBackground = GetStockObject(BLACK_BRUSH);
-    wc.lpszMenuName = NULL;
-#ifdef UNICODE
-    wc.lpszClassName = NewtCommon_GetNullTerminatedStringChars(env, wndClassName);
-#else
-    _wndClassName = (*env)->GetStringUTFChars(env, wndClassName, NULL);
-    wc.lpszClassName = strdup(_wndClassName);
-    (*env)->ReleaseStringUTFChars(env, wndClassName, _wndClassName);
-#endif
-    res = RegisterClass(&wc);
-
-    free((void *)wc.lpszClassName);
-
-    return (jint)res;
-}
-
-/*
- * Class:     com_jogamp_newt_impl_windows_WindowsDisplay
- * Method:    CleanupWindowResources
- * Signature: (java/lang/String;J)V
- */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsDisplay_UnregisterWindowClass0
-  (JNIEnv *env, jclass clazz, jint wndClassAtom, jlong hInstance)
-{
-    UnregisterClass(MAKEINTATOM(wndClassAtom), (HINSTANCE) (intptr_t) hInstance);
-}
-
-/*
  * Class:     com_jogamp_newt_impl_windows_WindowsScreen
  * Method:    getWidthImpl
  * Signature: (I)I
@@ -1363,15 +1298,27 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_initI
 
 /*
  * Class:     com_jogamp_newt_impl_windows_WindowsWindow
+ * Method:    getNewtWndProc0
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_getNewtWndProc0
+  (JNIEnv *env, jclass clazz)
+{
+    return (jlong) (intptr_t) wndProc;
+}
+
+/*
+ * Class:     com_jogamp_newt_impl_windows_WindowsWindow
  * Method:    CreateWindow
- * Signature: (JILjava/lang/String;JJZIIII)J
  */
 JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_CreateWindow0
-  (JNIEnv *env, jobject obj, jlong parent, jint wndClassAtom, jstring jWndName, jlong hInstance, jlong visualID,
-        jboolean bIsUndecorated,
-        jint jx, jint jy, jint defaultWidth, jint defaultHeight)
+  (JNIEnv *env, jobject obj, 
+   jlong hInstance, jstring jWndClassName, jstring jWndName, 
+   jlong parent, jlong visualID, jboolean bIsUndecorated,
+   jint jx, jint jy, jint defaultWidth, jint defaultHeight)
 {
     HWND parentWindow = (HWND) (intptr_t) parent;
+    const TCHAR* wndClassName = NULL;
     const TCHAR* wndName = NULL;
     DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE | WS_TABSTOP;
     int x=(int)jx, y=(int)jy;
@@ -1379,8 +1326,10 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_CreateWi
     HWND window = NULL;
 
 #ifdef UNICODE
+    wndClassName = NewtCommon_GetNullTerminatedStringChars(env, jWndClassName);
     wndName = NewtCommon_GetNullTerminatedStringChars(env, jWndName);
 #else
+    wndClassName = (*env)->GetStringUTFChars(env, jWndClassName, NULL);
     wndName = (*env)->GetStringUTFChars(env, jWndName, NULL);
 #endif
 
@@ -1400,13 +1349,13 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_CreateWi
 
     (void) visualID; // FIXME: use the visualID ..
 
-    window = CreateWindow(MAKEINTATOM(wndClassAtom), wndName, windowStyle,
+    window = CreateWindow(wndClassName, wndName, windowStyle,
                           x, y, width, height,
                           parentWindow, NULL,
                           (HINSTANCE) (intptr_t) hInstance,
                           NULL);
 
-    DBG_PRINT("*** WindowsWindow: CreateWindow thread 0xX, parent %p, window %p, %d/%d %dx%d\n", 
+    DBG_PRINT("*** WindowsWindow: CreateWindow thread 0x%X, parent %p, window %p, %d/%d %dx%d\n", 
         (int)GetCurrentThreadId(), parentWindow, window, x, y, width, height);
 
     if (NULL == window) {
@@ -1427,24 +1376,14 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_CreateWi
     }
 
 #ifdef UNICODE
+    free((void*) wndClassName);
     free((void*) wndName);
 #else
+    (*env)->ReleaseStringUTFChars(env, jWndClassName, wndClassName);
     (*env)->ReleaseStringUTFChars(env, jWndName, wndName);
 #endif
 
     return (jlong) (intptr_t) window;
-}
-
-/*
- * Class:     com_jogamp_newt_impl_windows_WindowsWindow
- * Method:    DestroyWindow
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_DestroyWindow0
-  (JNIEnv *env, jobject obj, jlong window)
-{
-    DBG_PRINT("*** WindowsWindow: DestroyWindow thread 0x%X, window %p\n", (int)GetCurrentThreadId(), window);
-    DestroyWindow((HWND) (intptr_t) window);
 }
 
 /*

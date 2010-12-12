@@ -45,8 +45,6 @@ import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -72,6 +70,7 @@ import com.jogamp.opengl.impl.GLDrawableImpl;
 import com.jogamp.opengl.impl.GLDynamicLookupHelper;
 import com.jogamp.opengl.impl.SharedResourceRunner;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.windows.RegisteredClassFactory;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
@@ -195,11 +194,16 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                     throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
                 }
                 sharedContext.setSynchronized(true);
+                boolean canCreateGLPbuffer;
+                boolean readDrawableAvailable;
                 sharedContext.makeCurrent();
-                boolean canCreateGLPbuffer = sharedContext.getGL().isExtensionAvailable(GL_ARB_pbuffer);
-                boolean readDrawableAvailable = sharedContext.isExtensionAvailable(WGL_ARB_make_current_read) &&
-                                                sharedContext.isFunctionAvailable(wglMakeContextCurrent);
-                sharedContext.release();
+                try {
+                    canCreateGLPbuffer = sharedContext.getGL().isExtensionAvailable(GL_ARB_pbuffer);
+                    readDrawableAvailable = sharedContext.isExtensionAvailable(WGL_ARB_make_current_read) &&
+                                            sharedContext.isFunctionAvailable(wglMakeContextCurrent);
+                } finally {
+                    sharedContext.release();
+                }
                 if (DEBUG) {
                     System.err.println("!!! SharedDevice:  " + sharedDevice);
                     System.err.println("!!! SharedScreen:  " + absScreen);
@@ -231,7 +235,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             }
 
             if (null != sr.drawable) {
-                // may cause JVM SIGSEGV: sharedDrawable.destroy();
+                sr.drawable.destroy();
                 sr.drawable = null;
             }
 
@@ -287,6 +291,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
 
   protected final void shutdownInstance() {
     sharedResourceRunner.releaseAndWait();
+    RegisteredClassFactory.shutdownSharedClasses();
   }
 
   protected final GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {

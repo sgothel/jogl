@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -33,73 +34,61 @@
 
 package com.jogamp.newt.impl.windows;
 
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.windows.*;
-import com.jogamp.newt.*;
-import com.jogamp.newt.impl.*;
+import com.jogamp.newt.impl.DisplayImpl;
+import com.jogamp.newt.impl.NEWTJNILibLoader;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.windows.RegisteredClassFactory;
+import javax.media.nativewindow.windows.RegisteredClass;
+import javax.media.nativewindow.windows.WindowsGraphicsDevice;
 
 public class WindowsDisplay extends DisplayImpl {
 
-    protected static final String WINDOW_CLASS_NAME = "NewtWindowClass";
-    private static int windowClassAtom;
-    private static long hInstance;
+    private static final String newtClassBaseName = "_newt_clazz" ;
+    private static RegisteredClassFactory sharedClassFactory;
 
     static {
         NEWTJNILibLoader.loadNEWT();
 
         if (!WindowsWindow.initIDs0()) {
             throw new NativeWindowException("Failed to initialize WindowsWindow jmethodIDs");
-        }
+        }        
+        sharedClassFactory = new RegisteredClassFactory(newtClassBaseName, WindowsWindow.getNewtWndProc0());
     }
 
     public static void initSingleton() {
         // just exist to ensure static init has been run
     }
 
+    private RegisteredClass sharedClass;
 
     public WindowsDisplay() {
     }
 
     protected void createNativeImpl() {
+        sharedClass = sharedClassFactory.getSharedClass();
         aDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
     protected void closeNativeImpl() { 
-        // Can't do .. only at application shutdown 
-        // UnregisterWindowClass0(getWindowClassAtom(), getHInstance());
+        sharedClassFactory.releaseSharedClass();
     }
 
     protected void dispatchMessagesNative() {
         DispatchMessages0();
     }
 
-    protected static synchronized int getWindowClassAtom() {
-        if(0 == windowClassAtom) {
-            windowClassAtom = RegisterWindowClass0(WINDOW_CLASS_NAME, getHInstance());
-            if (0 == windowClassAtom) {
-                throw new NativeWindowException("Error while registering window class");
-            }
-        }
-        return windowClassAtom;
+    protected long getHInstance() {
+        return sharedClass.getHandle();
     }
 
-    protected static synchronized long getHInstance() {
-        if(0 == hInstance) {
-            hInstance = LoadLibraryW0("newt");
-            if (0 == hInstance) {
-                throw new NativeWindowException("Error finding HINSTANCE for \"newt\"");
-            }
-        }
-        return hInstance;
+    protected String getWindowClassName() {
+        return sharedClass.getName();
     }
 
     //----------------------------------------------------------------------
     // Internals only
     //
-    private static native long LoadLibraryW0(String libraryName);
-    private static native int  RegisterWindowClass0(String windowClassName, long hInstance);
-    private static native void UnregisterWindowClass0(int wndClassAtom, long hInstance);
-
     private static native void DispatchMessages0();
 }
 

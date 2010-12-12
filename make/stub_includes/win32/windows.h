@@ -34,6 +34,7 @@ typedef unsigned int*       PUINT;
 typedef unsigned int        UINT;
 typedef unsigned short      USHORT;
 typedef unsigned short      WORD;
+typedef unsigned short      ATOM;
 
 /* Necessary handle typedefs for parsing wglext.h */
 

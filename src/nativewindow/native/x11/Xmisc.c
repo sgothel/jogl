@@ -80,6 +80,7 @@ Bool XF86VidModeSetGammaRamp(
 #define RTLD_DEFAULT NULL
 #endif
 
+#include "NativewindowCommon.h"
 #include "com_jogamp_nativewindow_impl_x11_X11Lib.h"
 
 // #define VERBOSE_ON 1
@@ -93,105 +94,64 @@ Bool XF86VidModeSetGammaRamp(
 /* Need to pull this in as we don't have a stub header for it */
 extern Bool XineramaEnabled(Display* display);
 
-static void _FatalError(JNIEnv *env, const char* msg, ...)
-{
-    char buffer[512];
-    va_list ap;
-
-    va_start(ap, msg);
-    vsnprintf(buffer, sizeof(buffer), msg, ap);
-    va_end(ap);
-
-    fprintf(stderr, "%s\n", buffer);
-    (*env)->FatalError(env, buffer);
-}
-
 static const char * const ClazzNameBuffers = "com/jogamp/common/nio/Buffers";
 static const char * const ClazzNameBuffersStaticCstrName = "copyByteBuffer";
 static const char * const ClazzNameBuffersStaticCstrSignature = "(Ljava/nio/ByteBuffer;)Ljava/nio/ByteBuffer;";
 static const char * const ClazzNameByteBuffer = "java/nio/ByteBuffer";
-static const char * const ClazzNameRuntimeException = "java/lang/RuntimeException";
 static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
 static const char * const ClazzAnyCstrName = "<init>";
 static const char * const ClazzNamePointCstrSignature = "(II)V";
 static jclass clazzBuffers = NULL;
 static jmethodID cstrBuffers = NULL;
 static jclass clazzByteBuffer = NULL;
-static jclass clazzRuntimeException=NULL;
 static jclass pointClz = NULL;
 static jmethodID pointCstr = NULL;
 
 static void _initClazzAccess(JNIEnv *env) {
     jclass c;
 
-    if(NULL!=clazzRuntimeException) return ;
-
-    c = (*env)->FindClass(env, ClazzNameRuntimeException);
-    if(NULL==c) {
-        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNameRuntimeException);
-    }
-    clazzRuntimeException = (jclass)(*env)->NewGlobalRef(env, c);
-    (*env)->DeleteLocalRef(env, c);
-    if(NULL==clazzRuntimeException) {
-        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameRuntimeException);
-    }
+    if(!NativewindowCommon_init(env)) return;
 
     c = (*env)->FindClass(env, ClazzNameBuffers);
     if(NULL==c) {
-        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNameBuffers);
+        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNameBuffers);
     }
     clazzBuffers = (jclass)(*env)->NewGlobalRef(env, c);
     (*env)->DeleteLocalRef(env, c);
     if(NULL==clazzBuffers) {
-        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameBuffers);
+        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameBuffers);
     }
     c = (*env)->FindClass(env, ClazzNameByteBuffer);
     if(NULL==c) {
-        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNameByteBuffer);
+        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNameByteBuffer);
     }
     clazzByteBuffer = (jclass)(*env)->NewGlobalRef(env, c);
     (*env)->DeleteLocalRef(env, c);
     if(NULL==c) {
-        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameByteBuffer);
+        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameByteBuffer);
     }
 
     cstrBuffers = (*env)->GetStaticMethodID(env, clazzBuffers, 
                             ClazzNameBuffersStaticCstrName, ClazzNameBuffersStaticCstrSignature);
     if(NULL==cstrBuffers) {
-        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't create %s.%s %s",
+        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't create %s.%s %s",
             ClazzNameBuffers, ClazzNameBuffersStaticCstrName, ClazzNameBuffersStaticCstrSignature);
     }
 
     c = (*env)->FindClass(env, ClazzNamePoint);
     if(NULL==c) {
-        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNamePoint);
+        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNamePoint);
     }
     pointClz = (jclass)(*env)->NewGlobalRef(env, c);
     (*env)->DeleteLocalRef(env, c);
     if(NULL==pointClz) {
-        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNamePoint);
+        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNamePoint);
     }
     pointCstr = (*env)->GetMethodID(env, pointClz, ClazzAnyCstrName, ClazzNamePointCstrSignature);
     if(NULL==pointCstr) {
-        _FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't fetch %s.%s %s",
+        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't fetch %s.%s %s",
             ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
     }
-}
-
-static void _throwNewRuntimeException(Display * unlockDisplay, JNIEnv *env, const char* msg, ...)
-{
-    char buffer[512];
-    va_list ap;
-
-    if(NULL!=unlockDisplay) {
-        XUnlockDisplay(unlockDisplay);
-    }
-
-    va_start(ap, msg);
-    vsnprintf(buffer, sizeof(buffer), msg, ap);
-    va_end(ap);
-
-    (*env)->ThrowNew(env, clazzRuntimeException, buffer);
 }
 
 static JNIEnv * x11ErrorHandlerJNIEnv = NULL;
@@ -208,7 +168,7 @@ static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
     // Since the X11 Error may happen anytime, a exception could mess up the JVM completely.
     // Experienced this for remote displays issuing non supported commands, eg. glXCreateContextAttribsARB(..)
     //
-    _throwNewRuntimeException(NULL, x11ErrorHandlerJNIEnv, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s", 
+    NativewindowCommon_throwNewRuntimeException(x11ErrorHandlerJNIEnv, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s", 
         dpy, e->error_code, strerror(errno));
 #endif
 
@@ -256,7 +216,7 @@ static XIOErrorHandler origIOErrorHandler = NULL;
 static int x11IOErrorHandler(Display *dpy)
 {
     fprintf(stderr, "Nativewindow X11 IOError: Display %p (%s): %s\n", dpy, XDisplayName(NULL), strerror(errno));
-    // _FatalError(x11ErrorHandlerJNIEnv, "Nativewindow X11 IOError: Display %p (%s): %s", dpy, XDisplayName(NULL), strerror(errno));
+    // NativewindowCommon_FatalError(x11ErrorHandlerJNIEnv, "Nativewindow X11 IOError: Display %p (%s): %s", dpy, XDisplayName(NULL), strerror(errno));
     if(NULL!=origIOErrorHandler) {
         origIOErrorHandler(dpy);
     }
@@ -315,7 +275,7 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XGetVisualInfo1__JJLjava_nio_ByteBu
   jobject jbyteSource;
   jobject jbyteCopy;
     if(0==arg0) {
-        _FatalError(env, "invalid display connection..");
+        NativewindowCommon_FatalError(env, "invalid display connection..");
     }
     if (arg2 != NULL) {
         _ptr2 = (XVisualInfo *) (((char*) (*env)->GetDirectBufferAddress(env, arg2)) + 0);
@@ -344,7 +304,7 @@ JNIEXPORT jlong JNICALL
 Java_com_jogamp_nativewindow_impl_x11_X11Lib_DefaultVisualID(JNIEnv *env, jclass _unused, jlong display, jint screen) {
   jlong r;
     if(0==display) {
-        _FatalError(env, "invalid display connection..");
+        NativewindowCommon_FatalError(env, "invalid display connection..");
     }
   x11ErrorHandlerEnable((Display *) (intptr_t) display, 1, env);
   r = (jlong) XVisualIDFromVisual( DefaultVisual( (Display*) (intptr_t) display, screen ) );
@@ -360,7 +320,7 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_DefaultVisualID(JNIEnv *env, jclass
 JNIEXPORT void JNICALL 
 Java_com_jogamp_nativewindow_impl_x11_X11Lib_XLockDisplay__J(JNIEnv *env, jclass _unused, jlong display) {
   if(0==display) {
-      _FatalError(env, "invalid display connection..");
+      NativewindowCommon_FatalError(env, "invalid display connection..");
   }
   XLockDisplay((Display *) (intptr_t) display);
 }
@@ -373,7 +333,7 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XLockDisplay__J(JNIEnv *env, jclass
 JNIEXPORT void JNICALL 
 Java_com_jogamp_nativewindow_impl_x11_X11Lib_XUnlockDisplay__J(JNIEnv *env, jclass _unused, jlong display) {
   if(0==display) {
-      _FatalError(env, "invalid display connection..");
+      NativewindowCommon_FatalError(env, "invalid display connection..");
   }
   XUnlockDisplay((Display *) (intptr_t) display);
 }
@@ -387,7 +347,7 @@ JNIEXPORT jint JNICALL
 Java_com_jogamp_nativewindow_impl_x11_X11Lib_XCloseDisplay__J(JNIEnv *env, jclass _unused, jlong display) {
   int _res;
   if(0==display) {
-      _FatalError(env, "invalid display connection..");
+      NativewindowCommon_FatalError(env, "invalid display connection..");
   }
   x11ErrorHandlerEnable((Display *) (intptr_t) display, 1, env);
   _res = XCloseDisplay((Display *) (intptr_t) display);
@@ -420,12 +380,12 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
     Screen* scrn;
 
     if(NULL==dpy) {
-        _FatalError(env, "invalid display connection..");
+        NativewindowCommon_FatalError(env, "invalid display connection..");
         return 0;
     }
 
     if(visualID<0) {
-        _throwNewRuntimeException(NULL, env, "invalid VisualID ..");
+        NativewindowCommon_throwNewRuntimeException(env, "invalid VisualID ..");
         return 0;
     }
 
@@ -450,7 +410,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
     if (visual==NULL)
     { 
         x11ErrorHandlerEnable(dpy, 0, env);
-        _throwNewRuntimeException(dpy, env, "could not query Visual by given VisualID, bail out!");
+        NativewindowCommon_throwNewRuntimeException(env, "could not query Visual by given VisualID, bail out!");
         return 0;
     } 
 
@@ -515,7 +475,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_DestroyDummy
     Window      w = (Window) window;
 
     if(NULL==dpy) {
-        _throwNewRuntimeException(NULL, env, "invalid display connection..");
+        NativewindowCommon_throwNewRuntimeException(env, "invalid display connection..");
         return;
     }
 

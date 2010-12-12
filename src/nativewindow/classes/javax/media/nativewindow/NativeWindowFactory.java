@@ -80,6 +80,7 @@ public abstract class NativeWindowFactory {
     public static final String AWTComponentClassName = "java.awt.Component" ;
     public static final String JAWTUtilClassName = "com.jogamp.nativewindow.impl.jawt.JAWTUtil" ;
     public static final String X11UtilClassName = "com.jogamp.nativewindow.impl.x11.X11Util";
+    public static final String GDIClassName = "com.jogamp.nativewindow.impl.windows.GDI";
     public static final String X11JAWTToolkitLockClassName = "com.jogamp.nativewindow.impl.jawt.x11.X11JAWTToolkitLock" ;
     public static final String X11ToolkitLockClassName = "com.jogamp.nativewindow.impl.x11.X11ToolkitLock" ;
     private static Class  jawtUtilClass;
@@ -117,6 +118,20 @@ public abstract class NativeWindowFactory {
 
     static boolean initialized = false;
 
+    private static void initNativeImpl(final boolean firstUIActionOnProcess, final ClassLoader cl) {
+        String clazzName = null;
+        if( TYPE_X11.equals(nativeWindowingTypePure) ) {
+            clazzName = X11UtilClassName;
+        } else if( TYPE_WINDOWS.equals(nativeWindowingTypePure) ) {
+            clazzName = GDIClassName;
+        }
+        if( null != clazzName ) {
+            ReflectionUtil.callStaticMethod(clazzName, "initSingleton",
+                                            new Class[] { boolean.class },
+                                            new Object[] { new Boolean(firstUIActionOnProcess) }, cl );
+        }
+    }
+
     /**
      * Static one time initialization of this factory.<br>
      * This initialization method <b>must be called</b> once by the program or utilizing modules!<br>
@@ -144,15 +159,14 @@ public abstract class NativeWindowFactory {
                 nativeWindowingTypeCustom = nativeOSNameCustom;
             }
 
-            ClassLoader cl = NativeWindowFactory.class.getClassLoader();
+            final ClassLoader cl = NativeWindowFactory.class.getClassLoader();
 
-            if( TYPE_X11.equals(nativeWindowingTypePure) ) {
-                // explicit initialization of X11Util
-                ReflectionUtil.callStaticMethod(X11UtilClassName, "initSingleton", 
-                                                new Class[] { boolean.class }, 
-                                                new Object[] { new Boolean(firstUIActionOnProcess) }, cl );
+            if(firstUIActionOnProcess) {
+                // X11 initialization before possible AWT initialization
+                initNativeImpl(firstUIActionOnProcess, cl);
             }
             isFirstUIActionOnProcess = firstUIActionOnProcess;
+            isAWTAvailable = false; // may be set to true below
 
             if( !Debug.getBooleanProperty("java.awt.headless", true, acc) &&
                 ReflectionUtil.isClassAvailable(AWTComponentClassName, cl) &&
@@ -180,16 +194,13 @@ public abstract class NativeWindowFactory {
                         // AWT is only available in case all above classes are available
                         // and AWT is not int headless mode
                         isAWTAvailable = ((Boolean)resO).equals(Boolean.FALSE);
-                    } else {
-                        isAWTAvailable = false;
                     }
-                } else {
-                    isAWTAvailable = false;
                 }
-            } else {
-                isAWTAvailable = false;
             }
-
+            if(!firstUIActionOnProcess) {
+                // X11 initialization after possible AWT initialization
+                initNativeImpl(firstUIActionOnProcess, cl);
+            }
             registeredFactories = Collections.synchronizedMap(new HashMap());
 
             // register our default factory -> NativeWindow

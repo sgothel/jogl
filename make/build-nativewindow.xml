@@ -560,14 +560,16 @@
         </patternset>
 
         <patternset id="c.src.files.x11">
-          <include name="${rootrel.generated.c}/X11/X11*.c" if="isX11"/>
-          <include name="${rootrel.src.c}/x11/Xmisc.c" if="isX11"/>
-          <include name="${rootrel.src.c}/x11/XineramaHelper.c" if="isX11"/>
+          <include name="${rootrel.generated.c}/X11/X11*.c"/>
+          <include name="${rootrel.src.c}/x11/Xmisc.c"/>
+          <include name="${rootrel.src.c}/x11/XineramaHelper.c"/>
+          <include name="${rootrel.src.c}/NativewindowCommon.c"/>
         </patternset>
 
         <patternset id="c.src.files.windows">
-          <include name="${rootrel.generated.c}/Windows/GDI*.c" if="isWindows"/>
-          <include name="${rootrel.src.c}/windows/GDImisc.c"    if="isWindows"/>
+          <include name="${rootrel.generated.c}/Windows/GDI*.c"/>
+          <include name="${rootrel.src.c}/windows/GDImisc.c"/>
+          <include name="${rootrel.src.c}/NativewindowCommon.c"/>
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
@@ -591,6 +593,7 @@
             <includepath path="${src.generated.c}/X11" if="isX11"/>
             <includepath path="${src.generated.c}/MacOSX" if="isOSX"/>
             <includepath path="${src.generated.c}/Windows" if="isWindows"/>
+            <includepath path="${src.c}"/>
   
             <!-- This must come last to not override real include paths -->
             <!-- includepath path="stub_includes/macosx" if="isOSX" / -->

@@ -97,9 +97,8 @@ public class WindowsWindow extends WindowImpl {
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
-        setWindowHandle(CreateWindow0(getParentWindowHandle(),
-                                    display.getWindowClassAtom(), display.WINDOW_CLASS_NAME, display.getHInstance(), 
-                                    0, undecorated, x, y, width, height));
+        setWindowHandle(CreateWindow0(display.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
+                                      getParentWindowHandle(), 0, undecorated, x, y, width, height));
         if (getWindowHandle() == 0) {
             throw new NativeWindowException("Error creating window");
         }
@@ -128,7 +127,7 @@ public class WindowsWindow extends WindowImpl {
         }
         if(windowHandleClose != 0) {
             try {
-                DestroyWindow0(windowHandleClose);
+                GDI.DestroyWindow(windowHandleClose);
             } catch (Throwable t) {
                 if(DEBUG_IMPLEMENTATION) {
                     Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
@@ -177,12 +176,11 @@ public class WindowsWindow extends WindowImpl {
     // Internals only
     //
     protected static native boolean initIDs0();
-    private native long CreateWindow0(long parentWindowHandle, 
-                                            int wndClassAtom, String wndName, 
-                                            long hInstance, long visualID,
-                                            boolean isUndecorated,
-                                            int x, int y, int width, int height);
-    private native void DestroyWindow0(long windowHandle);
+    protected static native long getNewtWndProc0();
+
+    private native long CreateWindow0(long hInstance, String wndClassName, String wndName,
+                                      long parentWindowHandle, long visualID, boolean isUndecorated,
+                                      int x, int y, int width, int height);
     private native long MonitorFromWindow0(long windowHandle);
     private native void setVisible0(long windowHandle, boolean visible, boolean top, int x, int y, int width, int height);
     private native void reconfigureWindow0(long parentWindowHandle, long windowHandle, 

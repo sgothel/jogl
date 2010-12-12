@@ -76,9 +76,8 @@ public class X11Display extends DisplayImpl {
             throw e;
         }
         aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, NativeWindowFactory.getNullToolkitLock());
-        // aDevice = new X11GraphicsDevice(handle, NativeWindowFactory.createDefaultToolkitLockNoAWT(NativeWindowFactory.TYPE_X11, handle));
-        // aDevice = new X11GraphicsDevice(handle);
-
+        // aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, NativeWindowFactory.createDefaultToolkitLockNoAWT(NativeWindowFactory.TYPE_X11, handle));
+        // aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
     protected void closeNativeImpl() {

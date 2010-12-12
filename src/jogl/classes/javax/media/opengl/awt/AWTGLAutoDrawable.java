@@ -40,7 +40,6 @@
 package javax.media.opengl.awt;
 
 import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
 
 public interface AWTGLAutoDrawable extends GLAutoDrawable, ComponentEvents {
   /** Requests a new width and height for this AWTGLAutoDrawable. */
