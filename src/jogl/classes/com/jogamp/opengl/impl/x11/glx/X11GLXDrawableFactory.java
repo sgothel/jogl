@@ -181,15 +181,16 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                     throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
                 }
                 sharedContext.setSynchronized(true);
-                sharedContext.makeCurrent();
                 VersionNumber glXVersion;
-                {
+                sharedContext.makeCurrent();
+                try {
                     int[] major = new int[1];
                     int[] minor = new int[1];
                     GLXUtil.getGLXVersion(sharedDevice.getHandle(), major, minor);
                     glXVersion = new VersionNumber(major[0], minor[0], 0);
+                } finally {
+                    sharedContext.release();
                 }
-                sharedContext.release();
                 if (DEBUG) {
                     System.err.println("!!! SharedDevice:  " + sharedDevice);
                     System.err.println("!!! SharedScreen:  " + sharedScreen);
