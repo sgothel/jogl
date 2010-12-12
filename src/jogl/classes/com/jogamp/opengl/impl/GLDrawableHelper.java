@@ -314,7 +314,7 @@ public class GLDrawableHelper {
                              Runnable  initAction) {
     if(null==context) {
         if (DEBUG) {
-            Exception e = new GLException(Thread.currentThread().getName()+"Info: GLDrawableHelper " + this + ".invokeGL(): NULL GLContext");
+            Exception e = new GLException(Thread.currentThread().getName()+" Info: GLDrawableHelper " + this + ".invokeGL(): NULL GLContext");
             e.printStackTrace();
         }
         return;
@@ -323,7 +323,7 @@ public class GLDrawableHelper {
     if(null==initAction) {
         // disposal case
         if(!context.isCreated()) {
-            throw new GLException("Dispose case (no init action given): Native context must be created: "+context);
+            throw new GLException(Thread.currentThread().getName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context is not created: "+context);
         }
     }
 

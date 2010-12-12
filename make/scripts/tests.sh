@@ -74,7 +74,7 @@ function testawt() {
 #testnoawt com.jogamp.test.junit.jogl.glsl.TestGLSLSimple01NEWT $*
 #testnoawt com.jogamp.test.junit.newt.TestRemoteWindow01NEWT -time 1000000
 #testnoawt com.jogamp.test.junit.newt.TestRemoteGLWindows01NEWT -time 1000000
-testawt com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT $*
+#testawt com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT $*
 #testawt com.jogamp.test.junit.newt.TestDisplayLifecycle01NEWT
 #testawt com.jogamp.test.junit.newt.TestDisplayLifecycle02NEWT
 #testawt com.jogamp.test.junit.newt.parenting.TestParenting01NEWT
@@ -97,7 +97,7 @@ testawt com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT $*
 #testawt com.jogamp.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
 #testawt com.jogamp.test.junit.jogl.awt.TestAWT02WindowClosing
 #testawt com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsAWT
-#testawt com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT
+testawt com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.test.junit.jogl.texture.TestTexture01AWT
 
 #

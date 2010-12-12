@@ -255,6 +255,19 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
           drawableHelper.invokeGL(disposeDrawable, disposeContext, disposeAction, null);
       }
 
+      if(!regenerate) {
+          AbstractGraphicsDevice adevice = disposeDrawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
+          String adeviceMsg=null;
+          if(DEBUG) {
+            adeviceMsg = adevice.toString();
+          }
+          // boolean closed = adevice.close();
+          boolean closed = false;
+          if (DEBUG) {
+              System.err.println("GLJPanel.dispose(false): closed GraphicsDevice: " + adeviceMsg + ", result: " + closed);
+          }
+      }
+
       backend.setContext(disposeContext);
       if(null==disposeContext) {
         isInitialized = false;
@@ -656,16 +669,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
                   disposeDrawable.setRealized(true);
                   disposeContext = (GLContextImpl) disposeDrawable.createContext(shareWith);
                   disposeContext.setSynchronized(true);
-              } else {
-                  AbstractGraphicsDevice adevice = disposeDrawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
-                  String adeviceMsg=null;
-                  if(DEBUG) {
-                    adeviceMsg = adevice.toString();
-                  }
-                  boolean closed = adevice.close();
-                  if (DEBUG) {
-                      System.err.println("GLJPanel.dispose(false): closed GraphicsDevice: " + adeviceMsg + ", result: " + closed);
-                  }
               }
           }
       }

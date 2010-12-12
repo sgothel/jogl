@@ -104,16 +104,18 @@ public class GLPbufferImpl implements GLPbuffer {
   DisposeAction disposeAction = new DisposeAction();
 
   public void destroy() {
-    if (null != context) {
-        try {
-            drawableHelper.invokeGL(pbufferDrawable, context, disposeAction, null);
-        } catch (GLException gle) {
-            gle.printStackTrace();
+    if(pbufferDrawable.isRealized()) {
+        if (null != context && context.isCreated()) {
+            try {
+                drawableHelper.invokeGL(pbufferDrawable, context, disposeAction, null);
+            } catch (GLException gle) {
+                gle.printStackTrace();
+            }
+            context.destroy();
+            // drawableHelper.reset();
         }
-        drawableHelper.reset();
-        context.destroy();
+        pbufferDrawable.destroy();
     }
-    pbufferDrawable.destroy();
   }
 
   public void setSize(int width, int height) {

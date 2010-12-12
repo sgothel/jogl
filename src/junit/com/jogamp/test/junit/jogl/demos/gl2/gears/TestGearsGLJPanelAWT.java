@@ -106,7 +106,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
                 } } );
     }
 
-    @Ignore("not ready yet") @Test
+    @Test
     public void test01()
             throws AWTException, InterruptedException, InvocationTargetException
     {
