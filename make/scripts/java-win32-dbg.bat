@@ -17,7 +17,8 @@ REM set D_ARGS="-Djogamp.debug.JNILibLoader=true" "-Djogamp.debug.NativeLibrary=
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnativewindow.debug.TraceLock"
 REM set D_ARGS="-Dnativewindow.debug.TraceLock"
-set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display"
+REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display"
+set D_ARGS="-Djogl.debug=all"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display" "-Dnewt.test.Window.reparent.incompatible=true"
 
 set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true"

@@ -1,8 +1,12 @@
-scripts\java-win64-dbg.bat com.jogamp.newt.opengl.GLWindow
-REM scripts\java-win64.bat com.jogamp.test.junit.jogl.awt.TestAWT01GLn
+REM scripts\java-win64-dbg.bat com.jogamp.newt.opengl.GLWindow
+REM scripts\java-win64-dbg.bat javax.media.opengl.awt.GLCanvas
+REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.awt.TestAWT01GLn
 REM scripts\java-win64.bat com.jogamp.test.junit.jogl.awt.TestSwingAWT01GLn
+REM scripts\java-win64.bat com.jogamp.test.junit.jogl.acore.TestSharedContextListAWT -time 5000
+REM scripts\java-win64.bat com.jogamp.test.junit.jogl.acore.TestSharedContextListNEWT -time 5000
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT
-REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT -time 30000
+
+scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT -time 30000
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT -time 5000
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
@@ -33,3 +37,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.test.junit.newt.parenting.TestParentin
 REM scripts\java-win64.bat com.jogamp.test.junit.newt.TestCloseNewtAWT
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.caps.TestMultisampleAWT -time 10000
 REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.caps.TestMultisampleNEWT -time 10000
+
+REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT -time 2000
+REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 -time 2000
+REM scripts\java-win64-dbg.bat com.jogamp.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 -time 2000
