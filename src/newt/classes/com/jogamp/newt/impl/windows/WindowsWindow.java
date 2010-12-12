@@ -35,8 +35,9 @@
 package com.jogamp.newt.impl.windows;
 
 import com.jogamp.nativewindow.impl.windows.GDI;
-import javax.media.nativewindow.*;
 import com.jogamp.newt.impl.WindowImpl;
+import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 

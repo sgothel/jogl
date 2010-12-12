@@ -63,6 +63,7 @@ import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.impl.ProxySurface;
 import com.jogamp.nativewindow.impl.windows.GDI;
+import com.jogamp.nativewindow.impl.windows.RegisteredClassFactory;
 import com.jogamp.opengl.impl.DesktopGLDynamicLookupHelper;
 import com.jogamp.opengl.impl.GLContextImpl;
 import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
@@ -70,7 +71,6 @@ import com.jogamp.opengl.impl.GLDrawableImpl;
 import com.jogamp.opengl.impl.GLDynamicLookupHelper;
 import com.jogamp.opengl.impl.SharedResourceRunner;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.windows.RegisteredClassFactory;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {

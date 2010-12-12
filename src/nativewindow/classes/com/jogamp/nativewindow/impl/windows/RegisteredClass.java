@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow.windows;
+package com.jogamp.nativewindow.impl.windows;
 
 public class RegisteredClass {
     long hInstance;

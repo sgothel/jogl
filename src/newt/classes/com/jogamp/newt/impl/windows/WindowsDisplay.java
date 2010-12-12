@@ -34,12 +34,12 @@
 
 package com.jogamp.newt.impl.windows;
 
+import com.jogamp.nativewindow.impl.windows.RegisteredClass;
+import com.jogamp.nativewindow.impl.windows.RegisteredClassFactory;
 import com.jogamp.newt.impl.DisplayImpl;
 import com.jogamp.newt.impl.NEWTJNILibLoader;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.windows.RegisteredClassFactory;
-import javax.media.nativewindow.windows.RegisteredClass;
 import javax.media.nativewindow.windows.WindowsGraphicsDevice;
 
 public class WindowsDisplay extends DisplayImpl {

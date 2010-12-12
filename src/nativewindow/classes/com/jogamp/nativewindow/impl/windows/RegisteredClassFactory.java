@@ -26,10 +26,9 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow.windows;
+package com.jogamp.nativewindow.impl.windows;
 
 import com.jogamp.nativewindow.impl.Debug;
-import com.jogamp.nativewindow.impl.windows.GDI;
 import java.util.ArrayList;
 import javax.media.nativewindow.NativeWindowException;
 
