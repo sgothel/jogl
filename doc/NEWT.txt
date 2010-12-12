@@ -1,0 +1,30 @@
+NEWT / Swing/AWT mixed usage:
+==================================
+
+1) Shut down menus when NEWT window gains focus:
++++
+  glWindow.addWindowListener(new WindowAdapter() {
+          public void windowGainedFocus(WindowEvent arg0) {
+                  MenuSelectionManager.defaultManager().clearSelectedPath();
+          }                       
+  });
++++
+
+2) Mixing hw/lw components
+
+http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6776743
+http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6788954
+http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6797587
+
+Bug 6788954:
+    If an existing application embedds a heavyweight component in a frame, 
+    and at the same time installs a custom glass pane, 
+    the heavyweight component will disappear. 
+    This regression is not very serious since we never supported mixing of hw and lw components 
+    in general. The developer will have two options to resolve the problem:
+    1. By modifying the software to tag the glass pane properly, or
+    2. To suggest users to use the sun.awt.disableMixing system property 
+       to disable the hw/lw mixing code at all.
+
+
+
