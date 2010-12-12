@@ -37,13 +37,18 @@
 package com.jogamp.nativewindow.impl.jawt;
 
 import com.jogamp.nativewindow.impl.*;
+import java.awt.EventQueue;
+import java.awt.Frame;
 
 import javax.media.nativewindow.*;
 
 
 import java.awt.GraphicsEnvironment;
+import java.awt.Toolkit;
 import java.lang.reflect.*;
 import java.security.*;
+import java.util.ArrayList;
+import java.util.Map;
 
 public class JAWTUtil {
   protected static final boolean DEBUG = Debug.debug("JAWT");
@@ -110,10 +115,30 @@ public class JAWTUtil {
 
     jawtToolkitLock = new JAWTToolkitLock();
 
+    // trigger native AWT toolkit initialization
+    final ArrayList desktophintsBucket = new ArrayList();
+    try {
+        EventQueue.invokeAndWait(new Runnable() {
+            public void run() {
+                Toolkit tk = Toolkit.getDefaultToolkit();
+                Map desktophints = (Map)(tk.getDesktopProperty("awt.font.desktophints"));
+                if(null!=desktophints) {
+                    desktophintsBucket.add(desktophints);
+                }
+            }
+        });
+    } catch (InterruptedException ex) {
+        ex.printStackTrace();
+    } catch (InvocationTargetException ex) {
+        ex.printStackTrace();
+    }
+
     if (DEBUG) {
         System.err.println("JAWTUtil: Has sun.awt.SunToolkit.awtLock/awtUnlock " + hasSunToolkitAWTLock);
         System.err.println("JAWTUtil: Has Java2D " + j2dExist);
         System.err.println("JAWTUtil: Is headless " + headlessMode);
+        int hints = ( desktophintsBucket.size() > 0 ) ? ((Map)desktophintsBucket.get(0)).size() : 0 ;
+        System.err.println("JAWTUtil: AWT Desktop hints " + hints);
     }
   }
 
