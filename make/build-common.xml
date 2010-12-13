@@ -233,6 +233,9 @@
             <pathelement location="${newt.all.jar}" />
             <pathelement location="${jogl.test.jar}" />
         </path>
+        <property name="junit_jogl_newt_awt.run.jars"
+                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${nativewindow.all.jar}${path.separator}${jogl.all.jar}${path.separator}${newt.all.jar}${path.separator}${jogl.test.jar}"/>
+
 
         <path id="jogl_newt_all-noawt.classpath">
             <pathelement location="${gluegen-rt.jar}" />

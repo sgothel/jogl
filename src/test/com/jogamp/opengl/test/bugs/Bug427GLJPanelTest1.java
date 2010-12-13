@@ -5,10 +5,10 @@ import java.awt.*;
 import javax.media.opengl.*;
 import javax.media.opengl.awt.*;
 
-public class Bug427GLJPanel extends JFrame implements GLEventListener {
+public class Bug427GLJPanelTest1 extends JFrame implements GLEventListener {
 
-    public Bug427GLJPanel() {
-        super("JOGL Hello World");
+    public Bug427GLJPanelTest1() {
+        super("Bug427GLJPanelTest1");
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -29,7 +29,7 @@ public class Bug427GLJPanel extends JFrame implements GLEventListener {
     }
 
     public static void main(String[] args) {
-        Bug427GLJPanel demo = new Bug427GLJPanel();
+        Bug427GLJPanelTest1 demo = new Bug427GLJPanelTest1();
         demo.setVisible(true);
     }
 

@@ -24,6 +24,7 @@
         <property name="java.dir.test"        value="com/jogamp/opengl/test"/>
         <property name="java.part.test"       value="${java.dir.test}/**"/>
         <property name="java.dir.junit"        value="${java.dir.test}/junit"/>
+        <property name="java.dir.bugs"        value="${java.dir.test}/bugs"/>
 
         <property name="batchtest.timeout"    value="1800000"/> <!-- 30 min -->
     </target>
@@ -51,12 +52,12 @@
 
     <!-- ================================================================== -->
     <!--
-       - Build/run junit.
+       - Build/run tests/junit.
       -->
-    <target name="junit.compile.check" depends="init">
+    <target name="test.compile.check" depends="init">
       <property name="jogl.test.jar.path" location="${jogl.test.jar}"/> <!-- absolute path -->
       <echo message="jogl.test.jar ${jogl.test.jar.path}"/>
-      <uptodate property="junit.compile.skip">
+      <uptodate property="test.compile.skip">
         <srcfiles dir= "."                 includes="*.xml"/>
         <srcfiles dir= "${src.junit}"      includes="**"/>
         <srcfiles                          file="${nativewindow.all.jar}" />
@@ -67,7 +68,7 @@
       </uptodate>
     </target>
 
-    <target name="junit.compile" depends="junit.compile.check" unless="junit.compile.skip">
+    <target name="test.compile" depends="test.compile.check" unless="test.compile.skip">
         <!-- Perform the junit pass Java compile -->
         <javac destdir="${classes}"
                source="${host.sourcelevel}"
@@ -88,7 +89,7 @@
         </jar>
     </target>
 
-    <target name="junit.run.setup" depends="junit.compile">
+    <target name="test.run.setup" depends="test.compile">
         <mkdir dir="${results.junit}" />
         <delete quiet="true">
             <fileset dir="${results.junit}" includes="**"/>
@@ -98,8 +99,50 @@
         <condition property="jvmarg.newt.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
     </target>
 
+    <target name="test.manual.run" depends="test.run.setup" unless="isOSX">
+        <for param="test.class.path.m" keepgoing="true">
+            <!-- results in absolute path -->
+            <fileset dir="${classes}">
+                <include name="${java.dir.bugs}/**/*Test*"/>
+                <exclude name="**/*$$*"/>
+            </fileset>
+          <sequential>
+            <var name="test.class.path" unset="true"/>
+            <property name="test.class.path" basedir="${classes}" relative="true" location="@{test.class.path.m}"/>
+            <var name="test.class.fqn" unset="true"/>
+            <pathconvert property="test.class.fqn">
+              <fileset file="${classes}${file.separator}${test.class.path}"/>
+              <chainedmapper>
+                  <globmapper    from="${classes.path}${file.separator}*" to="*"/> <!-- rel. -->
+                  <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
+              </chainedmapper>
+            </pathconvert>
+            <var name="test.class.result.file" value="${results.junit}/TEST-${test.class.fqn}.log"/>
+            <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
+            <apply dir="." executable="${java.home}/bin/java" 
+                 parallel="false" 
+                 timeout="${batchtest.timeout}"
+                 vmlauncher="false"
+                 relative="true"
+                 failonerror="false">
+                <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+                <env key="CLASSPATH" value="${junit_jogl_newt_awt.run.jars}"/>
+                <arg value="-Djava.library.path=${obj.all.paths}"/>
+                <!--
+                <arg line="-Dnewt.debug.EDT"/>
+                -->
+                <srcfile/>
+                <mappedresources>
+                    <fileset dir="${classes}" includes="${test.class.path}"/>
+                    <packagemapper from="*.class" to="*"/>
+                </mappedresources>
+            </apply>
+          </sequential>
+        </for>
+    </target>
+
     <!-- NEWT is currently not supported on OSX -->
-    <target name="junit.run.newt.headless" depends="junit.run.setup" unless="isOSX">
+    <target name="junit.run.newt.headless" depends="test.run.setup" unless="isOSX">
         <!-- Test*NEWT* 
 
              Emulation of junit task,
@@ -165,7 +208,7 @@
          if run in parallel.
          NEWT is currently not supported on OSX 
       -->
-    <target name="junit.run.newt" depends="junit.run.setup" unless="isOSX">
+    <target name="junit.run.newt" depends="test.run.setup" unless="isOSX">
         <!-- Test*NEWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
@@ -199,7 +242,7 @@
         </junit>
     </target>
 
-    <target name="junit.run.awt" depends="junit.run.setup">
+    <target name="junit.run.awt" depends="test.run.setup">
         <!-- Test*AWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
@@ -235,7 +278,7 @@
     </target>
 
     <!-- NEWT is currently not supported on OSX -->
-    <target name="junit.run.newt.awt" depends="junit.run.setup" unless="isOSX">
+    <target name="junit.run.newt.awt" depends="test.run.setup" unless="isOSX">
         <!-- Test*AWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
@@ -269,12 +312,13 @@
         </junit>
     </target>
 
+    <target name="test.auto.run" depends="junit.run"/>
     <target name="junit.run" depends="junit.run.newt.headless,junit.run.awt,junit.run.newt.awt"/>
 
     <!-- ================================================================== -->
     <!--
        - Build everything.
       -->
-    <target name="all" description="Build JOGL JUNIT tests and run them." depends="junit.compile, junit.run" />
+    <target name="all" description="Build JOGL JUNIT tests" depends="test.compile" />
 
 </project>
