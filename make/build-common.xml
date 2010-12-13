@@ -355,14 +355,7 @@
 
         <!-- Run the GlueGen build to ensure that the GlueGen ANT task
            - has been built. -->
-        <!-- FIXME: remove passing down of antlr.jar when gluegen.properties is on all
-             nightly build machines -->
-        <ant antfile="${gluegen.build.xml}" dir="${gluegen.make}" target="all" inheritAll="false">
-          <propertyset>
-            <propertyref name="antlr.jar" />
-            <!--propertyref name="gluegen.nsig" /-->
-          </propertyset>
-        </ant>
+        <ant antfile="${gluegen.build.xml}" dir="${gluegen.make}" target="base.compile" inheritAll="false"/>
     </target>
 
 
