@@ -134,15 +134,15 @@
         <property name="build.newt"                 value="${build}/newt" />
         <property name="obj.newt"                   value="${build.newt}/obj"/>
 
-        <property name="results.junit"              value="${build}/test/results" />
-        <property name="build.junit"                value="${build}/test/build" />
-        <property name="obj.junit"                  value="${build.junit}/obj"/>
+        <property name="results.test"              value="${build}/test/results" />
+        <property name="build.test"                value="${build}/test/build" />
+        <property name="obj.test"                  value="${build.test}/obj"/>
 
         <condition property="obj.custom" value="${custom.libdir}${path.separator}" else="">
           <isset property="custom.libdir"/>
         </condition>
 
-        <property name="obj.all.paths"              value="${obj.custom}${obj.gluegen}${path.separator}${obj.nativewindow}${path.separator}${obj.jogl}${path.separator}${obj.newt}${path.separator}${obj.junit}" />
+        <property name="obj.all.paths"              value="${obj.custom}${obj.gluegen}${path.separator}${obj.nativewindow}${path.separator}${obj.jogl}${path.separator}${obj.newt}${path.separator}${obj.test}" />
 
         <path id="gluegen.classpath">
           <pathelement location="${gluegen.jar}" />

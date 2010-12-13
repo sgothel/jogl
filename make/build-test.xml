@@ -15,10 +15,10 @@
        - Declare all paths and user defined variables.
       -->
     <target name="declare.common" description="Declare properties" depends="common.init">
-        <property name="rootrel.src.junit"    value="src/test" />
-        <property name="src.junit"            value="${project.root}/${rootrel.src.junit}" />
+        <property name="rootrel.src.test"     value="src/test" />
+        <property name="src.test"             value="${project.root}/${rootrel.src.test}" />
 
-        <property name="classes"              value="${build.junit}/classes" />
+        <property name="classes"              value="${build.test}/classes" />
         <property name="classes.path"         location="${classes}"/> <!-- absolute path -->
 
         <property name="java.dir.test"        value="com/jogamp/opengl/test"/>
@@ -36,7 +36,7 @@
       -->
     <target name="init" depends="declare.common">
         <!-- Create the required output directories. -->
-        <mkdir dir="${obj.junit}" />
+        <mkdir dir="${obj.test}" />
         <mkdir dir="${classes}" />
     </target>
 
@@ -46,7 +46,7 @@
       -->
     <target name="clean" description="Remove all build products" depends="declare.common">
         <delete includeEmptyDirs="true" quiet="true">
-            <fileset dir="${build.junit}" />
+            <fileset dir="${build.test}" />
         </delete>
     </target>
 
@@ -59,7 +59,7 @@
       <echo message="jogl.test.jar ${jogl.test.jar.path}"/>
       <uptodate property="test.compile.skip">
         <srcfiles dir= "."                 includes="*.xml"/>
-        <srcfiles dir= "${src.junit}"      includes="**"/>
+        <srcfiles dir= "${src.test}"       includes="**"/>
         <srcfiles                          file="${nativewindow.all.jar}" />
         <srcfiles                          file="${jogl.all.jar}" />
         <srcfiles                          file="${newt.all.jar}" />
@@ -77,7 +77,7 @@
                includeAntRuntime="false"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit_jogl_newt.compile.classpath"/>
-            <src path="${src.junit}" />
+            <src path="${src.test}" />
         </javac>
         <delete includeEmptyDirs="true" quiet="true">
             <fileset file="${jogl.test.jar}" />
@@ -90,9 +90,9 @@
     </target>
 
     <target name="test.run.setup" depends="test.compile">
-        <mkdir dir="${results.junit}" />
+        <mkdir dir="${results.test}" />
         <delete quiet="true">
-            <fileset dir="${results.junit}" includes="**"/>
+            <fileset dir="${results.test}" includes="**"/>
         </delete>
 
         <condition property="jvmarg.newt.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
@@ -117,7 +117,7 @@
                   <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
               </chainedmapper>
             </pathconvert>
-            <var name="test.class.result.file" value="${results.junit}/TEST-${test.class.fqn}.log"/>
+            <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.log"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <apply dir="." executable="${java.home}/bin/java" 
                  parallel="false" 
@@ -167,7 +167,7 @@
                   <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
               </chainedmapper>
             </pathconvert>
-            <var name="test.class.result.file" value="${results.junit}/TEST-${test.class.fqn}.xml"/>
+            <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <apply dir="." executable="${java.home}/bin/java" 
                  parallel="false" 
@@ -231,7 +231,7 @@
             <formatter usefile="true" type="xml"/>
             <classpath refid="junit_jogl_newt.run.classpath"/>
 
-            <batchtest todir="${results.junit}">
+            <batchtest todir="${results.test}">
               <fileset dir="${classes}">
                   <include name="${java.dir.junit}/**/Test*NEWT*"/>
                   <exclude name="**/*$$*"/>
@@ -265,7 +265,7 @@
             <formatter usefile="true" type="xml"/>
             <classpath refid="junit_jogl_awt.run.classpath"/>
 
-            <batchtest todir="${results.junit}">
+            <batchtest todir="${results.test}">
               <fileset dir="${classes}">
                   <include name="${java.dir.junit}/**/Test*AWT*"/>
                   <exclude name="**/*$$*"/>
@@ -301,7 +301,7 @@
             <formatter usefile="true" type="xml"/>
             <classpath refid="junit_jogl_newt_awt.run.classpath"/>
 
-            <batchtest todir="${results.junit}">
+            <batchtest todir="${results.test}">
               <fileset dir="${classes}">
                   <include name="${java.dir.junit}/**/newt/**/Test*AWT*"/>
                   <exclude name="**/*$$*"/>
