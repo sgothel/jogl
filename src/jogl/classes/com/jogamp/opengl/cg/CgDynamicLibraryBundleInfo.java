@@ -28,13 +28,8 @@
  
 package com.jogamp.opengl.cg;
 
-import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.DynamicLibraryBundleInfo;
-import com.jogamp.common.os.NativeLibrary;
-import com.jogamp.common.os.Platform;
 import java.util.*;
-import java.security.*;
-import javax.media.opengl.GLException;
 
 public class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
     private static List/*<String>*/ glueLibNames;

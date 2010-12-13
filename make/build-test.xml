@@ -99,7 +99,7 @@
         <condition property="jvmarg.newt.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
     </target>
 
-    <target name="test.manual.run" depends="test.run.setup" unless="isOSX">
+    <target name="test.manual.run" depends="test.run.setup">
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
             <fileset dir="${classes}">

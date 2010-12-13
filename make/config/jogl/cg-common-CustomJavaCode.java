@@ -1,12 +1,12 @@
-private static DynamicLookupHelper cgDynamicLookupHelper;
-private static CgProcAddressTable cgProcAddressTable;
+private static final DynamicLibraryBundle cgDynamicLookupHelper;
+private static final CgProcAddressTable cgProcAddressTable;
 
 static {
     cgProcAddressTable = new CgProcAddressTable();
     if(null==cgProcAddressTable) {
       throw new RuntimeException("Couldn't instantiate CgProcAddressTable");
     }
-    DynamicLibraryBundle cgDynamicLookupHelper = new DynamicLibraryBundle(new CgDynamicLibraryBundleInfo());
+    cgDynamicLookupHelper = new DynamicLibraryBundle(new CgDynamicLibraryBundleInfo());
     if(null==cgDynamicLookupHelper) {
       throw new RuntimeException("Null CgDynamicLookupHelper");
     }

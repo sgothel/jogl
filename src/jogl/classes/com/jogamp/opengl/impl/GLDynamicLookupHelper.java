@@ -29,12 +29,6 @@
 package com.jogamp.opengl.impl;
 
 import com.jogamp.common.os.DynamicLibraryBundle;
-import com.jogamp.common.os.DynamicLibraryBundleInfo;
-import com.jogamp.common.os.DynamicLookupHelper;
-import com.jogamp.common.os.NativeLibrary;
-import java.util.*;
-import java.security.*;
-import javax.media.opengl.GLException;
 
 public class GLDynamicLookupHelper extends DynamicLibraryBundle {
 
