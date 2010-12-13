@@ -67,69 +67,69 @@ function testawt() {
 #testnoawt com.jogamp.opengl.JoglVersion $*
 #testnoawt com.jogamp.newt.NewtVersion $*
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
-#testnoawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
-#testawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
-#testawt com.jogamp.test.junit.jogl.acore.TestSharedContextListNEWT $*
-#testnoawt com.jogamp.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT $*
-#testnoawt com.jogamp.test.junit.jogl.glsl.TestGLSLSimple01NEWT $*
-#testnoawt com.jogamp.test.junit.newt.TestRemoteWindow01NEWT -time 1000000
-#testnoawt com.jogamp.test.junit.newt.TestRemoteGLWindows01NEWT -time 1000000
-#testawt com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT $*
-#testawt com.jogamp.test.junit.newt.TestDisplayLifecycle01NEWT
-#testawt com.jogamp.test.junit.newt.TestDisplayLifecycle02NEWT
-#testawt com.jogamp.test.junit.newt.parenting.TestParenting01NEWT
-#testawt com.jogamp.test.junit.newt.parenting.TestParenting02NEWT
-#testawt com.jogamp.test.junit.newt.TestScreenMode00NEWT
-#testnoawt com.jogamp.test.junit.newt.TestScreenMode01NEWT
-#testnoawt com.jogamp.test.junit.newt.TestScreenMode02NEWT
-#testawt com.jogamp.test.junit.newt.TestGLWindows01NEWT -time 1000000
-#testawt -Djava.awt.headless=true com.jogamp.test.junit.newt.TestGLWindows01NEWT
-#testawt com.jogamp.test.junit.newt.TestGLWindows02NEWTAnimated
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLSimple01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteWindow01NEWT -time 1000000
+#testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteGLWindows01NEWT -time 1000000
+#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT $*
+#testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
+#testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT
+#testawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT
+#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
+#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
+#testawt com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT -time 1000000
+#testawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
+#testawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated
 
 
 #
 # awt (testawt)
 #
 #testawt javax.media.opengl.awt.GLCanvas $*
-#testawt com.jogamp.test.junit.jogl.awt.TestAWT01GLn $*
-#testawt com.jogamp.test.junit.jogl.acore.TestSharedContextListAWT $*
-#testawt com.jogamp.test.junit.jogl.awt.TestSwingAWT01GLn
-#testawt com.jogamp.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
-#testawt com.jogamp.test.junit.jogl.awt.TestAWT02WindowClosing
-#testawt com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsAWT
-#testawt com.jogamp.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT $*
-#testawt com.jogamp.test.junit.jogl.texture.TestTexture01AWT
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestSwingAWT01GLn
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT02WindowClosing
+#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.TestGearsAWT
+#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.texture.TestTexture01AWT
 
 #
 # newt.awt (testawt)
 #
-testawt com.jogamp.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
-#testawt com.jogamp.test.junit.jogl.demos.gl2.gears.newt.TestGearsNewtAWTWrapper
-#testawt com.jogamp.test.junit.newt.TestEventSourceNotAWTBug
-#testawt com.jogamp.test.junit.newt.TestFocus01SwingAWTRobot
-#testawt com.jogamp.test.junit.newt.TestFocus02SwingAWTRobot
-#testawt com.jogamp.test.junit.newt.TestListenerCom01AWT
-#testawt com.jogamp.test.junit.newt.parenting.TestParenting01aAWT
-#testawt com.jogamp.test.junit.newt.parenting.TestParenting01bAWT
-#testawt com.jogamp.test.junit.newt.parenting.TestParenting01cAWT
-#testawt com.jogamp.test.junit.newt.parenting.TestParenting01cSwingAWT
-#testawt com.jogamp.test.junit.newt.parenting.TestParenting02AWT
-#testawt com.jogamp.test.junit.newt.parenting.TestParenting03AWT
-#testawt com.jogamp.test.junit.newt.parenting.TestParenting03AWT -time 100000
-#testawt com.jogamp.test.junit.newt.parenting.TestParenting03bAWT -time 100000
-#testawt com.jogamp.test.junit.newt.TestCloseNewtAWT
-#testawt com.jogamp.test.junit.jogl.caps.TestMultisampleAWT $*
-#testawt com.jogamp.test.junit.jogl.caps.TestMultisampleNEWT $*
+testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
+#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNewtAWTWrapper
+#testawt com.jogamp.opengl.test.junit.newt.TestEventSourceNotAWTBug
+#testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot
+#testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot
+#testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cAWT
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02AWT
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT -time 100000
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03bAWT -time 100000
+#testawt com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
+#testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleNEWT $*
 
-#testawt com.jogamp.test.junit.newt.TestGLWindows02NEWTAnimated $*
-#testawt com.jogamp.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
-#testawt com.jogamp.test.junit.newt.parenting.TestParenting01NEWT $*
+#testawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated $*
+#testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 
 #testawt $*
 
-#testawt com.jogamp.test.junit.jogl.acore.TestGLProfile01NEWT $*
-#testawt com.jogamp.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 -time 2000
-#testawt com.jogamp.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 -time 2000
+#testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
 
 $spath/count-edt-start.sh java-run.log
 

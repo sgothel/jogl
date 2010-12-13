@@ -134,8 +134,6 @@
         <property name="build.newt"                 value="${build}/newt" />
         <property name="obj.newt"                   value="${build.newt}/obj"/>
 
-        <property name="junit.make"                 value="." />
-        <property name="junit.build.xml"            value="${junit.make}/build-junit.xml" />
         <property name="results.junit"              value="${build}/test/results" />
         <property name="build.junit"                value="${build}/test/build" />
         <property name="obj.junit"                  value="${build.junit}/obj"/>

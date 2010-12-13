@@ -13,11 +13,11 @@
     <target name="all.but-archives" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one.dir,tag.build" />
 
     <target name="junit.compile">
-      <ant antfile="build-junit.xml" target="junit.compile" inheritRefs="true" inheritAll="true"/>
+      <ant antfile="build-test.xml" target="junit.compile" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="junit.run" description="Run JUNIT tests in nativewindow, jogl and newt projects">
-      <ant antfile="build-junit.xml" target="junit.run" inheritRefs="true" inheritAll="true"/>
+      <ant antfile="build-test.xml" target="junit.run" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="javadoc.all.zip" depends="javadoc.init, javadoc.all, javadoc.zip"/>
