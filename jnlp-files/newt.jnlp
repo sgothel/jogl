@@ -14,64 +14,64 @@
       <all-permissions/>
   </security>
     <resources>
-      <jar href="newt.core.jar" main="true" />
+      <jar href="newt.core.jar" />
       <extension name="nativewindow" href="JOGL_CODEBASE_TAG/nativewindow.jnlp" />
     </resources>
 
     <resources os="Windows" arch="x86">
-      <jar href="newt.win.jar" main="true" />
+      <jar href="newt.os.win.jar" />
       <nativelib href = "newt-natives-windows-i586.jar" />
     </resources>
     <resources os="Windows" arch="amd64">
-      <jar href="newt.win.jar" main="true" />
+      <jar href="newt.os.win.jar" />
       <nativelib href = "newt-natives-windows-amd64.jar" />
     </resources>
     <resources os="Windows" arch="x86_64">
-      <jar href="newt.win.jar" main="true" />
+      <jar href="newt.os.win.jar" />
       <nativelib href = "newt-natives-windows-amd64.jar" />
     </resources>
     <resources os="SunOS" arch="sparc">
-      <jar href="newt.x11.jar" main="true" />
+      <jar href="newt.os.x11.jar" />
       <nativelib href = "newt-natives-solaris-sparc.jar" />
     </resources>
     <resources os="SunOS" arch="sparcv9">
-      <jar href="newt.x11.jar" main="true" />
+      <jar href="newt.os.x11.jar" />
       <nativelib href = "newt-natives-solaris-sparcv9.jar" />
     </resources>
     <resources os="SunOS" arch="x86">
-      <jar href="newt.x11.jar" main="true" />
+      <jar href="newt.os.x11.jar" />
       <nativelib href = "newt-natives-solaris-i586.jar" />
     </resources>
     <resources os="SunOS" arch="amd64">
-      <jar href="newt.x11.jar" main="true" />
+      <jar href="newt.os.x11.jar" />
       <nativelib href = "newt-natives-solaris-amd64.jar" />
     </resources>
     <resources os="SunOS" arch="x86_64">
-      <jar href="newt.x11.jar" main="true" />
+      <jar href="newt.os.x11.jar" />
       <nativelib href = "newt-natives-solaris-amd64.jar" />
     </resources>
     <resources os="Linux" arch="i386">
-      <jar href="newt.x11.jar" main="true" />
+      <jar href="newt.os.x11.jar" />
       <nativelib href = "newt-natives-linux-i586.jar" />
     </resources>
     <resources os="Linux" arch="x86">
-      <jar href="newt.x11.jar" main="true" />
+      <jar href="newt.os.x11.jar" />
       <nativelib href = "newt-natives-linux-i586.jar" />
     </resources>
     <resources os="Linux" arch="amd64">
-      <jar href="newt.x11.jar" main="true" />
+      <jar href="newt.os.x11.jar" />
       <nativelib href = "newt-natives-linux-amd64.jar" />
     </resources>
     <resources os="Linux" arch="x86_64">
-      <jar href="newt.x11.jar" main="true" />
+      <jar href="newt.os.x11.jar" />
       <nativelib href = "newt-natives-linux-amd64.jar" />
     </resources>
     <resources os="Mac OS X" arch="i386">
-      <jar href="newt.osx.jar" main="true" />
+      <jar href="newt.os.osx.jar" />
       <nativelib href = "newt-natives-macosx-universal.jar" />
     </resources>
     <resources os="Mac OS X" arch="x86_64">
-      <jar href="newt.osx.jar" main="true" />
+      <jar href="newt.os.osx.jar" />
       <nativelib href = "newt-natives-macosx-universal.jar" />
     </resources>
 

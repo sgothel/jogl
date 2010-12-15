@@ -4,7 +4,7 @@
   <information>
     <title>Java(tm) NativeWindow Interface API (ALL.AWT)</title>
     <vendor>JogAmp Community</vendor>
-    <homepage href="http://nativewindow.dev.java.net/"/>
+    <homepage href="http://jogamp.org/"/>
     <description>Java API for a binding to a native windowing system - 2.0 - ALL.AWT</description>
     <description kind="short">Java API for a binding to a native windowing system - 2.0 - ALL.AWT</description>
     <offline-allowed/>
@@ -14,7 +14,7 @@
       <all-permissions/>
   </security>
     <resources>
-      <jar href="nativewindow.all.jar" main="true" />
+      <jar href="nativewindow.all.jar"/>
       <extension name="gluegen-rt"   href="GLUEGEN_CODEBASE_TAG/gluegen-rt.jnlp" />
     </resources>
 

@@ -14,7 +14,7 @@
       <all-permissions/>
   </security>
     <resources>
-      <jar href="newt.all.jar" main="true"/>
+      <jar href="newt.all.jar" />
       <extension name="jogl-all-awt" href="JOGL_CODEBASE_TAG/jogl-all-awt.jnlp" />
     </resources>
 

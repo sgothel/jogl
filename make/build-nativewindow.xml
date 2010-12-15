@@ -734,13 +734,13 @@
     </target>
 
     <target name="build-jars-windows" depends="setup-manifestfile">
-        <jar manifest="tempversion" destfile="${nativewindow.os.windows.jar}" filesonly="true">
+        <jar manifest="tempversion" destfile="${nativewindow.os.win.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.windows}" />
         </jar>
     </target>
     <target name="build-jars-windows-cdc" depends="setup-manifestfile-cdc">
-        <jar manifest="tempversion-cdc" destfile="${nativewindow.os.windows.cdc.jar}" filesonly="true">
+        <jar manifest="tempversion-cdc" destfile="${nativewindow.os.win.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.windows}" />
         </jar>

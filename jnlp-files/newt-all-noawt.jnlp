@@ -14,7 +14,7 @@
       <all-permissions/>
   </security>
     <resources>
-      <jar href="newt.all-noawt.jar" main="true"/>
+      <jar href="newt.all-noawt.jar" />
       <extension name="jogl-all-noawt" href="JOGL_CODEBASE_TAG/jogl-all-noawt.jnlp" />
     </resources>
 

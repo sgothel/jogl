@@ -609,14 +609,14 @@
             <fileset dir="${classes}"
                      includes="${java.part.opengl}"/>
         </jar>
-        <jar manifest="tempversion" destfile="${newt.broadcomegl.jar}" filesonly="true">
+        <jar manifest="tempversion" destfile="${newt.hw.broadcomegl.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.broadcomegl}"/>
         </jar>
     </target>
 
     <target name="build-jars-driver" depends="setup-manifestfile">
-        <jar manifest="tempversion" destfile="${newt.intelgdl.jar}" filesonly="true">
+        <jar manifest="tempversion" destfile="${newt.hw.intelgdl.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.intelgdl}"/>
         </jar>
@@ -627,14 +627,14 @@
             <fileset dir="${classes-cdc}"
                      includes="${java.part.opengl}"/>
         </jar>
-        <jar manifest="tempversion-cdc" destfile="${newt.broadcomegl.cdc.jar}" filesonly="true">
+        <jar manifest="tempversion-cdc" destfile="${newt.hw.broadcomegl.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.broadcomegl}"/>
         </jar>
     </target>
 
     <target name="build-jars-driver-cdc" depends="setup-manifestfile-cdc">
-        <jar manifest="tempversion-cdc" destfile="${newt.intelgdl.cdc.jar}" filesonly="true">
+        <jar manifest="tempversion-cdc" destfile="${newt.hw.intelgdl.cdc.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.intelgdl}"/>
         </jar>
