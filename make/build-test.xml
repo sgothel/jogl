@@ -139,7 +139,7 @@
             </apply>
           </sequential>
         </for>
-        <antcall target="test-zip-archive" inheritRefs="true" />
+        <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <!-- NEWT is currently not supported on OSX -->
@@ -318,7 +318,7 @@
         <zip destfile="${build}/${archive.name}-test-results.zip">
             <zipfileset dir="${results.test}" prefix="${archive.name}/test-results"/>
         </zip>
-        <antcall target="test-zip-archive" inheritRefs="true" />
+        <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <!-- updates / create the test results zip file -->
