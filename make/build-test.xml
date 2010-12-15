@@ -92,11 +92,11 @@
     </target>
 
     <target name="test.run.setup" depends="test.compile">
-        <mkdir dir="${results.test}" />
         <delete quiet="true">
             <fileset dir="${results.test}" includes="**"/>
             <fileset file="${build}/${test.archive.name}.zip"/>
         </delete>
+        <mkdir dir="${results.test}" />
 
         <condition property="jvmarg.newt.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
         <condition property="jvmarg.newt.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
