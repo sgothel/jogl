@@ -310,9 +310,6 @@
 
     <target name="test.auto.run" depends="junit.run"/>
     <target name="junit.run" depends="junit.run.newt.headless,junit.run.awt,junit.run.newt.awt">
-        <zip destfile="${build}/${archive.name}-test-results.zip">
-            <zipfileset dir="${results.test}" prefix="${archive.name}/test-results"/>
-        </zip>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
 
