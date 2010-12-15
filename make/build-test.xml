@@ -27,14 +27,15 @@
         <property name="java.dir.bugs"        value="${java.dir.test}/bugs"/>
 
         <property name="test.archive.name"    value="${archive.name}-test-results"/>
+        <condition property="jvmarg.newt.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
+        <condition property="jvmarg.newt.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
 
         <property name="batchtest.timeout"    value="1800000"/> <!-- 30 min -->
     </target>
     
     <!-- ================================================================== -->
     <!-- 
-       - Initialize all parameters required for the build and create any
-       - required directories.
+       - Initialize all directories for the build
       -->
     <target name="init" depends="declare.common">
         <!-- Create the required output directories. -->
@@ -46,9 +47,6 @@
             <fileset file="${build}/${test.archive.name}.zip"/>
         </delete>
         <mkdir dir="${results.test}" />
-
-        <condition property="jvmarg.newt.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
-        <condition property="jvmarg.newt.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
     </target>
 
     <!-- ================================================================== -->
