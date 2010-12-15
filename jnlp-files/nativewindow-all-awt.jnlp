@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <jnlp codebase="JOGL_CODEBASE_TAG/"
-      href="nativewindow-all-awt.jnlp">
+      href="nativewindow-all-awt.jnlp" version="JOGAMP_VERSION">
   <information>
     <title>Java(tm) NativeWindow Interface API (ALL.AWT)</title>
     <vendor>JogAmp Community</vendor>
@@ -15,7 +15,7 @@
   </security>
     <resources>
       <jar href="nativewindow.all.jar"/>
-      <extension name="gluegen-rt"   href="GLUEGEN_CODEBASE_TAG/gluegen-rt.jnlp" />
+      <extension name="gluegen-rt"   href="GLUEGEN_CODEBASE_TAG/gluegen-rt.jnlp" version="JOGAMP_VERSION" />
     </resources>
 
     <resources os="Windows" arch="x86">

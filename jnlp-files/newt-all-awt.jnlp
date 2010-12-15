@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <jnlp codebase="JOGL_CODEBASE_TAG/"
-      href="newt-all-awt.jnlp">
+      href="newt-all-awt.jnlp" version="JOGAMP_VERSION">
   <information>
     <title>NEWT - New Windowing Toolkit (ALL.AWT)</title>
     <vendor>JogAmp Community</vendor>
@@ -15,7 +15,7 @@
   </security>
     <resources>
       <jar href="newt.all.jar" />
-      <extension name="jogl-all-awt" href="JOGL_CODEBASE_TAG/jogl-all-awt.jnlp" />
+      <extension name="jogl-all-awt" href="JOGL_CODEBASE_TAG/jogl-all-awt.jnlp" version="JOGAMP_VERSION" />
     </resources>
 
     <resources os="Windows" arch="x86">

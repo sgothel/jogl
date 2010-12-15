@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <jnlp codebase="JOGL_CODEBASE_TAG/"
-      href="nativewindow-awt.jnlp">
+      href="nativewindow-awt.jnlp" version="JOGAMP_VERSION">
   <information>
     <title>Java(tm) NativeWindow Interface API (AWT)</title>
     <vendor>JogAmp Community</vendor>
@@ -15,7 +15,7 @@
   </security>
     <resources>
       <jar href="nativewindow.awt.jar"/>
-      <extension name="nativewindow" href="JOGL_CODEBASE_TAG/nativewindow.jnlp" />
+      <extension name="nativewindow" href="JOGL_CODEBASE_TAG/nativewindow.jnlp" version="JOGAMP_VERSION" />
     </resources>
 
   <component-desc />
