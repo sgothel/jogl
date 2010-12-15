@@ -40,6 +40,15 @@
         <!-- Create the required output directories. -->
         <mkdir dir="${obj.test}" />
         <mkdir dir="${classes}" />
+
+        <delete quiet="true">
+            <fileset dir="${results.test}" includes="**"/>
+            <fileset file="${build}/${test.archive.name}.zip"/>
+        </delete>
+        <mkdir dir="${results.test}" />
+
+        <condition property="jvmarg.newt.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
+        <condition property="jvmarg.newt.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
     </target>
 
     <!-- ================================================================== -->
@@ -91,18 +100,7 @@
         </jar>
     </target>
 
-    <target name="test.run.setup" depends="test.compile">
-        <delete quiet="true">
-            <fileset dir="${results.test}" includes="**"/>
-            <fileset file="${build}/${test.archive.name}.zip"/>
-        </delete>
-        <mkdir dir="${results.test}" />
-
-        <condition property="jvmarg.newt.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
-        <condition property="jvmarg.newt.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
-    </target>
-
-    <target name="test.manual.run" depends="test.run.setup">
+    <target name="test.manual.run" depends="test.compile">
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
             <fileset dir="${classes}">
@@ -147,7 +145,7 @@
     </target>
 
     <!-- NEWT is currently not supported on OSX -->
-    <target name="junit.run.newt.headless" depends="test.run.setup" unless="isOSX">
+    <target name="junit.run.newt.headless" depends="test.compile" unless="isOSX">
         <!-- Test*NEWT* 
 
              Emulation of junit task,
@@ -213,7 +211,7 @@
          if run in parallel.
          NEWT is currently not supported on OSX 
       -->
-    <target name="junit.run.newt" depends="test.run.setup" unless="isOSX">
+    <target name="junit.run.newt" depends="test.compile" unless="isOSX">
         <!-- Test*NEWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
@@ -247,7 +245,7 @@
         </junit>
     </target>
 
-    <target name="junit.run.awt" depends="test.run.setup">
+    <target name="junit.run.awt" depends="test.compile">
         <!-- Test*AWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
@@ -283,7 +281,7 @@
     </target>
 
     <!-- NEWT is currently not supported on OSX -->
-    <target name="junit.run.newt.awt" depends="test.run.setup" unless="isOSX">
+    <target name="junit.run.newt.awt" depends="test.compile" unless="isOSX">
         <!-- Test*AWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
