@@ -322,7 +322,7 @@
     </target>
 
     <!-- updates / create the test results zip file -->
-    <target name="test-zip-archive" depends="init">
+    <target name="test-zip-archive" depends="declare.common">
         <zip destfile="${build}/${test.archive.name}.zip" update="true">
             <zipfileset dir="${results.test}" prefix="${archive.name}/test-results"/>
         </zip>
