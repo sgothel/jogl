@@ -26,6 +26,8 @@
         <property name="java.dir.junit"        value="${java.dir.test}/junit"/>
         <property name="java.dir.bugs"        value="${java.dir.test}/bugs"/>
 
+        <property name="test.archive.name"    value="${archive.name}-test-results"/>
+
         <property name="batchtest.timeout"    value="1800000"/> <!-- 30 min -->
     </target>
     
@@ -93,6 +95,7 @@
         <mkdir dir="${results.test}" />
         <delete quiet="true">
             <fileset dir="${results.test}" includes="**"/>
+            <fileset file="${build}/${test.archive.name}.zip"/>
         </delete>
 
         <condition property="jvmarg.newt.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
@@ -124,7 +127,8 @@
                  timeout="${batchtest.timeout}"
                  vmlauncher="false"
                  relative="true"
-                 failonerror="false">
+                 failonerror="false"
+                 output="${test.class.result.file}">
                 <env key="${system.env.library.path}" path="${obj.all.paths}"/>
                 <env key="CLASSPATH" value="${junit_jogl_newt_awt.run.jars}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
@@ -139,6 +143,7 @@
             </apply>
           </sequential>
         </for>
+        <antcall target="test-zip-archive" inheritRefs="true" />
     </target>
 
     <!-- NEWT is currently not supported on OSX -->
@@ -313,7 +318,19 @@
     </target>
 
     <target name="test.auto.run" depends="junit.run"/>
-    <target name="junit.run" depends="junit.run.newt.headless,junit.run.awt,junit.run.newt.awt"/>
+    <target name="junit.run" depends="junit.run.newt.headless,junit.run.awt,junit.run.newt.awt">
+        <zip destfile="${build}/${archive.name}-test-results.zip">
+            <zipfileset dir="${results.test}" prefix="${archive.name}/test-results"/>
+        </zip>
+        <antcall target="test-zip-archive" inheritRefs="true" />
+    </target>
+
+    <!-- updates / create the test results zip file -->
+    <target name="test-zip-archive" depends="init">
+        <zip destfile="${build}/${test.archive.name}.zip" update="true">
+            <zipfileset dir="${results.test}" prefix="${archive.name}/test-results"/>
+        </zip>
+    </target>
 
     <!-- ================================================================== -->
     <!--
