@@ -34,22 +34,6 @@
     </target>
     
     <!-- ================================================================== -->
-    <!-- 
-       - Initialize all directories for the build
-      -->
-    <target name="init" depends="declare.common">
-        <!-- Create the required output directories. -->
-        <mkdir dir="${obj.test}" />
-        <mkdir dir="${classes}" />
-
-        <delete quiet="true">
-            <fileset dir="${results.test}" includes="**"/>
-            <fileset file="${build}/${test.archive.name}.zip"/>
-        </delete>
-        <mkdir dir="${results.test}" />
-    </target>
-
-    <!-- ================================================================== -->
     <!--
        - Clean up all that is built.
       -->
@@ -63,7 +47,18 @@
     <!--
        - Build/run tests/junit.
       -->
-    <target name="test.compile.check" depends="init">
+    <target name="test.compile.check" depends="declare.common">
+      <!-- Create the required output directories. -->
+      <mkdir dir="${obj.test}" />
+      <mkdir dir="${classes}" />
+
+      <!-- Clean the results -->
+      <delete quiet="true">
+        <fileset dir="${results.test}" includes="**"/>
+        <fileset file="${build}/${test.archive.name}.zip"/>
+      </delete>
+      <mkdir dir="${results.test}" />
+
       <property name="jogl.test.jar.path" location="${jogl.test.jar}"/> <!-- absolute path -->
       <echo message="jogl.test.jar ${jogl.test.jar.path}"/>
       <uptodate property="test.compile.skip">
