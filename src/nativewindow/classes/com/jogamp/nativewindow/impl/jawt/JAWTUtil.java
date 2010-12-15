@@ -115,18 +115,23 @@ public class JAWTUtil {
 
     jawtToolkitLock = new JAWTToolkitLock();
 
-    // trigger native AWT toolkit initialization
-    final ArrayList desktophintsBucket = new ArrayList();
+    // trigger native AWT toolkit / properties initialization
+    Map desktophints = null;
     try {
-        EventQueue.invokeAndWait(new Runnable() {
-            public void run() {
-                Toolkit tk = Toolkit.getDefaultToolkit();
-                Map desktophints = (Map)(tk.getDesktopProperty("awt.font.desktophints"));
-                if(null!=desktophints) {
-                    desktophintsBucket.add(desktophints);
+        if(EventQueue.isDispatchThread()) {
+            desktophints = (Map)(Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"));
+        } else {
+            final ArrayList desktophintsBucket = new ArrayList();
+            EventQueue.invokeAndWait(new Runnable() {
+                public void run() {
+                    Map _desktophints = (Map)(Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"));
+                    if(null!=_desktophints) {
+                        desktophintsBucket.add(_desktophints);
+                    }
                 }
-            }
-        });
+            });
+            desktophints = ( desktophintsBucket.size() > 0 ) ? (Map)desktophintsBucket.get(0) : null ;
+        }
     } catch (InterruptedException ex) {
         ex.printStackTrace();
     } catch (InvocationTargetException ex) {
@@ -137,7 +142,7 @@ public class JAWTUtil {
         System.err.println("JAWTUtil: Has sun.awt.SunToolkit.awtLock/awtUnlock " + hasSunToolkitAWTLock);
         System.err.println("JAWTUtil: Has Java2D " + j2dExist);
         System.err.println("JAWTUtil: Is headless " + headlessMode);
-        int hints = ( desktophintsBucket.size() > 0 ) ? ((Map)desktophintsBucket.get(0)).size() : 0 ;
+        int hints = ( null != desktophints ) ? desktophints.size() : 0 ;
         System.err.println("JAWTUtil: AWT Desktop hints " + hints);
     }
   }
