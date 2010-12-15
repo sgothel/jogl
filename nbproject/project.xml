@@ -43,9 +43,9 @@
                     <encoding>UTF-8</encoding>
                 </source-folder>
                 <source-folder>
-                    <label>src/junit</label>
+                    <label>src/test</label>
                     <type>java</type>
-                    <location>src/junit</location>
+                    <location>src/test</location>
                     <encoding>UTF-8</encoding>
                 </source-folder>
                 <source-folder>
@@ -94,7 +94,7 @@
                     <target>run-selected-file-in-junit</target>
                     <context>
                         <property>run.class</property>
-                        <folder>src/junit</folder>
+                        <folder>src/test</folder>
                         <pattern>\.java$</pattern>
                         <format>java-name</format>
                         <arity>
@@ -107,7 +107,7 @@
                     <target>debug-selected-file-in-junit</target>
                     <context>
                         <property>debug.class</property>
-                        <folder>src/junit</folder>
+                        <folder>src/test</folder>
                         <pattern>\.java$</pattern>
                         <format>java-name</format>
                         <arity>
@@ -120,7 +120,7 @@
                     <target>debug-selected-file-in-junit</target>
                     <context>
                         <property>debug.class</property>
-                        <folder>src/junit</folder>
+                        <folder>src/test</folder>
                         <pattern>\.java$</pattern>
                         <format>java-name</format>
                         <arity>
@@ -133,7 +133,7 @@
                     <target>compile-selected-files-in-junit</target>
                     <context>
                         <property>files</property>
-                        <folder>src/junit</folder>
+                        <folder>src/test</folder>
                         <pattern>\.java$</pattern>
                         <format>relative-path</format>
                         <arity>
@@ -178,7 +178,7 @@
                     </source-folder>
                     <source-folder style="packages">
                         <label>src/junit</label>
-                        <location>src/junit</location>
+                        <location>src/test</location>
                     </source-folder>
                     <source-file>
                         <location>${ant.script}</location>
@@ -206,7 +206,7 @@
                 <source-level>1.4</source-level>
             </compilation-unit>
             <compilation-unit>
-                <package-root>src/junit</package-root>
+                <package-root>src/test</package-root>
                 <unit-tests/>
                 <classpath mode="compile">build/jogl/classes:build/jogl/gensrc/classes:build/newt/classes:build/nativewindow/classes:build/nativewindow/gensrc/classes:build/test/build/classes:${jdk.home}/lib/tools.jar:${ant.core.lib}:${ant.home}/lib/ant-junit.jar:../gluegen/make/lib/antlr.jar:../gluegen/make/lib/junit.jar:../gluegen/build/gluegen-rt.jar</classpath>
                 <built-to>bin</built-to>
