@@ -48,6 +48,7 @@ public class VersionApplet extends Applet {
 
     GLCanvas canvas = new GLCanvas();
     canvas.addGLEventListener(new GLInfo());
+    canvas.setSize(10, 10);
     add(canvas, BorderLayout.SOUTH);
     System.err.println("VersionApplet: init() - end");
   }
