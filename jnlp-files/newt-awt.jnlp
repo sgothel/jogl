@@ -15,8 +15,8 @@
   </security>
     <resources>
       <jar href="newt.awt.jar" />
-      <extension name="nativewindow-awt" href="JOGL_CODEBASE_TAG/nativewindow-awt.jnlp" version="JOGAMP_VERSION" />
-      <extension name="newt" href="JOGL_CODEBASE_TAG/newt.jnlp" version="JOGAMP_VERSION" />
+      <extension name="nativewindow-awt" href="JOGL_CODEBASE_TAG/nativewindow-awt.jnlp" />
+      <extension name="newt" href="JOGL_CODEBASE_TAG/newt.jnlp" />
     </resources>
   <component-desc />
 </jnlp>

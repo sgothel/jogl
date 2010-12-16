@@ -15,7 +15,7 @@
   </security>
     <resources>
       <jar href="newt.all-noawt.jar" />
-      <extension name="jogl-all-noawt" href="JOGL_CODEBASE_TAG/jogl-all-noawt.jnlp" version="JOGAMP_VERSION" />
+      <extension name="jogl-all-noawt" href="JOGL_CODEBASE_TAG/jogl-all-noawt.jnlp" />
     </resources>
 
     <resources os="Windows" arch="x86">

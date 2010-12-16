@@ -15,7 +15,7 @@
   </security>
     <resources>
       <jar href="newt.all.jar" />
-      <extension name="jogl-all-awt" href="JOGL_CODEBASE_TAG/jogl-all-awt.jnlp" version="JOGAMP_VERSION" />
+      <extension name="jogl-all-awt" href="JOGL_CODEBASE_TAG/jogl-all-awt.jnlp" />
     </resources>
 
     <resources os="Windows" arch="x86">

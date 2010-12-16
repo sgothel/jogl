@@ -17,8 +17,8 @@
       <jar href="jogl.core.jar"/>
       <jar href="jogl.util.jar" download="lazy"/>
 
-      <extension name="gluegen-rt"   href="GLUEGEN_CODEBASE_TAG/gluegen-rt.jnlp" version="JOGAMP_VERSION" />
-      <extension name="nativewindow" href="JOGL_CODEBASE_TAG/nativewindow.jnlp" version="JOGAMP_VERSION" />
+      <extension name="gluegen-rt"   href="GLUEGEN_CODEBASE_TAG/gluegen-rt.jnlp" />
+      <extension name="nativewindow" href="JOGL_CODEBASE_TAG/nativewindow.jnlp" />
     </resources>
 
     <resources os="Windows" arch="x86">

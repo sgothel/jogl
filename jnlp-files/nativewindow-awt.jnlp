@@ -15,7 +15,7 @@
   </security>
     <resources>
       <jar href="nativewindow.awt.jar"/>
-      <extension name="nativewindow" href="JOGL_CODEBASE_TAG/nativewindow.jnlp" version="JOGAMP_VERSION" />
+      <extension name="nativewindow" href="JOGL_CODEBASE_TAG/nativewindow.jnlp" />
     </resources>
 
   <component-desc />

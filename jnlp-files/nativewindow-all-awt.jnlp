@@ -15,7 +15,7 @@
   </security>
     <resources>
       <jar href="nativewindow.all.jar"/>
-      <extension name="gluegen-rt"   href="GLUEGEN_CODEBASE_TAG/gluegen-rt.jnlp" version="JOGAMP_VERSION" />
+      <extension name="gluegen-rt"   href="GLUEGEN_CODEBASE_TAG/gluegen-rt.jnlp" />
     </resources>
 
     <resources os="Windows" arch="x86">

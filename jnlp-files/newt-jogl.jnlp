@@ -15,8 +15,8 @@
   </security>
     <resources>
       <jar href="newt.ogl.jar" />
-      <extension name="newt" href="JOGL_CODEBASE_TAG/newt.jnlp" version="JOGAMP_VERSION" />
-      <extension name="jogl-core" href="JOGL_CODEBASE_TAG/jogl-core.jnlp" version="JOGAMP_VERSION" />
+      <extension name="newt" href="JOGL_CODEBASE_TAG/newt.jnlp" />
+      <extension name="jogl-core" href="JOGL_CODEBASE_TAG/jogl-core.jnlp" />
     </resources>
   <component-desc />
 </jnlp>
