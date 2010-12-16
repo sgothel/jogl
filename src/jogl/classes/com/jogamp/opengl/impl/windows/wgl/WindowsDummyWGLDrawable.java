@@ -63,6 +63,7 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
     if(0 == hwnd) {
         throw new GLException("Error hwnd 0, werr: "+GDI.GetLastError());
     }
+    // manual debug only - GDI.ShowWindow(hwnd, GDI.SW_SHOW);
     ProxySurface ns = (ProxySurface) getNativeSurface();
     ns.setSize(f_dim, f_dim);
     
