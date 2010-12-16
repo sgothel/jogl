@@ -83,6 +83,11 @@ public class SharedResourceRunner implements Runnable {
         this.impl = impl;
     }
 
+    public SharedResourceRunner.Resource getShared(AbstractGraphicsDevice device) {
+        String connection = device.getConnection();
+        return impl.mapGet(connection);
+    }
+
     public SharedResourceRunner.Resource getOrCreateShared(AbstractGraphicsDevice device) {
         String connection = device.getConnection();
         SharedResourceRunner.Resource sr = impl.mapGet(connection);
