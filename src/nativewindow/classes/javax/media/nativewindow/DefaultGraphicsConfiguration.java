@@ -39,8 +39,16 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
 
     public DefaultGraphicsConfiguration(AbstractGraphicsScreen screen, 
                                         CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested) {
+        if(null == screen) {
+            throw new NativeWindowException("Null screen");
+        }
+        if(null == capsChosen) {
+            throw new NativeWindowException("Null chosen caps");
+        }
+        if(null == capsRequested) {
+            throw new NativeWindowException("Null requested caps");
+        }
         this.screen = screen;
-
         this.capabilitiesChosen = capsChosen;
         this.capabilitiesRequested = capsRequested;
     }

@@ -95,9 +95,9 @@ public class WindowUtilNEWT {
         }
 
         if(debug) {
-            System.out.println("+++++++++++++++++++++++++++");
-            System.out.println(windowOffScreen);
-            System.out.println("+++++++++++++++++++++++++++");
+            System.err.println("+++++++++++++++++++++++++++");
+            System.err.println(windowOffScreen);
+            System.err.println("+++++++++++++++++++++++++++");
         }
 
         while ( windowOffScreen.getTotalFrames() < frames) {

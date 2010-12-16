@@ -72,7 +72,7 @@ public class Surface2File implements SurfaceUpdatedListener {
 
         File file = File.createTempFile(basename + shotNum + "-", ".ppm");
         TextureIO.write(readBufferUtil.getTextureData(), file);
-        System.out.println("Wrote: " + file.getAbsolutePath() + ", ...");
+        System.err.println("Wrote: " + file.getAbsolutePath() + ", ...");
         shotNum++;
         readBufferUtil.rewindPixelBuffer();
     }

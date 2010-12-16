@@ -38,7 +38,6 @@ import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.opengl.GLWindow;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -50,7 +49,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquare;
 import java.io.IOException;
 
-public class TestOffscreen01NEWT extends UITestCase {
+public class TestOffscreen01GLPBufferNEWT extends UITestCase {
     static GLProfile glpDefault;
     static GLDrawableFactory glDrawableFactory;
     static int width, height;
@@ -87,25 +86,14 @@ public class TestOffscreen01NEWT extends UITestCase {
         window.setSize(width, height);
         GLWindow glWindow = GLWindow.create(window);
         Assert.assertNotNull(glWindow);
-        try {
-            glWindow.setVisible(true);
-        } catch (Throwable t) {
-             // stop test and ignore if pixmap cannot be used
-            t.printStackTrace();
-            Assume.assumeNoException(t);
-        }
+        glWindow.setVisible(true);
+
         GLEventListener demo = new RedSquare();
         WindowUtilNEWT.setDemoFields(demo, window, glWindow, false);
         glWindow.addGLEventListener(demo);
 
         while ( glWindow.getTotalFrames() < 2) {
-            try {
-                glWindow.display();
-            } catch (Throwable t) {
-                 // stop test and ignore if pbuffer cannot be used
-                t.printStackTrace();
-                Assume.assumeNoException(t);
-            }
+            glWindow.display();
         }
 
         if(null!=glWindow) {
@@ -192,28 +180,17 @@ public class TestOffscreen01NEWT extends UITestCase {
             windows[i].setSize(width, height);
             glWindows[i] = GLWindow.create(windows[i]);
             Assert.assertNotNull(glWindows[i]);
-            try {
-                glWindows[i].setVisible(true);
-            } catch (Throwable t) {
-                 // stop test and ignore if pixmap cannot be used
-                t.printStackTrace();
-                Assume.assumeNoException(t);
-            }
+            glWindows[i].setVisible(true);
+
             demos[i] = new RedSquare();
             WindowUtilNEWT.setDemoFields(demos[i], windows[i], glWindows[i], false);
             glWindows[i].addGLEventListener(demos[i]);
         }
 
-        try {
-            while ( glWindows[0].getTotalFrames() < 2) {
-                for(i=0; i<winnum; i++) {
-                    glWindows[i].display();
-                }
+        while ( glWindows[0].getTotalFrames() < 2) {
+            for(i=0; i<winnum; i++) {
+                glWindows[i].display();
             }
-        } catch (Throwable t) {
-             // stop test and ignore if pbuffer cannot be used
-            t.printStackTrace();
-            Assume.assumeNoException(t);
         }
 
         for(i=0; i<winnum; i++) {
@@ -257,30 +234,17 @@ public class TestOffscreen01NEWT extends UITestCase {
             windows[i].setSize(width, height);
             glWindows[i] = GLWindow.create(windows[i]);
             Assert.assertNotNull(glWindows[i]);
-            try {
-                glWindows[i].setVisible(true);
-            } catch (Throwable t) {
-                 // stop test and ignore if pixmap cannot be used
-                t.printStackTrace();
-                Assume.assumeNoException(t);
-            }
+            glWindows[i].setVisible(true);
             demos[i] = new RedSquare();
             WindowUtilNEWT.setDemoFields(demos[i], windows[i], glWindows[i], false);
             glWindows[i].addGLEventListener(demos[i]);
         }
 
-        try {
-            while ( glWindows[0].getTotalFrames() < 2) {
-                for(i=0; i<winnum; i++) {
-                    glWindows[i].display();
-                }
+        while ( glWindows[0].getTotalFrames() < 2) {
+            for(i=0; i<winnum; i++) {
+                glWindows[i].display();
             }
-        } catch (Throwable t) {
-             // stop test and ignore if pbuffer cannot be used
-            t.printStackTrace();
-            Assume.assumeNoException(t);
         }
-
 
         for(i=0; i<winnum; i++) {
             if(null!=glWindows[i]) {
@@ -316,13 +280,7 @@ public class TestOffscreen01NEWT extends UITestCase {
         window.setSize(width, height);
         GLWindow glWindow = GLWindow.create(window);
         Assert.assertNotNull(glWindow);
-        try {
-            glWindow.setVisible(true);
-        } catch (Throwable t) {
-             // stop test and ignore if pixmap cannot be used
-            t.printStackTrace();
-            Assume.assumeNoException(t);
-        }
+        glWindow.setVisible(true);
 
         GLWindow windowOnScreen = null;
         WindowListener wl=null;
@@ -332,13 +290,7 @@ public class TestOffscreen01NEWT extends UITestCase {
         GLEventListener demo = new RedSquare();
         Assert.assertNotNull(demo);
 
-        try {
-            WindowUtilNEWT.run(glWindow, demo, windowOnScreen, wl, ml, ul, 2, true /*snapshot*/, false /*debug*/);
-        } catch (Throwable t) {
-             // stop test and ignore if pbuffer cannot be used
-            t.printStackTrace();
-            Assume.assumeNoException(t);
-        }
+        WindowUtilNEWT.run(glWindow, demo, windowOnScreen, wl, ml, ul, 2, true /*snapshot*/, false /*debug*/);
 
         if(null!=windowOnScreen) {
             windowOnScreen.destroy();
@@ -357,122 +309,8 @@ public class TestOffscreen01NEWT extends UITestCase {
         }
     }
 
-    @Test
-    public void test11OffscreenWindowPixmap() {
-        // Offscreen doesn't work on >= GL3 (ATI)
-        GLProfile glp = GLProfile.get(GLProfile.GL2);
-        Assert.assertNotNull(glp);
-        GLCapabilities caps = new GLCapabilities(glp);
-        Assert.assertNotNull(caps);
-
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(caps, false, false, false);
-
-        Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
-        Window window = NewtFactory.createWindow(screen, caps2);
-        Assert.assertNotNull(window);
-        window.setSize(width, height);
-        GLWindow glWindow = GLWindow.create(window);
-        Assert.assertNotNull(glWindow);
-        try {
-            glWindow.setVisible(true);
-        } catch (Throwable t) {
-             // stop test and ignore if pixmap cannot be used
-            t.printStackTrace();
-            Assume.assumeNoException(t);
-        }
-        GLEventListener demo = new RedSquare();
-        WindowUtilNEWT.setDemoFields(demo, window, glWindow, false);
-        glWindow.addGLEventListener(demo);
-
-        while ( glWindow.getTotalFrames() < 2) {
-            try {
-                glWindow.display();
-            } catch (Throwable t) {
-                 // stop test and ignore if pixmap cannot be used
-                t.printStackTrace();
-                Assume.assumeNoException(t);
-            }
-        }
-
-        if(null!=glWindow) {
-            glWindow.destroy();
-        }
-        if(null!=window) {
-            window.destroy();
-        }
-        if(null!=screen) {
-            screen.destroy();
-        }
-        if(null!=display) {
-            display.destroy();
-        }
-    }
-
-    @Test
-    public void test14OffscreenSnapshotWithDemoPixmap() {
-        // Offscreen doesn't work on >= GL3 (ATI)
-        GLProfile glp = GLProfile.get(GLProfile.GL2);
-        Assert.assertNotNull(glp);
-        GLCapabilities caps = new GLCapabilities(glp);
-        Assert.assertNotNull(caps);
-
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(caps, false, false, false);
-
-        System.out.println("Create Window 1");
-        Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
-        Window window = NewtFactory.createWindow(screen, caps2);
-        Assert.assertNotNull(window);
-        window.setSize(width, height);
-        GLWindow glWindow = GLWindow.create(window);
-        Assert.assertNotNull(glWindow);
-        try {
-            glWindow.setVisible(true);
-        } catch (Throwable t) {
-             // stop test and ignore if pixmap cannot be used
-            t.printStackTrace();
-            Assume.assumeNoException(t);
-        }
-
-        GLWindow windowOnScreen = null;
-        WindowListener wl=null;
-        MouseListener ml=null;
-        SurfaceUpdatedListener ul=null;
-
-        GLEventListener demo = new RedSquare();
-        Assert.assertNotNull(demo);
-
-        try {
-            WindowUtilNEWT.run(glWindow, demo, windowOnScreen, wl, ml, ul, 2, true /*snapshot*/, false /*debug*/);
-        } catch (Throwable t) {
-             // stop test and ignore if pixmap cannot be used
-            t.printStackTrace();
-            Assume.assumeNoException(t);
-        }
-
-        if(null!=windowOnScreen) {
-            windowOnScreen.destroy();
-        }
-        if(null!=glWindow) {
-            glWindow.destroy();
-        }
-        if(null!=window) {
-            window.destroy();
-        }
-        if(null!=screen) {
-            screen.destroy();
-        }
-        if(null!=display) {
-            display.destroy();
-        }
-    }
     public static void main(String args[]) throws IOException {
-        String tstname = TestOffscreen01NEWT.class.getName();
+        String tstname = TestOffscreen01GLPBufferNEWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

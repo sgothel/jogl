@@ -40,6 +40,7 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
+import com.jogamp.common.nio.PointerBuffer;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.SurfaceChangeable;
 import javax.media.opengl.GLContext;
@@ -73,11 +74,19 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
   }
 
   private void create() {
+    int werr;
     NativeSurface ns = getNativeSurface();
+    if(DEBUG) {
+        System.err.println("WindowsBitmapWGLDrawable (1): "+ns);
+    }
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getRequestedCapabilities();
     int width = getWidth();
     int height = getHeight();
+
+    //
+    // 1. Create DIB Section
+    //
     BITMAPINFO info = BITMAPINFO.create();
     BITMAPINFOHEADER header = info.getBmiHeader();
     int bitsPerPixel = (capabilities.getRedBits() +
@@ -89,7 +98,8 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
     // NOTE: negating the height causes the DIB to be in top-down row
     // order rather than bottom-up; ends up being correct during pixel
     // readback
-    header.setBiHeight(-1 * height);
+    // header.setBiHeight(-1 * height);
+    header.setBiHeight(height);
     header.setBiPlanes((short) 1);
     header.setBiBitCount((short) bitsPerPixel);
     header.setBiXPelsPerMeter(0);
@@ -97,22 +107,42 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
     header.setBiClrUsed(0);
     header.setBiClrImportant(0);
     header.setBiCompression(GDI.BI_RGB);
-    header.setBiSizeImage(width * height * bitsPerPixel / 8);
+    int byteNum = width * height * ( bitsPerPixel >> 3 ) ;
+    header.setBiSizeImage(byteNum);
 
+    PointerBuffer pb = PointerBuffer.allocateDirect(1);
+    hbitmap = GDI.CreateDIBSection(0, info, GDI.DIB_RGB_COLORS, pb, 0, 0);
+    werr = GDI.GetLastError();
+    if(DEBUG) {
+        long p = ( pb.capacity() > 0 ) ? pb.get(0) : 0;
+        System.err.println("WindowsBitmapWGLDrawable: pb sz/ptr "+pb.capacity() + ", "+toHexString(p));
+        System.err.println("WindowsBitmapWGLDrawable: " + width+"x"+height +
+                            ", bpp " + bitsPerPixel +
+                            ", bytes " + byteNum +
+                            ", header sz " + header.size() +
+                            ", DIB ptr num " + pb.capacity()+
+                            ", "+capabilities+
+                            ", werr "+werr);
+    }
+    if (hbitmap == 0) {
+      throw new GLException("Error creating offscreen bitmap of " + ns + ", werr " + werr);
+    }
+
+    //
+    // 2. Create memory DC (device context) , and associate it with the DIB.
+    //
     long hdc = GDI.CreateCompatibleDC(0);
+    werr = GDI.GetLastError();
     if (hdc == 0) {
-      System.out.println("LastError: " + GDI.GetLastError());
-      throw new GLException("Error creating device context for offscreen OpenGL context");
+        GDI.DeleteObject(hbitmap);
+        hbitmap = 0;
+      throw new GLException("Error creating device context for offscreen OpenGL context, werr "+werr);
     }
     ((SurfaceChangeable)ns).setSurfaceHandle(hdc);
-
-    hbitmap = GDI.CreateDIBSection(hdc, info, GDI.DIB_RGB_COLORS, null, 0, 0);
-    if (hbitmap == 0) {
-      GDI.DeleteDC(hdc);
-      hdc = 0;
-      throw new GLException("Error creating offscreen bitmap of width " + width +
-                            ", height " + height);
+    if(DEBUG) {
+        System.err.println("WindowsBitmapWGLDrawable (2): "+ns);
     }
+
     if ((origbitmap = GDI.SelectObject(hdc, hbitmap)) == 0) {
       GDI.DeleteObject(hbitmap);
       hbitmap = 0;
@@ -120,6 +150,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
       hdc = 0;
       throw new GLException("Error selecting bitmap into new device context");
     }
+    
     config.updateGraphicsConfiguration(getFactory(), ns, null);
   }
   

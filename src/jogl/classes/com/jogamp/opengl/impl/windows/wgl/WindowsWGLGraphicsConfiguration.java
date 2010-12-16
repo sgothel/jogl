@@ -186,6 +186,8 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     static int fillAttribsForGeneralWGLARBQuery(boolean haveWGLARBMultisample, int[] iattributes) {
         int niattribs = 0;
         iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_WINDOW_ARB;
+        iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
+        iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_BITMAP_ARB;
         iattributes[niattribs++] = WGLExt.WGL_ACCELERATION_ARB;
         iattributes[niattribs++] = WGLExt.WGL_SUPPORT_OPENGL_ARB;
         iattributes[niattribs++] = WGLExt.WGL_DEPTH_BITS_ARB;
@@ -275,7 +277,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     {
 
         if ( !WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(capabilities,
-                iattributes, sharedContext, accelerationMode, false, null))
+                iattributes, sharedContext, accelerationMode, null))
         {
             if (DEBUG) {
                 System.err.println("wglChoosePixelFormatARB1: GLCapabilities2AttribList failed: " + GDI.GetLastError());
@@ -403,8 +405,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     static boolean GLCapabilities2AttribList(GLCapabilitiesImmutable caps,
                                              int[] iattributes,
                                              GLContextImpl sharedCtx,
-                                             int accellerationValue,
-                                             boolean pbuffer,
+                                             int accellerationValue,                                             
                                              int[] floatMode) throws GLException {
         boolean haveWGLChoosePixelFormatARB = sharedCtx.isExtensionAvailable(WGL_ARB_pixel_format);
         boolean haveWGLARBMultisample = sharedCtx.isExtensionAvailable(WGL_ARB_multisample);
@@ -417,6 +418,9 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
           return false;
         }
 
+        boolean onscreen = caps.isOnscreen();
+        boolean pbuffer = caps.isPBuffer();
+
         int niattribs = 0;
 
         iattributes[niattribs++] = WGLExt.WGL_SUPPORT_OPENGL_ARB;
@@ -425,11 +429,14 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
             iattributes[niattribs++] = WGLExt.WGL_ACCELERATION_ARB;
             iattributes[niattribs++] = accellerationValue;
         }
-        if (pbuffer) {
+        if (onscreen) {
+          iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_WINDOW_ARB;
+          iattributes[niattribs++] = GL.GL_TRUE;
+        } else if (pbuffer) {
           iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
           iattributes[niattribs++] = GL.GL_TRUE;
         } else {
-          iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_WINDOW_ARB;
+          iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_BITMAP_ARB;
           iattributes[niattribs++] = GL.GL_TRUE;
         }
 
@@ -620,7 +627,10 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
             res.setPBuffer(usePBuffer);
         } else {
             if(DEBUG) {
-              System.err.println("WGL DrawableType does not match: req(onscrn "+onscreen+", pbuffer "+usePBuffer+"), got(onscreen "+( 0 != (drawableTypeBits & WINDOW_BIT) )+", pbuffer "+( 0 != (drawableTypeBits & PBUFFER_BIT) )+", pixmap "+( 0 != (drawableTypeBits & BITMAP_BIT))+")");
+              System.err.println("WGL DrawableType does not match: req(onscrn "+onscreen+", pbuffer "+usePBuffer+
+                                 "), got(onscreen "+( 0 != (drawableTypeBits & WINDOW_BIT) )+
+                                 ", pbuffer "+( 0 != (drawableTypeBits & PBUFFER_BIT) )+
+                                 ", bitmap "+( 0 != (drawableTypeBits & BITMAP_BIT))+")");
             }
             return null;
         }

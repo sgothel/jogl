@@ -144,7 +144,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     }
 
     if(!WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(capabilities,
-                                    iattributes, sharedCtx, -1, true, floatModeTmp)){
+                                    iattributes, sharedCtx, -1, floatModeTmp)){
       throw new GLException("Pbuffer-related extensions not supported");
     }
 

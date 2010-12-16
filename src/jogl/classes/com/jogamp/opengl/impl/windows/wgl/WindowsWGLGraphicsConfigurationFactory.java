@@ -275,8 +275,14 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                 }
                 pixelFormatCaps = availableCaps[chosenIndex];
                 pfdID = pformats[chosenIndex];
+                if( null == pixelFormatCaps) {
+                    throw new GLException("Null Capabilities with "+
+                                          " chosen pfdID: native recommended "+ (recommendedIndex+1) +
+                                          " chosen "+pfdID);
+                }
                 if (DEBUG) {
-                    System.err.println("!!! chosen pfdID "+pfdID+", caps " + pixelFormatCaps);
+                    System.err.println("!!! chosen pfdID (ARB): native recommended "+ (recommendedIndex+1) +
+                                       " chosen "+pfdID+", caps " + pixelFormatCaps);
                 }
             }
         } finally {
@@ -359,8 +365,14 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             }
             pixelFormatCaps = availableCaps[chosenIndex];
             pfdID = pformats[chosenIndex];
+            if( null == pixelFormatCaps) {
+                throw new GLException("Null Capabilities with "+
+                                      " chosen pfdID: native recommended "+ (recommendedIndex+1) +
+                                      " chosen "+pfdID);
+            }
             if (DEBUG) {
-                System.err.println("!!! chosen pfdID "+pfdID+", idx " + chosenIndex + ", caps " + pixelFormatCaps);
+                System.err.println("!!! chosen pfdID (GDI): native recommended "+ (recommendedIndex+1) +
+                                   " chosen "+pfdID+", caps " + pixelFormatCaps);
             }
         }
         
