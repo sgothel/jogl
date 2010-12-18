@@ -47,7 +47,6 @@ import com.jogamp.common.util.ReflectionUtil;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
@@ -296,6 +295,26 @@ public abstract class GLDrawableFactory {
         return eglFactory;
     }
     throw new GLException("No native platform GLDrawableFactory, nor EGLDrawableFactory available: "+glProfileImplName);
+  }
+
+  /**
+   * Returns the sole GLDrawableFactory instance.
+   *
+   * @param device AbstractGraphicsDevice to determine the factory type, ie EGLDrawableFactory,
+   *                or one of the native GLDrawableFactory's, ie X11/GLX, Windows/WGL or MacOSX/CGL.
+   */
+  public static GLDrawableFactory getFactory(AbstractGraphicsDevice device) throws GLException {
+    return getFactoryImpl(device);
+  }
+
+  protected static GLDrawableFactory getFactoryImpl(AbstractGraphicsDevice device) throws GLException {
+    if(null != nativeOSFactory && nativeOSFactory.getIsDeviceCompatible(device)) {
+        return nativeOSFactory;
+    }
+    if(null != eglFactory && eglFactory.getIsDeviceCompatible(device)) {
+        return eglFactory;
+    }
+    throw new GLException("No native platform GLDrawableFactory, nor EGLDrawableFactory available: "+device);
   }
 
   //----------------------------------------------------------------------
