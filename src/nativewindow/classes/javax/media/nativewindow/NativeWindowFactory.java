@@ -49,7 +49,7 @@ import java.lang.reflect.Method;
     hardware-accelerated rendering using the OpenGL API. */
 
 public abstract class NativeWindowFactory {
-    protected static final boolean DEBUG = Debug.debug("NativeWindow");
+    protected static final boolean DEBUG;
 
     /** OpenKODE/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}*/
     public static final String TYPE_EGL = "EGL";
@@ -114,6 +114,11 @@ public abstract class NativeWindowFactory {
 
     static {
         JVMUtil.initSingleton();
+        DEBUG = Debug.debug("NativeWindow");
+        if(DEBUG) {
+            Throwable td = new Throwable(Thread.currentThread().getName()+" - Info: NativeWindowFactory.<init>");
+            td.printStackTrace();
+        }
     }
 
     static boolean initialized = false;
@@ -152,8 +157,7 @@ public abstract class NativeWindowFactory {
             initialized = true;
 
             if(DEBUG) {
-                Throwable td = new Throwable("Info: NativeWindowFactory.initSingleton("+firstUIActionOnProcess+")");
-                td.printStackTrace();
+                System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.initSingleton("+firstUIActionOnProcess+")");
             }
 
             // Gather the windowing OS first
