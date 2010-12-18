@@ -512,7 +512,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         // after native peer is valid: Windows
         disableBackgroundErase();
 
-        validateGLDrawable();
+        // init drawable by paint/display makes the init sequence more equal
+        // for all launch flavors (applet/javaws/..)
+        // validateGLDrawable();
 
         if(DEBUG) {
             System.err.println(Thread.currentThread().getName()+" - Info: addNotify - end: peer: "+getPeer());
