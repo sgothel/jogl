@@ -265,6 +265,18 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   final static String WGL_ARB_make_current_read = "WGL_ARB_make_current_read";
   final static String wglMakeContextCurrent = "wglMakeContextCurrent";
 
+  protected final GLContext getSharedContextImpl(AbstractGraphicsDevice device) {
+    SharedResourceRunner.Resource sr = sharedResourceRunner.getShared(device);
+    if(null!=sr) {
+      return sr.getContext();
+    }
+    return null;
+  }
+
+  protected final boolean hasSharedContextImpl(AbstractGraphicsDevice device) {
+      return null != getSharedContextImpl(device);
+  }
+
   protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
     SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
     if(null!=sr) {
