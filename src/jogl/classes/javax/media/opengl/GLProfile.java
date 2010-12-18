@@ -75,7 +75,8 @@ public class GLProfile {
      * </p>
      * <p>
      * Applications shall call this methods <b>ASAP</b>, before any other UI invocation.<br>
-     * You may issue the call in your main function.<br>
+     * You may issue the call in your <code>main class</code> static block, which is the earliest point in your application/applet lifecycle,
+     * or within the <code>main function</code>.<br>
      * In case applications are able to initialize JOGL before any other UI action,<br>
      * they shall invoke this method with <code>firstUIActionOnProcess=true</code> and benefit from fast native multithreading support on all platforms if possible.</P>
      * <P>

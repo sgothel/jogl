@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp codebase="JOGL_CODEBASE_TAG" href="javaws-version.jnlp" version="JOGAMP_VERSION">
+  <information>
+    <title>JOGL JNLP Javaws Version</title>
+    <vendor>JogAmp Community</vendor>
+    <homepage href="http://jogamp.org/"/>
+    <description>JOGL Version</description>
+    <offline-allowed/>
+  </information>
+  <update check="background" policy="always"/>
+
+    <resources>
+      <j2se href="http://java.sun.com/products/autodl/j2se" version="1.4+"/>
+      <!-- property name="sun.java2d.noddraw" value="true"/-->
+      <extension name="newt-all-awt" href="JOGL_CODEBASE_TAG/newt-all-awt.jnlp" />
+    </resources>
+
+  <application-desc main-class="com.jogamp.newt.impl.awt.opengl.VersionApplet"/>
+</jnlp>
