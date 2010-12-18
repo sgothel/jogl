@@ -7,7 +7,10 @@ import com.jogamp.newt.NewtVersion;
 import com.jogamp.opengl.JoglVersion;
 import java.applet.Applet;
 import java.awt.BorderLayout;
+import java.awt.Frame;
 import java.awt.TextArea;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.GL;
@@ -15,11 +18,48 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 
 public class VersionApplet extends Applet {
-    TextArea tarea;
-
-  public void init() {
-    System.err.println("VersionApplet: init() - begin");
+  static {
     GLProfile.initSingleton(false);
+  }
+  TextArea tarea;
+  GLCanvas canvas;
+
+  public static void main(String[] args) {
+    Frame frame = new Frame("JOGL Version Applet");
+    frame.setSize(800, 600);
+    frame.setLayout(new BorderLayout());
+
+    VersionApplet va = new VersionApplet();
+    frame.addWindowListener(new ClosingWindowAdapter(frame, va));
+
+    va.init();
+    frame.add(va, BorderLayout.CENTER);
+    frame.validate();
+        
+    frame.setVisible(true);
+    va.start();
+  }
+
+  static class ClosingWindowAdapter extends WindowAdapter {
+    Frame f;
+    VersionApplet va;
+    public ClosingWindowAdapter(Frame f, VersionApplet va) {
+        this.f = f;
+        this.va = va;
+    }
+    public void windowClosing(WindowEvent ev) {
+        f.setVisible(false);
+        va.stop();
+        va.destroy();
+        f.remove(va);
+        f.dispose();
+        System.exit(0);
+    }
+  }
+
+  private synchronized void my_init() {
+    if(null != canvas) { return; }
+
     setLayout(new BorderLayout());
     String s;
 
@@ -46,10 +86,26 @@ public class VersionApplet extends Applet {
 
     add(tarea, BorderLayout.CENTER);
 
-    GLCanvas canvas = new GLCanvas();
+    canvas = new GLCanvas();
     canvas.addGLEventListener(new GLInfo());
     canvas.setSize(10, 10);
     add(canvas, BorderLayout.SOUTH);
+    validate();
+  }
+
+  private synchronized void my_release() {
+      if(null!=canvas) {
+          remove(canvas);
+          canvas.destroy();
+          canvas = null;
+          remove(tarea);
+          tarea=null;
+      }
+  }
+
+  public void init() {
+    System.err.println("VersionApplet: init() - begin");
+    my_init();
     System.err.println("VersionApplet: init() - end");
   }
 
@@ -59,13 +115,14 @@ public class VersionApplet extends Applet {
   }
 
   public void stop() {
-    // FIXME: do I need to do anything else here?
     System.err.println("VersionApplet: stop() - begin");
     System.err.println("VersionApplet: stop() - end");
   }
 
   public void destroy() {
-    System.err.println("VersionApplet: destroy() - X");
+    System.err.println("VersionApplet: destroy() - start");
+    my_release();
+    System.err.println("VersionApplet: destroy() - end");
   }
 
   class GLInfo implements GLEventListener {
