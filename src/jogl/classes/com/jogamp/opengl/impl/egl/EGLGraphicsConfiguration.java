@@ -37,6 +37,7 @@
 package com.jogamp.opengl.impl.egl;
 
 import com.jogamp.common.nio.PointerBuffer;
+import com.jogamp.common.util.ReflectionUtil;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 import javax.media.opengl.*;
@@ -288,7 +289,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     }
 
     public String toString() {
-        return getClass().toString()+"["+getScreen()+", eglConfigID 0x"+Integer.toHexString(configID)+
+        return ReflectionUtil.getBaseName(getClass())+"["+getScreen()+", eglConfigID 0x"+Integer.toHexString(configID)+
                                      ",\n\trequested " + getRequestedCapabilities()+
                                      ",\n\tchosen    " + getChosenCapabilities()+
                                      "]";

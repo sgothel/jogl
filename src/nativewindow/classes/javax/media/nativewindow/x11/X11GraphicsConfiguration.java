@@ -32,6 +32,7 @@
 
 package javax.media.nativewindow.x11;
 
+import com.jogamp.common.util.ReflectionUtil;
 import javax.media.nativewindow.*;
 import com.jogamp.nativewindow.impl.x11.XVisualInfo;
 
@@ -68,7 +69,7 @@ public class X11GraphicsConfiguration extends DefaultGraphicsConfiguration imple
     }
     
     public String toString() {
-        return getClass().toString()+"["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) + 
+        return ReflectionUtil.getBaseName(getClass())+"["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) +
                                        ",\n\tchosen    " + capabilitiesChosen+
                                        ",\n\trequested " + capabilitiesRequested+ 
                                        "]";

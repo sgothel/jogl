@@ -40,6 +40,7 @@
 
 package javax.media.nativewindow.awt;
 
+import com.jogamp.common.util.ReflectionUtil;
 import javax.media.nativewindow.*;
 import java.awt.Component;
 import java.awt.GraphicsConfiguration;
@@ -155,7 +156,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
   }
 
   public String toString() {
-    return getClass().toString()+"[" + getScreen() + 
+    return ReflectionUtil.getBaseName(getClass())+"[" + getScreen() +
                                    ",\n\tchosen    " + capabilitiesChosen+
                                    ",\n\trequested " + capabilitiesRequested+ 
                                    ",\n\t" + config +

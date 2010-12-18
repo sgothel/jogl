@@ -34,7 +34,6 @@ package com.jogamp.nativewindow.impl;
 
 import com.jogamp.common.util.*;
 import java.lang.reflect.*;
-import java.security.*;
 
 import javax.media.nativewindow.*;
 

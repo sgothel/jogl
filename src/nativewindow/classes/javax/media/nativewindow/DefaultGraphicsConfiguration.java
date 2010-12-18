@@ -32,6 +32,8 @@
 
 package javax.media.nativewindow;
 
+import com.jogamp.common.util.ReflectionUtil;
+
 public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphicsConfiguration {
     private AbstractGraphicsScreen screen;
     protected CapabilitiesImmutable capabilitiesChosen;
@@ -104,7 +106,7 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
     }
 
     public String toString() {
-        return getClass().toString()+"[" + screen +
+        return ReflectionUtil.getBaseName(getClass())+"[" + screen +
                                        ",\n\tchosen    " + capabilitiesChosen+
                                        ",\n\trequested " + capabilitiesRequested+ 
                                        "]";

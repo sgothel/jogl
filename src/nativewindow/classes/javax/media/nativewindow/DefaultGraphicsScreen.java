@@ -32,6 +32,8 @@
 
 package javax.media.nativewindow;
 
+import com.jogamp.common.util.ReflectionUtil;
+
 public class DefaultGraphicsScreen implements Cloneable, AbstractGraphicsScreen {
     AbstractGraphicsDevice device;
     private int idx;
@@ -62,6 +64,6 @@ public class DefaultGraphicsScreen implements Cloneable, AbstractGraphicsScreen 
     }
 
     public String toString() {
-        return getClass().toString()+"["+device+", idx "+idx+"]";
+        return ReflectionUtil.getBaseName(getClass())+"["+device+", idx "+idx+"]";
     }
 }

@@ -139,10 +139,17 @@ public class WindowsWGLContext extends GLContextImpl {
         // should not happen due to 'isGLReadDrawableAvailable()' query in GLContextImpl
         throw new InternalError("Given readDrawable but no driver support");
     }
+    int werr = ( !ok ) ? GDI.GetLastError() : GDI.ERROR_SUCCESS;
+    if(DEBUG && !ok) {
+        Throwable t = new Throwable ("Info: wglMakeContextCurrent draw "+
+                this.toHexString(hDrawDC) + ", read " + this.toHexString(hReadDC) +
+                ", ctx " + this.toHexString(ctx) + ", werr " + werr);
+        t.printStackTrace();
+    }
     if(!ok && 0==hDrawDC && 0==hReadDC) {
         // Some GPU's falsely fails with a zero error code (success),
         // in case this is a release context request we tolerate this
-        return GDI.GetLastError() == GDI.ERROR_SUCCESS ;
+        return werr == GDI.ERROR_SUCCESS ;
     }
     return ok;
   }

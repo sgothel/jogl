@@ -33,6 +33,7 @@
 
 package javax.media.nativewindow;
 
+import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.impl.NativeWindowFactoryImpl;
 
 public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice {
@@ -143,7 +144,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     }
 
     public String toString() {
-        return getClass().toString()+"[type "+getType()+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+"]";
+        return ReflectionUtil.getBaseName(getClass())+"[type "+getType()+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+"]";
     }
 
     /**
