@@ -63,8 +63,8 @@ public class WindowsWGLContext extends GLContextImpl {
   static final Map/*<String, String>*/ extensionNameMap;
   private boolean wglGetExtensionsStringEXTInitialized;
   private boolean wglGetExtensionsStringEXTAvailable;
-  private boolean wglMakeContextCurrentInitialized;
-  private boolean wglMakeContextCurrentAvailable;
+  private boolean wglGLReadDrawableAvailableSet;
+  private boolean wglGLReadDrawableAvailable;
   private WGLExt wglExt;
   // Table that holds the addresses of the native C-language entry points for
   // WGL extension functions.
@@ -89,8 +89,8 @@ public class WindowsWGLContext extends GLContextImpl {
   protected void resetState() {
     wglGetExtensionsStringEXTInitialized=false;
     wglGetExtensionsStringEXTAvailable=false;
-    wglMakeContextCurrentInitialized=false;
-    wglMakeContextCurrentAvailable=false;
+    wglGLReadDrawableAvailableSet=false;
+    wglGLReadDrawableAvailable=false;
     // no inner state _wglExt=null;
     wglExtProcAddressTable=null;
   }
@@ -100,6 +100,9 @@ public class WindowsWGLContext extends GLContextImpl {
   }
 
   /* package private */ final WGLExt getWGLExt() {
+    if( null == getWGLExtProcAddressTable()) {
+        throw new InternalError("Null WGLExtProcAddressTable");
+    }
     if (wglExt == null) {
       wglExt = new WGLExtImpl(this);
     }
@@ -107,27 +110,27 @@ public class WindowsWGLContext extends GLContextImpl {
   }
 
   public final boolean isGLReadDrawableAvailable() {
-    if(!wglMakeContextCurrentInitialized && null != getWGLExtProcAddressTable()) {
+    if(!wglGLReadDrawableAvailableSet && null != getWGLExtProcAddressTable()) {
         WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
         AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
         AbstractGraphicsDevice device = config.getScreen().getDevice();
         switch( factory.isReadDrawableAvailable(device) ) {
             case  1:
-                wglMakeContextCurrentAvailable = true;
-                wglMakeContextCurrentInitialized=true;
+                wglGLReadDrawableAvailable = true;
+                wglGLReadDrawableAvailableSet=true;
                 break;
             case  0:
-                wglMakeContextCurrentAvailable = false;
-                wglMakeContextCurrentInitialized=true;
+                wglGLReadDrawableAvailable = false;
+                wglGLReadDrawableAvailableSet=true;
                 break;
         }
     }
-    return wglMakeContextCurrentAvailable;
+    return wglGLReadDrawableAvailable;
   }
 
   private final boolean wglMakeContextCurrent(long hDrawDC, long hReadDC, long ctx) {
     boolean ok = false;
-    if(wglMakeContextCurrentAvailable) {
+    if(wglGLReadDrawableAvailable) {
         // needs initilized WGL ProcAddress table
         ok = getWGLExt().wglMakeContextCurrent(hDrawDC, hReadDC, ctx);
     } else if ( hDrawDC == hReadDC ) {
@@ -162,10 +165,12 @@ public class WindowsWGLContext extends GLContextImpl {
   }
 
   protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
+    if( null == getWGLExtProcAddressTable()) {
+        updateGLXProcAddressTable();
+    }
     WGLExt _wglExt = getWGLExt();
-    updateGLXProcAddressTable();
     if(DEBUG) {
-      System.err.println("WindowWGLContext.createContextARBImpl: "+getGLVersion(major, minor, ctp, "@creation") + 
+      System.err.println(getThreadName()+" - WindowWGLContext.createContextARBImpl: "+getGLVersion(major, minor, ctp, "@creation") +
                          ", handle "+toHexString(drawable.getHandle()) + ", share "+toHexString(share)+", direct "+direct+
                          ", wglCreateContextAttribsARB: "+toHexString(wglExtProcAddressTable._addressof_wglCreateContextAttribsARB));
       Thread.dumpStack();
@@ -250,7 +255,7 @@ public class WindowsWGLContext extends GLContextImpl {
     WindowsWGLContext sharedContext = (WindowsWGLContext) factory.getOrCreateSharedContextImpl(device);
     GLCapabilitiesImmutable glCaps = drawable.getChosenGLCapabilities();
 
-    isGLReadDrawableAvailable(); // trigger setup wglMakeContextCurrentAvailable
+    isGLReadDrawableAvailable(); // trigger setup wglGLReadDrawableAvailable
 
     // Windows can set up sharing of display lists after creation time
     WindowsWGLContext other = (WindowsWGLContext) GLContextShareSet.getShareContext(this);
@@ -391,8 +396,8 @@ public class WindowsWGLContext extends GLContextImpl {
     }
     wglGetExtensionsStringEXTInitialized=false;
     wglGetExtensionsStringEXTAvailable=false;
-    wglMakeContextCurrentInitialized=false;
-    wglMakeContextCurrentAvailable=false;
+    wglGLReadDrawableAvailableSet=false;
+    wglGLReadDrawableAvailable=false;
 
     WGLExtProcAddressTable table = null;
     synchronized(mappedContextTypeObjectLock) {
@@ -409,7 +414,7 @@ public class WindowsWGLContext extends GLContextImpl {
           // share them among contexts classes (GL4, GL4bc, GL3, GL3bc, ..)
           wglExtProcAddressTable = new WGLExtProcAddressTable(new GLProcAddressResolver());
         }
-        resetProcAddressTable(getWGLExtProcAddressTable());
+        resetProcAddressTable(wglExtProcAddressTable);
         synchronized(mappedContextTypeObjectLock) {
             mappedGLXProcAddress.put(key, getWGLExtProcAddressTable());
             if(DEBUG) {
