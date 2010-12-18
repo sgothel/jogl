@@ -1087,7 +1087,6 @@ public class GLProfile {
      * Throws an GLException if no profile could be found at all.
      */
     private static void initProfilesForDefaultDevices(boolean firstUIActionOnProcess) {
-
         NativeWindowFactory.initSingleton(firstUIActionOnProcess);
 
         if(DEBUG) {
@@ -1192,7 +1191,7 @@ public class GLProfile {
 
         boolean addedAnyProfile = initProfilesForDevice(defaultDesktopDevice) ||
                                   initProfilesForDevice(defaultEGLDevice);
-
+        
         if(DEBUG) {
             System.err.println("GLProfile.init isAWTAvailable       "+isAWTAvailable);
             System.err.println("GLProfile.init has desktopFactory   "+(null!=desktopFactory));
@@ -1201,8 +1200,8 @@ public class GLProfile {
             System.err.println("GLProfile.init has eglFactory       "+(null!=eglFactory));
             System.err.println("GLProfile.init hasGLES1Impl         "+hasGLES1Impl);
             System.err.println("GLProfile.init hasGLES2Impl         "+hasGLES2Impl);
-            System.err.println("GLProfile.init defaultDesktopDevice "+defaultDevice);
-            System.err.println("GLProfile.init defaultEGLDevice     "+defaultDevice);
+            System.err.println("GLProfile.init defaultDesktopDevice "+defaultDesktopDevice);
+            System.err.println("GLProfile.init defaultEGLDevice     "+defaultEGLDevice);
             System.err.println("GLProfile.init defaultDevice        "+defaultDevice);
         }
         
@@ -1216,10 +1215,13 @@ public class GLProfile {
      * @return true if any profile for the device exists, otherwise false
      */
     private static synchronized boolean initProfilesForDevice(AbstractGraphicsDevice device) {
+        if(null == device) {
+            return false;
+        }
         boolean isSet = GLContext.getAvailableGLVersionsSet(device);
 
         if(DEBUG) {
-            String msg = "Info: GLProfile.initProfilesForDevice: "+device.getConnection()+", isSet "+isSet;
+            String msg = "Info: GLProfile.initProfilesForDevice: "+device+", isSet "+isSet;
             Throwable t = new Throwable(msg);
             t.printStackTrace();
             // System.err.println(msg);
@@ -1239,7 +1241,7 @@ public class GLProfile {
             // hence querying all available GLProfiles
             boolean desktopSharedCtxAvail = desktopFactory.getIsSharedContextAvailable(device);
             if (DEBUG) {
-                System.err.println("GLProfile.initProfilesForDevice: "+device.getConnection()+": desktop Shared Ctx "+desktopSharedCtxAvail);
+                System.err.println("GLProfile.initProfilesForDevice: "+device+": desktop Shared Ctx "+desktopSharedCtxAvail);
             }
             if( null == GLContext.getAvailableGLVersion(device, 2, GLContext.CTX_PROFILE_COMPAT) ) {
                 // nobody yet set the available desktop versions, see {@link GLContextImpl#makeCurrent},
@@ -1248,13 +1250,8 @@ public class GLProfile {
                                                 2, GLContext.CTX_PROFILE_COMPAT,
                                                 1, 5, GLContext.CTX_PROFILE_COMPAT|GLContext.CTX_OPTION_ANY);
             }
-            computeProfileMap(device, false /* desktopCtxUndef*/, false /* eglCtxUndef */);
-            addedDesktopProfile = null != GLProfile.getDefault(device);
-        } else if(DEBUG) {
-            System.err.println("GLProfile: DesktopFactory - Device is not available: "+device.getConnection());
-        }
-
-        if( null!=eglFactory && ( hasGLES2Impl || hasGLES1Impl ) && eglFactory.getIsDeviceCompatible(device)) {
+            addedDesktopProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* eglCtxUndef */);
+        } else if( null!=eglFactory && ( hasGLES2Impl || hasGLES1Impl ) && eglFactory.getIsDeviceCompatible(device)) {
             // 1st pretend we have all EGL profiles ..
             computeProfileMap(device, false /* desktopCtxUndef*/, true /* eglCtxUndef */);
 
@@ -1262,7 +1259,7 @@ public class GLProfile {
             // hence querying all available GLProfiles
             boolean eglSharedCtxAvail = eglFactory.getIsSharedContextAvailable(device);
             if (DEBUG) {
-                System.err.println("GLProfile.initProfilesForDevice: "+device.getConnection()+": egl Shared Ctx "+eglSharedCtxAvail);
+                System.err.println("GLProfile.initProfilesForDevice: "+device+": egl Shared Ctx "+eglSharedCtxAvail);
             }
             if(hasGLES2Impl && null == GLContext.getAvailableGLVersion(device, 2, GLContext.CTX_PROFILE_ES) ) {
                 // nobody yet set the available desktop versions, see {@link GLContextImpl#makeCurrent},
@@ -1278,10 +1275,12 @@ public class GLProfile {
                                                 1, GLContext.CTX_PROFILE_ES,
                                                 1, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_OPTION_ANY);
             }
-            computeProfileMap(device, false /* desktopCtxUndef*/, false /* eglCtxUndef */);
-            addedEGLProfile = null != GLProfile.get(device, GL_PROFILE_LIST_GLES);
-        } else if(DEBUG) {
-            System.err.println("GLProfile: EGLFactory - Device is not available: "+device.getConnection());
+            addedEGLProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* eglCtxUndef */);
+        } else {
+            setProfileMap(device, new HashMap()); // empty
+            if(DEBUG) {
+                System.err.println("GLProfile: EGLFactory - Device is not available: "+device);
+            }
         }
 
         if(!GLContext.getAvailableGLVersionsSet(device)) {
@@ -1293,8 +1292,7 @@ public class GLProfile {
             System.err.println("GLProfile.initProfilesForDevice: "+device.getConnection()+": "+glAvailabilityToString(device));
             if(addedDesktopProfile) {
                 dumpGLInfo(desktopFactory, device);
-            }
-            if(addedEGLProfile) {
+            } else if(addedEGLProfile) {
                 dumpGLInfo(eglFactory, device);
             }
         }
@@ -1304,17 +1302,16 @@ public class GLProfile {
 
     private static void dumpGLInfo(GLDrawableFactoryImpl factory, AbstractGraphicsDevice device)  {
         GLContext ctx = factory.getOrCreateSharedContext(device);
-        AbstractGraphicsDevice nativeDevice = ctx.getGLDrawable().getNativeSurface()
-                                                 .getGraphicsConfiguration().getNativeGraphicsConfiguration()
-                                                 .getScreen().getDevice();
-        nativeDevice.lock();
+        System.err.println("GLProfile.dumpGLInfo: "+ctx);
+        ctx.makeCurrent();
         try {
-            ctx.makeCurrent();
+            System.err.println("GLProfile.dumpGLInfo: p2");
             System.err.println(JoglVersion.getGLInfo(ctx.getGL(), null));
-            ctx.release();
+            System.err.println("GLProfile.dumpGLInfo: p3");
         } finally {
-          nativeDevice.unlock();
+            ctx.release();
         }
+        System.err.println("GLProfile.dumpGLInfo: p4");
     }
 
     public static AbstractGraphicsDevice getDefaultDevice() {
@@ -1364,7 +1361,7 @@ public class GLProfile {
         sb.append("]");
     }
 
-    private static void computeProfileMap(AbstractGraphicsDevice device, boolean desktopCtxUndef, boolean eglCtxUndef) {
+    private static boolean computeProfileMap(AbstractGraphicsDevice device, boolean desktopCtxUndef, boolean eglCtxUndef) {
         if (DEBUG) {
             System.err.println("GLProfile.init map "+device.getConnection()+", desktopCtxUndef "+desktopCtxUndef+", eglCtxUndef "+eglCtxUndef);
         }
@@ -1395,6 +1392,7 @@ public class GLProfile {
             _mappedProfiles.put(GL_DEFAULT, defaultGLProfile);
         }
         setProfileMap(device, _mappedProfiles);
+        return _mappedProfiles.size() > 0;
     }
 
     /**
@@ -1494,11 +1492,10 @@ public class GLProfile {
         String deviceKey = device.getUniqueID();
         HashMap map = (HashMap) deviceConn2ProfileMap.get(deviceKey);
         if(null==map) {
-            map = new HashMap();
-            synchronized ( deviceConn2ProfileMap ) {
-                deviceConn2ProfileMap.put(deviceKey, map);
-            }
             initProfilesForDevice(device);
+            if( null == deviceConn2ProfileMap.get(deviceKey) ) {
+                throw new InternalError("initProfilesForDevice(..) didn't issue setProfileMap(..) on "+device);
+            }
         }
         return map;
     }
