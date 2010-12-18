@@ -1218,6 +1218,15 @@ public class GLProfile {
         if(null == device) {
             return false;
         }
+        GLDrawableFactory factory = GLDrawableFactory.getFactoryImpl(device);
+        factory.enterThreadCriticalZone();
+        try {
+            return initProfilesForDeviceImpl(device);
+        } finally {
+            factory.leaveThreadCriticalZone();
+        }
+    }
+    private static synchronized boolean initProfilesForDeviceImpl(AbstractGraphicsDevice device) {
         boolean isSet = GLContext.getAvailableGLVersionsSet(device);
 
         if(DEBUG) {

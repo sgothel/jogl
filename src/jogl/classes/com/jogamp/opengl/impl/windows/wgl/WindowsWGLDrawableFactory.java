@@ -60,6 +60,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.impl.ProxySurface;
 import com.jogamp.nativewindow.impl.windows.GDI;
@@ -124,6 +125,42 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   SharedResourceRunner sharedResourceRunner;
   Thread sharedResourceThread;
   HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
+
+  long processAffinityChanges = 0;
+  PointerBuffer procMask = PointerBuffer.allocateDirect(1);
+  PointerBuffer sysMask = PointerBuffer.allocateDirect(1);
+
+  protected void enterThreadCriticalZone() {
+    synchronized (sysMask) {
+        if( 0 == processAffinityChanges) {
+            long pid = GDI.GetCurrentProcess();
+            if ( GDI.GetProcessAffinityMask(pid, procMask, sysMask) ) {
+                if(DEBUG) {
+                    System.err.println("WindowsWGLDrawableFactory.enterThreadCriticalZone() - 0x" + Long.toHexString(pid) + " - " + Thread.currentThread().getName());
+                    Thread.dumpStack();
+                }
+                processAffinityChanges = pid;
+                GDI.SetProcessAffinityMask(pid, 1);
+            }
+        }
+    }
+  }
+
+  protected void leaveThreadCriticalZone() {
+    synchronized (sysMask) {
+        if( 0 != processAffinityChanges) {
+            long pid = GDI.GetCurrentProcess();
+            if( pid != processAffinityChanges) {
+                throw new GLException("PID doesn't match: set PID 0x" + Long.toHexString(processAffinityChanges) +
+                                                       " this PID 0x" + Long.toHexString(pid) );
+            }
+            if(DEBUG) {
+                System.err.println("WindowsWGLDrawableFactory.leaveThreadCriticalZone() - 0x" + Long.toHexString(pid) + " - " + Thread.currentThread().getName());
+            }
+            GDI.SetProcessAffinityMask(pid, sysMask.get(0));
+        }
+    }
+  }
 
   static class SharedResource implements SharedResourceRunner.Resource {
       private WindowsGraphicsDevice device;

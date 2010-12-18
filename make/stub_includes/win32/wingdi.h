@@ -194,6 +194,11 @@ WINUSERAPI int  WINAPI ReleaseDC(HWND hWnd, HDC hDC);
 WINUSERAPI BOOL WINAPI DestroyWindow(HWND hWnd);
 WINUSERAPI DWORD WINAPI GetObjectType(HGDIOBJ h);
 
+WINUSERAPI HANDLE WINAPI GetCurrentProcess(void);
+WINUSERAPI BOOL WINAPI GetProcessAffinityMask(HANDLE hProcess,PDWORD_PTR lpProcessAffinityMask,PDWORD_PTR lpSystemAffinityMask);
+WINUSERAPI BOOL WINAPI SetProcessAffinityMask(HANDLE hProcess,DWORD_PTR dwProcessAffinityMask);
+
+
 // Routines for changing gamma ramp of display device
 WINGDIAPI BOOL        WINAPI GetDeviceGammaRamp(HDC,LPVOID);
 WINGDIAPI BOOL        WINAPI SetDeviceGammaRamp(HDC,LPVOID);

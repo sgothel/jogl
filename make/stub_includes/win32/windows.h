@@ -12,7 +12,7 @@
 typedef int                 BOOL;
 typedef unsigned char       BYTE;
 typedef char                CHAR;
-typedef unsigned int        DWORD;
+typedef unsigned __int32    DWORD;
 typedef int                 INT;
 typedef __int32             INT32;
 typedef __int64             INT64;
@@ -29,12 +29,15 @@ typedef HANDLE              HWND;
 typedef __int32             LONG;
 typedef const char*         LPCSTR;
 typedef void*               LPVOID;
+typedef unsigned __int64    ULONG_PTR;
 typedef struct _proc*       PROC;
 typedef unsigned int*       PUINT;
 typedef unsigned int        UINT;
 typedef unsigned short      USHORT;
 typedef unsigned short      WORD;
 typedef unsigned short      ATOM;
+typedef intptr_t            DWORD_PTR;
+typedef intptr_t*           PDWORD_PTR;
 
 /* Necessary handle typedefs for parsing wglext.h */
 

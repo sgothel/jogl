@@ -220,6 +220,9 @@ public abstract class GLDrawableFactory {
     }
   }
 
+  protected void enterThreadCriticalZone() {};
+  protected void leaveThreadCriticalZone() {};
+
   protected abstract void shutdownInstance();
 
   /**
