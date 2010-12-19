@@ -21,9 +21,9 @@
         <property name="classes"              value="${build.test}/classes" />
         <property name="classes.path"         location="${classes}"/> <!-- absolute path -->
 
+        <property name="java.part.test"       value="com/jogamp/**"/>
         <property name="java.dir.test"        value="com/jogamp/opengl/test"/>
-        <property name="java.part.test"       value="${java.dir.test}/**"/>
-        <property name="java.dir.junit"        value="${java.dir.test}/junit"/>
+        <property name="java.dir.junit"       value="${java.dir.test}/junit"/>
         <property name="java.dir.bugs"        value="${java.dir.test}/bugs"/>
 
         <property name="test.archive.name"    value="${archive.name}-test-results"/>

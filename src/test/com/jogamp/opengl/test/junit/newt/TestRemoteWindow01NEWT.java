@@ -43,6 +43,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 public class TestRemoteWindow01NEWT extends UITestCase {
     static int width, height;
+    static String remoteDisplay = "nowhere:0.0";
 
     @BeforeClass
     public static void initClass() {
@@ -109,18 +110,23 @@ public class TestRemoteWindow01NEWT extends UITestCase {
         Assert.assertEquals(true,window1.isNativeValid());
         Assert.assertEquals(true,window1.isVisible());
 
-        Display display2 = NewtFactory.createDisplay("charelle:0.0"); // remote display
+        // Remote Display/Device/Screen/Window ..
+        Display display2;
+        AbstractGraphicsDevice device2;
+        Screen screen2;
+        Window window2;
         try {
+            display2 = NewtFactory.createDisplay(remoteDisplay);
             display2.createNative(); 
+            screen2  = NewtFactory.createScreen(display2, 0); // screen 0
+            window2 = createWindow(screen2, caps, width, height, true /* onscreen */, false /* undecorated */);
+            window2.setVisible(true);
         } catch (NativeWindowException nwe) {
             System.err.println(nwe);
             Assume.assumeNoException(nwe);
             destroyWindow(display1, screen1, window1);
             return;
         }
-        Screen screen2  = NewtFactory.createScreen(display2, 0); // screen 0
-        Window window2 = createWindow(screen2, caps, width, height, true /* onscreen */, false /* undecorated */);
-        window2.setVisible(true);
 
         Assert.assertEquals(true,window2.isNativeValid());
         Assert.assertEquals(true,window2.isVisible());
@@ -132,6 +138,12 @@ public class TestRemoteWindow01NEWT extends UITestCase {
     }
 
     public static void main(String args[]) throws IOException {
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-display")) {
+                remoteDisplay = args[++i];
+            }
+        }
+        System.out.println("display: "+remoteDisplay);
         String tstname = TestRemoteWindow01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }

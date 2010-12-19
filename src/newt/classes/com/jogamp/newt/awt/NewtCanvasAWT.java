@@ -38,20 +38,35 @@ import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.KeyboardFocusManager;
 
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.awt.AWTWindowClosingProtocol;
+import com.jogamp.nativewindow.impl.awt.AWTMisc;
 
 import com.jogamp.newt.event.awt.AWTAdapter;
 import com.jogamp.newt.event.awt.AWTParentWindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.Window;
+import com.jogamp.newt.event.WindowAdapter;
+import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.impl.Debug;
+import javax.swing.MenuSelectionManager;
 
-public class NewtCanvasAWT extends java.awt.Canvas {
+public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProtocol {
     public static final boolean DEBUG = Debug.debug("Window");
 
     NativeWindow nativeWindow = null;
     Window newtChild = null;
+    int newtChildCloseOp;
     AWTAdapter awtAdapter = null;
+
+    private AWTWindowClosingProtocol awtWindowClosingProtocol =
+          new AWTWindowClosingProtocol(this, new Runnable() {
+                public void run() {
+                    NewtCanvasAWT.this.destroy();
+                }
+            });
 
     /**
      * Instantiates a NewtCanvas without a NEWT child.<br>
@@ -97,12 +112,18 @@ public class NewtCanvasAWT extends java.awt.Canvas {
     }
     FocusAction focusAction = new FocusAction();
     
+    WindowListener clearAWTMenusOnNewtFocus = new WindowAdapter() {
+          public void windowGainedFocus(WindowEvent arg0) {
+                  MenuSelectionManager.defaultManager().clearSelectedPath();
+          }
+    };
+
     /** sets a new NEWT child, provoking reparenting on the NEWT level. */
     public NewtCanvasAWT setNEWTChild(Window child) {
         if(newtChild!=child) {
             newtChild = child;
             if(null!=nativeWindow) {
-                java.awt.Container cont = getContainer(this);
+                java.awt.Container cont = AWTMisc.getContainer(this);
                 // reparent right away, addNotify has been called already
                 reparentWindow( (null!=newtChild) ? true : false, cont );
             }
@@ -119,24 +140,37 @@ public class NewtCanvasAWT extends java.awt.Canvas {
      * or {@link #addNotify()} hasn't been called yet.*/
     public NativeWindow getNativeWindow() { return nativeWindow; }
 
-    void setWindowAdapter(boolean attach) {
+    public int getDefaultCloseOperation() {
+        return awtWindowClosingProtocol.getDefaultCloseOperation();
+    }
+
+    public int setDefaultCloseOperation(int op) {
+        return awtWindowClosingProtocol.setDefaultCloseOperation(op);
+    }
+
+    void configureNewtChild(boolean attach) {
         if(null!=awtAdapter) {
           awtAdapter.removeFrom(this);
           awtAdapter=null;
         }
-        if(attach && null!=newtChild) {
-            awtAdapter = new AWTParentWindowAdapter(newtChild).addTo(this);
-        }
-    }
-
-    static java.awt.Container getContainer(java.awt.Component comp) {
-        while( null != comp ) {
-        	if( comp instanceof java.awt.Container ) {
-        		return (java.awt.Container) comp;
+        if( null != newtChild ) {
+            if(attach) {
+                awtAdapter = new AWTParentWindowAdapter(newtChild).addTo(this);
+                if(newtChild.isValid()) {
+                    newtChild.addWindowListener(clearAWTMenusOnNewtFocus);
+                }
+                newtChild.setFocusAction(focusAction); // enable AWT focus traversal
+                newtChildCloseOp = newtChild.setDefaultCloseOperation(WindowClosingProtocol.DO_NOTHING_ON_CLOSE);
+                awtWindowClosingProtocol.addClosingListenerOneShot();
+            } else {
+                if(newtChild.isValid()) {
+                    newtChild.removeWindowListener(clearAWTMenusOnNewtFocus);
+                }
+                newtChild.setFocusAction(null);
+                newtChild.setDefaultCloseOperation(newtChildCloseOp);
+                awtWindowClosingProtocol.removeClosingListener();
             }
-            comp = comp.getParent();
         }
-        return null;
     }
 
     public void addNotify() {
@@ -150,7 +184,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
         // after native peer is valid: Windows
         disableBackgroundErase();
 
-        java.awt.Container cont = getContainer(this);
+        java.awt.Container cont = AWTMisc.getContainer(this);
         if(DEBUG) {
             // if ( isShowing() == false ) -> Container was not visible yet.
             // if ( isShowing() == true  ) -> Container is already visible.
@@ -161,7 +195,7 @@ public class NewtCanvasAWT extends java.awt.Canvas {
     }
 
     public void removeNotify() {
-        java.awt.Container cont = getContainer(this);
+        java.awt.Container cont = AWTMisc.getContainer(this);
         if(DEBUG) {
             System.err.println("NewtCanvasAWT.removeNotify: "+newtChild+", from "+cont);
         }
@@ -187,13 +221,12 @@ public class NewtCanvasAWT extends java.awt.Canvas {
               newtChild.setSize(w, h);
               newtChild.reparentWindow(nativeWindow);
               newtChild.setVisible(true);
-              setWindowAdapter(true);
+              configureNewtChild(true);
               newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
               newtChild.windowRepaint(0, 0, w, h);
-              newtChild.setFocusAction(focusAction); // enable AWT focus traversal
           }
       } else {
-          setWindowAdapter(false);
+          configureNewtChild(false);
           nativeWindow = null;
           newtChild.setVisible(false);
           newtChild.reparentWindow(null);
@@ -213,10 +246,11 @@ public class NewtCanvasAWT extends java.awt.Canvas {
      */
     public final void destroy() {
         if(null!=newtChild) {
-            java.awt.Container cont = getContainer(this);
+            java.awt.Container cont = AWTMisc.getContainer(this);
             if(DEBUG) {
                 System.err.println("NewtCanvasAWT.destroy(): "+newtChild+", from "+cont);
             }
+            configureNewtChild(false);
             nativeWindow = null;
             newtChild.setVisible(false);
             newtChild.reparentWindow(null);
@@ -229,11 +263,13 @@ public class NewtCanvasAWT extends java.awt.Canvas {
     }
 
     public void paint(Graphics g) {
+        awtWindowClosingProtocol.addClosingListenerOneShot();
         if(null!=newtChild) {
             newtChild.windowRepaint(0, 0, getWidth(), getHeight());
         }
     }
     public void update(Graphics g) {
+        awtWindowClosingProtocol.addClosingListenerOneShot();
         if(null!=newtChild) {
             newtChild.windowRepaint(0, 0, getWidth(), getHeight());
         }

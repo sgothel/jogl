@@ -85,24 +85,26 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
                 }
 
                 public void windowDestroyNotify(WindowEvent e) {
-                    // Is an animator thread perform rendering?
-                    if (GLWindow.this.helper.isExternalAnimatorRunning()) {
-                        // Pause animations before initiating safe destroy.
-                        GLAnimatorControl ctrl = GLWindow.this.helper.getAnimator();
-                        boolean isPaused = ctrl.pause();
-                        destroy();
-                        if(isPaused) {
-                            ctrl.resume();
+                    if( DISPOSE_ON_CLOSE == GLWindow.this.getDefaultCloseOperation() ) {
+                        // Is an animator thread perform rendering?
+                        if (GLWindow.this.helper.isExternalAnimatorRunning()) {
+                            // Pause animations before initiating safe destroy.
+                            GLAnimatorControl ctrl = GLWindow.this.helper.getAnimator();
+                            boolean isPaused = ctrl.pause();
+                            destroy();
+                            if(isPaused) {
+                                ctrl.resume();
+                            }
+                        } else if (GLWindow.this.window.isSurfaceLockedByOtherThread()) {
+                            // Surface is locked by another thread
+                            // Flag that destroy should be performed on the next
+                            // attempt to display.
+                            sendDestroy = true;
+                        } else {
+                            // Without an external thread animating or locking the
+                            // surface, we are safe.
+                            destroy ();
                         }
-                    } else if (GLWindow.this.window.isSurfaceLockedByOtherThread()) {
-                        // Surface is locked by another thread
-                        // Flag that destroy should be performed on the next
-                        // attempt to display.
-                        sendDestroy = true;
-                    } else {
-                        // Without an external thread animating or locking the
-                        // surface, we are safe.
-                        destroy ();
                     }
                 }
             });
@@ -149,6 +151,17 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
      */
     public static GLWindow create(NativeWindow parentNativeWindow, GLCapabilitiesImmutable caps) {
         return new GLWindow(NewtFactory.createWindow(parentNativeWindow, caps));
+    }
+
+    //----------------------------------------------------------------------
+    // WindowClosingProtocol implementation
+    //
+    public int getDefaultCloseOperation() {
+        return window.getDefaultCloseOperation();
+    }
+
+    public int setDefaultCloseOperation(int op) {
+        return window.setDefaultCloseOperation(op);
     }
 
     //----------------------------------------------------------------------

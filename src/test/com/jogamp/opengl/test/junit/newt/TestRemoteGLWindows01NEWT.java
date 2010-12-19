@@ -49,6 +49,7 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
     static long durationPerTest = 100; // ms
+    static String remoteDisplay = "nowhere:0.0";
 
     @BeforeClass
     public static void initClass() {
@@ -59,7 +60,7 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
         glp = GLProfile.getDefault();
     }
 
-    static GLWindow createWindow(Screen screen, GLCapabilities caps)
+    static GLWindow createWindow(Screen screen, GLCapabilities caps, GLEventListener demo)
         throws InterruptedException
     {
         Assert.assertNotNull(caps);
@@ -74,8 +75,7 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
             glWindow = GLWindow.create(caps);
             Assert.assertNotNull(glWindow);
         }
-
-        GLEventListener demo = new Gears();
+        
         glWindow.addGLEventListener(demo);
 
         glWindow.setSize(512, 512);
@@ -96,42 +96,49 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
 
     @Test
     public void testRemoteWindow01() throws InterruptedException {
+        Animator animator = new Animator();
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-        GLWindow window1 = createWindow(null, caps); // local
+        GLWindow window1 = createWindow(null, caps, new Gears(1)); // local with vsync
         Assert.assertEquals(true,window1.isNativeValid());
         Assert.assertEquals(true,window1.isVisible());
         AbstractGraphicsDevice device1 = window1.getScreen().getDisplay().getGraphicsDevice();
 
         System.err.println("GLProfiles window1: "+device1.getConnection()+": "+GLProfile.glAvailabilityToString(device1));
 
-        Animator animator1 = new Animator(window1);
-        animator1.start();
+        animator.add(window1);
 
+        // Remote Display/Device/Screen/Window ..
         // Eager initialization of NEWT Display -> AbstractGraphicsDevice -> GLProfile (device)
-        Display display2 = NewtFactory.createDisplay("charelle:0.0"); // remote display
+        Display display2; // remote display
+        AbstractGraphicsDevice device2;
+        Screen screen2;
+        GLWindow window2;
         try {
-            display2.createNative(); 
+            display2 = NewtFactory.createDisplay(remoteDisplay); // remote display
+            display2.createNative();
+            System.err.println(display2);
+            device2 = display2.getGraphicsDevice();
+            System.err.println(device2);
+            GLProfile.initProfiles(device2); // just to make sure
+            System.err.println("");
+            System.err.println("GLProfiles window2: "+device2.getConnection()+": "+GLProfile.glAvailabilityToString(device2));
+            screen2  = NewtFactory.createScreen(display2, 0); // screen 0
+            window2 = createWindow(screen2, caps, new Gears(0)); // remote, no vsync
         } catch (NativeWindowException nwe) {
             System.err.println(nwe);
             Assume.assumeNoException(nwe);
             destroyWindow(window1);
             return;
         }
-        AbstractGraphicsDevice device2 = display2.getGraphicsDevice();
-        GLProfile.initProfiles(device2); // just to make sure
-        System.err.println("");
-        System.err.println("GLProfiles window2: "+device2.getConnection()+": "+GLProfile.glAvailabilityToString(device2));
 
-        Screen screen2  = NewtFactory.createScreen(display2, 0); // screen 0
-        GLWindow window2 = createWindow(screen2, caps); // remote
         Assert.assertEquals(true,window2.isNativeValid());
         Assert.assertEquals(true,window2.isVisible());
 
-        Animator animator2 = new Animator(window2);
-        animator2.start();
+        animator.add(window2);
+        animator.start();
 
-        for(int state=0; state*100<durationPerTest; state++) {
+        while(animator.getDuration()<durationPerTest) {
             Thread.sleep(100);
         }
 
@@ -151,9 +158,12 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
+            } else if(args[i].equals("-display")) {
+                remoteDisplay = args[++i];
             }
         }
         System.out.println("durationPerTest: "+durationPerTest);
+        System.out.println("display: "+remoteDisplay);
         String tstname = TestRemoteGLWindows01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }

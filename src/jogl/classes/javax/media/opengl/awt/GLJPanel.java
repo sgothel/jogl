@@ -40,19 +40,57 @@
 
 package javax.media.opengl.awt;
 
-import javax.media.opengl.*;
-import javax.media.nativewindow.*;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.beans.Beans;
+import java.security.AccessControlContext;
+import java.security.AccessController;
 
-import java.awt.*;
-import java.awt.geom.*;
-import java.awt.image.*;
-import java.beans.*;
-import java.nio.*;
-import java.security.*;
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferInt;
 import javax.swing.JPanel;
+
+import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.awt.AWTWindowClosingProtocol;
+
+import javax.media.opengl.DefaultGLCapabilitiesChooser;
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GLAnimatorControl;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLPbuffer;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLRunnable;
+import javax.media.opengl.Threading;
 import com.jogamp.opengl.util.FBObject;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.opengl.impl.awt.*;
+import com.jogamp.opengl.impl.Debug;
+import com.jogamp.opengl.impl.GLContextImpl;
+import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
+import com.jogamp.opengl.impl.GLDrawableHelper;
+import com.jogamp.opengl.impl.GLDrawableImpl;
+import com.jogamp.opengl.impl.ThreadingImpl;
+import com.jogamp.opengl.impl.awt.Java2D;
+import com.jogamp.opengl.impl.awt.Java2DGLContext;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their
 // context whenever the displayChanged() function is called on their
@@ -85,7 +123,7 @@ import com.jogamp.opengl.impl.awt.*;
  *  </P>
 */
 
-public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
+public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosingProtocol {
   private static final boolean DEBUG = Debug.debug("GLJPanel");
   private static final boolean VERBOSE = Debug.verbose();
 
@@ -129,8 +167,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     !Debug.isPropertyDefined("jogl.gljpanel.noogl", true, localACC);
 
   // For handling reshape events lazily
-  private int reshapeX;
-  private int reshapeY;
+  // private int reshapeX;
+  // private int reshapeY;
   private int reshapeWidth;
   private int reshapeHeight;
 
@@ -138,6 +176,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   // pipeline is active
   private int viewportX;
   private int viewportY;
+
+  private AWTWindowClosingProtocol awtWindowClosingProtocol =
+          new AWTWindowClosingProtocol(this, new Runnable() {
+                public void run() {
+                    GLJPanel.this.destroy();
+                }
+            });
 
   static {
     // Force eager initialization of part of the Java2D class since
@@ -365,6 +410,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         Exception ex1 = new Exception("Info: removeNotify - start");
         ex1.printStackTrace();
     }
+
+    awtWindowClosingProtocol.removeClosingListener();
+
     dispose(false);
     if (backend != null) {
       backend.destroy();
@@ -387,8 +435,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   public void reshape(int x, int y, int width, int height) {
     super.reshape(x, y, width, height);
 
-    reshapeX = x;
-    reshapeY = y;
+    // reshapeX = x;
+    // reshapeY = y;
     reshapeWidth = width;
     reshapeHeight = height;
     handleReshape = true;
@@ -573,17 +621,16 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       // a different implementation -- try again
     } while (backend == null);
 
-    if(null==closingListener) {
-      synchronized(closingListenerLock) {
-        if(null==closingListener) {
-            closingListener=GLCanvas.addClosingListener(this, new GLCanvas.DestroyMethod() {
-                        public void destroyMethod() { destroy(); } });
-        }
-      }
-    }
+    awtWindowClosingProtocol.addClosingListenerOneShot();
   }
-  private Object closingListener = null;
-  private Object closingListenerLock = new Object();
+
+  public int getDefaultCloseOperation() {
+      return awtWindowClosingProtocol.getDefaultCloseOperation();
+  }
+
+  public int setDefaultCloseOperation(int op) {
+      return awtWindowClosingProtocol.setDefaultCloseOperation(op);
+  }
 
   private void handleReshape() {
     panelWidth  = reshapeWidth;

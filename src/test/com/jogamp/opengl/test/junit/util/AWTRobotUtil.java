@@ -28,15 +28,17 @@
  
 package com.jogamp.opengl.test.junit.util;
 
+import com.jogamp.newt.impl.WindowImplAccess;
 import java.lang.reflect.InvocationTargetException;
 import java.awt.AWTException;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.EventQueue;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
-import java.awt.Window;
+import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import javax.swing.JFrame;
 
@@ -92,7 +94,7 @@ public class AWTRobotUtil {
      *
      * @return True if the Window became the global focused Window within TIME_OUT
      */
-    public static boolean toFront(Robot robot, Window window) 
+    public static boolean toFront(Robot robot, final java.awt.Window window)
         throws AWTException, InterruptedException, InvocationTargetException {
 
         if(null == robot) {
@@ -104,12 +106,11 @@ public class AWTRobotUtil {
         robot.mouseMove( (int) p0.getX(), (int) p0.getY() );
         robot.delay(ROBOT_DELAY);
 
-        final Window f_window = window;
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-                f_window.setVisible(true);
-                f_window.toFront();
-                f_window.requestFocus();
+                window.setVisible(true);
+                window.toFront();
+                window.requestFocus();
             }});
         robot.delay(ROBOT_DELAY);
 
@@ -126,20 +127,10 @@ public class AWTRobotUtil {
      */
     public static void centerMouse(Robot robot, Object obj) 
         throws AWTException, InterruptedException, InvocationTargetException {
-        Component comp = null;
-        com.jogamp.newt.Window win = null;
 
         if(null == robot) {
             robot = new Robot();
             robot.setAutoWaitForIdle(true);
-        }
-
-        if(obj instanceof com.jogamp.newt.Window) {
-            win = (com.jogamp.newt.Window) obj;
-        } else if(obj instanceof Component) {
-            comp = (Component) obj;
-        } else {
-            throw new RuntimeException("Neither AWT nor NEWT: "+obj);
         }
 
         Point p0 = getCenterLocation(obj, false);
@@ -334,5 +325,45 @@ public class AWTRobotUtil {
         return false;
     }
 
+    /**
+     *
+     * @return True if the Component becomes <code>visible</code> within TIME_OUT
+     */
+    public static boolean waitForVisible(Object obj, boolean visible) throws InterruptedException {
+        int wait;
+        if(obj instanceof Component) {
+            Component comp = (Component) obj;
+            for (wait=0; wait<POLL_DIVIDER && visible != comp.isVisible(); wait++) {
+                Thread.sleep(TIME_OUT/POLL_DIVIDER);
+            }
+        } else if(obj instanceof com.jogamp.newt.Window) {
+            com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
+            for (wait=0; wait<POLL_DIVIDER && visible != win.isVisible(); wait++) {
+                Thread.sleep(TIME_OUT/POLL_DIVIDER);
+            }
+        } else {
+            throw new RuntimeException("Neither AWT nor NEWT: "+obj);
+        }
+        return wait<POLL_DIVIDER;
+    }
+
+    /**
+     * Programmatically issue windowClosing on AWT or NEWT
+     *
+     * @param obj either an AWT Window (Frame, JFrame) or NEWT Window
+     * @throws InterruptedException
+     */
+    public static void closeWindow(Object obj) throws InterruptedException {
+        if(obj instanceof java.awt.Window) {
+            java.awt.Window win = (java.awt.Window) obj;
+            Toolkit tk = Toolkit.getDefaultToolkit();
+            EventQueue evtQ = tk.getSystemEventQueue();
+            evtQ.postEvent(new java.awt.event.WindowEvent(win, java.awt.event.WindowEvent.WINDOW_CLOSING));
+        } else if(obj instanceof com.jogamp.newt.Window) {
+            com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
+            WindowImplAccess.windowDestroyNotify(win);
+        }
+        Thread.sleep(200);
+    }
 }
 

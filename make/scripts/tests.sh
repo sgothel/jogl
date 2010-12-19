@@ -74,8 +74,8 @@ function testawt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLSimple01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteWindow01NEWT -time 1000000
-#testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteGLWindows01NEWT -time 1000000
+#testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteWindow01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteGLWindows01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
@@ -92,7 +92,7 @@ function testawt() {
 #
 # awt (testawt)
 #
-testawt com.jogamp.newt.impl.awt.opengl.VersionApplet $*
+#testawt com.jogamp.newt.impl.awt.opengl.VersionApplet $*
 #testawt javax.media.opengl.awt.GLCanvas $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
@@ -127,6 +127,10 @@ testawt com.jogamp.newt.impl.awt.opengl.VersionApplet $*
 #testawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated $*
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
+
+#testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*
+#testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
+testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol03NewtAWT $*
 
 #testawt $*
 

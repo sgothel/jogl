@@ -40,32 +40,56 @@
 
 package javax.media.opengl.awt;
 
-import com.jogamp.common.GlueGenVersion;
-import com.jogamp.common.util.VersionUtil;
-import com.jogamp.common.util.locks.RecursiveLock;
-import com.jogamp.nativewindow.NativeWindowVersion;
-import javax.media.opengl.*;
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.awt.*;
-
-import com.jogamp.opengl.impl.*;
-import com.jogamp.opengl.JoglVersion;
+import java.beans.Beans;
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import java.awt.Canvas;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.FontMetrics;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
-import java.awt.Window;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.geom.*;
-import java.beans.*;
-import java.lang.reflect.*;
-import java.security.*;
+import java.awt.geom.Rectangle2D;
+
+import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.util.VersionUtil;
+import com.jogamp.common.util.locks.RecursiveLock;
+
+import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
+import javax.media.nativewindow.awt.AWTGraphicsDevice;
+import javax.media.nativewindow.awt.AWTGraphicsScreen;
+import javax.media.nativewindow.awt.AWTWindowClosingProtocol;
+import com.jogamp.nativewindow.NativeWindowVersion;
+
+import javax.media.opengl.GL;
+import javax.media.opengl.GLAnimatorControl;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLRunnable;
+import javax.media.opengl.Threading;
+import com.jogamp.opengl.JoglVersion;
+import com.jogamp.opengl.impl.Debug;
+import com.jogamp.opengl.impl.GLContextImpl;
+import com.jogamp.opengl.impl.GLDrawableHelper;
+import com.jogamp.opengl.impl.ThreadingImpl;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their
 // context whenever the displayChanged() function is called on our
@@ -105,7 +129,7 @@ import java.security.*;
  * </ul>
  */
 
-public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
+public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosingProtocol {
 
   private static final boolean DEBUG;
   private static final GLProfile defaultGLProfile;
@@ -126,6 +150,13 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   private GLCapabilitiesChooser chooser;
   private GLContext shareWith;  
   private GraphicsDevice device;
+
+  private AWTWindowClosingProtocol awtWindowClosingProtocol =
+          new AWTWindowClosingProtocol(this, new Runnable() {
+                public void run() {
+                    GLCanvas.this.destroy();
+                }
+            });
 
   /** Creates a new GLCanvas component with a default set of OpenGL
       capabilities, using the default OpenGL capabilities selection
@@ -201,33 +232,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     this.chooser = chooser;
     this.shareWith = shareWith;
     this.device = device;
-  }
-
-  protected interface DestroyMethod {
-    public void destroyMethod();
-  }
-
-  /* package private */ final static Object addClosingListener(Component c, final DestroyMethod d) {
-    WindowAdapter cl = null;
-    Window w = getWindow(c);
-    if(null!=w) {
-        cl = new WindowAdapter() {
-                public void windowClosing(WindowEvent e) {
-                  // we have to issue this call rigth away,
-                  // otherwise the window gets destroyed
-                  d.destroyMethod();
-                }
-            };
-        w.addWindowListener(cl);
-    }
-    return cl;
-  }
-
-  private final static Window getWindow(Component c) {
-    while ( c!=null && ! ( c instanceof Window ) ) {
-        c = c.getParent();
-    }
-    return (Window)c;
   }
 
   /**
@@ -351,8 +355,13 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     return ( null != drawable ) ? drawable.isRealized() : false;
   }
 
-  private Object closingListener = null;
-  private Object closingListenerLock = new Object();
+  public int getDefaultCloseOperation() {
+      return awtWindowClosingProtocol.getDefaultCloseOperation();
+  }
+
+  public int setDefaultCloseOperation(int op) {
+      return awtWindowClosingProtocol.setDefaultCloseOperation(op);
+  }
 
   public void display() {
     if( !validateGLDrawable() ) {
@@ -360,14 +369,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
     maybeDoSingleThreadedWorkaround(displayOnEventDispatchThreadAction,
                                     displayAction);
-    if(null==closingListener) {
-      synchronized(closingListenerLock) {
-        if(null==closingListener) {
-            closingListener=addClosingListener(this, new DestroyMethod() { 
-                        public void destroyMethod() { destroy(); } });
-        }
-      }
-    }
+
+    awtWindowClosingProtocol.addClosingListenerOneShot();
   }
 
   private void dispose(boolean regenerate) {
@@ -564,6 +567,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         ex1.printStackTrace();
     }
 
+    awtWindowClosingProtocol.removeClosingListener();
+
     if (Beans.isDesignTime()) {
       super.removeNotify();
     } else {
@@ -685,15 +690,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   }
 
   public NativeSurface getNativeSurface() {
-    return drawable.getNativeSurface();
+    return (null != drawable) ? drawable.getNativeSurface() : null;
   }
 
   public long getHandle() {
-    return drawable.getHandle();
+    return (null != drawable) ? drawable.getHandle() : 0;
   }
 
   public GLDrawableFactory getFactory() {
-    return drawable.getFactory();
+    return (null != drawable) ? drawable.getFactory() : null;
   }
 
   public String toString() {

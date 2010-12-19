@@ -372,6 +372,26 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected void unlockSurfaceImpl() { }
 
     //----------------------------------------------------------------------
+    // WindowClosingProtocol implementation
+    //
+    private Object closingListenerLock = new Object();
+    private int defaultCloseOperation = DISPOSE_ON_CLOSE;
+
+    public int getDefaultCloseOperation() {
+        synchronized (closingListenerLock) {
+            return defaultCloseOperation;
+        }
+    }
+
+    public int setDefaultCloseOperation(int op) {
+        synchronized (closingListenerLock) {
+            int _op = defaultCloseOperation;
+            defaultCloseOperation = op;
+            return _op;
+        }
+    }
+
+    //----------------------------------------------------------------------
     // Window: Native implementation
     //
 
@@ -2101,7 +2121,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
         enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
 
-        if(handleDestroyNotify && isValid()) {
+        if(handleDestroyNotify && DISPOSE_ON_CLOSE == defaultCloseOperation && isValid()) {
             destroy();
         }
 

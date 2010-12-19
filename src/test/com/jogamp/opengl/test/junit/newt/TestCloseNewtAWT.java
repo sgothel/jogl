@@ -45,6 +45,7 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 public class TestCloseNewtAWT extends UITestCase {
@@ -124,11 +125,7 @@ public class TestCloseNewtAWT extends UITestCase {
         });
         Thread.sleep(1000);
 
-        // programatically issue windowClosing
-        Toolkit tk = Toolkit.getDefaultToolkit();
-        EventQueue evtQ = tk.getSystemEventQueue();
-        evtQ.postEvent(new java.awt.event.WindowEvent(frame, java.awt.event.WindowEvent.WINDOW_CLOSING));
-        Thread.sleep(200);            
+        AWTRobotUtil.closeWindow(frame);
 
         GLProfile.shutdown();
     }
