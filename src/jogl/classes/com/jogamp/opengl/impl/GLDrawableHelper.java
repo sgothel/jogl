@@ -103,6 +103,8 @@ public class GLDrawableHelper {
         if(0>index) {
             index = listeners.size();
         }
+        // GLEventListener may be added after context is created,
+        // hence we earmark initialization for the next display call.
         listenersToBeInit.add(listener);
         if(!listenersIter) {
             // fast path
@@ -142,7 +144,6 @@ public class GLDrawableHelper {
         for (int i=0; i < listeners.size(); i++) {
           GLEventListener listener = (GLEventListener) listeners.get(i) ;
           listener.dispose(drawable);
-          listenersToBeInit.add(listener);
         }
         listenersIter = false;
     }
@@ -164,6 +165,12 @@ public class GLDrawableHelper {
         listenersIter = true;
         for (int i=0; i < listeners.size(); i++) {
           GLEventListener listener = (GLEventListener) listeners.get(i) ;
+
+          // If make current ctx, invoked by invokGL(..), results in a new ctx, init gets called.
+          // This may happen not just for initial setup, but for ctx recreation due to resource change (drawable/window),
+          // hence the must always be initialized unconditional.
+          listenersToBeInit.add(listener);
+
           if ( ! init( listener, drawable, false ) ) {
             throw new GLException("GLEventListener "+listener+" already initialized: "+drawable);
           }
