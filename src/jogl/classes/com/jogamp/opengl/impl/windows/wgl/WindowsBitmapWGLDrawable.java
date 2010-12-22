@@ -98,8 +98,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
     // NOTE: negating the height causes the DIB to be in top-down row
     // order rather than bottom-up; ends up being correct during pixel
     // readback
-    // header.setBiHeight(-1 * height);
-    header.setBiHeight(height);
+    header.setBiHeight(-1 * height);
     header.setBiPlanes((short) 1);
     header.setBiBitCount((short) bitsPerPixel);
     header.setBiXPelsPerMeter(0);
