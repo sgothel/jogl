@@ -166,7 +166,6 @@ public class MacWindow extends WindowImpl {
             setWindowHandle(0);
             nsViewLock.unlock();
         }
-        windowDestroyed(); // No OSX hook for DidClose, so do it here
     }
     
     public final long getSurfaceHandle() {

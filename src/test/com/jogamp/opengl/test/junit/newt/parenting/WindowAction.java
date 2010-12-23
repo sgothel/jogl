@@ -40,5 +40,8 @@ class WindowAction extends WindowAdapter {
     public void windowDestroyNotify(WindowEvent e) {
         eventFifo.put(e);
     }
+    public void windowDestroyed(WindowEvent e) {
+        eventFifo.put(e);
+    }
 }
 

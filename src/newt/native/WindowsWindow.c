@@ -124,7 +124,6 @@ static jmethodID positionChangedID = NULL;
 static jmethodID focusChangedID = NULL;
 static jmethodID visibleChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
-static jmethodID windowDestroyedID = NULL;
 static jmethodID windowRepaintID = NULL;
 static jmethodID enqueueMouseEventID = NULL;
 static jmethodID sendMouseEventID = NULL;
@@ -820,8 +819,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     //
     // The signal pipeline for destruction is:
     //    Java::DestroyWindow(wnd) _or_ window-close-button -> 
-    //     WM_CLOSE -> Java::windowDestroyNotify -> W_DESTROY -> Java::windowDestroyed ->
-    //       Java::CleanupWindowResources()
+    //     WM_CLOSE -> Java::windowDestroyNotify -> W_DESTROY
     case WM_CLOSE:
         (*env)->CallVoidMethod(env, window, windowDestroyNotifyID);
         break;
@@ -834,7 +832,6 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
             SetWindowLongPtr(wnd, GWLP_USERDATA, (intptr_t) NULL);
 #endif
             free(wud); wud=NULL;
-            (*env)->CallVoidMethod(env, window, windowDestroyedID);
             (*env)->DeleteGlobalRef(env, window);
         }
         break;
@@ -1267,7 +1264,6 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_initI
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(Z)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
     windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
-    windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(IIII)V");
     enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
@@ -1282,7 +1278,6 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_initI
         focusChangedID == NULL ||
         visibleChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
-        windowDestroyedID == NULL ||
         windowRepaintID == NULL ||
         enqueueMouseEventID == NULL ||
         sendMouseEventID == NULL ||

@@ -147,7 +147,6 @@ static jmethodID positionChangedID = NULL;
 static jmethodID focusChangedID = NULL;
 static jmethodID visibleChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
-static jmethodID windowDestroyedID = NULL;
 static jmethodID windowRepaintID = NULL;
 static jmethodID windowReparentedID = NULL;
 static jmethodID enqueueMouseEventID = NULL;
@@ -624,7 +623,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
                     (void*)evt.xdestroywindow.window, (void*)evt.xdestroywindow.event, evt.xdestroywindow.window != evt.xdestroywindow.event);
                 if ( evt.xdestroywindow.window == evt.xdestroywindow.event ) {
                     // ignore child destroy notification
-                    (*env)->CallVoidMethod(env, jwindow, windowDestroyedID);
                 }
                 break;
             case CreateNotify:
@@ -1191,7 +1189,6 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs0
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(Z)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
-    windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(IIII)V");
     windowReparentedID = (*env)->GetMethodID(env, clazz, "windowReparented", "(J)V");
     enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIII)V");
@@ -1206,7 +1203,6 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs0
         focusChangedID == NULL ||
         visibleChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
-        windowDestroyedID == NULL ||
         windowRepaintID == NULL ||
         windowReparentedID == NULL ||
         enqueueMouseEventID == NULL ||
@@ -1394,8 +1390,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CloseWindow0
     (*env)->DeleteGlobalRef(env, jwindow);
 
     DBG_PRINT( "X11: CloseWindow END\n");
-
-    (*env)->CallVoidMethod(env, obj, windowDestroyedID);
 }
 
 static void NewtWindows_setPosSize(Display *dpy, Window w, jint x, jint y, jint width, jint height)

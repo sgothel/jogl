@@ -94,7 +94,6 @@ static jmethodID windowCreatedID = NULL;
 static jmethodID sizeChangedID = NULL;
 static jmethodID visibleChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
-static jmethodID windowDestroyedID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 
@@ -137,8 +136,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_opengl_kd_KDDisplay_DispatchMes
                 {
                     DBG_PRINT( "event window close : src: %p\n", userData);
                     (*env)->CallVoidMethod(env, javaWindow, windowDestroyNotifyID);
-                    // Called by Window.java: DestroyWindow(wnd);
-                    //  (*env)->CallVoidMethod(env, javaWindow, windowDestroyedID);
                 }
                 break;
             case KD_EVENT_WINDOWPROPERTY_CHANGE:
@@ -213,14 +210,12 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_opengl_kd_KDWindow_initIDs
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(IIZ)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
-    windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     if (windowCreatedID == NULL ||
         sizeChangedID == NULL ||
         visibleChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
-        windowDestroyedID == NULL ||
         sendMouseEventID == NULL ||
         sendKeyEventID == NULL) {
         DBG_PRINT( "initIDs failed\n" );

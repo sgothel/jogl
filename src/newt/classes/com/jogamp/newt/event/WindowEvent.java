@@ -46,6 +46,7 @@ public class WindowEvent extends NEWTEvent {
     public static final int EVENT_WINDOW_GAINED_FOCUS = 103;
     public static final int EVENT_WINDOW_LOST_FOCUS = 104;
     public static final int EVENT_WINDOW_REPAINT = 105;
+    public static final int EVENT_WINDOW_DESTROYED = 106;
 
     public WindowEvent(int eventType, Object source, long when) {
         super(eventType, source, when);
@@ -54,11 +55,12 @@ public class WindowEvent extends NEWTEvent {
     public static String getEventTypeString(int type) {
         switch(type) {
             case EVENT_WINDOW_RESIZED: return "WINDOW_RESIZED";
-            case EVENT_WINDOW_MOVED:   return "WINDOW_MOVED";
-            case EVENT_WINDOW_DESTROY_NOTIFY:   return "EVENT_WINDOW_DESTROY_NOTIFY";
-            case EVENT_WINDOW_GAINED_FOCUS:   return "EVENT_WINDOW_GAINED_FOCUS";
-            case EVENT_WINDOW_LOST_FOCUS:   return "EVENT_WINDOW_LOST_FOCUS";
-            case EVENT_WINDOW_REPAINT:   return "EVENT_WINDOW_REPAINT";
+            case EVENT_WINDOW_MOVED: return "WINDOW_MOVED";
+            case EVENT_WINDOW_DESTROY_NOTIFY: return "EVENT_WINDOW_DESTROY_NOTIFY";
+            case EVENT_WINDOW_GAINED_FOCUS: return "EVENT_WINDOW_GAINED_FOCUS";
+            case EVENT_WINDOW_LOST_FOCUS: return "EVENT_WINDOW_LOST_FOCUS";
+            case EVENT_WINDOW_REPAINT: return "EVENT_WINDOW_REPAINT";
+            case EVENT_WINDOW_DESTROYED: return "EVENT_WINDOW_DESTROYED";
             default: return "unknown (" + type + ")";
         }
     }

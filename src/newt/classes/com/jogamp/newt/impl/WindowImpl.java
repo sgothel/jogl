@@ -759,10 +759,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
 
                 if(null!=lifecycleHook) {
+                    // send synced destroy notification for proper cleanup, eg GLWindow/OpenGL
                     lifecycleHook.destroyActionInLock();
                 }
 
                 closeAndInvalidate();
+
+                // send synced destroyed notification
+                sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROYED);
 
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window.destroy() END "+getThreadName()/*+", "+WindowImpl.this*/);
@@ -2028,6 +2032,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 case WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY:
                     l.windowDestroyNotify(e);
                     break;
+                case WindowEvent.EVENT_WINDOW_DESTROYED:
+                    l.windowDestroyed(e);
+                    break;
                 case WindowEvent.EVENT_WINDOW_GAINED_FOCUS:
                     l.windowGainedFocus(e);
                     break;
@@ -2119,7 +2126,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             System.err.println("Window.windowDestroyNotify START "+getThreadName());
         }
 
-        enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
+        // send synced destroy notifications
+        enqueueWindowEvent(true, WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
 
         if(handleDestroyNotify && DISPOSE_ON_CLOSE == defaultCloseOperation && isValid()) {
             destroy();
@@ -2128,13 +2136,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.windowDestroyeNotify END "+getThreadName());
         }
-    }
-
-    protected void windowDestroyed() {
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.windowDestroyed "+getThreadName());
-        }
-        closeAndInvalidate();
     }
 
     public void windowRepaint(int x, int y, int width, int height) {

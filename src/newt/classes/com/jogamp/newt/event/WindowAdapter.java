@@ -36,6 +36,8 @@ public abstract class WindowAdapter implements WindowListener
     }
     public void windowDestroyNotify(WindowEvent e) {
     }
+    public void windowDestroyed(WindowEvent e) {
+    }
     public void windowGainedFocus(WindowEvent e) {
     }
     public void windowLostFocus(WindowEvent e) {

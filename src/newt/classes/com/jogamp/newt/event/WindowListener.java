@@ -44,6 +44,9 @@ public interface WindowListener extends NEWTEventListener {
     /** Window will be destroyed. Release of resources is recommended. */
     public void windowDestroyNotify(WindowEvent e);
 
+    /** Window has been destroyed.*/
+    public void windowDestroyed(WindowEvent e);
+
     /** Window gained focus. */
     public void windowGainedFocus(WindowEvent e);
 

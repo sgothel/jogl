@@ -40,6 +40,7 @@ import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
+import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
 
 public class AWTRobotUtil {
@@ -348,22 +349,135 @@ public class AWTRobotUtil {
     }
 
     /**
-     * Programmatically issue windowClosing on AWT or NEWT
+     *
+     * @return True if the Component becomes realized (not displayable, native invalid) within TIME_OUT
+     */
+    public static boolean waitForRealized(Object obj, boolean realized) throws InterruptedException {
+        int wait;
+        if(obj instanceof GLCanvas) {
+            GLCanvas comp = (GLCanvas) obj;
+            for (wait=0; wait<POLL_DIVIDER && realized != comp.isRealized(); wait++) {
+                Thread.sleep(TIME_OUT/POLL_DIVIDER);
+            }
+        } else if (obj instanceof Component) {
+            Component comp = (Component) obj;
+            for (wait=0; wait<POLL_DIVIDER && realized != comp.isDisplayable(); wait++) {
+                Thread.sleep(TIME_OUT/POLL_DIVIDER);
+            }
+        } else if(obj instanceof com.jogamp.newt.Window) {
+            com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
+            for (wait=0; wait<POLL_DIVIDER && realized != win.isNativeValid(); wait++) {
+                Thread.sleep(TIME_OUT/POLL_DIVIDER);
+            }
+        } else {
+            throw new RuntimeException("Neither AWT nor NEWT: "+obj);
+        }
+        return wait<POLL_DIVIDER;
+    }
+
+    /**
+     * Programmatically issue windowClosing on AWT or NEWT.
+     * Wait until the window is closing within TIME_OUT.
      *
      * @param obj either an AWT Window (Frame, JFrame) or NEWT Window
+     * @param willClose indicating that the window will close, hence this method waits for the window to be closed
+     * @return True if the Window is closing and closed (if willClose is true), each within TIME_OUT
      * @throws InterruptedException
      */
-    public static void closeWindow(Object obj) throws InterruptedException {
+    public static boolean closeWindow(Object obj, boolean willClose) throws InterruptedException, InvocationTargetException {
+        WindowClosingListener closingListener = addClosingListener(obj);
         if(obj instanceof java.awt.Window) {
-            java.awt.Window win = (java.awt.Window) obj;
+            final java.awt.Window win = (java.awt.Window) obj;
             Toolkit tk = Toolkit.getDefaultToolkit();
-            EventQueue evtQ = tk.getSystemEventQueue();
-            evtQ.postEvent(new java.awt.event.WindowEvent(win, java.awt.event.WindowEvent.WINDOW_CLOSING));
+            final EventQueue evtQ = tk.getSystemEventQueue();
+            EventQueue.invokeAndWait(new Runnable() {
+                public void run() {
+                    evtQ.postEvent(new java.awt.event.WindowEvent(win, java.awt.event.WindowEvent.WINDOW_CLOSING));
+                } });
         } else if(obj instanceof com.jogamp.newt.Window) {
             com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
             WindowImplAccess.windowDestroyNotify(win);
         }
-        Thread.sleep(200);
+        int wait;
+        for (wait=0; wait<POLL_DIVIDER && !closingListener.isWindowClosing(); wait++) {
+            Thread.sleep(TIME_OUT/POLL_DIVIDER);
+        }
+        if(wait<POLL_DIVIDER && willClose) {
+            for (wait=0; wait<POLL_DIVIDER && !closingListener.isWindowClosed(); wait++) {
+                Thread.sleep(TIME_OUT/POLL_DIVIDER);
+            }
+        }
+        return wait<POLL_DIVIDER;
     }
+
+    public static WindowClosingListener addClosingListener(Object obj) throws InterruptedException {
+        WindowClosingListener cl = null;
+        if(obj instanceof java.awt.Window) {
+            java.awt.Window win = (java.awt.Window) obj;
+            AWTWindowClosingAdapter acl = new AWTWindowClosingAdapter();
+            win.addWindowListener(acl);
+            cl = acl;
+        } else if(obj instanceof com.jogamp.newt.Window) {
+            com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
+            NEWTWindowClosingAdapter ncl = new NEWTWindowClosingAdapter();
+            win.addWindowListener(ncl);
+            cl = ncl;
+        } else {
+            throw new RuntimeException("Neither AWT nor NEWT: "+obj);
+        }
+        return cl;
+    }
+    public static interface WindowClosingListener {
+        void reset();
+        public boolean isWindowClosing();
+        public boolean isWindowClosed();
+    }
+    static class AWTWindowClosingAdapter
+            extends java.awt.event.WindowAdapter implements WindowClosingListener
+    {
+        volatile boolean closing = false;
+        volatile boolean closed = false;
+
+        public void reset() {
+            closing = false;
+            closed = false;
+        }
+        public boolean isWindowClosing() {
+            return closing;
+        }
+        public boolean isWindowClosed() {
+            return closed;
+        }
+        public void windowClosing(java.awt.event.WindowEvent e) {
+            closing = true;
+        }
+        public void windowClosed(java.awt.event.WindowEvent e) {
+            closed = true;
+        }
+    }
+    static class NEWTWindowClosingAdapter
+            extends com.jogamp.newt.event.WindowAdapter implements WindowClosingListener
+    {
+        volatile boolean closing = false;
+        volatile boolean closed = false;
+
+        public void reset() {
+            closing = false;
+            closed = false;
+        }
+        public boolean isWindowClosing() {
+            return closing;
+        }
+        public boolean isWindowClosed() {
+            return closed;
+        }
+        public void windowDestroyNotify(com.jogamp.newt.event.WindowEvent e) {
+            closing = true;
+        }
+        public void windowDestroyed(com.jogamp.newt.event.WindowEvent e) {
+            closed = true;
+        }
+    }
+
 }
 

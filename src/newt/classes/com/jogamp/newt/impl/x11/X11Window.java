@@ -87,11 +87,6 @@ public class X11Window extends WindowImpl {
         }
     }
 
-    protected void windowDestroyed() {
-        windowHandleClose = 0;
-        super.windowDestroyed();
-    }
-
     protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
         setVisible0(getDisplayHandle(), getWindowHandle(), visible, x, y, width, height);
     }

@@ -80,7 +80,6 @@ static jmethodID visibleChangedID = NULL;
 static jmethodID positionChangedID = NULL;
 static jmethodID focusChangedID    = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
-static jmethodID windowDestroyedID = NULL;
 
 @implementation NewtView
 - (void) setJNIEnv: (JNIEnv*) theEnv
@@ -142,9 +141,8 @@ static jmethodID windowDestroyedID = NULL;
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(Z)V");
     windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
-    windowDestroyedID    = (*env)->GetMethodID(env, clazz, "windowDestroyed",    "()V");
     if (sendMouseEventID && sendKeyEventID && sizeChangedID && visibleChangedID && insetsChangedID &&
-        positionChangedID && focusChangedID && windowDestroyedID && windowDestroyNotifyID)
+        positionChangedID && focusChangedID && windowDestroyNotifyID)
     {
         return YES;
     }
@@ -456,7 +454,6 @@ static jint mods2JavaMods(NSUInteger mods)
 
     (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyNotifyID);
     // Can't issue call here - locked window state, done from Java method
-    // (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyedID); // No OSX hook for DidClose, so do it here 
 
     // EOL ..
     (*env)->DeleteGlobalRef(env, javaWindowObject);

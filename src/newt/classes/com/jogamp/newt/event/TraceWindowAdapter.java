@@ -52,6 +52,10 @@ public class TraceWindowAdapter implements WindowListener {
         System.err.println(e);
         if(null!=downstream) { downstream.windowDestroyNotify(e); }
     }
+    public void windowDestroyed(WindowEvent e) {
+        System.err.println(e);
+        if(null!=downstream) { downstream.windowDestroyed(e); }
+    }
     public void windowGainedFocus(WindowEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowGainedFocus(e); }

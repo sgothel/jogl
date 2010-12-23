@@ -140,11 +140,6 @@ public class WindowsWindow extends WindowImpl {
         }
     }
 
-    protected void windowDestroyed() {
-        windowHandleClose = 0;
-        super.windowDestroyed();
-    }
-
     protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
         setVisible0(getWindowHandle(), visible, (getParentWindowHandle()==0)?true:false, x, y, width, height);
         visibleChanged(visible);
