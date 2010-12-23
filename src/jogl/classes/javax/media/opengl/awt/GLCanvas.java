@@ -90,6 +90,9 @@ import com.jogamp.opengl.impl.Debug;
 import com.jogamp.opengl.impl.GLContextImpl;
 import com.jogamp.opengl.impl.GLDrawableHelper;
 import com.jogamp.opengl.impl.ThreadingImpl;
+import java.awt.EventQueue;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their
 // context whenever the displayChanged() function is called on our
@@ -345,14 +348,24 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
   
   public GLContext createContext(GLContext shareWith) {
-    return drawable.createContext(shareWith);
+      drawableSync.lock();
+      try {
+        return (null != drawable) ? drawable.createContext(shareWith) : null;
+      } finally {
+        drawableSync.unlock();
+      }
   }
 
   public void setRealized(boolean realized) {
   }
 
   public boolean isRealized() {
-    return ( null != drawable ) ? drawable.isRealized() : false;
+      drawableSync.lock();
+      try {
+        return ( null != drawable ) ? drawable.isRealized() : false;
+      } finally {
+        drawableSync.unlock();
+      }
   }
 
   public int getDefaultCloseOperation() {
@@ -377,7 +390,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     drawableSync.lock();
     try {
         if(DEBUG) {
-            Exception ex1 = new Exception("Info: dispose("+regenerate+") - start");
+            Exception ex1 = new Exception("Info: dispose("+regenerate+") - start, hasContext " +
+                    (null!=context) + ", hasDrawable " + (null!=drawable));
             ex1.printStackTrace();
         }
 
@@ -417,7 +431,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
             }
         }
         if(!regenerate) {
-            disposeAbstractGraphicsDeviceAction.run();
+            disposeAbstractGraphicsDevice();
         }
 
         if(DEBUG) {
@@ -576,6 +590,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       try {
         dispose(false);
       } finally {
+        context=null;
         drawable=null;
         awtConfig=null;
         super.removeNotify();
@@ -690,15 +705,30 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   public NativeSurface getNativeSurface() {
-    return (null != drawable) ? drawable.getNativeSurface() : null;
+      drawableSync.lock();
+      try {
+        return (null != drawable) ? drawable.getNativeSurface() : null;
+      } finally {
+        drawableSync.unlock();
+      }
   }
 
   public long getHandle() {
-    return (null != drawable) ? drawable.getHandle() : 0;
+      drawableSync.lock();
+      try {
+        return (null != drawable) ? drawable.getHandle() : 0;
+      } finally {
+        drawableSync.unlock();
+      }
   }
 
   public GLDrawableFactory getFactory() {
-    return (null != drawable) ? drawable.getFactory() : null;
+      drawableSync.lock();
+      try {
+        return (null != drawable) ? drawable.getFactory() : null;
+      } finally {
+        drawableSync.unlock();
+      }
   }
 
   public String toString() {
@@ -731,6 +761,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
       if(null!=drawable) {
           drawable.setRealized(false);
+          drawable=null;
       }
 
       if(disposeRegenerate) {
@@ -771,12 +802,33 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           }
           boolean closed = adevice.close();
           if(DEBUG) {
-            System.err.println("GLCanvas.dispose(false): closed GraphicsDevice: "+adeviceMsg+", result: "+closed);
+            System.err.println(Thread.currentThread().getName() + " - GLCanvas.dispose(false): closed GraphicsDevice: "+adeviceMsg+", result: "+closed);
           }
       }
+      awtConfig=null;
     }
   }
   private DisposeAbstractGraphicsDeviceAction disposeAbstractGraphicsDeviceAction = new DisposeAbstractGraphicsDeviceAction();
+
+  /**
+   * Disposes the AbstractGraphicsDevice within EDT,
+   * since resources created (X11: Display), must be destroyed in the same thread, where they have been created.
+   *
+   * @see #chooseGraphicsConfiguration(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, java.awt.GraphicsDevice)
+   */
+  void disposeAbstractGraphicsDevice()  {
+    if( EventQueue.isDispatchThread() || Thread.holdsLock(getTreeLock()) ) {
+        disposeAbstractGraphicsDeviceAction.run();
+    } else {
+        try {
+            EventQueue.invokeAndWait(disposeAbstractGraphicsDeviceAction);
+        } catch (InvocationTargetException e) {
+            throw new GLException(e.getTargetException());
+        } catch (InterruptedException e) {
+            throw new GLException(e);
+        }
+    }
+  }
 
   class InitAction implements Runnable {
     public void run() {
@@ -879,20 +931,55 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
   }
 
-  private static AWTGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilitiesImmutable capsChosen,
-                                                                      GLCapabilitiesImmutable capsRequested,
-                                                                      GLCapabilitiesChooser chooser,
-                                                                      GraphicsDevice device) {
+  /**
+   * Issues the GraphicsConfigurationFactory's choosing facility within EDT,
+   * since resources created (X11: Display), must be destroyed in the same thread, where they have been created.
+   *
+   * @param capsChosen
+   * @param capsRequested
+   * @param chooser
+   * @param device
+   * @return the chosen AWTGraphicsConfiguration
+   *
+   * @see #disposeAbstractGraphicsDevice()
+   */
+  private AWTGraphicsConfiguration chooseGraphicsConfiguration(final GLCapabilitiesImmutable capsChosen,
+                                                               final GLCapabilitiesImmutable capsRequested,
+                                                               final GLCapabilitiesChooser chooser,
+                                                               final GraphicsDevice device) {
     // Make GLCanvas behave better in NetBeans GUI builder
     if (Beans.isDesignTime()) {
       return null;
     }
 
-    AbstractGraphicsScreen aScreen = AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT);
-    AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
-          GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capsChosen,
-                                                                                                       capsRequested,
-                                                                                                       chooser, aScreen);
+    final AbstractGraphicsScreen aScreen = AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT);
+    AWTGraphicsConfiguration config = null;
+
+    if( EventQueue.isDispatchThread() || Thread.holdsLock(getTreeLock()) ) {
+        config = (AWTGraphicsConfiguration)
+                GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capsChosen,
+                                                                                                             capsRequested,
+                                                                                                             chooser, aScreen);
+    } else {
+        try {
+            final ArrayList bucket = new ArrayList(1);
+            EventQueue.invokeAndWait(new Runnable() {
+                public void run() {
+                    AWTGraphicsConfiguration c = (AWTGraphicsConfiguration)
+                            GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capsChosen,
+                                                                                                                         capsRequested,
+                                                                                                                         chooser, aScreen);
+                    bucket.add(c);
+                }
+            });
+            config = ( bucket.size() > 0 ) ? (AWTGraphicsConfiguration)bucket.get(0) : null ;
+        } catch (InvocationTargetException e) {
+            throw new GLException(e.getTargetException());
+        } catch (InterruptedException e) {
+            throw new GLException(e);
+        }
+    }
+
     if (config == null) {
       throw new GLException("Error: Couldn't fetch AWTGraphicsConfiguration");
     }
