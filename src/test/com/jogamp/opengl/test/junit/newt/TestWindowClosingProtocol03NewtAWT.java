@@ -29,14 +29,11 @@
 package com.jogamp.opengl.test.junit.newt;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
-import com.jogamp.newt.event.WindowAdapter;
-import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import org.junit.Test;
 import org.junit.Assert;
 
 import java.lang.reflect.InvocationTargetException;
-import java.awt.Frame;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
@@ -44,27 +41,12 @@ import javax.media.nativewindow.WindowClosingProtocol;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLCanvas;
 
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.Gears;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
-
-    static class NEWTWindowClosingAdapter extends WindowAdapter {
-        volatile boolean windowDestroyNotifyReached = false;
-
-        public void reset() {
-            windowDestroyNotifyReached = false;
-        }
-        public boolean windowDestroyNotifyReached() {
-            return windowDestroyNotifyReached;
-        }
-        public void windowDestroyNotify(WindowEvent e) {
-            windowDestroyNotifyReached = true;
-        }
-    }
 
     @Test
     public void testCloseJFrameNewtCanvasAWT() throws InterruptedException, InvocationTargetException {
@@ -73,9 +55,8 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
         final GLWindow glWindow = GLWindow.create(caps);
-        final NEWTWindowClosingAdapter newtWindowClosingAdapter = new NEWTWindowClosingAdapter();
+        final AWTRobotUtil.WindowClosingListener windowClosingListener = AWTRobotUtil.addClosingListener(glWindow);
 
-        glWindow.addWindowListener(newtWindowClosingAdapter);
         glWindow.addGLEventListener(new Gears());
 
         NewtCanvasAWT newtCanvas = new NewtCanvasAWT(glWindow);
@@ -94,17 +75,14 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
         int op = newtCanvas.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingProtocol.DO_NOTHING_ON_CLOSE, op);
 
-        AWTRobotUtil.closeWindow(frame);
-        Assert.assertEquals(false, frame.isVisible());
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false));
         Assert.assertEquals(true,  frame.isDisplayable());
         Assert.assertEquals(true,  newtCanvas.isValid());
-        Assert.assertEquals(true,  newtCanvas.isVisible());
         Assert.assertEquals(true,  newtCanvas.isDisplayable());
         Assert.assertEquals(true,  glWindow.isValid());
-        Assert.assertEquals(false, glWindow.isVisible());
         Assert.assertEquals(true,  glWindow.isNativeValid());
-        Assert.assertEquals(true,  newtWindowClosingAdapter.windowDestroyNotifyReached());
-        newtWindowClosingAdapter.reset();
+        Assert.assertEquals(true,  windowClosingListener.isWindowClosing());
+        windowClosingListener.reset();
 
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -120,16 +98,13 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
         op = newtCanvas.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingProtocol.DISPOSE_ON_CLOSE, op);
 
-        AWTRobotUtil.closeWindow(frame);
-        Assert.assertEquals(false, frame.isVisible());
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true));
         Assert.assertEquals(false, frame.isDisplayable());
         Assert.assertEquals(false, newtCanvas.isValid());
-        Assert.assertEquals(true,  newtCanvas.isVisible());
         Assert.assertEquals(false, newtCanvas.isDisplayable());
         Assert.assertEquals(true,  glWindow.isValid());
-        Assert.assertEquals(false, glWindow.isVisible());
         Assert.assertEquals(false, glWindow.isNativeValid());
-        Assert.assertEquals(true,  newtWindowClosingAdapter.windowDestroyNotifyReached());
+        Assert.assertEquals(true,  windowClosingListener.isWindowClosing());
     }
 
     public static void main(String[] args) {

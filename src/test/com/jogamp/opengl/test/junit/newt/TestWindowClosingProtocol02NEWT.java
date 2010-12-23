@@ -28,8 +28,6 @@
 
 package com.jogamp.opengl.test.junit.newt;
 
-import com.jogamp.newt.event.WindowAdapter;
-import com.jogamp.newt.event.WindowEvent;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Test;
@@ -48,28 +46,13 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 public class TestWindowClosingProtocol02NEWT extends UITestCase {
 
-    static class NEWTWindowClosingAdapter extends WindowAdapter {
-        volatile boolean windowDestroyNotifyReached = false;
-
-        public void reset() {
-            windowDestroyNotifyReached = false;
-        }
-        public boolean windowDestroyNotifyReached() {
-            return windowDestroyNotifyReached;
-        }
-        public void windowDestroyNotify(WindowEvent e) {
-            windowDestroyNotifyReached = true;
-        }
-    }
-
     @Test
     public void testCloseGLWindow() throws InterruptedException, InvocationTargetException {
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
         final GLWindow glWindow = GLWindow.create(caps);
-        final NEWTWindowClosingAdapter newtWindowClosingAdapter = new NEWTWindowClosingAdapter();
+        final AWTRobotUtil.WindowClosingListener windowClosingListener = AWTRobotUtil.addClosingListener(glWindow);
 
-        glWindow.addWindowListener(newtWindowClosingAdapter);
         glWindow.addGLEventListener(new Gears());
         glWindow.setSize(512, 512);
         glWindow.setVisible(true);
@@ -86,12 +69,11 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         op = glWindow.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingProtocol.DO_NOTHING_ON_CLOSE, op);
 
-        AWTRobotUtil.closeWindow(glWindow);
+        Assert.assertEquals(true, AWTRobotUtil.closeWindow(glWindow, false)); // nop
         Assert.assertEquals(true, glWindow.isValid());
-        Assert.assertEquals(true, glWindow.isVisible());        
         Assert.assertEquals(true, glWindow.isNativeValid());
-        Assert.assertEquals(true, newtWindowClosingAdapter.windowDestroyNotifyReached());
-        newtWindowClosingAdapter.reset();
+        Assert.assertEquals(true, windowClosingListener.isWindowClosing());
+        windowClosingListener.reset();
 
         //
         // close with op (GLCanvas): DISPOSE_ON_CLOSE -> dispose
@@ -100,12 +82,10 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         op = glWindow.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingProtocol.DISPOSE_ON_CLOSE, op);
 
-        AWTRobotUtil.closeWindow(glWindow);
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(glWindow, false));
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(glWindow, true));
         Assert.assertEquals(true,  glWindow.isValid());
-        Assert.assertEquals(false, glWindow.isVisible());        
         Assert.assertEquals(false, glWindow.isNativeValid());
-        Assert.assertEquals(true,  newtWindowClosingAdapter.windowDestroyNotifyReached());
+        Assert.assertEquals(true,  windowClosingListener.isWindowClosing());
     }
 
     public static void main(String[] args) {

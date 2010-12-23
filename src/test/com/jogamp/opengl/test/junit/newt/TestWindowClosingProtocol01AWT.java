@@ -54,14 +54,18 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
 
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
-        GLCanvas glCanvas = new GLCanvas(caps);
+        final GLCanvas glCanvas = new GLCanvas(caps);
         glCanvas.addGLEventListener(new Gears());
-        frame.add(glCanvas);
-        frame.pack();
-        frame.setSize(512, 512);
-        frame.validate();
-        frame.setVisible(true);
-        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, true));
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                frame.add(glCanvas);
+                frame.pack();
+                frame.setSize(512, 512);
+                frame.validate();
+                frame.setVisible(true);
+            } });
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true));
 
         //
         // close with op: DO_NOTHING_ON_CLOSE -> NOP (default)
@@ -69,11 +73,10 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         int op = glCanvas.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingProtocol.DO_NOTHING_ON_CLOSE, op);
 
-        AWTRobotUtil.closeWindow(frame);
-        Assert.assertEquals(true, frame.isVisible());
+        Assert.assertEquals(true, AWTRobotUtil.closeWindow(frame, false)); // nop
+        Thread.sleep(100);
         Assert.assertEquals(true, frame.isDisplayable());
         Assert.assertEquals(true, glCanvas.isValid());
-        Assert.assertEquals(true, glCanvas.isVisible());
         Assert.assertEquals(true, glCanvas.isDisplayable());
 
         //
@@ -83,12 +86,10 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         op = glCanvas.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingProtocol.DISPOSE_ON_CLOSE, op);
 
-        AWTRobotUtil.closeWindow(frame);
-        Assert.assertEquals(true,  frame.isVisible());
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false)); // no frame close
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, false));
         Assert.assertEquals(true,  frame.isDisplayable());
-        Assert.assertEquals(false, glCanvas.isValid());
-        Assert.assertEquals(true,  glCanvas.isVisible());
-        Assert.assertEquals(false, glCanvas.isDisplayable());
+        Assert.assertEquals(false, glCanvas.isRealized());
 
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -108,8 +109,12 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         frame.pack();
         frame.setSize(512, 512);
         frame.validate();
-        frame.setVisible(true);
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                frame.setVisible(true);
+            } });
         Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true));
 
         //
         // close with op: DO_NOTHING_ON_CLOSE -> NOP / HIDE (default)
@@ -118,11 +123,10 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         int op = glCanvas.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingProtocol.DO_NOTHING_ON_CLOSE, op);
 
-        AWTRobotUtil.closeWindow(frame);
-        Assert.assertEquals(false, frame.isVisible());
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false)); // nop
+        Thread.sleep(100);
         Assert.assertEquals(true,  frame.isDisplayable());
         Assert.assertEquals(true,  glCanvas.isValid());
-        Assert.assertEquals(true,  glCanvas.isVisible());
         Assert.assertEquals(true,  glCanvas.isDisplayable());
 
         SwingUtilities.invokeLater(new Runnable() {
@@ -130,6 +134,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
                 frame.setVisible(true);
             } });
         Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true));
 
         //
         // close with op (JFrame): DISPOSE_ON_CLOSE -- GLCanvas --> dispose
@@ -139,12 +144,12 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         op = glCanvas.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingProtocol.DISPOSE_ON_CLOSE, op);
 
-        AWTRobotUtil.closeWindow(frame);
-        Assert.assertEquals(false, frame.isVisible());
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, false));
         Assert.assertEquals(false, frame.isDisplayable());
         Assert.assertEquals(false, glCanvas.isValid());
-        Assert.assertEquals(true,  glCanvas.isVisible());
         Assert.assertEquals(false, glCanvas.isDisplayable());
+        Assert.assertEquals(false, glCanvas.isRealized());
     }
 
     public static void main(String[] args) {
