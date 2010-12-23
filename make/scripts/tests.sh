@@ -40,7 +40,9 @@ function jrun() {
     #D_ARGS="-Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GraphicsConfiguration"
+    #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLCanvas"
+    #D_ARGS="-Dnativewindow.debug.ToolkitLock.TraceLock"
     #X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=true"
     #X_ARGS="-verbose:jni"
     echo
@@ -128,15 +130,15 @@ function testawt() {
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 
-#testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*
+testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
-testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol03NewtAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol03NewtAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 -time 2000
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT $*
 
 #testawt $*
 
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 -time 2000
-#testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
 
 $spath/count-edt-start.sh java-run.log
 
