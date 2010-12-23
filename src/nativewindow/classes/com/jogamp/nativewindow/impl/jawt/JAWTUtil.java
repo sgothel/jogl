@@ -121,7 +121,7 @@ public class JAWTUtil {
         if(EventQueue.isDispatchThread()) {
             desktophints = (Map)(Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"));
         } else {
-            final ArrayList desktophintsBucket = new ArrayList();
+            final ArrayList desktophintsBucket = new ArrayList(1);
             EventQueue.invokeAndWait(new Runnable() {
                 public void run() {
                     Map _desktophints = (Map)(Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"));

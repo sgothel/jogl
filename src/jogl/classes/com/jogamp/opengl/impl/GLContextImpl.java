@@ -49,7 +49,6 @@ import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringTokenizer;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;

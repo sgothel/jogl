@@ -89,11 +89,11 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GLGraphicsConfigurati
             displayHandle = X11Util.createDisplay(null);
             owner = true;
             if(DEBUG) {
-                System.err.println("X11AWTGLXGraphicsConfigurationFactory: using a thread local X11 display");
+                System.err.println(Thread.currentThread().getName() + " - X11AWTGLXGraphicsConfigurationFactory: using a thread local X11 display");
             }
         } else {
             if(DEBUG) {
-                System.err.println("X11AWTGLXGraphicsConfigurationFactory: using AWT X11 display 0x"+Long.toHexString(displayHandle));
+                System.err.println(Thread.currentThread().getName() + " - X11AWTGLXGraphicsConfigurationFactory: using AWT X11 display 0x"+Long.toHexString(displayHandle));
             }
             /**
              * May cause an exception on NVidia X11 Display destruction,
