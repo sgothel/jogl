@@ -177,7 +177,7 @@
                         <location>src/newt/classes</location>
                     </source-folder>
                     <source-folder style="packages">
-                        <label>src/junit</label>
+                        <label>src/test</label>
                         <location>src/test</location>
                     </source-folder>
                     <source-file>

@@ -18,14 +18,14 @@
     </target>
     <target name="compile-test" depends="init">
         <mkdir dir="build/test/build/classes"/>
-        <javac debug="true" debuglevel="lines,vars,source" destdir="build/test/build/classes" failonerror="false" source="1.5" srcdir="src/junit" includeantruntime="false">
+        <javac debug="true" debuglevel="lines,vars,source" destdir="build/test/build/classes" failonerror="false" source="1.5" srcdir="src/test" includeantruntime="false">
             <classpath refid="cp"/>
         </javac>
     </target>
     <target name="compile-selected-files-in-junit" depends="init">
         <fail unless="files">Must set property 'files'</fail>
         <mkdir dir="build/test/build/classes"/>
-        <javac debug="true" debuglevel="lines,vars,source" destdir="build/test/build/classes" includes="${files}" source="1.5" srcdir="src/junit" includeantruntime="false">
+        <javac debug="true" debuglevel="lines,vars,source" destdir="build/test/build/classes" includes="${files}" source="1.5" srcdir="src/test" includeantruntime="false">
             <classpath refid="cp"/>
         </javac>
     </target>
