@@ -111,10 +111,17 @@ public class TestSharedContextListNEWT extends UITestCase {
             Thread.sleep(100);
         }
         animator.stop();
+
+        // here we go again: On AMD/X11 the create/destroy sequence must be the same
+        // even though this is agains the chicken/egg logic here ..
+        releaseShared();
+
         f1.destroy();
         f2.destroy();
         f3.destroy();
-        releaseShared();
+
+        // see above ..
+        // releaseShared();
     }
 
     static long duration = 500; // ms

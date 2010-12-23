@@ -37,8 +37,10 @@ import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.Gears;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 
 import java.awt.Frame;
+import javax.swing.SwingUtilities;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -76,17 +78,15 @@ public class TestSharedContextListAWT extends UITestCase {
         Assert.assertNotNull(sharedDrawable);
         sharedDrawable.destroy();
     }
+    protected Frame createFrame(int x, int y, boolean useShared) {
+        return new Frame("Shared Gears AWT Test: "+x+"/"+y+" shared "+useShared);
+    }
 
-    protected Frame runTestGL(Animator animator, int x, int y, boolean useShared) {
-        Frame frame = new Frame("Shared Gears AWT Test: "+x+"/"+y+" shared "+useShared);
-        Assert.assertNotNull(frame);
-
-        GLCanvas glCanvas = new GLCanvas(caps, useShared ? sharedDrawable.getContext() : null);
+    protected GLCanvas runTestGL(final Frame frame, final Animator animator, final int x, final int y, final boolean useShared)
+            throws InterruptedException
+    {
+        final GLCanvas glCanvas = new GLCanvas(caps, useShared ? sharedDrawable.getContext() : null);
         Assert.assertNotNull(glCanvas);
-        frame.add(glCanvas);
-        frame.setSize(width, height);
-        frame.setLocation(x, y);
-
         Gears gears = new Gears();
         if(useShared) {
             gears.setGears(sharedGears.getGear1(), sharedGears.getGear2(), sharedGears.getGear3());
@@ -95,27 +95,55 @@ public class TestSharedContextListAWT extends UITestCase {
 
         animator.add(glCanvas);
 
-        frame.setVisible(true);
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                frame.add(glCanvas);
+                frame.pack();
+                frame.setSize(width, height);
+                frame.setLocation(x, y);
+                frame.validate();
+                frame.setVisible(true);
+            } });
+        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glCanvas, true));
 
-        return frame;
+        return glCanvas;
     }
 
     @Test
     public void test01() throws InterruptedException {
         initShared();
+
+        Frame f1 = createFrame(0, 0, true);
+        Frame f2 = createFrame(width, 0, true);
+        Frame f3 = createFrame(0, height, false);
+
         Animator animator = new Animator();
-        Frame f1 = runTestGL(animator, 0, 0, true);
-        Frame f2 = runTestGL(animator, width, 0, true);
-        Frame f3 = runTestGL(animator, 0, height, false);
+
+        GLCanvas glc1 = runTestGL(f1, animator, 0,     0,      true);
+        GLCanvas glc2 = runTestGL(f2, animator, width, 0,      true);
+        GLCanvas glc3 = runTestGL(f3, animator, 0,     height, false);
+
         animator.start();
         while(animator.isAnimating() && animator.getDuration()<duration) {
             Thread.sleep(100);
         }
         animator.stop();
-        f1.dispose();
-        f2.dispose();
-        f3.dispose();
+
+        // here we go again: On AMD/X11 the create/destroy sequence must be the same
+        // even though this is agains the chicken/egg logic here ..
         releaseShared();
+
+        f1.dispose();
+        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc1, false));
+
+        f2.dispose();
+        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc2, false));
+
+        f3.dispose();
+        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc3, false));
+        
+        // see above ..
+        //releaseShared();
     }
 
     static long duration = 500; // ms
