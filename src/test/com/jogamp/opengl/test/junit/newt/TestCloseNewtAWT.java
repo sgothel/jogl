@@ -29,10 +29,9 @@
 package com.jogamp.opengl.test.junit.newt;
 
 import org.junit.Test;
+import org.junit.Assert;
 
 import java.lang.reflect.InvocationTargetException;
-import java.awt.EventQueue;
-import java.awt.Toolkit;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
@@ -93,29 +92,14 @@ public class TestCloseNewtAWT extends UITestCase {
          }
     }
 
-    class NEWTWindowClosingAdapter extends WindowAdapter {
-        public void windowDestroyNotify(WindowEvent e) {
-            System.err.println("Destroy NEWT: windowDestroyNotify "+Thread.currentThread() + ", "+ e);
-        }
-    }
-
-    class AWTClosingWindowAdapter extends java.awt.event.WindowAdapter {
-        public void windowClosing(WindowEvent ev) {
-                System.err.println("Destroy AWT: windowClosing "+Thread.currentThread() + ", "+ ev);
-        }
-    }
-
-
     @Test
     public void testCloseNewtAWT() throws InterruptedException, InvocationTargetException {
         newtWindow = GLWindow.create(new GLCapabilities(GLProfile.getDefault()));
-        newtWindow.addWindowListener(new NEWTWindowClosingAdapter());
         newtCanvas = new MyCanvas(newtWindow);
 
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 frame = new JFrame("NEWT Close Test");
-                frame.addWindowListener(new AWTClosingWindowAdapter());
                 frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 frame.getContentPane().add(newtCanvas);
                 frame.pack();
@@ -125,7 +109,7 @@ public class TestCloseNewtAWT extends UITestCase {
         });
         Thread.sleep(1000);
 
-        AWTRobotUtil.closeWindow(frame);
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true));
 
         GLProfile.shutdown();
     }
