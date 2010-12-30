@@ -174,7 +174,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     GLDrawableImpl drawable = null;
     device.lock();
     try {
-        drawable = (GLDrawableImpl) createGLDrawable( createOffscreenSurfaceImpl(device, capsChosen, capsRequested, chooser, height, height) );
+        drawable = (GLDrawableImpl) createGLDrawable( createOffscreenSurfaceImpl(device, capsChosen, capsRequested, chooser, width, height) );
     } finally {
         device.unlock();
     }
