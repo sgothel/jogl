@@ -32,7 +32,6 @@ import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
-import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
@@ -52,6 +51,10 @@ public class TextureGL2ListenerDraw1 implements GLEventListener {
         if(null!=textureData) {
             this.texture = TextureIO.newTexture(textureData);
         }
+    }
+
+    public void setTexture( Texture texture ) {
+        this.texture = texture;
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
