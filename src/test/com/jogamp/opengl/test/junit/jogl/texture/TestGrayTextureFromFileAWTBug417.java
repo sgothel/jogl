@@ -32,22 +32,19 @@ import com.jogamp.opengl.test.junit.jogl.util.texture.gl2.TextureGL2ListenerDraw
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
-import javax.imageio.ImageIO;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.awt.GLCanvas;
-import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
-import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 import com.jogamp.opengl.util.Animator;
 
 import java.awt.Frame;
-import java.awt.image.BufferedImage;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+
 import org.junit.Assert;
 import org.junit.After;
 import org.junit.Assume;
@@ -64,7 +61,7 @@ import org.junit.Test;
 public class TestGrayTextureFromFileAWTBug417 extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
-    File textureFile;
+    InputStream textureStream;
 
     @BeforeClass
     public static void initClass() {
@@ -77,13 +74,13 @@ public class TestGrayTextureFromFileAWTBug417 extends UITestCase {
 
     @Before
     public void initTest() {
-        textureFile = new File( "src/test/com/jogamp/opengl/test/junit/jogl/texture/grayscale_texture.png" );
-        Assert.assertNotNull(textureFile);
+        textureStream = TestGrayTextureFromFileAWTBug417.class.getResourceAsStream( "grayscale_texture.png" );
+        Assert.assertNotNull(textureStream);
     }
 
     @After
     public void cleanupTest() {
-        textureFile=null;
+        textureStream=null;
     }
 
     @Test
@@ -101,7 +98,7 @@ public class TestGrayTextureFromFileAWTBug417 extends UITestCase {
             @Override
             public void init(GLAutoDrawable drawable) {
                 try {
-                    setTexture( TextureIO.newTexture( textureFile, true ) );
+                    setTexture( TextureIO.newTexture( textureStream, true, TextureIO.PNG ) );
                 }
                 catch(GLException glexception) {
                     glexception.printStackTrace();

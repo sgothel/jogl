@@ -87,8 +87,15 @@
             <fileset file="${jogl.test.jar}" />
         </delete>
         <jar destfile="${jogl.test.jar}" filesonly="true">
+            <!-- get all class files, but skip any resource files that external tools
+                 might have copied into the class directory (otherwise, it's possible
+                 to get the same resource file twice in the jar) -->
             <fileset dir="${classes}">
-                <include name="${java.part.test}"/>
+                <include name="${java.part.test}/*.class"/>
+            </fileset>
+            <!-- include any resource files that tests may requre -->
+            <fileset dir="${src.test}">
+                <exclude name="**/*.java"/>
             </fileset>
         </jar>
     </target>
