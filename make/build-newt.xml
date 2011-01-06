@@ -475,6 +475,8 @@
             <sysincludepath path="${java.includes.dir.platform}"/>
             <includepath path="stub_includes/khr"/>
             <includepath path="stub_includes/egl"/>
+            <!-- This is for finding Xrandr.h on Solaris. -->
+            <includepath path="/usr/X11/include" />
             <!-- This is for the generated headers for handwritten C code -->
             <includepath path="${src.generated.c}" />
             <includepath path="${src.generated.c}/X11" if="isX11"/>
