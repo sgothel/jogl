@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="build/nativewindow/classes" path="src/nativewindow/classes">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="build/jogl/classes" path="build/jogl/gensrc/classes">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="build/nativewindow/classes" path="build/nativewindow/gensrc/classes">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="build/test/build/classes" path="src/test">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry excluding="com/jogamp/audio/windows/waveout/TestSpatialization.java|com/jogamp/opengl/impl/gl2/fixme/" kind="src" output="build/jogl/classes" path="src/jogl/classes">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="build/newt/classes" path="src/newt/classes">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/gluegen"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Ant"/>
+	<classpathentry kind="output" path="build/eclipse-classes"/>
+</classpath>
