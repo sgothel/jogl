@@ -1948,6 +1948,6 @@ public class TextRenderer {
             isExtensionAvailable_GL_VERSION_1_5 = gl.isExtensionAvailable("GL_VERSION_1_5");
             checkFor_isExtensionAvailable_GL_VERSION_1_5 = true;
         }
-        return isExtensionAvailable_GL_VERSION_1_5;
+        return isExtensionAvailable_GL_VERSION_1_5 && useVertexArrays;
     }
 }
