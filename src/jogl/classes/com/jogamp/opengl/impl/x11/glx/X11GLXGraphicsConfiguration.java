@@ -33,10 +33,13 @@
 
 package com.jogamp.opengl.impl.x11.glx;
 
-import com.jogamp.common.nio.PointerBuffer;
+import java.util.ArrayList;
+
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
+
+import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.x11.*;
 
@@ -44,17 +47,12 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
     
     public static final int MAX_ATTRIBS = 128;
-    private long fbConfig;
-    private int  fbConfigID;
     private GLCapabilitiesChooser chooser; 
 
     X11GLXGraphicsConfiguration(X11GraphicsScreen screen, 
-                                GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser,
-                                XVisualInfo info, long fbcfg, int fbcfgID) {
-        super(screen, capsChosen, capsRequested, info);
+                                X11GLCapabilities capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
+        super(screen, capsChosen, capsRequested, capsChosen.getXVisualInfo());
         this.chooser=chooser;
-        fbConfig = fbcfg;
-        fbConfigID = fbcfgID;
     }
 
     static X11GLXGraphicsConfiguration create(GLProfile glp, X11GraphicsScreen x11Screen, int fbcfgID) {
@@ -70,23 +68,23 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       if(null==glp) {
         glp = GLProfile.getDefault(x11Screen.getDevice());
       }
-      GLCapabilitiesImmutable caps = GLXFBConfig2GLCapabilities(glp, display, fbcfg, true, true, true, GLXUtil.isMultisampleAvailable(display));
+      X11GLCapabilities caps = GLXFBConfig2GLCapabilities(glp, display, fbcfg, true, true, true, GLXUtil.isMultisampleAvailable(display));
       if(null==caps) {
           throw new GLException("GLCapabilities null of "+toHexString(fbcfg));
       }
-      XVisualInfo xvi = GLX.glXGetVisualFromFBConfig(display, fbcfg);
-      if(null==xvi) {
-          throw new GLException("XVisualInfo null of "+toHexString(fbcfg));
-      }
-      return new X11GLXGraphicsConfiguration(x11Screen, caps, caps, new DefaultGLCapabilitiesChooser(), xvi, fbcfg, fbcfgID);
+      return new X11GLXGraphicsConfiguration(x11Screen, caps, caps, new DefaultGLCapabilitiesChooser());
     }
 
     public Object clone() {
         return super.clone();
     }
 
-    public long getFBConfig()   { return fbConfig; }
-    public int  getFBConfigID() { return fbConfigID; }
+    public final long getFBConfig()   {
+        return ((X11GLCapabilities)capabilitiesChosen).getFBConfig();
+    }
+    public final int  getFBConfigID() {
+        return ((X11GLCapabilities)capabilitiesChosen).getFBConfigID();
+    }
 
     void updateGraphicsConfiguration() {
         X11GLXGraphicsConfiguration newConfig = (X11GLXGraphicsConfiguration)
@@ -96,8 +94,6 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
             // FIXME: setScreen( ... );
             setXVisualInfo(newConfig.getXVisualInfo());
             setChosenCapabilities(newConfig.getChosenCapabilities());
-            fbConfig = newConfig.getFBConfig();
-            fbConfigID = newConfig.getFBConfigID();
             if(DEBUG) {
                 System.err.println("!!! updateGraphicsConfiguration: "+this);
             }
@@ -220,49 +216,63 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return true;
   }
 
-  static boolean GLXFBConfigDrawableTypeVerify(int val, boolean onscreen, boolean usePBuffer) {
-    boolean res;
+  static int FBCfgDrawableTypeBits(final long display, final long fbcfg) {
+    int val = 0;
 
-    if ( onscreen ) {
-        res = ( 0 != (val & GLX.GLX_WINDOW_BIT) ) ;
-    } else {
-        if ( usePBuffer ) {
-            res = ( 0 != (val & GLX.GLX_PBUFFER_BIT) ) ;
-        } else {
-            res = ( 0 != (val & GLX.GLX_PIXMAP_BIT) ) ;
-        }
+    int[] tmp = new int[1];
+    int fbtype = glXGetFBConfig(display, fbcfg, GLX.GLX_DRAWABLE_TYPE, tmp, 0);
+
+    if ( 0 != ( fbtype & GLX.GLX_WINDOW_BIT ) ) {
+        val |= GLGraphicsConfigurationUtil.WINDOW_BIT;
     }
-
-    return res;
+    if ( 0 != ( fbtype & GLX.GLX_PIXMAP_BIT ) ) {
+        val |= GLGraphicsConfigurationUtil.BITMAP_BIT;
+    }
+    if ( 0 != ( fbtype & GLX.GLX_PBUFFER_BIT ) ) {
+        val |= GLGraphicsConfigurationUtil.PBUFFER_BIT;
+    }
+    return val;
   }
 
-  static GLCapabilitiesImmutable GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg,
+  static X11GLCapabilities GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg,
                                                             boolean relaxed, boolean onscreen, boolean usePBuffer,
                                                             boolean isMultisampleAvailable) {
-    int[] tmp = new int[1];
-    int val;
-    val = glXGetFBConfig(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0);
-    if (val != GLX.GLX_RGBA_BIT) {
-      if(DEBUG) {
-        System.err.println("FBConfig ("+toHexString(fbcfg)+") does not support RGBA: "+toHexString(val));
-      }
-      return null;
+    ArrayList bucket = new ArrayList();
+    final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
+    if( GLXFBConfig2GLCapabilities(bucket, glp, display, fbcfg, winattrmask, isMultisampleAvailable) ) {
+        return (X11GLCapabilities) bucket.get(0);
+    } else if ( relaxed && GLXFBConfig2GLCapabilities(bucket, glp, display, fbcfg, GLGraphicsConfigurationUtil.ALL_BITS, isMultisampleAvailable) ) {
+        return (X11GLCapabilities) bucket.get(0);
     }
-    GLCapabilities res = new GLCapabilities(glp);
+    return null;
+  }
 
-    val = glXGetFBConfig(display, fbcfg, GLX.GLX_DRAWABLE_TYPE, tmp, 0);
-    if(GLXFBConfigDrawableTypeVerify(val, onscreen, usePBuffer)) {
-        res.setOnscreen(onscreen);
-        res.setPBuffer(usePBuffer);
-    } else if(relaxed) {
-        res.setOnscreen( 0 != (val & GLX.GLX_WINDOW_BIT) );
-        res.setPBuffer ( 0 != (val & GLX.GLX_PBUFFER_BIT) );
-    } else {
+  static boolean GLXFBConfig2GLCapabilities(ArrayList capsBucket,
+                                            GLProfile glp, long display, long fbcfg,
+                                            int winattrmask, boolean isMultisampleAvailable) {
+    final int allDrawableTypeBits = FBCfgDrawableTypeBits(display, fbcfg);
+    int drawableTypeBits = winattrmask & allDrawableTypeBits;
+
+    int fbcfgid = X11GLXGraphicsConfiguration.glXFBConfig2FBConfigID(display, fbcfg);
+    XVisualInfo visualInfo = GLX.glXGetVisualFromFBConfig(display, fbcfg);
+    if(null == visualInfo) {
         if(DEBUG) {
-          System.err.println("FBConfig ("+toHexString(fbcfg)+") GLX_DRAWABLE_TYPE does not match: req(onscrn "+onscreen+", pbuffer "+usePBuffer+"), got(onscreen "+( 0 != (val & GLX.GLX_WINDOW_BIT) )+", pbuffer "+( 0 != (val & GLX.GLX_PBUFFER_BIT) )+", pixmap "+( 0 != (val & GLX.GLX_PIXMAP_BIT) )+")");
+            System.err.println("X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities: Null XVisualInfo for FBConfigID 0x" + Integer.toHexString(fbcfgid));
         }
-        return null;
+        // onscreen must have an XVisualInfo
+        drawableTypeBits = drawableTypeBits & ~GLGraphicsConfigurationUtil.WINDOW_BIT;
     }
+
+    if( 0 == drawableTypeBits ) {
+        return false;
+    }
+
+    int[] tmp = new int[1];
+    if(GLX.GLX_BAD_ATTRIBUTE == GLX.glXGetFBConfigAttrib(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0)) {
+      return false;
+    }
+
+    GLCapabilities res = new X11GLCapabilities(visualInfo, fbcfg, fbcfgid, glp);
     res.setDoubleBuffered(glXGetFBConfig(display, fbcfg, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
     res.setStereo        (glXGetFBConfig(display, fbcfg, GLX.GLX_STEREO,           tmp, 0) != 0);
     res.setHardwareAccelerated(glXGetFBConfig(display, fbcfg, GLX.GLX_CONFIG_CAVEAT, tmp, 0) != GLX.GLX_SLOW_CONFIG);
@@ -297,7 +307,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     try { 
         res.setPbufferFloatingPointBuffers(glXGetFBConfig(display, fbcfg, GLXExt.GLX_FLOAT_COMPONENTS_NV, tmp, 0) != GL.GL_FALSE);
     } catch (Exception e) {}
-    return res;
+
+    return GLGraphicsConfigurationUtil.addGLCapabilitiesPermutations(capsBucket, res, drawableTypeBits );
   }
 
   private static String glXGetFBConfigErrorCode(int err) {
@@ -352,26 +363,34 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       return res;
   }
 
-  static GLCapabilitiesImmutable XVisualInfo2GLCapabilities(GLProfile glp, long display, XVisualInfo info,
-                                                            boolean onscreen, boolean usePBuffer, boolean isMultisampleEnabled) {
+  static boolean XVisualInfo2GLCapabilities(ArrayList capsBucket,
+                                            GLProfile glp, long display, XVisualInfo info,
+                                            final int winattrmask, boolean isMultisampleEnabled) {
+    final int allDrawableTypeBits = GLGraphicsConfigurationUtil.WINDOW_BIT | GLGraphicsConfigurationUtil.BITMAP_BIT ;
+    final int drawableTypeBits = winattrmask & allDrawableTypeBits;
+
+    if( 0 == drawableTypeBits ) {
+        return false;
+    }
+
     int[] tmp = new int[1];
     int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp, 0);
     if (val == 0) {
       if(DEBUG) {
         System.err.println("Visual ("+toHexString(info.getVisualid())+") does not support OpenGL");
       }
-      return null;
+      return false;
     }
     val = glXGetConfig(display, info, GLX.GLX_RGBA, tmp, 0);
     if (val == 0) {
       if(DEBUG) {
         System.err.println("Visual ("+toHexString(info.getVisualid())+") does not support RGBA");
       }
-      return null;
+      return false;
     }
-    GLCapabilities res = new GLCapabilities(glp);
-    res.setOnscreen      (onscreen);
-    res.setPBuffer       (usePBuffer);
+
+    GLCapabilities res = new X11GLCapabilities(info, glp);
+
     res.setDoubleBuffered(glXGetConfig(display, info, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
     res.setStereo        (glXGetConfig(display, info, GLX.GLX_STEREO,           tmp, 0) != 0);
     // Note: use of hardware acceleration is determined by
@@ -393,7 +412,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       res.setSampleBuffers(glXGetConfig(display, info, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
       res.setNumSamples   (glXGetConfig(display, info, GLX.GLX_SAMPLES,        tmp, 0));
     }
-    return res;
+
+    return GLGraphicsConfigurationUtil.addGLCapabilitiesPermutations(capsBucket, res, drawableTypeBits);
   }
 
   private static String glXGetConfigErrorCode(int err) {
@@ -417,16 +437,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return tmp[tmp_offset];
   }
 
-  static String toHexString(int val) {
-    return "0x"+Integer.toHexString(val);
-  }
-
-  static String toHexString(long val) {
-    return "0x"+Long.toHexString(val);
-  }
-
   public String toString() {
-    return "X11GLXGraphicsConfiguration["+getScreen()+", visualID " + toHexString(getVisualID()) + ", fbConfigID " + toHexString(fbConfigID) + 
+    return "X11GLXGraphicsConfiguration["+getScreen()+", visualID " + toHexString(getVisualID()) + ", fbConfigID " + toHexString(getFBConfigID()) +
                                         ",\n\trequested " + getRequestedCapabilities()+
                                         ",\n\tchosen    " + getChosenCapabilities()+
                                         "]";

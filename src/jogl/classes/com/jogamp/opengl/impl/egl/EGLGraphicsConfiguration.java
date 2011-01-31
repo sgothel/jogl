@@ -36,31 +36,29 @@
 
 package com.jogamp.opengl.impl.egl;
 
-import com.jogamp.common.nio.PointerBuffer;
-import com.jogamp.common.util.ReflectionUtil;
+import java.util.ArrayList;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 import javax.media.opengl.*;
+import com.jogamp.common.nio.PointerBuffer;
+import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.opengl.impl.*;
 
 public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
 
-    public long getNativeConfig() {
-        return config;
+    public final long getNativeConfig() {
+        return ((EGLGLCapabilities)capabilitiesChosen).getEGLConfig();
     }
 
-    public int getNativeConfigID() {
-        return configID;
+    public final int getNativeConfigID() {
+        return ((EGLGLCapabilities)capabilitiesChosen).getEGLConfigID();
     }
 
     EGLGraphicsConfiguration(AbstractGraphicsScreen absScreen, 
-                             GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser,
-                             long cfg, int cfgID) {
+                             EGLGLCapabilities capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
         super(absScreen, capsChosen, capsRequested);
         this.chooser = chooser;
-        config = cfg;
-        configID = cfgID;
     }
 
     public static EGLGraphicsConfiguration create(GLCapabilitiesImmutable capsRequested, AbstractGraphicsScreen absScreen, int cfgID) {
@@ -74,8 +72,8 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         }
         GLProfile glp = capsRequested.getGLProfile();
         long cfg = EGLConfigId2EGLConfig(glp, dpy, cfgID);
-        GLCapabilitiesImmutable caps = EGLConfig2Capabilities(glp, dpy, cfg, false, capsRequested.isOnscreen(), capsRequested.isPBuffer());
-        return new EGLGraphicsConfiguration(absScreen, caps, capsRequested, new DefaultGLCapabilitiesChooser(), cfg, cfgID);
+        EGLGLCapabilities caps = EGLConfig2Capabilities(glp, dpy, cfg, false, capsRequested.isOnscreen(), capsRequested.isPBuffer());
+        return new EGLGraphicsConfiguration(absScreen, caps, capsRequested, new DefaultGLCapabilitiesChooser());
     }
 
     public Object clone() {
@@ -89,8 +87,6 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         if(null!=newConfig) {
             // FIXME: setScreen( ... );
             setChosenCapabilities(newConfig.getChosenCapabilities());
-            config = newConfig.getNativeConfig();
-            configID = newConfig.getNativeConfigID();
             if(DEBUG) {
                 System.err.println("!!! updateGraphicsConfiguration: "+this);
             }
@@ -116,26 +112,60 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return configs.get(0);
     }
 
-    static boolean EGLConfigDrawableTypeVerify(int val, boolean onscreen, boolean usePBuffer) {
-        boolean res;
+    static int EGLConfigDrawableTypeBits(final long display, final long config) {
+        int val = 0;
 
-        if ( onscreen ) {
-            res = ( 0 != (val & EGL.EGL_WINDOW_BIT) ) ;
-        } else {
-            if ( usePBuffer ) {
-                res = ( 0 != (val & EGL.EGL_PBUFFER_BIT) ) ;
-            } else {
-                res = ( 0 != (val & EGL.EGL_PIXMAP_BIT) ) ;
-            }
+        int[] stype = new int[1];
+        if(! EGL.eglGetConfigAttrib(display, config, EGL.EGL_SURFACE_TYPE, stype, 0)) {
+            throw new GLException("Could not determine EGL_SURFACE_TYPE !!!");
         }
 
-        return res;
+        if ( 0 != ( stype[0] & EGL.EGL_WINDOW_BIT ) ) {
+            val |= GLGraphicsConfigurationUtil.WINDOW_BIT;
+        }
+        if ( 0 != ( stype[0] & EGL.EGL_PIXMAP_BIT ) ) {
+            val |= GLGraphicsConfigurationUtil.BITMAP_BIT;
+        }
+        if ( 0 != ( stype[0] & EGL.EGL_PBUFFER_BIT ) ) {
+            val |= GLGraphicsConfigurationUtil.PBUFFER_BIT;
+        }
+
+        return val;
     }
 
-    public static GLCapabilitiesImmutable EGLConfig2Capabilities(GLProfile glp, long display, long config,
+    public static EGLGLCapabilities EGLConfig2Capabilities(GLProfile glp, long display, long config,
                                                                  boolean relaxed, boolean onscreen, boolean usePBuffer) {
-        GLCapabilities caps = new GLCapabilities(glp);
+        ArrayList bucket = new ArrayList();
+        final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
+        if( EGLConfig2Capabilities(bucket, glp, display, config, winattrmask) ) {
+            return (EGLGLCapabilities) bucket.get(0);
+        } else if ( relaxed && EGLConfig2Capabilities(bucket, glp, display, config, GLGraphicsConfigurationUtil.ALL_BITS) ) {
+            return (EGLGLCapabilities) bucket.get(0);
+        }
+        return null;
+    }
+
+    public static boolean EGLConfig2Capabilities(ArrayList capsBucket,
+                                                 GLProfile glp, long display, long config,
+                                                 int winattrmask) {
+        final int allDrawableTypeBits = EGLConfigDrawableTypeBits(display, config);
+        final int drawableTypeBits = winattrmask & allDrawableTypeBits;
+
+        if( 0 == drawableTypeBits ) {
+            return false;
+        }
+
         int[] val = new int[1];
+
+        // get the configID
+        if(!EGL.eglGetConfigAttrib(display, config, EGL.EGL_CONFIG_ID, val, 0)) {
+            if(DEBUG) {
+                // FIXME: this happens on a ATI PC Emulation ..
+                System.err.println("EGL couldn't retrieve ConfigID for config "+toHexString(config)+", error "+toHexString(EGL.eglGetError()));
+            }
+            return false;
+        }
+        GLCapabilities caps = new EGLGLCapabilities(config, val[0], glp);
 
         // Read the actual configuration into the choosen caps
         if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_RED_SIZE, val, 0)) {
@@ -178,26 +208,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
                 caps.setTransparentAlphaValue(val[0]==EGL.EGL_DONT_CARE?-1:val[0]);
             } */
         }
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_SURFACE_TYPE, val, 0)) {
-            if(EGLConfigDrawableTypeVerify(val[0], onscreen, usePBuffer)) {
-                caps.setDoubleBuffered(onscreen);
-                caps.setOnscreen(onscreen);
-                caps.setPBuffer(usePBuffer);
-            } else if(relaxed) {
-                caps.setDoubleBuffered( 0 != (val[0] & EGL.EGL_WINDOW_BIT) );
-                caps.setOnscreen( 0 != (val[0] & EGL.EGL_WINDOW_BIT) );
-                caps.setPBuffer ( 0 != (val[0] & EGL.EGL_PBUFFER_BIT) );
-            } else {
-                if(DEBUG) {
-                  System.err.println("EGL_SURFACE_TYPE does not match: req(onscrn "+onscreen+", pbuffer "+usePBuffer+"), got(onscreen "+( 0 != (val[0] & EGL.EGL_WINDOW_BIT) )+", pbuffer "+( 0 != (val[0] & EGL.EGL_PBUFFER_BIT) )+", pixmap "+( 0 != (val[0] & EGL.EGL_PIXMAP_BIT) )+")");
-                }
-                return null;
-            }
-        } else {
-            throw new GLException("Could not determine EGL_SURFACE_TYPE !!!");
-        }
-
-        return caps;
+        return GLGraphicsConfigurationUtil.addGLCapabilitiesPermutations(capsBucket, caps, drawableTypeBits );
     }
 
     public static int[] GLCapabilities2AttribList(GLCapabilitiesImmutable caps) {
@@ -289,7 +300,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     }
 
     public String toString() {
-        return ReflectionUtil.getBaseName(getClass())+"["+getScreen()+", eglConfigID 0x"+Integer.toHexString(configID)+
+        return ReflectionUtil.getBaseName(getClass())+"["+getScreen()+", eglConfigID "+toHexString(getNativeConfigID())+
                                      ",\n\trequested " + getRequestedCapabilities()+
                                      ",\n\tchosen    " + getChosenCapabilities()+
                                      "]";
@@ -297,7 +308,5 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     }
 
     private GLCapabilitiesChooser chooser;
-    private long config;
-    private int configID;
 }
 

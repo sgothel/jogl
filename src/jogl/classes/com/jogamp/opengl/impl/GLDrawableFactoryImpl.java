@@ -165,7 +165,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         // fix caps ..
         GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
         caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
-        caps2.setOnscreen(false);
         caps2.setPBuffer(true);
         capsChosen = caps2;
     } else {
@@ -207,20 +206,8 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
-    GLCapabilitiesImmutable capsChosen;
+    GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixOffScreenGLCapabilities(capsRequested, canCreateGLPbuffer(deviceReq));
 
-    if( capsRequested.getDoubleBuffered() || capsRequested.isOnscreen() || capsRequested.isPBuffer()) {
-        // fix caps ..
-        GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
-        caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
-        caps2.setOnscreen(false);
-        if(caps2.isPBuffer() && !canCreateGLPbuffer(device)) {
-            caps2.setPBuffer(false);
-        }
-        capsChosen = caps2;
-    } else {
-        capsChosen = capsRequested;
-    }
     device.lock();
     try {
         return createGLDrawable( createOffscreenSurfaceImpl(device, capsChosen, capsRequested, chooser, width, height) );
@@ -233,25 +220,12 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                                               GLCapabilitiesImmutable capsRequested,
                                               GLCapabilitiesChooser chooser,
                                               int width, int height) {
-    GLCapabilitiesImmutable capsChosen;
-
     AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
+    GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixOffScreenGLCapabilities(capsRequested, canCreateGLPbuffer(deviceReq));
 
-    if( capsRequested.getDoubleBuffered() || capsRequested.isOnscreen() || capsRequested.isPBuffer()) {
-        // fix caps ..
-        GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
-        caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
-        caps2.setOnscreen(false);
-        if(caps2.isPBuffer() && !canCreateGLPbuffer(device)) {
-            caps2.setPBuffer(false);
-        }
-        capsChosen = caps2;
-    } else {
-        capsChosen = capsRequested;
-    }
     device.lock();
     try {
         return createOffscreenSurfaceImpl(device, capsChosen, capsRequested, chooser, width, height);

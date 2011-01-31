@@ -111,4 +111,12 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
                                        ",\n\trequested " + capabilitiesRequested+ 
                                        "]";
     }
+
+    public static String toHexString(int val) {
+        return "0x"+Integer.toHexString(val);
+    }
+
+    public static String toHexString(long val) {
+        return "0x"+Long.toHexString(val);
+    }
 }

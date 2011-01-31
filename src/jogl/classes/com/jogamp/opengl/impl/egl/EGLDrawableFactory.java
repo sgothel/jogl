@@ -37,13 +37,16 @@
 package com.jogamp.opengl.impl.egl;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.egl.EGLGraphicsDevice;
 import javax.media.opengl.*;
+
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.ProxySurface;
+
 import java.util.HashMap;
-import javax.media.nativewindow.egl.EGLGraphicsDevice;
+import java.util.List;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
   
@@ -166,6 +169,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return null;
     }
 
+    SharedResource getOrCreateSharedResource(AbstractGraphicsDevice device) {
+        return (SharedResource) getOrCreateShared(device);
+    }
+
     public GLDynamicLookupHelper getGLDynamicLookupHelper(int esProfile) {
         if (2==esProfile) {
             if(null==eglES2DynamicLookupHelper) {
@@ -183,6 +190,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     protected final void shutdownInstance() {}
+
+    protected List/*GLCapabilitiesImmutable*/ getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
+        return EGLGraphicsConfigurationFactory.getAvailableCapabilities(this, device);
+    }
 
     protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
         if (target == null) {

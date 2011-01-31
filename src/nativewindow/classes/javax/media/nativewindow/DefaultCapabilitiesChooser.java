@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,6 +40,8 @@
 
 package javax.media.nativewindow;
 
+import java.util.List;
+
 /** <P> The default implementation of the {@link
     CapabilitiesChooser} interface, which provides consistent visual
     selection behavior across platforms. The precise algorithm is
@@ -63,37 +66,38 @@ package javax.media.nativewindow;
 public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
   private static final boolean DEBUG = false; // FIXME: Debug.debug("DefaultCapabilitiesChooser");
 
-  public int chooseCapabilities(CapabilitiesImmutable desired,
-                                CapabilitiesImmutable[] available,
-                                int windowSystemRecommendedChoice) {
+  public int chooseCapabilities(final CapabilitiesImmutable desired,
+                                final List /*<CapabilitiesImmutable>*/ available,
+                                final int windowSystemRecommendedChoice) {
     if (DEBUG) {
       System.err.println("Desired: " + desired);
-      for (int i = 0; i < available.length; i++) {
-        System.err.println("Available " + i + ": " + available[i]);
+      for (int i = 0; i < available.size(); i++) {
+        System.err.println("Available " + i + ": " + available.get(i));
       }
       System.err.println("Window system's recommended choice: " + windowSystemRecommendedChoice);
     }
+    final int availnum = available.size();
 
     if (windowSystemRecommendedChoice >= 0 &&
-        windowSystemRecommendedChoice < available.length &&
-        available[windowSystemRecommendedChoice] != null) {
+        windowSystemRecommendedChoice < availnum &&
+        null != available.get(windowSystemRecommendedChoice)) {
       if (DEBUG) {
         System.err.println("Choosing window system's recommended choice of " + windowSystemRecommendedChoice);
-        System.err.println(available[windowSystemRecommendedChoice]);
+        System.err.println(available.get(windowSystemRecommendedChoice));
       }
       return windowSystemRecommendedChoice;
     }
 
     // Create score array
-    int[] scores = new int[available.length];
+    int[] scores = new int[availnum];
     int NO_SCORE = -9999999;
     int COLOR_MISMATCH_PENALTY_SCALE     = 36;
-    for (int i = 0; i < scores.length; i++) {
+    for (int i = 0; i < availnum; i++) {
       scores[i] = NO_SCORE;
     }
     // Compute score for each
-    for (int i = 0; i < scores.length; i++) {
-      CapabilitiesImmutable cur = available[i];
+    for (int i = 0; i < availnum; i++) {
+      CapabilitiesImmutable cur = (CapabilitiesImmutable) available.get(i);
       if (cur == null) {
         continue;
       }
@@ -107,7 +111,7 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
 
     if (DEBUG) {
       System.err.print("Scores: [");
-      for (int i = 0; i < available.length; i++) {
+      for (int i = 0; i < availnum; i++) {
         if (i > 0) {
           System.err.print(",");
         }
@@ -119,7 +123,7 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
     // Ready to select. Choose score closest to 0. 
     int scoreClosestToZero = NO_SCORE;
     int chosenIndex = -1;
-    for (int i = 0; i < scores.length; i++) {
+    for (int i = 0; i < availnum; i++) {
       int score = scores[i];
       if (score == NO_SCORE) {
         continue;
@@ -138,7 +142,7 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
     if (DEBUG) {
       System.err.println("Chosen index: " + chosenIndex);
       System.err.println("Chosen capabilities:");
-      System.err.println(available[chosenIndex]);
+      System.err.println(available.get(chosenIndex));
     }
 
     return chosenIndex;

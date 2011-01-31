@@ -44,7 +44,7 @@ package javax.media.nativewindow;
     must support, such as color depth per channel. It currently
     contains the minimal number of routines which allow configuration
     on all supported window systems. */
-public class Capabilities implements CapabilitiesImmutable, Cloneable {
+public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparable {
   private int     redBits        = 8;
   private int     greenBits      = 8;
   private int     blueBits       = 8;
@@ -112,6 +112,30 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     }
 
     return res;
+  }
+
+  /** comparing RGBA values only */
+  public int compareTo(Object o) {
+    if ( ! ( o instanceof Capabilities ) ) {
+        Class c = (null != o) ? o.getClass() : null ;
+        throw new ClassCastException("Not a Capabilities object: " + c);
+    }
+
+    final Capabilities caps = (Capabilities) o;
+
+    final int a = ( alphaBits > 0 ) ? alphaBits : 1;
+    final int rgba = redBits * greenBits * blueBits * a;
+
+    final int xa = ( caps.alphaBits ) > 0 ? caps.alphaBits : 1;
+    final int xrgba = caps.redBits * caps.greenBits * caps.blueBits * xa;
+
+    if(rgba > xrgba) {
+        return 1;
+    } else if(rgba < xrgba) {
+        return -1;
+    }
+
+    return 0; // they are equal: RGBA
   }
 
   /** Returns the number of bits requested for the color buffer's red
@@ -274,25 +298,31 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
       A value of -1 is interpreted as any value. */
   public void setTransparentAlphaValue(int transValueAlpha) { transparentValueAlpha=transValueAlpha; }
 
+  public StringBuffer toString(StringBuffer sink) {
+    if(null == sink) {
+        sink = new StringBuffer();
+    }
+    if(onscreen) {
+        sink.append("on-scr");
+    } else {
+        sink.append("offscr");
+    }
+    sink.append(", rgba ").append(redBits).append("/").append(greenBits).append("/").append(blueBits).append("/").append(alphaBits);
+    if(backgroundOpaque) {
+        sink.append(", opaque");
+    } else {
+        sink.append(", trans-rgba 0x").append(Integer.toHexString(transparentValueRed)).append("/").append(Integer.toHexString(transparentValueGreen)).append("/").append(Integer.toHexString(transparentValueBlue)).append("/").append(Integer.toHexString(transparentValueAlpha));
+    }
+    return sink;
+  }
 
   /** Returns a textual representation of this Capabilities
       object. */ 
   public String toString() {
     StringBuffer msg = new StringBuffer();
-    msg.append("Capabilities[");
-	msg.append("Onscreen: "+ onscreen +
-        ", Red: " + redBits +
-	    ", Green: " + greenBits +
-	    ", Blue: " + blueBits +
-	    ", Alpha: " + alphaBits +
-        ", Opaque: " + backgroundOpaque);
-    if(!backgroundOpaque) {
-        msg.append(", Transparent RGBA: [0x"+ Integer.toHexString(transparentValueRed)+
-                   " 0x"+ Integer.toHexString(transparentValueGreen)+
-                   " 0x"+ Integer.toHexString(transparentValueBlue)+
-                   " 0x"+ Integer.toHexString(transparentValueAlpha)+"] ");
-    }
-	msg.append("]");
+    msg.append("Caps[");
+    toString(msg);
+    msg.append("]");
     return msg.toString();
   }
 }

@@ -143,6 +143,56 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     return res;
   }
 
+  /** comparing hw/sw, stereo, multisample, stencil, RGBA and depth only */
+  public int compareTo(Object o) {
+    if ( ! ( o instanceof GLCapabilities ) ) {
+        Class c = (null != o) ? o.getClass() : null ;
+        throw new ClassCastException("Not a GLCapabilities object: " + c);
+    }
+
+    final GLCapabilities caps = (GLCapabilities) o;
+
+    if(hardwareAccelerated && !caps.hardwareAccelerated) {
+        return 1;
+    } else if(!hardwareAccelerated && caps.hardwareAccelerated) {
+        return -1;
+    }
+
+    if(stereo && !caps.stereo) {
+        return 1;
+    } else if(!stereo && caps.stereo) {
+        return -1;
+    }
+
+    final int ms = sampleBuffers ? numSamples : 0;
+    final int xms = caps.sampleBuffers ? caps.numSamples : 0;
+
+    if(ms > xms) {
+        return 1;
+    } else if( ms < xms ) {
+        return -1;
+    }
+
+    if(stencilBits > caps.stencilBits) {
+        return 1;
+    } else if(stencilBits < caps.stencilBits) {
+        return -1;
+    }
+
+    final int sc = super.compareTo(caps); // RGBA
+    if(0 != sc) {
+        return sc;
+    }
+
+    if(depthBits > caps.depthBits) {
+        return 1;
+    } else if(depthBits < caps.depthBits) {
+        return -1;
+    }
+
+    return 0; // they are equal: hw/sw, stereo, multisample, stencil, RGBA and depth
+  }
+
   /** Returns the GL profile you desire or used by the drawable. */
   public GLProfile getGLProfile() {
     return glProfile;
@@ -158,9 +208,28 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     return pbuffer;
   }
 
-  /** Enables or disables pbuffer usage. */
+  /** 
+   * Enables or disables pbuffer usage.<br>
+   * If enabled, onscreen := false.
+   * Defaults to false.
+   */
   public void setPBuffer(boolean onOrOff) {
+    if(onOrOff) {
+      setOnscreen(false);
+    }
     pbuffer = onOrOff;
+  }
+
+  /**
+   * Sets whether the drawable surface supports onscreen.<br>
+   * If enabled, pbuffer := false.<br>
+   * Defaults to true.
+  */
+  public void setOnscreen(boolean onscreen) {
+    if(onscreen) {
+        setPBuffer(false);
+    }
+    super.setOnscreen(onscreen);
   }
 
   /** Indicates whether double-buffering is enabled. */
@@ -340,28 +409,54 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     return pbufferRenderToTextureRectangle;
   }
 
+  public StringBuffer toString(StringBuffer sink) {
+    if(null == sink) {
+        sink = new StringBuffer();
+    }
+
+    int samples = sampleBuffers ? numSamples : 0 ;
+
+    super.toString(sink);
+
+    sink.append(", accum-rgba ").append(accumRedBits).append("/").append(accumGreenBits).append("/").append(accumBlueBits).append("/").append(accumAlphaBits);
+    sink.append(", dp/st/ms: ").append(depthBits).append("/").append(stencilBits).append("/").append(samples);
+    if(doubleBuffered) {
+        sink.append(", dbl");
+    } else {
+        sink.append(", one");
+    }
+    if(stereo) {
+        sink.append(", stereo");
+    } else {
+        sink.append(", mono  ");
+    }
+    if(hardwareAccelerated) {
+        sink.append(", hw, ");
+    } else {
+        sink.append(", sw, ");
+    }
+    sink.append(glProfile);
+    if(!isOnscreen()) {
+        if(pbuffer) {
+            sink.append(", pbuffer [r2t ").append(pbufferRenderToTexture?1:0)
+                .append(", r2tr ").append(pbufferRenderToTextureRectangle?1:0)
+                .append(", float ").append(pbufferFloatingPointBuffers?1:0)
+                .append("]");
+        } else {
+            sink.append(", pixmap");
+        }
+    }
+    
+    return sink;
+  }
+
   /** Returns a textual representation of this GLCapabilities
       object. */ 
   public String toString() {
     StringBuffer msg = new StringBuffer();
-    msg.append("GLCapabilities[");
-    msg.append(super.toString());
-    msg.append(", GL profile: " + glProfile +
-        ", PBuffer: " + pbuffer +
-        ", DoubleBuffered: " + doubleBuffered +
-	    ", Stereo: " + stereo + 
-        ", HardwareAccelerated: " + hardwareAccelerated +
-	    ", DepthBits: " + depthBits +
-	    ", StencilBits: " + stencilBits +
-	    ", Red Accum: " + accumRedBits +
-	    ", Green Accum: " + accumGreenBits +
-	    ", Blue Accum: " + accumBlueBits +
-	    ", Alpha Accum: " + accumAlphaBits +
-        ", Multisample: " + sampleBuffers +
-        ", Num samples: "+(sampleBuffers ? numSamples : 0));
-    msg.append(", PBuffer-FloatingPointBuffers: "+pbufferFloatingPointBuffers+
-        ", PBuffer-RenderToTexture: "+pbufferRenderToTexture+
-        ", PBuffer-RenderToTextureRectangle: "+pbufferRenderToTextureRectangle+ "]");
+    msg.append("GLCaps[");
+    toString(msg);
+    msg.append("]");
     return msg.toString();
   }
 }

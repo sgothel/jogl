@@ -1,7 +1,7 @@
-scripts\java-win64.bat com.jogamp.newt.impl.awt.opengl.VersionApplet
+REM scripts\java-win64-dbg.bat com.jogamp.newt.impl.awt.opengl.VersionApplet
 REM scripts\java-win64-dbg.bat com.jogamp.newt.opengl.GLWindow
 REM scripts\java-win64-dbg.bat javax.media.opengl.awt.GLCanvas
-REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT -time 5000
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT -time 5000
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT -time 5000
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.awt.TestSwingAWT01GLn
@@ -41,9 +41,7 @@ REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT -time 10000
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleNEWT -time 10000
 
-scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*
+REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol03NewtAWT $*
-REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 -time 2000
-REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT -time 5000
 

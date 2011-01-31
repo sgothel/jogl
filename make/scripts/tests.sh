@@ -36,7 +36,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
-    #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
+    D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GraphicsConfiguration"
@@ -69,7 +69,7 @@ function testawt() {
 #testnoawt com.jogamp.opengl.JoglVersion $*
 #testnoawt com.jogamp.newt.NewtVersion $*
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
@@ -130,12 +130,9 @@ function testawt() {
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 
-testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*
+#testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol03NewtAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 -time 2000
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT $*
 
 #testawt $*
 

@@ -68,6 +68,18 @@ public abstract class GraphicsConfigurationFactory {
         initialize();
     }
 
+    protected static String getThreadName() {
+        return Thread.currentThread().getName();
+    }
+
+    protected static String toHexString(int val) {
+        return "0x" + Integer.toHexString(val);
+    }
+
+    protected static String toHexString(long val) {
+        return "0x" + Long.toHexString(val);
+    }
+
     /** Creates a new NativeWindowFactory instance. End users do not
         need to call this method. */
     protected GraphicsConfigurationFactory() {

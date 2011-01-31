@@ -47,12 +47,13 @@ import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
 import com.jogamp.opengl.impl.GLDynamicLookupHelper;
 import com.jogamp.opengl.impl.DesktopGLDynamicLookupHelper;
 import com.jogamp.opengl.JoglVersion;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.security.*;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 import javax.media.nativewindow.NativeWindowFactory;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.security.*;
+import java.util.List;
 
 /**
  * Specifies the the OpenGL profile.
@@ -1301,8 +1302,16 @@ public class GLProfile {
             System.err.println("GLProfile.initProfilesForDevice: "+device.getConnection()+": "+glAvailabilityToString(device));
             if(addedDesktopProfile) {
                 dumpGLInfo(desktopFactory, device);
+                List/*<GLCapabilitiesImmutable>*/ availCaps = desktopFactory.getAvailableCapabilities(device);
+                for(int i=0; i<availCaps.size(); i++) {
+                    System.err.println(availCaps.get(i));
+                }
             } else if(addedEGLProfile) {
                 dumpGLInfo(eglFactory, device);
+                List/*<GLCapabilitiesImmutable>*/ availCaps = eglFactory.getAvailableCapabilities(device);
+                for(int i=0; i<availCaps.size(); i++) {
+                    System.err.println(availCaps.get(i));
+                }
             }
         }
 
@@ -1314,13 +1323,10 @@ public class GLProfile {
         System.err.println("GLProfile.dumpGLInfo: "+ctx);
         ctx.makeCurrent();
         try {
-            System.err.println("GLProfile.dumpGLInfo: p2");
             System.err.println(JoglVersion.getGLInfo(ctx.getGL(), null));
-            System.err.println("GLProfile.dumpGLInfo: p3");
         } finally {
             ctx.release();
         }
-        System.err.println("GLProfile.dumpGLInfo: p4");
     }
 
     public static AbstractGraphicsDevice getDefaultDevice() {

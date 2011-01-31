@@ -33,7 +33,7 @@
 
 package com.jogamp.opengl.impl.macosx.cgl;
 
-import com.jogamp.opengl.impl.GLGraphicsConfigurationFactoryImpl;
+import com.jogamp.opengl.impl.GLGraphicsConfigurationFactory;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.CapabilitiesChooser;
@@ -48,7 +48,7 @@ import javax.media.opengl.GLCapabilitiesImmutable;
     to this one to change the accepted and returned types of the
     GraphicsDevice and GraphicsConfiguration abstractions. */
 
-public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactoryImpl {
+public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     protected static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug("GraphicsConfiguration");
 
     MacOSXCGLGraphicsConfigurationFactory() {

@@ -109,6 +109,9 @@ public interface CapabilitiesImmutable extends WriteCloneable {
     /** hash code over the immutable attributes of both objects */
     int hashCode();
 
+    /** Return a textual representation of this object. Use the given StringBuffer [optional]. */
+    StringBuffer toString(StringBuffer sink);
+
     /** Returns a textual representation of this object. */
     String toString();
 }

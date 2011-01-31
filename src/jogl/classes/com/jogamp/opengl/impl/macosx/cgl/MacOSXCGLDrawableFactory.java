@@ -41,14 +41,17 @@
 package com.jogamp.opengl.impl.macosx.cgl;
 
 import java.nio.*;
+import java.util.HashMap;
+import java.util.List;
+
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.macosx.MacOSXGraphicsDevice;
 import javax.media.opengl.*;
+
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.ProxySurface;
-import java.util.HashMap;
-import javax.media.nativewindow.macosx.MacOSXGraphicsDevice;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final DesktopGLDynamicLookupHelper macOSXCGLDynamicLookupHelper;
@@ -122,6 +125,10 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   protected final void shutdownInstance() {}
+
+  protected List/*GLCapabilitiesImmutable*/ getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
+    throw new UnsupportedOperationException("not yet implemented");
+  }
 
   protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
     if (target == null) {

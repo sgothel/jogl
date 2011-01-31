@@ -40,13 +40,14 @@
 
 package javax.media.opengl;
 
-import com.jogamp.common.JogampRuntimeException;
-import com.jogamp.common.impl.Debug;
-import com.jogamp.common.util.ReflectionUtil;
-
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.List;
+
+import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.impl.Debug;
+import com.jogamp.common.util.ReflectionUtil;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
@@ -239,6 +240,24 @@ public abstract class GLDrawableFactory {
    */
   public abstract boolean getIsDeviceCompatible(AbstractGraphicsDevice device);
 
+  protected final AbstractGraphicsDevice validateDevice(AbstractGraphicsDevice device) {
+      if(null==device) {
+          device = getDefaultDevice();
+          if(null==device) {
+              throw new InternalError("no default device");
+          }
+          if (GLProfile.DEBUG) {
+              System.err.println("Info: GLDrawableFactory.validateDevice: using default device : "+device);
+          }
+      } else if( !getIsDeviceCompatible(device) ) {
+          if (GLProfile.DEBUG) {
+              System.err.println("Info: GLDrawableFactory.validateDevice: device not compatible : "+device);
+          }
+          return null;
+      }
+      return device;
+  }
+
   /**
    * Returns true if a shared context is already mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
    * or if a new shared context could be created and mapped. Otherwise return false.<br>
@@ -258,23 +277,27 @@ public abstract class GLDrawableFactory {
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    */
   protected final GLContext getOrCreateSharedContext(AbstractGraphicsDevice device) {
-      if(null==device) {
-          device = getDefaultDevice();
-          if(null==device) {
-              throw new InternalError("no default device");
-          }
-          if (GLProfile.DEBUG) {
-              System.err.println("Info: GLDrawableFactory.getOrCreateSharedContext: using default device : "+device);
-          }
-      } else if( !getIsDeviceCompatible(device) ) {
-          if (GLProfile.DEBUG) {
-              System.err.println("Info: GLDrawableFactory.getOrCreateSharedContext: device not compatible : "+device);
-          }
-          return null;
+      device = validateDevice(device);
+      if(null!=device) {
+        return getOrCreateSharedContextImpl(device);
       }
-      return getOrCreateSharedContextImpl(device);
+      return null;
   }
   protected abstract GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device);
+
+  /**
+   * Returns the sole GLDrawableFactory instance for the desktop (X11, WGL, ..) if exist or null
+   */
+  public static GLDrawableFactory getDesktopFactory() {
+    return nativeOSFactory;
+  }
+
+  /**
+   * Returns the sole GLDrawableFactory instance for EGL if exist or null
+   */
+  public static GLDrawableFactory getEGLFactory() {
+    return eglFactory;
+  }
 
   /** 
    * Returns the sole GLDrawableFactory instance. 
@@ -300,16 +323,6 @@ public abstract class GLDrawableFactory {
     throw new GLException("No native platform GLDrawableFactory, nor EGLDrawableFactory available: "+glProfileImplName);
   }
 
-  /**
-   * Returns the sole GLDrawableFactory instance.
-   *
-   * @param device AbstractGraphicsDevice to determine the factory type, ie EGLDrawableFactory,
-   *                or one of the native GLDrawableFactory's, ie X11/GLX, Windows/WGL or MacOSX/CGL.
-   */
-  public static GLDrawableFactory getFactory(AbstractGraphicsDevice device) throws GLException {
-    return getFactoryImpl(device);
-  }
-
   protected static GLDrawableFactory getFactoryImpl(AbstractGraphicsDevice device) throws GLException {
     if(null != nativeOSFactory && nativeOSFactory.getIsDeviceCompatible(device)) {
         return nativeOSFactory;
@@ -319,6 +332,22 @@ public abstract class GLDrawableFactory {
     }
     throw new GLException("No native platform GLDrawableFactory, nor EGLDrawableFactory available: "+device);
   }
+
+  /**
+   * Returns an array of available GLCapabilities for the device.<br>
+   * The list is sorted by the native ID, ascending.
+   *
+   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @return A list of {@link javax.media.opengl.GLCapabilitiesImmutable}'s, maybe empty if none is available.
+   */
+  public final List/*GLCapabilitiesImmutable*/ getAvailableCapabilities(AbstractGraphicsDevice device) {
+      device = validateDevice(device);
+      if(null!=device) {
+        return getAvailableCapabilitiesImpl(device);
+      }
+      return null;
+  }
+  protected abstract List/*GLCapabilitiesImmutable*/ getAvailableCapabilitiesImpl(AbstractGraphicsDevice device);
 
   //----------------------------------------------------------------------
   // Methods to create high-level objects

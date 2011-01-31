@@ -28,16 +28,27 @@
 
 package com.jogamp.opengl.impl;
 
+import java.util.List;
 import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 
-public abstract class GLGraphicsConfigurationFactoryImpl extends GraphicsConfigurationFactory {
+public abstract class GLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
 
-    protected static int chooseCapabilities(CapabilitiesChooser chooser,
-                                            CapabilitiesImmutable capsRequested, CapabilitiesImmutable[] availableCaps, int recommendedIndex) {
+    protected static int chooseCapabilities(CapabilitiesChooser chooser, CapabilitiesImmutable capsRequested,
+                                            List /*<CapabilitiesImmutable>*/ availableCaps, int recommendedIndex) {
+        if (null == capsRequested) {
+            throw new NativeWindowException("Null requested capabilities");
+        }
+        if ( 0 == availableCaps.size() ) {
+            if (DEBUG) {
+                System.err.println("Empty available capabilities");
+            }
+            return -1; // none available
+        }
+
         if(null == chooser && 0 <= recommendedIndex) {
             if (DEBUG) {
                 System.err.println("chooseCapabilities: Using recommendedIndex: idx " + recommendedIndex);
@@ -66,10 +77,10 @@ public abstract class GLGraphicsConfigurationFactoryImpl extends GraphicsConfigu
 
         // keep on going ..
         // seek first available one ..
-        for (chosenIndex = 0; chosenIndex < availableCaps.length && availableCaps[chosenIndex] == null; chosenIndex++) {
+        for (chosenIndex = 0; chosenIndex < availableCaps.size() && availableCaps.get(chosenIndex) == null; chosenIndex++) {
             // nop
         }
-        if (chosenIndex == availableCaps.length) {
+        if (chosenIndex == availableCaps.size()) {
             // give up ..
             if (DEBUG) {
                 System.err.println("chooseCapabilities: Failed .. nothing available, bail out");

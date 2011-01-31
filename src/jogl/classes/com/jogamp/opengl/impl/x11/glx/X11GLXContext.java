@@ -40,11 +40,14 @@
 
 package com.jogamp.opengl.impl.x11.glx;
 
-import com.jogamp.common.util.VersionNumber;
 import java.nio.*;
 import java.util.*;
+
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.x11.X11GraphicsDevice;
+
+import com.jogamp.common.util.VersionNumber;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
@@ -119,19 +122,21 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   protected Map/*<String, String>*/ getExtensionNameMap() { return extensionNameMap; }
 
-  public final boolean isGLReadDrawableAvailable() {
+  public final boolean isGLXVersionGreaterEqualOneThree() {
     if(null == glXVersion) {
         X11GLXDrawableFactory factory = (X11GLXDrawableFactory)drawable.getFactoryImpl();
 
         X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-        AbstractGraphicsDevice device = config.getScreen().getDevice();
+        X11GraphicsDevice device = (X11GraphicsDevice) config.getScreen().getDevice();
 
         glXVersion = factory.getGLXVersion(device);
-        if( null != glXVersion ) {
-            glXVersionOneThreeCapable = glXVersion.compareTo(factory.versionOneThree)>=0;
-        }
+        glXVersionOneThreeCapable = ( null != glXVersion ) ? glXVersion.compareTo(X11GLXDrawableFactory.versionOneThree) >= 0 : false ;
     }
     return glXVersionOneThreeCapable;
+  }
+
+  public final boolean isGLReadDrawableAvailable() {
+    return isGLXVersionGreaterEqualOneThree();
   }
 
   private final boolean glXMakeContextCurrent(long dpy, long writeDrawable, long readDrawable, long ctx) {

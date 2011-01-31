@@ -39,6 +39,8 @@
 
 package javax.media.nativewindow;
 
+import java.util.List;
+
 /** Provides a mechanism by which applications can customize the
     window type selection for a given {@link Capabilities}.
     Developers can implement this interface and pass an instance into
@@ -63,6 +65,6 @@ public interface CapabilitiesChooser {
       choice to some other CapabilitiesChooser object.
   */
   public int chooseCapabilities(CapabilitiesImmutable desired,
-                                CapabilitiesImmutable[] available,
+                                List /*<CapabilitiesImmutable>*/ available,
                                 int windowSystemRecommendedChoice);
 }

@@ -48,6 +48,7 @@ import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLCapabilitiesImmutable;
 
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
@@ -55,8 +56,6 @@ import com.jogamp.nativewindow.impl.windows.GDI;
 import com.jogamp.opengl.impl.GLContextImpl;
 import com.jogamp.opengl.impl.GLContextShareSet;
 import com.jogamp.opengl.impl.GLDrawableImpl;
-import javax.media.opengl.GLCapabilitiesImmutable;
-
 
 public class WindowsWGLContext extends GLContextImpl {
   static final Map/*<String, String>*/ functionNameMap;

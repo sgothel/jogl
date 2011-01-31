@@ -44,7 +44,7 @@ import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.jawt.x11.*;
 import com.jogamp.nativewindow.impl.x11.*;
 
-public class X11AWTGLXGraphicsConfigurationFactory extends GLGraphicsConfigurationFactoryImpl {
+public class X11AWTGLXGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
 
     public X11AWTGLXGraphicsConfigurationFactory() {

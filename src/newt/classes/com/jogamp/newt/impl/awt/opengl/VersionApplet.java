@@ -1,27 +1,38 @@
 package com.jogamp.newt.impl.awt.opengl;
 
-import com.jogamp.common.GlueGenVersion;
-import com.jogamp.common.util.VersionUtil;
-import com.jogamp.nativewindow.NativeWindowVersion;
-import com.jogamp.newt.NewtVersion;
-import com.jogamp.opengl.JoglVersion;
 import java.applet.Applet;
 import java.awt.BorderLayout;
+import java.awt.Container;
 import java.awt.Frame;
+import java.awt.GridLayout;
 import java.awt.TextArea;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+
+import java.util.List;
+
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
+
+import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.VersionUtil;
+import com.jogamp.nativewindow.NativeWindowVersion;
+import com.jogamp.newt.NewtVersion;
+import com.jogamp.opengl.JoglVersion;
 
 public class VersionApplet extends Applet {
   static {
     GLProfile.initSingleton(false);
   }
-  TextArea tarea;
+  TextArea tareaVersion;
+  TextArea tareaCaps;
   GLCanvas canvas;
 
   public static void main(String[] args) {
@@ -60,33 +71,50 @@ public class VersionApplet extends Applet {
   private synchronized void my_init() {
     if(null != canvas) { return; }
 
+    GLProfile glp = GLProfile.getDefault();
+    GLCapabilities glcaps = new GLCapabilities(glp);
+
     setLayout(new BorderLayout());
     String s;
 
-    tarea = new TextArea(120, 80);
+    tareaVersion = new TextArea(120, 60);
     s = VersionUtil.getPlatformInfo().toString();
     System.err.println(s);
-    tarea.append(s);
+    tareaVersion.append(s);
 
     s = GlueGenVersion.getInstance().toString();
     System.err.println(s);
-    tarea.append(s);
+    tareaVersion.append(s);
 
     s = NativeWindowVersion.getInstance().toString();
     System.err.println(s);
-    tarea.append(NativeWindowVersion.getInstance().toString());
+    tareaVersion.append(NativeWindowVersion.getInstance().toString());
 
     s = JoglVersion.getInstance().toString();
     System.err.println(s);
-    tarea.append(s);
+    tareaVersion.append(s);
 
     s = NewtVersion.getInstance().toString();
     System.err.println(s);
-    tarea.append(s);
+    tareaVersion.append(s);
 
-    add(tarea, BorderLayout.CENTER);
+    tareaCaps = new TextArea(120, 20);
+    GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
+    List/*<GLCapabilitiesImmutable>*/ availCaps = factory.getAvailableCapabilities(null);
+    for(int i=0; i<availCaps.size(); i++) {
+        s = ((GLCapabilitiesImmutable) availCaps.get(i)).toString();
+        System.err.println(s);
+        tareaCaps.append(s);
+        tareaCaps.append(Platform.getNewline());
+    }
 
-    canvas = new GLCanvas();
+    Container grid = new Container();
+    grid.setLayout(new GridLayout(2, 1));
+    grid.add(tareaVersion);
+    grid.add(tareaCaps);
+    add(grid, BorderLayout.CENTER);
+
+    canvas = new GLCanvas(glcaps);
     canvas.addGLEventListener(new GLInfo());
     canvas.setSize(10, 10);
     add(canvas, BorderLayout.SOUTH);
@@ -98,8 +126,8 @@ public class VersionApplet extends Applet {
           remove(canvas);
           canvas.destroy();
           canvas = null;
-          remove(tarea);
-          tarea=null;
+          remove(tareaVersion);
+          tareaVersion=null;
       }
   }
 
@@ -130,7 +158,7 @@ public class VersionApplet extends Applet {
         GL gl = drawable.getGL();
         String s = JoglVersion.getInstance().getGLInfo(gl, null).toString();
         System.err.println(s);
-        tarea.append(s);
+        tareaVersion.append(s);
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {

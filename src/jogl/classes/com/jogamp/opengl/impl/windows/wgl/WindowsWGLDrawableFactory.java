@@ -53,6 +53,8 @@ import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.windows.WindowsGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
@@ -71,8 +73,6 @@ import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
 import com.jogamp.opengl.impl.GLDrawableImpl;
 import com.jogamp.opengl.impl.GLDynamicLookupHelper;
 import com.jogamp.opengl.impl.SharedResourceRunner;
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper;
@@ -179,13 +179,13 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
           canCreateGLPbuffer = canPbuffer;
           readDrawableAvailable = readBufferAvail;
       }
-      public AbstractGraphicsDevice getDevice() { return device; }
-      public AbstractGraphicsScreen getScreen() { return screen; }
-      public GLDrawableImpl getDrawable() { return drawable; }
-      public GLContextImpl getContext() { return context; }
+      final public AbstractGraphicsDevice getDevice() { return device; }
+      final public AbstractGraphicsScreen getScreen() { return screen; }
+      final public GLDrawableImpl getDrawable() { return drawable; }
+      final public GLContextImpl getContext() { return context; }
 
-      boolean canCreateGLPbuffer() { return canCreateGLPbuffer; }
-      boolean isReadDrawableAvailable() { return readDrawableAvailable; }
+      final boolean canCreateGLPbuffer() { return canCreateGLPbuffer; }
+      final boolean isReadDrawableAvailable() { return readDrawableAvailable; }
   }
 
   class SharedResourceImplementation implements SharedResourceRunner.Implementation {
@@ -330,7 +330,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return null;
   }
 
-  protected WindowsWGLDrawable getSharedDrawable(AbstractGraphicsDevice device) {
+  protected WindowsWGLDrawable getOrCreateSharedDrawable(AbstractGraphicsDevice device) {
     SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
     if(null!=sr) {
         return (WindowsWGLDrawable) sr.getDrawable();
@@ -338,9 +338,17 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return null;
   }
 
+  SharedResource getOrCreateSharedResource(AbstractGraphicsDevice device) {
+    return (SharedResource) sharedResourceRunner.getOrCreateShared(device);
+  }
+
   protected final void shutdownInstance() {
     sharedResourceRunner.releaseAndWait();
     RegisteredClassFactory.shutdownSharedClasses();
+  }
+
+  protected List/*GLCapabilitiesImmutable*/ getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
+    return WindowsWGLGraphicsConfigurationFactory.getAvailableCapabilities(this, device);
   }
 
   protected final GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {

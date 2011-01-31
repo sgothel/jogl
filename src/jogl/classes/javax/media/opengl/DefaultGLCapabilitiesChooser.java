@@ -42,6 +42,7 @@ package javax.media.opengl;
 
 import javax.media.nativewindow.NativeWindowException;
 import com.jogamp.opengl.impl.Debug;
+import java.util.List;
 import javax.media.nativewindow.CapabilitiesImmutable;
 
 /** <P> The default implementation of the {@link
@@ -85,38 +86,40 @@ import javax.media.nativewindow.CapabilitiesImmutable;
 public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
   private static final boolean DEBUG = Debug.debug("CapabilitiesChooser");
 
-  public int chooseCapabilities(CapabilitiesImmutable desired,
-                                CapabilitiesImmutable[] available,
-                                int windowSystemRecommendedChoice) {
-    GLCapabilitiesImmutable _desired = (GLCapabilitiesImmutable) desired;
-    GLCapabilitiesImmutable[] _available = (GLCapabilitiesImmutable[]) available;
-    int availnum = 0;
-
-    for (int i = 0; i < _available.length; i++) {
-      if(null != _available[i]) { availnum++; }
+  public int chooseCapabilities(final CapabilitiesImmutable desired,
+                                final List /*<CapabilitiesImmutable>*/ available,
+                                final int windowSystemRecommendedChoice) {
+    if ( null == desired ) {
+      throw new NativeWindowException("Null desired capabilities");
+    }
+    if ( 0 == available.size() ) {
+      throw new NativeWindowException("Empty available capabilities");
     }
 
+    final GLCapabilitiesImmutable gldes = (GLCapabilitiesImmutable) desired;
+    final int availnum = available.size();
+
     if (DEBUG) {
-      System.err.println("Desired: " + _desired);
-      System.err.println("Available: Valid " + availnum + "/" + _available.length);
-      for (int i = 0; i < _available.length; i++) {
-        System.err.println(i + ": " + _available[i]);
+      System.err.println("Desired: " + gldes);
+      System.err.println("Available: " + availnum);
+      for (int i = 0; i < available.size(); i++) {
+        System.err.println(i + ": " + available.get(i));
       }
       System.err.println("Window system's recommended choice: " + windowSystemRecommendedChoice);
     }
 
     if (windowSystemRecommendedChoice >= 0 &&
-        windowSystemRecommendedChoice < _available.length &&
-        _available[windowSystemRecommendedChoice] != null) {
+        windowSystemRecommendedChoice < availnum &&
+        null != available.get(windowSystemRecommendedChoice)) {
       if (DEBUG) {
         System.err.println("Choosing window system's recommended choice of " + windowSystemRecommendedChoice);
-        System.err.println(_available[windowSystemRecommendedChoice]);
+        System.err.println(available.get(windowSystemRecommendedChoice));
       }
       return windowSystemRecommendedChoice;
     }
 
     // Create score array
-    int[] scores = new int[_available.length];
+    int[] scores = new int[availnum];
     int NO_SCORE = -9999999;
     int DOUBLE_BUFFER_MISMATCH_PENALTY = 1000;
     int STENCIL_MISMATCH_PENALTY = 500;
@@ -131,18 +134,18 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       scores[i] = NO_SCORE;
     }
     // Compute score for each
-    for (int i = 0; i < scores.length; i++) {
-      GLCapabilitiesImmutable cur = _available[i];
+    for (int i = 0; i < availnum; i++) {
+      GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
       if (cur == null) {
         continue;
       }
-      if (_desired.isOnscreen() != cur.isOnscreen()) {
+      if (gldes.isOnscreen() != cur.isOnscreen()) {
         continue;
       }
-      if (!_desired.isOnscreen() && _desired.isPBuffer() && !cur.isPBuffer()) {
+      if (!gldes.isOnscreen() && gldes.isPBuffer() && !cur.isPBuffer()) {
         continue; // only skip if requested Offscreen && PBuffer, but no PBuffer available
       }
-      if (_desired.getStereo() != cur.getStereo()) {
+      if (gldes.getStereo() != cur.getStereo()) {
         continue;
       }
       int score = 0;
@@ -150,20 +153,20 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       // (Note that this decides the direction of all other penalties)
       score += (COLOR_MISMATCH_PENALTY_SCALE *
                 ((cur.getRedBits() + cur.getGreenBits() + cur.getBlueBits() + cur.getAlphaBits()) -
-                 (_desired.getRedBits() + _desired.getGreenBits() + _desired.getBlueBits() + _desired.getAlphaBits())));
+                 (gldes.getRedBits() + gldes.getGreenBits() + gldes.getBlueBits() + gldes.getAlphaBits())));
       // Compute difference in depth buffer depth
       score += (DEPTH_MISMATCH_PENALTY_SCALE * sign(score) * 
-                Math.abs(cur.getDepthBits() - _desired.getDepthBits()));
+                Math.abs(cur.getDepthBits() - gldes.getDepthBits()));
       // Compute difference in accumulation buffer depth
       score += (ACCUM_MISMATCH_PENALTY_SCALE * sign(score) *
                 Math.abs((cur.getAccumRedBits() + cur.getAccumGreenBits() + cur.getAccumBlueBits() + cur.getAccumAlphaBits()) -
-                         (_desired.getAccumRedBits() + _desired.getAccumGreenBits() + _desired.getAccumBlueBits() + _desired.getAccumAlphaBits())));
+                         (gldes.getAccumRedBits() + gldes.getAccumGreenBits() + gldes.getAccumBlueBits() + gldes.getAccumAlphaBits())));
       // Compute difference in stencil bits
-      score += STENCIL_MISMATCH_PENALTY_SCALE * sign(score) * (cur.getStencilBits() - _desired.getStencilBits());
-      if (cur.getDoubleBuffered() != _desired.getDoubleBuffered()) {
+      score += STENCIL_MISMATCH_PENALTY_SCALE * sign(score) * (cur.getStencilBits() - gldes.getStencilBits());
+      if (cur.getDoubleBuffered() != gldes.getDoubleBuffered()) {
         score += sign(score) * DOUBLE_BUFFER_MISMATCH_PENALTY;
       }
-      if ((_desired.getStencilBits() > 0) && (cur.getStencilBits() == 0)) {
+      if ((gldes.getStencilBits() > 0) && (cur.getStencilBits() == 0)) {
         score += sign(score) * STENCIL_MISMATCH_PENALTY;
       }
       scores[i] = score;
@@ -172,12 +175,12 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     // non-hardware-accelerated visuals out
     boolean gotHW = false;
     int maxAbsoluteHWScore = 0;
-    for (int i = 0; i < scores.length; i++) {
+    for (int i = 0; i < availnum; i++) {
       int score = scores[i];
       if (score == NO_SCORE) {
         continue;
       }
-      GLCapabilitiesImmutable cur = _available[i];
+      GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
       if (cur.getHardwareAccelerated()) {
         int absScore = Math.abs(score);
         if (!gotHW ||
@@ -188,12 +191,12 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       }
     }
     if (gotHW) {
-      for (int i = 0; i < scores.length; i++) {
+      for (int i = 0; i < availnum; i++) {
         int score = scores[i];
         if (score == NO_SCORE) {
           continue;
         }
-        GLCapabilitiesImmutable cur = _available[i];
+        GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
         if (!cur.getHardwareAccelerated()) {
           if (score <= 0) {
             score -= maxAbsoluteHWScore;
@@ -207,7 +210,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
 
     if (DEBUG) {
       System.err.print("Scores: [");
-      for (int i = 0; i < _available.length; i++) {
+      for (int i = 0; i < availnum; i++) {
         if (i > 0) {
           System.err.print(",");
         }
@@ -219,7 +222,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     // Ready to select. Choose score closest to 0. 
     int scoreClosestToZero = NO_SCORE;
     int chosenIndex = -1;
-    for (int i = 0; i < scores.length; i++) {
+    for (int i = 0; i < availnum; i++) {
       int score = scores[i];
       if (score == NO_SCORE) {
         continue;
@@ -238,7 +241,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     if (DEBUG) {
       System.err.println("Chosen index: " + chosenIndex);
       System.err.println("Chosen capabilities:");
-      System.err.println(_available[chosenIndex]);
+      System.err.println(available.get(chosenIndex));
     }
 
     return chosenIndex;
@@ -250,4 +253,5 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     }
     return 1;
   }
+
 }

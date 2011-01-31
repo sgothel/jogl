@@ -54,9 +54,10 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.geom.Rectangle2D;
 
-import com.jogamp.common.GlueGenVersion;
-import com.jogamp.common.util.VersionUtil;
-import com.jogamp.common.util.locks.RecursiveLock;
+import java.awt.EventQueue;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
@@ -69,7 +70,6 @@ import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
 import javax.media.nativewindow.awt.AWTGraphicsDevice;
 import javax.media.nativewindow.awt.AWTGraphicsScreen;
 import javax.media.nativewindow.awt.AWTWindowClosingProtocol;
-import com.jogamp.nativewindow.NativeWindowVersion;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAnimatorControl;
@@ -85,14 +85,17 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.Threading;
+
+import com.jogamp.nativewindow.NativeWindowVersion;
+import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.util.VersionUtil;
 import com.jogamp.opengl.JoglVersion;
+
+import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.impl.Debug;
 import com.jogamp.opengl.impl.GLContextImpl;
 import com.jogamp.opengl.impl.GLDrawableHelper;
 import com.jogamp.opengl.impl.ThreadingImpl;
-import java.awt.EventQueue;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their
 // context whenever the displayChanged() function is called on our
@@ -995,6 +998,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     System.err.println(GlueGenVersion.getInstance());
     System.err.println(NativeWindowVersion.getInstance());
     System.err.println(JoglVersion.getInstance());
+
+    GLDrawableFactory factory = GLDrawableFactory.getDesktopFactory();
+    List/*<GLCapabilitiesImmutable>*/ availCaps = factory.getAvailableCapabilities(null);
+    for(int i=0; i<availCaps.size(); i++) {
+        System.err.println(availCaps.get(i));
+    }
 
     GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault(GLProfile.getDefaultDesktopDevice()) );
     Frame frame = new Frame("JOGL AWT Test");

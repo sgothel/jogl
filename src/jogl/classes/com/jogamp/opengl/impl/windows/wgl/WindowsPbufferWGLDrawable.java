@@ -50,7 +50,6 @@ import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.nativewindow.impl.windows.GDI;
-import com.jogamp.nativewindow.impl.windows.PIXELFORMATDESCRIPTOR;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
@@ -174,96 +173,57 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       throw new GLException("pbuffer creation error: Couldn't find a suitable pixel format");
     }
 
-    boolean haveMultisample = sharedCtx.isExtensionAvailable("WGL_ARB_multisample");
-
     if (DEBUG) {
       System.err.println("" + nformats + " suitable pixel formats found");
-      // query pixel format
-      iattributes[0] = WGLExt.WGL_RED_BITS_ARB;
-      iattributes[1] = WGLExt.WGL_GREEN_BITS_ARB;
-      iattributes[2] = WGLExt.WGL_BLUE_BITS_ARB;
-      iattributes[3] = WGLExt.WGL_ALPHA_BITS_ARB;
-      iattributes[4] = WGLExt.WGL_DEPTH_BITS_ARB;
-      iattributes[5] = (useFloat ? (ati ? WGLExt.WGL_PIXEL_TYPE_ARB : WGLExt.WGL_FLOAT_COMPONENTS_NV) : WGLExt.WGL_RED_BITS_ARB);
-      iattributes[6] = (haveMultisample ? WGLExt.WGL_SAMPLE_BUFFERS_ARB : WGLExt.WGL_RED_BITS_ARB);
-      iattributes[7] = (haveMultisample ? WGLExt.WGL_SAMPLES_ARB : WGLExt.WGL_RED_BITS_ARB);
-      iattributes[8] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
-      int[] ivalues = new int[9];
       for (int i = 0; i < nformats; i++) {
-        if (!wglExt.wglGetPixelFormatAttribivARB(parentHdc, pformats[i], 0, 9, iattributes, 0, ivalues, 0)) {
-          throw new GLException("Error while querying pixel format " + pformats[i] +
-                                "'s (index " + i + "'s) capabilities for debugging");
-        }
-        System.err.print("pixel format " + pformats[i] + " (index " + i + "): ");
-        System.err.print( "r: " + ivalues[0]);
-        System.err.print(" g: " + ivalues[1]);
-        System.err.print(" b: " + ivalues[2]);
-        System.err.print(" a: " + ivalues[3]);
-        System.err.print(" depth: " + ivalues[4]);
-        if (haveMultisample) {
-          System.err.print(" multisample: " + ivalues[6]);
-        }
-        System.err.print(" samples: " + ivalues[7]);
-        if (useFloat) {
-          if (ati) {
-            if (ivalues[5] == WGLExt.WGL_TYPE_RGBA_FLOAT_ARB) {
-              System.err.print(" [ati float]");
-            } else if (ivalues[5] != WGLExt.WGL_TYPE_RGBA_ARB) {
-              System.err.print(" [unknown pixel type " + ivalues[5] + "]");
+        WGLGLCapabilities dbgCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedCtx, parentHdc, pformats[i], glProfile, false, true);
+        System.err.println("pixel format " + pformats[i] + " (index " + i + "): " + dbgCaps);
+      }
+    }
+
+    int pfdid = 0;
+    long tmpBuffer = 0;
+    {
+        int whichFormat;
+        // Loop is a workaround for bugs in NVidia's recent drivers
+        for (whichFormat = 0; whichFormat < nformats; whichFormat++) {
+          int format = pformats[whichFormat];
+
+          // Create the p-buffer.
+          niattribs = 0;
+
+          if (rtt) {
+            iattributes[niattribs++]   = WGLExt.WGL_TEXTURE_FORMAT_ARB;
+            if (useFloat) {
+              iattributes[niattribs++] = WGLExt.WGL_TEXTURE_FLOAT_RGB_NV;
+            } else {
+              iattributes[niattribs++] = WGLExt.WGL_TEXTURE_RGBA_ARB;
             }
-          } else {
-            if (ivalues[5] != 0) {
-              System.err.print(" [float]");
-            }
+
+            iattributes[niattribs++] = WGLExt.WGL_TEXTURE_TARGET_ARB;
+            iattributes[niattribs++] = rect ? WGLExt.WGL_TEXTURE_RECTANGLE_NV : WGLExt.WGL_TEXTURE_2D_ARB;
+
+            iattributes[niattribs++] = WGLExt.WGL_MIPMAP_TEXTURE_ARB;
+            iattributes[niattribs++] = GL.GL_FALSE;
+
+            iattributes[niattribs++] = WGLExt.WGL_PBUFFER_LARGEST_ARB;
+            iattributes[niattribs++] = GL.GL_FALSE;
+          }
+
+          iattributes[niattribs++] = 0;
+
+          tmpBuffer = wglExt.wglCreatePbufferARB(parentHdc, format, getWidth(), getHeight(), iattributes, 0);
+          if (tmpBuffer != 0) {
+            // Done
+            break;
           }
         }
 
-        if (ivalues[8] != 0) {
-          System.err.print(" [pbuffer]");
+        if (0 == tmpBuffer) {
+          throw new GLException("pbuffer creation error: wglCreatePbuffer() failed: tried " + nformats +
+                                " pixel formats, last error was: " + wglGetLastError());
         }
-        System.err.println();
-      }
-    }
-
-    long tmpBuffer = 0;
-    int whichFormat = -1;
-    // Loop is a workaround for bugs in NVidia's recent drivers
-    for (whichFormat = 0; whichFormat < nformats; whichFormat++) {
-      int format = pformats[whichFormat];
-
-      // Create the p-buffer.
-      niattribs = 0;
-
-      if (rtt) {
-        iattributes[niattribs++]   = WGLExt.WGL_TEXTURE_FORMAT_ARB;
-        if (useFloat) {
-          iattributes[niattribs++] = WGLExt.WGL_TEXTURE_FLOAT_RGB_NV;
-        } else {
-          iattributes[niattribs++] = WGLExt.WGL_TEXTURE_RGBA_ARB;
-        }
-
-        iattributes[niattribs++] = WGLExt.WGL_TEXTURE_TARGET_ARB;
-        iattributes[niattribs++] = rect ? WGLExt.WGL_TEXTURE_RECTANGLE_NV : WGLExt.WGL_TEXTURE_2D_ARB;
-
-        iattributes[niattribs++] = WGLExt.WGL_MIPMAP_TEXTURE_ARB;
-        iattributes[niattribs++] = GL.GL_FALSE;
-
-        iattributes[niattribs++] = WGLExt.WGL_PBUFFER_LARGEST_ARB;
-        iattributes[niattribs++] = GL.GL_FALSE;
-      }
-
-      iattributes[niattribs++] = 0;
-
-      tmpBuffer = wglExt.wglCreatePbufferARB(parentHdc, format, getWidth(), getHeight(), iattributes, 0);
-      if (tmpBuffer != 0) {
-        // Done
-        break;
-      }
-    }
-
-    if (tmpBuffer == 0) {
-      throw new GLException("pbuffer creation error: wglCreatePbuffer() failed: tried " + nformats +
-                            " pixel formats, last error was: " + wglGetLastError());
+        pfdid = pformats[whichFormat];
     }
 
     // Get the device context.
@@ -280,48 +240,14 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
     // Re-query chosen pixel format
     {
-      niattribs = 0;
-      iattributes[niattribs++] = WGLExt.WGL_ACCELERATION_ARB;
-      iattributes[niattribs++] = WGLExt.WGL_RED_BITS_ARB;
-      iattributes[niattribs++] = WGLExt.WGL_GREEN_BITS_ARB;
-      iattributes[niattribs++] = WGLExt.WGL_BLUE_BITS_ARB;
-      iattributes[niattribs++] = WGLExt.WGL_ALPHA_BITS_ARB;
-      iattributes[niattribs++] = WGLExt.WGL_DEPTH_BITS_ARB;
-      iattributes[niattribs++] = WGLExt.WGL_STENCIL_BITS_ARB;
-      iattributes[niattribs++] = WGLExt.WGL_DOUBLE_BUFFER_ARB;
-      iattributes[niattribs++] = WGLExt.WGL_STEREO_ARB;
-      iattributes[niattribs++] = WGLExt.WGL_ACCUM_RED_BITS_ARB;
-      iattributes[niattribs++] = WGLExt.WGL_ACCUM_GREEN_BITS_ARB;
-      iattributes[niattribs++] = WGLExt.WGL_ACCUM_BLUE_BITS_ARB;
-      iattributes[niattribs++] = WGLExt.WGL_ACCUM_ALPHA_BITS_ARB;
-      iattributes[niattribs++] = (useFloat ? (ati ? WGLExt.WGL_PIXEL_TYPE_ARB : WGLExt.WGL_FLOAT_COMPONENTS_NV) : WGLExt.WGL_RED_BITS_ARB);
-      iattributes[niattribs++] = (haveMultisample ? WGLExt.WGL_SAMPLE_BUFFERS_ARB : WGLExt.WGL_RED_BITS_ARB);
-      iattributes[niattribs++] = (haveMultisample ? WGLExt.WGL_SAMPLES_ARB : WGLExt.WGL_RED_BITS_ARB);
-      iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
-      int[] ivalues = new int[niattribs];
-      if (wglExt.wglGetPixelFormatAttribivARB(parentHdc, pformats[whichFormat], 0, niattribs, iattributes, 0, ivalues, 0)) {
-        GLCapabilitiesImmutable newCaps = WindowsWGLGraphicsConfiguration.AttribList2GLCapabilities(glProfile, iattributes, niattribs, ivalues, false, true);
-        if(null == newCaps|| newCaps.isOnscreen() || !newCaps.isPBuffer()) {
-            throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps);
-        }
-        PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
-        if (GDI.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
-          if (DEBUG) {
-              System.err.println("Unable to describe pixel format (Continue: true) " + whichFormat + "/" + nformats + " pfdID " + pformats[whichFormat]+":\n\t"+newCaps);
-          }
-        }
-        config.setCapsPFD(newCaps, pfd, pformats[whichFormat], true);
-      } else {
-        PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
-        if (GDI.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
-          throw new GLException("Unable to describe pixel format " + pformats[whichFormat]);
-        }
-        GLCapabilitiesImmutable newCaps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, pfd, false, true);
-        if(newCaps.isOnscreen()) {
-          throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps+"\n\t"+newCaps);
-        }
-        config.setCapsPFD(newCaps, pfd, pformats[whichFormat], false);
+      WGLGLCapabilities newCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedCtx, parentHdc, pfdid, glProfile, false, true);
+      if(null == newCaps) {
+        throw new GLException("pbuffer creation error: unable to re-query chosen PFD ID: " + pfdid + ", hdc " + this.toHexString(tmpHdc));
       }
+      if(newCaps.isOnscreen() || !newCaps.isPBuffer()) {
+        throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps);
+      }
+      config.setCapsPFD(newCaps);
     }
 
     // Determine the actual width and height we were able to create.

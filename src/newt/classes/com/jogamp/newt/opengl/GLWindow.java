@@ -34,18 +34,22 @@
 
 package com.jogamp.newt.opengl;
 
+import java.util.List;
+
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.NativeWindowVersion;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.WindowImpl;
+
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.Insets;
 import javax.media.opengl.*;
+
 import com.jogamp.opengl.impl.GLDrawableHelper;
 import com.jogamp.opengl.JoglVersion;
-import javax.media.nativewindow.util.Insets;
 
 /**
  * An implementation of {@link javax.media.opengl.GLAutoDrawable} interface,
@@ -895,7 +899,14 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
         System.err.println(NativeWindowVersion.getInstance());
         System.err.println(JoglVersion.getInstance());
         System.err.println(NewtVersion.getInstance());
-        GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault() );
+
+        GLProfile glp = GLProfile.getDefault();
+        GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
+        List/*<GLCapabilitiesImmutable>*/ availCaps = factory.getAvailableCapabilities(null);
+        for(int i=0; i<availCaps.size(); i++) {
+            System.err.println(availCaps.get(i));
+        }
+        GLCapabilitiesImmutable caps = new GLCapabilities( glp );
 
         GLWindow glWindow = GLWindow.create(caps);
         glWindow.setSize(128, 128);

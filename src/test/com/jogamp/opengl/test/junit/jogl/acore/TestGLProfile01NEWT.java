@@ -28,21 +28,22 @@
  
 package com.jogamp.opengl.test.junit.jogl.acore;
 
-import com.jogamp.common.GlueGenVersion;
-import com.jogamp.common.util.VersionUtil;
-import com.jogamp.nativewindow.NativeWindowVersion;
-import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.util.DumpGLInfo;
+import java.io.IOException;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.media.opengl.*;
-import com.jogamp.newt.opengl.*;
 
-import com.jogamp.newt.*;
+import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.util.VersionUtil;
+import com.jogamp.nativewindow.NativeWindowVersion;
+import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.test.junit.util.DumpGLInfo;
 import com.jogamp.opengl.JoglVersion;
-import java.io.IOException;
+import com.jogamp.newt.opengl.*;
+import com.jogamp.newt.*;
 
 public class TestGLProfile01NEWT extends UITestCase {
 
@@ -53,6 +54,12 @@ public class TestGLProfile01NEWT extends UITestCase {
         System.err.println(NativeWindowVersion.getInstance());
         System.err.println(JoglVersion.getInstance());
         System.err.println(NewtVersion.getInstance());
+
+        GLDrawableFactory factory = GLDrawableFactory.getFactory(GLProfile.getDefault());
+        List/*<GLCapabilitiesImmutable>*/ availCaps = factory.getAvailableCapabilities(null);
+        for(int i=0; i<availCaps.size(); i++) {
+            System.err.println(availCaps.get(i));
+        }
     }
 
     @Test

@@ -36,7 +36,7 @@ package com.jogamp.opengl.impl.windows.wgl.awt;
 
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.nativewindow.impl.jawt.windows.Win32SunJDKReflection;
-import com.jogamp.opengl.impl.GLGraphicsConfigurationFactoryImpl;
+import com.jogamp.opengl.impl.GLGraphicsConfigurationFactory;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 
@@ -59,7 +59,7 @@ import javax.media.opengl.GLException;
 import com.jogamp.opengl.impl.windows.wgl.WindowsWGLGraphicsConfiguration;
 import javax.media.opengl.GLDrawableFactory;
 
-public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactoryImpl {
+public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     protected static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug("GraphicsConfiguration");
 
     public WindowsAWTWGLGraphicsConfigurationFactory() {

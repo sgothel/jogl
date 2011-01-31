@@ -39,16 +39,17 @@
  */
 package com.jogamp.opengl.test.junit.jogl.caps;
 
+import java.util.List;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
 class MultisampleChooser01 extends DefaultGLCapabilitiesChooser {
 
-    public int chooseCapabilities(GLCapabilitiesImmutable desired, GLCapabilitiesImmutable[] available, int windowSystemRecommendedChoice) {
+    public int chooseCapabilities(GLCapabilitiesImmutable desired, List/*<GLCapabilitiesImmutable>*/ available, int windowSystemRecommendedChoice) {
         boolean anyHaveSampleBuffers = false;
-        for (int i = 0; i < available.length; i++) {
-            GLCapabilitiesImmutable caps = available[i];
-            if (caps != null && caps.getSampleBuffers()) {
+        for (int i = 0; i < available.size(); i++) {
+            GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) available.get(i);
+            if ( caps.getSampleBuffers() ) {
                 anyHaveSampleBuffers = true;
                 break;
             }
@@ -57,7 +58,8 @@ class MultisampleChooser01 extends DefaultGLCapabilitiesChooser {
         if (!anyHaveSampleBuffers) {
             System.err.println("WARNING: antialiasing will be disabled because none of the available pixel formats had it to offer");
         } else {
-            if (!available[selection].getSampleBuffers()) {
+            GLCapabilitiesImmutable selected = (GLCapabilitiesImmutable) available.get(selection);
+            if (!selected.getSampleBuffers()) {
                 System.err.println("WARNING: antialiasing will be disabled because the DefaultGLCapabilitiesChooser didn't supply it");
             }
         }

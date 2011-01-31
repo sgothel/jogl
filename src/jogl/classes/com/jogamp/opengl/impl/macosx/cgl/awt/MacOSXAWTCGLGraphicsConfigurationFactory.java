@@ -33,7 +33,7 @@
 
 package com.jogamp.opengl.impl.macosx.cgl.awt;
 
-import com.jogamp.opengl.impl.GLGraphicsConfigurationFactoryImpl;
+import com.jogamp.opengl.impl.GLGraphicsConfigurationFactory;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 
@@ -55,7 +55,7 @@ import javax.media.opengl.GLException;
 
 import com.jogamp.opengl.impl.macosx.cgl.MacOSXCGLGraphicsConfiguration;
 
-public class MacOSXAWTCGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactoryImpl {
+public class MacOSXAWTCGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     protected static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug("GraphicsConfiguration");
 
     public MacOSXAWTCGLGraphicsConfigurationFactory() {
