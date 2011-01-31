@@ -34,6 +34,9 @@
 
 package com.jogamp.newt.impl;
 
+import java.util.ArrayList;
+import java.lang.reflect.Method;
+
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Display;
@@ -52,8 +55,6 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.WindowUpdateEvent;
 
-import java.util.ArrayList;
-import java.lang.reflect.Method;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.CapabilitiesChooser;

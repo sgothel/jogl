@@ -40,10 +40,10 @@
 
 package javax.media.opengl;
 
-import com.jogamp.opengl.impl.Debug;
 import java.util.HashMap;
 import java.util.HashSet;
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.opengl.impl.Debug;
 
 /** Abstraction for an OpenGL rendering context. In order to perform
     OpenGL rendering, a context must be "made current" on the current

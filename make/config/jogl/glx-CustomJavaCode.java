@@ -21,7 +21,7 @@
   {
     final long __addr_ = glxProcAddressTable._addressof_glXChooseFBConfig;
     if (__addr_ == 0) {
-        throw new GLException("Method \"glXGetVisualFromFBConfig\" not available");
+        throw new GLException("Method \"glXChooseFBConfig\" not available");
     }
     if(attribList != null && attribList.length <= attribList_offset)
       throw new GLException("array offset argument \"attribList_offset\" (" + attribList_offset + ") equals or exceeds array length (" + attribList.length + ")");

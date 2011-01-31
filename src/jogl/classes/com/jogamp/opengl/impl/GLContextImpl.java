@@ -40,15 +40,17 @@
 
 package com.jogamp.opengl.impl;
 
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.gluegen.runtime.FunctionAddressResolver;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLExtensionNames;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
+
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
