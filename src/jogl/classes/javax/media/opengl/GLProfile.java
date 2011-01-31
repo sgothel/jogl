@@ -347,17 +347,16 @@ public class GLProfile {
 
     /** 
      * All GL Profiles in the order of default detection.
-     * Desktop compatibility profiles (the one with fixed function pipeline) comes first.
-     *
-     * FIXME GL3GL4: Due to GL3 and GL4 implementation bugs, we still choose GL2 first, if available!
+     * Desktop compatibility profiles (the one with fixed function pipeline) comes first
+     * from highest to lowest version.
      *
      * <ul>
-     *  <li> GL2
-     *  <li> GL3bc
      *  <li> GL4bc
+     *  <li> GL3bc
+     *  <li> GL2
      *  <li> GL2GL3
-     *  <li> GL3
      *  <li> GL4
+     *  <li> GL3
      *  <li> GL2ES2
      *  <li> GLES2
      *  <li> GL2ES1
@@ -365,7 +364,40 @@ public class GLProfile {
      * </ul>
      *
      */
-    public static final String[] GL_PROFILE_LIST_ALL = new String[] { GL2, GL3bc, GL4bc, GL2GL3, GL3, GL4, GL2ES2, GLES2, GL2ES1, GLES1 };
+    public static final String[] GL_PROFILE_LIST_ALL = new String[] { GL4bc, GL3bc, GL2, GL2GL3, GL4, GL3, GL2ES2, GLES2, GL2ES1, GLES1 };
+
+    /**
+     * Order of maximum profiles.
+     *
+     * <ul>
+     *  <li> GL4bc
+     *  <li> GL4
+     *  <li> GL3bc
+     *  <li> GL3
+     *  <li> GL2
+     *  <li> GL2GL3
+     *  <li> GL2ES2
+     *  <li> GLES2
+     *  <li> GL2ES1
+     *  <li> GLES1
+     * </ul>
+     *
+     */
+    public static final String[] GL_PROFILE_LIST_MAX = new String[] { GL4bc, GL4, GL3bc, GL3, GL2, GL2GL3, GL2ES2, GLES2, GL2ES1, GLES1 };
+
+    /**
+     * Order of minimum original desktop profiles.
+     *
+     * <ul>
+     *  <li> GL2
+     *  <li> GL3bc
+     *  <li> GL4bc
+     *  <li> GL3
+     *  <li> GL4
+     * </ul>
+     *
+     */
+    public static final String[] GL_PROFILE_LIST_MIN_DESKTOP = new String[] { GL2, GL3bc, GL4bc, GL3, GL4 };
 
     /**
      * Order of maximum fixed function profiles
@@ -395,12 +427,10 @@ public class GLProfile {
      * </ul>
      *
      */
-    public static final String[] GL_PROFILE_LIST_MAX_PROGSHADER   = new String[] { GL4, GL4bc, GL3, GL3bc, GL2, GL2ES2, GLES2 };
+    public static final String[] GL_PROFILE_LIST_MAX_PROGSHADER   = new String[] { GL4bc, GL4, GL3bc, GL3, GL2, GL2ES2, GLES2 };
 
     /**
      * All GL2ES2 Profiles in the order of default detection.
-     *
-     * FIXME GL3GL4: Due to GL3 and GL4 implementation bugs, we still choose GL2 first, if available!
      *
      * <ul>
      *  <li> GL2ES2
@@ -411,12 +441,10 @@ public class GLProfile {
      * </ul>
      *
      */
-    public static final String[] GL_PROFILE_LIST_GL2ES2 = new String[] { GL2ES2, GL2, GL3, GL4, GLES2 };
+    public static final String[] GL_PROFILE_LIST_GL2ES2 = new String[] { GL2ES2, GL4, GL3, GL2, GLES2 };
 
     /**
      * All GL2ES1 Profiles in the order of default detection.
-     *
-     * FIXME GL3GL4: Due to GL3 and GL4 implementation bugs, we still choose GL2 first, if available!
      *
      * <ul>
      *  <li> GL2ES1
@@ -427,7 +455,7 @@ public class GLProfile {
      * </ul>
      *
      */
-    public static final String[] GL_PROFILE_LIST_GL2ES1 = new String[] { GL2ES1, GL2, GL3bc, GL4bc, GLES1 };
+    public static final String[] GL_PROFILE_LIST_GL2ES1 = new String[] { GL2ES1, GL4bc, GL3bc, GL2, GLES1 };
 
     /**
      * All GLES Profiles in the order of default detection.
@@ -455,7 +483,48 @@ public class GLProfile {
     }
 
     /**
-     * Returns the highest profile, implementing the fixed function pipeline
+     * Returns the highest profile.
+     * It selects the first of the set: {@link GLProfile#GL_PROFILE_LIST_MAX}
+     *
+     * @throws GLException if no implementation for the given profile is found.
+     * @see #GL_PROFILE_LIST_MAX
+     */
+    public static GLProfile getMaximum(AbstractGraphicsDevice device)
+        throws GLException
+    {
+        return get(device, GL_PROFILE_LIST_MAX);
+    }
+
+    /** Uses the default device */
+    public static GLProfile getMaximum()
+        throws GLException
+    {
+        return get(GL_PROFILE_LIST_MAX);
+    }
+
+    /**
+     * Returns the lowest desktop profile.
+     * It selects the first of the set: {@link GLProfile#GL_PROFILE_LIST_MIN_DESKTOP}
+     *
+     * @throws GLException if no implementation for the given profile is found.
+     * @see #GL_PROFILE_LIST_MIN_DESKTOP
+     */
+    public static GLProfile getMinDesktop(AbstractGraphicsDevice device)
+        throws GLException
+    {
+        return get(device, GL_PROFILE_LIST_MIN_DESKTOP);
+    }
+
+    /** Uses the default device */
+    public static GLProfile getMinDesktop()
+        throws GLException
+    {
+        return get(GL_PROFILE_LIST_MIN_DESKTOP);
+    }
+
+
+    /**
+     * Returns the highest profile, implementing the fixed function pipeline.
      * It selects the first of the set: {@link GLProfile#GL_PROFILE_LIST_MAX_FIXEDFUNC}
      *
      * @throws GLException if no implementation for the given profile is found.

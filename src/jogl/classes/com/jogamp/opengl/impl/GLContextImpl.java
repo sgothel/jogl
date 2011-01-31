@@ -558,15 +558,9 @@ public abstract class GLContextImpl extends GLContext {
         ctp |=  CTX_PROFILE_COMPAT ;
     }
 
-    // FIXME GL3GL4:
-    // To avoid OpenGL implementation bugs and raise compatibility
-    // within JOGL, we map to the proper GL version.
-    // This may change later when GL3 and GL4 drivers become more mature!
-    // Bug: To ensure GL profile compatibility within the JOGL application
-    // Bug: we always try to map against the highest GL version,
-    // Bug: so the use can always cast to a higher one
-    // Bug: int majorMax=GLContext.getMaxMajor(); 
-    // Bug: int minorMax=GLContext.getMaxMinor(majorMax);
+    // To ensure GL profile compatibility within the JOGL application
+    // we always try to map against the highest GL version,
+    // so the user can always cast to the highest available one.
     int majorMax, minorMax;
     int majorMin, minorMin;
     int major[] = new int[1];

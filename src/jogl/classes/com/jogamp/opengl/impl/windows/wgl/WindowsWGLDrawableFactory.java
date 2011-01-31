@@ -218,7 +218,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                 if (null == absScreen) {
                     throw new GLException("Couldn't create shared screen for device: "+sharedDevice+", idx 0");
                 }
-                GLProfile glp = GLProfile.getDefault(sharedDevice);
+                GLProfile glp = GLProfile.getMinDesktop(sharedDevice);
                 if (null == glp) {
                     throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
                 }

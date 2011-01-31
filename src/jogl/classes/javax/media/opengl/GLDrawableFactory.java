@@ -335,7 +335,9 @@ public abstract class GLDrawableFactory {
 
   /**
    * Returns an array of available GLCapabilities for the device.<br>
-   * The list is sorted by the native ID, ascending.
+   * The list is sorted by the native ID, ascending.<br>
+   * The chosen GLProfile statement in the result may not refer to the maximum available profile
+   * due to implementation constraints, ie using the shared resource.
    *
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    * @return A list of {@link javax.media.opengl.GLCapabilitiesImmutable}'s, maybe empty if none is available.
