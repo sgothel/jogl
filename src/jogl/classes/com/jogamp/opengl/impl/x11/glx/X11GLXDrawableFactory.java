@@ -180,6 +180,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 if (null == sharedScreen) {
                     throw new GLException("Couldn't create shared screen for device: "+sharedDevice+", idx 0");
                 }
+                // GLProfile glp = GLProfile.getMinDesktop(sharedDevice);
                 GLProfile glp = GLProfile.getDefault(sharedDevice);
                 if (null == glp) {
                     throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
@@ -368,6 +369,10 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared(device);
     if(null!=sr) {
       return sr.isGLXVersionGreaterEqualOneThree();
+    }
+    if( device instanceof X11GraphicsDevice ) {
+      VersionNumber v = getGLXVersion( (X11GraphicsDevice) device);
+      return ( null != v ) ? v.compareTo(versionOneThree) >= 0 : false ;
     }
     return false;
   }
