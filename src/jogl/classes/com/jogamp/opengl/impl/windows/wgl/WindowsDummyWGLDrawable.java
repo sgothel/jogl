@@ -89,7 +89,6 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
       caps.setDepthBits(16);
       caps.setDoubleBuffered(true);
       caps.setOnscreen  (true);
-      caps.setPBuffer   (true);
       return new WindowsDummyWGLDrawable(factory, caps, absScreen);
   }
 
