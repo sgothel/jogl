@@ -1558,6 +1558,8 @@ public class TextRenderer {
         final int undefined = -2;
         FontRenderContext fontRenderContext;
         List/*<Glyph>*/ glyphsOutput = new ArrayList/*<Glyph>*/();
+        HashMap/*<String, GlyphVector>*/fullGlyphVectorCache = new HashMap/*<String, GlyphVector>*/();
+        HashMap/*<Character, GlyphMetrics>*/glyphMetricsCache = new HashMap/*<Character, GlyphMetrics>*/();
         // The mapping from unicode character to font-specific glyph ID
         int[] unicodes2Glyphs;
         // The mapping from glyph ID to Glyph
@@ -1573,8 +1575,13 @@ public class TextRenderer {
 
         public List/*<Glyph>*/ getGlyphs(CharSequence inString) {
             glyphsOutput.clear();
-            iter.initFromCharSequence(inString);
-            GlyphVector fullRunGlyphVector = font.createGlyphVector(getFontRenderContext(), iter);
+            GlyphVector fullRunGlyphVector;
+            fullRunGlyphVector = (GlyphVector) fullGlyphVectorCache.get(inString.toString());
+            if (fullRunGlyphVector == null) {
+                iter.initFromCharSequence(inString);
+                fullRunGlyphVector = font.createGlyphVector(getFontRenderContext(), iter);
+                fullGlyphVectorCache.put(inString.toString(), fullRunGlyphVector);
+            }
             boolean complex = (fullRunGlyphVector.getLayoutFlags() != 0);
             if (complex || DISABLE_GLYPH_CACHE) {
                 // Punt to the robust version of the renderer
@@ -1585,7 +1592,13 @@ public class TextRenderer {
             int lengthInGlyphs = fullRunGlyphVector.getNumGlyphs();
             int i = 0;
             while (i < lengthInGlyphs) {
-                Glyph glyph = getGlyph(inString, fullRunGlyphVector, i);
+            	Character letter = CharacterCache.valueOf(inString.charAt(i));
+                GlyphMetrics metrics = (GlyphMetrics) glyphMetricsCache.get(letter);
+                if (metrics == null) {
+                    metrics = fullRunGlyphVector.getGlyphMetrics(i);
+                    glyphMetricsCache.put(letter, metrics);
+                }
+                Glyph glyph = getGlyph(inString, metrics, i);
                 if (glyph != null) {
                     glyphsOutput.add(glyph);
                     i++;
@@ -1594,7 +1607,7 @@ public class TextRenderer {
                     // the cache
                     StringBuffer buf = new StringBuffer();
                     while (i < lengthInGlyphs &&
-                           getGlyph(inString, fullRunGlyphVector, i) == null) {
+                           getGlyph(inString, fullRunGlyphVector.getGlyphMetrics(i), i) == null) {
                         buf.append(inString.charAt(i++));
                     }
                     glyphsOutput.add(new Glyph(buf.toString(),
@@ -1645,7 +1658,7 @@ public class TextRenderer {
         // if the unicode or glyph ID would be out of bounds of the
         // glyph cache.
         private Glyph getGlyph(CharSequence inString,
-                               GlyphVector fullRunGlyphVector,
+        		               GlyphMetrics glyphMetrics,
                                int index) {
             char unicodeID = inString.charAt(index);
 
@@ -1661,7 +1674,7 @@ public class TextRenderer {
             // Must fabricate the glyph
             singleUnicode[0] = unicodeID;
             GlyphVector gv = font.createGlyphVector(getFontRenderContext(), singleUnicode);
-            return getGlyph(unicodeID, gv, fullRunGlyphVector.getGlyphMetrics(index));
+            return getGlyph(unicodeID, gv, glyphMetrics);
         }
 
         // It's unclear whether this variant might produce less
@@ -1696,6 +1709,26 @@ public class TextRenderer {
                                     this);
             register(glyph);
             return glyph;
+        }
+    }
+    
+    private static class CharacterCache {
+        private CharacterCache() {
+        }
+
+        static final Character cache[] = new Character[127 + 1];
+
+        static {
+            for (int i = 0; i < cache.length; i++) {
+                cache[i] = new Character((char) i);
+            }
+        }
+
+        public static Character valueOf(char c) {
+            if (c <= 127) { // must cache
+                return CharacterCache.cache[c];
+            }
+            return new Character(c);
         }
     }
 
