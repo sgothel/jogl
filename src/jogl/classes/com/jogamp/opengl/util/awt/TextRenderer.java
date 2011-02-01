@@ -718,7 +718,7 @@ public class TextRenderer {
         // The OpenGL spec is unclear about whether this changes the
         // buffer bindings, so preemptively zero out the GL_ARRAY_BUFFER
         // binding
-        if (is15Available(gl)) {
+        if (getUseVertexArrays() && is15Available(gl)) {
             try {
                 gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, 0);
             } catch (Exception e) {
@@ -1234,7 +1234,7 @@ public class TextRenderer {
                 // The OpenGL spec is unclear about whether this changes the
                 // buffer bindings, so preemptively zero out the GL_ARRAY_BUFFER
                 // binding
-                if (is15Available(gl)) {
+                if (getUseVertexArrays() && is15Available(gl)) {
                     try {
                         gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, 0);
                     } catch (Exception e) {
@@ -1743,7 +1743,7 @@ public class TextRenderer {
             mVertCoords = Buffers.newDirectFloatBuffer(kTotalBufferSizeCoordsVerts);
             mTexCoords = Buffers.newDirectFloatBuffer(kTotalBufferSizeCoordsTex);
 
-            usingVBOs = is15Available(gl);
+            usingVBOs = getUseVertexArrays() && is15Available(gl);
 
             if (usingVBOs) {
                 try {
@@ -1949,7 +1949,7 @@ public class TextRenderer {
      * rendering, or whether text is rendered using the OpenGL
      * immediate mode commands. Defaults to true.
      */
-    public boolean getUseVertexArrays() {
+    public final boolean getUseVertexArrays() {
         return useVertexArrays;
     }
 
@@ -1974,7 +1974,7 @@ public class TextRenderer {
         return smoothing;
     }
 
-    private boolean is15Available(GL gl) {
+    private final boolean is15Available(GL gl) {
         if (!checkFor_isExtensionAvailable_GL_VERSION_1_5) {
             isExtensionAvailable_GL_VERSION_1_5 = gl.isExtensionAvailable("GL_VERSION_1_5");
             checkFor_isExtensionAvailable_GL_VERSION_1_5 = true;
