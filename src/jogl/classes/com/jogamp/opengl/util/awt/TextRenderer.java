@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -43,11 +44,9 @@ import com.jogamp.opengl.impl.Debug;
 import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.util.packrect.*;
 import com.jogamp.opengl.util.texture.*;
-import com.jogamp.opengl.util.texture.awt.*;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
-import java.awt.Composite;
 
 // For debugging purposes
 import java.awt.EventQueue;
@@ -71,7 +70,6 @@ import java.security.*;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
-import javax.media.opengl.glu.gl2.*;
 import javax.media.opengl.awt.*;
 
 

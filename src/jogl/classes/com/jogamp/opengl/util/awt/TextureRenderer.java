@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -47,10 +48,8 @@ import java.awt.Rectangle;
 import java.awt.image.*;
 
 import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
 import javax.media.opengl.glu.gl2.*;
 import com.jogamp.opengl.util.texture.*;
-import com.jogamp.opengl.util.texture.spi.*;
 import com.jogamp.opengl.util.texture.awt.*;
 
 /** Provides the ability to render into an OpenGL {@link
