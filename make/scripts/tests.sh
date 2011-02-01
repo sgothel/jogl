@@ -36,7 +36,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
-    D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GraphicsConfiguration"
@@ -94,7 +94,7 @@ function testawt() {
 #
 # awt (testawt)
 #
-testawt com.jogamp.newt.impl.awt.opengl.VersionApplet $*
+#testawt com.jogamp.newt.impl.awt.opengl.VersionApplet $*
 #testawt javax.media.opengl.awt.GLCanvas $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
@@ -104,6 +104,7 @@ testawt com.jogamp.newt.impl.awt.opengl.VersionApplet $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.TestGearsAWT
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestTexture01AWT
+testawt com.jogamp.opengl.test.junit.jogl.awt.text.TestAWTTextRendererUseVertexArrayBug464
 
 #
 # newt.awt (testawt)
