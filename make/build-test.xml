@@ -137,6 +137,38 @@
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
 
+    <target name="junit.run.noui" depends="test.compile">
+        <!-- Test*NOUI* -->
+        <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+
+            <!--
+            <jvmarg value="-Djogl.debug=all"/>
+            <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
+            <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
+            <jvmarg value="-Djogl.debug.GLSLState"/>
+            <jvmarg value="-Dnativewindow.debug=all"/>
+            <jvmarg value="-verbose:jni"/> 
+            <jvmarg value="-client"/>
+            <jvmarg value="-d32"/>
+            -->
+
+            <formatter usefile="false" type="plain"/>
+            <formatter usefile="true" type="xml"/>
+            <classpath refid="junit_jogl_awt.run.classpath"/>
+
+            <batchtest todir="${results.test}">
+              <fileset dir="${classes}">
+                  <include name="${java.dir.junit}/**/Test*NOUI*"/>
+                  <exclude name="**/*$$*"/>
+              </fileset>
+              <formatter usefile="false" type="brief"/>
+              <formatter usefile="true" type="xml"/>
+            </batchtest>
+        </junit>
+    </target>
+
     <!-- NEWT is currently not supported on OSX -->
     <target name="junit.run.newt.headless" depends="test.compile" unless="isOSX">
         <!-- Test*NEWT* 
@@ -309,7 +341,7 @@
     </target>
 
     <target name="test.auto.run" depends="junit.run"/>
-    <target name="junit.run" depends="junit.run.newt.headless,junit.run.awt,junit.run.newt.awt">
+    <target name="junit.run" depends="junit.run.noui,junit.run.newt.headless,junit.run.awt,junit.run.newt.awt">
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
 
