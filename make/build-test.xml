@@ -380,7 +380,7 @@
     </target>
 
     <target name="test.auto.run" depends="junit.run"/>
-    <target name="junit.run" depends="junit.run.noui,junit.run.newt.headless,junit.run.awt,junit.run.newt.awt">
+    <target name="junit.run" depends="junit.run.noui,junit.run.newt.headless,junit.run.awt,junit.run.newt.awt,junit.run.swt">
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
 
