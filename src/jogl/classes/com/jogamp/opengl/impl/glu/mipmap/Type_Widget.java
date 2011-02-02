@@ -56,7 +56,9 @@ public class Type_Widget {
   
   /** Creates a new instance of Type_Widget */
   public Type_Widget() {
-    buffer = ByteBuffer.allocateDirect( 4 );
+    // can't make this direct, because JVM doesn't allocate small direct buffers efficiently
+    // see https://jogamp.org/bugzilla/show_bug.cgi?id=463 for details
+    buffer = ByteBuffer.allocate( 4 );
   }
   
   public void setUB0( byte b ) {
