@@ -138,11 +138,9 @@ import com.jogamp.opengl.impl.ThreadingImpl;
 public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosingProtocol {
 
   private static final boolean DEBUG;
-  private static final GLProfile defaultGLProfile;
 
   static {
       DEBUG = Debug.debug("GLCanvas");
-      defaultGLProfile = GLProfile.getDefault(GLProfile.getDefaultDesktopDevice());
   }
 
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
@@ -220,7 +218,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     super();
 
     if(null==capsReqUser) {
-        capsReqUser = new GLCapabilities(defaultGLProfile);
+        capsReqUser = new GLCapabilities(GLProfile.getDefault(GLProfile.getDefaultDesktopDevice()));
     } else {
         // don't allow the user to change data
         capsReqUser = (GLCapabilitiesImmutable) capsReqUser.cloneMutable();
