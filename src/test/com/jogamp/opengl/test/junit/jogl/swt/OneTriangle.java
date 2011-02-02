@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.test.junit.jogl.swt;
+package com.jogamp.opengl.test.junit.jogl.swt;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
@@ -40,7 +40,7 @@ import org.eclipse.swt.graphics.Rectangle;
  */
 public class OneTriangle {
 
-	public static void setup( GL2 gl, Rectangle rectangle ) {
+    public static void setup( GL2 gl, Rectangle rectangle ) {
         gl.glMatrixMode( GL2.GL_PROJECTION );
         gl.glLoadIdentity();
 
@@ -54,7 +54,7 @@ public class OneTriangle {
         gl.glViewport( 0, 0, rectangle.width, rectangle.height );
     }
 
-	public static void render( GL2 gl, Rectangle rectangle ) {
+    public static void render( GL2 gl, Rectangle rectangle ) {
         gl.glClear( GL.GL_COLOR_BUFFER_BIT );
 
         // draw a triangle filling the window

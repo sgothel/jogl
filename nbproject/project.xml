@@ -13,6 +13,11 @@
             </properties>
             <folders>
                 <source-folder>
+                    <label>JOGL</label>
+                    <location>.</location>
+                    <encoding>UTF-8</encoding>
+                </source-folder>
+                <source-folder>
                     <label>nativewindow gensrc</label>
                     <type>java</type>
                     <location>build/nativewindow/gensrc/classes</location>
@@ -46,11 +51,6 @@
                     <label>src/test</label>
                     <type>java</type>
                     <location>src/test</location>
-                    <encoding>UTF-8</encoding>
-                </source-folder>
-                <source-folder>
-                    <label>JOGL</label>
-                    <location>.</location>
                     <encoding>UTF-8</encoding>
                 </source-folder>
             </folders>
@@ -201,14 +201,14 @@
                 <package-root>src/nativewindow/classes</package-root>
                 <package-root>build/jogl/gensrc/classes</package-root>
                 <package-root>build/nativewindow/gensrc/classes</package-root>
-                <classpath mode="compile">../gluegen/build/gluegen.jar:../gluegen/build/gluegen-rt.jar</classpath>
+                <classpath mode="compile">../gluegen/build/gluegen.jar:../gluegen/build/gluegen-rt.jar:make/lib/swt/gtk-linux-x86_64/swt-debug.jar</classpath>
                 <built-to>bin</built-to>
                 <source-level>1.4</source-level>
             </compilation-unit>
             <compilation-unit>
                 <package-root>src/test</package-root>
                 <unit-tests/>
-                <classpath mode="compile">build/jogl/classes:build/jogl/gensrc/classes:build/newt/classes:build/nativewindow/classes:build/nativewindow/gensrc/classes:build/test/build/classes:${jdk.home}/lib/tools.jar:${ant.core.lib}:${ant.home}/lib/ant-junit.jar:../gluegen/make/lib/antlr.jar:../gluegen/make/lib/junit.jar:../gluegen/build/gluegen-rt.jar</classpath>
+                <classpath mode="compile">build/jogl/classes:build/jogl/gensrc/classes:build/newt/classes:build/nativewindow/classes:build/nativewindow/gensrc/classes:build/test/build/classes:${jdk.home}/lib/tools.jar:${ant.core.lib}:${ant.home}/lib/ant-junit.jar:../gluegen/make/lib/antlr.jar:../gluegen/make/lib/junit.jar:../gluegen/build/gluegen-rt.jar:make/lib/swt/gtk-linux-x86_64/swt-debug.jar</classpath>
                 <built-to>bin</built-to>
                 <source-level>1.5</source-level>
             </compilation-unit>

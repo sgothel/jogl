@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.test.junit.jogl.swt;
+package com.jogamp.opengl.test.junit.jogl.swt;
 
 import java.awt.Frame;
 
@@ -52,7 +52,7 @@ import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
-import com.jogamp.test.junit.util.UITestCase;
+import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
  * Tests that a basic SWT app can open without crashing under different GL profiles. Uses the AWT GL canvas with
@@ -61,7 +61,9 @@ import com.jogamp.test.junit.util.UITestCase;
  */
 public class TestSWTAWT01GLn extends UITestCase {
 
-	Display display = null;
+    static final int duration = 250;
+
+    Display display = null;
     Shell shell = null;
     Composite composite = null;
     Frame frame = null;
@@ -77,10 +79,10 @@ public class TestSWTAWT01GLn extends UITestCase {
     public void init() {
         display = new Display();
         Assert.assertNotNull( display );
-		shell = new Shell( display );
+        shell = new Shell( display );
         Assert.assertNotNull( shell );
-		shell.setLayout( new FillLayout() );
-		composite = new Composite( shell, SWT.EMBEDDED | SWT.NO_BACKGROUND );
+        shell.setLayout( new FillLayout() );
+        composite = new Composite( shell, SWT.EMBEDDED | SWT.NO_BACKGROUND );
         composite.setLayout( new FillLayout() );
         Assert.assertNotNull( composite );
         frame = SWT_AWT.new_Frame( composite );
@@ -97,65 +99,67 @@ public class TestSWTAWT01GLn extends UITestCase {
             frame.setVisible( false );
             frame.remove( glcanvas );
             frame.dispose();
-	        composite.dispose();
-	        shell.dispose();
-			display.dispose();
+            composite.dispose();
+            shell.dispose();
+            display.dispose();
         }
         catch( Throwable throwable ) {
-        	throwable.printStackTrace();
+            throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
         display = null;
         shell = null;
-		composite = null;
-		frame = null;
+        composite = null;
+        frame = null;
         glcanvas = null;
     }
 
     protected void runTestGL( GLProfile glprofile ) throws InterruptedException {
-    	GLCapabilities glcapabilities = new GLCapabilities( glprofile );
+        GLCapabilities glcapabilities = new GLCapabilities( glprofile );
         glcanvas = new GLCanvas( glcapabilities );
         Assert.assertNotNull( glcanvas );
-        frame.add( glcanvas ); 
+        frame.add( glcanvas );
 
         glcanvas.addGLEventListener( new GLEventListener() {
-			@Override
-			public void init( GLAutoDrawable glautodrawable ) {
-			}
+            @Override
+            public void init( GLAutoDrawable glautodrawable ) {
+            }
 
-			@Override
-			public void dispose( GLAutoDrawable glautodrawable ) {
-			}
+            @Override
+            public void dispose( GLAutoDrawable glautodrawable ) {
+            }
 
-			@Override
-			public void display( GLAutoDrawable glautodrawable ) {
+            @Override
+            public void display( GLAutoDrawable glautodrawable ) {
                 Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getWidth(), glautodrawable.getHeight() );
                 GL2 gl = glautodrawable.getGL().getGL2();
                 OneTriangle.render( gl, rectangle );
-			}
+            }
 
-			@Override
-			public void reshape( GLAutoDrawable glautodrawable, int x, int y, int width, int height ) {
+            @Override
+            public void reshape( GLAutoDrawable glautodrawable, int x, int y, int width, int height ) {
                 Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getWidth(), glautodrawable.getHeight() );
                 GL2 gl = glautodrawable.getGL().getGL2();
                 OneTriangle.setup( gl, rectangle );
-			}
+            }
         });
 
-		shell.setText( getClass().getName() );
-		shell.setSize( 640, 480 );
-		shell.open();
+        shell.setText( getClass().getName() );
+        shell.setSize( 640, 480 );
+        shell.open();
 
-		long lStartTime = System.currentTimeMillis();
-		long lEndTime = lStartTime + 1000;
-		try {
-    		while( (System.currentTimeMillis() < lEndTime) && !composite.isDisposed() ) {
-    			if( !display.readAndDispatch() )
-    				display.sleep();
-    		}
+        long lStartTime = System.currentTimeMillis();
+        long lEndTime = lStartTime + duration;
+        try {
+            while( (System.currentTimeMillis() < lEndTime) && !composite.isDisposed() ) {
+                if( !display.readAndDispatch() ) {
+                    // blocks on linux .. display.sleep();
+                    Thread.sleep(10);
+                }
+            }
         }
-		catch( Throwable throwable ) {
-        	throwable.printStackTrace();
+        catch( Throwable throwable ) {
+            throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
     }
@@ -168,22 +172,10 @@ public class TestSWTAWT01GLn extends UITestCase {
     }
 
     @Test
-    public void test02GLMaxFixed() throws InterruptedException {
-        GLProfile glprofileMaxFixed = GLProfile.getMaxFixedFunc();
-        System.out.println( "GLProfile MaxFixed: " + glprofileMaxFixed );
-        try {
-            runTestGL( glprofileMaxFixed );
-        }
-        catch( Throwable throwable ) {
-             // FIXME: 
-             // Stop test and ignore if GL3bc and GL4bc
-             // currently this won't work on ATI!
-             if( glprofileMaxFixed.equals(GLProfile.GL3bc) || glprofileMaxFixed.equals(GLProfile.GL4bc) ) {
-            	 throwable.printStackTrace();
-                Assume.assumeNoException( throwable );
-             }
-             // else .. serious unexpected exception
-        }
+    public void test02GL2() throws InterruptedException {
+        GLProfile glprofile = GLProfile.get(GLProfile.GL2);
+        System.out.println( "GLProfile GL2: " + glprofile );
+        runTestGL( glprofile );
     }
 
     public static void main(String args[]) {
