@@ -90,6 +90,40 @@
         <echo message="antlr.jar=${antlr.jar}" />
         <echo message="junit.jar=${junit.jar}" />
 
+        <!-- Set swt.jar to the correct file for this platform. We point to the debug JARs to allow
+             stepping into SWT calls using the accompanying source code zip archives. -->
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/win32-win32-x86_64/swt-debug.jar">
+          <istrue value="${isWindowsAMD64}" />
+        </condition>
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/win32-win32-x86/swt-debug.jar">
+          <istrue value="${isWindowsX86}" />
+        </condition>
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86_64/swt-debug.jar">
+          <istrue value="${isLinuxAMD64}" />
+        </condition>
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt-debug.jar">
+          <istrue value="${isLinuxX86}" />
+        </condition>
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/cocoa-macosx-x86_64/swt-debug.jar">
+          <and>
+            <istrue value="${isOSX}" />
+            <or>
+              <os arch="AMD64" />
+              <os arch="x86_64" />
+            </or>                
+          </and>
+        </condition>
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/cocoa-macosx/swt-debug.jar">
+          <and>
+            <istrue value="${isOSX}" />
+            <or>
+              <os arch="i386" />
+              <os arch="x86" />
+            </or>
+          </and>
+        </condition>
+        <echo message="swt.jar=${swt.jar}" />
+
         <property name="target.sourcelevel" value="1.4" />
         <property name="host.sourcelevel"   value="1.5" />
 
@@ -199,6 +233,7 @@
             <pathelement location="${nativewindow.all.jar}" />
             <pathelement location="${jogl.all.jar}" />
             <pathelement location="${newt.all.jar}" />
+            <pathelement location="${swt.jar}" />
         </path>
 
         <path id="junit_jogl_awt.run.classpath">
@@ -211,6 +246,19 @@
             <pathelement location="${newt.event.jar}" />
             <pathelement location="${jogl.test.jar}" />
         </path>
+
+      <!-- classpath used when running SWT tests -->
+      <path id="junit_jogl_swt.run.classpath">
+          <pathelement location="${junit.jar}" />
+          <pathelement location="${ant.jar}" />
+          <pathelement location="${ant-junit.jar}" />
+          <pathelement location="${gluegen-rt.jar}" />
+          <pathelement location="${nativewindow.all.jar}" />
+          <pathelement location="${jogl.all.jar}" />
+          <pathelement location="${newt.event.jar}" />
+          <pathelement location="${jogl.test.jar}" />
+          <pathelement location="${swt.jar}" />
+      </path>
 
         <path id="junit_jogl_newt.run.classpath">
             <pathelement location="${junit.jar}" />
