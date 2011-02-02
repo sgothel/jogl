@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.glu;
+package com.jogamp.opengl.test.junit.jogl.glu;
 
 import java.awt.Frame;
 import java.awt.event.WindowAdapter;
