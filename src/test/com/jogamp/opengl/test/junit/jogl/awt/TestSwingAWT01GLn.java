@@ -134,23 +134,11 @@ public class TestSwingAWT01GLn extends UITestCase {
     }
 
     @Test
-    public void test03GLMaxFixed() throws InterruptedException, InvocationTargetException {
-        GLProfile maxFixed = GLProfile.getMaxFixedFunc();
-        System.out.println("GLProfile MaxFixed: "+maxFixed);
-        GLCapabilities caps = new GLCapabilities(maxFixed);
-        try {
-            runTestGL(caps);
-        } catch (Throwable t) {
-             // FIXME: 
-             // Stop test and ignore if GL3bc and GL4bc
-             // currently this won't work on ATI!
-             if(maxFixed.getName().equals(GLProfile.GL3bc) ||
-                maxFixed.getName().equals(GLProfile.GL4bc)) {
-                t.printStackTrace();
-                assumeNoException(t);
-             }
-             // else .. serious unexpected exception
-        }
+    public void test02GL2() throws InterruptedException, InvocationTargetException {
+        GLProfile glprofile = GLProfile.get(GLProfile.GL2);
+        System.out.println( "GLProfile GL2: " + glprofile );
+        GLCapabilities caps = new GLCapabilities(glprofile);
+        runTestGL(caps);
     }
 
     public static void main(String args[]) {

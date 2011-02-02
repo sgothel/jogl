@@ -122,23 +122,11 @@ public class TestAWT01GLn extends UITestCase {
     }
 
     @Test
-    public void test03GLMaxFixed() throws InterruptedException {
-        GLProfile maxFixed = GLProfile.getMaxFixedFunc();
-        System.out.println("GLProfile MaxFixed: "+maxFixed);
-        GLCapabilities caps = new GLCapabilities(maxFixed);
-        try {
-            runTestGL(caps);
-        } catch (Throwable t) {
-             // FIXME: 
-             // Stop test and ignore if GL3bc and GL4bc
-             // currently this won't work on ATI!
-             if(maxFixed.equals(GLProfile.GL3bc) ||
-                maxFixed.equals(GLProfile.GL4bc)) {
-                t.printStackTrace();
-                Assume.assumeNoException(t);
-             }
-             // else .. serious unexpected exception
-        }
+    public void test02GL2() throws InterruptedException {
+        GLProfile glprofile = GLProfile.get(GLProfile.GL2);
+        System.out.println( "GLProfile GL2: " + glprofile );
+        GLCapabilities caps = new GLCapabilities(glprofile);
+        runTestGL(caps);
     }
 
     public static void main(String args[]) {

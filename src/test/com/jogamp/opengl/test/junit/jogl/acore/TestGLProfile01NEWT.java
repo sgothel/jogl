@@ -66,14 +66,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     public void test01GLProfileDefault() throws InterruptedException {
         System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
         GLProfile glp = GLProfile.getDefault();
-        dumpVersion(glp);
-    }
-
-    @Test
-    public void test02GLProfileMaxFixedFunc() throws InterruptedException {
-        // Assuming at least one fixed profile is available
-        GLProfile glp = GLProfile.getMaxFixedFunc();
-        System.out.println("GLProfile getMaxFixedFunc(): "+glp);
+        System.out.println("GLProfile.getDefault(): "+glp);
         if(glp.getName().equals(GLProfile.GL4bc)) {
             Assert.assertTrue(GLProfile.isGL4bcAvailable());
             Assert.assertTrue(GLProfile.isGL3bcAvailable());
@@ -96,10 +89,16 @@ public class TestGLProfile01NEWT extends UITestCase {
     }
 
     @Test
+    public void test02GL2() throws InterruptedException {
+        GLProfile glp = GLProfile.get(GLProfile.GL2);
+        dumpVersion(glp);
+    }
+
+    @Test
     public void test03GLProfileMaxProgrammable() throws InterruptedException {
         // Assuming at least one programmable profile is available
         GLProfile glp = GLProfile.getMaxProgrammable();
-        System.out.println("GLProfile getMaxProgrammable(): "+glp);
+        System.out.println("GLProfile.getMaxProgrammable(): "+glp);
         if(glp.getName().equals(GLProfile.GL4)) {
             Assert.assertTrue(GLProfile.isGL4Available());
             Assert.assertTrue(GLProfile.isGL3Available());
