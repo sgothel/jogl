@@ -7,6 +7,14 @@ Additional licenses compatible with the BSD 3-clause license are listed below A.
 
 +++
 
+Exception is the content of folder 'make/lib'.
+This folder contains build/test time only Java binaries (JAR) to ease the build setup.
+Each JAR file has it's corresponding LICENSE file containing the 
+source location and license text. None of these binaries are contained in any way 
+by the generated and deployed JOGL binaries.
+
++++
+
 L.1) The JOGL source tree contains code from the JogAmp Community
      which is covered by the Simplified BSD 2-clause license:
 
