@@ -297,12 +297,48 @@
               <fileset dir="${classes}">
                   <include name="${java.dir.junit}/**/Test*AWT*"/>
                   <exclude name="**/*$$*"/>
+                  <exclude name="**/*SWT*"/>
                   <exclude name="**/newt/**"/>
               </fileset>
               <formatter usefile="false" type="brief"/>
               <formatter usefile="true" type="xml"/>
             </batchtest>
         </junit>
+    </target>
+
+    <target name="junit.run.swt" depends="junit.run.setup" description="Runs all SWT and SWT_AWT tests.">
+      <!-- Test*SWT* -->
+      <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+          <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+          <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+
+          <!--
+          <jvmarg value="-Dnewt.debug.EDT"/>
+          <jvmarg value="-Djogl.debug=all"/>
+          <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
+          <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
+          <jvmarg value="-Djogl.debug.GLSLState"/>
+          <jvmarg value="-Dnativewindow.debug=all"/>
+          <jvmarg value="-Dnewt.debug=all"/>
+          <jvmarg value="-verbose:jni"/> 
+          <jvmarg value="-client"/>
+          <jvmarg value="-d32"/>
+          -->
+
+          <formatter usefile="false" type="plain"/>
+          <formatter usefile="true" type="xml"/>
+          <classpath refid="junit_jogl_swt.run.classpath"/>
+
+          <batchtest todir="${results.junit}">
+            <fileset dir="${classes}">
+                <include name="${java.dir.test}/**/Test*SWT*"/>
+                <exclude name="**/*$$*"/>
+                <exclude name="**/newt/**"/>
+            </fileset>
+            <formatter usefile="false" type="brief"/>
+            <formatter usefile="true" type="xml"/>
+          </batchtest>
+      </junit>
     </target>
 
     <!-- NEWT is currently not supported on OSX -->
