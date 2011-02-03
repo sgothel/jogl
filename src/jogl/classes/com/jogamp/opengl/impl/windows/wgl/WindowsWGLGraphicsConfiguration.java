@@ -82,8 +82,8 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     }
 
 
-    static WindowsWGLGraphicsConfiguration create(GLDrawableFactory _factory, long hdc, int pfdID,
-                                                  GLProfile glp, AbstractGraphicsScreen screen, boolean onscreen, boolean usePBuffer)
+    static WindowsWGLGraphicsConfiguration createFromCurrent(GLDrawableFactory _factory, long hdc, int pfdID,
+                                                             GLProfile glp, AbstractGraphicsScreen screen, boolean onscreen, boolean usePBuffer)
     {
         if(_factory==null) {
             throw new GLException("Null factory");
@@ -105,12 +105,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         WGLGLCapabilities caps = null;
 
         if(hasARB) {
-            sharedContext.makeCurrent();
-            try {
-                caps = wglARBPFID2GLCapabilities(sharedContext, hdc, pfdID, glp, onscreen, usePBuffer);
-            } finally {
-                sharedContext.release();
-            }
+            caps = wglARBPFID2GLCapabilities(sharedContext, hdc, pfdID, glp, onscreen, usePBuffer);
         } else if(!usePBuffer) {
             caps = PFD2GLCapabilities(glp, hdc, pfdID, onscreen);
         }

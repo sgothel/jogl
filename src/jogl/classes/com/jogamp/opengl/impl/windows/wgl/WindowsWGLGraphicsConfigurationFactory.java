@@ -176,31 +176,39 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         if (ns == null) {
             throw new IllegalArgumentException("NativeSurface is null");
         }
-        long hdc = ns.getSurfaceHandle();
-        if (0 == hdc) {
-            throw new GLException("Error: HDC is null");
-        }
-        WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
 
-        if(!config.isDetermined()) {
-            updateGraphicsConfiguration(config, chooser, factory, hdc, false, pfdIDs);
-        } else {
-            // set PFD if not set yet
-            int pfdID = -1;
-            boolean set = false;
-            if ( 1 > ( pfdID = GDI.GetPixelFormat(hdc) ) ) {
-                if (!GDI.SetPixelFormat(hdc, config.getPixelFormatID(), config.getPixelFormat())) {
-                    throw new GLException("Unable to set pixel format " + config.getPixelFormatID() +
-                                          " for device context " + toHexString(hdc) +
-                                          ": error code " + GDI.GetLastError());
+        if(NativeSurface.LOCK_SURFACE_NOT_READY >= ns.lockSurface()) {
+            throw new GLException("Surface not ready (lockSurface)");
+        }
+        try {
+            long hdc = ns.getSurfaceHandle();
+            if (0 == hdc) {
+                throw new GLException("Error: HDC is null");
+            }
+            WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+
+            if(!config.isDetermined()) {
+                updateGraphicsConfiguration(config, chooser, factory, hdc, false, pfdIDs);
+            } else {
+                // set PFD if not set yet
+                int pfdID = -1;
+                boolean set = false;
+                if ( 1 > ( pfdID = GDI.GetPixelFormat(hdc) ) ) {
+                    if (!GDI.SetPixelFormat(hdc, config.getPixelFormatID(), config.getPixelFormat())) {
+                        throw new GLException("Unable to set pixel format " + config.getPixelFormatID() +
+                                              " for device context " + toHexString(hdc) +
+                                              ": error code " + GDI.GetLastError());
+                    }
+                    set = true;
+                    pfdID = config.getPixelFormatID();
                 }
-                set = true;
-                pfdID = config.getPixelFormatID();
+                if (DEBUG) {
+                    System.err.println("!!! setPixelFormat (post): hdc "+toHexString(hdc) +", "+config.getPixelFormatID()+" -> "+pfdID+", set: "+set);
+                    Thread.dumpStack();
+                }
             }
-            if (DEBUG) {
-                System.err.println("!!! setPixelFormat (post): hdc "+toHexString(hdc) +", "+config.getPixelFormatID()+" -> "+pfdID+", set: "+set);
-                Thread.dumpStack();
-            }
+        } finally {
+            ns.unlockSurface();
         }
     }
 
@@ -221,7 +229,10 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         if(null == sharedDrawable) {
             throw new IllegalArgumentException("Shared Drawable is null");
         }
-        sharedDrawable.lockSurface();
+
+        if(NativeSurface.LOCK_SURFACE_NOT_READY >= sharedDrawable.lockSurface()) {
+            throw new GLException("Surface not ready (lockSurface)");
+        }
         try {
             long hdc = sharedDrawable.getHandle();
             if (0 == hdc) {
@@ -272,94 +283,89 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
 
         WGLGLCapabilities pixelFormatCaps = null; // chosen or preset PFD ID's caps
         boolean pixelFormatSet = false; // indicates a preset PFD ID [caps]
+        final int presetPFDID = extHDC ? -1 : GDI.GetPixelFormat(hdc) ;
+        if ( 1 <= presetPFDID ) {
+            // Pixelformat already set by either
+            //  - a previous preselectGraphicsConfiguration() call on the same HDC,
+            //  - the graphics driver, copying the HDC's pixelformat to the new one,
+            //  - or the Java2D/OpenGL pipeline's configuration
+            if (DEBUG) {
+                System.err.println("updateGraphicsConfigurationARB: Pixel format already chosen for HDC: " + toHexString(hdc)
+                        + ", pixelformat " + presetPFDID);
+            }
+            pixelFormatSet = true;
+            pixelFormatCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedContext, hdc, presetPFDID, glProfile, onscreen, usePBuffer);
+        } else {
+            int recommendedIndex = -1; // recommended index
 
-        sharedContext.makeCurrent();
-        try {
-            final int presetPFDID = extHDC ? -1 : GDI.GetPixelFormat(hdc) ;
-            if ( 1 <= presetPFDID ) {
-                // Pixelformat already set by either
-                //  - a previous preselectGraphicsConfiguration() call on the same HDC,
-                //  - the graphics driver, copying the HDC's pixelformat to the new one,
-                //  - or the Java2D/OpenGL pipeline's configuration
-                if (DEBUG) {
-                    System.err.println("updateGraphicsConfigurationARB: Pixel format already chosen for HDC: " + toHexString(hdc)
-                            + ", pixelformat " + presetPFDID);
-                }
-                pixelFormatSet = true;
-                pixelFormatCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedContext, hdc, presetPFDID, glProfile, onscreen, usePBuffer);
-            } else {
-                int recommendedIndex = -1; // recommended index
+            if(null == pformats) {
+                // No given PFD IDs
+                //
+                // 1st choice: get GLCapabilities based on users GLCapabilities setting recommendedIndex as preferred choice
+                int[] iattributes = new int[2 * WindowsWGLGraphicsConfiguration.MAX_ATTRIBS];
+                float[] fattributes = new float[1];
+                pformats = WindowsWGLGraphicsConfiguration.wglChoosePixelFormatARB(hdc, sharedContext, capsChosen,
+                                                                                   iattributes, -1, fattributes);
 
-                if(null == pformats) {
-                    // No given PFD IDs
-                    //
-                    // 1st choice: get GLCapabilities based on users GLCapabilities setting recommendedIndex as preferred choice
-                    int[] iattributes = new int[2 * WindowsWGLGraphicsConfiguration.MAX_ATTRIBS];
-                    float[] fattributes = new float[1];
-                    pformats = WindowsWGLGraphicsConfiguration.wglChoosePixelFormatARB(hdc, sharedContext, capsChosen,
-                                                                                       iattributes, -1, fattributes);
-
-                    if (null != pformats) {
-                        recommendedIndex = 0;
-                    } else {
-                        if(DEBUG) {
-                            System.err.println("updateGraphicsConfigurationARB: wglChoosePixelFormatARB failed with: "+capsChosen);
-                        }
-                        // 2nd choice: get all GLCapabilities available, no preferred recommendedIndex available
-                        pformats = WindowsWGLGraphicsConfiguration.wglAllARBPFIDs(sharedContext, hdc);
-                        if (DEBUG) {
-                            System.err.println("updateGraphicsConfigurationARB: NumFormats (wglAllARBPFIDs) " + pformats.length);
-                        }
+                if (null != pformats) {
+                    recommendedIndex = 0;
+                } else {
+                    if(DEBUG) {
+                        System.err.println("updateGraphicsConfigurationARB: wglChoosePixelFormatARB failed with: "+capsChosen);
                     }
-                    if (null == pformats) {
-                        if (DEBUG) {
-                            Thread.dumpStack();
-                        }
-                        return false;
-                    }
-                }
-
-                List /*<WGLGLCapabilities>*/ availableCaps =
-                    WindowsWGLGraphicsConfiguration.wglARBPFIDs2GLCapabilities(sharedContext, hdc, pformats,
-                                                                               glProfile, onscreen, usePBuffer);
-                if( null == availableCaps || 0 == availableCaps.size() ) {
+                    // 2nd choice: get all GLCapabilities available, no preferred recommendedIndex available
+                    pformats = WindowsWGLGraphicsConfiguration.wglAllARBPFIDs(sharedContext, hdc);
                     if (DEBUG) {
-                        System.err.println("updateGraphicsConfigurationARB: wglARBPFIDs2GLCapabilities failed with " + pformats.length +
-                                           " pfd ids, onscreen " + onscreen + ", pbuffer " + usePBuffer);
-                        Thread.dumpStack();
-                    }
-                    return false;
-                }
-
-                if (DEBUG) {
-                    System.err.println("updateGraphicsConfigurationARB: " + pformats.length +
-                                       " pfd ids, onscreen " + onscreen + ", pbuffer " + usePBuffer + ", " + availableCaps.size() + " glcaps");
-                    if(0 <= recommendedIndex) {
-                        System.err.println("updateGraphicsConfigurationARB: Used wglChoosePixelFormatARB to recommend pixel format " +
-                                           pformats[recommendedIndex] + ", idx " + recommendedIndex +", "+availableCaps.get(recommendedIndex));
+                        final int len = ( null != pformats ) ? pformats.length : 0;
+                        System.err.println("updateGraphicsConfigurationARB: NumFormats (wglAllARBPFIDs) " + len);
                     }
                 }
-
-                int chosenIndex = chooseCapabilities(chooser, capsChosen, availableCaps, recommendedIndex);
-                if ( 0 > chosenIndex ) {
+                if (null == pformats) {
                     if (DEBUG) {
                         Thread.dumpStack();
                     }
                     return false;
-                }
-                pixelFormatCaps = (WGLGLCapabilities) availableCaps.get(chosenIndex);
-                if( null == pixelFormatCaps) {
-                    throw new GLException("Null Capabilities with "+
-                                          " chosen pfdID: native recommended "+ (recommendedIndex+1) +
-                                          " chosen "+pixelFormatCaps.getPFDID());
-                }
-                if (DEBUG) {
-                    System.err.println("!!! chosen pfdID (ARB): native recommended "+ (recommendedIndex+1) +
-                                       " chosen "+pixelFormatCaps);
                 }
             }
-        } finally {
-            sharedContext.release();
+
+            List /*<WGLGLCapabilities>*/ availableCaps =
+                WindowsWGLGraphicsConfiguration.wglARBPFIDs2GLCapabilities(sharedContext, hdc, pformats,
+                                                                           glProfile, onscreen, usePBuffer);
+            if( null == availableCaps || 0 == availableCaps.size() ) {
+                if (DEBUG) {
+                    System.err.println("updateGraphicsConfigurationARB: wglARBPFIDs2GLCapabilities failed with " + pformats.length +
+                                       " pfd ids, onscreen " + onscreen + ", pbuffer " + usePBuffer);
+                    Thread.dumpStack();
+                }
+                return false;
+            }
+
+            if (DEBUG) {
+                System.err.println("updateGraphicsConfigurationARB: " + pformats.length +
+                                   " pfd ids, onscreen " + onscreen + ", pbuffer " + usePBuffer + ", " + availableCaps.size() + " glcaps");
+                if(0 <= recommendedIndex) {
+                    System.err.println("updateGraphicsConfigurationARB: Used wglChoosePixelFormatARB to recommend pixel format " +
+                                       pformats[recommendedIndex] + ", idx " + recommendedIndex +", "+availableCaps.get(recommendedIndex));
+                }
+            }
+
+            int chosenIndex = chooseCapabilities(chooser, capsChosen, availableCaps, recommendedIndex);
+            if ( 0 > chosenIndex ) {
+                if (DEBUG) {
+                    Thread.dumpStack();
+                }
+                return false;
+            }
+            pixelFormatCaps = (WGLGLCapabilities) availableCaps.get(chosenIndex);
+            if( null == pixelFormatCaps) {
+                throw new GLException("Null Capabilities with "+
+                                      " chosen pfdID: native recommended "+ (recommendedIndex+1) +
+                                      " chosen "+pixelFormatCaps.getPFDID());
+            }
+            if (DEBUG) {
+                System.err.println("!!! chosen pfdID (ARB): native recommended "+ (recommendedIndex+1) +
+                                   " chosen "+pixelFormatCaps);
+            }
         }
 
         if ( !extHDC && !pixelFormatSet ) {
