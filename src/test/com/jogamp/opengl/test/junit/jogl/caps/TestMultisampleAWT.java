@@ -40,22 +40,22 @@
 
 package com.jogamp.opengl.test.junit.jogl.caps;
 
-import com.jogamp.opengl.test.junit.util.MiscUtils;
-import java.awt.*;
-import javax.media.opengl.*;
+import java.lang.reflect.InvocationTargetException;
+import java.awt.BorderLayout;
+import java.awt.Frame;
+
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.awt.GLCanvas;
+
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
-import javax.media.nativewindow.awt.AWTGraphicsDevice;
-import javax.media.nativewindow.awt.AWTGraphicsScreen;
+
 import org.junit.Test;
 
 
 public class TestMultisampleAWT extends UITestCase {
-  static long durationPerTest = 500; // ms
+  static long durationPerTest = 250; // ms
   private GLCanvas canvas;
 
   public static void main(String[] args) {
@@ -70,53 +70,52 @@ public class TestMultisampleAWT extends UITestCase {
   }
 
   @Test
-  public void testMultiSampleAA4() throws InterruptedException {
+  public void testMultiSampleAA4() throws InterruptedException, InvocationTargetException {
     testMultiSampleAAImpl(4);
   }
 
-  // @Test
-  public void testMultiSampleNone() throws InterruptedException {
+  @Test
+  public void testMultiSampleNone() throws InterruptedException, InvocationTargetException {
     testMultiSampleAAImpl(0);
   }
 
-  private void testMultiSampleAAImpl(int samples) throws InterruptedException {
+  private void testMultiSampleAAImpl(int samples) throws InterruptedException, InvocationTargetException {
     GLCapabilities caps = new GLCapabilities(null);
     GLCapabilitiesChooser chooser = new MultisampleChooser01();
 
     if(samples>0) {
         caps.setSampleBuffers(true);
         caps.setNumSamples(samples);
+        // turns out we need to have alpha, 
+        // otherwise no AA will be visible.
+        caps.setAlphaBits(1); 
     }
-    // turns out we need to have alpha, 
-    // otherwise no AA will be visible.
-    caps.setAlphaBits(1); 
 
-    /**
-     * whatever I tried here (passing and preconfig GraphicsConfiguration)
-     * either it just didn't picked up .. or the context couldn't be made current.
-     *
-    GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-    GraphicsConfiguration gc = AWTGraphicsConfiguration.getAWTGraphicsConfiguration(caps, gd);
-
-    AbstractGraphicsScreen aScreen = AWTGraphicsScreen.createScreenDevice(gd, AbstractGraphicsDevice.DEFAULT_UNIT);
-    AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
-      GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(caps, caps,
-                                                                                                   chooser, aScreen);
-    canvas = new GLCanvas(caps, chooser, null, gd, config.getGraphicsConfiguration(), config); */
     canvas = new GLCanvas(caps, chooser, null, null);
     canvas.addGLEventListener(new MultisampleDemo01(samples>0?true:false));
     
-    Frame frame = new Frame("Multi Samples "+samples);
+    final Frame frame = new Frame("Multi Samples "+samples);
     frame.setLayout(new BorderLayout());
     canvas.setSize(512, 512);
     frame.add(canvas, BorderLayout.CENTER);
     frame.pack();
-    frame.setVisible(true);
-    frame.setLocation(0, 0);
-    canvas.requestFocus();
+
+    javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+        public void run() {
+            frame.setVisible(true);
+            frame.setLocation(0, 0);
+            canvas.requestFocus();
+            canvas.display();
+        }});
 
     Thread.sleep(durationPerTest);
 
-    frame.dispose();
+    javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+        public void run() {
+            frame.setVisible(false);
+            frame.remove(canvas);
+            frame.dispose();
+        }});
+
   }
 }
