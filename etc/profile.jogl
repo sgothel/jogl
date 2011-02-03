@@ -23,8 +23,12 @@ function concat_jogl_list()
     echo $JOGL_LIST
 }
 
+ARCH=`uname -m`
+KERNEL=`uname -s | awk ' { printf "%s",tolower($0) ; } '`
+
 uname -a | grep -i LINUX && OSS=x11
 uname -a | grep -i Darwin && OSS=osx
+uname -a | grep -i CYGWIN && OSS=win
 
 JOGL_AWT="jogl.awt.jar jogl.util.awt.jar newt.awt.jar nativewindow.awt.jar"
 
@@ -137,6 +141,29 @@ if [ ! -z "$JOGL_PROFILE" ] ; then
     esac
 
     export JOGL_CLASSPATH
+fi
+
+if [ "$KERNEL" = "linux" ] ; then
+    SWT_SUB="gtk"
+elif [ "$KERNEL" = "darwin" ] ; then
+    SWT_SUB="cocoa"
+fi
+SWT_CLASSPATH_0=$JOGL_BUILD_DIR/../make/lib/swt/$SWT_SUB-$KERNEL-$ARCH/swt-debug.jar
+SWT_CLASSPATH_1=$HOME/.java/swt.jar
+if [ ! -e "$SWT_CLASSPATH_0" ] ; then 
+    echo Info: NO JOGL SWT $SWT_CLASSPATH_0
+    if [ ! -e "$SWT_CLASSPATH_1" ] ; then 
+        echo Info: NO Users SWT $SWT_CLASSPATH_1
+    else
+        export SWT_CLASSPATH=$SWT_CLASSPATH_1
+        echo Info: Using Users SWT $SWT_CLASSPATH
+    fi
+else
+    export SWT_CLASSPATH=$SWT_CLASSPATH_0
+    echo Info: Using JOGL SWT $SWT_CLASSPATH
+fi
+if [ ! -z "$SWT_CLASSPATH" ] ; then
+    export SWT_CLASSPATH
 fi
 
 if [ -z "$JOGL_CLASSPATH" ] ; then

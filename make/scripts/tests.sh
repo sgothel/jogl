@@ -13,6 +13,7 @@ java -version 2>&1 | tee -a java-run.log
 echo LIBXCB_ALLOW_SLOPPY_LOCK: $LIBXCB_ALLOW_SLOPPY_LOCK 2>&1 | tee -a java-run.log
 echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a java-run.log
 echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a java-run.log
+echo SWT_CLASSPATH: $SWT_CLASSPATH 2>&1 | tee -a java-run.log
 echo java $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 
 function jrun() {
@@ -101,10 +102,12 @@ function testawt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestSwingAWT01GLn
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT02WindowClosing
+#testawt com.jogamp.opengl.test.junit.jogl.awt.text.TestAWTTextRendererUseVertexArrayBug464
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.TestGearsAWT
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestTexture01AWT
-testawt com.jogamp.opengl.test.junit.jogl.awt.text.TestAWTTextRendererUseVertexArrayBug464
+#testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT
+testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn
 
 #
 # newt.awt (testawt)
