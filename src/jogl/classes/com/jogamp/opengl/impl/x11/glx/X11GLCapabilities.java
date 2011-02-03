@@ -35,7 +35,7 @@ import javax.media.opengl.GLProfile;
 import java.util.Comparator;
 
 public class X11GLCapabilities extends GLCapabilities {
-  XVisualInfo xVisualInfo;
+  XVisualInfo xVisualInfo; // maybe null if !onscreen
   long fbcfg;
   int  fbcfgid;
 
@@ -94,21 +94,29 @@ public class X11GLCapabilities extends GLCapabilities {
   }
 
   final public XVisualInfo getXVisualInfo() { return xVisualInfo; }
-  final public long getXVisualID() { return xVisualInfo.getVisualid(); }
+  final public long getXVisualID() { return (null!=xVisualInfo) ? xVisualInfo.getVisualid() : 0; }
+  final public boolean hasXVisualInfo() { return null!=xVisualInfo; }
 
   final public long getFBConfig() { return fbcfg; }
   final public int getFBConfigID() { return fbcfgid; }
-  final public boolean isFBConfig() { return 0!=fbcfg && fbcfgid>0; }
-  
+  final public boolean hasFBConfig() { return 0!=fbcfg && fbcfgid>0; }
+
+  final static String na_str = "----" ;
+
   public StringBuffer toString(StringBuffer sink) {
     if(null == sink) {
         sink = new StringBuffer();
     }
-    sink.append("0x").append(Long.toHexString(xVisualInfo.getVisualid())).append(" ");
-    if(isFBConfig()) {
+    if(hasXVisualInfo()) {
+        sink.append("0x").append(Long.toHexString(xVisualInfo.getVisualid()));
+    } else {
+        sink.append(na_str);
+    }
+    sink.append(" ");
+    if(hasFBConfig()) {
         sink.append("0x").append(Integer.toHexString(fbcfgid));
     } else {
-        sink.append("----");
+        sink.append(na_str);
     }
     sink.append(": ");
     return super.toString(sink);
