@@ -113,6 +113,7 @@ public class GLGraphicsConfigurationUtil {
         }
         return capsRequested;
     }
+
     public static GLCapabilitiesImmutable fixOffScreenGLCapabilities(GLCapabilitiesImmutable capsRequested, boolean pbufferAvailable)
     {
         if( capsRequested.getDoubleBuffered() ||
@@ -130,4 +131,17 @@ public class GLGraphicsConfigurationUtil {
         }
         return capsRequested;
     }
+
+    public static GLCapabilitiesImmutable fixGLPBufferGLCapabilities(GLCapabilitiesImmutable capsRequested)
+    {
+        if( capsRequested.getDoubleBuffered() || capsRequested.isOnscreen() || !capsRequested.isPBuffer()) {
+            // fix caps ..
+            GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
+            caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
+            caps2.setPBuffer(true);
+            return caps2;
+        }
+        return capsRequested;
+    }
+
 }

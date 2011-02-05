@@ -150,8 +150,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                         width + ", " + height + "))");
     }
 
-    GLCapabilitiesImmutable capsChosen;
-
     AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
@@ -160,17 +158,8 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     if (!canCreateGLPbuffer(device)) {
         throw new GLException("Pbuffer support not available with device: "+device);
     }
-
-    if( capsRequested.getDoubleBuffered() || capsRequested.isOnscreen() || !capsRequested.isPBuffer()) {
-        // fix caps ..
-        GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
-        caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
-        caps2.setPBuffer(true);
-        capsChosen = caps2;
-    } else {
-        capsChosen = capsRequested;
-    }
-
+    
+    GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(capsRequested);
     GLDrawableImpl drawable = null;
     device.lock();
     try {

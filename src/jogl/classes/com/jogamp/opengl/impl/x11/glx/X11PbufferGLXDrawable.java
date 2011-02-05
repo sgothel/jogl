@@ -94,13 +94,13 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
 
       NativeSurface ns = getNativeSurface();
     
-      GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
+      GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
 
-      if (capabilities.getPbufferRenderToTexture()) {
+      if (chosenCaps.getPbufferRenderToTexture()) {
         throw new GLException("Render-to-texture pbuffers not supported yet on X11");
       }
 
-      if (capabilities.getPbufferRenderToTextureRectangle()) {
+      if (chosenCaps.getPbufferRenderToTextureRectangle()) {
         throw new GLException("Render-to-texture-rectangle pbuffers not supported yet on X11");
       }
 

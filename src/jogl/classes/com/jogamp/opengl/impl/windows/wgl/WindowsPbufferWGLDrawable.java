@@ -134,23 +134,23 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     WGLExt wglExt = sharedCtx.getWGLExt();
 
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getRequestedCapabilities();
-    GLProfile glProfile = capabilities.getGLProfile();
+    GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
+    GLProfile glProfile = chosenCaps.getGLProfile();
 
     if (DEBUG) {
       System.out.println("Pbuffer parentHdc = " + toHexString(parentHdc));
-      System.out.println("Pbuffer caps: " + capabilities);
+      System.out.println("Pbuffer chosenCaps: " + chosenCaps);
     }
 
-    if(!WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(capabilities,
+    if(!WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(chosenCaps,
                                     iattributes, sharedCtx, -1, floatModeTmp)){
       throw new GLException("Pbuffer-related extensions not supported");
     }
 
     floatMode = floatModeTmp[0];
-    boolean rtt      = capabilities.getPbufferRenderToTexture();
-    boolean rect     = capabilities.getPbufferRenderToTextureRectangle();
-    boolean useFloat = capabilities.getPbufferFloatingPointBuffers();
+    boolean rtt      = chosenCaps.getPbufferRenderToTexture();
+    boolean rect     = chosenCaps.getPbufferRenderToTextureRectangle();
+    boolean useFloat = chosenCaps.getPbufferFloatingPointBuffers();
     boolean ati      = false;
 
     if (useFloat) {

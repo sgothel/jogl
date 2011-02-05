@@ -363,8 +363,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       throw new IllegalArgumentException("Null target");
     }
     AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
-    if(!caps.isPBuffer()) {
+    GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+    if(!chosenCaps.isPBuffer()) {
         return new WindowsBitmapWGLDrawable(this, target);
     }
 
