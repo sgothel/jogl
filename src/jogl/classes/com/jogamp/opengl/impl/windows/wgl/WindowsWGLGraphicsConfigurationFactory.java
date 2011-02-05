@@ -304,9 +304,19 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                 // 1st choice: get GLCapabilities based on users GLCapabilities setting recommendedIndex as preferred choice
                 int[] iattributes = new int[2 * WindowsWGLGraphicsConfiguration.MAX_ATTRIBS];
                 float[] fattributes = new float[1];
+                int accelerationMode = WGLExt.WGL_FULL_ACCELERATION_ARB;
                 pformats = WindowsWGLGraphicsConfiguration.wglChoosePixelFormatARB(hdc, sharedContext, capsChosen,
-                                                                                   iattributes, -1, fattributes);
-
+                                                                                   iattributes, accelerationMode, fattributes);
+                if (null == pformats) {
+                    accelerationMode = WGLExt.WGL_GENERIC_ACCELERATION_ARB;
+                    pformats = WindowsWGLGraphicsConfiguration.wglChoosePixelFormatARB(hdc, sharedContext, capsChosen,
+                                                                                       iattributes, accelerationMode, fattributes);
+                }
+                if (null == pformats) {
+                    accelerationMode = -1; // use what we are offered ..
+                    pformats = WindowsWGLGraphicsConfiguration.wglChoosePixelFormatARB(hdc, sharedContext, capsChosen,
+                                                                                       iattributes, accelerationMode, fattributes);
+                }
                 if (null != pformats) {
                     recommendedIndex = 0;
                 } else {

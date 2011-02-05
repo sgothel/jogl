@@ -268,7 +268,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
                 iattributes, sharedContext, accelerationMode, null))
         {
             if (DEBUG) {
-                System.err.println("wglChoosePixelFormatARB1: GLCapabilities2AttribList failed: " + GDI.GetLastError());
+                System.err.println("wglChoosePixelFormatARB: GLCapabilities2AttribList failed: " + GDI.GetLastError());
                 Thread.dumpStack();
             }
             return null;
@@ -282,7 +282,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
                                                                 pformatsTmp, 0, numFormatsTmp, 0))
         {
             if (DEBUG) {
-                System.err.println("wglChoosePixelFormatARB1: wglChoosePixelFormatARB failed: " + GDI.GetLastError());
+                System.err.println("wglChoosePixelFormatARB: wglChoosePixelFormatARB failed: " + GDI.GetLastError());
                 Thread.dumpStack();
             }
             return null;
@@ -294,8 +294,14 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
             System.arraycopy(pformatsTmp, 0, pformats, 0, numFormats);
         }
         if (DEBUG) {
-            System.err.println("wglChoosePixelFormatARB1: NumFormats (wglChoosePixelFormatARB) accelMode 0x"
+            System.err.println("wglChoosePixelFormatARB: NumFormats (wglChoosePixelFormatARB) accelMode 0x"
                     + Integer.toHexString(accelerationMode) + ": " + numFormats);
+            for (int i = 0; i < numFormats; i++) {
+                WGLGLCapabilities dbgCaps0 = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(
+                                                sharedContext, hdc, pformats[i],
+                                                capabilities.getGLProfile(), capabilities.isOnscreen(), capabilities.isPBuffer());
+                System.err.println("pixel format " + pformats[i] + " (index " + i + "): " + dbgCaps0);
+            }
         }
         return pformats;
     }
@@ -342,7 +348,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     static boolean GLCapabilities2AttribList(GLCapabilitiesImmutable caps,
                                              int[] iattributes,
                                              GLContextImpl sharedCtx,
-                                             int accellerationValue,                                             
+                                             int accelerationValue,
                                              int[] floatMode) throws GLException {
         boolean haveWGLChoosePixelFormatARB = sharedCtx.isExtensionAvailable(WGL_ARB_pixel_format);
         boolean haveWGLARBMultisample = sharedCtx.isExtensionAvailable(WGL_ARB_multisample);
@@ -362,9 +368,9 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
 
         iattributes[niattribs++] = WGLExt.WGL_SUPPORT_OPENGL_ARB;
         iattributes[niattribs++] = GL.GL_TRUE;
-        if(accellerationValue>0) {
+        if(accelerationValue>0) {
             iattributes[niattribs++] = WGLExt.WGL_ACCELERATION_ARB;
-            iattributes[niattribs++] = accellerationValue;
+            iattributes[niattribs++] = accelerationValue;
         }
         if (onscreen) {
           iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_WINDOW_ARB;
