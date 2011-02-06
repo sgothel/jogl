@@ -798,10 +798,15 @@ public abstract class GLContextImpl extends GLContext {
    *
    * @param force force the setting, even if is already being set.
    *              This might be useful if you change the OpenGL implementation.
+   * @param major OpenGL major version
+   * @param minor OpenGL minor version
+   * @param ctxProfileBits OpenGL context profile and option bits, see {@link javax.media.opengl.GLContext#CTX_OPTION_ANY}
    *
    * @see #setContextVersion
+   * @see javax.media.opengl.GLContext#CTX_OPTION_ANY
+   * @see javax.media.opengl.GLContext#CTX_PROFILE_COMPAT
    */
-  protected final void setGLFunctionAvailability(boolean force, int major, int minor, int ctp) {
+  protected final void setGLFunctionAvailability(boolean force, int major, int minor, int ctxProfileBits) {
     if(null!=this.gl && null!=glProcAddressTable && !force) {
         return; // already done and not forced
     }
@@ -813,7 +818,8 @@ public abstract class GLContextImpl extends GLContext {
 
     AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
-    contextFQN = getContextFQN(adevice, major, minor, ctp);
+    final int ctxImplBits = drawable.getChosenGLCapabilities().getHardwareAccelerated() ? GLContext.CTX_IMPL_ACCEL_HARD : GLContext.CTX_IMPL_ACCEL_SOFT;
+    contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits, ctxImplBits);
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Context FQN: "+contextFQN);
     }
@@ -856,7 +862,7 @@ public abstract class GLContextImpl extends GLContext {
     //
     // Set GL Version
     //
-    setContextVersion(major, minor, ctp);
+    setContextVersion(major, minor, ctxProfileBits);
 
     //
     // Update ExtensionAvailabilityCache
@@ -982,8 +988,8 @@ public abstract class GLContextImpl extends GLContext {
       return false;
   }
 
-  protected static String getContextFQN(AbstractGraphicsDevice device, int major, int minor, int ctp) {
-      return device.getUniqueID() + "-" + toHexString(compose8bit(major, minor, ctp, 0));
+  protected static String getContextFQN(AbstractGraphicsDevice device, int major, int minor, int ctxProfileBits, int ctxImplBits) {
+      return device.getUniqueID() + "-" + toHexString(compose8bit(major, minor, ctxProfileBits, ctxImplBits));
   }
 
   protected String getContextFQN() {

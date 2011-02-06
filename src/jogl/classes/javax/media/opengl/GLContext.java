@@ -82,6 +82,11 @@ public abstract class GLContext {
   /** <code>ARB_create_context</code> related: flag debug */
   protected static final int CTX_OPTION_DEBUG   = 1 << 6;
 
+  /** GLContext {@link com.jogamp.gluegen.runtime.ProcAddressTable} caching related: GL software implementation */
+  protected static final int CTX_IMPL_ACCEL_SOFT = 1 << 0;
+  /** GLContext {@link com.jogamp.gluegen.runtime.ProcAddressTable} caching related: GL hardware implementation */
+  protected static final int CTX_IMPL_ACCEL_HARD = 1 << 1;
+
   private static ThreadLocal currentContext = new ThreadLocal();
 
   private HashMap/*<int, Object>*/ attachedObjects = new HashMap();
