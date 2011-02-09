@@ -675,18 +675,18 @@
     <target name="build-jars-all-awt" depends="setup-manifestfile" unless="setup.noAWT">
         <jar manifest="tempversion" destfile="${newt.all.jar}" filesonly="true">
             <fileset dir="${classes}">
-				<include name="com/jogamp/newt/**" />
-				<include name="jogamp/newt/**" />
+                <include name="com/jogamp/newt/**" />
+                <include name="jogamp/newt/**" />
             </fileset>
         </jar>
         <jar manifest="tempversion" destfile="${newt.event.jar}" filesonly="true">
             <fileset dir="${classes}">
-				<include name="com/jogamp/newt/Display*" />
-				<include name="com/jogamp/newt/Screen*" />
-				<include name="com/jogamp/newt/Window*" />
-				<include name="com/jogamp/newt/ScreenMode*" />
-				<include name="com/jogamp/newt/event/**" />
-				<include name="jogamp/newt/Debug*" />
+                <include name="com/jogamp/newt/Display*" />
+                <include name="com/jogamp/newt/Screen*" />
+                <include name="com/jogamp/newt/Window*" />
+                <include name="com/jogamp/newt/ScreenMode*" />
+                <include name="com/jogamp/newt/event/**" />
+                <include name="jogamp/newt/Debug*" />
             </fileset>
         </jar>
     </target>
@@ -694,9 +694,9 @@
     <target name="build-jars-all-noawt" depends="setup-manifestfile">
         <jar manifest="tempversion" destfile="${newt.all-noawt.jar}" filesonly="true">
             <fileset dir="${classes}"
-			         excludes="${java.part.awt}">
-				<include name="com/jogamp/newt/**" />
-				<include name="jogamp/newt/**" />
+                     excludes="${java.part.awt}">
+                <include name="com/jogamp/newt/**" />
+                <include name="jogamp/newt/**" />
             </fileset>
         </jar>
     </target>
@@ -704,9 +704,9 @@
     <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc">
         <jar manifest="tempversion-cdc" destfile="${newt.all.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
-			         excludes="${java.excludes.cdcfp}" >
-				<include name="com/jogamp/newt/**" />
-				<include name="jogamp/newt/**" />
+                     excludes="${java.excludes.cdcfp}" >
+                <include name="com/jogamp/newt/**" />
+                <include name="jogamp/newt/**" />
             </fileset>
         </jar>
     </target>

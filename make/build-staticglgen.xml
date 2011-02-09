@@ -52,7 +52,7 @@
            -        itself is built in a separate task.  -->
         <javac destdir="${classes}" includes="**/StaticGLGenTask.java" source="1.4" debug="true" debuglevel="${javacdebuglevel}"
                includeAntRuntime="false">
-	        <src path="${src.java}" />
+            <src path="${src.java}" />
             <classpath refid="classpath" />
         </javac>
         

@@ -1591,7 +1591,7 @@
     <target name="build-jars-all-awt-javase" depends="setup-manifestfile" unless="setup.noAWT">
         <jar manifest="${build.jogl}/tempversion" destfile="${jogl.all.jar}" filesonly="true">
             <fileset dir="${classes}"
-			         includes="${java.part.openmax}">
+                     includes="${java.part.openmax}">
                 <include name="javax/media/opengl/**" />
                 <include name="com/jogamp/gluegen/runtime/**" />
                 <include name="com/jogamp/opengl/**" />
@@ -1604,12 +1604,12 @@
     <target name="build-jars-all-noawt-javase" depends="setup-manifestfile">
         <jar manifest="${build.jogl}/tempversion" destfile="${jogl.all-noawt.jar}" filesonly="true">
             <fileset dir="${classes}"
-					 includes="${java.part.openmax}"
-					 excludes="${java.part.awt} ${java.part.util.awt}">
+                     includes="${java.part.openmax}"
+                     excludes="${java.part.awt} ${java.part.util.awt}">
                 <include name="javax/media/opengl/**" />
-				<include name="com/jogamp/gluegen/runtime/**" />
-				<include name="com/jogamp/opengl/**" />
-				<include name="jogamp/opengl/**" />
+                <include name="com/jogamp/gluegen/runtime/**" />
+                <include name="com/jogamp/opengl/**" />
+                <include name="jogamp/opengl/**" />
             </fileset>
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode}"/>
@@ -1618,8 +1618,8 @@
     <target name="build-jars-all-cdc" depends="setup-manifestfile">
         <jar manifest="${build.jogl}/tempversion-cdc" destfile="${jogl.all.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
-					 includes="${java.part.core} ${java.part.egl} ${java.part.glutess} ${java.part.glumipmap} ${java.part.openmax} ${java.part.sdk} ${java.part.glx} ${java.part.cgl} ${java.part.wgl} ${java.part.es1} ${java.part.es1.dbg} ${java.part.es2} ${java.part.es2.dbg} ${java.part.util} ${java.part.util.glsl} ${java.part.util.fixedfuncemu}"
-					 excludes="${java.excludes.cdcfp}"/>
+                     includes="${java.part.core} ${java.part.egl} ${java.part.glutess} ${java.part.glumipmap} ${java.part.openmax} ${java.part.sdk} ${java.part.glx} ${java.part.cgl} ${java.part.wgl} ${java.part.es1} ${java.part.es1.dbg} ${java.part.es2} ${java.part.es2.dbg} ${java.part.util} ${java.part.util.glsl} ${java.part.util.fixedfuncemu}"
+                     excludes="${java.excludes.cdcfp}"/>
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode}"/>
         </jar>
