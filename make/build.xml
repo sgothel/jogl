@@ -72,10 +72,10 @@
         <delete includeEmptyDirs="true" quiet="true" dir="${lib}" failonerror="false" />
         <mkdir dir="${lib}" />
         <copy todir="${lib}">
-            <fileset dir="${gluegen.root}/${rootrel.build}/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
-            <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
-            <fileset dir="${build}/nativewindow/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
-            <fileset dir="${build}/newt/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
+            <fileset dir="${gluegen.root}/${rootrel.build}/obj" includes="*.${native.library.suffix}" />
+            <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix}" />
+            <fileset dir="${build}/nativewindow/obj" includes="*.${native.library.suffix}" />
+            <fileset dir="${build}/newt/obj" includes="*.${native.library.suffix}" />
         </copy>
     </target>
 
@@ -185,9 +185,6 @@
     </target>
 
     <target name="javadoc.init" depends="init">
-        <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
-        <!--property name="javadoc.link" value="http://download.oracle.com/javase/1.4.2/docs/api/"/-->
-
         <!-- Link offline with relative URLs does not work.
              Link online with relative URLs works, 
              so we have to assume the same relative online folder structure:
@@ -252,7 +249,7 @@
                  windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  access="public"
-                 source="1.4"
+                 source="${target.sourcelevel}"
                  maxmemory="1024m"
                  bottom="${javadoc.bottom}" >
             <classpath refid="jogl_newt_all.classpath"/>
@@ -273,7 +270,7 @@
                  windowtitle="${javadoc.spec.windowtitle}"
                  overview="${javadoc.overview}"
                  access="public"
-                 source="1.4"
+                 source="${target.sourcelevel}"
                  maxmemory="1024m"
                  bottom="${javadoc.bottom}" >
             <classpath refid="jogl_newt_all.classpath"/>
@@ -295,7 +292,7 @@
                  windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  access="protected"
-                 source="1.5"
+                 source="${target.sourcelevel}"
                  maxmemory="1024m"
                  bottom="${javadoc.bottom}" >
             <classpath refid="jogl_newt_all.classpath"/>
@@ -316,7 +313,7 @@
                  windowtitle="${javadoc.nw.spec.windowtitle}"
                  overview="${javadoc.nw.overview}"
                  access="public"
-                 source="1.4"
+                 source="${target.sourcelevel}"
                  maxmemory="1024m"
                  bottom="${javadoc.bottom}" >
             <classpath refid="jogl_newt_all.classpath"/>

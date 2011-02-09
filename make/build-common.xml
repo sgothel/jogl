@@ -124,8 +124,11 @@
         </condition>
         <echo message="swt.jar=${swt.jar}" />
 
-        <property name="target.sourcelevel" value="1.4" />
+        <property name="target.sourcelevel" value="1.5" />
         <property name="host.sourcelevel"   value="1.5" />
+
+        <!-- property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" /-->
+        <property name="javadoc.link" value="http://download.oracle.com/javase/1.5.0/docs/api/" />
 
         <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
         <property name="javacdebug"       value="true" /> 
@@ -139,9 +142,6 @@
              Some of these are used in FileMappers later for dependence information
              and need exact string matching, which is why they use file.separator
              instead of "/". -->
-
-        <property name="javac.bootclasspath-cdc.jar" value="${gluegen.root}/make/lib/cdc_fp.jar"/>
-        <echo message="javac.bootclasspath-cdc.jar: ${javac.bootclasspath-cdc.jar}" />
 
         <!-- NOTE that these require a checked-out GlueGen, etc workspace as a -->
         <!-- sibling of the JOGL workspace. -->
@@ -292,32 +292,6 @@
             <pathelement location="${newt.all-noawt.jar}" />
         </path>
 
-        <!-- CDC combinations . NO.AWT -->
-        <property name="gluegen-rt.cdc.jar"         value="${build.gluegen}/gluegen-rt.cdc.jar" />
-        <property name="gluegen-gl.cdc.jar"         value="${build.jogl}/gluegen-gl.cdc.jar" />
-
-        <property name="nativewindow.all.cdc.jar"   value="${build.nativewindow}/nativewindow.all.cdc.jar" />
-        <property name="jogl.all.cdc.jar"           value="${build.jogl}/jogl.all.cdc.jar" />
-        <property name="newt.all.cdc.jar"           value="${build.newt}/newt.all.cdc.jar" />
-
-        <path id="nativewindow_gluegen.classpath-cdc">
-            <pathelement location="${gluegen-rt.cdc.jar}" />
-            <pathelement location="${nativewindow.all.cdc.jar}" />
-        </path>
-
-        <path id="nativewindow_gluegen_jogl.classpath-cdc">
-            <pathelement location="${gluegen-rt.cdc.jar}" />
-            <pathelement location="${nativewindow.all.cdc.jar}" />
-            <pathelement location="${jogl.all.cdc.jar}" />
-        </path>
-
-        <path id="jogl_newt_all.classpath-cdc">
-            <pathelement location="${gluegen-rt.cdc.jar}" />
-            <pathelement location="${nativewindow.all.cdc.jar}" />
-            <pathelement location="${jogl.all.cdc.jar}" />
-            <pathelement location="${newt.all.cdc.jar}" />
-        </path>
-
         <!-- Atomic JavaSE JARS -->
 
         <property name="nativewindow.core.jar"         value="${build.nativewindow}/nativewindow.core.jar" />
@@ -360,33 +334,6 @@
         <property name="newt.ogl.jar"                   value="${build.newt}/newt.ogl.jar" />
         <property name="newt.hw.broadcomegl.jar"        value="${build.newt}/newt.hw.broadcomegl.jar" />
         <property name="newt.hw.intelgdl.jar"           value="${build.newt}/newt.hw.intelgdl.jar" />
-
-        <!-- Atomic CDC JARS -->
-        <property name="nativewindow.core.cdc.jar"       value="${build.nativewindow}/nativewindow.core.cdc.jar" />
-        <property name="nativewindow.os.x11.cdc.jar"     value="${build.nativewindow}/nativewindow.os.x11.cdc.jar"  />
-        <property name="nativewindow.os.win.cdc.jar"     value="${build.nativewindow}/nativewindow.os.win.cdc.jar"  />
-
-        <property name="jogl.core.cdc.jar"              value="${build.jogl}/jogl.core.cdc.jar" />
-        <property name="jogl.gles1.cdc.jar"             value="${build.jogl}/jogl.gles1.cdc.jar" />
-        <property name="jogl.gles1.dbg.cdc.jar"         value="${build.jogl}/jogl.gles1.dbg.cdc.jar" />
-        <property name="jogl.gles2.cdc.jar"             value="${build.jogl}/jogl.gles2.cdc.jar" />
-        <property name="jogl.gles2.dbg.cdc.jar"         value="${build.jogl}/jogl.gles2.dbg.cdc.jar" />
-        <property name="jogl.egl.cdc.jar"               value="${build.jogl}/jogl.egl.cdc.jar" />
-        <property name="jogl.glutess.cdc.jar"           value="${build.jogl}/jogl.glu.tess.cdc.jar" />
-        <property name="jogl.glumipmap.cdc.jar"         value="${build.jogl}/jogl.glu.mipmap.cdc.jar" />
-        <property name="jogl.os.x11.cdc.jar"            value="${build.jogl}/jogl.os.x11.cdc.jar" />
-        <property name="jogl.os.win.cdc.jar"            value="${build.jogl}/jogl.os.win.cdc.jar" />
-        <property name="jogl.os.osx.cdc.jar"            value="${build.jogl}/jogl.os.osx.cdc.jar" />
-        <property name="jogl.util.cdc.jar"              value="${build.jogl}/jogl.util.cdc.jar" />
-        <property name="jogl.util.fixedfuncemu.cdc.jar" value="${build.jogl}/jogl.util.fixedfuncemu.cdc.jar" />
-
-        <property name="newt.core.cdc.jar"              value="${build.newt}/newt.core.cdc.jar" />
-        <property name="newt.os.x11.cdc.jar"            value="${build.newt}/newt.os.x11.cdc.jar" />
-        <property name="newt.os.win.cdc.jar"            value="${build.newt}/newt.os.win.cdc.jar" />
-        <property name="newt.os.osx.cdc.jar"            value="${build.newt}/newt.os.osx.cdc.jar" />
-        <property name="newt.ogl.cdc.jar"               value="${build.newt}/newt.ogl.cdc.jar" />
-        <property name="newt.hw.broadcomegl.cdc.jar"    value="${build.newt}/newt.hw.broadcomegl.cdc.jar" />
-        <property name="newt.hw.intelgdl.cdc.jar"       value="${build.newt}/newt.hw.intelgdl.cdc.jar" />
 
         <!-- The location and name of the configuration ANT file that will 
            - validate to ensure that all user-define variables are set. -->
