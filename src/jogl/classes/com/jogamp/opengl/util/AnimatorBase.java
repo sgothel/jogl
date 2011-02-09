@@ -29,7 +29,7 @@
 package com.jogamp.opengl.util;
 
 import com.jogamp.common.util.locks.RecursiveLock;
-import com.jogamp.opengl.impl.Debug;
+import jogamp.opengl.Debug;
 import java.util.ArrayList;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;

@@ -34,7 +34,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.egl;
+package jogamp.opengl.egl;
 
 import java.util.ArrayList;
 import javax.media.nativewindow.*;
@@ -42,7 +42,7 @@ import javax.media.nativewindow.egl.*;
 import javax.media.opengl.*;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 
 public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");

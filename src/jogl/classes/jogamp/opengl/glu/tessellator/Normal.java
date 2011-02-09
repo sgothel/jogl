@@ -50,7 +50,7 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.jogamp.opengl.impl.glu.tessellator;
+package jogamp.opengl.glu.tessellator;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
@@ -110,17 +110,17 @@ class Normal {
     }
 
     static void ComputeNormal(GLUtessellatorImpl tess, double[] norm) {
-        com.jogamp.opengl.impl.glu.tessellator.GLUvertex v, v1, v2;
+        jogamp.opengl.glu.tessellator.GLUvertex v, v1, v2;
         double c, tLen2, maxLen2;
         double[] maxVal, minVal, d1, d2, tNorm;
-        com.jogamp.opengl.impl.glu.tessellator.GLUvertex[] maxVert, minVert;
-        com.jogamp.opengl.impl.glu.tessellator.GLUvertex vHead = tess.mesh.vHead;
+        jogamp.opengl.glu.tessellator.GLUvertex[] maxVert, minVert;
+        jogamp.opengl.glu.tessellator.GLUvertex vHead = tess.mesh.vHead;
         int i;
 
         maxVal = new double[3];
         minVal = new double[3];
-        minVert = new com.jogamp.opengl.impl.glu.tessellator.GLUvertex[3];
-        maxVert = new com.jogamp.opengl.impl.glu.tessellator.GLUvertex[3];
+        minVert = new jogamp.opengl.glu.tessellator.GLUvertex[3];
+        maxVert = new jogamp.opengl.glu.tessellator.GLUvertex[3];
         d1 = new double[3];
         d2 = new double[3];
         tNorm = new double[3];
@@ -194,9 +194,9 @@ class Normal {
 
     static void CheckOrientation(GLUtessellatorImpl tess) {
         double area;
-        com.jogamp.opengl.impl.glu.tessellator.GLUface f, fHead = tess.mesh.fHead;
-        com.jogamp.opengl.impl.glu.tessellator.GLUvertex v, vHead = tess.mesh.vHead;
-        com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge e;
+        jogamp.opengl.glu.tessellator.GLUface f, fHead = tess.mesh.fHead;
+        jogamp.opengl.glu.tessellator.GLUvertex v, vHead = tess.mesh.vHead;
+        jogamp.opengl.glu.tessellator.GLUhalfEdge e;
 
 /* When we compute the normal automatically, we choose the orientation
  * so that the the sum of the signed areas of all contours is non-negative.
@@ -225,7 +225,7 @@ class Normal {
  * of the polygon.
  */
     public static void __gl_projectPolygon(GLUtessellatorImpl tess) {
-        com.jogamp.opengl.impl.glu.tessellator.GLUvertex v, vHead = tess.mesh.vHead;
+        jogamp.opengl.glu.tessellator.GLUvertex v, vHead = tess.mesh.vHead;
         double w;
         double[] norm = new double[3];
         double[] sUnit, tUnit;

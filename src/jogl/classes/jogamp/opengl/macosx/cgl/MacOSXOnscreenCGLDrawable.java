@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.macosx.cgl;
+package jogamp.opengl.macosx.cgl;
 
 import java.lang.ref.WeakReference;
 import java.security.*;
@@ -46,7 +46,7 @@ import java.util.*;
 
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 
 public class MacOSXOnscreenCGLDrawable extends MacOSXCGLDrawable {
   private List/*<WeakReference<GLContext>>*/ createdContexts =

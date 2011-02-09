@@ -87,28 +87,28 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="com/jogamp/newt/*, com/jogamp/newt/event/*, com/jogamp/newt/util/*, com/jogamp/newt/impl/*, com/jogamp/newt/impl/event/*"/>
+                  value="com/jogamp/newt/* com/jogamp/newt/event/* com/jogamp/newt/util/* jogamp/newt/* jogamp/newt/event/*"/>
 
         <property name="java.part.awt"
-                  value="com/jogamp/newt/awt/*, com/jogamp/newt/event/awt/*, com/jogamp/newt/impl/awt/**"/>
+                  value="com/jogamp/newt/awt/* com/jogamp/newt/event/awt/* jogamp/newt/awt/**"/>
 
         <property name="java.part.x11"
-                  value="com/jogamp/newt/impl/x11/*"/>
+                  value="jogamp/newt/x11/*"/>
 
         <property name="java.part.windows"
-                  value="com/jogamp/newt/impl/windows/*"/>
+                  value="jogamp/newt/windows/*"/>
 
         <property name="java.part.macosx"
-                  value="com/jogamp/newt/impl/macosx/*"/>
+                  value="jogamp/newt/macosx/*"/>
 
         <property name="java.part.opengl"
-                  value="com/jogamp/newt/opengl/*, com/jogamp/newt/impl/opengl/kd/*"/>
+                  value="com/jogamp/newt/opengl/* jogamp/newt/opengl/kd/*"/>
 
         <property name="java.part.broadcomegl"
-                  value="com/jogamp/newt/impl/opengl/broadcom/egl/*"/>
+                  value="jogamp/newt/opengl/broadcom/egl/*"/>
 
         <property name="java.part.intelgdl"
-                  value="com/jogamp/newt/impl/intel/gdl/*"/>
+                  value="jogamp/newt/intel/gdl/*"/>
 
         <!-- condition excludes -->
 
@@ -515,29 +515,29 @@
     </macrodef>
 
     <target name="c.build.newt.prepare.KD" if="useKD">
-      <javah destdir="${src.generated.c}/KD" classpath="${classes}" class="com.jogamp.newt.impl.opengl.kd.KDWindow" />
+      <javah destdir="${src.generated.c}/KD" classpath="${classes}" class="jogamp.newt.opengl.kd.KDWindow" />
     </target>
 
     <target name="c.build.newt.prepare.IntelGDL" if="useIntelGDL">
-      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="com.jogamp.newt.impl.intel.gdl.Display" />
-      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="com.jogamp.newt.impl.intel.gdl.Screen" />
-      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="com.jogamp.newt.impl.intel.gdl.Window" />
+      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="jogamp.newt.intel.gdl.Display" />
+      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="jogamp.newt.intel.gdl.Screen" />
+      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="jogamp.newt.intel.gdl.Window" />
     </target>
 
     <target name="c.build.newt.prepare.BroadcomEGL" if="useBroadcomEGL">
-      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${classes}" class="com.jogamp.newt.impl.opengl.broadcom.egl.Window" />
+      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${classes}" class="jogamp.newt.opengl.broadcom.egl.Window" />
     </target>
 
     <target name="c.build.newt.prepare.desktop" unless="setup.nodesktop">
-      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="com.jogamp.newt.impl.windows.WindowsWindow" />
-      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="com.jogamp.newt.impl.windows.WindowsScreen" />
-      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="com.jogamp.newt.impl.windows.WindowsDisplay" />
-      <javah destdir="${src.generated.c}/MacOSX" classpath="${classes}" class="com.jogamp.newt.impl.macosx.MacWindow" />
-      <javah destdir="${src.generated.c}/MacOSX" classpath="${classes}" class="com.jogamp.newt.impl.macosx.MacScreen" />
-      <javah destdir="${src.generated.c}/MacOSX" classpath="${classes}" class="com.jogamp.newt.impl.macosx.MacDisplay" />
-      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="com.jogamp.newt.impl.x11.X11Window" />
-      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="com.jogamp.newt.impl.x11.X11Screen" />
-      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="com.jogamp.newt.impl.x11.X11Display" />
+      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="jogamp.newt.windows.WindowsWindow" />
+      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="jogamp.newt.windows.WindowsScreen" />
+      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="jogamp.newt.windows.WindowsDisplay" />
+      <javah destdir="${src.generated.c}/MacOSX" classpath="${classes}" class="jogamp.newt.macosx.MacWindow" />
+      <javah destdir="${src.generated.c}/MacOSX" classpath="${classes}" class="jogamp.newt.macosx.MacScreen" />
+      <javah destdir="${src.generated.c}/MacOSX" classpath="${classes}" class="jogamp.newt.macosx.MacDisplay" />
+      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="jogamp.newt.x11.X11Window" />
+      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="jogamp.newt.x11.X11Screen" />
+      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="jogamp.newt.x11.X11Display" />
     </target>
 
     <target name="c.build.newt.prepare" depends="c.build.newt.prepare.KD,c.build.newt.prepare.IntelGDL,c.build.newt.prepare.BroadcomEGL,c.build.newt.prepare.desktop" />
@@ -674,28 +674,40 @@
 
     <target name="build-jars-all-awt" depends="setup-manifestfile" unless="setup.noAWT">
         <jar manifest="tempversion" destfile="${newt.all.jar}" filesonly="true">
-            <fileset dir="${classes}"
-                     includes="com/jogamp/newt/**" />
+            <fileset dir="${classes}">
+				<include name="com/jogamp/newt/**" />
+				<include name="jogamp/newt/**" />
+            </fileset>
         </jar>
         <jar manifest="tempversion" destfile="${newt.event.jar}" filesonly="true">
-            <fileset dir="${classes}"
-                     includes="com/jogamp/newt/Display* com/jogamp/newt/Screen* com/jogamp/newt/Window* com/jogamp/newt/ScreenMode* com/jogamp/newt/event/** com/jogamp/newt/impl/Debug*" />
+            <fileset dir="${classes}">
+				<include name="com/jogamp/newt/Display*" />
+				<include name="com/jogamp/newt/Screen*" />
+				<include name="com/jogamp/newt/Window*" />
+				<include name="com/jogamp/newt/ScreenMode*" />
+				<include name="com/jogamp/newt/event/**" />
+				<include name="jogamp/newt/Debug*" />
+            </fileset>
         </jar>
     </target>
 
     <target name="build-jars-all-noawt" depends="setup-manifestfile">
         <jar manifest="tempversion" destfile="${newt.all-noawt.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="com/jogamp/newt/**"
-                     excludes="${java.part.awt}" />
+			         excludes="${java.part.awt}">
+				<include name="com/jogamp/newt/**" />
+				<include name="jogamp/newt/**" />
+            </fileset>
         </jar>
     </target>
 
     <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc">
         <jar manifest="tempversion-cdc" destfile="${newt.all.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
-                     includes="com/jogamp/newt/**"
-                     excludes="${java.excludes.cdcfp}" />
+			         excludes="${java.excludes.cdcfp}" >
+				<include name="com/jogamp/newt/**" />
+				<include name="jogamp/newt/**" />
+            </fileset>
         </jar>
     </target>
 

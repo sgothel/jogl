@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl;
+package jogamp.opengl;
 
 import java.nio.*;
 import javax.media.nativewindow.*;

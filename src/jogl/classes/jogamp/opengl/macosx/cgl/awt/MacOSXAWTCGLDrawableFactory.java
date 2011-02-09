@@ -37,11 +37,11 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.macosx.cgl.awt;
+package jogamp.opengl.macosx.cgl.awt;
 
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.macosx.cgl.*;
+import jogamp.opengl.macosx.cgl.*;
 
 public class MacOSXAWTCGLDrawableFactory extends MacOSXCGLDrawableFactory {
 

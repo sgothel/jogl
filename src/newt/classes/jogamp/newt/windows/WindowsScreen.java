@@ -30,15 +30,15 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
  */
-package com.jogamp.newt.impl.windows;
+package jogamp.newt.windows;
 
 import com.jogamp.common.util.ArrayHashSet;
 import java.util.ArrayList;
 
 import com.jogamp.newt.*;
-import com.jogamp.newt.impl.ScreenImpl;
+import jogamp.newt.ScreenImpl;
 import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.impl.ScreenModeStatus;
+import jogamp.newt.ScreenModeStatus;
 import com.jogamp.newt.util.ScreenModeUtil;
 
 import javax.media.nativewindow.*;

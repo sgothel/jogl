@@ -37,10 +37,10 @@ package com.jogamp.newt;
 import javax.media.nativewindow.*;
 import com.jogamp.common.jvm.JVMUtil;
 import com.jogamp.newt.event.WindowEvent;
-import com.jogamp.newt.impl.DisplayImpl;
-import com.jogamp.newt.impl.ScreenImpl;
-import com.jogamp.newt.impl.WindowImpl;
-import com.jogamp.newt.impl.Debug;
+import jogamp.newt.DisplayImpl;
+import jogamp.newt.ScreenImpl;
+import jogamp.newt.WindowImpl;
+import jogamp.newt.Debug;
 
 public class NewtFactory {
     public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");

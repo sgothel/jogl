@@ -46,7 +46,7 @@ import javax.media.nativewindow.*;
 
 import com.jogamp.common.util.*;
 import com.jogamp.newt.*;
-import com.jogamp.newt.impl.*;
+import jogamp.newt.*;
 
 /**
  * NEWT Utility class MainThread<P>
@@ -181,7 +181,7 @@ public class MainThread implements EDTUtil {
         mainAction = new MainAction(mainClassName, mainClassArgs);
 
         if(NativeWindowFactory.TYPE_MACOSX.equals(NativeWindowFactory.getNativeWindowType(false))) {
-            ReflectionUtil.callStaticMethod("com.jogamp.newt.impl.macosx.MacDisplay", "initSingleton", 
+            ReflectionUtil.callStaticMethod("jogamp.newt.macosx.MacDisplay", "initSingleton", 
                 null, null, MainThread.class.getClassLoader());
         }
 

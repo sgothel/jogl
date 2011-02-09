@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.newt.impl;
+package jogamp.newt;
 
 import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;

@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.impl;
+package jogamp.opengl;
 
 import java.util.Collection;
 import java.util.HashSet;

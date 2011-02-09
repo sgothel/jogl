@@ -35,7 +35,7 @@
  * facility.
  */
 
-package com.jogamp.nativewindow.impl;
+package jogamp.nativewindow;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.NativeSurface;

@@ -32,7 +32,7 @@
  * 
  */
 
-package com.jogamp.newt.impl.awt;
+package jogamp.newt.awt;
 
 import com.jogamp.newt.event.awt.*;
 import com.jogamp.newt.util.EDTUtil;
@@ -42,7 +42,7 @@ import java.awt.Container;
 import java.awt.DisplayMode;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import com.jogamp.newt.impl.WindowImpl;
+import jogamp.newt.WindowImpl;
 import java.awt.Insets;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;

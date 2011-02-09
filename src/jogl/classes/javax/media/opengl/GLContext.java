@@ -43,7 +43,7 @@ package javax.media.opengl;
 import java.util.HashMap;
 import java.util.HashSet;
 import javax.media.nativewindow.AbstractGraphicsDevice;
-import com.jogamp.opengl.impl.Debug;
+import jogamp.opengl.Debug;
 
 /** Abstraction for an OpenGL rendering context. In order to perform
     OpenGL rendering, a context must be "made current" on the current
@@ -611,7 +611,7 @@ public abstract class GLContext {
   }
 
   /**
-   * Called by {@link com.jogamp.opengl.impl.GLContextImpl#createContextARBMapVersionsAvailable} not intended to be used by
+   * Called by {@link jogamp.opengl.GLContextImpl#createContextARBMapVersionsAvailable} not intended to be used by
    * implementations. However, if {@link #createContextARB} is not being used within
    * {@link javax.media.opengl.GLDrawableFactory#getOrCreateSharedContext(javax.media.nativewindow.AbstractGraphicsDevice)},
    * GLProfile has to map the available versions.

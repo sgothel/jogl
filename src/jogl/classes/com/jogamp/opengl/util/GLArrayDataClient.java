@@ -8,7 +8,7 @@ import javax.media.opengl.*;
 
 import com.jogamp.opengl.util.glsl.*;
 
-import com.jogamp.opengl.impl.SystemUtil;
+import jogamp.opengl.SystemUtil;
 
 import java.nio.*;
 

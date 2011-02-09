@@ -32,7 +32,7 @@
  * 
  */
 
-package com.jogamp.newt.impl;
+package jogamp.newt;
 
 import java.util.ArrayList;
 import java.lang.reflect.Method;
@@ -153,15 +153,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         Class windowClass = NewtFactory.getCustomClass(type, "Window");
         if(null==windowClass) {
             if (NativeWindowFactory.TYPE_EGL.equals(type)) {
-                windowClass = Class.forName("com.jogamp.newt.impl.opengl.kd.KDWindow");
+                windowClass = Class.forName("jogamp.newt.opengl.kd.KDWindow");
             } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
-                windowClass = Class.forName("com.jogamp.newt.impl.windows.WindowsWindow");
+                windowClass = Class.forName("jogamp.newt.windows.WindowsWindow");
             } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
-                windowClass = Class.forName("com.jogamp.newt.impl.macosx.MacWindow");
+                windowClass = Class.forName("jogamp.newt.macosx.MacWindow");
             } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
-                windowClass = Class.forName("com.jogamp.newt.impl.x11.X11Window");
+                windowClass = Class.forName("jogamp.newt.x11.X11Window");
             } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
-                windowClass = Class.forName("com.jogamp.newt.impl.awt.AWTWindow");
+                windowClass = Class.forName("jogamp.newt.awt.AWTWindow");
             } else {
                 throw new NativeWindowException("Unknown window type \"" + type + "\"");
             }

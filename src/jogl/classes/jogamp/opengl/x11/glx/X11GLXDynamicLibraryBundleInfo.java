@@ -26,9 +26,9 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.impl.x11.glx;
+package jogamp.opengl.x11.glx;
 
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 import java.util.*;
 
 public class X11GLXDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundleInfo  {

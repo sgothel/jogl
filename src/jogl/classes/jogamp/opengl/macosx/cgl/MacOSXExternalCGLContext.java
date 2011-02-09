@@ -38,13 +38,13 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.macosx.cgl;
+package jogamp.opengl.macosx.cgl;
 
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 
 import javax.media.nativewindow.*;
-import com.jogamp.nativewindow.impl.ProxySurface;
+import jogamp.nativewindow.ProxySurface;
 
 public class MacOSXExternalCGLContext extends MacOSXCGLContext {
   private boolean firstMakeCurrent = true;

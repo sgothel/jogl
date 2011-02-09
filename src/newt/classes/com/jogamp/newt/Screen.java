@@ -28,7 +28,7 @@
 package com.jogamp.newt;
 
 import com.jogamp.newt.event.ScreenModeListener;
-import com.jogamp.newt.impl.Debug;
+import jogamp.newt.Debug;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

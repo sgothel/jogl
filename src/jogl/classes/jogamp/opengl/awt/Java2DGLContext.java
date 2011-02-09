@@ -37,9 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.awt;
+package jogamp.opengl.awt;
 
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 import java.awt.Graphics;
 
 /** Provides a construct by which the shared GLJPanel code can

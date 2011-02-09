@@ -3,7 +3,7 @@ package com.jogamp.opengl.util;
 
 import javax.media.opengl.*;
 
-import com.jogamp.opengl.util.glsl.fixedfunc.impl.*;
+import jogamp.opengl.util.glsl.fixedfunc.*;
 
 import java.nio.*;
 

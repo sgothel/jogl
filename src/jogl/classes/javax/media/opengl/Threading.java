@@ -39,7 +39,7 @@
 
 package javax.media.opengl;
 
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 
 /** This API provides access to the threading model for the implementation of 
     the classes in this package.

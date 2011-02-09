@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.windows.wgl;
+package jogamp.opengl.windows.wgl;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -52,10 +52,10 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
-import com.jogamp.nativewindow.impl.windows.GDI;
-import com.jogamp.opengl.impl.GLContextImpl;
-import com.jogamp.opengl.impl.GLContextShareSet;
-import com.jogamp.opengl.impl.GLDrawableImpl;
+import jogamp.nativewindow.windows.GDI;
+import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.GLContextShareSet;
+import jogamp.opengl.GLDrawableImpl;
 
 public class WindowsWGLContext extends GLContextImpl {
   static final Map/*<String, String>*/ functionNameMap;

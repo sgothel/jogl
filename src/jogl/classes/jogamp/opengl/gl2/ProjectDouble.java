@@ -112,12 +112,12 @@
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
  */
-package com.jogamp.opengl.impl.gl2;
+package jogamp.opengl.gl2;
 
 import java.nio.*;
 
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 import com.jogamp.common.nio.Buffers;
 
 /**

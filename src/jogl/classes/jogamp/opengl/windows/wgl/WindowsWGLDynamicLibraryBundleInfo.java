@@ -26,9 +26,9 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.impl.windows.wgl;
+package jogamp.opengl.windows.wgl;
 
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 import java.util.*;
 
 public class WindowsWGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundleInfo  {

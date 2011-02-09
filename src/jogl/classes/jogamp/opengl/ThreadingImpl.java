@@ -32,7 +32,7 @@
  * 
  */
 
-package com.jogamp.opengl.impl;
+package jogamp.opengl;
 
 import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
@@ -105,10 +105,10 @@ public class ThreadingImpl {
                             // try to fetch the AWTThreadingPlugin
                             Exception error=null;
                             try {
-                                threadingPluginObj = ReflectionUtil.createInstance("com.jogamp.opengl.impl.awt.AWTThreadingPlugin", cl);
+                                threadingPluginObj = ReflectionUtil.createInstance("jogamp.opengl.awt.AWTThreadingPlugin", cl);
                             } catch (JogampRuntimeException jre) { error = jre; }
                             if(AWT == mode && null==threadingPluginObj) {                                
-                                throw new GLException("Mode is AWT, but class 'com.jogamp.opengl.impl.awt.AWTThreadingPlugin' is not available", error);
+                                throw new GLException("Mode is AWT, but class 'jogamp.opengl.awt.AWTThreadingPlugin' is not available", error);
                             }
                         }
                         return threadingPluginObj;

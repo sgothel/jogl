@@ -31,10 +31,10 @@
  * 
  */
 
-package com.jogamp.newt.impl.x11;
+package jogamp.newt.x11;
 
-import com.jogamp.nativewindow.impl.x11.X11Util;
-import com.jogamp.newt.impl.WindowImpl;
+import jogamp.nativewindow.x11.X11Util;
+import jogamp.newt.WindowImpl;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.nativewindow.util.Point;

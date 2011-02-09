@@ -66,9 +66,9 @@
  * facility.
  */
 
-package com.jogamp.opengl.impl.gl2;
+package jogamp.opengl.gl2;
 
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 
 import java.nio.IntBuffer;
 import javax.media.opengl.*;

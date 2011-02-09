@@ -40,7 +40,7 @@
 package com.jogamp.opengl.util;
 
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 
 /** Provides control over the primary display's gamma, brightness and
     contrast controls via the hardware gamma ramp tables. Not

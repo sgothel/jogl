@@ -5,10 +5,10 @@ import javax.media.opengl.*;
 import javax.media.opengl.glu.GLU;
 import com.jogamp.opengl.util.texture.*;
 
-import com.jogamp.opengl.impl.egl.EGL;
-import com.jogamp.opengl.impl.egl.EGLContext;
-import com.jogamp.opengl.impl.egl.EGLDrawable;
-import com.jogamp.opengl.impl.egl.EGLExt;
+import jogamp.opengl.egl.EGL;
+import jogamp.opengl.egl.EGLContext;
+import jogamp.opengl.egl.EGLDrawable;
+import jogamp.opengl.egl.EGLExt;
 
 import java.net.URL;
 import java.nio.ByteBuffer;

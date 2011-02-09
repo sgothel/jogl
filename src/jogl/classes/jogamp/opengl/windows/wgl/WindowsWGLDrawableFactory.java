@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.windows.wgl;
+package jogamp.opengl.windows.wgl;
 
 import java.nio.Buffer;
 import java.nio.ShortBuffer;
@@ -64,15 +64,15 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.nativewindow.impl.ProxySurface;
-import com.jogamp.nativewindow.impl.windows.GDI;
-import com.jogamp.nativewindow.impl.windows.RegisteredClassFactory;
-import com.jogamp.opengl.impl.DesktopGLDynamicLookupHelper;
-import com.jogamp.opengl.impl.GLContextImpl;
-import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
-import com.jogamp.opengl.impl.GLDrawableImpl;
-import com.jogamp.opengl.impl.GLDynamicLookupHelper;
-import com.jogamp.opengl.impl.SharedResourceRunner;
+import jogamp.nativewindow.ProxySurface;
+import jogamp.nativewindow.windows.GDI;
+import jogamp.nativewindow.windows.RegisteredClassFactory;
+import jogamp.opengl.DesktopGLDynamicLookupHelper;
+import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.GLDrawableFactoryImpl;
+import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.GLDynamicLookupHelper;
+import jogamp.opengl.SharedResourceRunner;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper;
@@ -104,7 +104,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     new WindowsWGLGraphicsConfigurationFactory();
     if(GLProfile.isAWTAvailable()) {
         try {
-          ReflectionUtil.createInstance("com.jogamp.opengl.impl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory",
+          ReflectionUtil.createInstance("jogamp.opengl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory",
                                         null, getClass().getClassLoader());
         } catch (JogampRuntimeException jre) { /* n/a .. */ }
     }

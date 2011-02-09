@@ -31,7 +31,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.opengl.impl.windows.wgl;
+package jogamp.opengl.windows.wgl;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -48,11 +48,11 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-import com.jogamp.nativewindow.impl.windows.GDI;
-import com.jogamp.nativewindow.impl.windows.PIXELFORMATDESCRIPTOR;
-import com.jogamp.opengl.impl.GLGraphicsConfigurationFactory;
-import com.jogamp.opengl.impl.GLGraphicsConfigurationUtil;
-import com.jogamp.opengl.impl.SharedResourceRunner;
+import jogamp.nativewindow.windows.GDI;
+import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
+import jogamp.opengl.GLGraphicsConfigurationFactory;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
+import jogamp.opengl.SharedResourceRunner;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,7 +64,7 @@ import java.util.List;
     GraphicsDevice and GraphicsConfiguration abstractions. */
 
 public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
-    protected static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug("GraphicsConfiguration");
+    protected static final boolean DEBUG = jogamp.opengl.Debug.debug("GraphicsConfiguration");
     static WGLGLCapabilities.PfdIDComparator PfdIDComparator = new WGLGLCapabilities.PfdIDComparator();
 
     WindowsWGLGraphicsConfigurationFactory() {

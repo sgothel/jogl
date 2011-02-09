@@ -31,11 +31,11 @@
  * 
  */
 
-package com.jogamp.newt.impl.opengl.broadcom.egl;
+package jogamp.newt.opengl.broadcom.egl;
 
 import javax.media.nativewindow.*;
 
-public class Screen extends com.jogamp.newt.impl.ScreenImpl {
+public class Screen extends jogamp.newt.ScreenImpl {
 
     static {
         Display.initSingleton();

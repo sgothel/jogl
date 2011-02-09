@@ -26,14 +26,14 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.impl.egl;
+package jogamp.opengl.egl;
 
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.NativeLibrary;
 import java.util.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 import java.security.*;
 
 /**

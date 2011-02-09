@@ -50,12 +50,12 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.jogamp.opengl.impl.glu.tessellator;
+package jogamp.opengl.glu.tessellator;
 
 class GLUvertex {
     public GLUvertex next;		/* next vertex (never NULL) */
     public GLUvertex prev;		/* previous vertex (never NULL) */
-    public com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge anEdge;	/* a half-edge with this origin */
+    public jogamp.opengl.glu.tessellator.GLUhalfEdge anEdge;	/* a half-edge with this origin */
     public Object data;		/* client's data */
 
     /* Internal data (keep hidden) */

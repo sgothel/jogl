@@ -32,7 +32,7 @@
  * 
  */
 
-package com.jogamp.newt.impl;
+package jogamp.newt;
 
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.IntIntHashMap;
@@ -70,15 +70,15 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         Class screenClass = NewtFactory.getCustomClass(type, "Screen");
         if(null==screenClass) {
             if (NativeWindowFactory.TYPE_EGL.equals(type)) {
-                screenClass = Class.forName("com.jogamp.newt.impl.opengl.kd.KDScreen");
+                screenClass = Class.forName("jogamp.newt.opengl.kd.KDScreen");
             } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
-                screenClass = Class.forName("com.jogamp.newt.impl.windows.WindowsScreen");
+                screenClass = Class.forName("jogamp.newt.windows.WindowsScreen");
             } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
-                screenClass = Class.forName("com.jogamp.newt.impl.macosx.MacScreen");
+                screenClass = Class.forName("jogamp.newt.macosx.MacScreen");
             } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
-                screenClass = Class.forName("com.jogamp.newt.impl.x11.X11Screen");
+                screenClass = Class.forName("jogamp.newt.x11.X11Screen");
             } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
-                screenClass = Class.forName("com.jogamp.newt.impl.awt.AWTScreen");
+                screenClass = Class.forName("jogamp.newt.awt.AWTScreen");
             } else {
                 throw new RuntimeException("Unknown window type \"" + type + "\"");
             }

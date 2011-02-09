@@ -42,7 +42,7 @@
  * compliant with the OpenGL(R) version 1.2.1 Specification.
  */
 
-package com.jogamp.opengl.impl.glu.registry;
+package jogamp.opengl.glu.registry;
 
 import javax.media.opengl.glu.GLU;
 

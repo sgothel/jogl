@@ -34,10 +34,10 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.egl;
+package jogamp.opengl.egl;
 
-import com.jogamp.opengl.impl.GLDynamicLookupHelper;
-import com.jogamp.opengl.impl.GLDrawableImpl;
+import jogamp.opengl.GLDynamicLookupHelper;
+import jogamp.opengl.GLDrawableImpl;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;

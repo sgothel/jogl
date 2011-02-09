@@ -33,7 +33,7 @@
 package javax.media.nativewindow.x11;
 
 import javax.media.nativewindow.*;
-import com.jogamp.nativewindow.impl.x11.X11Util;
+import jogamp.nativewindow.x11.X11Util;
 
 /** Encapsulates a screen index on X11
     platforms. Objects of this type are passed to {@link

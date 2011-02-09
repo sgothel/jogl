@@ -47,7 +47,7 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.image.ColorModel;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import com.jogamp.nativewindow.impl.Debug;
+import jogamp.nativewindow.Debug;
 
 /** A wrapper for an AWT GraphicsConfiguration allowing it to be
     handled in a toolkit-independent manner. */

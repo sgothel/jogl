@@ -35,9 +35,9 @@
  * facility.
  */
 
-package com.jogamp.nativewindow.impl.jawt;
+package jogamp.nativewindow.jawt;
 
-import com.jogamp.nativewindow.impl.*;
+import jogamp.nativewindow.*;
 import java.awt.EventQueue;
 
 import javax.media.nativewindow.*;
@@ -78,7 +78,7 @@ public class JAWTUtil {
     Method m = null;
     if (!headlessMode) {
         try {
-            jC = Class.forName("com.jogamp.opengl.impl.awt.Java2D");
+            jC = Class.forName("jogamp.opengl.awt.Java2D");
             m = jC.getMethod("isQueueFlusherThread", null);
             ok = true;
         } catch (Exception e) {

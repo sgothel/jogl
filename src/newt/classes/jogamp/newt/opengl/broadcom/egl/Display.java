@@ -31,14 +31,14 @@
  * 
  */
 
-package com.jogamp.newt.impl.opengl.broadcom.egl;
+package jogamp.newt.opengl.broadcom.egl;
 
-import com.jogamp.newt.impl.*;
-import com.jogamp.opengl.impl.egl.*;
+import jogamp.newt.*;
+import jogamp.opengl.egl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 
-public class Display extends com.jogamp.newt.impl.DisplayImpl {
+public class Display extends jogamp.newt.DisplayImpl {
 
     static {
         NEWTJNILibLoader.loadNEWT();

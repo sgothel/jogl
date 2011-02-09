@@ -31,10 +31,10 @@
  * 
  */
 
-package com.jogamp.newt.impl.awt;
+package jogamp.newt.awt;
 
 import com.jogamp.newt.*;
-import com.jogamp.newt.impl.ScreenImpl;
+import jogamp.newt.ScreenImpl;
 import java.awt.DisplayMode;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;

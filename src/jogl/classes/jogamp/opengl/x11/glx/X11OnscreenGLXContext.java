@@ -36,7 +36,7 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-package com.jogamp.opengl.impl.x11.glx;
+package jogamp.opengl.x11.glx;
 
 import javax.media.opengl.*;
 

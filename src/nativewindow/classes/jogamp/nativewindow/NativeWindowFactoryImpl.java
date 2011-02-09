@@ -30,7 +30,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.nativewindow.impl;
+package jogamp.nativewindow;
 
 import com.jogamp.common.util.*;
 import java.lang.reflect.*;
@@ -82,12 +82,12 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
                 // make it easier to run this code on mobile devices
 
                 if (osType.equals(TYPE_WINDOWS)) {
-                    windowClassName = "com.jogamp.nativewindow.impl.jawt.windows.WindowsJAWTWindow";
+                    windowClassName = "jogamp.nativewindow.jawt.windows.WindowsJAWTWindow";
                 } else if (osType.equals(TYPE_MACOSX)) {
-                    windowClassName = "com.jogamp.nativewindow.impl.jawt.macosx.MacOSXJAWTWindow";
+                    windowClassName = "jogamp.nativewindow.jawt.macosx.MacOSXJAWTWindow";
                 } else if (osType.equals(TYPE_X11)) {
                     // Assume Linux, Solaris, etc. Should probably test for these explicitly.
-                    windowClassName = "com.jogamp.nativewindow.impl.jawt.x11.X11JAWTWindow";
+                    windowClassName = "jogamp.nativewindow.jawt.x11.X11JAWTWindow";
                 } else {
                     throw new IllegalArgumentException("OS " + getNativeOSName(false) + " not yet supported");
                 }

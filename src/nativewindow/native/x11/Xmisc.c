@@ -81,7 +81,7 @@ Bool XF86VidModeSetGammaRamp(
 #endif
 
 #include "NativewindowCommon.h"
-#include "com_jogamp_nativewindow_impl_x11_X11Lib.h"
+#include "jogamp_nativewindow_x11_X11Lib.h"
 
 // #define VERBOSE_ON 1
 
@@ -114,42 +114,42 @@ static void _initClazzAccess(JNIEnv *env) {
 
     c = (*env)->FindClass(env, ClazzNameBuffers);
     if(NULL==c) {
-        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNameBuffers);
+        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't find %s", ClazzNameBuffers);
     }
     clazzBuffers = (jclass)(*env)->NewGlobalRef(env, c);
     (*env)->DeleteLocalRef(env, c);
     if(NULL==clazzBuffers) {
-        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameBuffers);
+        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't use %s", ClazzNameBuffers);
     }
     c = (*env)->FindClass(env, ClazzNameByteBuffer);
     if(NULL==c) {
-        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNameByteBuffer);
+        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't find %s", ClazzNameByteBuffer);
     }
     clazzByteBuffer = (jclass)(*env)->NewGlobalRef(env, c);
     (*env)->DeleteLocalRef(env, c);
     if(NULL==c) {
-        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNameByteBuffer);
+        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't use %s", ClazzNameByteBuffer);
     }
 
     cstrBuffers = (*env)->GetStaticMethodID(env, clazzBuffers, 
                             ClazzNameBuffersStaticCstrName, ClazzNameBuffersStaticCstrSignature);
     if(NULL==cstrBuffers) {
-        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't create %s.%s %s",
+        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't create %s.%s %s",
             ClazzNameBuffers, ClazzNameBuffersStaticCstrName, ClazzNameBuffersStaticCstrSignature);
     }
 
     c = (*env)->FindClass(env, ClazzNamePoint);
     if(NULL==c) {
-        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't find %s", ClazzNamePoint);
+        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't find %s", ClazzNamePoint);
     }
     pointClz = (jclass)(*env)->NewGlobalRef(env, c);
     (*env)->DeleteLocalRef(env, c);
     if(NULL==pointClz) {
-        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't use %s", ClazzNamePoint);
+        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't use %s", ClazzNamePoint);
     }
     pointCstr = (*env)->GetMethodID(env, pointClz, ClazzAnyCstrName, ClazzNamePointCstrSignature);
     if(NULL==pointCstr) {
-        NativewindowCommon_FatalError(env, "FatalError Java_com_jogamp_nativewindow_impl_x11_X11Lib: can't fetch %s.%s %s",
+        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't fetch %s.%s %s",
             ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
     }
 }
@@ -238,7 +238,7 @@ static void x11IOErrorHandlerEnable(int onoff, JNIEnv * env) {
 static int _initialized=0;
 
 JNIEXPORT void JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize0(JNIEnv *env, jclass _unused, jboolean firstUIActionOnProcess) {
+Java_jogamp_nativewindow_x11_X11Util_initialize0(JNIEnv *env, jclass _unused, jboolean firstUIActionOnProcess) {
     if(0==_initialized) {
         if( JNI_TRUE == firstUIActionOnProcess ) {
             if( 0 == XInitThreads() ) {
@@ -257,17 +257,17 @@ Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize0(JNIEnv *env, jclass _u
 }
 
 JNIEXPORT void JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Util_setX11ErrorHandler0(JNIEnv *env, jclass _unused, jboolean onoff, jboolean quiet) {
+Java_jogamp_nativewindow_x11_X11Util_setX11ErrorHandler0(JNIEnv *env, jclass _unused, jboolean onoff, jboolean quiet) {
   x11ErrorHandlerEnableBlocking(env, ( JNI_TRUE == onoff ) ? 1 : 0, ( JNI_TRUE == quiet ) ? 1 : 0);
 }
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.nativewindow.impl.x11.X11Lib
+ *   Java package: jogamp.nativewindow.x11.X11Lib
  *    Java method: XVisualInfo XGetVisualInfo(long arg0, long arg1, XVisualInfo arg2, java.nio.IntBuffer arg3)
  *     C function: XVisualInfo *  XGetVisualInfo(Display * , long, XVisualInfo * , int * );
  */
 JNIEXPORT jobject JNICALL
-Java_com_jogamp_nativewindow_impl_x11_X11Lib_XGetVisualInfo1__JJLjava_nio_ByteBuffer_2Ljava_lang_Object_2I(JNIEnv *env, jclass _unused, jlong arg0, jlong arg1, jobject arg2, jobject arg3, jint arg3_byte_offset) {
+Java_jogamp_nativewindow_x11_X11Lib_XGetVisualInfo1__JJLjava_nio_ByteBuffer_2Ljava_lang_Object_2I(JNIEnv *env, jclass _unused, jlong arg0, jlong arg1, jobject arg2, jobject arg3, jint arg3_byte_offset) {
   XVisualInfo * _ptr2 = NULL;
   int * _ptr3 = NULL;
   XVisualInfo *  _res;
@@ -301,7 +301,7 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XGetVisualInfo1__JJLjava_nio_ByteBu
 }
 
 JNIEXPORT jlong JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Lib_DefaultVisualID(JNIEnv *env, jclass _unused, jlong display, jint screen) {
+Java_jogamp_nativewindow_x11_X11Lib_DefaultVisualID(JNIEnv *env, jclass _unused, jlong display, jint screen) {
   jlong r;
     if(0==display) {
         NativewindowCommon_FatalError(env, "invalid display connection..");
@@ -313,12 +313,12 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_DefaultVisualID(JNIEnv *env, jclass
 }
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.nativewindow.impl.x11.X11Lib
+ *   Java package: jogamp.nativewindow.x11.X11Lib
  *    Java method: void XLockDisplay(long display)
  *     C function: void XLockDisplay(Display *  display);
  */
 JNIEXPORT void JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Lib_XLockDisplay__J(JNIEnv *env, jclass _unused, jlong display) {
+Java_jogamp_nativewindow_x11_X11Lib_XLockDisplay__J(JNIEnv *env, jclass _unused, jlong display) {
   if(0==display) {
       NativewindowCommon_FatalError(env, "invalid display connection..");
   }
@@ -326,12 +326,12 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XLockDisplay__J(JNIEnv *env, jclass
 }
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.nativewindow.impl.x11.X11Lib
+ *   Java package: jogamp.nativewindow.x11.X11Lib
  *    Java method: void XUnlockDisplay(long display)
  *     C function: void XUnlockDisplay(Display *  display);
  */
 JNIEXPORT void JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Lib_XUnlockDisplay__J(JNIEnv *env, jclass _unused, jlong display) {
+Java_jogamp_nativewindow_x11_X11Lib_XUnlockDisplay__J(JNIEnv *env, jclass _unused, jlong display) {
   if(0==display) {
       NativewindowCommon_FatalError(env, "invalid display connection..");
   }
@@ -339,12 +339,12 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XUnlockDisplay__J(JNIEnv *env, jcla
 }
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.nativewindow.impl.x11.X11Lib
+ *   Java package: jogamp.nativewindow.x11.X11Lib
  *    Java method: int XCloseDisplay(long display)
  *     C function: int XCloseDisplay(Display *  display);
  */
 JNIEXPORT jint JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Lib_XCloseDisplay__J(JNIEnv *env, jclass _unused, jlong display) {
+Java_jogamp_nativewindow_x11_X11Lib_XCloseDisplay__J(JNIEnv *env, jclass _unused, jlong display) {
   int _res;
   if(0==display) {
       NativewindowCommon_FatalError(env, "invalid display connection..");
@@ -356,11 +356,11 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XCloseDisplay__J(JNIEnv *env, jclas
 }
 
 /*
- * Class:     com_jogamp_nativewindow_impl_x11_X11Lib
+ * Class:     jogamp_nativewindow_x11_X11Lib
  * Method:    CreateDummyWindow
  * Signature: (JIJII)J
  */
-JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummyWindow
+JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
   (JNIEnv *env, jclass unused, jlong display, jint screen_index, jlong visualID, jint width, jint height)
 {
     Display * dpy  = (Display *)(intptr_t)display;
@@ -464,11 +464,11 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
 
 
 /*
- * Class:     com_jogamp_nativewindow_impl_x11_X11Lib
+ * Class:     jogamp_nativewindow_x11_X11Lib
  * Method:    DestroyDummyWindow
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_DestroyDummyWindow
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_x11_X11Lib_DestroyDummyWindow
   (JNIEnv *env, jclass unused, jlong display, jlong window)
 {
     Display * dpy = (Display *)(intptr_t)display;
@@ -487,11 +487,11 @@ JNIEXPORT void JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_DestroyDummy
 }
 
 /*
- * Class:     com_jogamp_nativewindow_impl_x11_X11Lib
+ * Class:     jogamp_nativewindow_x11_X11Lib
  * Method:    GetRelativeLocation
  * Signature: (JIJJII)Ljavax/media/nativewindow/util/Point;
  */
-JNIEXPORT jobject JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_GetRelativeLocation0
+JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_x11_X11Lib_GetRelativeLocation0
   (JNIEnv *env, jclass unused, jlong jdisplay, jint screen_index, jlong jsrc_win, jlong jdest_win, jint src_x, jint src_y)
 {
     Display * dpy = (Display *) (intptr_t) jdisplay;

@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.macosx.cgl;
+package jogamp.opengl.macosx.cgl;
 
 import java.nio.*;
 import java.util.HashMap;
@@ -50,8 +50,8 @@ import javax.media.opengl.*;
 
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.ProxySurface;
+import jogamp.opengl.*;
+import jogamp.nativewindow.ProxySurface;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final DesktopGLDynamicLookupHelper macOSXCGLDynamicLookupHelper;
@@ -84,7 +84,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     new MacOSXCGLGraphicsConfigurationFactory();
     if(GLProfile.isAWTAvailable()) {
         try {
-          ReflectionUtil.createInstance("com.jogamp.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory",
+          ReflectionUtil.createInstance("jogamp.opengl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory",
                                         null, getClass().getClassLoader());
         } catch (JogampRuntimeException jre) { /* n/a .. */ }
     }

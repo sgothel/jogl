@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.newt.impl;
+package jogamp.newt;
 
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.IntIntHashMap;

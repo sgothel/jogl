@@ -38,11 +38,11 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.windows.wgl;
+package jogamp.opengl.windows.wgl;
 
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 
 public class WindowsOnscreenWGLDrawable extends WindowsWGLDrawable {
   protected WindowsOnscreenWGLDrawable(GLDrawableFactory factory, NativeSurface component) {

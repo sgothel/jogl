@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.nativewindow.impl;
+package jogamp.nativewindow;
 
 import java.security.*;
 

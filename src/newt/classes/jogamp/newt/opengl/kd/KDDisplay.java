@@ -31,11 +31,11 @@
  * 
  */
 
-package com.jogamp.newt.impl.opengl.kd;
+package jogamp.newt.opengl.kd;
 
 import com.jogamp.newt.*;
-import com.jogamp.newt.impl.*;
-import com.jogamp.opengl.impl.egl.*;
+import jogamp.newt.*;
+import jogamp.opengl.egl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 

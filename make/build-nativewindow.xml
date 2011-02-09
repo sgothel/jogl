@@ -73,16 +73,16 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="javax/media/nativewindow/*, javax/media/nativewindow/util/*, javax/media/nativewindow/egl/*, javax/media/nativewindow/macosx/*, javax/media/nativewindow/windows/*, com/jogamp/nativewindow/*, com/jogamp/nativewindow/impl/*, com/jogamp/nativewindow/impl/jvm/*"/>
+                  value="javax/media/nativewindow/*, javax/media/nativewindow/util/*, javax/media/nativewindow/egl/*, javax/media/nativewindow/macosx/*, javax/media/nativewindow/windows/*, com/jogamp/nativewindow/*, jogamp/nativewindow/*, jogamp/nativewindow/jvm/*"/>
 
         <property name="java.part.awt"
-                  value="javax/media/nativewindow/awt/*, com/jogamp/nativewindow/impl/jawt/**, com/jogamp/nativewindow/impl/**/awt/**"/>
+                  value="javax/media/nativewindow/awt/*, jogamp/nativewindow/jawt/**, jogamp/nativewindow/**/awt/**"/>
 
         <property name="java.part.x11"
-                  value="com/jogamp/nativewindow/impl/x11/** javax/media/nativewindow/x11/*" />
+                  value="jogamp/nativewindow/x11/** javax/media/nativewindow/x11/*" />
 
         <property name="java.part.windows"
-                  value="com/jogamp/nativewindow/impl/windows/** javax/media/nativewindow/windows/*" />
+                  value="jogamp/nativewindow/windows/** javax/media/nativewindow/windows/*" />
 
         <!-- condition excludes -->
 
@@ -159,7 +159,7 @@
 
         <property name="javadoc.packagenames" value="${javadoc.spec.packagenames}" />
 
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.nativewindow.util.*,com.jogamp.nativewindow.impl.*,com.jogamp.gluegen,com.jogamp.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.nativewindow.util.*,jogamp.nativewindow.*,com.jogamp.gluegen,com.jogamp.gluegen.runtime" />
     <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
     
@@ -201,13 +201,13 @@
 
         <!-- Now check for the presence of one well-known file -->
         <uptodate property="java.generate.skip.x11windowlib"
-                  targetfile="${src.generated.java}/com/jogamp/nativewindow/impl/x11/X11Lib.java">
+                  targetfile="${src.generated.java}/jogamp/nativewindow/x11/X11Lib.java">
             <srcfiles refid="stub.includes.dependencies.fileset.1" />
             <srcfiles refid="stub.includes.dependencies.fileset.2" />
             <srcfiles refid="stub.includes.dependencies.fileset.3" />
         </uptodate>
         <uptodate property="java.generate.skip.jawt"
-                  targetfile="${src.generated.java}/com/jogamp/nativewindow/impl/jawt/JAWT.java">
+                  targetfile="${src.generated.java}/jogamp/nativewindow/jawt/JAWT.java">
             <srcfiles refid="stub.includes.dependencies.fileset.1" />
             <srcfiles refid="stub.includes.dependencies.fileset.2" />
             <srcfiles refid="stub.includes.dependencies.fileset.3" />
@@ -234,7 +234,7 @@
         </gluegen>
         <copy todir="${src.generated.java-cdc}">
             <fileset dir="${src.generated.java}"
-                     includes="com/jogamp/nativewindow/impl/x11/** com/jogamp/nativewindow/impl/windows/**" />
+                     includes="jogamp/nativewindow/x11/** jogamp/nativewindow/windows/**" />
         </copy>
     </target>
 
@@ -254,7 +254,7 @@
         </gluegen>
         <copy todir="${src.generated.java-cdc}">
             <fileset dir="${src.generated.java}"
-                     includes="com/jogamp/nativewindow/impl/jawt/**" />
+                     includes="jogamp/nativewindow/jawt/**" />
         </copy>
     </target>
 
@@ -645,7 +645,7 @@
     </target>
 
     <target name="c.build.nativewindow.windowlib.x11" if="isX11">
-      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="com.jogamp.nativewindow.impl.x11.X11Lib" />
+      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="jogamp.nativewindow.x11.X11Lib" />
 
       <c.build c.compiler.src.files="c.src.files.x11"
                output.lib.name="nativewindow_x11"
@@ -654,7 +654,7 @@
     </target>
 
     <target name="c.build.nativewindow.windowlib.windows" if="isWindows">
-      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="com.jogamp.nativewindow.impl.windows.GDI" />
+      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="jogamp.nativewindow.windows.GDI" />
 
       <c.build c.compiler.src.files="c.src.files.windows"
                output.lib.name="nativewindow_win32"
@@ -749,20 +749,20 @@
     <target name="build-jars-all" depends="setup-manifestfile" unless="setup.noAWT">
         <jar manifest="tempversion" destfile="${nativewindow.all.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="javax/media/nativewindow/** com/jogamp/nativewindow/**" />
+                     includes="javax/media/nativewindow/** com/jogamp/nativewindow/** jogamp/nativewindow/**" />
         </jar>
     </target>
     <target name="build-jars-all-noawt" depends="setup-manifestfile">
         <jar manifest="tempversion" destfile="${nativewindow.all-noawt.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="javax/media/nativewindow/**, com/jogamp/nativewindow/**" 
+                     includes="javax/media/nativewindow/** com/jogamp/nativewindow/** jogamp/nativewindow/**" 
                      excludes="${java.part.awt}"/>
         </jar>
     </target>
     <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc">
         <jar manifest="tempversion-cdc" destfile="${nativewindow.all.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
-                     includes="javax/media/nativewindow/** com/jogamp/nativewindow/**" />
+                     includes="javax/media/nativewindow/** com/jogamp/nativewindow/** jogamp/nativewindow/**" />
         </jar>
     </target>
 

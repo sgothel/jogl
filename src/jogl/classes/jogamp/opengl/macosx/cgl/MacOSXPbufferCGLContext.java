@@ -31,7 +31,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.opengl.impl.macosx.cgl;
+package jogamp.opengl.macosx.cgl;
 
 import com.jogamp.common.nio.PointerBuffer;
 import java.security.*;
@@ -39,7 +39,7 @@ import java.util.*;
 
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 
 public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
 

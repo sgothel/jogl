@@ -50,25 +50,25 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.jogamp.opengl.impl.glu.tessellator;
+package jogamp.opengl.glu.tessellator;
 
-class PriorityQHeap extends com.jogamp.opengl.impl.glu.tessellator.PriorityQ {
-    com.jogamp.opengl.impl.glu.tessellator.PriorityQ.PQnode[] nodes;
-    com.jogamp.opengl.impl.glu.tessellator.PriorityQ.PQhandleElem[] handles;
+class PriorityQHeap extends jogamp.opengl.glu.tessellator.PriorityQ {
+    jogamp.opengl.glu.tessellator.PriorityQ.PQnode[] nodes;
+    jogamp.opengl.glu.tessellator.PriorityQ.PQhandleElem[] handles;
     int size, max;
     int freeList;
     boolean initialized;
-    com.jogamp.opengl.impl.glu.tessellator.PriorityQ.Leq leq;
+    jogamp.opengl.glu.tessellator.PriorityQ.Leq leq;
 
 /* really __gl_pqHeapNewPriorityQ */
-    public PriorityQHeap(com.jogamp.opengl.impl.glu.tessellator.PriorityQ.Leq leq) {
+    public PriorityQHeap(jogamp.opengl.glu.tessellator.PriorityQ.Leq leq) {
         size = 0;
-        max = com.jogamp.opengl.impl.glu.tessellator.PriorityQ.INIT_SIZE;
-        nodes = new com.jogamp.opengl.impl.glu.tessellator.PriorityQ.PQnode[com.jogamp.opengl.impl.glu.tessellator.PriorityQ.INIT_SIZE + 1];
+        max = jogamp.opengl.glu.tessellator.PriorityQ.INIT_SIZE;
+        nodes = new jogamp.opengl.glu.tessellator.PriorityQ.PQnode[jogamp.opengl.glu.tessellator.PriorityQ.INIT_SIZE + 1];
         for (int i = 0; i < nodes.length; i++) {
             nodes[i] = new PQnode();
         }
-        handles = new com.jogamp.opengl.impl.glu.tessellator.PriorityQ.PQhandleElem[com.jogamp.opengl.impl.glu.tessellator.PriorityQ.INIT_SIZE + 1];
+        handles = new jogamp.opengl.glu.tessellator.PriorityQ.PQhandleElem[jogamp.opengl.glu.tessellator.PriorityQ.INIT_SIZE + 1];
         for (int i = 0; i < handles.length; i++) {
             handles[i] = new PQhandleElem();
         }
@@ -87,8 +87,8 @@ class PriorityQHeap extends com.jogamp.opengl.impl.glu.tessellator.PriorityQ {
     }
 
     void FloatDown(int curr) {
-        com.jogamp.opengl.impl.glu.tessellator.PriorityQ.PQnode[] n = nodes;
-        com.jogamp.opengl.impl.glu.tessellator.PriorityQ.PQhandleElem[] h = handles;
+        jogamp.opengl.glu.tessellator.PriorityQ.PQnode[] n = nodes;
+        jogamp.opengl.glu.tessellator.PriorityQ.PQhandleElem[] h = handles;
         int hCurr, hChild;
         int child;
 
@@ -116,8 +116,8 @@ class PriorityQHeap extends com.jogamp.opengl.impl.glu.tessellator.PriorityQ {
 
 
     void FloatUp(int curr) {
-        com.jogamp.opengl.impl.glu.tessellator.PriorityQ.PQnode[] n = nodes;
-        com.jogamp.opengl.impl.glu.tessellator.PriorityQ.PQhandleElem[] h = handles;
+        jogamp.opengl.glu.tessellator.PriorityQ.PQnode[] n = nodes;
+        jogamp.opengl.glu.tessellator.PriorityQ.PQhandleElem[] h = handles;
         int hCurr, hParent;
         int parent;
 
@@ -158,8 +158,8 @@ class PriorityQHeap extends com.jogamp.opengl.impl.glu.tessellator.PriorityQ {
 
         curr = ++size;
         if ((curr * 2) > max) {
-            com.jogamp.opengl.impl.glu.tessellator.PriorityQ.PQnode[] saveNodes = nodes;
-            com.jogamp.opengl.impl.glu.tessellator.PriorityQ.PQhandleElem[] saveHandles = handles;
+            jogamp.opengl.glu.tessellator.PriorityQ.PQnode[] saveNodes = nodes;
+            jogamp.opengl.glu.tessellator.PriorityQ.PQhandleElem[] saveHandles = handles;
 
             /* If the heap overflows, double its size. */
             max <<= 1;
@@ -208,8 +208,8 @@ class PriorityQHeap extends com.jogamp.opengl.impl.glu.tessellator.PriorityQ {
 
 /* really __gl_pqHeapExtractMin */
     Object pqExtractMin() {
-        com.jogamp.opengl.impl.glu.tessellator.PriorityQ.PQnode[] n = nodes;
-        com.jogamp.opengl.impl.glu.tessellator.PriorityQ.PQhandleElem[] h = handles;
+        jogamp.opengl.glu.tessellator.PriorityQ.PQnode[] n = nodes;
+        jogamp.opengl.glu.tessellator.PriorityQ.PQhandleElem[] h = handles;
         int hMin = n[1].handle;
         Object min = h[hMin].key;
 
@@ -230,8 +230,8 @@ class PriorityQHeap extends com.jogamp.opengl.impl.glu.tessellator.PriorityQ {
 
 /* really __gl_pqHeapDelete */
     void pqDelete(int hCurr) {
-        com.jogamp.opengl.impl.glu.tessellator.PriorityQ.PQnode[] n = nodes;
-        com.jogamp.opengl.impl.glu.tessellator.PriorityQ.PQhandleElem[] h = handles;
+        jogamp.opengl.glu.tessellator.PriorityQ.PQnode[] n = nodes;
+        jogamp.opengl.glu.tessellator.PriorityQ.PQhandleElem[] h = handles;
         int curr;
 
         assert (hCurr >= 1 && hCurr <= max && h[hCurr].key != null);

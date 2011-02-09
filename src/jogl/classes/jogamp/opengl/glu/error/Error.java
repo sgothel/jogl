@@ -42,11 +42,11 @@
  * compliant with the OpenGL(R) version 1.2.1 Specification.
  */
 
-package com.jogamp.opengl.impl.glu.error;
+package jogamp.opengl.glu.error;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.glu.GLU;
-import com.jogamp.opengl.impl.glu.Glue;
+import jogamp.opengl.glu.Glue;
 
 /**
  *

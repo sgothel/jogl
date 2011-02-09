@@ -38,7 +38,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
-    D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
+    #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GraphicsConfiguration"
@@ -96,7 +96,7 @@ function testawt() {
 #
 # awt (testawt)
 #
-#testawt com.jogamp.newt.impl.awt.opengl.VersionApplet $*
+#testawt jogamp.newt.awt.opengl.VersionApplet $*
 #testawt javax.media.opengl.awt.GLCanvas $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
@@ -110,6 +110,7 @@ function testawt() {
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT
 #testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461OffscreenSupersamplingSwingAWT
+testawt com.jogamp.opengl.test.junit.jogl.texture.TestGrayTextureFromFileAWTBug417
 
 #
 # newt.awt (testawt)
@@ -143,7 +144,7 @@ function testawt() {
 
 #testawt $*
 
-testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT
+#testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT
 
 $spath/count-edt-start.sh java-run.log
 

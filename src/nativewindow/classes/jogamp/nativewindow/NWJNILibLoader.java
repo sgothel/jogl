@@ -27,7 +27,7 @@
  */
  
 
-package com.jogamp.nativewindow.impl;
+package jogamp.nativewindow;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;

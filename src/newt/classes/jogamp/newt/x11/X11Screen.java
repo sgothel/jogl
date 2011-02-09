@@ -30,10 +30,10 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
  */
-package com.jogamp.newt.impl.x11;
+package jogamp.newt.x11;
 
-import com.jogamp.nativewindow.impl.x11.X11Util;
-import com.jogamp.newt.impl.ScreenImpl;
+import jogamp.nativewindow.x11.X11Util;
+import jogamp.newt.ScreenImpl;
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.util.ScreenModeUtil;
 import java.util.List;

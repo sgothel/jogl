@@ -42,12 +42,12 @@
  * compliant with the OpenGL(R) version 1.2.1 Specification.
  */
 
-package com.jogamp.opengl.impl.glu.mipmap;
+package jogamp.opengl.glu.mipmap;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.glu.GLU;
-import com.jogamp.opengl.impl.Debug;
+import jogamp.opengl.Debug;
 import com.jogamp.common.nio.Buffers;
 import java.nio.*;
 import java.io.*;

@@ -41,7 +41,7 @@
 package javax.media.opengl;
 
 import javax.media.nativewindow.NativeWindowException;
-import com.jogamp.opengl.impl.Debug;
+import jogamp.opengl.Debug;
 import java.util.List;
 import javax.media.nativewindow.CapabilitiesImmutable;
 

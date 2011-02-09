@@ -1,10 +1,10 @@
 /*   Java->C glue code:
- *   Java package: com.jogamp.opengl.impl.gl4.GL4bcImpl
+ *   Java package: jogamp.opengl.gl4.GL4bcImpl
  *    Java method: long dispatch_glMapBuffer(int target, int access)
  *     C function: void * glMapBuffer(GLenum target, GLenum access);
  */
 JNIEXPORT jlong JNICALL 
-Java_com_jogamp_opengl_impl_gl4_GL4bcImpl_dispatch_1glMapBuffer(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
+Java_jogamp_opengl_gl4_GL4bcImpl_dispatch_1glMapBuffer(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
   PFNGLMAPBUFFERPROC ptr_glMapBuffer;
   void * _res;
   ptr_glMapBuffer = (PFNGLMAPBUFFERPROC) (intptr_t) glProcAddress;
@@ -14,12 +14,12 @@ Java_com_jogamp_opengl_impl_gl4_GL4bcImpl_dispatch_1glMapBuffer(JNIEnv *env, job
 }
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.opengl.impl.gl4.GL4bcImpl
+ *   Java package: jogamp.opengl.gl4.GL4bcImpl
  *    Java method: long dispatch_glMapNamedBufferEXT(int target, int access)
  *     C function: void * glMapNamedBufferEXT(GLenum target, GLenum access);
  */
 JNIEXPORT jlong JNICALL 
-Java_com_jogamp_opengl_impl_gl4_GL4bcImpl_dispatch_1glMapNamedBufferEXT(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
+Java_jogamp_opengl_gl4_GL4bcImpl_dispatch_1glMapNamedBufferEXT(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
   PFNGLMAPNAMEDBUFFEREXTPROC ptr_glMapNamedBufferEXT;
   void * _res;
   ptr_glMapNamedBufferEXT = (PFNGLMAPNAMEDBUFFEREXTPROC) (intptr_t) glProcAddress;
@@ -29,11 +29,11 @@ Java_com_jogamp_opengl_impl_gl4_GL4bcImpl_dispatch_1glMapNamedBufferEXT(JNIEnv *
 }
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.opengl.impl.gl4.GL4bcImpl
+ *   Java package: jogamp.opengl.gl4.GL4bcImpl
  *    Java method: ByteBuffer newDirectByteBuffer(long addr, long capacity);
  *     C function: jobject newDirectByteBuffer(jlong addr, jlong capacity);
  */
 JNIEXPORT jobject JNICALL
-Java_com_jogamp_opengl_impl_gl4_GL4bcImpl_newDirectByteBuffer(JNIEnv *env, jobject _unused, jlong addr, jlong capacity) {
+Java_jogamp_opengl_gl4_GL4bcImpl_newDirectByteBuffer(JNIEnv *env, jobject _unused, jlong addr, jlong capacity) {
   return (*env)->NewDirectByteBuffer(env, (void*) (intptr_t) addr, capacity);
 }

@@ -1,4 +1,4 @@
-package com.jogamp.newt.impl.awt.opengl;
+package jogamp.newt.awt.opengl;
 
 import java.applet.Applet;
 import java.awt.BorderLayout;

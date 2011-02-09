@@ -83,14 +83,14 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.Threading;
 import com.jogamp.opengl.util.FBObject;
-import com.jogamp.opengl.impl.Debug;
-import com.jogamp.opengl.impl.GLContextImpl;
-import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
-import com.jogamp.opengl.impl.GLDrawableHelper;
-import com.jogamp.opengl.impl.GLDrawableImpl;
-import com.jogamp.opengl.impl.ThreadingImpl;
-import com.jogamp.opengl.impl.awt.Java2D;
-import com.jogamp.opengl.impl.awt.Java2DGLContext;
+import jogamp.opengl.Debug;
+import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.GLDrawableFactoryImpl;
+import jogamp.opengl.GLDrawableHelper;
+import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.ThreadingImpl;
+import jogamp.opengl.awt.Java2D;
+import jogamp.opengl.awt.Java2DGLContext;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their
 // context whenever the displayChanged() function is called on their

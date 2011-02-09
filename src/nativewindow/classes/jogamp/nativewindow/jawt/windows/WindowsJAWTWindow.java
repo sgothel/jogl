@@ -38,19 +38,19 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.nativewindow.impl.jawt.windows;
+package jogamp.nativewindow.jawt.windows;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Point;
 
-import com.jogamp.nativewindow.impl.jawt.JAWT;
-import com.jogamp.nativewindow.impl.jawt.JAWTFactory;
-import com.jogamp.nativewindow.impl.jawt.JAWTWindow;
-import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurface;
-import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurfaceInfo;
-import com.jogamp.nativewindow.impl.windows.GDI;
+import jogamp.nativewindow.jawt.JAWT;
+import jogamp.nativewindow.jawt.JAWTFactory;
+import jogamp.nativewindow.jawt.JAWTWindow;
+import jogamp.nativewindow.jawt.JAWT_DrawingSurface;
+import jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo;
+import jogamp.nativewindow.windows.GDI;
 
 public class WindowsJAWTWindow extends JAWTWindow {
 

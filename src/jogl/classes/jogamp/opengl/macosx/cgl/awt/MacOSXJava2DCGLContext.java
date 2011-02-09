@@ -37,15 +37,15 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.macosx.cgl.awt;
+package jogamp.opengl.macosx.cgl.awt;
 
-import com.jogamp.opengl.impl.macosx.cgl.*;
+import jogamp.opengl.macosx.cgl.*;
 
 import java.awt.Graphics;
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.opengl.impl.awt.*;
-import com.jogamp.opengl.impl.macosx.cgl.*;
+import jogamp.opengl.*;
+import jogamp.opengl.awt.*;
+import jogamp.opengl.macosx.cgl.*;
 
 /** MacOSXCGLContext implementation supporting the Java2D/JOGL bridge
  * on Mac OS X. The external GLDrawable mechanism does not work on Mac

@@ -1,4 +1,4 @@
-package com.jogamp.opengl.impl.glu.nurbs;
+package jogamp.opengl.glu.nurbs;
 
 /*
  ** License Applicability. Except to the extent portions of this file are

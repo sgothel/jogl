@@ -34,7 +34,7 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
 
 import com.jogamp.newt.NewtFactory;
-import com.jogamp.newt.impl.Debug;
+import jogamp.newt.Debug;
 
 public class NewtFactoryAWT extends NewtFactory {
   public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
@@ -43,7 +43,7 @@ public class NewtFactoryAWT extends NewtFactory {
    * Wraps an AWT component into a {@link javax.media.nativewindow.NativeWindow} utilizing the {@link javax.media.nativewindow.NativeWindowFactory},<br>
    * using a configuration agnostic dummy {@link javax.media.nativewindow.DefaultGraphicsConfiguration}.<br>
    * <p>
-   * The actual wrapping implementation is {@link com.jogamp.nativewindow.impl.jawt.JAWTWindow}.<br></p>
+   * The actual wrapping implementation is {@link jogamp.nativewindow.jawt.JAWTWindow}.<br></p>
    * <p>
    * Purpose of this wrapping is to access the AWT window handle,<br>
    * not to actually render into it.<br>

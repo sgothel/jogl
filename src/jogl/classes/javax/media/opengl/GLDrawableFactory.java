@@ -46,7 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.jogamp.common.JogampRuntimeException;
-import com.jogamp.common.impl.Debug;
+import jogamp.common.Debug;
 import com.jogamp.common.util.ReflectionUtil;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -92,8 +92,8 @@ public abstract class GLDrawableFactory {
   private static final GLDrawableFactory eglFactory;
   private static final GLDrawableFactory nativeOSFactory;
   private static final String nativeOSType;
-  static final String macosxFactoryClassNameCGL = "com.jogamp.opengl.impl.macosx.cgl.MacOSXCGLDrawableFactory";
-  static final String macosxFactoryClassNameAWTCGL = "com.jogamp.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
+  static final String macosxFactoryClassNameCGL = "jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory";
+  static final String macosxFactoryClassNameAWTCGL = "jogamp.opengl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
 
   protected static ArrayList/*<GLDrawableFactoryImpl>*/ glDrawableFactories = new ArrayList();
 
@@ -119,9 +119,9 @@ public abstract class GLDrawableFactory {
     ClassLoader cl = GLDrawableFactory.class.getClassLoader();
     if (null == factoryClassName) {
         if ( nativeOSType.equals(NativeWindowFactory.TYPE_X11) ) {
-          factoryClassName = "com.jogamp.opengl.impl.x11.glx.X11GLXDrawableFactory";
+          factoryClassName = "jogamp.opengl.x11.glx.X11GLXDrawableFactory";
         } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_WINDOWS) ) {
-          factoryClassName = "com.jogamp.opengl.impl.windows.wgl.WindowsWGLDrawableFactory";
+          factoryClassName = "jogamp.opengl.windows.wgl.WindowsWGLDrawableFactory";
         } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_MACOSX) ) {
             if(ReflectionUtil.isClassAvailable(macosxFactoryClassNameAWTCGL, cl)) {
                 factoryClassName = macosxFactoryClassNameAWTCGL;
@@ -152,7 +152,7 @@ public abstract class GLDrawableFactory {
 
     tmp = null;
     try {
-        tmp = (GLDrawableFactory) ReflectionUtil.createInstance("com.jogamp.opengl.impl.egl.EGLDrawableFactory", cl);
+        tmp = (GLDrawableFactory) ReflectionUtil.createInstance("jogamp.opengl.egl.EGLDrawableFactory", cl);
     } catch (JogampRuntimeException jre) {
         if (GLProfile.DEBUG) {
             System.err.println("Info: GLDrawableFactory.static - EGLDrawableFactory - not available");

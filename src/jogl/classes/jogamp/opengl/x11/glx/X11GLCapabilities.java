@@ -26,9 +26,9 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.opengl.impl.x11.glx;
+package jogamp.opengl.x11.glx;
 
-import com.jogamp.nativewindow.impl.x11.XVisualInfo;
+import jogamp.nativewindow.x11.XVisualInfo;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;

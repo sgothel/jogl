@@ -35,7 +35,7 @@
  * facility.
  */
 
-package com.jogamp.nativewindow.impl.jawt;
+package jogamp.nativewindow.jawt;
 
 import com.jogamp.common.util.locks.RecursiveLock;
 

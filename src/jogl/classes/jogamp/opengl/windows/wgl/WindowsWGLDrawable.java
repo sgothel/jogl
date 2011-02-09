@@ -38,17 +38,17 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.windows.wgl;
+package jogamp.opengl.windows.wgl;
 
 import java.security.AccessController;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 
-import com.jogamp.nativewindow.impl.windows.GDI;
-import com.jogamp.opengl.impl.Debug;
-import com.jogamp.opengl.impl.GLDrawableImpl;
-import com.jogamp.opengl.impl.GLDynamicLookupHelper;
+import jogamp.nativewindow.windows.GDI;
+import jogamp.opengl.Debug;
+import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.GLDynamicLookupHelper;
 
 
 public abstract class WindowsWGLDrawable extends GLDrawableImpl {

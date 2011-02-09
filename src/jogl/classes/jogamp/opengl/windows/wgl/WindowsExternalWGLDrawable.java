@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.windows.wgl;
+package jogamp.opengl.windows.wgl;
 
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.DefaultGraphicsScreen;
@@ -49,8 +49,8 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-import com.jogamp.nativewindow.impl.ProxySurface;
-import com.jogamp.nativewindow.impl.windows.GDI;
+import jogamp.nativewindow.ProxySurface;
+import jogamp.nativewindow.windows.GDI;
 
 public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
 

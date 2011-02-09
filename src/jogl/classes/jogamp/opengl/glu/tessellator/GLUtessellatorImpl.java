@@ -50,9 +50,9 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.jogamp.opengl.impl.glu.tessellator;
+package jogamp.opengl.glu.tessellator;
 
-import com.jogamp.opengl.impl.glu.tessellator.*;
+import jogamp.opengl.glu.tessellator.*;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 

@@ -35,7 +35,7 @@
  * facility.
  */
 
-package com.jogamp.opengl.impl.x11.glx;
+package jogamp.opengl.x11.glx;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -46,11 +46,11 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
 
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
-import com.jogamp.nativewindow.impl.ProxySurface;
-import com.jogamp.nativewindow.impl.x11.*;
+import jogamp.nativewindow.ProxySurface;
+import jogamp.nativewindow.x11.*;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   
@@ -90,7 +90,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     new X11GLXGraphicsConfigurationFactory();
     if(GLProfile.isAWTAvailable()) {
         try {
-          ReflectionUtil.createInstance("com.jogamp.opengl.impl.x11.glx.awt.X11AWTGLXGraphicsConfigurationFactory",
+          ReflectionUtil.createInstance("jogamp.opengl.x11.glx.awt.X11AWTGLXGraphicsConfigurationFactory",
                                         null, getClass().getClassLoader());
         } catch (JogampRuntimeException jre) { /* n/a .. */ }
     }

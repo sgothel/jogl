@@ -38,13 +38,13 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.x11.glx;
+package jogamp.opengl.x11.glx;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.ProxySurface;
+import jogamp.opengl.*;
+import jogamp.nativewindow.ProxySurface;
 
 public class X11ExternalGLXContext extends X11GLXContext {
   private boolean firstMakeCurrent = true;

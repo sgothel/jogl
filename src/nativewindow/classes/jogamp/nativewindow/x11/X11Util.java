@@ -31,11 +31,11 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.nativewindow.impl.x11;
+package jogamp.nativewindow.x11;
 
 import com.jogamp.common.util.LongObjectHashMap;
-import com.jogamp.nativewindow.impl.Debug;
-import com.jogamp.nativewindow.impl.NWJNILibLoader;
+import jogamp.nativewindow.Debug;
+import jogamp.nativewindow.NWJNILibLoader;
 
 import javax.media.nativewindow.*;
 

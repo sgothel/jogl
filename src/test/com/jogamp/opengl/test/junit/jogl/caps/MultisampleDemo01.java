@@ -40,8 +40,8 @@
 
 package com.jogamp.opengl.test.junit.jogl.caps;
 
-import com.jogamp.opengl.impl.x11.glx.GLX;
-import com.jogamp.opengl.impl.x11.glx.X11GLXGraphicsConfiguration;
+import jogamp.opengl.x11.glx.GLX;
+import jogamp.opengl.x11.glx.X11GLXGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GL;

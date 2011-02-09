@@ -35,7 +35,7 @@
  * facility.
  */
 
-package com.jogamp.newt.impl;
+package jogamp.newt;
 
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.newt.util.EDTUtil;

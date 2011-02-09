@@ -2,7 +2,7 @@
  * Copyright 2009 Sun Microsystems, Inc. All Rights Reserved.
  */
 
-package com.jogamp.opengl.util.glsl.fixedfunc.impl;
+package jogamp.opengl.util.glsl.fixedfunc;
 
 import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.*;

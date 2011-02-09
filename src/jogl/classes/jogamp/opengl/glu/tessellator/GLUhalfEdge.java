@@ -50,7 +50,7 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.jogamp.opengl.impl.glu.tessellator;
+package jogamp.opengl.glu.tessellator;
 
 class GLUhalfEdge {
     public GLUhalfEdge next;		/* doubly-linked list (prev==Sym->next) */
@@ -58,10 +58,10 @@ class GLUhalfEdge {
     public GLUhalfEdge Onext;		/* next edge CCW around origin */
     public GLUhalfEdge Lnext;		/* next edge CCW around left face */
     public GLUvertex Org;		/* origin vertex (Overtex too long) */
-    public com.jogamp.opengl.impl.glu.tessellator.GLUface Lface;		/* left face */
+    public jogamp.opengl.glu.tessellator.GLUface Lface;		/* left face */
 
     /* Internal data (keep hidden) */
-    public com.jogamp.opengl.impl.glu.tessellator.ActiveRegion activeRegion;	/* a region with this upper edge (sweep.c) */
+    public jogamp.opengl.glu.tessellator.ActiveRegion activeRegion;	/* a region with this upper edge (sweep.c) */
     public int winding;	/* change in winding number when crossing */
     public boolean first;
 

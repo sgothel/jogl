@@ -31,12 +31,12 @@
  * 
  */
 
-package com.jogamp.newt.impl.intel.gdl;
+package jogamp.newt.intel.gdl;
 
-import com.jogamp.newt.impl.*;
+import jogamp.newt.*;
 import javax.media.nativewindow.*;
 
-public class Screen extends com.jogamp.newt.impl.ScreenImpl {
+public class Screen extends jogamp.newt.ScreenImpl {
 
     static {
         Display.initSingleton();

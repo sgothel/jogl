@@ -1,4 +1,4 @@
-REM scripts\java-win64-dbg.bat com.jogamp.newt.impl.awt.opengl.VersionApplet
+REM scripts\java-win64-dbg.bat jogamp.newt.awt.opengl.VersionApplet
 REM scripts\java-win64-dbg.bat com.jogamp.newt.opengl.GLWindow
 REM scripts\java-win64-dbg.bat javax.media.opengl.awt.GLCanvas
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT -time 5000

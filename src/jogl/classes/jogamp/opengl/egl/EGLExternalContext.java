@@ -33,10 +33,10 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.egl;
+package jogamp.opengl.egl;
 
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 import javax.media.nativewindow.*;
 
 public class EGLExternalContext extends EGLContext {

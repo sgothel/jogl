@@ -35,7 +35,7 @@
  * facility.
  */
 
-package com.jogamp.nativewindow.impl.jawt.x11;
+package jogamp.nativewindow.jawt.x11;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -46,12 +46,12 @@ import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.awt.AWTGraphicsDevice;
 import javax.media.nativewindow.util.Point;
 
-import com.jogamp.nativewindow.impl.jawt.JAWT;
-import com.jogamp.nativewindow.impl.jawt.JAWTFactory;
-import com.jogamp.nativewindow.impl.jawt.JAWTWindow;
-import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurface;
-import com.jogamp.nativewindow.impl.jawt.JAWT_DrawingSurfaceInfo;
-import com.jogamp.nativewindow.impl.x11.X11Util;
+import jogamp.nativewindow.jawt.JAWT;
+import jogamp.nativewindow.jawt.JAWTFactory;
+import jogamp.nativewindow.jawt.JAWTWindow;
+import jogamp.nativewindow.jawt.JAWT_DrawingSurface;
+import jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo;
+import jogamp.nativewindow.x11.X11Util;
 
 public class X11JAWTWindow extends JAWTWindow {
 

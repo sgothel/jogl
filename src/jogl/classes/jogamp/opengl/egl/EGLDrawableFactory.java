@@ -34,7 +34,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.egl;
+package jogamp.opengl.egl;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.EGLGraphicsDevice;
@@ -42,8 +42,8 @@ import javax.media.opengl.*;
 
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.ProxySurface;
+import jogamp.opengl.*;
+import jogamp.nativewindow.ProxySurface;
 
 import java.util.HashMap;
 import java.util.List;
@@ -61,7 +61,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         // Check for other underlying stuff ..
         if(NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {
             try {
-                ReflectionUtil.createInstance("com.jogamp.opengl.impl.x11.glx.X11GLXGraphicsConfigurationFactory", EGLDrawableFactory.class.getClassLoader());
+                ReflectionUtil.createInstance("jogamp.opengl.x11.glx.X11GLXGraphicsConfigurationFactory", EGLDrawableFactory.class.getClassLoader());
             } catch (JogampRuntimeException jre) { /* n/a .. */ }
         }
 

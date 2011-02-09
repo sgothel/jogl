@@ -42,7 +42,7 @@ import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.awt.AWTWindowClosingProtocol;
-import com.jogamp.nativewindow.impl.awt.AWTMisc;
+import jogamp.nativewindow.awt.AWTMisc;
 
 import com.jogamp.newt.event.awt.AWTAdapter;
 import com.jogamp.newt.event.awt.AWTParentWindowAdapter;
@@ -50,7 +50,7 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowListener;
-import com.jogamp.newt.impl.Debug;
+import jogamp.newt.Debug;
 import javax.swing.MenuSelectionManager;
 
 public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProtocol {

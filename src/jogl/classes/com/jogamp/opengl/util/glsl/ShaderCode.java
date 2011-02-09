@@ -31,7 +31,7 @@ package com.jogamp.opengl.util.glsl;
 import com.jogamp.common.nio.Buffers;
 import javax.media.opengl.*;
 import com.jogamp.opengl.util.*;
-import com.jogamp.opengl.impl.Debug;
+import jogamp.opengl.Debug;
 
 import java.util.*;
 import java.nio.*;

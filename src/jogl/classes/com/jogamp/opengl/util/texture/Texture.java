@@ -42,7 +42,7 @@ import java.security.*;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 import javax.media.nativewindow.NativeWindowFactory;
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 import com.jogamp.opengl.util.texture.*;
 import com.jogamp.opengl.util.texture.spi.*;
 

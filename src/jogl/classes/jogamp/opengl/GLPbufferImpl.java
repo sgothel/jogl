@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl;
+package jogamp.opengl;
 
 import com.jogamp.common.util.locks.RecursiveLock;
 import javax.media.nativewindow.NativeSurface;

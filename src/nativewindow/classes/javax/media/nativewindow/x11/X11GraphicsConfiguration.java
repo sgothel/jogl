@@ -35,7 +35,7 @@ package javax.media.nativewindow.x11;
 import javax.media.nativewindow.*;
 
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.nativewindow.impl.x11.XVisualInfo;
+import jogamp.nativewindow.x11.XVisualInfo;
 
 /** Encapsulates a graphics configuration, or OpenGL pixel format, on
     X11 platforms. Objects of this type are returned from {@link

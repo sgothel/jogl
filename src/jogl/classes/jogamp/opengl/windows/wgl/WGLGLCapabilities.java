@@ -26,12 +26,12 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.opengl.impl.windows.wgl;
+package jogamp.opengl.windows.wgl;
 
 import java.util.Comparator;
 
-import com.jogamp.nativewindow.impl.windows.GDI;
-import com.jogamp.nativewindow.impl.windows.PIXELFORMATDESCRIPTOR;
+import jogamp.nativewindow.windows.GDI;
+import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLException;

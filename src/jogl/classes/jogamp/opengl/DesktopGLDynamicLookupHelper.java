@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.impl;
+package jogamp.opengl;
 
 import com.jogamp.common.os.NativeLibrary;
 import java.util.*;

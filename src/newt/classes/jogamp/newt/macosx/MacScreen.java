@@ -31,10 +31,10 @@
  * 
  */
 
-package com.jogamp.newt.impl.macosx;
+package jogamp.newt.macosx;
 
 import com.jogamp.newt.*;
-import com.jogamp.newt.impl.ScreenImpl;
+import jogamp.newt.ScreenImpl;
 import javax.media.nativewindow.*;
 
 public class MacScreen extends ScreenImpl {

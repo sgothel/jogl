@@ -86,7 +86,7 @@ protected static boolean checkedMipmap = false;
 
 protected static final void validateMipmap() {
     if(!checkedMipmap) {
-        availableMipmap = ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.glu.mipmap.Mipmap", GLU.class.getClassLoader());
+        availableMipmap = ReflectionUtil.isClassAvailable("jogamp.opengl.glu.mipmap.Mipmap", GLU.class.getClassLoader());
         checkedMipmap = true;
     }
     if(!availableMipmap) {

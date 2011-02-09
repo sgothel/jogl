@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.impl;
+package jogamp.opengl;
 
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.GLAutoDrawable;

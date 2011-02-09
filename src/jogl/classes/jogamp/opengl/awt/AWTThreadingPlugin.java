@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.awt;
+package jogamp.opengl.awt;
 
 import javax.media.opengl.*;
 
@@ -47,7 +47,7 @@ import java.awt.event.*;
 import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
 
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 
 public class AWTThreadingPlugin implements ThreadingPlugin {
 

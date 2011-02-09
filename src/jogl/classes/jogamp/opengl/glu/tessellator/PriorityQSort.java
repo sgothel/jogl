@@ -45,10 +45,10 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.jogamp.opengl.impl.glu.tessellator;
+package jogamp.opengl.glu.tessellator;
 
-class PriorityQSort extends com.jogamp.opengl.impl.glu.tessellator.PriorityQ {
-    com.jogamp.opengl.impl.glu.tessellator.PriorityQHeap heap;
+class PriorityQSort extends jogamp.opengl.glu.tessellator.PriorityQ {
+    jogamp.opengl.glu.tessellator.PriorityQHeap heap;
     Object[] keys;
 
     // JAVA: 'order' contains indices into the keys array.
@@ -57,15 +57,15 @@ class PriorityQSort extends com.jogamp.opengl.impl.glu.tessellator.PriorityQ {
     int[] order;
     int size, max;
     boolean initialized;
-    com.jogamp.opengl.impl.glu.tessellator.PriorityQ.Leq leq;
+    jogamp.opengl.glu.tessellator.PriorityQ.Leq leq;
 
-    public PriorityQSort(com.jogamp.opengl.impl.glu.tessellator.PriorityQ.Leq leq) {
-        heap = new com.jogamp.opengl.impl.glu.tessellator.PriorityQHeap(leq);
+    public PriorityQSort(jogamp.opengl.glu.tessellator.PriorityQ.Leq leq) {
+        heap = new jogamp.opengl.glu.tessellator.PriorityQHeap(leq);
 
-        keys = new Object[com.jogamp.opengl.impl.glu.tessellator.PriorityQ.INIT_SIZE];
+        keys = new Object[jogamp.opengl.glu.tessellator.PriorityQ.INIT_SIZE];
 
         size = 0;
-        max = com.jogamp.opengl.impl.glu.tessellator.PriorityQ.INIT_SIZE;
+        max = jogamp.opengl.glu.tessellator.PriorityQ.INIT_SIZE;
         initialized = false;
         this.leq = leq;
     }
@@ -77,12 +77,12 @@ class PriorityQSort extends com.jogamp.opengl.impl.glu.tessellator.PriorityQ {
         keys = null;
     }
 
-    private static boolean LT(com.jogamp.opengl.impl.glu.tessellator.PriorityQ.Leq leq, Object x, Object y) {
-        return (!com.jogamp.opengl.impl.glu.tessellator.PriorityQHeap.LEQ(leq, y, x));
+    private static boolean LT(jogamp.opengl.glu.tessellator.PriorityQ.Leq leq, Object x, Object y) {
+        return (!jogamp.opengl.glu.tessellator.PriorityQHeap.LEQ(leq, y, x));
     }
 
-    private static boolean GT(com.jogamp.opengl.impl.glu.tessellator.PriorityQ.Leq leq, Object x, Object y) {
-        return (!com.jogamp.opengl.impl.glu.tessellator.PriorityQHeap.LEQ(leq, x, y));
+    private static boolean GT(jogamp.opengl.glu.tessellator.PriorityQ.Leq leq, Object x, Object y) {
+        return (!jogamp.opengl.glu.tessellator.PriorityQHeap.LEQ(leq, x, y));
     }
 
     private static void Swap(int[] array, int a, int b) {
@@ -249,7 +249,7 @@ class PriorityQSort extends com.jogamp.opengl.impl.glu.tessellator.PriorityQ {
         sortMin = keys[order[size - 1]];
         if (!heap.pqIsEmpty()) {
             heapMin = heap.pqMinimum();
-            if (com.jogamp.opengl.impl.glu.tessellator.PriorityQHeap.LEQ(leq, heapMin, sortMin)) {
+            if (jogamp.opengl.glu.tessellator.PriorityQHeap.LEQ(leq, heapMin, sortMin)) {
                 return heapMin;
             }
         }

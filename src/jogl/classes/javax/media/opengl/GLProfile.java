@@ -42,10 +42,10 @@ import com.jogamp.common.jvm.JVMUtil;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.NativeWindowVersion;
-import com.jogamp.opengl.impl.Debug;
-import com.jogamp.opengl.impl.GLDrawableFactoryImpl;
-import com.jogamp.opengl.impl.GLDynamicLookupHelper;
-import com.jogamp.opengl.impl.DesktopGLDynamicLookupHelper;
+import jogamp.opengl.Debug;
+import jogamp.opengl.GLDrawableFactoryImpl;
+import jogamp.opengl.GLDynamicLookupHelper;
+import jogamp.opengl.DesktopGLDynamicLookupHelper;
 import com.jogamp.opengl.JoglVersion;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
@@ -1173,7 +1173,7 @@ public class GLProfile {
         isAWTAvailable = NativeWindowFactory.isAWTAvailable() &&
                          ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas", classloader) ; // JOGL
 
-        hasGL234Impl   = ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.gl4.GL4bcImpl", classloader);
+        hasGL234Impl   = ReflectionUtil.isClassAvailable("jogamp.opengl.gl4.GL4bcImpl", classloader);
         
         //
         // Iteration of desktop GL availability detection
@@ -1216,7 +1216,7 @@ public class GLProfile {
             defaultDevice = defaultDesktopDevice;
         }
 
-        if ( ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.egl.EGLDrawableFactory", classloader) ) {
+        if ( ReflectionUtil.isClassAvailable("jogamp.opengl.egl.EGLDrawableFactory", classloader) ) {
             t=null;
             try {
                 eglFactory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GLES2);
@@ -1547,11 +1547,11 @@ public class GLProfile {
              GL3bc.equals(profileImpl) ||
              GL3.equals(profileImpl)   ||
              GL2.equals(profileImpl) ) {
-            return "com.jogamp.opengl.impl.gl4.GL4bc";
+            return "jogamp.opengl.gl4.GL4bc";
         } else if(GLES1.equals(profileImpl) || GL2ES1.equals(profileImpl)) {
-            return "com.jogamp.opengl.impl.es1.GLES1";
+            return "jogamp.opengl.es1.GLES1";
         } else if(GLES2.equals(profileImpl) || GL2ES2.equals(profileImpl)) {
-            return "com.jogamp.opengl.impl.es2.GLES2";
+            return "jogamp.opengl.es2.GLES2";
         } else {
             throw new GLException("unsupported profile \"" + profileImpl + "\"");
         }

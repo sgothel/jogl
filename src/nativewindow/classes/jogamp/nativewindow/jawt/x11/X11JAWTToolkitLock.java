@@ -25,10 +25,10 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.nativewindow.impl.jawt.x11;
+package jogamp.nativewindow.jawt.x11;
 
-import com.jogamp.nativewindow.impl.jawt.*;
-import com.jogamp.nativewindow.impl.x11.X11Util;
+import jogamp.nativewindow.jawt.*;
+import jogamp.nativewindow.x11.X11Util;
 import javax.media.nativewindow.ToolkitLock;
 
 /**

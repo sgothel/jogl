@@ -550,7 +550,7 @@ public class BuildComposablePipeline {
          * method wrappers have been generated.
          */
         protected void preMethodEmissionHook(PrintWriter output) {
-            output.println("  public static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug(\"" + getOutputName() + "\");");
+            output.println("  public static final boolean DEBUG = jogamp.opengl.Debug.debug(\"" + getOutputName() + "\");");
         }
 
         /**

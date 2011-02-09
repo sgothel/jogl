@@ -32,8 +32,8 @@
 
 package javax.media.nativewindow.x11;
 
-import com.jogamp.nativewindow.impl.Debug;
-import com.jogamp.nativewindow.impl.x11.X11Util;
+import jogamp.nativewindow.Debug;
+import jogamp.nativewindow.x11.X11Util;
 import javax.media.nativewindow.DefaultGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;

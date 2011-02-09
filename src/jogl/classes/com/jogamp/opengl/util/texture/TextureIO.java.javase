@@ -46,7 +46,7 @@ import java.util.*;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
-import com.jogamp.opengl.impl.Debug;
+import jogamp.opengl.Debug;
 import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.util.texture.spi.*;
 

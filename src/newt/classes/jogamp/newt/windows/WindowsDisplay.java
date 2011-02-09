@@ -32,12 +32,12 @@
  * 
  */
 
-package com.jogamp.newt.impl.windows;
+package jogamp.newt.windows;
 
-import com.jogamp.nativewindow.impl.windows.RegisteredClass;
-import com.jogamp.nativewindow.impl.windows.RegisteredClassFactory;
-import com.jogamp.newt.impl.DisplayImpl;
-import com.jogamp.newt.impl.NEWTJNILibLoader;
+import jogamp.nativewindow.windows.RegisteredClass;
+import jogamp.nativewindow.windows.RegisteredClassFactory;
+import jogamp.newt.DisplayImpl;
+import jogamp.newt.NEWTJNILibLoader;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.windows.WindowsGraphicsDevice;

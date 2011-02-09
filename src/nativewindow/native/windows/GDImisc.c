@@ -30,7 +30,7 @@
 #include <stdio.h>
 
 #include "NativewindowCommon.h"
-#include "com_jogamp_nativewindow_impl_windows_GDI.h"
+#include "jogamp_nativewindow_windows_GDI.h"
 
 // #define VERBOSE_ON 1
 
@@ -52,12 +52,12 @@ HINSTANCE GetApplicationHandle() {
 }
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.nativewindow.impl.windows.GDI
+ *   Java package: jogamp.nativewindow.windows.GDI
  *    Java method: boolean CreateWindowClass(long hInstance, java.lang.String clazzName, long wndProc)
  *     C function: BOOL CreateWindowClass(HANDLE hInstance, LPCSTR clazzName, HANDLE wndProc);
  */
 JNIEXPORT jboolean JNICALL
-Java_com_jogamp_nativewindow_impl_windows_GDI_CreateWindowClass
+Java_jogamp_nativewindow_windows_GDI_CreateWindowClass
     (JNIEnv *env, jclass _unused, jlong jHInstance, jstring jClazzName, jlong wndProc) 
 {
     HINSTANCE hInstance = (HINSTANCE) (intptr_t) jHInstance;
@@ -101,12 +101,12 @@ Java_com_jogamp_nativewindow_impl_windows_GDI_CreateWindowClass
 }
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.nativewindow.impl.windows.GDI
+ *   Java package: jogamp.nativewindow.windows.GDI
  *    Java method: boolean DestroyWindowClass(long hInstance, java.lang.String className)
  *     C function: BOOL DestroyWindowClass(HANDLE hInstance, LPCSTR className);
  */
 JNIEXPORT jboolean JNICALL
-Java_com_jogamp_nativewindow_impl_windows_GDI_DestroyWindowClass
+Java_jogamp_nativewindow_windows_GDI_DestroyWindowClass
     (JNIEnv *env, jclass _unused, jlong jHInstance, jstring jClazzName) 
 {
     HINSTANCE hInstance = (HINSTANCE) (intptr_t) jHInstance;
@@ -132,12 +132,12 @@ Java_com_jogamp_nativewindow_impl_windows_GDI_DestroyWindowClass
 
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.nativewindow.impl.windows.GDI
+ *   Java package: jogamp.nativewindow.windows.GDI
  *    Java method: long CreateDummyWindow0(long hInstance, java.lang.String className, java.lang.String windowName, int x, int y, int width, int height)
  *     C function: HANDLE CreateDummyWindow0(HANDLE hInstance, LPCSTR className, LPCSTR windowName, int x, int y, int width, int height);
  */
 JNIEXPORT jlong JNICALL
-Java_com_jogamp_nativewindow_impl_windows_GDI_CreateDummyWindow0
+Java_jogamp_nativewindow_windows_GDI_CreateDummyWindow0
     (JNIEnv *env, jclass _unused, jlong jHInstance, jstring jWndClassName, jstring jWndName, jint x, jint y, jint width, jint height) 
 {
     HINSTANCE hInstance = (HINSTANCE) (intptr_t) jHInstance;
@@ -178,26 +178,26 @@ Java_com_jogamp_nativewindow_impl_windows_GDI_CreateDummyWindow0
 
 
 /*
- * Class:     com_jogamp_nativewindow_impl_windows_GDI
+ * Class:     jogamp_nativewindow_windows_GDI
  * Method:    initIDs0
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_com_jogamp_nativewindow_impl_windows_GDI_initIDs0
+JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDI_initIDs0
   (JNIEnv *env, jclass clazz)
 {
     if(NativewindowCommon_init(env)) {
         jclass c = (*env)->FindClass(env, ClazzNamePoint);
         if(NULL==c) {
-            NativewindowCommon_FatalError(env, "FatalError com_jogamp_nativewindow_impl_windows_GDI: can't find %s", ClazzNamePoint);
+            NativewindowCommon_FatalError(env, "FatalError jogamp_nativewindow_windows_GDI: can't find %s", ClazzNamePoint);
         }
         pointClz = (jclass)(*env)->NewGlobalRef(env, c);
         (*env)->DeleteLocalRef(env, c);
         if(NULL==pointClz) {
-            NativewindowCommon_FatalError(env, "FatalError com_jogamp_nativewindow_impl_windows_GDI: can't use %s", ClazzNamePoint);
+            NativewindowCommon_FatalError(env, "FatalError jogamp_nativewindow_windows_GDI: can't use %s", ClazzNamePoint);
         }
         pointCstr = (*env)->GetMethodID(env, pointClz, ClazzAnyCstrName, ClazzNamePointCstrSignature);
         if(NULL==pointCstr) {
-            NativewindowCommon_FatalError(env, "FatalError com_jogamp_nativewindow_impl_windows_GDI: can't fetch %s.%s %s",
+            NativewindowCommon_FatalError(env, "FatalError jogamp_nativewindow_windows_GDI: can't fetch %s.%s %s",
                 ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
         }
     }
@@ -209,22 +209,22 @@ LRESULT CALLBACK DummyWndProc( HWND   hWnd, UINT   uMsg, WPARAM wParam, LPARAM l
 }
 
 /*
- * Class:     com_jogamp_nativewindow_impl_windows_GDI
+ * Class:     jogamp_nativewindow_windows_GDI
  * Method:    getDummyWndProc0
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_windows_GDI_getDummyWndProc0
+JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_windows_GDI_getDummyWndProc0
   (JNIEnv *env, jclass clazz)
 {
     return (jlong) (intptr_t) DummyWndProc;
 }
 
 /*
- * Class:     com_jogamp_nativewindow_impl_windows_GDI
+ * Class:     jogamp_nativewindow_windows_GDI
  * Method:    GetRelativeLocation0
  * Signature: (JJII)Ljavax/media/nativewindow/util/Point;
  */
-JNIEXPORT jobject JNICALL Java_com_jogamp_nativewindow_impl_windows_GDI_GetRelativeLocation0
+JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_windows_GDI_GetRelativeLocation0
   (JNIEnv *env, jclass unused, jlong jsrc_win, jlong jdest_win, jint src_x, jint src_y)
 {
     HWND src_win = (HWND) (intptr_t) jsrc_win;

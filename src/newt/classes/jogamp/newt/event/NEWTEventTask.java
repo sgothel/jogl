@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.newt.impl.event;
+package jogamp.newt.event;
 
 import com.jogamp.newt.event.NEWTEvent;
 

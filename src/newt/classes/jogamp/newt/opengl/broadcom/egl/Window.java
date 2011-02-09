@@ -31,15 +31,15 @@
  * 
  */
 
-package com.jogamp.newt.impl.opengl.broadcom.egl;
+package jogamp.newt.opengl.broadcom.egl;
 
-import com.jogamp.opengl.impl.egl.*;
+import jogamp.opengl.egl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
-public class Window extends com.jogamp.newt.impl.WindowImpl {
+public class Window extends jogamp.newt.WindowImpl {
     static {
         Display.initSingleton();
     }

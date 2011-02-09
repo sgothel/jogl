@@ -113,7 +113,7 @@
  * facility.
  */
 
-package com.jogamp.opengl.impl.glu;
+package jogamp.opengl.glu;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;

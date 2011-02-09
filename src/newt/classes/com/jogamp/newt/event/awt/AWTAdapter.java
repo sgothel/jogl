@@ -28,7 +28,7 @@
  
 package com.jogamp.newt.event.awt;
 
-import com.jogamp.newt.impl.Debug;
+import jogamp.newt.Debug;
 
 /**
  * Convenient adapter forwarding AWT events to NEWT via the event listener model.<br>

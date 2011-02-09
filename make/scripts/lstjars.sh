@@ -7,15 +7,15 @@ shift
 BUILDDIR_GLUEGEN=$1
 shift
 if [ -z "$BUILDDIR" -o -z "$BUILDDIR_GLUEGEN" ] ; then 
-    echo "usage $0 <BUILDDIR-JOGL> <BUILDDIR-GLUEGEN> [-skippack200]"
+    echo "usage $0 <BUILDDIR-JOGL> <BUILDDIR-GLUEGEN> [-pack200]"
     exit 1
 fi
 
 STATDIR=$BUILDDIR-stats
 
-skippack200=0
-if [ "$1" = "-skippack200" ] ; then
-    skippack200=1
+pack200=0
+if [ "$1" = "-pack200" ] ; then
+    pack200=1
 fi
 
 function report() {
@@ -131,7 +131,7 @@ echo
 sort jogl*.lst | uniq -d
 mv nope/* .
 
-mv jogl.test.lst *.cdc.lst *.all*.lst nope/
+mv jogl.test.lst *.cdc.lst *.all*.lst gluegen-gl.lst nope/
 cat *.lst | sort -u > allparts.lst
 mv nope/* .
 cat *.all.lst gluegen-rt.lst   | sort -u > allall.lst
@@ -143,7 +143,7 @@ diff -Nur allparts.lst allall.lst
 
 listdeployment jar
 
-if [ $skippack200 -eq 0 ] ; then
+if [ $pack200 -eq 1 ] ; then
     for i in *.jar ; do
         fname=$i
         bname=$(basename $fname .jar)

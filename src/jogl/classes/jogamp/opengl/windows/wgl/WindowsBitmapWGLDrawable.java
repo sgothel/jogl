@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.windows.wgl;
+package jogamp.opengl.windows.wgl;
 
 import com.jogamp.common.nio.PointerBuffer;
 import javax.media.nativewindow.NativeSurface;
@@ -47,9 +47,9 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 
-import com.jogamp.nativewindow.impl.windows.BITMAPINFO;
-import com.jogamp.nativewindow.impl.windows.BITMAPINFOHEADER;
-import com.jogamp.nativewindow.impl.windows.GDI;
+import jogamp.nativewindow.windows.BITMAPINFO;
+import jogamp.nativewindow.windows.BITMAPINFOHEADER;
+import jogamp.nativewindow.windows.GDI;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {

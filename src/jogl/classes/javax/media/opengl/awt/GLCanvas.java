@@ -92,10 +92,10 @@ import com.jogamp.common.util.VersionUtil;
 import com.jogamp.opengl.JoglVersion;
 
 import com.jogamp.common.util.locks.RecursiveLock;
-import com.jogamp.opengl.impl.Debug;
-import com.jogamp.opengl.impl.GLContextImpl;
-import com.jogamp.opengl.impl.GLDrawableHelper;
-import com.jogamp.opengl.impl.ThreadingImpl;
+import jogamp.opengl.Debug;
+import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.GLDrawableHelper;
+import jogamp.opengl.ThreadingImpl;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their
 // context whenever the displayChanged() function is called on our

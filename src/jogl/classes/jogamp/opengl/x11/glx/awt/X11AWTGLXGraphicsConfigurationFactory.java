@@ -31,7 +31,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.opengl.impl.x11.glx.awt;
+package jogamp.opengl.x11.glx.awt;
 
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -40,9 +40,9 @@ import javax.media.nativewindow.x11.*;
 import javax.media.nativewindow.awt.*;
 import javax.media.opengl.*;
 
-import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.jawt.x11.*;
-import com.jogamp.nativewindow.impl.x11.*;
+import jogamp.opengl.*;
+import jogamp.nativewindow.jawt.x11.*;
+import jogamp.nativewindow.x11.*;
 
 public class X11AWTGLXGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");

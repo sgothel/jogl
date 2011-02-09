@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.nativewindow.impl.jawt.x11;
+package jogamp.nativewindow.jawt.x11;
 
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;

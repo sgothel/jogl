@@ -50,7 +50,7 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.jogamp.opengl.impl.glu.tessellator;
+package jogamp.opengl.glu.tessellator;
 
 abstract class PriorityQ {
     public static final int INIT_SIZE = 32;
@@ -76,7 +76,7 @@ abstract class PriorityQ {
 /* Violates modularity, but a little faster */
 //    #include "geom.h"
     public static boolean LEQ(Leq leq, Object x, Object y) {
-        return com.jogamp.opengl.impl.glu.tessellator.Geom.VertLeq((com.jogamp.opengl.impl.glu.tessellator.GLUvertex) x, (com.jogamp.opengl.impl.glu.tessellator.GLUvertex) y);
+        return jogamp.opengl.glu.tessellator.Geom.VertLeq((jogamp.opengl.glu.tessellator.GLUvertex) x, (jogamp.opengl.glu.tessellator.GLUvertex) y);
     }
 
     static PriorityQ pqNewPriorityQ(Leq leq) {

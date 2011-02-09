@@ -32,7 +32,7 @@
  * 
  */
 
-package com.jogamp.newt.impl;
+package jogamp.newt;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.util.Point;

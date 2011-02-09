@@ -31,13 +31,13 @@
  * 
  */
 
-package com.jogamp.newt.impl.macosx;
+package jogamp.newt.macosx;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.macosx.*;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.*;
-import com.jogamp.newt.impl.*;
+import jogamp.newt.*;
 import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.newt.util.MainThread;
 

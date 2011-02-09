@@ -7,7 +7,7 @@ package com.jogamp.opengl.util.glsl.fixedfunc;
 import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.*;
 
-import com.jogamp.opengl.util.glsl.fixedfunc.impl.*;
+import jogamp.opengl.util.glsl.fixedfunc.*;
 
 /**
  * Tool to pipeline GL2ES2 into a fixed function emulation implementing GL2ES1.

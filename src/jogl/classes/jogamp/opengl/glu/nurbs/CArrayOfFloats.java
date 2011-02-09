@@ -1,4 +1,4 @@
-package com.jogamp.opengl.impl.glu.nurbs;
+package jogamp.opengl.glu.nurbs;
 
 /**
  * Class replacing C language pointer

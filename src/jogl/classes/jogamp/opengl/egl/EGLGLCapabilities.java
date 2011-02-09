@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.opengl.impl.egl;
+package jogamp.opengl.egl;
 
 import java.util.Comparator;
 import javax.media.opengl.GLCapabilities;

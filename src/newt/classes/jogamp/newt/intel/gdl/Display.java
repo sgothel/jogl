@@ -31,12 +31,12 @@
  * 
  */
 
-package com.jogamp.newt.impl.intel.gdl;
+package jogamp.newt.intel.gdl;
 
-import com.jogamp.newt.impl.*;
+import jogamp.newt.*;
 import javax.media.nativewindow.*;
 
-public class Display extends com.jogamp.newt.impl.DisplayImpl {
+public class Display extends jogamp.newt.DisplayImpl {
     static int initCounter = 0;
 
     static {

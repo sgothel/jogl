@@ -32,10 +32,10 @@
  * 
  */
 
-package com.jogamp.newt.impl.windows;
+package jogamp.newt.windows;
 
-import com.jogamp.nativewindow.impl.windows.GDI;
-import com.jogamp.newt.impl.WindowImpl;
+import jogamp.nativewindow.windows.GDI;
+import jogamp.newt.WindowImpl;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Insets;

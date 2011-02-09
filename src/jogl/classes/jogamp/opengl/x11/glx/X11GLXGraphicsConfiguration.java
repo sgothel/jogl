@@ -31,7 +31,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.opengl.impl.x11.glx;
+package jogamp.opengl.x11.glx;
 
 import java.util.ArrayList;
 
@@ -40,8 +40,8 @@ import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
 
 import com.jogamp.common.nio.PointerBuffer;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.x11.*;
+import jogamp.opengl.*;
+import jogamp.nativewindow.x11.*;
 
 public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implements Cloneable {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");

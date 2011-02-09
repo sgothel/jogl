@@ -31,12 +31,12 @@
  * 
  */
 
-package com.jogamp.newt.impl.x11;
+package jogamp.newt.x11;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
-import com.jogamp.newt.impl.*;
-import com.jogamp.nativewindow.impl.x11.X11Util;
+import jogamp.newt.*;
+import jogamp.nativewindow.x11.X11Util;
 
 public class X11Display extends DisplayImpl {
 

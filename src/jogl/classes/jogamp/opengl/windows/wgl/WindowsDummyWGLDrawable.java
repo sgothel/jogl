@@ -38,15 +38,15 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.windows.wgl;
+package jogamp.opengl.windows.wgl;
 
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLProfile;
 
 import javax.media.nativewindow.AbstractGraphicsScreen;
-import com.jogamp.nativewindow.impl.ProxySurface;
-import com.jogamp.nativewindow.impl.windows.GDI;
+import jogamp.nativewindow.ProxySurface;
+import jogamp.nativewindow.windows.GDI;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLCapabilities;

@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl;
+package jogamp.opengl;
 
 import java.util.List;
 import java.util.ArrayList;

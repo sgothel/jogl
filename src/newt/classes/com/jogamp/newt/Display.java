@@ -29,8 +29,8 @@
 package com.jogamp.newt;
 
 import com.jogamp.newt.util.EDTUtil;
-import com.jogamp.newt.impl.Debug;
-import com.jogamp.newt.impl.DisplayImpl;
+import jogamp.newt.Debug;
+import jogamp.newt.DisplayImpl;
 
 import java.util.*;
 

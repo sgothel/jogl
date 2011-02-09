@@ -37,9 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.nativewindow.impl.jawt;
+package jogamp.nativewindow.jawt;
 
-import com.jogamp.nativewindow.impl.*;
+import jogamp.nativewindow.*;
 
 /** Marker class for all window system-specific JAWT data structures. */
 

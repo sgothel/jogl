@@ -32,13 +32,13 @@
  * 
  */
 
-package com.jogamp.newt.impl;
+package jogamp.newt;
 
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.event.NEWTEvent;
 import com.jogamp.newt.event.NEWTEventConsumer;
-import com.jogamp.newt.impl.event.NEWTEventTask;
+import jogamp.newt.event.NEWTEventTask;
 import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.newt.util.MainThread;
 import java.util.ArrayList;
@@ -57,15 +57,15 @@ public abstract class DisplayImpl extends Display {
         Class displayClass = NewtFactory.getCustomClass(type, "Display");
         if(null==displayClass) {
             if (NativeWindowFactory.TYPE_EGL.equals(type)) {
-                displayClass = Class.forName("com.jogamp.newt.impl.opengl.kd.KDDisplay");
+                displayClass = Class.forName("jogamp.newt.opengl.kd.KDDisplay");
             } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
-                displayClass = Class.forName("com.jogamp.newt.impl.windows.WindowsDisplay");
+                displayClass = Class.forName("jogamp.newt.windows.WindowsDisplay");
             } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
-                displayClass = Class.forName("com.jogamp.newt.impl.macosx.MacDisplay");
+                displayClass = Class.forName("jogamp.newt.macosx.MacDisplay");
             } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
-                displayClass = Class.forName("com.jogamp.newt.impl.x11.X11Display");
+                displayClass = Class.forName("jogamp.newt.x11.X11Display");
             } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
-                displayClass = Class.forName("com.jogamp.newt.impl.awt.AWTDisplay");
+                displayClass = Class.forName("jogamp.newt.awt.AWTDisplay");
             } else {
                 throw new RuntimeException("Unknown display type \"" + type + "\"");
             }

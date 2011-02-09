@@ -37,10 +37,10 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.nativewindow.impl.jawt;
+package jogamp.nativewindow.jawt;
 
 import javax.media.nativewindow.NativeWindowFactory;
-import com.jogamp.nativewindow.impl.NWJNILibLoader;
+import jogamp.nativewindow.NWJNILibLoader;
 
 import java.awt.Toolkit;
 import java.lang.reflect.InvocationTargetException;

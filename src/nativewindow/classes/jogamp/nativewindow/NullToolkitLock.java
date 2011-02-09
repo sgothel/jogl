@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.nativewindow.impl;
+package jogamp.nativewindow;
 
 import javax.media.nativewindow.ToolkitLock;
 

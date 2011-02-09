@@ -31,9 +31,9 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.opengl.impl.macosx.cgl;
+package jogamp.opengl.macosx.cgl;
 
-import com.jogamp.opengl.impl.GLGraphicsConfigurationFactory;
+import jogamp.opengl.GLGraphicsConfigurationFactory;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.CapabilitiesChooser;
@@ -49,7 +49,7 @@ import javax.media.opengl.GLCapabilitiesImmutable;
     GraphicsDevice and GraphicsConfiguration abstractions. */
 
 public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
-    protected static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug("GraphicsConfiguration");
+    protected static final boolean DEBUG = jogamp.opengl.Debug.debug("GraphicsConfiguration");
 
     MacOSXCGLGraphicsConfigurationFactory() {
         GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.macosx.MacOSXGraphicsDevice.class, this);

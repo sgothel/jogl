@@ -26,9 +26,9 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.impl.macosx.cgl;
+package jogamp.opengl.macosx.cgl;
 
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;

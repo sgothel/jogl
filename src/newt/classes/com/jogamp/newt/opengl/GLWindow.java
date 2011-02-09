@@ -41,14 +41,14 @@ import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.NativeWindowVersion;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
-import com.jogamp.newt.impl.WindowImpl;
+import jogamp.newt.WindowImpl;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.Insets;
 import javax.media.opengl.*;
 
-import com.jogamp.opengl.impl.GLDrawableHelper;
+import jogamp.opengl.GLDrawableHelper;
 import com.jogamp.opengl.JoglVersion;
 
 /**

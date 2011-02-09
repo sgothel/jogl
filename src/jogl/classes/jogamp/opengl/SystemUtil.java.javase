@@ -1,4 +1,4 @@
-package com.jogamp.opengl.impl;
+package jogamp.opengl;
 
 public class SystemUtil {
 

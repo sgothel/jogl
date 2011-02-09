@@ -31,7 +31,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.opengl.impl.x11.glx;
+package jogamp.opengl.x11.glx;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -50,12 +50,12 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.PointerBuffer;
-import com.jogamp.nativewindow.impl.x11.X11Lib;
-import com.jogamp.nativewindow.impl.x11.X11Util;
-import com.jogamp.nativewindow.impl.x11.XVisualInfo;
-import com.jogamp.opengl.impl.Debug;
-import com.jogamp.opengl.impl.GLGraphicsConfigurationFactory;
-import com.jogamp.opengl.impl.GLGraphicsConfigurationUtil;
+import jogamp.nativewindow.x11.X11Lib;
+import jogamp.nativewindow.x11.X11Util;
+import jogamp.nativewindow.x11.XVisualInfo;
+import jogamp.opengl.Debug;
+import jogamp.opengl.GLGraphicsConfigurationFactory;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;

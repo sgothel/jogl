@@ -31,7 +31,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.opengl.impl.egl;
+package jogamp.opengl.egl;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -50,8 +50,8 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLDrawableFactory;
 
 import com.jogamp.common.nio.PointerBuffer;
-import com.jogamp.opengl.impl.GLGraphicsConfigurationFactory;
-import com.jogamp.opengl.impl.GLGraphicsConfigurationUtil;
+import jogamp.opengl.GLGraphicsConfigurationFactory;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -64,7 +64,7 @@ import java.io.PrintStream;
     GraphicsDevice and GraphicsConfiguration abstractions. */
 
 public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
-    protected static final boolean DEBUG = GraphicsConfigurationFactory.DEBUG || com.jogamp.opengl.impl.Debug.debug("EGL");
+    protected static final boolean DEBUG = GraphicsConfigurationFactory.DEBUG || jogamp.opengl.Debug.debug("EGL");
     static EGLGLCapabilities.EglCfgIDComparator EglCfgIDComparator = new EGLGLCapabilities.EglCfgIDComparator();
 
     EGLGraphicsConfigurationFactory() {

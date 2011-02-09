@@ -34,7 +34,7 @@
 package javax.media.nativewindow;
 
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.nativewindow.impl.NativeWindowFactoryImpl;
+import jogamp.nativewindow.NativeWindowFactoryImpl;
 
 public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice {
     private static final String separator = "_";
@@ -151,7 +151,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * Set the internal ToolkitLock, which is used within the
      * {@link #lock()} and {@link #unlock()} implementation.
      *
-     * @param locker the ToolkitLock, if null, {@link com.jogamp.nativewindow.impl.NullToolkitLock} is being used
+     * @param locker the ToolkitLock, if null, {@link jogamp.nativewindow.NullToolkitLock} is being used
      */
     protected void setToolkitLock(ToolkitLock locker) {
         this.toolkitLock = ( null == locker ) ? NativeWindowFactoryImpl.getNullToolkitLock() : locker ;

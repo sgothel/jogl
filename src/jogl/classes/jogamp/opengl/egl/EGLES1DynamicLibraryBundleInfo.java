@@ -26,10 +26,10 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.impl.egl;
+package jogamp.opengl.egl;
 
 import java.util.*;
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 
 public class EGLES1DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo {
     static List/*<String>*/ glueLibNames;

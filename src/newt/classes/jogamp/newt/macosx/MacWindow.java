@@ -32,13 +32,13 @@
  * 
  */
 
-package com.jogamp.newt.impl.macosx;
+package jogamp.newt.macosx;
 
 import javax.media.nativewindow.*;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 import com.jogamp.newt.event.*;
-import com.jogamp.newt.impl.*;
+import jogamp.newt.*;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 

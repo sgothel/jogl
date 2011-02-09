@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.nativewindow.impl.jawt;
+package jogamp.nativewindow.jawt;
 
 import javax.media.nativewindow.ToolkitLock;
 

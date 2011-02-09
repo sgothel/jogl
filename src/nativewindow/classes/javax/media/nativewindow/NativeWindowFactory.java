@@ -38,7 +38,7 @@ import java.util.*;
 
 import com.jogamp.common.util.*;
 import com.jogamp.common.jvm.JVMUtil;
-import com.jogamp.nativewindow.impl.*;
+import jogamp.nativewindow.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
@@ -78,11 +78,11 @@ public abstract class NativeWindowFactory {
     private static String nativeOSNameCustom;
     private static boolean isAWTAvailable;
     public static final String AWTComponentClassName = "java.awt.Component" ;
-    public static final String JAWTUtilClassName = "com.jogamp.nativewindow.impl.jawt.JAWTUtil" ;
-    public static final String X11UtilClassName = "com.jogamp.nativewindow.impl.x11.X11Util";
-    public static final String GDIClassName = "com.jogamp.nativewindow.impl.windows.GDI";
-    public static final String X11JAWTToolkitLockClassName = "com.jogamp.nativewindow.impl.jawt.x11.X11JAWTToolkitLock" ;
-    public static final String X11ToolkitLockClassName = "com.jogamp.nativewindow.impl.x11.X11ToolkitLock" ;
+    public static final String JAWTUtilClassName = "jogamp.nativewindow.jawt.JAWTUtil" ;
+    public static final String X11UtilClassName = "jogamp.nativewindow.x11.X11Util";
+    public static final String GDIClassName = "jogamp.nativewindow.windows.GDI";
+    public static final String X11JAWTToolkitLockClassName = "jogamp.nativewindow.jawt.x11.X11JAWTToolkitLock" ;
+    public static final String X11ToolkitLockClassName = "jogamp.nativewindow.x11.X11ToolkitLock" ;
     private static Class  jawtUtilClass;
     private static Method jawtUtilGetJAWTToolkitMethod;
     private static Method jawtUtilInitMethod;
@@ -310,11 +310,11 @@ public abstract class NativeWindowFactory {
      *     <ul>
      *       <li> If <b>AWT available</b> </li>
      *       <ul>
-     *         <li> return {@link com.jogamp.nativewindow.impl.jawt.JAWTToolkitLock} </li>
+     *         <li> return {@link jogamp.nativewindow.jawt.JAWTToolkitLock} </li>
      *       </ul>
      *     </ul>
      *   </ul>
-     *   <li> Otherwise return {@link com.jogamp.nativewindow.impl.NullToolkitLock} </li>
+     *   <li> Otherwise return {@link jogamp.nativewindow.NullToolkitLock} </li>
      * </ul>
      */
     public static ToolkitLock getDefaultToolkitLock(String type) {
@@ -352,15 +352,15 @@ public abstract class NativeWindowFactory {
      *     <ul>
      *       <li> If <b>AWT available</b> </li>
      *       <ul>
-     *         <li> return {@link com.jogamp.nativewindow.impl.jawt.x11.X11JAWTToolkitLock} </li>
+     *         <li> return {@link jogamp.nativewindow.jawt.x11.X11JAWTToolkitLock} </li>
      *       </ul>
      *       <li> If <b>AWT not available</b> </li>
      *       <ul>
-     *         <li> return {@link com.jogamp.nativewindow.impl.x11.X11ToolkitLock} </li>
+     *         <li> return {@link jogamp.nativewindow.x11.X11ToolkitLock} </li>
      *       </ul>
      *     </ul>
      *   </ul>
-     *   <li> Otherwise return {@link com.jogamp.nativewindow.impl.NullToolkitLock} </li>
+     *   <li> Otherwise return {@link jogamp.nativewindow.NullToolkitLock} </li>
      * </ul>
      */
     public static ToolkitLock createDefaultToolkitLock(String type, long deviceHandle) {
@@ -386,10 +386,10 @@ public abstract class NativeWindowFactory {
      *   <ul>
      *     <li>If <b>X11 type</b> </li>
      *     <ul>
-     *       <li> return {@link com.jogamp.nativewindow.impl.x11.X11ToolkitLock} </li>
+     *       <li> return {@link jogamp.nativewindow.x11.X11ToolkitLock} </li>
      *     </ul>
      *   </ul>
-     *   <li> Otherwise return {@link com.jogamp.nativewindow.impl.NullToolkitLock} </li>
+     *   <li> Otherwise return {@link jogamp.nativewindow.NullToolkitLock} </li>
      * </ul>
      */
     public static ToolkitLock createDefaultToolkitLockNoAWT(String type, long deviceHandle) {

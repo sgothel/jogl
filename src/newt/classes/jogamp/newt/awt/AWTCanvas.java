@@ -31,7 +31,7 @@
  * 
  */
 
-package com.jogamp.newt.impl.awt;
+package jogamp.newt.awt;
 
 import com.jogamp.newt.Window;
 

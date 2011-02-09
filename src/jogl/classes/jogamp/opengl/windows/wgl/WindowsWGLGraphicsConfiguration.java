@@ -31,7 +31,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.opengl.impl.windows.wgl;
+package jogamp.opengl.windows.wgl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,14 +48,14 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
-import com.jogamp.nativewindow.impl.windows.GDI;
-import com.jogamp.nativewindow.impl.windows.PIXELFORMATDESCRIPTOR;
-import com.jogamp.opengl.impl.GLContextImpl;
-import com.jogamp.opengl.impl.GLGraphicsConfigurationUtil;
+import jogamp.nativewindow.windows.GDI;
+import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
+import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
     // Keep this under the same debug flag as the drawable factory for convenience
-    protected static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug("GraphicsConfiguration");
+    protected static final boolean DEBUG = jogamp.opengl.Debug.debug("GraphicsConfiguration");
     
     final static String WGL_ARB_pixel_format = "WGL_ARB_pixel_format";
     final static String WGL_ARB_multisample = "WGL_ARB_multisample";

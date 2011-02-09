@@ -50,7 +50,7 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.jogamp.opengl.impl.glu.tessellator;
+package jogamp.opengl.glu.tessellator;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
@@ -73,19 +73,19 @@ class Render {
         public FaceCount() {
         }
 
-        public FaceCount(long size, com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge eStart, renderCallBack render) {
+        public FaceCount(long size, jogamp.opengl.glu.tessellator.GLUhalfEdge eStart, renderCallBack render) {
             this.size = size;
             this.eStart = eStart;
             this.render = render;
         }
 
         long size;		/* number of triangles used */
-        com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge eStart;	/* edge where this primitive starts */
+        jogamp.opengl.glu.tessellator.GLUhalfEdge eStart;	/* edge where this primitive starts */
         renderCallBack render;
     };
 
     private static interface renderCallBack {
-        void render(GLUtessellatorImpl tess, com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge e, long size);
+        void render(GLUtessellatorImpl tess, jogamp.opengl.glu.tessellator.GLUhalfEdge e, long size);
     }
 
     /************************ Strips and Fans decomposition ******************/
@@ -97,8 +97,8 @@ class Render {
  *
  * The rendering output is provided as callbacks (see the api).
  */
-    public static void __gl_renderMesh(GLUtessellatorImpl tess, com.jogamp.opengl.impl.glu.tessellator.GLUmesh mesh) {
-        com.jogamp.opengl.impl.glu.tessellator.GLUface f;
+    public static void __gl_renderMesh(GLUtessellatorImpl tess, jogamp.opengl.glu.tessellator.GLUmesh mesh) {
+        jogamp.opengl.glu.tessellator.GLUface f;
 
         /* Make a list of separate triangles so we can render them all at once */
         tess.lonelyTriList = null;
@@ -124,7 +124,7 @@ class Render {
     }
 
 
-    static void RenderMaximumFaceGroup(GLUtessellatorImpl tess, com.jogamp.opengl.impl.glu.tessellator.GLUface fOrig) {
+    static void RenderMaximumFaceGroup(GLUtessellatorImpl tess, jogamp.opengl.glu.tessellator.GLUface fOrig) {
         /* We want to find the largest triangle fan or strip of unmarked faces
          * which includes the given face fOrig.  There are 3 possible fans
          * passing through fOrig (one centered at each vertex), and 3 possible
@@ -132,7 +132,7 @@ class Render {
          * is to try all of these, and take the primitive which uses the most
          * triangles (a greedy approach).
          */
-        com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge e = fOrig.anEdge;
+        jogamp.opengl.glu.tessellator.GLUhalfEdge e = fOrig.anEdge;
         FaceCount max = new FaceCount();
         FaceCount newFace = new FaceCount();
 
@@ -178,17 +178,17 @@ class Render {
  * more complicated, and we need a general tracking method like the
  * one here.
  */
-    private static boolean Marked(com.jogamp.opengl.impl.glu.tessellator.GLUface f) {
+    private static boolean Marked(jogamp.opengl.glu.tessellator.GLUface f) {
         return !f.inside || f.marked;
     }
 
-    private static GLUface AddToTrail(com.jogamp.opengl.impl.glu.tessellator.GLUface f, com.jogamp.opengl.impl.glu.tessellator.GLUface t) {
+    private static GLUface AddToTrail(jogamp.opengl.glu.tessellator.GLUface f, jogamp.opengl.glu.tessellator.GLUface t) {
         f.trail = t;
         f.marked = true;
         return f;
     }
 
-    private static void FreeTrail(com.jogamp.opengl.impl.glu.tessellator.GLUface t) {
+    private static void FreeTrail(jogamp.opengl.glu.tessellator.GLUface t) {
         if (true) {
             while (t != null) {
                 t.marked = false;
@@ -199,14 +199,14 @@ class Render {
         }
     }
 
-    static FaceCount MaximumFan(com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge eOrig) {
+    static FaceCount MaximumFan(jogamp.opengl.glu.tessellator.GLUhalfEdge eOrig) {
         /* eOrig.Lface is the face we want to render.  We want to find the size
          * of a maximal fan around eOrig.Org.  To do this we just walk around
          * the origin vertex as far as possible in both directions.
          */
         FaceCount newFace = new FaceCount(0, null, renderFan);
-        com.jogamp.opengl.impl.glu.tessellator.GLUface trail = null;
-        com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge e;
+        jogamp.opengl.glu.tessellator.GLUface trail = null;
+        jogamp.opengl.glu.tessellator.GLUhalfEdge e;
 
         for (e = eOrig; !Marked(e.Lface); e = e.Onext) {
             trail = AddToTrail(e.Lface, trail);
@@ -227,7 +227,7 @@ class Render {
         return (n & 0x1L) == 0;
     }
 
-    static FaceCount MaximumStrip(com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge eOrig) {
+    static FaceCount MaximumStrip(jogamp.opengl.glu.tessellator.GLUhalfEdge eOrig) {
         /* Here we are looking for a maximal strip that contains the vertices
          * eOrig.Org, eOrig.Dst, eOrig.Lnext.Dst (in that order or the
          * reverse, such that all triangles are oriented CCW).
@@ -240,8 +240,8 @@ class Render {
          */
         FaceCount newFace = new FaceCount(0, null, renderStrip);
         long headSize = 0, tailSize = 0;
-        com.jogamp.opengl.impl.glu.tessellator.GLUface trail = null;
-        com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge e, eTail, eHead;
+        jogamp.opengl.glu.tessellator.GLUface trail = null;
+        jogamp.opengl.glu.tessellator.GLUhalfEdge e, eTail, eHead;
 
         for (e = eOrig; !Marked(e.Lface); ++tailSize, e = e.Onext) {
             trail = AddToTrail(e.Lface, trail);
@@ -279,7 +279,7 @@ class Render {
     }
 
     private static class RenderTriangle implements renderCallBack {
-        public void render(GLUtessellatorImpl tess, com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge e, long size) {
+        public void render(GLUtessellatorImpl tess, jogamp.opengl.glu.tessellator.GLUhalfEdge e, long size) {
             /* Just add the triangle to a triangle list, so we can render all
              * the separate triangles at once.
              */
@@ -289,11 +289,11 @@ class Render {
     }
 
 
-    static void RenderLonelyTriangles(GLUtessellatorImpl tess, com.jogamp.opengl.impl.glu.tessellator.GLUface f) {
+    static void RenderLonelyTriangles(GLUtessellatorImpl tess, jogamp.opengl.glu.tessellator.GLUface f) {
         /* Now we render all the separate triangles which could not be
          * grouped into a triangle fan or strip.
          */
-        com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge e;
+        jogamp.opengl.glu.tessellator.GLUhalfEdge e;
         int newState;
         int edgeState = -1;	/* force edge state output for first vertex */
 
@@ -323,7 +323,7 @@ class Render {
     }
 
     private static class RenderFan implements renderCallBack {
-        public void render(GLUtessellatorImpl tess, com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge e, long size) {
+        public void render(GLUtessellatorImpl tess, jogamp.opengl.glu.tessellator.GLUhalfEdge e, long size) {
             /* Render as many CCW triangles as possible in a fan starting from
              * edge "e".  The fan *should* contain exactly "size" triangles
              * (otherwise we've goofed up somewhere).
@@ -345,7 +345,7 @@ class Render {
     }
 
     private static class RenderStrip implements renderCallBack {
-        public void render(GLUtessellatorImpl tess, com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge e, long size) {
+        public void render(GLUtessellatorImpl tess, jogamp.opengl.glu.tessellator.GLUhalfEdge e, long size) {
             /* Render as many CCW triangles as possible in a strip starting from
              * edge "e".  The strip *should* contain exactly "size" triangles
              * (otherwise we've goofed up somewhere).
@@ -378,9 +378,9 @@ class Render {
  * contour for each face marked "inside".  The rendering output is
  * provided as callbacks (see the api).
  */
-    public static void __gl_renderBoundary(GLUtessellatorImpl tess, com.jogamp.opengl.impl.glu.tessellator.GLUmesh mesh) {
-        com.jogamp.opengl.impl.glu.tessellator.GLUface f;
-        com.jogamp.opengl.impl.glu.tessellator.GLUhalfEdge e;
+    public static void __gl_renderBoundary(GLUtessellatorImpl tess, jogamp.opengl.glu.tessellator.GLUmesh mesh) {
+        jogamp.opengl.glu.tessellator.GLUface f;
+        jogamp.opengl.glu.tessellator.GLUhalfEdge e;
 
         for (f = mesh.fHead.next; f != mesh.fHead; f = f.next) {
             if (f.inside) {
@@ -409,7 +409,7 @@ class Render {
  * are degenerate return 0; otherwise (no consistent orientation) return
  * SIGN_INCONSISTENT.
  */ {
-        com.jogamp.opengl.impl.glu.tessellator.CachedVertex[] v = tess.cache;
+        jogamp.opengl.glu.tessellator.CachedVertex[] v = tess.cache;
 //            CachedVertex vn = v0 + tess.cacheCount;
         int vn = tess.cacheCount;
 //            CachedVertex vc;
@@ -488,7 +488,7 @@ class Render {
  * output is provided as callbacks (see the api).
  */
     public static boolean __gl_renderCache(GLUtessellatorImpl tess) {
-        com.jogamp.opengl.impl.glu.tessellator.CachedVertex[] v = tess.cache;
+        jogamp.opengl.glu.tessellator.CachedVertex[] v = tess.cache;
 //            CachedVertex vn = v0 + tess.cacheCount;
         int vn = tess.cacheCount;
 //            CachedVertex vc;

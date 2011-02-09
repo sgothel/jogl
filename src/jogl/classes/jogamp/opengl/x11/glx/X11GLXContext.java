@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.x11.glx;
+package jogamp.opengl.x11.glx;
 
 import java.nio.*;
 import java.util.*;
@@ -48,10 +48,10 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.X11GraphicsDevice;
 
 import com.jogamp.common.util.VersionNumber;
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
-import com.jogamp.nativewindow.impl.x11.X11Util;
+import jogamp.nativewindow.x11.X11Util;
 
 public abstract class X11GLXContext extends GLContextImpl {
   protected static final boolean TRACE_CONTEXT_CURRENT = false; // true;

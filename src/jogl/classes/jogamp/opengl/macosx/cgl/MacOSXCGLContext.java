@@ -38,13 +38,13 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.macosx.cgl;
+package jogamp.opengl.macosx.cgl;
 
 import java.nio.*;
 import java.util.*;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 

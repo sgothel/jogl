@@ -37,13 +37,13 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl.windows.wgl;
+package jogamp.opengl.windows.wgl;
 
 import java.util.*;
 
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
+import jogamp.opengl.*;
 
 public class WindowsOnscreenWGLContext extends WindowsWGLContext {
   public WindowsOnscreenWGLContext(WindowsOnscreenWGLDrawable drawable,

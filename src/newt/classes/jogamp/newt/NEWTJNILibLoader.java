@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.newt.impl;
+package jogamp.newt;
 
 // FIXME: refactor Java SE dependencies
 //import java.awt.Toolkit;

@@ -34,7 +34,7 @@
 package com.jogamp.opengl.util;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.opengl.impl.ProjectFloat;
+import jogamp.opengl.ProjectFloat;
 
 import java.nio.*;
 import java.util.ArrayList;

@@ -31,12 +31,12 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.opengl.impl.windows.wgl.awt;
+package jogamp.opengl.windows.wgl.awt;
 
 
 import com.jogamp.common.util.ArrayHashSet;
-import com.jogamp.nativewindow.impl.jawt.windows.Win32SunJDKReflection;
-import com.jogamp.opengl.impl.GLGraphicsConfigurationFactory;
+import jogamp.nativewindow.jawt.windows.Win32SunJDKReflection;
+import jogamp.opengl.GLGraphicsConfigurationFactory;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 
@@ -56,11 +56,11 @@ import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLException;
 
-import com.jogamp.opengl.impl.windows.wgl.WindowsWGLGraphicsConfiguration;
+import jogamp.opengl.windows.wgl.WindowsWGLGraphicsConfiguration;
 import javax.media.opengl.GLDrawableFactory;
 
 public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
-    protected static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug("GraphicsConfiguration");
+    protected static final boolean DEBUG = jogamp.opengl.Debug.debug("GraphicsConfiguration");
 
     public WindowsAWTWGLGraphicsConfigurationFactory() {
         GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.awt.AWTGraphicsDevice.class, this);

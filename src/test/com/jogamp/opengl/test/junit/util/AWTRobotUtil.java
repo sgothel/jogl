@@ -28,7 +28,7 @@
  
 package com.jogamp.opengl.test.junit.util;
 
-import com.jogamp.newt.impl.WindowImplAccess;
+import jogamp.newt.WindowImplAccess;
 import java.lang.reflect.InvocationTargetException;
 import java.awt.AWTException;
 import java.awt.Component;

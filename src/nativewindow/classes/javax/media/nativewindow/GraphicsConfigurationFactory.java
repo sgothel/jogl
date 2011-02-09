@@ -34,8 +34,8 @@
 package javax.media.nativewindow;
 
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.nativewindow.impl.Debug;
-import com.jogamp.nativewindow.impl.DefaultGraphicsConfigurationFactoryImpl;
+import jogamp.nativewindow.Debug;
+import jogamp.nativewindow.DefaultGraphicsConfigurationFactoryImpl;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -91,7 +91,7 @@ public abstract class GraphicsConfigurationFactory {
         if (NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {
             try {
                 GraphicsConfigurationFactory factory = (GraphicsConfigurationFactory)
-                    ReflectionUtil.createInstance("com.jogamp.nativewindow.impl.x11.X11GraphicsConfigurationFactory", null,
+                    ReflectionUtil.createInstance("jogamp.nativewindow.x11.X11GraphicsConfigurationFactory", null,
                                                   GraphicsConfigurationFactory.class.getClassLoader());
                 registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, factory);
             } catch (Exception e) {

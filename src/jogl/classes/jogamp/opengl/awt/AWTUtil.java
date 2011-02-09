@@ -35,9 +35,9 @@
  * facility.
  */
 
-package com.jogamp.opengl.impl.awt;
+package jogamp.opengl.awt;
 
-import com.jogamp.nativewindow.impl.jawt.*;
+import jogamp.nativewindow.jawt.*;
 
 import javax.media.opengl.*;
 
@@ -57,7 +57,7 @@ public class AWTUtil {
     headlessMode = GraphicsEnvironment.isHeadless();
     if(!headlessMode) {
         try {
-            j2dClazz = Class.forName("com.jogamp.opengl.impl.awt.Java2D");
+            j2dClazz = Class.forName("jogamp.opengl.awt.Java2D");
             isOGLPipelineActive = j2dClazz.getMethod("isOGLPipelineActive", null);
             isQueueFlusherThread = j2dClazz.getMethod("isQueueFlusherThread", null);
             j2dOk = true;
