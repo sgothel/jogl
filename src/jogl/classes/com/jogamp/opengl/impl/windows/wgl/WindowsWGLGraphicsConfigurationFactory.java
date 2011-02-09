@@ -153,7 +153,10 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         int numFormats = pformats.length;
         ArrayList bucket = new ArrayList(numFormats);
         for (int i = 0; i < numFormats; i++) {
-            bucket.add( WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, hdc, pformats[i], onscreen) );
+            WGLGLCapabilities wglglcapabilities = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, hdc, pformats[i], onscreen);
+            // formats that don't draw to a window come back null; don't add them or they'll crash debug output
+            if( wglglcapabilities != null )
+                bucket.add( wglglcapabilities );
         }
         return bucket;
     }
