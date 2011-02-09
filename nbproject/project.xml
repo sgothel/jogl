@@ -203,7 +203,7 @@
                 <package-root>build/nativewindow/gensrc/classes</package-root>
                 <classpath mode="compile">../gluegen/build/gluegen.jar:../gluegen/build/gluegen-rt.jar:make/lib/swt/gtk-linux-x86_64/swt-debug.jar</classpath>
                 <built-to>bin</built-to>
-                <source-level>1.4</source-level>
+                <source-level>1.5</source-level>
             </compilation-unit>
             <compilation-unit>
                 <package-root>src/test</package-root>
