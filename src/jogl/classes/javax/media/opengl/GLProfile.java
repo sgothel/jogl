@@ -37,22 +37,26 @@
 
 package javax.media.opengl;
 
+import jogamp.opengl.Debug;
+import jogamp.opengl.GLDrawableFactoryImpl;
+import jogamp.opengl.GLDynamicLookupHelper;
+import jogamp.opengl.DesktopGLDynamicLookupHelper;
+
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.jvm.JVMUtil;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.NativeWindowVersion;
-import jogamp.opengl.Debug;
-import jogamp.opengl.GLDrawableFactoryImpl;
-import jogamp.opengl.GLDynamicLookupHelper;
-import jogamp.opengl.DesktopGLDynamicLookupHelper;
 import com.jogamp.opengl.JoglVersion;
+
 import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.opengl.fixedfunc.GLPointerFunc;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.opengl.fixedfunc.GLPointerFunc;
+
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.security.*;
 import java.util.List;
 
 /**
