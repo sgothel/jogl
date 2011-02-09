@@ -2172,7 +2172,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         Class[] argTypes = null;
         try {
             Method m = windowClass.getDeclaredMethod("getCustomConstructorArgumentTypes", new Class[] {});
-            argTypes = (Class[]) m.invoke(null, null);
+            argTypes = (Class[]) m.invoke(null, (Object[])null);
         } catch (Throwable t) {}
         return argTypes;
     }

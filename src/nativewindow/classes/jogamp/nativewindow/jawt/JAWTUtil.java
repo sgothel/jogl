@@ -79,7 +79,7 @@ public class JAWTUtil {
     if (!headlessMode) {
         try {
             jC = Class.forName("jogamp.opengl.awt.Java2D");
-            m = jC.getMethod("isQueueFlusherThread", null);
+            m = jC.getMethod("isQueueFlusherThread", (Class[])null);
             ok = true;
         } catch (Exception e) {
         }
@@ -104,8 +104,8 @@ public class JAWTUtil {
     boolean _hasSunToolkitAWTLock = false;
     if (null != sunToolkitAWTLockMethod && null != sunToolkitAWTUnlockMethod) {
         try {
-            sunToolkitAWTLockMethod.invoke(null, null);
-            sunToolkitAWTUnlockMethod.invoke(null, null);
+            sunToolkitAWTLockMethod.invoke(null, (Object[])null);
+            sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
             _hasSunToolkitAWTLock = true;
         } catch (Exception e) {
         }
@@ -160,7 +160,7 @@ public class JAWTUtil {
     boolean b = false;
     if(j2dExist) {
         try {
-            b = ((Boolean)isQueueFlusherThread.invoke(null, null)).booleanValue();
+            b = ((Boolean)isQueueFlusherThread.invoke(null, (Object[])null)).booleanValue();
         } catch (Exception e) {}
     }
     return b;
@@ -179,7 +179,7 @@ public class JAWTUtil {
   public static void awtLock() {
     if(hasSunToolkitAWTLock) {
         try {
-            sunToolkitAWTLockMethod.invoke(null, null);
+            sunToolkitAWTLockMethod.invoke(null, (Object[])null);
         } catch (Exception e) {
           throw new NativeWindowException("SunToolkit.awtLock failed", e);
         }
@@ -197,7 +197,7 @@ public class JAWTUtil {
   public static void awtUnlock() {
     if(hasSunToolkitAWTLock) {
         try {
-            sunToolkitAWTUnlockMethod.invoke(null, null);
+            sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
         } catch (Exception e) {
           throw new NativeWindowException("SunToolkit.awtUnlock failed", e);
         }

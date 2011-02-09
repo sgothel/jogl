@@ -265,7 +265,7 @@ public class Java2D {
     checkActive();
 
     try {
-      return ((Boolean) isQueueFlusherThreadMethod.invoke(null, null)).booleanValue();
+      return ((Boolean) isQueueFlusherThreadMethod.invoke(null, (Object[])null)).booleanValue();
     } catch (InvocationTargetException e) {
       throw new GLException(e.getTargetException());
     } catch (Exception e) {

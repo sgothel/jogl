@@ -189,7 +189,7 @@ public abstract class NativeWindowFactory {
                     public Object run() {
                         try {
                             jawtUtilClass = Class.forName(JAWTUtilClassName, false, NativeWindowFactory.class.getClassLoader());
-                            jawtUtilInitMethod = jawtUtilClass.getDeclaredMethod("initSingleton", null);
+                            jawtUtilInitMethod = jawtUtilClass.getDeclaredMethod("initSingleton", (Class[])null);
                             jawtUtilInitMethod.setAccessible(true);
                             jawtUtilGetJAWTToolkitMethod = jawtUtilClass.getDeclaredMethod("getJAWTToolkitLock", new Class[]{});
                             jawtUtilGetJAWTToolkitMethod.setAccessible(true);

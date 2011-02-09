@@ -58,8 +58,8 @@ public class AWTUtil {
     if(!headlessMode) {
         try {
             j2dClazz = Class.forName("jogamp.opengl.awt.Java2D");
-            isOGLPipelineActive = j2dClazz.getMethod("isOGLPipelineActive", null);
-            isQueueFlusherThread = j2dClazz.getMethod("isQueueFlusherThread", null);
+            isOGLPipelineActive = j2dClazz.getMethod("isOGLPipelineActive", (Class[])null);
+            isQueueFlusherThread = j2dClazz.getMethod("isQueueFlusherThread", (Class[])null);
             j2dOk = true;
         } catch (Exception e) {}
     }
@@ -82,8 +82,8 @@ public class AWTUtil {
 
     if(j2dOk) {
       try {
-        if( !((Boolean)isOGLPipelineActive.invoke(null, null)).booleanValue() ||
-            !((Boolean)isQueueFlusherThread.invoke(null, null)).booleanValue() ) {
+        if( !((Boolean)isOGLPipelineActive.invoke(null, (Object[])null)).booleanValue() ||
+            !((Boolean)isQueueFlusherThread.invoke(null, (Object[])null)).booleanValue() ) {
           JAWTUtil.lockToolkit();
         }
       } catch (Exception e) { j2dOk=false; }
@@ -105,8 +105,8 @@ public class AWTUtil {
 
         if(j2dOk) {
           try {
-            if( !((Boolean)isOGLPipelineActive.invoke(null, null)).booleanValue() ||
-                !((Boolean)isQueueFlusherThread.invoke(null, null)).booleanValue() ) {
+            if( !((Boolean)isOGLPipelineActive.invoke(null, (Object[])null)).booleanValue() ||
+                !((Boolean)isQueueFlusherThread.invoke(null, (Object[])null)).booleanValue() ) {
               JAWTUtil.unlockToolkit();
             }
           } catch (Exception e) { j2dOk=false; }

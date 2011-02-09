@@ -109,7 +109,7 @@ public class Win32SunJDKReflection {
     }
 
     try {
-      return ((Integer) win32GraphicsConfigGetVisualMethod.invoke(config, null)).intValue();
+      return ((Integer) win32GraphicsConfigGetVisualMethod.invoke(config, (Object[])null)).intValue();
     } catch (Exception e) {
       return 0;
     }
