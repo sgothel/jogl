@@ -26,27 +26,30 @@ bindings to the native OpenGL(R) 3D graphics library profiles:
 <h3>Dependencies</h3>
   This binding has dependencies to the following:<br><br>
   <ul>
-    <li> Either of the following Java implementations:<br>
+    <li> Either of the following Java implementations:<br/>
     <ul>
-        <li> <a href="http://java.sun.com/j2se/1.4.2/docs/api/">Java SE 1.4 or later</a> </li><br>
-        <li> <a href="http://java.sun.com/javame/technology/cdc/">Java ME CDC 1.1.2 (JSR 218)</a> and 
-             <a href="http://java.sun.com/products/foundation/">Foundation Profile 1.1.2 (JSR 219)</a><br>
-             and either of the following <i>java.nio</i> implementations:<br>
-             <ul>
-                <li> <a href="http://java.sun.com/javame/reference/apis/jsr239/java/nio/package-summary.html"> JSR239 <i>java.nio</i> subset</a> </li>
+        <li> <a href="http://java.sun.com/j2se/1.5.0/docs/api/">Java SE 1.5 or later</a> </li>
+        <li> A mobile JavaVM with language 1.5 support, ie:
+            <ul>
+                <li> <a href="http://developer.android.com/reference/packages.html">Dalvik API Level 7</a> </li>
+                <li> <a href="http://jamvm.sourceforge.net/">JamVM</a> </li>
+            </ul>
+            with
+            <ul>
+                <li> <a href="http://java.sun.com/products/foundation/">Foundation Profile 1.1.2 (JSR 219)</a> </li>
                 <li> <a href="http://java.sun.com/j2se/1.4.2/docs/api/java/nio/package-summary.html"> Java 1.4 <i>java.nio</i> implementation</a> </li>
-             </ul><br>
-    </ul>    
+            </ul></li>
+    </ul></li>
     <li> {@linkplain javax.media.nativewindow NativeWindow Protocol} <br>
     <br>
-    The <i>NativeWindow Protocol</i> is included in Sun's sample implementation </li><br>
+    The <i>NativeWindow Protocol</i> is included in JogAmp's sample implementation </li><br>
   </ul>
   <br>
 
 <h3>OpenGL Profile Model</h3>
   OpenGL today is not just a single set of functionality, it offers many profiles for different
   purposes, e.g. ES1 and ES2 for mobile, etc.<br>
-  JOGL reflects these profiles <a href="../doc/bouml/html/">with an OO abstraction model</a>,
+  JOGL reflects these profiles <a href="http://jogamp.org/jogl/doc/bouml/html/">with an OO abstraction model</a>,
   specifying interfaces encapsulating common subsets.<br> 
    
 <h3>Package Structure</h3>

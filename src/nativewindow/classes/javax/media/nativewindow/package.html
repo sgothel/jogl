@@ -24,20 +24,20 @@
   <ul>
     <li>{@link javax.media.nativewindow.AbstractGraphicsDevice AbstractGraphicsDevice},<br>
        <br>
-       Shall return the new string identifier with {@link javax.media.nativewindow.AbstractGraphicsDevice#getType() getType()}</li><br>
+       Shall return the new string identifier with {@link javax.media.nativewindow.AbstractGraphicsDevice#getType() getType()}</li>
     <li>{@link javax.media.nativewindow.AbstractGraphicsScreen AbstractGraphicsScreen}</li>
-    <li>{@link javax.media.nativewindow.AbstractGraphicsConfiguration AbstractGraphicsConfiguration}</li><br>
+    <li>{@link javax.media.nativewindow.AbstractGraphicsConfiguration AbstractGraphicsConfiguration}</li>
   </ul>
   <br>
   The implementor has to provide the following:<br><br>
   <ul>
     <li> The specialisation of the abstract class {@link javax.media.nativewindow.NativeWindowFactory NativeWindowFactory}<br>
          <br>
-         shall be registered with {@link javax.media.nativewindow.NativeWindowFactory#registerFactory NativeWindowFactory.registerFactory(..)}.</li><br>
+         shall be registered with {@link javax.media.nativewindow.NativeWindowFactory#registerFactory NativeWindowFactory.registerFactory(..)}.</li>
 
     <li> The specialisation of the abstract class {@link javax.media.nativewindow.GraphicsConfigurationFactory GraphicsConfigurationFactory}<br>
          <br>
-         shall be registered with {@link javax.media.nativewindow.GraphicsConfigurationFactory#registerFactory GraphicsConfigurationFactory.registerFactory(..)}.</li><br>
+         shall be registered with {@link javax.media.nativewindow.GraphicsConfigurationFactory#registerFactory GraphicsConfigurationFactory.registerFactory(..)}.</li>
   </ul><br>
   This protocol <i>does not</i> describe how to <i>create</i> native windows, but how to <i>bind</i> a native surface to an implementation of 
   and window to an implementation of {@link javax.media.nativewindow.NativeSurface NativeSurface}.<br>
@@ -45,50 +45,54 @@
   However, an implementation of this protocol (e.g. {@link com.jogamp.newt}) may support the creation.<br>
    
 <h3>Dependencies</h3>
-  This binding has dependencies to the following:<br><br>
+  This binding has dependencies to the following:
   <ul>
-    <li> Either of the following Java implementations:<br>
+    <li> Either of the following Java implementations:<br/>
     <ul>
-        <li> <a href="http://java.sun.com/j2se/1.4.2/docs/api/">Java SE 1.4 or later</a> </li><br>
-        <li> <a href="http://java.sun.com/javame/technology/cdc/">Java ME CDC 1.1.2 (JSR 218)</a> and 
-             <a href="http://java.sun.com/products/foundation/">Foundation Profile 1.1.2 (JSR 219)</a><br>
-             and either of the following <i>java.nio</i> implementations:<br>
-             <ul>
-                <li> <a href="http://java.sun.com/javame/reference/apis/jsr239/java/nio/package-summary.html"> JSR239 <i>java.nio</i> subset</a> </li>
+        <li> <a href="http://java.sun.com/j2se/1.5.0/docs/api/">Java SE 1.5 or later</a> </li>
+        <li> A mobile JavaVM with language 1.5 support, ie:
+            <ul>
+                <li> <a href="http://developer.android.com/reference/packages.html">Dalvik API Level 7</a> </li>
+                <li> <a href="http://jamvm.sourceforge.net/">JamVM</a> </li>
+            </ul>
+            with
+            <ul>
+                <li> <a href="http://java.sun.com/products/foundation/">Foundation Profile 1.1.2 (JSR 219)</a> </li>
                 <li> <a href="http://java.sun.com/j2se/1.4.2/docs/api/java/nio/package-summary.html"> Java 1.4 <i>java.nio</i> implementation</a> </li>
-             </ul><br>
-    </ul>    
+            </ul></li>
+    </ul></li>
   </ul>
   <br>
 
 <h3>Package Structure</h3>
-  The packages defined by this specification include:<br><br>
+  The packages defined by this specification include:<br/><br/>
 <ul>
     <li>The <b>javax.media.nativewindow</b> package<br>
       <br>
   This package contains Java bindings for a native windowing system.<br>
-  Subsequent packages contain marker type classes, containing native characteristics of the windowing system.</li><br><br>
+  Subsequent packages contain marker type classes, containing native characteristics of the windowing system.
+
   <ul>
     <li>The <b>javax.media.nativewindow.awt</b> package<br>
       <br>
-  This sub package contains classes to cover the native characteristics of the AWT windowing system.</li><br>
+  This sub package contains classes to cover the native characteristics of the AWT windowing system.</li>
 
     <li>The <b>javax.media.nativewindow.x11</b> package<br>
       <br>
-  This sub package contains classes to cover the native characteristics of the X11 windowing system.</li><br>
+  This sub package contains classes to cover the native characteristics of the X11 windowing system.</li>
 
     <li>The <b>javax.media.nativewindow.windows</b> package<br>
       <br>
-  This sub package contains classes to cover the native characteristics of the Windows windowing system.</li><br>
+  This sub package contains classes to cover the native characteristics of the Windows windowing system.</li>
 
     <li>The <b>javax.media.nativewindow.macosx</b> package<br>
       <br>
-  This sub package contains classes to cover the native characteristics of the MacOSX windowing system.</li><br>
+  This sub package contains classes to cover the native characteristics of the MacOSX windowing system.</li>
 
     <li>The <b>javax.media.nativewindow.egl</b> package<br>
       <br>
-  This sub package contains classes to cover the native characteristics of the EGL/OpenKODE windowing system.</li><br>
-  </ul>
+  This sub package contains classes to cover the native characteristics of the EGL/OpenKODE windowing system.</li>
+  </ul></li>
 </ul>
 
 <h3>Factory Model</h3>
