@@ -125,7 +125,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                 availableCaps = getAvailableGLCapabilitiesARB(hdc, sharedContext, capsChosen.getGLProfile());
             }
             if( null == availableCaps || 0 == availableCaps.size() ) {
-                availableCaps = getAvailableGLCapabilitiesGDI(hdc, capsChosen);
+                availableCaps = getAvailableGLCapabilitiesGDI(hdc, capsChosen.getGLProfile());
             }
         } finally {
             sharedDrawable.unlockSurface();
@@ -142,22 +142,12 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         return WindowsWGLGraphicsConfiguration.wglARBPFIDs2AllGLCapabilities(sharedContext, hdc, pformats, glProfile);
     }
 
-    static List/*<WGLGLCapabilities>*/ getAvailableGLCapabilitiesGDI(long hdc, GLCapabilitiesImmutable capsChosen) {
-        boolean onscreen = capsChosen.isOnscreen();
-        if(capsChosen.isPBuffer()) {
-            return null;
-        }
-        GLProfile glProfile = capsChosen.getGLProfile();
-
+    static List/*<WGLGLCapabilities>*/ getAvailableGLCapabilitiesGDI(long hdc, GLProfile glProfile) {
         int[] pformats = WindowsWGLGraphicsConfiguration.wglAllGDIPFIDs(hdc);
         int numFormats = pformats.length;
         ArrayList bucket = new ArrayList(numFormats);
         for (int i = 0; i < numFormats; i++) {
-            WGLGLCapabilities wglglcapabilities = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, hdc, pformats[i], onscreen);
-            // formats that don't draw to a window come back null; don't add them or they'll crash debug output
-            if( null != wglglcapabilities ) {
-                bucket.add( wglglcapabilities );
-            }
+            WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(bucket, glProfile, hdc, pformats[i], GLGraphicsConfigurationUtil.ALL_BITS);
         }
         return bucket;
     }

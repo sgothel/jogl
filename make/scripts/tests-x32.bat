@@ -1,7 +1,7 @@
 REM scripts\java-win32-dbg.bat com.jogamp.newt.opengl.GLWindow
 REM scripts\java-win32-dbg.bat com.jogamp.newt.opengl.GLWindow
 REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT -time 5000
-scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT -time 5000
+REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT -time 5000
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT -time 30000
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
@@ -32,3 +32,6 @@ REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestP
 REM scripts\java-win32.bat com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT -time 10000
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleNEWT -time 10000
+
+scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
+REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
