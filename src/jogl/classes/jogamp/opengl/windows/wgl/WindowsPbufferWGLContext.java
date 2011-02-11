@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -40,7 +41,6 @@
 package jogamp.opengl.windows.wgl;
 
 import javax.media.opengl.*;
-import jogamp.opengl.*;
 
 public class WindowsPbufferWGLContext extends WindowsWGLContext {
   // State for render-to-texture and render-to-texture-rectangle support
@@ -50,7 +50,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
   private int textureTarget; // e.g. GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_NV
   private int texture;       // actual texture object
 
-  public WindowsPbufferWGLContext(WindowsPbufferWGLDrawable drawable,
+  protected WindowsPbufferWGLContext(WindowsPbufferWGLDrawable drawable,
                                  GLContext shareWith) {
     super(drawable, shareWith);
   }

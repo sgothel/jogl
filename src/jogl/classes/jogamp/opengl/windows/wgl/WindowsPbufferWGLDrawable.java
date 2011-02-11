@@ -59,16 +59,15 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
   private int floatMode;
 
-  public WindowsPbufferWGLDrawable(GLDrawableFactory factory, NativeSurface target,
-                                   WindowsWGLDrawable dummyDrawable,
-                                   WindowsWGLContext sharedCtx) {
+  protected WindowsPbufferWGLDrawable(GLDrawableFactory factory, NativeSurface target,
+                                      WindowsWGLDrawableFactory.SharedResource sharedResource) {
     super(factory, target, true);
 
     if (DEBUG) {
         System.out.println("Pbuffer config: " + getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration());
     }
 
-    createPbuffer(dummyDrawable.getNativeSurface().getSurfaceHandle(), sharedCtx);
+    createPbuffer(sharedResource);
 
     if (DEBUG) {
         System.err.println("Created pbuffer " + this);
@@ -125,13 +124,15 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     }
   }
 
-  private void createPbuffer(long parentHdc, WindowsWGLContext sharedCtx) {
+  private void createPbuffer(WindowsWGLDrawableFactory.SharedResource sharedResource) {
+    long parentHdc = sharedResource.getDrawable().getNativeSurface().getSurfaceHandle();
+    WGLExt wglExt = sharedResource.getContext().getWGLExt();
+    
     int[]   iattributes = new int  [2*WindowsWGLGraphicsConfiguration.MAX_ATTRIBS];
     float[] fattributes = new float[1];
     int[]   floatModeTmp = new int[1];
     int     niattribs   = 0;
     int     width, height;
-    WGLExt wglExt = sharedCtx.getWGLExt();
 
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
@@ -143,7 +144,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     }
 
     if(!WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(chosenCaps,
-                                    iattributes, sharedCtx, -1, floatModeTmp)){
+                                    iattributes, sharedResource, -1, floatModeTmp)){
       throw new GLException("Pbuffer-related extensions not supported");
     }
 
@@ -176,7 +177,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     if (DEBUG) {
       System.err.println("" + nformats + " suitable pixel formats found");
       for (int i = 0; i < nformats; i++) {
-        WGLGLCapabilities dbgCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedCtx, parentHdc, pformats[i], glProfile, false, true);
+        WGLGLCapabilities dbgCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, parentHdc, pformats[i], glProfile, false, true);
         System.err.println("pixel format " + pformats[i] + " (index " + i + "): " + dbgCaps);
       }
     }
@@ -240,7 +241,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
     // Re-query chosen pixel format
     {
-      WGLGLCapabilities newCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedCtx, parentHdc, pfdid, glProfile, false, true);
+      WGLGLCapabilities newCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, parentHdc, pfdid, glProfile, false, true);
       if(null == newCaps) {
         throw new GLException("pbuffer creation error: unable to re-query chosen PFD ID: " + pfdid + ", hdc " + this.toHexString(tmpHdc));
       }

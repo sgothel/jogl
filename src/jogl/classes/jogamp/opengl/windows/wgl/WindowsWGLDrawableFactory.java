@@ -167,25 +167,31 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       private AbstractGraphicsScreen screen;
       private WindowsDummyWGLDrawable drawable;
       private WindowsWGLContext context;
-      private boolean canCreateGLPbuffer;
-      private boolean readDrawableAvailable;
+      private boolean hasARBPixelFormat;
+      private boolean hasARBMultisample;
+      private boolean hasARBPBuffer;
+      private boolean hasARBReadDrawable;
 
       SharedResource(WindowsGraphicsDevice dev, AbstractGraphicsScreen scrn, WindowsDummyWGLDrawable draw, WindowsWGLContext ctx,
-                     boolean readBufferAvail, boolean canPbuffer) {
+                     boolean arbPixelFormat, boolean arbMultisample, boolean arbPBuffer, boolean arbReadDrawable) {
           device = dev;
           screen = scrn;
           drawable = draw;
           context = ctx;
-          canCreateGLPbuffer = canPbuffer;
-          readDrawableAvailable = readBufferAvail;
+          hasARBPixelFormat = arbPixelFormat;
+          hasARBMultisample = arbMultisample;
+          hasARBPBuffer = arbPBuffer;
+          hasARBReadDrawable = arbReadDrawable;
       }
       final public AbstractGraphicsDevice getDevice() { return device; }
       final public AbstractGraphicsScreen getScreen() { return screen; }
-      final public GLDrawableImpl getDrawable() { return drawable; }
-      final public GLContextImpl getContext() { return context; }
+      final public WindowsWGLDrawable getDrawable() { return drawable; }
+      final public WindowsWGLContext getContext() { return context; }
 
-      final boolean canCreateGLPbuffer() { return canCreateGLPbuffer; }
-      final boolean isReadDrawableAvailable() { return readDrawableAvailable; }
+      final boolean hasARBPixelFormat() { return hasARBPixelFormat; }
+      final boolean hasARBMultisample() { return hasARBMultisample; }
+      final boolean hasARBPBuffer() { return hasARBPBuffer; }
+      final boolean hasReadDrawable() { return hasARBReadDrawable; }
   }
 
   class SharedResourceImplementation implements SharedResourceRunner.Implementation {
@@ -231,12 +237,16 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                     throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
                 }
                 sharedContext.setSynchronized(true);
-                boolean canCreateGLPbuffer;
-                boolean readDrawableAvailable;
+                boolean hasARBPixelFormat;
+                boolean hasARBMultisample;
+                boolean hasARBPBuffer;
+                boolean hasARBReadDrawableAvailable;
                 sharedContext.makeCurrent();
                 try {
-                    canCreateGLPbuffer = sharedContext.getGL().isExtensionAvailable(GL_ARB_pbuffer);
-                    readDrawableAvailable = sharedContext.isExtensionAvailable(WGL_ARB_make_current_read) &&
+                    hasARBPixelFormat = sharedContext.isExtensionAvailable(WGL_ARB_pixel_format);
+                    hasARBMultisample = sharedContext.isExtensionAvailable(WGL_ARB_multisample);
+                    hasARBPBuffer = sharedContext.isExtensionAvailable(GL_ARB_pbuffer);
+                    hasARBReadDrawableAvailable = sharedContext.isExtensionAvailable(WGL_ARB_make_current_read) &&
                                             sharedContext.isFunctionAvailable(wglMakeContextCurrent);
                 } finally {
                     sharedContext.release();
@@ -245,10 +255,14 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                     System.err.println("!!! SharedDevice:  " + sharedDevice);
                     System.err.println("!!! SharedScreen:  " + absScreen);
                     System.err.println("!!! SharedContext: " + sharedContext);
-                    System.err.println("!!! pbuffer avail: " + canCreateGLPbuffer);
-                    System.err.println("!!! readDrawable:  " + readDrawableAvailable);
+                    System.err.println("!!! pixelformat:   " + hasARBPixelFormat);
+                    System.err.println("!!! multisample:   " + hasARBMultisample);
+                    System.err.println("!!! pbuffer:       " + hasARBPBuffer);
+                    System.err.println("!!! readDrawable:  " + hasARBReadDrawableAvailable);
                 }
-                return new SharedResource(sharedDevice, absScreen, sharedDrawable, sharedContext, readDrawableAvailable, canCreateGLPbuffer);
+                return new SharedResource(sharedDevice, absScreen, sharedDrawable, sharedContext, 
+                                          hasARBPixelFormat, hasARBMultisample,
+                                          hasARBPBuffer, hasARBReadDrawableAvailable);
             } catch (Throwable t) {
                 throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources for "+connection, t);
             } finally {
@@ -299,6 +313,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   final static String GL_ARB_pbuffer = "GL_ARB_pbuffer";
+  final static String WGL_ARB_pixel_format = "WGL_ARB_pixel_format";
+  final static String WGL_ARB_multisample = "WGL_ARB_multisample";
   final static String WGL_ARB_make_current_read = "WGL_ARB_make_current_read";
   final static String wglMakeContextCurrent = "wglMakeContextCurrent";
 
@@ -384,9 +400,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
           }
           sr.context.makeCurrent();
           try {
-            GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(WindowsWGLDrawableFactory.this, target,
-                                                                           sr.drawable,
-                                                                           sr.context);
+            GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(WindowsWGLDrawableFactory.this, target, sr);
             returnList.add(pbufferDrawable);
           } finally {
             sr.context.release();
@@ -407,7 +421,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   public final int isReadDrawableAvailable(AbstractGraphicsDevice device) {
     SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared((null!=device)?device:defaultDevice);
     if(null!=sr) {
-        return sr.isReadDrawableAvailable() ? 1 : 0 ;
+        return sr.hasReadDrawable() ? 1 : 0 ;
     }
     return -1; // undefined
   }
@@ -415,7 +429,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
     SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared((null!=device)?device:defaultDevice);
     if(null!=sr) {
-        return sr.canCreateGLPbuffer();
+        return sr.hasARBPBuffer();
     }
     return false;
   }

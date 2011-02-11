@@ -57,9 +57,6 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     // Keep this under the same debug flag as the drawable factory for convenience
     protected static final boolean DEBUG = jogamp.opengl.Debug.debug("GraphicsConfiguration");
     
-    final static String WGL_ARB_pixel_format = "WGL_ARB_pixel_format";
-    final static String WGL_ARB_multisample = "WGL_ARB_multisample";
-
     protected static final int MAX_PFORMATS = 256;
     protected static final int MAX_ATTRIBS  = 256;
 
@@ -99,13 +96,13 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         }
         WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory) _factory;
         AbstractGraphicsDevice device = screen.getDevice();
-        WindowsWGLContext sharedContext = (WindowsWGLContext) factory.getOrCreateSharedContextImpl(device);
-        boolean hasARB = null != sharedContext && sharedContext.isExtensionAvailable(WGL_ARB_pixel_format) ;
+        WindowsWGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResource(device);
+        boolean hasARB = null != sharedResource && sharedResource.hasARBPixelFormat();
 
         WGLGLCapabilities caps = null;
 
         if(hasARB) {
-            caps = wglARBPFID2GLCapabilities(sharedContext, hdc, pfdID, glp, onscreen, true /* pbuffer */);
+            caps = wglARBPFID2GLCapabilities(sharedResource, hdc, pfdID, glp, onscreen, true /* pbuffer */);
         } else {
             caps = PFD2GLCapabilities(glp, hdc, pfdID, onscreen);
         }
@@ -164,10 +161,12 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     public final int getPixelFormatID() { return isChosen ? ((WGLGLCapabilities)capabilitiesChosen).getPFDID() : 0; }
     public final boolean isChoosenByARB() { return isChosen ? ((WGLGLCapabilities)capabilitiesChosen).isSetByARB() : false; }
 
-    static int fillAttribsForGeneralWGLARBQuery(boolean haveWGLARBMultisample, int[] iattributes) {
+    static int fillAttribsForGeneralWGLARBQuery(WindowsWGLDrawableFactory.SharedResource sharedResource, int[] iattributes) {
         int niattribs = 0;
         iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_WINDOW_ARB;
-        iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
+        if(sharedResource.hasARBPBuffer()) {
+            iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
+        }
         iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_BITMAP_ARB;
         iattributes[niattribs++] = WGLExt.WGL_ACCELERATION_ARB;
         iattributes[niattribs++] = WGLExt.WGL_SUPPORT_OPENGL_ARB;
@@ -184,13 +183,15 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         iattributes[niattribs++] = WGLExt.WGL_ACCUM_GREEN_BITS_ARB;
         iattributes[niattribs++] = WGLExt.WGL_ACCUM_BLUE_BITS_ARB;
         iattributes[niattribs++] = WGLExt.WGL_ACCUM_ALPHA_BITS_ARB;
-        if (haveWGLARBMultisample) {
+        if(sharedResource.hasARBMultisample()) {
             iattributes[niattribs++] = WGLExt.WGL_SAMPLE_BUFFERS_ARB;
             iattributes[niattribs++] = WGLExt.WGL_SAMPLES_ARB;
         }
-        // pbo float buffer
-        iattributes[niattribs++] = WGLExt.WGL_PIXEL_TYPE_ARB;      // ati
-        iattributes[niattribs++] = WGLExt.WGL_FLOAT_COMPONENTS_NV; // nvidia
+        if(sharedResource.hasARBPBuffer()) {
+            // pbo float buffer
+            iattributes[niattribs++] = WGLExt.WGL_PIXEL_TYPE_ARB;      // ati
+            iattributes[niattribs++] = WGLExt.WGL_FLOAT_COMPONENTS_NV; // nvidia
+        }
 
         return niattribs;
     }
@@ -236,21 +237,21 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return pfdIDs;
     }
 
-    static WGLGLCapabilities wglARBPFID2GLCapabilities(WindowsWGLContext sharedCtx, long hdc, int pfdID,
+    static WGLGLCapabilities wglARBPFID2GLCapabilities(WindowsWGLDrawableFactory.SharedResource sharedResource,
+                                                       long hdc, int pfdID,
                                                        GLProfile glp, boolean onscreen, boolean usePBuffer) {
-        boolean haveWGLChoosePixelFormatARB = sharedCtx.isExtensionAvailable(WGL_ARB_pixel_format);
-        if (!haveWGLChoosePixelFormatARB) {
+        if (!sharedResource.hasARBPixelFormat()) {
             return null;
         }
-        boolean haveWGLARBMultisample = sharedCtx.isExtensionAvailable(WGL_ARB_multisample);
 
         int[] iattributes = new int  [2*MAX_ATTRIBS];
         int[] iresults    = new int  [2*MAX_ATTRIBS];
 
-        int niattribs = fillAttribsForGeneralWGLARBQuery(haveWGLARBMultisample, iattributes);
+        int niattribs = fillAttribsForGeneralWGLARBQuery(sharedResource, iattributes);
 
-        if (!sharedCtx.getWGLExt().wglGetPixelFormatAttribivARB(hdc, pfdID, 0, niattribs, iattributes, 0, iresults, 0)) {
-            throw new GLException("wglARBPFID2GLCapabilities: Error getting pixel format attributes for pixel format " + pfdID + " of device context");
+        if (!sharedResource.getContext().getWGLExt().wglGetPixelFormatAttribivARB(hdc, pfdID, 0, niattribs, iattributes, 0, iresults, 0)) {
+            throw new GLException("wglARBPFID2GLCapabilities: Error getting pixel format attributes for pixel format " + pfdID + 
+                                  " of device context " + toHexString(hdc) + ", werr " + GDI.GetLastError());
         }
         ArrayList bucket = new ArrayList(1);
         final int winattrbits = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
@@ -260,13 +261,13 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return null;
     }
 
-    static int[] wglChoosePixelFormatARB(long hdc, WindowsWGLContext sharedContext,
+    static int[] wglChoosePixelFormatARB(long hdc, WindowsWGLDrawableFactory.SharedResource sharedResource,
                                          GLCapabilitiesImmutable capabilities,
                                          int[] iattributes, int accelerationMode, float[] fattributes)
     {
 
         if ( !WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(capabilities,
-                iattributes, sharedContext, accelerationMode, null))
+                iattributes, sharedResource, accelerationMode, null))
         {
             if (DEBUG) {
                 System.err.println("wglChoosePixelFormatARB: GLCapabilities2AttribList failed: " + GDI.GetLastError());
@@ -277,7 +278,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
 
         int[] pformatsTmp = new int[WindowsWGLGraphicsConfiguration.MAX_PFORMATS];
         int[] numFormatsTmp = new int[1];
-        if ( !sharedContext.getWGLExt().wglChoosePixelFormatARB(hdc, iattributes, 0,
+        if ( !sharedResource.getContext().getWGLExt().wglChoosePixelFormatARB(hdc, iattributes, 0,
                                                                 fattributes, 0,
                                                                 WindowsWGLGraphicsConfiguration.MAX_PFORMATS,
                                                                 pformatsTmp, 0, numFormatsTmp, 0))
@@ -299,7 +300,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
                     + Integer.toHexString(accelerationMode) + ": " + numFormats);
             for (int i = 0; i < numFormats; i++) {
                 WGLGLCapabilities dbgCaps0 = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(
-                                                sharedContext, hdc, pformats[i],
+                                                sharedResource, hdc, pformats[i],
                                                 capabilities.getGLProfile(), capabilities.isOnscreen(), capabilities.isPBuffer());
                 System.err.println("pixel format " + pformats[i] + " (index " + i + "): " + dbgCaps0);
             }
@@ -307,35 +308,33 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return pformats;
     }
 
-    static List /*<GLCapabilitiesImmutable>*/ wglARBPFIDs2GLCapabilities(WindowsWGLContext sharedCtx, long hdc, int[] pfdIDs,
-                                                                         GLProfile glp, boolean onscreen, boolean usePBuffer) {
+    static List /*<GLCapabilitiesImmutable>*/ wglARBPFIDs2GLCapabilities(WindowsWGLDrawableFactory.SharedResource sharedResource,
+                                                                         long hdc, int[] pfdIDs, GLProfile glp, boolean onscreen, boolean usePBuffer) {
         final int winattrbits = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
-        return wglARBPFIDs2GLCapabilitiesImpl(sharedCtx, hdc, pfdIDs, glp, winattrbits);
+        return wglARBPFIDs2GLCapabilitiesImpl(sharedResource, hdc, pfdIDs, glp, winattrbits);
     }
 
-    static List /*<GLCapabilitiesImmutable>*/ wglARBPFIDs2AllGLCapabilities(WindowsWGLContext sharedCtx, long hdc, int[] pfdIDs,
-                                                                            GLProfile glp) {
-        return wglARBPFIDs2GLCapabilitiesImpl(sharedCtx, hdc, pfdIDs, glp, GLGraphicsConfigurationUtil.ALL_BITS);
+    static List /*<GLCapabilitiesImmutable>*/ wglARBPFIDs2AllGLCapabilities(WindowsWGLDrawableFactory.SharedResource sharedResource,
+                                                                            long hdc, int[] pfdIDs, GLProfile glp) {
+        return wglARBPFIDs2GLCapabilitiesImpl(sharedResource, hdc, pfdIDs, glp, GLGraphicsConfigurationUtil.ALL_BITS);
     }
     
-    private static List /*<GLCapabilitiesImmutable>*/ wglARBPFIDs2GLCapabilitiesImpl(WindowsWGLContext sharedCtx, long hdc, int[] pfdIDs,
-                                                                                     GLProfile glp, int winattrbits) {
-        boolean haveWGLChoosePixelFormatARB = sharedCtx.isExtensionAvailable(WGL_ARB_pixel_format);
-        if (!haveWGLChoosePixelFormatARB) {
+    private static List /*<GLCapabilitiesImmutable>*/ wglARBPFIDs2GLCapabilitiesImpl(WindowsWGLDrawableFactory.SharedResource sharedResource,
+                                                                                     long hdc, int[] pfdIDs, GLProfile glp, int winattrbits) {
+        if (!sharedResource.hasARBPixelFormat()) {
             return null;
         }
-        boolean haveWGLARBMultisample = sharedCtx.isExtensionAvailable(WGL_ARB_multisample);
         final int numFormats = pfdIDs.length;
 
         int[] iattributes = new int [2*MAX_ATTRIBS];
         int[] iresults    = new int [2*MAX_ATTRIBS];
-        int niattribs = fillAttribsForGeneralWGLARBQuery(haveWGLARBMultisample, iattributes);
+        int niattribs = fillAttribsForGeneralWGLARBQuery(sharedResource, iattributes);
 
         ArrayList bucket = new ArrayList();
 
         for(int i = 0; i<numFormats; i++) {
             if ( pfdIDs[i] >= 1 &&
-                 sharedCtx.getWGLExt().wglGetPixelFormatAttribivARB(hdc, pfdIDs[i], 0, niattribs, iattributes, 0, iresults, 0) ) {
+                 sharedResource.getContext().getWGLExt().wglGetPixelFormatAttribivARB(hdc, pfdIDs[i], 0, niattribs, iattributes, 0, iresults, 0) ) {
                 AttribList2GLCapabilities(bucket, glp, hdc, pfdIDs[i], iattributes, niattribs, iresults, winattrbits);
             } else if (DEBUG) {
                 System.err.println("wglARBPFIDs2GLCapabilities: Cannot get pixel format attributes for pixel format " +
@@ -348,17 +347,10 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
 
     static boolean GLCapabilities2AttribList(GLCapabilitiesImmutable caps,
                                              int[] iattributes,
-                                             GLContextImpl sharedCtx,
+                                             WindowsWGLDrawableFactory.SharedResource sharedResource,
                                              int accelerationValue,
                                              int[] floatMode) throws GLException {
-        boolean haveWGLChoosePixelFormatARB = sharedCtx.isExtensionAvailable(WGL_ARB_pixel_format);
-        boolean haveWGLARBMultisample = sharedCtx.isExtensionAvailable(WGL_ARB_multisample);
-        if(DEBUG) {
-            System.err.println("HDC2GLCapabilities: ARB_pixel_format: "+haveWGLChoosePixelFormatARB);
-            System.err.println("HDC2GLCapabilities: ARB_multisample : "+haveWGLARBMultisample);
-        }
-
-        if (!haveWGLChoosePixelFormatARB) {
+        if (!sharedResource.hasARBPixelFormat()) {
           return false;
         }
 
@@ -376,7 +368,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         if (onscreen) {
           iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_WINDOW_ARB;
           iattributes[niattribs++] = GL.GL_TRUE;
-        } else if (pbuffer) {
+        } else if (pbuffer && sharedResource.hasARBPBuffer()) {
           iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
           iattributes[niattribs++] = GL.GL_TRUE;
         } else {
@@ -429,7 +421,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
           iattributes[niattribs++] = caps.getAccumAlphaBits();
         }
 
-        if (caps.getSampleBuffers() && haveWGLARBMultisample) {
+        if (caps.getSampleBuffers() && sharedResource.hasARBMultisample()) {
             iattributes[niattribs++] = WGLExt.WGL_SAMPLE_BUFFERS_ARB;
             iattributes[niattribs++] = GL.GL_TRUE;
             iattributes[niattribs++] = WGLExt.WGL_SAMPLES_ARB;
@@ -440,12 +432,13 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         boolean rect     = caps.getPbufferRenderToTextureRectangle();
         boolean useFloat = caps.getPbufferFloatingPointBuffers();
         boolean ati      = false;
-        if (pbuffer) {
+        if (pbuffer && sharedResource.hasARBPBuffer()) {
           // Check some invariants and set up some state
           if (rect && !rtt) {
             throw new GLException("Render-to-texture-rectangle requires render-to-texture to be specified");
           }
 
+          WindowsWGLContext sharedCtx = sharedResource.getContext();
           if (rect) {
             if (!sharedCtx.isExtensionAvailable("GL_NV_texture_rectangle")) {
               throw new GLException("Render-to-texture-rectangle requires GL_NV_texture_rectangle extension");
