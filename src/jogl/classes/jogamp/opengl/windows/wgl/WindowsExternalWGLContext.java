@@ -70,21 +70,39 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
   }
 
   protected static WindowsExternalWGLContext create(GLDrawableFactory factory, GLProfile glp) {
-    long hdc = WGL.wglGetCurrentDC();
-    if (0==hdc) {
-      throw new GLException("Error: attempted to make an external GLDrawable without a drawable current, werr " + GDI.GetLastError());
+    /**
+     * Added thorough debug code, since we currently have problems with this code with use case:
+     *   - WinXP [32bit]
+     *   - GDI (Software GL)
+     *   - SWT
+     * However, it works on other combinations, eg Win7 [64bit], GDI, SWT, etc ..
+     */
+    if(DEBUG) {
+        System.err.println("WindowsExternalWGLContext 0: werr: " + GDI.GetLastError());
     }
+
     long ctx = WGL.wglGetCurrentContext();
-    if (ctx == 0) {
+    if (0 == ctx) {
       throw new GLException("Error: attempted to make an external GLContext without a context current, werr " + GDI.GetLastError());
     }
+
+    long hdc = WGL.wglGetCurrentDC();
+    if (0 == hdc) {
+      throw new GLException("Error: attempted to make an external GLDrawable without a drawable current, werr " + GDI.GetLastError());
+    }
+    int hdcType = GDI.GetObjectType(hdc);
+    if( GDI.OBJ_DC != hdcType ) {
+        // FIXME: Turns out in above use case (WinXP-32bit, GDI, SWT) the returned DC (not 0) is invalid!
+        throw new GLException("Error: current WGL DC ("+toHexString(hdc)+") is not a DC but: "+hdcType+", werr " + GDI.GetLastError());
+    }
+
     int pfdID = GDI.GetPixelFormat(hdc);
-    if (pfdID == 0) {
+    if (0 == pfdID) {
       throw new GLException("Error: attempted to make an external GLContext without a valid pixelformat, werr " + GDI.GetLastError());
     }
 
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
-    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.createFromCurrent(factory, hdc, pfdID, glp, aScreen, true, true);
+    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.createFromCurrent(factory, hdc, pfdID, glp, aScreen, true);
     return new WindowsExternalWGLContext(new Drawable(factory, new ProxySurface(cfg, hdc)), ctx, cfg);
   }
 
