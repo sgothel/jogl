@@ -241,9 +241,9 @@ public class MainThread implements EDTUtil {
         if(null == cAWTEventQueue) {
             ClassLoader cl = MainThread.class.getClassLoader();
             cAWTEventQueue = ReflectionUtil.getClass("java.awt.EventQueue", true, cl);
-            mAWTInvokeAndWait = ReflectionUtil.getMethod(cAWTEventQueue, "invokeAndWait", new Class[] { java.lang.Runnable.class }, cl);
-            mAWTInvokeLater = ReflectionUtil.getMethod(cAWTEventQueue, "invokeLater", new Class[] { java.lang.Runnable.class }, cl);
-            mAWTIsDispatchThread = ReflectionUtil.getMethod(cAWTEventQueue, "isDispatchThread", new Class[] { }, cl);
+            mAWTInvokeAndWait = ReflectionUtil.getMethod(cAWTEventQueue, "invokeAndWait", new Class[] { java.lang.Runnable.class });
+            mAWTInvokeLater = ReflectionUtil.getMethod(cAWTEventQueue, "invokeLater", new Class[] { java.lang.Runnable.class });
+            mAWTIsDispatchThread = ReflectionUtil.getMethod(cAWTEventQueue, "isDispatchThread", new Class[] { });
         }
     }
 
