@@ -20,7 +20,7 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/lib"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry excluding="com/jogamp/audio/windows/waveout/TestSpatialization.java|com/jogamp/opengl/impl/gl2/fixme/" kind="src" output="build/jogl/classes" path="src/jogl/classes">
+	<classpathentry excluding="com/jogamp/audio/windows/waveout/TestSpatialization.java|jogamp/opengl/gl2/fixme/" kind="src" output="build/jogl/classes" path="src/jogl/classes">
 		<attributes>
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/lib"/>
 		</attributes>
