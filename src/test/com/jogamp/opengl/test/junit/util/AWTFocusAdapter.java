@@ -57,14 +57,14 @@ public class AWTFocusAdapter implements EventCountAdapter, FocusListener {
         return wasTemporary;
     }
 
-    @Override 
+    /* @Override */
     public void focusGained(FocusEvent e) {
         ++focusGained;
         wasTemporary = e.isTemporary();
         System.err.println("FOCUS AWT  GAINED "+(wasTemporary?"TEMP":"PERM")+" ["+focusGained+"]: "+prefix+", "+e);
     }
 
-    @Override
+    /* @Override */
     public void focusLost(FocusEvent e) {
         --focusGained;
         wasTemporary = e.isTemporary();

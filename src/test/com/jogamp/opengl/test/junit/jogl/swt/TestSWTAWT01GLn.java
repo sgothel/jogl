@@ -121,22 +121,22 @@ public class TestSWTAWT01GLn extends UITestCase {
         frame.add( glcanvas );
 
         glcanvas.addGLEventListener( new GLEventListener() {
-            @Override
+            /* @Override */
             public void init( GLAutoDrawable glautodrawable ) {
             }
 
-            @Override
+            /* @Override */
             public void dispose( GLAutoDrawable glautodrawable ) {
             }
 
-            @Override
+            /* @Override */
             public void display( GLAutoDrawable glautodrawable ) {
                 Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getWidth(), glautodrawable.getHeight() );
                 GL2 gl = glautodrawable.getGL().getGL2();
                 OneTriangle.render( gl, rectangle );
             }
 
-            @Override
+            /* @Override */
             public void reshape( GLAutoDrawable glautodrawable, int x, int y, int width, int height ) {
                 Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getWidth(), glautodrawable.getHeight() );
                 GL2 gl = glautodrawable.getGL().getGL2();

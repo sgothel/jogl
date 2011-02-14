@@ -87,7 +87,7 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
         frame.setSize(512, 512);
 
         glCanvas.addGLEventListener(new GLEventListener() {
-            @Override
+            /* @Override */
             public void init(GLAutoDrawable drawable) {
                 String code = "void main(void){gl_Position = vec4(0,0,0,1);}";         
 
@@ -120,15 +120,15 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
                 }
             }
 
-            @Override
+            /* @Override */
             public void dispose(GLAutoDrawable drawable) {
             }
 
-            @Override
+            /* @Override */
             public void display(GLAutoDrawable drawable) {
             }
 
-            @Override
+            /* @Override */
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
             }
         });

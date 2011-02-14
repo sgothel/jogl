@@ -53,11 +53,11 @@ import org.junit.Test;
  */
 public class TestBug463ScaleImageMemoryAWT implements GLEventListener {
 
-    @Override
+    /* @Override */
     public void init(GLAutoDrawable drawable) {
     }
 
-    @Override
+    /* @Override */
     public void display(GLAutoDrawable drawable) {
         int widthin = 559;
         int heightin = 425;
@@ -80,12 +80,12 @@ public class TestBug463ScaleImageMemoryAWT implements GLEventListener {
                            widthout, heightout, GL.GL_UNSIGNED_BYTE, bufferOut );
     }
 
-    @Override
+    /* @Override */
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     }
 
 
-    @Override
+    /* @Override */
     public void dispose(GLAutoDrawable drawable) {
     }
 

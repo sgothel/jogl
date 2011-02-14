@@ -103,15 +103,15 @@ public class TestBug461OffscreenSupersamplingSwingAWT extends UITestCase impleme
         gl.glEnd();
     }
     
-    @Override
+    /* @Override */
     public void init(GLAutoDrawable drawable) {                        
     }
 
-    @Override
+    /* @Override */
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     }    
     
-    @Override
+    /* @Override */
     public void display(GLAutoDrawable drawable) {             
         render(offScreenBuffer);
         BufferedImage outputImage = com.jogamp.opengl.util.awt.Screenshot.readToBufferedImage(200, 200, false);        
@@ -121,7 +121,7 @@ public class TestBug461OffscreenSupersamplingSwingAWT extends UITestCase impleme
         jframe.getContentPane().add(imageLabel);
     }
 
-    @Override
+    /* @Override */
     public void dispose(GLAutoDrawable drawable) {  
         jframe.setVisible(false);
         jframe.dispose();
