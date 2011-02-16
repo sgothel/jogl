@@ -920,7 +920,7 @@
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
-            <srcfilelist dir="${classes}/com/jogamp/opengl/util/glsl/fixedfunc" files="FixedFuncHook.class" />
+            <srcfilelist dir="${classes}/jogamp/opengl/util/glsl/fixedfunc" files="FixedFuncHook.class" />
             <srcfilelist dir="${classes}/javax/media/opengl" files="GL2ES1.class" />
             <srcfilelist dir="${classes}/javax/media/opengl" files="GL2ES2.class" />
             <targetfileset dir="${src.generated.java}/jogamp/opengl/util/glsl/fixedfunc"
