@@ -2,32 +2,28 @@
 <classpath>
 	<classpathentry kind="src" output="build/nativewindow/classes" path="src/nativewindow/classes">
 		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/lib"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/nativewindow/obj"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" output="build/jogl/classes" path="build/jogl/gensrc/classes">
 		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/lib"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/jogl/obj"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" output="build/nativewindow/classes" path="build/nativewindow/gensrc/classes">
 		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/lib"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/nativewindow/obj"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" output="build/test/build/classes" path="src/test">
-		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/lib"/>
-		</attributes>
-	</classpathentry>
+	<classpathentry kind="src" output="build/test/build/classes" path="src/test"/>
 	<classpathentry excluding="com/jogamp/audio/windows/waveout/TestSpatialization.java|jogamp/opengl/gl2/fixme/" kind="src" output="build/jogl/classes" path="src/jogl/classes">
 		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/lib"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/jogl/obj"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" output="build/newt/classes" path="src/newt/classes">
 		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/lib"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/newt/obj"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
