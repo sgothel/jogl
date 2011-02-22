@@ -51,6 +51,7 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.windows.WindowsGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
@@ -64,11 +65,11 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.util.ReflectionUtil;
-import jogamp.nativewindow.ProxySurface;
+import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.windows.GDI;
+import jogamp.nativewindow.windows.GDISurface;
 import jogamp.nativewindow.windows.RegisteredClassFactory;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
-import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
@@ -228,7 +229,9 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                 if (null == glp) {
                     throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
                 }
-                WindowsDummyWGLDrawable sharedDrawable = WindowsDummyWGLDrawable.create(WindowsWGLDrawableFactory.this, glp, absScreen);
+                final int f_dim = 64;
+                long hwnd = GDI.CreateDummyWindow(0, 0, f_dim, f_dim);
+                WindowsDummyWGLDrawable sharedDrawable = WindowsDummyWGLDrawable.create(WindowsWGLDrawableFactory.this, glp, absScreen, hwnd, f_dim, f_dim, true);
                 if (null == sharedDrawable) {
                     throw new GLException("Couldn't create shared drawable for screen: "+absScreen+", "+glp);
                 }
@@ -434,9 +437,9 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return false;
   }
 
-  protected final NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device,GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
+  protected final NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device, GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
     AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
-    ProxySurface ns = new ProxySurface(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
+    WrappedSurface ns = new WrappedSurface(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
                                      capsChosen, capsRequested, chooser, screen) );
     ns.setSize(width, height);
     return ns;

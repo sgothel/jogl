@@ -40,7 +40,6 @@ import jogamp.opengl.*;
 import javax.media.nativewindow.*;
 
 public class EGLExternalContext extends EGLContext {
-    private boolean firstMakeCurrent = true;
     private GLContext lastContext;
 
     public EGLExternalContext(AbstractGraphicsScreen screen) {
@@ -68,9 +67,6 @@ public class EGLExternalContext extends EGLContext {
     }
 
     protected void makeCurrentImpl(boolean newCreated) throws GLException {
-        if (firstMakeCurrent) {
-            firstMakeCurrent = false;
-        }
     }
 
     protected void releaseImpl() throws GLException {

@@ -44,10 +44,9 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
 import jogamp.opengl.*;
-import jogamp.nativewindow.ProxySurface;
+import jogamp.nativewindow.WrappedSurface;
 
 public class X11ExternalGLXContext extends X11GLXContext {
-  private boolean firstMakeCurrent = true;
   private GLContext lastContext;
 
   private X11ExternalGLXContext(Drawable drawable, long ctx) {
@@ -78,7 +77,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
     GLX.glXQueryContext(display, ctx, GLX.GLX_FBCONFIG_ID, val, 0);
     X11GLXGraphicsConfiguration cfg = X11GLXGraphicsConfiguration.create(glp, x11Screen, val[0]);
 
-    ProxySurface ns = new ProxySurface(cfg);
+    WrappedSurface ns = new WrappedSurface(cfg);
     ns.setSurfaceHandle(drawable);
     return new X11ExternalGLXContext(new Drawable(factory, ns), ctx);
   }
@@ -105,9 +104,6 @@ public class X11ExternalGLXContext extends X11GLXContext {
   }
 
   protected void makeCurrentImpl(boolean newCreated) throws GLException {
-    if (firstMakeCurrent) {
-      firstMakeCurrent = false;
-    }
   }
 
   protected void releaseImpl() throws GLException {

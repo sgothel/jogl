@@ -49,7 +49,7 @@ import javax.media.opengl.*;
 import jogamp.opengl.*;
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
-import jogamp.nativewindow.ProxySurface;
+import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.x11.*;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
@@ -399,7 +399,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         return null;
     }
 
-    ProxySurface ns = new ProxySurface(
+    WrappedSurface ns = new WrappedSurface(
                X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen) );
     if(ns != null) {
         ns.setSize(width, height);

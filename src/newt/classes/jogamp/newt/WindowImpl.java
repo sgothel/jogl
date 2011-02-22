@@ -463,36 +463,41 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
 
     public final int lockSurface() {
-        int res = LOCK_SURFACE_NOT_READY;
         windowLock.lock();
+        int res = windowLock.getRecursionCount() == 0 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS;
 
-        if(isNativeValid()) {
-            AbstractGraphicsDevice adevice = screen.getDisplay().getGraphicsDevice();
-            adevice.lock();
+        if ( LOCK_SURFACE_NOT_READY == res ) {
             try {
-                res = lockSurfaceImpl();
+                if( isNativeValid() ) {
+                    final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
+                    adevice.lock();
+                    try {
+                        res = lockSurfaceImpl();
+                    } finally {
+                        if (LOCK_SURFACE_NOT_READY >= res) {
+                            adevice.unlock();
+                        }
+                    }
+                }
             } finally {
-                if( LOCK_SURFACE_NOT_READY == res ) {
-                    adevice.unlock();
+                if (LOCK_SURFACE_NOT_READY >= res) {
+                    windowLock.unlock();
                 }
             }
         }
-        if( LOCK_SURFACE_NOT_READY == res ) {
-            windowLock.unlock();
-        }
-
         return res;
     }
 
     public final void unlockSurface() {
-        // may throw RuntimeException if not locked
         windowLock.validateLocked();
-        AbstractGraphicsDevice adevice = screen.getDisplay().getGraphicsDevice();
 
-        try {
-            unlockSurfaceImpl();
-        } finally {
-            adevice.unlock();
+        if (windowLock.getRecursionCount() == 0) {
+            final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
+            try {
+                unlockSurfaceImpl();
+            } finally {
+                adevice.unlock();
+            }
         }
         windowLock.unlock();
     }

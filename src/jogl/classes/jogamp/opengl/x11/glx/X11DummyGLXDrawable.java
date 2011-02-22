@@ -45,11 +45,11 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
    */
   public X11DummyGLXDrawable(X11GraphicsScreen screen, GLDrawableFactory factory, GLCapabilitiesImmutable caps) {
     super(factory, 
-          new ProxySurface(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
+          new WrappedSurface(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
             caps, caps, null, screen)));
     this.realized = true;
 
-    ProxySurface ns = (ProxySurface) getNativeSurface();
+    WrappedSurface ns = (WrappedSurface) getNativeSurface();
     X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
 
     X11GraphicsDevice device = (X11GraphicsDevice) screen.getDevice();

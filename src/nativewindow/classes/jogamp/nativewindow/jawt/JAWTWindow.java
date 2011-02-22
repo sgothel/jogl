@@ -42,6 +42,7 @@ import com.jogamp.common.util.locks.RecursiveLock;
 import java.awt.Component;
 import java.awt.Window;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
@@ -111,25 +112,26 @@ public abstract class JAWTWindow implements NativeWindow {
   protected abstract int lockSurfaceImpl() throws NativeWindowException;
 
   public final int lockSurface() throws NativeWindowException {
-    int res = LOCK_SURFACE_NOT_READY;
-
     recurLock.lock();
+    int res = recurLock.getRecursionCount() == 0 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS;
 
-    if(recurLock.getRecursionCount() == 0) {
-        config.getScreen().getDevice().lock();
+    if ( LOCK_SURFACE_NOT_READY == res ) {
         try {
-            res = lockSurfaceImpl();
+            final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
+            adevice.lock();
+            try {
+                res = lockSurfaceImpl();
+            } finally {
+                if (LOCK_SURFACE_NOT_READY >= res) {
+                    adevice.unlock();
+                }
+            }
         } finally {
-            // Unlock in case surface couldn't be locked
-            if(LOCK_SURFACE_NOT_READY >= res ) {
-                config.getScreen().getDevice().unlock();
+            if (LOCK_SURFACE_NOT_READY >= res) {
                 recurLock.unlock();
             }
         }
-    } else {
-        res = LOCK_SUCCESS;
     }
-
     return res;
   }
 
@@ -138,11 +140,12 @@ public abstract class JAWTWindow implements NativeWindow {
   public final void unlockSurface() {
     recurLock.validateLocked();
 
-    if(recurLock.getRecursionCount()==0) {
+    if (recurLock.getRecursionCount() == 0) {
+        final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
         try {
             unlockSurfaceImpl();
         } finally {
-            config.getScreen().getDevice().unlock();
+            adevice.unlock();
         }
     }
     recurLock.unlock();

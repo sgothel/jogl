@@ -56,18 +56,20 @@ public class WindowsWindow extends WindowImpl {
     }
 
     protected int lockSurfaceImpl() {
-        if( 0 != getWindowHandle() && 0 == hdc ) {
-            hdc = GDI.GetDC(getWindowHandle());
-            hmon = MonitorFromWindow0(getWindowHandle());
+        if (0 != hdc) {
+            throw new InternalError("surface not released");
         }
+        hdc = GDI.GetDC(getWindowHandle());
+        hmon = MonitorFromWindow0(getWindowHandle());
         return ( 0 != hdc ) ? LOCK_SUCCESS : LOCK_SURFACE_NOT_READY;
     }
 
     protected void unlockSurfaceImpl() {
-        if ( 0 != hdc && 0 != getWindowHandle() && getWindowLockRecursionCount() == 0) {
-            GDI.ReleaseDC(getWindowHandle(), hdc);
-            hdc=0;
+        if (0 == hdc) {
+            throw new InternalError("surface not acquired");
         }
+        GDI.ReleaseDC(getWindowHandle(), hdc);
+        hdc=0;
     }
 
     public final long getSurfaceHandle() {

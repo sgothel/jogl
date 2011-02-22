@@ -44,10 +44,9 @@ import javax.media.opengl.*;
 import jogamp.opengl.*;
 
 import javax.media.nativewindow.*;
-import jogamp.nativewindow.ProxySurface;
+import jogamp.nativewindow.WrappedSurface;
 
 public class MacOSXExternalCGLContext extends MacOSXCGLContext {
-  private boolean firstMakeCurrent = true;
   private GLContext lastContext;
 
   private MacOSXExternalCGLContext(Drawable drawable, boolean isNSContext, long handle) {
@@ -100,7 +99,7 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_MACOSX);
     MacOSXCGLGraphicsConfiguration cfg = new MacOSXCGLGraphicsConfiguration(aScreen, caps, caps, pixelFormat);
 
-    ProxySurface ns = new ProxySurface(cfg);
+    WrappedSurface ns = new WrappedSurface(cfg);
     ns.setSurfaceHandle(currentDrawable);
     return new MacOSXExternalCGLContext(new Drawable(factory, ns), isNSContext, contextHandle);
   }
@@ -127,9 +126,6 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
   }
 
   protected void makeCurrentImpl(boolean newCreated) throws GLException {
-    if (firstMakeCurrent) {
-      firstMakeCurrent = false;
-    }
   }
 
   protected void releaseImpl() throws GLException {

@@ -43,7 +43,7 @@ import javax.media.opengl.*;
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
 import jogamp.opengl.*;
-import jogamp.nativewindow.ProxySurface;
+import jogamp.nativewindow.WrappedSurface;
 
 import java.util.HashMap;
 import java.util.List;
@@ -220,7 +220,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     protected NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device, GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
-        ProxySurface ns = new ProxySurface(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(device, capsChosen, capsRequested, chooser));
+        WrappedSurface ns = new WrappedSurface(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(device, capsChosen, capsRequested, chooser));
         ns.setSize(width, height);
         return ns;
     }

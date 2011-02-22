@@ -52,3 +52,6 @@ typedef struct tagRECT {
     LONG bottom;
 } RECT;
 
+typedef RECT*               PRECT;
+typedef RECT*               LPRECT;
+

@@ -49,7 +49,7 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-import jogamp.nativewindow.ProxySurface;
+import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.windows.GDI;
 
 public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
@@ -70,7 +70,7 @@ public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
 
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
     WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.createFromCurrent(factory, hdc, pfdID, glp, aScreen, true);
-    return new WindowsExternalWGLDrawable(factory, new ProxySurface(cfg, hdc));
+    return new WindowsExternalWGLDrawable(factory, new WrappedSurface(cfg, hdc));
   }
 
 

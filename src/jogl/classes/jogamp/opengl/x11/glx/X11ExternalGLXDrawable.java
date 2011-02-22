@@ -42,7 +42,7 @@ package jogamp.opengl.x11.glx;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
-import jogamp.nativewindow.ProxySurface;
+import jogamp.nativewindow.WrappedSurface;
 
 
 public class X11ExternalGLXDrawable extends X11GLXDrawable {
@@ -83,7 +83,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
         System.err.println("X11ExternalGLXDrawable: WARNING: forcing GLX_RGBA_TYPE for newly created contexts (current 0x"+Integer.toHexString(val[0])+")");
       }
     }
-    ProxySurface ns = new ProxySurface(cfg);
+    WrappedSurface ns = new WrappedSurface(cfg);
     ns.setSurfaceHandle(drawable);
     ns.setSize(w, h);
     return new X11ExternalGLXDrawable(factory, ns);
