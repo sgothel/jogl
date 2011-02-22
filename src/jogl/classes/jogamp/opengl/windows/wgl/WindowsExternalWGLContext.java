@@ -44,18 +44,18 @@ import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-import jogamp.nativewindow.ProxySurface;
+import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.GLContextShareSet;
 
 
 public class WindowsExternalWGLContext extends WindowsWGLContext {
-  private boolean firstMakeCurrent = true;
   private GLContext lastContext;
 
   private WindowsExternalWGLContext(Drawable drawable, long ctx, WindowsWGLGraphicsConfiguration cfg) {
@@ -70,40 +70,38 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
   }
 
   protected static WindowsExternalWGLContext create(GLDrawableFactory factory, GLProfile glp) {
-    /**
-     * Added thorough debug code, since we currently have problems with this code with use case:
-     *   - WinXP [32bit]
-     *   - GDI (Software GL)
-     *   - SWT
-     * However, it works on other combinations, eg Win7 [64bit], GDI, SWT, etc ..
-     */
     if(DEBUG) {
         System.err.println("WindowsExternalWGLContext 0: werr: " + GDI.GetLastError());
     }
 
-    long ctx = WGL.wglGetCurrentContext();
+    final long ctx = WGL.wglGetCurrentContext();
     if (0 == ctx) {
       throw new GLException("Error: attempted to make an external GLContext without a context current, werr " + GDI.GetLastError());
     }
 
-    long hdc = WGL.wglGetCurrentDC();
+    final long hdc = WGL.wglGetCurrentDC();
     if (0 == hdc) {
       throw new GLException("Error: attempted to make an external GLDrawable without a drawable current, werr " + GDI.GetLastError());
     }
-    int hdcType = GDI.GetObjectType(hdc);
-    if( GDI.OBJ_DC != hdcType ) {
-        // FIXME: Turns out in above use case (WinXP-32bit, GDI, SWT) the returned DC (not 0) is invalid!
-        throw new GLException("Error: current WGL DC ("+toHexString(hdc)+") is not a DC but: "+hdcType+", werr " + GDI.GetLastError());
-    }
-
-    int pfdID = GDI.GetPixelFormat(hdc);
-    if (0 == pfdID) {
-      throw new GLException("Error: attempted to make an external GLContext without a valid pixelformat, werr " + GDI.GetLastError());
-    }
-
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
-    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.createFromCurrent(factory, hdc, pfdID, glp, aScreen, true);
-    return new WindowsExternalWGLContext(new Drawable(factory, new ProxySurface(cfg, hdc)), ctx, cfg);
+    WindowsWGLGraphicsConfiguration cfg;
+    final int pfdID = GDI.GetPixelFormat(hdc);
+    if (0 == pfdID) {
+        // This could have happened if the HDC was released right after the GL ctx made current (SWT),
+        // WinXP-32bit will not be able to use this HDC afterwards.
+        // Workaround: Use a fake default configuration
+        final int werr = GDI.GetLastError();
+        cfg = WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(new GLCapabilities(GLProfile.getDefault()), aScreen);
+        if(DEBUG) {
+            System.err.println("WindowsExternalWGLContext invalid hdc/pfd werr "+werr+", using default cfg: " + cfg);
+        }
+    } else {
+        cfg = WindowsWGLGraphicsConfiguration.createFromCurrent(factory, hdc, pfdID, glp, aScreen, true);
+        if(DEBUG) {
+            System.err.println("WindowsExternalWGLContext valid hdc/pfd, retrieved cfg: " + cfg);
+        }
+    }
+    return new WindowsExternalWGLContext(new Drawable(factory, new WrappedSurface(cfg, hdc)), ctx, cfg);
   }
 
   public int makeCurrent() throws GLException {
@@ -124,9 +122,6 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
   }
 
   protected void makeCurrentImpl(boolean newCreated) throws GLException {
-    if (firstMakeCurrent) {
-      firstMakeCurrent = false;
-    }
   }
 
   protected void releaseImpl() throws GLException {
