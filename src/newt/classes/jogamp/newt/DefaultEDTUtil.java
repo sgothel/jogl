@@ -37,10 +37,10 @@
 
 package jogamp.newt;
 
+import java.util.ArrayList;
+import javax.media.nativewindow.NativeWindowException;
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.newt.util.EDTUtil;
-import java.util.*;
-import javax.media.nativewindow.NativeWindowException;
 
 public class DefaultEDTUtil implements EDTUtil {
     public static final boolean DEBUG = Debug.debug("EDT");
@@ -191,7 +191,7 @@ public class DefaultEDTUtil implements EDTUtil {
         }
     }
 
-    public void waitUntilIdle() {
+    final public void waitUntilIdle() {
         if(edt.isRunning() && edt != Thread.currentThread()) {
             synchronized(edt.tasks) {
                 while(edt.isRunning() && edt.tasks.size()>0) {
@@ -206,7 +206,7 @@ public class DefaultEDTUtil implements EDTUtil {
         }
     }
 
-    public void waitUntilStopped() {
+    final public void waitUntilStopped() {
         if(edt.isRunning() && edt != Thread.currentThread() ) {
             synchronized(edtLock) {
                 if(edt.isRunning() && edt != Thread.currentThread() ) {
@@ -231,11 +231,11 @@ public class DefaultEDTUtil implements EDTUtil {
             super(tg, name);
         }
 
-        public final boolean isRunning() {
+        final public boolean isRunning() {
             return isRunning;
         }
 
-        public void start() throws IllegalThreadStateException {
+        final public void start() throws IllegalThreadStateException {
             isRunning = true;
             super.start();
         }
@@ -244,7 +244,7 @@ public class DefaultEDTUtil implements EDTUtil {
          * Utilizing locking only on tasks and its execution,
          * not for event dispatching.
          */
-        public void run() {
+        final public void run() {
             if(DEBUG) {
                 System.err.println(getName()+": EDT run() START "+ getName());
             }

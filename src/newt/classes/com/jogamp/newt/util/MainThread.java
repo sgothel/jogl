@@ -37,16 +37,25 @@
 
 package com.jogamp.newt.util;
 
-import java.util.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
-import java.security.*;
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.NativeWindowFactory;
 
-import com.jogamp.common.util.*;
-import com.jogamp.newt.*;
-import jogamp.newt.*;
+import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.RunnableTask;
+import com.jogamp.newt.Display;
+import jogamp.newt.Debug;
+import jogamp.newt.NEWTJNILibLoader;
+import jogamp.newt.awt.AWTEDTUtil;
 
 /**
  * NEWT Utility class MainThread<P>
@@ -103,16 +112,11 @@ public class MainThread implements EDTUtil {
     private static Map/*<Display, Runnable>*/ pumpMessageDisplayMap = new HashMap();
 
     private static boolean useMainThread = false;
-    private static Class cAWTEventQueue=null;
-    private static Method mAWTInvokeAndWait=null;
-    private static Method mAWTInvokeLater=null;
-    private static Method mAWTIsDispatchThread=null;
 
     static class MainAction extends Thread {
         private String mainClassName;
         private String[] mainClassArgs;
 
-        private Class mainClass;
         private Method mainClassMain;
 
         public MainAction(String mainClassName, String[] mainClassArgs) {
@@ -237,33 +241,28 @@ public class MainThread implements EDTUtil {
         }
     }
 
-    private void initAWTReflection() {
-        if(null == cAWTEventQueue) {
-            ClassLoader cl = MainThread.class.getClassLoader();
-            cAWTEventQueue = ReflectionUtil.getClass("java.awt.EventQueue", true, cl);
-            mAWTInvokeAndWait = ReflectionUtil.getMethod(cAWTEventQueue, "invokeAndWait", new Class[] { java.lang.Runnable.class }, cl);
-            mAWTInvokeLater = ReflectionUtil.getMethod(cAWTEventQueue, "invokeLater", new Class[] { java.lang.Runnable.class }, cl);
-            mAWTIsDispatchThread = ReflectionUtil.getMethod(cAWTEventQueue, "isDispatchThread", new Class[] { }, cl);
-        }
-    }
-
-    public void reset() {
-        // nop
-    }
-
-    public void start() {
-        // nop
-    }
-
-    public boolean isCurrentThreadEDT() {
+    final public void reset() {
         if(NativeWindowFactory.isAWTAvailable()) {
-            initAWTReflection();
-            return ((Boolean) ReflectionUtil.callMethod(null, mAWTIsDispatchThread, null) ).booleanValue();
+            AWTEDTUtil.getSingleton().reset();
+        }
+        // nop
+    }
+
+    final public void start() {
+        if(NativeWindowFactory.isAWTAvailable()) {
+            AWTEDTUtil.getSingleton().start();
+        }
+        // nop
+    }
+
+    final public boolean isCurrentThreadEDT() {
+        if(NativeWindowFactory.isAWTAvailable()) {
+            return AWTEDTUtil.getSingleton().isCurrentThreadEDT();
         }
         return isRunning() && mainThread == Thread.currentThread() ;
     }
 
-    public boolean isRunning() {
+    final public boolean isRunning() {
         if( useMainThread ) {
             synchronized(taskWorkerLock) { 
                 return isRunning;
@@ -284,11 +283,11 @@ public class MainThread implements EDTUtil {
         }
     }
 
-    public void invokeStop(Runnable r) {
+    final public void invokeStop(Runnable r) {
         invokeImpl(true, r, true);
     }
 
-    public void invoke(boolean wait, Runnable r) {
+    final public void invoke(boolean wait, Runnable r) {
         invokeImpl(wait, r, false);
     }
 
@@ -298,22 +297,7 @@ public class MainThread implements EDTUtil {
         }
 
         if(NativeWindowFactory.isAWTAvailable()) {
-            initAWTReflection();
-
-            // handover to AWT MainThread ..
-            try {
-                if ( ((Boolean) ReflectionUtil.callMethod(null, mAWTIsDispatchThread, null) ).booleanValue() ) {
-                    r.run();
-                    return;
-                }
-                if(wait) {
-                    ReflectionUtil.callMethod(null, mAWTInvokeAndWait, new Object[] { r });
-                } else {
-                    ReflectionUtil.callMethod(null, mAWTInvokeLater, new Object[] { r });
-                }
-            } catch (Exception e) {
-                throw new NativeWindowException(e);
-            }
+            AWTEDTUtil.getSingleton().invokeImpl(wait, r, stop);
             return;
         }
 
@@ -355,10 +339,16 @@ public class MainThread implements EDTUtil {
         }
     }
 
-    public void waitUntilIdle() {
+    final public void waitUntilIdle() {
+        if(NativeWindowFactory.isAWTAvailable()) {
+            AWTEDTUtil.getSingleton().waitUntilIdle();
+        }
     }
 
-    public void waitUntilStopped() {
+    final public void waitUntilStopped() {
+        if(NativeWindowFactory.isAWTAvailable()) {
+            AWTEDTUtil.getSingleton().waitUntilStopped();
+        }
     }
 
     private void waitUntilRunning() {

@@ -33,17 +33,23 @@
 
 package jogamp.newt.awt;
 
-import com.jogamp.newt.Window;
-
 import java.awt.Canvas;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsConfiguration;
-
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.awt.*;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.CapabilitiesChooser;
+import javax.media.nativewindow.CapabilitiesImmutable;
+import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
+import javax.media.nativewindow.awt.AWTGraphicsDevice;
+import javax.media.nativewindow.awt.AWTGraphicsScreen;
+import com.jogamp.newt.Window;
 
 public class AWTCanvas extends Canvas {
   private GraphicsDevice device;
@@ -76,29 +82,37 @@ public class AWTCanvas extends Canvas {
   }
 
   public void addNotify() {
-    super.addNotify();
 
-    disableBackgroundErase();
-
-    GraphicsConfiguration gc = super.getGraphicsConfiguration();
-    if(null!=gc) {
-        device = gc.getDevice();
-    }
-
-    /*
-     * Save the chosen capabilities for use in getGraphicsConfiguration().
+    /**
+     * 'super.addNotify()' determines the GraphicsConfiguration,
+     * while calling this class's overriden 'getGraphicsConfiguration()' method
+     * after which it creates the native peer.
+     * Hence we have to set the 'awtConfig' before since it's GraphicsConfiguration
+     * is being used in getGraphicsConfiguration().
+     * This code order also allows recreation, ie re-adding the GLCanvas.
      */
     awtConfig = chooseGraphicsConfiguration(capabilities, capabilities, chooser, device);
     if(Window.DEBUG_IMPLEMENTATION) {
         Exception e = new Exception("Info: Created Config: "+awtConfig);
         e.printStackTrace();
     }
-    if(null!=awtConfig) {
-      // update ..
-      chosen = awtConfig.getGraphicsConfiguration();
-    }
     if(null==awtConfig) {
-          throw new NativeWindowException("Error: AWTGraphicsConfiguration is null");
+        throw new NativeWindowException("Error: NULL AWTGraphicsConfiguration");
+    }
+    chosen = awtConfig.getGraphicsConfiguration();
+
+    // before native peer is valid: X11
+    disableBackgroundErase();
+
+    // issues getGraphicsConfiguration() and creates the native peer
+    super.addNotify();
+
+    // after native peer is valid: Windows
+    disableBackgroundErase();
+
+    GraphicsConfiguration gc = super.getGraphicsConfiguration();
+    if(null!=gc) {
+        device = gc.getDevice();
     }
   }
 
@@ -276,13 +290,22 @@ public class AWTCanvas extends Canvas {
       } catch (Exception e) {
       }
       disableBackgroundEraseInitialized = true;
+      if(Window.DEBUG_IMPLEMENTATION) {
+        System.err.println("AWTCanvas: TK disableBackgroundErase method found: "+
+                (null!=disableBackgroundEraseMethod));
+      }
     }
     if (disableBackgroundEraseMethod != null) {
+      Throwable t=null;
       try {
         disableBackgroundEraseMethod.invoke(getToolkit(), new Object[] { this });
       } catch (Exception e) {
         // FIXME: workaround for 6504460 (incorrect backport of 6333613 in 5.0u10)
         // throw new GLException(e);
+        t = e;
+      }
+      if(Window.DEBUG_IMPLEMENTATION) {
+        System.err.println("AWTCanvas: TK disableBackgroundErase error: "+t);
       }
     }
   }

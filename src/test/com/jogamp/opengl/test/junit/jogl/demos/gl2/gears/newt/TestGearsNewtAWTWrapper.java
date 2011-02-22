@@ -40,10 +40,8 @@ import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
-import org.junit.After;
 import org.junit.Test;
 
 public class TestGearsNewtAWTWrapper extends UITestCase {
