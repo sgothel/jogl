@@ -32,6 +32,7 @@ echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a java-run.log
 echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a java-run.log
 echo SWT_CLASSPATH: $SWT_CLASSPATH 2>&1 | tee -a java-run.log
 echo $javaexe $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
+echo CLASSPATH $CLASSPATH 2>&1 | tee -a java-run.log
 
 function jrun() {
     awtarg=$1
@@ -104,7 +105,7 @@ function testawt() {
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
-testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
+#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT -time 1000000
 #testawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated
@@ -125,7 +126,7 @@ testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestTexture01AWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT
-#testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
+testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461OffscreenSupersamplingSwingAWT
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestGrayTextureFromFileAWTBug417
 

@@ -148,22 +148,24 @@ if [ "$KERNEL" = "linux" ] ; then
 elif [ "$KERNEL" = "darwin" ] ; then
     SWT_SUB="cocoa"
 fi
-SWT_CLASSPATH_0=$JOGL_BUILD_DIR/../make/lib/swt/$SWT_SUB-$KERNEL-$ARCH/swt-debug.jar
-SWT_CLASSPATH_1=$HOME/.java/swt.jar
-if [ ! -e "$SWT_CLASSPATH_0" ] ; then 
-    echo Info: NO JOGL SWT $SWT_CLASSPATH_0
-    if [ ! -e "$SWT_CLASSPATH_1" ] ; then 
-        echo Info: NO Users SWT $SWT_CLASSPATH_1
+if [ -z "$SWT_CLASSPATH" ] ; then
+    SWT_CLASSPATH_0=$JOGL_BUILD_DIR/../make/lib/swt/$SWT_SUB-$KERNEL-$ARCH/swt-debug.jar
+    SWT_CLASSPATH_1=$HOME/.java/swt.jar
+    if [ ! -e "$SWT_CLASSPATH_0" ] ; then 
+        echo Info: NO JOGL SWT $SWT_CLASSPATH_0
+        if [ ! -e "$SWT_CLASSPATH_1" ] ; then 
+            echo Info: NO Users SWT $SWT_CLASSPATH_1
+        else
+            export SWT_CLASSPATH=$SWT_CLASSPATH_1
+            echo Info: Using Users SWT $SWT_CLASSPATH
+        fi
     else
-        export SWT_CLASSPATH=$SWT_CLASSPATH_1
-        echo Info: Using Users SWT $SWT_CLASSPATH
+        export SWT_CLASSPATH=$SWT_CLASSPATH_0
+        echo Info: Using JOGL SWT $SWT_CLASSPATH
     fi
-else
-    export SWT_CLASSPATH=$SWT_CLASSPATH_0
-    echo Info: Using JOGL SWT $SWT_CLASSPATH
-fi
-if [ ! -z "$SWT_CLASSPATH" ] ; then
-    export SWT_CLASSPATH
+    if [ ! -z "$SWT_CLASSPATH" ] ; then
+        export SWT_CLASSPATH
+    fi
 fi
 
 if [ -z "$JOGL_CLASSPATH" ] ; then

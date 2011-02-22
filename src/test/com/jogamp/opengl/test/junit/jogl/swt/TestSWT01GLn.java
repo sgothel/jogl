@@ -54,6 +54,14 @@ import org.junit.After;
 import org.junit.Test;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.ProxySurface;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLDrawable;
+import jogamp.nativewindow.swt.SWTAccessor;
+import jogamp.opengl.windows.wgl.WindowsWGLDrawableFactory;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Canvas;
 
 /**
  * Tests that a basic SWT app can open without crashing under different GL profiles. Uses the SWT GL canvas.
@@ -61,12 +69,14 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  */
 public class TestSWT01GLn extends UITestCase {
 
-    static final int duration = 250;
+    static int duration = 250;
+
+    static final int iwidth = 640;
+    static final int iheight = 480;
 
     Display display = null;
     Shell shell = null;
     Composite composite = null;
-    GLCanvas glcanvas = null;
 
     @BeforeClass
     public static void startup() {
@@ -91,9 +101,7 @@ public class TestSWT01GLn extends UITestCase {
         Assert.assertNotNull( display );
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite );
-        Assert.assertNotNull( glcanvas );
         try {
-            glcanvas.dispose();
             composite.dispose();
             shell.dispose();
             display.dispose();
@@ -105,15 +113,14 @@ public class TestSWT01GLn extends UITestCase {
         display = null;
         shell = null;
         composite = null;
-        glcanvas = null;
     }
 
-    protected void runTestGL( GLProfile glprofile ) throws InterruptedException {
+    protected void runTestAGL( GLProfile glprofile ) throws InterruptedException {
         GLData gldata = new GLData();
         gldata.doubleBuffer = true;
         // need SWT.NO_BACKGROUND to prevent SWT from clearing the window
         // at the wrong times (we use glClear for this instead)
-        glcanvas = new GLCanvas( composite, SWT.NO_BACKGROUND, gldata );
+        final GLCanvas glcanvas = new GLCanvas( composite, SWT.NO_BACKGROUND, gldata );
         Assert.assertNotNull( glcanvas );
         glcanvas.setCurrent();
         final GLContext glcontext = GLDrawableFactory.getFactory( glprofile ).createExternalGLContext();
@@ -127,7 +134,8 @@ public class TestSWT01GLn extends UITestCase {
                 glcontext.makeCurrent();
                 GL2 gl = glcontext.getGL().getGL2();
                 OneTriangle.setup( gl, rectangle );
-                glcontext.release();        
+                glcontext.release();
+                System.err.println("resize");
             }
         });
 
@@ -140,7 +148,8 @@ public class TestSWT01GLn extends UITestCase {
                 GL2 gl = glcontext.getGL().getGL2();
                 OneTriangle.render( gl, rectangle );
                 glcanvas.swapBuffers();
-                glcontext.release();        
+                glcontext.release();
+                System.err.println("paint");
             }
         });
         
@@ -157,28 +166,116 @@ public class TestSWT01GLn extends UITestCase {
                     Thread.sleep(10);
                 }
             }
-        }
-        catch( Throwable throwable ) {
+        } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
+        glcanvas.dispose();
     }
 
+    /**
+    protected void runTestBGL( GLProfile glprofile ) throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(glprofile);
+        WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory) GLDrawableFactory.getFactory(glprofile);
+
+        GLData gldata = new GLData();
+        gldata.doubleBuffer = true;
+        // need SWT.NO_BACKGROUND to prevent SWT from clearing the window
+        // at the wrong times (we use glClear for this instead)
+        final Canvas canvas = new Canvas(composite, SWT.NO_BACKGROUND);
+        Assert.assertNotNull( canvas );
+        canvas.setSize(iwidth, iheight);
+        long windowHandle = SWTAccessor.getHandle(canvas);
+        Point sz = canvas.getSize();
+        ProxySurface surface = factory.createProxySurfaceImpl(caps, caps, null, windowHandle, sz.x, sz.y);
+        final GLDrawable glDrawable = factory.createGLDrawable(surface);
+
+        glDrawable.setRealized(true);
+        final GLContext glContext = glDrawable.createContext(null);
+
+        // fix the viewport when the user resizes the window
+        canvas.addListener( SWT.Resize, new Listener() {
+            public void handleEvent( Event event ) {
+                Rectangle rectangle = canvas.getClientArea();
+                glContext.makeCurrent();
+                GL2 gl = glContext.getGL().getGL2();
+                OneTriangle.setup( gl, rectangle );
+                glContext.release();
+                System.err.println("resize");
+            }
+        });
+
+        // draw the triangle when the OS tells us that any part of the window needs drawing
+        canvas.addPaintListener( new PaintListener() {
+            public void paintControl( PaintEvent paintevent ) {
+                Rectangle rectangle = canvas.getClientArea();
+                glContext.makeCurrent();
+                GL2 gl = glContext.getGL().getGL2();
+                OneTriangle.render( gl, rectangle );
+                glDrawable.swapBuffers();
+                glContext.release();
+                System.err.println("paint");
+            }
+        });
+
+        shell.setText( getClass().getName() );
+        shell.setSize( iwidth, iheight );
+        shell.open();
+
+        long lStartTime = System.currentTimeMillis();
+        long lEndTime = lStartTime + duration;
+        try {
+            while( (System.currentTimeMillis() < lEndTime) && !canvas.isDisposed() ) {
+                if( !display.readAndDispatch() ) {
+                    // blocks on linux .. display.sleep();
+                    Thread.sleep(10);
+                }
+            }
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }
+        glContext.destroy();
+        glDrawable.setRealized(false);
+        canvas.dispose();
+    } */
+
     @Test
-    public void test01GLDefault() throws InterruptedException {
+    public void testA01GLDefault() throws InterruptedException {
         GLProfile glprofile = GLProfile.getDefault();
         System.out.println( "GLProfile Default: " + glprofile );
-        runTestGL( glprofile );
+        runTestAGL( glprofile );
     }
+
+    /* @Test
+    public void testB01GLDefault() throws InterruptedException {
+        GLProfile glprofile = GLProfile.getDefault();
+        System.out.println( "GLProfile Default: " + glprofile );
+        runTestBGL( glprofile );
+    } */
 
     @Test
     public void test02GL2() throws InterruptedException {
         GLProfile glprofile = GLProfile.get(GLProfile.GL2);
         System.out.println( "GLProfile GL2: " + glprofile );
-        runTestGL( glprofile );
+        runTestAGL( glprofile );
+    }
+
+    static int atoi(String a) {
+        int i=0;
+        try {
+            i = Integer.parseInt(a);
+        } catch (Exception ex) { ex.printStackTrace(); }
+        return i;
     }
 
     public static void main(String args[]) {
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-time")) {
+                duration = atoi(args[++i]);
+            }
+        }
+        System.out.println("durationPerTest: "+duration);
         org.junit.runner.JUnitCore.main(TestSWT01GLn.class.getName());
     }
 }

@@ -36,7 +36,7 @@ import org.eclipse.swt.widgets.Control;
 import javax.media.nativewindow.NativeWindowException;
 import com.jogamp.common.util.ReflectionUtil;
 
-public class SWTMisc {
+public class SWTAccessor {
     static final Method swt_control_internal_new_GC;
     static final Method swt_control_internal_dispose_GC;
     static final boolean swt_uses_long_handles;

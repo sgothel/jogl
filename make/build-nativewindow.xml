@@ -72,11 +72,14 @@
 
         <!-- partitioning -->
 
+        <property name="java.part.swt"
+                  value="jogamp/nativewindow/swt/**"/>
+
         <property name="java.part.core"
-                  value="javax/media/nativewindow/*, javax/media/nativewindow/util/*, javax/media/nativewindow/egl/*, javax/media/nativewindow/macosx/*, javax/media/nativewindow/windows/*, com/jogamp/nativewindow/*, jogamp/nativewindow/*, jogamp/nativewindow/jvm/*"/>
+                  value="javax/media/nativewindow/* javax/media/nativewindow/util/* javax/media/nativewindow/egl/* javax/media/nativewindow/macosx/* javax/media/nativewindow/windows/* com/jogamp/nativewindow/* jogamp/nativewindow/* jogamp/nativewindow/jvm/* ${java.part.swt}"/>
 
         <property name="java.part.awt"
-                  value="javax/media/nativewindow/awt/*, jogamp/nativewindow/jawt/**, jogamp/nativewindow/**/awt/**"/>
+                  value="javax/media/nativewindow/awt/* jogamp/nativewindow/jawt/** jogamp/nativewindow/**/awt/**"/>
 
         <property name="java.part.x11"
                   value="jogamp/nativewindow/x11/** javax/media/nativewindow/x11/*" />
