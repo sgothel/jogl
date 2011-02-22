@@ -305,11 +305,11 @@
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
                source="${target.sourcelevel}"
-               classpath="${gluegen-rt.jar}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="swt_gluegen.classpath"/>
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
