@@ -73,7 +73,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 {
     public static final boolean DEBUG_TEST_REPARENT_INCOMPATIBLE = Debug.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
     
-    private RecursiveLock windowLock = new RecursiveLock();
+    private RecursiveLock windowLock = new RecursiveLock();  // Window instance wide lock
+    private RecursiveLock surfaceLock = new RecursiveLock(); // Surface only lock
     private long   windowHandle;
     private ScreenImpl screen;
     private boolean screenReferenceAdded = false;
@@ -464,7 +465,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public final int lockSurface() {
         windowLock.lock();
-        int res = windowLock.getRecursionCount() == 0 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS;
+        surfaceLock.lock();
+        int res = surfaceLock.getRecursionCount() == 0 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS;
 
         if ( LOCK_SURFACE_NOT_READY == res ) {
             try {
@@ -481,6 +483,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
             } finally {
                 if (LOCK_SURFACE_NOT_READY >= res) {
+                    surfaceLock.unlock();
                     windowLock.unlock();
                 }
             }
@@ -489,9 +492,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public final void unlockSurface() {
+        surfaceLock.validateLocked();
         windowLock.validateLocked();
 
-        if (windowLock.getRecursionCount() == 0) {
+        if (surfaceLock.getRecursionCount() == 0) {
             final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
             try {
                 unlockSurfaceImpl();
@@ -499,19 +503,32 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 adevice.unlock();
             }
         }
+        surfaceLock.unlock();
         windowLock.unlock();
     }
 
-    public final boolean isSurfaceLockedByOtherThread() {
+    public final boolean isWindowLockedByOtherThread() {
         return windowLock.isLockedByOtherThread();
     }
 
-    public final boolean isSurfaceLocked() {
+    public final boolean isWindowLocked() {
         return windowLock.isLocked();
     }
 
-    public final Thread getSurfaceLockOwner() {
+    public final Thread getWindowLockOwner() {
         return windowLock.getOwner();
+    }
+
+    public final boolean isSurfaceLockedByOtherThread() {
+        return surfaceLock.isLockedByOtherThread();
+    }
+
+    public final boolean isSurfaceLocked() {
+        return surfaceLock.isLocked();
+    }
+
+    public final Thread getSurfaceLockOwner() {
+        return surfaceLock.getOwner();
     }
 
     public long getSurfaceHandle() {
@@ -1372,7 +1389,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     "\n, ParentWindow "+parentWindow+
                     "\n, ParentWindowHandle "+toHexString(parentWindowHandle)+
                     "\n, WindowHandle "+toHexString(getWindowHandle())+
-                    "\n, SurfaceHandle "+toHexString(getSurfaceHandle())+ " (lockedExt "+isSurfaceLockedByOtherThread()+")"+
+                    "\n, SurfaceHandle "+toHexString(getSurfaceHandle())+ " (lockedExt window "+isWindowLockedByOtherThread()+", surface "+isSurfaceLockedByOtherThread()+")"+
                     "\n, Pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                     "\n, Visible "+isVisible()+
                     "\n, Undecorated "+undecorated+
@@ -1650,8 +1667,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         switch(e.getEventType()) {
             // special repaint treatment
             case WindowEvent.EVENT_WINDOW_REPAINT:
-                // queue repaint event in case surface is locked, ie in operation
-                if( isSurfaceLocked() ) {
+                // queue repaint event in case window is locked, ie in operation
+                if( isWindowLocked() ) {
                     // make sure only one repaint event is queued
                     if(!repaintQueued) {
                         repaintQueued=true;
@@ -1669,8 +1686,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
             // common treatment
             case WindowEvent.EVENT_WINDOW_RESIZED:
-                // queue event in case surface is locked, ie in operation
-                if( isSurfaceLocked() ) {
+                // queue event in case window is locked, ie in operation
+                if( isWindowLocked() ) {
                     if(DEBUG_IMPLEMENTATION) {
                         System.err.println("Window.consumeEvent: queued "+e);
                         // Exception ee = new Exception("Window.windowRepaint: "+e);
@@ -2163,10 +2180,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                                 new Rectangle(x, y, width, height));
             doEvent(false, false, e);
         }
-    }
-
-    protected int getWindowLockRecursionCount() {
-        return windowLock.getRecursionCount();
     }
 
     //

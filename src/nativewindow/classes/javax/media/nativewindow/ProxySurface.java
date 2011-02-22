@@ -31,7 +31,7 @@ package javax.media.nativewindow;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 public abstract class ProxySurface implements NativeSurface {
-    protected RecursiveLock recurLock = new RecursiveLock();
+    protected RecursiveLock surfaceLock = new RecursiveLock();
     protected AbstractGraphicsConfiguration config;
     protected long displayHandle;
     protected int height;
@@ -44,14 +44,9 @@ public abstract class ProxySurface implements NativeSurface {
         displayHandle=cfg.getScreen().getDevice().getHandle();
     }
 
-    public final void invalidate() {
-        recurLock.lock();
-        try {
-            displayHandle = 0;
-            invalidateImpl();
-        } finally {
-            recurLock.unlock();
-        }
+    void invalidate() {
+        displayHandle = 0;
+        invalidateImpl();
     }
     protected abstract void invalidateImpl();
 
@@ -90,8 +85,8 @@ public abstract class ProxySurface implements NativeSurface {
     }
 
     public int lockSurface() throws NativeWindowException {
-        recurLock.lock();
-        int res = recurLock.getRecursionCount() == 0 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS;
+        surfaceLock.lock();
+        int res = surfaceLock.getRecursionCount() == 0 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS;
 
         if ( LOCK_SURFACE_NOT_READY == res ) {
             try {
@@ -106,7 +101,7 @@ public abstract class ProxySurface implements NativeSurface {
                 }
             } finally {
                 if (LOCK_SURFACE_NOT_READY >= res) {
-                    recurLock.unlock();
+                    surfaceLock.unlock();
                 }
             }
         }
@@ -114,9 +109,9 @@ public abstract class ProxySurface implements NativeSurface {
     }
 
     public final void unlockSurface() {
-        recurLock.validateLocked();
+        surfaceLock.validateLocked();
 
-        if (recurLock.getRecursionCount() == 0) {
+        if (surfaceLock.getRecursionCount() == 0) {
             final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
             try {
                 unlockSurfaceImpl();
@@ -124,7 +119,7 @@ public abstract class ProxySurface implements NativeSurface {
                 adevice.unlock();
             }
         }
-        recurLock.unlock();
+        surfaceLock.unlock();
     }
 
     protected abstract int lockSurfaceImpl();
@@ -132,23 +127,23 @@ public abstract class ProxySurface implements NativeSurface {
     protected abstract void unlockSurfaceImpl() ;
 
     public final void validateSurfaceLocked() {
-        recurLock.validateLocked();
+        surfaceLock.validateLocked();
     }
 
     public final boolean isSurfaceLocked() {
-        return recurLock.isLocked();
+        return surfaceLock.isLocked();
     }
 
     public final boolean isSurfaceLockedByOtherThread() {
-        return recurLock.isLockedByOtherThread();
+        return surfaceLock.isLockedByOtherThread();
     }
 
     public final Thread getSurfaceLockOwner() {
-        return recurLock.getOwner();
+        return surfaceLock.getOwner();
     }
 
     public final int getSurfaceRecursionCount() {
-        return recurLock.getRecursionCount();
+        return surfaceLock.getRecursionCount();
     }
 
     public abstract String toString();

@@ -107,13 +107,13 @@ public abstract class JAWTWindow implements NativeWindow {
   // NativeSurface
   //
 
-  private RecursiveLock recurLock = new RecursiveLock();
+  private RecursiveLock surfaceLock = new RecursiveLock();
 
   protected abstract int lockSurfaceImpl() throws NativeWindowException;
 
   public final int lockSurface() throws NativeWindowException {
-    recurLock.lock();
-    int res = recurLock.getRecursionCount() == 0 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS;
+    surfaceLock.lock();
+    int res = surfaceLock.getRecursionCount() == 0 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS;
 
     if ( LOCK_SURFACE_NOT_READY == res ) {
         try {
@@ -128,7 +128,7 @@ public abstract class JAWTWindow implements NativeWindow {
             }
         } finally {
             if (LOCK_SURFACE_NOT_READY >= res) {
-                recurLock.unlock();
+                surfaceLock.unlock();
             }
         }
     }
@@ -138,9 +138,9 @@ public abstract class JAWTWindow implements NativeWindow {
   protected abstract void unlockSurfaceImpl() throws NativeWindowException;
 
   public final void unlockSurface() {
-    recurLock.validateLocked();
+    surfaceLock.validateLocked();
 
-    if (recurLock.getRecursionCount() == 0) {
+    if (surfaceLock.getRecursionCount() == 0) {
         final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
         try {
             unlockSurfaceImpl();
@@ -148,19 +148,19 @@ public abstract class JAWTWindow implements NativeWindow {
             adevice.unlock();
         }
     }
-    recurLock.unlock();
+    surfaceLock.unlock();
   }
 
   public final boolean isSurfaceLockedByOtherThread() {
-    return recurLock.isLockedByOtherThread();
+    return surfaceLock.isLockedByOtherThread();
   }
 
   public final boolean isSurfaceLocked() {
-    return recurLock.isLocked();
+    return surfaceLock.isLocked();
   }
 
   public final Thread getSurfaceLockOwner() {
-    return recurLock.getOwner();
+    return surfaceLock.getOwner();
   }
 
   public final boolean surfaceSwap() {

@@ -76,14 +76,14 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
         ((WindowImpl)this.window).setHandleDestroyNotify(false);
         window.addWindowListener(new WindowAdapter() {
                 public void windowRepaint(WindowUpdateEvent e) {
-                    if( !GLWindow.this.window.isSurfaceLockedByOtherThread() && !GLWindow.this.helper.isExternalAnimatorAnimating() ) {
+                    if( !GLWindow.this.window.isWindowLockedByOtherThread() && !GLWindow.this.helper.isExternalAnimatorAnimating() ) {
                         display();
                     }
                 }
 
                 public void windowResized(WindowEvent e) {
                     sendReshape = true;
-                    if( !GLWindow.this.window.isSurfaceLockedByOtherThread() && !GLWindow.this.helper.isExternalAnimatorAnimating() ) {
+                    if( !GLWindow.this.window.isWindowLockedByOtherThread() && !GLWindow.this.helper.isExternalAnimatorAnimating() ) {
                         display();
                     }
                 }
@@ -99,8 +99,8 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
                             if(isPaused) {
                                 ctrl.resume();
                             }
-                        } else if (GLWindow.this.window.isSurfaceLockedByOtherThread()) {
-                            // Surface is locked by another thread
+                        } else if (GLWindow.this.window.isWindowLockedByOtherThread()) {
+                            // Window is locked by another thread
                             // Flag that destroy should be performed on the next
                             // attempt to display.
                             sendDestroy = true;
