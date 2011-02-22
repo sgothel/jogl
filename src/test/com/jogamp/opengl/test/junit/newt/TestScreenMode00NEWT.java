@@ -30,22 +30,17 @@ package com.jogamp.opengl.test.junit.newt;
 
 import java.io.IOException;
 import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.util.MonitorMode;
 import com.jogamp.newt.util.ScreenModeUtil;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.util.Iterator;
 import java.util.List;
