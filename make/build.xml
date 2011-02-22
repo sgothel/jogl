@@ -37,8 +37,9 @@
     <target name="javadoc.spec" description="Build Specifications JOGL and Nativewindow" 
                                 depends="javadoc.init, javadoc.nw.spec, javadoc.jogl.spec" />
 
+    <!-- excluded javadoc.dev due to time consumption -->
     <target name="javadoc.all" description="Build all NativeWindow, JOGL and NEWT docs" 
-                               depends="javadoc.init, javadoc.nw.spec, javadoc.jogl.spec, javadoc.public, javadoc.dev"/>
+                               depends="javadoc.init, javadoc.nw.spec, javadoc.jogl.spec, javadoc.public"/>
 
     <target name="clean" depends="init">
         <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="clean" inheritRefs="true" inheritAll="true"/>
@@ -233,7 +234,7 @@
         <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />
         <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames}, ${javadoc.spec.packagenames}, com.jogamp.opengl, com.jogamp.opengl.util.*, com.jogamp.nativewindow, com.jogamp.newt, com.jogamp.newt.util.*, com.jogamp.newt.event.*, com.jogamp.newt.opengl" />
 
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames}, com.jogamp.opengl.*, com.jogamp.nativewindow.*, com.jogamp.newt.*, com.jogamp.gluegen.opengl.*, com.jogamp.gluegen.runtime.opengl.*" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames}, com.jogamp.opengl.*, com.jogamp.nativewindow.*, com.jogamp.newt.*, com.jogamp.gluegen.opengl.*, com.jogamp.gluegen.runtime.opengl.*, jogamp.nativewindow.*, jogamp.opengl.*, jogamp.newt.*" />
 
         <property name="java.excludes.javadoc.packagenames" value="jogamp.opengl.gl2.fixme.*,com.jogamp.audio.windows.waveout.TestSpatialization"/>
         <property name="javadoc.bottom" value="Copyright 2010 JogAmp Community." />
