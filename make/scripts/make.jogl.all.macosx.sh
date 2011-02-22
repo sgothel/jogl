@@ -1,7 +1,7 @@
 #! /bin/sh
 
-if [ -e /devtools/etc/profile.ant ] ; then
-    . /devtools/etc/profile.ant
+if [ -e /opt-share/etc/profile.ant ] ; then
+    . /opt-share/etc/profile.ant
 fi
 
 

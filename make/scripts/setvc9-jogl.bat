@@ -1,7 +1,7 @@
 
 
-set PATH=C:\cygwin\devtools\share\apache-ant-1.8.2\bin;%PATH%
-set ANT_PATH=C:\cygwin\devtools\share\apache-ant-1.8.2
+set PATH=C:\apache-ant-1.8.2\bin;%PATH%
+set ANT_PATH=C:\apache-ant-1.8.2
 
 c:
 cd C:\SUN\JOGL2\jogl\make

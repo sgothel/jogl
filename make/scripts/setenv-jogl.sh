@@ -10,8 +10,8 @@ if [ -z "$1" ] ; then
     exit
 fi
 
-if [ -e /devtools/etc/profile.ant ] ; then
-    . /devtools/etc/profile.ant
+if [ -e /opt-share/etc/profile.ant ] ; then
+    . /opt-share/etc/profile.ant
 fi
 
 JOGL_BUILDDIR=$1

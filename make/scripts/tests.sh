@@ -1,6 +1,23 @@
 #! /bin/bash
 
-bdir=../build-x86_64
+if [ -z "$1" -o -z "$2" ] ; then
+    echo Usage $0 java-exe build-dir
+    exit 0
+fi
+
+javaexe=$1
+shift
+bdir=$1
+shift
+
+if [ ! -x $javaexe ] ; then
+    echo java-exe $javaexe is not an executable
+    exit 1
+fi
+if [ ! -d $bdir ] ; then
+    echo build-dir $bdir is not a directory
+    exit 1
+fi
 
 rm -f java-run.log
 
@@ -8,13 +25,13 @@ spath=`dirname $0`
 
 . $spath/setenv-jogl.sh $bdir JOGL_ALL
 
-which java 2>&1 | tee -a java-run.log
-java -version 2>&1 | tee -a java-run.log
+which $javaexe 2>&1 | tee -a java-run.log
+$javaexe -version 2>&1 | tee -a java-run.log
 echo LIBXCB_ALLOW_SLOPPY_LOCK: $LIBXCB_ALLOW_SLOPPY_LOCK 2>&1 | tee -a java-run.log
 echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a java-run.log
 echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a java-run.log
 echo SWT_CLASSPATH: $SWT_CLASSPATH 2>&1 | tee -a java-run.log
-echo java $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
+echo $javaexe $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 
 function jrun() {
     awtarg=$1
@@ -50,7 +67,7 @@ function jrun() {
     echo
     echo "Test Start: $*"
     echo
-    java $awtarg $X_ARGS $D_ARGS $*
+    $javaexe $awtarg $X_ARGS $D_ARGS $*
     echo
     echo "Test End: $*"
     echo
@@ -87,7 +104,7 @@ function testawt() {
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
+testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT -time 1000000
 #testawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated
@@ -108,9 +125,9 @@ function testawt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestTexture01AWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT
-#testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn
+#testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461OffscreenSupersamplingSwingAWT
-testawt com.jogamp.opengl.test.junit.jogl.texture.TestGrayTextureFromFileAWTBug417
+#testawt com.jogamp.opengl.test.junit.jogl.texture.TestGrayTextureFromFileAWTBug417
 
 #
 # newt.awt (testawt)
