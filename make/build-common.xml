@@ -12,6 +12,8 @@
         </condition>
     </fail>
 
+    <property environment="env" />
+
     <!-- Pull in GlueGen cpptasks build file -->
     <property name="gluegen.root" value="../../gluegen" />
     <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
