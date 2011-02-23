@@ -126,7 +126,7 @@ function testawt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestTexture01AWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT
-testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
+#testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461OffscreenSupersamplingSwingAWT
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestGrayTextureFromFileAWTBug417
 
@@ -134,7 +134,7 @@ testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
 # newt.awt (testawt)
 #
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
-#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNewtAWTWrapper
+testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNewtAWTWrapper
 #testawt com.jogamp.opengl.test.junit.newt.TestEventSourceNotAWTBug
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot

@@ -31,7 +31,6 @@ fi
 # -Djogl.cg=1
 #    -Dc.compiler.debug=true 
 #    -DuseOpenMAX=true \
-#    -Dbuild.noarchives=true
 #    -Dgluegen.cpptasks.detected.os=true \
 #    -DisUnix=true \
 #    -DisLinux=true \
@@ -53,9 +52,7 @@ echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $LOGF
 
 ant \
     $CUSTOMLIBDIR \
-    -Dbuild.noarchives=true \
     -Dgluegen-cpptasks.file=`pwd`/../../gluegen/make/lib/gluegen-cpptasks-linux-32bit.xml \
-    -Dbuild.noarchives=true \
     -Djogl.cg=1 \
     -Drootrel.build=build-x86 \
     -Dos.arch=x86 \

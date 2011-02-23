@@ -10,13 +10,11 @@ fi
 #    -Djavacdebuglevel="none" \
 #
 #    -Djava.generate.skip=true \
-#    -Dbuild.noarchives=true
 
 BUILD_SUBDIR=build-cdcfp-x86
 
 ant -v \
     -Dgluegen-cpptasks.file=`pwd`/../../gluegen/make/lib/gluegen-cpptasks-linux-32bit.xml \
-    -Dbuild.noarchives=true \
     -Drootrel.build=$BUILD_SUBDIR \
     -Dsetup.cdcfp=true \
     -Dgluegen.cpptasks.detected.os=true \

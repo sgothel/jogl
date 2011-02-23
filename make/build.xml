@@ -116,7 +116,7 @@
        - This must be called after all of the build targets complete.
       -->
 
-    <target name="developer-zip-archive" depends="init" unless="build.noarchives">
+    <target name="developer-zip-archive" depends="init" if="build.archiveon">
         <delete includeEmptyDirs="true" quiet="true" dir="${archive}" failonerror="false" />
         <mkdir dir="${archive}" />
         <copy file="${build}/artifact.properties" todir="${archive}" />

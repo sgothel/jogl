@@ -39,6 +39,7 @@
         <!-- Set the project root directory to be up one directory. -->
         <property name="project.root"               value=".." />
         <property name="build"                      value="${project.root}/${rootrel.build}" />
+        <property name="build.path"                 location="${build}"/> <!-- absolute path -->
         <property name="src"                        value="${project.root}/src" />
         <property name="lib"                        value="${build}/lib" />
         <property name="jar"                        value="${build}/jar" />

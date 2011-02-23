@@ -6,12 +6,10 @@ fi
 
 
 #    -Dc.compiler.debug=true 
-#    -Dbuild.noarchives=true
 
 BUILD_SUBDIR=build-cdcfp-macosx
 
 ant \
-    -Dbuild.noarchives=true \
     -Dsetup.cdcfp=true \
     -Drootrel.build=$BUILD_SUBDIR \
     $* 2>&1 | tee make.jogl.cdcfp.macosx.log

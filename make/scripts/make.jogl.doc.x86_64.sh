@@ -6,6 +6,5 @@ fi
 
 
 ant -v  \
-    -Dbuild.noarchives=true \
     -Drootrel.build=build-x86_64 \
     javadoc $* 2>&1 | tee make.jogl.doc.x86_64.log

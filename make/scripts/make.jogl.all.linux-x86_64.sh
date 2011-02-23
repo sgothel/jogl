@@ -29,14 +29,12 @@ fi
 
 # -Djogl.cg=1
 #    -Dc.compiler.debug=true \
-#    -Dbuild.noarchives=true \
 
 #    -Dgluegen.cpptasks.detected.os=true \
 #    -DisUnix=true \
 #    -DisLinux=true \
 #    -DisLinuxAMD64=true \
 #    -DisX11=true \
-#    -Dbuild.noarchives=true \
 
 #LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64
 #export LD_LIBRARY_PATH
@@ -50,7 +48,6 @@ echo LIBXCB_ALLOW_SLOPPY_LOCK: $LIBXCB_ALLOW_SLOPPY_LOCK 2>&1 | tee -a $LOGF
 echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a $LOGF
 echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $LOGF
 
-#    -Dbuild.noarchives=true \
 #    -Dc.compiler.debug=true \
 #    -Djavacdebug="true" \
 #    -Djavacdebuglevel="source,lines,vars" \
@@ -58,7 +55,6 @@ echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $LOGF
 ant  \
     $CUSTOMLIBDIR \
     -Djavacdebuglevel="source,lines,vars" \
-    -Dbuild.noarchives=true \
     -Djogl.cg=1 \
     -Drootrel.build=build-x86_64 \
     -DuseKD=true \
