@@ -15,7 +15,7 @@
     <!-- Pull in GlueGen cpptasks build file -->
     <property name="gluegen.root" value="../../gluegen" />
     <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
-    <import file="${gluegen.root}/make/gluegen-archivetasks.xml" />
+    <import file="${gluegen.root}/make/jogamp-archivetasks.xml" />
     <import file="${gluegen.root}/make/jogamp-env.xml" />
 
     <property name="ant-contrib.jar"  value="${gluegen.root}/make/lib/ant-contrib-1.0b3.jar" />
