@@ -149,8 +149,7 @@
         <copy todir="${archive}/etc">
             <fileset dir="${project.root}/etc" includes="*" />
         </copy>
-        <delete quiet="true" file="${build}/${archive.name}.zip"/>
-        <zip destfile="${build}/${archive.name}.zip"
+        <archive.7z destfile="${build}/${archive.name}.7z"
              basedir="${build}"
              includes="${archive.name}/**" />
         <!-- Clean up after ourselves -->
@@ -326,7 +325,7 @@
     </target>
                                                                                                                                    
     <target name="javadoc.zip" depends="javadoc.init">
-        <zip destfile="${build}/javadoc.zip"
+        <archive.7z destfile="${build}/javadoc.7z"
              basedir="${javadoc.root.path}"
              includes="jogl/**" />
     </target>
