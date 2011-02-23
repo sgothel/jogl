@@ -26,7 +26,7 @@
         <property name="java.dir.junit"       value="${java.dir.test}/junit"/>
         <property name="java.dir.bugs"        value="${java.dir.test}/bugs"/>
 
-        <property name="test.archive.name"    value="${archive.name}-test-results-${env.NODE_NAME}"/>
+        <property name="test.archive.name"    value="${archive.name}-test-results-${build.node.name}"/>
         <condition property="jvmarg.newt.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
         <condition property="jvmarg.newt.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
 
@@ -55,7 +55,7 @@
       <!-- Clean the results -->
       <delete quiet="true">
         <fileset dir="${results.test}" includes="**"/>
-        <fileset file="${build.path}/${test.archive.name}.7z"/>
+        <fileset file="${build}/${test.archive.name}.7z"/>
       </delete>
       <mkdir dir="${results.test}" />
 
@@ -385,7 +385,7 @@
 
     <!-- updates / create the test results zip file -->
     <target name="test-zip-archive" depends="declare.common">
-        <archive.7z destfile="${build.path}/${test.archive.name}.7z"
+        <archive.7z destfile="${build}/${test.archive.name}.7z"
                     basedir="${results.test}" 
                     includes="**" />
     </target>

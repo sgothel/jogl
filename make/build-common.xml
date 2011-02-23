@@ -12,12 +12,11 @@
         </condition>
     </fail>
 
-    <property environment="env" />
-
     <!-- Pull in GlueGen cpptasks build file -->
     <property name="gluegen.root" value="../../gluegen" />
     <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
     <import file="${gluegen.root}/make/gluegen-archivetasks.xml" />
+    <import file="${gluegen.root}/make/jogamp-env.xml" />
 
     <property name="ant-contrib.jar"  value="${gluegen.root}/make/lib/ant-contrib-1.0b3.jar" />
 
@@ -33,13 +32,12 @@
     <!-- 
        - Base initialization of properties and detection of operating system.
       -->
-    <target name="common.init" depends="gluegen.cpptasks.detect.os" unless="common.init.done">
+    <target name="common.init" depends="jogamp.env.init, gluegen.cpptasks.detect.os" unless="common.init.done">
         <property name="common.init.done" value="true" />
 
         <!-- Set the project root directory to be up one directory. -->
         <property name="project.root"               value=".." />
         <property name="build"                      value="${project.root}/${rootrel.build}" />
-        <property name="build.path"                 location="${build}"/> <!-- absolute path -->
         <property name="src"                        value="${project.root}/src" />
         <property name="lib"                        value="${build}/lib" />
         <property name="jar"                        value="${build}/jar" />
