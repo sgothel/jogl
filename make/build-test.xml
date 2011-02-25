@@ -83,9 +83,6 @@
             <classpath refid="junit_jogl_newt.compile.classpath"/>
             <src path="${src.test}" />
         </javac>
-        <delete includeEmptyDirs="true" quiet="true">
-            <fileset file="${jogl.test.jar}" />
-        </delete>
         <jar destfile="${jogl.test.jar}" filesonly="true">
             <!-- get all class files, but skip any resource files that external tools
                  might have copied into the class directory (otherwise, it's possible
