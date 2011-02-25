@@ -172,10 +172,11 @@ public class AWTWindow extends WindowImpl {
         ((AWTScreen)getScreen()).setAWTGraphicsScreen((AWTGraphicsScreen)config.getScreen());
         ((AWTDisplay)getScreen().getDisplay()).setAWTGraphicsDevice((AWTGraphicsDevice)config.getScreen().getDevice());
 
-        DisplayMode mode = ((AWTGraphicsDevice)config.getScreen().getDevice()).getGraphicsDevice().getDisplayMode();
-        int w = mode.getWidth();
-        int h = mode.getHeight();
-        ((AWTScreen)getScreen()).setScreenSize(w, h);
+        final DisplayMode mode = ((AWTGraphicsDevice)config.getScreen().getDevice()).getGraphicsDevice().getDisplayMode();
+        if(null != mode) {
+            ((AWTScreen)getScreen()).setScreenSize(mode.getWidth(), mode.getHeight());
+        }
+        
     }
 
     public javax.media.nativewindow.util.Insets getInsets() {
