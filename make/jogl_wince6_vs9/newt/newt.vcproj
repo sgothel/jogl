@@ -60,7 +60,7 @@
 				Name="VCCLCompilerTool"
 				ExecutionBucket="7"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\CVM\cdc\src\share\javavm\export,..\..\..\..\CVM\cdc\src\share,..\..\..\..\CVM\cdc\src\win32,..\..\..\..\CVM\cdc\src\win32-arm,..\..\..\build\gensrc\native\newt\Windows,..\..\..\build\gensrc\native\newt\KD,..\..\..\make\stub_includes\egl"
+                AdditionalIncludeDirectories="..\..\..\build\gensrc\native\newt\Windows,..\..\..\build\gensrc\native\newt\KD,..\..\..\make\stub_includes\egl"
 				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;DEBUG;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
 				MinimalRebuild="true"
 				RuntimeLibrary="2"
