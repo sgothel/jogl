@@ -101,8 +101,9 @@ public class TestSharedContextListAWT extends UITestCase {
                 frame.pack();
                 frame.setSize(width, height);
                 frame.setLocation(x, y);
-                frame.validate();
+                frame.invalidate();
                 frame.setVisible(true);
+                frame.validate();
             } });
         Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glCanvas, true));
 

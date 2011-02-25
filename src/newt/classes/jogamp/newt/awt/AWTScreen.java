@@ -33,11 +33,11 @@
 
 package jogamp.newt.awt;
 
-import com.jogamp.newt.*;
-import jogamp.newt.ScreenImpl;
 import java.awt.DisplayMode;
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.awt.*;
+
+import jogamp.newt.ScreenImpl;
+import javax.media.nativewindow.awt.AWTGraphicsDevice;
+import javax.media.nativewindow.awt.AWTGraphicsScreen;
 
 public class AWTScreen extends ScreenImpl {
     public AWTScreen() {
@@ -46,10 +46,10 @@ public class AWTScreen extends ScreenImpl {
     protected void createNativeImpl() {
         aScreen = new AWTGraphicsScreen((AWTGraphicsDevice)display.getGraphicsDevice());
         
-        DisplayMode mode = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice().getDisplayMode();
-        int w = mode.getWidth();
-        int h = mode.getHeight();
-        setScreenSize(w, h);
+        final DisplayMode mode = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice().getDisplayMode();
+        if(null != mode) {
+            setScreenSize(mode.getWidth(), mode.getHeight());
+        }
     }
 
     protected void setAWTGraphicsScreen(AWTGraphicsScreen s) {

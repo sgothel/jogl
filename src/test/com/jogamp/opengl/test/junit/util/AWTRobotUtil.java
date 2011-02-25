@@ -45,7 +45,7 @@ import javax.swing.JFrame;
 
 public class AWTRobotUtil {
 
-    public static int TIME_OUT = 1000; // 1s
+    public static int TIME_OUT = 2000; // 2s
     public static int ROBOT_DELAY = 50; // ms
     public static int POLL_DIVIDER = 20; // TO/20
 
