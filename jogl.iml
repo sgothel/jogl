@@ -7,7 +7,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/jogl/junit" isTestSource="true" />
     </content>
     <content url="file://$MODULE_DIR$/build/jogl">
-      <sourceFolder url="file://$MODULE_DIR$/build/jogl/gensrc/classes-cdc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/build/jogl/gensrc/classes" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />

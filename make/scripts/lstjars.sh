@@ -66,18 +66,6 @@ function listdeployment() {
     report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.all-noawt.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_desktop.so.gz libnativewindow_$OSS.so.gz libnewt.so.gz
     echo
 
-    echo JOGL CDCFP DESKTOP
-    report gluegen-rt-cdc.$JAR_SUFFIX nativewindow.all.$JAR_SUFFIX jogl.all.cdc.$JAR_SUFFIX newt.all.cdc.$JAR_SUFFIX libgluegen-rt.so.gz libnativewindow_$OSS.so.gz libnewt.so.gz
-    echo
-
-    echo JOGL CDCFP ES1 MOBILE
-    report gluegen-rt-cdc.$JAR_SUFFIX jogl.core.cdc.$JAR_SUFFIX jogl.egl.cdc.$JAR_SUFFIX jogl.gles1.cdc.$JAR_SUFFIX jogl.util.cdc.$JAR_SUFFIX nativewindow.all.cdc.$JAR_SUFFIX newt.all.cdc.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_es1.so.gz libnewt.so.gz
-    echo
-
-    echo JOGL CDCFP ES2 MOBILE
-    report gluegen-rt-cdc.$JAR_SUFFIX jogl.core.cdc.$JAR_SUFFIX jogl.egl.cdc.$JAR_SUFFIX jogl.gles2.cdc.$JAR_SUFFIX jogl.util.cdc.$JAR_SUFFIX nativewindow.all.cdc.$JAR_SUFFIX newt.all.cdc.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_es2.so.gz libnewt.so.gz
-    echo
-
     echo JOGL GLU
     report jogl.glu.*$JAR_SUFFIX
     echo
@@ -96,9 +84,7 @@ cp -a $BUILDDIR/nativewindow/*.jar $STATDIR
 cp -a $BUILDDIR/jogl/*.jar $STATDIR
 cp -a $BUILDDIR/newt/*.jar $STATDIR
 cp -a $BUILDDIR_GLUEGEN/gluegen-rt.jar $STATDIR
-cp -a $BUILDDIR_GLUEGEN/gluegen-rt-cdc.jar $STATDIR
 cp -a $BUILDDIR_GLUEGEN/gluegen-rt-natives-linux-i586.jar $STATDIR
-cp -a $BUILDDIR_GLUEGEN/gluegen-rt-natives-linux-i586-cdc.jar $STATDIR
 cp -a $BUILDDIR_GLUEGEN/obj/libgluegen-rt.so $STATDIR
 
 cd $STATDIR
@@ -123,7 +109,7 @@ done
 rm -rf nope
 mkdir -p nope
 
-mv jogl.test.lst *-noawt.lst *.cdc.lst *.all*.lst nope/
+mv jogl.test.lst *-noawt.lst *.all*.lst nope/
 
 mv jogl.gl2es12.*.lst jogl.gldesktop.*.lst nope/
 echo duplicates - w/o gl2es12.* gldesktop.*
@@ -131,11 +117,10 @@ echo
 sort jogl*.lst | uniq -d
 mv nope/* .
 
-mv jogl.test.lst *.cdc.lst *.all*.lst gluegen-gl.lst nope/
+mv jogl.test.lst *.all*.lst gluegen-gl.lst nope/
 cat *.lst | sort -u > allparts.lst
 mv nope/* .
 cat *.all.lst gluegen-rt.lst   | sort -u > allall.lst
-cat jogl.all.cdc.lst newt.all.cdc.lst nativewindow.core.lst | sort -u > allcdc.lst
 
 echo all vs allparts delta
 echo

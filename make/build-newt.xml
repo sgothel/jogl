@@ -46,7 +46,6 @@
 
    - Internal settings, may not be necessary to set them manually,
      since all JAR archives are orthogonal.
-       setup.noCDC
        setup.noAWT
        setup.noOpenGL
 

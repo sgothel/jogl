@@ -79,7 +79,6 @@
 
         <echo message="setup.nodesktop: ${setup.nodesktop}" />
         <echo message="setup.noAWT: ${setup.noAWT}" />
-        <echo message="setup.noCDC: ${setup.noCDC}" />
 
         <!-- Load the user specified properties file that defines various host
            - specific paths.  The user will be notified if this is does not

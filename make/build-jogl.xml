@@ -54,7 +54,6 @@
    - Internal settings, may not be necessary to set them manually,
      since all JAR archives are orthogonal.
        setup.noAWT
-       setup.noCDC
 
    - Skip gluegen: java.generate.skip
    -->
