@@ -45,7 +45,7 @@ import javax.swing.JFrame;
 
 public class AWTRobotUtil {
 
-    public static int TIME_OUT = 2000; // 2s
+    public static int TIME_OUT = 1000; // 1s
     public static int ROBOT_DELAY = 50; // ms
     public static int POLL_DIVIDER = 20; // TO/20
 
@@ -354,16 +354,26 @@ public class AWTRobotUtil {
      */
     public static boolean waitForRealized(Object obj, boolean realized) throws InterruptedException {
         int wait;
-        if(obj instanceof GLCanvas) {
-            GLCanvas comp = (GLCanvas) obj;
-            for (wait=0; wait<POLL_DIVIDER && realized != comp.isRealized(); wait++) {
-                Thread.sleep(TIME_OUT/POLL_DIVIDER);
-            }
-        } else if (obj instanceof Component) {
+        if (obj instanceof Component) {
             Component comp = (Component) obj;
             for (wait=0; wait<POLL_DIVIDER && realized != comp.isDisplayable(); wait++) {
                 Thread.sleep(TIME_OUT/POLL_DIVIDER);
             }
+            // if GLCanvas, ensure it got also painted -> drawable.setRealized(true);
+            if(wait<POLL_DIVIDER && comp instanceof GLCanvas) {
+                GLCanvas glcanvas = (GLCanvas) comp;
+                for (wait=0; wait<POLL_DIVIDER && realized != glcanvas.isRealized(); wait++) {
+                    Thread.sleep(TIME_OUT/POLL_DIVIDER);
+                }
+                if(wait>=POLL_DIVIDER) {
+                    // for some reason GLCanvas hasn't been painted yet, force it!
+                    System.err.println("XXX: FORCE REPAINT - canvas: "+glcanvas);
+                    glcanvas.repaint();
+                    for (wait=0; wait<POLL_DIVIDER && realized != glcanvas.isRealized(); wait++) {
+                        Thread.sleep(TIME_OUT/POLL_DIVIDER);
+                    }
+                }
+            }            
         } else if(obj instanceof com.jogamp.newt.Window) {
             com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
             for (wait=0; wait<POLL_DIVIDER && realized != win.isNativeValid(); wait++) {

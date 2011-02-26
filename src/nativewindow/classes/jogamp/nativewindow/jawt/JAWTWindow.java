@@ -257,8 +257,9 @@ public abstract class JAWTWindow implements NativeWindow {
   }
   protected abstract Point getLocationOnScreenImpl(int x, int y);
 
+    @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
     sb.append("JAWT-Window["+
                 "windowHandle 0x"+Long.toHexString(getWindowHandle())+

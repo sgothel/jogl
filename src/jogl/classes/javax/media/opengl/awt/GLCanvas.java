@@ -380,6 +380,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   public void display() {
     if( !validateGLDrawable() ) {
+        if(DEBUG) {
+            System.err.println("Info: GLCanvas display - skipped GL render, drawable not valid yet");
+        }
         return; // not yet available ..
     }
     maybeDoSingleThreadedWorkaround(displayOnEventDispatchThreadAction,
@@ -740,11 +743,19 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       }
   }
 
-    @Override
+  @Override
   public String toString() {
-    return "AWT-GLCanvas[ "+awtConfig+", "+((null!=drawable)?drawable.getClass().getName():"null-drawable")+"]";
+    return "AWT-GLCanvas[Realized "+isRealized()+
+                          ",\n\t"+((null!=drawable)?drawable.getClass().getName():"null-drawable")+                         
+                          ",\n\tRealized "+isRealized()+
+                          ",\n\tFactory   "+getFactory()+
+                          ",\n\thandle    0x"+Long.toHexString(getHandle())+
+                          ",\n\tDrawable size "+drawable.getWidth()+"x"+drawable.getHeight()+
+                          ",\n\tAWT pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
+                          ",\n\tvisible "+isVisible()+
+                          ",\n\t"+awtConfig+"]";
   }
-
+  
   //----------------------------------------------------------------------
   // Internals only below this point
   //

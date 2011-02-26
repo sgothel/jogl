@@ -98,12 +98,10 @@ public class TestSharedContextListAWT extends UITestCase {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 frame.add(glCanvas);
-                frame.pack();
-                frame.setSize(width, height);
                 frame.setLocation(x, y);
-                frame.invalidate();
+                frame.setSize(width, height);
+                frame.pack();               
                 frame.setVisible(true);
-                frame.validate();
             } });
         Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glCanvas, true));
 
