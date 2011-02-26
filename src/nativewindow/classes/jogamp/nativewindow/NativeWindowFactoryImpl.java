@@ -38,8 +38,6 @@ import java.lang.reflect.*;
 import javax.media.nativewindow.*;
 
 public class NativeWindowFactoryImpl extends NativeWindowFactory {
-    protected static final boolean DEBUG = Debug.debug("NativeWindow");
-
     private static final ToolkitLock nullToolkitLock = new NullToolkitLock();
 
     public static ToolkitLock getNullToolkitLock() {
@@ -96,14 +94,14 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
                                             windowClassName, new Class[] { Object.class, AbstractGraphicsConfiguration.class }, 
                                             getClass().getClassLoader());
             } catch (Exception e) {
-                throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
+                throw new IllegalArgumentException(e);
             }
         }
 
         try {
             return (NativeWindow) nativeWindowConstructor.newInstance(new Object[] { winObj, config });
         } catch (Exception ie) {
-            throw (IllegalArgumentException) new IllegalArgumentException().initCause(ie);
+            throw new IllegalArgumentException(ie);
         }
     }
 }

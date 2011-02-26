@@ -35,10 +35,8 @@ package jogamp.newt.macosx;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.macosx.*;
-import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.*;
 import jogamp.newt.*;
-import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.newt.util.MainThread;
 
 public class MacDisplay extends DisplayImpl {
@@ -73,6 +71,7 @@ public class MacDisplay extends DisplayImpl {
 
     protected void closeNativeImpl() { }
 
+    @Override
     protected void createEDTUtil() {
         if(NewtFactory.useEDT()) {
             final Display f_dpy = this;

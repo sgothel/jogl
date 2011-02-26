@@ -40,5 +40,6 @@ public class RegisteredClass {
     public final long getHandle() { return hInstance; }
     public final String getName() { return className; }
 
+    @Override
     public final String toString() { return "RegisteredClass[handle 0x"+Long.toHexString(hInstance)+", "+className+"]"; }
 }

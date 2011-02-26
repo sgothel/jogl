@@ -40,28 +40,28 @@ import javax.swing.MenuSelectionManager;
 
 public class AWTMisc {
 
-    public static final JFrame getJFrame(Component c) {
+    public static JFrame getJFrame(Component c) {
         while (c != null && !(c instanceof JFrame)) {
             c = c.getParent();
         }
         return (JFrame) c;
     }
 
-    public static final Frame getFrame(Component c) {
+    public static Frame getFrame(Component c) {
         while (c != null && !(c instanceof Frame)) {
             c = c.getParent();
         }
         return (Frame) c;
     }
 
-    public static final Window getWindow(Component c) {
+    public static Window getWindow(Component c) {
         while (c != null && !(c instanceof Window)) {
             c = c.getParent();
         }
         return (Window) c;
     }
 
-    public static final Container getContainer(Component c) {
+    public static Container getContainer(Component c) {
         while (c != null && !(c instanceof Container)) {
             c = c.getParent();
         }
@@ -71,11 +71,11 @@ public class AWTMisc {
     /**
      * Issue this when your non AWT toolkit gains focus to clear AWT menu path
      */
-    public static final void clearAWTMenus() {
+    public static void clearAWTMenus() {
         MenuSelectionManager.defaultManager().clearSelectedPath();
     }
 
-    public final static int AWT2NWClosingOperation(int awtClosingOperation) {
+    public static int AWT2NWClosingOperation(int awtClosingOperation) {
         switch (awtClosingOperation) {
             case WindowConstants.DISPOSE_ON_CLOSE:
             case WindowConstants.EXIT_ON_CLOSE:
@@ -88,7 +88,7 @@ public class AWTMisc {
         }
     }
 
-    public final static int getNWClosingOperation(Component c) {
+    public static int getNWClosingOperation(Component c) {
         JFrame jf = getJFrame(c);
         int op = (null != jf) ? jf.getDefaultCloseOperation() : WindowConstants.DO_NOTHING_ON_CLOSE ;
         return AWT2NWClosingOperation(op);

@@ -68,7 +68,7 @@ public abstract class JAWTWindow implements NativeWindow {
     init((Component)comp);
   }
 
-  private final void init(Component windowObject) throws NativeWindowException {
+  private void init(Component windowObject) throws NativeWindowException {
     invalidate();
     this.component = windowObject;
     validateNative();

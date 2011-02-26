@@ -75,12 +75,14 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
         this.window = (WindowImpl) window;
         ((WindowImpl)this.window).setHandleDestroyNotify(false);
         window.addWindowListener(new WindowAdapter() {
+                @Override
                 public void windowRepaint(WindowUpdateEvent e) {
                     if( !GLWindow.this.window.isWindowLockedByOtherThread() && !GLWindow.this.helper.isExternalAnimatorAnimating() ) {
                         display();
                     }
                 }
 
+                @Override
                 public void windowResized(WindowEvent e) {
                     sendReshape = true;
                     if( !GLWindow.this.window.isWindowLockedByOtherThread() && !GLWindow.this.helper.isExternalAnimatorAnimating() ) {
@@ -88,6 +90,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
                     }
                 }
 
+                @Override
                 public void windowDestroyNotify(WindowEvent e) {
                     if( DISPOSE_ON_CLOSE == GLWindow.this.getDefaultCloseOperation() ) {
                         // Is an animator thread perform rendering?
@@ -248,6 +251,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
         return window.isVisible();
     }
 
+    @Override
     public final String toString() {
         return "NEWT-GLWindow[ \n\tHelper: " + helper + ", \n\tDrawable: " + drawable + 
                ", \n\tContext: " + context + /** ", \n\tWindow: "+window+", \n\tFactory: "+factory+ */ "]";
@@ -314,7 +318,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
 
         public synchronized void destroyActionInLock() {
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
-                String msg = new String("GLWindow.destroy() "+Thread.currentThread()+", start");
+                String msg = "GLWindow.destroy() "+Thread.currentThread()+", start";
                 System.err.println(msg);
                 //Exception e1 = new Exception(msg);
                 //e1.printStackTrace();
@@ -343,7 +347,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
 
         public synchronized void invalidate(boolean unrecoverable) {
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
-                String msg = new String("GLWindow.invalidate("+unrecoverable+") "+Thread.currentThread()+", start");
+                String msg = "GLWindow.invalidate("+unrecoverable+") "+Thread.currentThread()+", start";
                 System.err.println(msg);
                 //Exception e1 = new Exception(msg);
                 //e1.printStackTrace();
@@ -366,7 +370,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
 
         public synchronized void setVisibleActionPost(boolean visible, boolean nativeWindowCreated) {
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
-                String msg = new String("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", start");
+                String msg = "GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", start";
                 System.err.println(msg);
                 // Exception e1 = new Exception(msg);
                 // e1.printStackTrace();
@@ -393,7 +397,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
                 context = drawable.createContext(sharedContext);
             }
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
-                String msg = new String("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", fin");
+                String msg = "GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", fin";
                 System.err.println(msg);
                 //Exception e1 = new Exception(msg);
                 //e1.printStackTrace();
@@ -648,7 +652,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
     }
 
     /** Reset all counter (startTime, currentTime, frame number) */
-    public synchronized void resetCounter() {
+    public final synchronized void resetCounter() {
         startTime = System.currentTimeMillis(); // overwrite startTime to real init one
         curTime   = startTime;
         lastCheck  = startTime;
@@ -914,7 +918,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
         glWindow.addGLEventListener(new GLEventListener() {
             public void init(GLAutoDrawable drawable) {
                 GL gl = drawable.getGL();
-                System.err.println(JoglVersion.getInstance().getGLInfo(gl, null));
+                System.err.println(JoglVersion.getGLInfo(gl, null));
             }
 
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {

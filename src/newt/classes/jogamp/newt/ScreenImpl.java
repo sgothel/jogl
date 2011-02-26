@@ -126,6 +126,24 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         }
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final ScreenImpl other = (ScreenImpl) obj;
+        if (this.display != other.display && (this.display == null || !this.display.equals(other.display))) {
+            return false;
+        }
+        if (this.screen_idx != other.screen_idx) {
+            return false;
+        }
+        return true;
+    }
+
     public int hashCode() {
         return hashCode;
     }
@@ -239,6 +257,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         return (usrHeight>0) ? usrHeight : (height>0) ? height : 480;
     }
 
+    @Override
     public String toString() {
         return "NEWT-Screen["+getFQName()+", idx "+screen_idx+", refCount "+refCount+", "+getWidth()+"x"+getHeight()+", "+aScreen+", "+display+"]";
     }

@@ -39,8 +39,6 @@
 
 package jogamp.nativewindow.jawt;
 
-import jogamp.nativewindow.*;
-
 /** Marker class for all window system-specific JAWT data structures. */
 
 public interface JAWT_PlatformInfo {

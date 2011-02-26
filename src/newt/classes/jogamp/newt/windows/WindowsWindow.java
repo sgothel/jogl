@@ -55,6 +55,7 @@ public class WindowsWindow extends WindowImpl {
     public WindowsWindow() {
     }
 
+    @Override
     protected int lockSurfaceImpl() {
         if (0 != hdc) {
             throw new InternalError("surface not released");
@@ -64,6 +65,7 @@ public class WindowsWindow extends WindowImpl {
         return ( 0 != hdc ) ? LOCK_SUCCESS : LOCK_SURFACE_NOT_READY;
     }
 
+    @Override
     protected void unlockSurfaceImpl() {
         if (0 == hdc) {
             throw new InternalError("surface not acquired");
@@ -72,10 +74,12 @@ public class WindowsWindow extends WindowImpl {
         hdc=0;
     }
 
+    @Override
     public final long getSurfaceHandle() {
         return hdc;
     }
 
+    @Override
     public boolean hasDeviceChanged() {
         if(0!=getWindowHandle()) {
             long _hmon = MonitorFromWindow0(getWindowHandle());
@@ -158,10 +162,12 @@ public class WindowsWindow extends WindowImpl {
         requestFocus0(getWindowHandle(), force);
     }
 
+    @Override
     protected void setTitleImpl(final String title) {
         setTitle0(getWindowHandle(), title);
     }
 
+    @Override
     public Insets getInsets() {
         return (Insets)insets.clone();
     }

@@ -242,6 +242,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
    * Overridden to choose a GraphicsConfiguration on a parent container's
    * GraphicsDevice because both devices
    */
+    @Override
   public GraphicsConfiguration getGraphicsConfiguration() {
     /*
      * Workaround for problems with Xinerama and java.awt.Component.checkGD
@@ -457,6 +458,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
       <B>Overrides:</B>
       <DL><DD><CODE>paint</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
+    @Override
   public void paint(Graphics g) {
     if (Beans.isDesignTime()) {
       // Make GLCanvas behave better in NetBeans GUI builder
@@ -492,6 +494,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
       <B>Overrides:</B>
       <DL><DD><CODE>addNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
+    @Override
   public void addNotify() {
     if(DEBUG) {
         Exception ex1 = new Exception(Thread.currentThread().getName()+" - Info: addNotify - start, bounds: "+this.getBounds());
@@ -576,6 +579,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       about this.</p>
       <B>Overrides:</B>
       <DL><DD><CODE>removeNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
+    @Override
   public void removeNotify() {
     if(DEBUG) {
         Exception ex1 = new Exception(Thread.currentThread().getName()+" - Info: removeNotify - start");
@@ -610,6 +614,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
       <B>Overrides:</B>
       <DL><DD><CODE>reshape</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
+    @Override
   public void reshape(int x, int y, int width, int height) {
     super.reshape(x, y, width, height);
     sendReshape = true;
@@ -617,8 +622,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   /** <B>Overrides:</B>
       <DL><DD><CODE>update</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
-  // Overridden from Canvas to prevent the AWT's clearing of the
-  // canvas from interfering with the OpenGL rendering.
+  /** 
+   * Overridden from Canvas to prevent the AWT's clearing of the
+   * canvas from interfering with the OpenGL rendering.
+   */
+    @Override
   public void update(Graphics g) {
     paint(g);
   }
@@ -659,14 +667,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     if (Beans.isDesignTime()) {
       return null;
     }
-    GLContext context = getContext();
-    return (context == null) ? null : context.getGL();
+    GLContext ctx = getContext();
+    return (ctx == null) ? null : ctx.getGL();
   }
 
   public GL setGL(GL gl) {
-    GLContext context = getContext();
-    if (context != null) {
-      context.setGL(gl);
+    GLContext ctx = getContext();
+    if (ctx != null) {
+      ctx.setGL(gl);
       return gl;
     }
     return null;
@@ -732,6 +740,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       }
   }
 
+    @Override
   public String toString() {
     return "AWT-GLCanvas[ "+awtConfig+", "+((null!=drawable)?drawable.getClass().getName():"null-drawable")+"]";
   }
@@ -922,8 +931,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       try {
         disableBackgroundEraseMethod.invoke(getToolkit(), new Object[] { this });
       } catch (Exception e) {
-        // FIXME: workaround for 6504460 (incorrect backport of 6333613 in 5.0u10)
-        // throw new GLException(e);
         t = e;
       }
       if(DEBUG) {
@@ -1013,7 +1020,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     glCanvas.addGLEventListener(new GLEventListener() {
         public void init(GLAutoDrawable drawable) {
             GL gl = drawable.getGL();
-            System.err.println(JoglVersion.getInstance().getGLInfo(gl, null));
+            System.err.println(JoglVersion.getGLInfo(gl, null));
         }
 
         public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {

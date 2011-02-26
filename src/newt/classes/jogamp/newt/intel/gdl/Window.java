@@ -119,6 +119,7 @@ public class Window extends jogamp.newt.WindowImpl {
         ((Display)getScreen().getDisplay()).setFocus(this);
     }
 
+    @Override
     public final long getSurfaceHandle() {
         return surfaceHandle;
     }

@@ -108,6 +108,27 @@ public abstract class DisplayImpl extends Display {
         }
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final DisplayImpl other = (DisplayImpl) obj;
+        if (this.id != other.id) {
+            return false;
+        }
+        if ((this.name == null) ? (other.name != null) : !this.name.equals(other.name)) {
+            return false;
+        }
+        if ((this.type == null) ? (other.type != null) : !this.type.equals(other.type)) {
+            return false;
+        }
+        return true;
+    }
+
     public int hashCode() {
         return hashCode;
     }
@@ -289,10 +310,10 @@ public abstract class DisplayImpl extends Display {
         return ( null == name ) ? nilString : name ;
     }
 
-    private static final String getFQName(String type, String name, int id) {
+    private static String getFQName(String type, String name, int id) {
         if(null==type) type=nilString;
         if(null==name) name=nilString;
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(type);
         sb.append("_");
         sb.append(name);
@@ -323,6 +344,7 @@ public abstract class DisplayImpl extends Display {
         return false;
     }
 
+    @Override
     public String toString() {
         return "NEWT-Display["+getFQName()+", refCount "+refCount+", hasEDT "+(null!=edtUtil)+", edtRunning "+isEDTRunning()+", "+aDevice+"]";
     }

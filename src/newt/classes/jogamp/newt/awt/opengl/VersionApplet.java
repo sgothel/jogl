@@ -156,7 +156,7 @@ public class VersionApplet extends Applet {
   class GLInfo implements GLEventListener {
     public void init(GLAutoDrawable drawable) {
         GL gl = drawable.getGL();
-        String s = JoglVersion.getInstance().getGLInfo(gl, null).toString();
+        String s = JoglVersion.getGLInfo(gl, null).toString();
         System.err.println(s);
         tareaVersion.append(s);
     }

@@ -38,7 +38,7 @@ public class AWTEDTUtil implements EDTUtil {
 
     private static AWTEDTUtil singletonMainThread = new AWTEDTUtil(); // one singleton MainThread
 
-    public static final AWTEDTUtil getSingleton() {
+    public static AWTEDTUtil getSingleton() {
         return singletonMainThread;
     }
 

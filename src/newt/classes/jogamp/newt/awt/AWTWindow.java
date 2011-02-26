@@ -80,6 +80,7 @@ public class AWTWindow extends WindowImpl {
         container.requestFocus();
     }
 
+    @Override
     protected void setTitleImpl(final String title) {
         if (frame != null) {
             frame.setTitle(title);
@@ -141,6 +142,7 @@ public class AWTWindow extends WindowImpl {
         }
     }
 
+    @Override
     public boolean hasDeviceChanged() {
         boolean res = canvas.hasDeviceChanged();
         if(res) {
@@ -179,6 +181,7 @@ public class AWTWindow extends WindowImpl {
         
     }
 
+    @Override
     public javax.media.nativewindow.util.Insets getInsets() {
         final int insets[] = new int[] { 0, 0, 0, 0 };
         Insets contInsets = container.getInsets();
@@ -217,17 +220,20 @@ public class AWTWindow extends WindowImpl {
         return new Point((int)(ap.getX()+0.5),(int)(ap.getY()+0.5));
     }
    
+    @Override
     public Object getWrappedWindow() {
         return canvas;
     }
 
     class LocalWindowListener extends com.jogamp.newt.event.WindowAdapter { 
+        @Override
         public void windowMoved(com.jogamp.newt.event.WindowEvent e) {
             if(null!=container) {
                 x = container.getX();
                 y = container.getY();
             }
         }
+        @Override
         public void windowResized(com.jogamp.newt.event.WindowEvent e) {
             if(null!=canvas) {
                 width = canvas.getWidth();

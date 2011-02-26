@@ -75,8 +75,9 @@ public class GLDrawableHelper {
     animatorCtrl = null;
   }
 
+  @Override
   public final String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append("GLAnimatorControl: "+animatorCtrl+", ");
     synchronized(listenersLock) {
         sb.append("GLEventListeners num "+listeners.size()+" [");
@@ -149,7 +150,7 @@ public class GLDrawableHelper {
     }
   }
 
-  private final boolean init(GLEventListener l, GLAutoDrawable drawable, boolean sendReshape) {
+  private boolean init(GLEventListener l, GLAutoDrawable drawable, boolean sendReshape) {
       if(listenersToBeInit.remove(l)) {
           l.init(drawable);
           if(sendReshape) {
@@ -194,7 +195,7 @@ public class GLDrawableHelper {
     execGLRunnables(drawable);
   }
 
-  private final void reshape(GLEventListener listener, GLAutoDrawable drawable,
+  private void reshape(GLEventListener listener, GLAutoDrawable drawable,
                              int x, int y, int width, int height, boolean setViewport) {
     if(setViewport) {
         drawable.getGL().glViewport(x, y, width, height);
@@ -212,7 +213,7 @@ public class GLDrawableHelper {
     }
   }
 
-  private final void execGLRunnables(GLAutoDrawable drawable) {
+  private void execGLRunnables(GLAutoDrawable drawable) {
     if(glRunnables.size()>0) {
         // swap one-shot list asap
         ArrayList _glRunnables = null;

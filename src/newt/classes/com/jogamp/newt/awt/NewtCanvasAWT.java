@@ -113,6 +113,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     FocusAction focusAction = new FocusAction();
     
     WindowListener clearAWTMenusOnNewtFocus = new WindowAdapter() {
+          @Override
           public void windowGainedFocus(WindowEvent arg0) {
                   MenuSelectionManager.defaultManager().clearSelectedPath();
           }
@@ -173,6 +174,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         }
     }
 
+    @Override
     public void addNotify() {
 
         // before native peer is valid: X11
@@ -194,6 +196,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         reparentWindow(true, cont);
     }
 
+    @Override
     public void removeNotify() {
         java.awt.Container cont = AWTMisc.getContainer(this);
         if(DEBUG) {
@@ -262,12 +265,14 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         }
     }
 
+    @Override
     public void paint(Graphics g) {
         awtWindowClosingProtocol.addClosingListenerOneShot();
         if(null!=newtChild) {
             newtChild.windowRepaint(0, 0, getWidth(), getHeight());
         }
     }
+    @Override
     public void update(Graphics g) {
         awtWindowClosingProtocol.addClosingListenerOneShot();
         if(null!=newtChild) {
@@ -287,11 +292,13 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         }
     }
 
+    @Override
     public void requestFocus() {
         requestFocusAWTParent();
         requestFocusNEWTChild();
     }
 
+    @Override
     public boolean requestFocus(boolean temporary) {
         boolean res = super.requestFocus(temporary);
         if(res) {
@@ -300,6 +307,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         return res;
     }
 
+    @Override
     public boolean requestFocusInWindow() {
         boolean res = super.requestFocusInWindow();
         if(res) {
@@ -308,6 +316,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         return res;
     }
 
+    @Override
     public boolean requestFocusInWindow(boolean temporary) {
         boolean res = super.requestFocusInWindow(temporary);
         if(res) {
@@ -358,8 +367,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       try {
         disableBackgroundEraseMethod.invoke(getToolkit(), new Object[] { this });
       } catch (Exception e) {
-        // FIXME: workaround for 6504460 (incorrect backport of 6333613 in 5.0u10)
-        // throw new GLException(e);
         t = e;
       }
       if(DEBUG) {

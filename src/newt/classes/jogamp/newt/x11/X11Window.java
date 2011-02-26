@@ -106,6 +106,7 @@ public class X11Window extends WindowImpl {
         requestFocus0(getDisplayHandle(), getWindowHandle(), force);
     }
 
+    @Override
     protected void setTitleImpl(String title) {
         setTitle0(getDisplayHandle(), getWindowHandle(), title);
     }

@@ -692,7 +692,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
 
             if(DEBUG_IMPLEMENTATION) {
-                String msg = new String("Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow)/*+", "+this*/);
+                String msg = "Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow);
                 System.err.println(msg);
                 Thread.dumpStack();
             }
@@ -717,7 +717,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             try {
                 if ( !fullscreen && ( width != WindowImpl.this.width || WindowImpl.this.height != height ) ) {
                     if(DEBUG_IMPLEMENTATION) {
-                        String msg = new String("Window setSize: START "+WindowImpl.this.width+"x"+WindowImpl.this.height+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible);
+                        String msg = "Window setSize: START "+WindowImpl.this.width+"x"+WindowImpl.this.height+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible;
                         System.err.println(msg);
                     }
                     if ( 0 != windowHandle && 0>=width*height && visible ) {
@@ -803,7 +803,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public void destroy() {
         if( isValid() ) {
             if(DEBUG_IMPLEMENTATION) {
-                String msg = new String("Window.destroy() START "+getThreadName()/*+", "+this*/);
+                String msg = "Window.destroy() START "+getThreadName();
                 System.err.println(msg);
                 //Exception ee = new Exception(msg);
                 //ee.printStackTrace();
@@ -839,7 +839,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         windowLock.lock();
         try {
             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                String msg = new String("!!! Window Invalidate(unrecoverable: "+unrecoverable+") "+getThreadName());
+                String msg = "!!! Window Invalidate(unrecoverable: "+unrecoverable+") "+getThreadName();
                 System.err.println(msg);
                 // Throwable t = new Throwable(msg);
                 // t.printStackTrace();
@@ -915,7 +915,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             return reparentAction;
         }
 
-        private final void setScreen(ScreenImpl newScreen) {
+        private void setScreen(ScreenImpl newScreen) {
             WindowImpl.this.removeScreenReference();
             screen = newScreen;
         }
@@ -1381,8 +1381,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return parentWindowHandle;
     }
 
+    @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         sb.append(getClass().getName()+"[Config "+config+
                     "\n, "+screen+
@@ -1422,11 +1423,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void runOnEDTIfAvail(boolean wait, final Runnable task) {
-        Screen screen = getScreen();
-        if(null==screen) {
+        Screen scrn = getScreen();
+        if(null==scrn) {
             throw new RuntimeException("Null screen of inner class: "+this);
         }
-        DisplayImpl d = (DisplayImpl) screen.getDisplay();
+        DisplayImpl d = (DisplayImpl) scrn.getDisplay();
         d.runOnEDTIfAvail(wait, task);
     }
 
@@ -2208,7 +2209,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     private static String getArgsStrList(Object[] args) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for(int i=0; i<args.length; i++) {
             sb.append(args[i].getClass());
             if(i<args.length) {
@@ -2219,7 +2220,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     private static String getTypeStrList(Class[] types) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for(int i=0; i<types.length; i++) {
             sb.append(types[i]);
             if(i<types.length) {

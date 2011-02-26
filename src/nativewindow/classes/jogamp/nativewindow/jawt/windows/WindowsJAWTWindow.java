@@ -61,6 +61,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
   protected void validateNative() throws NativeWindowException {
   }
 
+  @Override
   protected synchronized void invalidate() {
     super.invalidate();
     windowHandle = 0;
@@ -125,6 +126,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
     win32dsi = null;
   }
 
+  @Override
   public long getWindowHandle() {
     return windowHandle;
   }

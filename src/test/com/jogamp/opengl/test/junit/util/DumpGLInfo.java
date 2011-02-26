@@ -37,7 +37,7 @@ public class DumpGLInfo implements GLEventListener {
 
     public void init(GLAutoDrawable drawable) {
         GL gl = drawable.getGL();
-        System.err.println(JoglVersion.getInstance().getGLInfo(gl, null));
+        System.err.println(JoglVersion.getGLInfo(gl, null));
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {

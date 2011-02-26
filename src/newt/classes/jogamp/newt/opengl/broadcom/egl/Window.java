@@ -120,6 +120,7 @@ public class Window extends jogamp.newt.WindowImpl {
     }
 
 
+    @Override
     public boolean surfaceSwap() {
         SwapWindow(getDisplayHandle(), getWindowHandle());
         return true;

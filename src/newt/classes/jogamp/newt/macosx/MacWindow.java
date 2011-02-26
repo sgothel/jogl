@@ -168,10 +168,12 @@ public class MacWindow extends WindowImpl {
         }
     }
     
+    @Override
     public final long getSurfaceHandle() {
         return surfaceHandle;
     }
 
+    @Override
     public Insets getInsets() {
         // in order to properly calculate insets we need the window to be
         // created
@@ -186,11 +188,13 @@ public class MacWindow extends WindowImpl {
 
     private RecursiveLock nsViewLock = new RecursiveLock();
 
+    @Override
     protected int lockSurfaceImpl() {
         nsViewLock.lock();
         return LOCK_SUCCESS;
     }
 
+    @Override
     protected void unlockSurfaceImpl() {
         nsViewLock.unlock();
     }
@@ -214,6 +218,7 @@ public class MacWindow extends WindowImpl {
         }
     }
 
+    @Override
     protected void setTitleImpl(final String title) {
         // FIXME: move nsViewLock up to window lock
         nsViewLock.lock();
@@ -364,6 +369,7 @@ public class MacWindow extends WindowImpl {
         return keyChar;
     }
 
+    @Override
     public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
         int key = convertKeyChar(keyChar);
         if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.enqueueKeyEvent "+Thread.currentThread().getName());
