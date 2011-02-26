@@ -43,7 +43,7 @@ public class NewtVersion extends JogampVersion {
     }
 
     public static NewtVersion getInstance() {
-        if(null == jogampCommonVersionInfo) {
+        if(null == jogampCommonVersionInfo) { // volatile: ok
             synchronized(NewtVersion.class) {
                 if( null == jogampCommonVersionInfo ) {
                     final String packageName = "com.jogamp.newt";

@@ -60,13 +60,23 @@ public class JAWTUtil {
   private static final Method isQueueFlusherThread;
   private static final boolean j2dExist;
 
-  private static Class   sunToolkitClass;
-  private static Method  sunToolkitAWTLockMethod;
-  private static Method  sunToolkitAWTUnlockMethod;
-  private static boolean hasSunToolkitAWTLock;
+  private static final Class   sunToolkitClass;
+  private static final Method  sunToolkitAWTLockMethod;
+  private static final Method  sunToolkitAWTUnlockMethod;
+  private static final boolean hasSunToolkitAWTLock;
 
   private static final JAWTToolkitLock jawtToolkitLock;
 
+  private static class PrivilegedDataBlob1 {
+    PrivilegedDataBlob1() {
+        ok = false;
+    }  
+    Class   sunToolkitClass;
+    Method  sunToolkitAWTLockMethod;
+    Method  sunToolkitAWTUnlockMethod;
+    boolean ok;
+  }
+  
   static {
     JAWTJNILibLoader.loadAWTImpl();
     JAWTJNILibLoader.loadNativeWindow("awt");
@@ -87,22 +97,28 @@ public class JAWTUtil {
     isQueueFlusherThread = m;
     j2dExist = ok;
 
-    AccessController.doPrivileged(new PrivilegedAction() {
+    PrivilegedDataBlob1 pdb1 = (PrivilegedDataBlob1) AccessController.doPrivileged(new PrivilegedAction() {        
         public Object run() {
-            try {
-                sunToolkitClass = Class.forName("sun.awt.SunToolkit");
-                sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
-                sunToolkitAWTLockMethod.setAccessible(true);
-                sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});
-                sunToolkitAWTUnlockMethod.setAccessible(true);
+            PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
+            try {                
+                d.sunToolkitClass = Class.forName("sun.awt.SunToolkit");
+                d.sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
+                d.sunToolkitAWTLockMethod.setAccessible(true);
+                d.sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});
+                d.sunToolkitAWTUnlockMethod.setAccessible(true);
+                d.ok=true;
             } catch (Exception e) {
                 // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
             }
-            return null;
+            return d;
         }
     });
+    sunToolkitClass = pdb1.sunToolkitClass;
+    sunToolkitAWTLockMethod = pdb1.sunToolkitAWTLockMethod;
+    sunToolkitAWTUnlockMethod = pdb1.sunToolkitAWTUnlockMethod;
+    
     boolean _hasSunToolkitAWTLock = false;
-    if (null != sunToolkitAWTLockMethod && null != sunToolkitAWTUnlockMethod) {
+    if ( pdb1.ok ) {
         try {
             sunToolkitAWTLockMethod.invoke(null, (Object[])null);
             sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
@@ -152,11 +168,11 @@ public class JAWTUtil {
   }
 
 
-  public static final boolean hasJava2D() {
+  public static boolean hasJava2D() {
     return j2dExist;
   }
 
-  public static final boolean isJava2DQueueFlusherThread() {
+  public static boolean isJava2DQueueFlusherThread() {
     boolean b = false;
     if(j2dExist) {
         try {

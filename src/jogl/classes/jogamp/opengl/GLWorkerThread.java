@@ -40,7 +40,6 @@
 package jogamp.opengl;
 
 import java.lang.reflect.InvocationTargetException;
-import java.security.*;
 import java.util.*;
 import javax.media.opengl.*;
 
@@ -69,9 +68,11 @@ public class GLWorkerThread {
   
   /** Should only be called by Threading class if creation of the
       GLWorkerThread was requested via the opengl.1thread system
-      property. */
+      property. <br>
+   * Start the GLWorkerThread iff not started yet!
+   */
   public static void start() {
-    if (!started) {
+    if (!started) { // volatile: ok
       synchronized (GLWorkerThread.class) {
         if (!started) {
           lock = new Object();

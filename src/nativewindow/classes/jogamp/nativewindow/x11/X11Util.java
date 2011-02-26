@@ -54,7 +54,7 @@ public class X11Util {
     private static final boolean DEBUG = Debug.debug("X11Util");
     private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.getBooleanProperty("nativewindow.debug.X11Util.TraceDisplayLifecycle", true, AccessController.getContext());
 
-    private static String nullDisplayName = null;
+    private static volatile String nullDisplayName = null;
     private static boolean isFirstX11ActionOnProcess = false;
     private static boolean isInit = false;
 
@@ -117,7 +117,7 @@ public class X11Util {
     }
 
     public static String getNullDisplayName() {
-        if(null==nullDisplayName) {
+        if(null==nullDisplayName) { // volatile: ok
             synchronized(X11Util.class) {
                 if(null==nullDisplayName) {
                     NativeWindowFactory.getDefaultToolkitLock().lock();
@@ -174,17 +174,19 @@ public class X11Util {
 
         public final Throwable getCreationStack() { return creationStack; }
 
+        @Override
         public Object clone() throws CloneNotSupportedException {
           return super.clone();
         }
 
+        @Override
         public String toString() {
             return "NamedX11Display["+name+", 0x"+Long.toHexString(handle)+", refCount "+refCount+", unCloseable "+unCloseable+"]";
         }
     }
 
     /** Returns the number of unclosed X11 Displays.
-      * @param realXCloseAndPendingDisplays if true, {@link #closePendingDisplayConnections()} is called.
+     * @param realXCloseOpenAndPendingDisplays if true, {@link #closePendingDisplayConnections()} is called.
       */
     public static int shutdown(boolean realXCloseOpenAndPendingDisplays, boolean verbose) {
         int num=0;

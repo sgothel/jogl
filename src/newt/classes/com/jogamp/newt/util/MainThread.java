@@ -91,25 +91,25 @@ import jogamp.newt.awt.AWTEDTUtil;
  * Which starts 4 threads, each with a window and OpenGL rendering.<br>
  */
 public class MainThread implements EDTUtil {
-    private static AccessControlContext localACC = AccessController.getContext();
+    private static final AccessControlContext localACC = AccessController.getContext();
     public static final boolean  MAIN_THREAD_CRITERIA = ( !NativeWindowFactory.isAWTAvailable() &&
                                                            NativeWindowFactory.TYPE_MACOSX.equals(NativeWindowFactory.getNativeWindowType(false)) 
                                                         ) || Debug.getBooleanProperty("newt.MainThread.force", true, localACC);
 
     protected static final boolean DEBUG = Debug.debug("MainThread");
 
-    private static MainThread singletonMainThread = new MainThread(); // one singleton MainThread
+    private static final MainThread singletonMainThread = new MainThread(); // one singleton MainThread
 
     private static boolean isExit=false;
     private static volatile boolean isRunning=false;
-    private static Object taskWorkerLock=new Object();
+    private static final Object taskWorkerLock=new Object();
     private static boolean shouldStop;
     private static ArrayList tasks;
     private static Thread mainThread;
 
     private static Timer pumpMessagesTimer=null;
     private static TimerTask pumpMessagesTimerTask=null;
-    private static Map/*<Display, Runnable>*/ pumpMessageDisplayMap = new HashMap();
+    private static final Map/*<Display, Runnable>*/ pumpMessageDisplayMap = new HashMap();
 
     private static boolean useMainThread = false;
 
@@ -124,6 +124,7 @@ public class MainThread implements EDTUtil {
             this.mainClassArgs=mainClassArgs;
         }
 
+        @Override
         public void run() {
             if ( useMainThread ) {
                 // we have to start first to provide the service ..
@@ -205,7 +206,7 @@ public class MainThread implements EDTUtil {
         }
     }
 
-    public static final MainThread getSingleton() {
+    public static MainThread getSingleton() {
         return singletonMainThread;
     }
 
@@ -219,24 +220,20 @@ public class MainThread implements EDTUtil {
         if ( useMainThread ) {
             return; // error ?
         }
-        if(null == pumpMessagesTimer) {
-            synchronized (MainThread.class) {
-                if(null == pumpMessagesTimer) {
-                    pumpMessagesTimer = new Timer();
-                    pumpMessagesTimerTask = new TimerTask() {
-                        public void run() {
-                            synchronized(pumpMessageDisplayMap) {
-                                for(Iterator i = pumpMessageDisplayMap.values().iterator(); i.hasNext(); ) {
-                                    ((Runnable) i.next()).run();
-                                }
+        synchronized (pumpMessageDisplayMap) {
+            if(null == pumpMessagesTimer) {
+                pumpMessagesTimer = new Timer();
+                pumpMessagesTimerTask = new TimerTask() {
+                    public void run() {
+                        synchronized(pumpMessageDisplayMap) {
+                            for(Iterator i = pumpMessageDisplayMap.values().iterator(); i.hasNext(); ) {
+                                ((Runnable) i.next()).run();
                             }
                         }
-                    };
-                    pumpMessagesTimer.scheduleAtFixedRate(pumpMessagesTimerTask, 0, defaultEDTPollGranularity);
-                }
+                    }
+                };
+                pumpMessagesTimer.scheduleAtFixedRate(pumpMessagesTimerTask, 0, defaultEDTPollGranularity);
             }
-        }
-        synchronized(pumpMessageDisplayMap) {
             pumpMessageDisplayMap.put(dpy, pumpMessage);
         }
     }

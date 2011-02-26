@@ -46,7 +46,7 @@ public class JoglVersion extends JogampVersion {
     }
 
     public static JoglVersion getInstance() {
-        if(null == jogampCommonVersionInfo) {
+        if(null == jogampCommonVersionInfo) { // volatile: ok
             synchronized(JoglVersion.class) {
                 if( null == jogampCommonVersionInfo ) {
                     final String packageName = "javax.media.opengl";

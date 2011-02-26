@@ -203,13 +203,7 @@ public class ThreadingImpl {
                 throw new InternalError();
 
             case WORKER:
-                if (!GLWorkerThread.isStarted()) {
-                    synchronized (GLWorkerThread.class) {
-                        if (!GLWorkerThread.isStarted()) {
-                            GLWorkerThread.start();
-                        }
-                    }
-                }
+                GLWorkerThread.start(); // singleton start via volatile-dbl-checked-locking
                 try {
                     GLWorkerThread.invokeAndWait(r);
                 } catch (InvocationTargetException e) {

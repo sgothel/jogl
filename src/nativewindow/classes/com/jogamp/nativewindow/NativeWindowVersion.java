@@ -42,7 +42,7 @@ public class NativeWindowVersion extends JogampVersion {
     }
 
     public static NativeWindowVersion getInstance() {
-        if(null == jogampCommonVersionInfo) {
+        if(null == jogampCommonVersionInfo) { // volatile: ok
             synchronized(NativeWindowVersion.class) {
                 if( null == jogampCommonVersionInfo ) {
                     final String packageName = "javax.media.nativewindow";

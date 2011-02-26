@@ -51,6 +51,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
   }
 
   class WindowClosingAdapter extends WindowAdapter {
+    @Override
     public void windowClosing(WindowEvent e) {
       int op = AWTWindowClosingProtocol.this.getDefaultCloseOperation();
 
@@ -80,7 +81,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
    * @return
    */
   public final boolean addClosingListenerOneShot() {
-    if(!closingListenerSet) {
+    if(!closingListenerSet) { // volatile: ok
       synchronized(closingListenerLock) {
         if(!closingListenerSet) {
             closingListenerSet=addClosingListenerImpl();
@@ -92,7 +93,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
   }
 
   public final boolean removeClosingListener() {
-    if(closingListenerSet) {
+    if(closingListenerSet) { // volatile: ok
       synchronized(closingListenerLock) {
         if(closingListenerSet) {
             Window w = AWTMisc.getWindow(comp);
