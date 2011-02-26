@@ -172,8 +172,8 @@ public abstract class GLContextImpl extends GLContext {
 
   public GL setGL(GL gl) {
     if(DEBUG) {
-        String sgl1 = (null!=this.gl)?ReflectionUtil.getBaseName(this.gl.getClass())+", "+this.gl.toString():"<null>";
-        String sgl2 = (null!=gl)?ReflectionUtil.getBaseName(gl.getClass())+", "+gl.toString():"<null>";
+        String sgl1 = (null!=this.gl)?this.gl.getClass().getSimpleName()+", "+this.gl.toString():"<null>";
+        String sgl2 = (null!=gl)?gl.getClass().getSimpleName()+", "+gl.toString():"<null>";
         Exception e = new Exception("Info: setGL (OpenGL "+getGLVersion()+"): "+Thread.currentThread().getName()+", "+sgl1+" -> "+sgl2);
         e.printStackTrace();
     }

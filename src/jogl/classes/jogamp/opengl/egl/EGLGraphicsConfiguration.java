@@ -41,7 +41,6 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 import javax.media.opengl.*;
 import com.jogamp.common.nio.PointerBuffer;
-import com.jogamp.common.util.ReflectionUtil;
 import jogamp.opengl.*;
 
 public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
@@ -76,6 +75,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return new EGLGraphicsConfiguration(absScreen, caps, capsRequested, new DefaultGLCapabilitiesChooser());
     }
 
+    @Override
     public Object clone() {
         return super.clone();
     }
@@ -299,8 +299,9 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return attrs;
     }
 
+    @Override
     public String toString() {
-        return ReflectionUtil.getBaseName(getClass())+"["+getScreen()+", eglConfigID "+toHexString(getNativeConfigID())+
+        return getClass().getSimpleName()+"["+getScreen()+", eglConfigID "+toHexString(getNativeConfigID())+
                                      ",\n\trequested " + getRequestedCapabilities()+
                                      ",\n\tchosen    " + getChosenCapabilities()+
                                      "]";

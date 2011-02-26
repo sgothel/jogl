@@ -33,7 +33,6 @@
 
 package javax.media.nativewindow;
 
-import com.jogamp.common.util.ReflectionUtil;
 import jogamp.nativewindow.NativeWindowFactoryImpl;
 
 public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice {
@@ -89,6 +88,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         setToolkitLock( locker );
     }
 
+    @Override
     public Object clone() {
         try {
           return super.clone();
@@ -143,8 +143,9 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         return false;
     }
 
+    @Override
     public String toString() {
-        return ReflectionUtil.getBaseName(getClass())+"[type "+getType()+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+"]";
+        return getClass().getSimpleName()+"[type "+getType()+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+"]";
     }
 
     /**

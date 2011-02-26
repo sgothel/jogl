@@ -34,7 +34,6 @@ package javax.media.nativewindow.x11;
 
 import javax.media.nativewindow.*;
 
-import com.jogamp.common.util.ReflectionUtil;
 import jogamp.nativewindow.x11.XVisualInfo;
 
 /** Encapsulates a graphics configuration, or OpenGL pixel format, on
@@ -53,6 +52,7 @@ public class X11GraphicsConfiguration extends DefaultGraphicsConfiguration imple
         this.info = info;
     }
 
+    @Override
     public Object clone() {
       return super.clone();
     }
@@ -69,8 +69,9 @@ public class X11GraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return (null!=info)?info.getVisualid():0;
     }
     
+    @Override
     public String toString() {
-        return ReflectionUtil.getBaseName(getClass())+"["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) +
+        return getClass().getSimpleName()+"["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) +
                                        ",\n\tchosen    " + capabilitiesChosen+
                                        ",\n\trequested " + capabilitiesRequested+ 
                                        "]";

@@ -33,7 +33,6 @@ import javax.media.opengl.*;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.JogampVersion;
-import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.NativeWindowVersion;
 import java.util.jar.Manifest;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -59,7 +58,7 @@ public class JoglVersion extends JogampVersion {
         return jogampCommonVersionInfo;
     }
 
-    public StringBuffer toString(GL gl, StringBuffer sb) {
+    public StringBuilder toString(GL gl, StringBuilder sb) {
         sb = super.toString(sb).append(Platform.getNewline());
         getGLInfo(gl, sb);
         return sb;
@@ -69,16 +68,16 @@ public class JoglVersion extends JogampVersion {
         return toString(gl, null).toString();
     }
 
-    public static StringBuffer getGLInfo(GL gl, StringBuffer sb) {
+    public static StringBuilder getGLInfo(GL gl, StringBuilder sb) {
         AbstractGraphicsDevice device = gl.getContext().getGLDrawable().getNativeSurface()
                                             .getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
         if(null==sb) {
-            sb = new StringBuffer();
+            sb = new StringBuilder();
         }
         GLContext ctx = gl.getContext();
 
         sb.append(VersionUtil.SEPERATOR).append(Platform.getNewline());
-        sb.append(ReflectionUtil.getBaseName(device.getClass())).append("[type ")
+        sb.append(device.getClass().getSimpleName()).append("[type ")
                 .append(device.getType()).append(", connection ").append(device.getConnection()).append("]: ")
                 .append(GLProfile.glAvailabilityToString(device));
         sb.append(Platform.getNewline());

@@ -39,7 +39,6 @@
 
 package javax.media.nativewindow.awt;
 
-import com.jogamp.common.util.ReflectionUtil;
 import javax.media.nativewindow.*;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -66,6 +65,7 @@ public class AWTGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     return new AWTGraphicsDevice(awtDevice, unitID);
   }
 
+    @Override
   public Object clone() {
       return super.clone();
   }
@@ -91,8 +91,9 @@ public class AWTGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     return subType;
   }
 
+    @Override
   public String toString() {
-    return ReflectionUtil.getBaseName(getClass())+"[type "+getType()+"[subType "+getSubType()+"], connection "+getConnection()+", unitID "+getUnitID()+", awtDevice "+device+", handle 0x"+Long.toHexString(getHandle())+"]";
+    return getClass().getSimpleName()+"[type "+getType()+"[subType "+getSubType()+"], connection "+getConnection()+", unitID "+getUnitID()+", awtDevice "+device+", handle 0x"+Long.toHexString(getHandle())+"]";
   }
 }
 

@@ -40,7 +40,6 @@
 
 package javax.media.nativewindow.awt;
 
-import com.jogamp.common.util.ReflectionUtil;
 import javax.media.nativewindow.*;
 import java.awt.Component;
 import java.awt.GraphicsConfiguration;
@@ -104,6 +103,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
       return new AWTGraphicsConfiguration(awtScreen, capsChosen, capsRequested, awtGfxConfig);
   }
 
+    @Override
   public Object clone() {
       return super.clone();
   }
@@ -112,6 +112,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     return config;
   }
 
+    @Override
   public AbstractGraphicsConfiguration getNativeGraphicsConfiguration() {
     return (null!=encapsulated)?encapsulated:this;
   }
@@ -155,8 +156,9 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     return capabilities;
   }
 
+    @Override
   public String toString() {
-    return ReflectionUtil.getBaseName(getClass())+"[" + getScreen() +
+    return getClass().getSimpleName()+"[" + getScreen() +
                                    ",\n\tchosen    " + capabilitiesChosen+
                                    ",\n\trequested " + capabilitiesRequested+ 
                                    ",\n\t" + config +
