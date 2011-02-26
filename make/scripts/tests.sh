@@ -25,6 +25,12 @@ spath=`dirname $0`
 
 . $spath/setenv-jogl.sh $bdir JOGL_ALL
 
+MOSX=0
+uname -a | grep -i Darwin && MOSX=1
+if [ $MOSX -eq 1 ] ; then
+    MOSX_MT=1
+fi
+
 which $javaexe 2>&1 | tee -a java-run.log
 $javaexe -version 2>&1 | tee -a java-run.log
 echo LIBXCB_ALLOW_SLOPPY_LOCK: $LIBXCB_ALLOW_SLOPPY_LOCK 2>&1 | tee -a java-run.log
@@ -33,9 +39,10 @@ echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a java-run.log
 echo SWT_CLASSPATH: $SWT_CLASSPATH 2>&1 | tee -a java-run.log
 echo $javaexe $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 echo CLASSPATH $CLASSPATH 2>&1 | tee -a java-run.log
+echo MacOsX $MOSX
 
 function jrun() {
-    awtarg=$1
+    awton=$1
     shift
 
     #D_ARGS="-Djogl.debug.ExtensionAvailabilityCache -Djogl.debug=all -Dnativewindow.debug=all -Djogamp.debug.ProcAddressHelper=true -Djogamp.debug.NativeLibrary=true -Djogamp.debug.NativeLibrary.Lookup=true"
@@ -54,7 +61,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
     #D_ARGS="-Dnewt.debug.EDT"
-    #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
+    D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug=all"
@@ -65,21 +72,36 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.ToolkitLock.TraceLock"
     #X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=true"
     #X_ARGS="-verbose:jni"
+
+    if [ $awton -eq 1 ] ; then
+        X_ARGS="-Djava.awt.headless=false"
+    else
+        X_ARGS="-Djava.awt.headless=true"
+    fi
+    if [ $MOSX_MT -eq 1 ] ; then
+        X_ARGS="-XstartOnFirstThread $X_ARGS"
+        C_ARG="com.jogamp.newt.util.MainThread"
+    fi
     echo
     echo "Test Start: $*"
     echo
-    $javaexe $awtarg $X_ARGS $D_ARGS $*
+    $javaexe $X_ARGS $D_ARGS $C_ARG $*
     echo
     echo "Test End: $*"
     echo
 }
 
 function testnoawt() {
-    jrun -Djava.awt.headless=true $* 2>&1 | tee -a java-run.log
+    jrun 0 $* 2>&1 | tee -a java-run.log
 }
 
 function testawt() {
-    jrun -Djava.awt.headless=false $* 2>&1 | tee -a java-run.log
+    MOSX_MT=0
+    jrun 1 $* 2>&1 | tee -a java-run.log
+}
+
+function testawtmt() {
+    jrun 1 $* 2>&1 | tee -a java-run.log
 }
 
 #
@@ -109,6 +131,7 @@ function testawt() {
 #testawt com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT -time 1000000
 #testawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated
+#testnoawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
 
 
 #
@@ -126,15 +149,15 @@ function testawt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestTexture01AWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT
-#testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461OffscreenSupersamplingSwingAWT
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestGrayTextureFromFileAWTBug417
+testawtmt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
 
 #
 # newt.awt (testawt)
 #
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
-testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNewtAWTWrapper
+#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNewtAWTWrapper
 #testawt com.jogamp.opengl.test.junit.newt.TestEventSourceNotAWTBug
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot

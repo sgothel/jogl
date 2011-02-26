@@ -65,16 +65,17 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     long contextHandle = CGL.getCurrentContext(); // Check: MacOSX 10.3 ..
     boolean isNSContext = 0 != contextHandle;
     if( isNSContext ) {
-        currentDrawable = CGL.getNSView(contextHandle);
         long ctx = CGL.getCGLContext(contextHandle);
         if (ctx == 0) {
           throw new GLException("Error: NULL Context (CGL) of Context (NS) 0x" +Long.toHexString(contextHandle));
         }
         pixelFormat = CGL.CGLGetPixelFormat(ctx);
+        currentDrawable = CGL.getNSView(contextHandle);
         if(DEBUG) {
             System.err.println("MacOSXExternalCGLContext Create Context (NS) 0x"+Long.toHexString(contextHandle)+
                                ", Context (CGL) 0x"+Long.toHexString(ctx)+
-                               ", pixelFormat 0x"+Long.toHexString(pixelFormat));
+                               ", pixelFormat 0x"+Long.toHexString(pixelFormat)+
+                               ", drawable 0x"+Long.toHexString(currentDrawable));
         }
     } else {
         contextHandle = CGL.CGLGetCurrentContext();
@@ -99,6 +100,10 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_MACOSX);
     MacOSXCGLGraphicsConfiguration cfg = new MacOSXCGLGraphicsConfiguration(aScreen, caps, caps, pixelFormat);
 
+    if(0 == currentDrawable) {
+        // set a fake marker stating a valid drawable
+        currentDrawable = 1; 
+    }
     WrappedSurface ns = new WrappedSurface(cfg);
     ns.setSurfaceHandle(currentDrawable);
     return new MacOSXExternalCGLContext(new Drawable(factory, ns), isNSContext, contextHandle);

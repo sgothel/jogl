@@ -1393,12 +1393,16 @@ public class GLProfile {
 
     private static void dumpGLInfo(GLDrawableFactoryImpl factory, AbstractGraphicsDevice device)  {
         GLContext ctx = factory.getOrCreateSharedContext(device);
-        System.err.println("GLProfile.dumpGLInfo: "+ctx);
-        ctx.makeCurrent();
-        try {
-            System.err.println(JoglVersion.getGLInfo(ctx.getGL(), null));
-        } finally {
-            ctx.release();
+        if(null != ctx) {
+            System.err.println("GLProfile.dumpGLInfo: "+ctx);
+            ctx.makeCurrent();
+            try {
+                System.err.println(JoglVersion.getGLInfo(ctx.getGL(), null));
+            } finally {
+                ctx.release();
+            }
+        } else {
+            System.err.println("GLProfile.dumpGLInfo: shared context n/a");
         }
     }
 

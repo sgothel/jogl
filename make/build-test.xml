@@ -27,8 +27,10 @@
         <property name="java.dir.bugs"        value="${java.dir.test}/bugs"/>
 
         <property name="test.archive.name"    value="${archive.name}-test-results-${build.node.name}"/>
-        <condition property="jvmarg.newt.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
-        <condition property="jvmarg.newt.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
+        <condition property="jvmarg.mainthrd" value="-XstartOnFirstThread"><isset property="isOSX"/></condition>
+        <condition property="jvmarg.mainthrd" value="-Ddummy"><not><isset property="isOSX"/></not></condition>
+        <condition property="jvmarg.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
+        <condition property="jvmarg.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
 
         <property name="batchtest.timeout"    value="1800000"/> <!-- 30 min -->
     </target>
@@ -209,7 +211,7 @@
                 <env key="${system.env.library.path}" path="${obj.all.paths}"/>
                 <env key="CLASSPATH" value="${junit_jogl_newt.run.jars}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
-                <arg line="${jvmarg.newt.headless}"/>
+                <arg line="${jvmarg.headless}"/>
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
                 -->
@@ -307,11 +309,75 @@
         </junit>
     </target>
 
-    <target name="junit.run.swt" depends="test.compile" description="Runs all SWT and SWT_AWT tests.">
+    <target name="junit.run.swt.headless" depends="test.compile" description="Runs all pure SWT tests.">
+        <!-- Test*SWT* 
+
+             Emulation of junit task,
+             due to the fact that we have to place invoke our MainThread class first (-> MacOSX).
+
+             Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
+          --> 
+        <for param="test.class.path.m" keepgoing="true">
+            <!-- results in absolute path -->
+            <fileset dir="${classes}">
+                <include name="${java.dir.junit}/**/Test*SWT*"/>
+                <exclude name="**/*$$*"/>
+                <exclude name="**/*AWT*"/>
+                <exclude name="**/newt/**"/>
+            </fileset>
+          <sequential>
+            <var name="test.class.path" unset="true"/>
+            <property name="test.class.path" basedir="${classes}" relative="true" location="@{test.class.path.m}"/>
+            <var name="test.class.fqn" unset="true"/>
+            <pathconvert property="test.class.fqn">
+              <fileset file="${classes}${file.separator}${test.class.path}"/>
+              <chainedmapper>
+                  <globmapper    from="${classes.path}${file.separator}*" to="*"/> <!-- rel. -->
+                  <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
+              </chainedmapper>
+            </pathconvert>
+            <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
+            <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
+            <apply dir="." executable="${java.home}/bin/java" 
+                 parallel="false" 
+                 timeout="${batchtest.timeout}"
+                 vmlauncher="false"
+                 relative="true"
+                 failonerror="false">
+                <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+                <env key="CLASSPATH" value="${junit_jogl_swt.run.jars}"/>
+                <arg value="-Djava.library.path=${obj.all.paths}"/>
+                <arg line="${jvmarg.headless}"/>
+                <!--
+                <arg line="-Dnewt.debug.EDT"/>
+                -->
+                <arg line="com.jogamp.newt.util.MainThread"/>
+                <arg line="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner"/>
+                <srcfile/>
+                <arg line="filtertrace=true"/>
+                <arg line="haltOnError=false"/>
+                <arg line="haltOnFailure=false"/>
+                <arg line="showoutput=true"/>
+                <arg line="outputtoformatters=true"/>
+                <arg line="logfailedtests=true"/>
+                <arg line="logtestlistenerevents=true"/>
+                <arg line="formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter"/>
+                <arg line="formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,${test.class.result.file}"/>
+                <mappedresources>
+                    <fileset dir="${classes}" includes="${test.class.path}"/>
+                    <packagemapper from="*.class" to="*"/>
+                </mappedresources>
+            </apply>
+          </sequential>
+        </for>
+    </target>
+
+    <target name="junit.run.swt.awt" depends="test.compile" description="Runs all SWT_AWT tests.">
       <!-- Test*SWT* -->
       <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
           <env key="${system.env.library.path}" path="${obj.all.paths}"/>
           <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+          <jvmarg value="${jvmarg.mainthrd}"/>
 
           <!--
           <jvmarg value="-Djogl.debug=all"/>
@@ -330,7 +396,7 @@
 
           <batchtest todir="${results.test}">
             <fileset dir="${classes}">
-                <include name="${java.dir.junit}/**/Test*SWT*"/>
+                <include name="${java.dir.junit}/**/Test*SWT*AWT*"/>
                 <exclude name="**/*$$*"/>
                 <exclude name="**/newt/**"/>
             </fileset>
@@ -376,7 +442,7 @@
     </target>
 
     <target name="test.auto.run" depends="junit.run"/>
-    <target name="junit.run" depends="junit.run.noui,junit.run.newt.headless,junit.run.awt,junit.run.newt.awt,junit.run.swt">
+    <target name="junit.run" depends="junit.run.noui,junit.run.newt.headless,junit.run.awt,junit.run.newt.awt,junit.run.swt.headless,junit.run.swt.awt">
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
 

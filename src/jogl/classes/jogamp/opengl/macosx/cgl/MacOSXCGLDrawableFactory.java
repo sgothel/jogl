@@ -50,6 +50,7 @@ import javax.media.opengl.*;
 
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
+import java.util.ArrayList;
 import jogamp.opengl.*;
 import jogamp.nativewindow.WrappedSurface;
 
@@ -127,7 +128,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   protected final void shutdownInstance() {}
 
   protected List/*GLCapabilitiesImmutable*/ getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
-    throw new UnsupportedOperationException("not yet implemented");
+      return new ArrayList(0);
   }
 
   protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {

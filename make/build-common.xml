@@ -262,8 +262,8 @@
             <pathelement location="${jogl.test.jar}" />
         </path>
 
-      <!-- classpath used when running SWT tests -->
-      <path id="junit_jogl_swt.run.classpath">
+        <!-- classpath used when running SWT tests -->
+        <path id="junit_jogl_swt.run.classpath">
           <pathelement location="${junit.jar}" />
           <pathelement location="${ant.jar}" />
           <pathelement location="${ant-junit.jar}" />
@@ -273,7 +273,9 @@
           <pathelement location="${jogl.all.jar}" />
           <pathelement location="${newt.event.jar}" />
           <pathelement location="${jogl.test.jar}" />
-      </path>
+        </path>
+        <property name="junit_jogl_swt.run.jars"
+                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${swt.jar}${path.separator}${nativewindow.all.jar}${path.separator}${jogl.all.jar}${path.separator}${newt.all.jar}${path.separator}${jogl.test.jar}"/>
 
         <path id="junit_jogl_newt.run.classpath">
             <pathelement location="${junit.jar}" />
