@@ -309,6 +309,31 @@
         </junit>
     </target>
 
+    <target name="junit.run.awt.singletest" depends="test.compile">
+        <!-- Test*AWT* -->
+        <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+
+            <!--
+            <jvmarg value="-Djogl.debug=all"/>
+            <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
+            <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
+            <jvmarg value="-Djogl.debug.GLSLState"/>
+            <jvmarg value="-Dnativewindow.debug=all"/>
+            <jvmarg value="-verbose:jni"/> 
+            <jvmarg value="-client"/>
+            <jvmarg value="-d32"/>
+            -->
+
+            <formatter usefile="false" type="plain"/>
+            <formatter usefile="true" type="xml"/>
+            <classpath refid="junit_jogl_newt_awt.run.classpath"/>
+
+            <test name="${testclass}"/>
+        </junit>
+    </target>
+
     <target name="junit.run.swt.headless" depends="test.compile" description="Runs all pure SWT tests.">
         <!-- Test*SWT* 
 
