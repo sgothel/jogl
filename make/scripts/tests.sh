@@ -61,7 +61,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
     #D_ARGS="-Dnewt.debug.EDT"
-    D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug=all"
@@ -132,6 +132,7 @@ function testawtmt() {
 #testawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated
 #testnoawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
+testnoawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn $*
 
 
 #
@@ -151,7 +152,7 @@ function testawtmt() {
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461OffscreenSupersamplingSwingAWT
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestGrayTextureFromFileAWTBug417
-testawtmt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
+#testawtmt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
 
 #
 # newt.awt (testawt)

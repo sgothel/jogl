@@ -47,7 +47,8 @@ REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestWindowClosingPr
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol03NewtAWT $*
 
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn %1 %2 %3 %4
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn %1 %2 %3 %4
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn %1 %2 %3 %4
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT -time 5000

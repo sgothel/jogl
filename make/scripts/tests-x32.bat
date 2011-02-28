@@ -33,5 +33,6 @@ REM scripts\java-win32.bat com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT -time 10000
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleNEWT -time 10000
 
-scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn %1 %2 %3 %4
+REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn %1 %2 %3 %4
+scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn %1 %2 %3 %4
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
