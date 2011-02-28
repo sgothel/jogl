@@ -41,7 +41,6 @@
 package com.jogamp.opengl.util;
 
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLException;
 
 
 /** <P> An Animator can be attached to one or more {@link
@@ -125,11 +124,15 @@ public class Animator extends AnimatorBase {
     }
 
     class MainLoop implements Runnable {
+        public String toString() {
+            return "[started "+isStartedImpl()+", animating "+isAnimatingImpl()+", paused "+isPausedImpl()+", frames "+getTotalFrames()+", drawable "+drawables.size()+"]";
+        }
+
         public void run() {
             try {
                 synchronized (Animator.this) {
                     if(DEBUG) {
-                        System.err.println("Animator started: "+Thread.currentThread());
+                        System.err.println("Animator start:" + Thread.currentThread() + ": " + toString());
                     }
 
                     startTime = System.currentTimeMillis();
@@ -147,7 +150,7 @@ public class Animator extends AnimatorBase {
                         while (!stopIssued && (pauseIssued || drawablesEmpty)) {
                             boolean wasPaused = pauseIssued;
                             if (DEBUG) {
-                                System.err.println("Animator paused: " + Thread.currentThread());
+                                System.err.println("Animator pause:" + Thread.currentThread() + ": " + toString());
                             }
                             setIsAnimatingSynced(false); // barrier
                             Animator.this.notifyAll();
@@ -162,7 +165,7 @@ public class Animator extends AnimatorBase {
                                 curTime = startTime;
                                 totalFrames = 0;
                                 if (DEBUG) {
-                                    System.err.println("Animator resume: " + Thread.currentThread());
+                                    System.err.println("Animator resume:" + Thread.currentThread() + ": " + toString());
                                 }
                             }
                         }
@@ -184,7 +187,7 @@ public class Animator extends AnimatorBase {
             } finally {
                 synchronized (Animator.this) {
                     if(DEBUG) {
-                        System.err.println("Animator stopped: "+Thread.currentThread());
+                        System.err.println("Animator stop " + Thread.currentThread() + ": " + toString());
                     }
                     stopIssued = false;
                     pauseIssued = false;

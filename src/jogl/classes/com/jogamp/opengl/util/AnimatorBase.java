@@ -111,7 +111,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
 
     public synchronized void remove(GLAutoDrawable drawable) {
         if(DEBUG) {
-            System.err.println("Animator remove: "+drawable.hashCode()+" - "+Thread.currentThread());
+            System.err.println("Animator remove: "+drawable.hashCode()+" - "+Thread.currentThread() + ": "+toString());
         }
 
         boolean paused = pause();
