@@ -195,7 +195,7 @@ public abstract class DisplayImpl extends Display {
     }
 
     public void runOnEDTIfAvail(boolean wait, final Runnable task) {
-        if( shallRunOnEDT() && null!=edtUtil ) {
+        if( shallRunOnEDT() && null!=edtUtil && !edtUtil.isCurrentThreadEDT()) {
             edtUtil.invoke(wait, task);
         } else {
             task.run();
@@ -353,6 +353,7 @@ public abstract class DisplayImpl extends Display {
 
     private Object eventsLock = new Object();
     private ArrayList/*<NEWTEvent>*/ events = new ArrayList();
+    private volatile boolean haveEvents = false;
 
     class DispatchMessagesRunnable implements Runnable {
         public void run() {
@@ -361,6 +362,21 @@ public abstract class DisplayImpl extends Display {
     }
     DispatchMessagesRunnable dispatchMessagesRunnable = new DispatchMessagesRunnable();
 
+    final void dispatchMessage(final NEWTEventTask eventTask) {
+        NEWTEvent event = eventTask.get();
+        Object source = event.getSource();
+        if(source instanceof NEWTEventConsumer) {
+            NEWTEventConsumer consumer = (NEWTEventConsumer) source ;
+            if(!consumer.consumeEvent(event)) {
+                // enqueue for later execution
+                enqueueEvent(false, event);
+            }
+        } else {
+            throw new RuntimeException("Event source not NEWT: "+source.getClass().getName()+", "+source);
+        }
+        eventTask.notifyIssuer();        
+    }
+    
     public void dispatchMessages() {
         // System.err.println("Display.dispatchMessages() 0 "+this+" "+getThreadName());
         if(0==refCount) return; // no screens 
@@ -368,29 +384,19 @@ public abstract class DisplayImpl extends Display {
 
         ArrayList/*<NEWTEvent>*/ _events = null;
 
-        if(events.size()>0) {
-            // swap events list to free ASAP
+        if(haveEvents) { // volatile: ok
             synchronized(eventsLock) {
-                if(events.size()>0) {
+                if(haveEvents) {
+                    // swap events list to free ASAP
                     _events = events;
                     events = new ArrayList();
+                    haveEvents = false;
                 }
                 eventsLock.notifyAll();
             }
             if( null != _events ) {
                 for (int i=0; i < _events.size(); i++) {
-                    NEWTEventTask eventTask = (NEWTEventTask) _events.get(i);
-                    NEWTEvent event = eventTask.get();
-                    Object source = event.getSource();
-                    if(source instanceof NEWTEventConsumer) {
-                        NEWTEventConsumer consumer = (NEWTEventConsumer) source ;
-                        if(!consumer.consumeEvent(event)) {
-                            enqueueEvent(false, event);
-                        }
-                    } else {
-                        throw new RuntimeException("Event source not NEWT: "+source.getClass().getName()+", "+source);
-                    }
-                    eventTask.notifyIssuer();
+                    dispatchMessage((NEWTEventTask) _events.get(i));
                 }
             }
         }
@@ -408,14 +414,19 @@ public abstract class DisplayImpl extends Display {
             }
             return;
         }
-        // can't wait if we are on EDT
-        wait = wait && !edtUtil.isCurrentThreadEDT();
+        
+        // can't wait if we are on EDT -> consume right away
+        if(wait && edtUtil.isCurrentThreadEDT()) {
+            dispatchMessage(new NEWTEventTask(e, null));
+            return;
+        }
         
         Object lock = new Object();
         NEWTEventTask eTask = new NEWTEventTask(e, wait?lock:null);
         synchronized(lock) {
             synchronized(eventsLock) {
                 events.add(eTask);
+                haveEvents = true;
                 eventsLock.notifyAll();
             }
             if( wait ) {
