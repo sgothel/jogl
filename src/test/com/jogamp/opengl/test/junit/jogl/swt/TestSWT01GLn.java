@@ -54,14 +54,6 @@ import org.junit.After;
 import org.junit.Test;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLDrawable;
-import jogamp.nativewindow.swt.SWTAccessor;
-import jogamp.opengl.windows.wgl.WindowsWGLDrawableFactory;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Canvas;
 
 /**
  * Tests that a basic SWT app can open without crashing under different GL profiles. Uses the SWT GL canvas.
@@ -173,86 +165,12 @@ public class TestSWT01GLn extends UITestCase {
         glcanvas.dispose();
     }
 
-    /**
-    protected void runTestBGL( GLProfile glprofile ) throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(glprofile);
-        WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory) GLDrawableFactory.getFactory(glprofile);
-
-        GLData gldata = new GLData();
-        gldata.doubleBuffer = true;
-        // need SWT.NO_BACKGROUND to prevent SWT from clearing the window
-        // at the wrong times (we use glClear for this instead)
-        final Canvas canvas = new Canvas(composite, SWT.NO_BACKGROUND);
-        Assert.assertNotNull( canvas );
-        canvas.setSize(iwidth, iheight);
-        long windowHandle = SWTAccessor.getHandle(canvas);
-        Point sz = canvas.getSize();
-        ProxySurface surface = factory.createProxySurfaceImpl(caps, caps, null, windowHandle, sz.x, sz.y);
-        final GLDrawable glDrawable = factory.createGLDrawable(surface);
-
-        glDrawable.setRealized(true);
-        final GLContext glContext = glDrawable.createContext(null);
-
-        // fix the viewport when the user resizes the window
-        canvas.addListener( SWT.Resize, new Listener() {
-            public void handleEvent( Event event ) {
-                Rectangle rectangle = canvas.getClientArea();
-                glContext.makeCurrent();
-                GL2 gl = glContext.getGL().getGL2();
-                OneTriangle.setup( gl, rectangle );
-                glContext.release();
-                System.err.println("resize");
-            }
-        });
-
-        // draw the triangle when the OS tells us that any part of the window needs drawing
-        canvas.addPaintListener( new PaintListener() {
-            public void paintControl( PaintEvent paintevent ) {
-                Rectangle rectangle = canvas.getClientArea();
-                glContext.makeCurrent();
-                GL2 gl = glContext.getGL().getGL2();
-                OneTriangle.render( gl, rectangle );
-                glDrawable.swapBuffers();
-                glContext.release();
-                System.err.println("paint");
-            }
-        });
-
-        shell.setText( getClass().getName() );
-        shell.setSize( iwidth, iheight );
-        shell.open();
-
-        long lStartTime = System.currentTimeMillis();
-        long lEndTime = lStartTime + duration;
-        try {
-            while( (System.currentTimeMillis() < lEndTime) && !canvas.isDisposed() ) {
-                if( !display.readAndDispatch() ) {
-                    // blocks on linux .. display.sleep();
-                    Thread.sleep(10);
-                }
-            }
-        } catch( Throwable throwable ) {
-            throwable.printStackTrace();
-            Assume.assumeNoException( throwable );
-        }
-        glContext.destroy();
-        glDrawable.setRealized(false);
-        canvas.dispose();
-    } */
-
     @Test
     public void testA01GLDefault() throws InterruptedException {
         GLProfile glprofile = GLProfile.getDefault();
         System.out.println( "GLProfile Default: " + glprofile );
         runTestAGL( glprofile );
     }
-
-    /* @Test
-    public void testB01GLDefault() throws InterruptedException {
-        GLProfile glprofile = GLProfile.getDefault();
-        System.out.println( "GLProfile Default: " + glprofile );
-        runTestBGL( glprofile );
-    } */
 
     @Test
     public void test02GL2() throws InterruptedException {
