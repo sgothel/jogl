@@ -408,6 +408,9 @@ public abstract class DisplayImpl extends Display {
             }
             return;
         }
+        // can't wait if we are on EDT
+        wait = wait && !edtUtil.isCurrentThreadEDT();
+        
         Object lock = new Object();
         NEWTEventTask eTask = new NEWTEventTask(e, wait?lock:null);
         synchronized(lock) {
