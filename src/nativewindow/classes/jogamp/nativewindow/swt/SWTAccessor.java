@@ -34,6 +34,10 @@ import org.eclipse.swt.graphics.GCData;
 import org.eclipse.swt.widgets.Control;
 
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.windows.WindowsGraphicsDevice;
+import javax.media.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.common.util.ReflectionUtil;
 
 public class SWTAccessor {
@@ -46,6 +50,19 @@ public class SWTAccessor {
     static final String str_internal_dispose_GC = "internal_dispose_GC";
     static final String str_handle = "handle";
 
+    static final String str_OS_gtk_class = "org.eclipse.swt.internal.gtk.OS";
+    static final Class OS_gtk_class;
+    static final Method OS_gtk_widget_realize;
+    static final Method OS_gtk_widget_unrealize;
+    static final Method OS_GTK_WIDGET_WINDOW;
+    static final Method OS_gdk_x11_drawable_get_xdisplay;
+    static final Method OS_gdk_x11_drawable_get_xid;    
+    static final String str_gtk_widget_realize = "gtk_widget_realize";
+    static final String str_gtk_widget_unrealize = "gtk_widget_unrealize";
+    static final String str_GTK_WIDGET_WINDOW = "GTK_WIDGET_WINDOW";
+    static final String str_gdk_x11_drawable_get_xdisplay = "gdk_x11_drawable_get_xdisplay";
+    static final String str_gdk_x11_drawable_get_xid = "gdk_x11_drawable_get_xid";
+    
     static {
         Method m=null;
         try {
@@ -77,8 +94,43 @@ public class SWTAccessor {
             throw new NativeWindowException(ex);
         }
         swt_control_handle = f;
+        
+        Class c=null;                
+        Method m1=null, m2=null, m3=null, m4=null, m5=null;
+        Class handleType = swt_uses_long_tmp  ? long.class : int.class ;
+        if( NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false) ) {
+            try {
+                c = ReflectionUtil.getClass(str_OS_gtk_class, false, SWTAccessor.class.getClassLoader());
+                m1 = c.getDeclaredMethod(str_gtk_widget_realize, handleType);        
+                m2 = c.getDeclaredMethod(str_gtk_widget_unrealize, handleType);
+                m3 = c.getDeclaredMethod(str_GTK_WIDGET_WINDOW, handleType);
+                m4 = c.getDeclaredMethod(str_gdk_x11_drawable_get_xdisplay, handleType);
+                m5 = c.getDeclaredMethod(str_gdk_x11_drawable_get_xid, handleType);
+            } catch (Exception ex) { throw new NativeWindowException(ex); }
+        }
+        OS_gtk_class = c;
+        OS_gtk_widget_realize = m1;
+        OS_gtk_widget_unrealize = m2;
+        OS_GTK_WIDGET_WINDOW = m3;
+        OS_gdk_x11_drawable_get_xdisplay = m4;
+        OS_gdk_x11_drawable_get_xid = m5;
     }
 
+    static void callMethodL2V(Class c, Method m, long arg) {
+        Object argObj = swt_uses_long_handles ? new Long(arg) : new Integer((int)arg);
+        ReflectionUtil.callMethod(c, m, new Object[] { argObj });
+    }
+    
+    static long callMethodL2L(Class c, Method m, long arg) {
+        Object argObj = swt_uses_long_handles ? new Long(arg) : new Integer((int)arg);
+        Object o = ReflectionUtil.callMethod(c, m, new Object[] { argObj });
+        if(o instanceof Number) {
+            return ((Number)o).longValue();
+        } else {
+            throw new InternalError("SWT method "+c.getSimpleName()+"."+m.getName()+" didn't return int or long but "+o.getClass());
+        }
+    }
+        
     public static boolean isUsingLongHandles() {
         return swt_uses_long_handles;
     }
@@ -91,6 +143,43 @@ public class SWTAccessor {
             throw new NativeWindowException(ex);
         }
         return h;
+    }
+
+    public static void setRealized(Control swtControl, boolean realize) {
+        long handle = getHandle(swtControl);
+        
+        if(null != OS_gtk_class) {
+            if(realize) {
+                callMethodL2V(OS_gtk_class, OS_gtk_widget_realize, handle);
+            } else {
+                callMethodL2V(OS_gtk_class, OS_gtk_widget_unrealize, handle);
+            }
+        }
+    }
+    
+    public static AbstractGraphicsDevice getDevice(Control swtControl) {
+        long handle = getHandle(swtControl);
+        if( null != OS_gtk_class ) {
+            long widgedHandle = callMethodL2L(OS_gtk_class, OS_GTK_WIDGET_WINDOW, handle);
+            long displayHandle = callMethodL2L(OS_gtk_class, OS_gdk_x11_drawable_get_xdisplay, widgedHandle);
+            return new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT);
+        }
+        if( NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false) ) {
+            return new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+        }
+        throw new UnsupportedOperationException("n/a for this windowing system: "+NativeWindowFactory.getNativeWindowType(false));
+    }
+    
+    public static long getWindowHandle(Control swtControl) {
+        long handle = getHandle(swtControl);        
+        if( null != OS_gtk_class ) {
+            long widgedHandle = callMethodL2L(OS_gtk_class, OS_GTK_WIDGET_WINDOW, handle);
+            return callMethodL2L(OS_gtk_class, OS_gdk_x11_drawable_get_xid, widgedHandle);
+        }
+        if( NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false) ) {
+            return handle;
+        }
+        throw new UnsupportedOperationException("n/a for this windowing system: "+NativeWindowFactory.getNativeWindowType(false));
     }
     
     public static long newGC(Control swtControl, GCData gcData) {
@@ -109,4 +198,5 @@ public class SWTAccessor {
             ReflectionUtil.callMethod(swtControl, swt_control_internal_dispose_GC, new Object[] { new Integer((int)gc), gcData });
         }
     }
+    
 }
