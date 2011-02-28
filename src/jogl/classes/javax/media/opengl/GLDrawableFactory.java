@@ -52,6 +52,7 @@ import com.jogamp.common.util.ReflectionUtil;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.ProxySurface;
 
 /** <P> Provides a virtual machine- and operating system-independent
     mechanism for creating {@link GLDrawable}s. </P>
@@ -423,6 +424,23 @@ public abstract class GLDrawableFactory {
                                                        GLCapabilitiesImmutable caps,
                                                        GLCapabilitiesChooser chooser,
                                                        int width, int height);
+
+  /**
+   * Highly experimental API entry, allowing developer of new windowing system bindings 
+   * to leverage the native window handle to produce a NativeSurface implementation (ProxySurface), having the required GLCapabilities.<br>
+   * Such surface can be used to instantiate a GLDrawable and hence test your new binding w/o the 
+   * costs of providing a full set of abstraction like the AWT GLCanvas or even the native NEWT bindings.
+   * 
+   * @param device the platform's target device, shall not be <code>null</code>
+   * @param windowHandle the native window handle
+   * @param caps the requested GLCapabilties
+   * @param chooser the custom chooser, may be null for default
+   * @return The proxy surface wrapping the windowHandle on the device
+   */
+  public abstract ProxySurface createProxySurface(AbstractGraphicsDevice device, 
+                                                  long windowHandle, 
+                                                  GLCapabilitiesImmutable caps, 
+                                                  GLCapabilitiesChooser chooser);
 
   /**
    * Returns true if it is possible to create a GLPbuffer. Some older

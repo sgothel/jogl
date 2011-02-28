@@ -173,6 +173,12 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     return ns;
   }
 
+  protected ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice device, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
+    AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);    
+    WrappedSurface ns = new WrappedSurface(MacOSXCGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen, true), windowHandle);
+    return ns;    
+  }  
+  
   protected GLContext createExternalGLContextImpl() {
     return MacOSXExternalCGLContext.create(this, null);
   }

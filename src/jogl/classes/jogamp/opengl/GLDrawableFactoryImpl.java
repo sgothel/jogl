@@ -232,6 +232,21 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                                                               GLCapabilitiesChooser chooser,
                                                               int width, int height);
 
+  public ProxySurface createProxySurface(AbstractGraphicsDevice device, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
+    if(null == device) {
+        throw new GLException("No shared device for requested: "+device);
+    }
+
+    device.lock();
+    try {
+        return createProxySurfaceImpl(device, windowHandle, capsRequested, chooser);
+    } finally {
+        device.unlock();
+    }
+  }  
+  
+  protected abstract ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice device, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser);
+
   //---------------------------------------------------------------------------
   //
   // External GLDrawable construction

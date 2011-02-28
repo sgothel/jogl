@@ -65,6 +65,7 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.util.ReflectionUtil;
+import javax.media.opengl.GLCapabilities;
 import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.GDISurface;
@@ -442,6 +443,15 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     WrappedSurface ns = new WrappedSurface(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
                                      capsChosen, capsRequested, chooser, screen) );
     ns.setSize(width, height);
+    return ns;
+  }
+ 
+  protected final ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice adevice, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
+    // FIXME device/windowHandle -> screen ?!
+    WindowsGraphicsDevice device = (WindowsGraphicsDevice) adevice;
+    AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
+    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen);    
+    GDISurface ns = new GDISurface(cfg, windowHandle);
     return ns;
   }
  

@@ -177,6 +177,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
             try {
                 String glXVendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
                 X11GraphicsScreen sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
+
                 if (null == sharedScreen) {
                     throw new GLException("Couldn't create shared screen for device: "+sharedDevice+", idx 0");
                 }
@@ -407,6 +408,15 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return ns;
   }
 
+  protected final ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice adevice, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
+    // FIXME device/windowHandle -> screen ?!
+    X11GraphicsDevice device = (X11GraphicsDevice) adevice;
+    X11GraphicsScreen screen = new X11GraphicsScreen(device, 0);
+    X11GLXGraphicsConfiguration cfg = X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen);
+    WrappedSurface ns = new WrappedSurface(cfg, windowHandle);
+    return ns;
+  }
+ 
   protected final GLContext createExternalGLContextImpl() {
     return X11ExternalGLXContext.create(this, null);
   }

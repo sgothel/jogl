@@ -225,6 +225,11 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return ns;
     }
 
+    protected ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice device, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {    
+        WrappedSurface ns = new WrappedSurface(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(device, capsRequested, capsRequested, chooser), windowHandle);
+        return ns;
+    }    
+    
     protected GLContext createExternalGLContextImpl() {
         AbstractGraphicsScreen absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_EGL);
         return new EGLExternalContext(absScreen);
