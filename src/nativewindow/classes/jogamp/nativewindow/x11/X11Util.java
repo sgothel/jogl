@@ -361,11 +361,11 @@ public class X11Util {
      * @return If name is null, it returns the previous queried NULL display name,
      * otherwise the name. */
     public static String validateDisplayName(String name) {
-        return ( null == name ) ? getNullDisplayName() : name ;
+        return ( null == name || AbstractGraphicsDevice.DEFAULT_CONNECTION.equals(name) ) ? getNullDisplayName() : name ;
     }
 
     public static String validateDisplayName(String name, long handle) {
-        if(null==name && 0!=handle) {
+        if( ( null==name || AbstractGraphicsDevice.DEFAULT_CONNECTION.equals(name) ) && 0!=handle) {
             name = XDisplayString(handle);
         }
         return validateDisplayName(name);
