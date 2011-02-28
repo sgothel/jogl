@@ -304,8 +304,8 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
     // Hide methods here ..
     protected class GLLifecycleHook implements WindowImpl.LifecycleHook {
 
-        class DisposeAction implements Runnable {
-            public void run() {
+        private class DisposeAction implements Runnable {
+            public final void run() {
                 // Lock: Covered by DestroyAction ..
                 helper.dispose(GLWindow.this);
             }
@@ -579,8 +579,8 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
         }
     }
 
-    class InitAction implements Runnable {
-        public void run() {
+    private class InitAction implements Runnable {
+        public final void run() {
             // Lock: Locked Surface/Window by MakeCurrent/Release
             helper.init(GLWindow.this);
             resetCounter();
@@ -588,8 +588,8 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
     }
     private InitAction initAction = new InitAction();
 
-    class DisplayAction implements Runnable {
-        public void run() {
+    private class DisplayAction implements Runnable {
+        public final void run() {
             // Lock: Locked Surface/Window by display _and_ MakeCurrent/Release
             if (sendReshape) {
                 helper.reshape(GLWindow.this, 0, 0, getWidth(), getHeight());
@@ -659,8 +659,8 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
         totalFrames = 0; lastFrames = 0;
     }
 
-    class SwapBuffersAction implements Runnable {
-        public void run() {
+    private class SwapBuffersAction implements Runnable {
+        public final void run() {
             drawable.swapBuffers();
         }
     }

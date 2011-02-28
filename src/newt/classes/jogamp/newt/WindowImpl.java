@@ -671,14 +671,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }        
     }
     
-    class VisibleAction implements Runnable {
+    private class VisibleAction implements Runnable {
         boolean visible;
 
-        public VisibleAction (boolean visible) {
+        private VisibleAction (boolean visible) {
             this.visible = visible;
         }
 
-        public void run() {
+        public final void run() {
             setVisibleActionImpl(visible);
         }
     }
@@ -695,18 +695,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 System.err.println(msg);
                 Thread.dumpStack();
             }
-            runOnEDTIfAvail(!isSurfaceLocked(), new VisibleAction(visible));
+            runOnEDTIfAvail(true, new VisibleAction(visible));
         }
     }
 
-    class SetSizeActionImpl implements Runnable {
+    private class SetSizeActionImpl implements Runnable {
         int width, height;
 
-        public SetSizeActionImpl(int w, int h) {
+        private SetSizeActionImpl(int w, int h) {
             width = w;
             height = h;
         }
-        public void run() {
+        public final void run() {
             windowLock.lock();
             try {
                 int visibleAction = 0; // 1 invisible, 2 visible (create)
@@ -746,12 +746,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public void setSize(int width, int height) {
         if(isValid()) {
-            runOnEDTIfAvail(!isSurfaceLocked(), new SetSizeActionImpl(width, height));
+            runOnEDTIfAvail(true, new SetSizeActionImpl(width, height));
         }
     }
 
-    class DestroyAction implements Runnable {
-        public void run() {
+    private class DestroyAction implements Runnable {
+        public final void run() {
             boolean animatorPaused = false;
             if(null!=lifecycleHook) {
                 animatorPaused = lifecycleHook.pauseRenderingAction();
@@ -812,7 +812,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 //Exception ee = new Exception(msg);
                 //ee.printStackTrace();
             }
-            runOnEDTIfAvail(!isSurfaceLocked(), destroyAction);
+            runOnEDTIfAvail(true, destroyAction);
         }
     }
 
@@ -894,18 +894,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    class ReparentActionImpl implements Runnable, ReparentAction {
+    private class ReparentActionImpl implements Runnable, ReparentAction {
         NativeWindow newParentWindow;
         boolean forceDestroyCreate;
         int reparentAction;
 
-        public ReparentActionImpl(NativeWindow newParentWindow, boolean forceDestroyCreate) {
+        private ReparentActionImpl(NativeWindow newParentWindow, boolean forceDestroyCreate) {
             this.newParentWindow = newParentWindow;
             this.forceDestroyCreate = forceDestroyCreate;
             this.reparentAction = -1; // ensure it's set
         }
 
-        public final int getStrategy() {
+        private int getStrategy() {
             return reparentAction;
         }
 
@@ -914,12 +914,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             screen = newScreen;
         }
 
-        public void run() {
+        public final void run() {
             boolean animatorPaused = false;
             if(null!=lifecycleHook) {
                 animatorPaused = lifecycleHook.pauseRenderingAction();
             }
-
+            reparent();
+            if(animatorPaused) {
+                lifecycleHook.resumeRenderingAction();
+            }
+        }
+        
+        private void reparent() {
             // mirror pos/size so native change notification can get overwritten
             int x = WindowImpl.this.x;
             int y = WindowImpl.this.y;
@@ -1163,14 +1169,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         break;
                 }
             }
-            if(animatorPaused) {
-                lifecycleHook.resumeRenderingAction();
-            }
         }
     }
 
-    class ReparentActionRecreate implements Runnable {
-        public void run() {
+    private class ReparentActionRecreate implements Runnable {
+        public final void run() {
             windowLock.lock();
             try {
                 visible = true;
@@ -1192,7 +1195,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         int reparentActionStrategy = ReparentAction.ACTION_INVALID;
         if(isValid()) {
             ReparentActionImpl reparentAction = new ReparentActionImpl(newParent, forceDestroyCreate);
-            runOnEDTIfAvail(!isSurfaceLocked(), reparentAction);
+            runOnEDTIfAvail(true, reparentAction);
             reparentActionStrategy = reparentAction.getStrategy();
         }
         return reparentActionStrategy;
@@ -1226,14 +1229,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    class DecorationActionImpl implements Runnable {
+    private class DecorationActionImpl implements Runnable {
         boolean undecorated;
 
-        public DecorationActionImpl(boolean undecorated) {
+        private DecorationActionImpl(boolean undecorated) {
             this.undecorated = undecorated;
         }
 
-        public void run() {
+        public final void run() {
             windowLock.lock();
             try {
                 if(!fullscreen && isNativeValid() && WindowImpl.this.undecorated != undecorated) {
@@ -1280,7 +1283,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public void setUndecorated(boolean value) {
         if(isValid()) {
-            runOnEDTIfAvail(!isSurfaceLocked(), new DecorationActionImpl(value));
+            runOnEDTIfAvail(true, new DecorationActionImpl(value));
         }
     }
 
@@ -1420,8 +1423,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         d.runOnEDTIfAvail(wait, task);
     }
 
-    class RequestFocusAction implements Runnable {
-        public void run() {
+    private class RequestFocusAction implements Runnable {
+        public final void run() {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.RequestFocusAction: ("+getThreadName()+"): "+hasFocus+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
@@ -1457,14 +1460,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return res;
     }
 
-    class SetPositionActionImpl implements Runnable {
+    private class SetPositionActionImpl implements Runnable {
         int x, y;
 
-        public SetPositionActionImpl(int x, int y) {
+        private SetPositionActionImpl(int x, int y) {
             this.x = x;
             this.y = y;
         }
-        public void run() {
+        public final void run() {
             windowLock.lock();
             try {
                 if(DEBUG_IMPLEMENTATION) {
@@ -1489,18 +1492,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public void setPosition(int x, int y) {
         if(isValid()) {
-            runOnEDTIfAvail(!isSurfaceLocked(), new SetPositionActionImpl(x, y));
+            runOnEDTIfAvail(true, new SetPositionActionImpl(x, y));
         }
     }
 
-    class FullScreenActionImpl implements Runnable {
+    private class FullScreenActionImpl implements Runnable {
         boolean fullscreen;
 
-        public FullScreenActionImpl (boolean fullscreen) {
+        private FullScreenActionImpl (boolean fullscreen) {
             this.fullscreen = fullscreen;
         }
 
-        public void run() {
+        public final void run() {
             windowLock.lock();
             try {
                 if(isNativeValid() && WindowImpl.this.fullscreen != fullscreen) {
@@ -1572,12 +1575,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public boolean setFullscreen(boolean fullscreen) {
         if(isValid()) {
-            runOnEDTIfAvail(!isSurfaceLocked(), new FullScreenActionImpl(fullscreen));
+            runOnEDTIfAvail(true, new FullScreenActionImpl(fullscreen));
         }
         return this.fullscreen;
     }
 
-    class ScreenModeListenerImpl implements ScreenModeListener {
+    private class ScreenModeListenerImpl implements ScreenModeListener {
         boolean animatorPaused = false;
 
         public void screenModeChangeNotify(ScreenMode sm) {
