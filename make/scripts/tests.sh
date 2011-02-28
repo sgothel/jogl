@@ -26,6 +26,7 @@ spath=`dirname $0`
 . $spath/setenv-jogl.sh $bdir JOGL_ALL
 
 MOSX=0
+MOSX_MT=0
 uname -a | grep -i Darwin && MOSX=1
 if [ $MOSX -eq 1 ] ; then
     MOSX_MT=1
