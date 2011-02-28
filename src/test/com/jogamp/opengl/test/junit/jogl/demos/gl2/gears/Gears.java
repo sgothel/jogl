@@ -107,14 +107,17 @@ public class Gears implements GLEventListener {
     gl.glEnable(GL2.GL_NORMALIZE);
                 
     // MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
-    MouseListener gearsMouse = new GearsMouseAdapter();
+    MouseListener gearsMouse = new GearsMouseAdapter();    
+    KeyListener gearsKeys = new GearsKeyAdapter();
 
     if (drawable instanceof Window) {
         Window window = (Window) drawable;
         window.addMouseListener(gearsMouse);
+        window.addKeyListener(gearsKeys);
     } else if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
         java.awt.Component comp = (java.awt.Component) drawable;
         new AWTMouseAdapter(gearsMouse).addTo(comp);
+        new AWTKeyAdapter(gearsKeys).addTo(comp);
     }
   }
     
@@ -309,6 +312,21 @@ public class Gears implements GLEventListener {
     gl.glEnd();
   }
 
+  class GearsKeyAdapter extends KeyAdapter {      
+    public void keyPressed(KeyEvent e) {
+        int kc = e.getKeyCode();
+        if(KeyEvent.VK_LEFT == kc) {
+            view_roty -= 1;
+        } else if(KeyEvent.VK_RIGHT == kc) {
+            view_roty += 1;
+        } else if(KeyEvent.VK_UP == kc) {
+            view_rotx -= 1;
+        } else if(KeyEvent.VK_DOWN == kc) {
+            view_rotx += 1;
+        }
+    }
+  }
+  
   class GearsMouseAdapter extends MouseAdapter {
       public void mousePressed(MouseEvent e) {
         prevMouseX = e.getX();

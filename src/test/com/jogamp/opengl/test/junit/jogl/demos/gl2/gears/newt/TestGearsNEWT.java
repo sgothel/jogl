@@ -88,6 +88,12 @@ public class TestGearsNEWT extends UITestCase {
                             GLWindow win = (GLWindow)drawable;
                             win.setFullscreen(!win.isFullscreen());
                         } });
+                } else if(e.getKeyChar()=='d') {
+                    f_glWindow.invoke(false, new GLRunnable() {
+                        public void run(GLAutoDrawable drawable) {
+                            GLWindow win = (GLWindow)drawable;
+                            win.setUndecorated(!win.isUndecorated());
+                        } });
                 }
             }
         });

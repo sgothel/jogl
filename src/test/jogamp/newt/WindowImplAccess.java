@@ -45,7 +45,12 @@ public class WindowImplAccess {
         } else {
             throw new RuntimeException("Given Window not a GLWindow, not WindowImpl, but "+win.getClass());
         }
-        winImpl.windowDestroyNotify();
+        final WindowImpl winImplF = winImpl;
+        winImplF.runOnEDTIfAvail(true, new Runnable() {
+            public void run() {
+                winImplF.windowDestroyNotify();
+            }
+        });        
     }
 }
 
