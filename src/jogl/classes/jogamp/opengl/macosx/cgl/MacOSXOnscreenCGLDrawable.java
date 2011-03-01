@@ -41,12 +41,10 @@
 package jogamp.opengl.macosx.cgl;
 
 import java.lang.ref.WeakReference;
-import java.security.*;
 import java.util.*;
 
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import jogamp.opengl.*;
 
 public class MacOSXOnscreenCGLDrawable extends MacOSXCGLDrawable {
   private List/*<WeakReference<GLContext>>*/ createdContexts =

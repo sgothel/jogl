@@ -39,11 +39,8 @@
 
 package jogamp.opengl.macosx.cgl;
 
-import java.util.*;
 
-import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import jogamp.opengl.*;
 
 public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
 
@@ -52,21 +49,25 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
     super(drawable, shareWith);
   }
 
+    @Override
   protected void makeCurrentImpl(boolean newCreated) throws GLException {
       super.makeCurrentImpl(newCreated);
       CGL.updateContext(contextHandle);
   }
     
+    @Override
   protected void releaseImpl() throws GLException {
     super.releaseImpl();
   }
 
+    @Override
   protected void swapBuffers() {
     if (!CGL.flushBuffer(contextHandle)) {
       throw new GLException("Error swapping buffers");
     }
   }
 
+    @Override
   protected void update() throws GLException {
     if (contextHandle == 0) {
       throw new GLException("Context not created");
