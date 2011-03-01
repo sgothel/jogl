@@ -119,7 +119,6 @@ public class TestSWT02GLn extends UITestCase {
         // at the wrong times (we use glClear for this instead)
         final Canvas canvas = new Canvas( composite, SWT.NO_BACKGROUND);
         Assert.assertNotNull( canvas );
-        System.err.println("*** canvas: " + canvas);        
         
         SWTAccessor.setRealized(canvas, true);
         AbstractGraphicsDevice device = SWTAccessor.getDevice(canvas);
@@ -134,21 +133,30 @@ public class TestSWT02GLn extends UITestCase {
         final GLDrawable drawable = factory.createGLDrawable(proxySurface);
         Assert.assertNotNull( drawable );
         drawable.setRealized(true);
+        System.err.println("*** Drawable: " + drawable);
         Assert.assertTrue( drawable.isRealized() );
         final GLContext glcontext = drawable.createContext(null);
         // trigger native creation ..
-        glcontext.makeCurrent();
-        glcontext.release();
+        if( GLContext.CONTEXT_NOT_CURRENT < glcontext.makeCurrent() ) {        
+            glcontext.release();
+        }
+        
+        final boolean[] sizeMissing = new boolean[] { false };
         
         // fix the viewport when the user resizes the window
         canvas.addListener( SWT.Resize, new Listener() {
             public void handleEvent( Event event ) {
                 Rectangle rectangle = canvas.getClientArea();
-                glcontext.makeCurrent();
-                GL2 gl = glcontext.getGL().getGL2();
-                OneTriangle.setup( gl, rectangle );
-                glcontext.release();
-                System.err.println("resize");
+                boolean glok=false;
+                if( GLContext.CONTEXT_NOT_CURRENT < glcontext.makeCurrent() ) {
+                    glok=true;
+                    GL2 gl = glcontext.getGL().getGL2();
+                    OneTriangle.setup( gl, rectangle );
+                    glcontext.release();
+                } else {
+                    sizeMissing[0] = true;
+                }
+                System.err.println("resize: glok " + glok);
             }
         });
 
@@ -156,12 +164,19 @@ public class TestSWT02GLn extends UITestCase {
         canvas.addPaintListener( new PaintListener() {
             public void paintControl( PaintEvent paintevent ) {
                 Rectangle rectangle = canvas.getClientArea();
-                glcontext.makeCurrent();
-                GL2 gl = glcontext.getGL().getGL2();
-                OneTriangle.render( gl, rectangle );
-                drawable.swapBuffers();
-                glcontext.release();
-                System.err.println("paint");
+                boolean glok=false;
+                if( GLContext.CONTEXT_NOT_CURRENT < glcontext.makeCurrent() ) {
+                    glok=true;
+                    GL2 gl = glcontext.getGL().getGL2();
+                    if(sizeMissing[0]) {
+                        OneTriangle.setup( gl, rectangle );
+                        sizeMissing[0] = false;
+                    }
+                    OneTriangle.render( gl, rectangle );
+                    drawable.swapBuffers();
+                    glcontext.release();
+                }
+                System.err.println("paint: glok " + glok);
             }
         });
         
