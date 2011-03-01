@@ -45,7 +45,14 @@ import javax.media.nativewindow.macosx.MacOSXGraphicsDevice;
 public class SWTAccessor {
     static final Field swt_control_handle;
     static final boolean swt_uses_long_handles;
+    
+    // X11/GTK, Windows/GDI, ..
     static final String str_handle = "handle";
+    
+    // OSX/Cocoa
+    static final String str_view = "view";  // OSX
+    static final String str_id = "id";    // OSX
+    // static final String str_NSView = "org.eclipse.swt.internal.cocoa.NSView";
     
     static final Method swt_control_internal_new_GC;
     static final Method swt_control_internal_dispose_GC;
@@ -67,13 +74,23 @@ public class SWTAccessor {
     
     static {
         Field f = null;
-        try {
-            f = Control.class.getField(str_handle);
-        } catch (Exception ex) {
-            throw new NativeWindowException(ex);
+        
+        if(NativeWindowFactory.TYPE_MACOSX != NativeWindowFactory.getNativeWindowType(false) ) {
+            try {
+                f = Control.class.getField(str_handle);
+            } catch (Exception ex) {
+                throw new NativeWindowException(ex);
+            }
+        }        
+        swt_control_handle = f; // maybe null !
+        
+        boolean ulh;
+        if (null != swt_control_handle) {
+            ulh = swt_control_handle.getGenericType().toString().equals(long.class.toString());
+        } else {
+            ulh = Platform.is64Bit();
         }
-        swt_control_handle = f;
-        swt_uses_long_handles = swt_control_handle.getGenericType().toString().equals(long.class.toString());
+        swt_uses_long_handles = ulh;
         // System.err.println("SWT long handles: " + swt_uses_long_handles);
         // System.err.println("Platform 64bit: "+Platform.is64Bit());
         
@@ -140,9 +157,20 @@ public class SWTAccessor {
     public static boolean isUsingLongHandles() {
         return swt_uses_long_handles;
     }
-    
+
     public static long getHandle(Control swtControl) {
         long h = 0;
+        if(NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false) ) {
+            try {
+                Field fView = Control.class.getField(str_view);
+                Object view = fView.get(swtControl);
+                Field fId = view.getClass().getField(str_id);
+                return fId.getLong(view);
+            } catch (Exception ex) {
+                throw new NativeWindowException(ex);
+            }            
+        }
+        
         try {
             h = swt_control_handle.getLong(swtControl);
         } catch (Exception ex) {
