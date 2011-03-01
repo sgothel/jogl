@@ -2,6 +2,6 @@
 
 spath=`dirname $0`
 
-. $spath/tests.sh  /usr/bin/java ../build-macosx
+. $spath/tests.sh  /usr/bin/java ../build-macosx $*
 
 
