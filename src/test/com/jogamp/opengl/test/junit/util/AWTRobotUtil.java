@@ -367,11 +367,15 @@ public class AWTRobotUtil {
                 }
                 if(wait>=POLL_DIVIDER) {
                     // for some reason GLCanvas hasn't been painted yet, force it!
-                    System.err.println("XXX: FORCE REPAINT - canvas: "+glcanvas);
+                    System.err.println("XXX: FORCE REPAINT PRE - canvas: "+glcanvas);
                     glcanvas.repaint();
                     for (wait=0; wait<POLL_DIVIDER && realized != glcanvas.isRealized(); wait++) {
                         Thread.sleep(TIME_OUT/POLL_DIVIDER);
                     }
+                    System.err.println("XXX: FORCE REPAINT POST - canvas: "+glcanvas);
+                }
+                for (wait=0; wait<POLL_DIVIDER && realized != glcanvas.isRealized(); wait++) {
+                    Thread.sleep(TIME_OUT/POLL_DIVIDER);
                 }
             }            
         } else if(obj instanceof com.jogamp.newt.Window) {

@@ -85,8 +85,12 @@ public class TestSharedContextListAWT extends UITestCase {
     protected GLCanvas runTestGL(final Frame frame, final Animator animator, final int x, final int y, final boolean useShared)
             throws InterruptedException
     {
-        final GLCanvas glCanvas = new GLCanvas(caps, useShared ? sharedDrawable.getContext() : null);
+        final GLCanvas glCanvas = new GLCanvas(caps, useShared ? sharedDrawable.getContext() : null);        
         Assert.assertNotNull(glCanvas);
+        frame.add(glCanvas);
+        frame.setLocation(x, y);
+        frame.setSize(width, height);
+        
         Gears gears = new Gears();
         if(useShared) {
             gears.setGears(sharedGears.getGear1(), sharedGears.getGear2(), sharedGears.getGear3());
@@ -95,14 +99,7 @@ public class TestSharedContextListAWT extends UITestCase {
 
         animator.add(glCanvas);
 
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                frame.add(glCanvas);
-                frame.setLocation(x, y);
-                frame.setSize(width, height);
-                frame.pack();               
-                frame.setVisible(true);
-            } });
+        frame.setVisible(true);
         Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glCanvas, true));
 
         return glCanvas;
