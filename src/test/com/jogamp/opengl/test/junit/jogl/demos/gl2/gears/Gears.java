@@ -1,11 +1,22 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.gl2.gears;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.util.Animator;
 
-import com.jogamp.newt.event.*;
-import com.jogamp.newt.event.awt.*;
 import com.jogamp.newt.Window;
+import com.jogamp.newt.event.KeyAdapter;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.KeyListener;
+import com.jogamp.newt.event.MouseAdapter;
+import com.jogamp.newt.event.MouseEvent;
+import com.jogamp.newt.event.MouseListener;
+import com.jogamp.newt.event.awt.AWTKeyAdapter;
+import com.jogamp.newt.event.awt.AWTMouseAdapter;
 
 /**
  * Gears.java <BR>
@@ -15,6 +26,9 @@ import com.jogamp.newt.Window;
  */
 
 public class Gears implements GLEventListener {
+  static {
+    GLProfile.initSingleton(false);
+  }
   private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
   private int gear1=0, gear2=0, gear3=0;
   private float angle = 0.0f;
@@ -23,6 +37,47 @@ public class Gears implements GLEventListener {
   private boolean mouseRButtonDown = false;
   private int prevMouseX, prevMouseY;
 
+  public static void main(String[] args) {
+    // set argument 'NotFirstUIActionOnProcess' in the JNLP's application-desc tag for example
+    // <application-desc main-class="demos.j2d.TextCube"/>
+    //   <argument>NotFirstUIActionOnProcess</argument> 
+    // </application-desc>
+    // boolean firstUIActionOnProcess = 0==args.length || !args[0].equals("NotFirstUIActionOnProcess") ;
+
+    java.awt.Frame frame = new java.awt.Frame("Gear Demo");
+    frame.setSize(300, 300);
+    frame.setLayout(new java.awt.BorderLayout());
+
+    final Animator animator = new Animator();
+    frame.addWindowListener(new java.awt.event.WindowAdapter() {
+        public void windowClosing(java.awt.event.WindowEvent e) {
+          // Run this on another thread than the AWT event queue to
+          // make sure the call to Animator.stop() completes before
+          // exiting
+          new Thread(new Runnable() {
+              public void run() {
+                animator.stop();
+                System.exit(0);
+              }
+            }).start();
+        }
+      });
+
+    GLCanvas canvas = new GLCanvas();
+    animator.add(canvas);
+    // GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+    // GLCanvas canvas = new GLCanvas(caps);
+
+    final Gears gears = new Gears();
+    canvas.addGLEventListener(gears);
+
+    frame.add(canvas, java.awt.BorderLayout.CENTER);
+    frame.validate();
+
+    frame.setVisible(true);
+    animator.start();
+  }
+  
   public Gears(int swapInterval) {
     this.swapInterval = swapInterval;
   }
@@ -30,7 +85,7 @@ public class Gears implements GLEventListener {
   public Gears() {
     this.swapInterval = 1;
   }
-
+  
   public void setGears(int g1, int g2, int g3) {
       gear1 = g1;
       gear2 = g2;
@@ -53,11 +108,17 @@ public class Gears implements GLEventListener {
   public int getGear3() { return gear3; }
 
   public void init(GLAutoDrawable drawable) {
-    System.err.println("Gears: Init");
+    System.err.println("Gears: Init: "+drawable);
     // Use debug pipeline
     // drawable.setGL(new DebugGL(drawable.getGL()));
 
     GL2 gl = drawable.getGL().getGL2();
+
+    System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
+    System.err.println("INIT GL IS: " + gl.getClass().getName());
+    System.err.println("GL_VENDOR: " + gl.glGetString(GL2.GL_VENDOR));
+    System.err.println("GL_RENDERER: " + gl.glGetString(GL2.GL_RENDERER));
+    System.err.println("GL_VERSION: " + gl.glGetString(GL2.GL_VERSION));
 
     float pos[] = { 5.0f, 5.0f, 10.0f, 0.0f };
     float red[] = { 0.8f, 0.1f, 0.0f, 0.7f };
