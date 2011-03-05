@@ -106,35 +106,15 @@ public class MemoryObject {
     }
 
     /**
-     * Verifies the hash map operation, ie
-     * <ul>
-     *  <li>slow add: if !map.contains(obj0), the values are verified (slow)</li>
-     *  <li>fast get: if map.contains(obj0), the mapped value is compared with equals (fast) </li>
-     * </ul>
-     * In case the above verification fails, a RuntimeException is thrown.<br>
-     * In such case the calculation of the hash value should either be tuned,<br>
-     * or we just cannot use hash mapping.<br>
-     *
-     * @param map the identity HashMap mapping MemoryObject to MemoryObject
-     * @param obj0 the MemoryObject to get or add in the map
-     * @return either the already mapped one where <code>obj0</code> != <code>return</code>,
-     *         or the added <code>obj0</code> == <code>return</code>.
-     * @throws RuntimeException if hash collision occurs
+     * @param map the identity HashMap, MemoryObject to MemoryObject
+     * @param obj0 the MemoryObject
+     * @return either the already mapped MemoryObject - not changing the map, or the newly mapped one.
      */
     public static MemoryObject getOrAddSafe(HashMap/*<MemoryObject,MemoryObject>*/ map, MemoryObject obj0) {
         MemoryObject obj1 = (MemoryObject) map.get(obj0); // get identity (fast)
         if(null == obj1) {
-            // verify hash collision (slow)
-            if( map.values().contains(obj0) ) {
-                throw new RuntimeException("Hash collision, hash !exist, but in values: "+obj0);
-            }
             map.put(obj0, obj0);
             obj1 = obj0;
-        } else {
-            // verify hash collision (ok)
-            if( !obj1.equals(obj0) ) {
-                throw new RuntimeException("Hash collision, hash equals, but objects not: query "+obj0+" != contained "+obj1);
-            }
         }
         return obj1;
     }
