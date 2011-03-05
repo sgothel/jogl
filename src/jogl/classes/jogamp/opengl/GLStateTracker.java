@@ -59,14 +59,25 @@ public class GLStateTracker {
   private IntIntHashMap pixelStateMap;
 
   static class SavedState {
+    /**
+     * Empty pixel-store state
+     */ 
     SavedState() {
         this.pixelStateMap = null;
     }
+    
+    /**
+     * set (client) pixel-store state
+     */ 
     void putPixelStateMap(IntIntHashMap pixelStateMap) {
         this.pixelStateMap = new IntIntHashMap();
         this.pixelStateMap.setKeyNotFoundValue(-1);
         this.pixelStateMap.putAll(pixelStateMap);
     }
+    
+    /**
+     * get (client) pixel-store state
+     */ 
     IntIntHashMap getPixelStateMap() { return pixelStateMap; }
 
     private IntIntHashMap pixelStateMap;
@@ -127,11 +138,12 @@ public class GLStateTracker {
 
   public void pushAttrib(int flags) {
     if(enabled) {
-        SavedState state = new SavedState();
+        SavedState state = new SavedState(); // empty-slot
         if( 0 != (flags&GL2.GL_CLIENT_PIXEL_STORE_BIT) ) {
+            // save client pixel-store state
             state.putPixelStateMap(pixelStateMap);
         }
-        stack.add(0, state);
+        stack.add(0, state); // push
     }
   }
 
@@ -140,21 +152,19 @@ public class GLStateTracker {
         if(stack.size()==0) {
             throw new GLException("stack contains no elements");
         }
-        SavedState state = (SavedState) stack.remove(0);
+        SavedState state = (SavedState) stack.remove(0); // pop
         if(null==state) {
             throw new GLException("null stack element (remaining stack size "+stack.size()+")");
         }
 
-        IntIntHashMap pixelStateMapNew = new IntIntHashMap();
-        pixelStateMapNew.setKeyNotFoundValue(-1);
         if ( null != state.getPixelStateMap() ) {
-            pixelStateMapNew.putAll(state.getPixelStateMap());
-        }
-        pixelStateMap = pixelStateMapNew;
+            // use pulled client pixel-store state from stack
+            pixelStateMap = state.getPixelStateMap();
+        } // else: empty-slot, not pushed by GL_CLIENT_PIXEL_STORE_BIT        
     }
   }
 
-  public void resetStates() {
+  private void resetStates() {
     pixelStateMap.clear();
 
     pixelStateMap.put(GL.GL_PACK_ALIGNMENT,          4);
