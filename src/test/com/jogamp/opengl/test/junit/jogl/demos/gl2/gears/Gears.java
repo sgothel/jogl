@@ -25,9 +25,6 @@ import com.jogamp.newt.event.awt.AWTMouseAdapter;
  */
 
 public class Gears implements GLEventListener {
-  static {
-    GLProfile.initSingleton(false);
-  }
   private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
   private int gear1=0, gear2=0, gear3=0;
   private float angle = 0.0f;
@@ -36,47 +33,6 @@ public class Gears implements GLEventListener {
   private boolean mouseRButtonDown = false;
   private int prevMouseX, prevMouseY;
 
-  public static void main(String[] args) {
-    // set argument 'NotFirstUIActionOnProcess' in the JNLP's application-desc tag for example
-    // <application-desc main-class="demos.j2d.TextCube"/>
-    //   <argument>NotFirstUIActionOnProcess</argument> 
-    // </application-desc>
-    // boolean firstUIActionOnProcess = 0==args.length || !args[0].equals("NotFirstUIActionOnProcess") ;
-
-    java.awt.Frame frame = new java.awt.Frame("Gear Demo");
-    frame.setSize(300, 300);
-    frame.setLayout(new java.awt.BorderLayout());
-
-    final Animator animator = new Animator();
-    frame.addWindowListener(new java.awt.event.WindowAdapter() {
-        public void windowClosing(java.awt.event.WindowEvent e) {
-          // Run this on another thread than the AWT event queue to
-          // make sure the call to Animator.stop() completes before
-          // exiting
-          new Thread(new Runnable() {
-              public void run() {
-                animator.stop();
-                System.exit(0);
-              }
-            }).start();
-        }
-      });
-    
-    javax.media.opengl.awt.GLCanvas canvas = new javax.media.opengl.awt.GLCanvas();
-    animator.add(canvas);
-    // GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
-    // GLCanvas canvas = new GLCanvas(caps);
-
-    final Gears gears = new Gears();
-    canvas.addGLEventListener(gears);
-
-    frame.add(canvas, java.awt.BorderLayout.CENTER);
-    frame.validate();
-
-    frame.setVisible(true);
-    animator.start();
-  }
-  
   public Gears(int swapInterval) {
     this.swapInterval = swapInterval;
   }
