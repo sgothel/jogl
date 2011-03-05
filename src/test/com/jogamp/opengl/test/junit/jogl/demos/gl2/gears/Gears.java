@@ -5,7 +5,6 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.newt.Window;
@@ -62,8 +61,8 @@ public class Gears implements GLEventListener {
             }).start();
         }
       });
-
-    GLCanvas canvas = new GLCanvas();
+    
+    javax.media.opengl.awt.GLCanvas canvas = new javax.media.opengl.awt.GLCanvas();
     animator.add(canvas);
     // GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
     // GLCanvas canvas = new GLCanvas(caps);
