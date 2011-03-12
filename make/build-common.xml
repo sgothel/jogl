@@ -123,6 +123,18 @@
             </or>
           </and>
         </condition>
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-solaris-x86/swt-debug.jar">
+          <istrue value="${isSolarisX86}" />
+        </condition>
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-solaris-x86/swt-debug.jar">
+          <istrue value="${isSolarisAMD64}" />
+        </condition>
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-solaris-sparc/swt-debug.jar">
+          <istrue value="${isSolarisSparc}" />
+        </condition>
+		<condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-solaris-sparc/swt-debug.jar">
+          <istrue value="${isSolarisSparcv9}" />
+        </condition>
         <echo message="swt.jar=${swt.jar}" />
 
         <property name="target.sourcelevel" value="1.5" />
