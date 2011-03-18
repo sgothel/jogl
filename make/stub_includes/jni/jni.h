@@ -1,8 +1,27 @@
 /*
  * @(#)jni.h	1.62 06/02/02
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ * This C header file is derived from Sun Microsystem's Java SDK provided C header file
+ * with the following copyright notice:
+ *
+ *   Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ *   SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ * This version has complex comments removed and does not contain inlined algorithms etc, if any existed.
+ * 
+ * The original C header file was included to JOGL on Sat Jun 21 02:10:30 2008
+ * (commit cbc45e816f4ee81031bffce19a99550681462a24) by Sun Microsystem's staff and were approved. 
+ *
+ * This C header file is included due to ensure compatibility with - and invocation of the JAWT protocol.
+ * They are processed by GlueGen to create a Java binding for JAWT invocation only.
+ * 
+ * http://ftp.resource.org/courts.gov/c/F3/387/387.F3d.522.03-5400.html (36)
+ * "Atari Games Corp. v. Nintendo of Am., Inc., Nos. 88-4805 & 89-0027, 1993 WL 207548, at *1 (N.D.Cal. May 18, 1993) ("Atari III") 
+ * ("Program code that is strictly necessary to achieve current compatibility presents a merger problem, almost by definition, 
+ * and is thus excluded from the scope of any copyright.")."
+ *
+ * http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=OJ:L:2009:111:0016:0022:EN:PDF
+ * L 111/17 (10) and (15)
  */
 
 /*
@@ -21,18 +40,11 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-/* jni_md.h contains the machine-dependent typedefs for jbyte, jint
-   and jlong */
-
 #include "jni_md.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/*
- * JNI Types
- */
 
 #ifndef JNI_TYPES_ALREADY_DEFINED_IN_JNI_MD_H
 
@@ -117,7 +129,6 @@ typedef struct _jfieldID *jfieldID;
 struct _jmethodID;
 typedef struct _jmethodID *jmethodID;
 
-/* Return values from jobjectRefType */
 typedef enum _jobjectType {
      JNIInvalidRefType    = 0,
      JNILocalRefType      = 1,
@@ -128,16 +139,8 @@ typedef enum _jobjectType {
 
 #endif /* JNI_TYPES_ALREADY_DEFINED_IN_JNI_MD_H */
 
-/*
- * jboolean constants
- */
-
 #define JNI_FALSE 0
 #define JNI_TRUE 1
-
-/*
- * possible return values for JNI functions.
- */
 
 #define JNI_OK           0                 /* success */
 #define JNI_ERR          (-1)              /* unknown error */
@@ -147,27 +150,14 @@ typedef enum _jobjectType {
 #define JNI_EEXIST       (-5)              /* VM already created */
 #define JNI_EINVAL       (-6)              /* invalid arguments */
 
-/*
- * used in ReleaseScalarArrayElements
- */
-
 #define JNI_COMMIT 1
 #define JNI_ABORT 2
-
-/*
- * used in RegisterNatives to describe native method name, signature,
- * and function pointer.
- */
 
 typedef struct {
     char *name;
     char *signature;
     void *fnPtr;
 } JNINativeMethod;
-
-/*
- * JNI Native Method Interface.
- */
 
 struct JNINativeInterface_;
 
@@ -178,10 +168,6 @@ typedef JNIEnv_ JNIEnv;
 #else
 typedef const struct JNINativeInterface_ *JNIEnv;
 #endif
-
-/*
- * JNI Invocation Interface.
- */
 
 struct JNIInvokeInterface_;
 
@@ -748,18 +734,6 @@ struct JNINativeInterface_ {
     jobjectRefType (JNICALL *GetObjectRefType)
         (JNIEnv* env, jobject obj);
 };
-
-/*
- * We use inlined functions for C++ so that programmers can write:
- *
- *    env->FindClass("java/lang/String")
- *
- * in C++ rather than:
- *
- *    (*env)->FindClass(env, "java/lang/String")
- *
- * in C.
- */
 
 struct JNIEnv_ {
     const struct JNINativeInterface_ *functions;
@@ -1862,12 +1836,8 @@ typedef struct JavaVMAttachArgs {
     jobject group;
 } JavaVMAttachArgs;
 
-/* These will be VM-specific. */
-
 #define JDK1_2
 #define JDK1_4
-
-/* End VM-specific. */
 
 struct JNIInvokeInterface_ {
     void *reserved0;
@@ -1922,7 +1892,6 @@ JNI_CreateJavaVM(JavaVM **pvm, void **penv, void *args);
 _JNI_IMPORT_OR_EXPORT_ jint JNICALL
 JNI_GetCreatedJavaVMs(JavaVM **, jsize, jsize *);
 
-/* Defined by native libraries. */
 JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM *vm, void *reserved);
 
@@ -1939,6 +1908,4 @@ JNI_OnUnload(JavaVM *vm, void *reserved);
 #endif /* __cplusplus */
 
 #endif /* !_JAVASOFT_JNI_H_ */
-
-
 
