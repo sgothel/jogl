@@ -104,14 +104,17 @@ public interface CapabilitiesImmutable extends WriteCloneable {
     Object cloneMutable();
     
     /** Equality over the immutable attributes of both objects */
+    @Override
     boolean equals(Object obj);
 
     /** hash code over the immutable attributes of both objects */
+    @Override
     int hashCode();
 
     /** Return a textual representation of this object. Use the given StringBuffer [optional]. */
     StringBuffer toString(StringBuffer sink);
 
     /** Returns a textual representation of this object. */
+    @Override
     String toString();
 }

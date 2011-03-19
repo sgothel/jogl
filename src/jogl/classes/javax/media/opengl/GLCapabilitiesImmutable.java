@@ -139,9 +139,12 @@ public interface GLCapabilitiesImmutable extends WriteCloneable, CapabilitiesImm
 
     Object cloneMutable();
 
+    @Override
     boolean equals(Object obj);
 
+    @Override
     int hashCode();
 
+    @Override
     String toString();
 }
