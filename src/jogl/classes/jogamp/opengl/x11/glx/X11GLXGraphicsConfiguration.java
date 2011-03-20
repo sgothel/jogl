@@ -271,6 +271,9 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     if(GLX.GLX_BAD_ATTRIBUTE == GLX.glXGetFBConfigAttrib(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0)) {
       return false;
     }
+    if( 0 == ( GLX.GLX_RGBA_BIT & tmp[0] ) ) {
+      return false; // no RGBA -> color index not supported
+    }
 
     GLCapabilities res = new X11GLCapabilities(visualInfo, fbcfg, fbcfgid, glp);
     res.setDoubleBuffered(glXGetFBConfig(display, fbcfg, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);

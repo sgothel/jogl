@@ -319,6 +319,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   final static String GL_ARB_pbuffer = "GL_ARB_pbuffer";
   final static String WGL_ARB_pixel_format = "WGL_ARB_pixel_format";
   final static String WGL_ARB_multisample = "WGL_ARB_multisample";
+  final static String WGL_NV_float_buffer = "WGL_NV_float_buffer";
   final static String WGL_ARB_make_current_read = "WGL_ARB_make_current_read";
   final static String wglMakeContextCurrent = "wglMakeContextCurrent";
 

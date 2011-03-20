@@ -140,11 +140,16 @@ public class WGLGLCapabilities extends GLCapabilities {
                   break;
 
               case WGLExt.WGL_PIXEL_TYPE_ARB:
-                  // Fail softly with unknown results here
-                  if (iresults[i] == WGLExt.WGL_TYPE_RGBA_ARB ||
-                      iresults[i] == WGLExt.WGL_TYPE_RGBA_FLOAT_ARB) {
+                  if(iresults[i] == WGLExt.WGL_TYPE_COLORINDEX_ARB) {
+                      return false; // color index not supported
+                  }
+
+                  if (iresults[i] == WGLExt.WGL_TYPE_RGBA_FLOAT_ARB) {
                       setPbufferFloatingPointBuffers(true);
                   }
+                  
+                  // normal RGBA FB: WGLExt.WGL_TYPE_RGBA_ARB
+                  // ignore unknown results here
                   break;
 
               case WGLExt.WGL_FLOAT_COMPONENTS_NV:

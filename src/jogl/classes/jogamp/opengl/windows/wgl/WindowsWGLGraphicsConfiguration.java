@@ -50,7 +50,6 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
-import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
@@ -187,15 +186,18 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
             iattributes[niattribs++] = WGLExt.WGL_SAMPLE_BUFFERS_ARB;
             iattributes[niattribs++] = WGLExt.WGL_SAMPLES_ARB;
         }
+            
         if(sharedResource.hasARBPBuffer()) {
-            // pbo float buffer
-            iattributes[niattribs++] = WGLExt.WGL_PIXEL_TYPE_ARB;      // ati
-            iattributes[niattribs++] = WGLExt.WGL_FLOAT_COMPONENTS_NV; // nvidia
+            WindowsWGLContext sharedCtx = sharedResource.getContext();
+            if(null != sharedCtx && sharedCtx.isExtensionAvailable(WindowsWGLDrawableFactory.WGL_NV_float_buffer)) {
+                // pbo float buffer
+                iattributes[niattribs++] = WGLExt.WGL_FLOAT_COMPONENTS_NV; // nvidia
+            }
         }
 
         return niattribs;
     }
-
+    
     static boolean wglARBPFIDValid(WindowsWGLContext sharedCtx, long hdc, int pfdID) {
         int[] in = new int[1];
         int[] out = new int[1];
@@ -432,6 +434,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         boolean rect     = caps.getPbufferRenderToTextureRectangle();
         boolean useFloat = caps.getPbufferFloatingPointBuffers();
         boolean ati      = false;
+        boolean nvidia   = false;
         if (pbuffer && sharedResource.hasARBPBuffer()) {
           // Check some invariants and set up some state
           if (rect && !rtt) {
@@ -446,21 +449,21 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
           }
 
           if (useFloat) {
-            if (!sharedCtx.isExtensionAvailable("WGL_ATI_pixel_format_float") &&
-                !sharedCtx.isExtensionAvailable("WGL_NV_float_buffer")) {
-              throw new GLException("Floating-point pbuffers not supported by this hardware");
-            }
-
             // Prefer NVidia extension over ATI
-            if (sharedCtx.isExtensionAvailable("WGL_NV_float_buffer")) {
-              ati = false;
+            nvidia = sharedCtx.isExtensionAvailable(WindowsWGLDrawableFactory.WGL_NV_float_buffer);
+            if(nvidia) {
               floatMode[0] = GLPbuffer.NV_FLOAT;
             } else {
-              ati = true;
-              floatMode[0] = GLPbuffer.ATI_FLOAT;
+                ati = sharedCtx.isExtensionAvailable("WGL_ATI_pixel_format_float");
+                if(ati) {
+                    floatMode[0] = GLPbuffer.ATI_FLOAT;
+                } else {
+                    throw new GLException("Floating-point pbuffers not supported by this hardware");                    
+                }
             }
+            
             if (DEBUG) {
-              System.err.println("Using " + (ati ? "ATI" : "NVidia") + " floating-point extension");
+              System.err.println("Using " + (ati ? "ATI" : ( nvidia ? "NVidia" : "NONE" ) ) + " floating-point extension");
             }
           }
 
@@ -483,7 +486,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
             }
           }
 
-          if (useFloat && !ati) {
+          if (useFloat && nvidia) {
             iattributes[niattribs++] = WGLExt.WGL_FLOAT_COMPONENTS_NV;
             iattributes[niattribs++] = GL.GL_TRUE;
           }
@@ -491,6 +494,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
           if (rtt) {
             if (useFloat) {
               assert(!ati);
+              assert(nvidia);
               if (!rect) {
                 throw new GLException("Render-to-floating-point-texture only supported on NVidia hardware with render-to-texture-rectangle");
               }
