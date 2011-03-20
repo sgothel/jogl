@@ -111,10 +111,10 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         if( sharedResource.isGLXVersionGreaterEqualOneThree() ) {
             availableCaps = getAvailableGLCapabilitiesFBConfig(sharedScreen, glp);
         }
-        if( null == availableCaps || 0 == availableCaps.size() ) {
+        if( null == availableCaps || availableCaps.isEmpty() ) {
             availableCaps = getAvailableGLCapabilitiesXVisual(sharedScreen, glp);
         }
-        if( null != availableCaps ) {
+        if( null != availableCaps && availableCaps.size() > 1 ) {
             Collections.sort(availableCaps, XVisualIDComparator);
         }
         return availableCaps;

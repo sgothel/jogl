@@ -52,7 +52,6 @@ import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
 import jogamp.opengl.GLGraphicsConfigurationFactory;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
-import jogamp.opengl.SharedResourceRunner;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -123,14 +122,14 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             if (sharedResource.hasARBPixelFormat()) {
                 availableCaps = getAvailableGLCapabilitiesARB(hdc, sharedResource, capsChosen.getGLProfile());
             }
-            if( null == availableCaps || 0 == availableCaps.size() ) {
+            if( null == availableCaps || availableCaps.isEmpty() ) {
                 availableCaps = getAvailableGLCapabilitiesGDI(hdc, capsChosen.getGLProfile());
             }
         } finally {
             sharedDrawable.unlockSurface();
         }
 
-        if( null != availableCaps ) {
+        if( null != availableCaps && availableCaps.size() > 1 ) {
             Collections.sort(availableCaps, PfdIDComparator);
         }
         return availableCaps;

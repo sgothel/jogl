@@ -65,7 +65,6 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.util.ReflectionUtil;
-import javax.media.opengl.GLCapabilities;
 import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.GDISurface;

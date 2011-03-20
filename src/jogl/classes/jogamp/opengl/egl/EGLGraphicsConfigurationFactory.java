@@ -125,7 +125,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         if (numConfigs[0] > 0) {
             GLProfile glp = GLProfile.getDefault(device);
             availableCaps = eglConfigs2GLCaps(glp, eglDisplay, configs, numConfigs[0], GLGraphicsConfigurationUtil.ALL_BITS);
-            if( null != availableCaps ) {
+            if( null != availableCaps && availableCaps.size() > 1) {
                 Collections.sort(availableCaps, EglCfgIDComparator);
             }
         }
