@@ -60,14 +60,15 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     protected static final int MAX_ATTRIBS  = 256;
 
     private GLCapabilitiesChooser chooser;
-    private boolean isChosen = false;
+    private boolean isDetermined = false;
+    private boolean isExternal = false;
 
     WindowsWGLGraphicsConfiguration(AbstractGraphicsScreen screen, 
                                     GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
                                     GLCapabilitiesChooser chooser) {
         super(screen, capsChosen, capsRequested);
         this.chooser=chooser;
-        this.isChosen = false;
+        this.isDetermined = false;
     }
 
     WindowsWGLGraphicsConfiguration(AbstractGraphicsScreen screen,
@@ -78,7 +79,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     }
 
 
-    static WindowsWGLGraphicsConfiguration createFromCurrent(GLDrawableFactory _factory, long hdc, int pfdID,
+    static WindowsWGLGraphicsConfiguration createFromExternal(GLDrawableFactory _factory, long hdc, int pfdID,
                                                              GLProfile glp, AbstractGraphicsScreen screen, boolean onscreen)
     {
         if(_factory==null) {
@@ -110,7 +111,9 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
                                   ", pfdID "+pfdID+", onscreen "+onscreen+", hasARB "+hasARB);
         }
 
-        return new WindowsWGLGraphicsConfiguration(screen, caps, caps);
+        WindowsWGLGraphicsConfiguration cfg = new WindowsWGLGraphicsConfiguration(screen, caps, caps);
+        cfg.markExternal();
+        return cfg;
     }
 
     public Object clone() {
@@ -127,6 +130,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
      * @param pfIDs optional pool of preselected PixelFormat IDs, maybe null for unrestricted selection
      *
      * @see #isDetermined()
+     * @see #isExternal()
      */
     public final void updateGraphicsConfiguration(GLDrawableFactory factory, NativeSurface ns, int[] pfIDs) {
         WindowsWGLGraphicsConfigurationFactory.updateGraphicsConfiguration(chooser, factory, ns, pfIDs);
@@ -147,18 +151,58 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         WindowsWGLGraphicsConfigurationFactory.preselectGraphicsConfiguration(chooser, factory, device, this, pfdIDs);
     }
 
+    /**
+     * Sets the hdc's PixelFormat, this configuration's capabilities and marks it as determined.
+     */
+    final void setPixelFormat(long hdc, WGLGLCapabilities caps) {
+        if (0 == hdc) {
+            throw new GLException("Error: HDC is null");
+        }
+	
+        if (!GDI.SetPixelFormat(hdc, caps.getPFDID(), caps.getPFD())) {
+            throw new GLException("Unable to set pixel format " + caps +
+                                  " for device context " + toHexString(hdc) +
+                                  ": error code " + GDI.GetLastError());
+        }
+        if (DEBUG) {
+            System.err.println("!!! setPixelFormat (ARB): hdc "+toHexString(hdc) +", "+caps);
+        }    	
+        setCapsPFD(caps);
+    }
+    
+    /**
+     * Only sets this configuration's capabilities and marks it as determined,
+     * the actual pixelformat is not set.
+     */
     final void setCapsPFD(WGLGLCapabilities caps) {
         setChosenCapabilities(caps);
-        this.isChosen=true;
+        this.isDetermined = true;
         if (DEBUG) {
             System.err.println("*** setCapsPFD: "+caps);
         }
     }
 
-    public final boolean isDetermined() { return isChosen; }
-    public final PIXELFORMATDESCRIPTOR getPixelFormat()   { return isChosen ? ((WGLGLCapabilities)capabilitiesChosen).getPFD() : null; }
-    public final int getPixelFormatID() { return isChosen ? ((WGLGLCapabilities)capabilitiesChosen).getPFDID() : 0; }
-    public final boolean isChoosenByARB() { return isChosen ? ((WGLGLCapabilities)capabilitiesChosen).isSetByARB() : false; }
+    /**
+     * External configuration's HDC pixelformat shall not be modified
+     */
+    public final boolean isExternal() { return isExternal; }
+    
+    final void markExternal() {
+        this.isExternal=true;
+    }
+    
+    /**
+     * Determined configuration states set target capabilties via {@link #setCapsPFD(WGLGLCapabilities)},
+     * but does not imply a set pixelformat.
+     * 
+     * @see #setPixelFormat(long, WGLGLCapabilities) 
+     * @see #setCapsPFD(WGLGLCapabilities)
+     */
+    public final boolean isDetermined() { return isDetermined; }
+    
+    public final PIXELFORMATDESCRIPTOR getPixelFormat()   { return isDetermined ? ((WGLGLCapabilities)capabilitiesChosen).getPFD() : null; }
+    public final int getPixelFormatID() { return isDetermined ? ((WGLGLCapabilities)capabilitiesChosen).getPFDID() : 0; }
+    public final boolean isChoosenByARB() { return isDetermined ? ((WGLGLCapabilities)capabilitiesChosen).isSetByARB() : false; }
 
     static int fillAttribsForGeneralWGLARBQuery(WindowsWGLDrawableFactory.SharedResource sharedResource, int[] iattributes) {
         int niattribs = 0;

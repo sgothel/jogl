@@ -44,6 +44,7 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
@@ -111,9 +112,16 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         }
         WindowsWGLDrawable sharedDrawable = sharedResource.getDrawable();
         GLCapabilitiesImmutable capsChosen = sharedDrawable.getChosenGLCapabilities();
+        WindowsWGLContext sharedContext = sharedResource.getContext();
         List availableCaps = null;
-
-        sharedDrawable.lockSurface();
+        
+        if ( sharedResource.needsCurrentContext4ARBPFDQueries() ) {
+            if(GLContext.CONTEXT_NOT_CURRENT == sharedContext.makeCurrent()) {
+                throw new GLException("Could not make Shared Context current: "+device);
+            }
+        } else {
+            sharedDrawable.lockSurface();
+        }
         try {
             long hdc = sharedDrawable.getHandle();
             if (0 == hdc) {
@@ -126,7 +134,11 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                 availableCaps = getAvailableGLCapabilitiesGDI(hdc, capsChosen.getGLProfile());
             }
         } finally {
-            sharedDrawable.unlockSurface();
+            if ( sharedResource.needsCurrentContext4ARBPFDQueries() ) {
+                sharedContext.release();    
+            } else {
+                sharedDrawable.unlockSurface();
+            }            
         }
 
         if( null != availableCaps && availableCaps.size() > 1 ) {
@@ -179,25 +191,26 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             }
             WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
 
-            if(!config.isDetermined()) {
-                updateGraphicsConfiguration(config, chooser, factory, hdc, false, pfdIDs);
-            } else {
-                // set PFD if not set yet
-                int pfdID = -1;
-                boolean set = false;
-                if ( 1 > ( pfdID = GDI.GetPixelFormat(hdc) ) ) {
-                    if (!GDI.SetPixelFormat(hdc, config.getPixelFormatID(), config.getPixelFormat())) {
-                        throw new GLException("Unable to set pixel format " + config.getPixelFormatID() +
-                                              " for device context " + toHexString(hdc) +
-                                              ": error code " + GDI.GetLastError());
-                    }
-                    set = true;
-                    pfdID = config.getPixelFormatID();
-                }
-                if (DEBUG) {
-                    System.err.println("!!! setPixelFormat (post): hdc "+toHexString(hdc) +", "+config.getPixelFormatID()+" -> "+pfdID+", set: "+set);
-                    Thread.dumpStack();
-                }
+            if( !config.isExternal() ) {
+	            if( !config.isDetermined() ) {
+	                updateGraphicsConfiguration(config, chooser, factory, hdc, false, pfdIDs);
+	            } else {
+	                // set PFD if not set yet
+	                int pfdID = -1;
+	                boolean set = false;
+	                if ( 1 > ( pfdID = GDI.GetPixelFormat(hdc) ) ) {
+	                    if (!GDI.SetPixelFormat(hdc, config.getPixelFormatID(), config.getPixelFormat())) {
+	                        throw new GLException("Unable to set pixel format " + config.getPixelFormatID() +
+	                                              " for device context " + toHexString(hdc) +
+	                                              ": error code " + GDI.GetLastError());
+	                    }
+	                    set = true;	                    
+	                }
+	                if (DEBUG) {
+	                    System.err.println("!!! setPixelFormat (post): hdc "+toHexString(hdc) +", "+pfdID+" -> "+config.getPixelFormatID()+", set: "+set);
+	                    Thread.dumpStack();
+	                }
+	            }
             }
         } finally {
             ns.unlockSurface();
@@ -246,8 +259,23 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             }
             System.err.println("!!! user chosen caps " + config.getChosenCapabilities());
         }
-        if( !updateGraphicsConfigurationARB(hdc, extHDC, config, chooser, (WindowsWGLDrawableFactory)factory, pfdIDs) ) {
-            updateGraphicsConfigurationGDI(hdc, extHDC, config, chooser, pfdIDs);
+        AbstractGraphicsDevice device = config.getScreen().getDevice();
+        WindowsWGLDrawableFactory.SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResource(device);
+        WindowsWGLContext sharedContext = null;
+        if (null != sharedResource && sharedResource.needsCurrentContext4ARBPFDQueries()) {
+            sharedContext = sharedResource.getContext();
+            if(GLContext.CONTEXT_NOT_CURRENT == sharedContext.makeCurrent()) {
+                throw new GLException("Could not make Shared Context current: "+device);
+            }
+        }
+        try {
+            if( !updateGraphicsConfigurationARB(hdc, extHDC, config, chooser, (WindowsWGLDrawableFactory)factory, pfdIDs) ) {
+                updateGraphicsConfigurationGDI(hdc, extHDC, config, chooser, pfdIDs);
+            }
+        } finally {
+            if (null != sharedContext) {
+                sharedContext.release();
+            }
         }
     }
 
@@ -372,16 +400,10 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         }
 
         if ( !extHDC && !pixelFormatSet ) {
-            if (!GDI.SetPixelFormat(hdc, pixelFormatCaps.getPFDID(), pixelFormatCaps.getPFD())) {
-                throw new GLException("Unable to set pixel format " + pixelFormatCaps.getPFDID() +
-                                      " for device context " + toHexString(hdc) +
-                                      ": error code " + GDI.GetLastError());
-            }
-            if (DEBUG) {
-                System.err.println("!!! setPixelFormat (ARB): hdc "+toHexString(hdc) +", "+config.getPixelFormatID()+" -> "+pixelFormatCaps.getPFDID());
-            }
+        	config.setPixelFormat(hdc, pixelFormatCaps);
+        } else {
+        	config.setCapsPFD(pixelFormatCaps);
         }
-        config.setCapsPFD(pixelFormatCaps);
         return true;
     }
 
@@ -397,7 +419,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         boolean onscreen = capsChosen.isOnscreen();
         GLProfile glProfile = capsChosen.getGLProfile();
 
-        ArrayList/*<WGLGLCapabilities>*/ availableCaps = new ArrayList();
+        ArrayList<WGLGLCapabilities> availableCaps = new ArrayList<WGLGLCapabilities>();
         int pfdID; // chosen or preset PFD ID
         WGLGLCapabilities pixelFormatCaps = null; // chosen or preset PFD ID's caps
         boolean pixelFormatSet = false; // indicates a preset PFD ID [caps]
@@ -446,7 +468,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                 }
                 return false;
             }
-            pixelFormatCaps = (WGLGLCapabilities) availableCaps.get(chosenIndex);
+            pixelFormatCaps = availableCaps.get(chosenIndex);
             if (DEBUG) {
                 System.err.println("!!! chosen pfdID (GDI): native recommended "+ (recommendedIndex+1) +
                                    ", caps " + pixelFormatCaps);
@@ -454,16 +476,10 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         }
 
         if ( !extHDC && !pixelFormatSet ) {
-            if (!GDI.SetPixelFormat(hdc, pixelFormatCaps.getPFDID(), pixelFormatCaps.getPFD())) {
-                throw new GLException("Unable to set pixel format " + pixelFormatCaps.getPFDID() +
-                                      " for device context " + toHexString(hdc) +
-                                      ": error code " + GDI.GetLastError());
-            }
-            if (DEBUG) {
-                System.err.println("!!! setPixelFormat (GDI): hdc "+toHexString(hdc) +", "+config.getPixelFormatID()+" -> " + pixelFormatCaps.getPFDID());
-            }
+        	config.setPixelFormat(hdc, pixelFormatCaps);
+        } else {
+        	config.setCapsPFD(pixelFormatCaps);
         }
-        config.setCapsPFD(pixelFormatCaps);
         return true;
     }
 }

@@ -69,7 +69,7 @@ public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
     }
 
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
-    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.createFromCurrent(factory, hdc, pfdID, glp, aScreen, true);
+    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.createFromExternal(factory, hdc, pfdID, glp, aScreen, true);
     return new WindowsExternalWGLDrawable(factory, new WrappedSurface(cfg, hdc));
   }
 

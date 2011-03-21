@@ -92,11 +92,12 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
         // Workaround: Use a fake default configuration
         final int werr = GDI.GetLastError();
         cfg = WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(new GLCapabilities(GLProfile.getDefault()), aScreen);
+        cfg.markExternal();
         if(DEBUG) {
             System.err.println("WindowsExternalWGLContext invalid hdc/pfd werr "+werr+", using default cfg: " + cfg);
         }
     } else {
-        cfg = WindowsWGLGraphicsConfiguration.createFromCurrent(factory, hdc, pfdID, glp, aScreen, true);
+        cfg = WindowsWGLGraphicsConfiguration.createFromExternal(factory, hdc, pfdID, glp, aScreen, true);
         if(DEBUG) {
             System.err.println("WindowsExternalWGLContext valid hdc/pfd, retrieved cfg: " + cfg);
         }
