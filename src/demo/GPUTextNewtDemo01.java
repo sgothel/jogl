@@ -29,6 +29,7 @@ package demo;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
@@ -69,7 +70,7 @@ class TextNewtWindow1 {
 		GLCapabilities caps = new GLCapabilities(glp);
 		caps.setAlphaBits(4);
 	    caps.setSampleBuffers(true); // FIXME: sure ?
-		caps.setNumSamples(4); // FIXME: sure ?
+		caps.setNumSamples(1); // FIXME: sure ?
 		System.out.println("Requested: "+caps);
 		
 		final GLWindow window = GLWindow.create(caps);
@@ -135,10 +136,13 @@ class TextNewtWindow1 {
 			gl.setSwapInterval(1);
 			gl.glEnable(GL2ES2.GL_DEPTH_TEST);
 			textRenderer = new HwTextRenderer(drawable.getContext(), pointFactory, Region.SINGLE_PASS);
-			
-			System.out.println("Realised: "+drawable.getChosenGLCapabilities());			
+			textRenderer.setAlpha(1.0f);
+			textRenderer.setColor(0.0f, 0.0f, 1.0f);
+			//gl.glSampleCoverage(0.75f, false);
+			//gl.glEnable(GL2GL3.GL_SAMPLE_COVERAGE); // FIXME: coverage makes it 'funny' .. ie 'hole mask' 			
+			MSAATool.dump(drawable);
 		}
-
+		
 		float ang = 0;
 		float zoom = -70;
 		float xTran = -10;
@@ -161,9 +165,6 @@ class TextNewtWindow1 {
 			float[] position = new float[]{0,0,0};
 
 			try {
-				textRenderer.setAlpha(1.0f);
-				textRenderer.setColor(0.0f, 0.0f, 1.0f);
-				gl.glSampleCoverage(0.75f, false);
 				textRenderer.renderString3D(font, text2, position, 0);
 			} catch (Exception e) { 
 				e.printStackTrace();

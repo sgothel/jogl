@@ -29,6 +29,7 @@ package demo;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GL3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -149,8 +150,12 @@ class TextNewtWindow {
 			gl.glEnable(GL3.GL_DEPTH_TEST);
 			
 			textRenderer = new HwTextRenderer(drawable.getContext(), pointFactory, Region.TWO_PASS);
+			textRenderer.setAlpha(1.0f);
+			textRenderer.setColor(0.0f, 0.0f, 0.0f);
+			gl.glSampleCoverage(0.75f, false);
+			gl.glEnable(GL2GL3.GL_SAMPLE_COVERAGE); // FIXME: Does sample coverage make a difference here ?
 			gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL3.GL_NICEST);
-			System.out.println("Realised: "+drawable.getChosenGLCapabilities());						
+			MSAATool.dump(drawable);
 		}
 
 		float ang = 0;
@@ -176,9 +181,6 @@ class TextNewtWindow {
 			float[] position = new float[]{0,0,0};
 
 			try {
-				textRenderer.setAlpha(1.0f);
-				textRenderer.setColor(0.0f, 0.0f, 0.0f);
-				gl.glSampleCoverage(0.75f, false);
 				textRenderer.renderString3D(font, text2, position, size);
 			} catch (Exception e) { 
 				e.printStackTrace();
