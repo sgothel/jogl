@@ -70,7 +70,7 @@ class TextNewtWindow1 {
 		GLCapabilities caps = new GLCapabilities(glp);
 		caps.setAlphaBits(4);
 	    caps.setSampleBuffers(true);
-		caps.setNumSamples(2); // 2 samples is not enough ..
+		caps.setNumSamples(4); // 2 samples is not enough ..
 		System.out.println("Requested: "+caps);
 		
 		final GLWindow window = GLWindow.create(caps);
