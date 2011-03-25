@@ -69,8 +69,8 @@ class TextNewtWindow1 {
 		GLProfile glp = GLProfile.getGL2ES2();
 		GLCapabilities caps = new GLCapabilities(glp);
 		caps.setAlphaBits(4);
-	    caps.setSampleBuffers(true); // FIXME: sure ?
-		caps.setNumSamples(1); // FIXME: sure ?
+	    caps.setSampleBuffers(true);
+		caps.setNumSamples(2); // 2 samples is not enough ..
 		System.out.println("Requested: "+caps);
 		
 		final GLWindow window = GLWindow.create(caps);
