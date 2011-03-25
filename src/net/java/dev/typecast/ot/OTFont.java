@@ -54,7 +54,8 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 import net.java.dev.typecast.ot.table.DirectoryEntry;
-import net.java.dev.typecast.ot.table.TTCHeader;
+import net.java.dev.typecast.ot.table.GlyfDescript;
+import net.java.dev.typecast.ot.table.HdmxTable;
 import net.java.dev.typecast.ot.table.TableDirectory;
 import net.java.dev.typecast.ot.table.Table;
 import net.java.dev.typecast.ot.table.Os2Table;
@@ -73,7 +74,7 @@ import net.java.dev.typecast.ot.table.TableFactory;
 /**
  * The TrueType font.
  * @version $Id: OTFont.java,v 1.6 2007-01-31 01:49:18 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>, Sven Gothel
  */
 public class OTFont {
 
@@ -85,6 +86,7 @@ public class OTFont {
     private GlyfTable _glyf;
     private HeadTable _head;
     private HheaTable _hhea;
+    private HdmxTable _hdmx;
     private HmtxTable _hmtx;
     private LocaTable _loca;
     private MaxpTable _maxp;
@@ -124,6 +126,10 @@ public class OTFont {
         return _hhea;
     }
     
+    public HdmxTable getHdmxTable() {
+        return _hdmx;
+    }
+    
     public HmtxTable getHmtxTable() {
         return _hmtx;
     }
@@ -160,15 +166,17 @@ public class OTFont {
         return _maxp.getNumGlyphs();
     }
 
-    public Glyph getGlyph(int i) {
-        return (_glyf.getDescription(i) != null)
-            ? new Glyph(
-                _glyf.getDescription(i),
+    public OTGlyph getGlyph(int i) {
+    	
+    	final GlyfDescript _glyfDescr = _glyf.getDescription(i); 
+        return (null != _glyfDescr)
+            ? new OTGlyph(
+                _glyfDescr,
                 _hmtx.getLeftSideBearing(i),
                 _hmtx.getAdvanceWidth(i))
             : null;
     }
-
+    
     public TableDirectory getTableDirectory() {
         return _tableDirectory;
     }
@@ -245,6 +253,7 @@ public class OTFont {
         // Get references to commonly used tables (these happen to be all the
         // required tables)
         _cmap = (CmapTable) getTable(Table.cmap);
+        _hdmx = (HdmxTable) getTable(Table.hdmx);
         _hmtx = (HmtxTable) getTable(Table.hmtx);
         _name = (NameTable) getTable(Table.name);
         _os2 = (Os2Table) getTable(Table.OS_2);

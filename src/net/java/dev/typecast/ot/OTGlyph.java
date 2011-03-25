@@ -50,6 +50,8 @@
 
 package net.java.dev.typecast.ot;
 
+import com.jogamp.graph.geom.AABBox;
+
 import net.java.dev.typecast.ot.table.GlyphDescription;
 import net.java.dev.typecast.ot.table.GlyfDescript;
 import net.java.dev.typecast.ot.table.Charstring;
@@ -60,13 +62,14 @@ import net.java.dev.typecast.t2.T2Interpreter;
 /**
  * An individual glyph within a font.
  * @version $Id: Glyph.java,v 1.3 2007-02-21 12:23:54 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>, Sven Gothel
  */
-public class Glyph {
+public class OTGlyph {
 
     protected short _leftSideBearing;
     protected int _advanceWidth;
     private Point[] _points;
+    AABBox _bbox;
 
     /**
      * Construct a Glyph from a TrueType outline described by
@@ -75,7 +78,7 @@ public class Glyph {
      * @param lsb The Left Side Bearing.
      * @param advance The advance width.
      */
-    public Glyph(GlyphDescription gd, short lsb, int advance) {
+    public OTGlyph(GlyphDescription gd, short lsb, int advance) {
         _leftSideBearing = lsb;
         _advanceWidth = advance;
         describe(gd);
@@ -87,7 +90,7 @@ public class Glyph {
      * @param lsb The Left Side Bearing.
      * @param advance The advance width.
      */
-    public Glyph(Charstring cs, short lsb, int advance) {
+    public OTGlyph(Charstring cs, short lsb, int advance) {
         _leftSideBearing = lsb;
         _advanceWidth = advance;
         if (cs instanceof CharstringType2) {
@@ -98,6 +101,10 @@ public class Glyph {
         }
     }
 
+    public AABBox getBBox() { 
+    	return _bbox; 
+    }
+    
     public int getAdvanceWidth() {
         return _advanceWidth;
     }
@@ -139,7 +146,7 @@ public class Glyph {
      */
     private void describe(GlyphDescription gd) {
         int endPtIndex = 0;
-        _points = new Point[gd.getPointCount() + 2];
+        _points = new Point[gd.getPointCount() /* + 2 */ ];
         for (int i = 0; i < gd.getPointCount(); i++) {
             boolean endPt = gd.getEndPtOfContours(endPtIndex) == i;
             if (endPt) {
@@ -153,7 +160,9 @@ public class Glyph {
         }
 
         // Append the origin and advanceWidth points (n & n+1)
-        _points[gd.getPointCount()] = new Point(0, 0, true, true);
-        _points[gd.getPointCount()+1] = new Point(_advanceWidth, 0, true, true);
+        // _points[gd.getPointCount()] = new Point(0, 0, true, true);
+        // _points[gd.getPointCount()+1] = new Point(_advanceWidth, 0, true, true);
+        
+		_bbox = new AABBox(gd.getXMinimum(), gd.getYMinimum(), 0, gd.getXMaximum(), gd.getYMaximum(), 0);
     }
 }
