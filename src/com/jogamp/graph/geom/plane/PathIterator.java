@@ -17,7 +17,7 @@
 /**
  * @author Denis M. Kishenko
  */
-package java.awt.geom;
+package com.jogamp.graph.geom.plane;
 
 public interface PathIterator {
 
@@ -37,8 +37,6 @@ public interface PathIterator {
     public void next();
 
     public int currentSegment(float[] coords);
-
-    public int currentSegment(double[] coords);
 
 }
 

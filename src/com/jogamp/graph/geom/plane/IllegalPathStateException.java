@@ -17,7 +17,7 @@
 /**
  * @author Denis M. Kishenko
  */
-package java.awt.geom;
+package com.jogamp.graph.geom.plane;
 
 public class IllegalPathStateException extends RuntimeException {
 
