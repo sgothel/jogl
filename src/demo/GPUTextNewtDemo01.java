@@ -137,7 +137,6 @@ class TextNewtWindow1 {
 			textRenderer = new HwTextRenderer(drawable.getContext(), pointFactory, Region.SINGLE_PASS);
 			
 			System.out.println("Realised: "+drawable.getChosenGLCapabilities());			
-			System.out.println("MS: " + gl.glIsEnabled(GL2ES2.GL_MULTISAMPLE));
 		}
 
 		float ang = 0;
@@ -155,7 +154,7 @@ class TextNewtWindow1 {
 			textRenderer.translate(xTran, yTran, zoom);
 			textRenderer.rotate(ang, 0, 1, 0);
 
-			String text1 = "abcdef\nghijklmn\nopqrstuv\nwxyz\n0123456789";
+			String text1 = "abcdef\nghijklmn\nopqrstuv\nwxyz";
 			String text2 = text1.toUpperCase();
 
 			Font font = textRenderer.createFont(pointFactory, "Lucida Sans Regular",40);		

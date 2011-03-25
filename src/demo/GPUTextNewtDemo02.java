@@ -69,8 +69,6 @@ class TextNewtWindow {
 		
 		GLCapabilities caps = new GLCapabilities(glp);
 		caps.setAlphaBits(4);		
-		caps.setSampleBuffers(true);
-		caps.setNumSamples(4);
 		System.out.println("Requested: "+caps);
 		
 		final GLWindow window = GLWindow.create(caps);
@@ -153,7 +151,6 @@ class TextNewtWindow {
 			textRenderer = new HwTextRenderer(drawable.getContext(), pointFactory, Region.TWO_PASS);
 			gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL3.GL_NICEST);
 			System.out.println("Realised: "+drawable.getChosenGLCapabilities());						
-			System.out.println("MS: " + gl.glIsEnabled(GL3.GL_MULTISAMPLE));
 		}
 
 		float ang = 0;
@@ -172,7 +169,7 @@ class TextNewtWindow {
 			textRenderer.translate(xTran, yTran, zoom);
 			textRenderer.rotate(ang, 0, 1, 0);
 
-			String text1 = "abcdef\nghijklmn\nopqrstuv\nwxyz\n0123456789";
+			String text1 = "abcdef\nghijklmn\nopqrstuv\nwxyz";
 			String text2 = text1.toUpperCase();
 
 			Font font = textRenderer.createFont(pointFactory, "Lucida Sans Regular",40);

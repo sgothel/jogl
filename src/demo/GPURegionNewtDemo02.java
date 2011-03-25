@@ -37,6 +37,7 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.HwRegionRenderer;
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
@@ -69,8 +70,6 @@ class RegionsNewtWindow {
 		GLProfile glp = GLProfile.getGL2ES2();
 		GLCapabilities caps = new GLCapabilities(glp);
 		caps.setDoubleBuffered(true);
-		caps.setSampleBuffers(true);
-		caps.setNumSamples(4);
 		System.out.println(caps);
 		final GLWindow window = GLWindow.create(caps);
 		window.setPosition(10, 10);
