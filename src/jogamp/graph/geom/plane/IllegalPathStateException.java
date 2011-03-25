@@ -17,26 +17,18 @@
 /**
  * @author Denis M. Kishenko
  */
-package com.jogamp.graph.geom.plane;
+package jogamp.graph.geom.plane;
 
-public interface PathIterator {
+public class IllegalPathStateException extends RuntimeException {
 
-    public static final int WIND_EVEN_ODD = 0;
-    public static final int WIND_NON_ZERO = 1;
+    private static final long serialVersionUID = -5158084205220481094L;
 
-    public static final int SEG_MOVETO  = 0;
-    public static final int SEG_LINETO  = 1;
-    public static final int SEG_QUADTO  = 2;
-    public static final int SEG_CUBICTO = 3;
-    public static final int SEG_CLOSE   = 4;
+    public IllegalPathStateException() {
+    }
 
-    public int getWindingRule();
-
-    public boolean isDone();
-
-    public void next();
-
-    public int currentSegment(float[] coords);
+    public IllegalPathStateException(String s) {
+        super(s);
+    }
 
 }
 

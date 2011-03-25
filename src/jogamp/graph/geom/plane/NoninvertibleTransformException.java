@@ -17,16 +17,13 @@
 /**
  * @author Denis M. Kishenko
  */
-package com.jogamp.graph.geom.plane;
+package jogamp.graph.geom.plane;
 
-public class IllegalPathStateException extends RuntimeException {
+public class NoninvertibleTransformException extends java.lang.Exception {
 
-    private static final long serialVersionUID = -5158084205220481094L;
+    private static final long serialVersionUID = 6137225240503990466L;
 
-    public IllegalPathStateException() {
-    }
-
-    public IllegalPathStateException(String s) {
+    public NoninvertibleTransformException(String s) {
         super(s);
     }
 

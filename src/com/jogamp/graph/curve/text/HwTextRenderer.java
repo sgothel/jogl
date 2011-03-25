@@ -39,14 +39,15 @@ import javax.media.opengl.GLUniformData;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.graph.curve.text.GlyphString;
+import jogamp.graph.font.FontInt;
 import jogamp.graph.font.typecast.TypecastFontFactory;
+import jogamp.graph.geom.plane.AffineTransform;
+import jogamp.graph.geom.plane.Path2D;
 
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.graph.geom.plane.Path2D;
 import com.jogamp.graph.geom.Point;
 import com.jogamp.graph.geom.PointTex;
 import com.jogamp.graph.geom.opengl.Vertex;
@@ -299,7 +300,7 @@ public class HwTextRenderer {
 		AffineTransform affineTransform = new AffineTransform(pointFactory);
 		
 		Path2D[] paths = new Path2D[str.length()];
-		font.getOutline(str, affineTransform, paths);
+		((FontInt)font).getOutline(str, affineTransform, paths);
 		
 		GlyphString glyphString = new GlyphString(pointFactory, font.getName(), str);
 		glyphString.createfromFontPath(paths, affineTransform);

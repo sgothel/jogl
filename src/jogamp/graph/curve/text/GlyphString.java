@@ -29,15 +29,16 @@ package jogamp.graph.curve.text;
 
 import java.util.ArrayList;
 
-import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.graph.geom.plane.Path2D;
-import com.jogamp.graph.geom.plane.PathIterator;
 import com.jogamp.graph.geom.Point;
 import com.jogamp.graph.geom.PointTex;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.opengl.Vertex;
 
 import javax.media.opengl.GLContext;
+
+import jogamp.graph.geom.plane.AffineTransform;
+import jogamp.graph.geom.plane.Path2D;
+import jogamp.graph.geom.plane.PathIterator;
 
 
 import com.jogamp.graph.curve.Region;

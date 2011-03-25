@@ -19,10 +19,10 @@
  */
 package jogamp.graph.math.plane;
 
+import jogamp.graph.geom.plane.Path2D;
+import jogamp.graph.geom.plane.PathIterator;
 import jogamp.graph.math.MathFloat;
 
-import com.jogamp.graph.geom.plane.Path2D;
-import com.jogamp.graph.geom.plane.PathIterator;
 
 public class Crossing {
 

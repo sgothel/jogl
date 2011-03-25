@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2011 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -25,50 +25,21 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.font;
+package jogamp.graph.font;
 
-import com.jogamp.graph.geom.AABBox;
+import jogamp.graph.geom.plane.AffineTransform;
+import jogamp.graph.geom.plane.Path2D;
 
-public interface Font {
+import com.jogamp.graph.font.Font;
 
-	/**
-	 * Metrics for font based on pixel size !
-	 * 
-	 * If no pixelSize is given, this font's static pixelSize is being used.
-	 *  
-	 * value = Table.value * fontSize * 1.0f / HeadTable.UnitsPerEm
-	 */
-    public interface Metrics {  
-        public float getAscent();
-        public float getDescent();
-        public float getLineGap();
-        public float getScale();
-    	public float getScaleForPixelSize(float pixelSize);    	
-		public AABBox getBBox();
+public interface FontInt extends Font {
+
+    public interface Glyph extends Font.Glyph {
+        public Path2D getPath();
+        public Path2D getPathForPixelSize(float pixelSize);         
     }
 
-	/**
-	 * Glyph for font symbols based on pixel size !
-	 * 
-	 * If no pixelSize is given, this font's static pixelSize is being used.
-	 */
-    public interface Glyph {
-        public Font getFont();
-        public char getSymbol();
-        public AABBox getBBox();
-        public float getAdvance();
-        public float getAdvanceForPixelSize(float pixelSize, boolean useFrationalMetrics);
-    }
-
-
-    public String getName();
-    public float getSize();
-    public Metrics getMetrics();
-    public Glyph getGlyph(char symbol);
-    
-    public float getStringWidth(String string);
-    public float getStringHeight(String string);
-    public AABBox getStringBounds(CharSequence string);
-
-    public int getNumGlyphs();
+    public void getOutline(String string,
+            AffineTransform transform,
+            Path2D[] result);
 }

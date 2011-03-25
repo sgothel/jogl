@@ -17,15 +17,26 @@
 /**
  * @author Denis M. Kishenko
  */
-package com.jogamp.graph.geom.plane;
+package jogamp.graph.geom.plane;
 
-public class NoninvertibleTransformException extends java.lang.Exception {
+public interface PathIterator {
 
-    private static final long serialVersionUID = 6137225240503990466L;
+    public static final int WIND_EVEN_ODD = 0;
+    public static final int WIND_NON_ZERO = 1;
 
-    public NoninvertibleTransformException(String s) {
-        super(s);
-    }
+    public static final int SEG_MOVETO  = 0;
+    public static final int SEG_LINETO  = 1;
+    public static final int SEG_QUADTO  = 2;
+    public static final int SEG_CUBICTO = 3;
+    public static final int SEG_CLOSE   = 4;
+
+    public int getWindingRule();
+
+    public boolean isDone();
+
+    public void next();
+
+    public int currentSegment(float[] coords);
 
 }
 

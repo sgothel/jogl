@@ -29,7 +29,8 @@ package jogamp.graph.curve.text;
 
 import java.util.ArrayList;
 
-import com.jogamp.graph.geom.plane.PathIterator;
+import jogamp.graph.geom.plane.PathIterator;
+
 import com.jogamp.graph.geom.Line;
 import com.jogamp.graph.geom.Point;
 import com.jogamp.graph.geom.PointTex;

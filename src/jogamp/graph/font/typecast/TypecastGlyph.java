@@ -27,12 +27,14 @@
  */
 package jogamp.graph.font.typecast;
 
+import jogamp.graph.font.FontInt;
+import jogamp.graph.geom.plane.AffineTransform;
+import jogamp.graph.geom.plane.Path2D;
+
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.AABBox;
-import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.graph.geom.plane.Path2D;
 
-public class TypecastGlyph implements Font.Glyph {
+public class TypecastGlyph implements FontInt.Glyph {
     public class Advance
     {
         Font            font;

@@ -17,7 +17,7 @@
 /**
  * @author Denis M. Kishenko
  */
-package com.jogamp.graph.geom.plane;
+package jogamp.graph.geom.plane;
 
 import java.util.NoSuchElementException;
 

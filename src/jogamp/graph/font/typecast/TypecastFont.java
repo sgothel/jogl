@@ -30,7 +30,10 @@ package jogamp.graph.font.typecast;
 import java.io.File;
 import java.io.IOException;
 
+import jogamp.graph.font.FontInt;
 import jogamp.graph.font.JavaFontLoader;
+import jogamp.graph.geom.plane.AffineTransform;
+import jogamp.graph.geom.plane.Path2D;
 
 import net.java.dev.typecast.ot.OTFont;
 import net.java.dev.typecast.ot.OTFontCollection;
@@ -41,12 +44,10 @@ import net.java.dev.typecast.ot.table.ID;
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.AABBox;
-import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.graph.geom.plane.Path2D;
 import com.jogamp.graph.geom.PointTex;
 import com.jogamp.graph.geom.Point;
 
-class TypecastFont implements Font {
+class TypecastFont implements FontInt {
 	static final boolean DEBUG = false;
 	
 	final Point.Factory<? extends PointTex> pointFactory;
