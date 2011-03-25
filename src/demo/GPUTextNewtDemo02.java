@@ -118,9 +118,11 @@ class TextNewtWindow {
 				}
 				else if(arg0.getKeyCode() == KeyEvent.VK_6){
 					textGLListener.size -= 10;
+					System.err.println("Tex Size: " + textGLListener.size);
 				}
 				else if(arg0.getKeyCode() == KeyEvent.VK_7){
 					textGLListener.size += 10;
+					System.err.println("Tex Size: " + textGLListener.size);
 				}
 			}
 			public void keyTyped(KeyEvent arg0) {}
@@ -155,10 +157,10 @@ class TextNewtWindow {
 		}
 
 		float ang = 0;
-		float zoom = -300;
+		float zoom = -4000;
 		float xTran = -100;
 		float yTran = 40;
-		int size = 200;
+		int size = 190;
 
 		public void display(GLAutoDrawable drawable) {
 			GL3 gl = drawable.getGL().getGL3();
