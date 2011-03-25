@@ -77,7 +77,7 @@ class TextNewtWindow {
 		window.setPosition(10, 10);
 		window.setSize(1000, 1000);
 
-		window.setTitle("GPU Text Newt Demo 02");
+        window.setTitle("GPU Text Newt Demo 01 - r2t1 msaa0");		
 		textGLListener = new TextGLListener();
 		window.addGLEventListener(textGLListener);
 

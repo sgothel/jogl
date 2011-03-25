@@ -69,19 +69,18 @@ class RegionNewtWindow {
 	}
 	private void createWindow() {
 		GLProfile.initSingleton(true);
-		GLProfile glp = GLProfile.getGL2ES2();
-		GLCapabilities caps = new GLCapabilities(glp);
-		caps.setDoubleBuffered(true);
-		caps.setSampleBuffers(true);
-		caps.setNumSamples(4);
-		System.out.println(caps);
-		final GLWindow window = GLWindow.create(caps);
-		window.setPosition(10, 10);
-		window.setSize(500, 500);
-
-		window.setTitle("GPU Curve Region Newt Demo 01");
-		regionGLListener = new RegionGLListener();
-		window.addGLEventListener(regionGLListener);
+        GLProfile glp = GLProfile.getGL2ES2();
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setAlphaBits(4);
+        caps.setSampleBuffers(true);
+        caps.setNumSamples(4); // 2 samples is not enough ..
+        System.out.println("Requested: " + caps);
+        final GLWindow window = GLWindow.create(caps);
+        window.setPosition(10, 10);
+        window.setSize(500, 500);
+        window.setTitle("GPU Curve Region Newt Demo 01 - r2t0 msaa1");
+        regionGLListener = new RegionGLListener();
+        window.addGLEventListener(regionGLListener);
 
 		window.setVisible(true);
 
@@ -174,6 +173,12 @@ class RegionNewtWindow {
 			gl.setSwapInterval(1);
 			gl.glEnable(GL2ES2.GL_DEPTH_TEST);
 			regionRenderer = new HwRegionRenderer(drawable.getContext());
+            regionRenderer.setAlpha(1.0f);
+            regionRenderer.setColor(0.0f, 0.0f, 0.0f);
+            //gl.glSampleCoverage(0.95f, false);
+            //gl.glEnable(GL2GL3.GL_SAMPLE_COVERAGE); // sample coverage doesn't really make a difference to lines
+            //gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_ONE);
+            MSAATool.dump(drawable);
 			createTestOutline();
 		}
 
@@ -193,9 +198,6 @@ class RegionNewtWindow {
 			regionRenderer.rotate(ang, 0, 1, 0);
 
 			try {
-				regionRenderer.setAlpha(1.0f);
-				regionRenderer.setColor(0.0f, 0.0f, 1.0f);
-				
 				regionRenderer.renderOutlineShape(outlineShape, new float[]{0,0,0});
 			} catch (Exception e) { 
 				e.printStackTrace();

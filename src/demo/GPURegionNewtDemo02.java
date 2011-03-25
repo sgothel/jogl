@@ -69,13 +69,12 @@ class RegionsNewtWindow {
 		GLProfile.initSingleton(true);
 		GLProfile glp = GLProfile.getGL2ES2();
 		GLCapabilities caps = new GLCapabilities(glp);
-		caps.setDoubleBuffered(true);
-		System.out.println(caps);
+        System.out.println("Requested: "+caps);
 		final GLWindow window = GLWindow.create(caps);
 		window.setPosition(10, 10);
 		window.setSize(500, 500);
 
-		window.setTitle("GPU Curve Region Newt Demo 01");
+		window.setTitle("GPU Curve Region Newt Demo 02 - r2t0 msaa0");
 		regionGLListener = new RegionGLListener();
 		window.addGLEventListener(regionGLListener);
 
@@ -170,6 +169,9 @@ class RegionsNewtWindow {
 			gl.setSwapInterval(1);
 			gl.glEnable(GL2ES2.GL_DEPTH_TEST);
 			regionRenderer = new HwRegionRenderer(drawable.getContext());
+            regionRenderer.setAlpha(1.0f);
+            regionRenderer.setColor(0.0f, 0.0f, 0.0f);
+            MSAATool.dump(drawable);
 			createTestOutline();
 		}
 
@@ -189,9 +191,6 @@ class RegionsNewtWindow {
 			regionRenderer.rotate(ang, 0, 1, 0);
 
 			try {
-				regionRenderer.setAlpha(1.0f);
-				regionRenderer.setColor(0.0f, 0.0f, 1.0f);
-				
 				regionRenderer.renderOutlineShapes(outlineShapes, new float[]{0,0,0});
 			} catch (Exception e) { 
 				e.printStackTrace();

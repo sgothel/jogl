@@ -78,7 +78,7 @@ class TextNewtWindow1 {
 		window.setPosition(10, 10);
 		window.setSize(500, 500);
 
-		window.setTitle("GPU Text Newt Demo 01");
+		window.setTitle("GPU Text Newt Demo 01 - r2t0 msaa1");
 		textGLListener = new TextGLListener();
 		window.addGLEventListener(textGLListener);
 
@@ -137,7 +137,7 @@ class TextNewtWindow1 {
 			gl.glEnable(GL2ES2.GL_DEPTH_TEST);
 			textRenderer = new HwTextRenderer(drawable.getContext(), pointFactory, Region.SINGLE_PASS);
 			textRenderer.setAlpha(1.0f);
-			textRenderer.setColor(0.0f, 0.0f, 1.0f);
+			textRenderer.setColor(0.0f, 0.0f, 0.0f);
 			//gl.glSampleCoverage(0.95f, false);
 			//gl.glEnable(GL2GL3.GL_SAMPLE_COVERAGE); // sample coverage doesn't really make a difference to lines
 			//gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_ONE);
