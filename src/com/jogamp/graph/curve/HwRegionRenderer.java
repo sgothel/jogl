@@ -40,7 +40,7 @@ import javax.media.opengl.GLUniformData;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.graph.geom.Triangle;
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex;
 
 import jogamp.opengl.Debug;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -71,7 +71,7 @@ public class HwRegionRenderer {
 
 	/** Create a Hardware accelerated Region Renderer
 	 * @param context OpenGL rendering context
-	 * @param factory optional Point.Factory for PointTex construction. Default is Vertex.Factory.
+	 * @param factory optional Point.Factory for Vertex construction. Default is Vertex.Factory.
 	 */
 	public HwRegionRenderer(GLContext context) {
 		this.context = context;
@@ -248,8 +248,8 @@ public class HwRegionRenderer {
 		
 		outlineShape.transformOutlines(OutlineShape.QUADRATIC_NURBS);
 		
-		ArrayList<Triangle<PointTex>> triangles = (ArrayList<Triangle<PointTex>>) outlineShape.triangulate(sharpness);
-		ArrayList<PointTex> vertices = (ArrayList<PointTex>) outlineShape.getVertices();
+		ArrayList<Triangle<Vertex>> triangles = (ArrayList<Triangle<Vertex>>) outlineShape.triangulate(sharpness);
+		ArrayList<Vertex> vertices = (ArrayList<Vertex>) outlineShape.getVertices();
 		region.addVertices(vertices);
 		region.addTriangles(triangles);
 		
@@ -265,11 +265,11 @@ public class HwRegionRenderer {
 		for(OutlineShape outlineShape:outlineShapes){
 			outlineShape.transformOutlines(OutlineShape.QUADRATIC_NURBS);
 
-			ArrayList<Triangle<PointTex>> triangles = outlineShape.triangulate(sharpness);
+			ArrayList<Triangle<Vertex>> triangles = outlineShape.triangulate(sharpness);
 			region.addTriangles(triangles);
 			
-			ArrayList<PointTex> vertices = outlineShape.getVertices();
-			for(PointTex vert:vertices){
+			ArrayList<Vertex> vertices = outlineShape.getVertices();
+			for(Vertex vert:vertices){
 				vert.setId(numVertices++);
 			}
 			region.addVertices(vertices);

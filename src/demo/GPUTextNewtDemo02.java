@@ -38,8 +38,8 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.text.HwTextRenderer;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.Point;
-import com.jogamp.graph.geom.opengl.Vertex;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.WindowAdapter;
@@ -57,7 +57,7 @@ public class GPUTextNewtDemo02 {
 }
 
 class TextNewtWindow {
-	Point.Factory<Vertex> pointFactory = Vertex.factory();
+	Vertex.Factory<SVertex> pointFactory = SVertex.factory();
 	TextGLListener textGLListener = null; 
 
 	public TextNewtWindow(){

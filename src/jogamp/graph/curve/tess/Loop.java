@@ -32,10 +32,10 @@ import java.util.ArrayList;
 import jogamp.graph.math.VectorFloatUtil;
 
 import com.jogamp.graph.geom.AABBox;
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 
-public class Loop <T extends PointTex> {
+public class Loop <T extends Vertex> {
 	private HEdge<T> root = null;
 	private AABBox box = new AABBox();
 	private GraphOutline<T> initialOutline = null;
@@ -66,9 +66,9 @@ public class Loop <T extends PointTex> {
 			return null;
 		}
 
-		GraphPoint<T> v1 = root.getGraphPoint();
-		GraphPoint<T> v2 = next1.getGraphPoint();
-		GraphPoint<T> v3 = next2.getGraphPoint();
+		GraphVertex<T> v1 = root.getGraphPoint();
+		GraphVertex<T> v2 = next1.getGraphPoint();
+		GraphVertex<T> v3 = next2.getGraphPoint();
 
 		HEdge<T> v3Edge = new HEdge<T>(v3, HEdge.INNER);
 
@@ -98,7 +98,7 @@ public class Loop <T extends PointTex> {
 	 * @param direction requested winding of edges (CCW or CW)
 	 */
 	private HEdge<T> initFromPolyline(GraphOutline<T> outline, int direction){
-		ArrayList<GraphPoint<T>> vertices = outline.getGraphPoint();
+		ArrayList<GraphVertex<T>> vertices = outline.getGraphPoint();
 
 		if(vertices.size()<3) {
 			throw new IllegalArgumentException("outline's vertices < 3: " + vertices.size());
@@ -120,7 +120,7 @@ public class Loop <T extends PointTex> {
 		}
 
 		while(index != max){
-			GraphPoint<T> v1 = vertices.get(index);
+			GraphVertex<T> v1 = vertices.get(index);
 			box.resize(v1.getX(), v1.getY(), v1.getZ());
 
 			HEdge<T> edge = new HEdge<T>(v1, edgeType);
@@ -162,7 +162,7 @@ public class Loop <T extends PointTex> {
 		/**needed to generate vertex references.*/
 		initFromPolyline(polyline, VectorFloatUtil.CW); 
 
-		GraphPoint<T> v3 = locateClosestVertex(polyline);
+		GraphVertex<T> v3 = locateClosestVertex(polyline);
 		HEdge<T> v3Edge = v3.findBoundEdge();
 		HEdge<T> v3EdgeP = v3Edge.getPrev();
 		HEdge<T> crossEdge = new HEdge<T>(root.getGraphPoint(), HEdge.INNER);
@@ -186,22 +186,22 @@ public class Loop <T extends PointTex> {
 	 * to search for closestvertices
 	 * @return the vertex that is closest to the newly set root Hedge.
 	 */
-	private GraphPoint<T> locateClosestVertex(GraphOutline<T> polyline) {
+	private GraphVertex<T> locateClosestVertex(GraphOutline<T> polyline) {
 		HEdge<T> closestE = null;
-		GraphPoint<T> closestV = null;
+		GraphVertex<T> closestV = null;
 
 		float minDistance = Float.MAX_VALUE;
 		boolean inValid = false;
-		ArrayList<GraphPoint<T>> initVertices = initialOutline.getGraphPoint();
-		ArrayList<GraphPoint<T>> vertices = polyline.getGraphPoint();
+		ArrayList<GraphVertex<T>> initVertices = initialOutline.getGraphPoint();
+		ArrayList<GraphVertex<T>> vertices = polyline.getGraphPoint();
 
 		for(int i=0; i< initVertices.size()-1; i++){
-			GraphPoint<T> v = initVertices.get(i);
-			GraphPoint<T> nextV = initVertices.get(i+1);
-			for(GraphPoint<T> cand:vertices){
+			GraphVertex<T> v = initVertices.get(i);
+			GraphVertex<T> nextV = initVertices.get(i+1);
+			for(GraphVertex<T> cand:vertices){
 				float distance = VectorFloatUtil.computeLength(v.getCoord(), cand.getCoord());
 				if(distance < minDistance){
-					for (GraphPoint<T> vert:vertices){
+					for (GraphVertex<T> vert:vertices){
 						if(vert == v || vert == nextV || vert == cand)
 							continue;
 						inValid = VectorFloatUtil.inCircle(v.getPoint(), nextV.getPoint(), 

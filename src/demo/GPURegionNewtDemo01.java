@@ -37,7 +37,7 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.HwRegionRenderer;
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.geom.opengl.Vertex;
+import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.WindowAdapter;
@@ -134,7 +134,7 @@ class RegionNewtWindow {
 		
 		private void createTestOutline(){
 			float offset = 0;
-			outlineShape = new OutlineShape(Vertex.factory());
+			outlineShape = new OutlineShape(SVertex.factory());
 			outlineShape.addVertex(0.0f,-10.0f, true);
 			outlineShape.addVertex(15.0f,-10.0f, true);
 			outlineShape.addVertex(10.0f,5.0f, false);

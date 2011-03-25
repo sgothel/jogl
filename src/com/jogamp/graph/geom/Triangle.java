@@ -27,7 +27,7 @@
  */
 package com.jogamp.graph.geom;
 
-public class Triangle<T extends PointTex> {
+public class Triangle<T extends Vertex> {
 	private int id = Integer.MAX_VALUE;
 	final private T[] vertices;
 	private boolean[] boundaryEdges = new boolean[3];

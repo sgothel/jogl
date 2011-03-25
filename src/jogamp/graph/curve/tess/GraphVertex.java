@@ -29,14 +29,14 @@ package jogamp.graph.curve.tess;
 
 import java.util.ArrayList;
 
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex;
 
-public class GraphPoint <T extends PointTex> {
+public class GraphVertex <T extends Vertex> {
 	private T point;
 	private ArrayList<HEdge<T>> edges = null;
 	private boolean boundaryContained = false;
 	
-	public GraphPoint(T point) {
+	public GraphVertex(T point) {
 		this.point = point;
 	}
 
@@ -85,7 +85,7 @@ public class GraphPoint <T extends PointTex> {
 			edges = null;
 		}
 	}
-	public HEdge<T> findNextEdge(GraphPoint<T> nextVert){
+	public HEdge<T> findNextEdge(GraphVertex<T> nextVert){
 		for(HEdge<T> e:edges){
 			if(e.getNext().getGraphPoint() == nextVert){
 				return e;
@@ -101,7 +101,7 @@ public class GraphPoint <T extends PointTex> {
 		}
 		return null;
 	}
-	public HEdge<T> findPrevEdge(GraphPoint<T> prevVert){
+	public HEdge<T> findPrevEdge(GraphVertex<T> prevVert){
 		for(HEdge<T> e:edges){
 			if(e.getPrev().getGraphPoint() == prevVert){
 				return e;

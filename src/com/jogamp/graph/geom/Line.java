@@ -27,7 +27,7 @@
  */
 package com.jogamp.graph.geom;
 
-public class Line <T extends Point> {
+public class Line <T extends Vertex> {
 	private T v1;
 	private T v2;
 	

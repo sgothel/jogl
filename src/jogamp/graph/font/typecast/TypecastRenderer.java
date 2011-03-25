@@ -31,8 +31,8 @@ import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.PointTex;
-import com.jogamp.graph.geom.Point.Factory;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.Vertex.Factory;
 
 import net.java.dev.typecast.ot.Point;
 import net.java.dev.typecast.ot.OTGlyph;
@@ -43,7 +43,7 @@ import net.java.dev.typecast.ot.OTGlyph;
  */
 public class TypecastRenderer {
 
-	public static void getOutline(Factory<? extends PointTex> factory, TypecastFont font, 
+	public static void getOutline(Factory<? extends Vertex> factory, TypecastFont font, 
 			                      String string, AffineTransform transform, Path2D[] p)
 	{		
 		if (string == null) {

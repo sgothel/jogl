@@ -31,13 +31,13 @@ package com.jogamp.graph.curve.tess;
 import java.util.ArrayList;
 
 import jogamp.graph.curve.tess.GraphOutline;
-import jogamp.graph.curve.tess.GraphPoint;
+import jogamp.graph.curve.tess.GraphVertex;
 import jogamp.graph.curve.tess.Loop;
 import jogamp.graph.math.VectorFloatUtil;
 
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex;
 import jogamp.opengl.Debug;
 
 /** Constrained Delaunay Triangulation 
@@ -45,7 +45,7 @@ import jogamp.opengl.Debug;
  * Closed Regions with optional n holes.
  * 
  */
-public class CDTriangulator2D <T extends PointTex> {
+public class CDTriangulator2D <T extends Vertex> {
 
 	protected static final boolean DEBUG = Debug.debug("Triangulation");
 	
@@ -149,13 +149,13 @@ public class CDTriangulator2D <T extends PointTex> {
 	@SuppressWarnings("unchecked")	
 	private GraphOutline<T> extractBoundaryTriangles(GraphOutline<T> outline, boolean hole){
 		GraphOutline<T> innerOutline = new GraphOutline<T>();
-		ArrayList<GraphPoint<T>> outVertices = outline.getGraphPoint();
+		ArrayList<GraphVertex<T>> outVertices = outline.getGraphPoint();
 		int size = outVertices.size();
 		for(int i=0; i < size; i++) {
-			GraphPoint<T> currentVertex = outVertices.get(i);
-			GraphPoint<T> gv0 = outVertices.get((i+size-1)%size);
-			GraphPoint<T> gv2 = outVertices.get((i+1)%size);
-			GraphPoint<T> gv1 = currentVertex;
+			GraphVertex<T> currentVertex = outVertices.get(i);
+			GraphVertex<T> gv0 = outVertices.get((i+size-1)%size);
+			GraphVertex<T> gv2 = outVertices.get((i+1)%size);
+			GraphVertex<T> gv1 = currentVertex;
 			
 			if(!currentVertex.getPoint().isOnCurve()) {
 				T v0 = (T) gv0.getPoint().clone();

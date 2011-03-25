@@ -27,19 +27,18 @@
  */
 package com.jogamp.graph.font;
 
-import com.jogamp.graph.geom.Point;
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex;
 
 public interface FontFactory {
 
-    Font createFont(Point.Factory<? extends PointTex> factory, 
+    Font createFont(Vertex.Factory<? extends Vertex> factory, 
     		        String[] families, 
                     String style,
                     String variant,
                     String weight,
                     String size);
 
-    Font createFont(Point.Factory<? extends PointTex> factory,
+    Font createFont(Vertex.Factory<? extends Vertex> factory,
     		        String name,
                     int size);
 }

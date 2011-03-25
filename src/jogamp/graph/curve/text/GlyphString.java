@@ -29,10 +29,9 @@ package jogamp.graph.curve.text;
 
 import java.util.ArrayList;
 
-import com.jogamp.graph.geom.Point;
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
-import com.jogamp.graph.geom.opengl.Vertex;
+import com.jogamp.graph.geom.opengl.SVertex;
 
 import javax.media.opengl.GLContext;
 
@@ -47,26 +46,26 @@ import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GlyphString {
-	private final Point.Factory<? extends PointTex> pointFactory;	
+	private final Vertex.Factory<? extends Vertex> pointFactory;	
 	private ArrayList<GlyphShape> glyphs = new ArrayList<GlyphShape>();
 	private String str = "";
 	private String fontname = "";
 	private Region region;
 	
-	private Vertex origin = new Vertex();
+	private SVertex origin = new SVertex();
 
 	/** Create a new GlyphString object
 	 * @param fontname the name of the font that this String is
 	 * associated with
 	 * @param str the string object
 	 */
-	public GlyphString(Point.Factory<? extends PointTex> factory, String fontname, String str){
+	public GlyphString(Vertex.Factory<? extends Vertex> factory, String fontname, String str){
 		pointFactory = factory;
 		this.fontname = fontname;
 		this.str = str;
 	}
 	
-	public final Point.Factory<? extends PointTex> pointFactory() { return pointFactory; }
+	public final Vertex.Factory<? extends Vertex> pointFactory() { return pointFactory; }
 	
 	public void addGlyphShape(GlyphShape glyph){
 		glyphs.add(glyph);
@@ -95,10 +94,10 @@ public class GlyphString {
 		}
 	}
 	
-	private ArrayList<Triangle<PointTex>> initializeTriangles(float sharpness){
-		ArrayList<Triangle<PointTex>> triangles = new ArrayList<Triangle<PointTex>>();
+	private ArrayList<Triangle<Vertex>> initializeTriangles(float sharpness){
+		ArrayList<Triangle<Vertex>> triangles = new ArrayList<Triangle<Vertex>>();
 		for(GlyphShape glyph:glyphs){
-			ArrayList<Triangle<PointTex>> tris = glyph.triangulate(sharpness);
+			ArrayList<Triangle<Vertex>> tris = glyph.triangulate(sharpness);
 			triangles.addAll(tris);
 		}
 		return triangles;
@@ -113,13 +112,13 @@ public class GlyphString {
 		region = RegionFactory.create(context, st, type);
 		region.setFlipped(true);
 		
-		ArrayList<Triangle<PointTex>> tris = initializeTriangles(shaprness);
+		ArrayList<Triangle<Vertex>> tris = initializeTriangles(shaprness);
 		region.addTriangles(tris);
 		
 		int numVertices = region.getNumVertices();
 		for(GlyphShape glyph:glyphs){
-			ArrayList<PointTex> gVertices = glyph.getVertices();
-			for(PointTex vert:gVertices){
+			ArrayList<Vertex> gVertices = glyph.getVertices();
+			for(Vertex vert:gVertices){
 				vert.setId(numVertices++);
 			}
 			region.addVertices(gVertices);
@@ -152,7 +151,7 @@ public class GlyphString {
 	/** Get the Origion of this GlyphString
 	 * @return 
 	 */
-	public PointTex getOrigin() {
+	public Vertex getOrigin() {
 		return origin;
 	}
 

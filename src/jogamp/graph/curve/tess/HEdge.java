@@ -27,28 +27,28 @@
  */
 package jogamp.graph.curve.tess;
 
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 
 
-public class HEdge <T extends PointTex> {
+public class HEdge <T extends Vertex> {
 	public static int BOUNDARY = 3;
 	public static int INNER = 1;
 	public static int HOLE = 2;
 	
-	private GraphPoint<T> vert;
+	private GraphVertex<T> vert;
 	private HEdge<T> prev = null;
 	private HEdge<T> next = null;
 	private HEdge<T> sibling = null;
 	private int type = BOUNDARY;
 	private Triangle<T> triangle = null;
 	
-	public HEdge(GraphPoint<T> vert, int type) {
+	public HEdge(GraphVertex<T> vert, int type) {
 		this.vert = vert;
 		this.type = type;
 	}
 
-	public HEdge(GraphPoint<T> vert, HEdge<T> prev, HEdge<T> next, HEdge<T> sibling, int type) {
+	public HEdge(GraphVertex<T> vert, HEdge<T> prev, HEdge<T> next, HEdge<T> sibling, int type) {
 		this.vert = vert;
 		this.prev = prev;
 		this.next = next;
@@ -56,7 +56,7 @@ public class HEdge <T extends PointTex> {
 		this.type = type;
 	}
 
-	public HEdge(GraphPoint<T> vert, HEdge<T> prev, HEdge<T> next, HEdge<T> sibling, int type,
+	public HEdge(GraphVertex<T> vert, HEdge<T> prev, HEdge<T> next, HEdge<T> sibling, int type,
 			Triangle<T> triangle) {
 		this.vert = vert;
 		this.prev = prev;
@@ -66,11 +66,11 @@ public class HEdge <T extends PointTex> {
 		this.triangle = triangle;
 	}
 
-	public GraphPoint<T> getGraphPoint() {
+	public GraphVertex<T> getGraphPoint() {
 		return vert;
 	}
 
-	public void setVert(GraphPoint<T> vert) {
+	public void setVert(GraphVertex<T> vert) {
 		this.vert = vert;
 	}
 
@@ -114,12 +114,12 @@ public class HEdge <T extends PointTex> {
 		this.triangle = triangle;
 	}
 	
-	public static <T extends PointTex> void connect(HEdge<T> first, HEdge<T> next){
+	public static <T extends Vertex> void connect(HEdge<T> first, HEdge<T> next){
 		first.setNext(next);
 		next.setPrev(first);
 	}
 	
-	public static <T extends PointTex> void makeSiblings(HEdge<T> first, HEdge<T> second){
+	public static <T extends Vertex> void makeSiblings(HEdge<T> first, HEdge<T> second){
 		first.setSibling(second);
 		second.setSibling(first);
 	}

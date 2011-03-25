@@ -25,8 +25,8 @@ import java.io.Serializable;
 import jogamp.graph.math.MathFloat;
 import org.apache.harmony.misc.HashCode;
 
-import com.jogamp.graph.geom.Point;
-import com.jogamp.graph.geom.Point.Factory;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.Vertex.Factory;
 
 public class AffineTransform implements Cloneable, Serializable {
 
@@ -55,7 +55,7 @@ public class AffineTransform implements Cloneable, Serializable {
      */
     static final float ZERO = (float) 1E-10;
    
-    private final Point.Factory<? extends Point> pointFactory;
+    private final Vertex.Factory<? extends Vertex> pointFactory;
     
     /**
      * The values of transformation matrix
@@ -72,7 +72,7 @@ public class AffineTransform implements Cloneable, Serializable {
      */
     transient int type;
 
-    public AffineTransform(Factory<? extends Point> factory) {
+    public AffineTransform(Factory<? extends Vertex> factory) {
     	pointFactory = factory;
         type = TYPE_IDENTITY;
         m00 = m11 = 1.0f;
@@ -90,7 +90,7 @@ public class AffineTransform implements Cloneable, Serializable {
         this.m12 = t.m12;
     }
 
-    public AffineTransform(Point.Factory<? extends Point> factory, float m00, float m10, float m01, float m11, float m02, float m12) {
+    public AffineTransform(Vertex.Factory<? extends Vertex> factory, float m00, float m10, float m01, float m11, float m02, float m12) {
     	pointFactory = factory;
         this.type = TYPE_UNKNOWN;
         this.m00 = m00;
@@ -101,7 +101,7 @@ public class AffineTransform implements Cloneable, Serializable {
         this.m12 = m12;
     }
 
-    public AffineTransform(Point.Factory<? extends Point> factory, float[] matrix) {
+    public AffineTransform(Vertex.Factory<? extends Vertex> factory, float[] matrix) {
     	pointFactory = factory;
         this.type = TYPE_UNKNOWN;
         m00 = matrix[0];
@@ -302,31 +302,31 @@ public class AffineTransform implements Cloneable, Serializable {
         type = TYPE_UNKNOWN;
     }
 
-    public static <T extends Point> AffineTransform getTranslateInstance(Point.Factory<? extends Point> factory, float mx, float my) {
+    public static <T extends Vertex> AffineTransform getTranslateInstance(Vertex.Factory<? extends Vertex> factory, float mx, float my) {
         AffineTransform t = new AffineTransform(factory);
         t.setToTranslation(mx, my);
         return t;
     }
 
-    public static <T extends Point> AffineTransform getScaleInstance(Point.Factory<? extends Point> factory, float scx, float scY) {
+    public static <T extends Vertex> AffineTransform getScaleInstance(Vertex.Factory<? extends Vertex> factory, float scx, float scY) {
     	AffineTransform t = new AffineTransform(factory);
         t.setToScale(scx, scY);
         return t;
     }
 
-    public static <T extends Point> AffineTransform getShearInstance(Point.Factory<? extends Point> factory, float shx, float shy) {
+    public static <T extends Vertex> AffineTransform getShearInstance(Vertex.Factory<? extends Vertex> factory, float shx, float shy) {
     	AffineTransform t = new AffineTransform(factory);        
         t.setToShear(shx, shy);
         return t;
     }
 
-    public static <T extends Point> AffineTransform getRotateInstance(Point.Factory<? extends Point> factory, float angle) {
+    public static <T extends Vertex> AffineTransform getRotateInstance(Vertex.Factory<? extends Vertex> factory, float angle) {
     	AffineTransform t = new AffineTransform(factory);
         t.setToRotation(angle);
         return t;
     }
 
-    public static <T extends Point> AffineTransform getRotateInstance(Point.Factory<? extends Point> factory, float angle, float x, float y) {
+    public static <T extends Vertex> AffineTransform getRotateInstance(Vertex.Factory<? extends Vertex> factory, float angle, float x, float y) {
     	AffineTransform t = new AffineTransform(factory);
         t.setToRotation(angle, x, y);
         return t;
@@ -354,7 +354,7 @@ public class AffineTransform implements Cloneable, Serializable {
 
     /** 
      * Multiply matrix of two AffineTransform objects.
-     * The first argument's {@link Point.Factory} is being used.
+     * The first argument's {@link Vertex.Factory} is being used.
      * 
      * @param t1 - the AffineTransform object is a multiplicand
      * @param t2 - the AffineTransform object is a multiplier
@@ -394,7 +394,7 @@ public class AffineTransform implements Cloneable, Serializable {
         );
     }
 
-	public Point transform(Point src, Point dst) {
+	public Vertex transform(Vertex src, Vertex dst) {
         if (dst == null) {
         	dst = pointFactory.create();
         }
@@ -406,12 +406,12 @@ public class AffineTransform implements Cloneable, Serializable {
         return dst;
     }
 
-    public void transform(Point[] src, int srcOff, Point[] dst, int dstOff, int length) {
+    public void transform(Vertex[] src, int srcOff, Vertex[] dst, int dstOff, int length) {
         while (--length >= 0) {
-        	Point srcPoint = src[srcOff++]; 
+        	Vertex srcPoint = src[srcOff++]; 
             float x = srcPoint.getX();
             float y = srcPoint.getY();
-            Point dstPoint = dst[dstOff];
+            Vertex dstPoint = dst[dstOff];
             if (dstPoint == null) {
             	throw new IllegalArgumentException("dst["+dstOff+"] is null");
             }
@@ -437,7 +437,7 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
     
-	public Point deltaTransform(Point src, Point dst) {
+	public Vertex deltaTransform(Vertex src, Vertex dst) {
         if (dst == null) {
         	dst = pointFactory.create();
         }
@@ -458,7 +458,7 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
 
-	public Point inverseTransform(Point src, Point dst) throws NoninvertibleTransformException {
+	public Vertex inverseTransform(Vertex src, Vertex dst) throws NoninvertibleTransformException {
         float det = getDeterminant();
         if (MathFloat.abs(det) < ZERO) {
         	throw new NoninvertibleTransformException(determinantIsZero);

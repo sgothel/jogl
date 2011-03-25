@@ -41,7 +41,7 @@ import com.jogamp.common.nio.Buffers;
 
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Triangle;
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -53,8 +53,8 @@ public class VBORegion2PGL3  implements Region{
 	
 	private IntBuffer t_vboIds;
 	
-	private ArrayList<Triangle<PointTex>> triangles = new ArrayList<Triangle<PointTex>>();
-	private ArrayList<PointTex> vertices = new ArrayList<PointTex>();
+	private ArrayList<Triangle<Vertex>> triangles = new ArrayList<Triangle<Vertex>>();
+	private ArrayList<Vertex> vertices = new ArrayList<Vertex>();
 	private GLContext context;
 	
 	private int numBuffers = 3;
@@ -85,7 +85,7 @@ public class VBORegion2PGL3  implements Region{
 		GL3 gl = context.getGL().getGL3();
 		ShortBuffer indicies = Buffers.newDirectShortBuffer(triangles.size() * 3);
 		
-		for(Triangle<PointTex> t:triangles){
+		for(Triangle<Vertex> t:triangles){
 			if(t.getVertices()[0].getId() == Integer.MAX_VALUE){
 				t.getVertices()[0].setId(numVertices++);
 				t.getVertices()[1].setId(numVertices++);
@@ -100,9 +100,9 @@ public class VBORegion2PGL3  implements Region{
 				indicies.put((short) t.getVertices()[2].getId());
 			}
 			else{
-				PointTex v1 = t.getVertices()[0];
-				PointTex v2 = t.getVertices()[1];
-				PointTex v3 = t.getVertices()[2];
+				Vertex v1 = t.getVertices()[0];
+				Vertex v2 = t.getVertices()[1];
+				Vertex v3 = t.getVertices()[2];
 				
 				indicies.put((short) v1.getId());
 				indicies.put((short) v2.getId());
@@ -112,7 +112,7 @@ public class VBORegion2PGL3  implements Region{
 		indicies.rewind();
 		
 		FloatBuffer verticesBuffer = Buffers.newDirectFloatBuffer(vertices.size() * 3);
-		for(PointTex v:vertices){
+		for(Vertex v:vertices){
 			verticesBuffer.put(v.getX());
 			if(flipped){
 				verticesBuffer.put(-1*v.getY());
@@ -127,7 +127,7 @@ public class VBORegion2PGL3  implements Region{
 		verticesBuffer.rewind();
 		
 		FloatBuffer texCoordBuffer = Buffers.newDirectFloatBuffer(vertices.size() * 2);
-		for(PointTex v:vertices){
+		for(Vertex v:vertices){
 			float[] tex = v.getTexCoord();
 			texCoordBuffer.put(tex[0]);
 			texCoordBuffer.put(tex[1]);
@@ -327,7 +327,7 @@ public class VBORegion2PGL3  implements Region{
 		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
 	}
 	
-	public void addTriangles(ArrayList<Triangle<PointTex>> tris) {
+	public void addTriangles(ArrayList<Triangle<Vertex>> tris) {
 		triangles.addAll(tris);
 		dirty = true;
 	}
@@ -336,7 +336,7 @@ public class VBORegion2PGL3  implements Region{
 		return numVertices;
 	}
 	
-	public void addVertices(ArrayList<PointTex> verts){
+	public void addVertices(ArrayList<Vertex> verts){
 		vertices.addAll(verts);
 		numVertices = vertices.size();
 		dirty = true;

@@ -28,10 +28,55 @@
 package com.jogamp.graph.geom;
 
 /**
- * A Point with texture coordinates
+ * A Vertex with custom memory layout using custom factory. 
  */
-public interface PointTex extends Point {
-	float[] getTexCoord();
+public interface Vertex extends Comparable<Vertex>, Cloneable {
+
+	public static interface Factory <T extends Vertex> {
+		T create();
+
+		T create(float x, float y);
+
+		T create(float x, float y, float z);
+
+		T create(float[] coordsBuffer, int offset, int length);	
 		
+		// T[] create(T ... v);
+	}
+	
+	void setCoord(float x, float y);
+
+	void setCoord(float x, float y, float z);
+
+	void setCoord(float[] coordsBuffer, int offset, int length);
+	
+	float[] getCoord();
+
+	void setX(float x);
+
+	void setY(float y);
+
+	void setZ(float z);
+
+	float getX();
+
+	float getY();
+
+	float getZ();
+
+	boolean isOnCurve();
+
+	void setOnCurve(boolean onCurve);
+
+	int getId();
+	
+	void setId(int id);
+	
+	int compareTo(Vertex p);
+	
+	float[] getTexCoord();
+	
 	void setTexCoord(float s, float t);
+	
+	Vertex clone();
 }

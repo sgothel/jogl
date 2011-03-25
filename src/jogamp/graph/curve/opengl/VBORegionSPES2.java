@@ -37,7 +37,7 @@ import javax.media.opengl.GLContext;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.opengl.util.PMVMatrix;
 
@@ -45,8 +45,8 @@ public class VBORegionSPES2  implements Region{
 	private int numVertices = 0;
 	private IntBuffer vboIds;
 	
-	private ArrayList<Triangle<PointTex>> triangles = new ArrayList<Triangle<PointTex>>();
-	private ArrayList<PointTex> vertices = new ArrayList<PointTex>();
+	private ArrayList<Triangle<Vertex>> triangles = new ArrayList<Triangle<Vertex>>();
+	private ArrayList<Vertex> vertices = new ArrayList<Vertex>();
 	
 	private GLContext context;
 	
@@ -63,8 +63,8 @@ public class VBORegionSPES2  implements Region{
 		GL2ES2 gl = context.getGL().getGL2ES2();
 		ShortBuffer indicies = Buffers.newDirectShortBuffer(triangles.size() * 3);
 		
-		for(Triangle<PointTex> t:triangles){
-			final PointTex[] t_vertices = t.getVertices();
+		for(Triangle<Vertex> t:triangles){
+			final Vertex[] t_vertices = t.getVertices();
 			
 			if(t_vertices[0].getId() == Integer.MAX_VALUE){
 				t_vertices[0].setId(numVertices++);
@@ -80,9 +80,9 @@ public class VBORegionSPES2  implements Region{
 				indicies.put((short) t.getVertices()[2].getId());
 			}
 			else{
-				PointTex v1 = t_vertices[0];
-				PointTex v2 = t_vertices[1];
-				PointTex v3 = t_vertices[2];
+				Vertex v1 = t_vertices[0];
+				Vertex v2 = t_vertices[1];
+				Vertex v3 = t_vertices[2];
 				
 				indicies.put((short) v1.getId());
 				indicies.put((short) v2.getId());
@@ -92,7 +92,7 @@ public class VBORegionSPES2  implements Region{
 		indicies.rewind();
 		
 		FloatBuffer verticesBuffer = Buffers.newDirectFloatBuffer(vertices.size() * 3);
-		for(PointTex v:vertices){
+		for(Vertex v:vertices){
 			verticesBuffer.put(v.getX());
 			if(flipped){
 				verticesBuffer.put(-1*v.getY());
@@ -105,7 +105,7 @@ public class VBORegionSPES2  implements Region{
 		verticesBuffer.rewind();
 		
 		FloatBuffer texCoordBuffer = Buffers.newDirectFloatBuffer(vertices.size() * 2);
-		for(PointTex v:vertices){
+		for(Vertex v:vertices){
 			float[] tex = v.getTexCoord();
 			texCoordBuffer.put(tex[0]);
 			texCoordBuffer.put(tex[1]);
@@ -151,7 +151,7 @@ public class VBORegionSPES2  implements Region{
 		render();
 	}
 	
-	public void addTriangles(ArrayList<Triangle<PointTex>> tris) {
+	public void addTriangles(ArrayList<Triangle<Vertex>> tris) {
 		triangles.addAll(tris);
 		dirty = true;
 	}
@@ -160,7 +160,7 @@ public class VBORegionSPES2  implements Region{
 		return numVertices;
 	}
 	
-	public void addVertices(ArrayList<PointTex> verts){
+	public void addVertices(ArrayList<Vertex> verts){
 		vertices.addAll(verts);
 		numVertices = vertices.size();
 		dirty = true;

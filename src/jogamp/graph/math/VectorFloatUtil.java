@@ -29,7 +29,7 @@ package jogamp.graph.math;
 
 import java.util.ArrayList;
 
-import com.jogamp.graph.geom.Point;
+import com.jogamp.graph.geom.Vertex;
 
 public class VectorFloatUtil {
 
@@ -247,7 +247,7 @@ public class VectorFloatUtil {
 	 * @return true if the vertex d is inside the circle defined by the 
 	 * vertices a, b, c. from paper by Guibas and Stolfi (1985).
 	 */
-	public static boolean inCircle(Point a, Point b, Point c, Point d){
+	public static boolean inCircle(Vertex a, Vertex b, Vertex c, Vertex d){
 		return (a.getX() * a.getX() + a.getY() * a.getY()) * triArea(b, c, d) -
 		(b.getX() * b.getX() + b.getY() * b.getY()) * triArea(a, c, d) +
 		(c.getX() * c.getX() + c.getY() * c.getY()) * triArea(a, b, d) -
@@ -261,7 +261,7 @@ public class VectorFloatUtil {
 	 * @return compute twice the area of the oriented triangle (a,b,c), the area
 	 * is positive if the triangle is oriented counterclockwise.
 	 */
-	public static float triArea(Point a, Point b, Point c){
+	public static float triArea(Vertex a, Vertex b, Vertex c){
 		return (b.getX() - a.getX()) * (c.getY() - a.getY()) - (b.getY() - a.getY())*(c.getX() - a.getX());
 	}
 
@@ -271,7 +271,7 @@ public class VectorFloatUtil {
 	 * @param c third vertex
 	 * @return true if the points a,b,c are in a ccw order
 	 */
-	public static boolean ccw(Point a, Point b, Point c){
+	public static boolean ccw(Vertex a, Vertex b, Vertex c){
 		return triArea(a,b,c) > 0;
 	}
 
@@ -279,7 +279,7 @@ public class VectorFloatUtil {
 	 * @param vertices
 	 * @return positve area if ccw else negative area value
 	 */
-	public static float area(ArrayList<Point> vertices) {
+	public static float area(ArrayList<Vertex> vertices) {
 		int n = vertices.size();
 		float area = 0.0f;
 		for (int p = n - 1, q = 0; q < n; p = q++)

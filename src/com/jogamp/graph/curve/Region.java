@@ -30,7 +30,7 @@ package com.jogamp.graph.curve;
 import java.util.ArrayList;
 
 import com.jogamp.graph.geom.Triangle;
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.util.PMVMatrix;
 
 /** A Region is the OGL binding of one or more OutlineShapes
@@ -80,7 +80,7 @@ public interface Region {
 	 * 
 	 * @see update()
 	 */
-	public void addTriangles(ArrayList<Triangle<PointTex>> tris);
+	public void addTriangles(ArrayList<Triangle<Vertex>> tris);
 	
 	/** Get the current number of vertices associated
 	 * with this region. This number is not necessary equal to 
@@ -98,7 +98,7 @@ public interface Region {
 	 * 
 	 * @see update()
 	 */
-	public void addVertices(ArrayList<PointTex> verts);
+	public void addVertices(ArrayList<Vertex> verts);
 	
 	/** Check if this region is dirty. A region is marked dirty
 	 * when new Vertices, Triangles, and or Lines are added after a 

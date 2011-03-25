@@ -32,15 +32,15 @@ import java.util.Map;
 
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.Point.Factory;
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.graph.geom.Vertex;
 
 
 public class TypecastFontFactory implements FontFactory {
 
     Map<String, Font> fonts = new HashMap<String, Font>();
     
-    public Font createFont(Factory<? extends PointTex> factory, String name, int size) {
+    public Font createFont(Factory<? extends Vertex> factory, String name, int size) {
         Font result = fonts.get(name + ":"+size);
         if (result == null) {
         	result = TypecastFont.create(factory, name, size);
@@ -52,7 +52,7 @@ public class TypecastFontFactory implements FontFactory {
     }
 
 
-    public Font createFont(Factory<? extends PointTex> factory, 
+    public Font createFont(Factory<? extends Vertex> factory, 
     		               String[] families, 
                            String style,
                            String variant,

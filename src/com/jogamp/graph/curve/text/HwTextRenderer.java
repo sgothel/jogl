@@ -48,9 +48,8 @@ import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.Point;
-import com.jogamp.graph.geom.PointTex;
-import com.jogamp.graph.geom.opengl.Vertex;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.opengl.SVertex;
 import jogamp.opengl.Debug;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -100,28 +99,28 @@ public class HwTextRenderer {
 	private GLContext context;
 	private FloatBuffer color = FloatBuffer.allocate(3);
 	private HashMap<String, GlyphString> strings = new HashMap<String, GlyphString>();
-	private final Point.Factory<? extends PointTex> pointFactory;
+	private final Vertex.Factory<? extends Vertex> pointFactory;
 	
 	int win_width = 0;
 	int win_height = 0;
 	
 	/** Create a Hardware accelerated Text Renderer
 	 * @param context OpenGL rendering context
-	 * @param factory optional Point.Factory for PointTex construction. Default is Vertex.Factory.
+	 * @param factory optional Point.Factory for Vertex construction. Default is Vertex.Factory.
 	 */
-	public HwTextRenderer(GLContext context, Point.Factory<? extends PointTex> factory, int type) {
-		this.pointFactory = (null != factory) ? factory : Vertex.factory();
+	public HwTextRenderer(GLContext context, Vertex.Factory<? extends Vertex> factory, int type) {
+		this.pointFactory = (null != factory) ? factory : SVertex.factory();
 		this.context = context;
 		this.regionType = type;
 		init(context, 0.5f);
 	}
 
-    public Font createFont(Point.Factory<? extends PointTex> factory, String name, int size) {
+    public Font createFont(Vertex.Factory<? extends Vertex> factory, String name, int size) {
     	return fontFactory.createFont(factory, name, size);
     }
 
 
-    public Font createFont(Point.Factory<? extends PointTex> factory,
+    public Font createFont(Vertex.Factory<? extends Vertex> factory,
     		               String[] families, 
                            String style,
                            String variant,

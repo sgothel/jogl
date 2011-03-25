@@ -30,11 +30,11 @@ package jogamp.graph.curve.tess;
 import java.util.ArrayList;
 
 import com.jogamp.graph.geom.Outline;
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex;
 
-public class GraphOutline <T extends PointTex> {
+public class GraphOutline <T extends Vertex> {
 	final private Outline<T> outline;
-	final private ArrayList<GraphPoint<T>> controlpoints = new ArrayList<GraphPoint<T>>(3);
+	final private ArrayList<GraphVertex<T>> controlpoints = new ArrayList<GraphVertex<T>>(3);
 	
 	public GraphOutline(){
 		this.outline = new Outline<T>();
@@ -48,7 +48,7 @@ public class GraphOutline <T extends PointTex> {
 		this.outline = ol;
 		ArrayList<T> vertices = this.outline.getVertices();
 		for(T v:vertices){
-			this.controlpoints.add(new GraphPoint<T>(v));
+			this.controlpoints.add(new GraphVertex<T>(v));
 		}
 	}
 
@@ -61,7 +61,7 @@ public class GraphOutline <T extends PointTex> {
 	}*/
 	
 
-	public ArrayList<GraphPoint<T>> getGraphPoint() {
+	public ArrayList<GraphVertex<T>> getGraphPoint() {
 		return controlpoints;
 	}
 	
@@ -73,7 +73,7 @@ public class GraphOutline <T extends PointTex> {
 		this.controlpoints = controlpoints;
 	}*/
 
-	public void addVertex(GraphPoint<T> v) {
+	public void addVertex(GraphVertex<T> v) {
 		controlpoints.add(v);
 		outline.addVertex(v.getPoint());
 	}

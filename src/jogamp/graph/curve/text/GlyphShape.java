@@ -32,8 +32,7 @@ import java.util.ArrayList;
 import jogamp.graph.geom.plane.PathIterator;
 
 import com.jogamp.graph.geom.Line;
-import com.jogamp.graph.geom.Point;
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 
 import com.jogamp.graph.curve.OutlineShape;
@@ -48,7 +47,7 @@ public class GlyphShape {
 	/** Create a new Glyph shape
 	 * based on Parametric curve control polyline
 	 */
-	public GlyphShape(Point.Factory<? extends PointTex> factory){
+	public GlyphShape(Vertex.Factory<? extends Vertex> factory){
 		shape = new OutlineShape(factory);
 	}
 	
@@ -57,7 +56,7 @@ public class GlyphShape {
 	 * 
 	 * @see PathIterator
 	 */
-	public GlyphShape(Point.Factory<? extends PointTex> factory, PathIterator pathIterator){
+	public GlyphShape(Vertex.Factory<? extends Vertex> factory, PathIterator pathIterator){
 		this(factory);
 		
 		if(null != pathIterator){
@@ -72,9 +71,9 @@ public class GlyphShape {
 		shape.transformOutlines(OutlineShape.QUADRATIC_NURBS);
 	}
 	
-	public final Point.Factory<? extends PointTex> pointFactory() { return shape.pointFactory(); }
+	public final Vertex.Factory<? extends Vertex> pointFactory() { return shape.pointFactory(); }
 	
-	private void addVertexToLastOutline(PointTex vertex){
+	private void addVertexToLastOutline(Vertex vertex){
 		shape.addVertex(vertex);
 	}
 	
@@ -83,40 +82,40 @@ public class GlyphShape {
 			if(!shape.getLastOutline().isEmpty()){
 				shape.addEmptyOutline();
 			}			
-			PointTex vert = pointFactory().create(coords[0],coords[1]);
+			Vertex vert = pointFactory().create(coords[0],coords[1]);
 			vert.setOnCurve(true);
 			addVertexToLastOutline(vert);
 			
 			numVertices++;
 		}
 		else if(segmentType == PathIterator.SEG_LINETO){
-			PointTex vert1 = pointFactory().create(coords[0],coords[1]);
+			Vertex vert1 = pointFactory().create(coords[0],coords[1]);
 			vert1.setOnCurve(true);
 			addVertexToLastOutline(vert1);
 			
 			numVertices++;
 		}
 		else if(segmentType == PathIterator.SEG_QUADTO){
-			PointTex vert1 = pointFactory().create(coords[0],coords[1]);
+			Vertex vert1 = pointFactory().create(coords[0],coords[1]);
 			vert1.setOnCurve(false);
 			addVertexToLastOutline(vert1);
 
-			PointTex vert2 = pointFactory().create(coords[2],coords[3]);
+			Vertex vert2 = pointFactory().create(coords[2],coords[3]);
 			vert2.setOnCurve(true);
 			addVertexToLastOutline(vert2);
 			
 			numVertices+=2;
 		}
 		else if(segmentType == PathIterator.SEG_CUBICTO){
-			PointTex vert1 = pointFactory().create(coords[0],coords[1]);
+			Vertex vert1 = pointFactory().create(coords[0],coords[1]);
 			vert1.setOnCurve(false);
 			addVertexToLastOutline(vert1);
 
-			PointTex vert2 = pointFactory().create(coords[2],coords[3]);
+			Vertex vert2 = pointFactory().create(coords[2],coords[3]);
 			vert2.setOnCurve(false);
 			addVertexToLastOutline(vert2);
 
-			PointTex vert3 = pointFactory().create(coords[4],coords[5]);
+			Vertex vert3 = pointFactory().create(coords[4],coords[5]);
 			vert3.setOnCurve(true);
 			addVertexToLastOutline(vert3);
 			
@@ -150,21 +149,21 @@ public class GlyphShape {
 	 * @param sharpness sharpness of the curved regions default = 0.5
 	 * @return ArrayList of triangles which define this shape
 	 */
-	public ArrayList<Triangle<PointTex>> triangulate(float sharpness){
+	public ArrayList<Triangle<Vertex>> triangulate(float sharpness){
 		return shape.triangulate(sharpness);
 	}
 
 	/** Get the list of Vertices of this Object
 	 * @return arrayList of Vertices
 	 */
-	public ArrayList<PointTex> getVertices(){
+	public ArrayList<Vertex> getVertices(){
 		return shape.getVertices();
 	}
 	
 	/** Get the list of AA lines defined by this object
 	 * @return arraylist of lines
 	 */
-	public ArrayList<Line<PointTex>> getLines(){
+	public ArrayList<Line<Vertex>> getLines(){
 		return shape.getLines();
 	}
 }

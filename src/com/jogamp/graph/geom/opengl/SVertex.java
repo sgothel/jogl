@@ -29,10 +29,9 @@ package com.jogamp.graph.geom.opengl;
 
 import jogamp.graph.math.VectorFloatUtil;
 
-import com.jogamp.graph.geom.Point;
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex;
 
-public class Vertex implements PointTex {
+public class SVertex implements Vertex {
 	private int id = Integer.MAX_VALUE;
 	protected float[] coord = new float[3];
 	protected boolean onCurve = true;
@@ -42,25 +41,25 @@ public class Vertex implements PointTex {
 	
 	public static Factory factory() { return factory; } 
 	
-	public static class Factory implements Point.Factory<Vertex> {
+	public static class Factory implements Vertex.Factory<SVertex> {
 		@Override
-		public Vertex create() {
-			return new Vertex();
+		public SVertex create() {
+			return new SVertex();
 		}
 
 		@Override
-		public Vertex create(float x, float y) {
-			return new Vertex(x, y);
+		public SVertex create(float x, float y) {
+			return new SVertex(x, y);
 		}
 
 		@Override
-		public Vertex create(float x, float y, float z) {
-			return new Vertex(x, y, z);
+		public SVertex create(float x, float y, float z) {
+			return new SVertex(x, y, z);
 		}
 
 		@Override
-		public Vertex create(float[] coordsBuffer, int offset, int length) {
-			return new Vertex(coordsBuffer, offset, length);
+		public SVertex create(float[] coordsBuffer, int offset, int length) {
+			return new SVertex(coordsBuffer, offset, length);
 		}		
 		
 		/* @Override
@@ -69,16 +68,16 @@ public class Vertex implements PointTex {
 		} */
 	}
 	
-	public Vertex() {
+	public SVertex() {
 	}
 
-	public Vertex(float x, float y) {
+	public SVertex(float x, float y) {
 		setCoord(x, y);
 	}
-	public Vertex(float x, float y, float z) {
+	public SVertex(float x, float y, float z) {
 		setCoord(x, y, z);
 	}	
-	public Vertex(float[] coordsBuffer, int offset, int length) {
+	public SVertex(float[] coordsBuffer, int offset, int length) {
 		setCoord(coordsBuffer, offset, length);
 	}
 		
@@ -151,7 +150,7 @@ public class Vertex implements PointTex {
 		this.id = id;
 	}
 	
-	public int compareTo(Point p) {
+	public int compareTo(Vertex p) {
 		if(VectorFloatUtil.checkEquality(coord, p.getCoord())) {
 			return 0;
 		}
@@ -167,8 +166,8 @@ public class Vertex implements PointTex {
 		this.texCoord[1] = t;
 	}
 	
-	public Vertex clone(){
-		Vertex v = new Vertex(this.coord, 0, 3);
+	public SVertex clone(){
+		SVertex v = new SVertex(this.coord, 0, 3);
 		v.setOnCurve(this.onCurve);
 		return v;
 	}

@@ -22,8 +22,8 @@ package jogamp.graph.geom.plane;
 import java.util.NoSuchElementException;
 
 import com.jogamp.graph.geom.AABBox;
-import com.jogamp.graph.geom.Point;
-import com.jogamp.graph.geom.opengl.Vertex;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.opengl.SVertex;
 
 import jogamp.graph.math.plane.Crossing;
 
@@ -300,7 +300,7 @@ public final class Path2D implements Cloneable {
         }
     }
 
-    public Vertex getCurrentPoint() {
+    public SVertex getCurrentPoint() {
         if (typeSize == 0) {
             return null;
         }
@@ -315,7 +315,7 @@ public final class Path2D implements Cloneable {
                 j -= pointShift[type];
             }
         }
-        return new Vertex(points[j], points[j + 1]);
+        return new SVertex(points[j], points[j + 1]);
     }
 
     public void reset() {
@@ -391,7 +391,7 @@ public final class Path2D implements Cloneable {
         return cross == Crossing.CROSSING || isInside(cross);
     }
 
-    public boolean contains(Point p) {
+    public boolean contains(Vertex p) {
         return contains(p.getX(), p.getY());
     }
 

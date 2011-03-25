@@ -29,7 +29,7 @@ package com.jogamp.graph.geom;
 
 import java.util.ArrayList;
 
-import com.jogamp.graph.geom.Point;
+import com.jogamp.graph.geom.Vertex;
 
 import jogamp.graph.math.VectorFloatUtil;
 
@@ -45,7 +45,7 @@ import jogamp.graph.math.VectorFloatUtil;
  *  @see OutlineShape, Region
  *
  */
-public class Outline<T extends Point> implements Comparable<Outline<T>>{
+public class Outline<T extends Vertex> implements Comparable<Outline<T>>{
 	
 	private ArrayList<T> vertices = new ArrayList<T>(3);
 	private boolean closed = false;
@@ -68,20 +68,20 @@ public class Outline<T extends Point> implements Comparable<Outline<T>>{
 		box.resize(vertex.getX(), vertex.getY(), vertex.getZ());
 	}
 	
-	public final void addVertex(Point.Factory<? extends Point> factory, float x, float y, boolean onCurve) {
+	public final void addVertex(Vertex.Factory<? extends Vertex> factory, float x, float y, boolean onCurve) {
 		addVertex(factory, x, y, 0f, onCurve);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public final void addVertex(Point.Factory<? extends Point> factory, float x, float y, float z, boolean onCurve) {
-		Point v = factory.create(x, y, z);
+	public final void addVertex(Vertex.Factory<? extends Vertex> factory, float x, float y, float z, boolean onCurve) {
+		Vertex v = factory.create(x, y, z);
 		v.setOnCurve(onCurve);
 		addVertex((T)v);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public final void addVertex(Point.Factory<? extends Point> factory, float[] coordsBuffer, int offset, int length, boolean onCurve) {
-		Point v = factory.create(coordsBuffer, offset, length);
+	public final void addVertex(Vertex.Factory<? extends Vertex> factory, float[] coordsBuffer, int offset, int length, boolean onCurve) {
+		Vertex v = factory.create(coordsBuffer, offset, length);
 		v.setOnCurve(onCurve);
 		addVertex((T)v);
 	}

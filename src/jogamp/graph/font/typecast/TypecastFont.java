@@ -44,13 +44,13 @@ import net.java.dev.typecast.ot.table.ID;
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.AABBox;
-import com.jogamp.graph.geom.PointTex;
-import com.jogamp.graph.geom.Point;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.Vertex;
 
 class TypecastFont implements FontInt {
 	static final boolean DEBUG = false;
 	
-	final Point.Factory<? extends PointTex> pointFactory;
+	final Vertex.Factory<? extends Vertex> pointFactory;
 	final OTFontCollection fontset;
 	final OTFont font;
     final int size;	
@@ -60,7 +60,7 @@ class TypecastFont implements FontInt {
     // final IntIntHashMap char2Code;
     IntObjectHashMap char2Glyph; 
 
-    public static TypecastFont create(Point.Factory<? extends PointTex> factory, String name, int size) {
+    public static TypecastFont create(Vertex.Factory<? extends Vertex> factory, String name, int size) {
     	String path = JavaFontLoader.getByName(name);
     	OTFontCollection fontset;
 		try {
@@ -72,7 +72,7 @@ class TypecastFont implements FontInt {
 		return null;    
     }
     
-    public TypecastFont(Point.Factory<? extends PointTex> factory, OTFontCollection fontset, int size) {
+    public TypecastFont(Vertex.Factory<? extends Vertex> factory, OTFontCollection fontset, int size) {
     	this.pointFactory = factory;
     	this.fontset = fontset;
         this.font = fontset.getFont(0);

@@ -35,8 +35,8 @@ import jogamp.graph.math.VectorFloatUtil;
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Line;
 import com.jogamp.graph.geom.Triangle;
-import com.jogamp.graph.geom.Point;
-import com.jogamp.graph.geom.PointTex;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.Vertex;
 
 import com.jogamp.graph.curve.tess.CDTriangulator2D;
 
@@ -54,24 +54,24 @@ import com.jogamp.graph.curve.tess.CDTriangulator2D;
  */
 public class OutlineShape {
 	public static final int QUADRATIC_NURBS = 10;
-	private final Point.Factory<? extends PointTex> pointFactory;
-	private ArrayList<Outline<PointTex>> outlines = new ArrayList<Outline<PointTex>>(3);
+	private final Vertex.Factory<? extends Vertex> pointFactory;
+	private ArrayList<Outline<Vertex>> outlines = new ArrayList<Outline<Vertex>>(3);
 	
 	/** Create a new Outline based Shape
 	 */
-	public OutlineShape(Point.Factory<? extends PointTex> factory) {
+	public OutlineShape(Vertex.Factory<? extends Vertex> factory) {
 		pointFactory = factory;
-		outlines.add(new Outline<PointTex>());
+		outlines.add(new Outline<Vertex>());
 	}
 	
-	public final Point.Factory<? extends PointTex> pointFactory() { return pointFactory; }
+	public final Vertex.Factory<? extends Vertex> pointFactory() { return pointFactory; }
 	
 	/** Add a new empty outline 
 	 * to the shape, this new outline will
 	 * be placed at the end of the outline list.
 	 */
 	public void addEmptyOutline(){
-		outlines.add(new Outline<PointTex>());
+		outlines.add(new Outline<Vertex>());
 	}
 	
 	/** Adds an outline to the OutlineShape object
@@ -80,7 +80,7 @@ public class OutlineShape {
 	 * it will do nothing.
 	 * @param outline an Outline object
 	 */
-	public void addOutline(Outline<PointTex> outline){
+	public void addOutline(Outline<Vertex> outline){
 		if(outline.isEmpty()){
 			return;
 		}
@@ -94,7 +94,7 @@ public class OutlineShape {
 	 *  shape
 	 * @param point 
 	 */
-	public final void addVertex(PointTex point){
+	public final void addVertex(Vertex point){
 		getLastOutline().addVertex(point);
 	}
 	
@@ -123,7 +123,7 @@ public class OutlineShape {
 	 * of outlines that define the shape
 	 * @return the last outline
 	 */
-	public final Outline<PointTex> getLastOutline(){
+	public final Outline<Vertex> getLastOutline(){
 		return outlines.get(outlines.size()-1);
 	}
 	/** Make sure that the outlines represent
@@ -138,19 +138,19 @@ public class OutlineShape {
 	}
 	
 	private void transformOutlinesQuadratic(){
-		ArrayList<Outline<PointTex>> newOutlines = new ArrayList<Outline<PointTex>>(3);
+		ArrayList<Outline<Vertex>> newOutlines = new ArrayList<Outline<Vertex>>(3);
 
 		/**loop over the outlines and make sure no
 		 * adj off-curve vertices
 		 */
-		for(Outline<PointTex> outline:outlines){
-			Outline<PointTex> newOutline = new Outline<PointTex>();
+		for(Outline<Vertex> outline:outlines){
+			Outline<Vertex> newOutline = new Outline<Vertex>();
 
-			ArrayList<PointTex> vertices = outline.getVertices();
+			ArrayList<Vertex> vertices = outline.getVertices();
 			int size =vertices.size()-1;
 			for(int i=0;i<size;i++){
-				PointTex currentVertex = vertices.get(i);
-				PointTex nextVertex = vertices.get((i+1)%size);
+				Vertex currentVertex = vertices.get(i);
+				Vertex nextVertex = vertices.get((i+1)%size);
 				if(!(currentVertex.isOnCurve()) && !(nextVertex.isOnCurve())) {
 					newOutline.addVertex(currentVertex);
 					
@@ -168,9 +168,9 @@ public class OutlineShape {
 	
 	private void generateVertexIds(){
 		int maxVertexId = 0;
-		for(Outline<PointTex> outline:outlines){
-			ArrayList<PointTex> vertices = outline.getVertices();
-			for(PointTex vert:vertices){
+		for(Outline<Vertex> outline:outlines){
+			ArrayList<Vertex> vertices = outline.getVertices();
+			for(Vertex vert:vertices){
 				vert.setId(maxVertexId);
 				maxVertexId++;
 			}
@@ -180,9 +180,9 @@ public class OutlineShape {
 	/** @return the list of vertices associated with the 
 	 * {@code Outline} list of this object
 	 */
-	public ArrayList<PointTex> getVertices(){
-		ArrayList<PointTex> vertices = new ArrayList<PointTex>();
-		for(Outline<PointTex> polyline:outlines){
+	public ArrayList<Vertex> getVertices(){
+		ArrayList<Vertex> vertices = new ArrayList<Vertex>();
+		for(Outline<Vertex> polyline:outlines){
 			vertices.addAll(polyline.getVertices());
 		}
 		return vertices;
@@ -193,17 +193,17 @@ public class OutlineShape {
 	 * parts of this graph
 	 * @return arraylist of lines
 	 */
-	public ArrayList<Line<PointTex>> getLines(){
-		ArrayList<Line<PointTex>> lines = new ArrayList<Line<PointTex>>();
-		for(Outline<PointTex> outline:outlines){
-			ArrayList<PointTex> outVertices = outline.getVertices();
+	public ArrayList<Line<Vertex>> getLines(){
+		ArrayList<Line<Vertex>> lines = new ArrayList<Line<Vertex>>();
+		for(Outline<Vertex> outline:outlines){
+			ArrayList<Vertex> outVertices = outline.getVertices();
 			int size = outVertices.size();
 			for(int i=0; i < size; i++) {
-				PointTex currentVertex = outVertices.get(i);
+				Vertex currentVertex = outVertices.get(i);
 				if(currentVertex.isOnCurve()) {
-					PointTex v2 = outVertices.get((i+1)%size);
+					Vertex v2 = outVertices.get((i+1)%size);
 					if(v2.isOnCurve()){
-						lines.add(new Line<PointTex>(currentVertex, v2));
+						lines.add(new Line<Vertex>(currentVertex, v2));
 					}
 				}
 			}
@@ -214,21 +214,21 @@ public class OutlineShape {
 	/** Triangluate the graph object
 	 * @param sharpness sharpness of the curved regions default = 0.5
 	 */
-	public ArrayList<Triangle<PointTex>> triangulate(float sharpness){
+	public ArrayList<Triangle<Vertex>> triangulate(float sharpness){
 		if(outlines.size() == 0){
 			return null;
 		}
 		sortOutlines();
 		generateVertexIds();
 		
-		CDTriangulator2D<PointTex> triangulator2d = new CDTriangulator2D<PointTex>(sharpness);
+		CDTriangulator2D<Vertex> triangulator2d = new CDTriangulator2D<Vertex>(sharpness);
 		
 		for(int index = 0; index< outlines.size();index++){
-			Outline<PointTex> outline = outlines.get(index);
+			Outline<Vertex> outline = outlines.get(index);
 			triangulator2d.addCurve(outline);
 		}
 		
-		ArrayList<Triangle<PointTex>> triangles = triangulator2d.generateTriangulation();
+		ArrayList<Triangle<Vertex>> triangles = triangulator2d.generateTriangulation();
 		triangulator2d.reset();
 		
 		return triangles;
