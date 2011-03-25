@@ -152,8 +152,7 @@ class TextNewtWindow {
 			textRenderer = new HwTextRenderer(drawable.getContext(), pointFactory, Region.TWO_PASS);
 			textRenderer.setAlpha(1.0f);
 			textRenderer.setColor(0.0f, 0.0f, 0.0f);
-			gl.glSampleCoverage(0.75f, false);
-			gl.glEnable(GL2GL3.GL_SAMPLE_COVERAGE); // FIXME: Does sample coverage make a difference here ?
+			gl.glDisable(GL.GL_MULTISAMPLE); // this state usually doesn't matter in driver - but document here: no MSAA 
 			gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL3.GL_NICEST);
 			MSAATool.dump(drawable);
 		}
