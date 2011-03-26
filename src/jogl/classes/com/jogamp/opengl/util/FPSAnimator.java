@@ -173,6 +173,9 @@ public class FPSAnimator extends AnimatorBase {
 	            timer = null;
             }
             animThread = null;
+            try {
+                Thread.sleep(20); // ~ 1/60 hz wait, since we can't ctrl stopped threads
+            } catch (InterruptedException e) { }
         } finally {
             stateSync.unlock();
         }
@@ -191,6 +194,9 @@ public class FPSAnimator extends AnimatorBase {
 	            task = null;
             }
             animThread = null;
+            try {
+                Thread.sleep(20); // ~ 1/60 hz wait, since we can't ctrl stopped threads
+            } catch (InterruptedException e) { }
         } finally {
             stateSync.unlock();
         }
