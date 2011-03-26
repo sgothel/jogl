@@ -34,7 +34,6 @@ import jogamp.graph.font.FontInt;
 import jogamp.graph.font.JavaFontLoader;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
-
 import net.java.dev.typecast.ot.OTFont;
 import net.java.dev.typecast.ot.OTFontCollection;
 import net.java.dev.typecast.ot.table.CmapFormat;
@@ -42,9 +41,7 @@ import net.java.dev.typecast.ot.table.CmapTable;
 import net.java.dev.typecast.ot.table.ID;
 
 import com.jogamp.common.util.IntObjectHashMap;
-import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.AABBox;
-import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex;
 
 class TypecastFont implements FontInt {

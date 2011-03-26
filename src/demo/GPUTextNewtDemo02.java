@@ -28,188 +28,79 @@
 package demo;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GL3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.text.HwTextRenderer;
-import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.opengl.SVertex;
-import com.jogamp.newt.event.KeyEvent;
-import com.jogamp.newt.event.KeyListener;
-import com.jogamp.newt.event.WindowAdapter;
-import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.FPSAnimator;
 
 public class GPUTextNewtDemo02 {
-	private static void create(){
-		new TextNewtWindow();
-	}
-	public static void main(String[] args) {
-		create();
-	}
-}
-
-class TextNewtWindow {
-	Vertex.Factory<SVertex> pointFactory = SVertex.factory();
+    /**
+     * If DEBUG is enabled:
+     *  
+     * Caused by: javax.media.opengl.GLException: Thread[main-Display-X11_:0.0-1-EDT-1,5,main] glGetError() returned the following error codes after a call to glFramebufferRenderbuffer(<int> 0x8D40, <int> 0x1902, <int> 0x8D41, <int> 0x1): GL_INVALID_ENUM ( 1280 0x500), 
+     * at javax.media.opengl.DebugGL4bc.checkGLGetError(DebugGL4bc.java:33961)
+     * at javax.media.opengl.DebugGL4bc.glFramebufferRenderbuffer(DebugGL4bc.java:33077)
+     * at jogamp.graph.curve.opengl.VBORegion2PGL3.initFBOTexture(VBORegion2PGL3.java:295)
+     */
+    static final boolean DEBUG = false;
+    static final boolean TRACE = false;
+    
+    public static void main(String[] args) {
+        GPUTextNewtDemo02 test = new GPUTextNewtDemo02();
+        test.testMe();
+    }
+    
+    GLWindow window;
 	TextGLListener textGLListener = null; 
 
-	public TextNewtWindow(){
-		createWindow();
-	}
-	private void createWindow() {
+	public void testMe() {
 		GLProfile.initSingleton(true);
-		GLProfile glp = GLProfile.get(GLProfile.GL3);
+		GLProfile glp = GLProfile.get(GLProfile.GL3bc);
 		
 		GLCapabilities caps = new GLCapabilities(glp);
 		caps.setAlphaBits(4);		
 		System.out.println("Requested: "+caps);
 		
-		final GLWindow window = GLWindow.create(caps);
+		window = GLWindow.create(caps);
 		
 		window.setPosition(10, 10);
-		window.setSize(1000, 1000);
+        window.setSize(400, 400);		
 
-        window.setTitle("GPU Text Newt Demo 01 - r2t1 msaa0");		
-		textGLListener = new TextGLListener();
-		window.addGLEventListener(textGLListener);
+        window.setTitle("GPU Text Newt Demo 02 - r2t1 msaa0");
+        textGLListener = new TextGLListener();
+        textGLListener.attachTo(window);
 
 		window.setVisible(true);
 
-		window.addKeyListener(new KeyListener() {
-			public void keyPressed(KeyEvent arg0) {
-				if(arg0.getKeyCode() == KeyEvent.VK_1){
-					textGLListener.zoomIn(1);
-				}
-				else if(arg0.getKeyCode() == KeyEvent.VK_2){
-					textGLListener.zoomOut(1);
-				}
-				else if(arg0.getKeyCode() == KeyEvent.VK_3){
-					textGLListener.zoomIn(10);
-				}
-				else if(arg0.getKeyCode() == KeyEvent.VK_4){
-					textGLListener.zoomOut(10);
-				}
-				else if(arg0.getKeyCode() == KeyEvent.VK_UP){
-					textGLListener.move(0, -1);
-				}
-				else if(arg0.getKeyCode() == KeyEvent.VK_DOWN){
-					textGLListener.move(0, 1);
-				}
-				else if(arg0.getKeyCode() == KeyEvent.VK_LEFT){
-					textGLListener.move(1, 0);
-				}
-				else if(arg0.getKeyCode() == KeyEvent.VK_RIGHT){
-					textGLListener.move(-1, 0);
-				}
-				else if(arg0.getKeyCode() == KeyEvent.VK_0){
-					textGLListener.rotate(1);
-				}
-				else if(arg0.getKeyCode() == KeyEvent.VK_9){
-					textGLListener.rotate(-1);
-				}
-				else if(arg0.getKeyCode() == KeyEvent.VK_6){
-					textGLListener.size -= 10;
-					System.err.println("Tex Size: " + textGLListener.size);
-				}
-				else if(arg0.getKeyCode() == KeyEvent.VK_7){
-					textGLListener.size += 10;
-					System.err.println("Tex Size: " + textGLListener.size);
-				}
-			}
-			public void keyTyped(KeyEvent arg0) {}
-			public void keyReleased(KeyEvent arg0) {}
-		});
-
 		FPSAnimator animator = new FPSAnimator(60);
 		animator.add(window);
-		window.addWindowListener(new WindowAdapter() {
-			public void windowDestroyNotify(WindowEvent arg0) {
-				System.exit(0);
-			};
-		});
 		animator.start();
 	}
-	private class TextGLListener implements GLEventListener{
-		HwTextRenderer textRenderer = null;
-
-		public TextGLListener(){
-
-		}
-
+	
+	private class TextGLListener extends GPUTextGLListenerBase01 {
+        public TextGLListener() {
+            super(SVertex.factory(), Region.TWO_PASS, DEBUG, TRACE);
+            setMatrix(-10, 10, 0f, -1000, window.getWidth());                       
+        }
+	    
 		public void init(GLAutoDrawable drawable) {
-			GL3 gl = drawable.getGL().getGL3();
+            GL3 gl = drawable.getGL().getGL3();
+            
+            super.init(drawable);
+            
 			gl.setSwapInterval(1);
 			gl.glEnable(GL3.GL_DEPTH_TEST);
-			
-			textRenderer = new HwTextRenderer(drawable.getContext(), pointFactory, Region.TWO_PASS);
-			textRenderer.setAlpha(1.0f);
-			textRenderer.setColor(0.0f, 0.0f, 0.0f);
+			textRenderer.init(gl);
+			textRenderer.setAlpha(gl, 1.0f);
+			textRenderer.setColor(gl, 0.0f, 0.0f, 0.0f);
 			gl.glDisable(GL.GL_MULTISAMPLE); // this state usually doesn't matter in driver - but document here: no MSAA 
-			gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL3.GL_NICEST);
+			//gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL3.GL_NICEST);
 			MSAATool.dump(drawable);
-		}
-
-		float ang = 0;
-		float zoom = -4000;
-		float xTran = -100;
-		float yTran = 40;
-		int size = 190;
-
-		public void display(GLAutoDrawable drawable) {
-			GL3 gl = drawable.getGL().getGL3();
-
-			gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-			gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-
-			textRenderer.resetMatrix();
-			textRenderer.translate(xTran, yTran, zoom);
-			textRenderer.rotate(ang, 0, 1, 0);
-
-			String text1 = "abcdef\nghijklmn\nopqrstuv\nwxyz";
-			String text2 = text1.toUpperCase();
-
-			Font font = textRenderer.createFont(pointFactory, "Lucida Sans Regular",40);
-			float[] position = new float[]{0,0,0};
-
-			try {
-				textRenderer.renderString3D(font, text2, position, size);
-			} catch (Exception e) { 
-				e.printStackTrace();
-			}
-		}
-		public void reshape(GLAutoDrawable drawable, int xstart, int ystart, int width, int height){
-			GL3 gl = drawable.getGL().getGL3();
-			gl.glViewport(xstart, ystart, width, height);
-
-			textRenderer.reshape(drawable, 45.0f, width , height, 0.1f, 7000.0f);
-		}
-
-		public void zoomIn(float f){
-			zoom+=f;
-		}
-		public void zoomOut(float f){
-			zoom-=f;
-			System.err.println("Zoom: " + zoom);
-		}
-		public void move(float x, float y){
-			xTran += x;
-			yTran += y;
-		}
-		public void rotate(float delta){
-			ang+= delta;
-			ang%=360;
-		}
-		
-		public void dispose(GLAutoDrawable arg0) {
-			textRenderer.clearCached();
 		}
 	}
 }

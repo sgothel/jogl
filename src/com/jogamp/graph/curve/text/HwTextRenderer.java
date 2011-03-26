@@ -32,8 +32,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLUniformData;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
@@ -82,37 +80,38 @@ public class HwTextRenderer {
 		return fontFactory;
 	}
 	
-	private ShaderState st;
+	private ShaderState st = new ShaderState();
+	
 	private PMVMatrix pmvMatrix = new PMVMatrix();
+	private GLUniformData mgl_PMVMatrix;
 	
 	/**Sharpness is equivalent to the value of t value of texture coord
 	 * on the off-curve vertex. The high value of sharpness will 
 	 * result in high curvature.
 	 */
-	private float sharpness = 0.5f;
-	private float alpha = 1.0f;
-	private float strength = 1.8f;
-	private boolean initialized = false;
-	
+    private GLUniformData mgl_sharpness = new GLUniformData("p1y", 0.5f);
+    private GLUniformData mgl_alpha = new GLUniformData("g_alpha", 1.0f);
+    private GLUniformData mgl_color = new GLUniformData("g_color", 3, FloatBuffer.allocate(3));
+    private GLUniformData mgl_strength = new GLUniformData("a_strength", 1.8f);
+    	
+	private boolean initialized = false;	
 	
 	private int regionType = Region.SINGLE_PASS;
-	private GLContext context;
-	private FloatBuffer color = FloatBuffer.allocate(3);
+	
 	private HashMap<String, GlyphString> strings = new HashMap<String, GlyphString>();
 	private final Vertex.Factory<? extends Vertex> pointFactory;
 	
 	int win_width = 0;
 	int win_height = 0;
 	
-	/** Create a Hardware accelerated Text Renderer
+	/** 
+	 * Create a Hardware accelerated Text Renderer.
 	 * @param context OpenGL rendering context
 	 * @param factory optional Point.Factory for Vertex construction. Default is Vertex.Factory.
 	 */
-	public HwTextRenderer(GLContext context, Vertex.Factory<? extends Vertex> factory, int type) {
+	public HwTextRenderer(Vertex.Factory<? extends Vertex> factory, int type) {
 		this.pointFactory = (null != factory) ? factory : SVertex.factory();
-		this.context = context;
 		this.regionType = type;
-		init(context, 0.5f);
 	}
 
     public Font createFont(Vertex.Factory<? extends Vertex> factory, String name, int size) {
@@ -129,22 +128,22 @@ public class HwTextRenderer {
     	return fontFactory.createFont(factory, families, style, variant, weight, size);
     }
 	
-	/** initialize shaders and bindings for GPU based text Rendering, should 
-	 * be called only onceangle
+	/** 
+	 * Initialize shaders and bindings for GPU based text Rendering, 
+	 * should be called only once.
+	 * Leaves the renderer enables, ie ShaderState on.
+	 *  
 	 * @param drawable the current drawable
 	 * @param shapvalue shaprness around the off-curve vertices
 	 * @return true if init succeeded, false otherwise
 	 */
-	private boolean init(GLContext context, float sharpvalue){
+	public boolean init(GL2ES2 gl){
 		if(initialized){
 			if(DEBUG) {
 				System.err.println("HWTextRenderer: Already initialized!");
 			}
 			return true;
 		}
-		sharpness = sharpvalue;
-		
-		GL2ES2 gl = context.getGL().getGL2ES2();
 		
 		boolean VBOsupported = gl.isFunctionAvailable("glGenBuffers") &&
 			gl.isFunctionAvailable("glBindBuffer") &&
@@ -161,12 +160,25 @@ public class HwTextRenderer {
 			return false;
 		}
 		
-		gl.setSwapInterval(1);
-		
 		gl.glEnable(GL2ES2.GL_BLEND);
 		gl.glBlendFunc(GL2ES2.GL_SRC_ALPHA, GL2ES2.GL_ONE_MINUS_SRC_ALPHA);
 		
-		initShader(gl);
+        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, HwTextRenderer.class,
+                "../shader", "../shader/bin", "curverenderer");
+        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, HwTextRenderer.class,
+                "../shader", "../shader/bin", "curverenderer");
+
+        ShaderProgram sp = new ShaderProgram();
+        sp.add(rsVp);
+        sp.add(rsFp);
+
+        if(!sp.link(gl, System.err)) {
+            throw new GLException("HWTextRenderer: Couldn't link program: "+sp);
+        }
+
+        st.attachShaderProgram(gl, sp);
+        gl.glBindAttribLocation(sp.id(), 0, "v_position");
+        gl.glBindAttribLocation(sp.id(), 1, "texCoord");
 		
 		st.glUseProgram(gl, true);
 
@@ -177,37 +189,40 @@ public class HwTextRenderer {
 		
 		pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
 		pmvMatrix.glLoadIdentity();
-		resetMatrix();
-
-		if(!st.glUniform(gl, new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()))) {
+		resetMatrix(null);
+		
+		mgl_PMVMatrix = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());		    		
+		if(!st.glUniform(gl, mgl_PMVMatrix)) {
 			if(DEBUG){
 				System.err.println("Error setting PMVMatrix in shader: "+st);
 			}
 			return false;
 		}
-		if(!st.glUniform(gl, new GLUniformData("p1y", sharpness))) {
+		
+		if(!st.glUniform(gl, mgl_sharpness)) {
 			if(DEBUG){
 				System.err.println("Error setting sharpness in shader: "+st);
 			}
 			return false;
 		}
-		if(!st.glUniform(gl, new GLUniformData("g_alpha", alpha))) {
+				
+		if(!st.glUniform(gl, mgl_alpha)) {
 			if(DEBUG){
 				System.err.println("Error setting global alpha in shader: "+st);
 			}
 			return false;
-		}
-		if(!st.glUniform(gl, new GLUniformData("g_color", 3, color))) {
+		}		
+		
+		if(!st.glUniform(gl, mgl_color)) {
 			if(DEBUG){
 				System.err.println("Error setting global color in shader: "+st);
 			}
 			return false;
-		}
-		if(!st.glUniform(gl, new GLUniformData("a_strength", strength))) {
+		}		
+		
+		if(!st.glUniform(gl, mgl_strength)) {
 			System.err.println("Error setting antialias strength in shader: "+st);
 		}
-		
-		st.glUseProgram(gl, false);
 		
 		if(DEBUG) {
 			System.err.println("HWTextRenderer initialized: " + Thread.currentThread()+" "+st);
@@ -216,41 +231,75 @@ public class HwTextRenderer {
 		return true;
 	}
 	
+	public void dispose(GL2ES2 gl) {
+	    st.destroy(gl);
+	    clearCached();
+	}
+	
 	public float getAlpha() {
-		return alpha;
-	}
-	public void setAlpha(float alpha_t) {
-		alpha = alpha_t;
+		return mgl_alpha.floatValue();
 	}
 	
-	public void setColor(float r, float g, float b){
-		color.put(r);
-		color.put(g);
-		color.put(b);
-		color.rewind();
+	public ShaderState getShaderState() {
+	    return st;
 	}
 	
-	public void rotate(float angle, float x, float y, float z){
+	public void setAlpha(GL2ES2 gl, float alpha_t) {
+	    mgl_alpha.setData(alpha_t);
+	    if(null != gl && st.inUse()) {
+	        st.glUniform(gl, mgl_alpha);
+	    }
+	}
+	
+	public void setColor(GL2ES2 gl, float r, float g, float b){
+	    FloatBuffer fb = (FloatBuffer) mgl_color.getBuffer();
+	    fb.put(0, r);
+	    fb.put(1, r);
+	    fb.put(2, r);
+	    if(null != gl && st.inUse()) {
+	        st.glUniform(gl, mgl_color);
+	    }
+	}
+	
+	public void rotate(GL2ES2 gl, float angle, float x, float y, float z){
 		pmvMatrix.glRotatef(angle, x, y, z);
+		if(null != gl && st.inUse()) {
+		    st.glUniform(gl, mgl_PMVMatrix);
+		}
 	}
-	public void translate(float x, float y, float z){
+	public void translate(GL2ES2 gl, float x, float y, float z){
 		pmvMatrix.glTranslatef(x, y, z);
+		if(null != gl && st.inUse()) {
+		    st.glUniform(gl, mgl_PMVMatrix);
+		}
 	}
 	
-	public  void resetMatrix(){
+	public  void resetMatrix(GL2ES2 gl){
 		pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
 		pmvMatrix.glLoadIdentity();
+		if(null != gl && st.inUse()) {
+		    st.glUniform(gl, mgl_PMVMatrix);
+		}
 	}
 	
+    public  void updateAllShaderValues(GL2ES2 gl) {
+        if(null != gl && st.inUse()) {
+            st.glUniform(gl, mgl_PMVMatrix);
+            st.glUniform(gl, mgl_alpha);
+            st.glUniform(gl, mgl_color);
+            st.glUniform(gl, mgl_strength);
+        }
+    }
+    
 	/**
-	 * @param drawable
+	 * @param gl
 	 * @param angle
 	 * @param ratio
 	 * @param near
 	 * @param far
 	 * @return
 	 */
-	public boolean reshape(GLAutoDrawable drawable, float angle, int width, int height, float near, float far){
+	public boolean reshape(GL2ES2 gl, float angle, int width, int height, float near, float far){
 		win_width = width;
 		win_height = height;
 		float ratio = (float)width/(float)height;
@@ -258,44 +307,12 @@ public class HwTextRenderer {
 		pmvMatrix.glLoadIdentity();
 		pmvMatrix.gluPerspective(angle, ratio, near, far);
 		
-		if(null==st) {
-			if(DEBUG){
-				System.err.println("HWTextRenderer: Shader State is null, or not");
-			}
-			return false;
-		}
-		GL2ES2 gl = drawable.getGL().getGL2ES2();
-
-		st.glUseProgram(gl, true);
-		GLUniformData ud = st.getUniform("mgl_PMVMatrix");
-		if(null!=ud) {
-			st.glUniform(gl, ud);
-		} 
-		st.glUseProgram(gl, false);
+		st.glUniform(gl, mgl_PMVMatrix);
+		
 		return true;
 	}
 
-	private void initShader(GL2ES2 gl) {
-		ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, HwTextRenderer.class,
-				"../shader", "../shader/bin", "curverenderer");
-		ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, HwTextRenderer.class,
-				"../shader", "../shader/bin", "curverenderer");
-
-		ShaderProgram sp = new ShaderProgram();
-		sp.add(rsVp);
-		sp.add(rsFp);
-
-		if(!sp.link(gl, System.err)) {
-			throw new GLException("HWTextRenderer: Couldn't link program: "+sp);
-		}
-
-		st = new ShaderState();
-		st.attachShaderProgram(gl, sp);
-		gl.glBindAttribLocation(sp.id(), 0, "v_position");
-		gl.glBindAttribLocation(sp.id(), 1, "texCoord");
-	}
-	
-	private GlyphString createString(Font font, String str) {
+	private GlyphString createString(GL2ES2 gl, Font font, String str) {
 		AffineTransform affineTransform = new AffineTransform(pointFactory);
 		
 		Path2D[] paths = new Path2D[str.length()];
@@ -304,10 +321,16 @@ public class HwTextRenderer {
 		GlyphString glyphString = new GlyphString(pointFactory, font.getName(), str);
 		glyphString.createfromFontPath(paths, affineTransform);
 		
-		glyphString.generateRegion(context, sharpness, st, regionType);
+		glyphString.generateRegion(gl.getContext(), mgl_sharpness.floatValue(), st, regionType);
 		return glyphString;
 	}
 	
+	
+	public void enable(GL2ES2 gl, boolean enable) {
+	    if(null != gl) {
+	        st.glUseProgram(gl, enable);
+	    }
+	}
 	
 	/** Render the String in 3D space wrt to the font provided at the position provided
 	 * the outlines will be generated, if not yet generated
@@ -317,36 +340,18 @@ public class HwTextRenderer {
 	 * @param size texture size for multipass render
 	 * @throws Exception if TextRenderer not initialized
 	 */
-	public void renderString3D(Font font, String str, float[] position, int size) throws Exception{
+	public void renderString3D(GL2ES2 gl, Font font, String str, float[] position, int size) {
 		if(!initialized){
-			throw new Exception("HWTextRenderer: not initialized!");
+			throw new GLException("HWTextRenderer: not initialized!");
 		}
 		String fontStrHash = getTextHashCode(font, str);
 		GlyphString glyphString = strings.get(fontStrHash);
 		if(null == glyphString) {
-			glyphString = createString(font, str);
+			glyphString = createString(gl, font, str);
 			strings.put(fontStrHash, glyphString);
 		}
 		
-		GL2ES2 gl = context.getGL().getGL2ES2();
-		st.glUseProgram(gl, true);
-		GLUniformData ud = st.getUniform("mgl_PMVMatrix");
-		if(null!=ud) {
-			st.glUniform(gl, ud);
-		} 
-		if(!st.glUniform(gl, new GLUniformData("g_alpha", alpha))) {
-			System.err.println("Error setting global alpha in shader: "+st);
-		}	
-		GLUniformData gcolorUD = st.getUniform("g_color");
-		if(null!=gcolorUD) {
-			st.glUniform(gl, gcolorUD);
-		} 
-		
-		if(!st.glUniform(gl, new GLUniformData("a_strength", strength))) {
-			System.err.println("Error setting antialias strength in shader: "+st);
-		}	
 		glyphString.renderString3D(pmvMatrix, win_width, win_height, size);
-		st.glUseProgram(gl, false);
 	}
 	
 	private String getTextHashCode(Font font, String str){

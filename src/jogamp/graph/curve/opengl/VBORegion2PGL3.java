@@ -64,9 +64,9 @@ public class VBORegion2PGL3  implements Region{
 	private boolean dirty = false;
 	
 	private AABBox box = null;
-	private IntBuffer texture = IntBuffer.allocate(1);
-	private IntBuffer fbo = IntBuffer.allocate(1);
-	private IntBuffer rbo = IntBuffer.allocate(1);
+	private int[] texture = { 0 } ;
+	private int[] fbo = { 0 } ;
+	private int[] rbo_depth = { 0 } ;
 	private boolean texInitialized = false;
 
 	private int tex_width_c = 0;
@@ -178,9 +178,9 @@ public class VBORegion2PGL3  implements Region{
 	    }
 	    gl.glEnable(GL3.GL_TEXTURE_2D);
 	    gl.glActiveTexture(GL3.GL_TEXTURE0);
-	    gl.glBindTexture(GL3.GL_TEXTURE_2D, texture.get(0));
+	    gl.glBindTexture(GL3.GL_TEXTURE_2D, texture[0]);
 	    
-	    st.glUniform(gl, new GLUniformData("texture", texture.get(0)));
+	    st.glUniform(gl, new GLUniformData("texture", texture[0]));
 	    int loc = gl.glGetUniformLocation(st.shaderProgram().id(), "texture");
 	    gl.glUniform1i(loc, 0);
 	    
@@ -257,14 +257,27 @@ public class VBORegion2PGL3  implements Region{
 	
 	private void initFBOTexture(PMVMatrix m, int width, int hight){
 		tex_height_c = (int)(tex_width_c*box.getHeight()/box.getWidth());
-		System.out.println("Scale: " + m.glGetMatrixf().get(0) +" " + m.glGetMatrixf().get(5));
+	    // tex_height_c = tex_width_c;
+	    System.out.println("FBO Size: "+tex_height_c+"x"+tex_width_c);
+		System.out.println("FBO Scale: " + m.glGetMatrixf().get(0) +" " + m.glGetMatrixf().get(5));
 		GL3 gl = context.getGL().getGL3();
 		
-		gl.glDeleteFramebuffers(1, fbo);
-		gl.glDeleteTextures(1, texture);
+		if(fbo[0] > 0) {
+		    gl.glDeleteFramebuffers(1, fbo, 0);
+		    fbo[0] = 0;
+		}
+		if(texture[0]>0) {
+		    gl.glDeleteTextures(1, texture, 0);
+		    texture[0] = 0;
+		}
 		
-		gl.glGenTextures(1, texture);
-		gl.glBindTexture(GL3.GL_TEXTURE_2D, texture.get(0));
+        gl.glGenFramebuffers(1, fbo, 0);
+		gl.glGenTextures(1, texture, 0);
+        gl.glGenRenderbuffers(1,rbo_depth, 0);
+        System.out.println("FBO: fbo " + fbo[0] + ", tex " + texture[0] + ", depth " + rbo_depth[0]);
+		
+        gl.glBindFramebuffer(GL3.GL_DRAW_FRAMEBUFFER, fbo[0]);
+		gl.glBindTexture(GL3.GL_TEXTURE_2D, texture[0]);
 		gl.glTexImage2D(GL3.GL_TEXTURE_2D, 0, GL3.GL_RGBA, tex_width_c, 
 				tex_height_c, 0, GL3.GL_RGBA, GL3.GL_UNSIGNED_BYTE, null);
 		
@@ -272,16 +285,14 @@ public class VBORegion2PGL3  implements Region{
 		gl.glTexParameterf(GL3.GL_TEXTURE_2D, GL3.GL_TEXTURE_MAG_FILTER, GL3.GL_LINEAR);
 		gl.glTexParameterf(GL3.GL_TEXTURE_2D, GL3.GL_TEXTURE_WRAP_S, GL3.GL_CLAMP_TO_EDGE);
 		gl.glTexParameterf(GL3.GL_TEXTURE_2D, GL3.GL_TEXTURE_WRAP_T, GL3.GL_CLAMP_TO_EDGE);
-		
-	    gl.glGenRenderbuffers(1,rbo);
-	    gl.glBindRenderbuffer(GL3.GL_RENDERBUFFER, rbo.get(0));
-	    gl.glRenderbufferStorage(GL3.GL_RENDERBUFFER, GL3.GL_DEPTH_COMPONENT, tex_width_c, tex_height_c);
-	    
-	    gl.glGenFramebuffers(1, fbo);
-	    gl.glBindFramebuffer(GL3.GL_DRAW_FRAMEBUFFER, fbo.get(0));
+
 	    gl.glFramebufferTexture2D(GL3.GL_DRAW_FRAMEBUFFER, GL3.GL_COLOR_ATTACHMENT0, 
-	    		GL3.GL_TEXTURE_2D, texture.get(0), 0);
-	    gl.glFramebufferRenderbuffer(GL3.GL_FRAMEBUFFER, GL3.GL_DEPTH_COMPONENT, GL3.GL_RENDERBUFFER, rbo.get(0));
+	                              GL3.GL_TEXTURE_2D, texture[0], 0);
+
+        // Set up the depth buffer
+	    gl.glBindRenderbuffer(GL3.GL_RENDERBUFFER, rbo_depth[0]);
+	    gl.glRenderbufferStorage(GL3.GL_RENDERBUFFER, GL3.GL_DEPTH_COMPONENT, tex_width_c, tex_height_c);
+	    gl.glFramebufferRenderbuffer(GL3.GL_FRAMEBUFFER, GL3.GL_DEPTH_COMPONENT, GL3.GL_RENDERBUFFER, rbo_depth[0]);
 
 	    int status = gl.glCheckFramebufferStatus(GL3.GL_FRAMEBUFFER);
 	    if(status != GL3.GL_FRAMEBUFFER_COMPLETE){
@@ -290,7 +301,7 @@ public class VBORegion2PGL3  implements Region{
 	    
 	    //render texture
 		PMVMatrix tex_matrix = new PMVMatrix();
-	    gl.glBindFramebuffer(GL3.GL_DRAW_FRAMEBUFFER, fbo.get(0));
+	    gl.glBindFramebuffer(GL3.GL_DRAW_FRAMEBUFFER, fbo[0]);
 	    gl.glViewport(0, 0, tex_width_c, tex_height_c);
 	    tex_matrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
 	    tex_matrix.glLoadIdentity();
@@ -349,8 +360,12 @@ public class VBORegion2PGL3  implements Region{
 	public void destroy() {
 		GL3 gl = context.getGL().getGL3();
 		gl.glDeleteBuffers(numBuffers, vboIds);
-		gl.glDeleteFramebuffers(1, fbo);
-		gl.glDeleteTextures(1, texture);
+		gl.glDeleteFramebuffers(1, fbo, 0);
+		fbo[0] = 0;
+		gl.glDeleteTextures(1, texture, 0);
+		texture[0] = 0;
+		gl.glDeleteRenderbuffers(1, rbo_depth, 0);
+		rbo_depth[0] = 0;
 	}
 	
 	public boolean isFlipped() {

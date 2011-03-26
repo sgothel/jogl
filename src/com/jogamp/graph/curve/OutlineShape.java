@@ -36,7 +36,6 @@ import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Line;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex;
 
 import com.jogamp.graph.curve.tess.CDTriangulator2D;
 
