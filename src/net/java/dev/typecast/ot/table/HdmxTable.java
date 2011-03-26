@@ -57,6 +57,11 @@ public class HdmxTable implements Table {
         public short[] getWidths() {
             return _widths;
         }
+
+        public short getWidth(int glyphidx) {
+            return _widths[glyphidx];
+        }
+        
     }
     
     private DirectoryEntry _de;
@@ -80,6 +85,14 @@ public class HdmxTable implements Table {
         }
     }
 
+    public int getNumberOfRecords() {
+        return _numRecords;
+    }
+    
+    public DeviceRecord getRecord(int i) {
+        return _records[i];
+    }
+    
     public int getType() {
         return hdmx;
     }

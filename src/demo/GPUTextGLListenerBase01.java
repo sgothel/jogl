@@ -43,12 +43,14 @@ import com.jogamp.newt.opengl.GLWindow;
 public abstract class GPUTextGLListenerBase01 implements GLEventListener {
     Vertex.Factory<? extends Vertex> vfactory;
     HwTextRenderer textRenderer;    
+    Font font;
+    boolean debug;
+    boolean trace;
+    
     KeyAction keyAction;
     
-    boolean fontUpdate = true;
     int fontSize = 40;
     final int fontSizeModulo = 100;    
-    Font font;
     
     final float[] position = new float[] {0,0,0};
     
@@ -60,8 +62,6 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
     int texSize = 400; // FBO/tex size ..
 
     boolean doMatrix = true;
-    boolean debug;
-    boolean trace;
     static final String text1;
     static final String text2;
 
@@ -71,8 +71,9 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
     }
 
     public GPUTextGLListenerBase01(Vertex.Factory<? extends Vertex> vfactory, int mode, boolean debug, boolean trace) {
-        this.textRenderer = new HwTextRenderer(vfactory, mode);
         this.vfactory = vfactory;
+        this.textRenderer = new HwTextRenderer(vfactory, mode);
+        this.font = textRenderer.createFont(vfactory, "Lucida Sans Regular");
         this.debug = debug;
         this.trace = trace;
     }
@@ -103,7 +104,7 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
         gl.glViewport(xstart, ystart, width, height);
         textRenderer.reshape(gl, 45.0f, width, height, 0.1f, 7000.0f);
         
-        dumpMatrix();
+        dumpMatrix(true);
     }
     
     public void display(GLAutoDrawable drawable) {
@@ -119,11 +120,7 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
             doMatrix = false;
         }
 
-        if(fontUpdate) {
-            font = textRenderer.createFont(vfactory, "Lucida Sans Regular", fontSize);
-            fontUpdate = false;
-        }
-        textRenderer.renderString3D(gl, font, text2, position, texSize);
+        textRenderer.renderString3D(gl, font, text2, position, fontSize, texSize);
     }        
         
     public void dispose(GLAutoDrawable drawable) {
@@ -133,31 +130,33 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
     
     public void fontIncr(int v) {
         fontSize = Math.abs((fontSize + v) % fontSizeModulo) ;
-        fontUpdate = true;
-        dumpMatrix();
+        dumpMatrix(true);
     }
 
     public void zoom(int v){
         zoom += v;
         doMatrix = true;
-        dumpMatrix();
+        dumpMatrix(false);
     }
     
     public void move(float x, float y){
         xTran += x;
         yTran += y;
         doMatrix = true;
-        dumpMatrix();
+        dumpMatrix(false);
     }
     public void rotate(float delta){
         ang += delta;
         ang %= 360.0f;
         doMatrix = true;
-        dumpMatrix();
+        dumpMatrix(false);
     }
     
-    void dumpMatrix() {
+    void dumpMatrix(boolean bbox) {
         System.err.println("Matrix: " + xTran + "/" + yTran + " x"+zoom + " @"+ang +" fontSize "+fontSize);
+        if(bbox) {
+            System.err.println("bbox: "+font.getStringBounds(text2, fontSize));
+        }
     }
     
     public void attachTo(GLWindow window) {

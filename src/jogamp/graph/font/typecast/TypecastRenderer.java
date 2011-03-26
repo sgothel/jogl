@@ -44,16 +44,16 @@ import net.java.dev.typecast.ot.OTGlyph;
 public class TypecastRenderer {
 
 	public static void getOutline(Factory<? extends Vertex> factory, TypecastFont font, 
-			                      String string, AffineTransform transform, Path2D[] p)
+			                      String string, float pixelSize, AffineTransform transform, Path2D[] p)
 	{		
 		if (string == null) {
 			return;
 		}
 		Font.Metrics metrics = font.getMetrics();
 		float advanceTotal = 0;
-		float lineGap = metrics.getLineGap() ;
-		float ascent = metrics.getAscent() ;
-		float descent = metrics.getDescent() ;
+		float lineGap = metrics.getLineGap(pixelSize) ;
+		float ascent = metrics.getAscent(pixelSize) ;
+		float descent = metrics.getDescent(pixelSize) ;
 		if (transform == null) {
 			transform = new AffineTransform(factory);
 		}
@@ -73,12 +73,12 @@ public class TypecastRenderer {
 				continue;
 			}
 			TypecastGlyph glyph = (TypecastGlyph) font.getGlyph(character);
-			Path2D gp = glyph.getNormalPath();
-			float scale = metrics.getScale();
+			Path2D gp = glyph.getPath();
+			float scale = metrics.getScale(pixelSize);
 			t.translate(advanceTotal, y);
 			t.scale(scale, scale);
 			p[i].append(gp.iterator(t), false);
-			advanceTotal += glyph.getAdvanceForPixelSize(font.getSize(), true); 
+			advanceTotal += glyph.getAdvance(pixelSize, true); 
 		}
 	}
 	

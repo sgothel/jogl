@@ -35,10 +35,8 @@ public interface FontFactory {
     		        String[] families, 
                     String style,
                     String variant,
-                    String weight,
-                    String size);
+                    String weight);
 
     Font createFont(Vertex.Factory<? extends Vertex> factory,
-    		        String name,
-                    int size);
+    		        String name);
 }

@@ -114,8 +114,8 @@ public class HwTextRenderer {
 		this.regionType = type;
 	}
 
-    public Font createFont(Vertex.Factory<? extends Vertex> factory, String name, int size) {
-    	return fontFactory.createFont(factory, name, size);
+    public Font createFont(Vertex.Factory<? extends Vertex> factory, String name) {
+    	return fontFactory.createFont(factory, name);
     }
 
 
@@ -123,9 +123,8 @@ public class HwTextRenderer {
     		               String[] families, 
                            String style,
                            String variant,
-                           String weight,
-                           String size) {
-    	return fontFactory.createFont(factory, families, style, variant, weight, size);
+                           String weight) {
+    	return fontFactory.createFont(factory, families, style, variant, weight);
     }
 	
 	/** 
@@ -312,11 +311,11 @@ public class HwTextRenderer {
 		return true;
 	}
 
-	private GlyphString createString(GL2ES2 gl, Font font, String str) {
+	private GlyphString createString(GL2ES2 gl, Font font, int size, String str) {
 		AffineTransform affineTransform = new AffineTransform(pointFactory);
 		
 		Path2D[] paths = new Path2D[str.length()];
-		((FontInt)font).getOutline(str, affineTransform, paths);
+		((FontInt)font).getOutline(str, size, affineTransform, paths);
 		
 		GlyphString glyphString = new GlyphString(pointFactory, font.getName(), str);
 		glyphString.createfromFontPath(paths, affineTransform);
@@ -337,25 +336,27 @@ public class HwTextRenderer {
 	 * @param font font to be used
 	 * @param str text to be rendered 
 	 * @param position the lower left corner of the string 
-	 * @param size texture size for multipass render
+     * @param fontSize font size
+	 * @param texSize texture size for multipass render
 	 * @throws Exception if TextRenderer not initialized
 	 */
-	public void renderString3D(GL2ES2 gl, Font font, String str, float[] position, int size) {
+	public void renderString3D(GL2ES2 gl, Font font, String str, float[] position, int fontSize, int texSize) {
 		if(!initialized){
 			throw new GLException("HWTextRenderer: not initialized!");
 		}
-		String fontStrHash = getTextHashCode(font, str);
+		String fontStrHash = getTextHashCode(font, str, fontSize);
 		GlyphString glyphString = strings.get(fontStrHash);
 		if(null == glyphString) {
-			glyphString = createString(gl, font, str);
+			glyphString = createString(gl, font, fontSize, str);
 			strings.put(fontStrHash, glyphString);
 		}
 		
-		glyphString.renderString3D(pmvMatrix, win_width, win_height, size);
+		glyphString.renderString3D(pmvMatrix, win_width, win_height, texSize);
 	}
 	
-	private String getTextHashCode(Font font, String str){
-		return "" + str.hashCode() + font.getSize();
+	private String getTextHashCode(Font font, String str, int fontSize) {
+	    // FIXME: use integer hash code
+		return font.getName() + "." + str.hashCode() + "." + fontSize;
 	}
 
 	/** Clears the cached string curves

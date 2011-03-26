@@ -35,11 +35,10 @@ import com.jogamp.graph.font.Font;
 public interface FontInt extends Font {
 
     public interface Glyph extends Font.Glyph {
-        public Path2D getPath();
-        public Path2D getPathForPixelSize(float pixelSize);         
+        public Path2D getPath();  // unscaled path
+        public Path2D getPath(float pixelSize);         
     }
 
-    public void getOutline(String string,
-            AffineTransform transform,
-            Path2D[] result);
+    public void getOutline(String string, float pixelSize,
+                           AffineTransform transform, Path2D[] result);
 }

@@ -37,51 +37,42 @@ class TypecastMetrics implements Metrics {
 	private final TypecastFont fontImpl;
 	
 	// HeadTable
+    private final HeadTable headTable;
 	private final float unitsPerEM_Inv;
-	private final float unitsPerEM_Inv_sized;
-	private final AABBox bbox_sized;
-	
+	private final AABBox bbox;
 	// HheaTable
-	private final float ascend_sized;
-	private final float descent_sized;
-    private final float linegap_sized;
+	private final HheaTable hheaTable;
 	
 	public TypecastMetrics(TypecastFont fontImpl) {
 		this.fontImpl = fontImpl;
-		final HeadTable headTable = this.fontImpl.font.getHeadTable();
-		unitsPerEM_Inv = 1.0f / ( (float) headTable.getUnitsPerEm() );
-		unitsPerEM_Inv_sized = this.fontImpl.size * unitsPerEM_Inv;
-		int maxWidth = headTable.getXMax() - headTable.getXMin();
-		int maxHeight = headTable.getYMax() - headTable.getYMin();    			
-		float lowx= headTable.getXMin();
-		float lowy = -(headTable.getYMin()+maxHeight);
-		float highx = lowx + maxWidth;
-		float highy = lowy + maxHeight;
-		bbox_sized = new AABBox(lowx, lowy, 0, highx, highy, 0); // invert
-		bbox_sized.scale(unitsPerEM_Inv_sized);
-    	
-    	final HheaTable hheaTable = this.fontImpl.font.getHheaTable();
-    	ascend_sized = unitsPerEM_Inv_sized * -hheaTable.getAscender(); // invert
-    	descent_sized = unitsPerEM_Inv_sized * -hheaTable.getDescender(); // invert
-    	linegap_sized = unitsPerEM_Inv_sized * -hheaTable.getLineGap(); // invert
+		headTable = this.fontImpl.font.getHeadTable();
+		hheaTable = this.fontImpl.font.getHheaTable();		
+        unitsPerEM_Inv = 1.0f / ( (float) headTable.getUnitsPerEm() );
+        
+        int maxWidth = headTable.getXMax() - headTable.getXMin();
+        int maxHeight = headTable.getYMax() - headTable.getYMin();              
+        float lowx= headTable.getXMin();
+        float lowy = -(headTable.getYMin()+maxHeight);
+        float highx = lowx + maxWidth;
+        float highy = lowy + maxHeight;
+        bbox = new AABBox(lowx, lowy, 0, highx, highy, 0); // invert
 	}
-	
-    public final float getAscent() {
-        return ascend_sized;
+	    
+    public final float getAscent(float pixelSize) {
+        return getScale(pixelSize) * -hheaTable.getAscender(); // invert
     }
-    public final float getDescent() {
-        return descent_sized;
+    public final float getDescent(float pixelSize) {
+        return getScale(pixelSize) * -hheaTable.getDescender(); // invert
     }
-    public final float getLineGap() {
-        return linegap_sized;
+    public final float getLineGap(float pixelSize) {
+        return getScale(pixelSize) * -hheaTable.getLineGap(); // invert
     }
-    public final float getScale() {
-		return unitsPerEM_Inv_sized;
-	}
-    public float getScaleForPixelSize(float pixelSize) {
-		return pixelSize * unitsPerEM_Inv;
-	}                                    
-    public final AABBox getBBox() {
-    	return bbox_sized;
+    public final float getScale(float pixelSize) {
+        return pixelSize * unitsPerEM_Inv;
+    }
+    public final AABBox getBBox(float pixelSize) {
+        AABBox res = new AABBox(bbox.getLow(), bbox.getHigh());
+        res.scale(getScale(pixelSize));        
+        return res;
     }
 }
