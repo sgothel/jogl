@@ -102,9 +102,9 @@ public class JAWTUtil {
             PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
             try {                
                 d.sunToolkitClass = Class.forName("sun.awt.SunToolkit");
-                d.sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
+                d.sunToolkitAWTLockMethod = d.sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
                 d.sunToolkitAWTLockMethod.setAccessible(true);
-                d.sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});
+                d.sunToolkitAWTUnlockMethod = d.sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});
                 d.sunToolkitAWTUnlockMethod.setAccessible(true);
                 d.ok=true;
             } catch (Exception e) {
