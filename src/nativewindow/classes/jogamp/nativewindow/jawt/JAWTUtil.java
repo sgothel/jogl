@@ -60,7 +60,6 @@ public class JAWTUtil {
   private static final Method isQueueFlusherThread;
   private static final boolean j2dExist;
 
-  private static final Class   sunToolkitClass;
   private static final Method  sunToolkitAWTLockMethod;
   private static final Method  sunToolkitAWTUnlockMethod;
   private static final boolean hasSunToolkitAWTLock;
@@ -71,7 +70,6 @@ public class JAWTUtil {
     PrivilegedDataBlob1() {
         ok = false;
     }  
-    Class   sunToolkitClass;
     Method  sunToolkitAWTLockMethod;
     Method  sunToolkitAWTUnlockMethod;
     boolean ok;
@@ -101,10 +99,10 @@ public class JAWTUtil {
         public Object run() {
             PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
             try {                
-                d.sunToolkitClass = Class.forName("sun.awt.SunToolkit");
-                d.sunToolkitAWTLockMethod = d.sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
+                final Class sunToolkitClass = Class.forName("sun.awt.SunToolkit");
+                d.sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
                 d.sunToolkitAWTLockMethod.setAccessible(true);
-                d.sunToolkitAWTUnlockMethod = d.sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});
+                d.sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});
                 d.sunToolkitAWTUnlockMethod.setAccessible(true);
                 d.ok=true;
             } catch (Exception e) {
@@ -113,7 +111,6 @@ public class JAWTUtil {
             return d;
         }
     });
-    sunToolkitClass = pdb1.sunToolkitClass;
     sunToolkitAWTLockMethod = pdb1.sunToolkitAWTLockMethod;
     sunToolkitAWTUnlockMethod = pdb1.sunToolkitAWTUnlockMethod;
     
