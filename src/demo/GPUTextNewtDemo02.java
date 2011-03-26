@@ -85,7 +85,7 @@ public class GPUTextNewtDemo02 {
 	private class TextGLListener extends GPUTextGLListenerBase01 {
         public TextGLListener() {
             super(SVertex.factory(), Region.TWO_PASS, DEBUG, TRACE);
-            setMatrix(-10, 10, 0f, -1000, window.getWidth());                       
+            setMatrix(-10, 10, 0f, -1000, 190);                       
         }
 	    
 		public void init(GLAutoDrawable drawable) {
