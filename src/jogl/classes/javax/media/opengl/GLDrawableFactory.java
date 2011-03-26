@@ -277,7 +277,7 @@ public abstract class GLDrawableFactory {
    *
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    */
-  protected final GLContext getOrCreateSharedContext(AbstractGraphicsDevice device) {
+  public final GLContext getOrCreateSharedContext(AbstractGraphicsDevice device) {
       device = validateDevice(device);
       if(null!=device) {
         return getOrCreateSharedContextImpl(device);
