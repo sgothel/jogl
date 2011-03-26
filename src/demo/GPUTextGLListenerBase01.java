@@ -66,7 +66,7 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
     static final String text2;
 
     static {
-        text1 = "abcdef\nghijklmn\nopqrstuv\nwxyz"; // \n0123456789";
+        text1 = "abcdef\nghijklmn\nopqrstuv\nwxyz\n0123456789";
         text2 = text1.toUpperCase();        
     }
 
