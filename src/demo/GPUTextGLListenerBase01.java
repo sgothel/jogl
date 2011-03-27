@@ -45,7 +45,7 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
     HwTextRenderer textRenderer;    
     KeyAction keyAction;
     
-    boolean fontUpdate = true;
+    boolean updateFont = true;
     int fontSize = 40;
     final int fontSizeModulo = 100;    
     Font font;
@@ -59,7 +59,7 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
     // float zoom = -1000f;
     int texSize = 400; // FBO/tex size ..
 
-    boolean doMatrix = true;
+    boolean updateMatrix = true;
     boolean debug;
     boolean trace;
     static final String text1;
@@ -112,16 +112,16 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Demo02 needs to have this set here as well .. hmm ?
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-        if(doMatrix) {
+        if(updateMatrix) {
             textRenderer.resetMatrix(gl);
             textRenderer.translate(gl, xTran, yTran, zoom);
             textRenderer.rotate(gl, ang, 0, 1, 0);
-            doMatrix = false;
+            updateMatrix = false;
         }
 
-        if(fontUpdate) {
+        if(updateFont) {
             font = textRenderer.createFont(vfactory, "Lucida Sans Regular", fontSize);
-            fontUpdate = false;
+            updateFont = false;
         }
         textRenderer.renderString3D(gl, font, text2, position, texSize);
     }        
@@ -133,26 +133,26 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
     
     public void fontIncr(int v) {
         fontSize = Math.abs((fontSize + v) % fontSizeModulo) ;
-        fontUpdate = true;
+        updateFont = true;
         dumpMatrix();
     }
 
     public void zoom(int v){
         zoom += v;
-        doMatrix = true;
+        updateMatrix = true;
         dumpMatrix();
     }
     
     public void move(float x, float y){
         xTran += x;
         yTran += y;
-        doMatrix = true;
+        updateMatrix = true;
         dumpMatrix();
     }
     public void rotate(float delta){
         ang += delta;
         ang %= 360.0f;
-        doMatrix = true;
+        updateMatrix = true;
         dumpMatrix();
     }
     

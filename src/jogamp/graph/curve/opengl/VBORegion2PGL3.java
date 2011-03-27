@@ -296,7 +296,7 @@ public class VBORegion2PGL3  implements Region{
 
 	    int status = gl.glCheckFramebufferStatus(GL3.GL_FRAMEBUFFER);
 	    if(status != GL3.GL_FRAMEBUFFER_COMPLETE){
-	    	System.out.println("FRAAAAAAAAAAAAAAME");
+	    	System.err.println("Cant Create R2T pass!");
 	    }
 	    
 	    //render texture
