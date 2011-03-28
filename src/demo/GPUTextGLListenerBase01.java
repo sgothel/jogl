@@ -27,10 +27,14 @@
  */
 package demo;
 
+import java.io.File;
+import java.io.IOException;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLException;
 import javax.media.opengl.GLPipelineFactory;
 
 import com.jogamp.graph.curve.text.HwTextRenderer;
@@ -39,6 +43,7 @@ import com.jogamp.graph.geom.Vertex;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.util.awt.Screenshot;
 
 public abstract class GPUTextGLListenerBase01 implements GLEventListener {
     Vertex.Factory<? extends Vertex> vfactory;
@@ -106,7 +111,7 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
         
         dumpMatrix(true);
     }
-    
+    boolean printScreen = true;
     public void display(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         
@@ -175,6 +180,11 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
         window.removeKeyListener(keyAction);
     }
     
+    public void printScreen(GLWindow window, String dir, String tech, boolean exportAlpha) throws GLException, IOException{
+    	String filename = dir + tech + "-" + window.getWidth()+ "x" + window.getHeight() + "-" + texSize+ ".tga";
+    	Screenshot.writeToTargaFile(new File(filename), window.getWidth(), window.getHeight(), exportAlpha);
+    }
+    
     public class KeyAction implements KeyListener {
         public void keyPressed(KeyEvent arg0) {
             if(arg0.getKeyCode() == KeyEvent.VK_1){
@@ -214,7 +224,7 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_9){
                 rotate(-1);
-            }                           
+            }  
         }
         public void keyTyped(KeyEvent arg0) {}
         public void keyReleased(KeyEvent arg0) {}

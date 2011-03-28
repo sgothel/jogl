@@ -27,10 +27,13 @@
  */
 package demo;
 
+import java.io.IOException;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.Region;
@@ -53,6 +56,7 @@ public class GPUTextNewtDemo02 {
     public static void main(String[] args) {
         GPUTextNewtDemo02 test = new GPUTextNewtDemo02();
         test.testMe();
+        
     }
     
     GLWindow window;
@@ -85,7 +89,7 @@ public class GPUTextNewtDemo02 {
 	private class TextGLListener extends GPUTextGLListenerBase01 {
         public TextGLListener() {
             super(SVertex.factory(), Region.TWO_PASS, DEBUG, TRACE);
-            setMatrix(-10, 10, 0f, -1000, 190);                       
+            setMatrix(-10, 10, 0f, -1000, 400);                       
         }
 	    
 		public void init(GLAutoDrawable drawable) {
@@ -101,6 +105,20 @@ public class GPUTextNewtDemo02 {
 			gl.glDisable(GL.GL_MULTISAMPLE); // this state usually doesn't matter in driver - but document here: no MSAA 
 			//gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL3.GL_NICEST);
 			MSAATool.dump(drawable);
+		}
+		public void display(GLAutoDrawable drawable) {
+			super.display(drawable);
+			
+			if(printScreen){
+				try {
+					super.printScreen(window, "./","r2t1-msaa0", false);
+					printScreen=false;
+				} catch (GLException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 }
