@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GL;
-import javax.media.opengl.GL3;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLException;
@@ -36,9 +36,8 @@ public class TestHwTextRenderer01 {
 		}
 	}
 
-	static GLWindow createWindow(String title, GLCapabilities caps, int width, int height, boolean onscreen) {
+	static GLWindow createWindow(String title, GLCapabilities caps, int width, int height) {
 		Assert.assertNotNull(caps);
-		caps.setOnscreen(onscreen);
 
 		GLWindow window = GLWindow.create(caps);
 		window.setSize(width, height);
@@ -46,7 +45,6 @@ public class TestHwTextRenderer01 {
 		window.setTitle(title);
 		Assert.assertNotNull(window);
 		window.setVisible(true);
-		//window.setAutoSwapBufferMode(false);
 
 		return window;
 	}
@@ -57,58 +55,69 @@ public class TestHwTextRenderer01 {
 		GLCapabilities caps = new GLCapabilities(glp);
 		caps.setAlphaBits(4);	
 
-		GLWindow window = createWindow("r2t1msaa0", caps, 400,400,true);
-		TextR2TGLListener textGLListener = new TextR2TGLListener(Region.TWO_PASS);
+		GLWindow window = createWindow("r2t1msaa0", caps, 400,400);
+		TextGLListener textGLListener = new TextGLListener(Region.TWO_PASS);
 		textGLListener.setTech(-10, 10, 0f, -1000, 400);
 		textGLListener.attachTo(window);
 
-		FPSAnimator animator = new FPSAnimator(60);
+		FPSAnimator animator = new FPSAnimator(10);
 		animator.add(window);
 		animator.start();
-		
-		window.getAnimator().resume();
 		
 		while(!textGLListener.isPrinted()){
 			Thread.sleep(100);
 		}
+		
+		textGLListener.resetPrinting();
+		textGLListener.setTech(-111, 74, 0, -380, 900);
+		Thread.sleep(100);
+		while(!textGLListener.isPrinted()){
+			Thread.sleep(100);
+		}
+		
 		animator.stop();
 		destroyWindow(window); 
 		
 		Thread.sleep(1000);
 	}
 	
-	@Test
-	public void testTextRendererR2T02() throws InterruptedException {
-		GLProfile glp = GLProfile.get(GLProfile.GL3bc);
+	//@Test
+	public void testTextRendererMSAA01() throws InterruptedException {
+		GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
 		GLCapabilities caps = new GLCapabilities(glp);
-		caps.setAlphaBits(4);	
+		//caps.setAlphaBits(4);	
+		caps.setSampleBuffers(true);
+		caps.setNumSamples(4);
 
-		GLWindow window = createWindow("r2t1msaa0", caps, 400,400,true);
-		TextR2TGLListener textGLListener = new TextR2TGLListener(Region.TWO_PASS);
-		textGLListener.setTech(-111, 74, 0, -380, 900);
+		GLWindow window = createWindow("r2t0msaa1", caps, 400,0);
+		TextGLListener textGLListener = new TextGLListener(Region.SINGLE_PASS);
+		textGLListener.setTech(-10, 10, 0f, -1000, 0);
 		textGLListener.attachTo(window);
-		
-		while(!window.isRealized()){
-			
-		}
 
-		FPSAnimator animator = new FPSAnimator(60);
+		FPSAnimator animator = new FPSAnimator(10);
 		animator.add(window);
 		animator.start();
-		
-		window.getAnimator().resume();
 		
 		while(!textGLListener.isPrinted()){
 			Thread.sleep(100);
 		}
+		
+		//textGLListener.resetPrinting();
+		//textGLListener.setTech(-111, 74, 0, -380, 0);
+		//Thread.sleep(100);
+		//while(!textGLListener.isPrinted()){
+		//	Thread.sleep(100);
+		//}
+		
 		animator.stop();
-		destroyWindow(window);  
+		destroyWindow(window); 
+		
+		Thread.sleep(1000);
 	}
-
-
-	private class TextR2TGLListener extends GPUTextGLListenerBase01 {
+	
+	private class TextGLListener extends GPUTextGLListenerBase01 {
 		GLWindow glwindow;
-		public TextR2TGLListener(int type) {
+		public TextGLListener(int type) {
 			super(SVertex.factory(), type, false, false);
 		}
 		
@@ -117,14 +126,13 @@ public class TestHwTextRenderer01 {
 		}
 
 		public void init(GLAutoDrawable drawable) {
-			GL3 gl = drawable.getGL().getGL3();
+			GL2ES2 gl = drawable.getGL().getGL2ES2();
 			super.init(drawable);
 			gl.setSwapInterval(1);
-			gl.glEnable(GL3.GL_DEPTH_TEST);
+			gl.glEnable(GL.GL_DEPTH_TEST);
 			textRenderer.init(gl);
 			textRenderer.setAlpha(gl, 1.0f);
 			textRenderer.setColor(gl, 0.0f, 0.0f, 0.0f);
-			gl.glDisable(GL.GL_MULTISAMPLE); 
 		}
 		public void attachTo(GLWindow window) {
 			super.attachTo(window);
@@ -134,13 +142,17 @@ public class TestHwTextRenderer01 {
 		public boolean isPrinted(){
 			return !printScreen;
 		}
+		
+		public void resetPrinting(){
+			printScreen = true;
+		}
 
 		public void display(GLAutoDrawable drawable) {
 			super.display(drawable);
 
 			try {
 				if(printScreen){
-					printScreen(glwindow, "./", "r2t1msaa0", false);
+					printScreen(glwindow, "./", glwindow.getTitle(), false);
 					printScreen = false;
 				}
 			} catch (GLException e) {

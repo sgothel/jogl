@@ -27,12 +27,10 @@
  */
 package demo;
 
-import java.io.IOException;
 
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.Region;
@@ -97,21 +95,6 @@ public class GPUTextNewtDemo01 {
 			//gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_COVERAGE);
 			//gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_ONE);
 			MSAATool.dump(drawable);
-		}
-		
-		public void display(GLAutoDrawable drawable) {
-			super.display(drawable);
-			
-			if(printScreen){
-				try {
-					super.printScreen(window, "./","r2t0-msaa1", false);
-					printScreen=false;
-				} catch (GLException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
 		}
 	}
 }

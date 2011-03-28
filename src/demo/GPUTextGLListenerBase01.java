@@ -63,8 +63,7 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
     float yTran =  10;    
     float ang = 0f;
     float zoom = -70f;
-    // float zoom = -1000f;
-    int texSize = 400; // FBO/tex size ..
+    int texSize = 400; 
 
     boolean doMatrix = true;
     static final String text1;
