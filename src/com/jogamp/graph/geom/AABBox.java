@@ -47,6 +47,11 @@ public class AABBox {
 
 		computeCenter();
 	}
+	
+	public String toString() {
+	    return "[ "+low[0]+"/"+low[1]+"/"+low[1]+" .. "+high[0]+"/"+high[0]+"/"+high[0]+", ctr "+
+	                center[0]+"/"+center[1]+"/"+center[1]+" ]";
+	}
 
 
 	public AABBox(float[] low, float[] high)
@@ -56,7 +61,7 @@ public class AABBox {
 
 		computeCenter();
 	}
-
+	
 	public float[] getHigh() 
 	{
 		return high;

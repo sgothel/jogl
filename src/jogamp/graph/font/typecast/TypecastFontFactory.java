@@ -40,12 +40,12 @@ public class TypecastFontFactory implements FontFactory {
 
     Map<String, Font> fonts = new HashMap<String, Font>();
     
-    public Font createFont(Factory<? extends Vertex> factory, String name, int size) {
-        Font result = fonts.get(name + ":"+size);
+    public Font createFont(Factory<? extends Vertex> factory, String name) {
+        Font result = fonts.get(name);
         if (result == null) {
-        	result = TypecastFont.create(factory, name, size);
+        	result = TypecastFont.create(factory, name);
         	if(result != null) {
-        		fonts.put(name+":"+size, result);
+        		fonts.put(name, result);
         	}
         }
         return result;
@@ -56,8 +56,7 @@ public class TypecastFontFactory implements FontFactory {
     		               String[] families, 
                            String style,
                            String variant,
-                           String weight,
-                           String size) {
+                           String weight) {
         throw new Error("not implemented");
     }
 

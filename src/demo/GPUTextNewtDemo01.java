@@ -27,6 +27,7 @@
  */
 package demo;
 
+
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -47,7 +48,7 @@ public class GPUTextNewtDemo01 {
 	}
 	
 	TextGLListener textGLListener = null; 
-
+	GLWindow window;
 	public void testMe() {
 		GLProfile.initSingleton(true);
 		GLProfile glp = GLProfile.getGL2ES2();
@@ -57,7 +58,7 @@ public class GPUTextNewtDemo01 {
 		caps.setNumSamples(4); // 2 samples is not enough ..
 		System.out.println("Requested: "+caps);
 		
-		final GLWindow window = GLWindow.create(caps);
+		window = GLWindow.create(caps);
 		
 		window.setPosition(10, 10);
 		window.setSize(500, 500);

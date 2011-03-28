@@ -27,6 +27,8 @@
  */
 package jogamp.graph.font.typecast;
 
+import java.util.HashMap;
+
 import jogamp.graph.font.FontInt;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
@@ -37,93 +39,58 @@ import com.jogamp.graph.geom.AABBox;
 public class TypecastGlyph implements FontInt.Glyph {
     public class Advance
     {
-        Font            font;
-        float           advance; 
-        float           advances[]; // in pixels
-        float           sizes[];
-        float           advanceCached = -1; // in pixels
-        float           sizeCached = -1;
+        final Font      font;
+        final float     advance; 
+        HashMap<Float, Float> size2advance = new HashMap<Float, Float>(); 
 		
         public Advance(Font font, float advance)
         {
             this.font = font;
             this.advance = advance;
-            
-            this.advances = new float[0];
-            this.sizes = new float[0];
         }
         
-        public float getScaleForPixelSize(float pixelSize)
+        public void reset() {
+            size2advance.clear();
+        }
+        
+        public float getScale(float pixelSize)
         {
-            return this.font.getMetrics().getScaleForPixelSize(pixelSize);
+            return this.font.getMetrics().getScale(pixelSize);
         }
         
         public void add(float advance, float size)
         {
-            float advancesNew[] = new float[this.advances.length+1];
-            float sizesNew[] = new float[this.sizes.length+1];
-			
-            for (int i=0; i<this.advances.length; i++) {
-	            advancesNew[i] = this.advances[i];
-	            sizesNew[i] = this.sizes[i];
-            }
-			
-            advancesNew[advancesNew.length-1] = advance;
-            sizesNew[sizesNew.length-1] = size;
-			
-            this.advances = advancesNew;
-            this.sizes = sizesNew;
+            size2advance.put(size, advance);
         }
         
         public float get(float size, boolean useFrationalMetrics)
         {
-            if (this.sizeCached != size) {
-                this.sizeCached = size;
-			
-                float value = (this.advance * getScaleForPixelSize(size));
+            Float fo = size2advance.get(size);
+            if(null == fo) {            
+                float value = (this.advance * getScale(size));
                 if (useFrationalMetrics == false) {
                     //value = (float)Math.ceil(value);
                     // value = (int)value;
                     value = (int) ( value + 0.5f ) ; // TODO: check 
                 }
-            
-                if (true)
-                    {
-                        for (int i=0; i<this.advances.length; i++)
-                            {
-                                if (this.sizes[i] == size)
-                                    {
-                                        value = this.advances[i];
-                                        break;
-                                    }
-                            }
-                    }
-			
-                this.advanceCached = value;
+                size2advance.put(size, value);
+                return value;
             }
-            return this.advanceCached;
+            return fo.floatValue();
         }
         
         public String toString()
         {
-            String string = "";
-            for (int i=0; i<this.advances.length; i++) {
-                string += "    size: "+this.sizes[i]+" advance: "+this.advances[i]+"\n";
-            }
-            if (string.length() > 0) {
-                string = "\n  advances: \n"+string;
-            }
             return "\nAdvance:"+
                 "\n  advance: "+this.advance+
-                string;
+                "\n advances: \n"+size2advance;
         }
     }
 	
     public class Metrics
     {
     	AABBox	bbox;
-    	AABBox	bbox_sized;
-        Advance		advance;
+        Advance advance;
 		
         public Metrics(Font font, AABBox bbox, float advance)
         {
@@ -131,9 +98,13 @@ public class TypecastGlyph implements FontInt.Glyph {
             this.advance = new Advance(font, advance);
         }
         
-        public float getScaleForPixelSize(float pixelSize)
+        public void reset() {
+            advance.reset();
+        }
+        
+        public float getScale(float pixelSize)
         {
-            return this.advance.getScaleForPixelSize(pixelSize);
+            return this.advance.getScale(pixelSize);
         }
         
         public AABBox getBBox()
@@ -146,7 +117,7 @@ public class TypecastGlyph implements FontInt.Glyph {
             this.advance.add(advance, size);
         }
         
-        public float getAdvanceForPixelSize(float size, boolean useFrationalMetrics)
+        public float getAdvance(float size, boolean useFrationalMetrics)
         {
             return this.advance.get(size, useFrationalMetrics);
         }
@@ -197,6 +168,11 @@ public class TypecastGlyph implements FontInt.Glyph {
         this.metrics = new Metrics(this.font, bbox, this.advance);
     }
     
+    public void reset(Path2D path) {
+        this.path = path;
+        this.metrics.reset();
+    }
+    
     public Font getFont() {
         return this.font;
     }
@@ -221,51 +197,36 @@ public class TypecastGlyph implements FontInt.Glyph {
         return this.id;
     }
 	
-    public float getScaleForPixelSize(float pixelSize) {
-        return this.metrics.getScaleForPixelSize(pixelSize);
+    public float getScale(float pixelSize) {
+        return this.metrics.getScale(pixelSize);
     }
 	
-    public AABBox getBBox(float size) {
-    	AABBox newBox = getBBox().clone();
-    	newBox.scale(size);
-    	return newBox;
-    }
-	
-    public AABBox getBBoxForPixelSize(float pixelSize) {
-        return getBBox(getScaleForPixelSize(pixelSize));
+    public AABBox getBBox(float pixelSize) {
+        final float size = getScale(pixelSize);
+        AABBox newBox = getBBox().clone();
+        newBox.scale(size);
+        return newBox;        
     }
 	
     protected void addAdvance(float advance, float size) {
         this.metrics.addAdvance(advance, size);
     }
     
-    public float getAdvanceForPixelSize(float size, boolean useFrationalMetrics) {
-        return this.metrics.getAdvanceForPixelSize(size, useFrationalMetrics);
-    }
-    
-    public float getAdvance() {
-        return getAdvanceForPixelSize(font.getSize(), false);
+    public float getAdvance(float pixelSize, boolean useFrationalMetrics) {
+        return this.metrics.getAdvance(pixelSize, useFrationalMetrics);
     }
     
     public Path2D getPath() {
-    	return getPath(getScaleForPixelSize(font.getSize()));
+    	return this.path;
     }
     	
-    private Path2D getPath(float size)
-    {
+    public Path2D getPath(float pixelSize) {
+        final float size = getScale(pixelSize);
+        
         if (this.numberSized != size) {
-	        this.numberSized = size;
-	        this.pathSized = AffineTransform.getScaleInstance(null, size, size).createTransformedShape(getPath());
+            this.numberSized = size;
+            this.pathSized = AffineTransform.getScaleInstance(null, size, size).createTransformedShape(getPath());
         }        
         return this.pathSized;
-    }
-    
-    public Path2D getPathForPixelSize(float pixelSize) {
-        return getPath(getScaleForPixelSize(pixelSize));
-    }
-    
-    public Path2D getNormalPath() {
-        return this.path;
-    }
-    	    
+    }    
 }

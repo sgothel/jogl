@@ -29,46 +29,44 @@ package com.jogamp.graph.font;
 
 import com.jogamp.graph.geom.AABBox;
 
+/**
+ * Interface wrapper for font implementation.
+ * 
+ * TrueType Font Specification:
+ *   http://developer.apple.com/fonts/ttrefman/rm06/Chap6.html
+ */
+
 public interface Font {
 
 	/**
-	 * Metrics for font based on pixel size !
-	 * 
-	 * If no pixelSize is given, this font's static pixelSize is being used.
-	 *  
-	 * value = Table.value * fontSize * 1.0f / HeadTable.UnitsPerEm
+	 * Metrics for font
 	 */
     public interface Metrics {  
-        public float getAscent();
-        public float getDescent();
-        public float getLineGap();
-        public float getScale();
-    	public float getScaleForPixelSize(float pixelSize);    	
-		public AABBox getBBox();
+	    float getAscent(float pixelSize);
+	    float getDescent(float pixelSize);
+	    float getLineGap(float pixelSize);
+	    float getScale(float pixelSize);
+	    AABBox getBBox(float pixelSize);
     }
 
 	/**
-	 * Glyph for font symbols based on pixel size !
-	 * 
-	 * If no pixelSize is given, this font's static pixelSize is being used.
+	 * Glyph for font
 	 */
     public interface Glyph {
         public Font getFont();
         public char getSymbol();
-        public AABBox getBBox();
-        public float getAdvance();
-        public float getAdvanceForPixelSize(float pixelSize, boolean useFrationalMetrics);
+        public AABBox getBBox(float pixelSize);
+        public float getAdvance(float pixelSize, boolean useFrationalMetrics);
     }
 
 
     public String getName();
-    public float getSize();
+    
     public Metrics getMetrics();
     public Glyph getGlyph(char symbol);
-    
-    public float getStringWidth(String string);
-    public float getStringHeight(String string);
-    public AABBox getStringBounds(CharSequence string);
-
     public int getNumGlyphs();
+    
+    public float getStringWidth(String string, float pixelSize);
+    public float getStringHeight(String string, float pixelSize);
+    public AABBox getStringBounds(CharSequence string, float pixelSize);
 }

@@ -38,6 +38,7 @@ import net.java.dev.typecast.ot.OTFont;
 import net.java.dev.typecast.ot.OTFontCollection;
 import net.java.dev.typecast.ot.table.CmapFormat;
 import net.java.dev.typecast.ot.table.CmapTable;
+import net.java.dev.typecast.ot.table.HdmxTable;
 import net.java.dev.typecast.ot.table.ID;
 
 import com.jogamp.common.util.IntObjectHashMap;
@@ -50,30 +51,28 @@ class TypecastFont implements FontInt {
 	final Vertex.Factory<? extends Vertex> pointFactory;
 	final OTFontCollection fontset;
 	final OTFont font;
-    final int size;	
-    Metrics metrics;
+    TypecastMetrics metrics;
     final CmapFormat cmapFormat;
 	int cmapentries;
     // final IntIntHashMap char2Code;
     IntObjectHashMap char2Glyph; 
 
-    public static TypecastFont create(Vertex.Factory<? extends Vertex> factory, String name, int size) {
+    public static TypecastFont create(Vertex.Factory<? extends Vertex> factory, String name) {
     	String path = JavaFontLoader.getByName(name);
     	OTFontCollection fontset;
 		try {
 			fontset = OTFontCollection.create(new File(path));
-            return new TypecastFont(factory, fontset, size);
+            return new TypecastFont(factory, fontset);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return null;    
     }
     
-    public TypecastFont(Vertex.Factory<? extends Vertex> factory, OTFontCollection fontset, int size) {
+    public TypecastFont(Vertex.Factory<? extends Vertex> factory, OTFontCollection fontset) {
     	this.pointFactory = factory;
     	this.fontset = fontset;
         this.font = fontset.getFont(0);
-        this.size = size;
         
     	CmapTable cmapTable = font.getCmapTable();
     	CmapFormat _cmapFormat = null;
@@ -124,10 +123,6 @@ class TypecastFont implements FontInt {
         return fontset.getFileName();
     }
 
-    public float getSize() {
-        return size;
-    }
-
     public Metrics getMetrics() {
         if (metrics == null) {
             metrics = new TypecastMetrics(this);
@@ -146,28 +141,90 @@ class TypecastFont implements FontInt {
         	if(DEBUG) {
         		System.err.println("New glyph: " + (int)symbol + " ( " + (char)symbol +" ) -> " + code + ", contours " + glyph.getPointCount() + ": " + path);
         	}
+        	final HdmxTable hdmx = font.getHdmxTable();        	
+            if (null != hdmx) {
+                /*if(DEBUG) {
+                    System.err.println("hdmx "+hdmx);
+                }*/
+                for (int i=0; i<hdmx.getNumberOfRecords(); i++)
+                {
+                    final HdmxTable.DeviceRecord dr = hdmx.getRecord(i); 
+                    result.addAdvance(dr.getWidth(code), dr.getPixelSize());
+                    if(DEBUG) {
+                        System.err.println("hdmx advance : pixelsize = "+dr.getWidth(code)+" : "+ dr.getPixelSize());
+                    }
+                }
+            }        	
         	char2Glyph.put(symbol, result);
         }
         return result;
     }
 
-    public void getOutline(String string, AffineTransform transform, Path2D[] result) {
-    	TypecastRenderer.getOutline(pointFactory, this, string, transform, result);
+    public void getOutline(String string, float pixelSize, AffineTransform transform, Path2D[] result) {
+    	TypecastRenderer.getOutline(pointFactory, this, string, pixelSize, transform, result);
     }
 
-    public float getStringWidth(String string) {
-        // return 0f; // FIXME font.getStringWidthForPixelSize(string, size);
-    	throw new RuntimeException("n/a");
+    public float getStringWidth(String string, float pixelSize) {
+        float width = 0;
+        final int len = string.length();
+        for (int i=0; i< len; i++)
+        {
+            char character = string.charAt(i);
+            if (character == '\n') {
+                width = 0;
+            } else {
+                Glyph glyph = getGlyph(character);
+                width += glyph.getAdvance(pixelSize, false);
+            }
+        }
+
+        return (int)(width + 0.5f);    	
     }
 
-    public float getStringHeight(String string) {
-        // return 0f; // FIXME font.getStringHeightForPixelSize(string, size);
-    	throw new RuntimeException("n/a");
+    public float getStringHeight(String string, float pixelSize) {
+        int height = 0;
+
+        for (int i=0; i<string.length(); i++)
+        {
+            char character = string.charAt(i);
+            if (character != ' ')
+            {
+                Glyph glyph = getGlyph(character);
+                AABBox bbox = glyph.getBBox(pixelSize);
+                height = (int)Math.ceil(Math.max(bbox.getHeight(), height));
+            }
+        }
+        return height;    	
     }
 
-    public AABBox getStringBounds(CharSequence string) {
-        // return null; // FIXME font.getStringBoundsForPixelSize(string, size);
-    	throw new RuntimeException("n/a");
+    public AABBox getStringBounds(CharSequence string, float pixelSize) {
+        if (string == null) {
+            return new AABBox();
+        }
+        final Metrics metrics = getMetrics();
+        final float lineGap = metrics.getLineGap(pixelSize);
+        final float ascent = metrics.getAscent(pixelSize);
+        final float descent = metrics.getDescent(pixelSize);
+        final float advanceY = lineGap - descent + ascent;
+        float totalHeight = 0;
+        float totalWidth = 0;
+        float curLineWidth = 0;
+        for (int i=0; i<string.length(); i++) {
+            char character = string.charAt(i);
+            if (character == '\n') {
+                totalWidth = Math.max(curLineWidth, totalWidth);
+                curLineWidth = 0;
+                totalHeight -= advanceY;
+                continue;
+            }
+            Glyph glyph = getGlyph(character);
+            curLineWidth += glyph.getAdvance(pixelSize, true);
+        }
+        if (curLineWidth > 0) {
+            totalHeight -= advanceY;
+            totalWidth = Math.max(curLineWidth, totalWidth);
+        }
+        return new AABBox(0, 0, 0, totalWidth, totalHeight,0);    	
     }
 
     final public int getNumGlyphs() {
