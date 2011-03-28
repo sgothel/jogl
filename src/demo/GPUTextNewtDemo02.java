@@ -106,19 +106,5 @@ public class GPUTextNewtDemo02 {
 			//gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL3.GL_NICEST);
 			MSAATool.dump(drawable);
 		}
-		public void display(GLAutoDrawable drawable) {
-			super.display(drawable);
-			
-			if(printScreen){
-				try {
-					super.printScreen(window, "./","r2t1-msaa0", false);
-					printScreen=false;
-				} catch (GLException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
 	}
 }

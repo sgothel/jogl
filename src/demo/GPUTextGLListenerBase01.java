@@ -47,7 +47,7 @@ import com.jogamp.opengl.util.awt.Screenshot;
 
 public abstract class GPUTextGLListenerBase01 implements GLEventListener {
     Vertex.Factory<? extends Vertex> vfactory;
-    HwTextRenderer textRenderer;    
+    protected HwTextRenderer textRenderer;    
     Font font;
     boolean debug;
     boolean trace;
@@ -88,7 +88,8 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
         this.yTran = ytrans; 
         this.ang = angle;  
         this.zoom = zoom;
-        this.texSize = fbosize;        
+        this.texSize = fbosize;     
+        doMatrix = true;
     }
     
     public void init(GLAutoDrawable drawable) {
@@ -111,7 +112,7 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
         
         dumpMatrix(true);
     }
-    boolean printScreen = true;
+    protected boolean printScreen = true;
     public void display(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         
