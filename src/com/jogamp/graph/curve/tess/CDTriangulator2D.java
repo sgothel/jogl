@@ -177,7 +177,9 @@ public class CDTriangulator2D <T extends Vertex> {
 				}
 				t.setId(maxTriID++);
 				triangles.add(t);
-				
+				if(DEBUG){
+					System.err.println(t);
+				}
 				if(hole || holeLike) {
 					v0.setTexCoord(0, -0.1f);
 					v2.setTexCoord(1, -0.1f);
