@@ -32,8 +32,6 @@ import java.io.IOException;
 
 import jogamp.graph.font.FontInt;
 import jogamp.graph.font.JavaFontLoader;
-import jogamp.graph.font.ttf.TTFontGlyph;
-import jogamp.graph.font.ttf.TTFont.Metrics;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 import net.java.dev.typecast.ot.OTFont;
