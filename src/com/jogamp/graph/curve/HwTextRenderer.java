@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.curve.text;
+package com.jogamp.graph.curve;
 
 import java.nio.FloatBuffer;
 import java.util.HashMap;
@@ -43,7 +43,6 @@ import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.Vertex;

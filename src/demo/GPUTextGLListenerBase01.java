@@ -37,7 +37,7 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLPipelineFactory;
 
-import com.jogamp.graph.curve.text.HwTextRenderer;
+import com.jogamp.graph.curve.HwTextRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.newt.event.KeyEvent;

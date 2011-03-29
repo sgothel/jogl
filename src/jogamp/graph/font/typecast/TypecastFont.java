@@ -59,6 +59,9 @@ class TypecastFont implements FontInt {
 
     public static TypecastFont create(Vertex.Factory<? extends Vertex> factory, String name) {
     	String path = JavaFontLoader.getByName(name);
+    	if(null == path) {
+    	    path = name;
+    	}
     	OTFontCollection fontset;
 		try {
 			fontset = OTFontCollection.create(new File(path));
