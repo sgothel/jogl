@@ -69,7 +69,6 @@ public class GPUTextNewtDemo01 {
 
 		window.setVisible(true);
 		FPSAnimator animator = new FPSAnimator(10);
-		// Animator animator = new Animator();
 		animator.add(window);
 		animator.start();
 	}

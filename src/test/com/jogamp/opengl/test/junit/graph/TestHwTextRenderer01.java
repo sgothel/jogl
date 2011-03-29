@@ -69,7 +69,14 @@ public class TestHwTextRenderer01 {
 		}
 		
 		textGLListener.resetPrinting();
-		textGLListener.setTech(-111, 74, 0, -380, 900);
+		textGLListener.setTech(-111, 74, 0, -380, 1100);
+		Thread.sleep(100);
+		while(!textGLListener.isPrinted()){
+			Thread.sleep(100);
+		}
+		
+		textGLListener.resetPrinting();
+		textGLListener.setTech(-111, 74, 0, -80, 2500);
 		Thread.sleep(100);
 		while(!textGLListener.isPrinted()){
 			Thread.sleep(100);
@@ -81,15 +88,15 @@ public class TestHwTextRenderer01 {
 		Thread.sleep(1000);
 	}
 	
-	//@Test
+	@Test
 	public void testTextRendererMSAA01() throws InterruptedException {
 		GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
 		GLCapabilities caps = new GLCapabilities(glp);
-		//caps.setAlphaBits(4);	
+		caps.setAlphaBits(4);	
 		caps.setSampleBuffers(true);
 		caps.setNumSamples(4);
 
-		GLWindow window = createWindow("r2t0msaa1", caps, 400,0);
+		GLWindow window = createWindow("r2t0msaa1", caps, 400, 400);
 		TextGLListener textGLListener = new TextGLListener(Region.SINGLE_PASS);
 		textGLListener.setTech(-10, 10, 0f, -1000, 0);
 		textGLListener.attachTo(window);
@@ -102,12 +109,19 @@ public class TestHwTextRenderer01 {
 			Thread.sleep(100);
 		}
 		
-		//textGLListener.resetPrinting();
-		//textGLListener.setTech(-111, 74, 0, -380, 0);
-		//Thread.sleep(100);
-		//while(!textGLListener.isPrinted()){
-		//	Thread.sleep(100);
-		//}
+		textGLListener.resetPrinting();
+		textGLListener.setTech(-111, 74, 0, -380, 0);
+		Thread.sleep(100);
+		while(!textGLListener.isPrinted()){
+			Thread.sleep(100);
+		}
+		
+		textGLListener.resetPrinting();
+		textGLListener.setTech(-111, 74, 0, -80, 0);
+		Thread.sleep(100);
+		while(!textGLListener.isPrinted()){
+			Thread.sleep(100);
+		}
 		
 		animator.stop();
 		destroyWindow(window); 

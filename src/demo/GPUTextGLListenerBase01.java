@@ -71,7 +71,8 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
     static final String text2;
 
     static {
-        text1 = "abcdef\nghijklmn\nopqrstuv\nwxyz\n0123456789";
+    	//text1 = "abcdef\nghijklmn\nopqrstuv\nwxyz\n0123456789";
+        text1 = "abcdef\nghijklmn\nopqrstuv\nwxyz\n#$!%-+=";
         text2 = text1.toUpperCase();        
     }
 
@@ -183,7 +184,7 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
     }
     
     public void printScreen(GLWindow window, String dir, String tech, boolean exportAlpha) throws GLException, IOException{
-    	String filename = dir + tech + "-" + window.getWidth()+ "x" + window.getHeight() + "-" + texSize+ ".tga";
+    	String filename = dir + tech + "-" + window.getWidth()+ "x" + window.getHeight() + "-T" + texSize + "-Z" + Math.abs(zoom) +".tga";
     	Screenshot.writeToTargaFile(new File(filename), window.getWidth(), window.getHeight(), exportAlpha);
     }
     
