@@ -31,7 +31,6 @@ import java.util.ArrayList;
 
 import jogamp.graph.geom.plane.PathIterator;
 
-import com.jogamp.graph.geom.Line;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 
@@ -158,12 +157,5 @@ public class GlyphShape {
 	 */
 	public ArrayList<Vertex> getVertices(){
 		return shape.getVertices();
-	}
-	
-	/** Get the list of AA lines defined by this object
-	 * @return arraylist of lines
-	 */
-	public ArrayList<Line<Vertex>> getLines(){
-		return shape.getLines();
-	}
+	}	
 }

@@ -27,7 +27,7 @@
  */
 package com.jogamp.graph.geom;
 
-import jogamp.graph.math.VectorFloatUtil;
+import com.jogamp.graph.math.VectorUtil;
 
 /**
  * Axis Aligned Bounding Box.
@@ -186,7 +186,7 @@ public class AABBox {
 
 	
 	public float getSize(){
-		return VectorFloatUtil.computeLength(low, high);
+		return VectorUtil.computeLength(low, high);
 	}
 
 	public float[] getCenter() {
@@ -211,17 +211,17 @@ public class AABBox {
 		diffH[1] = high[1] - center[1];
 		diffH[2] = high[2] - center[2];
 		
-		diffH = VectorFloatUtil.scale(diffH, size);
+		diffH = VectorUtil.scale(diffH, size);
 		
 		float[] diffL = new float[3];
 		diffL[0] = low[0] - center[0];
 		diffL[1] = low[1] - center[1];
 		diffL[2] = low[2] - center[2];
 		
-		diffL = VectorFloatUtil.scale(diffL, size);
+		diffL = VectorUtil.scale(diffL, size);
 		
-		high = VectorFloatUtil.vectorAdd(center, diffH);
-		low = VectorFloatUtil.vectorAdd(center, diffL);
+		high = VectorUtil.vectorAdd(center, diffH);
+		low = VectorUtil.vectorAdd(center, diffL);
 	}
 
 	public float getX() {

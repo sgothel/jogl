@@ -30,12 +30,10 @@ package com.jogamp.graph.curve;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import jogamp.graph.math.VectorFloatUtil;
-
 import com.jogamp.graph.geom.Outline;
-import com.jogamp.graph.geom.Line;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.math.VectorUtil;
 
 import com.jogamp.graph.curve.tess.CDTriangulator2D;
 
@@ -153,7 +151,7 @@ public class OutlineShape {
 				if(!(currentVertex.isOnCurve()) && !(nextVertex.isOnCurve())) {
 					newOutline.addVertex(currentVertex);
 					
-					float[] newCoords = VectorFloatUtil.mid(currentVertex.getCoord(), nextVertex.getCoord());
+					float[] newCoords = VectorUtil.mid(currentVertex.getCoord(), nextVertex.getCoord());
 					newOutline.addVertex(pointFactory, newCoords, 0, 3, true);
 				}
 				else {
@@ -188,28 +186,6 @@ public class OutlineShape {
 	}
 	
 
-	/** Generates the lines the define the noncurved
-	 * parts of this graph
-	 * @return arraylist of lines
-	 */
-	public ArrayList<Line<Vertex>> getLines(){
-		ArrayList<Line<Vertex>> lines = new ArrayList<Line<Vertex>>();
-		for(Outline<Vertex> outline:outlines){
-			ArrayList<Vertex> outVertices = outline.getVertices();
-			int size = outVertices.size();
-			for(int i=0; i < size; i++) {
-				Vertex currentVertex = outVertices.get(i);
-				if(currentVertex.isOnCurve()) {
-					Vertex v2 = outVertices.get((i+1)%size);
-					if(v2.isOnCurve()){
-						lines.add(new Line<Vertex>(currentVertex, v2));
-					}
-				}
-			}
-		}
-		return lines;
-	}
-	
 	/** Triangluate the graph object
 	 * @param sharpness sharpness of the curved regions default = 0.5
 	 */

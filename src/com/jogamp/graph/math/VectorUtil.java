@@ -25,13 +25,15 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.graph.math;
+package com.jogamp.graph.math;
 
 import java.util.ArrayList;
 
+import jogamp.graph.math.MathFloat;
+
 import com.jogamp.graph.geom.Vertex;
 
-public class VectorFloatUtil {
+public class VectorUtil {
 
 	public static final int CW = -1;
 	public static final int CCW = 1;
@@ -222,7 +224,7 @@ public class VectorFloatUtil {
 	 */
 	public static boolean checkCollinear(float[] v1, float[] v2, float[] v3)
 	{
-		return (computeDeterminant(v1, v2, v3) == VectorFloatUtil.COLLINEAR);
+		return (computeDeterminant(v1, v2, v3) == VectorUtil.COLLINEAR);
 	}
 
 	/** Compute Vector

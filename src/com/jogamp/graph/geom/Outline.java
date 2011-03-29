@@ -30,8 +30,8 @@ package com.jogamp.graph.geom;
 import java.util.ArrayList;
 
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.math.VectorUtil;
 
-import jogamp.graph.math.VectorFloatUtil;
 
 
 /** Define a single continuous stroke by control vertices.
@@ -124,7 +124,7 @@ public class Outline<T extends Vertex> implements Comparable<Outline<T>>{
 		if(closed){
 			T first = vertices.get(0);
 			T last = getLastVertex();
-			if(!VectorFloatUtil.checkEquality(first.getCoord(), last.getCoord())){
+			if(!VectorUtil.checkEquality(first.getCoord(), last.getCoord())){
 				@SuppressWarnings("unchecked")
 				T v = (T) first.clone();
 				vertices.add(v);

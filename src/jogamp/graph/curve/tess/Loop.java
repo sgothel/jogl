@@ -29,11 +29,11 @@ package jogamp.graph.curve.tess;
 
 import java.util.ArrayList;
 
-import jogamp.graph.math.VectorFloatUtil;
 
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
+import com.jogamp.graph.math.VectorUtil;
 
 public class Loop <T extends Vertex> {
 	private HEdge<T> root = null;
@@ -103,9 +103,9 @@ public class Loop <T extends Vertex> {
 		if(vertices.size()<3) {
 			throw new IllegalArgumentException("outline's vertices < 3: " + vertices.size());
 		}
-		boolean isCCW = VectorFloatUtil.ccw(vertices.get(0).getPoint(), vertices.get(1).getPoint(),
+		boolean isCCW = VectorUtil.ccw(vertices.get(0).getPoint(), vertices.get(1).getPoint(),
 				vertices.get(2).getPoint());
-		boolean invert = isCCW && (direction == VectorFloatUtil.CW);
+		boolean invert = isCCW && (direction == VectorUtil.CW);
 
 		HEdge<T> firstEdge = null;
 		HEdge<T> lastEdge = null;
@@ -160,7 +160,7 @@ public class Loop <T extends Vertex> {
 	public void addConstraintCurve(GraphOutline<T> polyline) {
 		//		GraphOutline outline = new GraphOutline(polyline);
 		/**needed to generate vertex references.*/
-		initFromPolyline(polyline, VectorFloatUtil.CW); 
+		initFromPolyline(polyline, VectorUtil.CW); 
 
 		GraphVertex<T> v3 = locateClosestVertex(polyline);
 		HEdge<T> v3Edge = v3.findBoundEdge();
@@ -199,12 +199,12 @@ public class Loop <T extends Vertex> {
 			GraphVertex<T> v = initVertices.get(i);
 			GraphVertex<T> nextV = initVertices.get(i+1);
 			for(GraphVertex<T> cand:vertices){
-				float distance = VectorFloatUtil.computeLength(v.getCoord(), cand.getCoord());
+				float distance = VectorUtil.computeLength(v.getCoord(), cand.getCoord());
 				if(distance < minDistance){
 					for (GraphVertex<T> vert:vertices){
 						if(vert == v || vert == nextV || vert == cand)
 							continue;
-						inValid = VectorFloatUtil.inCircle(v.getPoint(), nextV.getPoint(), 
+						inValid = VectorUtil.inCircle(v.getPoint(), nextV.getPoint(), 
 								cand.getPoint(), vert.getPoint());
 						if(inValid){
 							break;
@@ -230,7 +230,7 @@ public class Loop <T extends Vertex> {
 	private HEdge<T> findClosestValidNeighbor(HEdge<T> edge, boolean delaunay) {
 		HEdge<T> next = root.getNext();
 
-		if(!VectorFloatUtil.ccw(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
+		if(!VectorUtil.ccw(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
 				edge.getGraphPoint().getPoint())){
 			return null;
 		}
@@ -248,7 +248,7 @@ public class Loop <T extends Vertex> {
 					e = e.getNext();
 					continue;
 				}
-				inValid = VectorFloatUtil.inCircle(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
+				inValid = VectorUtil.inCircle(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
 						cand, e.getGraphPoint().getPoint());
 				if(inValid){
 					break;
@@ -339,7 +339,7 @@ public class Loop <T extends Vertex> {
 			float[] p0p1 = new float[]{vert1.getX() - vertex.getX(), vert1.getY() - vertex.getY(),
 					vert1.getZ() - vertex.getZ()};
 
-			float dotD1D0 = VectorFloatUtil.dot(prepD1, d0);
+			float dotD1D0 = VectorUtil.dot(prepD1, d0);
 			if(dotD1D0 == 0){ 
 				/** ray parallel to segment */
 				current = next;
@@ -347,8 +347,8 @@ public class Loop <T extends Vertex> {
 				continue;
 			}
 
-			float s = VectorFloatUtil.dot(prepD1,p0p1)/dotD1D0;
-			float t = VectorFloatUtil.dot(prepD0,p0p1)/dotD1D0;
+			float s = VectorUtil.dot(prepD1,p0p1)/dotD1D0;
+			float t = VectorUtil.dot(prepD0,p0p1)/dotD1D0;
 
 			if(s >= 0 && t >= 0 && t<= 1){
 				hits++;

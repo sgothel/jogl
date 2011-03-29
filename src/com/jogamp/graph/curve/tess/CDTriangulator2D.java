@@ -33,11 +33,12 @@ import java.util.ArrayList;
 import jogamp.graph.curve.tess.GraphOutline;
 import jogamp.graph.curve.tess.GraphVertex;
 import jogamp.graph.curve.tess.Loop;
-import jogamp.graph.math.VectorFloatUtil;
 
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.math.VectorUtil;
+
 import jogamp.opengl.Debug;
 
 /** Constrained Delaunay Triangulation 
@@ -94,7 +95,7 @@ public class CDTriangulator2D <T extends Vertex> {
 			GraphOutline<T> outline = new GraphOutline<T>(polyline);
 			GraphOutline<T> innerPoly = extractBoundaryTriangles(outline, false);
 			vertices.addAll(polyline.getVertices());
-			loop = new Loop<T>(innerPoly, VectorFloatUtil.CCW);
+			loop = new Loop<T>(innerPoly, VectorUtil.CCW);
 			loops.add(loop);
 		}
 		else {
@@ -168,7 +169,7 @@ public class CDTriangulator2D <T extends Vertex> {
 				
 				Triangle<T> t= null;
 				boolean holeLike = false;
-				if(VectorFloatUtil.ccw(v0,v1,v2)){
+				if(VectorUtil.ccw(v0,v1,v2)){
 					t = new Triangle<T>(v0, v1, v2);
 				}
 				else {

@@ -27,9 +27,9 @@
  */
 package com.jogamp.graph.geom.opengl;
 
-import jogamp.graph.math.VectorFloatUtil;
 
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.math.VectorUtil;
 
 public class SVertex implements Vertex {
 	private int id = Integer.MAX_VALUE;
@@ -151,7 +151,7 @@ public class SVertex implements Vertex {
 	}
 	
 	public int compareTo(Vertex p) {
-		if(VectorFloatUtil.checkEquality(coord, p.getCoord())) {
+		if(VectorUtil.checkEquality(coord, p.getCoord())) {
 			return 0;
 		}
 		return -1;
