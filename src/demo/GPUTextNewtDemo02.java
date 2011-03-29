@@ -27,13 +27,10 @@
  */
 package demo;
 
-import java.io.IOException;
-
 import javax.media.opengl.GL;
 import javax.media.opengl.GL3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.Region;
@@ -89,7 +86,7 @@ public class GPUTextNewtDemo02 {
 	private class TextGLListener extends GPUTextGLListenerBase01 {
         public TextGLListener() {
             super(SVertex.factory(), Region.TWO_PASS, DEBUG, TRACE);
-            setMatrix(-10, 10, 0f, -1000, 400);                       
+            setMatrix(-10, 10, 0f, -100, 400);                       
         }
 	    
 		public void init(GLAutoDrawable drawable) {

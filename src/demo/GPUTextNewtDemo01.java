@@ -61,7 +61,7 @@ public class GPUTextNewtDemo01 {
 		window = GLWindow.create(caps);
 		
 		window.setPosition(10, 10);
-		window.setSize(500, 500);
+		window.setSize(400, 400);
 
 		window.setTitle("GPU Text Newt Demo 01 - r2t0 msaa1");
 		textGLListener = new TextGLListener();
@@ -76,7 +76,8 @@ public class GPUTextNewtDemo01 {
 	private class TextGLListener extends GPUTextGLListenerBase01 {
 	    public TextGLListener() {
 		    super(SVertex.factory(), Region.SINGLE_PASS, DEBUG, TRACE);
-            setMatrix(-10, 10, 0f, -70, 0);		    
+            //setMatrix(-10, 10, 0f, -70, 0);	
+            setMatrix(-10, 10, 0f, -100, 400);
 		}
 		
 		public void init(GLAutoDrawable drawable) {
