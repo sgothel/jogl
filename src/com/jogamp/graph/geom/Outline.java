@@ -43,9 +43,9 @@ import com.jogamp.graph.math.VectorUtil;
  *  
  *  @see OutlineShape, Region
  */
-public class Outline<T extends Vertex> implements Comparable<Outline<T>>{
+public class Outline implements Comparable<Outline> {
 	
-	private ArrayList<T> vertices = new ArrayList<T>(3);
+	private ArrayList<Vertex> vertices = new ArrayList<Vertex>(3);
 	private boolean closed = false;
 	private AABBox box = new AABBox();
 	
@@ -61,7 +61,7 @@ public class Outline<T extends Vertex> implements Comparable<Outline<T>>{
 	 * end of the outline loop/strip.
 	 * @param vertex Vertex to be added
 	 */
-	public final void addVertex(T vertex) {
+	public final void addVertex(Vertex vertex) {
 		vertices.add(vertex);
 		box.resize(vertex.getX(), vertex.getY(), vertex.getZ());
 	}
@@ -70,38 +70,36 @@ public class Outline<T extends Vertex> implements Comparable<Outline<T>>{
 		addVertex(factory, x, y, 0f, onCurve);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public final void addVertex(Vertex.Factory<? extends Vertex> factory, float x, float y, float z, boolean onCurve) {
 		Vertex v = factory.create(x, y, z);
 		v.setOnCurve(onCurve);
-		addVertex((T)v);
+		addVertex(v);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public final void addVertex(Vertex.Factory<? extends Vertex> factory, float[] coordsBuffer, int offset, int length, boolean onCurve) {
 		Vertex v = factory.create(coordsBuffer, offset, length);
 		v.setOnCurve(onCurve);
-		addVertex((T)v);
+		addVertex(v);
 	}
 	
-	public T getVertex(int index){
+	public Vertex getVertex(int index){
 		return vertices.get(index);
 	}
 	
 	public boolean isEmpty(){
 		return (vertices.size() == 0);
 	}
-	public T getLastVertex(){
+	public Vertex getLastVertex(){
 		if(isEmpty()){
 			return null;
 		}
 		return vertices.get(vertices.size()-1);
 	}
 	
-	public ArrayList<T> getVertices() {
+	public ArrayList<Vertex> getVertices() {
 		return vertices;
 	}
-	public void setVertices(ArrayList<T> vertices) {
+	public void setVertices(ArrayList<Vertex> vertices) {
 		this.vertices = vertices;
 	}
 	public AABBox getBox() {
@@ -120,11 +118,10 @@ public class Outline<T extends Vertex> implements Comparable<Outline<T>>{
 	public void setClosed(boolean closed) {
 		this.closed = closed;
 		if(closed){
-			T first = vertices.get(0);
-			T last = getLastVertex();
+		    Vertex first = vertices.get(0);
+		    Vertex last = getLastVertex();
 			if(!VectorUtil.checkEquality(first.getCoord(), last.getCoord())){
-				@SuppressWarnings("unchecked")
-				T v = (T) first.clone();
+				Vertex v = first.clone();
 				vertices.add(v);
 			}
 		}
@@ -134,7 +131,7 @@ public class Outline<T extends Vertex> implements Comparable<Outline<T>>{
 	 * as criteria. 
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
-	public int compareTo(Outline<T> outline) {
+	public int compareTo(Outline outline) {
 		float size = box.getSize();
 		float newSize = outline.getBox().getSize();
 		if(size < newSize){

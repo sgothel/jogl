@@ -35,56 +35,55 @@ import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.math.VectorUtil;
 
-public class Loop <T extends Vertex> {
-	private HEdge<T> root = null;
+public class Loop {
+	private HEdge root = null;
 	private AABBox box = new AABBox();
-	private GraphOutline<T> initialOutline = null;
+	private GraphOutline initialOutline = null;
 
-	public Loop(GraphOutline<T> polyline, int direction){
+	public Loop(GraphOutline polyline, int direction){
 		initialOutline = polyline;
 		this.root = initFromPolyline(initialOutline, direction);
 	}
 
-	public HEdge<T> getHEdge(){
+	public HEdge getHEdge(){
 		return root;
 	}
 
-	public Triangle<T> cut(boolean delaunay){
+	public Triangle cut(boolean delaunay){
 		if(isSimplex()){
-			@SuppressWarnings("unchecked")
-			Triangle<T> t = new Triangle<T>(root.getGraphPoint().getPoint(), root.getNext().getGraphPoint().getPoint(), 
+			Triangle t = new Triangle(root.getGraphPoint().getPoint(), root.getNext().getGraphPoint().getPoint(), 
 					root.getNext().getNext().getGraphPoint().getPoint());
 			t.setVerticesBoundary(checkVerticesBoundary(root));
 			return t;
 		}
-		HEdge<T> prev = root.getPrev();
-		HEdge<T> next1 = root.getNext();
+		HEdge prev = root.getPrev();
+		HEdge next1 = root.getNext();
 
-		HEdge<T> next2 =findClosestValidNeighbor(next1.getNext(), delaunay);
+		HEdge next2 = findClosestValidNeighbor(next1.getNext(), delaunay);
 		if(next2 == null){
 			root = root.getNext();
 			return null;
 		}
 
-		GraphVertex<T> v1 = root.getGraphPoint();
-		GraphVertex<T> v2 = next1.getGraphPoint();
-		GraphVertex<T> v3 = next2.getGraphPoint();
+		GraphVertex v1 = root.getGraphPoint();
+		GraphVertex v2 = next1.getGraphPoint();
+		GraphVertex v3 = next2.getGraphPoint();
 
-		HEdge<T> v3Edge = new HEdge<T>(v3, HEdge.INNER);
+		HEdge v3Edge = new HEdge(v3, HEdge.INNER);
 
 		HEdge.connect(v3Edge, root);
 		HEdge.connect(next1, v3Edge);
 
-		HEdge<T> v3EdgeSib = v3Edge.getSibling();
+		HEdge v3EdgeSib = v3Edge.getSibling();
 		if(v3EdgeSib == null){
-			v3EdgeSib = new HEdge<T>(v3Edge.getNext().getGraphPoint(), HEdge.INNER);
+			v3EdgeSib = new HEdge(v3Edge.getNext().getGraphPoint(), HEdge.INNER);
 			HEdge.makeSiblings(v3Edge, v3EdgeSib);
 		}
 
 		HEdge.connect(prev, v3EdgeSib);
 		HEdge.connect(v3EdgeSib, next2);
 
-		Triangle<T> t = createTriangle(v1.getPoint(), v2.getPoint(), v3.getPoint(), root);
+		Triangle t = createTriangle(v1.getPoint(), v2.getPoint(), v3.getPoint(), root);
 		this.root = next2;
 		return t;
 	}
@@ -97,8 +96,8 @@ public class Loop <T extends Vertex> {
 	 * from the boundary profile
 	 * @param direction requested winding of edges (CCW or CW)
 	 */
-	private HEdge<T> initFromPolyline(GraphOutline<T> outline, int direction){
-		ArrayList<GraphVertex<T>> vertices = outline.getGraphPoint();
+	private HEdge initFromPolyline(GraphOutline outline, int direction){
+		ArrayList<GraphVertex> vertices = outline.getGraphPoint();
 
 		if(vertices.size()<3) {
 			throw new IllegalArgumentException("outline's vertices < 3: " + vertices.size());
@@ -107,8 +106,8 @@ public class Loop <T extends Vertex> {
 				vertices.get(2).getPoint());
 		boolean invert = isCCW && (direction == VectorUtil.CW);
 
-		HEdge<T> firstEdge = null;
-		HEdge<T> lastEdge = null;
+		HEdge firstEdge = null;
+		HEdge lastEdge = null;
 		int index =0;
 		int max = vertices.size();
 
@@ -120,10 +119,10 @@ public class Loop <T extends Vertex> {
 		}
 
 		while(index != max){
-			GraphVertex<T> v1 = vertices.get(index);
+			GraphVertex v1 = vertices.get(index);
 			box.resize(v1.getX(), v1.getY(), v1.getZ());
 
-			HEdge<T> edge = new HEdge<T>(v1, edgeType);
+			HEdge edge = new HEdge(v1, edgeType);
 
 			v1.addEdge(edge);
 			if(lastEdge != null){
@@ -157,22 +156,22 @@ public class Loop <T extends Vertex> {
 		return firstEdge;
 	}
 
-	public void addConstraintCurve(GraphOutline<T> polyline) {
+	public void addConstraintCurve(GraphOutline polyline) {
 		//		GraphOutline outline = new GraphOutline(polyline);
 		/**needed to generate vertex references.*/
 		initFromPolyline(polyline, VectorUtil.CW); 
 
-		GraphVertex<T> v3 = locateClosestVertex(polyline);
-		HEdge<T> v3Edge = v3.findBoundEdge();
-		HEdge<T> v3EdgeP = v3Edge.getPrev();
-		HEdge<T> crossEdge = new HEdge<T>(root.getGraphPoint(), HEdge.INNER);
+		GraphVertex v3 = locateClosestVertex(polyline);
+		HEdge v3Edge = v3.findBoundEdge();
+		HEdge v3EdgeP = v3Edge.getPrev();
+		HEdge crossEdge = new HEdge(root.getGraphPoint(), HEdge.INNER);
 
 		HEdge.connect(root.getPrev(), crossEdge);
 		HEdge.connect(crossEdge, v3Edge);
 
-		HEdge<T> crossEdgeSib = crossEdge.getSibling();
+		HEdge crossEdgeSib = crossEdge.getSibling();
 		if(crossEdgeSib == null) {
-			crossEdgeSib = new HEdge<T>(crossEdge.getNext().getGraphPoint(), HEdge.INNER);
+			crossEdgeSib = new HEdge(crossEdge.getNext().getGraphPoint(), HEdge.INNER);
 			HEdge.makeSiblings(crossEdge, crossEdgeSib);
 		}
 
@@ -186,22 +185,22 @@ public class Loop <T extends Vertex> {
 	 * to search for closestvertices
 	 * @return the vertex that is closest to the newly set root Hedge.
 	 */
-	private GraphVertex<T> locateClosestVertex(GraphOutline<T> polyline) {
-		HEdge<T> closestE = null;
-		GraphVertex<T> closestV = null;
+	private GraphVertex locateClosestVertex(GraphOutline polyline) {
+		HEdge closestE = null;
+		GraphVertex closestV = null;
 
 		float minDistance = Float.MAX_VALUE;
 		boolean inValid = false;
-		ArrayList<GraphVertex<T>> initVertices = initialOutline.getGraphPoint();
-		ArrayList<GraphVertex<T>> vertices = polyline.getGraphPoint();
+		ArrayList<GraphVertex> initVertices = initialOutline.getGraphPoint();
+		ArrayList<GraphVertex> vertices = polyline.getGraphPoint();
 
 		for(int i=0; i< initVertices.size()-1; i++){
-			GraphVertex<T> v = initVertices.get(i);
-			GraphVertex<T> nextV = initVertices.get(i+1);
-			for(GraphVertex<T> cand:vertices){
+			GraphVertex v = initVertices.get(i);
+			GraphVertex nextV = initVertices.get(i+1);
+			for(GraphVertex cand:vertices){
 				float distance = VectorUtil.computeLength(v.getCoord(), cand.getCoord());
 				if(distance < minDistance){
-					for (GraphVertex<T> vert:vertices){
+					for (GraphVertex vert:vertices){
 						if(vert == v || vert == nextV || vert == cand)
 							continue;
 						inValid = VectorUtil.inCircle(v.getPoint(), nextV.getPoint(), 
@@ -227,20 +226,20 @@ public class Loop <T extends Vertex> {
 		return closestV;
 	}
 
-	private HEdge<T> findClosestValidNeighbor(HEdge<T> edge, boolean delaunay) {
-		HEdge<T> next = root.getNext();
+	private HEdge findClosestValidNeighbor(HEdge edge, boolean delaunay) {
+		HEdge next = root.getNext();
 
 		if(!VectorUtil.ccw(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
 				edge.getGraphPoint().getPoint())){
 			return null;
 		}
 
-		HEdge<T> candEdge = edge;
+		HEdge candEdge = edge;
 		boolean inValid = false;
 
 		if(delaunay){
-			T cand = candEdge.getGraphPoint().getPoint();
-			HEdge<T> e = candEdge.getNext();
+		    Vertex cand = candEdge.getGraphPoint().getPoint();
+			HEdge e = candEdge.getNext();
 			while (e != candEdge){
 				if(e.getGraphPoint() == root.getGraphPoint() 
 						|| e.getGraphPoint() == next.getGraphPoint() 
@@ -270,18 +269,17 @@ public class Loop <T extends Vertex> {
 	 * @param root and edge of this triangle
 	 * @return the triangle iff it satisfies, null otherwise
 	 */
-	private Triangle<T> createTriangle(T v1, T v2, T v3, HEdge<T> rootT){
-		@SuppressWarnings("unchecked")
-		Triangle<T> t = new Triangle<T>(v1, v2, v3);
+	private Triangle createTriangle(Vertex v1, Vertex v2, Vertex v3, HEdge rootT){
+		Triangle t = new Triangle(v1, v2, v3);
 		t.setVerticesBoundary(checkVerticesBoundary(rootT));
 		return t;
 	}
 
-	private boolean[] checkVerticesBoundary(HEdge<T> rootT) {
+	private boolean[] checkVerticesBoundary(HEdge rootT) {
 		boolean[] boundary = new boolean[3];
-		HEdge<T> e1 = rootT;
-		HEdge<T> e2 = rootT.getNext();
-		HEdge<T> e3 = rootT.getNext().getNext();
+		HEdge e1 = rootT;
+		HEdge e2 = rootT.getNext();
+		HEdge e3 = rootT.getNext().getNext();
 
 		if(e1.getGraphPoint().isBoundaryContained()){
 				boundary[0] = true;
@@ -300,7 +298,7 @@ public class Loop <T extends Vertex> {
 	 * @param vertex the Vertex
 	 * @return true if the vertex is inside, false otherwise
 	 */
-	public boolean checkInside(T vertex) {
+	public boolean checkInside(Vertex vertex) {
 		if(!box.contains(vertex.getX(), vertex.getY(), vertex.getZ())){
 			return false;
 		}
@@ -308,8 +306,8 @@ public class Loop <T extends Vertex> {
 		float[] center = box.getCenter();
 
 		int hits = 0;
-		HEdge<T> current = root;
-		HEdge<T> next = root.getNext();
+		HEdge current = root;
+		HEdge next = root.getNext();
 		while(next!= root){
 			if(current.getType() == HEdge.INNER || next.getType() == HEdge.INNER){
 				current = next;
@@ -317,8 +315,8 @@ public class Loop <T extends Vertex> {
 				continue;
 			}
 
-			T vert1 = current.getGraphPoint().getPoint();
-			T vert2 = next.getGraphPoint().getPoint();
+			Vertex vert1 = current.getGraphPoint().getPoint();
+			Vertex vert2 = next.getGraphPoint().getPoint();
 
 			/** The ray is P0+s*D0, where P0 is the ray origin, D0 is a direction vector and s >= 0. 
 			 * The segment is P1+t*D1, where P1 and P1+D1 are the endpoints, and 0 <= t <= 1. 
@@ -366,7 +364,7 @@ public class Loop <T extends Vertex> {
 
 	public int computeLoopSize(){
 		int size = 0;
-		HEdge<T> e = root;
+		HEdge e = root;
 		do{
 			size++;
 			e = e.getNext();

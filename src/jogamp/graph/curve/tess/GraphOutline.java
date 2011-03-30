@@ -32,27 +32,27 @@ import java.util.ArrayList;
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Vertex;
 
-public class GraphOutline <T extends Vertex> {
-	final private Outline<T> outline;
-	final private ArrayList<GraphVertex<T>> controlpoints = new ArrayList<GraphVertex<T>>(3);
+public class GraphOutline {
+	final private Outline outline;
+	final private ArrayList<GraphVertex> controlpoints = new ArrayList<GraphVertex>(3);
 	
 	public GraphOutline(){
-		this.outline = new Outline<T>();
+		this.outline = new Outline();
 	}
 	
 	/**Create a control polyline of control vertices
 	 * the curve pieces can be identified by onCurve flag 
 	 * of each cp the control polyline is open by default
 	 */
-	public GraphOutline(Outline<T> ol){
+	public GraphOutline(Outline ol){
 		this.outline = ol;
-		ArrayList<T> vertices = this.outline.getVertices();
-		for(T v:vertices){
-			this.controlpoints.add(new GraphVertex<T>(v));
+		ArrayList<Vertex> vertices = this.outline.getVertices();
+		for(Vertex v:vertices){
+			this.controlpoints.add(new GraphVertex(v));
 		}
 	}
 
-	public Outline<T> getOutline() {
+	public Outline getOutline() {
 		return outline;
 	}
 
@@ -61,11 +61,11 @@ public class GraphOutline <T extends Vertex> {
 	}*/
 	
 
-	public ArrayList<GraphVertex<T>> getGraphPoint() {
+	public ArrayList<GraphVertex> getGraphPoint() {
 		return controlpoints;
 	}
 	
-	public ArrayList<T> getPoints() {
+	public ArrayList<Vertex> getPoints() {
 		return outline.getVertices();
 	}
 
@@ -73,7 +73,7 @@ public class GraphOutline <T extends Vertex> {
 		this.controlpoints = controlpoints;
 	}*/
 
-	public void addVertex(GraphVertex<T> v) {
+	public void addVertex(GraphVertex v) {
 		controlpoints.add(v);
 		outline.addVertex(v.getPoint());
 	}

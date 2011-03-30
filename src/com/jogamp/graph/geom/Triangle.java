@@ -27,13 +27,13 @@
  */
 package com.jogamp.graph.geom;
 
-public class Triangle<T extends Vertex> {
+public class Triangle {
 	private int id = Integer.MAX_VALUE;
-	final private T[] vertices;
+	final private Vertex[] vertices;
 	private boolean[] boundaryEdges = new boolean[3];
 	private boolean[] boundaryVertices = null;
 
-	public Triangle(T ... v123){
+	public Triangle(Vertex ... v123){
 		vertices = v123;
 	}
 
@@ -45,7 +45,7 @@ public class Triangle<T extends Vertex> {
 		this.id = id;
 	}
 
-	public T[] getVertices() {
+	public Vertex[] getVertices() {
 		return vertices;
 	}
 	

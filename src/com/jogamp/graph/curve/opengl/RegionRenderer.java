@@ -63,7 +63,7 @@ public abstract class RegionRenderer extends Renderer {
         
         outlineShape.transformOutlines(OutlineShape.QUADRATIC_NURBS);
         
-        ArrayList<Triangle<Vertex>> triangles = (ArrayList<Triangle<Vertex>>) outlineShape.triangulate(sharpness);
+        ArrayList<Triangle> triangles = (ArrayList<Triangle>) outlineShape.triangulate(sharpness);
         ArrayList<Vertex> vertices = (ArrayList<Vertex>) outlineShape.getVertices();
         region.addVertices(vertices);
         region.addTriangles(triangles);
@@ -84,7 +84,7 @@ public abstract class RegionRenderer extends Renderer {
         for(OutlineShape outlineShape:outlineShapes){
             outlineShape.transformOutlines(OutlineShape.QUADRATIC_NURBS);
 
-            ArrayList<Triangle<Vertex>> triangles = outlineShape.triangulate(sharpness);
+            ArrayList<Triangle> triangles = outlineShape.triangulate(sharpness);
             region.addTriangles(triangles);
             
             ArrayList<Vertex> vertices = outlineShape.getVertices();

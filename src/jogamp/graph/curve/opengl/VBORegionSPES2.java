@@ -45,7 +45,7 @@ public class VBORegionSPES2  implements Region{
 	private int numVertices = 0;
 	private IntBuffer vboIds;
 	
-	private ArrayList<Triangle<Vertex>> triangles = new ArrayList<Triangle<Vertex>>();
+	private ArrayList<Triangle> triangles = new ArrayList<Triangle>();
 	private ArrayList<Vertex> vertices = new ArrayList<Vertex>();
 	
 	private GLContext context;
@@ -63,7 +63,7 @@ public class VBORegionSPES2  implements Region{
 		GL2ES2 gl = context.getGL().getGL2ES2();
 		ShortBuffer indicies = Buffers.newDirectShortBuffer(triangles.size() * 3);
 		
-		for(Triangle<Vertex> t:triangles){
+		for(Triangle t:triangles){
 			final Vertex[] t_vertices = t.getVertices();
 			
 			if(t_vertices[0].getId() == Integer.MAX_VALUE){
@@ -151,7 +151,7 @@ public class VBORegionSPES2  implements Region{
 		render();
 	}
 	
-	public void addTriangles(ArrayList<Triangle<Vertex>> tris) {
+	public void addTriangles(ArrayList<Triangle> tris) {
 		triangles.addAll(tris);
 		dirty = true;
 	}

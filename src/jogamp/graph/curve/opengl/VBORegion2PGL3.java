@@ -53,7 +53,7 @@ public class VBORegion2PGL3  implements Region{
 	
 	private IntBuffer t_vboIds;
 	
-	private ArrayList<Triangle<Vertex>> triangles = new ArrayList<Triangle<Vertex>>();
+	private ArrayList<Triangle> triangles = new ArrayList<Triangle>();
 	private ArrayList<Vertex> vertices = new ArrayList<Vertex>();
 	private GLContext context;
 	
@@ -85,7 +85,7 @@ public class VBORegion2PGL3  implements Region{
 		GL3 gl = context.getGL().getGL3();
 		ShortBuffer indicies = Buffers.newDirectShortBuffer(triangles.size() * 3);
 		
-		for(Triangle<Vertex> t:triangles){
+		for(Triangle t:triangles){
 			if(t.getVertices()[0].getId() == Integer.MAX_VALUE){
 				t.getVertices()[0].setId(numVertices++);
 				t.getVertices()[1].setId(numVertices++);
@@ -342,7 +342,7 @@ public class VBORegion2PGL3  implements Region{
 		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
 	}
 	
-	public void addTriangles(ArrayList<Triangle<Vertex>> tris) {
+	public void addTriangles(ArrayList<Triangle> tris) {
 		triangles.addAll(tris);
 		dirty = true;
 	}

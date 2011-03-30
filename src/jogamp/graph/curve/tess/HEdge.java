@@ -31,24 +31,24 @@ import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 
 
-public class HEdge <T extends Vertex> {
+public class HEdge {
 	public static int BOUNDARY = 3;
 	public static int INNER = 1;
 	public static int HOLE = 2;
 	
-	private GraphVertex<T> vert;
-	private HEdge<T> prev = null;
-	private HEdge<T> next = null;
-	private HEdge<T> sibling = null;
+	private GraphVertex vert;
+	private HEdge prev = null;
+	private HEdge next = null;
+	private HEdge sibling = null;
 	private int type = BOUNDARY;
-	private Triangle<T> triangle = null;
+	private Triangle triangle = null;
 	
-	public HEdge(GraphVertex<T> vert, int type) {
+	public HEdge(GraphVertex vert, int type) {
 		this.vert = vert;
 		this.type = type;
 	}
 
-	public HEdge(GraphVertex<T> vert, HEdge<T> prev, HEdge<T> next, HEdge<T> sibling, int type) {
+	public HEdge(GraphVertex vert, HEdge prev, HEdge next, HEdge sibling, int type) {
 		this.vert = vert;
 		this.prev = prev;
 		this.next = next;
@@ -56,8 +56,7 @@ public class HEdge <T extends Vertex> {
 		this.type = type;
 	}
 
-	public HEdge(GraphVertex<T> vert, HEdge<T> prev, HEdge<T> next, HEdge<T> sibling, int type,
-			Triangle<T> triangle) {
+	public HEdge(GraphVertex vert, HEdge prev, HEdge next, HEdge sibling, int type, Triangle triangle) {
 		this.vert = vert;
 		this.prev = prev;
 		this.next = next;
@@ -66,35 +65,35 @@ public class HEdge <T extends Vertex> {
 		this.triangle = triangle;
 	}
 
-	public GraphVertex<T> getGraphPoint() {
+	public GraphVertex getGraphPoint() {
 		return vert;
 	}
 
-	public void setVert(GraphVertex<T> vert) {
+	public void setVert(GraphVertex vert) {
 		this.vert = vert;
 	}
 
-	public HEdge<T> getPrev() {
+	public HEdge getPrev() {
 		return prev;
 	}
 
-	public void setPrev(HEdge<T> prev) {
+	public void setPrev(HEdge prev) {
 		this.prev = prev;
 	}
 
-	public HEdge<T> getNext() {
+	public HEdge getNext() {
 		return next;
 	}
 
-	public void setNext(HEdge<T> next) {
+	public void setNext(HEdge next) {
 		this.next = next;
 	}
 
-	public HEdge<T> getSibling() {
+	public HEdge getSibling() {
 		return sibling;
 	}
 
-	public void setSibling(HEdge<T> sibling) {
+	public void setSibling(HEdge sibling) {
 		this.sibling = sibling;
 	}
 
@@ -106,20 +105,20 @@ public class HEdge <T extends Vertex> {
 		this.type = type;
 	}
 
-	public Triangle<T> getTriangle() {
+	public Triangle getTriangle() {
 		return triangle;
 	}
 
-	public void setTriangle(Triangle<T> triangle) {
+	public void setTriangle(Triangle triangle) {
 		this.triangle = triangle;
 	}
 	
-	public static <T extends Vertex> void connect(HEdge<T> first, HEdge<T> next){
+	public static <T extends Vertex> void connect(HEdge first, HEdge next){
 		first.setNext(next);
 		next.setPrev(first);
 	}
 	
-	public static <T extends Vertex> void makeSiblings(HEdge<T> first, HEdge<T> second){
+	public static <T extends Vertex> void makeSiblings(HEdge first, HEdge second){
 		first.setSibling(second);
 		second.setSibling(first);
 	}
