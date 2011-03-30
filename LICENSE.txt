@@ -88,3 +88,25 @@ Files:
 
 ++++
 
+L.4) The JOGL source tree contains fonts from Ubuntu
+     which is covered by the UBUNTU FONT LICENCE Version 1.0
+
+Ubunut Font Family
+==================
+
+The Ubuntu Font Family are libre fonts funded by Canonical Ltd on behalf of the Ubuntu project. 
+
+<http://font.ubuntu.com/>
+
+Copyright 2010 Canonical Ltd.  
+Licensed under the Ubuntu Font Licence 1.0
+
+Author: Canonical Ltd., Dalton Maag
+
+UBUNTU FONT LICENCE 
+Version 1.0
+http://font.ubuntu.com/ufl/ubuntu-font-licence-1.0.txt
+
+Files:
+    src/jogamp/graph/font/fonts/ubuntu/
+
