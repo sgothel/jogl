@@ -51,7 +51,7 @@ import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class HwRegionRenderer {
+public class RegionRenderer {
 	protected static final boolean DEBUG = Debug.debug("RegionRenderer");
 	
 	private ShaderState st;
@@ -76,7 +76,7 @@ public class HwRegionRenderer {
 	 * @param context OpenGL rendering context
 	 * @param factory optional Point.Factory for Vertex construction. Default is Vertex.Factory.
 	 */
-	public HwRegionRenderer(GLContext context) {
+	public RegionRenderer(GLContext context) {
 		this.context = context;
 		init(context, 0.5f);
 	}
@@ -84,7 +84,7 @@ public class HwRegionRenderer {
 	 * @param context OpenGL rendering context
 	 * @param type region type (single or multipass)
 	 */
-	public HwRegionRenderer(GLContext context, int type) {
+	public RegionRenderer(GLContext context, int type) {
 		this.context = context;
 		this.regionType = type;
 		init(context, 0.5f);
@@ -227,9 +227,9 @@ public class HwRegionRenderer {
 	}
 
 	private void initShader(GL2ES2 gl) {
-		ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, HwRegionRenderer.class,
+		ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RegionRenderer.class,
 				"shader", "shader/bin", "curverenderer");
-		ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, HwRegionRenderer.class,
+		ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, RegionRenderer.class,
 				"shader", "shader/bin", "curverenderer");
 
 		ShaderProgram sp = new ShaderProgram();

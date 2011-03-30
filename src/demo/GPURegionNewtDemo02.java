@@ -36,7 +36,7 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.opengl.HwRegionRenderer;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
@@ -120,7 +120,7 @@ class RegionsNewtWindow {
 		animator.start();
 	}
 	private class RegionGLListener implements GLEventListener{
-		HwRegionRenderer regionRenderer = null;
+		RegionRenderer regionRenderer = null;
 		
 		OutlineShape[] outlineShapes = new OutlineShape[2];
 		
@@ -167,7 +167,7 @@ class RegionsNewtWindow {
 			GL2ES2 gl = drawable.getGL().getGL2ES2();
 			gl.setSwapInterval(1);
 			gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-			regionRenderer = new HwRegionRenderer(drawable.getContext());
+			regionRenderer = new RegionRenderer(drawable.getContext());
             regionRenderer.setAlpha(1.0f);
             regionRenderer.setColor(0.0f, 0.0f, 0.0f);
             MSAATool.dump(drawable);

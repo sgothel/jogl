@@ -51,7 +51,7 @@ import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class HwTextRenderer {
+public class TextRenderer {
 	protected static final boolean DEBUG = Debug.debug("TextRenderer");
 	static final boolean FONTTOOL_CUSTOM = false;
 	
@@ -84,7 +84,7 @@ public class HwTextRenderer {
 	 * @param context OpenGL rendering context
 	 * @param factory optional Point.Factory for Vertex construction. Default is Vertex.Factory.
 	 */
-	public HwTextRenderer(Vertex.Factory<? extends Vertex> factory, int type) {
+	public TextRenderer(Vertex.Factory<? extends Vertex> factory, int type) {
 		this.pointFactory = (null != factory) ? factory : SVertex.factory();
 		this.regionType = type;
 	}
@@ -124,9 +124,9 @@ public class HwTextRenderer {
 		gl.glEnable(GL2ES2.GL_BLEND);
 		gl.glBlendFunc(GL2ES2.GL_SRC_ALPHA, GL2ES2.GL_ONE_MINUS_SRC_ALPHA);
 		
-        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, HwTextRenderer.class,
+        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, TextRenderer.class,
                 "shader", "shader/bin", "curverenderer");
-        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, HwTextRenderer.class,
+        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, TextRenderer.class,
                 "shader", "shader/bin", "curverenderer");
 
         ShaderProgram sp = new ShaderProgram();

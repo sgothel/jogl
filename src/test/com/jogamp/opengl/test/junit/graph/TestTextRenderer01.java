@@ -22,7 +22,7 @@ import com.jogamp.newt.opengl.GLWindow;
 
 import demo.GPUTextGLListenerBase01;
 
-public class TestHwTextRenderer01 {
+public class TestTextRenderer01 {
 
 	@BeforeClass
 	public static void initClass() {

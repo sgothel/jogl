@@ -41,7 +41,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLRunnable;
 
-import com.jogamp.graph.curve.opengl.HwTextRenderer;
+import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.Vertex;
@@ -64,7 +64,7 @@ import com.jogamp.opengl.util.awt.Screenshot;
  */
 public abstract class GPUTextGLListenerBase01 implements GLEventListener {
     Vertex.Factory<? extends Vertex> vfactory;
-    protected HwTextRenderer textRenderer;
+    protected TextRenderer textRenderer;
     int fontSet = FontFactory.UBUNTU;
     Font font;
     boolean debug;
@@ -100,7 +100,7 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
         // this.font = FontFactory.get(FontFactory.JAVA).getDefault();
         this.font = FontFactory.get(fontSet).getDefault();
         this.vfactory = vfactory;
-        this.textRenderer = new HwTextRenderer(vfactory, mode);
+        this.textRenderer = new TextRenderer(vfactory, mode);
         this.debug = debug;
         this.trace = trace;
     }
