@@ -41,9 +41,7 @@ import com.jogamp.graph.math.VectorUtil;
  *  
  *  Note: An outline should be closed to be rendered as a region.
  *  
- *  
  *  @see OutlineShape, Region
- *
  */
 public class Outline<T extends Vertex> implements Comparable<Outline<T>>{
 	

@@ -31,6 +31,10 @@ package com.jogamp.graph.geom.opengl;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.math.VectorUtil;
 
+/** A Simple Vertex Implementation. Where the coordinates, and other attributes are
+ * float based, and the coordinates and texture coordinates are saved in two float arrays.
+ *
+ */
 public class SVertex implements Vertex {
 	private int id = Integer.MAX_VALUE;
 	protected float[] coord = new float[3];

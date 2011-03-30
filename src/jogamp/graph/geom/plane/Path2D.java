@@ -360,8 +360,6 @@ public final class Path2D implements Cloneable {
                     }
             }
         }
-        // FIXME: Rami's code had this in, but AABBox uses upper left - lower right - right ? 
-        // return new AABBox(rx1, ry1, 0f, rx2 - rx1, ry2 - ry1, 0f);
         return new AABBox(rx1, ry1, 0f, rx2, ry2, 0f);
     }
 
@@ -396,11 +394,11 @@ public final class Path2D implements Cloneable {
     }
 
     public boolean contains(AABBox r) {
-        return contains(r.getX(), r.getY(), r.getWidth(), r.getHeight());
+        return contains(r);
     }
 
     public boolean intersects(AABBox r) {
-        return intersects(r.getX(), r.getY(), r.getWidth(), r.getHeight());
+        return intersects(r.getMinX(), r.getMinY(), r.getWidth(), r.getHeight());
     }
 
     public PathIterator iterator() {
