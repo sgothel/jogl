@@ -52,13 +52,13 @@ import com.jogamp.graph.curve.tess.CDTriangulator2D;
 public class OutlineShape {
 	public static final int QUADRATIC_NURBS = 10;
 	private final Vertex.Factory<? extends Vertex> pointFactory;
-	private ArrayList<Outline<Vertex>> outlines = new ArrayList<Outline<Vertex>>(3);
+	private ArrayList<Outline> outlines = new ArrayList<Outline>(3);
 	
 	/** Create a new Outline based Shape
 	 */
 	public OutlineShape(Vertex.Factory<? extends Vertex> factory) {
 		pointFactory = factory;
-		outlines.add(new Outline<Vertex>());
+		outlines.add(new Outline());
 	}
 	
 	public final Vertex.Factory<? extends Vertex> pointFactory() { return pointFactory; }
@@ -68,7 +68,7 @@ public class OutlineShape {
 	 * be placed at the end of the outline list.
 	 */
 	public void addEmptyOutline(){
-		outlines.add(new Outline<Vertex>());
+		outlines.add(new Outline());
 	}
 	
 	/** Adds an outline to the OutlineShape object
@@ -77,7 +77,7 @@ public class OutlineShape {
 	 * it will do nothing.
 	 * @param outline an Outline object
 	 */
-	public void addOutline(Outline<Vertex> outline){
+	public void addOutline(Outline outline){
 		if(outline.isEmpty()){
 			return;
 		}
@@ -120,7 +120,7 @@ public class OutlineShape {
 	 * of outlines that define the shape
 	 * @return the last outline
 	 */
-	public final Outline<Vertex> getLastOutline(){
+	public final Outline getLastOutline(){
 		return outlines.get(outlines.size()-1);
 	}
 	/** Make sure that the outlines represent
@@ -135,13 +135,13 @@ public class OutlineShape {
 	}
 	
 	private void transformOutlinesQuadratic(){
-		ArrayList<Outline<Vertex>> newOutlines = new ArrayList<Outline<Vertex>>(3);
+		ArrayList<Outline> newOutlines = new ArrayList<Outline>(3);
 
 		/**loop over the outlines and make sure no
 		 * adj off-curve vertices
 		 */
-		for(Outline<Vertex> outline:outlines){
-			Outline<Vertex> newOutline = new Outline<Vertex>();
+		for(Outline outline:outlines){
+			Outline newOutline = new Outline();
 
 			ArrayList<Vertex> vertices = outline.getVertices();
 			int size =vertices.size()-1;
@@ -165,7 +165,7 @@ public class OutlineShape {
 	
 	private void generateVertexIds(){
 		int maxVertexId = 0;
-		for(Outline<Vertex> outline:outlines){
+		for(Outline outline:outlines){
 			ArrayList<Vertex> vertices = outline.getVertices();
 			for(Vertex vert:vertices){
 				vert.setId(maxVertexId);
@@ -179,7 +179,7 @@ public class OutlineShape {
 	 */
 	public ArrayList<Vertex> getVertices(){
 		ArrayList<Vertex> vertices = new ArrayList<Vertex>();
-		for(Outline<Vertex> polyline:outlines){
+		for(Outline polyline:outlines){
 			vertices.addAll(polyline.getVertices());
 		}
 		return vertices;
@@ -189,21 +189,21 @@ public class OutlineShape {
 	/** Triangluate the graph object
 	 * @param sharpness sharpness of the curved regions default = 0.5
 	 */
-	public ArrayList<Triangle<Vertex>> triangulate(float sharpness){
+	public ArrayList<Triangle> triangulate(float sharpness){
 		if(outlines.size() == 0){
 			return null;
 		}
 		sortOutlines();
 		generateVertexIds();
 		
-		CDTriangulator2D<Vertex> triangulator2d = new CDTriangulator2D<Vertex>(sharpness);
+		CDTriangulator2D triangulator2d = new CDTriangulator2D(sharpness);
 		
 		for(int index = 0; index< outlines.size();index++){
-			Outline<Vertex> outline = outlines.get(index);
+			Outline outline = outlines.get(index);
 			triangulator2d.addCurve(outline);
 		}
 		
-		ArrayList<Triangle<Vertex>> triangles = triangulator2d.generateTriangulation();
+		ArrayList<Triangle> triangles = triangulator2d.generateTriangulation();
 		triangulator2d.reset();
 		
 		return triangles;

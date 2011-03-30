@@ -94,10 +94,10 @@ public class GlyphString {
 		}
 	}
 	
-	private ArrayList<Triangle<Vertex>> initializeTriangles(float sharpness){
-		ArrayList<Triangle<Vertex>> triangles = new ArrayList<Triangle<Vertex>>();
+	private ArrayList<Triangle> initializeTriangles(float sharpness){
+		ArrayList<Triangle> triangles = new ArrayList<Triangle>();
 		for(GlyphShape glyph:glyphs){
-			ArrayList<Triangle<Vertex>> tris = glyph.triangulate(sharpness);
+			ArrayList<Triangle> tris = glyph.triangulate(sharpness);
 			triangles.addAll(tris);
 		}
 		return triangles;
@@ -112,7 +112,7 @@ public class GlyphString {
 		region = RegionFactory.create(context, st, type);
 		region.setFlipped(true);
 		
-		ArrayList<Triangle<Vertex>> tris = initializeTriangles(shaprness);
+		ArrayList<Triangle> tris = initializeTriangles(shaprness);
 		region.addTriangles(tris);
 		
 		int numVertices = region.getNumVertices();

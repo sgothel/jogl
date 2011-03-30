@@ -80,7 +80,7 @@ public interface Region {
 	 * 
 	 * @see update()
 	 */
-	public void addTriangles(ArrayList<Triangle<Vertex>> tris);
+	public void addTriangles(ArrayList<Triangle> tris);
 	
 	/** Get the current number of vertices associated
 	 * with this region. This number is not necessary equal to 

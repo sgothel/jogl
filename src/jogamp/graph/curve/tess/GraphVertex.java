@@ -31,16 +31,16 @@ import java.util.ArrayList;
 
 import com.jogamp.graph.geom.Vertex;
 
-public class GraphVertex <T extends Vertex> {
-	private T point;
-	private ArrayList<HEdge<T>> edges = null;
+public class GraphVertex {
+	private Vertex point;
+	private ArrayList<HEdge> edges = null;
 	private boolean boundaryContained = false;
 	
-	public GraphVertex(T point) {
+	public GraphVertex(Vertex point) {
 		this.point = point;
 	}
 
-	public T getPoint() {
+	public Vertex getPoint() {
 		return point;
 	}
 	
@@ -59,25 +59,25 @@ public class GraphVertex <T extends Vertex> {
 		return point.getCoord();
 	}
 
-	public void setPoint(T point) {
+	public void setPoint(Vertex point) {
 		this.point = point;
 	}
 
-	public ArrayList<HEdge<T>> getEdges() {
+	public ArrayList<HEdge> getEdges() {
 		return edges;
 	}
 
-	public void setEdges(ArrayList<HEdge<T>> edges) {
+	public void setEdges(ArrayList<HEdge> edges) {
 		this.edges = edges;
 	}
 	
-	public void addEdge(HEdge<T> edge){
+	public void addEdge(HEdge edge){
 		if(edges == null){
-			edges = new ArrayList<HEdge<T>>();
+			edges = new ArrayList<HEdge>();
 		}
 		edges.add(edge);
 	}
-	public void removeEdge(HEdge<T> edge){
+	public void removeEdge(HEdge edge){
 		if(edges == null)
 			return;
 		edges.remove(edge);
@@ -85,24 +85,24 @@ public class GraphVertex <T extends Vertex> {
 			edges = null;
 		}
 	}
-	public HEdge<T> findNextEdge(GraphVertex<T> nextVert){
-		for(HEdge<T> e:edges){
+	public HEdge findNextEdge(GraphVertex nextVert){
+		for(HEdge e:edges){
 			if(e.getNext().getGraphPoint() == nextVert){
 				return e;
 			}
 		}
 		return null;
 	}
-	public HEdge<T> findBoundEdge(){
-		for(HEdge<T> e:edges){
+	public HEdge findBoundEdge(){
+		for(HEdge e:edges){
 			if((e.getType() == HEdge.BOUNDARY) || (e.getType() == HEdge.HOLE)){
 				return e;
 			}
 		}
 		return null;
 	}
-	public HEdge<T> findPrevEdge(GraphVertex<T> prevVert){
-		for(HEdge<T> e:edges){
+	public HEdge findPrevEdge(GraphVertex prevVert){
+		for(HEdge e:edges){
 			if(e.getPrev().getGraphPoint() == prevVert){
 				return e;
 			}

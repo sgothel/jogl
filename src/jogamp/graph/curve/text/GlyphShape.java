@@ -148,7 +148,7 @@ public class GlyphShape {
 	 * @param sharpness sharpness of the curved regions default = 0.5
 	 * @return ArrayList of triangles which define this shape
 	 */
-	public ArrayList<Triangle<Vertex>> triangulate(float sharpness){
+	public ArrayList<Triangle> triangulate(float sharpness){
 		return shape.triangulate(sharpness);
 	}
 
