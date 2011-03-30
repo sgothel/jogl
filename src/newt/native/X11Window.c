@@ -56,6 +56,7 @@
 #include "jogamp_newt_x11_X11Window.h"
 
 #include "MouseEvent.h"
+#include "InputEvent.h"
 #include "KeyEvent.h"
 #include "WindowEvent.h"
 #include "ScreenMode.h"
@@ -136,6 +137,30 @@ static jint X11KeySym2NewtVKey(KeySym keySym) {
             return J_VK_DELETE;
     }
     return keySym;
+}
+
+static jint X11InputState2NewtModifiers(unsigned int xstate) {
+    jint modifiers = 0;
+    if ((ControlMask & xstate) != 0) {
+        modifiers |= EVENT_CTRL_MASK;
+    }
+    if ((ShiftMask & xstate) != 0) {
+        modifiers |= EVENT_SHIFT_MASK;
+    }
+    if ((Mod1Mask & xstate) != 0) {
+        modifiers |= EVENT_ALT_MASK;
+    }
+    if ((Button1Mask & xstate) != 0) {
+        modifiers |= EVENT_BUTTON1_MASK;
+    }
+    if ((Button2Mask & xstate) != 0) {
+        modifiers |= EVENT_BUTTON2_MASK;
+    }
+    if ((Button3Mask & xstate) != 0) {
+        modifiers |= EVENT_BUTTON3_MASK;
+    }
+
+    return modifiers;
 }
 
 static const char * const ClazzNameNewtWindow = "com/jogamp/newt/Window";
@@ -475,8 +500,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Display_DispatchMessages0
     while( num_events > 0 ) {
         jobject jwindow = NULL;
         XEvent evt;
-        KeySym keySym;
-        char keyChar;
+        KeySym keySym = 0;
+        jint modifiers = 0;
+        char keyChar = 0;
         char text[255];
 
         // num_events = XPending(dpy); // I/O Flush ..
@@ -524,11 +550,23 @@ JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Display_DispatchMessages0
             case KeyRelease:
             case KeyPress:
                 if(XLookupString(&evt.xkey,text,255,&keySym,0)==1) {
+                    KeySym lower_return = 0, upper_return = 0;
                     keyChar=text[0];
+                    XConvertCase(keySym, &lower_return, &upper_return);
+                    // always return upper case, set modifier masks (SHIFT, ..)
+                    keySym = upper_return;
+                    modifiers = X11InputState2NewtModifiers(evt.xkey.state);
                 } else {
                     keyChar=0;
                 }
                 break;
+
+            case ButtonPress:
+            case ButtonRelease:
+            case MotionNotify:
+                modifiers = X11InputState2NewtModifiers(evt.xbutton.state);
+                break;
+
             default:
                 break;
         }
@@ -539,82 +577,59 @@ JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Display_DispatchMessages0
                 #ifdef USE_SENDIO_DIRECT
                 (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, 
                                       (jint) EVENT_MOUSE_PRESSED, 
-                                      (jint) evt.xbutton.state, 
+                                      modifiers,
                                       (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
                 #else
-                (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, 
-                                      JNI_FALSE,
-                                      (jint) EVENT_MOUSE_PRESSED, 
-                                      (jint) evt.xbutton.state, 
+                (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_PRESSED, 
+                                      modifiers,
                                       (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
                 #endif
                 break;
             case ButtonRelease:
                 #ifdef USE_SENDIO_DIRECT
-                (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, 
-                                      (jint) EVENT_MOUSE_RELEASED, 
-                                      (jint) evt.xbutton.state, 
+                (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED, 
+                                      modifiers,
                                       (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
                 #else
-                (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, 
-                                      JNI_FALSE,
-                                      (jint) EVENT_MOUSE_RELEASED, 
-                                      (jint) evt.xbutton.state, 
+                (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_RELEASED, 
+                                      modifiers,
                                       (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
                 #endif
                 break;
             case MotionNotify:
                 #ifdef USE_SENDIO_DIRECT
-                (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, 
-                                      (jint) EVENT_MOUSE_MOVED, 
-                                      (jint) evt.xmotion.state, 
+                (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
+                                      modifiers,
                                       (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0, 0 /*rotation*/); 
                 #else
-                (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, 
-                                      JNI_FALSE,
-                                      (jint) EVENT_MOUSE_MOVED, 
-                                      (jint) evt.xmotion.state, 
+                (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_MOVED, 
+                                      modifiers,
                                       (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0, 0 /*rotation*/); 
                 #endif
                 break;
             case KeyPress:
                 #ifdef USE_SENDIO_DIRECT
-                (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, 
-                                      (jint) EVENT_KEY_PRESSED, 
-                                      (jint) evt.xkey.state, 
-                                      X11KeySym2NewtVKey(keySym), (jchar) keyChar);
+                (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
+                                      modifiers, X11KeySym2NewtVKey(keySym), (jchar) keyChar);
                 #else
-                (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID,
-                                      JNI_FALSE,
-                                      (jint) EVENT_KEY_PRESSED, 
-                                      (jint) evt.xkey.state, 
-                                      X11KeySym2NewtVKey(keySym), (jchar) keyChar);
+                (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_PRESSED, 
+                                      modifiers, X11KeySym2NewtVKey(keySym), (jchar) keyChar);
                 #endif
 
                 break;
             case KeyRelease:
                 #ifdef USE_SENDIO_DIRECT
-                (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, 
-                                      (jint) EVENT_KEY_RELEASED, 
-                                      (jint) evt.xkey.state, 
-                                      X11KeySym2NewtVKey(keySym), (jchar) keyChar);
+                (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_RELEASED, 
+                                      modifiers, X11KeySym2NewtVKey(keySym), (jchar) keyChar);
 
-                (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, 
-                                      (jint) EVENT_KEY_TYPED, 
-                                      (jint) evt.xkey.state, 
-                                      (jint) -1, (jchar) keyChar);
+                (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_TYPED, 
+                                      modifiers, (jint) -1, (jchar) keyChar);
                 #else
-                (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID,
-                                      JNI_FALSE,
-                                      (jint) EVENT_KEY_RELEASED, 
-                                      (jint) evt.xkey.state, 
-                                      X11KeySym2NewtVKey(keySym), (jchar) keyChar);
+                (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_RELEASED, 
+                                      modifiers, X11KeySym2NewtVKey(keySym), (jchar) keyChar);
 
-                (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID,
-                                      JNI_FALSE,
-                                      (jint) EVENT_KEY_TYPED, 
-                                      (jint) evt.xkey.state, 
-                                      (jint) -1, (jchar) keyChar);
+                (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_TYPED, 
+                                      modifiers, (jint) -1, (jchar) keyChar);
                 #endif
 
                 break;
