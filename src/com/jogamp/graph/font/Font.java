@@ -34,17 +34,27 @@ import com.jogamp.graph.geom.AABBox;
  * 
  * TrueType Font Specification:
  *   http://developer.apple.com/fonts/ttrefman/rm06/Chap6.html
+ *   
+ * TrueType Font Table Introduction:
+ *   http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08
  */
 
 public interface Font {
 
 	/**
 	 * Metrics for font
+	 * 
+	 * Depending on the font's direction, horizontal or vertical,
+	 * the following tables shall be used:
+	 * 
+	 * Vertical http://developer.apple.com/fonts/TTRefMan/RM06/Chap6vhea.html
+     * Horizontal http://developer.apple.com/fonts/TTRefMan/RM06/Chap6hhea.html
 	 */
     public interface Metrics {  
 	    float getAscent(float pixelSize);
 	    float getDescent(float pixelSize);
 	    float getLineGap(float pixelSize);
+	    float getMaxExtend(float pixelSize);	    
 	    float getScale(float pixelSize);
 	    AABBox getBBox(float pixelSize);
     }

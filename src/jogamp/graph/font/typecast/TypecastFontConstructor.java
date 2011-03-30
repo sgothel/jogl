@@ -25,56 +25,29 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.font;
+package jogamp.graph.font.typecast;
 
-import java.security.AccessController;
-
-import com.jogamp.common.util.ReflectionUtil;
+import java.io.File;
+import java.io.IOException;
 
 import jogamp.graph.font.FontConstructor;
-import jogamp.graph.font.JavaFontLoader;
-import jogamp.graph.font.UbuntuFontLoader;
-import jogamp.opengl.Debug;
 
-public class FontFactory {
-    /** Ubuntu is the default font family */
-    public static final int UBUNTU = 0;
-    
-    /** Java fonts are optional */
-    public static final int JAVA = 1;
-    
-    private static final FontConstructor fontConstr;
+import net.java.dev.typecast.ot.OTFontCollection;
 
-    static {
-        /**
-         * For example:
-         *   "jogamp.graph.font.typecast.TypecastFontFactory" (default)
-         *   "jogamp.graph.font.ttf.TTFFontImpl"
-         */
-        String fontImplName = Debug.getProperty("FontImpl", true, AccessController.getContext());
-        if(null == fontImplName) {
-            fontImplName = "jogamp.graph.font.typecast.TypecastFontConstructor";
+import com.jogamp.graph.font.Font;
+
+
+public class TypecastFontConstructor implements FontConstructor  {
+
+    public Font create(String path) {
+        OTFontCollection fontset;
+        try {
+            fontset = OTFontCollection.create(new File(path));
+            return new TypecastFont(fontset);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        fontConstr = (FontConstructor) ReflectionUtil.createInstance(fontImplName, FontFactory.class.getClassLoader());
+        return null;
     }
     
-    public static final FontConstructor getFontConstr() { return fontConstr; }
-    
-    public static final FontSet getDefault() {
-        return get(UBUNTU);
-    }
-    
-    public static final FontSet get(int font) {
-        switch (font) {
-            case JAVA:
-                return JavaFontLoader.get();
-            default:
-                return UbuntuFontLoader.get();
-        }
-    }
-    
-    public static final Font get(String path) {
-        return fontConstr.create(path);
-    }
-
 }

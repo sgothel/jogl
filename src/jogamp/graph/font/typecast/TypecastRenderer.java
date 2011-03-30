@@ -31,9 +31,6 @@ import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
-
 import net.java.dev.typecast.ot.Point;
 import net.java.dev.typecast.ot.OTGlyph;
 
@@ -43,7 +40,7 @@ import net.java.dev.typecast.ot.OTGlyph;
  */
 public class TypecastRenderer {
 
-	public static void getOutline(Factory<? extends Vertex> factory, TypecastFont font, 
+	public static void getOutline(TypecastFont font, 
 			                      String string, float pixelSize, AffineTransform transform, Path2D[] p)
 	{		
 		if (string == null) {
@@ -55,9 +52,9 @@ public class TypecastRenderer {
 		float ascent = metrics.getAscent(pixelSize) ;
 		float descent = metrics.getDescent(pixelSize) ;
 		if (transform == null) {
-			transform = new AffineTransform(factory);
+			transform = new AffineTransform();
 		}
-		AffineTransform t = new AffineTransform(factory);
+		AffineTransform t = new AffineTransform();
 
 		float advanceY = lineGap - descent + ascent;
 		float y = 0;
@@ -71,7 +68,10 @@ public class TypecastRenderer {
 				y -= advanceY;
 				advanceTotal = 0;
 				continue;
-			}
+			} else if (character == ' ') {
+			    advanceTotal += font.font.getHmtxTable().getAdvanceWidth(TypecastGlyph.ID_SPACE) * metrics.getScale(pixelSize);
+                continue;
+            }        
 			TypecastGlyph glyph = (TypecastGlyph) font.getGlyph(character);
 			Path2D gp = glyph.getPath();
 			float scale = metrics.getScale(pixelSize);

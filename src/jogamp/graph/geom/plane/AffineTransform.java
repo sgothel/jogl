@@ -72,6 +72,13 @@ public class AffineTransform implements Cloneable, Serializable {
      */
     transient int type;
 
+    public AffineTransform() {
+        pointFactory = null;
+        type = TYPE_IDENTITY;
+        m00 = m11 = 1.0f;
+        m10 = m01 = m02 = m12 = 0.0f;
+    }
+
     public AffineTransform(Factory<? extends Vertex> factory) {
     	pointFactory = factory;
         type = TYPE_IDENTITY;

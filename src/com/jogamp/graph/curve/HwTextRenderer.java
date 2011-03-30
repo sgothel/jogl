@@ -38,13 +38,10 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.graph.curve.text.GlyphString;
 import jogamp.graph.font.FontInt;
-import jogamp.graph.font.typecast.TypecastFontFactory;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 
-import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.opengl.SVertex;
 import jogamp.opengl.Debug;
@@ -56,28 +53,6 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 public class HwTextRenderer {
 	protected static final boolean DEBUG = Debug.debug("TextRenderer");
 	static final boolean FONTTOOL_CUSTOM = false;
-	
-	private static FontFactory fontFactory;
-	
-	static {
-		FontFactory _fontFactory = null;
-		
-		if(FONTTOOL_CUSTOM) {
-			_fontFactory = (FontFactory) ReflectionUtil.createInstance("jogamp.graph.font.ttf.TTFFontFactory", HwTextRenderer.class.getClassLoader());
-			if(null!=_fontFactory) {
-				System.err.println("Using custom font tool");
-			}
-		}
-		if(null==_fontFactory) {
-			_fontFactory = new TypecastFontFactory();
-		}
-		fontFactory = _fontFactory;
-	}
-
-	
-	public static FontFactory getFontFactory() {
-		return fontFactory;
-	}
 	
 	private ShaderState st = new ShaderState();
 	
@@ -113,19 +88,6 @@ public class HwTextRenderer {
 		this.regionType = type;
 	}
 
-    public Font createFont(Vertex.Factory<? extends Vertex> factory, String name) {
-    	return fontFactory.createFont(factory, name);
-    }
-
-
-    public Font createFont(Vertex.Factory<? extends Vertex> factory,
-    		               String[] families, 
-                           String style,
-                           String variant,
-                           String weight) {
-    	return fontFactory.createFont(factory, families, style, variant, weight);
-    }
-	
 	/** 
 	 * Initialize shaders and bindings for GPU based text Rendering, 
 	 * should be called only once.
@@ -162,9 +124,9 @@ public class HwTextRenderer {
 		gl.glBlendFunc(GL2ES2.GL_SRC_ALPHA, GL2ES2.GL_ONE_MINUS_SRC_ALPHA);
 		
         ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, HwTextRenderer.class,
-                "../shader", "../shader/bin", "curverenderer");
+                "shader", "shader/bin", "curverenderer");
         ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, HwTextRenderer.class,
-                "../shader", "../shader/bin", "curverenderer");
+                "shader", "shader/bin", "curverenderer");
 
         ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);
@@ -259,6 +221,8 @@ public class HwTextRenderer {
 	    }
 	}
 	
+	public final PMVMatrix matrix() { return pmvMatrix; }
+	
 	public void rotate(GL2ES2 gl, float angle, float x, float y, float z){
 		pmvMatrix.glRotatef(angle, x, y, z);
 		if(null != gl && st.inUse()) {
@@ -279,7 +243,13 @@ public class HwTextRenderer {
 		    st.glUniform(gl, mgl_PMVMatrix);
 		}
 	}
-	
+
+    public  void setMatrix(GL2ES2 gl){
+        if(null != gl && st.inUse()) {
+            st.glUniform(gl, mgl_PMVMatrix);
+        }
+    }
+    	
     public  void updateAllShaderValues(GL2ES2 gl) {
         if(null != gl && st.inUse()) {
             st.glUniform(gl, mgl_PMVMatrix);
@@ -297,7 +267,7 @@ public class HwTextRenderer {
 	 * @param far
 	 * @return
 	 */
-	public boolean reshape(GL2ES2 gl, float angle, int width, int height, float near, float far){
+	public boolean reshapePerspective(GL2ES2 gl, float angle, int width, int height, float near, float far){
 		win_width = width;
 		win_height = height;
 		float ratio = (float)width/(float)height;
@@ -305,9 +275,25 @@ public class HwTextRenderer {
 		pmvMatrix.glLoadIdentity();
 		pmvMatrix.gluPerspective(angle, ratio, near, far);
 		
-		st.glUniform(gl, mgl_PMVMatrix);
+        if(null != gl) {
+            st.glUniform(gl, mgl_PMVMatrix);
+        }
 		
 		return true;
+	}
+	
+	public boolean reshapeOrtho(GL2ES2 gl, int width, int height, float near, float far) {
+        win_width = width;
+        win_height = height;
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+        pmvMatrix.glLoadIdentity();
+        pmvMatrix.glOrthof(0, width, 0, height, near, far);
+        
+        if(null != gl) {
+            st.glUniform(gl, mgl_PMVMatrix);
+        }
+        
+        return true;        
 	}
 
 	private GlyphString createString(GL2ES2 gl, Font font, int size, String str) {

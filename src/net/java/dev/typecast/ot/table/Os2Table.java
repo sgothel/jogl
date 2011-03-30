@@ -52,7 +52,6 @@ package net.java.dev.typecast.ot.table;
 
 import java.io.DataInput;
 import java.io.IOException;
-import net.java.dev.typecast.ot.Fixed;
 
 /**
  * @version $Id: Os2Table.java,v 1.2 2004-12-09 23:46:21 davidsch Exp $

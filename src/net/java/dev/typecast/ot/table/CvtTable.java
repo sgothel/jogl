@@ -8,7 +8,6 @@
 
 package net.java.dev.typecast.ot.table;
 
-import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.IOException;
 

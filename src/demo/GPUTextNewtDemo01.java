@@ -36,7 +36,7 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.util.FPSAnimator;
+import com.jogamp.opengl.util.Animator;
 
 public class GPUTextNewtDemo01 {
     static final boolean DEBUG = false;
@@ -61,14 +61,16 @@ public class GPUTextNewtDemo01 {
 		window = GLWindow.create(caps);
 		
 		window.setPosition(10, 10);
-		window.setSize(400, 400);
+		window.setSize(800, 400);
 
 		window.setTitle("GPU Text Newt Demo 01 - r2t0 msaa1");
 		textGLListener = new TextGLListener();
 		textGLListener.attachTo(window);
 
+		window.enablePerfLog(true);		
 		window.setVisible(true);
-		FPSAnimator animator = new FPSAnimator(10);
+		// FPSAnimator animator = new FPSAnimator(10);
+		Animator animator = new Animator();
 		animator.add(window);
 		animator.start();
 	}
@@ -76,8 +78,10 @@ public class GPUTextNewtDemo01 {
 	private class TextGLListener extends GPUTextGLListenerBase01 {
 	    public TextGLListener() {
 		    super(SVertex.factory(), Region.SINGLE_PASS, DEBUG, TRACE);
+		    // FBO size unrelated with 1 pass
             //setMatrix(-10, 10, 0f, -70, 0);	
-            setMatrix(-10, 10, 0f, -100, 400);
+            // setMatrix(-80, -30, 0f, -100, 0);
+		    setMatrix(-400, -30, 0f, -500, 0); 
 		}
 		
 		public void init(GLAutoDrawable drawable) {

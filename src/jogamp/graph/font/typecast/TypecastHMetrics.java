@@ -29,11 +29,10 @@ package jogamp.graph.font.typecast;
 
 import net.java.dev.typecast.ot.table.HeadTable;
 import net.java.dev.typecast.ot.table.HheaTable;
-
 import com.jogamp.graph.font.Font.Metrics;
 import com.jogamp.graph.geom.AABBox;
 
-class TypecastMetrics implements Metrics {
+class TypecastHMetrics implements Metrics {
 	private final TypecastFont fontImpl;
 	
 	// HeadTable
@@ -42,11 +41,14 @@ class TypecastMetrics implements Metrics {
 	private final AABBox bbox;
 	// HheaTable
 	private final HheaTable hheaTable;
+    // VheaTable (for horizontal fonts)
+    // private final VheaTable vheaTable;
 	
-	public TypecastMetrics(TypecastFont fontImpl) {
+	public TypecastHMetrics(TypecastFont fontImpl) {
 		this.fontImpl = fontImpl;
 		headTable = this.fontImpl.font.getHeadTable();
 		hheaTable = this.fontImpl.font.getHheaTable();		
+		// vheaTable = this.fontImpl.font.getVheaTable();
         unitsPerEM_Inv = 1.0f / ( (float) headTable.getUnitsPerEm() );
         
         int maxWidth = headTable.getXMax() - headTable.getXMin();
@@ -66,6 +68,9 @@ class TypecastMetrics implements Metrics {
     }
     public final float getLineGap(float pixelSize) {
         return getScale(pixelSize) * -hheaTable.getLineGap(); // invert
+    }
+    public final float getMaxExtend(float pixelSize) {
+        return getScale(pixelSize) * hheaTable.getXMaxExtent();
     }
     public final float getScale(float pixelSize) {
         return pixelSize * unitsPerEM_Inv;

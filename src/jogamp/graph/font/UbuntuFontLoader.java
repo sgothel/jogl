@@ -27,14 +27,14 @@
  */
 package jogamp.graph.font;
 
-import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.opengl.util.Locator;
 
-public class JavaFontLoader implements FontSet {
+public class UbuntuFontLoader implements FontSet {
     
-    final static FontSet fontLoader = new JavaFontLoader();
+    final static FontSet fontLoader = new UbuntuFontLoader();
 
     public static FontSet get() {
         return fontLoader;
@@ -42,68 +42,64 @@ public class JavaFontLoader implements FontSet {
     
     final static String availableFontFileNames[] =
     {
-        /* 00 */ "LucidaBrightRegular.ttf",
-        /* 01 */ "LucidaBrightItalic.ttf",
-        /* 02 */ "LucidaBrightDemiBold.ttf",
-        /* 03 */ "LucidaBrightDemiItalic.ttf",
-        /* 04 */ "LucidaSansRegular.ttf",
-        /* 05 */ "LucidaSansDemiBold.ttf",
-        /* 06 */ "LucidaTypewriterRegular.ttf",
-        /* 07 */ "LucidaTypewriterBold.ttf",
+        /* 00 */ "Ubuntu-R.ttf",   // regular
+        /* 01 */ "Ubuntu-RI.ttf",  // regular italic
+        /* 02 */ "Ubuntu-B.ttf",   // bold     
+        /* 03 */ "Ubuntu-BI.ttf",  // bold italic
+        /* 04 */ "Ubuntu-L.ttf",   // light
+        /* 05 */ "Ubuntu-LI.ttf",  // light italic
+        /* 06 */ "Ubuntu-M.ttf",   // medium
+        /* 07 */ "Ubuntu-MI.ttf",  // medium italic
+
     };
         
-    final String javaFontPath;
+    final static String relPath = "fonts/ubuntu/" ;
     
-    private JavaFontLoader() {
-        javaFontPath = System.getProperty("java.home") + "/lib/fonts/";
+    private UbuntuFontLoader() {
     }
 
-    static final IntObjectHashMap fontMap = new IntObjectHashMap();
+    static boolean is(int bits, int bit) {
+        return 0 != ( bits & bit ) ;
+    }
     
     public Font getDefault() {
         return get(FAMILY_REGULAR, 0) ; // Sans Serif Regular 
     }
     
-	public Font get(int family, int style)	{
-        Font font = (Font)fontMap.get( ( family << 8 ) | style );
-        if (font != null) {
-            return font;
-        }
+	public Font get(int family, int style)
+	{
+        Font font = null;
 
-        // 1st process Sans Serif (2 fonts)
-        if( 0 == ( style & STYLE_SERIF ) ) {
-            if( 0 != ( style & STYLE_BOLD ) ) {
-                font = abspath(availableFontFileNames[5]);
-            } else {
-                font = abspath(availableFontFileNames[4]);
-            }
-            return font;
-        }
-        
-        // Serif Fonts ..
         switch (family) {
-            case FAMILY_LIGHT:
-            case FAMILY_MEDIUM:
+            case FAMILY_MONOSPACED:
             case FAMILY_CONDENSED:
             case FAMILY_REGULAR:
-                if( 0 != ( style & STYLE_BOLD ) ) {
-                    if( 0 != ( style & STYLE_ITALIC ) ) {
+                if( is(style, STYLE_BOLD) ) {
+                    if( is(style, STYLE_ITALIC) ) {
                         font = abspath(availableFontFileNames[3]);
                     } else {
                         font = abspath(availableFontFileNames[2]);
                     }
-                } else if( 0 != ( style & STYLE_ITALIC ) ) {
+                } else if( is(style, STYLE_ITALIC) ) {
                     font = abspath(availableFontFileNames[1]);
                 } else {
                     font = abspath(availableFontFileNames[0]);
                 }
                 break;
                 
-            case FAMILY_MONOSPACED:
-                if( 0 != ( style & STYLE_BOLD ) ) {
-                    font = abspath(availableFontFileNames[7]);
+            case FAMILY_LIGHT:
+                if( is(style, STYLE_ITALIC) ) {
+                    font = abspath(availableFontFileNames[5]);
                 } else {
+                    font = abspath(availableFontFileNames[4]);
+                }
+                break;
+                
+            case FAMILY_MEDIUM:
+                if( is(style, STYLE_ITALIC) ) {
                     font = abspath(availableFontFileNames[6]);
+                } else {
+                    font = abspath(availableFontFileNames[7]);
                 }
                 break;                
         }
@@ -112,7 +108,8 @@ public class JavaFontLoader implements FontSet {
     }
 	
     Font abspath(String fname) {
-        return FontFactory.getFontConstr().create(javaFontPath+fname);
+        return FontFactory.getFontConstr().create(        
+                Locator.getResource(UbuntuFontLoader.class, relPath+fname).getPath() );
     }   
 	
 }

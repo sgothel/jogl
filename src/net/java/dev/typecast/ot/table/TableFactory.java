@@ -51,7 +51,6 @@
 package net.java.dev.typecast.ot.table;
 
 import java.io.DataInputStream;
-import java.io.InputStream;
 import java.io.IOException;
 import net.java.dev.typecast.ot.OTFont;
 import net.java.dev.typecast.ot.OTFontCollection;

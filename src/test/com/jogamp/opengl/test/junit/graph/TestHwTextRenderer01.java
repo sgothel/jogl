@@ -7,6 +7,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
@@ -15,10 +16,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.opengl.SVertex;
-import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.util.FPSAnimator;
 
 import demo.GPUTextGLListenerBase01;
 
@@ -30,13 +30,13 @@ public class TestHwTextRenderer01 {
 		NativeWindowFactory.initSingleton(true);
 	}
 
-	static void destroyWindow(Window window) {
+	static void destroyWindow(GLWindow window) {
 		if(null!=window) {
 			window.destroy();
 		}
 	}
 
-	static GLWindow createWindow(String title, GLCapabilities caps, int width, int height) {
+	static GLWindow createWindow(String title, GLCapabilitiesImmutable caps, int width, int height) {
 		Assert.assertNotNull(caps);
 
 		GLWindow window = GLWindow.create(caps);
@@ -53,88 +53,83 @@ public class TestHwTextRenderer01 {
 	public void testTextRendererR2T01() throws InterruptedException {
 		GLProfile glp = GLProfile.get(GLProfile.GL3bc);
 		GLCapabilities caps = new GLCapabilities(glp);
+		caps.setOnscreen(false);
 		caps.setAlphaBits(4);	
 
-		GLWindow window = createWindow("r2t1msaa0", caps, 400,400);
+		GLWindow window = createWindow("r2t1-msaa0", caps, 800,400);
 		TextGLListener textGLListener = new TextGLListener(Region.TWO_PASS);
-		textGLListener.setTech(-10, 10, 0f, -1000, 400);
-		textGLListener.attachTo(window);
+        textGLListener.attachTo(window);
+        
+        textGLListener.setFontSet(FontFactory.UBUNTU, 0, 0);
+        textGLListener.setTech(-400, -30, 0f, -1000, 400);
+		window.display();
+		
+		textGLListener.setTech(-400, -30, 0, -380, 1100);
+        window.display();
+		
+		textGLListener.setTech(-400, -20, 0, -80, 2500);
+        window.display();
 
-		FPSAnimator animator = new FPSAnimator(10);
-		animator.add(window);
-		animator.start();
-		
-		while(!textGLListener.isPrinted()){
-			Thread.sleep(100);
-		}
-		
-		textGLListener.resetPrinting();
-		textGLListener.setTech(-111, 74, 0, -380, 1100);
-		Thread.sleep(100);
-		while(!textGLListener.isPrinted()){
-			Thread.sleep(100);
-		}
-		
-		textGLListener.resetPrinting();
-		textGLListener.setTech(-111, 74, 0, -80, 2500);
-		Thread.sleep(100);
-		while(!textGLListener.isPrinted()){
-			Thread.sleep(100);
-		}
-		
-		animator.stop();
+        textGLListener.setFontSet(FontFactory.JAVA, 0, 0);
+        textGLListener.setTech(-400, -30, 0f, -1000, 400);
+        window.display();
+        
+        textGLListener.setTech(-400, -30, 0, -380, 1100);
+        window.display();
+        
+        textGLListener.setTech(-400, -20, 0, -80, 2500);
+        window.display();
+        
 		destroyWindow(window); 
-		
-		Thread.sleep(1000);
 	}
 	
 	@Test
 	public void testTextRendererMSAA01() throws InterruptedException {
 		GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
 		GLCapabilities caps = new GLCapabilities(glp);
+		caps.setOnscreen(false);
 		caps.setAlphaBits(4);	
 		caps.setSampleBuffers(true);
 		caps.setNumSamples(4);
 
-		GLWindow window = createWindow("r2t0msaa1", caps, 400, 400);
+		GLWindow window = createWindow("r2t0-msaa1", caps, 800, 400);
 		TextGLListener textGLListener = new TextGLListener(Region.SINGLE_PASS);
-		textGLListener.setTech(-10, 10, 0f, -1000, 0);
-		textGLListener.attachTo(window);
-
-		FPSAnimator animator = new FPSAnimator(10);
-		animator.add(window);
-		animator.start();
-		
-		while(!textGLListener.isPrinted()){
-			Thread.sleep(100);
-		}
-		
-		textGLListener.resetPrinting();
-		textGLListener.setTech(-111, 74, 0, -380, 0);
-		Thread.sleep(100);
-		while(!textGLListener.isPrinted()){
-			Thread.sleep(100);
-		}
-		
-		textGLListener.resetPrinting();
-		textGLListener.setTech(-111, 74, 0, -80, 0);
-		Thread.sleep(100);
-		while(!textGLListener.isPrinted()){
-			Thread.sleep(100);
-		}
-		
-		animator.stop();
+        textGLListener.attachTo(window);
+        
+        textGLListener.setFontSet(FontFactory.UBUNTU, 0, 0);
+        textGLListener.setTech(-400, -30, 0f, -1000, 0);
+        window.display();
+        
+        textGLListener.setTech(-400, -30, 0, -380, 0);
+        window.display();
+        
+        textGLListener.setTech(-400, -20, 0, -80, 0);
+        window.display();
+        
+        textGLListener.setFontSet(FontFactory.JAVA, 0, 0);
+        textGLListener.setTech(-400, -30, 0f, -1000, 0);
+        window.display();
+        
+        textGLListener.setTech(-400, -30, 0, -380, 0);
+        window.display();
+        
+        textGLListener.setTech(-400, -20, 0, -80, 0);
+        window.display();
+        
 		destroyWindow(window); 
-		
-		Thread.sleep(1000);
 	}
 	
 	private class TextGLListener extends GPUTextGLListenerBase01 {
-		GLWindow glwindow;
+	    String winTitle;
+	    
 		public TextGLListener(int type) {
 			super(SVertex.factory(), type, false, false);
 		}
 		
+		public void attachTo(GLWindow window) {
+		    super.attachTo(window);
+		    winTitle = window.getTitle();
+		}
 		public void setTech(float xt, float yt, float angle, int zoom, int fboSize){
 			setMatrix(xt, yt, angle, zoom, fboSize);       
 		}
@@ -148,27 +143,12 @@ public class TestHwTextRenderer01 {
 			textRenderer.setAlpha(gl, 1.0f);
 			textRenderer.setColor(gl, 0.0f, 0.0f, 0.0f);
 		}
-		public void attachTo(GLWindow window) {
-			super.attachTo(window);
-			glwindow = window;
-		}
-
-		public boolean isPrinted(){
-			return !printScreen;
-		}
 		
-		public void resetPrinting(){
-			printScreen = true;
-		}
-
 		public void display(GLAutoDrawable drawable) {
 			super.display(drawable);
 
 			try {
-				if(printScreen){
-					printScreen(glwindow, "./", glwindow.getTitle(), false);
-					printScreen = false;
-				}
+				printScreen("./", winTitle, drawable.getWidth(), drawable.getHeight(), false);
 			} catch (GLException e) {
 				e.printStackTrace();
 			} catch (IOException e) {

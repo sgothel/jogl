@@ -25,56 +25,10 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.font;
+package jogamp.graph.font;
 
-import java.security.AccessController;
+import com.jogamp.graph.font.Font;
 
-import com.jogamp.common.util.ReflectionUtil;
-
-import jogamp.graph.font.FontConstructor;
-import jogamp.graph.font.JavaFontLoader;
-import jogamp.graph.font.UbuntuFontLoader;
-import jogamp.opengl.Debug;
-
-public class FontFactory {
-    /** Ubuntu is the default font family */
-    public static final int UBUNTU = 0;
-    
-    /** Java fonts are optional */
-    public static final int JAVA = 1;
-    
-    private static final FontConstructor fontConstr;
-
-    static {
-        /**
-         * For example:
-         *   "jogamp.graph.font.typecast.TypecastFontFactory" (default)
-         *   "jogamp.graph.font.ttf.TTFFontImpl"
-         */
-        String fontImplName = Debug.getProperty("FontImpl", true, AccessController.getContext());
-        if(null == fontImplName) {
-            fontImplName = "jogamp.graph.font.typecast.TypecastFontConstructor";
-        }
-        fontConstr = (FontConstructor) ReflectionUtil.createInstance(fontImplName, FontFactory.class.getClassLoader());
-    }
-    
-    public static final FontConstructor getFontConstr() { return fontConstr; }
-    
-    public static final FontSet getDefault() {
-        return get(UBUNTU);
-    }
-    
-    public static final FontSet get(int font) {
-        switch (font) {
-            case JAVA:
-                return JavaFontLoader.get();
-            default:
-                return UbuntuFontLoader.get();
-        }
-    }
-    
-    public static final Font get(String path) {
-        return fontConstr.create(path);
-    }
-
+public interface FontConstructor {
+    Font create(String name);
 }

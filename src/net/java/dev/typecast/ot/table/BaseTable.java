@@ -24,7 +24,6 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
-import net.java.dev.typecast.ot.Fixed;
 
 /**
  * Baseline Table
