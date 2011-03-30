@@ -94,10 +94,7 @@ public class GPURegionNewtDemo02 {
 		
 		public RegionGLListener() {
             super(SVertex.factory(), Region.TWO_PASS, DEBUG, TRACE);
-            setMatrix(-20, 00, 0f, -50, 400);
-            //setMatrix(-20, 00, 0f, -400, 400);
-            //setMatrix(-20, 00, 0f, -400, 400);
-            //setMatrix(-20, 00, 0f, -100, 800);
+            setMatrix(-20, 00, 0f, -50, 1140);
 		}
 		
         private void createTestOutline(){
@@ -149,9 +146,6 @@ public class GPURegionNewtDemo02 {
 			regionRenderer.init(gl);
             regionRenderer.setAlpha(gl, 1.0f);
             regionRenderer.setColor(gl, 0.0f, 0.0f, 0.0f);
-            //gl.glSampleCoverage(0.95f, false);
-            //gl.glEnable(GL2GL3.GL_SAMPLE_COVERAGE); // sample coverage doesn't really make a difference to lines
-            //gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_ONE);
             MSAATool.dump(drawable);
             
 			createTestOutline();
