@@ -172,15 +172,15 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             else if(arg0.getKeyCode() == KeyEvent.VK_4){
                 fontIncr(-10);
             }
-            else if(arg0.getKeyChar() == 's') {
+            else if(arg0.getKeyCode() == KeyEvent.VK_S) {
                 drawFontSet = !drawFontSet; 
                 System.err.println("Draw font set: "+drawFontSet);
             }  
-            else if(arg0.getKeyChar() == 'f'){
+            else if(arg0.getKeyCode() == KeyEvent.VK_F){
                 drawFPS = !drawFPS; 
                 System.err.println("Draw FPS: "+drawFPS);
             }  
-            else if(arg0.getKeyChar() == ' ') {      
+            else if(arg0.getKeyCode() == KeyEvent.VK_SPACE) {      
                 nextFontSet();
             }
         }
