@@ -32,7 +32,9 @@ import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
 
-import javax.media.opengl.GL3;
+import javax.media.opengl.GL2ES2;
+// FIXME: Subsume GL2GL3.GL_DRAW_FRAMEBUFFER -> GL2ES2.GL_DRAW_FRAMEBUFFER ! 
+import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLUniformData;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
@@ -47,7 +49,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class VBORegion2PGL3  implements Region{
+public class VBORegion2PES2  implements Region{
 	private int numVertices = 0;
 	private IntBuffer vboIds;
 	
@@ -74,7 +76,7 @@ public class VBORegion2PGL3  implements Region{
 	
 	private ShaderState st;
 	
-	public VBORegion2PGL3(GLContext context, ShaderState st){
+	public VBORegion2PES2(GLContext context, ShaderState st){
 		this.context =context;
 		this.st = st;
 	}
@@ -82,7 +84,7 @@ public class VBORegion2PGL3  implements Region{
 	public void update(){
 		box = new AABBox();
 		
-		GL3 gl = context.getGL().getGL3();
+		GL2ES2 gl = context.getGL().getGL2ES2();
 		ShortBuffer indicies = Buffers.newDirectShortBuffer(triangles.size() * 3);
 		
 		for(Triangle t:triangles){
@@ -141,17 +143,17 @@ public class VBORegion2PGL3  implements Region{
 		vboIds = IntBuffer.allocate(numBuffers);
 		gl.glGenBuffers(numBuffers, vboIds);
 		
-		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, vboIds.get(0)); // vertices
-		gl.glBufferData(GL3.GL_ARRAY_BUFFER, numVertices * 3 * Buffers.SIZEOF_FLOAT, verticesBuffer, GL3.GL_STATIC_DRAW);
-		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
+		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, vboIds.get(0)); // vertices
+		gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, numVertices * 3 * Buffers.SIZEOF_FLOAT, verticesBuffer, GL2ES2.GL_STATIC_DRAW);
+		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, 0);
 		
-		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, vboIds.get(1)); //texture
-		gl.glBufferData(GL3.GL_ARRAY_BUFFER, numVertices * 2 * Buffers.SIZEOF_FLOAT, texCoordBuffer, GL3.GL_STATIC_DRAW);
-		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
+		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, vboIds.get(1)); //texture
+		gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, numVertices * 2 * Buffers.SIZEOF_FLOAT, texCoordBuffer, GL2ES2.GL_STATIC_DRAW);
+		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, 0);
 		
-		gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, vboIds.get(2)); //triangles
-		gl.glBufferData(GL3.GL_ELEMENT_ARRAY_BUFFER, triangles.size()* 3 * Buffers.SIZEOF_SHORT, indicies, GL3.GL_STATIC_DRAW);
-		gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, 0);
+		gl.glBindBuffer(GL2ES2.GL_ELEMENT_ARRAY_BUFFER, vboIds.get(2)); //triangles
+		gl.glBufferData(GL2ES2.GL_ELEMENT_ARRAY_BUFFER, triangles.size()* 3 * Buffers.SIZEOF_SHORT, indicies, GL2ES2.GL_STATIC_DRAW);
+		gl.glBindBuffer(GL2ES2.GL_ELEMENT_ARRAY_BUFFER, 0);
 		
 		dirty = false;
 	}
@@ -175,36 +177,37 @@ public class VBORegion2PGL3  implements Region{
 	}
 	
 	private void renderTexture(PMVMatrix matrix, int width, int hight){
-		GL3 gl = context.getGL().getGL3();
+		GL2ES2 gl = context.getGL().getGL2ES2();
 	    gl.glViewport(0, 0, width, hight);
 	    if(!st.glUniform(gl, new GLUniformData("mgl_PMVMatrix", 4, 4, matrix.glGetPMvMatrixf()))){
 	    	System.out.println("Cnt set tex based mat");
 	    }
-	    gl.glEnable(GL3.GL_TEXTURE_2D);
-	    gl.glActiveTexture(GL3.GL_TEXTURE0);
-	    gl.glBindTexture(GL3.GL_TEXTURE_2D, texture[0]);
+	    gl.glEnable(GL2ES2.GL_TEXTURE_2D);
+	    gl.glActiveTexture(GL2ES2.GL_TEXTURE0);
+	    gl.glBindTexture(GL2ES2.GL_TEXTURE_2D, texture[0]);
 	    
 	    st.glUniform(gl, new GLUniformData("texture", texture[0]));
 	    int loc = gl.glGetUniformLocation(st.shaderProgram().id(), "texture");
 	    gl.glUniform1i(loc, 0);
 	    
 	    
-		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, t_vboIds.get(0));
+		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, t_vboIds.get(0));
 		gl.glEnableVertexAttribArray(VERTEX_POS_INDX);
-		gl.glVertexAttribPointer(VERTEX_POS_INDX, 3, GL3.GL_FLOAT, false, 3 * Buffers.SIZEOF_FLOAT, 0);
+		gl.glVertexAttribPointer(VERTEX_POS_INDX, 3, GL2ES2.GL_FLOAT, false, 3 * Buffers.SIZEOF_FLOAT, 0);
 		
-		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, t_vboIds.get(1));
+		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, t_vboIds.get(1));
 		gl.glEnableVertexAttribArray(TEX_COORD);
-		gl.glVertexAttribPointer(TEX_COORD, 2, GL3.GL_FLOAT, false, 2 * Buffers.SIZEOF_FLOAT, 0);
+		gl.glVertexAttribPointer(TEX_COORD, 2, GL2ES2.GL_FLOAT, false, 2 * Buffers.SIZEOF_FLOAT, 0);
 		
-		gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, t_vboIds.get(2));
-		gl.glDrawElements(GL3.GL_TRIANGLES, 2 * 3, GL3.GL_UNSIGNED_SHORT, 0);
+		gl.glBindBuffer(GL2ES2.GL_ELEMENT_ARRAY_BUFFER, t_vboIds.get(2));
+		gl.glDrawElements(GL2ES2.GL_TRIANGLES, 2 * 3, GL2ES2.GL_UNSIGNED_SHORT, 0);
 		
-		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
+		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, 0);
 	}
 	
 	private void setupBoundingBuffers(){
-		GL3 gl = context.getGL().getGL3();
+	    GL2ES2 gl = context.getGL().getGL2ES2();
+		
 		ShortBuffer indicies = Buffers.newDirectShortBuffer(6);
 		indicies.put((short) 0); indicies.put((short) 1); indicies.put((short) 3);
 		indicies.put((short) 1); indicies.put((short) 2); indicies.put((short) 3);
@@ -246,17 +249,17 @@ public class VBORegion2PGL3  implements Region{
 		t_vboIds = IntBuffer.allocate(3);
 		gl.glGenBuffers(numBuffers, t_vboIds);
 		
-		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, t_vboIds.get(0)); // vertices
-		gl.glBufferData(GL3.GL_ARRAY_BUFFER, 4 * 3 * Buffers.SIZEOF_FLOAT, verticesBuffer, GL3.GL_STATIC_DRAW);
-		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
+		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, t_vboIds.get(0)); // vertices
+		gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, 4 * 3 * Buffers.SIZEOF_FLOAT, verticesBuffer, GL2ES2.GL_STATIC_DRAW);
+		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, 0);
 		
-		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, t_vboIds.get(1)); //texture
-		gl.glBufferData(GL3.GL_ARRAY_BUFFER, 4 * 2 * Buffers.SIZEOF_FLOAT, texCoordBuffer, GL3.GL_STATIC_DRAW);
-		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
+		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, t_vboIds.get(1)); //texture
+		gl.glBufferData(GL2ES2.GL_ARRAY_BUFFER, 4 * 2 * Buffers.SIZEOF_FLOAT, texCoordBuffer, GL2ES2.GL_STATIC_DRAW);
+		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, 0);
 		
-		gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, t_vboIds.get(2)); //triangles
-		gl.glBufferData(GL3.GL_ELEMENT_ARRAY_BUFFER, 4 * 3 * Buffers.SIZEOF_SHORT, indicies, GL3.GL_STATIC_DRAW);
-		gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, 0);
+		gl.glBindBuffer(GL2ES2.GL_ELEMENT_ARRAY_BUFFER, t_vboIds.get(2)); //triangles
+		gl.glBufferData(GL2ES2.GL_ELEMENT_ARRAY_BUFFER, 4 * 3 * Buffers.SIZEOF_SHORT, indicies, GL2ES2.GL_STATIC_DRAW);
+		gl.glBindBuffer(GL2ES2.GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 	
 	private void initFBOTexture(PMVMatrix m, int width, int hight){
@@ -264,7 +267,7 @@ public class VBORegion2PGL3  implements Region{
 	    // tex_height_c = tex_width_c;
 	    System.out.println("FBO Size: "+tex_height_c+"x"+tex_width_c);
 		System.out.println("FBO Scale: " + m.glGetMatrixf().get(0) +" " + m.glGetMatrixf().get(5));
-		GL3 gl = context.getGL().getGL3();
+		GL2ES2 gl = context.getGL().getGL2ES2();
 		
 		if(fbo[0] > 0) {
 		    gl.glDeleteFramebuffers(1, fbo, 0);
@@ -280,32 +283,32 @@ public class VBORegion2PGL3  implements Region{
         gl.glGenRenderbuffers(1,rbo_depth, 0);
         System.out.println("FBO: fbo " + fbo[0] + ", tex " + texture[0] + ", depth " + rbo_depth[0]);
 		
-        gl.glBindFramebuffer(GL3.GL_DRAW_FRAMEBUFFER, fbo[0]);
-		gl.glBindTexture(GL3.GL_TEXTURE_2D, texture[0]);
-		gl.glTexImage2D(GL3.GL_TEXTURE_2D, 0, GL3.GL_RGBA, tex_width_c, 
-				tex_height_c, 0, GL3.GL_RGBA, GL3.GL_UNSIGNED_BYTE, null);
+        gl.glBindFramebuffer(GL2GL3.GL_DRAW_FRAMEBUFFER, fbo[0]);
+		gl.glBindTexture(GL2ES2.GL_TEXTURE_2D, texture[0]);
+		gl.glTexImage2D(GL2ES2.GL_TEXTURE_2D, 0, GL2ES2.GL_RGBA, tex_width_c, 
+				tex_height_c, 0, GL2ES2.GL_RGBA, GL2ES2.GL_UNSIGNED_BYTE, null);
 		
-		gl.glTexParameterf(GL3.GL_TEXTURE_2D, GL3.GL_TEXTURE_MIN_FILTER, GL3.GL_LINEAR);
-		gl.glTexParameterf(GL3.GL_TEXTURE_2D, GL3.GL_TEXTURE_MAG_FILTER, GL3.GL_LINEAR);
-		gl.glTexParameterf(GL3.GL_TEXTURE_2D, GL3.GL_TEXTURE_WRAP_S, GL3.GL_CLAMP_TO_EDGE);
-		gl.glTexParameterf(GL3.GL_TEXTURE_2D, GL3.GL_TEXTURE_WRAP_T, GL3.GL_CLAMP_TO_EDGE);
+		gl.glTexParameterf(GL2ES2.GL_TEXTURE_2D, GL2ES2.GL_TEXTURE_MIN_FILTER, GL2ES2.GL_LINEAR);
+		gl.glTexParameterf(GL2ES2.GL_TEXTURE_2D, GL2ES2.GL_TEXTURE_MAG_FILTER, GL2ES2.GL_LINEAR);
+		gl.glTexParameterf(GL2ES2.GL_TEXTURE_2D, GL2ES2.GL_TEXTURE_WRAP_S, GL2ES2.GL_CLAMP_TO_EDGE);
+		gl.glTexParameterf(GL2ES2.GL_TEXTURE_2D, GL2ES2.GL_TEXTURE_WRAP_T, GL2ES2.GL_CLAMP_TO_EDGE);
 
-	    gl.glFramebufferTexture2D(GL3.GL_DRAW_FRAMEBUFFER, GL3.GL_COLOR_ATTACHMENT0, 
-	                              GL3.GL_TEXTURE_2D, texture[0], 0);
+	    gl.glFramebufferTexture2D(GL2GL3.GL_DRAW_FRAMEBUFFER, GL2ES2.GL_COLOR_ATTACHMENT0, 
+	                              GL2ES2.GL_TEXTURE_2D, texture[0], 0);
 
         // Set up the depth buffer
-	    gl.glBindRenderbuffer(GL3.GL_RENDERBUFFER, rbo_depth[0]);
-	    gl.glRenderbufferStorage(GL3.GL_RENDERBUFFER, GL3.GL_DEPTH_COMPONENT, tex_width_c, tex_height_c);
-	    gl.glFramebufferRenderbuffer(GL3.GL_FRAMEBUFFER, GL3.GL_DEPTH_COMPONENT, GL3.GL_RENDERBUFFER, rbo_depth[0]);
+	    gl.glBindRenderbuffer(GL2ES2.GL_RENDERBUFFER, rbo_depth[0]);
+	    gl.glRenderbufferStorage(GL2ES2.GL_RENDERBUFFER, GL2ES2.GL_DEPTH_COMPONENT, tex_width_c, tex_height_c);
+	    gl.glFramebufferRenderbuffer(GL2ES2.GL_FRAMEBUFFER, GL2ES2.GL_DEPTH_COMPONENT, GL2ES2.GL_RENDERBUFFER, rbo_depth[0]);
 
-	    int status = gl.glCheckFramebufferStatus(GL3.GL_FRAMEBUFFER);
-	    if(status != GL3.GL_FRAMEBUFFER_COMPLETE){
+	    int status = gl.glCheckFramebufferStatus(GL2ES2.GL_FRAMEBUFFER);
+	    if(status != GL2ES2.GL_FRAMEBUFFER_COMPLETE){
 	    	System.err.println("Cant Create R2T pass!");
 	    }
 	    
 	    //render texture
 		PMVMatrix tex_matrix = new PMVMatrix();
-	    gl.glBindFramebuffer(GL3.GL_DRAW_FRAMEBUFFER, fbo[0]);
+	    gl.glBindFramebuffer(GL2GL3.GL_DRAW_FRAMEBUFFER, fbo[0]);
 	    gl.glViewport(0, 0, tex_width_c, tex_height_c);
 	    tex_matrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
 	    tex_matrix.glLoadIdentity();
@@ -316,30 +319,30 @@ public class VBORegion2PGL3  implements Region{
 	    }
 	    
 	    gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	    gl.glClear(GL3.GL_COLOR_BUFFER_BIT | GL3.GL_DEPTH_BUFFER_BIT);
+	    gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT | GL2ES2.GL_DEPTH_BUFFER_BIT);
 	    renderRegion();
 
-	    gl.glBindFramebuffer(GL3.GL_FRAMEBUFFER, 0);
-	    gl.glBindTexture(GL3.GL_TEXTURE_2D, 0);
+	    gl.glBindFramebuffer(GL2ES2.GL_FRAMEBUFFER, 0);
+	    gl.glBindTexture(GL2ES2.GL_TEXTURE_2D, 0);
 	    
 	    setupBoundingBuffers();
 	}
 	
 	private void renderRegion(){
-		GL3 gl = context.getGL().getGL3();
+		GL2ES2 gl = context.getGL().getGL2ES2();
 		
-		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, vboIds.get(0));
+		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, vboIds.get(0));
 		gl.glEnableVertexAttribArray(VERTEX_POS_INDX);
-		gl.glVertexAttribPointer(VERTEX_POS_INDX, 3, GL3.GL_FLOAT, false, 3 * Buffers.SIZEOF_FLOAT, 0);
+		gl.glVertexAttribPointer(VERTEX_POS_INDX, 3, GL2ES2.GL_FLOAT, false, 3 * Buffers.SIZEOF_FLOAT, 0);
 		
-		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, vboIds.get(1));
+		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, vboIds.get(1));
 		gl.glEnableVertexAttribArray(TEX_COORD);
-		gl.glVertexAttribPointer(TEX_COORD, 2, GL3.GL_FLOAT, false, 2 * Buffers.SIZEOF_FLOAT, 0);
+		gl.glVertexAttribPointer(TEX_COORD, 2, GL2ES2.GL_FLOAT, false, 2 * Buffers.SIZEOF_FLOAT, 0);
 		
-		gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, vboIds.get(2));
-		gl.glDrawElements(GL3.GL_TRIANGLES, triangles.size() * 3, GL3.GL_UNSIGNED_SHORT, 0);
+		gl.glBindBuffer(GL2ES2.GL_ELEMENT_ARRAY_BUFFER, vboIds.get(2));
+		gl.glDrawElements(GL2ES2.GL_TRIANGLES, triangles.size() * 3, GL2ES2.GL_UNSIGNED_SHORT, 0);
 		
-		gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
+		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, 0);
 	}
 	
 	public void addTriangles(ArrayList<Triangle> tris) {
@@ -362,7 +365,7 @@ public class VBORegion2PGL3  implements Region{
 	}
 	
 	public void destroy() {
-		GL3 gl = context.getGL().getGL3();
+		GL2ES2 gl = context.getGL().getGL2ES2();
 		gl.glDeleteBuffers(numBuffers, vboIds);
 		gl.glDeleteFramebuffers(1, fbo, 0);
 		fbo[0] = 0;

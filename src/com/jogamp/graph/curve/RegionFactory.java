@@ -28,11 +28,12 @@
 package com.jogamp.graph.curve;
 
 import javax.media.opengl.GLContext;
+import javax.media.opengl.GLException;
 
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 import jogamp.graph.curve.opengl.VBORegionSPES2;
-import jogamp.graph.curve.opengl.VBORegion2PGL3;
+import jogamp.graph.curve.opengl.VBORegion2PES2;
 
 
 /** RegionFactory to create a Context specific Region implementation. 
@@ -48,8 +49,11 @@ public class RegionFactory {
 	 * @return region 
 	 */
 	public static Region create(GLContext context, ShaderState st, int type){
-		if(Region.TWO_PASS == type && context.isGL3()){
-			return new VBORegion2PGL3(context, st);
+	    if( !context.isGL2ES2() ) {
+	        throw new GLException("At least a GL2ES2 GL context is required. Given: " + context);
+	    }
+		if( Region.TWO_PASS == type ){
+			return new VBORegion2PES2(context, st);
 		}
 		else{
 			return new VBORegionSPES2(context);
