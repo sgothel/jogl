@@ -321,22 +321,13 @@ public class ShaderCode {
 
     public static String readShaderSource(Class context, String path) {
         ClassLoader contextCL = (null!=context)?context.getClassLoader():null;
-        URL url = Locator.getResource(path, contextCL);
-        if (url == null && null!=context) {
-            // Try again by scoping the path within the class's package
-            String className = context.getName().replace('.', '/');
-            int lastSlash = className.lastIndexOf('/');
-            if (lastSlash >= 0) {
-                String tmpPath = className.substring(0, lastSlash + 1) + path;
-                url = Locator.getResource(tmpPath, contextCL);
-                if (url != null) {
-                    path = tmpPath;
-                }
-            }
-        }
+        URL url = Locator.getResource(context, path);        
         if (url == null) {
             return null;
-        }
+        }        
+        File pf = new File(url.getPath());
+        path = pf.getParent() + "/" ;
+        
         StringBuffer result = new StringBuffer();
         readShaderSource(contextCL, path, url, result);
         return result.toString();

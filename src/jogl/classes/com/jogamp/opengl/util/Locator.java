@@ -33,8 +33,6 @@
 
 package com.jogamp.opengl.util;
 
-import java.util.*;
-import java.nio.*;
 import java.io.*;
 import java.net.*;
 
