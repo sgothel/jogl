@@ -35,8 +35,8 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
-import com.jogamp.graph.curve.HwRegionRenderer;
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.opengl.HwRegionRenderer;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;

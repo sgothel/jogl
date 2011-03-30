@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.curve;
+package com.jogamp.graph.curve.opengl;
 
 import java.nio.FloatBuffer;
 import java.util.HashMap;
@@ -41,6 +41,7 @@ import jogamp.graph.font.FontInt;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.opengl.SVertex;
@@ -193,7 +194,7 @@ public class HwTextRenderer {
 	
 	public void dispose(GL2ES2 gl) {
 	    st.destroy(gl);
-	    clearCached();
+	    flushCash();
 	}
 	
 	public float getAlpha() {
@@ -310,12 +311,6 @@ public class HwTextRenderer {
 	}
 	
 	
-	public void enable(GL2ES2 gl, boolean enable) {
-	    if(null != gl) {
-	        st.glUseProgram(gl, enable);
-	    }
-	}
-	
 	/** Render the String in 3D space wrt to the font provided at the position provided
 	 * the outlines will be generated, if not yet generated
 	 * @param font font to be used
@@ -347,7 +342,7 @@ public class HwTextRenderer {
 	/** Clears the cached string curves
 	 *  and destorys underlying buffers
 	 */
-	public void clearCached() {
+	public void flushCash() {
 		Iterator<GlyphString> iterator = strings.values().iterator();
 		while(iterator.hasNext()){
 			GlyphString glyphString = iterator.next();

@@ -41,7 +41,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLRunnable;
 
-import com.jogamp.graph.curve.HwTextRenderer;
+import com.jogamp.graph.curve.opengl.HwTextRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.Vertex;

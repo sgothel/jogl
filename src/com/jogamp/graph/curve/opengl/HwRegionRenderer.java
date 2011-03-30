@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.curve;
+package com.jogamp.graph.curve.opengl;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
@@ -39,6 +39,9 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLUniformData;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
+import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.RegionFactory;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 
