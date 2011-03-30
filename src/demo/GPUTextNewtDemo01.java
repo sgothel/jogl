@@ -34,6 +34,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
@@ -58,14 +59,14 @@ public class GPUTextNewtDemo01 {
 		caps.setNumSamples(4); // 2 samples is not enough ..
 		System.out.println("Requested: "+caps);
 		
-		window = GLWindow.create(caps);
-		
+		window = GLWindow.create(caps);		
 		window.setPosition(10, 10);
 		window.setSize(800, 400);
-
 		window.setTitle("GPU Text Newt Demo 01 - r2t0 msaa1");
+		
 		textGLListener = new TextGLListener();
-		textGLListener.attachTo(window);
+		textGLListener.attachInputListenerTo(window);
+		window.addGLEventListener(textGLListener);
 
 		window.enablePerfLog(true);		
 		window.setVisible(true);
@@ -75,7 +76,7 @@ public class GPUTextNewtDemo01 {
 		animator.start();
 	}
 	
-	private class TextGLListener extends GPUTextGLListenerBase01 {
+	private class TextGLListener extends GPUTextRendererListenerBase01 {
 	    public TextGLListener() {
 		    super(SVertex.factory(), Region.SINGLE_PASS, DEBUG, TRACE);
 		    // FBO size unrelated with 1 pass
@@ -85,9 +86,11 @@ public class GPUTextNewtDemo01 {
 		}
 		
 		public void init(GLAutoDrawable drawable) {
-            GL2ES2 gl = drawable.getGL().getGL2ES2();
-		    
             super.init(drawable);
+            
+            GL2ES2 gl = drawable.getGL().getGL2ES2();
+            
+            final TextRenderer textRenderer = (TextRenderer) getRenderer();
             
 			gl.setSwapInterval(1);
 			gl.glEnable(GL2ES2.GL_DEPTH_TEST);
