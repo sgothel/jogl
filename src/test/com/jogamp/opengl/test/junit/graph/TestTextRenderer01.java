@@ -59,7 +59,6 @@ public class TestTextRenderer01 {
 	public void testTextRendererR2T01() throws InterruptedException {
 		GLProfile glp = GLProfile.get(GLProfile.GL3);
 		GLCapabilities caps = new GLCapabilities(glp);
-		caps.setOnscreen(false);
 		caps.setAlphaBits(4);	
 
 		GLWindow window = createWindow("text-r2t1-msaa0", caps, 800,400);
@@ -94,7 +93,6 @@ public class TestTextRenderer01 {
 	public void testTextRendererMSAA01() throws InterruptedException {
 		GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
 		GLCapabilities caps = new GLCapabilities(glp);
-		caps.setOnscreen(false);
 		caps.setAlphaBits(4);	
 		caps.setSampleBuffers(true);
 		caps.setNumSamples(4);
