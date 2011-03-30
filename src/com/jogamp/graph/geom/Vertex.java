@@ -40,8 +40,6 @@ public interface Vertex extends Comparable<Vertex>, Cloneable {
 		T create(float x, float y, float z);
 
 		T create(float[] coordsBuffer, int offset, int length);	
-		
-		// T[] create(T ... v);
 	}
 	
 	void setCoord(float x, float y);

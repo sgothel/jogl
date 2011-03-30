@@ -289,15 +289,15 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
             else if(arg0.getKeyCode() == KeyEvent.VK_9){
                 rotate(-1);
             }  
-            else if(arg0.getKeyChar() == 's') {
+            else if(arg0.getKeyCode() == KeyEvent.VK_S) {
                 drawFontSet = !drawFontSet; 
                 System.err.println("Draw font set: "+drawFontSet);
             }  
-            else if(arg0.getKeyChar() == 'f'){
+            else if(arg0.getKeyCode() == KeyEvent.VK_F){
                 drawFPS = !drawFPS; 
                 System.err.println("Draw FPS: "+drawFPS);
             }  
-            else if(arg0.getKeyChar() == 'v') {
+            else if(arg0.getKeyCode() == KeyEvent.VK_V) {
                 if(null != autoDrawable) {
                     autoDrawable.invoke(false, new GLRunnable() {
                         public void run(GLAutoDrawable drawable) {
@@ -314,7 +314,7 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
                     });
                 }                
             }
-            else if(arg0.getKeyChar() == ' ') {      
+            else if(arg0.getKeyCode() == KeyEvent.VK_SPACE) {      
                 nextFontSet();
             }
         }

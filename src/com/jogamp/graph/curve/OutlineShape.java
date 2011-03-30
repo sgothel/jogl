@@ -44,33 +44,85 @@ import com.jogamp.graph.curve.tess.CDTriangulator2D;
  * closed region defined by the outlines.
  * 
  * One or more OutlineShape Object can be associated to a region
- * this is left high-level representation of the Objects. For
- * possible Optimizations.
+ * this is left as a high-level representation of the Objects. For
+ * optimizations, flexibility requirements for future features.
  * 
+ * <br><br>
+ * Example to creating an Outline Shape:
+ * <pre>
+  	addVertex(...)
+  	addVertex(...)
+  	addVertex(...)
+  	addEnptyOutline()
+  	addVertex(...)
+  	addVertex(...)
+  	addVertex(...)
+ * </pre>
+ * 
+ * The above will create two outlines each with three vertices. By adding these two outlines to 
+ * the OutlineShape, we are stating that the combination of the two outlines represent the shape.
+ * <br>
+ * 
+ * To specify that the shape is curved at a region, the on-curve flag should be set to false 
+ * for the vertex that is in the middle of the curved region (if the curved region is defined by 3
+ * vertices (quadratic curve).
+ * <br>
+ * In case the curved region is defined by 4 or more vertices the middle vertices should both have 
+ * the on-curve flag set to false.
+ * 
+ * <br>Example: <br>
+ * <pre>
+  	addVertex(0,0, true);
+  	addVertex(0,1, false);
+  	addVertex(1,1, false);
+  	addVertex(1,0, true);
+ * </pre>
+ * 
+ * The above snippet defines a cubic nurbs curve where (0,1 and 1,1) 
+ * do not belong to the final rendered shape.
+ *  
+ * <i>Implementation Notes:</i><br>
+ * <ul>
+ *		<li> The first vertex of any outline belonging to the shape should be on-curve</li>
+ *		<li> Intersections between off-curved parts of the outline is not handled</li>
+ * </ul>
+ * 
+ * @see Outline
  * @see Region
  */
 public class OutlineShape {
+
 	public static final int QUADRATIC_NURBS = 10;
-	private final Vertex.Factory<? extends Vertex> pointFactory;
+	private final Vertex.Factory<? extends Vertex> vertexFactory;
+
+	/** The list of outlines that are part of this 
+	 *  outline shape.
+	 */
 	private ArrayList<Outline<Vertex>> outlines = new ArrayList<Outline<Vertex>>(3);
-	
+
 	/** Create a new Outline based Shape
 	 */
 	public OutlineShape(Vertex.Factory<? extends Vertex> factory) {
-		pointFactory = factory;
+		vertexFactory = factory;
 		outlines.add(new Outline<Vertex>());
 	}
-	
-	public final Vertex.Factory<? extends Vertex> pointFactory() { return pointFactory; }
-	
+
+	/** Returns the associated vertex factory of this outline shape
+	 * @return Vertex.Factory object
+	 */
+	public final Vertex.Factory<? extends Vertex> vertexFactory() { return vertexFactory; }
+
 	/** Add a new empty outline 
 	 * to the shape, this new outline will
 	 * be placed at the end of the outline list.
+	 * 
+	 * After a call to this function all new vertices added
+	 * will belong to the new outline
 	 */
 	public void addEmptyOutline(){
 		outlines.add(new Outline<Vertex>());
 	}
-	
+
 	/** Adds an outline to the OutlineShape object
 	 * if last outline of the shape is empty, it will replace
 	 * that last Outline with the new one. If outline is empty,
@@ -86,27 +138,52 @@ public class OutlineShape {
 		}
 		outlines.add(outline);
 	}
-	
+
 	/** Adds a vertex to the last open outline in the
-	 *  shape
-	 * @param point 
+	 *  shape. 
+	 * @param v the vertex to be added to the OutlineShape
 	 */
-	public final void addVertex(Vertex point){
-		getLastOutline().addVertex(point);
+	public final void addVertex(Vertex v){
+		getLastOutline().addVertex(v);
 	}
-	
+
+	/** Add a 2D vertex to the last outline by defining the coordniate attribute
+	 * of the vertex. The 2D vertex will be represented as Z=0.
+	 * 
+	 * @param x the x coordinate
+	 * @param y the y coordniate
+	 * @param onCurve flag if this vertex is on the final curve or defines a curved region
+	 * of the shape around this vertex.
+	 */
 	public final void addVertex(float x, float y, boolean onCurve) {
-		getLastOutline().addVertex(pointFactory, x, y, onCurve);
+		getLastOutline().addVertex(vertexFactory, x, y, onCurve);
 	}
-	
+
+	/** Add a 3D vertex to the last outline by defining the coordniate attribute
+	 * of the vertex.
+	 * @param x the x coordinate
+	 * @param y the y coordniate
+	 * @param z the z coordniate
+	 * @param onCurve flag if this vertex is on the final curve or defines a curved region
+	 * of the shape around this vertex.
+	 */
 	public final void addVertex(float x, float y, float z, boolean onCurve) {
-		getLastOutline().addVertex(pointFactory, x, y, z, onCurve);
+		getLastOutline().addVertex(vertexFactory, x, y, z, onCurve);
 	}
-	
+
+	/** Add a vertex to the last outline by passing a float array and specifying the offset and length in which.
+	 * the attributes of the vertex are located. The attributes should be continuous (stride = 0).
+	 * Attributes which value are not set (when length less than 3) are set implicitly to zero.
+	 * @param coordsBuffer the coordinate array where the vertex attributes are to be picked from
+	 * @param offset the offset in the buffer to the x coordinate
+	 * @param length the number of attributes to pick from the buffer (maximum 3)
+	 * @param onCurve flag if this vertex is on the final curve or defines a curved region
+	 * of the shape around this vertex.
+	 */
 	public final void addVertex(float[] coordsBuffer, int offset, int length, boolean onCurve) {
-		getLastOutline().addVertex(pointFactory, coordsBuffer, offset, length, onCurve);
+		getLastOutline().addVertex(vertexFactory, coordsBuffer, offset, length, onCurve);
 	}	
-	
+
 	/** Closes the last outline in the shape
 	 * if last vertex is not equal to first vertex.
 	 * A new temp vertex is added at the end which 
@@ -115,7 +192,7 @@ public class OutlineShape {
 	public void closeLastOutline(){
 		getLastOutline().setClosed(true);
 	}
-	
+
 	/** Get the last added outline to the list
 	 * of outlines that define the shape
 	 * @return the last outline
@@ -125,7 +202,7 @@ public class OutlineShape {
 	}
 	/** Make sure that the outlines represent
 	 * the specified destinationType, if not
-	 * transform outlines to destinationType.
+	 * transform outlines to destination type.
 	 * @param destinationType The curve type needed
 	 */
 	public void transformOutlines(int destinationType){
@@ -133,7 +210,7 @@ public class OutlineShape {
 			transformOutlinesQuadratic();
 		}
 	}
-	
+
 	private void transformOutlinesQuadratic(){
 		ArrayList<Outline<Vertex>> newOutlines = new ArrayList<Outline<Vertex>>(3);
 
@@ -150,9 +227,9 @@ public class OutlineShape {
 				Vertex nextVertex = vertices.get((i+1)%size);
 				if(!(currentVertex.isOnCurve()) && !(nextVertex.isOnCurve())) {
 					newOutline.addVertex(currentVertex);
-					
+
 					float[] newCoords = VectorUtil.mid(currentVertex.getCoord(), nextVertex.getCoord());
-					newOutline.addVertex(pointFactory, newCoords, 0, 3, true);
+					newOutline.addVertex(vertexFactory, newCoords, 0, 3, true);
 				}
 				else {
 					newOutline.addVertex(currentVertex);
@@ -162,7 +239,7 @@ public class OutlineShape {
 		}
 		outlines = newOutlines;
 	}
-	
+
 	private void generateVertexIds(){
 		int maxVertexId = 0;
 		for(Outline<Vertex> outline:outlines){
@@ -173,7 +250,7 @@ public class OutlineShape {
 			}
 		}
 	}
-	
+
 	/** @return the list of vertices associated with the 
 	 * {@code Outline} list of this object
 	 */
@@ -184,10 +261,20 @@ public class OutlineShape {
 		}
 		return vertices;
 	}
-	
 
-	/** Triangluate the graph object
-	 * @param sharpness sharpness of the curved regions default = 0.5
+	/** Triangulate the outline shape generating a list of triangles
+	 * @return an arraylist of triangles representing the filled region
+	 * which is produced by the combination of the outlines 
+	 */
+	public ArrayList<Triangle<Vertex>> triangulate(){
+		return triangulate(0.5f);
+	}
+
+	/**Triangulate the outline shape generating a list of triangles
+	 * @param sharpness defines the curvature strength around the off-curve vertices.
+	 * defaults to 0.5f
+	 * @return an arraylist of triangles representing the filled region
+	 * which is produced by the combination of the outlines
 	 */
 	public ArrayList<Triangle<Vertex>> triangulate(float sharpness){
 		if(outlines.size() == 0){
@@ -195,20 +282,20 @@ public class OutlineShape {
 		}
 		sortOutlines();
 		generateVertexIds();
-		
+
 		CDTriangulator2D<Vertex> triangulator2d = new CDTriangulator2D<Vertex>(sharpness);
-		
+
 		for(int index = 0; index< outlines.size();index++){
 			Outline<Vertex> outline = outlines.get(index);
 			triangulator2d.addCurve(outline);
 		}
-		
+
 		ArrayList<Triangle<Vertex>> triangles = triangulator2d.generateTriangulation();
 		triangulator2d.reset();
-		
+
 		return triangles;
 	}
-	
+
 	/** Sort the outlines from large
 	 *  to small depending on the AABox
 	 */

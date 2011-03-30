@@ -70,7 +70,7 @@ public class GlyphShape {
 		shape.transformOutlines(OutlineShape.QUADRATIC_NURBS);
 	}
 	
-	public final Vertex.Factory<? extends Vertex> pointFactory() { return shape.pointFactory(); }
+	public final Vertex.Factory<? extends Vertex> vertexFactory() { return shape.vertexFactory(); }
 	
 	private void addVertexToLastOutline(Vertex vertex){
 		shape.addVertex(vertex);
@@ -81,40 +81,40 @@ public class GlyphShape {
 			if(!shape.getLastOutline().isEmpty()){
 				shape.addEmptyOutline();
 			}			
-			Vertex vert = pointFactory().create(coords[0],coords[1]);
+			Vertex vert = vertexFactory().create(coords[0],coords[1]);
 			vert.setOnCurve(true);
 			addVertexToLastOutline(vert);
 			
 			numVertices++;
 		}
 		else if(segmentType == PathIterator.SEG_LINETO){
-			Vertex vert1 = pointFactory().create(coords[0],coords[1]);
+			Vertex vert1 = vertexFactory().create(coords[0],coords[1]);
 			vert1.setOnCurve(true);
 			addVertexToLastOutline(vert1);
 			
 			numVertices++;
 		}
 		else if(segmentType == PathIterator.SEG_QUADTO){
-			Vertex vert1 = pointFactory().create(coords[0],coords[1]);
+			Vertex vert1 = vertexFactory().create(coords[0],coords[1]);
 			vert1.setOnCurve(false);
 			addVertexToLastOutline(vert1);
 
-			Vertex vert2 = pointFactory().create(coords[2],coords[3]);
+			Vertex vert2 = vertexFactory().create(coords[2],coords[3]);
 			vert2.setOnCurve(true);
 			addVertexToLastOutline(vert2);
 			
 			numVertices+=2;
 		}
 		else if(segmentType == PathIterator.SEG_CUBICTO){
-			Vertex vert1 = pointFactory().create(coords[0],coords[1]);
+			Vertex vert1 = vertexFactory().create(coords[0],coords[1]);
 			vert1.setOnCurve(false);
 			addVertexToLastOutline(vert1);
 
-			Vertex vert2 = pointFactory().create(coords[2],coords[3]);
+			Vertex vert2 = vertexFactory().create(coords[2],coords[3]);
 			vert2.setOnCurve(false);
 			addVertexToLastOutline(vert2);
 
-			Vertex vert3 = pointFactory().create(coords[4],coords[5]);
+			Vertex vert3 = vertexFactory().create(coords[4],coords[5]);
 			vert3.setOnCurve(true);
 			addVertexToLastOutline(vert3);
 			

@@ -61,11 +61,6 @@ public class SVertex implements Vertex {
 		public SVertex create(float[] coordsBuffer, int offset, int length) {
 			return new SVertex(coordsBuffer, offset, length);
 		}		
-		
-		/* @Override
-		public Vertex[] create(Vertex ... v) {
-			return v;
-		} */
 	}
 	
 	public SVertex() {
@@ -98,7 +93,7 @@ public class SVertex implements Vertex {
 			throw new IndexOutOfBoundsException("coordsBuffer too small: "+coordsBuffer.length+" - "+offset+" < "+length);
 		}
 		if(length > 3) {
-			throw new IndexOutOfBoundsException("length too bug: "+length+" > "+3);
+			throw new IndexOutOfBoundsException("length too big: "+length+" > "+3);
 		}		
 		int i=0;
 		while(i<length) {
