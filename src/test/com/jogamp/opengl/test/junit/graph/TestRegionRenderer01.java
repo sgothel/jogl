@@ -56,7 +56,7 @@ public class TestRegionRenderer01 {
 	public void testRegionRendererR2T01() throws InterruptedException {
 		GLProfile glp = GLProfile.get(GLProfile.GL3);
 		GLCapabilities caps = new GLCapabilities(glp);
-		caps.setOnscreen(false);
+		//caps.setOnscreen(false);
 		caps.setAlphaBits(4);	
 
 		GLWindow window = createWindow("shape-r2t1-msaa0", caps, 800,400);
@@ -83,7 +83,7 @@ public class TestRegionRenderer01 {
 	public void testRegionRendererMSAA01() throws InterruptedException {
 		GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
 		GLCapabilities caps = new GLCapabilities(glp);
-		caps.setOnscreen(false);
+	//	caps.setOnscreen(false);
 		caps.setAlphaBits(4);	
 		caps.setSampleBuffers(true);
 		caps.setNumSamples(4);
