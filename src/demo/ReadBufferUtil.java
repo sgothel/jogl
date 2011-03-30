@@ -95,11 +95,13 @@ public class ReadBufferUtil {
     }
 
     @SuppressWarnings("deprecation")
-    public void dispose() {
+    public void dispose() {        
         readTexture.dispose();
         readTextureData = null;
-        readPixelBuffer.clear();
-        readPixelBuffer = null;
+        if(null != readPixelBuffer) {
+            readPixelBuffer.clear();
+            readPixelBuffer = null;
+        }
         readPixelSizeLast = 0;
     }
 
