@@ -121,8 +121,12 @@ public class VBORegion2PGL3  implements Region{
 				verticesBuffer.put(v.getY());
 			}
 			verticesBuffer.put(v.getZ());
-			
-			box.resize(v.getX(), -1*v.getY(), v.getZ());
+			if(flipped){
+				box.resize(v.getX(), -1*v.getY(), v.getZ());
+			}
+			else{
+				box.resize(v.getX(), v.getY(), v.getZ());
+			}
 		}
 		verticesBuffer.rewind();
 		

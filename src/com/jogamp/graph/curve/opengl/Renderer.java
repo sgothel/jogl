@@ -22,7 +22,7 @@ public abstract class Renderer {
     /** 
      * Flushes all cached data
      */
-    public abstract void flushCash();
+    public abstract void flushCache();
     
     public abstract float getAlpha();
 
@@ -93,7 +93,7 @@ public abstract class Renderer {
         }
         disposeImpl(gl);
         st.destroy(gl);
-        flushCash();        
+        flushCache();        
         initialized = false;        
     }
     

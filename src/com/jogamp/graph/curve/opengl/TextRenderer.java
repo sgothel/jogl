@@ -68,7 +68,7 @@ public abstract class TextRenderer extends Renderer {
        return font.getName() + "." + str.hashCode() + "." + fontSize;
    }
    
-   public void flushCash() {
+   public void flushCache() {
        Iterator<GlyphString> iterator = strings.values().iterator();
        while(iterator.hasNext()){
            GlyphString glyphString = iterator.next();
