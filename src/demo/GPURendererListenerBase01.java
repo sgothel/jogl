@@ -27,7 +27,6 @@
  */
 package demo;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -41,69 +40,53 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLRunnable;
 
-import com.jogamp.graph.curve.opengl.TextRenderer;
-import com.jogamp.graph.font.Font;
-import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.util.awt.Screenshot;
 
 /**
  *
  * Action Keys:
  * - 1/2: zoom in/out
- * - 3/4: font +/-
  * - 6/7: 2nd pass texture size
  * - 0/9: rotate 
- * - s: toogle draw 'font set'
- * - f: toggle draw fps
  * - v: toggle v-sync
- * - space: toggle font (ubuntu/java)
  */
-public abstract class GPUTextGLListenerBase01 implements GLEventListener {
-    Vertex.Factory<? extends Vertex> vfactory;
-    protected TextRenderer textRenderer;
-    int fontSet = FontFactory.UBUNTU;
-    Font font;
-    boolean debug;
-    boolean trace;
+public abstract class GPURendererListenerBase01 implements GLEventListener {
+    private Screenshot screenshot;
+    private Renderer renderer;
+    private boolean debug;
+    private boolean trace;
     
-    KeyAction keyAction;
+    private KeyAction keyAction;
     
-    volatile GLAutoDrawable autoDrawable = null;
-    boolean drawFontSet = true;
-    boolean drawFPS = true;
-    boolean updateFont = true;
-    int fontSize = 40;
-    final int fontSizeModulo = 100;    
+    private volatile GLAutoDrawable autoDrawable = null;
     
-    final float[] position = new float[] {0,0,0};
+    private final float[] position = new float[] {0,0,0};
     
-    float xTran = -10;
-    float yTran =  10;    
-    float ang = 0f;
-    float zoom = -70f;
-    int texSize = 400; 
+    private float xTran = -10;
+    private float yTran =  10;    
+    private float ang = 0f;
+    private float zoom = -70f;
+    private int texSize = 400; 
 
     boolean updateMatrix = true;
-    static final String text1;
-    static final String text2;
 
-    static {
-        text1 = "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789.:,;(*!?/\\\")$%^&-+@~#<>{}[]";
-        text2 = "The quick brown fox jumps over the lazy dog";      
-    }
-
-    public GPUTextGLListenerBase01(Vertex.Factory<? extends Vertex> vfactory, int mode, boolean debug, boolean trace) {
-        // this.font = FontFactory.get(FontFactory.JAVA).getDefault();
-        this.font = FontFactory.get(fontSet).getDefault();
-        this.vfactory = vfactory;
-        this.textRenderer = new TextRenderer(vfactory, mode);
+    public GPURendererListenerBase01(Renderer renderer, boolean debug, boolean trace) {
+        this.renderer = renderer;
         this.debug = debug;
         this.trace = trace;
+        this.screenshot = new Screenshot();
     }
+    
+    public final Renderer getRenderer() { return renderer; }
+    public final float getZoom() { return zoom; }
+    public final float getXTran() { return xTran; }
+    public final float getYTran() { return yTran; }
+    public final float getAngle() { return ang; }
+    public final int getTexSize() { return texSize; }
+    public final float[] getPosition() { return position; }
 
     public void setMatrix(float xtrans, float ytrans, float angle, int zoom, int fbosize) {
         this.xTran = xtrans;
@@ -130,106 +113,47 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         
         gl.glViewport(xstart, ystart, width, height);
-        textRenderer.reshapePerspective(gl, 45.0f, width, height, 0.1f, 7000.0f);
+        renderer.reshapePerspective(gl, 45.0f, width, height, 0.1f, 7000.0f);
         
-        dumpMatrix(true);
+        dumpMatrix();
     }
-    protected boolean printScreen = true;
-    public void display(GLAutoDrawable drawable) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
-        
-        gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Demo02 needs to have this set here as well .. hmm ?
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-
-        if(drawFPS || drawFontSet || updateMatrix) {
-            final int width = drawable.getWidth();
-            final int height = drawable.getHeight();
-            final GLAnimatorControl animator = drawable.getAnimator();
-            final boolean _drawFPS = drawFPS && null != animator && animator.getTotalFrames()>10;
-            
-            if(_drawFPS || drawFontSet) {
-                textRenderer.reshapeOrtho(null, width, height, 0.1f, 7000.0f);                
-            }
-            if(_drawFPS) {
-                final float fps = ( animator.getTotalFrames() * 1000.0f ) / (float) animator.getDuration() ;
-                final String fpsS = String.valueOf(fps);
-                final int fpsSp = fpsS.indexOf('.');
-                textRenderer.resetMatrix(null);
-                textRenderer.translate(gl, 0, 0, -6000);
-                textRenderer.renderString3D(gl, font, fpsS.substring(0, fpsSp+2), position, fontSize, texSize);
-            }
-            if(drawFontSet) { 
-                textRenderer.resetMatrix(null);
-                textRenderer.translate(gl, 0, height-50, -6000);
-                textRenderer.renderString3D(gl, font, text1, position, fontSize, texSize);
-            }
-            if(_drawFPS || drawFontSet) {
-                textRenderer.reshapePerspective(null, 45.0f, width, height, 0.1f, 7000.0f);             
-            }
-            		
-            textRenderer.resetMatrix(null);            
-            textRenderer.translate(null, xTran, yTran, zoom);
-            textRenderer.rotate(gl, ang, 0, 1, 0);
-            updateMatrix = false;
-        }
-
-        textRenderer.renderString3D(gl, font, text2, position, fontSize, texSize);
-    }        
-        
+    
     public void dispose(GLAutoDrawable drawable) {
         autoDrawable = null;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
-        textRenderer.dispose(gl);
+        screenshot.dispose();
+        renderer.dispose(gl);
     }    
     
-    public void fontIncr(int v) {
-        fontSize = Math.abs((fontSize + v) % fontSizeModulo) ;
-        updateFont = true;
-        dumpMatrix(true);
-    }
-
     public void zoom(int v){
         zoom += v;
         updateMatrix = true;
-        dumpMatrix(false);
-    }
-    
-    public void nextFontSet() {
-        fontSet = ( fontSet == FontFactory.UBUNTU ) ? FontFactory.JAVA : FontFactory.UBUNTU ;
-        font = FontFactory.get(fontSet).getDefault();        
-    }
-    
-    public void setFontSet(int set, int family, int stylebits) {
-        fontSet = set;
-        font = FontFactory.get(fontSet).get(family, stylebits);        
+        dumpMatrix();
     }
     
     public void move(float x, float y){
         xTran += x;
         yTran += y;
         updateMatrix = true;
-        dumpMatrix(false);
+        dumpMatrix();
     }
     public void rotate(float delta){
         ang += delta;
         ang %= 360.0f;
         updateMatrix = true;
-        dumpMatrix(false);
+        dumpMatrix();
     }
     
-    void dumpMatrix(boolean bbox) {
-        System.err.println("Matrix: " + xTran + "/" + yTran + " x"+zoom + " @"+ang +" fontSize "+fontSize);
-        if(bbox) {
-            System.err.println("bbox: "+font.getStringBounds(text2, fontSize));
-        }
+    void dumpMatrix() {
+        System.err.println("Matrix: " + xTran + "/" + yTran + " x"+zoom + " @"+ang);
     }
     
-    public void attachTo(GLWindow window) {
+    /** Attach the input listener to the window */ 
+    public void attachInputListenerTo(GLWindow window) {
         if ( null == keyAction ) {
             keyAction = new KeyAction();
+            window.addKeyListener(keyAction);        
         }
-        window.addGLEventListener(this);
-        window.addKeyListener(keyAction);        
     }
     
     public void detachFrom(GLWindow window) {
@@ -240,13 +164,13 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
         window.removeKeyListener(keyAction);
     }
     
-    public void printScreen(String dir, String tech, int width, int height, boolean exportAlpha) throws GLException, IOException {
+    public void printScreen(GLAutoDrawable drawable, String dir, String tech, String objName, boolean exportAlpha) throws GLException, IOException {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
-        pw.printf("-%03dx%03d-Z%04d-T%04d-%s", width, height, (int)Math.abs(zoom), texSize, font.getName());
+        pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getWidth(), drawable.getHeight(), (int)Math.abs(zoom), texSize, objName);
         
     	String filename = dir + tech + sw +".tga";
-    	Screenshot.writeToTargaFile(new File(filename), width, height, exportAlpha);
+    	screenshot.surface2File(drawable, filename /*, exportAlpha */);
     }
     
     public class KeyAction implements KeyListener {
@@ -256,12 +180,6 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_2){
                 zoom(-10);
-            }
-            else if(arg0.getKeyCode() == KeyEvent.VK_3){
-                fontIncr(10);
-            }
-            else if(arg0.getKeyCode() == KeyEvent.VK_4){
-                fontIncr(-10);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_UP){
                 move(0, -1);
@@ -289,14 +207,6 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
             else if(arg0.getKeyCode() == KeyEvent.VK_9){
                 rotate(-1);
             }  
-            else if(arg0.getKeyChar() == 's') {
-                drawFontSet = !drawFontSet; 
-                System.err.println("Draw font set: "+drawFontSet);
-            }  
-            else if(arg0.getKeyChar() == 'f'){
-                drawFPS = !drawFPS; 
-                System.err.println("Draw FPS: "+drawFPS);
-            }  
             else if(arg0.getKeyChar() == 'v') {
                 if(null != autoDrawable) {
                     autoDrawable.invoke(false, new GLRunnable() {
@@ -313,9 +223,6 @@ public abstract class GPUTextGLListenerBase01 implements GLEventListener {
                         }
                     });
                 }                
-            }
-            else if(arg0.getKeyChar() == ' ') {      
-                nextFontSet();
             }
         }
         public void keyTyped(KeyEvent arg0) {}

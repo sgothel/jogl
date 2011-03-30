@@ -16,14 +16,20 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 
-import demo.GPUTextGLListenerBase01;
+import demo.GPUTextRendererListenerBase01;
 
 public class TestTextRenderer01 {
 
+    public static void main(String args[]) throws IOException {
+        String tstname = TestRegionRenderer01.class.getName();
+        org.junit.runner.JUnitCore.main(tstname);
+    }    
+        
 	@BeforeClass
 	public static void initClass() {
 		GLProfile.initSingleton(true);
@@ -51,14 +57,15 @@ public class TestTextRenderer01 {
 
 	@Test
 	public void testTextRendererR2T01() throws InterruptedException {
-		GLProfile glp = GLProfile.get(GLProfile.GL3bc);
+		GLProfile glp = GLProfile.get(GLProfile.GL3);
 		GLCapabilities caps = new GLCapabilities(glp);
 		caps.setOnscreen(false);
 		caps.setAlphaBits(4);	
 
-		GLWindow window = createWindow("r2t1-msaa0", caps, 800,400);
+		GLWindow window = createWindow("text-r2t1-msaa0", caps, 800,400);
 		TextGLListener textGLListener = new TextGLListener(Region.TWO_PASS);
-        textGLListener.attachTo(window);
+        textGLListener.attachInputListenerTo(window);
+        window.addGLEventListener(textGLListener);
         
         textGLListener.setFontSet(FontFactory.UBUNTU, 0, 0);
         textGLListener.setTech(-400, -30, 0f, -1000, 400);
@@ -92,9 +99,10 @@ public class TestTextRenderer01 {
 		caps.setSampleBuffers(true);
 		caps.setNumSamples(4);
 
-		GLWindow window = createWindow("r2t0-msaa1", caps, 800, 400);
+		GLWindow window = createWindow("text-r2t0-msaa1", caps, 800, 400);
 		TextGLListener textGLListener = new TextGLListener(Region.SINGLE_PASS);
-        textGLListener.attachTo(window);
+        textGLListener.attachInputListenerTo(window);
+        window.addGLEventListener(textGLListener);
         
         textGLListener.setFontSet(FontFactory.UBUNTU, 0, 0);
         textGLListener.setTech(-400, -30, 0f, -1000, 0);
@@ -119,15 +127,15 @@ public class TestTextRenderer01 {
 		destroyWindow(window); 
 	}
 	
-	private class TextGLListener extends GPUTextGLListenerBase01 {
+	private class TextGLListener extends GPUTextRendererListenerBase01 {
 	    String winTitle;
 	    
 		public TextGLListener(int type) {
 			super(SVertex.factory(), type, false, false);
 		}
 		
-		public void attachTo(GLWindow window) {
-		    super.attachTo(window);
+		public void attachInputListenerTo(GLWindow window) {
+		    super.attachInputListenerTo(window);
 		    winTitle = window.getTitle();
 		}
 		public void setTech(float xt, float yt, float angle, int zoom, int fboSize){
@@ -139,6 +147,9 @@ public class TestTextRenderer01 {
 			super.init(drawable);
 			gl.setSwapInterval(1);
 			gl.glEnable(GL.GL_DEPTH_TEST);
+			
+			final TextRenderer textRenderer = (TextRenderer) getRenderer();
+			
 			textRenderer.init(gl);
 			textRenderer.setAlpha(gl, 1.0f);
 			textRenderer.setColor(gl, 0.0f, 0.0f, 0.0f);
@@ -148,7 +159,7 @@ public class TestTextRenderer01 {
 			super.display(drawable);
 
 			try {
-				printScreen("./", winTitle, drawable.getWidth(), drawable.getHeight(), false);
+				printScreen(drawable, "./", winTitle, false);
 			} catch (GLException e) {
 				e.printStackTrace();
 			} catch (IOException e) {

@@ -34,6 +34,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
@@ -52,8 +53,7 @@ public class GPUTextNewtDemo02 {
     
     public static void main(String[] args) {
         GPUTextNewtDemo02 test = new GPUTextNewtDemo02();
-        test.testMe();
-        
+        test.testMe();        
     }
     
     GLWindow window;
@@ -61,7 +61,7 @@ public class GPUTextNewtDemo02 {
 
 	public void testMe() {
 		GLProfile.initSingleton(true);
-		GLProfile glp = GLProfile.get(GLProfile.GL3bc);
+        GLProfile glp = GLProfile.get(GLProfile.GL3);
 		
 		GLCapabilities caps = new GLCapabilities(glp);
 		caps.setAlphaBits(4);		
@@ -74,7 +74,8 @@ public class GPUTextNewtDemo02 {
 
         window.setTitle("GPU Text Newt Demo 02 - r2t1 msaa0");
         textGLListener = new TextGLListener();
-        textGLListener.attachTo(window);
+        textGLListener.attachInputListenerTo(window);
+        window.addGLEventListener(textGLListener);
 
         window.enablePerfLog(true);
 		window.setVisible(true);
@@ -85,7 +86,7 @@ public class GPUTextNewtDemo02 {
 		animator.start();
 	}
 	
-	private class TextGLListener extends GPUTextGLListenerBase01 {
+	private class TextGLListener extends GPUTextRendererListenerBase01 {
         public TextGLListener() {
             super(SVertex.factory(), Region.TWO_PASS, DEBUG, TRACE);
             // FIXME: Rami will fix FBO size !!
@@ -95,9 +96,11 @@ public class GPUTextNewtDemo02 {
         }
 	    
 		public void init(GLAutoDrawable drawable) {
+            super.init(drawable);
+            
             GL3 gl = drawable.getGL().getGL3();
             
-            super.init(drawable);
+            final TextRenderer textRenderer = (TextRenderer) getRenderer();
             
 			gl.setSwapInterval(1);
 			gl.glEnable(GL3.GL_DEPTH_TEST);
