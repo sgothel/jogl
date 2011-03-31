@@ -57,7 +57,7 @@ public class Outline implements Comparable<Outline> {
 		
 	}
 	
-	/** Add a vertex to the outline. The vertex is added at the 
+	/** Add a vertex to the outline. The {@link Vertex} is added at the 
 	 * end of the outline loop/strip.
 	 * @param vertex Vertex to be added
 	 */
@@ -66,16 +66,47 @@ public class Outline implements Comparable<Outline> {
 		box.resize(vertex.getX(), vertex.getY(), vertex.getZ());
 	}
 	
+	/**  Add a {@link Vertex} by specifying its 2D attributes to the outline. 
+	 * The {@link Vertex} is added at the 
+	 * end of the outline loop/strip. 
+	 * @param factory a {@link Factory} to get the required Vertex impl
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 * @param onCurve flag if this vertex is on the final curve or defines a curved region
+	 * of the shape around this vertex.
+	 */
 	public final void addVertex(Vertex.Factory<? extends Vertex> factory, float x, float y, boolean onCurve) {
 		addVertex(factory, x, y, 0f, onCurve);
 	}
 	
+	/** Add a {@link Vertex} by specifying its 3D attributes to the outline. 
+	 * The {@link Vertex} is added at the 
+	 * end of the outline loop/strip. 
+	 * @param factory  a {@link Factory} to get the required Vertex impl
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 * @param z the z coordinate
+	 * @param onCurve flag if this vertex is on the final curve or defines a curved region
+	 * of the shape around this vertex.
+	 */
 	public final void addVertex(Vertex.Factory<? extends Vertex> factory, float x, float y, float z, boolean onCurve) {
 		Vertex v = factory.create(x, y, z);
 		v.setOnCurve(onCurve);
 		addVertex(v);
 	}
 	
+	/** Add a vertex to the outline by passing a float array and specifying the 
+	 * offset and length in which. The attributes of the vertex are located. 
+	 * The attributes should be continuous (stride = 0).
+	 * Attributes which value are not set (when length less than 3) 
+	 * are set implicitly to zero.
+	 * @param factory  a {@link Factory} to get the required Vertex impl
+	 * @param coordsBuffer the coordinate array where the vertex attributes are to be picked from
+	 * @param offset the offset in the buffer to the x coordinate
+	 * @param length the number of attributes to pick from the buffer (maximum 3)
+	 * @param onCurve flag if this vertex is on the final curve or defines a curved region
+	 * of the shape around this vertex.
+	 */
 	public final void addVertex(Vertex.Factory<? extends Vertex> factory, float[] coordsBuffer, int offset, int length, boolean onCurve) {
 		Vertex v = factory.create(coordsBuffer, offset, length);
 		v.setOnCurve(onCurve);

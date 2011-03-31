@@ -82,7 +82,7 @@ public class CDTriangulator2D {
 	}
 	
 	/** Add a curve to the list of profiles provided
-	 * @param polyline a bounding Outline
+	 * @param polyline a bounding {@link Outline}
 	 */
 	public void addCurve(Outline polyline){
 		Loop loop = null;
@@ -107,7 +107,7 @@ public class CDTriangulator2D {
 	}
 	
 	/** Generate the triangulation of the provided 
-	 *  List of Outlines
+	 *  List of {@link Outline}s
 	 */
 	public ArrayList<Triangle> generateTriangulation(){	
 		for(int i=0;i<loops.size();i++) {

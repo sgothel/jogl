@@ -15,6 +15,8 @@ import com.jogamp.graph.geom.Vertex;
 
 public abstract class TextRenderer extends Renderer {
     
+    protected HashMap<String, GlyphString> strings = new HashMap<String, GlyphString>();
+    
     /** 
      * Create a Hardware accelerated Text Renderer.
      * @param factory optional Point.Factory for Vertex construction. Default is Vertex.Factory.
@@ -30,7 +32,7 @@ public abstract class TextRenderer extends Renderer {
     /** Render the String in 3D space wrt to the font provided at the position provided
      * the outlines will be generated, if not yet generated
      * @param gl the current GL state
-     * @param font font to be used
+     * @param font {@link Font} to be used
      * @param str text to be rendered 
      * @param position the lower left corner of the string 
      * @param fontSize font size
@@ -40,13 +42,11 @@ public abstract class TextRenderer extends Renderer {
     public abstract void renderString3D(GL2ES2 gl, Font font,
                                         String str, float[] position, int fontSize, int texSize);
 
-    protected HashMap<String, GlyphString> strings = new HashMap<String, GlyphString>();
-
-    /**
-     * 
-     * @param font
-     * @param size
-     * @param str
+    /**Create the resulting {@link GlyphString} that represents
+     * the String wrt to the font.
+     * @param font {@link Font} to be used
+     * @param size font size
+     * @param str {@link String} to be created
      * @param sharpness parameter for Region generation of the resulting GlyphString
      * @return the resulting GlyphString inclusive the generated region
      */

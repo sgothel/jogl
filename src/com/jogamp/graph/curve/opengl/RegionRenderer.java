@@ -14,7 +14,7 @@ import com.jogamp.graph.geom.Vertex;
 
 public abstract class RegionRenderer extends Renderer {
     
-    /** Create a Hardware accelerated Region Renderer
+    /** Create a Hardware accelerated Curve Region Renderer
      */
     public static RegionRenderer create(Vertex.Factory<? extends Vertex> factory, int type) {
         return new jogamp.graph.curve.opengl.RegionRendererImpl01(factory, type);
@@ -24,7 +24,7 @@ public abstract class RegionRenderer extends Renderer {
         super(factory, type);
     }
     
-    /** Render an array of Outline shapes combined in one region
+    /** Render an array of {@link OutlineShape}s combined in one region
      *  at the position provided the triangles of the 
      *  shapes will be generated, if not yet generated
      * @param outlineShapes array of OutlineShapes to Render.
@@ -34,7 +34,7 @@ public abstract class RegionRenderer extends Renderer {
      */
     public abstract void renderOutlineShapes(GL2ES2 gl, OutlineShape[] outlineShapes, float[] position, int texSize);
 
-    /** Render outline in 3D space at the position provided
+    /** Render an {@link OutlineShape} in 3D space at the position provided
      *  the triangles of the shapes will be generated, if not yet generated
      * @param outlineShape the OutlineShape to Render.
      * @param position the initial translation of the outlineShape. 
@@ -54,9 +54,9 @@ public abstract class RegionRenderer extends Renderer {
         regions.clear();
     }       
 
-    /**
+    /** Create an ogl {@link Region} defining this {@link OutlineShape}
      * @param sharpness parameter for Region generation
-     * @return the resulting Region inclusive the generated region
+     * @return the resulting Region.
      */
     protected Region createRegion(GL2ES2 gl, OutlineShape outlineShape, float sharpness) {
         Region region = RegionFactory.create(gl.getContext(), st, regionType);
@@ -72,7 +72,8 @@ public abstract class RegionRenderer extends Renderer {
         return region;
     }
     
-    /**
+    /** Create an ogl {@link Region} defining the list of {@link OutlineShape}.
+     * Combining the Shapes into single buffers.
      * @param sharpness parameter for Region generation
      * @return the resulting Region inclusive the generated region
      */

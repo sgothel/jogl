@@ -95,7 +95,7 @@ public class OutlineShape {
 	public static final int QUADRATIC_NURBS = 10;
 	private final Vertex.Factory<? extends Vertex> vertexFactory;
 
-	/** The list of outlines that are part of this 
+	/** The list of {@link Outline}s that are part of this 
 	 *  outline shape.
 	 */
 	private ArrayList<Outline> outlines = new ArrayList<Outline>(3);
@@ -112,7 +112,7 @@ public class OutlineShape {
 	 */
 	public final Vertex.Factory<? extends Vertex> vertexFactory() { return vertexFactory; }
 
-	/** Add a new empty outline 
+	/** Add a new empty {@link Outline} 
 	 * to the shape, this new outline will
 	 * be placed at the end of the outline list.
 	 * 
@@ -123,7 +123,7 @@ public class OutlineShape {
 		outlines.add(new Outline());
 	}
 
-	/** Adds an outline to the OutlineShape object
+	/** Adds an {@link Outline} to the OutlineShape object
 	 * if last outline of the shape is empty, it will replace
 	 * that last Outline with the new one. If outline is empty,
 	 * it will do nothing.
@@ -147,7 +147,7 @@ public class OutlineShape {
 		getLastOutline().addVertex(v);
 	}
 
-	/** Add a 2D vertex to the last outline by defining the coordniate attribute
+	/** Add a 2D {@link Vertex} to the last outline by defining the coordniate attribute
 	 * of the vertex. The 2D vertex will be represented as Z=0.
 	 * 
 	 * @param x the x coordinate
@@ -159,7 +159,7 @@ public class OutlineShape {
 		getLastOutline().addVertex(vertexFactory, x, y, onCurve);
 	}
 
-	/** Add a 3D vertex to the last outline by defining the coordniate attribute
+	/** Add a 3D {@link Vertex} to the last outline by defining the coordniate attribute
 	 * of the vertex.
 	 * @param x the x coordinate
 	 * @param y the y coordniate
@@ -171,9 +171,11 @@ public class OutlineShape {
 		getLastOutline().addVertex(vertexFactory, x, y, z, onCurve);
 	}
 
-	/** Add a vertex to the last outline by passing a float array and specifying the offset and length in which.
-	 * the attributes of the vertex are located. The attributes should be continuous (stride = 0).
-	 * Attributes which value are not set (when length less than 3) are set implicitly to zero.
+	/** Add a vertex to the last outline by passing a float array and specifying the 
+	 * offset and length in which. The attributes of the vertex are located. 
+	 * The attributes should be continuous (stride = 0).
+	 * Attributes which value are not set (when length less than 3) 
+	 * are set implicitly to zero.
 	 * @param coordsBuffer the coordinate array where the vertex attributes are to be picked from
 	 * @param offset the offset in the buffer to the x coordinate
 	 * @param length the number of attributes to pick from the buffer (maximum 3)
@@ -270,7 +272,7 @@ public class OutlineShape {
 		return triangulate(0.5f);
 	}
 
-	/**Triangulate the outline shape generating a list of triangles
+	/**Triangulate the {@link OutlineShape} generating a list of triangles
 	 * @param sharpness defines the curvature strength around the off-curve vertices.
 	 * defaults to 0.5f
 	 * @return an arraylist of triangles representing the filled region

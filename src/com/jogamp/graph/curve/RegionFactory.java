@@ -43,8 +43,8 @@ import jogamp.graph.curve.opengl.VBORegion2PES2;
 public class RegionFactory {
 	
 	/**Create a Region based on the GLContext attached
-	 * @param context the current opengl context
-	 * @param st the shader state object
+	 * @param context the current {@link GLContext}
+	 * @param st the {@link ShaderState} object
 	 * @param type can be one of Region.SINGLE_PASS or Region.TWO_PASS
 	 * @return region 
 	 */

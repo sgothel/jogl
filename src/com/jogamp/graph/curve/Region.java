@@ -64,7 +64,7 @@ public interface Region {
 	/** Renders the associated OGL objects specifying
 	 * current width/hight of window for multi pass rendering
 	 * of the region.
-	 * @param matrix current pmv matrix.
+	 * @param matrix current {@link PMVMatrix}.
 	 * @param vp_width current screen width
 	 * @param vp_height current screen height
 	 * @param width texture width for mp rendering
@@ -73,7 +73,7 @@ public interface Region {
 	 */
 	public void render(PMVMatrix matrix, int vp_width, int vp_height, int width);
 	
-	/** Adds a list of {@code Triangle} objects to the Region
+	/** Adds a list of {@link Triangle} objects to the Region
 	 * These triangles are to be binded to OGL objects 
 	 * on the next call to {@code update}
 	 * @param tris an arraylist of triangle objects
@@ -91,7 +91,7 @@ public interface Region {
 	 */
 	public int getNumVertices();
 	
-	/** Adds a list of {@code Vertex} objects to the Region
+	/** Adds a list of {@link Vertex} objects to the Region
 	 * These vertices are to be binded to OGL objects 
 	 * on the next call to {@code update}
 	 * @param verts an arraylist of vertex objects
