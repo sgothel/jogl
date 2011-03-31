@@ -314,7 +314,6 @@ public class Loop {
 				next = current.getNext();
 				continue;
 			}
-
 			Vertex vert1 = current.getGraphPoint().getPoint();
 			Vertex vert2 = next.getGraphPoint().getPoint();
 
@@ -331,13 +330,13 @@ public class Loop {
 			float[] d1 = {vert2.getX() - vert1.getX(), vert2.getY() - vert1.getY(),
 					vert2.getZ() - vert1.getZ()};
 
-			float[] prepD1 = {d1[1],-1*d1[0], d1[2]};
-			float[] prepD0 = {d0[1],-1*d0[0], d0[2]};
+			float[] prep_d1 = {d1[1],-1*d1[0], d1[2]};
+			float[] prep_d0 = {d0[1],-1*d0[0], d0[2]};
 
 			float[] p0p1 = new float[]{vert1.getX() - vertex.getX(), vert1.getY() - vertex.getY(),
 					vert1.getZ() - vertex.getZ()};
 
-			float dotD1D0 = VectorUtil.dot(prepD1, d0);
+			float dotD1D0 = VectorUtil.dot(prep_d1, d0);
 			if(dotD1D0 == 0){ 
 				/** ray parallel to segment */
 				current = next;
@@ -345,8 +344,8 @@ public class Loop {
 				continue;
 			}
 
-			float s = VectorUtil.dot(prepD1,p0p1)/dotD1D0;
-			float t = VectorUtil.dot(prepD0,p0p1)/dotD1D0;
+			float s = VectorUtil.dot(prep_d1,p0p1)/dotD1D0;
+			float t = VectorUtil.dot(prep_d0,p0p1)/dotD1D0;
 
 			if(s >= 0 && t >= 0 && t<= 1){
 				hits++;

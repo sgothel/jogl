@@ -40,12 +40,13 @@ public class AABBox {
 	private float[] high = {-1*Float.MAX_VALUE,-1*Float.MAX_VALUE,-1*Float.MAX_VALUE};
 	private float[] center = new float[3];
 
-	/** Create a Axis Aligned bounding box (AABBox) where the low and and high MAX float Values.
+	/** Create a Axis Aligned bounding box (AABBox) 
+	 * where the low and and high MAX float Values.
 	 */
 	public AABBox() {}
 
-	/** Create an AABBox specifying the coordinates of the low and high
-	 * 
+	/** Create an AABBox specifying the coordinates 
+	 * of the low and high
 	 * @param lx min x-coordinate
 	 * @param ly min y-coordnate
 	 * @param lz min z-coordinate

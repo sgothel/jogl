@@ -203,13 +203,14 @@ public class CDTriangulator2D {
 	}
 	
 	private Loop getContainerLoop(Outline polyline){
-	    Vertex v = polyline.getVertex(0);
-		
-		for (Loop loop:loops){
-			if(loop.checkInside(v)){
-				return loop;
+	    ArrayList<Vertex> vertices = polyline.getVertices();
+	    for(Vertex vert: vertices){
+			for (Loop loop:loops){
+				if(loop.checkInside(vert)){
+					return loop;
+				}
 			}
-		}
+	    }
 		return null;
 	}
 }
