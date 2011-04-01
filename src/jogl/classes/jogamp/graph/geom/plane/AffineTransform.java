@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import jogamp.graph.math.MathFloat;
-import jogamp.opengl.util.HashCode;
+// import jogamp.opengl.util.HashCode;
 
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
@@ -527,7 +527,7 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
 
-    @Override
+    /** @Override
     public int hashCode() {
         HashCode hash = new HashCode();
         hash.append(m00);
@@ -537,7 +537,7 @@ public class AffineTransform implements Cloneable, Serializable {
         hash.append(m11);
         hash.append(m12);
         return hash.hashCode();
-    }
+    } */
 
     @Override
     public boolean equals(Object obj) {
