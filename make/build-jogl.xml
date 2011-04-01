@@ -141,6 +141,9 @@
         <property name="java.part.util.glsl"
                   value="com/jogamp/opengl/util/glsl/* com/jogamp/opengl/util/glsl/fixedfunc/*"/>
 
+        <property name="java.part.util.graph"
+                  value="com/jogamp/graph/** jogamp/graph/**"/>
+
         <property name="java.part.util.fixedfuncemu"
                   value="jogamp/opengl/util/glsl/fixedfunc/**"/>
 
@@ -1466,7 +1469,9 @@
                 <include name="javax/media/opengl/**" />
                 <include name="com/jogamp/gluegen/runtime/**" />
                 <include name="com/jogamp/opengl/**" />
+                <include name="com/jogamp/graph/**" />
                 <include name="jogamp/opengl/**" />
+                <include name="jogamp/graph/**" />
             </fileset>
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode}"/>
@@ -1480,7 +1485,9 @@
                 <include name="javax/media/opengl/**" />
                 <include name="com/jogamp/gluegen/runtime/**" />
                 <include name="com/jogamp/opengl/**" />
+                <include name="com/jogamp/graph/**" />
                 <include name="jogamp/opengl/**" />
+                <include name="jogamp/graph/**" />
             </fileset>
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode}"/>
@@ -1531,7 +1538,7 @@
         </jar>
         <jar manifest="${build.jogl}/tempversion" destfile="${jogl.util.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.util} ${java.part.util.glsl}"
+                     includes="${java.part.util} ${java.part.util.glsl} ${java.part.util.graph}"
                      excludes="${java.part.util.awt} ${java.part.util.gldesktop} ${java.part.util.fixedfuncemu}"/>
         </jar>
         <jar manifest="${build.jogl}/tempversion" destfile="${jogl.util.fixedfuncemu.jar}" filesonly="true">

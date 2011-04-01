@@ -27,8 +27,9 @@
  */
 package jogamp.graph.font.typecast;
 
-import net.java.dev.typecast.ot.table.HeadTable;
-import net.java.dev.typecast.ot.table.HheaTable;
+import jogamp.graph.font.typecast.ot.table.HeadTable;
+import jogamp.graph.font.typecast.ot.table.HheaTable;
+
 import com.jogamp.graph.font.Font.Metrics;
 import com.jogamp.graph.geom.AABBox;
 

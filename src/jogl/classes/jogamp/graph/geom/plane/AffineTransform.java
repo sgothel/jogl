@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import jogamp.graph.math.MathFloat;
-import org.apache.harmony.misc.HashCode;
+import jogamp.opengl.util.HashCode;
 
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;

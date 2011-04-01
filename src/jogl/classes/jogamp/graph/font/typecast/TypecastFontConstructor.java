@@ -31,8 +31,8 @@ import java.io.File;
 import java.io.IOException;
 
 import jogamp.graph.font.FontConstructor;
+import jogamp.graph.font.typecast.ot.OTFontCollection;
 
-import net.java.dev.typecast.ot.OTFontCollection;
 
 import com.jogamp.graph.font.Font;
 

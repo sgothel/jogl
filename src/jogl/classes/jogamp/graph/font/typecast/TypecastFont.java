@@ -28,15 +28,15 @@
 package jogamp.graph.font.typecast;
 
 import jogamp.graph.font.FontInt;
+import jogamp.graph.font.typecast.ot.OTFont;
+import jogamp.graph.font.typecast.ot.OTFontCollection;
+import jogamp.graph.font.typecast.ot.table.CmapFormat;
+import jogamp.graph.font.typecast.ot.table.CmapIndexEntry;
+import jogamp.graph.font.typecast.ot.table.CmapTable;
+import jogamp.graph.font.typecast.ot.table.HdmxTable;
+import jogamp.graph.font.typecast.ot.table.ID;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
-import net.java.dev.typecast.ot.OTFont;
-import net.java.dev.typecast.ot.OTFontCollection;
-import net.java.dev.typecast.ot.table.CmapFormat;
-import net.java.dev.typecast.ot.table.CmapIndexEntry;
-import net.java.dev.typecast.ot.table.CmapTable;
-import net.java.dev.typecast.ot.table.HdmxTable;
-import net.java.dev.typecast.ot.table.ID;
 
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.geom.AABBox;
@@ -164,7 +164,7 @@ class TypecastFont implements FontInt {
                 }
             }
             
-        	net.java.dev.typecast.ot.OTGlyph glyph = font.getGlyph(code);
+        	jogamp.graph.font.typecast.ot.OTGlyph glyph = font.getGlyph(code);
         	if(null == glyph) {
         	    glyph = font.getGlyph(Glyph.ID_UNKNOWN);
         	}

@@ -27,16 +27,16 @@
  */
 package jogamp.graph.font.typecast;
 
+import jogamp.graph.font.typecast.ot.OTGlyph;
+import jogamp.graph.font.typecast.ot.Point;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 
 import com.jogamp.graph.font.Font;
-import net.java.dev.typecast.ot.Point;
-import net.java.dev.typecast.ot.OTGlyph;
 
 /**
  * Factory to build a {@link com.jogamp.graph.geom.Path2D Path2D} from 
- * {@link net.java.dev.typecast.ot.OTGlyph Glyph}s. 
+ * {@link jogamp.graph.font.typecast.ot.OTGlyph Glyph}s. 
  */
 public class TypecastRenderer {
 
@@ -84,7 +84,7 @@ public class TypecastRenderer {
 	
     /**
      * Build a {@link com.jogamp.graph.geom.Path2D Path2D} from a
-     * {@link net.java.dev.typecast.ot.OTGlyph Glyph}.  This glyph path can then
+     * {@link jogamp.graph.font.typecast.ot.OTGlyph Glyph}.  This glyph path can then
      * be transformed and rendered.
      */
     public static Path2D buildPath(OTGlyph glyph) {
