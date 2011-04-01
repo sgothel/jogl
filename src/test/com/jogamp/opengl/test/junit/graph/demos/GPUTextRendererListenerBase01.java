@@ -62,14 +62,29 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     int fontSet = FontFactory.UBUNTU;
     Font font;
     
-    boolean drawFontSet = true;
+    int headType = 0;
     boolean drawFPS = true;
     boolean updateFont = true;
+    final int fontSizeFixed = 6;
     int fontSize = 40;
-    final int fontSizeModulo = 100;    
+    final int fontSizeModulo = 100;
+    String fontName;
+    AABBox fontNameBox;
+    String headtext;
+    AABBox headbox;
     
     static final String text1 = "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789.:,;(*!?/\\\")$%^&-+@~#<>{}[]";
     static final String text2 = "The quick brown fox jumps over the lazy dog";
+    static final String textX = 
+        "Residents of evacuated areas near Japan's stricken Fukushima\n"+
+        "nuclear plant have been warned that they may not be able\n"+
+        "to return to their homes for months as Japan's nuclear crisis\n"+
+        "stretched into a third week. The neighbourhoods near the plant\n"+
+        "will remain empty \"for the long term\", Yukio Edano, the country's\n"+
+        "chief cabinet secretary, said on Friday. Though he did not set a\n"+
+        "timetable, he said residents would not be able to return permanently\n"+
+        "\"in a matter of days or weeks. It will be longer than that\".\n"; 
+    
     
     StringBuffer userString = new StringBuffer();
     boolean userInput = false;
@@ -77,6 +92,30 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     public GPUTextRendererListenerBase01(Vertex.Factory<? extends Vertex> factory, int mode, boolean debug, boolean trace) {
         super(TextRenderer.create(factory, mode), debug, trace);        
         this.font = FontFactory.get(fontSet).getDefault();
+        System.err.println(font.getAllNames("\n"));
+        
+        this.fontName = font.getName();
+        this.fontNameBox = font.getStringBounds(fontName, fontSizeFixed*2);
+        switchHeadBox();        
+    }
+    
+    void switchHeadBox() {
+        headType = ( headType + 1 ) % 3 ; 
+        switch(headType) {
+          case 0:
+              headtext = null;
+              break;
+              
+          case 1:
+              headtext= textX;
+              break;
+              
+          default:
+              headtext = text1;              
+        }
+        if(null != headtext) {
+            headbox = font.getStringBounds(headtext, fontSizeFixed*3);
+        }
     }
 
     public void display(GLAutoDrawable drawable) {
@@ -87,42 +126,42 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
         final TextRenderer textRenderer = (TextRenderer) getRenderer();
         
-        if(drawFPS || drawFontSet || updateMatrix) {
-            final int width = drawable.getWidth();
-            final int height = drawable.getHeight();
-            final GLAnimatorControl animator = drawable.getAnimator();
-            final boolean _drawFPS = drawFPS && null != animator && animator.getTotalFrames()>10;
+        final int width = drawable.getWidth();
+        final int height = drawable.getHeight();
+        final GLAnimatorControl animator = drawable.getAnimator();
+        final boolean _drawFPS = drawFPS && null != animator && animator.getTotalFrames()>10;
 
-            if(_drawFPS || drawFontSet) {
-                textRenderer.reshapeOrtho(null, width, height, 0.1f, 7000.0f);                
-            }
-            if(_drawFPS) {
-                final float fps = ( animator.getTotalFrames() * 1000.0f ) / (float) animator.getDuration() ;
-                final String fpsS = String.valueOf(fps);
-                final int fpsSp = fpsS.indexOf('.');
-                textRenderer.resetModelview(null);
-                textRenderer.translate(gl, 0, 0, -6000);
-                textRenderer.renderString3D(gl, font, fpsS.substring(0, fpsSp+2), getPosition(), fontSize, getTexSize());
-            }
-            if(drawFontSet) { 
-                textRenderer.resetModelview(null);
-                final AABBox box = font.getStringBounds(font.getName(), fontSize/4);
-                final int dx = width-(int)box.getWidth()-2;
-                final int dy = height-(int)box.getHeight()-2;
-                textRenderer.translate(gl, dx, dy, -6000);
-                textRenderer.renderString3D(gl, font, font.getName(), getPosition(), fontSize/4, getTexSize());
-                textRenderer.translate(gl, -dx, -20, 0);
-                textRenderer.renderString3D(gl, font, text1, getPosition(), fontSize, getTexSize());
-            }
-            if(_drawFPS || drawFontSet) {
-                textRenderer.reshapePerspective(null, 45.0f, width, height, 0.1f, 7000.0f);             
-            }
-            		
-            textRenderer.resetModelview(null);            
-            textRenderer.translate(null, getXTran(), getYTran(), getZoom());
-            textRenderer.rotate(gl, getAngle(), 0, 1, 0);
-            updateMatrix = false;
+        textRenderer.reshapeOrtho(null, width, height, 0.1f, 7000.0f);                
+        if(_drawFPS) {
+            final float fps = ( animator.getTotalFrames() * 1000.0f ) / (float) animator.getDuration() ;
+            final String fpsS = String.valueOf(fps);
+            final int fpsSp = fpsS.indexOf('.');
+            textRenderer.resetModelview(null);
+            textRenderer.translate(gl, fontSizeFixed, fontSizeFixed, -6000);
+            textRenderer.renderString3D(gl, font, fpsS.substring(0, fpsSp+2)+" fps", getPosition(), fontSizeFixed*3, getTexSize());
         }
+        
+        int dx = width-(int)fontNameBox.getWidth()-2 ;
+        int dy = height - 10;        
+        
+        textRenderer.resetModelview(null);
+        textRenderer.translate(gl, dx, dy, -6000);
+        textRenderer.renderString3D(gl, font, fontName, getPosition(), fontSizeFixed*2, getTexSize());
+        
+        dx  =  10;
+        dy += -(int)fontNameBox.getHeight() - 10;
+        
+        if(null != headtext) { 
+            textRenderer.resetModelview(null);
+            textRenderer.translate(gl, dx, dy, -6000);
+            textRenderer.renderString3D(gl, font, headtext, getPosition(), fontSizeFixed*3, getTexSize());
+        }
+        
+        textRenderer.reshapePerspective(null, 45.0f, width, height, 0.1f, 7000.0f);             
+
+        textRenderer.resetModelview(null);            
+        textRenderer.translate(null, getXTran(), getYTran(), getZoom());
+        textRenderer.rotate(gl, getAngle(), 0, 1, 0);
 
         if(!userInput) {
             textRenderer.renderString3D(gl, font, text2, getPosition(), fontSize, getTexSize());
@@ -140,6 +179,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     public void nextFontSet() {
         fontSet = ( fontSet == FontFactory.UBUNTU ) ? FontFactory.JAVA : FontFactory.UBUNTU ;
         font = FontFactory.get(fontSet).getDefault();        
+        this.fontName = font.getName();
+        this.fontNameBox = font.getStringBounds(fontName, fontSizeFixed*3);
     }
     
     public void setFontSet(int set, int family, int stylebits) {
@@ -194,12 +235,10 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 fontIncr(-10);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_H) {
-                drawFontSet = !drawFontSet; 
-                System.err.println("Draw font set: "+drawFontSet);
+                switchHeadBox();
             }  
             else if(arg0.getKeyCode() == KeyEvent.VK_F){
                 drawFPS = !drawFPS; 
-                System.err.println("Draw FPS: "+drawFPS);
             }  
             else if(arg0.getKeyCode() == KeyEvent.VK_SPACE) {      
                 nextFontSet();
@@ -209,17 +248,19 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 setIgnoreInput(true);
             }
         }
+        
         public void keyTyped(KeyEvent arg0) {
-            if(userInput) {
+            if(userInput) {                
+                // System.err.println(arg0);
+                
                 char c = arg0.getKeyChar();
                 
-                System.err.println(arg0);
-                if(c == 0x08) {
-                    userString.deleteCharAt(userString.length()-1);
-                } else if(c == 0x0d) {
+                if(c == 0x0d) {
                     userInput = false;
-                    setIgnoreInput(true);
-                } else {
+                    setIgnoreInput(false);
+                } else if(c == 0x08 && userString.length()>0) {
+                    userString.deleteCharAt(userString.length()-1);
+                } else if( font.isPrintableChar( c ) ) { 
                     userString.append(c);
                 }
             }

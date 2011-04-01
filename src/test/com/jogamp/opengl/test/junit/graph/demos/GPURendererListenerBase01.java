@@ -72,7 +72,6 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     private float zoom = -70f;
     private int texSize = 400; 
 
-    boolean updateMatrix = true;
     boolean ignoreInput = false;
 
     public GPURendererListenerBase01(Renderer renderer, boolean debug, boolean trace) {
@@ -96,7 +95,6 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         this.ang = angle;  
         this.zoom = zoom;
         this.texSize = fbosize;     
-        updateMatrix = true;
     }
     
     public void init(GLAutoDrawable drawable) {
@@ -129,20 +127,17 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     
     public void zoom(int v){
         zoom += v;
-        updateMatrix = true;
         dumpMatrix();
     }
     
     public void move(float x, float y){
         xTran += x;
         yTran += y;
-        updateMatrix = true;
         dumpMatrix();
     }
     public void rotate(float delta){
         ang += delta;
         ang %= 360.0f;
-        updateMatrix = true;
         dumpMatrix();
     }
     
