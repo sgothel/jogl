@@ -27,11 +27,15 @@
  */
 package jogamp.graph.font;
 
+import java.io.IOException;
+import javax.media.opengl.GLException;
+
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.opengl.util.Locator;
+import java.net.URL;
 
 public class UbuntuFontLoader implements FontSet {
     
@@ -55,6 +59,8 @@ public class UbuntuFontLoader implements FontSet {
     };
         
     final static String relPath = "fonts/ubuntu/" ;
+    // debug final static String relPath = "/usr/local/projects/JOGL/jogl/src/jogl/classes/jogamp/graph/font/fonts/ubuntu/" ;
+    
     
     private UbuntuFontLoader() {
     }
@@ -113,20 +119,22 @@ public class UbuntuFontLoader implements FontSet {
 
         return font;
     }
-	
-    Font abspath(String fname) {
-        return FontFactory.getFontConstr().create(        
-                Locator.getResource(UbuntuFontLoader.class, relPath+fname).getPath() );
-    }
-    
+		
     Font abspath(String fname, int family, int style) {
-        final Font f = FontFactory.getFontConstr().create(        
-                Locator.getResource(UbuntuFontLoader.class, relPath+fname).getPath() );
-        if(null != f) {
-            fontMap.put( ( family << 8 ) | style, f );
+        final String err = "Problem loading font "+fname+", stream "+relPath+fname;
+        try {
+            URL url = Locator.getResource(UbuntuFontLoader.class, relPath+fname);
+            if(null == url) {
+                throw new GLException(err);
+            }
+            final Font f= FontFactory.get ( url ) ;
+            if(null != f) {
+                fontMap.put( ( family << 8 ) | style, f );
+                return f;
+            }        
+            throw new GLException(err);
+        } catch(IOException ioe) {
+            throw new GLException(err, ioe);            
         }
-        return f;        
-    }   
-    
-	
+    }       	
 }

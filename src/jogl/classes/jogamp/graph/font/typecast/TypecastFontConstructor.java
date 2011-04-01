@@ -29,25 +29,41 @@ package jogamp.graph.font.typecast;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+
+import javax.media.opengl.GLException;
 
 import jogamp.graph.font.FontConstructor;
 import jogamp.graph.font.typecast.ot.OTFontCollection;
 
 
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.font.Font;
 
 
 public class TypecastFontConstructor implements FontConstructor  {
 
-    public Font create(String path) {
-        OTFontCollection fontset;
+    public Font create(File ffile) throws IOException {
+        OTFontCollection fontset;        
         try {
-            fontset = OTFontCollection.create(new File(path));
+            fontset = OTFontCollection.create(ffile);
             return new TypecastFont(fontset);
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
+    }
+    
+    public Font create(URL furl) throws IOException {
+        final File tf  = File.createTempFile( "joglfont", ".ttf");
+        final int len = IOUtil.copyURLToFile(furl, tf);
+        if(len==0) {
+            tf.delete();
+            throw new GLException("Font of stream "+furl+" was zero bytes");
+        }
+        final Font f = create(tf);
+        tf.delete();
+        return f;
     }
     
 }

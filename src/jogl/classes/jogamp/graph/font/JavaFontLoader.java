@@ -27,6 +27,11 @@
  */
 package jogamp.graph.font;
 
+import java.io.File;
+import java.io.IOException;
+
+import javax.media.opengl.GLException;
+
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontSet;
@@ -118,12 +123,17 @@ public class JavaFontLoader implements FontSet {
     }
 	
     Font abspath(String fname, int family, int style) {
-        final Font f = FontFactory.getFontConstr().create(javaFontPath+fname);
-        if(null != f) {
-            fontMap.put( ( family << 8 ) | style, f );
+        final String err = "Problem loading font "+fname+", file "+javaFontPath+fname ;
+                
+        try {
+            final Font f = FontFactory.get( new File(javaFontPath+fname) );
+            if(null != f) {
+                fontMap.put( ( family << 8 ) | style, f );
+                return f;
+            }
+            throw new GLException(err);            
+        } catch (IOException ioe) {
+            throw new GLException(err, ioe);            
         }
-        return f;
-        
-    }   
-	
+    }    
 }

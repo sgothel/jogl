@@ -27,8 +27,13 @@
  */
 package jogamp.graph.font;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+
 import com.jogamp.graph.font.Font;
 
 public interface FontConstructor {
-    Font create(String name);
+    Font create(File file) throws IOException ;
+    Font create(URL url) throws IOException ;
 }
