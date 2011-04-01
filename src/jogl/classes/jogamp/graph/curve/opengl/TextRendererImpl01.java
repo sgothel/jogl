@@ -139,7 +139,7 @@ public class TextRendererImpl01 extends TextRenderer {
 		
 		if(DEBUG) {
 			System.err.println("TextRendererImpl01 initialized: " + Thread.currentThread()+" "+st);
-		}
+		}		
 		return true;
 	}
 	

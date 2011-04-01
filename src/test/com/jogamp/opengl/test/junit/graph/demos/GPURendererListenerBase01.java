@@ -112,7 +112,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     public void reshape(GLAutoDrawable drawable, int xstart, int ystart, int width, int height) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         
-        gl.glViewport(xstart, ystart, width, height);
+        gl.glViewport(xstart, ystart, width, height);        
         renderer.reshapePerspective(gl, 45.0f, width, height, 0.1f, 7000.0f);
         
         dumpMatrix();

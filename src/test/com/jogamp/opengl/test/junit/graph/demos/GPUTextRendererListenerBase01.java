@@ -92,11 +92,17 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     public GPUTextRendererListenerBase01(Vertex.Factory<? extends Vertex> factory, int mode, boolean debug, boolean trace) {
         super(TextRenderer.create(factory, mode), debug, trace);        
         this.font = FontFactory.get(fontSet).getDefault();
-        System.err.println(font.getAllNames(null, "\n"));
+        dumpFontNames();
         
         this.fontName = font.getName(Font.NAME_FAMILY) + " - " + font.getName(Font.NAME_SUBFAMILY);
         this.fontNameBox = font.getStringBounds(fontName, fontSizeFixed*2);
         switchHeadBox();        
+    }
+
+    void dumpFontNames() {
+        System.err.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        System.err.println(font.getAllNames(null, "\n"));
+        System.err.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");        
     }
     
     void switchHeadBox() {
@@ -181,11 +187,13 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         font = FontFactory.get(fontSet).getDefault();        
         this.fontName = font.getName(Font.NAME_FAMILY) + " - " + font.getName(Font.NAME_SUBFAMILY);
         this.fontNameBox = font.getStringBounds(fontName, fontSizeFixed*3);
+        dumpFontNames();
     }
     
     public void setFontSet(int set, int family, int stylebits) {
         fontSet = set;
-        font = FontFactory.get(fontSet).get(family, stylebits);        
+        font = FontFactory.get(fontSet).get(family, stylebits);       
+        dumpFontNames();
     }
     
     public boolean isUserInputMode() { return userInput; }

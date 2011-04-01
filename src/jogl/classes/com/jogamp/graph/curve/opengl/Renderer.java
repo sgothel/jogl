@@ -104,6 +104,10 @@ public abstract class Renderer {
     }
     
     public final ShaderState getShaderState() { return st; }
+    
+    public final void enable(GL2ES2 gl, boolean enable) { 
+        st.glUseProgram(gl, enable);
+    }
 
     public final PMVMatrix getMatrix() { return pmvMatrix; }
 
