@@ -21,12 +21,13 @@ import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.graph.demos.GPUTextRendererListenerBase01;
+import com.jogamp.opengl.test.junit.util.UITestCase;
 
 
-public class TestTextRenderer01 {
+public class TestTextRendererNEWT01 extends UITestCase {
 
     public static void main(String args[]) throws IOException {
-        String tstname = TestTextRenderer01.class.getName();
+        String tstname = TestTextRendererNEWT01.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }    
         

@@ -196,9 +196,9 @@ function testawtmt() {
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
 
-#testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRenderer01 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRenderer01 $*
-testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo01 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
+testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo02 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo02 $*

@@ -19,12 +19,13 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener01;
 import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener02;
 import com.jogamp.opengl.test.junit.graph.demos.GPURegionRendererListenerBase01;
+import com.jogamp.opengl.test.junit.util.UITestCase;
 
 
-public class TestRegionRenderer01 {
+public class TestRegionRendererNEWT01 extends UITestCase {
 
     public static void main(String args[]) throws IOException {
-        String tstname = TestRegionRenderer01.class.getName();
+        String tstname = TestRegionRendererNEWT01.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }    
     
