@@ -1,0 +1,13 @@
+//#version 100
+
+uniform mat4 mgl_PMVMatrix[2];
+attribute vec4 v_position;
+attribute vec2 texCoord; 
+
+varying vec2 v_texCoord;
+
+void main(void)
+{
+  gl_Position = mgl_PMVMatrix[0] * mgl_PMVMatrix[1] * v_position;
+  v_texCoord = texCoord.st;
+}
