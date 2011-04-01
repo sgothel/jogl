@@ -63,16 +63,6 @@ import java.io.IOException;
  * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
  */
 public class NameTable implements Table {
-
-    public static final int RECORD_COPYRIGHT = 0;
-    public static final int RECORD_FAMILY = 1;
-    public static final int RECORD_SUBFAMILY = 2;
-    public static final int RECORD_UNIQUNAME = 3;
-    public static final int RECORD_FULLNAME = 4;
-    public static final int RECORD_VERSION = 5;
-    public static final int RECORD_MANUFACTURER = 8;
-    public static final int RECORD_DESIGNER = 9;
-    
     private DirectoryEntry _de;
     private short _formatSelector;
     private short _numberOfNameRecords;

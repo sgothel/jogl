@@ -55,13 +55,13 @@ public abstract class TextRenderer extends Renderer {
         Path2D[] paths = new Path2D[str.length()];
         ((FontInt)font).getOutline(str, size, affineTransform, paths);
         
-        GlyphString glyphString = new GlyphString(pointFactory, font.getName(), str);
+        GlyphString glyphString = new GlyphString(pointFactory, font.getName(Font.NAME_UNIQUNAME), str);
         glyphString.createfromFontPath(paths, affineTransform);
         glyphString.generateRegion(gl.getContext(), sharpness, st, renderType);
         
         return glyphString;
     }
-        
+    
    public void flushCache() {
        Iterator<GlyphString> iterator = stringCacheMap.values().iterator();
        while(iterator.hasNext()){
@@ -84,12 +84,12 @@ public abstract class TextRenderer extends Renderer {
    }
    
    protected GlyphString getCachedGlyphString(Font font, String str, int fontSize) {
-       final String key = font.getName() + "." + str.hashCode() + "." + fontSize;
+       final String key = font.getName(Font.NAME_UNIQUNAME) + "." + str.hashCode() + "." + fontSize;
        return stringCacheMap.get(key);
    }
 
    protected void addCachedGlyphString(Font font, String str, int fontSize, GlyphString glyphString) {
-       final String key = font.getName() + "." + str.hashCode() + "." + fontSize;
+       final String key = font.getName(Font.NAME_UNIQUNAME) + "." + str.hashCode() + "." + fontSize;
        validateCache(1);
        stringCacheMap.put(key, glyphString);
        stringCacheArray.add(stringCacheArray.size(), key);

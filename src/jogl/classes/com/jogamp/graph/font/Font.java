@@ -41,6 +41,17 @@ import com.jogamp.graph.geom.AABBox;
 
 public interface Font {
 
+    /** font name indices for name table */
+    public static final int NAME_COPYRIGHT = 0;
+    public static final int NAME_FAMILY = 1;
+    public static final int NAME_SUBFAMILY = 2;
+    public static final int NAME_UNIQUNAME = 3;
+    public static final int NAME_FULLNAME = 4;
+    public static final int NAME_VERSION = 5;
+    public static final int NAME_MANUFACTURER = 8;
+    public static final int NAME_DESIGNER = 9;
+    
+    
 	/**
 	 * Metrics for font
 	 * 
@@ -70,8 +81,8 @@ public interface Font {
     }
 
 
-    public String getName();
-    public String getAllNames(String separator);
+    public String getName(int nameIndex);
+    public StringBuffer getAllNames(StringBuffer buffer, String separator);
     
     public Metrics getMetrics();
     public Glyph getGlyph(char symbol);

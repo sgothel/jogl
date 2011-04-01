@@ -92,9 +92,9 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     public GPUTextRendererListenerBase01(Vertex.Factory<? extends Vertex> factory, int mode, boolean debug, boolean trace) {
         super(TextRenderer.create(factory, mode), debug, trace);        
         this.font = FontFactory.get(fontSet).getDefault();
-        System.err.println(font.getAllNames("\n"));
+        System.err.println(font.getAllNames(null, "\n"));
         
-        this.fontName = font.getName();
+        this.fontName = font.getName(Font.NAME_FAMILY) + " - " + font.getName(Font.NAME_SUBFAMILY);
         this.fontNameBox = font.getStringBounds(fontName, fontSizeFixed*2);
         switchHeadBox();        
     }
@@ -179,7 +179,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     public void nextFontSet() {
         fontSet = ( fontSet == FontFactory.UBUNTU ) ? FontFactory.JAVA : FontFactory.UBUNTU ;
         font = FontFactory.get(fontSet).getDefault();        
-        this.fontName = font.getName();
+        this.fontName = font.getName(Font.NAME_FAMILY) + " - " + font.getName(Font.NAME_SUBFAMILY);
         this.fontNameBox = font.getStringBounds(fontName, fontSizeFixed*3);
     }
     
@@ -219,7 +219,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     }
     
     public void printScreen(GLAutoDrawable drawable, String dir, String tech, boolean exportAlpha) throws GLException, IOException {
-        printScreen(drawable, dir, tech, font.getName(), exportAlpha);
+        final String fn = font.getName(Font.NAME_FAMILY)+"-"+font.getName(Font.NAME_SUBFAMILY);
+        printScreen(drawable, dir, tech, fn.replace(' ', '_'), exportAlpha);
     }
     
     public class KeyAction implements KeyListener {

@@ -35,7 +35,6 @@ import jogamp.graph.font.typecast.ot.table.CmapIndexEntry;
 import jogamp.graph.font.typecast.ot.table.CmapTable;
 import jogamp.graph.font.typecast.ot.table.HdmxTable;
 import jogamp.graph.font.typecast.ot.table.ID;
-import jogamp.graph.font.typecast.ot.table.NameTable;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 
@@ -141,12 +140,11 @@ class TypecastFont implements FontInt {
         char2Glyph = new IntObjectHashMap(cmapentries + cmapentries/4);
     }
 
-    public String getName() {
-        return font.getName();
+    public String getName(int nameIndex) {
+        return font.getName(nameIndex);
     }
-    
-    public String getAllNames(String separator) {
-        return font.getAllNames(separator);
+    public StringBuffer getAllNames(StringBuffer buffer, String separator) {
+        return font.getAllNames(buffer, separator);
     }
 
     public Metrics getMetrics() {
