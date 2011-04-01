@@ -144,6 +144,12 @@
         <property name="java.part.util.graph"
                   value="com/jogamp/graph/** jogamp/graph/**"/>
 
+        <property name="java.part.util.graph.fonts"
+                  value="jogamp/graph/font/fonts/**"/>
+
+        <property name="java.part.util.graph.shadercode"
+                  value="jogamp/graph/curve/opengl/shader/* jogamp/graph/curve/opengl/shader/bin/**"/>
+
         <property name="java.part.util.fixedfuncemu"
                   value="jogamp/opengl/util/glsl/fixedfunc/**"/>
 
@@ -1474,7 +1480,7 @@
                 <include name="jogamp/graph/**" />
             </fileset>
             <fileset dir="${src.java}"
-                     includes="${java.part.util.fixedfuncemu.shadercode}"/>
+                     includes="${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
         </jar>
     </target>
     <target name="build-jars-all-noawt-javase" depends="setup-manifestfile">
@@ -1490,7 +1496,7 @@
                 <include name="jogamp/graph/**" />
             </fileset>
             <fileset dir="${src.java}"
-                     includes="${java.part.util.fixedfuncemu.shadercode}"/>
+                     includes="${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
         </jar>
     </target>
 
@@ -1540,6 +1546,8 @@
             <fileset dir="${classes}"
                      includes="${java.part.util} ${java.part.util.glsl} ${java.part.util.graph}"
                      excludes="${java.part.util.awt} ${java.part.util.gldesktop} ${java.part.util.fixedfuncemu}"/>
+            <fileset dir="${src.java}"
+                     includes="${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
         </jar>
         <jar manifest="${build.jogl}/tempversion" destfile="${jogl.util.fixedfuncemu.jar}" filesonly="true">
             <fileset dir="${classes}"
