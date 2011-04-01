@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package demo;
+package com.jogamp.opengl.test.junit.graph.demos;
 
 import com.jogamp.opengl.util.GLBuffers;
 import java.nio.*;

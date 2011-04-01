@@ -6,7 +6,6 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.opengl.Debug;
 
-import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -34,15 +33,20 @@ public abstract class Renderer {
     protected ShaderState st = new ShaderState();
     protected PMVMatrix pmvMatrix = new PMVMatrix();
     protected GLUniformData mgl_PMVMatrix;
-    protected int regionType = Region.SINGLE_PASS;
+    protected int renderType;
     protected int vp_width = 0;
     protected int vp_height = 0;
     
     private boolean vboSupported = false; 
     private boolean initialized = false;
     
-    protected Renderer(Vertex.Factory<? extends Vertex> factory, int type) {
-        this.regionType = type;
+    /**
+     * 
+     * @param factory
+     * @param renderType either {@link com.jogamp.graph.curve.Region#SINGLE_PASS} or {@link com.jogamp.graph.curve.Region#TWO_PASS}
+     */
+    protected Renderer(Vertex.Factory<? extends Vertex> factory, int renderType) {
+        this.renderType = renderType;
         this.pointFactory = (null != factory) ? factory : SVertex.factory();        
     }
     
@@ -51,6 +55,8 @@ public abstract class Renderer {
     public final boolean isInitialized() { return initialized; }
     
     public final boolean isVBOSupported() { return vboSupported; }
+    
+    public final int getRenderType() { return renderType; }
     
     public final int getWidth() { return vp_width; }
     public final int getHeight() { return vp_height; }

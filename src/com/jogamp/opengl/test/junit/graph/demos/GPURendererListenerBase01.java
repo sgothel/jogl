@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package demo;
+package com.jogamp.opengl.test.junit.graph.demos;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -52,6 +52,7 @@ import com.jogamp.newt.opengl.GLWindow;
  * - 6/7: 2nd pass texture size
  * - 0/9: rotate 
  * - v: toggle v-sync
+ * - s: screenshot
  */
 public abstract class GPURendererListenerBase01 implements GLEventListener {
     private Screenshot screenshot;
@@ -72,6 +73,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     private int texSize = 400; 
 
     boolean updateMatrix = true;
+    boolean ignoreInput = false;
 
     public GPURendererListenerBase01(Renderer renderer, boolean debug, boolean trace) {
         this.renderer = renderer;
@@ -173,8 +175,21 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     	screenshot.surface2File(drawable, filename /*, exportAlpha */);
     }
     
+    int screenshot_num = 0;
+
+    public void setIgnoreInput(boolean v) {
+        ignoreInput = v;
+    }
+    public boolean getIgnoreInput() {
+        return ignoreInput;
+    }
+    
     public class KeyAction implements KeyListener {
         public void keyPressed(KeyEvent arg0) {
+            if(ignoreInput) {
+                return;
+            }
+            
             if(arg0.getKeyCode() == KeyEvent.VK_1){
                 zoom(10);
             }
@@ -224,6 +239,24 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                     });
                 }                
             }
+            else if(arg0.getKeyCode() == KeyEvent.VK_S){
+                rotate(-1);
+                    if(null != autoDrawable) {
+                        autoDrawable.invoke(false, new GLRunnable() {
+                            public void run(GLAutoDrawable drawable) {
+                                try {
+                                    final String type = ( 1 == renderer.getRenderType() ) ? "r2t0-msaa1" : "r2t1-msaa0" ; 
+                                    printScreen(drawable, "./", "demo-"+type, "snap"+screenshot_num, false);
+                                    screenshot_num++;
+                                } catch (GLException e) {
+                                    e.printStackTrace();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }                                
+                            }
+                        });
+                    }                
+            }  
         }
         public void keyTyped(KeyEvent arg0) {}
         public void keyReleased(KeyEvent arg0) {}

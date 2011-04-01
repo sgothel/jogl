@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package demo;
+package com.jogamp.opengl.test.junit.graph.demos;
 
 import java.io.IOException;
 import javax.media.opengl.GL;
@@ -36,6 +36,7 @@ import javax.media.opengl.GLException;
 import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
@@ -48,12 +49,14 @@ import com.jogamp.newt.opengl.GLWindow;
  * - 6/7: 2nd pass texture size
  * - 0/9: rotate
  * - v: toggle v-sync
+ * - s: screenshot
  * 
  * Additional Keys:
  * - 3/4: font +/-
- * - s: toogle draw 'font set'
+ * - h: toogle draw 'font set'
  * - f: toggle draw fps
  * - space: toggle font (ubuntu/java)
+ * - i: live input text input (CR ends it, backspace supported)
  */
 public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerBase01 {
     int fontSet = FontFactory.UBUNTU;
@@ -67,7 +70,10 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     
     static final String text1 = "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789.:,;(*!?/\\\")$%^&-+@~#<>{}[]";
     static final String text2 = "The quick brown fox jumps over the lazy dog";
-
+    
+    StringBuffer userString = new StringBuffer();
+    boolean userInput = false;
+    
     public GPUTextRendererListenerBase01(Vertex.Factory<? extends Vertex> factory, int mode, boolean debug, boolean trace) {
         super(TextRenderer.create(factory, mode), debug, trace);        
         this.font = FontFactory.get(fontSet).getDefault();
@@ -100,7 +106,12 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             }
             if(drawFontSet) { 
                 textRenderer.resetModelview(null);
-                textRenderer.translate(gl, 0, height-50, -6000);
+                final AABBox box = font.getStringBounds(font.getName(), fontSize/4);
+                final int dx = width-(int)box.getWidth()-2;
+                final int dy = height-(int)box.getHeight()-2;
+                textRenderer.translate(gl, dx, dy, -6000);
+                textRenderer.renderString3D(gl, font, font.getName(), getPosition(), fontSize/4, getTexSize());
+                textRenderer.translate(gl, -dx, -20, 0);
                 textRenderer.renderString3D(gl, font, text1, getPosition(), fontSize, getTexSize());
             }
             if(_drawFPS || drawFontSet) {
@@ -113,7 +124,11 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             updateMatrix = false;
         }
 
-        textRenderer.renderString3D(gl, font, text2, getPosition(), fontSize, getTexSize());
+        if(!userInput) {
+            textRenderer.renderString3D(gl, font, text2, getPosition(), fontSize, getTexSize());
+        } else {
+            textRenderer.renderString3D(gl, font, userString.toString(), getPosition(), fontSize, getTexSize());
+        }
     }        
         
     public void fontIncr(int v) {
@@ -131,6 +146,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         fontSet = set;
         font = FontFactory.get(fontSet).get(family, stylebits);        
     }
+    
+    public boolean isUserInputMode() { return userInput; }
     
     void dumpMatrix(boolean bbox) {
         System.err.println("Matrix: " + getXTran() + "/" + getYTran() + " x"+getZoom() + " @"+getAngle() +" fontSize "+fontSize);
@@ -166,13 +183,17 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     
     public class KeyAction implements KeyListener {
         public void keyPressed(KeyEvent arg0) {
+            if(userInput) {
+                return;
+            }
+            
             if(arg0.getKeyCode() == KeyEvent.VK_3){
                 fontIncr(10);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_4){
                 fontIncr(-10);
             }
-            else if(arg0.getKeyCode() == KeyEvent.VK_S) {
+            else if(arg0.getKeyCode() == KeyEvent.VK_H) {
                 drawFontSet = !drawFontSet; 
                 System.err.println("Draw font set: "+drawFontSet);
             }  
@@ -183,8 +204,26 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             else if(arg0.getKeyCode() == KeyEvent.VK_SPACE) {      
                 nextFontSet();
             }
+            else if(arg0.getKeyCode() == KeyEvent.VK_I){
+                userInput = true;
+                setIgnoreInput(true);
+            }
         }
-        public void keyTyped(KeyEvent arg0) {}
+        public void keyTyped(KeyEvent arg0) {
+            if(userInput) {
+                char c = arg0.getKeyChar();
+                
+                System.err.println(arg0);
+                if(c == 0x08) {
+                    userString.deleteCharAt(userString.length()-1);
+                } else if(c == 0x0d) {
+                    userInput = false;
+                    setIgnoreInput(true);
+                } else {
+                    userString.append(c);
+                }
+            }
+        }
         public void keyReleased(KeyEvent arg0) {}
     }
 }

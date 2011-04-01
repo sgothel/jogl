@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package demo;
+package com.jogamp.opengl.test.junit.graph.demos;
 
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;

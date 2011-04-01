@@ -1,4 +1,4 @@
-package demo;
+package com.jogamp.opengl.test.junit.graph.demos;
 
 import java.io.File;
 import java.io.IOException;

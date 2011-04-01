@@ -1,4 +1,4 @@
-package test.com.jogamp.opengl.test.junit.graph;
+package com.jogamp.opengl.test.junit.graph;
 
 import java.io.IOException;
 
@@ -20,13 +20,13 @@ import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.graph.demos.GPUTextRendererListenerBase01;
 
-import demo.GPUTextRendererListenerBase01;
 
 public class TestTextRenderer01 {
 
     public static void main(String args[]) throws IOException {
-        String tstname = TestRegionRenderer01.class.getName();
+        String tstname = TestTextRenderer01.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }    
         
@@ -57,7 +57,8 @@ public class TestTextRenderer01 {
 
 	@Test
 	public void testTextRendererR2T01() throws InterruptedException {
-		GLProfile glp = GLProfile.get(GLProfile.GL3);
+        GLProfile glp = GLProfile.getGL2ES2();
+		
 		GLCapabilities caps = new GLCapabilities(glp);
 		caps.setAlphaBits(4);	
 
@@ -67,23 +68,23 @@ public class TestTextRenderer01 {
         window.addGLEventListener(textGLListener);
         
         textGLListener.setFontSet(FontFactory.UBUNTU, 0, 0);
-        textGLListener.setTech(-400, -30, 0f, -1000, 400);
+        textGLListener.setTech(-400, -30, 0f, -1000, window.getWidth()*2);
 		window.display();
 		
-		textGLListener.setTech(-400, -30, 0, -380, 1100);
+		textGLListener.setTech(-400, -30, 0, -380, window.getWidth()*3);
         window.display();
 		
-		textGLListener.setTech(-400, -20, 0, -80, 2500);
+		textGLListener.setTech(-400, -20, 0, -80, window.getWidth()*4);
         window.display();
 
         textGLListener.setFontSet(FontFactory.JAVA, 0, 0);
-        textGLListener.setTech(-400, -30, 0f, -1000, 400);
+        textGLListener.setTech(-400, -30, 0f, -1000, window.getWidth()*2);
         window.display();
         
-        textGLListener.setTech(-400, -30, 0, -380, 1100);
+        textGLListener.setTech(-400, -30, 0, -380, window.getWidth()*3);
         window.display();
         
-        textGLListener.setTech(-400, -20, 0, -80, 2500);
+        textGLListener.setTech(-400, -20, 0, -80, window.getWidth()*4);
         window.display();
         
 		destroyWindow(window); 

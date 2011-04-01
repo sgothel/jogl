@@ -25,22 +25,19 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package demo;
+package com.jogamp.opengl.test.junit.graph.demos;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL3;
-import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.TextRenderer;
-import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 
 public class GPUTextNewtDemo02 {
     /**
+     * FIXME:
+     * 
      * If DEBUG is enabled:
      *  
      * Caused by: javax.media.opengl.GLException: Thread[main-Display-X11_:0.0-1-EDT-1,5,main] glGetError() returned the following error codes after a call to glFramebufferRenderbuffer(<int> 0x8D40, <int> 0x1902, <int> 0x8D41, <int> 0x1): GL_INVALID_ENUM ( 1280 0x500), 
@@ -52,64 +49,28 @@ public class GPUTextNewtDemo02 {
     static final boolean TRACE = false;
     
     public static void main(String[] args) {
-        GPUTextNewtDemo02 test = new GPUTextNewtDemo02();
-        test.testMe();        
-    }
-    
-    GLWindow window;
-	TextGLListener textGLListener = null; 
-
-	public void testMe() {
 		GLProfile.initSingleton(true);
-        GLProfile glp = GLProfile.get(GLProfile.GL3);
+        GLProfile glp = GLProfile.getGL2ES2();
 		
 		GLCapabilities caps = new GLCapabilities(glp);
 		caps.setAlphaBits(4);		
 		System.out.println("Requested: "+caps);
 		
-		window = GLWindow.create(caps);
+	    GLWindow window = GLWindow.create(caps);
 		
 		window.setPosition(10, 10);
         window.setSize(800, 400);		
-
         window.setTitle("GPU Text Newt Demo 02 - r2t1 msaa0");
-        textGLListener = new TextGLListener();
+        
+        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(Region.TWO_PASS, window.getWidth()*3, DEBUG, TRACE);        
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
 
         window.enablePerfLog(true);
 		window.setVisible(true);
-
 		// FPSAnimator animator = new FPSAnimator(60);
         Animator animator = new Animator();		
 		animator.add(window);
 		animator.start();
-	}
-	
-	private class TextGLListener extends GPUTextRendererListenerBase01 {
-        public TextGLListener() {
-            super(SVertex.factory(), Region.TWO_PASS, DEBUG, TRACE);
-            // FIXME: Rami will fix FBO size !!
-            // setMatrix(-10, 10, 0f, -100, 400);   
-            // setMatrix(-80, -30, 0f, -100, window.getWidth()*3);
-            setMatrix(-400, -30, 0f, -500, window.getWidth()*3);
-        }
-	    
-		public void init(GLAutoDrawable drawable) {
-            super.init(drawable);
-            
-            GL3 gl = drawable.getGL().getGL3();
-            
-            final TextRenderer textRenderer = (TextRenderer) getRenderer();
-            
-			gl.setSwapInterval(1);
-			gl.glEnable(GL3.GL_DEPTH_TEST);
-			textRenderer.init(gl);
-			textRenderer.setAlpha(gl, 1.0f);
-			textRenderer.setColor(gl, 0.0f, 0.0f, 0.0f);
-			gl.glDisable(GL.GL_MULTISAMPLE); // this state usually doesn't matter in driver - but document here: no MSAA 
-			//gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL3.GL_NICEST);
-			MSAATool.dump(drawable);
-		}
-	}
+	}	
 }

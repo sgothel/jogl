@@ -1,4 +1,4 @@
-package test.com.jogamp.opengl.test.junit.graph;
+package com.jogamp.opengl.test.junit.graph;
 
 import java.io.IOException;
 
@@ -14,11 +14,12 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.jogamp.graph.curve.Region;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener01;
+import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener02;
+import com.jogamp.opengl.test.junit.graph.demos.GPURegionRendererListenerBase01;
 
-import demo.GPURegionNewtDemo01;
-import demo.GPURegionNewtDemo02;
-import demo.GPURegionRendererListenerBase01;
 
 public class TestRegionRenderer01 {
 
@@ -54,15 +55,17 @@ public class TestRegionRenderer01 {
 
 	@Test
 	public void testRegionRendererR2T01() throws InterruptedException {
-		GLProfile glp = GLProfile.get(GLProfile.GL3);
+        GLProfile glp = GLProfile.getGL2ES2();
+		
 		GLCapabilities caps = new GLCapabilities(glp);
 		//caps.setOnscreen(false);
 		caps.setAlphaBits(4);	
 
 		GLWindow window = createWindow("shape-r2t1-msaa0", caps, 800,400);
 		
-        GPURegionNewtDemo02 demo02 = new GPURegionNewtDemo02();
-        GPURegionNewtDemo02.RegionGLListener demo02Listener = demo02.createRegionRendererListener(window);
+        GPURegionGLListener02  demo02Listener = new GPURegionGLListener02 (Region.TWO_PASS, 1140, false, false); 
+        demo02Listener.attachInputListenerTo(window);                
+        window.addGLEventListener(demo02Listener);        
         
         RegionGLListener listener = new RegionGLListener(demo02Listener, window.getTitle(), "GPURegionNewtDemo02");
         window.addGLEventListener(listener);
@@ -90,10 +93,11 @@ public class TestRegionRenderer01 {
 
 		GLWindow window = createWindow("shape-r2t0-msaa1", caps, 800, 400);
 		
-		GPURegionNewtDemo01 demo01 = new GPURegionNewtDemo01();
-		GPURegionNewtDemo01.RegionGLListener demo01Listener = demo01.createRegionRendererListener(window);
-		
-		RegionGLListener listener = new RegionGLListener(demo01Listener, window.getTitle(), "GPURegionNewtDemo01");
+        GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (Region.SINGLE_PASS, 0, false, false);
+        demo01Listener.attachInputListenerTo(window);        
+        window.addGLEventListener(demo01Listener);
+				
+		RegionGLListener listener = new RegionGLListener(demo01Listener, window.getTitle(), "GPURegion01");
 		window.addGLEventListener(listener);
 		
         listener.setTech(-20, 00, 0f, -300, 400);

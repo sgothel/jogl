@@ -46,14 +46,17 @@ import com.jogamp.opengl.util.PMVMatrix;
 public interface Region {
 	/** The vertices index in an OGL object
 	 */
-	public static int VERTEX_POS_INDX = 0;
+	public static int VERTEX_ATTR_IDX = 0;
 
 	/** The Texture Coord index in an OGL object
 	 */
-	public static int TEX_COORD = 1;
+	public static int TEXCOORD_ATTR_IDX = 1;
 	
-	public static int SINGLE_PASS = 10;
-	public static int TWO_PASS = 20;
+	/** single pass rendering, fast, but AA might not be perfect */
+	public static int SINGLE_PASS = 1;
+	
+	/** two pass rendering, slower and more resource hungry (FBO), but AA is perfect */
+	public static int TWO_PASS    = 2;
 	
 	/** Updates a graph region by updating the ogl related
 	 *  objects for use in rendering. if called for the first time

@@ -134,12 +134,12 @@ public class VBORegionSPES2  implements Region{
 		GL2ES2 gl = context.getGL().getGL2ES2();
 		
 		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, vboIds.get(0));
-		gl.glEnableVertexAttribArray(VERTEX_POS_INDX);
-		gl.glVertexAttribPointer(VERTEX_POS_INDX, 3, GL2ES2.GL_FLOAT, false, 3 * Buffers.SIZEOF_FLOAT, 0);
+		gl.glEnableVertexAttribArray(VERTEX_ATTR_IDX);
+		gl.glVertexAttribPointer(VERTEX_ATTR_IDX, 3, GL2ES2.GL_FLOAT, false, 3 * Buffers.SIZEOF_FLOAT, 0);
 		
 		gl.glBindBuffer(GL2ES2.GL_ARRAY_BUFFER, vboIds.get(1));
-		gl.glEnableVertexAttribArray(TEX_COORD);
-		gl.glVertexAttribPointer(TEX_COORD, 2, GL2ES2.GL_FLOAT, false, 2 * Buffers.SIZEOF_FLOAT, 0);
+		gl.glEnableVertexAttribArray(TEXCOORD_ATTR_IDX);
+		gl.glVertexAttribPointer(TEXCOORD_ATTR_IDX, 2, GL2ES2.GL_FLOAT, false, 2 * Buffers.SIZEOF_FLOAT, 0);
 		
 		gl.glBindBuffer(GL2ES2.GL_ELEMENT_ARRAY_BUFFER, vboIds.get(2));
 		gl.glDrawElements(GL2ES2.GL_TRIANGLES, triangles.size() * 3, GL2ES2.GL_UNSIGNED_SHORT, 0);

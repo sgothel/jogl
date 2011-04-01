@@ -1,5 +1,6 @@
 package com.jogamp.graph.curve.opengl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -14,8 +15,6 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 
 public abstract class TextRenderer extends Renderer {
-    
-    protected HashMap<String, GlyphString> strings = new HashMap<String, GlyphString>();
     
     /** 
      * Create a Hardware accelerated Text Renderer.
@@ -58,22 +57,47 @@ public abstract class TextRenderer extends Renderer {
         
         GlyphString glyphString = new GlyphString(pointFactory, font.getName(), str);
         glyphString.createfromFontPath(paths, affineTransform);
-        glyphString.generateRegion(gl.getContext(), sharpness, st, regionType);
+        glyphString.generateRegion(gl.getContext(), sharpness, st, renderType);
         
         return glyphString;
     }
         
-   protected static String getTextHashCode(Font font, String str, int fontSize) {
-       // FIXME: use integer hash code
-       return font.getName() + "." + str.hashCode() + "." + fontSize;
-   }
-   
    public void flushCache() {
-       Iterator<GlyphString> iterator = strings.values().iterator();
+       Iterator<GlyphString> iterator = stringCacheMap.values().iterator();
        while(iterator.hasNext()){
            GlyphString glyphString = iterator.next();
            glyphString.destroy();
        }
-       strings.clear();    
-   }       
+       stringCacheMap.clear();    
+       stringCacheArray.clear();
+   }
+   
+   public final void setCacheMaxSize(int newSize ) { stringCacheMaxSize = newSize; validateCache(0); }
+   public final int getCacheMaxSize() { return stringCacheMaxSize; }
+   public final int getCacheSize() { return stringCacheArray.size(); }
+   
+   protected void validateCache(int space) {
+       while ( getCacheSize() + space > getCacheMaxSize() ) {
+           String key = stringCacheArray.remove(0);
+           stringCacheMap.remove(key);
+       }
+   }
+   
+   protected GlyphString getCachedGlyphString(Font font, String str, int fontSize) {
+       final String key = font.getName() + "." + str.hashCode() + "." + fontSize;
+       return stringCacheMap.get(key);
+   }
+
+   protected void addCachedGlyphString(Font font, String str, int fontSize, GlyphString glyphString) {
+       final String key = font.getName() + "." + str.hashCode() + "." + fontSize;
+       validateCache(1);
+       stringCacheMap.put(key, glyphString);
+       stringCacheArray.add(stringCacheArray.size(), key);
+   }
+
+   // Cache is adding at the end of the array
+   public static final int DEFAULT_CACHE_SIZE = 32;
+   private HashMap<String, GlyphString> stringCacheMap = new HashMap<String, GlyphString>(DEFAULT_CACHE_SIZE);
+   private ArrayList<String> stringCacheArray = new ArrayList<String>(DEFAULT_CACHE_SIZE);
+   private int stringCacheMaxSize = DEFAULT_CACHE_SIZE; // -1 unlimited, 0 off, >0 limited      
 }

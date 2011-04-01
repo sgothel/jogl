@@ -27,6 +27,7 @@
  */
 package jogamp.graph.font;
 
+import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.font.FontFactory;
@@ -58,6 +59,9 @@ public class UbuntuFontLoader implements FontSet {
     private UbuntuFontLoader() {
     }
 
+    // FIXME: Add cache size to limit memory usage 
+    static final IntObjectHashMap fontMap = new IntObjectHashMap();
+        
     static boolean is(int bits, int bit) {
         return 0 != ( bits & bit ) ;
     }
@@ -68,7 +72,10 @@ public class UbuntuFontLoader implements FontSet {
     
 	public Font get(int family, int style)
 	{
-        Font font = null;
+        Font font = (Font)fontMap.get( ( family << 8 ) | style );
+        if (font != null) {
+            return font;
+        }
 
         switch (family) {
             case FAMILY_MONOSPACED:
@@ -76,30 +83,30 @@ public class UbuntuFontLoader implements FontSet {
             case FAMILY_REGULAR:
                 if( is(style, STYLE_BOLD) ) {
                     if( is(style, STYLE_ITALIC) ) {
-                        font = abspath(availableFontFileNames[3]);
+                        font = abspath(availableFontFileNames[3], family, style);
                     } else {
-                        font = abspath(availableFontFileNames[2]);
+                        font = abspath(availableFontFileNames[2], family, style);
                     }
                 } else if( is(style, STYLE_ITALIC) ) {
-                    font = abspath(availableFontFileNames[1]);
+                    font = abspath(availableFontFileNames[1], family, style);
                 } else {
-                    font = abspath(availableFontFileNames[0]);
+                    font = abspath(availableFontFileNames[0], family, style);
                 }
                 break;
                 
             case FAMILY_LIGHT:
                 if( is(style, STYLE_ITALIC) ) {
-                    font = abspath(availableFontFileNames[5]);
+                    font = abspath(availableFontFileNames[5], family, style);
                 } else {
-                    font = abspath(availableFontFileNames[4]);
+                    font = abspath(availableFontFileNames[4], family, style);
                 }
                 break;
                 
             case FAMILY_MEDIUM:
                 if( is(style, STYLE_ITALIC) ) {
-                    font = abspath(availableFontFileNames[6]);
+                    font = abspath(availableFontFileNames[6], family, style);
                 } else {
-                    font = abspath(availableFontFileNames[7]);
+                    font = abspath(availableFontFileNames[7], family, style);
                 }
                 break;                
         }
@@ -110,6 +117,16 @@ public class UbuntuFontLoader implements FontSet {
     Font abspath(String fname) {
         return FontFactory.getFontConstr().create(        
                 Locator.getResource(UbuntuFontLoader.class, relPath+fname).getPath() );
+    }
+    
+    Font abspath(String fname, int family, int style) {
+        final Font f = FontFactory.getFontConstr().create(        
+                Locator.getResource(UbuntuFontLoader.class, relPath+fname).getPath() );
+        if(null != f) {
+            fontMap.put( ( family << 8 ) | style, f );
+        }
+        return f;        
     }   
+    
 	
 }

@@ -176,11 +176,10 @@ public class TextRendererImpl01 extends TextRenderer {
 		if(!isInitialized()){
 			throw new GLException("TextRendererImpl01: not initialized!");
 		}
-		String fontStrHash = getTextHashCode(font, str, fontSize);
-		GlyphString glyphString = strings.get(fontStrHash);
+		GlyphString glyphString = getCachedGlyphString(font, str, fontSize);
 		if(null == glyphString) {
 			glyphString = createString(gl, font, fontSize, str, mgl_sharpness.floatValue());
-			strings.put(fontStrHash, glyphString);
+			addCachedGlyphString(font, str, fontSize, glyphString);
 		}
 		
 		glyphString.renderString3D(pmvMatrix, vp_width, vp_height, texSize);

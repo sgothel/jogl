@@ -59,7 +59,7 @@ public abstract class RegionRenderer extends Renderer {
      * @return the resulting Region.
      */
     protected Region createRegion(GL2ES2 gl, OutlineShape outlineShape, float sharpness) {
-        Region region = RegionFactory.create(gl.getContext(), st, regionType);
+        Region region = RegionFactory.create(gl.getContext(), st, renderType);
         
         outlineShape.transformOutlines(OutlineShape.QUADRATIC_NURBS);
         
@@ -78,7 +78,7 @@ public abstract class RegionRenderer extends Renderer {
      * @return the resulting Region inclusive the generated region
      */
     protected Region createRegion(GL2ES2 gl, OutlineShape[] outlineShapes, float sharpness) {
-        Region region = RegionFactory.create(gl.getContext(), st, regionType);
+        Region region = RegionFactory.create(gl.getContext(), st, renderType);
         
         int numVertices = region.getNumVertices();
         

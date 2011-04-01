@@ -58,7 +58,12 @@ public class JavaFontLoader implements FontSet {
         javaFontPath = System.getProperty("java.home") + "/lib/fonts/";
     }
 
+    // FIXME: Add cache size to limit memory usage 
     static final IntObjectHashMap fontMap = new IntObjectHashMap();
+    
+    static boolean is(int bits, int bit) {
+        return 0 != ( bits & bit ) ;
+    }
     
     public Font getDefault() {
         return get(FAMILY_REGULAR, 0) ; // Sans Serif Regular 
@@ -71,12 +76,13 @@ public class JavaFontLoader implements FontSet {
         }
 
         // 1st process Sans Serif (2 fonts)
-        if( 0 == ( style & STYLE_SERIF ) ) {
-            if( 0 != ( style & STYLE_BOLD ) ) {
-                font = abspath(availableFontFileNames[5]);
+        if( is(style, STYLE_SERIF) ) {                
+            if( is(style, STYLE_BOLD) ) {                
+                font = abspath(availableFontFileNames[5], family, style);
             } else {
-                font = abspath(availableFontFileNames[4]);
+                font = abspath(availableFontFileNames[4], family, style);
             }
+            fontMap.put( ( family << 8 ) | style, font );
             return font;
         }
         
@@ -86,24 +92,24 @@ public class JavaFontLoader implements FontSet {
             case FAMILY_MEDIUM:
             case FAMILY_CONDENSED:
             case FAMILY_REGULAR:
-                if( 0 != ( style & STYLE_BOLD ) ) {
-                    if( 0 != ( style & STYLE_ITALIC ) ) {
-                        font = abspath(availableFontFileNames[3]);
+                if( is(style, STYLE_BOLD) ) {                
+                    if( is(style, STYLE_ITALIC) ) {                
+                        font = abspath(availableFontFileNames[3], family, style);
                     } else {
-                        font = abspath(availableFontFileNames[2]);
+                        font = abspath(availableFontFileNames[2], family, style);
                     }
-                } else if( 0 != ( style & STYLE_ITALIC ) ) {
-                    font = abspath(availableFontFileNames[1]);
+                } else if( is(style, STYLE_ITALIC) ) {                
+                    font = abspath(availableFontFileNames[1], family, style);
                 } else {
-                    font = abspath(availableFontFileNames[0]);
+                    font = abspath(availableFontFileNames[0], family, style);
                 }
                 break;
                 
             case FAMILY_MONOSPACED:
-                if( 0 != ( style & STYLE_BOLD ) ) {
-                    font = abspath(availableFontFileNames[7]);
+                if( is(style, STYLE_BOLD) ) {                
+                    font = abspath(availableFontFileNames[7], family, style);
                 } else {
-                    font = abspath(availableFontFileNames[6]);
+                    font = abspath(availableFontFileNames[6], family, style);
                 }
                 break;                
         }
@@ -111,8 +117,13 @@ public class JavaFontLoader implements FontSet {
         return font;
     }
 	
-    Font abspath(String fname) {
-        return FontFactory.getFontConstr().create(javaFontPath+fname);
+    Font abspath(String fname, int family, int style) {
+        final Font f = FontFactory.getFontConstr().create(javaFontPath+fname);
+        if(null != f) {
+            fontMap.put( ( family << 8 ) | style, f );
+        }
+        return f;
+        
     }   
 	
 }

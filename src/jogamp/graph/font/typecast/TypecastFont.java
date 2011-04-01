@@ -49,6 +49,8 @@ class TypecastFont implements FontInt {
     TypecastHMetrics metrics;
     final CmapFormat cmapFormat;
 	int cmapentries;
+	
+    // FIXME: Add cache size to limit memory usage ??	
     IntObjectHashMap char2Glyph; 
 
     public TypecastFont(OTFontCollection fontset) {

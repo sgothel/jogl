@@ -25,28 +25,43 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package demo;
+package com.jogamp.opengl.test.junit.graph.demos;
 
-import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.Vertex;
 
-/**
- *
- * Action Keys:
- * - 1/2: zoom in/out
- * - 3/4: font +/-
- * - 6/7: 2nd pass texture size
- * - 0/9: rotate 
- * - s: toogle draw 'font set'
- * - f: toggle draw fps
- * - v: toggle v-sync
- * - space: toggle font (ubuntu/java)
- */
-public abstract class GPURegionRendererListenerBase01 extends GPURendererListenerBase01 {
-    OutlineShape outlineShape = null;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLProfile;
 
-    public GPURegionRendererListenerBase01(Vertex.Factory<? extends Vertex> factory, int mode, boolean debug, boolean trace) {
-        super(RegionRenderer.create(factory, mode), debug, trace);
-    }        
+import com.jogamp.graph.curve.Region;
+import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.util.Animator;
+
+public class GPUTextNewtDemo01 {
+    static final boolean DEBUG = false;
+    static final boolean TRACE = false;
+    
+	public static void main(String[] args) {
+		GLProfile.initSingleton(true);
+		GLProfile glp = GLProfile.getGL2ES2();
+		GLCapabilities caps = new GLCapabilities(glp);
+		caps.setAlphaBits(4);
+	    caps.setSampleBuffers(true);
+		caps.setNumSamples(4); // 2 samples is not enough ..
+		System.out.println("Requested: "+caps);
+		
+		GLWindow window = GLWindow.create(caps);		
+		window.setPosition(10, 10);
+		window.setSize(800, 400);
+		window.setTitle("GPU Text Newt Demo 01 - r2t0 msaa1");
+		
+		GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(Region.SINGLE_PASS, 0, DEBUG, TRACE);
+		textGLListener.attachInputListenerTo(window);
+		window.addGLEventListener(textGLListener);
+
+		window.enablePerfLog(true);		
+		window.setVisible(true);
+		// FPSAnimator animator = new FPSAnimator(10);
+		Animator animator = new Animator();
+		animator.add(window);
+		animator.start();
+	}	
 }
