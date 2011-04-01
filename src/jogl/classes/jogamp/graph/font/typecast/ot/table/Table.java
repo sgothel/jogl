@@ -50,6 +50,8 @@ public interface Table {
     public static final int vhea = 0x76686561; // Vertical Metrics header
     public static final int vmtx = 0x766d7478; // Vertical Metrics
 
+    public static final String notAvailable = "n/a";
+    
     /**
      * Get the table type, as a table directory value.
      * @return The table type

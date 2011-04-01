@@ -71,6 +71,7 @@ public interface Font {
 
 
     public String getName();
+    public String getAllNames(String separator);
     
     public Metrics getMetrics();
     public Glyph getGlyph(char symbol);
@@ -79,4 +80,6 @@ public interface Font {
     public float getStringWidth(String string, float pixelSize);
     public float getStringHeight(String string, float pixelSize);
     public AABBox getStringBounds(CharSequence string, float pixelSize);
+    
+    public boolean isPrintableChar( char c );      
 }

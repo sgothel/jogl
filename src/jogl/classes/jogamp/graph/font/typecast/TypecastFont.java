@@ -35,10 +35,12 @@ import jogamp.graph.font.typecast.ot.table.CmapIndexEntry;
 import jogamp.graph.font.typecast.ot.table.CmapTable;
 import jogamp.graph.font.typecast.ot.table.HdmxTable;
 import jogamp.graph.font.typecast.ot.table.ID;
+import jogamp.graph.font.typecast.ot.table.NameTable;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 
 import com.jogamp.common.util.IntObjectHashMap;
+import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.AABBox;
 
 class TypecastFont implements FontInt {
@@ -140,7 +142,11 @@ class TypecastFont implements FontInt {
     }
 
     public String getName() {
-        return fontset.getFileName();
+        return font.getName();
+    }
+    
+    public String getAllNames(String separator) {
+        return font.getAllNames(separator);
     }
 
     public Metrics getMetrics() {
@@ -265,4 +271,9 @@ class TypecastFont implements FontInt {
     final public int getNumGlyphs() {
     	return font.getNumGlyphs();
     }
+    
+    public boolean isPrintableChar( char c ) {
+        return FontFactory.isPrintableChar(c);
+    }
+    
 }

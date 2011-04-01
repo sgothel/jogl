@@ -102,6 +102,28 @@ public class OTFont {
         _fc = fc;
     }
 
+    public String getName() {
+        if(null != _name) {
+            StringBuffer sb = new StringBuffer();
+            sb.append(_name.getRecordsRecordString(NameTable.RECORD_FAMILY)).append(" - ")
+              .append(_name.getRecordsRecordString(NameTable.RECORD_SUBFAMILY)).append(" - ")
+              .append(_name.getRecordsRecordString(NameTable.RECORD_MANUFACTURER)) ;
+            return sb.toString();  
+        }
+        return Table.notAvailable;
+    }
+    
+    public String getAllNames(String separator) {
+        if(null != _name) {
+            StringBuffer sb = new StringBuffer();
+            for(int i=0; i<_name.getNumberOfNameRecords(); i++) {
+                sb.append(_name.getRecord(i).getRecordString()).append(separator);
+            }
+            return sb.toString();  
+        }
+        return Table.notAvailable;
+    }
+    
     public Table getTable(int tableType) {
         for (int i = 0; i < _tables.length; i++) {
             if ((_tables[i] != null) && (_tables[i].getType() == tableType)) {

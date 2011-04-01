@@ -64,12 +64,21 @@ import java.io.IOException;
  */
 public class NameTable implements Table {
 
+    public static final int RECORD_COPYRIGHT = 0;
+    public static final int RECORD_FAMILY = 1;
+    public static final int RECORD_SUBFAMILY = 2;
+    public static final int RECORD_UNIQUNAME = 3;
+    public static final int RECORD_FULLNAME = 4;
+    public static final int RECORD_VERSION = 5;
+    public static final int RECORD_MANUFACTURER = 8;
+    public static final int RECORD_DESIGNER = 9;
+    
     private DirectoryEntry _de;
     private short _formatSelector;
     private short _numberOfNameRecords;
     private short _stringStorageOffset;
     private NameRecord[] _records;
-
+    
     protected NameTable(DirectoryEntry de, DataInput di) throws IOException {
         _de = (DirectoryEntry) de.clone();
         _formatSelector = di.readShort();
@@ -99,8 +108,19 @@ public class NameTable implements Table {
         return _numberOfNameRecords;
     }
 
+    
     public NameRecord getRecord(int i) {
-        return _records[i];
+        if(_numberOfNameRecords > i) {
+            return _records[i];
+        }
+        return null;
+    }
+
+    public String getRecordsRecordString(int i) {
+        if(_numberOfNameRecords > i) {
+            return _records[i].getRecordString();
+        }
+        return Table.notAvailable;
     }
 
     public String getRecordString(short nameId) {
