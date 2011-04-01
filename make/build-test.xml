@@ -42,6 +42,7 @@
     <target name="clean" description="Remove all build products" depends="declare.common">
         <delete includeEmptyDirs="true" quiet="true">
             <fileset dir="${build.test}" />
+            <fileset dir="." includes="*.tga" />
         </delete>
     </target>
 
@@ -58,6 +59,7 @@
       <delete quiet="true">
         <fileset dir="${results.test}" includes="**"/>
         <fileset file="${build}/${test.archive.name}.7z"/>
+        <fileset dir="." includes="*.tga" />
       </delete>
       <mkdir dir="${results.test}" />
 
@@ -473,6 +475,10 @@
 
     <!-- updates / create the test results zip file -->
     <target name="test-zip-archive" depends="declare.common">
+        <move todir="${results.test}">
+            <fileset dir="." includes="*.tga" />
+        </move>
+        <mkdir dir="${results.test}" />
         <archive.7z destfile="${build}/${test.archive.name}.7z"
                     basedir="${results.test}" 
                     includes="**" />
