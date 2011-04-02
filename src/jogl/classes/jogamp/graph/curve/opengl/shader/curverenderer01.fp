@@ -1,3 +1,4 @@
+//Copyright 2010 JogAmp Community. All rights reserved.
 //#version 100
 
 uniform float p1y;
@@ -31,24 +32,24 @@ void main (void)
 		vec4 t = texture2D(texture, rtex)* 0.18;
 
 		t += texture2D(texture, rtex + size*(vec2(1, 0)))*weights.x;
-		t +=  texture2D(texture, rtex - size*(vec2(1, 0)))*weights.x;
-		t +=  texture2D(texture, rtex + size*(vec2(0, 1)))*weights.x;
-		t +=  texture2D(texture, rtex - size*(vec2(0, 1)))*weights.x;
+		t += texture2D(texture, rtex - size*(vec2(1, 0)))*weights.x;
+		t += texture2D(texture, rtex + size*(vec2(0, 1)))*weights.x;
+		t += texture2D(texture, rtex - size*(vec2(0, 1)))*weights.x;
 		
 		t += texture2D(texture, rtex + 2.0*size*(vec2(1, 0))) *weights.y;
-		t +=  texture2D(texture, rtex - 2.0*size*(vec2(1, 0)))*weights.y;
-		t +=  texture2D(texture, rtex + 2.0*size*(vec2(0, 1)))*weights.y; 
-		t +=  texture2D(texture, rtex - 2.0*size*(vec2(0, 1)))*weights.y;
+		t += texture2D(texture, rtex - 2.0*size*(vec2(1, 0)))*weights.y;
+		t += texture2D(texture, rtex + 2.0*size*(vec2(0, 1)))*weights.y; 
+		t += texture2D(texture, rtex - 2.0*size*(vec2(0, 1)))*weights.y;
 		
 		t += texture2D(texture, rtex + 3.0*size*(vec2(1, 0))) *weights.z;
-		t +=  texture2D(texture, rtex - 3.0*size*(vec2(1, 0)))*weights.z;
-		t +=  texture2D(texture, rtex + 3.0*size*(vec2(0, 1)))*weights.z;
-		t +=  texture2D(texture, rtex - 3.0*size*(vec2(0, 1)))*weights.z;
+		t += texture2D(texture, rtex - 3.0*size*(vec2(1, 0)))*weights.z;
+		t += texture2D(texture, rtex + 3.0*size*(vec2(0, 1)))*weights.z;
+		t += texture2D(texture, rtex - 3.0*size*(vec2(0, 1)))*weights.z;
 		
 		t += texture2D(texture, rtex + 4.0*size*(vec2(1, 0))) *weights.w;
-		t +=  texture2D(texture, rtex - 4.0*size*(vec2(1, 0)))*weights.w;
-		t +=  texture2D(texture, rtex + 4.0*size*(vec2(0, 1)))*weights.w;
-		t +=  texture2D(texture, rtex - 4.0*size*(vec2(0, 1)))*weights.w;
+		t += texture2D(texture, rtex - 4.0*size*(vec2(1, 0)))*weights.w;
+		t += texture2D(texture, rtex + 4.0*size*(vec2(0, 1)))*weights.w;
+		t += texture2D(texture, rtex - 4.0*size*(vec2(0, 1)))*weights.w;
 		
 		if(t.w == 0.0){
 			discard;
@@ -62,7 +63,8 @@ void main (void)
   		vec2 dtx = dFdx(rtex);
   		vec2 dty = dFdy(rtex);
   		
-  		rtex.y -= 0.1;
+  		rtex.y -= p1y - 0.1;
+  		
   		if(rtex.y < 0.0) {
   			if(v_texCoord.y < 0.0)
   				discard;
@@ -71,9 +73,9 @@ void main (void)
   			}
   		}
   		
-  		vec2 f = vec2((dtx.y - 2.0*p1y*dtx.x + 4.0*p1y*rtex.x*dtx.x), (dty.y - 2.0*p1y*dty.x + 4.0*p1y*rtex.x*dty.x));
+  		vec2 f = vec2((dtx.y - dtx.x + 2.0*rtex.x*dtx.x), (dty.y - dty.x + 2.0*rtex.x*dty.x));
   		
-  		float position = rtex.y - ((2.0 * rtex.x * p1y) * (1.0 - rtex.x));
+  		float position = rtex.y - (rtex.x * (1.0 - rtex.x));
   		float d = position/(length(f));
 
 		float a = (0.5 - d * sign(v_texCoord.y));  
@@ -81,16 +83,12 @@ void main (void)
 		
 		if (a >= 1.0)  { 
 	    	alpha = g_alpha;
-	    //	c = vec3(1.0,1.0,1.0);
     	} 
   		else if (a <= 0.0) {
-   			alpha = 0.0;//discard;
-   		//	c = vec3(0.0,0.0,0.0);
-   			
+   			discard;
    		}
   		else {           
     		alpha = g_alpha*a;
-    	//	c = vec3(a,a,a);
     		mix(b_color,g_color, a);
     	}  
 	}
