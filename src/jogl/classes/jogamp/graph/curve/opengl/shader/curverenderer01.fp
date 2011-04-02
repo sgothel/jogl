@@ -85,7 +85,8 @@ void main (void)
 	    	alpha = g_alpha;
     	} 
   		else if (a <= 0.0) {
-   			alpha = 0.0;//discard;
+   			alpha = 0.0;
+            // discard; // should work but generates artifacts, dimples ?
    		}
   		else {           
     		alpha = g_alpha*a;
