@@ -85,7 +85,7 @@ void main (void)
 	    	alpha = g_alpha;
     	} 
   		else if (a <= 0.0) {
-   			discard;
+   			alpha = 0.0;//discard;
    		}
   		else {           
     		alpha = g_alpha*a;
