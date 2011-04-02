@@ -63,7 +63,7 @@ void main (void)
   		vec2 dtx = dFdx(rtex);
   		vec2 dty = dFdy(rtex);
   		
-  		rtex.y -= p1y - 0.1;
+  		rtex.y -= 0.1;
   		
   		if(rtex.y < 0.0) {
   			if(v_texCoord.y < 0.0)
@@ -74,24 +74,21 @@ void main (void)
   		}
   		
   		vec2 f = vec2((dtx.y - dtx.x + 2.0*rtex.x*dtx.x), (dty.y - dty.x + 2.0*rtex.x*dty.x));
-  		
   		float position = rtex.y - (rtex.x * (1.0 - rtex.x));
   		float d = position/(length(f));
 
 		float a = (0.5 - d * sign(v_texCoord.y));  
 		
-		
 		if (a >= 1.0)  { 
 	    	alpha = g_alpha;
-    	} 
+    	}  
   		else if (a <= 0.0) {
-   			alpha = 0.0;
-            // discard; // should work but generates artifacts, dimples ?
+   			alpha = 0.0;//discard;
    		}
   		else {           
     		alpha = g_alpha*a;
     		mix(b_color,g_color, a);
-    	}  
+    	}
 	}
 	
     gl_FragColor = vec4(c, alpha);

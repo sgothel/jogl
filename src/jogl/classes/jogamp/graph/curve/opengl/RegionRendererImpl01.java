@@ -47,7 +47,7 @@ public class RegionRendererImpl01 extends RegionRenderer {
 	 * on the off-curve vertex. The high value of sharpness will 
 	 * result in high curvature.
 	 */
-    private GLUniformData mgl_sharpness = new GLUniformData("p1y", 0.0f);
+    private GLUniformData mgl_sharpness = new GLUniformData("p1y", 0.5f);
     GLUniformData mgl_alpha = new GLUniformData("g_alpha", 1.0f);
     private GLUniformData mgl_color = new GLUniformData("g_color", 3, FloatBuffer.allocate(3));
     private GLUniformData mgl_strength = new GLUniformData("a_strength", 3.0f);
