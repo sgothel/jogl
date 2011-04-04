@@ -63,6 +63,8 @@ import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLProfile;
 
 public abstract class GLContextImpl extends GLContext {
+  public static final boolean DEBUG = Debug.debug("GLContext");
+    
   protected GLContextLock lock = new GLContextLock();
 
   /**
