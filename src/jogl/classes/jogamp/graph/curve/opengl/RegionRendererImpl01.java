@@ -83,15 +83,17 @@ public class RegionRendererImpl01 extends RegionRenderer {
         ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);
         sp.add(rsFp);
-    
+
+        sp.init(gl);
+        gl.glBindAttribLocation(sp.program(), Region.VERTEX_ATTR_IDX, "v_position");
+        gl.glBindAttribLocation(sp.program(), Region.TEXCOORD_ATTR_IDX, "texCoord");
+        
         if(!sp.link(gl, System.err)) {
             throw new GLException("RegionRenderer: Couldn't link program: "+sp);
         }
     
         st = new ShaderState();
         st.attachShaderProgram(gl, sp);
-        gl.glBindAttribLocation(sp.id(), 0, "v_position");
-        gl.glBindAttribLocation(sp.id(), 1, "texCoord");
         
         st.glUseProgram(gl, true);
     
@@ -145,9 +147,9 @@ public class RegionRendererImpl01 extends RegionRenderer {
 
     @Override
     protected void disposeImpl(GL2ES2 gl) {
+        super.disposeImpl(gl);
     }
-    
-    
+        
     @Override
     public float getAlpha() {
         return mgl_alpha.floatValue();

@@ -25,6 +25,8 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 
 public class TestTextRendererNEWT01 extends UITestCase {
+    static final boolean DEBUG = false;
+    static final boolean TRACE = false;
 
     public static void main(String args[]) throws IOException {
         String tstname = TestTextRendererNEWT01.class.getName();
@@ -64,7 +66,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
 		caps.setAlphaBits(4);	
 
 		GLWindow window = createWindow("text-r2t1-msaa0", caps, 800,400);
-		TextGLListener textGLListener = new TextGLListener(Region.TWO_PASS);
+		TextGLListener textGLListener = new TextGLListener(Region.TWO_PASS, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         
@@ -100,7 +102,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
 		caps.setNumSamples(4);
 
 		GLWindow window = createWindow("text-r2t0-msaa1", caps, 800, 400);
-		TextGLListener textGLListener = new TextGLListener(Region.SINGLE_PASS);
+		TextGLListener textGLListener = new TextGLListener(Region.SINGLE_PASS, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         
@@ -130,8 +132,8 @@ public class TestTextRendererNEWT01 extends UITestCase {
 	private class TextGLListener extends GPUTextRendererListenerBase01 {
 	    String winTitle;
 	    
-		public TextGLListener(int type) {
-			super(SVertex.factory(), type, false, false);
+		public TextGLListener(int type, boolean debug, boolean trace) {
+			super(SVertex.factory(), type, debug, trace);
 		}
 		
 		public void attachInputListenerTo(GLWindow window) {
@@ -143,8 +145,9 @@ public class TestTextRendererNEWT01 extends UITestCase {
 		}
 
 		public void init(GLAutoDrawable drawable) {
+            super.init(drawable);
+            
 			GL2ES2 gl = drawable.getGL().getGL2ES2();
-			super.init(drawable);
 			gl.setSwapInterval(1);
 			gl.glEnable(GL.GL_DEPTH_TEST);
 			

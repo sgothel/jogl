@@ -36,6 +36,7 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.graph.curve.text.GlyphString;
 
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
@@ -84,14 +85,16 @@ public class TextRendererImpl01 extends TextRenderer {
         ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);
         sp.add(rsFp);
-
+        
+        sp.init(gl);
+        gl.glBindAttribLocation(sp.program(), Region.VERTEX_ATTR_IDX, "v_position");
+        gl.glBindAttribLocation(sp.program(), Region.TEXCOORD_ATTR_IDX, "texCoord");
+        
         if(!sp.link(gl, System.err)) {
             throw new GLException("TextRendererImpl01: Couldn't link program: "+sp);
         }
 
         st.attachShaderProgram(gl, sp);
-        gl.glBindAttribLocation(sp.id(), 0, "v_position");
-        gl.glBindAttribLocation(sp.id(), 1, "texCoord");
 		
 		st.glUseProgram(gl, true);
 
@@ -145,6 +148,7 @@ public class TextRendererImpl01 extends TextRenderer {
 	
 	@Override
     protected void disposeImpl(GL2ES2 gl) {
+	    super.disposeImpl(gl);
 	}
 	
     @Override

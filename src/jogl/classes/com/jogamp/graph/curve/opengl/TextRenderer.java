@@ -72,6 +72,11 @@ public abstract class TextRenderer extends Renderer {
        stringCacheArray.clear();
    }
    
+   @Override
+   protected void disposeImpl(GL2ES2 gl) {
+       flushCache();
+   }
+   
    public final void setCacheMaxSize(int newSize ) { stringCacheMaxSize = newSize; validateCache(0); }
    public final int getCacheMaxSize() { return stringCacheMaxSize; }
    public final int getCacheSize() { return stringCacheArray.size(); }

@@ -54,6 +54,11 @@ public abstract class RegionRenderer extends Renderer {
         regions.clear();
     }       
 
+    @Override
+    protected void disposeImpl(GL2ES2 gl) {
+        flushCache();
+    }
+    
     /** Create an ogl {@link Region} defining this {@link OutlineShape}
      * @param sharpness parameter for Region generation
      * @return the resulting Region.
