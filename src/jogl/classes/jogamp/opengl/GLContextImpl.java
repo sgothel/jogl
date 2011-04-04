@@ -59,11 +59,10 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLProfile;
 
 public abstract class GLContextImpl extends GLContext {
-  protected static final boolean DEBUG = Debug.debug("GLContext");
-
   protected GLContextLock lock = new GLContextLock();
 
   /**
@@ -369,6 +368,13 @@ public abstract class GLContextImpl extends GLContext {
         // check if the drawable's and the GL's GLProfile are equal
         // throws an GLException if not 
         getGLDrawable().getGLProfile().verifyEquality(gl.getGLProfile());
+        
+        if(DEBUG_GL) {
+            gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, gl, null) );
+        }
+        if(TRACE_GL) {
+            gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) );
+        }               
       }
       setCurrent(this);
 
@@ -706,7 +712,7 @@ public abstract class GLContextImpl extends GLContext {
   /** Create the GL for this context. */
   protected GL createGL(GLProfile glp) {
     GL gl = (GL) createInstance(glp, "Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { glp, this } );
-
+    
     /* FIXME: refactor dependence on Java 2D / JOGL bridge
     if (tracker != null) {
       gl.setObjectTracker(tracker);
