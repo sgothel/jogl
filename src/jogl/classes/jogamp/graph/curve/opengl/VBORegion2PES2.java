@@ -34,7 +34,7 @@ import java.util.ArrayList;
 
 import javax.media.opengl.GL2ES2;
 // FIXME: Subsume GL2GL3.GL_DRAW_FRAMEBUFFER -> GL2ES2.GL_DRAW_FRAMEBUFFER ! 
-import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GL;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLUniformData;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
@@ -46,6 +46,7 @@ import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.opengl.util.FBObject;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
@@ -66,10 +67,7 @@ public class VBORegion2PES2  implements Region{
 	private boolean dirty = false;
 	
 	private AABBox box = null;
-	private int[] texture = { 0 } ;
-	private int[] fbo = { 0 } ;
-	private int[] rbo_depth = { 0 } ;
-	private boolean texInitialized = false;
+	private FBObject fbo = null;
 
 	private int tex_width_c = 0;
 	private int tex_height_c = 0;
@@ -164,12 +162,7 @@ public class VBORegion2PES2  implements Region{
 		}
 		else {
 			if(width != tex_width_c){
-				texInitialized = false;
-				tex_width_c = width;
-			}
-			if(!texInitialized){
-				initFBOTexture(matrix,vp_width, vp_height);
-				texInitialized = true;
+                initFBOTexture(matrix, width);
 			}
 //			System.out.println("Scale: " + matrix.glGetMatrixf().get(1+4*3) +" " + matrix.glGetMatrixf().get(2+4*3));
 			renderTexture(matrix, vp_width, vp_height);
@@ -184,10 +177,10 @@ public class VBORegion2PES2  implements Region{
 	    }
 	    gl.glEnable(GL2ES2.GL_TEXTURE_2D);
 	    gl.glActiveTexture(GL2ES2.GL_TEXTURE0);
-	    gl.glBindTexture(GL2ES2.GL_TEXTURE_2D, texture[0]);
+	    fbo.use(gl);
 	    
-	    st.glUniform(gl, new GLUniformData("texture", texture[0]));
-	    int loc = gl.glGetUniformLocation(st.shaderProgram().id(), "texture");
+	    st.glUniform(gl, new GLUniformData("texture", fbo.getTextureName()));
+	    int loc = gl.glGetUniformLocation(st.shaderProgram().program(), "texture");
 	    gl.glUniform1i(loc, 0);
 	    
 	    
@@ -262,53 +255,28 @@ public class VBORegion2PES2  implements Region{
 		gl.glBindBuffer(GL2ES2.GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 	
-	private void initFBOTexture(PMVMatrix m, int width, int hight){
-		tex_height_c = (int)(tex_width_c*box.getHeight()/box.getWidth());
-	    // tex_height_c = tex_width_c;
-	    System.out.println("FBO Size: "+tex_height_c+"x"+tex_width_c);
-		System.out.println("FBO Scale: " + m.glGetMatrixf().get(0) +" " + m.glGetMatrixf().get(5));
-		GL2ES2 gl = context.getGL().getGL2ES2();
-		
-		if(fbo[0] > 0) {
-		    gl.glDeleteFramebuffers(1, fbo, 0);
-		    fbo[0] = 0;
-		}
-		if(texture[0]>0) {
-		    gl.glDeleteTextures(1, texture, 0);
-		    texture[0] = 0;
-		}
-		
-        gl.glGenFramebuffers(1, fbo, 0);
-		gl.glGenTextures(1, texture, 0);
-        gl.glGenRenderbuffers(1,rbo_depth, 0);
-        System.out.println("FBO: fbo " + fbo[0] + ", tex " + texture[0] + ", depth " + rbo_depth[0]);
-		
-        gl.glBindFramebuffer(GL2GL3.GL_DRAW_FRAMEBUFFER, fbo[0]);
-		gl.glBindTexture(GL2ES2.GL_TEXTURE_2D, texture[0]);
-		gl.glTexImage2D(GL2ES2.GL_TEXTURE_2D, 0, GL2ES2.GL_RGBA, tex_width_c, 
-				tex_height_c, 0, GL2ES2.GL_RGBA, GL2ES2.GL_UNSIGNED_BYTE, null);
-		
-		gl.glTexParameterf(GL2ES2.GL_TEXTURE_2D, GL2ES2.GL_TEXTURE_MIN_FILTER, GL2ES2.GL_LINEAR);
-		gl.glTexParameterf(GL2ES2.GL_TEXTURE_2D, GL2ES2.GL_TEXTURE_MAG_FILTER, GL2ES2.GL_LINEAR);
-		gl.glTexParameterf(GL2ES2.GL_TEXTURE_2D, GL2ES2.GL_TEXTURE_WRAP_S, GL2ES2.GL_CLAMP_TO_EDGE);
-		gl.glTexParameterf(GL2ES2.GL_TEXTURE_2D, GL2ES2.GL_TEXTURE_WRAP_T, GL2ES2.GL_CLAMP_TO_EDGE);
-
-	    gl.glFramebufferTexture2D(GL2GL3.GL_DRAW_FRAMEBUFFER, GL2ES2.GL_COLOR_ATTACHMENT0, 
-	                              GL2ES2.GL_TEXTURE_2D, texture[0], 0);
-
-        // Set up the depth buffer
-	    gl.glBindRenderbuffer(GL2ES2.GL_RENDERBUFFER, rbo_depth[0]);
-	    gl.glRenderbufferStorage(GL2ES2.GL_RENDERBUFFER, GL2ES2.GL_DEPTH_COMPONENT, tex_width_c, tex_height_c);
-	    gl.glFramebufferRenderbuffer(GL2ES2.GL_FRAMEBUFFER, GL2ES2.GL_DEPTH_COMPONENT, GL2ES2.GL_RENDERBUFFER, rbo_depth[0]);
-
-	    int status = gl.glCheckFramebufferStatus(GL2ES2.GL_FRAMEBUFFER);
-	    if(status != GL2ES2.GL_FRAMEBUFFER_COMPLETE){
-	    	System.err.println("Cant Create R2T pass!");
-	    }
+	private void initFBOTexture(PMVMatrix m, int tex_width){
+        tex_width_c = tex_width;	    
+	    tex_height_c = (int)(tex_width_c*box.getHeight()/box.getWidth());
 	    
+        System.out.println("FBO Size: "+tex_height_c+"x"+tex_width_c);
+        System.out.println("FBO Scale: " + m.glGetMatrixf().get(0) +" " + m.glGetMatrixf().get(5));
+
+        GL2ES2 gl = context.getGL().getGL2ES2();
+        if(null != fbo) {
+            fbo.destroy(gl);
+            fbo = null;
+        }
+        
+	    fbo = new FBObject(tex_width_c, tex_height_c);
+        // FIXME: shall not use bilinear, due to own AA ? However, w/o bilinear result is not smooth
+	    fbo.init(gl, GL2ES2.GL_LINEAR, GL2ES2.GL_LINEAR, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE); 
+	    // fbo.init(gl, GL2ES2.GL_NEAREST, GL2ES2.GL_NEAREST, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+	    fbo.attachDepthBuffer(gl, GL.GL_DEPTH_COMPONENT16); // FIXME: or shall we use 24 or 32 bit depth ?
+	    
+		
 	    //render texture
 		PMVMatrix tex_matrix = new PMVMatrix();
-	    gl.glBindFramebuffer(GL2GL3.GL_DRAW_FRAMEBUFFER, fbo[0]);
 	    gl.glViewport(0, 0, tex_width_c, tex_height_c);
 	    tex_matrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
 	    tex_matrix.glLoadIdentity();
@@ -322,8 +290,7 @@ public class VBORegion2PES2  implements Region{
 	    gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT | GL2ES2.GL_DEPTH_BUFFER_BIT);
 	    renderRegion();
 
-	    gl.glBindFramebuffer(GL2ES2.GL_FRAMEBUFFER, 0);
-	    gl.glBindTexture(GL2ES2.GL_TEXTURE_2D, 0);
+	    fbo.unbind(gl);
 	    
 	    setupBoundingBuffers();
 	}
@@ -367,12 +334,10 @@ public class VBORegion2PES2  implements Region{
 	public void destroy() {
 		GL2ES2 gl = context.getGL().getGL2ES2();
 		gl.glDeleteBuffers(numBuffers, vboIds);
-		gl.glDeleteFramebuffers(1, fbo, 0);
-		fbo[0] = 0;
-		gl.glDeleteTextures(1, texture, 0);
-		texture[0] = 0;
-		gl.glDeleteRenderbuffers(1, rbo_depth, 0);
-		rbo_depth[0] = 0;
+		if(null != fbo) {
+    		fbo.destroy(gl);
+    		fbo = null;
+		}
 	}
 	
 	public boolean isFlipped() {
