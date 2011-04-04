@@ -36,22 +36,24 @@ package com.jogamp.opengl.util;
 import javax.media.opengl.*;
 
 public class FBObject {
-    private int width, height, attr;
+    private int width, height;
     private int fb, fbo_tex, depth_rb, stencil_rb, vStatus;
     private int texInternalFormat, texDataFormat, texDataType;
 
     public static final int ATTR_DEPTH   = 1 << 0;
     public static final int ATTR_STENCIL = 1 << 1;
-
-    public FBObject(int width, int height, int attributes) {
+    
+    public FBObject(int width, int height) {
         this.width = width;
         this.height = height;
-        this.attr = attributes;
+        this.fb = 0;
+        this.fbo_tex = 0;
+        this.depth_rb = 0;
+        this.stencil_rb = 0;        
     }        
 
-
     public boolean validateStatus(GL gl) {
-        vStatus = getStatus(gl, fb);
+        /* vStatus = */ getStatus(gl);
         switch(vStatus) {
             case GL.GL_FRAMEBUFFER_COMPLETE:
                 return true;
@@ -65,22 +67,30 @@ public class FBObject {
             //case GL2.GL_FRAMEBUFFER_INCOMPLETE_DUPLICATE_ATTACHMENT:
             case 0:
             default:
+                System.out.println("Framebuffer " + fb + " is incomplete: status = 0x" + Integer.toHexString(vStatus) + 
+                        " : " + getStatusString(vStatus));
                 return false;
         }
     }
+        
+    /** @return {@link GL.GL_FRAMEBUFFER_COMPLETE} if ok, otherwise return GL FBO error state or -1 */
+    public int getStatus() {
+        return vStatus;
+    }
 
-    public static int getStatus(GL gl, int fb) {
+    public int getStatus(GL gl) {
         if(!gl.glIsFramebuffer(fb)) {
-            return -1;
+            vStatus = -1;
+        } else {
+            vStatus = gl.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER);
         }
-        return gl.glCheckFramebufferStatus(gl.GL_FRAMEBUFFER);
-        //return gl.glCheckFramebufferStatus(fb);
+        return vStatus;
     }
 
     public String getStatusString() {
         return getStatusString(vStatus);
     }
-
+    
     public static String getStatusString(int fbStatus) {
         switch(fbStatus) {
             case -1:
@@ -111,8 +121,21 @@ public class FBObject {
                 return("GL FBO: incomplete, implementation ERROR");
         }
     }
-
-    public void init(GL gl) {
+    
+    /**
+     * Initializes this FBO's instance with it's texture,
+     * selecting the texture data type and format automatically.
+     * 
+     * Leaves the FBO bound!
+     * 
+     * @param gl the current GL context
+     * @param magFilter if > 0 value for {@link GL#GL_TEXTURE_MAG_FILTER}
+     * @param minFilter if > 0 value for {@link GL#GL_TEXTURE_MIN_FILTER} 
+     * @param wrapS if > 0 value for {@link GL#GL_TEXTURE_WRAP_S}
+     * @param wrapT if > 0 value for {@link GL#GL_TEXTURE_WRAP_T}
+     * @return
+     */
+    public boolean init(GL gl, int magFilter, int minFilter, int wrapS, int wrapT) {
         int textureInternalFormat, textureDataFormat, textureDataType;
 
         if(gl.isGL2()) { 
@@ -128,10 +151,31 @@ public class FBObject {
             textureDataFormat=GL.GL_RGB;
             textureDataType=GL.GL_UNSIGNED_BYTE;
         }
-        init(gl, textureInternalFormat, textureDataFormat, textureDataType);
+        return init(gl, textureInternalFormat, textureDataFormat, textureDataType, magFilter, minFilter, wrapS, wrapT);
     }
 
-    public void init(GL gl, int textureInternalFormat, int textureDataFormat, int textureDataType) {
+    /**
+     * Initializes this FBO's instance with it's texture.
+     * 
+     * Leaves the FBO bound!
+     * 
+     * @param gl the current GL context
+     * @param textureInternalFormat internalFormat parameter to {@link GL#glTexImage2D(int, int, int, int, int, int, int, int, long)}
+     * @param textureDataFormat format parameter to {@link GL#glTexImage2D(int, int, int, int, int, int, int, int, long)}
+     * @param textureDataType type parameter to {@link GL#glTexImage2D(int, int, int, int, int, int, int, int, long)}
+     * @param magFilter if > 0 value for {@link GL#GL_TEXTURE_MAG_FILTER}
+     * @param minFilter if > 0 value for {@link GL#GL_TEXTURE_MIN_FILTER} 
+     * @param wrapS if > 0 value for {@link GL#GL_TEXTURE_WRAP_S}
+     * @param wrapT if > 0 value for {@link GL#GL_TEXTURE_WRAP_T}
+     * @return true if successful otherwise false
+     */
+    public boolean init(GL gl, int textureInternalFormat, int textureDataFormat, int textureDataType,
+                               int magFilter, int minFilter, int wrapS, int wrapT) {
+        checkBound(false);
+        if(0<fb || 0<fbo_tex) {
+            throw new GLException("FBO already initialized (fb "+fb+", tex "+fbo_tex+")");
+        }
+        
         texInternalFormat=textureInternalFormat; 
         texDataFormat=textureDataFormat;
         texDataType=textureDataType;
@@ -141,78 +185,127 @@ public class FBObject {
 
         gl.glGenFramebuffers(1, name, 0);
         fb = name[0];
-        System.out.println("fb: "+fb);
+        if(fb==0) {
+            throw new GLException("null generated framebuffer");
+        }
 
         gl.glGenTextures(1, name, 0);
         fbo_tex = name[0];
-        System.out.println("fbo_tex: "+fbo_tex);
-
-        if(0!=(attr&ATTR_DEPTH)) {
-            gl.glGenRenderbuffers(1, name, 0);
-            depth_rb = name[0];
-            System.out.println("depth_rb: "+depth_rb);
-        } else {
-            depth_rb = 0;
-        }
-        if(0!=(attr&ATTR_STENCIL)) {
-            gl.glGenRenderbuffers(1, name, 0);
-            stencil_rb = name[0];
-            System.out.println("stencil_rb: "+stencil_rb);
-        } else {
-            stencil_rb = 0;
+        if(fbo_tex==0) {
+            throw new GLException("null generated texture");
         }
 
         // bind fbo ..
         gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fb);
+        if(!gl.glIsFramebuffer(fb)) {
+            destroy(gl);
+            System.err.println("not a framebuffer: "+ fb);
+            return false;            
+        }
+        bound = true;        
 
         gl.glBindTexture(GL.GL_TEXTURE_2D, fbo_tex);
         gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, texInternalFormat, width, height, 0,
                         texDataFormat, texDataType, null);
-        gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
-        gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
-        //gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL2.GL_CLAMP);
-        //gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL2.GL_CLAMP);
-
+        if( 0 < magFilter ) {
+            gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, magFilter);
+        }
+        if( 0 < minFilter ) {
+            gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, minFilter);
+        }
+        if( 0 < wrapS ) {
+            gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, wrapS);
+        }
+        if( 0 < wrapT ) {
+            gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, wrapT);            
+        }
 
         // Set up the color buffer for use as a renderable texture:
         gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER,
                                   GL.GL_COLOR_ATTACHMENT0,
                                   GL.GL_TEXTURE_2D, fbo_tex, 0); 
 
-        if(depth_rb!=0) {
-            // Initialize the depth buffer:
-            gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, depth_rb);
-            gl.glRenderbufferStorage(GL.GL_RENDERBUFFER,
-                                        GL.GL_DEPTH_COMPONENT16, width, height);
-            // Set up the depth buffer attachment:
-            gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER,
-                                            GL.GL_DEPTH_ATTACHMENT,
-                                            GL.GL_RENDERBUFFER, depth_rb);
-        }
+        return validateStatus(gl);                
+    }
 
-        if(stencil_rb!=0) {
-            // Initialize the stencil buffer:
-            gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, stencil_rb);
-            gl.glRenderbufferStorage(GL.GL_RENDERBUFFER,
-                                        GL.GL_STENCIL_INDEX8, width, height);
-            gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER,
-                                            GL.GL_STENCIL_ATTACHMENT,
-                                            GL.GL_RENDERBUFFER, stencil_rb);
+    /**
+     * Assumes a bound FBO
+     * Leaves the FBO bound!
+     * @param depthComponentType {@link GL#GL_DEPTH_COMPONENT16}, {@link GL#GL_DEPTH_COMPONENT24} or {@link GL#GL_DEPTH_COMPONENT32}
+     * @return true if successful otherwise false 
+     */
+    public boolean attachDepthBuffer(GL gl, int depthComponentType) {
+        if(0>=fb || 0>=fbo_tex) {
+            throw new GLException("FBO not initialized (fb "+fb+", tex "+fbo_tex+")");
         }
-
-        // Check the FBO for completeness
-        if(validateStatus(gl)) {
-            System.out.println("Framebuffer " + fb + " is complete");
-        } else {
-            System.out.println("Framebuffer " + fb + " is incomplete: status = 0x" + Integer.toHexString(vStatus) + 
-                               " : " + getStatusString());
+        if(depth_rb != 0) {
+            throw new GLException("FBO depth buffer already attached (rb "+depth_rb+")");
         }
-
-        unbind(gl);
+        checkBound(true);
+        int name[] = new int[1];
+        gl.glGenRenderbuffers(1, name, 0);
+        depth_rb = name[0];
+        
+        if(depth_rb==0) {
+            throw new GLException("null generated renderbuffer");
+        }
+        // Initialize the depth buffer:
+        gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, depth_rb);
+        if(!gl.glIsRenderbuffer(depth_rb)) {
+            System.err.println("not a depthbuffer: "+ depth_rb);
+            name[0] = depth_rb;
+            gl.glDeleteRenderbuffers(1, name, 0);
+            depth_rb=0;
+            return false;            
+        }
+        
+        gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, depthComponentType, width, height);
+        // Set up the depth buffer attachment:
+        gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER,
+                                        GL.GL_DEPTH_ATTACHMENT,
+                                        GL.GL_RENDERBUFFER, depth_rb);
+        return validateStatus(gl);                
+    }
+    
+    /**
+     * Assumes a bound FBO
+     * Leaves the FBO bound!
+     * @param stencilComponentType {@link GL#GL_STENCIL_INDEX1}, {@link GL#GL_STENCIL_INDEX4} or {@link GL#GL_STENCIL_INDEX8}
+     * @return true if successful otherwise false 
+     */
+    public boolean attachStencilBuffer(GL gl, int stencilComponentType) {
+        if(0>=fb || 0>=fbo_tex) {
+            throw new GLException("FBO not initialized (fb "+fb+", tex "+fbo_tex+")");
+        }
+        if(stencil_rb != 0) {
+            throw new GLException("FBO stencil buffer already attached (rb "+stencil_rb+")");
+        }
+        checkBound(true);
+        int name[] = new int[1];
+        gl.glGenRenderbuffers(1, name, 0);
+        gl.glGenRenderbuffers(1, name, 0);
+        stencil_rb = name[0];
+        if(stencil_rb==0) {
+            throw new GLException("null generated stencilbuffer");
+        }
+        // Initialize the stencil buffer:
+        gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, stencil_rb);
+        if(!gl.glIsRenderbuffer(stencil_rb)) {
+            destroy(gl);
+            System.err.println("not a stencilbuffer: "+ depth_rb);
+            return false;            
+        }
+        gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, stencilComponentType, width, height);
+        gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER,
+                                        GL.GL_STENCIL_ATTACHMENT,
+                                        GL.GL_RENDERBUFFER, stencil_rb);
+        return validateStatus(gl);                
     }
 
     public void destroy(GL gl) {
-        unbind(gl);
+        if(bound) {
+            unbind(gl);
+        }
 
         int name[] = new int[1];
 
@@ -238,19 +331,33 @@ public class FBObject {
         }
     }
 
+    boolean bound = false;
+    
+    private final void checkBound(boolean shallBeBound) {
+        if(bound != shallBeBound) {
+            final String s0 = shallBeBound ? "not" : "already" ; 
+            throw new GLException("FBO "+s0+" bound "+toString());
+        }
+    }
+    
     public void bind(GL gl) {
+        checkBound(false);
         gl.glBindTexture(GL.GL_TEXTURE_2D, fbo_tex);
-        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fb); 
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fb);
+        bound = true;
     }
 
     public void unbind(GL gl) {
+        checkBound(true);
         gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
         gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+        bound = false;
     }
 
     public void use(GL gl) {
-        gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
-        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+        if(bound) {
+            unbind(gl);
+        }
         gl.glBindTexture(GL.GL_TEXTURE_2D, fbo_tex); // to use it ..
     }
 
