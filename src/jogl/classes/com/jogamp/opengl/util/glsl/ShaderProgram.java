@@ -172,6 +172,27 @@ public class ShaderProgram {
         return true;
     }
 
+    /**
+     * Creates the empty GL program object using {@link GL2ES2#glCreateProgram()}
+     *  
+     * @param gl
+     */
+    public final void init(GL2ES2 gl) {
+        if(0>shaderProgram) {
+            shaderProgram = gl.glCreateProgram();
+        }
+    }
+    
+    /**
+     * Compiles and links the shader code to the program.
+     * Within this process, all GL resources (shader and program objects) are created if necessary.
+     *  
+     * @param gl
+     * @param verboseOut
+     * @return
+     * 
+     * @see #init(GL2ES2)
+     */
     public synchronized boolean link(GL2ES2 gl, PrintStream verboseOut) {
         if(programLinked) throw new GLException("Program is already linked");
 
