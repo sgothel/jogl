@@ -9,21 +9,55 @@ import java.nio.*;
 
 public class GLArrayDataWrapper implements GLArrayData {
 
+  /**
+   * Create a VBO, using a predefined fixed function array index, wrapping the given data.
+   * 
+   * @param gl the current GL instance
+   * @param index The GL array index
+   * @param comps The array component number
+   * @param dataType The array index GL data type
+   * @param normalized Whether the data shall be normalized
+   * @param stride
+   * @param buffer the user define data
+   * @param vboName
+   * @param vboOffset
+   * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
+   * @param vboTarget either {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
+   * @return the new create instance
+   * @throws GLException
+   */
   public static GLArrayDataWrapper createFixed(GL gl, int index, int comps, int dataType, boolean normalized, 
                                               int stride, Buffer buffer,
-                                              int vboName, long bufferOffset)
+                                              int vboName, long vboOffset, int vboUsage, int vboTarget)
     throws GLException
   {
       gl.getGLProfile().isValidArrayDataType(index, comps, dataType, false, true);
       GLArrayDataWrapper adc = new GLArrayDataWrapper();
       adc.init(null, index, comps, dataType, normalized, stride, buffer, false, 
-               vboName, bufferOffset);
+               vboName, vboOffset, vboUsage, vboTarget);
       return adc;
   }
 
+  /**
+   * Create a VBO, using a custom GLSL array attribute name, wrapping the given data.
+   * 
+   * @param gl the current GL instance
+   * @param name  The custom name for the GL attribute, maybe null if gpuBufferTarget is {@link GL#GL_ELEMENT_ARRAY_BUFFER}    
+   * @param comps The array component number
+   * @param dataType The array index GL data type
+   * @param normalized Whether the data shall be normalized
+   * @param stride
+   * @param buffer the user define data
+   * @param vboName
+   * @param vboOffset
+   * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
+   * @param vboTarget either {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
+   * @return the new create instance
+   * @throws GLException
+   */
   public static GLArrayDataWrapper createGLSL(GL gl, String name, int comps, int dataType, boolean normalized, 
-                                             int stride, Buffer buffer,
-                                             int vboName, long bufferOffset)
+                                             int stride, Buffer buffer,                                             
+                                             int vboName, long vboOffset, int vboUsage, int vboTarget)
     throws GLException
   {
       if(!gl.hasGLSL()) {
@@ -33,7 +67,7 @@ public class GLArrayDataWrapper implements GLArrayData {
 
       GLArrayDataWrapper adc = new GLArrayDataWrapper();
       adc.init(name, -1, comps, dataType, normalized, stride, buffer, true,
-               vboName, bufferOffset);
+              vboName, vboOffset, vboUsage, vboTarget);
       return adc;
   }
 
@@ -51,12 +85,16 @@ public class GLArrayDataWrapper implements GLArrayData {
 
   public final String getName() { return name; }
 
-  public final long getOffset() { return vboUsage?bufferOffset:-1; }
+  public final long getVBOOffset() { return vboEnabled?vboOffset:-1; }
 
-  public final int getVBOName() { return vboUsage?vboName:-1; }
+  public final int getVBOName() { return vboEnabled?vboName:-1; }
 
-  public final boolean isVBO() { return vboUsage; }
+  public final boolean isVBO() { return vboEnabled; }
 
+  public final int getVBOUsage() { return vboEnabled?vboUsage:-1; }
+  
+  public final int getVBOTarget() { return vboEnabled?vboTarget:-1; }
+  
   public final Buffer getBuffer() { return buffer; }
 
   public final int getComponentNumber() { return components; }
@@ -91,14 +129,11 @@ public class GLArrayDataWrapper implements GLArrayData {
   public final Class getBufferClass() { return clazz; }
 
   public void destroy(GL gl) {
-    this.buffer = null;
-    this.components = 0;
-    this.stride=0;
-    this.strideB=0;
-    this.strideL=0;
-    this.vboName=0;
-    this.vboUsage=false;
-    this.bufferOffset=0;
+    buffer = null;
+    vboName=0;
+    vboEnabled=false;
+    vboOffset=-1;
+    valid = false;
   }
 
   public String toString() {
@@ -112,9 +147,12 @@ public class GLArrayDataWrapper implements GLArrayData {
                        ", components "+components+ 
                        ", stride "+stride+"u "+strideB+"b "+strideL+"c"+
                        ", buffer "+buffer+ 
-                       ", offset "+bufferOffset+ 
-                       ", vboUsage "+vboUsage+ 
+                       ", offset "+vboOffset+
+                       ", vboUsage 0x"+Integer.toHexString(vboUsage)+ 
+                       ", vboTarget 0x"+Integer.toHexString(vboTarget)+ 
+                       ", vboEnabled "+vboEnabled+ 
                        ", vboName "+vboName+ 
+                       ", valid "+valid+                       
                        "]";
   }
 
@@ -140,28 +178,60 @@ public class GLArrayDataWrapper implements GLArrayData {
     name = newName;
   }
 
-  public void    setVBOUsage(boolean vboUsage) {
-    this.vboUsage=vboUsage;
+  /**
+   * Enable or disable use of VBO.
+   * Only possible if a VBO buffer name is defined.
+   * @see #setVBOName(int)
+   */  
+  public void setVBOEnabled(boolean vboEnabled) {
+    this.vboEnabled=vboEnabled;
   }
 
+  /**
+   * Set the VBO buffer name, if valid (>0) enable use of VBO
+   * @see #setVBOEnabled(boolean)
+   */  
   public void    setVBOName(int vboName) {
     this.vboName=vboName;
-    setVBOUsage(vboName>0);
+    setVBOEnabled(vboName>0);
   }
+
+ /**  
+  * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
+  */  
+  public void setVBOUsage(int vboUsage) { 
+      this.vboUsage = vboUsage; 
+  }
+  
+  /**  
+   * @param vboTarget either {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
+   */  
+  public void setVBOTarget(int vboTarget) {
+      this.vboTarget = vboTarget;
+  }  
 
   protected void init(String name, int index, int comps, int dataType, boolean normalized, int stride, Buffer data, 
                       boolean isVertexAttribute, 
-                      int vboName, long bufferOffset)
+                      int vboName, long vboOffset, int vboUsage, int vboTarget)
     throws GLException
   {
     this.isVertexAttribute = isVertexAttribute;
     this.index = index;
     this.location = -1;
     // We can't have any dependence on the FixedFuncUtil class here for build bootstrapping reasons
-    this.name = (null==name)?FixedFuncPipeline.getPredefinedArrayIndexName(index):name;
-    if(null==this.name) {
-        throw new GLException("Not a valid GL array index: "+index);
+    
+    if( GL.GL_ELEMENT_ARRAY_BUFFER == vboTarget ) {
+        // ok ..
+    } else if( GL.GL_ARRAY_BUFFER == vboTarget ) {
+        // check name ..
+        this.name = ( null == name ) ? FixedFuncPipeline.getPredefinedArrayIndexName(index) : name ;
+        if(null == this.name ) {
+            throw new GLException("Not a valid array buffer index: "+index);
+        }        
+    } else if( 0 <= vboTarget ) {
+        throw new GLException("Invalid GPUBuffer target: 0x"+Integer.toHexString(vboTarget));
     }
+    
     this.dataType = dataType;
     this.clazz = getBufferClass(dataType);
     switch(dataType) {
@@ -184,17 +254,42 @@ public class GLArrayDataWrapper implements GLArrayData {
         throw new GLException("stride ("+stride+") not a multiple of bpc "+bpc);
     }
     this.buffer = data;
+    if(0 >= comps) {
+        throw new GLException("Invalid number of components: " + comps);
+    }
     this.components = comps;
     this.stride=stride;
     this.strideB=(0==stride)?comps*bpc:stride;
     this.strideL=(0==stride)?comps:strideB/bpc;
     this.vboName=vboName;
-    this.vboUsage=vboName>0;
-    this.bufferOffset=bufferOffset;
+    this.vboEnabled=vboName>0;
+    this.vboOffset=vboOffset;
+    
+    switch(vboUsage) {
+        case -1: // nop
+        case GL.GL_STATIC_DRAW:
+        case GL.GL_DYNAMIC_DRAW:
+        case GL2ES2.GL_STREAM_DRAW:
+            break;
+        default:
+            throw new GLException("invalid gpuBufferUsage: "+vboUsage+":\n\t"+this); 
+    }
+    switch(vboTarget) {
+        case -1: // nop
+        case GL.GL_ARRAY_BUFFER:
+        case GL.GL_ELEMENT_ARRAY_BUFFER:
+            break;
+        default:
+            throw new GLException("invalid gpuBufferTarget: "+vboTarget+":\n\t"+this);
+    }
+    this.vboUsage=vboUsage;
+    this.vboTarget=vboTarget;    
+    this.valid=true;
   }
 
   protected GLArrayDataWrapper() { }
 
+  protected boolean valid;
   protected int index;
   protected int location;
   protected String name;
@@ -208,8 +303,10 @@ public class GLArrayDataWrapper implements GLArrayData {
   protected Buffer buffer;
   protected boolean isVertexAttribute;
 
-  protected long bufferOffset;
+  protected long vboOffset;
   protected int vboName;
-  protected boolean vboUsage;
+  protected boolean vboEnabled;
+  protected int vboUsage;
+  protected int vboTarget;  
 }
 

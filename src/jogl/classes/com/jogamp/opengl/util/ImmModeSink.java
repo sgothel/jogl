@@ -861,25 +861,25 @@ public class ImmModeSink {
 
         if(vComps>0) {
             vArrayData = GLArrayDataWrapper.createFixed(gl, GLPointerFunc.GL_VERTEX_ARRAY, vComps, vDataType, false,
-                                                        0, vertexArray, 0, vOffset);
+                                                        0, vertexArray, 0, vOffset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER);
         } else {
             vArrayData = null;
         }
         if(cComps>0) {
             cArrayData = GLArrayDataWrapper.createFixed(gl, GLPointerFunc.GL_COLOR_ARRAY, cComps, cDataType, false,
-                                                        0, colorArray, 0, cOffset);
+                                                        0, colorArray, 0, cOffset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER);
         } else {
             cArrayData = null;
         }
         if(nComps>0) {
             nArrayData = GLArrayDataWrapper.createFixed(gl, GLPointerFunc.GL_NORMAL_ARRAY, nComps, nDataType, false,
-                                                        0, normalArray, 0, nOffset);
+                                                        0, normalArray, 0, nOffset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER);
         } else {
             nArrayData = null;
         }
         if(tComps>0) {
             tArrayData = GLArrayDataWrapper.createFixed(gl, GLPointerFunc.GL_TEXTURE_COORD_ARRAY, tComps, tDataType, false,
-                                                        0, textCoordArray, 0, tOffset);
+                                                        0, textCoordArray, 0, tOffset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER);
         } else {
             tArrayData = null;
         }
