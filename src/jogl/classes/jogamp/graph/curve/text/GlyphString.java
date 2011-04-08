@@ -29,6 +29,7 @@ package jogamp.graph.curve.text;
 
 import java.util.ArrayList;
 
+import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.opengl.SVertex;
@@ -159,5 +160,9 @@ public class GlyphString {
 	 */
 	public void destroy(){
 		region.destroy();
+	}
+	
+	public AABBox getBounds(){
+		return region.getBounds();
 	}
 }
