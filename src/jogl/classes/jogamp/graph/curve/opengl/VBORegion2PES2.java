@@ -36,8 +36,6 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLUniformData;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
-import jogamp.opengl.Debug;
-
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
@@ -311,6 +309,8 @@ public class VBORegion2PES2  implements Region {
 		destroyFbo(gl);
         destroyTxtAttr(gl);
         destroyFboAttr(gl);        
+        triangles.clear();
+        vertices.clear();        
 	}	
 	final void destroyFbo(GL2ES2 gl) {
         if(null != fbo) {
