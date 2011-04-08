@@ -16,19 +16,14 @@ public interface GLArrayDataEditable extends GLArrayData {
     public boolean sealed();
 
     /**
-     * The VBO buffer usage, if it's an VBO, otherwise -1
+     * Is the buffer written to the VBO ?
      */
-    public int getBufferUsage();
+    public boolean isVBOWritten();
 
     /**
-     * Is the buffer written to the GPU ?
+     * Marks the buffer written to the VBO
      */
-    public boolean isBufferWritten();
-
-    /**
-     * Marks the buffer written to the GPU
-     */
-    public void setBufferWritten(boolean written);
+    public void setVBOWritten(boolean written);
 
     //
     // Data and GL state modification ..

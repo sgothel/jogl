@@ -28,16 +28,26 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
       }) != null;
 
   /**
+   * Create a client side buffer object, using a predefined fixed function array index
+   * and starting with a new created Buffer object with initialSize size
+   *
+   * On profiles GL2 and ES1 the fixed function pipeline behavior is as expected.
+   * On profile ES2 the fixed function emulation will transform these calls to 
+   * EnableVertexAttribArray and VertexAttribPointer calls,
+   * and a predefined vertex attribute variable name will be chosen.
+   *
+   * @param gl the current GL instance
    * @param index The GL array index
    * @param name  The optional custom name for the GL array index, maybe null.
    *            If null, the default name mapping will be used, see 'getPredefinedArrayIndexName(int)'.
    *            This name might be used as the shader attribute name.
    * @param comps The array component number
    * @param dataType The array index GL data type
-   * @param normalized Wheather the data shall be normalized
+   * @param normalized Whether the data shall be normalized
+   * @param initialSize
    *
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
-   */
+   */  
   public static GLArrayDataClient createFixed(GL gl, int index, String name, int comps, int dataType, boolean normalized, 
                                               int initialSize)
     throws GLException
@@ -45,10 +55,32 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
       gl.getGLProfile().isValidArrayDataType(index, comps, dataType, false, true);
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
-      adc.init(name, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler, 0, 0);
+      adc.init(name, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler, -1, -1, -1, -1);
       return adc;
   }
 
+  /**
+   * Create a client side buffer object, using a predefined fixed function array index
+   * and starting with a given Buffer object incl it's stride
+   *
+   * On profiles GL2 and ES1 the fixed function pipeline behavior is as expected.
+   * On profile ES2 the fixed function emulation will transform these calls to 
+   * EnableVertexAttribArray and VertexAttribPointer calls,
+   * and a predefined vertex attribute variable name will be chosen.
+   *
+   * @param gl the current GL instance
+   * @param index The GL array index
+   * @param name  The optional custom name for the GL array index, maybe null.
+   *            If null, the default name mapping will be used, see 'getPredefinedArrayIndexName(int)'.
+   *            This name might be used as the shader attribute name.
+   * @param comps The array component number
+   * @param dataType The array index GL data type
+   * @param normalized Whether the data shall be normalized
+   * @param stride
+   * @param buffer the user define data
+   *
+   * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
+   */  
   public static GLArrayDataClient createFixed(GL gl, int index, String name, int comps, int dataType, boolean normalized, 
                                               int stride, Buffer buffer)
     throws GLException
@@ -56,10 +88,21 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
       gl.getGLProfile().isValidArrayDataType(index, comps, dataType, false, true);
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
-      adc.init(name, index, comps, dataType, normalized, stride, buffer, comps*comps, false, glArrayHandler, 0, 0);
+      adc.init(name, index, comps, dataType, normalized, stride, buffer, comps*comps, false, glArrayHandler, -1, -1, -1, -1);
       return adc;
   }
 
+  /**
+   * Create a client side buffer object, using a custom GLSL array attribute name
+   * and starting with a new created Buffer object with initialSize size
+   *
+   * @param gl the current GL instance
+   * @param name  The custom name for the GL attribute. 
+   * @param comps The array component number
+   * @param dataType The array index GL data type
+   * @param normalized Whether the data shall be normalized
+   * @param initialSize
+   */
   public static GLArrayDataClient createGLSL(GL gl, String name, int comps, int dataType, boolean normalized, 
                                              int initialSize)
     throws GLException
@@ -71,10 +114,22 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
 
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLSLArrayHandler(adc);
-      adc.init(name, -1, comps, dataType, normalized, 0, null, initialSize, true, glArrayHandler, 0, 0);
+      adc.init(name, -1, comps, dataType, normalized, 0, null, initialSize, true, glArrayHandler, -1, -1, -1, -1);
       return adc;
   }
 
+  /**
+   * Create a client side buffer object, using a custom GLSL array attribute name
+   * and starting with a given Buffer object incl it's stride
+   *
+   * @param gl the current GL instance
+   * @param name  The custom name for the GL attribute. 
+   * @param comps The array component number
+   * @param dataType The array index GL data type
+   * @param normalized Whether the data shall be normalized
+   * @param stride
+   * @param buffer the user define data
+   */
   public static GLArrayDataClient createGLSL(GL gl, String name, int comps, int dataType, boolean normalized, 
                                              int stride, Buffer buffer)
     throws GLException
@@ -86,7 +141,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
 
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLSLArrayHandler(adc);
-      adc.init(name, -1, comps, dataType, normalized, stride, buffer, comps*comps, true, glArrayHandler, 0, 0);
+      adc.init(name, -1, comps, dataType, normalized, stride, buffer, comps*comps, true, glArrayHandler, -1, -1, -1, -1);
       return adc;
   }
 
@@ -94,21 +149,20 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   // Data read access
   //
 
-  public final boolean isBufferWritten() { return bufferWritten; }
+  public final boolean isVBOWritten() { return bufferWritten; }
 
   public final boolean sealed() { return sealed; }
-
-  public int getBufferUsage() { return -1; }
 
   //
   // Data and GL state modification ..
   //
 
-  public final void setBufferWritten(boolean written) { bufferWritten=written; }
+  public final void setVBOWritten(boolean written) { bufferWritten=written; }
 
   public void destroy(GL gl) {
     reset(gl);
     buffer=null;
+    valid=false;    
   }
 
   public void reset(GL gl) {
@@ -131,10 +185,8 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   }
 
   public void enableBuffer(GL gl, boolean enable) {
-    if(enableBufferAlways && enable) {
-        bufferEnabled = false;
-    }
-    if( bufferEnabled != enable && components>0 ) {
+    if( enableBufferAlways || bufferEnabled != enable || 
+        getVBOName() != gl.glGetBoundBuffer(getVBOTarget()) ) {
         if(enable) {
             checkSeal(true);
             if(null!=buffer) {
@@ -252,7 +304,8 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
                        ", sealed "+sealed+ 
                        ", bufferEnabled "+bufferEnabled+ 
                        ", bufferWritten "+bufferWritten+ 
-                       ", buffer "+buffer+ 
+                       ", buffer "+buffer+
+                       ", valid "+valid+
                        "]";
   }
 
@@ -260,55 +313,58 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
 
   protected final boolean growBufferIfNecessary(int spare) {
     if(buffer==null || buffer.remaining()<spare) { 
-        growBuffer(initialSize);
+        growBuffer(Math.max(initialSize, spare));
         return true;
     }
     return false;
   }
 
-  protected final void growBuffer(int additional) {
-    if(sealed || 0==additional || 0==components) return;
+  protected final void growBuffer(int additional) {     
+    if(!valid || sealed) {
+       throw new GLException("Invalid state: "+this); 
+    }
 
     // add the stride delta
     additional += (additional/components)*(strideL-components);
 
-    if(components>0) {
-        int osize = (buffer!=null)?buffer.capacity():0;
-        if(clazz==ByteBuffer.class) {
-            ByteBuffer newBBuffer = Buffers.newDirectByteBuffer( (osize+additional) * components );
-            if(buffer!=null) {
-                buffer.flip();
-                newBBuffer.put((ByteBuffer)buffer);
-            }
-            buffer = newBBuffer;
-        } else if(clazz==ShortBuffer.class) {
-            ShortBuffer newSBuffer = Buffers.newDirectShortBuffer( (osize+additional) * components );
-            if(buffer!=null) {
-                buffer.flip();
-                newSBuffer.put((ShortBuffer)buffer);
-            }
-            buffer = newSBuffer;
-        } else if(clazz==IntBuffer.class) {
-            IntBuffer newIBuffer = Buffers.newDirectIntBuffer( (osize+additional) * components );
-            if(buffer!=null) {
-                buffer.flip();
-                newIBuffer.put((IntBuffer)buffer);
-            }
-            buffer = newIBuffer;
-        } else if(clazz==FloatBuffer.class) {
-            FloatBuffer newFBuffer = Buffers.newDirectFloatBuffer( (osize+additional) * components );
-            if(buffer!=null) {
-                buffer.flip();
-                newFBuffer.put((FloatBuffer)buffer);
-            }
-            buffer = newFBuffer;
-        } else {
-            throw new GLException("Given Buffer Class not supported: "+clazz+":\n\t"+this);
+    int osize = (buffer!=null)?buffer.capacity():0;
+    if(clazz==ByteBuffer.class) {
+        ByteBuffer newBBuffer = Buffers.newDirectByteBuffer( (osize+additional) * components );
+        if(buffer!=null) {
+            buffer.flip();
+            newBBuffer.put((ByteBuffer)buffer);
         }
+        buffer = newBBuffer;
+    } else if(clazz==ShortBuffer.class) {
+        ShortBuffer newSBuffer = Buffers.newDirectShortBuffer( (osize+additional) * components );
+        if(buffer!=null) {
+            buffer.flip();
+            newSBuffer.put((ShortBuffer)buffer);
+        }
+        buffer = newSBuffer;
+    } else if(clazz==IntBuffer.class) {
+        IntBuffer newIBuffer = Buffers.newDirectIntBuffer( (osize+additional) * components );
+        if(buffer!=null) {
+            buffer.flip();
+            newIBuffer.put((IntBuffer)buffer);
+        }
+        buffer = newIBuffer;
+    } else if(clazz==FloatBuffer.class) {
+        FloatBuffer newFBuffer = Buffers.newDirectFloatBuffer( (osize+additional) * components );
+        if(buffer!=null) {
+            buffer.flip();
+            newFBuffer.put((FloatBuffer)buffer);
+        }
+        buffer = newFBuffer;
+    } else {
+        throw new GLException("Given Buffer Class not supported: "+clazz+":\n\t"+this);
     }
   }
 
   protected final void checkSeal(boolean test) throws GLException {
+    if(!valid) {
+        throw new GLException("Invalid state: "+this); 
+    }    
     if(sealed!=test) {
         if(test) {
             throw new GLException("Not Sealed yet, seal first:\n\t"+this); 
@@ -320,11 +376,11 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
 
   protected void init(String name, int index, int comps, int dataType, boolean normalized, int stride, Buffer data, 
                       int initialSize, boolean isVertexAttribute, GLArrayHandler handler,
-                      int vboName, long bufferOffset)
+                      int vboName, long vboOffset, int vboUsage, int vboTarget)
     throws GLException
   {
     super.init(name, index, comps, dataType, normalized, stride, data, isVertexAttribute,
-               vboName, bufferOffset);
+               vboName, vboOffset, vboUsage, vboTarget);
 
     this.initialSize = initialSize;
     this.glArrayHandler = handler;
@@ -333,7 +389,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     this.bufferEnabled=false;
     this.enableBufferAlways=false;
     this.bufferWritten=false;
-    if(null==buffer) {
+    if(null==buffer && initialSize>0) {
         growBuffer(initialSize);
     }
   }

@@ -37,7 +37,6 @@ import java.nio.*;
  *
  */
 public interface GLArrayData {
-
     /**
      * Returns true if this data set is intended for a GLSL vertex shader attribute,
      * otherwise false, ie intended for fixed function vertex pointer
@@ -81,23 +80,36 @@ public interface GLArrayData {
     public void setLocation(int v);
 
     /**
-     * Determines wheather the data is server side (VBO),
+     * Determines whether the data is server side (VBO) and enabled,
      * or a client side array (false).
      */
     public boolean isVBO();
 
     /**
-     * The offset, if it's an VBO, otherwise -1
+     * The VBO buffer offset or -1 if not a VBO
      */
-    public long getOffset();
+    public long getVBOOffset();
 
     /**
-     * The VBO name, if it's an VBO, otherwise -1
+     * The VBO name or -1 if not a VBO
      */
     public int getVBOName();
 
     /**
-     * The Buffer holding the data, may be null in case of VBO
+     * The VBO usage or -1 if not a VBO
+     * @return -1 if not a GPU buffer, otherwise {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
+     */
+    public int getVBOUsage();
+
+    /**
+     * The VBO target or -1 if not a VBO
+     * @return -1 if not a GPU buffer, otherwise {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
+     */
+    public int getVBOTarget();
+
+    
+    /**
+     * The Buffer holding the data, may be null if a GPU buffer without client bound data
      */
     public Buffer getBuffer();
 

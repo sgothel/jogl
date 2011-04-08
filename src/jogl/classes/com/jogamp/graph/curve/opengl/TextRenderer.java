@@ -15,7 +15,6 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 
 public abstract class TextRenderer extends Renderer {
-    
     /** 
      * Create a Hardware accelerated Text Renderer.
      * @param factory optional Point.Factory for Vertex construction. Default is Vertex.Factory.
@@ -50,6 +49,9 @@ public abstract class TextRenderer extends Renderer {
      * @return the resulting GlyphString inclusive the generated region
      */
     public GlyphString createString(GL2ES2 gl, Font font, int size, String str, float sharpness) {
+        if(DEBUG) {
+            System.err.println("createString: "+getCacheSize()+"/"+getCacheLimit()+" - "+Font.NAME_UNIQUNAME + " - " + str + " - " + size);
+        }
         AffineTransform affineTransform = new AffineTransform(pointFactory);
         
         Path2D[] paths = new Path2D[str.length()];
@@ -77,32 +79,71 @@ public abstract class TextRenderer extends Renderer {
        flushCache();
    }
    
-   public final void setCacheMaxSize(int newSize ) { stringCacheMaxSize = newSize; validateCache(0); }
-   public final int getCacheMaxSize() { return stringCacheMaxSize; }
+   /**
+    * Sets the cache limit for reusing GlyphString's and their Region.
+    * Default is {@link #DEFAULT_CACHE_LIMIT}, -1 unlimited, 0 turns cache off, >0 limited
+    *  
+    * @param newLimit new cache size
+    * 
+    * @see #DEFAULT_CACHE_LIMIT
+    */
+   public final void setCacheLimit(int newLimit ) { stringCacheLimit = newLimit; validateCache(0); }
+   public final int getCacheLimit() { return stringCacheLimit; }
+   
+   /** 
+    * @return the current utilized cache size, <= {@link #getCacheLimit()}
+    */
    public final int getCacheSize() { return stringCacheArray.size(); }
    
-   protected void validateCache(int space) {
-       while ( getCacheSize() + space > getCacheMaxSize() ) {
-           String key = stringCacheArray.remove(0);
-           stringCacheMap.remove(key);
+   protected final void validateCache(int space) {
+       if ( getCacheLimit() > 0 ) {
+           while ( getCacheSize() + space > getCacheLimit() ) {
+               removeCachedGlyphString(0);
+           }
        }
    }
    
-   protected GlyphString getCachedGlyphString(Font font, String str, int fontSize) {
-       final String key = font.getName(Font.NAME_UNIQUNAME) + "." + str.hashCode() + "." + fontSize;
-       return stringCacheMap.get(key);
+   protected final GlyphString getCachedGlyphString(Font font, String str, int fontSize) {
+       return stringCacheMap.get(getKey(font, str, fontSize));
    }
 
-   protected void addCachedGlyphString(Font font, String str, int fontSize, GlyphString glyphString) {
-       final String key = font.getName(Font.NAME_UNIQUNAME) + "." + str.hashCode() + "." + fontSize;
-       validateCache(1);
-       stringCacheMap.put(key, glyphString);
-       stringCacheArray.add(stringCacheArray.size(), key);
+   protected final void addCachedGlyphString(Font font, String str, int fontSize, GlyphString glyphString) {
+       if ( 0 != getCacheLimit() ) {
+           final String key = getKey(font, str, fontSize);
+           GlyphString oldGlyphString = stringCacheMap.put(key, glyphString);
+           if ( null == oldGlyphString ) {
+               // new entry ..
+               validateCache(1);
+               stringCacheArray.add(stringCacheArray.size(), key);
+           } /// else overwrite is nop ..
+       }
+   }
+   
+   protected final void removeCachedGlyphString(Font font, String str, int fontSize) {
+       final String key = getKey(font, str, fontSize);
+       GlyphString glyphString = stringCacheMap.remove(key);
+       if(null != glyphString) {
+           glyphString.destroy();
+       }       
+       stringCacheArray.remove(key);
    }
 
-   // Cache is adding at the end of the array
-   public static final int DEFAULT_CACHE_SIZE = 32;
-   private HashMap<String, GlyphString> stringCacheMap = new HashMap<String, GlyphString>(DEFAULT_CACHE_SIZE);
-   private ArrayList<String> stringCacheArray = new ArrayList<String>(DEFAULT_CACHE_SIZE);
-   private int stringCacheMaxSize = DEFAULT_CACHE_SIZE; // -1 unlimited, 0 off, >0 limited      
+   protected final void removeCachedGlyphString(int idx) {
+       final String key = stringCacheArray.remove(idx);
+       final GlyphString glyphString = stringCacheMap.remove(key);
+       if(null != glyphString) {
+           glyphString.destroy();
+       }
+   }
+      
+   protected final String getKey(Font font, String str, int fontSize) {
+       return font.getName(Font.NAME_UNIQUNAME) + "." + str.hashCode() + "." + fontSize;
+   }
+
+   /** Default cache limit, see {@link #setCacheLimit(int)} */
+   public static final int DEFAULT_CACHE_LIMIT = 256;
+   
+   private HashMap<String, GlyphString> stringCacheMap = new HashMap<String, GlyphString>(DEFAULT_CACHE_LIMIT);
+   private ArrayList<String> stringCacheArray = new ArrayList<String>(DEFAULT_CACHE_LIMIT);
+   private int stringCacheLimit = DEFAULT_CACHE_LIMIT;      
 }

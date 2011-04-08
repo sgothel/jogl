@@ -39,7 +39,7 @@ public class GLSLArrayHandler implements GLArrayHandler {
     this.ad = ad;
   }
 
-  protected final void passVertexAttribPointer(GL2ES2 gl, ShaderState st) {
+  private final void passVertexAttribPointer(GL2ES2 gl, ShaderState st) {
     st.glVertexAttribPointer(gl, ad);
   }
 
@@ -61,21 +61,21 @@ public class GLSLArrayHandler implements GLArrayHandler {
         if(ad.isVBO()) {
             // always bind and refresh the VBO mgr,
             // in case more than one gl*Pointer objects are in use
-            glsl.glBindBuffer(GL.GL_ARRAY_BUFFER, ad.getVBOName());
-            if(!ad.isBufferWritten()) {
+            glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
+            if(!ad.isVBOWritten()) {
                 if(null!=buffer) {
-                    glsl.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit() * ad.getComponentSize(), buffer, ad.getBufferUsage());
+                    glsl.glBufferData(ad.getVBOTarget(), buffer.limit() * ad.getComponentSize(), buffer, ad.getVBOUsage());
                 }
-                ad.setBufferWritten(true);
+                ad.setVBOWritten(true);
             }
             passVertexAttribPointer(glsl, st);
         } else if(null!=buffer) {
             passVertexAttribPointer(glsl, st);
-            ad.setBufferWritten(true);
+            ad.setVBOWritten(true);
         }
     } else {
         if(ad.isVBO()) {
-            glsl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+            glsl.glBindBuffer(ad.getVBOTarget(), 0);
         }
         st.glDisableVertexAttribArray(glsl, ad.getName());
     }

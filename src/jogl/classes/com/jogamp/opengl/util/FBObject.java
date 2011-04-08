@@ -39,17 +39,16 @@ public class FBObject {
     private int width, height;
     private int fb, fbo_tex, depth_rb, stencil_rb, vStatus;
     private int texInternalFormat, texDataFormat, texDataType;
-
-    public static final int ATTR_DEPTH   = 1 << 0;
-    public static final int ATTR_STENCIL = 1 << 1;
-    
+    private boolean bound;
+        
     public FBObject(int width, int height) {
         this.width = width;
         this.height = height;
         this.fb = 0;
         this.fbo_tex = 0;
         this.depth_rb = 0;
-        this.stencil_rb = 0;        
+        this.stencil_rb = 0;
+        this.bound = false;
     }        
 
     public boolean validateStatus(GL gl) {
@@ -283,7 +282,6 @@ public class FBObject {
         checkBound(true);
         int name[] = new int[1];
         gl.glGenRenderbuffers(1, name, 0);
-        gl.glGenRenderbuffers(1, name, 0);
         stencil_rb = name[0];
         if(stencil_rb==0) {
             throw new GLException("null generated stencilbuffer");
@@ -331,8 +329,6 @@ public class FBObject {
         }
     }
 
-    boolean bound = false;
-    
     private final void checkBound(boolean shallBeBound) {
         if(bound != shallBeBound) {
             final String s0 = shallBeBound ? "not" : "already" ; 
@@ -361,10 +357,14 @@ public class FBObject {
         gl.glBindTexture(GL.GL_TEXTURE_2D, fbo_tex); // to use it ..
     }
 
-    public int getFBName() {
-        return fb;
-    }
-    public int getTextureName() {
-        return fbo_tex;
+    public final boolean isBound() { return bound; }
+    public final int getWidth() { return width; }
+    public final int getHeight() { return height; }       
+    public final int getFBName() { return fb; }
+    public final int getTextureName() { return fbo_tex; }
+    public final int getStencilBuffer() { return stencil_rb; }
+    public final int getDepthBuffer() { return depth_rb; }
+    public final String toString() {
+        return "FBO[name "+fb+", size "+width+"x"+height+", tex "+fbo_tex+", depth "+depth_rb+", stencil "+stencil_rb+"]";
     }
 }
