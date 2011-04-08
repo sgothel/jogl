@@ -125,6 +125,13 @@ public abstract class Renderer {
             st.glUniform(gl, mgl_PMVMatrix);
         }
     }
+    
+    public void scale(GL2ES2 gl, float x, float y, float z) {
+        pmvMatrix.glScalef(x, y, z);
+        if(initialized && null != gl && st.inUse()) {
+            st.glUniform(gl, mgl_PMVMatrix);
+        }
+    }
 
     public void resetModelview(GL2ES2 gl) {
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);

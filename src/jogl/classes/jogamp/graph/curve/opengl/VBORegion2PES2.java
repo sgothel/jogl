@@ -354,4 +354,8 @@ public class VBORegion2PES2  implements Region {
 	public void setFlipped(boolean flipped) {
 		this.flipped = flipped;
 	}
+	
+	public AABBox getBounds(){
+		return box;
+	}
 }

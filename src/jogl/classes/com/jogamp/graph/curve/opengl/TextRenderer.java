@@ -48,11 +48,10 @@ public abstract class TextRenderer extends Renderer {
      * @param sharpness parameter for Region generation of the resulting GlyphString
      * @return the resulting GlyphString inclusive the generated region
      */
-    protected GlyphString createString(GL2ES2 gl, Font font, int size, String str, float sharpness) {
+    public GlyphString createString(GL2ES2 gl, Font font, int size, String str, float sharpness) {
         if(DEBUG) {
             System.err.println("createString: "+getCacheSize()+"/"+getCacheLimit()+" - "+Font.NAME_UNIQUNAME + " - " + str + " - " + size);
         }
-        
         AffineTransform affineTransform = new AffineTransform(pointFactory);
         
         Path2D[] paths = new Path2D[str.length()];

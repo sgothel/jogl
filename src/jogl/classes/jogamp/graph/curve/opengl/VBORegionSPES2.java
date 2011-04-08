@@ -34,6 +34,7 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLContext;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.opengl.util.GLArrayDataServer;
@@ -53,11 +54,14 @@ public class VBORegionSPES2  implements Region {
 	private boolean flipped = false;
 	private boolean dirty = false;
 	
+	private AABBox box = null;
+	
 	public VBORegionSPES2(GLContext context){
 		this.context =context;
 	}
 	
 	public void update(){
+		box = new AABBox();
 		GL2ES2 gl = context.getGL().getGL2ES2();
 		
         destroy(gl);        
@@ -96,13 +100,21 @@ public class VBORegionSPES2  implements Region {
 		                                           vertices.size(), GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER); 
 		verticeAttr.setLocation(Region.VERTEX_ATTR_IDX);
 		for(Vertex v:vertices){
-		    verticeAttr.putf(v.getX());
+			
 			if(flipped){
-			    verticeAttr.putf(-1*v.getY());
-			} else {
-			    verticeAttr.putf(v.getY());
+				verticeAttr.putf(v.getX());
+				verticeAttr.putf(-1*v.getY());
+				verticeAttr.putf(v.getZ());
+				
+				box.resize(v.getX(),-1*v.getY(),v.getZ());
 			}
-			verticeAttr.putf(v.getZ());
+			else{
+				verticeAttr.putf(v.getX());
+				verticeAttr.putf(v.getY());
+				verticeAttr.putf(v.getZ());
+				
+				box.resize(v.getX(),v.getY(),v.getZ());
+			}
 		}
         verticeAttr.seal(gl, true);		
         
@@ -186,5 +198,8 @@ public class VBORegionSPES2  implements Region {
 
 	public void setFlipped(boolean flipped) {
 		this.flipped = flipped;
+	}
+	public AABBox getBounds(){
+		return box;
 	}
 }
