@@ -6,13 +6,14 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.opengl.Debug;
 
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public abstract class Renderer {
-    protected static final boolean DEBUG = Debug.debug("CurveRenderer");
+    protected static final boolean DEBUG = Region.DEBUG;
 
     protected abstract boolean initImpl(GL2ES2 gl);
     

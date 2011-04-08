@@ -29,6 +29,9 @@ package com.jogamp.graph.curve;
 
 import java.util.ArrayList;
 
+import jogamp.opengl.Debug;
+
+import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -44,14 +47,23 @@ import com.jogamp.opengl.util.PMVMatrix;
  * @see RegionFactory, OutlineShape
  */
 public interface Region {
+    public static final boolean DEBUG = Debug.debug("graph.curve");
+    
 	/** The vertices index in an OGL object
 	 */
 	public static int VERTEX_ATTR_IDX = 0;
+	public static String VERTEX_ATTR_NAME = "v_position";
 
 	/** The Texture Coord index in an OGL object
 	 */
 	public static int TEXCOORD_ATTR_IDX = 1;
+	public static String TEXCOORD_ATTR_NAME = "texCoord";
 	
+    /** The color index in an OGL object
+     */
+    public static int COLOR_ATTR_IDX = 2;
+    public static String COLOR_ATTR_NAME = "v_color";
+    
 	/** single pass rendering, fast, but AA might not be perfect */
 	public static int SINGLE_PASS = 1;
 	

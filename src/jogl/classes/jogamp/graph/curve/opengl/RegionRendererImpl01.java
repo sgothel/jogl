@@ -85,8 +85,8 @@ public class RegionRendererImpl01 extends RegionRenderer {
         sp.add(rsFp);
 
         sp.init(gl);
-        gl.glBindAttribLocation(sp.program(), Region.VERTEX_ATTR_IDX, "v_position");
-        gl.glBindAttribLocation(sp.program(), Region.TEXCOORD_ATTR_IDX, "texCoord");
+        gl.glBindAttribLocation(sp.program(), Region.VERTEX_ATTR_IDX, Region.VERTEX_ATTR_NAME);
+        gl.glBindAttribLocation(sp.program(), Region.TEXCOORD_ATTR_IDX, Region.TEXCOORD_ATTR_NAME);
         
         if(!sp.link(gl, System.err)) {
             throw new GLException("RegionRenderer: Couldn't link program: "+sp);
