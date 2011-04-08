@@ -73,6 +73,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLCanvas"
     #D_ARGS="-Dnativewindow.debug.ToolkitLock.TraceLock"
+    D_ARGS="-Djogl.debug.graph.curve"
     #X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=true"
     #X_ARGS="-verbose:jni"
 
