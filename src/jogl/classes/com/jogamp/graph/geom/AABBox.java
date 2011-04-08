@@ -57,8 +57,8 @@ public class AABBox {
 	public AABBox(float lx, float ly, float lz,
 			float hx, float hy, float hz)
 	{
-		setLow(lx, ly, lz);
-		setHigh(hx, hy, hz);
+		resize(lx, ly, lz);
+		resize(hx, hy, hz);
 
 		computeCenter();
 	}
@@ -69,8 +69,8 @@ public class AABBox {
 	 */
 	public AABBox(float[] low, float[] high)
 	{
-		this.low = low;
-		this.high = high;
+		resize(low[0],low[1],low[2]);
+		resize(high[0],high[1],high[2]);
 
 		computeCenter();
 	}
