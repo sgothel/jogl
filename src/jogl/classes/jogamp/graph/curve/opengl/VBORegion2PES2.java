@@ -121,6 +121,7 @@ public class VBORegion2PES2  implements Region{
 				verticesBuffer.put(v.getY());
 			}
 			verticesBuffer.put(v.getZ());
+			
 			if(flipped){
 				box.resize(v.getX(), -1*v.getY(), v.getZ());
 			}
@@ -346,5 +347,9 @@ public class VBORegion2PES2  implements Region{
 
 	public void setFlipped(boolean flipped) {
 		this.flipped = flipped;
+	}
+	
+	public AABBox getBounds(){
+		return box;
 	}
 }

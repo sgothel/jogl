@@ -37,6 +37,7 @@ import javax.media.opengl.GLContext;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -55,11 +56,14 @@ public class VBORegionSPES2  implements Region{
 	private boolean flipped = false;
 	private boolean dirty = false;
 	
+	private AABBox box = null;
+	
 	public VBORegionSPES2(GLContext context){
 		this.context =context;
 	}
 	
 	public void update(){
+		box = new AABBox();
 		GL2ES2 gl = context.getGL().getGL2ES2();
 		ShortBuffer indicies = Buffers.newDirectShortBuffer(triangles.size() * 3);
 		
@@ -93,14 +97,21 @@ public class VBORegionSPES2  implements Region{
 		
 		FloatBuffer verticesBuffer = Buffers.newDirectFloatBuffer(vertices.size() * 3);
 		for(Vertex v:vertices){
-			verticesBuffer.put(v.getX());
+			
 			if(flipped){
+				verticesBuffer.put(v.getX());
 				verticesBuffer.put(-1*v.getY());
+				verticesBuffer.put(v.getZ());
+				
+				box.resize(v.getX(),-1*v.getY(),v.getZ());
 			}
 			else{
+				verticesBuffer.put(v.getX());
 				verticesBuffer.put(v.getY());
+				verticesBuffer.put(v.getZ());
+				
+				box.resize(v.getX(),v.getY(),v.getZ());
 			}
-			verticesBuffer.put(v.getZ());
 		}
 		verticesBuffer.rewind();
 		
@@ -181,5 +192,8 @@ public class VBORegionSPES2  implements Region{
 
 	public void setFlipped(boolean flipped) {
 		this.flipped = flipped;
+	}
+	public AABBox getBounds(){
+		return box;
 	}
 }

@@ -29,6 +29,7 @@ package com.jogamp.graph.curve;
 
 import java.util.ArrayList;
 
+import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -116,6 +117,8 @@ public interface Region {
 	 *  objects
 	 */
 	public void destroy();
+	
+	public AABBox getBounds(); 
 	
 	public boolean isFlipped();
 	
