@@ -47,7 +47,7 @@ public class ArcSdirSorter {
    */ 
   public ArcSdirSorter(Subdivider subdivider) {
     //TODO
-    //			System.out.println("TODO arcsdirsorter.constructor");
+    //            System.out.println("TODO arcsdirsorter.constructor");
   }
 
   /**
@@ -57,7 +57,7 @@ public class ArcSdirSorter {
    */
   public void qsort(CArrayOfArcs list, int count) {
     // TODO
-    //			System.out.println("TODO arcsdirsorter.qsort");
+    //            System.out.println("TODO arcsdirsorter.qsort");
   }
 
 }

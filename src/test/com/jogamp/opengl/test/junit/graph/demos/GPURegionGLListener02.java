@@ -47,7 +47,7 @@ public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
         super(SVertex.factory(), numpass, debug, trace);
         setMatrix(-20, 00, 0f, -50, fbosize);
     }
-    	
+        
     private void createTestOutline(){
         float offset = 0;
         outlineShapes[0] = new OutlineShape(SVertex.factory());
@@ -85,24 +85,24 @@ public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
         outlineShapes[1].closeLastOutline();
     }
 
-	public void init(GLAutoDrawable drawable) {
-		super.init(drawable);
-		
+    public void init(GLAutoDrawable drawable) {
+        super.init(drawable);
+        
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         final RegionRenderer regionRenderer = (RegionRenderer) getRenderer();
 
-		gl.setSwapInterval(1);
-		gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-		regionRenderer.init(gl);
+        gl.setSwapInterval(1);
+        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+        regionRenderer.init(gl);
         regionRenderer.setAlpha(gl, 1.0f);
         regionRenderer.setColor(gl, 0.0f, 0.0f, 0.0f);
         MSAATool.dump(drawable);
         
-		createTestOutline();
-	}
+        createTestOutline();
+    }
 
-	public void display(GLAutoDrawable drawable) {
+    public void display(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -115,6 +115,6 @@ public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
         regionRenderer.rotate(gl, getAngle(), 0, 1, 0);
 
         regionRenderer.renderOutlineShapes(gl, outlineShapes, getPosition(), getTexSize());            
-		
-	}		
+        
+    }        
 }

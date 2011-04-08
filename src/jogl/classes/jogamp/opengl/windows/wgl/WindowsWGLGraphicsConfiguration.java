@@ -158,7 +158,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         if (0 == hdc) {
             throw new GLException("Error: HDC is null");
         }
-	
+    
         if (!GDI.SetPixelFormat(hdc, caps.getPFDID(), caps.getPFD())) {
             throw new GLException("Unable to set pixel format " + caps +
                                   " for device context " + toHexString(hdc) +
@@ -166,7 +166,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         }
         if (DEBUG) {
             System.err.println("!!! setPixelFormat (ARB): hdc "+toHexString(hdc) +", "+caps);
-        }    	
+        }        
         setCapsPFD(caps);
     }
     

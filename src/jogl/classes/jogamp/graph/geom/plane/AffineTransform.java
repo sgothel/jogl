@@ -80,14 +80,14 @@ public class AffineTransform implements Cloneable, Serializable {
     }
 
     public AffineTransform(Factory<? extends Vertex> factory) {
-    	pointFactory = factory;
+        pointFactory = factory;
         type = TYPE_IDENTITY;
         m00 = m11 = 1.0f;
         m10 = m01 = m02 = m12 = 0.0f;
     }
 
     public AffineTransform(AffineTransform t) {
-    	this.pointFactory = t.pointFactory;
+        this.pointFactory = t.pointFactory;
         this.type = t.type;
         this.m00 = t.m00;
         this.m10 = t.m10;
@@ -98,7 +98,7 @@ public class AffineTransform implements Cloneable, Serializable {
     }
 
     public AffineTransform(Vertex.Factory<? extends Vertex> factory, float m00, float m10, float m01, float m11, float m02, float m12) {
-    	pointFactory = factory;
+        pointFactory = factory;
         this.type = TYPE_UNKNOWN;
         this.m00 = m00;
         this.m10 = m10;
@@ -109,7 +109,7 @@ public class AffineTransform implements Cloneable, Serializable {
     }
 
     public AffineTransform(Vertex.Factory<? extends Vertex> factory, float[] matrix) {
-    	pointFactory = factory;
+        pointFactory = factory;
         this.type = TYPE_UNKNOWN;
         m00 = matrix[0];
         m10 = matrix[1];
@@ -316,25 +316,25 @@ public class AffineTransform implements Cloneable, Serializable {
     }
 
     public static <T extends Vertex> AffineTransform getScaleInstance(Vertex.Factory<? extends Vertex> factory, float scx, float scY) {
-    	AffineTransform t = new AffineTransform(factory);
+        AffineTransform t = new AffineTransform(factory);
         t.setToScale(scx, scY);
         return t;
     }
 
     public static <T extends Vertex> AffineTransform getShearInstance(Vertex.Factory<? extends Vertex> factory, float shx, float shy) {
-    	AffineTransform t = new AffineTransform(factory);        
+        AffineTransform t = new AffineTransform(factory);        
         t.setToShear(shx, shy);
         return t;
     }
 
     public static <T extends Vertex> AffineTransform getRotateInstance(Vertex.Factory<? extends Vertex> factory, float angle) {
-    	AffineTransform t = new AffineTransform(factory);
+        AffineTransform t = new AffineTransform(factory);
         t.setToRotation(angle);
         return t;
     }
 
     public static <T extends Vertex> AffineTransform getRotateInstance(Vertex.Factory<? extends Vertex> factory, float angle, float x, float y) {
-    	AffineTransform t = new AffineTransform(factory);
+        AffineTransform t = new AffineTransform(factory);
         t.setToRotation(angle, x, y);
         return t;
     }
@@ -391,7 +391,7 @@ public class AffineTransform implements Cloneable, Serializable {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
         return new AffineTransform(
-        		this.pointFactory,
+                this.pointFactory,
                  m11 / det, // m00
                 -m10 / det, // m10
                 -m01 / det, // m01
@@ -401,9 +401,9 @@ public class AffineTransform implements Cloneable, Serializable {
         );
     }
 
-	public Vertex transform(Vertex src, Vertex dst) {
+    public Vertex transform(Vertex src, Vertex dst) {
         if (dst == null) {
-        	dst = pointFactory.create();
+            dst = pointFactory.create();
         }
 
         float x = src.getX();
@@ -415,12 +415,12 @@ public class AffineTransform implements Cloneable, Serializable {
 
     public void transform(Vertex[] src, int srcOff, Vertex[] dst, int dstOff, int length) {
         while (--length >= 0) {
-        	Vertex srcPoint = src[srcOff++]; 
+            Vertex srcPoint = src[srcOff++]; 
             float x = srcPoint.getX();
             float y = srcPoint.getY();
             Vertex dstPoint = dst[dstOff];
             if (dstPoint == null) {
-            	throw new IllegalArgumentException("dst["+dstOff+"] is null");
+                throw new IllegalArgumentException("dst["+dstOff+"] is null");
             }
             dstPoint.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12);
             dst[dstOff++] = dstPoint;
@@ -444,9 +444,9 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
     
-	public Vertex deltaTransform(Vertex src, Vertex dst) {
+    public Vertex deltaTransform(Vertex src, Vertex dst) {
         if (dst == null) {
-        	dst = pointFactory.create();
+            dst = pointFactory.create();
         }
 
         float x = src.getX();
@@ -465,13 +465,13 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
 
-	public Vertex inverseTransform(Vertex src, Vertex dst) throws NoninvertibleTransformException {
+    public Vertex inverseTransform(Vertex src, Vertex dst) throws NoninvertibleTransformException {
         float det = getDeterminant();
         if (MathFloat.abs(det) < ZERO) {
-        	throw new NoninvertibleTransformException(determinantIsZero);
+            throw new NoninvertibleTransformException(determinantIsZero);
         }
         if (dst == null) {
-        	dst = pointFactory.create();
+            dst = pointFactory.create();
         }
 
         float x = src.getX() - m02;
@@ -486,7 +486,7 @@ public class AffineTransform implements Cloneable, Serializable {
     {
         float det = getDeterminant();
         if (MathFloat.abs(det) < ZERO) {
-        	throw new NoninvertibleTransformException(determinantIsZero);        	
+            throw new NoninvertibleTransformException(determinantIsZero);            
         }
 
         while (--length >= 0) {

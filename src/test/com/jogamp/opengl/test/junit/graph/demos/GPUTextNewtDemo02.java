@@ -50,17 +50,17 @@ public class GPUTextNewtDemo02 {
     static final boolean TRACE = false;
     
     public static void main(String[] args) {
-		GLProfile.initSingleton(true);
+        GLProfile.initSingleton(true);
         GLProfile glp = GLProfile.getGL2ES2();
-		
-		GLCapabilities caps = new GLCapabilities(glp);
-		caps.setAlphaBits(4);		
-		System.out.println("Requested: "+caps);
-		
-	    GLWindow window = GLWindow.create(caps);
-		
-		window.setPosition(10, 10);
-        window.setSize(800, 400);		
+        
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setAlphaBits(4);        
+        System.out.println("Requested: "+caps);
+        
+        GLWindow window = GLWindow.create(caps);
+        
+        window.setPosition(10, 10);
+        window.setSize(800, 400);        
         window.setTitle("GPU Text Newt Demo 02 - r2t1 msaa0");
         
         GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(Region.TWO_PASS, window.getWidth()*3, DEBUG, TRACE);
@@ -69,10 +69,10 @@ public class GPUTextNewtDemo02 {
         window.addGLEventListener(textGLListener);
 
         window.enablePerfLog(true);
-		window.setVisible(true);
-		// FPSAnimator animator = new FPSAnimator(60);
-        Animator animator = new Animator();		
-		animator.add(window);
-		animator.start();
-	}	
+        window.setVisible(true);
+        // FPSAnimator animator = new FPSAnimator(60);
+        Animator animator = new Animator();        
+        animator.add(window);
+        animator.start();
+    }    
 }

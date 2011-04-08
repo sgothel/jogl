@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package	com.jogamp.opengl.util.texture.spi;
+package    com.jogamp.opengl.util.texture.spi;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
@@ -65,16 +65,16 @@ import java.io.IOException;
  * for that functionality. It is not clear if it is ever going to be
  * functionally required to be able to read UTF data in a LittleEndianManner<p>
  *
- * @author	Robin Luiten
- * @version	1.1	15/Dec/1997
+ * @author    Robin Luiten
+ * @version    1.1    15/Dec/1997
  */
 public class LEDataInputStream extends FilterInputStream implements DataInput
 {
     /**
-     * To reuse	some of	the	non	endian dependent methods from
-     * DataInputStreams	methods.
+     * To reuse    some of    the    non    endian dependent methods from
+     * DataInputStreams    methods.
      */
-    DataInputStream	dataIn;
+    DataInputStream    dataIn;
 
     public LEDataInputStream(InputStream in)
     {
@@ -84,29 +84,29 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
 
     public void close() throws IOException
     {
-        dataIn.close();		// better close as we create it.
+        dataIn.close();        // better close as we create it.
         // this will close underlying as well.
     }
 
-    public synchronized	final int read(byte	b[]) throws	IOException
+    public synchronized    final int read(byte    b[]) throws    IOException
     {
         return dataIn.read(b, 0, b.length);
     }
 
-    public synchronized	final int read(byte	b[], int off, int len) throws IOException
+    public synchronized    final int read(byte    b[], int off, int len) throws IOException
     {
-        int	rl = dataIn.read(b,	off, len);
+        int    rl = dataIn.read(b,    off, len);
         return rl;
     }
 
     public final void readFully(byte b[]) throws IOException
     {
-        dataIn.readFully(b,	0, b.length);
+        dataIn.readFully(b,    0, b.length);
     }
 
-    public final void readFully(byte b[], int off, int len)	throws IOException
+    public final void readFully(byte b[], int off, int len)    throws IOException
     {
-        dataIn.readFully(b,	off, len);
+        dataIn.readFully(b,    off, len);
     }
 
     public final int skipBytes(int n) throws IOException
@@ -116,23 +116,23 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
 
     public final boolean readBoolean() throws IOException
     {
-        int	ch = dataIn.read();
+        int    ch = dataIn.read();
         if (ch < 0)
             throw new EOFException();
         return (ch != 0);
     }
 
-    public final byte readByte() throws	IOException
+    public final byte readByte() throws    IOException
     {
-        int	ch = dataIn.read();
+        int    ch = dataIn.read();
         if (ch < 0)
             throw new EOFException();
         return (byte)(ch);
     }
 
-    public final int readUnsignedByte()	throws IOException
+    public final int readUnsignedByte()    throws IOException
     {
-        int	ch = dataIn.read();
+        int    ch = dataIn.read();
         if (ch < 0)
             throw new EOFException();
         return ch;
@@ -140,47 +140,47 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
 
     public final short readShort() throws IOException
     {
-        int	ch1	= dataIn.read();
-        int	ch2	= dataIn.read();
-        if ((ch1 | ch2)	< 0)
+        int    ch1    = dataIn.read();
+        int    ch2    = dataIn.read();
+        if ((ch1 | ch2)    < 0)
             throw new EOFException();
-        return (short)((ch1	<< 0) +	(ch2 <<	8));
+        return (short)((ch1    << 0) +    (ch2 <<    8));
     }
 
-    public final int readUnsignedShort() throws	IOException
+    public final int readUnsignedShort() throws    IOException
     { 
-        int	ch1	= dataIn.read();
-        int	ch2	= dataIn.read();
-        if ((ch1 | ch2)	< 0)
+        int    ch1    = dataIn.read();
+        int    ch2    = dataIn.read();
+        if ((ch1 | ch2)    < 0)
             throw new EOFException();
-        return (ch1	<< 0) +	(ch2 <<	8);
+        return (ch1    << 0) +    (ch2 <<    8);
     }
 
-    public final char readChar() throws	IOException
+    public final char readChar() throws    IOException
     {
-        int	ch1	= dataIn.read();
-        int	ch2	= dataIn.read();
-        if ((ch1 | ch2)	< 0)
+        int    ch1    = dataIn.read();
+        int    ch2    = dataIn.read();
+        if ((ch1 | ch2)    < 0)
             throw new EOFException();
-        return (char)((ch1 << 0) + (ch2	<< 8));
+        return (char)((ch1 << 0) + (ch2    << 8));
     }
 
     public final int readInt() throws IOException
     {
-        int	ch1	= dataIn.read();
-        int	ch2	= dataIn.read();
-        int	ch3	= dataIn.read();
-        int	ch4	= dataIn.read();
-        if ((ch1 | ch2 | ch3 | ch4)	< 0)
+        int    ch1    = dataIn.read();
+        int    ch2    = dataIn.read();
+        int    ch3    = dataIn.read();
+        int    ch4    = dataIn.read();
+        if ((ch1 | ch2 | ch3 | ch4)    < 0)
             throw new EOFException();
-        return ((ch1 <<	0) + (ch2 << 8)	+ (ch3 << 16) +	(ch4 <<	24));
+        return ((ch1 <<    0) + (ch2 << 8)    + (ch3 << 16) +    (ch4 <<    24));
     }
 
-    public final long readLong() throws	IOException
+    public final long readLong() throws    IOException
     {
-        int	i1 = readInt();
-        int	i2 = readInt();
-        return ((long)(i1) & 0xFFFFFFFFL) +	(i2	<< 32);
+        int    i1 = readInt();
+        int    i2 = readInt();
+        return ((long)(i1) & 0xFFFFFFFFL) +    (i2    << 32);
     }
 
     public final float readFloat() throws IOException
@@ -188,7 +188,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
         return Float.intBitsToFloat(readInt());
     }
 
-    public final double	readDouble() throws	IOException
+    public final double    readDouble() throws    IOException
     {
         return Double.longBitsToDouble(readLong());
     }
@@ -197,7 +197,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
      * dont call this it is not implemented.
      * @return empty new string 
      **/
-    public final String	readLine() throws IOException
+    public final String    readLine() throws IOException
     {
         return new String();
     }
@@ -206,7 +206,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
      * dont call this it is not implemented
      * @return empty new string 
      **/
-    public final String	readUTF() throws IOException
+    public final String    readUTF() throws IOException
     {
         return new String();
     }
@@ -215,7 +215,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
      * dont call this it is not implemented
      * @return empty new string 
      **/
-    public final static	String readUTF(DataInput in) throws	IOException
+    public final static    String readUTF(DataInput in) throws    IOException
     {
         return new String();
     }

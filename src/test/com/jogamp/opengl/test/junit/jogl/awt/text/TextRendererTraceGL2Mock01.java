@@ -63,75 +63,75 @@ import com.jogamp.common.nio.Buffers;
  */
 
 public class TextRendererTraceGL2Mock01 extends TraceGL2 {
-	
-	TextRendererGLEventListener01 listener;
+    
+    TextRendererGLEventListener01 listener;
 
-	public TextRendererTraceGL2Mock01(GL2 downstreamGL2, PrintStream stream, TextRendererGLEventListener01 listener) {
-		super(downstreamGL2, stream);
-		this.listener = listener;
-	}	
+    public TextRendererTraceGL2Mock01(GL2 downstreamGL2, PrintStream stream, TextRendererGLEventListener01 listener) {
+        super(downstreamGL2, stream);
+        this.listener = listener;
+    }    
 
-	@Override
-	public void glGetBufferSubData(int arg0, long arg1, long arg2, Buffer arg3) {
-		listener.disallowedMethodCalled("glGetBufferSubData");
-	}
+    @Override
+    public void glGetBufferSubData(int arg0, long arg1, long arg2, Buffer arg3) {
+        listener.disallowedMethodCalled("glGetBufferSubData");
+    }
 
-	@Override
-	public ByteBuffer glMapBuffer(int arg0, int arg1) {
-		listener.disallowedMethodCalled("glMapBuffer");
-		return Buffers.newDirectByteBuffer(0);
-	}
+    @Override
+    public ByteBuffer glMapBuffer(int arg0, int arg1) {
+        listener.disallowedMethodCalled("glMapBuffer");
+        return Buffers.newDirectByteBuffer(0);
+    }
 
-	@Override
-	public void glGetBufferParameteriv(int arg0, int arg1, IntBuffer arg2) {
-		listener.disallowedMethodCalled("glGetBufferParameteriv");
-	}
+    @Override
+    public void glGetBufferParameteriv(int arg0, int arg1, IntBuffer arg2) {
+        listener.disallowedMethodCalled("glGetBufferParameteriv");
+    }
 
-	@Override
-	public boolean glUnmapBuffer(int arg0) {
-		listener.disallowedMethodCalled("glUnmapBuffer");
-		return false;
-	}
-	
-	@Override
-	public void glGenBuffers(int arg0, IntBuffer arg1) {
-		listener.disallowedMethodCalled("glGenBuffers");
-	}
+    @Override
+    public boolean glUnmapBuffer(int arg0) {
+        listener.disallowedMethodCalled("glUnmapBuffer");
+        return false;
+    }
+    
+    @Override
+    public void glGenBuffers(int arg0, IntBuffer arg1) {
+        listener.disallowedMethodCalled("glGenBuffers");
+    }
 
-	@Override
-	public void glGenBuffers(int arg0, int[] arg1, int arg2) {
-		listener.disallowedMethodCalled("glGenBuffers");
-	}
+    @Override
+    public void glGenBuffers(int arg0, int[] arg1, int arg2) {
+        listener.disallowedMethodCalled("glGenBuffers");
+    }
 
-	@Override
-	public boolean glIsBuffer(int arg0) {
-		listener.disallowedMethodCalled("glIsBuffer");
-		return false;
-	}
+    @Override
+    public boolean glIsBuffer(int arg0) {
+        listener.disallowedMethodCalled("glIsBuffer");
+        return false;
+    }
 
-	@Override
-	public void glBindBuffer(int arg0, int arg1) {
-		listener.disallowedMethodCalled("glBindBuffer");
-	}
+    @Override
+    public void glBindBuffer(int arg0, int arg1) {
+        listener.disallowedMethodCalled("glBindBuffer");
+    }
 
-	@Override
-	public void glDeleteBuffers(int arg0, int[] arg1, int arg2) {
-		listener.disallowedMethodCalled("glDeleteBuffers");
-	}
+    @Override
+    public void glDeleteBuffers(int arg0, int[] arg1, int arg2) {
+        listener.disallowedMethodCalled("glDeleteBuffers");
+    }
 
-	@Override
-	public void glBufferSubData(int arg0, long arg1, long arg2, Buffer arg3) {
-		listener.disallowedMethodCalled("glBufferSubData");
-	}
+    @Override
+    public void glBufferSubData(int arg0, long arg1, long arg2, Buffer arg3) {
+        listener.disallowedMethodCalled("glBufferSubData");
+    }
 
-	@Override
-	public void glGetBufferParameteriv(int arg0, int arg1, int[] arg2, int arg3) {
-		listener.disallowedMethodCalled("glGetBufferParameteriv");
-	}
+    @Override
+    public void glGetBufferParameteriv(int arg0, int arg1, int[] arg2, int arg3) {
+        listener.disallowedMethodCalled("glGetBufferParameteriv");
+    }
 
-	@Override
-	public void glBufferData(int arg0, long arg1, Buffer arg2, int arg3) {
-		listener.disallowedMethodCalled("glBufferData");
-	}
+    @Override
+    public void glBufferData(int arg0, long arg1, Buffer arg2, int arg3) {
+        listener.disallowedMethodCalled("glBufferData");
+    }
 
 }

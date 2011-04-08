@@ -366,7 +366,7 @@ public class Knotspec {
       break;
     default:
       // TODO break with copying in general case
-      //				System.out.println("TODO knotspec.pt_io_copy");
+      //                System.out.println("TODO knotspec.pt_io_copy");
       break;
     }
 
@@ -388,7 +388,7 @@ public class Knotspec {
         if (istransformed) {
           p.raisePointerBy(postoffset);
           for (CArrayOfFloats pend = new CArrayOfFloats(p.getArray(),
-							p.getPointer() + postwidth); p.getPointer() != pend
+                            p.getPointer() + postwidth); p.getPointer() != pend
                  .getPointer(); p.raisePointerBy(poststride))
             next.transform(p);
 
@@ -409,7 +409,7 @@ public class Knotspec {
         if (istransformed) {
           p.raisePointerBy(postoffset);
           for (CArrayOfFloats pend = new CArrayOfFloats(p.getArray(),
-							p.getPointer() + postwidth); p.getPointer() != pend
+                            p.getPointer() + postwidth); p.getPointer() != pend
                  .getPointer(); p.raisePointerBy(poststride)) {
             kspectotrans.insert(p);
           }
@@ -549,8 +549,8 @@ public class Knotspec {
                                 * z.getRelative(0)));
       break;
     default:
-      //no need of default - see previous method and its case statement				
-      //				System.out.println("TODO pt_oo_sum default");
+      //no need of default - see previous method and its case statement                
+      //                System.out.println("TODO pt_oo_sum default");
       break;
     }
   }

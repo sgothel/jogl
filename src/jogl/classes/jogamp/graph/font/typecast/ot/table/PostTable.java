@@ -175,15 +175,15 @@ public class PostTable implements Table {
         "lessequal",    // 148
         "greaterequal", // 149
         "yen",          // 150
-	"mu",           // 151
+    "mu",           // 151
         "partialdiff",  // 152
         "summation",    // 153
         "product",      // 154
-	"pi",           // 155
+    "pi",           // 155
         "integral'",    // 156
         "ordfeminine",  // 157
         "ordmasculine", // 158
-	"Omega",        // 159
+    "Omega",        // 159
         "ae",           // 160
         "oslash",       // 161
         "questiondown", // 162

@@ -74,7 +74,7 @@ public class JavaFontLoader implements FontSet {
         return get(FAMILY_REGULAR, 0) ; // Sans Serif Regular 
     }
     
-	public Font get(int family, int style)	{
+    public Font get(int family, int style)    {
         Font font = (Font)fontMap.get( ( family << 8 ) | style );
         if (font != null) {
             return font;
@@ -121,7 +121,7 @@ public class JavaFontLoader implements FontSet {
 
         return font;
     }
-	
+    
     Font abspath(String fname, int family, int style) {
         final String err = "Problem loading font "+fname+", file "+javaFontPath+fname ;
                 

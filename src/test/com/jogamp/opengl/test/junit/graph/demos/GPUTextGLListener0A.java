@@ -36,26 +36,26 @@ import com.jogamp.graph.geom.opengl.SVertex;
 
 public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
     public GPUTextGLListener0A(int numpass, int fbosize, boolean debug, boolean trace) {
-	    super(SVertex.factory(), numpass, debug, trace);
-	    setMatrix(-400, -30, 0f, -500, fbosize); 
-	}
-	
-	public void init(GLAutoDrawable drawable) {
+        super(SVertex.factory(), numpass, debug, trace);
+        setMatrix(-400, -30, 0f, -500, fbosize); 
+    }
+    
+    public void init(GLAutoDrawable drawable) {
         super.init(drawable);
         
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         
         final TextRenderer textRenderer = (TextRenderer) getRenderer();
         
-		gl.setSwapInterval(1);
-		gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-		textRenderer.init(gl);
-		textRenderer.setAlpha(gl, 1.0f);
-		textRenderer.setColor(gl, 0.0f, 0.0f, 0.0f);
-		//gl.glSampleCoverage(0.95f, false);
-		//gl.glEnable(GL2GL3.GL_SAMPLE_COVERAGE); // sample coverage doesn't really make a difference to lines
-		//gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_COVERAGE);
-		//gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_ONE);
-		MSAATool.dump(drawable);
-	}
+        gl.setSwapInterval(1);
+        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+        textRenderer.init(gl);
+        textRenderer.setAlpha(gl, 1.0f);
+        textRenderer.setColor(gl, 0.0f, 0.0f, 0.0f);
+        //gl.glSampleCoverage(0.95f, false);
+        //gl.glEnable(GL2GL3.GL_SAMPLE_COVERAGE); // sample coverage doesn't really make a difference to lines
+        //gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_COVERAGE);
+        //gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_ONE);
+        MSAATool.dump(drawable);
+    }
 }

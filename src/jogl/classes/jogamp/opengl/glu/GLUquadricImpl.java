@@ -223,7 +223,7 @@ public class GLUquadricImpl implements GLUquadric {
    * GLU.LINE:       Quadrics are rendered as a set of lines.
    *
    * GLU.SILHOUETTE: Quadrics are rendered as a set of lines, except that edges
-   * 		   separating coplanar faces will not be drawn.
+   *            separating coplanar faces will not be drawn.
    *
    * GLU.POINT:       Quadrics are rendered as a set of points.
    * 
@@ -234,8 +234,8 @@ public class GLUquadricImpl implements GLUquadric {
   }
 
   /**
-   * specifies what kind	of normals are desired for quadrics.
-   * The legal values	are as follows:
+   * specifies what kind    of normals are desired for quadrics.
+   * The legal values    are as follows:
    *
    * GLU.NONE:     No normals are generated.
    *
@@ -252,7 +252,7 @@ public class GLUquadricImpl implements GLUquadric {
 
   /**
    * specifies what kind of orientation is desired for.
-   * The orientation	values are as follows:
+   * The orientation    values are as follows:
    *
    * GLU.OUTSIDE:  Quadrics are drawn with normals pointing outward.
    *
@@ -495,10 +495,10 @@ public class GLUquadricImpl implements GLUquadric {
         glNormal3f(gl, 0.0f, 0.0f, -1.0f);
       }
     }
-	
+    
     da = 2.0f * PI / slices;
     dr = (outerRadius - innerRadius) /  loops;
-	
+    
     switch (drawStyle) {
     case GLU.GLU_FILL:
       {
@@ -916,7 +916,7 @@ public class GLUquadricImpl implements GLUquadric {
   }
 
   /**
-   * draws a sphere of the given	radius centered	around the origin.
+   * draws a sphere of the given    radius centered    around the origin.
    * The sphere is subdivided around the z axis into slices and along the z axis
    * into stacks (similar to lines of longitude and latitude).
    *
@@ -1188,7 +1188,7 @@ public class GLUquadricImpl implements GLUquadric {
    */
   private void normal3f(GL gl, float x, float y, float z) {
     float mag;
-	
+    
     mag = (float)Math.sqrt(x * x + y * y + z * z);
     if (mag > 0.00001F) {
       x /= mag;

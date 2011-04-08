@@ -15,11 +15,11 @@ This notification is sent whenever an NSView that has an attached NSSurface chan
 //#define DEBUG_GL_LOCKS
 
 #ifdef DEBUG_GL_LOCKS
-	#define LOCK_GL(func, line) [ContextUpdater lockInFunction:func atLine:line];
-	#define UNLOCK_GL(func, line) [ContextUpdater unlockInFunction:func atLine:line];
+    #define LOCK_GL(func, line) [ContextUpdater lockInFunction:func atLine:line];
+    #define UNLOCK_GL(func, line) [ContextUpdater unlockInFunction:func atLine:line];
 #else
-	#define LOCK_GL(func, line) [ContextUpdater lock];
-	#define UNLOCK_GL(func, line) [ContextUpdater unlock];
+    #define LOCK_GL(func, line) [ContextUpdater lock];
+    #define UNLOCK_GL(func, line) [ContextUpdater unlock];
 #endif
 
 // gznote: OpenGL NOT thread safe - need to sync on update and paints

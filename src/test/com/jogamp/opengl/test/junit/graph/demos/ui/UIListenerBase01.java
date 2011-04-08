@@ -66,8 +66,8 @@ public abstract class UIListenerBase01 implements GLEventListener {
     private boolean debug;
     private boolean trace;
     
-	protected RIButton button;
-	
+    protected RIButton button;
+    
     private KeyAction keyAction;
     private MouseAction mouseAction;
     
@@ -161,7 +161,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
             window.addKeyListener(keyAction);        
         }
         if ( null == mouseAction ) {
-        	mouseAction = new MouseAction();
+            mouseAction = new MouseAction();
             window.addMouseListener(mouseAction);        
         }
     }
@@ -183,8 +183,8 @@ public abstract class UIListenerBase01 implements GLEventListener {
         PrintWriter pw = new PrintWriter(sw);
         pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getWidth(), drawable.getHeight(), (int)Math.abs(zoom), 0, objName);
         
-    	String filename = dir + tech + sw +".tga";
-    	screenshot.surface2File(drawable, filename /*, exportAlpha */);
+        String filename = dir + tech + sw +".tga";
+        screenshot.surface2File(drawable, filename /*, exportAlpha */);
     }
     
     int screenshot_num = 0;
@@ -198,44 +198,44 @@ public abstract class UIListenerBase01 implements GLEventListener {
     
     public class MouseAction implements MouseListener{
 
-		public void mouseClicked(MouseEvent e) {
-			
-		}
+        public void mouseClicked(MouseEvent e) {
+            
+        }
 
-		public void mouseEntered(MouseEvent e) {
-		}
+        public void mouseEntered(MouseEvent e) {
+        }
 
-		public void mouseExited(MouseEvent e) {
-		}
+        public void mouseExited(MouseEvent e) {
+        }
 
-		public void mousePressed(MouseEvent e) {
-			button.setLabelColor(0.8f,0.8f,0.8f);
-			button.setButtonColor(0.1f, 0.1f, 0.1f);
-		}
+        public void mousePressed(MouseEvent e) {
+            button.setLabelColor(0.8f,0.8f,0.8f);
+            button.setButtonColor(0.1f, 0.1f, 0.1f);
+        }
 
-		public void mouseReleased(MouseEvent e) {
-	        button.setLabelColor(1.0f,1.0f,1.0f);
-	        button.setButtonColor(0.6f,0.6f,0.6f);
-		}
+        public void mouseReleased(MouseEvent e) {
+            button.setLabelColor(1.0f,1.0f,1.0f);
+            button.setButtonColor(0.6f,0.6f,0.6f);
+        }
 
-		@Override
-		public void mouseMoved(MouseEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
 
-		@Override
-		public void mouseDragged(MouseEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
 
-		@Override
-		public void mouseWheelMoved(MouseEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
-    	
+        @Override
+        public void mouseWheelMoved(MouseEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+        
     }
     
     public class KeyAction implements KeyListener {
@@ -267,7 +267,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
                 System.err.println("Button Spacing: " + button.getSpacing());
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_5){
-            	button.setSpacing(button.getSpacing()+0.1f);
+                button.setSpacing(button.getSpacing()+0.1f);
                 System.err.println("Button Spacing: " + button.getSpacing());
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_6){

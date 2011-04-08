@@ -192,25 +192,25 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
 
             if( !config.isExternal() ) {
-	            if( !config.isDetermined() ) {
-	                updateGraphicsConfiguration(config, chooser, factory, hdc, false, pfdIDs);
-	            } else {
-	                // set PFD if not set yet
-	                int pfdID = -1;
-	                boolean set = false;
-	                if ( 1 > ( pfdID = GDI.GetPixelFormat(hdc) ) ) {
-	                    if (!GDI.SetPixelFormat(hdc, config.getPixelFormatID(), config.getPixelFormat())) {
-	                        throw new GLException("Unable to set pixel format " + config.getPixelFormatID() +
-	                                              " for device context " + toHexString(hdc) +
-	                                              ": error code " + GDI.GetLastError());
-	                    }
-	                    set = true;	                    
-	                }
-	                if (DEBUG) {
-	                    System.err.println("!!! setPixelFormat (post): hdc "+toHexString(hdc) +", "+pfdID+" -> "+config.getPixelFormatID()+", set: "+set);
-	                    Thread.dumpStack();
-	                }
-	            }
+                if( !config.isDetermined() ) {
+                    updateGraphicsConfiguration(config, chooser, factory, hdc, false, pfdIDs);
+                } else {
+                    // set PFD if not set yet
+                    int pfdID = -1;
+                    boolean set = false;
+                    if ( 1 > ( pfdID = GDI.GetPixelFormat(hdc) ) ) {
+                        if (!GDI.SetPixelFormat(hdc, config.getPixelFormatID(), config.getPixelFormat())) {
+                            throw new GLException("Unable to set pixel format " + config.getPixelFormatID() +
+                                                  " for device context " + toHexString(hdc) +
+                                                  ": error code " + GDI.GetLastError());
+                        }
+                        set = true;                        
+                    }
+                    if (DEBUG) {
+                        System.err.println("!!! setPixelFormat (post): hdc "+toHexString(hdc) +", "+pfdID+" -> "+config.getPixelFormatID()+", set: "+set);
+                        Thread.dumpStack();
+                    }
+                }
             }
         } finally {
             ns.unlockSurface();
@@ -400,9 +400,9 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         }
 
         if ( !extHDC && !pixelFormatSet ) {
-        	config.setPixelFormat(hdc, pixelFormatCaps);
+            config.setPixelFormat(hdc, pixelFormatCaps);
         } else {
-        	config.setCapsPFD(pixelFormatCaps);
+            config.setCapsPFD(pixelFormatCaps);
         }
         return true;
     }
@@ -476,9 +476,9 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         }
 
         if ( !extHDC && !pixelFormatSet ) {
-        	config.setPixelFormat(hdc, pixelFormatCaps);
+            config.setPixelFormat(hdc, pixelFormatCaps);
         } else {
-        	config.setCapsPFD(pixelFormatCaps);
+            config.setCapsPFD(pixelFormatCaps);
         }
         return true;
     }

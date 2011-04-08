@@ -169,7 +169,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
 
   /**
    * http://msdn.microsoft.com/en-us/library/ms724832%28v=vs.85%29.aspx
-   * Windows XP	5.1
+   * Windows XP    5.1
    */
   static final VersionNumber winXPVersionNumber = new VersionNumber ( 5, 1, 0); 
     
@@ -199,22 +199,22 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
           hasARBReadDrawable = arbReadDrawable;
           vendor = glVendor;
           if(null != vendor) {
-        	  isVendorNVIDIA = vendor.startsWith("NVIDIA") ;
-        	  isVendorATI = vendor.startsWith("ATI") ;
+              isVendorNVIDIA = vendor.startsWith("NVIDIA") ;
+              isVendorATI = vendor.startsWith("ATI") ;
           }
           
-      	  if ( isVendorATI() ) {
-      		final VersionNumber winVersion = new VersionNumber(Platform.getOSVersion(), ".");
-      		final boolean isWinXPOrLess = winVersion.compareTo(winXPVersionNumber) <= 0;
-      		if(DEBUG) {
-      			System.err.println("needsCurrenContext4ARBPFDQueries: "+winVersion+" <= "+winXPVersionNumber+" = "+isWinXPOrLess+" - "+Platform.getOSVersion());
-      		}
-      		needsCurrenContext4ARBPFDQueries = isWinXPOrLess;
-      	  } else { 
-    		if(DEBUG) {
-      			System.err.println("needsCurrenContext4ARBPFDQueries: false");
-      		}
-      		needsCurrenContext4ARBPFDQueries = false;
+            if ( isVendorATI() ) {
+              final VersionNumber winVersion = new VersionNumber(Platform.getOSVersion(), ".");
+              final boolean isWinXPOrLess = winVersion.compareTo(winXPVersionNumber) <= 0;
+              if(DEBUG) {
+                  System.err.println("needsCurrenContext4ARBPFDQueries: "+winVersion+" <= "+winXPVersionNumber+" = "+isWinXPOrLess+" - "+Platform.getOSVersion());
+              }
+              needsCurrenContext4ARBPFDQueries = isWinXPOrLess;
+            } else { 
+            if(DEBUG) {
+                  System.err.println("needsCurrenContext4ARBPFDQueries: false");
+              }
+              needsCurrenContext4ARBPFDQueries = false;
           }                   
       }
       

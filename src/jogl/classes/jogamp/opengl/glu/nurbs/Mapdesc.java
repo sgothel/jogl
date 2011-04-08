@@ -349,7 +349,7 @@ public class Mapdesc {
    */
   public float getProperty(int tag) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO mapdesc.getproperty");
+    //            System.out.println("TODO mapdesc.getproperty");
     return 0;
   }
 
@@ -428,10 +428,10 @@ public class Mapdesc {
    * @param outstride output number of control points' coordinates
    */
   private void xFormMat(float[][] mat, CArrayOfFloats pts, int order,
-			int stride, float[] cp, int outstride) {
+            int stride, float[] cp, int outstride) {
     // TODO Auto-generated method stub
 
-    //		System.out.println("TODO mapdsc.xformmat ; change cp from float[] to carrayoffloats");
+    //        System.out.println("TODO mapdsc.xformmat ; change cp from float[] to carrayoffloats");
 
     if (isrational > 0) {
 

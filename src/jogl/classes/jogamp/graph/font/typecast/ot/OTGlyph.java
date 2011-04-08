@@ -103,7 +103,7 @@ public class OTGlyph {
     }
 
     public AABBox getBBox() { 
-    	return _bbox; 
+        return _bbox; 
     }
     
     public int getAdvanceWidth() {
@@ -164,6 +164,6 @@ public class OTGlyph {
         // _points[gd.getPointCount()] = new Point(0, 0, true, true);
         // _points[gd.getPointCount()+1] = new Point(_advanceWidth, 0, true, true);
         
-		_bbox = new AABBox(gd.getXMinimum(), gd.getYMinimum(), 0, gd.getXMaximum(), gd.getYMaximum(), 0);
+        _bbox = new AABBox(gd.getXMinimum(), gd.getYMinimum(), 0, gd.getXMaximum(), gd.getYMaximum(), 0);
     }
 }

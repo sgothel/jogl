@@ -53,8 +53,8 @@
 package jogamp.opengl.glu.tessellator;
 
 class GLUmesh {
-    GLUvertex vHead = new GLUvertex();		/* dummy header for vertex list */
-    jogamp.opengl.glu.tessellator.GLUface fHead = new GLUface();		/* dummy header for face list */
-    jogamp.opengl.glu.tessellator.GLUhalfEdge eHead = new GLUhalfEdge(true);		/* dummy header for edge list */
-    jogamp.opengl.glu.tessellator.GLUhalfEdge eHeadSym = new GLUhalfEdge(false);	/* and its symmetric counterpart */
+    GLUvertex vHead = new GLUvertex();        /* dummy header for vertex list */
+    jogamp.opengl.glu.tessellator.GLUface fHead = new GLUface();        /* dummy header for face list */
+    jogamp.opengl.glu.tessellator.GLUhalfEdge eHead = new GLUhalfEdge(true);        /* dummy header for edge list */
+    jogamp.opengl.glu.tessellator.GLUhalfEdge eHeadSym = new GLUhalfEdge(false);    /* and its symmetric counterpart */
 }

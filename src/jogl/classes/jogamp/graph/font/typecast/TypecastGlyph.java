@@ -42,7 +42,7 @@ public class TypecastGlyph implements FontInt.Glyph {
         final Font      font;
         final float     advance; 
         HashMap<Float, Float> size2advance = new HashMap<Float, Float>(); 
-		
+        
         public Advance(Font font, float advance)
         {
             this.font = font;
@@ -86,12 +86,12 @@ public class TypecastGlyph implements FontInt.Glyph {
                 "\n advances: \n"+size2advance;
         }
     }
-	
+    
     public class Metrics
     {
-    	AABBox	bbox;
+        AABBox    bbox;
         Advance advance;
-		
+        
         public Metrics(Font font, AABBox bbox, float advance)
         {
             this.bbox = bbox;
@@ -128,13 +128,13 @@ public class TypecastGlyph implements FontInt.Glyph {
                 "\n  bbox: "+this.bbox+
                 this.advance;
         }
-    }	
+    }    
 
     public static final short INVALID_ID    = (short)((1 << 16) - 1);
     public static final short MAX_ID        = (short)((1 << 16) - 2);
     
     private final Font font;
-	    
+        
     char        symbol;
     short       id;
     int         advance;
@@ -143,15 +143,15 @@ public class TypecastGlyph implements FontInt.Glyph {
     protected Path2D path; // in EM units
     protected Path2D pathSized;
     protected float numberSized;
-	
+    
     protected TypecastGlyph(Font font, char symbol) {
-    	this.font = font;
+        this.font = font;
         this.symbol = symbol;
     }
     
     protected TypecastGlyph(Font font,
-    		                char symbol, short id, AABBox bbox, int advance, Path2D path) {
-    	this.font = font;
+                            char symbol, short id, AABBox bbox, int advance, Path2D path) {
+        this.font = font;
         this.symbol = symbol;
         this.advance = advance;
         
@@ -161,7 +161,7 @@ public class TypecastGlyph implements FontInt.Glyph {
         this.pathSized = null;
         this.numberSized = 0.0f;
     }
-	
+    
     void init(short id, AABBox bbox, int advance) {
         this.id = id;
         this.advance = advance;
@@ -176,11 +176,11 @@ public class TypecastGlyph implements FontInt.Glyph {
     public Font getFont() {
         return this.font;
     }
-	
+    
     public char getSymbol() {
         return this.symbol;
     }
-	
+    
     AABBox getBBoxUnsized() {
         return this.metrics.getBBox();
     }
@@ -192,22 +192,22 @@ public class TypecastGlyph implements FontInt.Glyph {
     public Metrics getMetrics() {
         return this.metrics;
     }
-	
+    
     public short getID() {
         return this.id;
     }
-	
+    
     public float getScale(float pixelSize) {
         return this.metrics.getScale(pixelSize);
     }
-	
+    
     public AABBox getBBox(float pixelSize) {
         final float size = getScale(pixelSize);
         AABBox newBox = getBBox().clone();
         newBox.scale(size);
         return newBox;        
     }
-	
+    
     protected void addAdvance(float advance, float size) {
         this.metrics.addAdvance(advance, size);
     }
@@ -217,9 +217,9 @@ public class TypecastGlyph implements FontInt.Glyph {
     }
     
     public Path2D getPath() {
-    	return this.path;
+        return this.path;
     }
-    	
+        
     public Path2D getPath(float pixelSize) {
         final float size = getScale(pixelSize);
         

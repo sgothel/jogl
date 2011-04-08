@@ -243,11 +243,11 @@ public final class Path2D implements Cloneable {
     }
 
     final public int size() {
-    	return typeSize;
+        return typeSize;
     }
     
     final public boolean isClosed() {
-    	return typeSize > 0 && types[typeSize - 1] == PathIterator.SEG_CLOSE ;
+        return typeSize > 0 && types[typeSize - 1] == PathIterator.SEG_CLOSE ;
     }
     
     public void closePath() {
@@ -258,7 +258,7 @@ public final class Path2D implements Cloneable {
     }
     
     public String toString() {
-    	return "[size "+size()+", closed "+isClosed()+"]";
+        return "[size "+size()+", closed "+isClosed()+"]";
     }
 
     public void append(Path2D path, boolean connect) {

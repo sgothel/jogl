@@ -46,7 +46,7 @@ public class ArcTdirSorter {
    */ 
   public ArcTdirSorter(Subdivider subdivider) {
     // TODO Auto-generated constructor stub
-    //			System.out.println("TODO arcTsorter.konstruktor");
+    //            System.out.println("TODO arcTsorter.konstruktor");
   }
   /**
    * Sorts list of arcs
@@ -55,6 +55,6 @@ public class ArcTdirSorter {
    */
   public void qsort(CArrayOfArcs list, int count) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO arcTsorter.qsort");
+    //            System.out.println("TODO arcTsorter.qsort");
   }
 }

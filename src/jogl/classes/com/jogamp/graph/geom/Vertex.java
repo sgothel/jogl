@@ -32,49 +32,49 @@ package com.jogamp.graph.geom;
  */
 public interface Vertex extends Comparable<Vertex>, Cloneable {
 
-	public static interface Factory <T extends Vertex> {
-		T create();
+    public static interface Factory <T extends Vertex> {
+        T create();
 
-		T create(float x, float y);
+        T create(float x, float y);
 
-		T create(float x, float y, float z);
+        T create(float x, float y, float z);
 
-		T create(float[] coordsBuffer, int offset, int length);	
-	}
-	
-	void setCoord(float x, float y);
+        T create(float[] coordsBuffer, int offset, int length);    
+    }
+    
+    void setCoord(float x, float y);
 
-	void setCoord(float x, float y, float z);
+    void setCoord(float x, float y, float z);
 
-	void setCoord(float[] coordsBuffer, int offset, int length);
-	
-	float[] getCoord();
+    void setCoord(float[] coordsBuffer, int offset, int length);
+    
+    float[] getCoord();
 
-	void setX(float x);
+    void setX(float x);
 
-	void setY(float y);
+    void setY(float y);
 
-	void setZ(float z);
+    void setZ(float z);
 
-	float getX();
+    float getX();
 
-	float getY();
+    float getY();
 
-	float getZ();
+    float getZ();
 
-	boolean isOnCurve();
+    boolean isOnCurve();
 
-	void setOnCurve(boolean onCurve);
+    void setOnCurve(boolean onCurve);
 
-	int getId();
-	
-	void setId(int id);
-	
-	int compareTo(Vertex p);
-	
-	float[] getTexCoord();
-	
-	void setTexCoord(float s, float t);
-	
-	Vertex clone();
+    int getId();
+    
+    void setId(int id);
+    
+    int compareTo(Vertex p);
+    
+    float[] getTexCoord();
+    
+    void setTexCoord(float s, float t);
+    
+    Vertex clone();
 }

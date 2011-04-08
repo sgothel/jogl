@@ -109,7 +109,7 @@ public class Locator {
         }
         if (file != null) {
             String res = new File(file, relativeFile).getPath();
-	        // Handle things on Windows
+            // Handle things on Windows
             return res.replace('\\', '/');
         } else {
             return relativeFile;

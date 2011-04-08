@@ -182,8 +182,8 @@ public class OTFont {
     }
 
     public OTGlyph getGlyph(int i) {
-    	
-    	final GlyfDescript _glyfDescr = _glyf.getDescription(i); 
+        
+        final GlyfDescript _glyfDescr = _glyf.getDescription(i); 
         return (null != _glyfDescr)
             ? new OTGlyph(
                 _glyfDescr,

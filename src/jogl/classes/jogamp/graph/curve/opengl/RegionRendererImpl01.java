@@ -43,10 +43,10 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 
 
 public class RegionRendererImpl01 extends RegionRenderer {
-	/**Sharpness is equivalent to the value of t value of texture coord
-	 * on the off-curve vertex. The high value of sharpness will 
-	 * result in high curvature.
-	 */
+    /**Sharpness is equivalent to the value of t value of texture coord
+     * on the off-curve vertex. The high value of sharpness will 
+     * result in high curvature.
+     */
     private GLUniformData mgl_sharpness = new GLUniformData("p1y", 0.5f);
     GLUniformData mgl_alpha = new GLUniformData("g_alpha", 1.0f);
     private GLUniformData mgl_color = new GLUniformData("g_color", 3, FloatBuffer.allocate(3));
@@ -174,35 +174,35 @@ public class RegionRendererImpl01 extends RegionRenderer {
         }
     }
     
-	
-	@Override
+    
+    @Override
     public void renderOutlineShape(GL2ES2 gl, OutlineShape outlineShape, float[] position, int texSize) {
-		if(!isInitialized()){
-			throw new GLException("RegionRendererImpl01: not initialized!");
-		}
-		int hashCode = getHashCode(outlineShape);
-		Region region = regions.get(hashCode);
-		
-		if(null == region) {
-			region = createRegion(gl, outlineShape, mgl_sharpness.floatValue());
-			regions.put(hashCode, region);
-		}		
-		region.render(pmvMatrix, vp_width, vp_height, texSize);
-	}
-	
-	@Override
+        if(!isInitialized()){
+            throw new GLException("RegionRendererImpl01: not initialized!");
+        }
+        int hashCode = getHashCode(outlineShape);
+        Region region = regions.get(hashCode);
+        
+        if(null == region) {
+            region = createRegion(gl, outlineShape, mgl_sharpness.floatValue());
+            regions.put(hashCode, region);
+        }        
+        region.render(pmvMatrix, vp_width, vp_height, texSize);
+    }
+    
+    @Override
     public void renderOutlineShapes(GL2ES2 gl, OutlineShape[] outlineShapes, float[] position, int texSize) {
         if(!isInitialized()){
             throw new GLException("RegionRendererImpl01: not initialized!");
         }
-		
-		int hashCode = getHashCode(outlineShapes);
-		Region region = regions.get(hashCode);
-		
-		if(null == region) {
+        
+        int hashCode = getHashCode(outlineShapes);
+        Region region = regions.get(hashCode);
+        
+        if(null == region) {
             region = createRegion(gl, outlineShapes, mgl_sharpness.floatValue());
-			regions.put(hashCode, region);
-		}		
+            regions.put(hashCode, region);
+        }        
         region.render(pmvMatrix, vp_width, vp_height, texSize);
-	}	
+    }    
 }

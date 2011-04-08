@@ -248,7 +248,7 @@ public class Quilt {
    */
   public int isCulled() {
     if (mapdesc.isCulling()) {
-      //				System.out.println("TODO quilt.isculled mapdesc.isculling");
+      //                System.out.println("TODO quilt.isculled mapdesc.isculling");
       return 0;
     } else {
       return Subdivider.CULL_ACCEPT;
@@ -277,6 +277,6 @@ public class Quilt {
    */
   public void findRates(Flist sbrkpts, Flist tbrkpts, float[] rate) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO quilt.findrates");
+    //            System.out.println("TODO quilt.findrates");
   }
 }

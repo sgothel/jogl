@@ -82,7 +82,7 @@ public class Patchlist {
    */
   public Patchlist(Patchlist patchlist, int param, float mid) {
     // TODO Auto-generated constructor stub
-    //			System.out.println("TODO patchlist.konstruktor 2");
+    //            System.out.println("TODO patchlist.konstruktor 2");
   }
 
   /**
@@ -91,7 +91,7 @@ public class Patchlist {
    */
   public int cullCheck() {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO patchlist.cullcheck");
+    //            System.out.println("TODO patchlist.cullcheck");
     return 0;
   }
 
@@ -99,7 +99,7 @@ public class Patchlist {
    * Empty method
    */
   public void getstepsize() {
-    //			System.out.println("TODO patchlist.getsptepsize");
+    //            System.out.println("TODO patchlist.getsptepsize");
     // TODO Auto-generated method stub
 
   }
@@ -110,7 +110,7 @@ public class Patchlist {
    */
   public boolean needsSamplingSubdivision() {
     // TODO Auto-generated method stub
-    //			System.out.println("patchlist.needsSamplingSubdivision");
+    //            System.out.println("patchlist.needsSamplingSubdivision");
     return false;
   }
 
@@ -121,7 +121,7 @@ public class Patchlist {
    */
   public boolean needsSubdivision(int i) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO patchlist.needsSubdivision");
+    //            System.out.println("TODO patchlist.needsSubdivision");
     return false;
   }
 
@@ -131,7 +131,7 @@ public class Patchlist {
    */
   public boolean needsNonSamplingSubdivision() {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO patchlist.needsNonSamplingSubdivision");
+    //            System.out.println("TODO patchlist.needsNonSamplingSubdivision");
     return false;
   }
 
@@ -140,6 +140,6 @@ public class Patchlist {
    */
   public void bbox() {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO patchlist.bbox");
+    //            System.out.println("TODO patchlist.bbox");
   }
 }

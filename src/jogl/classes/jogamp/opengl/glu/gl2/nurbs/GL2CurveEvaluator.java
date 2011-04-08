@@ -131,7 +131,7 @@ class GL2CurveEvaluator implements CurveEvaluator {
                     CArrayOfFloats ps) {
     if (output_triangles) {
       // TODO code for callback (output_triangles probably indicates callback)
-      //				System.out.println("TODO curveevaluator.map1f-output_triangles");
+      //                System.out.println("TODO curveevaluator.map1f-output_triangles");
     } else {
       gl.glMap1f(type, ulo, uhi, stride, order, ps.getArray(), ps
                  .getPointer());
@@ -166,10 +166,10 @@ class GL2CurveEvaluator implements CurveEvaluator {
    */
   public void mapgrid1f(int nu, float u1, float u2) {
     if (output_triangles) {
-      //				System.out.println("TODO curveevaluator.mapgrid1f");
+      //                System.out.println("TODO curveevaluator.mapgrid1f");
     } else
       gl.glMapGrid1f(nu, u1, u2);
-    //			// System.out.println("upravit NU");
+    //            // System.out.println("upravit NU");
     // gl.glMapGrid1f(50,u1,u2);
   }
 
@@ -189,7 +189,7 @@ class GL2CurveEvaluator implements CurveEvaluator {
     */
     if (output_triangles) {
       // TODO code for callback
-      //			System.out.println("TODO openglcurveevaluator.mapmesh1f output_triangles");
+      //            System.out.println("TODO openglcurveevaluator.mapmesh1f output_triangles");
     } else {
       switch (style) {
       case Backend.N_MESHFILL:

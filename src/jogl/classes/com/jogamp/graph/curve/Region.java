@@ -49,94 +49,94 @@ import com.jogamp.opengl.util.PMVMatrix;
 public interface Region {
     public static final boolean DEBUG = Debug.debug("graph.curve");
     
-	/** The vertices index in an OGL object
-	 */
-	public static int VERTEX_ATTR_IDX = 0;
-	public static String VERTEX_ATTR_NAME = "v_position";
+    /** The vertices index in an OGL object
+     */
+    public static int VERTEX_ATTR_IDX = 0;
+    public static String VERTEX_ATTR_NAME = "v_position";
 
-	/** The Texture Coord index in an OGL object
-	 */
-	public static int TEXCOORD_ATTR_IDX = 1;
-	public static String TEXCOORD_ATTR_NAME = "texCoord";
-	
+    /** The Texture Coord index in an OGL object
+     */
+    public static int TEXCOORD_ATTR_IDX = 1;
+    public static String TEXCOORD_ATTR_NAME = "texCoord";
+    
     /** The color index in an OGL object
      */
     public static int COLOR_ATTR_IDX = 2;
     public static String COLOR_ATTR_NAME = "v_color";
     
-	/** single pass rendering, fast, but AA might not be perfect */
-	public static int SINGLE_PASS = 1;
-	
-	/** two pass rendering, slower and more resource hungry (FBO), but AA is perfect */
-	public static int TWO_PASS    = 2;
-	
-	/** Updates a graph region by updating the ogl related
-	 *  objects for use in rendering. if called for the first time
-	 *  it initialize the objects. 
-	 */
-	public void update();
-	
-	/** Renders the associated OGL objects specifying
-	 * current width/hight of window for multi pass rendering
-	 * of the region.
-	 * @param matrix current {@link PMVMatrix}.
-	 * @param vp_width current screen width
-	 * @param vp_height current screen height
-	 * @param width texture width for mp rendering
-	 * 
-	 * @see update()
-	 */
-	public void render(PMVMatrix matrix, int vp_width, int vp_height, int width);
-	
-	/** Adds a list of {@link Triangle} objects to the Region
-	 * These triangles are to be binded to OGL objects 
-	 * on the next call to {@code update}
-	 * @param tris an arraylist of triangle objects
-	 * 
-	 * @see update()
-	 */
-	public void addTriangles(ArrayList<Triangle> tris);
-	
-	/** Get the current number of vertices associated
-	 * with this region. This number is not necessary equal to 
-	 * the OGL binded number of vertices.
-	 * @return vertices count
-	 * 
-	 * @see isDirty()
-	 */
-	public int getNumVertices();
-	
-	/** Adds a list of {@link Vertex} objects to the Region
-	 * These vertices are to be binded to OGL objects 
-	 * on the next call to {@code update}
-	 * @param verts an arraylist of vertex objects
-	 * 
-	 * @see update()
-	 */
-	public void addVertices(ArrayList<Vertex> verts);
-	
-	/** Check if this region is dirty. A region is marked dirty
-	 * when new Vertices, Triangles, and or Lines are added after a 
-	 * call to update()
-	 * @return true if region is Dirty, false otherwise
-	 * 
-	 * @see update();
-	 */
-	public boolean isDirty();
-	
-	/** Delete and clean the associated OGL
-	 *  objects
-	 */
-	public void destroy();
-	
-	public AABBox getBounds(); 
-	
-	public boolean isFlipped();
-	
-	/** Set if the y coordinate of the region should be flipped
-	 *  {@code y=-y} used mainly for fonts since they use opposite vertex
-	 *  as origion
-	 * @param flipped flag if the coordinate is flipped defaults to false.
-	 */
-	public void setFlipped(boolean flipped);
+    /** single pass rendering, fast, but AA might not be perfect */
+    public static int SINGLE_PASS = 1;
+    
+    /** two pass rendering, slower and more resource hungry (FBO), but AA is perfect */
+    public static int TWO_PASS    = 2;
+    
+    /** Updates a graph region by updating the ogl related
+     *  objects for use in rendering. if called for the first time
+     *  it initialize the objects. 
+     */
+    public void update();
+    
+    /** Renders the associated OGL objects specifying
+     * current width/hight of window for multi pass rendering
+     * of the region.
+     * @param matrix current {@link PMVMatrix}.
+     * @param vp_width current screen width
+     * @param vp_height current screen height
+     * @param width texture width for mp rendering
+     * 
+     * @see update()
+     */
+    public void render(PMVMatrix matrix, int vp_width, int vp_height, int width);
+    
+    /** Adds a list of {@link Triangle} objects to the Region
+     * These triangles are to be binded to OGL objects 
+     * on the next call to {@code update}
+     * @param tris an arraylist of triangle objects
+     * 
+     * @see update()
+     */
+    public void addTriangles(ArrayList<Triangle> tris);
+    
+    /** Get the current number of vertices associated
+     * with this region. This number is not necessary equal to 
+     * the OGL binded number of vertices.
+     * @return vertices count
+     * 
+     * @see isDirty()
+     */
+    public int getNumVertices();
+    
+    /** Adds a list of {@link Vertex} objects to the Region
+     * These vertices are to be binded to OGL objects 
+     * on the next call to {@code update}
+     * @param verts an arraylist of vertex objects
+     * 
+     * @see update()
+     */
+    public void addVertices(ArrayList<Vertex> verts);
+    
+    /** Check if this region is dirty. A region is marked dirty
+     * when new Vertices, Triangles, and or Lines are added after a 
+     * call to update()
+     * @return true if region is Dirty, false otherwise
+     * 
+     * @see update();
+     */
+    public boolean isDirty();
+    
+    /** Delete and clean the associated OGL
+     *  objects
+     */
+    public void destroy();
+    
+    public AABBox getBounds(); 
+    
+    public boolean isFlipped();
+    
+    /** Set if the y coordinate of the region should be flipped
+     *  {@code y=-y} used mainly for fonts since they use opposite vertex
+     *  as origion
+     * @param flipped flag if the coordinate is flipped defaults to false.
+     */
+    public void setFlipped(boolean flipped);
 }

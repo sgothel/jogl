@@ -528,19 +528,19 @@ public class TextureIO {
      *                           texture
      */
     public static Texture newTexture(int textureID,
-				     int target,
-				     int texWidth,
-				     int texHeight,
-				     int imgWidth,
-				     int imgHeight,
-				     boolean mustFlipVertically) {
-	return new Texture(textureID,
-			   target,
-			   texWidth,
-			   texHeight,
-			   imgWidth,
-			   imgHeight,
-			   mustFlipVertically);
+                     int target,
+                     int texWidth,
+                     int texHeight,
+                     int imgWidth,
+                     int imgHeight,
+                     boolean mustFlipVertically) {
+    return new Texture(textureID,
+               target,
+               texWidth,
+               texHeight,
+               imgWidth,
+               imgHeight,
+               mustFlipVertically);
     }
 
     /**

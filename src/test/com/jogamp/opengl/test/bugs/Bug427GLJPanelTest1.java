@@ -66,7 +66,7 @@ public class Bug427GLJPanelTest1 extends JFrame implements GLEventListener {
 
     public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
     }
-	
-	public void dispose(GLAutoDrawable drawable) {
-	}
+    
+    public void dispose(GLAutoDrawable drawable) {
+    }
 }

@@ -75,9 +75,9 @@ public class TextRendererGLEventListener01 implements GLEventListener {
         Assert.assertFalse(renderer.getUseVertexArrays());
         
         text = "ABC123#+?";
-    	
-    	PrintStream nullStream = new PrintStream(new OutputStream(){ public void write(int b){}});
-    	drawable.setGL(new TextRendererTraceGL2Mock01(drawable.getGL().getGL2(), nullStream, this));
+        
+        PrintStream nullStream = new PrintStream(new OutputStream(){ public void write(int b){}});
+        drawable.setGL(new TextRendererTraceGL2Mock01(drawable.getGL().getGL2(), nullStream, this));
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
@@ -90,35 +90,35 @@ public class TextRendererGLEventListener01 implements GLEventListener {
     }
 
     public void dispose(GLAutoDrawable drawable) {
-    	renderer.dispose();
+        renderer.dispose();
     }
 
     public void display(GLAutoDrawable drawable) {
         if (disallowedMethodCalls.equals("")) {
-        	if (testNumber == 1) {
-        		renderer.beginRendering(drawable.getWidth(), drawable.getHeight());
+            if (testNumber == 1) {
+                renderer.beginRendering(drawable.getWidth(), drawable.getHeight());
                 renderer.setColor(1.0f, 1.0f, 1.0f, 1.0f);
                 renderer.draw(text, 0, 0);
                 renderer.endRendering();
-        	}
-        	if (testNumber == 2) {
-        		renderer.begin3DRendering();
-        		renderer.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-        		renderer.draw3D(text, 0, 0, 0, 0.002f);
-        		renderer.end3DRendering();
-        	}
+            }
+            if (testNumber == 2) {
+                renderer.begin3DRendering();
+                renderer.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+                renderer.draw3D(text, 0, 0, 0, 0.002f);
+                renderer.end3DRendering();
+            }
         }
     }
     
     public void disallowedMethodCalled (String method) {
-    	if (!disallowedMethodCalls.equals("")) {
-    		disallowedMethodCalls += ", ";
-    	}
-    	disallowedMethodCalls += method;
+        if (!disallowedMethodCalls.equals("")) {
+            disallowedMethodCalls += ", ";
+        }
+        disallowedMethodCalls += method;
     }
     
     public String getDisallowedMethodCalls() {
-    	return this.disallowedMethodCalls;
+        return this.disallowedMethodCalls;
     }
 }
 

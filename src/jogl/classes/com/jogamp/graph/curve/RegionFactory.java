@@ -41,22 +41,22 @@ import jogamp.graph.curve.opengl.VBORegion2PES2;
  * @see Region
  */
 public class RegionFactory {
-	
-	/**Create a Region based on the GLContext attached
-	 * @param context the current {@link GLContext}
-	 * @param st the {@link ShaderState} object
-	 * @param type can be one of Region.SINGLE_PASS or Region.TWO_PASS
-	 * @return region 
-	 */
-	public static Region create(GLContext context, ShaderState st, int type){
-	    if( !context.isGL2ES2() ) {
-	        throw new GLException("At least a GL2ES2 GL context is required. Given: " + context);
-	    }
-		if( Region.TWO_PASS == type ){
-			return new VBORegion2PES2(context, st);
-		}
-		else{
-			return new VBORegionSPES2(context);
-		}
-	}
+    
+    /**Create a Region based on the GLContext attached
+     * @param context the current {@link GLContext}
+     * @param st the {@link ShaderState} object
+     * @param type can be one of Region.SINGLE_PASS or Region.TWO_PASS
+     * @return region 
+     */
+    public static Region create(GLContext context, ShaderState st, int type){
+        if( !context.isGL2ES2() ) {
+            throw new GLException("At least a GL2ES2 GL context is required. Given: " + context);
+        }
+        if( Region.TWO_PASS == type ){
+            return new VBORegion2PES2(context, st);
+        }
+        else{
+            return new VBORegionSPES2(context);
+        }
+    }
 }

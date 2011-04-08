@@ -385,12 +385,12 @@ public class Crossing {
 
         // START
         if (x == x1) {
-        	return x1 < x2 ? 0 : -1;        
+            return x1 < x2 ? 0 : -1;        
         }
         
         // END
         if (x == x2) {
-        	return x1 < x2 ? 1 : 0;        
+            return x1 < x2 ? 1 : 0;        
         }
 
         // INSIDE-DOWN
@@ -496,9 +496,9 @@ public class Crossing {
             
             // checks if the point (x,y) is the vertex of shape with PathIterator p           
             if (x == cx && y == cy) {
-            	cross = 0;
-            	cy = my;
-            	break;
+                cross = 0;
+                cy = my;
+                break;
             }
             p.next();
         }

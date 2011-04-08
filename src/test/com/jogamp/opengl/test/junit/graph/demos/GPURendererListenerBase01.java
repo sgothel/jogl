@@ -166,8 +166,8 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         PrintWriter pw = new PrintWriter(sw);
         pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getWidth(), drawable.getHeight(), (int)Math.abs(zoom), texSize, objName);
         
-    	String filename = dir + tech + sw +".tga";
-    	screenshot.surface2File(drawable, filename /*, exportAlpha */);
+        String filename = dir + tech + sw +".tga";
+        screenshot.surface2File(drawable, filename /*, exportAlpha */);
     }
     
     int screenshot_num = 0;

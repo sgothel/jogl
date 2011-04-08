@@ -47,7 +47,7 @@ public class GPURegionNewtDemo01 {
     static final boolean TRACE = false;
     
     public static void main(String[] args) {
-		GLProfile.initSingleton(true);
+        GLProfile.initSingleton(true);
         GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
@@ -65,11 +65,11 @@ public class GPURegionNewtDemo01 {
         window.addGLEventListener(regionGLListener);
 
         window.enablePerfLog(true);     
-		window.setVisible(true);
+        window.setVisible(true);
 
-		//FPSAnimator animator = new FPSAnimator(60);
+        //FPSAnimator animator = new FPSAnimator(60);
         Animator animator = new Animator();
-		animator.add(window);
-		animator.start();
-	}    
+        animator.add(window);
+        animator.start();
+    }    
 }

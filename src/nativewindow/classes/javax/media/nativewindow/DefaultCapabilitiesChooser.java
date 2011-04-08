@@ -131,7 +131,7 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
       // Don't substitute a positive score for a smaller negative score
       if ((scoreClosestToZero == NO_SCORE) ||
           (Math.abs(score) < Math.abs(scoreClosestToZero) &&
-	   ((sign(scoreClosestToZero) < 0) || (sign(score) > 0)))) {
+       ((sign(scoreClosestToZero) < 0) || (sign(score) > 0)))) {
         scoreClosestToZero = score;
         chosenIndex = i;
       }

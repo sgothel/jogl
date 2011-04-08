@@ -199,10 +199,10 @@ static OMX_ERRORTYPE EventHandler(
                 if (pOMXAV->endComponent == hComponent)
                 {
                     DBG_PRINT("\t end component - FIN\n");
-				    pOMXAV->status = OMXAV_FIN;
+                    pOMXAV->status = OMXAV_FIN;
                 }
-		    }
-		    break;
+            }
+            break;
         case OMX_EventError: 
             {
                 if (nData1 == OMX_ErrorIncorrectStateTransition)
@@ -1053,11 +1053,11 @@ void OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, int vBufferNum, const K
     {
 
         OMX_TIME_CONFIG_ACTIVEREFCLOCKTYPE oActiveClockType;
-		INIT_PARAM(oActiveClockType);
-		oActiveClockType.eClock = (pOMXAV->audioPort != -1) ?
+        INIT_PARAM(oActiveClockType);
+        oActiveClockType.eClock = (pOMXAV->audioPort != -1) ?
                     OMX_TIME_RefClockAudio : OMX_TIME_RefClockVideo;
         OMXSAFEVOID(OMX_SetConfig(pOMXAV->comp[OMXAV_H_CLOCK], OMX_IndexConfigTimeActiveRefClock,
-							   &oActiveClockType));
+                               &oActiveClockType));
     }
     OMXSAFEVOID(OMX_SendCommand(pOMXAV->comp[OMXAV_H_CLOCK], OMX_CommandPortDisable, (OMX_U32) -1, 0));
 

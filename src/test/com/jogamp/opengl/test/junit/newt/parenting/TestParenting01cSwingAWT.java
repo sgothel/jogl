@@ -152,21 +152,21 @@ public class TestParenting01cSwingAWT extends UITestCase {
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-		    System.out.println("Demos: 3 - !Visible");
+            System.out.println("Demos: 3 - !Visible");
                     _jFrame1.setVisible(false);
                 } });
         Assert.assertEquals(true, glWindow1.isValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-		    System.out.println("Demos: 4 - Visible");
+            System.out.println("Demos: 4 - Visible");
                     _jFrame1.setVisible(true);
                 } });
         Assert.assertEquals(true, glWindow1.isValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-		    System.out.println("Demos: 5 - X Container");
+            System.out.println("Demos: 5 - X Container");
                     _jPanel1.remove(_container1);
                 } });
         // Assert.assertNull(glWindow1.getParent());

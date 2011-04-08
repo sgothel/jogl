@@ -88,7 +88,7 @@ public class TestScreenMode01NEWT extends UITestCase {
     
     @Test
     public void testFullscreenChange01() throws InterruptedException {
-    	GLCapabilities caps = new GLCapabilities(glp);
+        GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
@@ -110,7 +110,7 @@ public class TestScreenMode01NEWT extends UITestCase {
         Thread.sleep(waitTimeShort);
 
         animator.stop();
-        destroyWindow(window);    	
+        destroyWindow(window);        
     }
 
     @Test
@@ -217,7 +217,7 @@ public class TestScreenMode01NEWT extends UITestCase {
     }
 
     protected void testScreenModeChangeWithFS01Impl(boolean preFS) throws InterruptedException {
-    	GLCapabilities caps = new GLCapabilities(glp);
+        GLCapabilities caps = new GLCapabilities(glp);
         Display display = NewtFactory.createDisplay(null); // local display
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);

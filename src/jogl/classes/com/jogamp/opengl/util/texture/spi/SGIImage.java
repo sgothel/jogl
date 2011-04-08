@@ -477,7 +477,7 @@ public class SGIImage {
         for (int z = 0; z < zsize; z++) {
             for (int y = ystart; y != yend; y += yincr) {
                 // RLE-compress each row.
-	  
+      
                 int x = 0;
                 byte count = 0;
                 boolean repeat_mode = false;
@@ -485,7 +485,7 @@ public class SGIImage {
                 int start_ptr = ptr;
                 int num_ptr = ptr++;
                 byte repeat_val = 0;
-	  
+      
                 while (x < xsize) {
                     // see if we should switch modes
                     should_switch = false;
@@ -502,7 +502,7 @@ public class SGIImage {
                                 if (DEBUG)
                                     System.err.println("left side was " + ((int) imgref(data, x, y, z, xsize, ysize, zsize)) +
                                                        ", right side was " + (int)imgref(data, x+i, y, z, xsize, ysize, zsize));
-			  
+              
                                 if (imgref(data, x, y, z, xsize, ysize, zsize) !=
                                     imgref(data, x+i, y, z, xsize, ysize, zsize))
                                     should_switch = false;
@@ -530,7 +530,7 @@ public class SGIImage {
                                 repeat_mode = true;
                             repeat_val = imgref(data, x, y, z, xsize, ysize, zsize);
                         }
-		  
+          
                         if (x > 0) {
                             // reset the number pointer
                             num_ptr = ptr++;
@@ -538,7 +538,7 @@ public class SGIImage {
                             count = 0;
                         }
                     }
-		    
+            
                     // if not in repeat mode, copy element to ptr
                     if (!repeat_mode) {
                         rlebuf[ptr++] = imgref(data, x, y, z, xsize, ysize, zsize);

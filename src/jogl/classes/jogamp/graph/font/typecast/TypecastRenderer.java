@@ -40,48 +40,48 @@ import com.jogamp.graph.font.Font;
  */
 public class TypecastRenderer {
 
-	public static void getOutline(TypecastFont font, 
-			                      String string, float pixelSize, AffineTransform transform, Path2D[] p)
-	{		
-		if (string == null) {
-			return;
-		}
-		Font.Metrics metrics = font.getMetrics();
-		float advanceTotal = 0;
-		float lineGap = metrics.getLineGap(pixelSize) ;
-		float ascent = metrics.getAscent(pixelSize) ;
-		float descent = metrics.getDescent(pixelSize) ;
-		if (transform == null) {
-			transform = new AffineTransform();
-		}
-		AffineTransform t = new AffineTransform();
+    public static void getOutline(TypecastFont font, 
+                                  String string, float pixelSize, AffineTransform transform, Path2D[] p)
+    {        
+        if (string == null) {
+            return;
+        }
+        Font.Metrics metrics = font.getMetrics();
+        float advanceTotal = 0;
+        float lineGap = metrics.getLineGap(pixelSize) ;
+        float ascent = metrics.getAscent(pixelSize) ;
+        float descent = metrics.getDescent(pixelSize) ;
+        if (transform == null) {
+            transform = new AffineTransform();
+        }
+        AffineTransform t = new AffineTransform();
 
-		float advanceY = lineGap - descent + ascent;
-		float y = 0;
-		for (int i=0; i<string.length(); i++)
-		{
-			p[i] = new Path2D();
-			p[i].reset();
-			t.setTransform(transform);
-			char character = string.charAt(i);
-			if (character == '\n') {
-				y -= advanceY;
-				advanceTotal = 0;
-				continue;
-			} else if (character == ' ') {
-			    advanceTotal += font.font.getHmtxTable().getAdvanceWidth(TypecastGlyph.ID_SPACE) * metrics.getScale(pixelSize);
+        float advanceY = lineGap - descent + ascent;
+        float y = 0;
+        for (int i=0; i<string.length(); i++)
+        {
+            p[i] = new Path2D();
+            p[i].reset();
+            t.setTransform(transform);
+            char character = string.charAt(i);
+            if (character == '\n') {
+                y -= advanceY;
+                advanceTotal = 0;
+                continue;
+            } else if (character == ' ') {
+                advanceTotal += font.font.getHmtxTable().getAdvanceWidth(TypecastGlyph.ID_SPACE) * metrics.getScale(pixelSize);
                 continue;
             }        
-			TypecastGlyph glyph = (TypecastGlyph) font.getGlyph(character);
-			Path2D gp = glyph.getPath();
-			float scale = metrics.getScale(pixelSize);
-			t.translate(advanceTotal, y);
-			t.scale(scale, scale);
-			p[i].append(gp.iterator(t), false);
-			advanceTotal += glyph.getAdvance(pixelSize, true); 
-		}
-	}
-	
+            TypecastGlyph glyph = (TypecastGlyph) font.getGlyph(character);
+            Path2D gp = glyph.getPath();
+            float scale = metrics.getScale(pixelSize);
+            t.translate(advanceTotal, y);
+            t.scale(scale, scale);
+            p[i].append(gp.iterator(t), false);
+            advanceTotal += glyph.getAdvance(pixelSize, true); 
+        }
+    }
+    
     /**
      * Build a {@link com.jogamp.graph.geom.Path2D Path2D} from a
      * {@link jogamp.graph.font.typecast.ot.OTGlyph Glyph}.  This glyph path can then
@@ -116,44 +116,44 @@ public class TypecastRenderer {
             Point point = glyph.getPoint(startIndex + offset%count);
             Point point_plus1 = glyph.getPoint(startIndex + (offset+1)%count);
             Point point_plus2 = glyph.getPoint(startIndex + (offset+2)%count);
-        	if(offset == 0)
+            if(offset == 0)
             {
                 gp.moveTo(point.x, -point.y);
             }
-        	
-        	if (point.onCurve) {
-	        	if (point_plus1.onCurve) {
-	                // s = new Line2D.Float(point.x, -point.y, point_plus1.x, -point_plus1.y);
-	                gp.lineTo( point_plus1.x, -point_plus1.y );
-	                offset++;	                
-	            } else {
-	            	if (point_plus2.onCurve) {
-		                // s = new QuadCurve2D.Float( point.x, -point.y, point_plus1.x, -point_plus1.y, point_plus2.x, -point_plus2.y);
-		                gp.quadTo(point_plus1.x, -point_plus1.y, point_plus2.x, -point_plus2.y);
-		                offset+=2;	                
-		            } else {
-		                // s = new QuadCurve2D.Float(point.x,-point.y,point_plus1.x,-point_plus1.y,
-		            	//                           midValue(point_plus1.x, point_plus2.x), -midValue(point_plus1.y, point_plus2.y));
-		                gp.quadTo(point_plus1.x, -point_plus1.y, midValue(point_plus1.x, point_plus2.x), -midValue(point_plus1.y, point_plus2.y));
-		                offset+=2;
-		            }
-	            }
-        	} else {
-        		if (point_plus1.onCurve) {
-	                // s = new QuadCurve2D.Float(midValue(point_minus1.x, point.x), -midValue(point_minus1.y, point.y),
-	                //                           point.x, -point.y, point_plus1.x, -point_plus1.y);
-	                //gp.curve3(point_plus1.x, -point_plus1.y, point.x, -point.y);
-	                gp.quadTo(point.x, -point.y, point_plus1.x, -point_plus1.y);
-	                offset++;
-    				
-    			} else {
-	                // s = new QuadCurve2D.Float(midValue(point_minus1.x, point.x), -midValue(point_minus1.y, point.y), point.x, -point.y,
-	                //                           midValue(point.x, point_plus1.x), -midValue(point.y, point_plus1.y));
-	                //gp.curve3(midValue(point.x, point_plus1.x), -midValue(point.y, point_plus1.y), point.x, -point.y);
-	                gp.quadTo(point.x, -point.y, midValue(point.x, point_plus1.x), -midValue(point.y, point_plus1.y));
-	                offset++;	                
-	            }
-        	}
+            
+            if (point.onCurve) {
+                if (point_plus1.onCurve) {
+                    // s = new Line2D.Float(point.x, -point.y, point_plus1.x, -point_plus1.y);
+                    gp.lineTo( point_plus1.x, -point_plus1.y );
+                    offset++;                    
+                } else {
+                    if (point_plus2.onCurve) {
+                        // s = new QuadCurve2D.Float( point.x, -point.y, point_plus1.x, -point_plus1.y, point_plus2.x, -point_plus2.y);
+                        gp.quadTo(point_plus1.x, -point_plus1.y, point_plus2.x, -point_plus2.y);
+                        offset+=2;                    
+                    } else {
+                        // s = new QuadCurve2D.Float(point.x,-point.y,point_plus1.x,-point_plus1.y,
+                        //                           midValue(point_plus1.x, point_plus2.x), -midValue(point_plus1.y, point_plus2.y));
+                        gp.quadTo(point_plus1.x, -point_plus1.y, midValue(point_plus1.x, point_plus2.x), -midValue(point_plus1.y, point_plus2.y));
+                        offset+=2;
+                    }
+                }
+            } else {
+                if (point_plus1.onCurve) {
+                    // s = new QuadCurve2D.Float(midValue(point_minus1.x, point.x), -midValue(point_minus1.y, point.y),
+                    //                           point.x, -point.y, point_plus1.x, -point_plus1.y);
+                    //gp.curve3(point_plus1.x, -point_plus1.y, point.x, -point.y);
+                    gp.quadTo(point.x, -point.y, point_plus1.x, -point_plus1.y);
+                    offset++;
+                    
+                } else {
+                    // s = new QuadCurve2D.Float(midValue(point_minus1.x, point.x), -midValue(point_minus1.y, point.y), point.x, -point.y,
+                    //                           midValue(point.x, point_plus1.x), -midValue(point.y, point_plus1.y));
+                    //gp.curve3(midValue(point.x, point_plus1.x), -midValue(point.y, point_plus1.y), point.x, -point.y);
+                    gp.quadTo(point.x, -point.y, midValue(point.x, point_plus1.x), -midValue(point.y, point_plus1.y));
+                    offset++;                    
+                }
+            }
         }
     }
 

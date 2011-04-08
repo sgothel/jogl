@@ -90,7 +90,7 @@ public class TestAWTTextRendererUseVertexArrayBug464 extends UITestCase {
 
     @After
     public void cleanupTest() {
-    	frame.setVisible(false);
+        frame.setVisible(false);
         frame.remove(glCanvas);
         glCanvas=null;
         Assert.assertNotNull(frame);
@@ -107,15 +107,15 @@ public class TestAWTTextRendererUseVertexArrayBug464 extends UITestCase {
         Animator animator = new Animator(glCanvas);
 
         animator.start();
-	
-	    Thread.sleep(500); // 500 ms
-	
-	    animator.stop();
+    
+        Thread.sleep(500); // 500 ms
+    
+        animator.stop();
         
-	    String disallowedMethods = listener.getDisallowedMethodCalls();
-	    if (!disallowedMethods.equals("")) {
-	    	Assert.fail("Following VBO-related glMethods have been called: "+ disallowedMethods);
-	    }
+        String disallowedMethods = listener.getDisallowedMethodCalls();
+        if (!disallowedMethods.equals("")) {
+            Assert.fail("Following VBO-related glMethods have been called: "+ disallowedMethods);
+        }
     }
     
     @Test
@@ -127,15 +127,15 @@ public class TestAWTTextRendererUseVertexArrayBug464 extends UITestCase {
         Animator animator = new Animator(glCanvas);
 
         animator.start();
-	
-	    Thread.sleep(500); // 500 ms
-	
-	    animator.stop();
+    
+        Thread.sleep(500); // 500 ms
+    
+        animator.stop();
         
-	    String disallowedMethods = listener.getDisallowedMethodCalls();
-	    if (!disallowedMethods.equals("")) {
-	    	Assert.fail("Following VBO-related glMethods have been called: "+ disallowedMethods);
-	    }
+        String disallowedMethods = listener.getDisallowedMethodCalls();
+        if (!disallowedMethods.equals("")) {
+            Assert.fail("Following VBO-related glMethods have been called: "+ disallowedMethods);
+        }
     }
 
     public static void main(String args[]) throws IOException {
@@ -151,5 +151,5 @@ public class TestAWTTextRendererUseVertexArrayBug464 extends UITestCase {
             "logtestlistenerevents=true",
             "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
             "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
-    }	
+    }    
 }

@@ -44,39 +44,39 @@ import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 
 public class TextRendererImpl01 extends TextRenderer {    
-	/**Sharpness is equivalent to the value of t value of texture coord
-	 * on the off-curve vertex. The high value of sharpness will 
-	 * result in high curvature.
-	 */
+    /**Sharpness is equivalent to the value of t value of texture coord
+     * on the off-curve vertex. The high value of sharpness will 
+     * result in high curvature.
+     */
     private GLUniformData mgl_sharpness = new GLUniformData("p1y", 0.5f);
     GLUniformData mgl_alpha = new GLUniformData("g_alpha", 1.0f);
     private GLUniformData mgl_color = new GLUniformData("g_color", 3, FloatBuffer.allocate(3));
     private GLUniformData mgl_strength = new GLUniformData("a_strength", 1.8f);
-    	
-	public TextRendererImpl01(Vertex.Factory<? extends Vertex> factory, int type) {
-	    super(factory, type);
-	}
+        
+    public TextRendererImpl01(Vertex.Factory<? extends Vertex> factory, int type) {
+        super(factory, type);
+    }
 
-	@Override
+    @Override
     protected boolean initImpl(GL2ES2 gl){
-		boolean VBOsupported = gl.isFunctionAvailable("glGenBuffers") &&
-			gl.isFunctionAvailable("glBindBuffer") &&
-			gl.isFunctionAvailable("glBufferData") &&
-			gl.isFunctionAvailable("glDrawElements") &&
-			gl.isFunctionAvailable("glVertexAttribPointer") &&
-			gl.isFunctionAvailable("glDeleteBuffers");
-		
-		if(DEBUG) {
-			System.err.println("TextRendererImpl01: VBO Supported = " + VBOsupported);
-		}
-		
-		if(!VBOsupported){
-			return false;
-		}
-		
-		gl.glEnable(GL2ES2.GL_BLEND);
-		gl.glBlendFunc(GL2ES2.GL_SRC_ALPHA, GL2ES2.GL_ONE_MINUS_SRC_ALPHA);
-		
+        boolean VBOsupported = gl.isFunctionAvailable("glGenBuffers") &&
+            gl.isFunctionAvailable("glBindBuffer") &&
+            gl.isFunctionAvailable("glBufferData") &&
+            gl.isFunctionAvailable("glDrawElements") &&
+            gl.isFunctionAvailable("glVertexAttribPointer") &&
+            gl.isFunctionAvailable("glDeleteBuffers");
+        
+        if(DEBUG) {
+            System.err.println("TextRendererImpl01: VBO Supported = " + VBOsupported);
+        }
+        
+        if(!VBOsupported){
+            return false;
+        }
+        
+        gl.glEnable(GL2ES2.GL_BLEND);
+        gl.glBlendFunc(GL2ES2.GL_SRC_ALPHA, GL2ES2.GL_ONE_MINUS_SRC_ALPHA);
+        
         ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, TextRendererImpl01.class,
                 "shader", "shader/bin", "curverenderer01");
         ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, TextRendererImpl01.class,
@@ -95,62 +95,62 @@ public class TextRendererImpl01 extends TextRenderer {
         }
 
         st.attachShaderProgram(gl, sp);
-		
-		st.glUseProgram(gl, true);
+        
+        st.glUseProgram(gl, true);
 
-		pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-		pmvMatrix.glLoadIdentity();
-		pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-		pmvMatrix.glLoadIdentity();
-		
-		pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-		pmvMatrix.glLoadIdentity();
-		resetModelview(null);
-		
-		mgl_PMVMatrix = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());		    		
-		if(!st.glUniform(gl, mgl_PMVMatrix)) {
-			if(DEBUG){
-				System.err.println("Error setting PMVMatrix in shader: "+st);
-			}
-			return false;
-		}
-		
-		if(!st.glUniform(gl, mgl_sharpness)) {
-			if(DEBUG){
-				System.err.println("Error setting sharpness in shader: "+st);
-			}
-			return false;
-		}
-				
-		if(!st.glUniform(gl, mgl_alpha)) {
-			if(DEBUG){
-				System.err.println("Error setting global alpha in shader: "+st);
-			}
-			return false;
-		}		
-		
-		if(!st.glUniform(gl, mgl_color)) {
-			if(DEBUG){
-				System.err.println("Error setting global color in shader: "+st);
-			}
-			return false;
-		}		
-		
-		if(!st.glUniform(gl, mgl_strength)) {
-			System.err.println("Error setting antialias strength in shader: "+st);
-		}
-		
-		if(DEBUG) {
-			System.err.println("TextRendererImpl01 initialized: " + Thread.currentThread()+" "+st);
-		}		
-		return true;
-	}
-	
-	@Override
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+        pmvMatrix.glLoadIdentity();
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmvMatrix.glLoadIdentity();
+        
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+        pmvMatrix.glLoadIdentity();
+        resetModelview(null);
+        
+        mgl_PMVMatrix = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());                    
+        if(!st.glUniform(gl, mgl_PMVMatrix)) {
+            if(DEBUG){
+                System.err.println("Error setting PMVMatrix in shader: "+st);
+            }
+            return false;
+        }
+        
+        if(!st.glUniform(gl, mgl_sharpness)) {
+            if(DEBUG){
+                System.err.println("Error setting sharpness in shader: "+st);
+            }
+            return false;
+        }
+                
+        if(!st.glUniform(gl, mgl_alpha)) {
+            if(DEBUG){
+                System.err.println("Error setting global alpha in shader: "+st);
+            }
+            return false;
+        }        
+        
+        if(!st.glUniform(gl, mgl_color)) {
+            if(DEBUG){
+                System.err.println("Error setting global color in shader: "+st);
+            }
+            return false;
+        }        
+        
+        if(!st.glUniform(gl, mgl_strength)) {
+            System.err.println("Error setting antialias strength in shader: "+st);
+        }
+        
+        if(DEBUG) {
+            System.err.println("TextRendererImpl01 initialized: " + Thread.currentThread()+" "+st);
+        }        
+        return true;
+    }
+    
+    @Override
     protected void disposeImpl(GL2ES2 gl) {
-	    super.disposeImpl(gl);
-	}
-	
+        super.disposeImpl(gl);
+    }
+    
     @Override
     public float getAlpha() {
         return mgl_alpha.floatValue();
@@ -163,30 +163,30 @@ public class TextRendererImpl01 extends TextRenderer {
             st.glUniform(gl, mgl_alpha);
         }
     }
-	
-	@Override
+    
+    @Override
     public void setColor(GL2ES2 gl, float r, float g, float b){
-	    FloatBuffer fb = (FloatBuffer) mgl_color.getBuffer();
-	    fb.put(0, r);
-	    fb.put(1, r);
-	    fb.put(2, r);
-	    if(null != gl && st.inUse()) {
-	        st.glUniform(gl, mgl_color);
-	    }
-	}
-	
-	@Override
+        FloatBuffer fb = (FloatBuffer) mgl_color.getBuffer();
+        fb.put(0, r);
+        fb.put(1, r);
+        fb.put(2, r);
+        if(null != gl && st.inUse()) {
+            st.glUniform(gl, mgl_color);
+        }
+    }
+    
+    @Override
     public void renderString3D(GL2ES2 gl, Font font, String str, float[] position, int fontSize, int texSize) {
-		if(!isInitialized()){
-			throw new GLException("TextRendererImpl01: not initialized!");
-		}
-		GlyphString glyphString = getCachedGlyphString(font, str, fontSize);
-		if(null == glyphString) {
-			glyphString = createString(gl, font, fontSize, str, mgl_sharpness.floatValue());
-			addCachedGlyphString(font, str, fontSize, glyphString);
-		}
-		
-		glyphString.renderString3D(pmvMatrix, vp_width, vp_height, texSize);
-	}
-	
+        if(!isInitialized()){
+            throw new GLException("TextRendererImpl01: not initialized!");
+        }
+        GlyphString glyphString = getCachedGlyphString(font, str, fontSize);
+        if(null == glyphString) {
+            glyphString = createString(gl, font, fontSize, str, mgl_sharpness.floatValue());
+            addCachedGlyphString(font, str, fontSize, glyphString);
+        }
+        
+        glyphString.renderString3D(pmvMatrix, vp_width, vp_height, texSize);
+    }
+    
 }

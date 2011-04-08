@@ -59,32 +59,32 @@ import javax.media.opengl.glu.*;
 public class GLUtessellatorImpl implements GLUtessellator {
     public static final int TESS_MAX_CACHE = 100;
 
-    private int state;		/* what begin/end calls have we seen? */
+    private int state;        /* what begin/end calls have we seen? */
 
-    private GLUhalfEdge lastEdge;	/* lastEdge->Org is the most recent vertex */
-    GLUmesh mesh;		/* stores the input contours, and eventually
+    private GLUhalfEdge lastEdge;    /* lastEdge->Org is the most recent vertex */
+    GLUmesh mesh;        /* stores the input contours, and eventually
                                    the tessellation itself */
 
     /*** state needed for projecting onto the sweep plane ***/
 
-    double[] normal = new double[3];	/* user-specified normal (if provided) */
-    double[] sUnit = new double[3];	/* unit vector in s-direction (debugging) */
-    double[] tUnit = new double[3];	/* unit vector in t-direction (debugging) */
+    double[] normal = new double[3];    /* user-specified normal (if provided) */
+    double[] sUnit = new double[3];    /* unit vector in s-direction (debugging) */
+    double[] tUnit = new double[3];    /* unit vector in t-direction (debugging) */
 
     /*** state needed for the line sweep ***/
 
-    private double relTolerance;	/* tolerance for merging features */
-    int windingRule;	/* rule for determining polygon interior */
-    boolean fatalError;	/* fatal error: needed combine callback */
+    private double relTolerance;    /* tolerance for merging features */
+    int windingRule;    /* rule for determining polygon interior */
+    boolean fatalError;    /* fatal error: needed combine callback */
 
-    Dict dict;		/* edge dictionary for sweep line */
-    PriorityQ pq;		/* priority queue of vertex events */
-    GLUvertex event;		/* current sweep event being processed */
+    Dict dict;        /* edge dictionary for sweep line */
+    PriorityQ pq;        /* priority queue of vertex events */
+    GLUvertex event;        /* current sweep event being processed */
 
     /*** state needed for rendering callbacks (see render.c) ***/
 
-    boolean flagBoundary;	/* mark boundary edges (use EdgeFlag) */
-    boolean boundaryOnly;	/* Extract contours, not triangles */
+    boolean flagBoundary;    /* mark boundary edges (use EdgeFlag) */
+    boolean boundaryOnly;    /* Extract contours, not triangles */
     boolean avoidDegenerateTris; /* JOGL-specific hint to try to improve triangulation
                                     by avoiding producing degenerate (zero-area) triangles;
                                     has not been tested exhaustively and is therefore an option */
@@ -96,12 +96,12 @@ public class GLUtessellatorImpl implements GLUtessellator {
 
     /*** state needed to cache single-contour polygons for renderCache() */
 
-    private boolean flushCacheOnNextVertex;		/* empty cache on next vertex() call */
-    int cacheCount;		/* number of cached vertices */
-    CachedVertex[] cache = new CachedVertex[TESS_MAX_CACHE];	/* the vertex data */
+    private boolean flushCacheOnNextVertex;        /* empty cache on next vertex() call */
+    int cacheCount;        /* number of cached vertices */
+    CachedVertex[] cache = new CachedVertex[TESS_MAX_CACHE];    /* the vertex data */
 
     /*** rendering callbacks that also pass polygon data  ***/
-    private Object polygonData;		/* client data for current polygon */
+    private Object polygonData;        /* client data for current polygon */
 
     private GLUtessellatorCallback callBegin;
     private GLUtessellatorCallback callEdgeFlag;
@@ -120,10 +120,10 @@ public class GLUtessellatorImpl implements GLUtessellator {
     private GLUtessellatorCallback callCombineData;
 
     private static final double GLU_TESS_DEFAULT_TOLERANCE = 0.0;
-//    private static final int GLU_TESS_MESH = 100112;	/* void (*)(GLUmesh *mesh)	    */
+//    private static final int GLU_TESS_MESH = 100112;    /* void (*)(GLUmesh *mesh)        */
     private static GLUtessellatorCallback NULL_CB = new GLUtessellatorCallbackAdapter();
 
-//    #define MAX_FAST_ALLOC	(MAX(sizeof(EdgePair), \
+//    #define MAX_FAST_ALLOC    (MAX(sizeof(EdgePair), \
 //                 MAX(sizeof(GLUvertex),sizeof(GLUface))))
 
     private GLUtessellatorImpl() {
@@ -220,7 +220,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
 
             case GLU.GLU_TESS_WINDING_RULE:
                 int windingRule = (int) value;
-                if (windingRule != value) break;	/* not an integer */
+                if (windingRule != value) break;    /* not an integer */
 
                 switch (windingRule) {
                     case GLU.GLU_TESS_WINDING_ODD:
@@ -523,7 +523,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
  * Each interior region is guaranteed be monotone.
  */
             if (!Sweep.__gl_computeInterior(this)) {
-                throw new RuntimeException();	/* could've used a label */
+                throw new RuntimeException();    /* could've used a label */
             }
 
             mesh = this.mesh;
@@ -539,7 +539,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
                 } else {
                     rc = TessMono.__gl_meshTessellateInterior(mesh, avoidDegenerateTris);
                 }
-                if (!rc) throw new RuntimeException();	/* could've used a label */
+                if (!rc) throw new RuntimeException();    /* could've used a label */
 
                 Mesh.__gl_meshCheckMesh(mesh);
 
@@ -552,7 +552,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
                     if (boundaryOnly) {
                         Render.__gl_renderBoundary(this, mesh);  /* output boundary contours */
                     } else {
-                        Render.__gl_renderMesh(this, mesh);	   /* output strips and fans */
+                        Render.__gl_renderMesh(this, mesh);       /* output strips and fans */
                     }
                 }
 //                if (callMesh != NULL_CB) {
@@ -564,7 +564,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
 //                 * faces in the first place.
 //                 */
 //                    TessMono.__gl_meshDiscardExterior(mesh);
-//                    callMesh.mesh(mesh);		/* user wants the mesh itself */
+//                    callMesh.mesh(mesh);        /* user wants the mesh itself */
 //                    mesh = null;
 //                    polygonData = null;
 //                    return;

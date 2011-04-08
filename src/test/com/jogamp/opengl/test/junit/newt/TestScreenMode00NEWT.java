@@ -95,7 +95,7 @@ public class TestScreenMode00NEWT extends UITestCase {
 
     @Test
     public void testScreenModeInfo01() throws InterruptedException {
-    	Capabilities caps = new Capabilities();
+        Capabilities caps = new Capabilities();
         Window window = NewtFactory.createWindow(caps);
         window.setSize(width, height);
         window.setVisible(true);

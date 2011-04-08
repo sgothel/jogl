@@ -72,7 +72,7 @@ public class ArcTesselator {
    */
   public void pwl_right(Arc newright, float s, float t1, float t2, float f) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO arctesselator.pwl_right");
+    //            System.out.println("TODO arctesselator.pwl_right");
   }
 
   /**
@@ -85,6 +85,6 @@ public class ArcTesselator {
    */
   public void pwl_left(Arc newright, float s, float t2, float t1, float f) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO arctesselator.pwl_left");
+    //            System.out.println("TODO arctesselator.pwl_left");
   }
 }

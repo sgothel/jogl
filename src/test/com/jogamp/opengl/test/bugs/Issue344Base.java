@@ -91,7 +91,7 @@ public abstract class Issue344Base implements GLEventListener
                         h / -2.0f * textScaleFactor,
                         3f,
                         textScaleFactor);
-		
+        
         renderer.end3DRendering();
     }
 
@@ -103,5 +103,5 @@ public abstract class Issue344Base implements GLEventListener
         glu.gluPerspective(15, (float) width / (float) height, 5, 15);
     }
 
-	public void dispose(GLAutoDrawable drawable) {}
+    public void dispose(GLAutoDrawable drawable) {}
 }

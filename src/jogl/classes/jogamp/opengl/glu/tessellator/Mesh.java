@@ -281,8 +281,8 @@ class Mesh {
 
 /* __gl_meshSplice( eOrg, eDst ) is the basic operation for changing the
  * mesh connectivity and topology.  It changes the mesh so that
- *	eOrg->Onext <- OLD( eDst->Onext )
- *	eDst->Onext <- OLD( eOrg->Onext )
+ *    eOrg->Onext <- OLD( eDst->Onext )
+ *    eDst->Onext <- OLD( eOrg->Onext )
  * where OLD(...) means the value before the meshSplice operation.
  *
  * This can have two effects on the vertex structure:
@@ -453,9 +453,9 @@ class Mesh {
 
         /* Set the vertex and face information */
         eOrg.Sym.Org = eNew.Org;
-        eNew.Sym.Org.anEdge = eNew.Sym;	/* may have pointed to eOrg.Sym */
+        eNew.Sym.Org.anEdge = eNew.Sym;    /* may have pointed to eOrg.Sym */
         eNew.Sym.Lface = eOrg.Sym.Lface;
-        eNew.winding = eOrg.winding;	/* copy old winding information */
+        eNew.winding = eOrg.winding;    /* copy old winding information */
         eNew.Sym.winding = eOrg.Sym.winding;
 
         return eNew;

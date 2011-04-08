@@ -76,7 +76,7 @@ class PriorityQHeap extends jogamp.opengl.glu.tessellator.PriorityQ {
         freeList = 0;
         this.leq = leq;
 
-        nodes[1].handle = 1;	/* so that Minimum() returns NULL */
+        nodes[1].handle = 1;    /* so that Minimum() returns NULL */
         handles[1].key = null;
     }
 
@@ -171,7 +171,7 @@ class PriorityQHeap extends jogamp.opengl.glu.tessellator.PriorityQ {
             }
             nodes = pqNodes;
             if (nodes == null) {
-                nodes = saveNodes;	/* restore ptr to free upon return */
+                nodes = saveNodes;    /* restore ptr to free upon return */
                 return Integer.MAX_VALUE;
             }
 

@@ -60,7 +60,7 @@ class Normal {
     }
 
     static boolean SLANTED_SWEEP = false;
-    static double S_UNIT_X;	/* Pre-normalized */
+    static double S_UNIT_X;    /* Pre-normalized */
     static double S_UNIT_Y;
     private static final boolean TRUE_PROJECT = false;
 
@@ -75,7 +75,7 @@ class Normal {
  * direction to be something unusual (ie. not parallel to one of the
  * coordinate axes).
  */
-            S_UNIT_X = 0.50941539564955385;	/* Pre-normalized */
+            S_UNIT_X = 0.50941539564955385;    /* Pre-normalized */
             S_UNIT_Y = 0.86052074622010633;
         } else {
             S_UNIT_X = 1.0;

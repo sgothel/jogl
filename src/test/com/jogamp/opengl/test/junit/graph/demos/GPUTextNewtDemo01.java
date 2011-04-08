@@ -39,29 +39,29 @@ public class GPUTextNewtDemo01 {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
     
-	public static void main(String[] args) {
-		GLProfile.initSingleton(true);
-		GLProfile glp = GLProfile.getGL2ES2();
-		GLCapabilities caps = new GLCapabilities(glp);
-		caps.setAlphaBits(4);
-	    caps.setSampleBuffers(true);
-		caps.setNumSamples(4); // 2 samples is not enough ..
-		System.out.println("Requested: "+caps);
-		
-		GLWindow window = GLWindow.create(caps);		
-		window.setPosition(10, 10);
-		window.setSize(800, 400);
-		window.setTitle("GPU Text Newt Demo 01 - r2t0 msaa1");
-		
-		GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(Region.SINGLE_PASS, 0, DEBUG, TRACE);
-		textGLListener.attachInputListenerTo(window);
-		window.addGLEventListener(textGLListener);
+    public static void main(String[] args) {
+        GLProfile.initSingleton(true);
+        GLProfile glp = GLProfile.getGL2ES2();
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setAlphaBits(4);
+        caps.setSampleBuffers(true);
+        caps.setNumSamples(4); // 2 samples is not enough ..
+        System.out.println("Requested: "+caps);
+        
+        GLWindow window = GLWindow.create(caps);        
+        window.setPosition(10, 10);
+        window.setSize(800, 400);
+        window.setTitle("GPU Text Newt Demo 01 - r2t0 msaa1");
+        
+        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(Region.SINGLE_PASS, 0, DEBUG, TRACE);
+        textGLListener.attachInputListenerTo(window);
+        window.addGLEventListener(textGLListener);
 
-		window.enablePerfLog(true);		
-		window.setVisible(true);
-		// FPSAnimator animator = new FPSAnimator(10);
-		Animator animator = new Animator();
-		animator.add(window);
-		animator.start();
-	}	
+        window.enablePerfLog(true);        
+        window.setVisible(true);
+        // FPSAnimator animator = new FPSAnimator(10);
+        Animator animator = new Animator();
+        animator.add(window);
+        animator.start();
+    }    
 }

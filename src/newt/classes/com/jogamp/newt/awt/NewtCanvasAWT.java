@@ -191,7 +191,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             // if ( isShowing() == false ) -> Container was not visible yet.
             // if ( isShowing() == true  ) -> Container is already visible.
             System.err.println("NewtCanvasAWT.addNotify: "+newtChild+", "+this+", visible "+isVisible()+", showing "+isShowing()+
-            		           ", displayable "+isDisplayable()+" -> "+cont);
+                               ", displayable "+isDisplayable()+" -> "+cont);
         }  
         reparentWindow(true, cont);
     }

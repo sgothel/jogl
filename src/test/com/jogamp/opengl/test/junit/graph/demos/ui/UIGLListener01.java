@@ -41,10 +41,10 @@ import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.opengl.test.junit.graph.demos.MSAATool;
 
 public class UIGLListener01 extends UIListenerBase01 {
-	
-	public UIGLListener01 (boolean debug, boolean trace) {
+    
+    public UIGLListener01 (boolean debug, boolean trace) {
         super(RegionRenderer.create(SVertex.factory(), Region.SINGLE_PASS),
-        		TextRenderer.create(SVertex.factory(), Region.SINGLE_PASS), debug, trace);
+                TextRenderer.create(SVertex.factory(), Region.SINGLE_PASS), debug, trace);
         setMatrix(-20, 00, 0f, -50);
         button = new RIButton(SVertex.factory(), "Click me!");
         button.setLabelColor(1.0f,1.0f,1.0f);
@@ -52,20 +52,20 @@ public class UIGLListener01 extends UIListenerBase01 {
         button.setCorner(0.5f);
         button.setSpacing(0.3f);
         System.err.println(button);
-	}
-	
-	private GlyphString glyphString;
-	public void init(GLAutoDrawable drawable) {
-		super.init(drawable);
-		
+    }
+    
+    private GlyphString glyphString;
+    public void init(GLAutoDrawable drawable) {
+        super.init(drawable);
+        
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         final RegionRenderer regionRenderer = getRegionRenderer();
         final TextRenderer textRenderer = getTextRenderer();
         
-		gl.setSwapInterval(1);
-		gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-		gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
+        gl.setSwapInterval(1);
+        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+        gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
         
         regionRenderer.init(gl);
         regionRenderer.setAlpha(gl, 1.0f);
@@ -75,29 +75,29 @@ public class UIGLListener01 extends UIListenerBase01 {
         
         button.generate(glyphString.getBounds());
         MSAATool.dump(drawable);
-	}
+    }
 
-	public void display(GLAutoDrawable drawable) {
-		GL2ES2 gl = drawable.getGL().getGL2ES2();
+    public void display(GLAutoDrawable drawable) {
+        GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-		gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         final RegionRenderer regionRenderer = getRegionRenderer();
         
-		regionRenderer.resetModelview(null);
-		
-		regionRenderer.translate(null, getXTran(), getYTran(), getZoom());
-		regionRenderer.rotate(gl, getAngle(), 0, 1, 0);
-		float[] bColor = button.getButtonColor(); 
-		regionRenderer.setColor(gl, bColor[0], bColor[1], bColor[2]);
-		regionRenderer.renderOutlineShape(gl, button.getShape(glyphString.getBounds()), getPosition(), 0);
-		float[] lColor = button.getLabelColor(); 
-		regionRenderer.setColor(gl, lColor[0], lColor[1], lColor[2]);
-		glyphString.renderString3D();
-	}		
-	public void dispose(GLAutoDrawable drawable) {
-		super.dispose(drawable);
-		glyphString.destroy();
-	}
+        regionRenderer.resetModelview(null);
+        
+        regionRenderer.translate(null, getXTran(), getYTran(), getZoom());
+        regionRenderer.rotate(gl, getAngle(), 0, 1, 0);
+        float[] bColor = button.getButtonColor(); 
+        regionRenderer.setColor(gl, bColor[0], bColor[1], bColor[2]);
+        regionRenderer.renderOutlineShape(gl, button.getShape(glyphString.getBounds()), getPosition(), 0);
+        float[] lColor = button.getLabelColor(); 
+        regionRenderer.setColor(gl, lColor[0], lColor[1], lColor[2]);
+        glyphString.renderString3D();
+    }        
+    public void dispose(GLAutoDrawable drawable) {
+        super.dispose(drawable);
+        glyphString.destroy();
+    }
 }

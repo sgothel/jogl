@@ -152,7 +152,7 @@ class PriorityQSort extends jogamp.opengl.glu.tessellator.PriorityQ {
                     } while (LT(leq, keys[order[j]], keys[piv]));
                     Swap(order, i, j);
                 } while (i < j);
-                Swap(order, i, j);	/* Undo last swap */
+                Swap(order, i, j);    /* Undo last swap */
                 if (i - p < r - j) {
                     stack[top].p = j + 1;
                     stack[top].r = r;
@@ -176,7 +176,7 @@ class PriorityQSort extends jogamp.opengl.glu.tessellator.PriorityQ {
         }
         max = size;
         initialized = true;
-        heap.pqInit();	/* always succeeds */
+        heap.pqInit();    /* always succeeds */
 
 /*        #ifndef NDEBUG
         p = order;
@@ -208,7 +208,7 @@ class PriorityQSort extends jogamp.opengl.glu.tessellator.PriorityQ {
             System.arraycopy( keys, 0, pqKeys, 0, keys.length );
             keys = pqKeys;
             if (keys == null) {
-                keys = saveKey;	/* restore ptr to free upon return */
+                keys = saveKey;    /* restore ptr to free upon return */
                 return Integer.MAX_VALUE;
             }
         }

@@ -32,89 +32,89 @@ import java.util.ArrayList;
 import com.jogamp.graph.geom.Vertex;
 
 public class GraphVertex {
-	private Vertex point;
-	private ArrayList<HEdge> edges = null;
-	private boolean boundaryContained = false;
-	
-	public GraphVertex(Vertex point) {
-		this.point = point;
-	}
+    private Vertex point;
+    private ArrayList<HEdge> edges = null;
+    private boolean boundaryContained = false;
+    
+    public GraphVertex(Vertex point) {
+        this.point = point;
+    }
 
-	public Vertex getPoint() {
-		return point;
-	}
-	
-	public float getX(){
-		return point.getX();
-	}
-	
-	public float getY(){
-		return point.getY();
-	}
-	
-	public float getZ(){
-		return point.getZ();
-	}
-	public float[] getCoord() {
-		return point.getCoord();
-	}
+    public Vertex getPoint() {
+        return point;
+    }
+    
+    public float getX(){
+        return point.getX();
+    }
+    
+    public float getY(){
+        return point.getY();
+    }
+    
+    public float getZ(){
+        return point.getZ();
+    }
+    public float[] getCoord() {
+        return point.getCoord();
+    }
 
-	public void setPoint(Vertex point) {
-		this.point = point;
-	}
+    public void setPoint(Vertex point) {
+        this.point = point;
+    }
 
-	public ArrayList<HEdge> getEdges() {
-		return edges;
-	}
+    public ArrayList<HEdge> getEdges() {
+        return edges;
+    }
 
-	public void setEdges(ArrayList<HEdge> edges) {
-		this.edges = edges;
-	}
-	
-	public void addEdge(HEdge edge){
-		if(edges == null){
-			edges = new ArrayList<HEdge>();
-		}
-		edges.add(edge);
-	}
-	public void removeEdge(HEdge edge){
-		if(edges == null)
-			return;
-		edges.remove(edge);
-		if(edges.size() == 0){
-			edges = null;
-		}
-	}
-	public HEdge findNextEdge(GraphVertex nextVert){
-		for(HEdge e:edges){
-			if(e.getNext().getGraphPoint() == nextVert){
-				return e;
-			}
-		}
-		return null;
-	}
-	public HEdge findBoundEdge(){
-		for(HEdge e:edges){
-			if((e.getType() == HEdge.BOUNDARY) || (e.getType() == HEdge.HOLE)){
-				return e;
-			}
-		}
-		return null;
-	}
-	public HEdge findPrevEdge(GraphVertex prevVert){
-		for(HEdge e:edges){
-			if(e.getPrev().getGraphPoint() == prevVert){
-				return e;
-			}
-		}
-		return null;
-	}
-	
-	public boolean isBoundaryContained() {
-		return boundaryContained;
-	}
+    public void setEdges(ArrayList<HEdge> edges) {
+        this.edges = edges;
+    }
+    
+    public void addEdge(HEdge edge){
+        if(edges == null){
+            edges = new ArrayList<HEdge>();
+        }
+        edges.add(edge);
+    }
+    public void removeEdge(HEdge edge){
+        if(edges == null)
+            return;
+        edges.remove(edge);
+        if(edges.size() == 0){
+            edges = null;
+        }
+    }
+    public HEdge findNextEdge(GraphVertex nextVert){
+        for(HEdge e:edges){
+            if(e.getNext().getGraphPoint() == nextVert){
+                return e;
+            }
+        }
+        return null;
+    }
+    public HEdge findBoundEdge(){
+        for(HEdge e:edges){
+            if((e.getType() == HEdge.BOUNDARY) || (e.getType() == HEdge.HOLE)){
+                return e;
+            }
+        }
+        return null;
+    }
+    public HEdge findPrevEdge(GraphVertex prevVert){
+        for(HEdge e:edges){
+            if(e.getPrev().getGraphPoint() == prevVert){
+                return e;
+            }
+        }
+        return null;
+    }
+    
+    public boolean isBoundaryContained() {
+        return boundaryContained;
+    }
 
-	public void setBoundaryContained(boolean boundaryContained) {
-		this.boundaryContained = boundaryContained;
-	}
+    public void setBoundaryContained(boolean boundaryContained) {
+        this.boundaryContained = boundaryContained;
+    }
 }

@@ -48,169 +48,169 @@ import jogamp.opengl.Debug;
  */
 public class CDTriangulator2D {
 
-	protected static final boolean DEBUG = Debug.debug("Triangulation");
-	
-	private float sharpness = 0.5f;
-	private ArrayList<Loop> loops;
-	private ArrayList<Vertex> vertices;
-	
-	private ArrayList<Triangle> triangles;
-	private int maxTriID = 0;
+    protected static final boolean DEBUG = Debug.debug("Triangulation");
+    
+    private float sharpness = 0.5f;
+    private ArrayList<Loop> loops;
+    private ArrayList<Vertex> vertices;
+    
+    private ArrayList<Triangle> triangles;
+    private int maxTriID = 0;
 
-	
-	public CDTriangulator2D() {
-		this(0.5f);
-	}
-	
-	/** Constructor for a new Delaunay triangulator
-	 * @param curveSharpness the curvature around
-	 *  the off-curve vertices
-	 */
-	public CDTriangulator2D(float curveSharpness) {
-		this.sharpness = curveSharpness;
-		reset();
-	}
-	
-	/** Reset the triangulation to initial state
-	 *  Clearing cached data
-	 */
-	public void reset() {
-		maxTriID = 0;
-		vertices = new ArrayList<Vertex>();
-		triangles = new ArrayList<Triangle>(3);
-		loops = new ArrayList<Loop>();
-	}
-	
-	/** Add a curve to the list of profiles provided
-	 * @param polyline a bounding {@link Outline}
-	 */
-	public void addCurve(Outline polyline){
-		Loop loop = null;
-		
-		if(!loops.isEmpty()){
-			loop = getContainerLoop(polyline);
-		}
-		
-		if(loop == null) {
-			GraphOutline outline = new GraphOutline(polyline);
-			GraphOutline innerPoly = extractBoundaryTriangles(outline, false);
-			vertices.addAll(polyline.getVertices());
-			loop = new Loop(innerPoly, VectorUtil.CCW);
-			loops.add(loop);
-		}
-		else {
-			GraphOutline outline = new GraphOutline(polyline);
-			GraphOutline innerPoly = extractBoundaryTriangles(outline, true);
-			vertices.addAll(innerPoly.getPoints());
-			loop.addConstraintCurve(innerPoly);
-		}
-	}
-	
-	/** Generate the triangulation of the provided 
-	 *  List of {@link Outline}s
-	 */
-	public ArrayList<Triangle> generateTriangulation(){	
-		for(int i=0;i<loops.size();i++) {
-			Loop loop = loops.get(i);
-			int numTries = 0;
-			int size = loop.computeLoopSize();
-			while(!loop.isSimplex()){
-				Triangle tri = null;
-				if(numTries > size){
-					tri = loop.cut(false);
-				}
-				else{
-					tri = loop.cut(true);
-				}
-				numTries++;
+    
+    public CDTriangulator2D() {
+        this(0.5f);
+    }
+    
+    /** Constructor for a new Delaunay triangulator
+     * @param curveSharpness the curvature around
+     *  the off-curve vertices
+     */
+    public CDTriangulator2D(float curveSharpness) {
+        this.sharpness = curveSharpness;
+        reset();
+    }
+    
+    /** Reset the triangulation to initial state
+     *  Clearing cached data
+     */
+    public void reset() {
+        maxTriID = 0;
+        vertices = new ArrayList<Vertex>();
+        triangles = new ArrayList<Triangle>(3);
+        loops = new ArrayList<Loop>();
+    }
+    
+    /** Add a curve to the list of profiles provided
+     * @param polyline a bounding {@link Outline}
+     */
+    public void addCurve(Outline polyline){
+        Loop loop = null;
+        
+        if(!loops.isEmpty()){
+            loop = getContainerLoop(polyline);
+        }
+        
+        if(loop == null) {
+            GraphOutline outline = new GraphOutline(polyline);
+            GraphOutline innerPoly = extractBoundaryTriangles(outline, false);
+            vertices.addAll(polyline.getVertices());
+            loop = new Loop(innerPoly, VectorUtil.CCW);
+            loops.add(loop);
+        }
+        else {
+            GraphOutline outline = new GraphOutline(polyline);
+            GraphOutline innerPoly = extractBoundaryTriangles(outline, true);
+            vertices.addAll(innerPoly.getPoints());
+            loop.addConstraintCurve(innerPoly);
+        }
+    }
+    
+    /** Generate the triangulation of the provided 
+     *  List of {@link Outline}s
+     */
+    public ArrayList<Triangle> generateTriangulation(){    
+        for(int i=0;i<loops.size();i++) {
+            Loop loop = loops.get(i);
+            int numTries = 0;
+            int size = loop.computeLoopSize();
+            while(!loop.isSimplex()){
+                Triangle tri = null;
+                if(numTries > size){
+                    tri = loop.cut(false);
+                }
+                else{
+                    tri = loop.cut(true);
+                }
+                numTries++;
 
-				if(tri != null) {
-					numTries = 0;
-					size--;
-					tri.setId(maxTriID++);
-					triangles.add(tri);
-					if(DEBUG){
-						System.err.println(tri);
-					}
-				}
-				if(numTries > size*2){
-					if(DEBUG){
-						System.err.println("Triangulation not complete!");
-					}
-					break;
-				}
-			}
-			Triangle tri = loop.cut(true);
-			if(tri != null)
-				triangles.add(tri);
-		}
-		return triangles;
-	}
+                if(tri != null) {
+                    numTries = 0;
+                    size--;
+                    tri.setId(maxTriID++);
+                    triangles.add(tri);
+                    if(DEBUG){
+                        System.err.println(tri);
+                    }
+                }
+                if(numTries > size*2){
+                    if(DEBUG){
+                        System.err.println("Triangulation not complete!");
+                    }
+                    break;
+                }
+            }
+            Triangle tri = loop.cut(true);
+            if(tri != null)
+                triangles.add(tri);
+        }
+        return triangles;
+    }
 
-	private GraphOutline extractBoundaryTriangles(GraphOutline outline, boolean hole){
-		GraphOutline innerOutline = new GraphOutline();
-		ArrayList<GraphVertex> outVertices = outline.getGraphPoint();
-		int size = outVertices.size();
-		for(int i=0; i < size; i++) {
-			GraphVertex currentVertex = outVertices.get(i);
-			GraphVertex gv0 = outVertices.get((i+size-1)%size);
-			GraphVertex gv2 = outVertices.get((i+1)%size);
-			GraphVertex gv1 = currentVertex;
-			
-			if(!currentVertex.getPoint().isOnCurve()) {
-			    Vertex v0 = gv0.getPoint().clone();
-			    Vertex v2 = gv2.getPoint().clone();
-			    Vertex v1 = gv1.getPoint().clone();
-				
-				gv0.setBoundaryContained(true);
-				gv1.setBoundaryContained(true);
-				gv2.setBoundaryContained(true);
-				
-				Triangle t= null;
-				boolean holeLike = false;
-				if(VectorUtil.ccw(v0,v1,v2)){
-					t = new Triangle(v0, v1, v2);
-				}
-				else {
-					holeLike = true;
-					t = new Triangle(v2, v1, v0);
-				}
-				t.setId(maxTriID++);
-				triangles.add(t);
-				if(DEBUG){
-					System.err.println(t);
-				}
-				if(hole || holeLike) {
-					v0.setTexCoord(0, -0.1f);
-					v2.setTexCoord(1, -0.1f);
-					v1.setTexCoord(0.5f, -1*sharpness -0.1f);
-					innerOutline.addVertex(currentVertex);
-				}
-				else {
-					v0.setTexCoord(0, 0.1f);
-					v2.setTexCoord(1, 0.1f);
-					v1.setTexCoord(0.5f, sharpness+0.1f);
-				}
-			}
-			else {
-				if(!gv2.getPoint().isOnCurve() || !gv0.getPoint().isOnCurve()){
-					currentVertex.setBoundaryContained(true);
-				}
-				innerOutline.addVertex(currentVertex);
-			}
-		}
-		return innerOutline;
-	}
-	
-	private Loop getContainerLoop(Outline polyline){
-	    ArrayList<Vertex> vertices = polyline.getVertices();
-	    for(Vertex vert: vertices){
-			for (Loop loop:loops){
-				if(loop.checkInside(vert)){
-					return loop;
-				}
-			}
-	    }
-		return null;
-	}
+    private GraphOutline extractBoundaryTriangles(GraphOutline outline, boolean hole){
+        GraphOutline innerOutline = new GraphOutline();
+        ArrayList<GraphVertex> outVertices = outline.getGraphPoint();
+        int size = outVertices.size();
+        for(int i=0; i < size; i++) {
+            GraphVertex currentVertex = outVertices.get(i);
+            GraphVertex gv0 = outVertices.get((i+size-1)%size);
+            GraphVertex gv2 = outVertices.get((i+1)%size);
+            GraphVertex gv1 = currentVertex;
+            
+            if(!currentVertex.getPoint().isOnCurve()) {
+                Vertex v0 = gv0.getPoint().clone();
+                Vertex v2 = gv2.getPoint().clone();
+                Vertex v1 = gv1.getPoint().clone();
+                
+                gv0.setBoundaryContained(true);
+                gv1.setBoundaryContained(true);
+                gv2.setBoundaryContained(true);
+                
+                Triangle t= null;
+                boolean holeLike = false;
+                if(VectorUtil.ccw(v0,v1,v2)){
+                    t = new Triangle(v0, v1, v2);
+                }
+                else {
+                    holeLike = true;
+                    t = new Triangle(v2, v1, v0);
+                }
+                t.setId(maxTriID++);
+                triangles.add(t);
+                if(DEBUG){
+                    System.err.println(t);
+                }
+                if(hole || holeLike) {
+                    v0.setTexCoord(0, -0.1f);
+                    v2.setTexCoord(1, -0.1f);
+                    v1.setTexCoord(0.5f, -1*sharpness -0.1f);
+                    innerOutline.addVertex(currentVertex);
+                }
+                else {
+                    v0.setTexCoord(0, 0.1f);
+                    v2.setTexCoord(1, 0.1f);
+                    v1.setTexCoord(0.5f, sharpness+0.1f);
+                }
+            }
+            else {
+                if(!gv2.getPoint().isOnCurve() || !gv0.getPoint().isOnCurve()){
+                    currentVertex.setBoundaryContained(true);
+                }
+                innerOutline.addVertex(currentVertex);
+            }
+        }
+        return innerOutline;
+    }
+    
+    private Loop getContainerLoop(Outline polyline){
+        ArrayList<Vertex> vertices = polyline.getVertices();
+        for(Vertex vert: vertices){
+            for (Loop loop:loops){
+                if(loop.checkInside(vert)){
+                    return loop;
+                }
+            }
+        }
+        return null;
+    }
 }

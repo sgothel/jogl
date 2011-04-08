@@ -745,9 +745,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public String toString() {
-	final int dw = (null!=drawable) ? drawable.getWidth() : -1;
-	final int dh = (null!=drawable) ? drawable.getHeight() : -1;
-	
+    final int dw = (null!=drawable) ? drawable.getWidth() : -1;
+    final int dh = (null!=drawable) ? drawable.getHeight() : -1;
+    
     return "AWT-GLCanvas[Realized "+isRealized()+
                           ",\n\t"+((null!=drawable)?drawable.getClass().getName():"null-drawable")+                         
                           ",\n\tRealized "+isRealized()+

@@ -1590,7 +1590,7 @@ public class TextRenderer {
             int lengthInGlyphs = fullRunGlyphVector.getNumGlyphs();
             int i = 0;
             while (i < lengthInGlyphs) {
-            	Character letter = CharacterCache.valueOf(inString.charAt(i));
+                Character letter = CharacterCache.valueOf(inString.charAt(i));
                 GlyphMetrics metrics = (GlyphMetrics) glyphMetricsCache.get(letter);
                 if (metrics == null) {
                     metrics = fullRunGlyphVector.getGlyphMetrics(i);
@@ -1656,7 +1656,7 @@ public class TextRenderer {
         // if the unicode or glyph ID would be out of bounds of the
         // glyph cache.
         private Glyph getGlyph(CharSequence inString,
-        		               GlyphMetrics glyphMetrics,
+                               GlyphMetrics glyphMetrics,
                                int index) {
             char unicodeID = inString.charAt(index);
 

@@ -76,10 +76,10 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
 
     if (output_triangles) {
       // TODO outp triangles surfaceevaluator bgnmap2f
-      //			System.out.println("TODO surfaceevaluator.bgnmap2f output triangles");
+      //            System.out.println("TODO surfaceevaluator.bgnmap2f output triangles");
     } else {
       gl.glPushAttrib(GL2.GL_EVAL_BIT);
-      //				System.out.println("TODO surfaceevaluator.bgnmap2f glgetintegerv");
+      //                System.out.println("TODO surfaceevaluator.bgnmap2f glgetintegerv");
     }
 
   }
@@ -112,7 +112,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
   public void endmap2f() {
     // TODO Auto-generated method stub
     if (output_triangles) {
-      //			System.out.println("TODO surfaceevaluator.endmap2f output triangles");
+      //            System.out.println("TODO surfaceevaluator.endmap2f output triangles");
     } else {
       gl.glPopAttrib();
       // TODO use LOD
@@ -142,7 +142,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
   public void mapgrid2f(int nu, float u0, float u1, int nv, float v0, float v1) {
 
     if (output_triangles) {
-      //			System.out.println("TODO openglsurfaceavaluator.mapgrid2f output_triangles");
+      //            System.out.println("TODO openglsurfaceavaluator.mapgrid2f output_triangles");
     } else {
       gl.glMapGrid2d(nu, u0, u1, nv, v0, v1);
     }
@@ -159,7 +159,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
    */
   public void mapmesh2f(int style, int umin, int umax, int vmin, int vmax) {
     if (output_triangles) {
-      //			System.out.println("TODO openglsurfaceavaluator.mapmesh2f output_triangles");
+      //            System.out.println("TODO openglsurfaceavaluator.mapmesh2f output_triangles");
     } else {
       /* //DEBUG - draw control points
          this.poradi++;
@@ -199,7 +199,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
                     float vlo, float vhi, int vstride, int vorder, CArrayOfFloats pts) {
     // TODO Auto-generated method stub
     if (output_triangles) {
-      //			System.out.println("TODO openglsurfaceevaluator.map2f output_triangles");
+      //            System.out.println("TODO openglsurfaceevaluator.map2f output_triangles");
     } else {
       gl.glMap2f(type, ulo, uhi, ustride, uorder, vlo, vhi, vstride,
                  vorder, pts.getArray(), pts.getPointer());

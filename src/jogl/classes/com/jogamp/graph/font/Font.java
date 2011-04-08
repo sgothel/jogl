@@ -52,27 +52,27 @@ public interface Font {
     public static final int NAME_DESIGNER = 9;
     
     
-	/**
-	 * Metrics for font
-	 * 
-	 * Depending on the font's direction, horizontal or vertical,
-	 * the following tables shall be used:
-	 * 
-	 * Vertical http://developer.apple.com/fonts/TTRefMan/RM06/Chap6vhea.html
+    /**
+     * Metrics for font
+     * 
+     * Depending on the font's direction, horizontal or vertical,
+     * the following tables shall be used:
+     * 
+     * Vertical http://developer.apple.com/fonts/TTRefMan/RM06/Chap6vhea.html
      * Horizontal http://developer.apple.com/fonts/TTRefMan/RM06/Chap6hhea.html
-	 */
+     */
     public interface Metrics {  
-	    float getAscent(float pixelSize);
-	    float getDescent(float pixelSize);
-	    float getLineGap(float pixelSize);
-	    float getMaxExtend(float pixelSize);	    
-	    float getScale(float pixelSize);
-	    AABBox getBBox(float pixelSize);
+        float getAscent(float pixelSize);
+        float getDescent(float pixelSize);
+        float getLineGap(float pixelSize);
+        float getMaxExtend(float pixelSize);        
+        float getScale(float pixelSize);
+        AABBox getBBox(float pixelSize);
     }
 
-	/**
-	 * Glyph for font
-	 */
+    /**
+     * Glyph for font
+     */
     public interface Glyph {
         public Font getFont();
         public char getSymbol();

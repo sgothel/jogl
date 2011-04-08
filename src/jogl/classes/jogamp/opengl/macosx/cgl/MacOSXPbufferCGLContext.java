@@ -138,7 +138,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
     if (capabilities.getPbufferFloatingPointBuffers() &&
-	!isTigerOrLater) {
+    !isTigerOrLater) {
       throw new GLException("Floating-point pbuffers supported only on OS X 10.4 or later");
     }
     // Change our OpenGL mode to match that of any share context before we create ourselves

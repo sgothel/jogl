@@ -32,99 +32,99 @@ import com.jogamp.graph.geom.Triangle;
 
 
 public class HEdge {
-	public static int BOUNDARY = 3;
-	public static int INNER = 1;
-	public static int HOLE = 2;
-	
-	private GraphVertex vert;
-	private HEdge prev = null;
-	private HEdge next = null;
-	private HEdge sibling = null;
-	private int type = BOUNDARY;
-	private Triangle triangle = null;
-	
-	public HEdge(GraphVertex vert, int type) {
-		this.vert = vert;
-		this.type = type;
-	}
+    public static int BOUNDARY = 3;
+    public static int INNER = 1;
+    public static int HOLE = 2;
+    
+    private GraphVertex vert;
+    private HEdge prev = null;
+    private HEdge next = null;
+    private HEdge sibling = null;
+    private int type = BOUNDARY;
+    private Triangle triangle = null;
+    
+    public HEdge(GraphVertex vert, int type) {
+        this.vert = vert;
+        this.type = type;
+    }
 
-	public HEdge(GraphVertex vert, HEdge prev, HEdge next, HEdge sibling, int type) {
-		this.vert = vert;
-		this.prev = prev;
-		this.next = next;
-		this.sibling = sibling;
-		this.type = type;
-	}
+    public HEdge(GraphVertex vert, HEdge prev, HEdge next, HEdge sibling, int type) {
+        this.vert = vert;
+        this.prev = prev;
+        this.next = next;
+        this.sibling = sibling;
+        this.type = type;
+    }
 
-	public HEdge(GraphVertex vert, HEdge prev, HEdge next, HEdge sibling, int type, Triangle triangle) {
-		this.vert = vert;
-		this.prev = prev;
-		this.next = next;
-		this.sibling = sibling;
-		this.type = type;
-		this.triangle = triangle;
-	}
+    public HEdge(GraphVertex vert, HEdge prev, HEdge next, HEdge sibling, int type, Triangle triangle) {
+        this.vert = vert;
+        this.prev = prev;
+        this.next = next;
+        this.sibling = sibling;
+        this.type = type;
+        this.triangle = triangle;
+    }
 
-	public GraphVertex getGraphPoint() {
-		return vert;
-	}
+    public GraphVertex getGraphPoint() {
+        return vert;
+    }
 
-	public void setVert(GraphVertex vert) {
-		this.vert = vert;
-	}
+    public void setVert(GraphVertex vert) {
+        this.vert = vert;
+    }
 
-	public HEdge getPrev() {
-		return prev;
-	}
+    public HEdge getPrev() {
+        return prev;
+    }
 
-	public void setPrev(HEdge prev) {
-		this.prev = prev;
-	}
+    public void setPrev(HEdge prev) {
+        this.prev = prev;
+    }
 
-	public HEdge getNext() {
-		return next;
-	}
+    public HEdge getNext() {
+        return next;
+    }
 
-	public void setNext(HEdge next) {
-		this.next = next;
-	}
+    public void setNext(HEdge next) {
+        this.next = next;
+    }
 
-	public HEdge getSibling() {
-		return sibling;
-	}
+    public HEdge getSibling() {
+        return sibling;
+    }
 
-	public void setSibling(HEdge sibling) {
-		this.sibling = sibling;
-	}
+    public void setSibling(HEdge sibling) {
+        this.sibling = sibling;
+    }
 
-	public int getType() {
-		return type;
-	}
+    public int getType() {
+        return type;
+    }
 
-	public void setType(int type) {
-		this.type = type;
-	}
+    public void setType(int type) {
+        this.type = type;
+    }
 
-	public Triangle getTriangle() {
-		return triangle;
-	}
+    public Triangle getTriangle() {
+        return triangle;
+    }
 
-	public void setTriangle(Triangle triangle) {
-		this.triangle = triangle;
-	}
-	
-	public static <T extends Vertex> void connect(HEdge first, HEdge next){
-		first.setNext(next);
-		next.setPrev(first);
-	}
-	
-	public static <T extends Vertex> void makeSiblings(HEdge first, HEdge second){
-		first.setSibling(second);
-		second.setSibling(first);
-	}
-	
-	public boolean vertexOnCurveVertex(){
-		return vert.getPoint().isOnCurve();
-	}
-	
+    public void setTriangle(Triangle triangle) {
+        this.triangle = triangle;
+    }
+    
+    public static <T extends Vertex> void connect(HEdge first, HEdge next){
+        first.setNext(next);
+        next.setPrev(first);
+    }
+    
+    public static <T extends Vertex> void makeSiblings(HEdge first, HEdge second){
+        first.setSibling(second);
+        second.setSibling(first);
+    }
+    
+    public boolean vertexOnCurveVertex(){
+        return vert.getPoint().isOnCurve();
+    }
+    
 }

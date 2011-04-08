@@ -163,7 +163,7 @@ public class GLUT {
 
   public void glutSolidCylinder(double radius, double height, int slices, int stacks) {
     GL2 gl = GLUgl2.getCurrentGL2();
-  	
+      
     // Prepare table of points for drawing end caps
     double [] x = new double[slices];
     double [] y = new double[slices];
@@ -174,7 +174,7 @@ public class GLUT {
       x[i] = Math.cos(angle) * radius;
       y[i] = Math.sin(angle) * radius;
     }
-  	
+      
     // Draw bottom cap
     gl.glBegin(GL2.GL_TRIANGLE_FAN);
     gl.glNormal3d(0,0,-1);
@@ -184,7 +184,7 @@ public class GLUT {
     }
     gl.glVertex3d(x[0], y[0], 0);
     gl.glEnd();
-  	
+      
     // Draw top cap
     gl.glBegin(GL2.GL_TRIANGLE_FAN);
     gl.glNormal3d(0,0,1);
@@ -194,7 +194,7 @@ public class GLUT {
     }
     gl.glVertex3d(x[0], y[0], height);
     gl.glEnd();
-  	
+      
     // Draw walls
     quadObjInit(glu);
     glu.gluQuadricDrawStyle(quadObj, GLU.GLU_FILL);

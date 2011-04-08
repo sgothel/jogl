@@ -34,22 +34,22 @@ import com.jogamp.graph.font.Font.Metrics;
 import com.jogamp.graph.geom.AABBox;
 
 class TypecastHMetrics implements Metrics {
-	private final TypecastFont fontImpl;
-	
-	// HeadTable
+    private final TypecastFont fontImpl;
+    
+    // HeadTable
     private final HeadTable headTable;
-	private final float unitsPerEM_Inv;
-	private final AABBox bbox;
-	// HheaTable
-	private final HheaTable hheaTable;
+    private final float unitsPerEM_Inv;
+    private final AABBox bbox;
+    // HheaTable
+    private final HheaTable hheaTable;
     // VheaTable (for horizontal fonts)
     // private final VheaTable vheaTable;
-	
-	public TypecastHMetrics(TypecastFont fontImpl) {
-		this.fontImpl = fontImpl;
-		headTable = this.fontImpl.font.getHeadTable();
-		hheaTable = this.fontImpl.font.getHheaTable();		
-		// vheaTable = this.fontImpl.font.getVheaTable();
+    
+    public TypecastHMetrics(TypecastFont fontImpl) {
+        this.fontImpl = fontImpl;
+        headTable = this.fontImpl.font.getHeadTable();
+        hheaTable = this.fontImpl.font.getHheaTable();        
+        // vheaTable = this.fontImpl.font.getVheaTable();
         unitsPerEM_Inv = 1.0f / ( (float) headTable.getUnitsPerEm() );
         
         int maxWidth = headTable.getXMax() - headTable.getXMin();
@@ -59,8 +59,8 @@ class TypecastHMetrics implements Metrics {
         float highx = lowx + maxWidth;
         float highy = lowy + maxHeight;
         bbox = new AABBox(lowx, lowy, 0, highx, highy, 0); // invert
-	}
-	    
+    }
+        
     public final float getAscent(float pixelSize) {
         return getScale(pixelSize) * -hheaTable.getAscender(); // invert
     }

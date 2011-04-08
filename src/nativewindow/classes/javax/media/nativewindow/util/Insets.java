@@ -89,7 +89,7 @@ public class Insets implements Cloneable {
     }
 
     public String toString() {
-    	return getClass().getName() + "[top="  + top + ",left=" + left +
+        return getClass().getName() + "[top="  + top + ",left=" + left +
             ",bottom=" + bottom + ",right=" + right + "]";
     }
 

@@ -72,9 +72,9 @@ public class Mnemonic {
     public static final short RS = 0x43;
     public static final short WCVTP = 0x44;
     public static final short RCVT = 0x45;
-    public static final short GC = 0x46;	// [a]
+    public static final short GC = 0x46;    // [a]
     public static final short SCFS = 0x48;
-    public static final short MD = 0x49;	// [a]
+    public static final short MD = 0x49;    // [a]
     public static final short MPPEM = 0x4B;
     public static final short MPS = 0x4C;
     public static final short FLIPON = 0x4D;

@@ -32,19 +32,19 @@ public class Issue326Test1 extends Frame implements GLEventListener {
     int width, height;
 
     public static void main(String[] args) {
-        new Issue326Test1();		
+        new Issue326Test1();        
     }
-	
+    
     GLCanvas canvas;
     TextRenderer tr ;
-	
+    
     public Issue326Test1() {
         super("TextTest");
         this.setSize(800, 800);
         canvas = new GLCanvas();
         canvas.addGLEventListener(this);
         add(canvas);
-		
+        
         setVisible(true);
         addWindowListener(new WindowAdapter() {
                 public void windowClosing(WindowEvent e) {
@@ -57,20 +57,20 @@ public class Issue326Test1 extends Frame implements GLEventListener {
         GL2 gl = drawable.getGL().getGL2();
         gl.glClearColor(0, 0, 0, 0);
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT|GL2.GL_DEPTH_BUFFER_BIT);
-		
-	    
+        
+        
         gl.glMatrixMode(GL2.GL_PROJECTION);
-        gl.glLoadIdentity();		
+        gl.glLoadIdentity();        
         //new GLU().gluPerspective(45f, (float)width/(float)height, 0.1f, 1000f);
         gl.glOrtho(0.0, 800, 0.0, 800, -100.0, 100.0);
         gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
-		
+        
         tr.beginRendering(800,800);
         tr.draw( "die Marktwirtschaft. Da regelt sich � angeblich", 16, 32);
         tr.draw( "Hello World! This text is scrambled", 16, 16);
         tr.endRendering();
-		
+        
     }
 
     public void init(GLAutoDrawable arg0) {
@@ -90,5 +90,5 @@ public class Issue326Test1 extends Frame implements GLEventListener {
         gl.glLoadIdentity();
     }
 
-	public void dispose(GLAutoDrawable drawable) {}
+    public void dispose(GLAutoDrawable drawable) {}
 }

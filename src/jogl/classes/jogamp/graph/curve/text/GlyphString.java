@@ -47,122 +47,122 @@ import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GlyphString {
-	private final Vertex.Factory<? extends Vertex> pointFactory;	
-	private ArrayList<GlyphShape> glyphs = new ArrayList<GlyphShape>();
-	private String str = "";
-	private String fontname = "";
-	private Region region;
-	
-	private SVertex origin = new SVertex();
+    private final Vertex.Factory<? extends Vertex> pointFactory;    
+    private ArrayList<GlyphShape> glyphs = new ArrayList<GlyphShape>();
+    private String str = "";
+    private String fontname = "";
+    private Region region;
+    
+    private SVertex origin = new SVertex();
 
-	/** Create a new GlyphString object
-	 * @param fontname the name of the font that this String is
-	 * associated with
-	 * @param str the string object
-	 */
-	public GlyphString(Vertex.Factory<? extends Vertex> factory, String fontname, String str){
-		pointFactory = factory;
-		this.fontname = fontname;
-		this.str = str;
-	}
-	
-	public final Vertex.Factory<? extends Vertex> pointFactory() { return pointFactory; }
-	
-	public void addGlyphShape(GlyphShape glyph){
-		glyphs.add(glyph);
-	}
-	public String getString(){
-		return str;
-	}
+    /** Create a new GlyphString object
+     * @param fontname the name of the font that this String is
+     * associated with
+     * @param str the string object
+     */
+    public GlyphString(Vertex.Factory<? extends Vertex> factory, String fontname, String str){
+        pointFactory = factory;
+        this.fontname = fontname;
+        this.str = str;
+    }
+    
+    public final Vertex.Factory<? extends Vertex> pointFactory() { return pointFactory; }
+    
+    public void addGlyphShape(GlyphShape glyph){
+        glyphs.add(glyph);
+    }
+    public String getString(){
+        return str;
+    }
 
-	/** Creates the Curve based Glyphs from a Font 
-	 * @param paths a list of FontPath2D objects that define the outline
-	 * @param affineTransform a global affine transformation applied to the paths.
-	 */
-	public void createfromFontPath(Path2D[] paths, AffineTransform affineTransform){
-		final int numGlyps = paths.length;
-		for (int index=0;index<numGlyps;index++){
-			if(paths[index] == null){
-				continue;
-			}
-			PathIterator iterator = paths[index].iterator(affineTransform);
-			GlyphShape glyphShape = new GlyphShape(pointFactory, iterator);
-			
-			if(glyphShape.getNumVertices() < 3) {
-				continue;
-			}			
-			addGlyphShape(glyphShape);
-		}
-	}
-	
-	private ArrayList<Triangle> initializeTriangles(float sharpness){
-		ArrayList<Triangle> triangles = new ArrayList<Triangle>();
-		for(GlyphShape glyph:glyphs){
-			ArrayList<Triangle> tris = glyph.triangulate(sharpness);
-			triangles.addAll(tris);
-		}
-		return triangles;
-	}
-	
-	/** Generate a OGL Region to represent this Object.
-	 * @param context the GLContext which the region is defined by.
-	 * @param shaprness the curvature sharpness of the object.
-	 * @param st shader state
-	 */
-	public void generateRegion(GLContext context, float shaprness, ShaderState st, int type){
-		region = RegionFactory.create(context, st, type);
-		region.setFlipped(true);
-		
-		ArrayList<Triangle> tris = initializeTriangles(shaprness);
-		region.addTriangles(tris);
-		
-		int numVertices = region.getNumVertices();
-		for(GlyphShape glyph:glyphs){
-			ArrayList<Vertex> gVertices = glyph.getVertices();
-			for(Vertex vert:gVertices){
-				vert.setId(numVertices++);
-			}
-			region.addVertices(gVertices);
-		}
-		
-		/** initialize the region */
-		region.update();
-	}
-	
-	/** Generate a Hashcode for this object 
-	 * @return a string defining the hashcode
-	 */
-	public String getTextHashCode(){
-		return "" + fontname.hashCode() + str.hashCode();
-	}
+    /** Creates the Curve based Glyphs from a Font 
+     * @param paths a list of FontPath2D objects that define the outline
+     * @param affineTransform a global affine transformation applied to the paths.
+     */
+    public void createfromFontPath(Path2D[] paths, AffineTransform affineTransform){
+        final int numGlyps = paths.length;
+        for (int index=0;index<numGlyps;index++){
+            if(paths[index] == null){
+                continue;
+            }
+            PathIterator iterator = paths[index].iterator(affineTransform);
+            GlyphShape glyphShape = new GlyphShape(pointFactory, iterator);
+            
+            if(glyphShape.getNumVertices() < 3) {
+                continue;
+            }            
+            addGlyphShape(glyphShape);
+        }
+    }
+    
+    private ArrayList<Triangle> initializeTriangles(float sharpness){
+        ArrayList<Triangle> triangles = new ArrayList<Triangle>();
+        for(GlyphShape glyph:glyphs){
+            ArrayList<Triangle> tris = glyph.triangulate(sharpness);
+            triangles.addAll(tris);
+        }
+        return triangles;
+    }
+    
+    /** Generate a OGL Region to represent this Object.
+     * @param context the GLContext which the region is defined by.
+     * @param shaprness the curvature sharpness of the object.
+     * @param st shader state
+     */
+    public void generateRegion(GLContext context, float shaprness, ShaderState st, int type){
+        region = RegionFactory.create(context, st, type);
+        region.setFlipped(true);
+        
+        ArrayList<Triangle> tris = initializeTriangles(shaprness);
+        region.addTriangles(tris);
+        
+        int numVertices = region.getNumVertices();
+        for(GlyphShape glyph:glyphs){
+            ArrayList<Vertex> gVertices = glyph.getVertices();
+            for(Vertex vert:gVertices){
+                vert.setId(numVertices++);
+            }
+            region.addVertices(gVertices);
+        }
+        
+        /** initialize the region */
+        region.update();
+    }
+    
+    /** Generate a Hashcode for this object 
+     * @return a string defining the hashcode
+     */
+    public String getTextHashCode(){
+        return "" + fontname.hashCode() + str.hashCode();
+    }
 
-	/** Render the Object based using the associated Region
-	 *  previously generated.
-	 */
-	public void renderString3D() {
-		region.render(null, 0, 0, 0);
-	}
-	/** Render the Object based using the associated Region
-	 *  previously generated.
-	 */
-	public void renderString3D(PMVMatrix matrix, int vp_width, int vp_height, int size) {
-		region.render(matrix, vp_width, vp_height, size);
-	}
-	
-	/** Get the Origion of this GlyphString
-	 * @return 
-	 */
-	public Vertex getOrigin() {
-		return origin;
-	}
+    /** Render the Object based using the associated Region
+     *  previously generated.
+     */
+    public void renderString3D() {
+        region.render(null, 0, 0, 0);
+    }
+    /** Render the Object based using the associated Region
+     *  previously generated.
+     */
+    public void renderString3D(PMVMatrix matrix, int vp_width, int vp_height, int size) {
+        region.render(matrix, vp_width, vp_height, size);
+    }
+    
+    /** Get the Origion of this GlyphString
+     * @return 
+     */
+    public Vertex getOrigin() {
+        return origin;
+    }
 
-	/** Destroy the associated OGL objects
-	 */
-	public void destroy(){
-		region.destroy();
-	}
-	
-	public AABBox getBounds(){
-		return region.getBounds();
-	}
+    /** Destroy the associated OGL objects
+     */
+    public void destroy(){
+        region.destroy();
+    }
+    
+    public AABBox getBounds(){
+        return region.getBounds();
+    }
 }

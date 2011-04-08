@@ -187,7 +187,7 @@ public class Subdivider {
     renderhints.init();
 
     if (qlist == null) {
-      //				System.out.println("qlist is null");
+      //                System.out.println("qlist is null");
       return;
     }
 
@@ -217,7 +217,7 @@ public class Subdivider {
     } else {
       float[] rate = new float[2];
       qlist.findRates(spbrkpts, tpbrkpts, rate);
-      //				System.out.println("subdivider.drawsurfaces decompose");
+      //                System.out.println("subdivider.drawsurfaces decompose");
     }
 
     backend.bgnsurf(renderhints.wiretris, renderhints.wirequads);
@@ -268,7 +268,7 @@ public class Subdivider {
    */
   private void freejarcs(Bin initialbin2) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.freejarcs");
+    //            System.out.println("TODO subdivider.freejarcs");
   }
 
   /**
@@ -319,7 +319,7 @@ public class Subdivider {
         }
       }
     } else{
-      //				System.out.println("Source is empty - subdivider.splitins");
+      //                System.out.println("Source is empty - subdivider.splitins");
     }
   }
 
@@ -331,7 +331,7 @@ public class Subdivider {
    */
   private void splitInT(Bin source, int start, int end) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.splitint");
+    //            System.out.println("TODO subdivider.splitint");
 
     if (source.isnonempty()) {
       if (start != end) {
@@ -485,7 +485,7 @@ public class Subdivider {
    */
   private void monosplitInS(Bin source, int start, int end) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.monosplitins");
+    //            System.out.println("TODO subdivider.monosplitins");
   }
 
   /**
@@ -494,7 +494,7 @@ public class Subdivider {
    */
   private void findIrregularS(Bin source) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.findIrregularS");
+    //            System.out.println("TODO subdivider.findIrregularS");
   }
 
   /**
@@ -502,7 +502,7 @@ public class Subdivider {
    */
   private void setArcTypePwl() {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.setarctypepwl");
+    //            System.out.println("TODO subdivider.setarctypepwl");
   }
 
   /**
@@ -512,7 +512,7 @@ public class Subdivider {
    */
   private void tesselation(Bin source, Patchlist patchlist) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.tesselation");
+    //            System.out.println("TODO subdivider.tesselation");
   }
 
   /**
@@ -520,7 +520,7 @@ public class Subdivider {
    */
   private void setDegenerate() {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.setdegenerate");
+    //            System.out.println("TODO subdivider.setdegenerate");
   }
 
   /**
@@ -611,7 +611,7 @@ public class Subdivider {
    */
   private void join_t(Bin left, Bin right, Arc arc, Arc relative) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.join_t");
+    //            System.out.println("TODO subdivider.join_t");
   }
 
   /**
@@ -621,7 +621,7 @@ public class Subdivider {
    */
   private void check_t(Arc arc, Arc relative) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.check_t");
+    //            System.out.println("TODO subdivider.check_t");
   }
 
   /**
@@ -670,7 +670,7 @@ public class Subdivider {
    */
   private void link(Arc jarc1, Arc jarc2, Arc newright, Arc newleft) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.link");
+    //            System.out.println("TODO subdivider.link");
   }
 
   /**
@@ -679,7 +679,7 @@ public class Subdivider {
    */
   private boolean isBezierArcType() {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.isbezierarc");
+    //            System.out.println("TODO subdivider.isbezierarc");
     return true;
   }
 
@@ -690,7 +690,7 @@ public class Subdivider {
    */
   private void simplelink(Arc jarc1, Arc jarc2) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.simplelink");
+    //            System.out.println("TODO subdivider.simplelink");
   }
 
   /**
@@ -700,7 +700,7 @@ public class Subdivider {
    */
   private void check_s(Arc arc, Arc relative) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.check_s");
+    //            System.out.println("TODO subdivider.check_s");
 
   }
 
@@ -756,7 +756,7 @@ public class Subdivider {
       } else {
         if (hdiff > 0) {
           // TODO rest
-          //						System.out.println("TODO subdivider.partition rest of else");
+          //                        System.out.println("TODO subdivider.partition rest of else");
         } else if (hdiff == 0) {
           tailonleft.addarc(jarc);
         } else {
@@ -788,7 +788,7 @@ public class Subdivider {
   private void classify_tailonright_t(Bin tailonright, Bin intersections,
                                       Bin right, float value) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.classify_tailonright_t");
+    //            System.out.println("TODO subdivider.classify_tailonright_t");
 
   }
 
@@ -862,7 +862,7 @@ public class Subdivider {
    */
   private boolean ccwTurn_sr(Arc prev, Arc j) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO ccwTurn_sr");
+    //            System.out.println("TODO ccwTurn_sr");
     return false;
   }
 
@@ -876,7 +876,7 @@ public class Subdivider {
   private void classify_headonright_t(Bin headonright, Bin intersections,
                                       Bin right, float value) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.classify_headonright_t");
+    //            System.out.println("TODO subdivider.classify_headonright_t");
   }
 
   /**
@@ -889,7 +889,7 @@ public class Subdivider {
   private void classify_tailonleft_t(Bin tailonleft, Bin intersections,
                                      Bin left, float value) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.classify_tailonleft_t");
+    //            System.out.println("TODO subdivider.classify_tailonleft_t");
   }
 
   /**
@@ -930,7 +930,7 @@ public class Subdivider {
    */
   private boolean ccwTurn_tl(Arc prev, Arc j) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.ccwTurn_tl");
+    //            System.out.println("TODO subdivider.ccwTurn_tl");
     return false;
   }
 
@@ -1004,7 +1004,7 @@ public class Subdivider {
    */
   private boolean ccwTurn_sl(Arc prev, Arc j) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.ccwTurn_sl");
+    //            System.out.println("TODO subdivider.ccwTurn_sl");
     return false;
   }
 
@@ -1018,7 +1018,7 @@ public class Subdivider {
    */
   private int arc_split(Arc jarc, int param, float value, int i) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.arc_split");
+    //            System.out.println("TODO subdivider.arc_split");
     return 0;
   }
 
@@ -1045,7 +1045,7 @@ public class Subdivider {
    */
   private void outline(Bin source) {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO subdivider.outline");
+    //            System.out.println("TODO subdivider.outline");
   }
 
   /**
@@ -1128,7 +1128,7 @@ public class Subdivider {
 
     if (curvelist.needsSamplingSubdivision() && (subdivisions > 0)) {
       // TODO kód
-      //				System.out.println("TODO subdivider-needsSamplingSubdivision");
+      //                System.out.println("TODO subdivider-needsSamplingSubdivision");
     } else {
       int nu = (int) (1 + curvelist.range[2] / curvelist.stepsize);
       backend.curvgrid(curvelist.range[0], curvelist.range[1], nu);

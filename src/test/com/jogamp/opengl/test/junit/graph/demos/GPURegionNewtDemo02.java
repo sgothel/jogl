@@ -49,8 +49,8 @@ public class GPURegionNewtDemo02 {
     }
     
     public void testMe() {
-		GLProfile.initSingleton(true);
-		GLProfile glp = GLProfile.getGL2ES2();
+        GLProfile.initSingleton(true);
+        GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);               
         System.out.println("Requested: " + caps);
@@ -65,11 +65,11 @@ public class GPURegionNewtDemo02 {
         window.addGLEventListener(regionGLListener);
              
         window.enablePerfLog(true);     
-		window.setVisible(true);
+        window.setVisible(true);
 
-		//FPSAnimator animator = new FPSAnimator(60);
+        //FPSAnimator animator = new FPSAnimator(60);
         Animator animator = new Animator();
-		animator.add(window);
-		animator.start();
-	}    
+        animator.add(window);
+        animator.start();
+    }    
 }

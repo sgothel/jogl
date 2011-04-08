@@ -41,143 +41,143 @@ import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 
 public class VBORegionSPES2  implements Region {
-	private int numVertices = 0;
-	
-	private ArrayList<Triangle> triangles = new ArrayList<Triangle>();
-	private ArrayList<Vertex> vertices = new ArrayList<Vertex>();
-	private GLArrayDataServer verticeAttr = null;
-	private GLArrayDataServer texCoordAttr = null;
-	private GLArrayDataServer indices = null;
-	
-	private GLContext context;
-	
-	private boolean flipped = false;
-	private boolean dirty = false;
-	
-	private AABBox box = null;
-	
-	public VBORegionSPES2(GLContext context){
-		this.context =context;
-	}
-	
-	public void update(){
-		box = new AABBox();
-		GL2ES2 gl = context.getGL().getGL2ES2();
-		
+    private int numVertices = 0;
+    
+    private ArrayList<Triangle> triangles = new ArrayList<Triangle>();
+    private ArrayList<Vertex> vertices = new ArrayList<Vertex>();
+    private GLArrayDataServer verticeAttr = null;
+    private GLArrayDataServer texCoordAttr = null;
+    private GLArrayDataServer indices = null;
+    
+    private GLContext context;
+    
+    private boolean flipped = false;
+    private boolean dirty = false;
+    
+    private AABBox box = null;
+    
+    public VBORegionSPES2(GLContext context){
+        this.context =context;
+    }
+    
+    public void update(){
+        box = new AABBox();
+        GL2ES2 gl = context.getGL().getGL2ES2();
+        
         destroy(gl);        
 
         indices = GLArrayDataServer.createGLSL(gl, null, 3, GL2ES2.GL_SHORT, false, 
                                                triangles.size(), GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);        
-		for(Triangle t:triangles){
-			final Vertex[] t_vertices = t.getVertices();
-			
-			if(t_vertices[0].getId() == Integer.MAX_VALUE){
-				t_vertices[0].setId(numVertices++);
-				t_vertices[1].setId(numVertices++);
-				t_vertices[2].setId(numVertices++);
-								
-				vertices.add(t.getVertices()[0]);
-				vertices.add(t.getVertices()[1]);
-				vertices.add(t.getVertices()[2]);
+        for(Triangle t:triangles){
+            final Vertex[] t_vertices = t.getVertices();
+            
+            if(t_vertices[0].getId() == Integer.MAX_VALUE){
+                t_vertices[0].setId(numVertices++);
+                t_vertices[1].setId(numVertices++);
+                t_vertices[2].setId(numVertices++);
+                                
+                vertices.add(t.getVertices()[0]);
+                vertices.add(t.getVertices()[1]);
+                vertices.add(t.getVertices()[2]);
 
-				indices.puts((short) t.getVertices()[0].getId());
-				indices.puts((short) t.getVertices()[1].getId());
-				indices.puts((short) t.getVertices()[2].getId());
-			}
-			else{
-				Vertex v1 = t_vertices[0];
-				Vertex v2 = t_vertices[1];
-				Vertex v3 = t_vertices[2];
-				
-				indices.puts((short) v1.getId());
-				indices.puts((short) v2.getId());
-				indices.puts((short) v3.getId());
-			}
-		}
+                indices.puts((short) t.getVertices()[0].getId());
+                indices.puts((short) t.getVertices()[1].getId());
+                indices.puts((short) t.getVertices()[2].getId());
+            }
+            else{
+                Vertex v1 = t_vertices[0];
+                Vertex v2 = t_vertices[1];
+                Vertex v3 = t_vertices[2];
+                
+                indices.puts((short) v1.getId());
+                indices.puts((short) v2.getId());
+                indices.puts((short) v3.getId());
+            }
+        }
         indices.seal(gl, true);
-		
-		verticeAttr = GLArrayDataServer.createGLSL(gl, Region.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT, false,
-		                                           vertices.size(), GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER); 
-		verticeAttr.setLocation(Region.VERTEX_ATTR_IDX);
-		for(Vertex v:vertices){
-			
-			if(flipped){
-				verticeAttr.putf(v.getX());
-				verticeAttr.putf(-1*v.getY());
-				verticeAttr.putf(v.getZ());
-				
-				box.resize(v.getX(),-1*v.getY(),v.getZ());
-			}
-			else{
-				verticeAttr.putf(v.getX());
-				verticeAttr.putf(v.getY());
-				verticeAttr.putf(v.getZ());
-				
-				box.resize(v.getX(),v.getY(),v.getZ());
-			}
-		}
-        verticeAttr.seal(gl, true);		
+        
+        verticeAttr = GLArrayDataServer.createGLSL(gl, Region.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT, false,
+                                                   vertices.size(), GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER); 
+        verticeAttr.setLocation(Region.VERTEX_ATTR_IDX);
+        for(Vertex v:vertices){
+            
+            if(flipped){
+                verticeAttr.putf(v.getX());
+                verticeAttr.putf(-1*v.getY());
+                verticeAttr.putf(v.getZ());
+                
+                box.resize(v.getX(),-1*v.getY(),v.getZ());
+            }
+            else{
+                verticeAttr.putf(v.getX());
+                verticeAttr.putf(v.getY());
+                verticeAttr.putf(v.getZ());
+                
+                box.resize(v.getX(),v.getY(),v.getZ());
+            }
+        }
+        verticeAttr.seal(gl, true);        
         
         texCoordAttr = GLArrayDataServer.createGLSL(gl, Region.TEXCOORD_ATTR_NAME, 2, GL2ES2.GL_FLOAT, false,
                                                     vertices.size(), GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER);
         texCoordAttr.setLocation(Region.TEXCOORD_ATTR_IDX);
-		for(Vertex v:vertices){
-			float[] tex = v.getTexCoord();
-			texCoordAttr.putf(tex[0]);
-			texCoordAttr.putf(tex[1]);
-		}
-		texCoordAttr.seal(gl, true);
+        for(Vertex v:vertices){
+            float[] tex = v.getTexCoord();
+            texCoordAttr.putf(tex[0]);
+            texCoordAttr.putf(tex[1]);
+        }
+        texCoordAttr.seal(gl, true);
         
         verticeAttr.enableBuffer(gl, false);       
         texCoordAttr.enableBuffer(gl, false);
         indices.enableBuffer(gl, false);
         
-		dirty = false;
-	}
-	
-	private void render() {
-		GL2ES2 gl = context.getGL().getGL2ES2();
+        dirty = false;
+    }
+    
+    private void render() {
+        GL2ES2 gl = context.getGL().getGL2ES2();
 
         verticeAttr.enableBuffer(gl, true);       
         texCoordAttr.enableBuffer(gl, true);
         indices.enableBuffer(gl, true);
-		
-		gl.glDrawElements(GL2ES2.GL_TRIANGLES, indices.getElementNumber() * indices.getComponentNumber(), GL2ES2.GL_UNSIGNED_SHORT, 0); 		
-		
+        
+        gl.glDrawElements(GL2ES2.GL_TRIANGLES, indices.getElementNumber() * indices.getComponentNumber(), GL2ES2.GL_UNSIGNED_SHORT, 0);         
+        
         verticeAttr.enableBuffer(gl, false);       
         texCoordAttr.enableBuffer(gl, false);
         indices.enableBuffer(gl, false);
-	}
-	
-	public void render(PMVMatrix matrix, int vp_width, int vp_height, int width){
-		render();
-	}
-	
-	public void addTriangles(ArrayList<Triangle> tris) {
-		triangles.addAll(tris);
-		dirty = true;
-	}
-	
-	public int getNumVertices(){
-		return numVertices;
-	}
-	
-	public void addVertices(ArrayList<Vertex> verts){
-		vertices.addAll(verts);
-		numVertices = vertices.size();
-		dirty = true;
-	}
-	
-	public boolean isDirty(){
-		return dirty;
-	}
-	
-	public void destroy() {
-		GL2ES2 gl = context.getGL().getGL2ES2();
-		destroy(gl);		
-	}
-		
-    final void destroy(GL2ES2 gl) {		
+    }
+    
+    public void render(PMVMatrix matrix, int vp_width, int vp_height, int width){
+        render();
+    }
+    
+    public void addTriangles(ArrayList<Triangle> tris) {
+        triangles.addAll(tris);
+        dirty = true;
+    }
+    
+    public int getNumVertices(){
+        return numVertices;
+    }
+    
+    public void addVertices(ArrayList<Vertex> verts){
+        vertices.addAll(verts);
+        numVertices = vertices.size();
+        dirty = true;
+    }
+    
+    public boolean isDirty(){
+        return dirty;
+    }
+    
+    public void destroy() {
+        GL2ES2 gl = context.getGL().getGL2ES2();
+        destroy(gl);        
+    }
+        
+    final void destroy(GL2ES2 gl) {        
         if(null != verticeAttr) {
             verticeAttr.destroy(gl);
             verticeAttr = null;
@@ -190,16 +190,16 @@ public class VBORegionSPES2  implements Region {
             indices.destroy(gl);
             indices = null;
         }
-	}
-	
-	public boolean isFlipped() {
-		return flipped;
-	}
+    }
+    
+    public boolean isFlipped() {
+        return flipped;
+    }
 
-	public void setFlipped(boolean flipped) {
-		this.flipped = flipped;
-	}
-	public AABBox getBounds(){
-		return box;
-	}
+    public void setFlipped(boolean flipped) {
+        this.flipped = flipped;
+    }
+    public AABBox getBounds(){
+        return box;
+    }
 }

@@ -442,7 +442,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
     // TODO errval ??
     if (numTrims > 0) {
-      //				System.out.println("TODO glunurbs.do_endsurface - numtrims > 0");
+      //                System.out.println("TODO glunurbs.do_endsurface - numtrims > 0");
     }
 
     subdivider.beginQuilts(new GL2Backend());
@@ -461,7 +461,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
    */
   public void do_endcurve() {
     // DONE
-    //			// System.out.println("do_endcurve");
+    //            // System.out.println("do_endcurve");
     if (inCurve <= 0) {
       do_nurbserror(7);
       return;
@@ -509,7 +509,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
    */
   private void do_nurbserror(int i) {
     // TODO nurberror
-    //			System.out.println("TODO nurbserror " + i);
+    //            System.out.println("TODO nurbserror " + i);
   }
 
   /**
@@ -527,7 +527,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
    */
   private void loadGLMatrices() {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO glunurbs.loadGLMatrices");
+    //            System.out.println("TODO glunurbs.loadGLMatrices");
   }
 
   /**
@@ -783,7 +783,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
     // DONE
     O_surface o_surface = new O_surface();
     // TODO nuid
-    //			System.out.println("TODO glunurbs.bgnsurface nuid");
+    //            System.out.println("TODO glunurbs.bgnsurface nuid");
     thread("do_bgnsurface", o_surface);
   }
 
@@ -800,7 +800,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
    */
   private void endtrim() {
     // TODO Auto-generated method stub
-    //			System.out.println("TODO glunurbs.endtrim");
+    //            System.out.println("TODO glunurbs.endtrim");
   }
 
   /**

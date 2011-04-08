@@ -87,20 +87,20 @@ public class TestGearsGLJPanelAWTBug450 extends UITestCase {
         GLJPanel glJPanel = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel);
         glJPanel.addGLEventListener(new Gears() {
-        	@Override
-        	public void display(GLAutoDrawable drawable) {
-        		super.display(drawable);
-        		// look at one pixel at the bottom of the frame, just right of
-        		// the center line, and make sure it's not black
-        	    GL2 gl = GLUgl2.getCurrentGL2();
-        	    ByteBuffer bytebuffer = ByteBuffer.allocateDirect( 3 );
-        	    gl.glReadPixels( 260, 10, 1, 1, GL2.GL_BGR, GL2.GL_UNSIGNED_BYTE, bytebuffer );
-        	    byte byte0 = bytebuffer.get( 0 );
-        	    byte byte1 = bytebuffer.get( 1 );
-        	    byte byte2 = bytebuffer.get( 2 );
-        	    if( (byte0 == 0) && (byte1 == 0) && (byte2 == 0) )
-        	    	failed = true;
-        	}
+            @Override
+            public void display(GLAutoDrawable drawable) {
+                super.display(drawable);
+                // look at one pixel at the bottom of the frame, just right of
+                // the center line, and make sure it's not black
+                GL2 gl = GLUgl2.getCurrentGL2();
+                ByteBuffer bytebuffer = ByteBuffer.allocateDirect( 3 );
+                gl.glReadPixels( 260, 10, 1, 1, GL2.GL_BGR, GL2.GL_UNSIGNED_BYTE, bytebuffer );
+                byte byte0 = bytebuffer.get( 0 );
+                byte byte1 = bytebuffer.get( 1 );
+                byte byte2 = bytebuffer.get( 2 );
+                if( (byte0 == 0) && (byte1 == 0) && (byte2 == 0) )
+                    failed = true;
+            }
         });
 
         FPSAnimator animator = new FPSAnimator(glJPanel, 60);
@@ -129,7 +129,7 @@ public class TestGearsGLJPanelAWTBug450 extends UITestCase {
         Assert.assertEquals(false, animator.isAnimating());
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-            		_frame.setVisible(false);
+                    _frame.setVisible(false);
                     _frame.getContentPane().remove(_glJPanel);
                     _frame.remove(_glJPanel);
                     _glJPanel.destroy();

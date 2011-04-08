@@ -193,18 +193,18 @@ public class Texture {
     // Package-private constructor for creating a texture object which wraps
     // an existing texture ID from another package
     Texture(int textureID,
-	    int target,
-	    int texWidth,
-	    int texHeight,
-	    int imgWidth,
-	    int imgHeight,
-	    boolean mustFlipVertically) {
-	this.texID = textureID;
-	this.target = target;
-	this.mustFlipVertically = mustFlipVertically;
-	this.texWidth = texWidth;
-	this.texHeight = texHeight;
-	setImageSize(imgWidth, imgHeight, target);
+        int target,
+        int texWidth,
+        int texHeight,
+        int imgWidth,
+        int imgHeight,
+        boolean mustFlipVertically) {
+    this.texID = textureID;
+    this.target = target;
+    this.mustFlipVertically = mustFlipVertically;
+    this.texWidth = texWidth;
+    this.texHeight = texHeight;
+    setImageSize(imgWidth, imgHeight, target);
     }
 
     /**

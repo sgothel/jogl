@@ -300,7 +300,7 @@ class Sweep {
         regPrev = regFirst;
         ePrev = regFirst.eUp;
         while (regPrev != regLast) {
-            regPrev.fixUpperEdge = false;	/* placement was OK */
+            regPrev.fixUpperEdge = false;    /* placement was OK */
             reg = RegionBelow(regPrev);
             e = reg.eUp;
             if (e.Org != ePrev.Org) {
@@ -327,7 +327,7 @@ class Sweep {
                 if (!Mesh.__gl_meshSplice(e.Sym.Lnext, e)) throw new RuntimeException();
                 if (!Mesh.__gl_meshSplice(ePrev, e)) throw new RuntimeException();
             }
-            FinishRegion(tess, regPrev);	/* may change reg.eUp */
+            FinishRegion(tess, regPrev);    /* may change reg.eUp */
             ePrev = reg.eUp;
             regPrev = reg;
         }
@@ -627,11 +627,11 @@ class Sweep {
         assert (orgUp != tess.event && orgLo != tess.event);
         assert (!regUp.fixUpperEdge && !regLo.fixUpperEdge);
 
-        if (orgUp == orgLo) return false;	/* right endpoints are the same */
+        if (orgUp == orgLo) return false;    /* right endpoints are the same */
 
         tMinUp = Math.min(orgUp.t, dstUp.t);
         tMaxLo = Math.max(orgLo.t, dstLo.t);
-        if (tMinUp > tMaxLo) return false;	/* t ranges do not overlap */
+        if (tMinUp > tMaxLo) return false;    /* t ranges do not overlap */
 
         if (Geom.VertLeq(orgUp, orgLo)) {
             if (Geom.EdgeSign(dstLo, orgUp, orgLo) > 0) return false;
@@ -743,7 +743,7 @@ class Sweep {
         eUp.Org.t = isect.t;
         eUp.Org.pqHandle = tess.pq.pqInsert(eUp.Org); /* __gl_pqSortInsert */
         if (eUp.Org.pqHandle == Long.MAX_VALUE) {
-            tess.pq.pqDeletePriorityQ();	/* __gl_pqSortDeletePriorityQ */
+            tess.pq.pqDeletePriorityQ();    /* __gl_pqSortDeletePriorityQ */
             tess.pq = null;
             throw new RuntimeException();
         }
@@ -959,7 +959,7 @@ class Sweep {
                 regUp.fixUpperEdge = false;
             }
             if (!Mesh.__gl_meshSplice(vEvent.anEdge, e)) throw new RuntimeException();
-            SweepEvent(tess, vEvent);	/* recurse */
+            SweepEvent(tess, vEvent);    /* recurse */
             return;
         }
 
@@ -1001,9 +1001,9 @@ class Sweep {
  *
  * - the degenerate case: if vEvent is close enough to U or L, we
  *   merge vEvent into that edge chain.  The subcases are:
- *	- merging with the rightmost vertex of U or L
- *	- merging with the active edge of U or L
- *	- merging with an already-processed portion of U or L
+ *    - merging with the rightmost vertex of U or L
+ *    - merging with the active edge of U or L
+ *    - merging with an already-processed portion of U or L
  */ {
         ActiveRegion regUp, regLo, reg;
         GLUhalfEdge eUp, eLo, eNew;
@@ -1063,7 +1063,7 @@ class Sweep {
         ActiveRegion regUp, reg;
         GLUhalfEdge e, eTopLeft, eBottomLeft;
 
-        tess.event = vEvent;		/* for access in EdgeLeq() */
+        tess.event = vEvent;        /* for access in EdgeLeq() */
         DebugEvent(tess);
 
         /* Check if this vertex is the right endpoint of an edge that is
@@ -1130,7 +1130,7 @@ class Sweep {
         e.Org.t = t;
         e.Sym.Org.s = -SENTINEL_COORD;
         e.Sym.Org.t = t;
-        tess.event = e.Sym.Org;		/* initialize it */
+        tess.event = e.Sym.Org;        /* initialize it */
 
         reg.eUp = e;
         reg.windingNumber = 0;
@@ -1180,7 +1180,7 @@ class Sweep {
             DeleteRegion(tess, reg);
 /*    __gl_meshDelete( reg.eUp );*/
         }
-        Dict.dictDeleteDict(tess.dict);	/* __gl_dictListDeleteDict */
+        Dict.dictDeleteDict(tess.dict);    /* __gl_dictListDeleteDict */
     }
 
 
@@ -1199,7 +1199,7 @@ class Sweep {
             if (Geom.VertEq(e.Org, e.Sym.Org) && e.Lnext.Lnext != e) {
                 /* Zero-length edge, contour has at least 3 edges */
 
-                SpliceMergeVertices(tess, eLnext, e);	/* deletes e.Org */
+                SpliceMergeVertices(tess, eLnext, e);    /* deletes e.Org */
                 if (!Mesh.__gl_meshDelete(e)) throw new RuntimeException(); /* e is a self-loop */
                 e = eLnext;
                 eLnext = e.Lnext;
@@ -1243,7 +1243,7 @@ class Sweep {
             if (v.pqHandle == Long.MAX_VALUE) break;
         }
         if (v != vHead || !pq.pqInit()) { /* __gl_pqSortInit */
-            tess.pq.pqDeletePriorityQ();	/* __gl_pqSortDeletePriorityQ */
+            tess.pq.pqDeletePriorityQ();    /* __gl_pqSortDeletePriorityQ */
             tess.pq = null;
             return false;
         }
@@ -1306,7 +1306,7 @@ class Sweep {
          * all the vertices in a priority queue.  Events are processed in
          * lexicographic order, ie.
          *
-         *	e1 < e2  iff  e1.x < e2.x || (e1.x == e2.x && e1.y < e2.y)
+         *    e1 < e2  iff  e1.x < e2.x || (e1.x == e2.x && e1.y < e2.y)
          */
         RemoveDegenerateEdges(tess);
         if (!InitPriorityQ(tess)) return false; /* if error */

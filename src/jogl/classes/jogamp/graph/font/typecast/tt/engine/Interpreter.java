@@ -140,8 +140,8 @@ public class Interpreter {
     private void _deltac1() {
         int n = pop();
         for (int i = 0; i < n; i++) {
-            pop();	// pn
-            pop();	// argn
+            pop();    // pn
+            pop();    // argn
         }
     }
 
@@ -151,8 +151,8 @@ public class Interpreter {
     private void _deltac2() {
         int n = pop();
         for (int i = 0; i < n; i++) {
-            pop();	// pn
-            pop();	// argn
+            pop();    // pn
+            pop();    // argn
         }
     }
 
@@ -162,8 +162,8 @@ public class Interpreter {
     private void _deltac3() {
         int n = pop();
         for (int i = 0; i < n; i++) {
-            pop();	// pn
-            pop();	// argn
+            pop();    // pn
+            pop();    // argn
         }
     }
 
@@ -173,8 +173,8 @@ public class Interpreter {
     private void _deltap1() {
         int n = pop();
         for (int i = 0; i < n; i++) {
-            pop();	// pn
-            pop();	// argn
+            pop();    // pn
+            pop();    // argn
         }
     }
 
@@ -184,8 +184,8 @@ public class Interpreter {
     private void _deltap2() {
         int n = pop();
         for (int i = 0; i < n; i++) {
-            pop();	// pn
-            pop();	// argn
+            pop();    // pn
+            pop();    // argn
         }
     }
 
@@ -195,8 +195,8 @@ public class Interpreter {
     private void _deltap3() {
         int n = pop();
         for (int i = 0; i < n; i++) {
-            pop();	// pn
-            pop();	// argn
+            pop();    // pn
+            pop();    // argn
         }
     }
 
@@ -407,12 +407,12 @@ public class Interpreter {
      * to inhibit grid-fitting when a glyph is being rotated or stretched, use the
      * following sequence on the preprogram:
      *
-     * PUSHB[000] 6	; ask GETINFO to check for stretching or rotation
-     * GETINFO[]		; will push TRUE if glyph is stretched or rotated
-     * IF[]				; tests value at top of stack
-     * PUSHB[000] 1	; value for INSTCTRL
-     * PUSHB[000] 1	; selector for INSTCTRL
-     * INSTRCTRL[]		; based on selector and value will turn grid-fitting off
+     * PUSHB[000] 6    ; ask GETINFO to check for stretching or rotation
+     * GETINFO[]        ; will push TRUE if glyph is stretched or rotated
+     * IF[]                ; tests value at top of stack
+     * PUSHB[000] 1    ; value for INSTCTRL
+     * PUSHB[000] 1    ; selector for INSTCTRL
+     * INSTRCTRL[]        ; based on selector and value will turn grid-fitting off
      * EIF[]
      *
      * Selector flag 2 is used to establish that any parameters set in the CVT program
@@ -923,8 +923,8 @@ public class Interpreter {
      * Set Freedom_Vector From Stack
      */
     private void _sfvfs() {
-        gs.freedom_vector[1] = pop();	// y
-        gs.freedom_vector[0] = pop();	// x
+        gs.freedom_vector[1] = pop();    // y
+        gs.freedom_vector[0] = pop();    // x
     }
 
     /*
@@ -988,9 +988,9 @@ public class Interpreter {
      * USES: loop
      */
     private void _shpix() {
-        pop();	// amount
+        pop();    // amount
         while (gs.loop-- > 0) {
-            pop();	// p
+            pop();    // p
         }
         gs.loop = 1;
     }
@@ -1017,8 +1017,8 @@ public class Interpreter {
      * Set Projection_Vector From Stack
      */
     private void _spvfs() {
-        gs.projection_vector[1] = pop();	// y
-        gs.projection_vector[0] = pop();	// x
+        gs.projection_vector[1] = pop();    // y
+        gs.projection_vector[0] = pop();    // x
     }
 
     /*

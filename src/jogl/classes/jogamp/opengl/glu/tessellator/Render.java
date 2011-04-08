@@ -79,8 +79,8 @@ class Render {
             this.render = render;
         }
 
-        long size;		/* number of triangles used */
-        jogamp.opengl.glu.tessellator.GLUhalfEdge eStart;	/* edge where this primitive starts */
+        long size;        /* number of triangles used */
+        jogamp.opengl.glu.tessellator.GLUhalfEdge eStart;    /* edge where this primitive starts */
         renderCallBack render;
     };
 
@@ -295,7 +295,7 @@ class Render {
          */
         jogamp.opengl.glu.tessellator.GLUhalfEdge e;
         int newState;
-        int edgeState = -1;	/* force edge state output for first vertex */
+        int edgeState = -1;    /* force edge state output for first vertex */
 
         tess.callBeginOrBeginData(GL.GL_TRIANGLES);
 

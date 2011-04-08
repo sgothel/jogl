@@ -135,7 +135,7 @@ public class Curve {
                             stride);
     }
     if (cullval == Subdivider.CULL_ACCEPT) {
-      //				System.out.println("TODO curve.Curve-cullval");
+      //                System.out.println("TODO curve.Curve-cullval");
       // mapdesc.xformCulling(ps,qs.get().order,qs.get().stride,cpts,stride);
     }
 
@@ -145,13 +145,13 @@ public class Curve {
     range[2] = range[1] - range[0];
     // TODO it is necessary to solve problem with "this" pointer here 
     if (range[0] != pta[0]) {
-      //				System.out.println("TODO curve.Curve-range0");
+      //                System.out.println("TODO curve.Curve-range0");
       // Curve lower=new Curve(this,pta,0);
       // lower.next=next;
       // this=lower;
     }
     if (range[1] != ptb[0]) {
-      //				System.out.println("TODO curve.Curve-range1");
+      //                System.out.println("TODO curve.Curve-range1");
       // Curve lower=new Curve(this,ptb,0);
     }
   }
@@ -162,7 +162,7 @@ public class Curve {
    */
   public int cullCheck() {
     if (cullval == Subdivider.CULL_ACCEPT) {
-      //				System.out.println("TODO curve.cullval");
+      //                System.out.println("TODO curve.cullval");
       // cullval=mapdesc.cullCheck(cpts,order,stride);
     }
     // TODO compute cullval and return the computed value
@@ -189,16 +189,16 @@ public class Curve {
       int val = 0;
       // mapdesc.project(spts,stride,tmp,tstride,order);
 
-      //				System.out.println("TODO curve.getsptepsize mapdesc.project");
+      //                System.out.println("TODO curve.getsptepsize mapdesc.project");
 
       if (val == 0) {
         setstepsize(mapdesc.maxrate);
       } else {
         float t = mapdesc.getProperty(NurbsConsts.N_PIXEL_TOLERANCE);
         if (mapdesc.isParametricDistanceSampling()) {
-          //						System.out.println("TODO curve.getstepsize - parametric");
+          //                        System.out.println("TODO curve.getstepsize - parametric");
         } else if (mapdesc.isPathLengthSampling()) {
-          //						System.out.println("TODO curve.getstepsize - pathlength");
+          //                        System.out.println("TODO curve.getstepsize - pathlength");
         } else {
           setstepsize(mapdesc.maxrate);
         }

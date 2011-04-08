@@ -49,7 +49,7 @@ import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 
 public abstract class MacOSXCGLContext extends GLContextImpl
-{	
+{    
   protected boolean isNSContext;
   private CGLExt cglExt;
   // Table that holds the addresses of the native C-language entry points for
@@ -178,7 +178,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         }
     }
   }
-	
+    
   protected void releaseImpl() throws GLException {
     if ( isNSContext ) {
         if (!CGL.clearCurrentContext(contextHandle)) {
@@ -188,7 +188,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         CGL.CGLReleaseContext(contextHandle);
     }
   }
-	
+    
   protected void destroyImpl() throws GLException {
     if ( !isNSContext ) {
       if (CGL.kCGLNoError != CGL.CGLDestroyContext(contextHandle)) {
@@ -254,12 +254,12 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         }
     }
   }
-	
+    
   public String getPlatformExtensionsString()
   {
     return "";
   }
-	
+    
   protected void swapBuffers() {
     DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
