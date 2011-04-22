@@ -12,7 +12,7 @@
 
     <target name="all.but-archives" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,test.compile,one.dir,tag.build" />
 
-    <target name="all.ide" description="Build nativewindow, jogl and newt projects, including all junit tests, but don't copy libs or JARs or tag the build" depends="init,build.nativewindow,build.jogl,build.newt,test.compile,one.dir" />
+    <target name="all.ide" description="Debug IDE build nativewindow, jogl and newt projects, including all junit tests, but don't tag the build or create archives" depends="init.debug,build.nativewindow,build.jogl,build.newt,test.compile,one.dir" />
 
     <target name="test.compile">
       <ant antfile="build-test.xml" target="test.compile" inheritRefs="true" inheritAll="true"/>
@@ -61,6 +61,7 @@
       -->
 
     <target name="init" depends="common.init" />
+    <target name="init.debug" depends="common.init.debug" />
 
     <target name="build.nativewindow" depends="init">
         <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="all" inheritRefs="true" inheritAll="true"/>

@@ -32,6 +32,13 @@
     <!-- 
        - Base initialization of properties and detection of operating system.
       -->
+    <target name="set.debug">
+        <property name="c.compiler.debug" value="true" /> 
+        <property name="javacdebug"       value="true" /> 
+        <property name="javacdebuglevel"  value="source,lines,vars" /> 
+    </target>
+    <target name="common.init.debug" depends="set.debug, common.init"/>
+
     <target name="common.init" depends="jogamp.env.init, gluegen.cpptasks.detect.os" unless="common.init.done">
         <property name="common.init.done" value="true" />
 
@@ -146,7 +153,6 @@
         <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
         <property name="javacdebug"       value="true" /> 
         <property name="javacdebuglevel"  value="source,lines" /> 
-        <!--property name="javacdebug"       value="true" /--> 
         <!--property name="javacdebuglevel"  value="source,lines,vars" /--> 
         <!-- property name="javac.memorymax"  value="128m" /-->  <!-- I ran out of memory with these .. linux x86_64 6u14 -->
         <property name="javac.memorymax"  value="512m" /> 
