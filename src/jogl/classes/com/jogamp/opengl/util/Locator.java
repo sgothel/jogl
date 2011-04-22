@@ -49,6 +49,9 @@ public class Locator {
      * @see #getResource(String, ClassLoader)
      */
     public static URL getResource(Class context, String path) {
+        if(null == path) {
+            return null;
+        }
         ClassLoader contextCL = (null!=context)?context.getClassLoader():null;
         URL url = getResource(path, contextCL);
         if (url == null && null!=context) {
@@ -73,24 +76,36 @@ public class Locator {
      * @see File#File(String)
      */
     public static URL getResource(String path, ClassLoader cl) {
+        if(null == path) {
+            return null;
+        }
         URL url = null;
         if (cl != null) {
             url = cl.getResource(path);
-        } else {
+            if(!urlExists(url)) {
+                url = null;
+            }            
+        } 
+        if(null == url) {
             url = ClassLoader.getSystemResource(path);
+            if(!urlExists(url)) {
+                url = null;
+            }            
         }
-        if(!urlExists(url)) {
-            url = null;
+        if(null == url) {
             try {
                 url = new URL(path);
+                if(!urlExists(url)) {
+                    url = null;
+                }
             } catch (MalformedURLException e) { }
         }
-        if(!urlExists(url)) {
-            url = null;
+        if(null == url) {
             try {
                 File file = new File(path);
                 if(file.exists()) {
                     url = file.toURL();
+                } else {
                 }
             } catch (MalformedURLException e) {}
         }
@@ -98,24 +113,52 @@ public class Locator {
     }
 
     /**
-     * Generates a path for the 'relativeFile' relative to the 'absoluteFileLocation'
+     * Generates a path for the 'relativeFile' relative to the 'baseLocation'.
+     * 
+     * @param baseLocation denotes a directory
+     * @param relativeFile denotes a relative file to the baseLocation
      */
-    public static String getRelativeOf(String absoluteFileLocation, String relativeFile) {
-        File file = new File(absoluteFileLocation);
-        file = file.getParentFile();
-        while (file != null && relativeFile.startsWith("../")) {
-            file = file.getParentFile();
+    public static String getRelativeOf(File baseLocation, String relativeFile) {
+        if(null == relativeFile) {
+            return null;
+        }
+        
+        while (baseLocation != null && relativeFile.startsWith("../")) {
+            baseLocation = baseLocation.getParentFile();
             relativeFile = relativeFile.substring(3);
         }
-        if (file != null) {
-            String res = new File(file, relativeFile).getPath();
+        if (baseLocation != null) {
+            final File file = new File(baseLocation, relativeFile);
             // Handle things on Windows
-            return res.replace('\\', '/');
-        } else {
-            return relativeFile;
+            return file.getPath().replace('\\', '/');
         }
+        return null;
     }
 
+    /**
+     * Generates a path for the 'relativeFile' relative to the 'baseLocation'.
+     * 
+     * @param baseLocation denotes a URL to a file
+     * @param relativeFile denotes a relative file to the baseLocation's parent directory
+     */
+    public static String getRelativeOf(URL baseLocation, String relativeFile) {    
+        String urlPath = baseLocation.getPath();
+        
+        if ( baseLocation.toString().startsWith("jar") ) {
+            JarURLConnection jarConnection;
+            try {
+                jarConnection = (JarURLConnection) baseLocation.openConnection();
+                urlPath = jarConnection.getEntryName();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+        
+        // Try relative path first
+        return getRelativeOf(new File(urlPath).getParentFile(), relativeFile);       
+    }
+    
     /**
      * Returns true, if the url exists,
      * trying to open a connection.

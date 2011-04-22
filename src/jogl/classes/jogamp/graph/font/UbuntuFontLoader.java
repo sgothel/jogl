@@ -58,9 +58,7 @@ public class UbuntuFontLoader implements FontSet {
 
     };
         
-    final static String relPath = "fonts/ubuntu/" ;
-    // debug final static String relPath = "/usr/local/projects/JOGL/jogl/src/jogl/classes/jogamp/graph/font/fonts/ubuntu/" ;
-    
+    final static String relPath = "fonts/ubuntu/" ;    
     
     private UbuntuFontLoader() {
     }

@@ -290,26 +290,35 @@ public class ShaderCode {
         }
     }
 
-    public static void readShaderSource(ClassLoader context, String path, URL url, StringBuffer result) {
+    public static void readShaderSource(Class context, URL url, StringBuffer result) {
         try {
+            if(DEBUG_CODE) {
+                System.err.println("ShaderCode.readShaderSource<0>: "+url);
+            }
             BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
             String line = null;
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("#include ")) {
                     String includeFile = line.substring(9).trim();
+                    URL nextURL = null;
+                    
                     // Try relative path first
-                    String next = Locator.getRelativeOf(path, includeFile);
-                    URL nextURL = Locator.getResource(next, context);
+                    String next = Locator.getRelativeOf(url, includeFile);
+                    if(null != next) {
+                        nextURL = Locator.getResource(context, next);        
+                    }
                     if (nextURL == null) {
                         // Try absolute path
-                        next = includeFile;
-                        nextURL = Locator.getResource(next, context);
+                        nextURL = Locator.getResource(context, includeFile);        
                     }
                     if (nextURL == null) {
                         // Fail
                         throw new FileNotFoundException("Can't find include file " + includeFile);
                     }
-                    readShaderSource(context, next, nextURL, result);
+                    if(DEBUG_CODE) {
+                        System.err.println("ShaderCode.readShaderSource<I>: "+url+" + "+includeFile+" := "+nextURL);
+                    }                    
+                    readShaderSource(context, nextURL, result);
                 } else {
                     result.append(line + "\n");
                 }
@@ -320,16 +329,12 @@ public class ShaderCode {
     }
 
     public static String readShaderSource(Class context, String path) {
-        ClassLoader contextCL = (null!=context)?context.getClassLoader():null;
         URL url = Locator.getResource(context, path);        
         if (url == null) {
             return null;
-        }        
-        File pf = new File(url.getPath());
-        path = pf.getParent() + "/" ;
-        
+        }
         StringBuffer result = new StringBuffer();
-        readShaderSource(contextCL, path, url, result);
+        readShaderSource(context, url, result);
         return result.toString();
     }
 
