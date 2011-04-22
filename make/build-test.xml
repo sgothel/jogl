@@ -33,6 +33,8 @@
         <condition property="jvmarg.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
 
         <property name="batchtest.timeout"    value="1800000"/> <!-- 30 min -->
+
+        <property name="java.part.test.shadercode" value="com/jogamp/opengl/test/junit/jogl/demos/es2/shader/*"/>
     </target>
     
     <!-- ================================================================== -->
@@ -97,7 +99,11 @@
             <fileset dir="${src.test}">
                 <exclude name="**/*.java"/>
             </fileset>
+            <fileset dir="${src.test}" includes="${java.part.test.shadercode}"/>
         </jar>
+        <copy todir="${classes}">
+            <fileset dir="${src.test}" includes="${java.part.test.shadercode}"/>
+        </copy>
     </target>
 
     <target name="test.manual.run" depends="test.compile">

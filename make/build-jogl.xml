@@ -1396,7 +1396,7 @@
     <!--
        - Build the jogl.jar files.
       -->
-    <target name="build-jars-dependset" depends="gluegen.cpptasks.detect.os,build-jars-javase" >
+    <target name="build-jars-dependset" depends="init,gluegen.cpptasks.detect.os" >
         <dependset>
             <srcfileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
@@ -1404,7 +1404,7 @@
                      includes="${jogl.all.jar} ${jogl.all-noawt.jar} ${jogl.util.jar} ${jogl.util.fixedfuncemu.jar}" />
         </dependset>
     </target>
-    <target name="build-jars" depends="build-jars-dependset" />
+    <target name="build-jars" depends="build-jars-dependset,build-jars-javase" />
 
     <target name="setup-manifestfile" depends="common.init">
         <property name="manifestfile" value="joglversion"/>
@@ -1490,6 +1490,10 @@
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
         </jar>
+        <copy todir="${classes}">
+            <fileset dir="${src.java}"
+                     includes="${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
+        </copy>
     </target>
     <target name="build-jars-all-noawt-javase" depends="setup-manifestfile">
         <jar manifest="${build.jogl}/tempversion" destfile="${jogl.all-noawt.jar}" filesonly="true">
