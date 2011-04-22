@@ -7,11 +7,15 @@
         return bufferStateTracker.getBoundBufferObject(target, this);
     }
 
+    public long glGetBufferSize(int buffer) {
+        return bufferSizeTracker.getDirectStateBufferSize(buffer, this);
+    }
+
     public boolean glIsVBOArrayEnabled() {
         return checkArrayVBOEnabled(false);
     }
 
-    public boolean glIsVBOElementEnabled() {
+    public boolean glIsVBOElementArrayEnabled() {
         return checkElementVBOEnabled(false);
     }
 
