@@ -182,9 +182,7 @@ public class ShaderUtil {
         public Set getShaderBinaryFormats(GL _gl) {
             GL2ES2 gl = _gl.getGL2ES2();
             if(null==shaderBinaryFormats) {
-                if(gl.getContext()!=GLContext.getCurrent()) {
-                    return new HashSet(0); // bail out
-                }
+                gl.getContext().validateCurrent();
 
                 int[] param = new int[1];
                 shaderBinaryFormats = new HashSet();
@@ -208,9 +206,7 @@ public class ShaderUtil {
         public boolean isShaderCompilerAvailable(GL _gl) {
             GL2ES2 gl = _gl.getGL2ES2();
             if(null==shaderCompilerAvailable) {
-                if(gl.getContext()!=GLContext.getCurrent()) {
-                    return false; // bail out
-                }
+                gl.getContext().validateCurrent();
                 Set bfs = getShaderBinaryFormats(gl);
                 if(gl.isGLES2()) {
                     byte[] param = new byte[1];
@@ -469,7 +465,7 @@ public class ShaderUtil {
         Impl impl = (Impl) context.getAttachedObject(ShaderUtil.class.getName());
         if (impl == null) {
             impl = new GL2ES2Impl();
-            context.putAttachedObject(ShaderUtil.class.getName(), impl);
+            context.attachObject(ShaderUtil.class.getName(), impl);
         }
         return impl;
     }
