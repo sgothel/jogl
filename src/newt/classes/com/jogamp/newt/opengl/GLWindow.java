@@ -569,13 +569,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer {
 
     public void swapBuffers() {
         if(drawable!=null && context != null) {
-            // Lock: Locked Surface/Window by MakeCurrent/Release
-            if (context != GLContext.getCurrent()) {
-                // Assume we should try to make the context current before swapping the buffers
-                helper.invokeGL(drawable, context, swapBuffersAction, initAction);
-            } else {
-                drawable.swapBuffers();
-            }
+            drawable.swapBuffers();
         }
     }
 

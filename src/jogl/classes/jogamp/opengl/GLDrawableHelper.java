@@ -337,6 +337,7 @@ public class GLDrawableHelper {
 
     // Support for recursive makeCurrent() calls as well as calling
     // other drawables' display() methods from within another one's
+    // FIXME: re-evaluate due to possible expensive TLS access ? 
     GLContext lastContext    = GLContext.getCurrent();
     Runnable  lastInitAction = (Runnable) perThreadInitAction.get();
     if (lastContext != null) {
