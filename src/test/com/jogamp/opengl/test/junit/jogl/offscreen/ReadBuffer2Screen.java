@@ -62,8 +62,8 @@ public class ReadBuffer2Screen extends ReadBufferBase {
         if(null==readTextureVertices) {
             //readTextureVertices = GLArrayDataClient.createFixed(gl, GLPointerFunc.GL_VERTEX_ARRAY, "mgl_Vertex", 
             //                                                    2, GL.GL_FLOAT, true, 4);
-            readTextureVertices = GLArrayDataServer.createFixed(gl, GLPointerFunc.GL_VERTEX_ARRAY, "mgl_Vertex", 
-                                                                2, GL.GL_FLOAT, true, 4, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER);
+            readTextureVertices = GLArrayDataServer.createFixed(GLPointerFunc.GL_VERTEX_ARRAY, "mgl_Vertex", 2, 
+                                                                GL.GL_FLOAT, true, 4, GL.GL_STATIC_DRAW);
             readTextureVertices.setEnableAlways(enableBufferAlways);
             readTextureVertices.setVBOEnabled(enableBufferVBO);
             {
@@ -128,8 +128,8 @@ public class ReadBuffer2Screen extends ReadBufferBase {
       if(!readBufferUtil.isValid()) return;
 
       // Now draw one quad with the texture
-      readBufferUtil.getTexture().enable();
-      readBufferUtil.getTexture().bind();
+      readBufferUtil.getTexture().enable(gl);
+      readBufferUtil.getTexture().bind(gl);
 
       if(gl.isGL2ES1()) {
           // gl.getGL2ES1().glTexEnvi(GL2ES1.GL_TEXTURE_ENV, GL2ES1.GL_TEXTURE_ENV_MODE, GL2ES1.GL_REPLACE);
@@ -149,13 +149,13 @@ public class ReadBuffer2Screen extends ReadBufferBase {
       }
       readTextureVertices.enableBuffer(gl, false); */
 
-      readBufferUtil.getTexture().disable();
+      readBufferUtil.getTexture().disable(gl);
     }
 
     void updateTextureCoords(GL gl, boolean force) {
         if(force || null==readTextureCoords) {
-            readTextureCoords = GLArrayDataServer.createFixed(gl, GLPointerFunc.GL_TEXTURE_COORD_ARRAY, "mgl_MultiTexCoord0", 
-                                                              2, GL.GL_FLOAT, true, 4, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER);
+            readTextureCoords = GLArrayDataServer.createFixed(GLPointerFunc.GL_TEXTURE_COORD_ARRAY, "mgl_MultiTexCoord0", 2, 
+                                                              GL.GL_FLOAT, true, 4, GL.GL_STATIC_DRAW);
             readTextureCoords.setEnableAlways(enableBufferAlways);
             readTextureCoords.setVBOEnabled(enableBufferVBO);
             {

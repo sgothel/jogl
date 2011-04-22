@@ -69,7 +69,7 @@ public class TextureGL2ListenerDraw1 implements GLEventListener {
     public void dispose(GLAutoDrawable drawable) {
         GL2 gl = drawable.getGL().getGL2();
         if(null!=texture) {
-            texture.disable();
+            texture.disable(gl);
             texture.destroy(gl);
         }
         if(null!=textureData) {
@@ -91,8 +91,8 @@ public class TextureGL2ListenerDraw1 implements GLEventListener {
     
         // Now draw one quad with the texture
         if(null!=texture) {
-            texture.enable();
-            texture.bind();
+            texture.enable(gl);
+            texture.bind(gl);
             gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_REPLACE);
             TextureCoords coords = texture.getImageTexCoords();
             gl.glBegin(GL2.GL_QUADS);
@@ -105,7 +105,7 @@ public class TextureGL2ListenerDraw1 implements GLEventListener {
             gl.glTexCoord2f(coords.left(), coords.top());
             gl.glVertex3f(0, 1, 0);
             gl.glEnd();
-            texture.disable();
+            texture.disable(gl);
         }
     }
 }

@@ -42,8 +42,8 @@ public class Surface2File implements SurfaceUpdatedListener {
     ReadBufferUtil readBufferUtil = new ReadBufferUtil();
     int shotNum = 0;
 
-    public void dispose() {
-        readBufferUtil.dispose();
+    public void dispose(GL gl) {
+        readBufferUtil.dispose(gl);
     }
 
     public void surfaceUpdated(Object updater, NativeSurface ns, long when) {

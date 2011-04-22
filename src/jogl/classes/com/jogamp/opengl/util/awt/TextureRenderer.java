@@ -307,7 +307,7 @@ public class TextureRenderer {
   */
   public void dispose() throws GLException {
     if (texture != null) {
-      texture.dispose();
+      texture.destroy(GLContext.getCurrentGL());
       texture = null;
     }
     if (image != null) {
@@ -576,23 +576,23 @@ public class TextureRenderer {
     gl.glEnable(GL2.GL_BLEND);
     gl.glBlendFunc(GL2.GL_ONE, GL2.GL_ONE_MINUS_SRC_ALPHA);
     Texture texture = getTexture();
-    texture.enable();
-    texture.bind();
+    texture.enable(gl);
+    texture.bind(gl);
     gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_MODULATE);
     // Change polygon color to last saved
     gl.glColor4f(r, g, b, a);
     if (smoothingChanged) {
       smoothingChanged = false;
       if (smoothing) {
-        texture.setTexParameteri(GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_LINEAR);
+        texture.setTexParameteri(gl, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_LINEAR);
         if (mipmap) {
-          texture.setTexParameteri(GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_LINEAR_MIPMAP_LINEAR);
+          texture.setTexParameteri(gl, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_LINEAR_MIPMAP_LINEAR);
         } else {
-          texture.setTexParameteri(GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_LINEAR);
+          texture.setTexParameteri(gl, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_LINEAR);
         }
       } else {
-        texture.setTexParameteri(GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);
-        texture.setTexParameteri(GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_NEAREST);
+        texture.setTexParameteri(gl, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);
+        texture.setTexParameteri(gl, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_NEAREST);
       }
     }
   }
@@ -600,7 +600,7 @@ public class TextureRenderer {
   private void endRendering(boolean ortho) {
     GL2 gl = GLContext.getCurrentGL().getGL2();
     Texture texture = getTexture();
-    texture.disable();
+    texture.disable(gl);
     if (ortho) {
       gl.glMatrixMode(GL2.GL_PROJECTION);
       gl.glPopMatrix();
@@ -661,15 +661,16 @@ public class TextureRenderer {
       // OpenGL and Java 2D actually line up correctly for
       // updateSubImage calls, so we don't need to do any argument
       // conversion here (i.e., flipping the Y coordinate).
-      texture.updateSubImage(textureData, 0, x, y, x, y, width, height);
+      texture.updateSubImage(GLContext.getCurrentGL(), textureData, 0, x, y, x, y, width, height);
     }
   }
 
   // Returns true if the texture was newly allocated, false if not
   private boolean ensureTexture() {
+    GL gl = GLContext.getCurrentGL();
     if (mustReallocateTexture) {
       if (texture != null) {
-        texture.dispose();
+        texture.destroy(gl);
         texture = null;
       }
       mustReallocateTexture = false;
@@ -679,7 +680,7 @@ public class TextureRenderer {
       texture = TextureIO.newTexture(textureData);
       if (mipmap && !texture.isUsingAutoMipmapGeneration()) {
         // Only try this once
-        texture.dispose();
+        texture.destroy(gl);
         mipmap = false;
         textureData.setMipmap(false);
         texture = TextureIO.newTexture(textureData);
@@ -687,8 +688,8 @@ public class TextureRenderer {
 
       if (!smoothing) {
         // The TextureIO classes default to GL_LINEAR filtering
-        texture.setTexParameteri(GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);
-        texture.setTexParameteri(GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_NEAREST);
+        texture.setTexParameteri(gl, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);
+        texture.setTexParameteri(gl, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_NEAREST);
       }
       return true;
     }

@@ -400,12 +400,25 @@ public class TextureIO {
      * @throws IllegalArgumentException if the passed TextureData was null
      */
     public static Texture newTexture(TextureData data) throws GLException, IllegalArgumentException {
+        return newTexture(GLContext.getCurrentGL(), data);
+    }
+
+    /** 
+     * Creates an OpenGL texture object from the specified TextureData
+     * using the current OpenGL context.
+     *
+     * @param data the texture data to turn into an OpenGL texture
+     * @throws GLException if no OpenGL context is current or if an
+     *                     OpenGL error occurred
+     * @throws IllegalArgumentException if the passed TextureData was null
+     */
+    public static Texture newTexture(GL gl, TextureData data) throws GLException, IllegalArgumentException {
         if (data == null) {
             throw new IllegalArgumentException("Null TextureData");
         }
-        return new Texture(data);
+        return new Texture(gl, data);
     }
-
+    
     /** 
      * Creates an OpenGL texture object from the specified file using
      * the current OpenGL context.
@@ -422,9 +435,10 @@ public class TextureIO {
      *                     OpenGL error occurred
      */
     public static Texture newTexture(File file, boolean mipmap) throws IOException, GLException {
-        GLProfile glp = GLContext.getCurrentGL().getGLProfile();
+        GL gl = GLContext.getCurrentGL();
+        GLProfile glp = gl.getGLProfile();
         TextureData data = newTextureData(glp, file, mipmap, FileUtil.getFileSuffix(file));
-        Texture texture = newTexture(data);
+        Texture texture = newTexture(gl, data);
         data.flush();
         return texture;
     }
@@ -450,9 +464,10 @@ public class TextureIO {
      *                     OpenGL error occurred
      */
     public static Texture newTexture(InputStream stream, boolean mipmap, String fileSuffix) throws IOException, GLException {
-        GLProfile glp = GLContext.getCurrentGL().getGLProfile();
+        GL gl = GLContext.getCurrentGL();
+        GLProfile glp = gl.getGLProfile();
         TextureData data = newTextureData(glp, stream, mipmap, fileSuffix);
-        Texture texture = newTexture(data);
+        Texture texture = newTexture(gl, data);
         data.flush();
         return texture;
     }
@@ -481,26 +496,24 @@ public class TextureIO {
         if (fileSuffix == null) {
             fileSuffix = FileUtil.getFileSuffix(url.getPath());
         }
-        GLProfile glp = GLContext.getCurrentGL().getGLProfile();
+        GL gl = GLContext.getCurrentGL();
+        GLProfile glp = gl.getGLProfile();
         TextureData data = newTextureData(glp, url, mipmap, fileSuffix);
-        Texture texture = newTexture(data);
+        Texture texture = newTexture(gl, data);
         data.flush();
         return texture;
     }
 
     /** 
      * Creates an OpenGL texture object associated with the given OpenGL
-     * texture target using the current OpenGL context. The texture has
+     * texture target. The texture has
      * no initial data. This is used, for example, to construct cube
      * maps out of multiple TextureData objects.
      *
      * @param target the OpenGL target type, eg GL.GL_TEXTURE_2D, 
      *               GL.GL_TEXTURE_RECTANGLE_ARB
-     *
-     * @throws GLException if no OpenGL context is current or if an
-     *                     OpenGL error occurred
      */
-    public static Texture newTexture(int target) throws GLException {
+    public static Texture newTexture(int target) {
         return new Texture(target);
     }
 
@@ -581,7 +594,7 @@ public class TextureIO {
         }
         GL2 gl = _gl.getGL2();
 
-        texture.bind();
+        texture.bind(gl);
         int internalFormat = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2.GL_TEXTURE_INTERNAL_FORMAT);
         int width  = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2.GL_TEXTURE_WIDTH);
         int height = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2.GL_TEXTURE_HEIGHT);

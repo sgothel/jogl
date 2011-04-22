@@ -178,38 +178,33 @@ public class Texture {
     private static final boolean disableNPOT    = Debug.isPropertyDefined("jogl.texture.nonpot", true, localACC);
     private static final boolean disableTexRect = Debug.isPropertyDefined("jogl.texture.notexrect", true, localACC);
 
-    public Texture(TextureData data) throws GLException {
+    public Texture(GL gl, TextureData data) throws GLException {
         texID = 0;
-        updateImage(data);
+        updateImage(gl, data);
     }
 
     // Constructor for use when creating e.g. cube maps, where there is
     // no initial texture data
-    public Texture(int target) throws GLException {
+    public Texture(int target) {
         texID = 0;
         this.target = target;
     }
 
     // Package-private constructor for creating a texture object which wraps
     // an existing texture ID from another package
-    Texture(int textureID,
-        int target,
-        int texWidth,
-        int texHeight,
-        int imgWidth,
-        int imgHeight,
-        boolean mustFlipVertically) {
-    this.texID = textureID;
-    this.target = target;
-    this.mustFlipVertically = mustFlipVertically;
-    this.texWidth = texWidth;
-    this.texHeight = texHeight;
-    setImageSize(imgWidth, imgHeight, target);
+    Texture(int textureID, int target, int texWidth, int texHeight, int imgWidth, int imgHeight,
+            boolean mustFlipVertically) {
+        this.texID = textureID;
+        this.target = target;
+        this.mustFlipVertically = mustFlipVertically;
+        this.texWidth = texWidth;
+        this.texHeight = texHeight;
+        setImageSize(imgWidth, imgHeight, target);
     }
 
     /**
      * Enables this texture's target (e.g., GL_TEXTURE_2D) in the
-     * current GL context's state. This method is a shorthand equivalent
+     * given GL context's state. This method is a shorthand equivalent
      * of the following OpenGL code:
      <pre>
      gl.glEnable(texture.getTarget());
@@ -221,13 +216,13 @@ public class Texture {
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
-    public void enable() throws GLException {
-        GLContext.getCurrentGL().glEnable(target);
+    public void enable(GL gl) throws GLException {
+        gl.glEnable(target);
     }
-
+    
     /**
      * Disables this texture's target (e.g., GL_TEXTURE_2D) in the
-     * current GL context's state. This method is a shorthand equivalent
+     * given GL state. This method is a shorthand equivalent
      * of the following OpenGL code:
      <pre>
      gl.glDisable(texture.getTarget());
@@ -235,16 +230,17 @@ public class Texture {
      *
      * See the <a href="#perftips">performance tips</a> above for hints
      * on how to maximize performance when using many Texture objects.
+     * @param gl TODO
      *
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
-    public void disable() throws GLException {
-        GLContext.getCurrentGL().glDisable(target); 
+    public void disable(GL gl) throws GLException {
+        gl.glDisable(target); 
     }
-
+    
     /**
-     * Binds this texture to the current GL context. This method is a
+     * Binds this texture to the given GL context. This method is a
      * shorthand equivalent of the following OpenGL code:
      <pre>
      gl.glBindTexture(texture.getTarget(), texture.getTextureObject());
@@ -252,36 +248,22 @@ public class Texture {
      *
      * See the <a href="#perftips">performance tips</a> above for hints
      * on how to maximize performance when using many Texture objects.
+     * @param gl TODO
      *
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
-    public void bind() throws GLException {
-        validateTexID(null, true);
-        GLContext.getCurrentGL().glBindTexture(target, texID); 
+    public void bind(GL gl) throws GLException {
+        validateTexID(gl, true);
+        gl.glBindTexture(target, texID); 
     }
-
+    
     /**
-     * Disposes the native resources used by this texture object.
-     *
-     * @throws GLException if no OpenGL context was current or if any
-     * OpenGL-related errors occurred
-     * @deprecated use destroy(GL)
+     * @deprecated use {@link #destroy(GL)}
      */
-    public void dispose() throws GLException {
-        destroy(GLContext.getCurrentGL());
-    }
-
-    /**
-     * Disposes the native resources used by this texture object.
-     *
-     * @throws GLException if any OpenGL-related errors occurred
-     * @deprecated use destroy(GL)
-     */
-    public void dispose(GL gl) throws GLException {
+    public final void dispose(GL gl) throws GLException {
         destroy(gl);
     }
-
     /**
      * Destroys the native resources used by this texture object.
      *
@@ -414,11 +396,10 @@ public class Texture {
      * Updates the entire content area of this texture using the data in
      * the given image.
      * 
-     * @throws GLException if no OpenGL context was current or if any
-     * OpenGL-related errors occurred
+     * @throws GLException if any OpenGL-related errors occurred
      */
-    public void updateImage(TextureData data) throws GLException {
-        updateImage(data, 0);
+    public void updateImage(GL gl, TextureData data) throws GLException {
+        updateImage(gl, data, 0);
     }
 
     /**
@@ -438,11 +419,9 @@ public class Texture {
      * using the data in the given image. In general this is intended
      * for construction of cube maps.
      * 
-     * @throws GLException if no OpenGL context was current or if any
-     * OpenGL-related errors occurred
+     * @throws GLException if any OpenGL-related errors occurred
      */
-    public void updateImage(TextureData data, int target) throws GLException {
-        GL gl = GLContext.getCurrentGL();
+    public void updateImage(GL gl, TextureData data, int target) throws GLException {
         validateTexID(gl, true);
 
         imgWidth = data.getWidth();
@@ -593,7 +572,7 @@ public class Texture {
                 gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, align[0]); // restore alignment
             }
         } else {
-            checkCompressedTextureExtensions(data);
+            checkCompressedTextureExtensions(gl, data);
             Buffer[] mipmapData = data.getMipmapData();
             if (mipmapData != null) {
                 int width = texWidth;
@@ -610,7 +589,7 @@ public class Texture {
                         gl.glTexImage2D(texTarget, i, data.getInternalFormat(),
                                         width, height, data.getBorder(),
                                         data.getPixelFormat(), data.getPixelType(), null);
-                        updateSubImageImpl(data, texTarget, i, 0, 0, 0, 0, data.getWidth(), data.getHeight());
+                        updateSubImageImpl(gl, data, texTarget, i, 0, 0, 0, 0, data.getWidth(), data.getHeight());
                     }
 
                     width = Math.max(width / 2, 1);
@@ -631,7 +610,7 @@ public class Texture {
                         gl.glCompressedTexImage2D(texTarget, 0, data.getInternalFormat(),
                                                   texWidth, texHeight, data.getBorder(),
                                                   buf.capacity(), buf);
-                        updateSubImageImpl(data, texTarget, 0, 0, 0, 0, 0, data.getWidth(), data.getHeight());
+                        updateSubImageImpl(gl, data, texTarget, 0, 0, 0, 0, 0, data.getWidth(), data.getHeight());
                     }
                 } else {
                     if (data.getMipmap() && haveAutoMipmapGeneration && gl.isGL2ES1()) {
@@ -646,7 +625,7 @@ public class Texture {
                     gl.glTexImage2D(texTarget, 0, data.getInternalFormat(),
                                     texWidth, texHeight, data.getBorder(),
                                     data.getPixelFormat(), data.getPixelType(), null);
-                    updateSubImageImpl(data, texTarget, 0, 0, 0, 0, 0, data.getWidth(), data.getHeight());
+                    updateSubImageImpl(gl, data, texTarget, 0, 0, 0, 0, 0, data.getWidth(), data.getHeight());
                 }
             }
         }
@@ -697,17 +676,16 @@ public class Texture {
      * @param y the y offset (in pixels) relative to the lower-left corner
      * of this texture
      *
-     * @throws GLException if no OpenGL context was current or if any
-     * OpenGL-related errors occurred
+     * @throws GLException if any OpenGL-related errors occurred
      */
-    public void updateSubImage(TextureData data, int mipmapLevel, int x, int y) throws GLException {
+    public void updateSubImage(GL gl, TextureData data, int mipmapLevel, int x, int y) throws GLException {
         if (usingAutoMipmapGeneration && mipmapLevel != 0) {
             // When we're using mipmap generation via GL_GENERATE_MIPMAP, we
             // don't need to update other mipmap levels
             return;
         }
-        bind();
-        updateSubImageImpl(data, target, mipmapLevel, x, y, 0, 0, data.getWidth(), data.getHeight());
+        bind(gl);
+        updateSubImageImpl(gl, data, target, mipmapLevel, x, y, 0, 0, data.getWidth(), data.getHeight());
     }
 
     /**
@@ -740,7 +718,7 @@ public class Texture {
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
-    public void updateSubImage(TextureData data, int mipmapLevel,
+    public void updateSubImage(GL gl, TextureData data, int mipmapLevel,
                                int dstx, int dsty,
                                int srcx, int srcy,
                                int width, int height) throws GLException {
@@ -752,8 +730,8 @@ public class Texture {
             // don't need to update other mipmap levels
             return;
         }
-        bind();
-        updateSubImageImpl(data, target, mipmapLevel, dstx, dsty, srcx, srcy, width, height);
+        bind(gl);
+        updateSubImageImpl(gl, data, target, mipmapLevel, dstx, dsty, srcx, srcy, width, height);
     }
 
     /**
@@ -765,10 +743,9 @@ public class Texture {
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
-    public void setTexParameterf(int parameterName,
+    public void setTexParameterf(GL gl, int parameterName,
                                  float value) {
-        bind();
-        GL gl = GLContext.getCurrentGL();
+        bind(gl);
         gl.glTexParameterf(target, parameterName, value);
     }
 
@@ -777,13 +754,11 @@ public class Texture {
      * texture's target. Causes this texture to be bound to the current
      * texture state.
      * 
-     * @throws GLException if no OpenGL context was current or if any
-     * OpenGL-related errors occurred
+     * @throws GLException if any OpenGL-related errors occurred
      */
-    public void setTexParameterfv(int parameterName,
+    public void setTexParameterfv(GL gl, int parameterName,
                                   FloatBuffer params) {
-        bind();
-        GL gl = GLContext.getCurrentGL();
+        bind(gl);
         gl.glTexParameterfv(target, parameterName, params);
     }
 
@@ -792,13 +767,11 @@ public class Texture {
      * texture's target. Causes this texture to be bound to the current
      * texture state.
      * 
-     * @throws GLException if no OpenGL context was current or if any
-     * OpenGL-related errors occurred
+     * @throws GLException if any OpenGL-related errors occurred
      */
-    public void setTexParameterfv(int parameterName,
+    public void setTexParameterfv(GL gl, int parameterName,
                                   float[] params, int params_offset) {
-        bind();
-        GL gl = GLContext.getCurrentGL();
+        bind(gl);
         gl.glTexParameterfv(target, parameterName, params, params_offset);
     }
 
@@ -810,13 +783,11 @@ public class Texture {
      * platform and GL_CLAMP if not. Causes this texture to be bound to
      * the current texture state.
      * 
-     * @throws GLException if no OpenGL context was current or if any
-     * OpenGL-related errors occurred
+     * @throws GLException if any OpenGL-related errors occurred
      */
-    public void setTexParameteri(int parameterName,
+    public void setTexParameteri(GL gl, int parameterName,
                                  int value) {
-        bind();
-        GL gl = GLContext.getCurrentGL();
+        bind(gl);
         gl.glTexParameteri(target, parameterName, value);
     }
 
@@ -825,13 +796,11 @@ public class Texture {
      * target. Causes this texture to be bound to the current texture
      * state.
      * 
-     * @throws GLException if no OpenGL context was current or if any
-     * OpenGL-related errors occurred
+     * @throws GLException if any OpenGL-related errors occurred
      */
-    public void setTexParameteriv(int parameterName,
+    public void setTexParameteriv(GL gl, int parameterName,
                                   IntBuffer params) {
-        bind();
-        GL gl = GLContext.getCurrentGL();
+        bind(gl);
         gl.glTexParameteriv(target, parameterName, params);
     }
 
@@ -840,23 +809,21 @@ public class Texture {
      * target. Causes this texture to be bound to the current texture
      * state.
      * 
-     * @throws GLException if no OpenGL context was current or if any
-     * OpenGL-related errors occurred
+     * @throws GLException if any OpenGL-related errors occurred
      */
-    public void setTexParameteriv(int parameterName,
+    public void setTexParameteriv(GL gl, int parameterName,
                                   int[] params, int params_offset) {
-        bind();
-        GL gl = GLContext.getCurrentGL();
+        bind(gl);
         gl.glTexParameteriv(target, parameterName, params, params_offset);
     }
 
     /**
      * Returns the underlying OpenGL texture object for this texture.
      * Most applications will not need to access this, since it is
-     * handled automatically by the bind() and dispose() APIs.
+     * handled automatically by the bind(GL) and destroy(GL) APIs.
      */
-    public int getTextureObject() {
-        validateTexID(null, false);
+    public int getTextureObject(GL gl) {
+        validateTexID(gl, false);
         return texID;
     }
 
@@ -936,10 +903,9 @@ public class Texture {
         }
     }
 
-    private void updateSubImageImpl(TextureData data, int newTarget, int mipmapLevel,
+    private void updateSubImageImpl(GL gl, TextureData data, int newTarget, int mipmapLevel,
                                     int dstx, int dsty,
                                     int srcx, int srcy, int width, int height) throws GLException {
-        GL gl = GLContext.getCurrentGL();
         data.setHaveEXTABGR(gl.isExtensionAvailable("GL_EXT_abgr"));
         data.setHaveGL12(gl.isExtensionAvailable("GL_VERSION_1_2"));
 
@@ -1000,7 +966,7 @@ public class Texture {
             height = texHeight - dsty;
         }
 
-        checkCompressedTextureExtensions(data);
+        checkCompressedTextureExtensions(gl, data);
 
         if (data.isDataCompressed()) {
             gl.glCompressedTexSubImage2D(newTarget, mipmapLevel,
@@ -1052,8 +1018,7 @@ public class Texture {
         }
     }
 
-    private void checkCompressedTextureExtensions(TextureData data) {
-        GL gl = GLContext.getCurrentGL();
+    private void checkCompressedTextureExtensions(GL gl, TextureData data) {
         if (data.isDataCompressed()) {
             switch (data.getInternalFormat()) {
             case GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
@@ -1073,22 +1038,20 @@ public class Texture {
         }
     }
 
-    private void validateTexID(GL gl, boolean throwException) {
-        if( 0 < texID ) return;
-        if(null==gl) {
-            GLContext ctx = GLContext.getCurrent();
-            if(null!=ctx) {
-                gl = ctx.getGL();
-            } else if(throwException) {
-                throw new GLException("No context current, can't create texture ID");
+    private boolean validateTexID(GL gl, boolean throwException) {
+        if( 0 >= texID ) {
+            if( null != gl ) {
+                int[] tmp = new int[1];
+                gl.glGenTextures(1, tmp, 0);
+                texID = tmp[0];
+                if ( 0 >= texID && throwException ) {
+                    throw new GLException("Create texture ID invalid: texID "+texID+", glerr 0x"+Integer.toHexString(gl.glGetError()));
+                }
+            } else if ( throwException ) {
+                throw new GLException("No GL context given, can't create texture ID");
             }
         }
-
-        if(null!=gl) {
-            int[] tmp = new int[1];
-            gl.glGenTextures(1, tmp, 0);
-            texID = tmp[0];
-        }
+        return 0 < texID;
     }
 
     // Helper routines for disabling certain codepaths

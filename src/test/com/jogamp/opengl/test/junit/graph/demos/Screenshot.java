@@ -12,8 +12,8 @@ public class Screenshot {
 
     ReadBufferUtil readBufferUtil = new ReadBufferUtil();
 
-    public void dispose() {
-        readBufferUtil.dispose();
+    public void dispose(GL gl) {
+        readBufferUtil.dispose(gl);
     }
 
     public void surface2File(GLAutoDrawable drawable, String filename) {
