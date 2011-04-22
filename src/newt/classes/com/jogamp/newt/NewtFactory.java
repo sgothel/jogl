@@ -36,7 +36,6 @@ package com.jogamp.newt;
 
 import javax.media.nativewindow.*;
 import com.jogamp.common.jvm.JVMUtil;
-import com.jogamp.newt.event.WindowEvent;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.ScreenImpl;
 import jogamp.newt.WindowImpl;

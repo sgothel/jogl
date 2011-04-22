@@ -200,7 +200,7 @@ public abstract class NativeWindowFactory {
                     }
                 });
                 if(null != jawtUtilClass && null != jawtUtilGetJAWTToolkitMethod && null != jawtUtilInitMethod) {
-                    ReflectionUtil.callMethod(null, jawtUtilInitMethod, null);
+                    ReflectionUtil.callMethod(null, jawtUtilInitMethod);
 
                     Object resO = ReflectionUtil.callStaticMethod(JAWTUtilClassName, "isHeadlessMode", null, null, cl );
                     if(resO instanceof Boolean) {
@@ -329,7 +329,7 @@ public abstract class NativeWindowFactory {
     }
 
     protected static ToolkitLock getAWTToolkitLock() {
-        Object resO = ReflectionUtil.callMethod(null, jawtUtilGetJAWTToolkitMethod, null);
+        Object resO = ReflectionUtil.callMethod(null, jawtUtilGetJAWTToolkitMethod);
 
         if(resO instanceof ToolkitLock) {
             return (ToolkitLock) resO;
