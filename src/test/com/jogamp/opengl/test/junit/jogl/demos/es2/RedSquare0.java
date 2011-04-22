@@ -28,7 +28,6 @@
 package com.jogamp.opengl.test.junit.jogl.demos.es2;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLArrayDataWrapper;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.shader.RedSquareShader;
@@ -39,7 +38,6 @@ import java.nio.FloatBuffer;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLUniformData;
 import org.junit.Assert;
@@ -56,9 +54,7 @@ public class RedSquare0 implements GLEventListener {
     long t0;
 
     public void init(GLAutoDrawable glad) {
-        GLContext context = glad.getContext();
-        context.makeCurrent();
-        GL2ES2 gl = context.getGL().getGL2ES2();
+        GL2ES2 gl = glad.getGL().getGL2ES2();
         myShader = GLSLSimpleProgram.create(gl, RedSquareShader.VERTEX_SHADER_TEXT, RedSquareShader.FRAGMENT_SHADER_TEXT, true);
         gl.glUseProgram(myShader.getShaderProgram());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
@@ -82,7 +78,7 @@ public class RedSquare0 implements GLEventListener {
         Assert.assertTrue(0 <= mgl_Vertex);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         FloatBuffer buffer = Buffers.newDirectFloatBuffer(numElements * components);
-        GLArrayDataWrapper vertices = GLArrayDataWrapper.createGLSL(gl, "mgl_Vertex", 3, gl.GL_FLOAT, false, 0, buffer, -1, 0, 0, 0);
+        GLArrayDataWrapper vertices = GLArrayDataWrapper.createGLSL("mgl_Vertex", 3, gl.GL_FLOAT, false, 0, buffer, -1, 0, -1);
         {
             // Fill them up
             FloatBuffer verticeb = (FloatBuffer) vertices.getBuffer();
@@ -111,7 +107,7 @@ public class RedSquare0 implements GLEventListener {
         Assert.assertTrue(0 <= mgl_Color);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         buffer = Buffers.newDirectFloatBuffer(numElements * components);
-        GLArrayDataWrapper colors = GLArrayDataWrapper.createGLSL(gl, "mgl_Color", 4, gl.GL_FLOAT, false, 0, buffer, -1, 0, 0, 0);
+        GLArrayDataWrapper colors = GLArrayDataWrapper.createGLSL("mgl_Color", 4, gl.GL_FLOAT, false, 0, buffer, -1, 0, -1);
         {
             // Fill them up
             FloatBuffer colorb = (FloatBuffer) colors.getBuffer();
