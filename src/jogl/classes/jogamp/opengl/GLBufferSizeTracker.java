@@ -107,17 +107,7 @@ public class GLBufferSizeTracker {
                             int target, GL caller, long size) {
     // Need to do some similar queries to getBufferSize below
     int buffer = bufferStateTracker.getBoundBufferObject(target, caller);
-    boolean valid = bufferStateTracker.isBoundBufferObjectKnown(target);
-    if (valid) {
-      if (buffer == 0) {
-        // FIXME: this really should not happen if we know what's
-        // going on. Very likely there is an OpenGL error in the
-        // application if we get here. Could silently return 0, but it
-        // seems better to get an early warning that something is
-        // wrong.
-        throw new GLException("Error: no OpenGL buffer object appears to be bound to target 0x" +
-                              Integer.toHexString(target));
-      }
+    if (buffer != 0) {
       setDirectStateBufferSize(buffer, caller, size);
     }
     // We don't know the current buffer state. Note that the buffer
@@ -135,18 +125,8 @@ public class GLBufferSizeTracker {
                            GL caller) {
     // See whether we know what buffer is currently bound to the given
     // state
-    int buffer = bufferStateTracker.getBoundBufferObject(target, caller);
-    boolean valid = bufferStateTracker.isBoundBufferObjectKnown(target);
-    if (valid) {
-      if (0 == buffer) {
-        // FIXME: this really should not happen if we know what's
-        // going on. Very likely there is an OpenGL error in the
-        // application if we get here. Could silently return 0, but it
-        // seems better to get an early warning that something is
-        // wrong.
-        throw new GLException("Error: no OpenGL buffer object appears to be bound to target 0x" +
-                              Integer.toHexString(target));
-      }
+    final int buffer = bufferStateTracker.getBoundBufferObject(target, caller);
+    if (0 != buffer) {
       return getBufferSizeImpl(target, buffer, caller);
     }
     // We don't know what's going on in this case; query the GL for an answer

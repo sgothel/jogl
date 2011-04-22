@@ -136,14 +136,6 @@ public class GLBufferStateTracker {
     return value;
   }
 
-  /** Indicates whether the binding state for the specified target is
-      currently known, ie it could be bound or not but it must be tracked.<br>
-      Should be called after getBoundBufferObject()
-      because that method may change the answer for a given target. */
-  public boolean isBoundBufferObjectKnown(int target) {
-    return 0 < bindingMap.get(target) ;
-  }
-
   /** Clears out the known/unknown state of the various buffer object
       binding states. These will be refreshed later on an as-needed
       basis. This is called by the implementations of
