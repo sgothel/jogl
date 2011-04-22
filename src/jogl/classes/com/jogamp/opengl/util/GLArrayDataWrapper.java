@@ -12,7 +12,6 @@ public class GLArrayDataWrapper implements GLArrayData {
   /**
    * Create a VBO, using a predefined fixed function array index, wrapping the given data.
    * 
-   * @param gl the current GL instance
    * @param index The GL array index
    * @param comps The array component number
    * @param dataType The array index GL data type
@@ -22,26 +21,25 @@ public class GLArrayDataWrapper implements GLArrayData {
    * @param vboName
    * @param vboOffset
    * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
-   * @param vboTarget either {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
+   * 
    * @return the new create instance
+   * 
    * @throws GLException
    */
-  public static GLArrayDataWrapper createFixed(GL gl, int index, int comps, int dataType, boolean normalized, 
-                                              int stride, Buffer buffer,
-                                              int vboName, long vboOffset, int vboUsage, int vboTarget)
+  public static GLArrayDataWrapper createFixed(int index, int comps, int dataType, boolean normalized, int stride, 
+                                               Buffer buffer, int vboName,
+                                               long vboOffset, int vboUsage)
     throws GLException
   {
-      gl.getGLProfile().isValidArrayDataType(index, comps, dataType, false, true);
       GLArrayDataWrapper adc = new GLArrayDataWrapper();
       adc.init(null, index, comps, dataType, normalized, stride, buffer, false, 
-               vboName, vboOffset, vboUsage, vboTarget);
+               vboName, vboOffset, vboUsage, GL.GL_ARRAY_BUFFER);
       return adc;
   }
 
   /**
    * Create a VBO, using a custom GLSL array attribute name, wrapping the given data.
    * 
-   * @param gl the current GL instance
    * @param name  The custom name for the GL attribute, maybe null if gpuBufferTarget is {@link GL#GL_ELEMENT_ARRAY_BUFFER}    
    * @param comps The array component number
    * @param dataType The array index GL data type
@@ -51,26 +49,45 @@ public class GLArrayDataWrapper implements GLArrayData {
    * @param vboName
    * @param vboOffset
    * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
-   * @param vboTarget either {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
+   * 
    * @return the new create instance
    * @throws GLException
    */
-  public static GLArrayDataWrapper createGLSL(GL gl, String name, int comps, int dataType, boolean normalized, 
-                                             int stride, Buffer buffer,                                             
-                                             int vboName, long vboOffset, int vboUsage, int vboTarget)
+  public static GLArrayDataWrapper createGLSL(String name, int comps, int dataType, boolean normalized, int stride, 
+                                             Buffer buffer, int vboName,                                             
+                                             long vboOffset, int vboUsage)
     throws GLException
   {
-      if(!gl.hasGLSL()) {
-        throw new GLException("GLArrayDataWrapper.GLSL not supported: "+gl);
-      }
-      gl.getGLProfile().isValidArrayDataType(-1, comps, dataType, true, true);
-
       GLArrayDataWrapper adc = new GLArrayDataWrapper();
       adc.init(name, -1, comps, dataType, normalized, stride, buffer, true,
-              vboName, vboOffset, vboUsage, vboTarget);
+              vboName, vboOffset, vboUsage, GL.GL_ARRAY_BUFFER);
       return adc;
   }
 
+  /**
+   * Validates this instance's parameter. Called automatically by {@link GLArrayDataClient} and {@link GLArrayDataServer}.
+   * {@link GLArrayDataWrapper} does not validate it's instance by itself.   
+   * 
+   * @param glp the GLProfile to use
+   * @param throwException whether to throw an exception if this instance has invalid parameter or not
+   * @return true if this instance has invalid parameter, otherwise false
+   */
+  public final boolean validate(GLProfile glp, boolean throwException) {
+    if(!alive) {
+        if(throwException) {
+            throw new GLException("Instance !alive "+this);
+        }
+        return false;        
+    }
+    if(this.isVertexAttribute() && !glp.hasGLSL()) {
+        if(throwException) {
+            throw new GLException("GLSL not supported on "+glp+", "+this);
+        }
+        return false;
+    }
+    return glp.isValidArrayDataType(getIndex(), getComponentNumber(), getComponentType(), isVertexAttribute(), throwException);
+  }
+    
   // 
   // Data read access
   //
@@ -99,41 +116,31 @@ public class GLArrayDataWrapper implements GLArrayData {
 
   public final int getComponentNumber() { return components; }
 
-  public final int getComponentType() { return dataType; }
+  public final int getComponentType() { return componentType; }
 
-  public final int getComponentSize() {
-    if(clazz==ByteBuffer.class) {
-        return GLBuffers.SIZEOF_BYTE;
-    }
-    if(clazz==ShortBuffer.class) {
-        return GLBuffers.SIZEOF_SHORT;
-    }
-    if(clazz==IntBuffer.class) {
-        return GLBuffers.SIZEOF_INT;
-    }
-    if(clazz==FloatBuffer.class) {
-        return GLBuffers.SIZEOF_FLOAT;
-    }
-    throw new GLException("Given Buffer Class not supported: "+clazz+":\n\t"+this);
-  }
-
+  public final int getComponentSize() { return componentSize; }
+  
   public final int getElementNumber() {
     if(null==buffer) return 0;
     return ( buffer.position()==0 ) ? ( buffer.limit() / components ) : ( buffer.position() / components ) ;
   }
-
+  public final int getByteSize() {
+    if(null==buffer) return 0;
+    return ( buffer.position()==0 ) ? ( buffer.limit() * componentSize ) : ( buffer.position() * componentSize ) ;      
+  }
+  
   public final boolean getNormalized() { return normalized; }
 
   public final int getStride() { return stride; }
 
-  public final Class getBufferClass() { return clazz; }
+  public final Class getBufferClass() { return componentClazz; }
 
   public void destroy(GL gl) {
     buffer = null;
     vboName=0;
     vboEnabled=false;
     vboOffset=-1;
-    valid = false;
+    alive = false;
   }
 
   public String toString() {
@@ -141,8 +148,8 @@ public class GLArrayDataWrapper implements GLArrayData {
                        ", index "+index+
                        ", location "+location+
                        ", isVertexAttribute "+isVertexAttribute+
-                       ", dataType "+dataType+ 
-                       ", bufferClazz "+clazz+ 
+                       ", dataType "+componentType+ 
+                       ", bufferClazz "+componentClazz+ 
                        ", elements "+getElementNumber()+
                        ", components "+components+ 
                        ", stride "+stride+"u "+strideB+"b "+strideL+"c"+
@@ -152,7 +159,7 @@ public class GLArrayDataWrapper implements GLArrayData {
                        ", vboTarget 0x"+Integer.toHexString(vboTarget)+ 
                        ", vboEnabled "+vboEnabled+ 
                        ", vboName "+vboName+ 
-                       ", valid "+valid+                       
+                       ", alive "+alive+                       
                        "]";
   }
 
@@ -210,7 +217,8 @@ public class GLArrayDataWrapper implements GLArrayData {
       this.vboTarget = vboTarget;
   }  
 
-  protected void init(String name, int index, int comps, int dataType, boolean normalized, int stride, Buffer data, 
+  protected void init(String name, int index, int components, int componentType, 
+                      boolean normalized, int stride, Buffer data, 
                       boolean isVertexAttribute, 
                       int vboName, long vboOffset, int vboUsage, int vboTarget)
     throws GLException
@@ -232,35 +240,38 @@ public class GLArrayDataWrapper implements GLArrayData {
         throw new GLException("Invalid GPUBuffer target: 0x"+Integer.toHexString(vboTarget));
     }
     
-    this.dataType = dataType;
-    this.clazz = getBufferClass(dataType);
-    switch(dataType) {
+    this.componentType = componentType;
+    componentClazz = getBufferClass(componentType);
+    switch(componentType) {
         case GL.GL_BYTE:
         case GL.GL_UNSIGNED_BYTE:
         case GL.GL_SHORT:
         case GL.GL_UNSIGNED_SHORT:
-        case GL2ES1.GL_FIXED:
+        case GL.GL_FIXED:
             this.normalized = normalized;
             break;
         default:    
             this.normalized = false;
     }
-
-    int bpc = getComponentSize();
-    if(0<stride && stride<comps*bpc) {
-        throw new GLException("stride ("+stride+") lower than component bytes, "+comps+" * "+bpc);
+    componentSize = GLBuffers.sizeOfGLType(componentType);
+    if(0 > componentSize) {
+        throw new GLException("Given componentType not supported: "+componentType+":\n\t"+this);       
     }
-    if(0<stride && stride%bpc!=0) {
-        throw new GLException("stride ("+stride+") not a multiple of bpc "+bpc);
+    if(0 >= components) {
+        throw new GLException("Invalid number of components: " + components);
+    }
+    this.components = components;
+
+    if(0<stride && stride<components*componentSize) {
+        throw new GLException("stride ("+stride+") lower than component bytes, "+components+" * "+componentSize);
+    }
+    if(0<stride && stride%componentSize!=0) {
+        throw new GLException("stride ("+stride+") not a multiple of bpc "+componentSize);
     }
     this.buffer = data;
-    if(0 >= comps) {
-        throw new GLException("Invalid number of components: " + comps);
-    }
-    this.components = comps;
     this.stride=stride;
-    this.strideB=(0==stride)?comps*bpc:stride;
-    this.strideL=(0==stride)?comps:strideB/bpc;
+    this.strideB=(0==stride)?components*componentSize:stride;
+    this.strideL=(0==stride)?components:strideB/componentSize;
     this.vboName=vboName;
     this.vboEnabled=vboName>0;
     this.vboOffset=vboOffset;
@@ -284,22 +295,23 @@ public class GLArrayDataWrapper implements GLArrayData {
     }
     this.vboUsage=vboUsage;
     this.vboTarget=vboTarget;    
-    this.valid=true;
+    this.alive=true;
   }
 
   protected GLArrayDataWrapper() { }
 
-  protected boolean valid;
+  protected boolean alive;
   protected int index;
   protected int location;
   protected String name;
   protected int components;
-  protected int dataType;
+  protected int componentType;
+  protected Class componentClazz;
+  protected int componentSize;
   protected boolean normalized;
   protected int stride;  // user given stride
   protected int strideB; // stride in bytes
   protected int strideL; // stride in logical components
-  protected Class clazz;
   protected Buffer buffer;
   protected boolean isVertexAttribute;
 

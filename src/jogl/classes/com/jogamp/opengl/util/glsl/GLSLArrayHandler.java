@@ -28,19 +28,22 @@
 
 package com.jogamp.opengl.util.glsl;
 
-import javax.media.opengl.*;
-import com.jogamp.opengl.util.*;
-import java.nio.*;
+import java.nio.Buffer;
+
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLException;
+import com.jogamp.opengl.util.GLArrayDataEditable;
+import com.jogamp.opengl.util.GLArrayHandler;
 
 public class GLSLArrayHandler implements GLArrayHandler {
+  private static final boolean DEBUG = ShaderState.DEBUG;
   private GLArrayDataEditable ad;
+  private ShaderState st;
 
-  public GLSLArrayHandler(GLArrayDataEditable ad) {
+  public GLSLArrayHandler(ShaderState st, GLArrayDataEditable ad) {
+    this.st = st;
     this.ad = ad;
-  }
-
-  private final void passVertexAttribPointer(GL2ES2 gl, ShaderState st) {
-    st.glVertexAttribPointer(gl, ad);
   }
 
   public void enableBuffer(GL gl, boolean enable) {
@@ -48,36 +51,45 @@ public class GLSLArrayHandler implements GLArrayHandler {
         throw new GLException("GLSLArrayHandler expects a GL2ES2 implementation");
     }
     GL2ES2 glsl = gl.getGL2ES2();
-    ShaderState st = ShaderState.getCurrent();
-    if(null==st) {
-        throw new GLException("No ShaderState current");
-    }
 
     if(enable) {
-        st.glEnableVertexAttribArray(glsl, ad.getName());
+        st.glEnableVertexAttribArray(glsl, ad);
 
         Buffer buffer = ad.getBuffer();
 
         if(ad.isVBO()) {
-            // always bind and refresh the VBO mgr,
-            // in case more than one gl*Pointer objects are in use
-            glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
+            // bind and refresh the VBO / vertex-attr only if necessary
             if(!ad.isVBOWritten()) {
+                if(DEBUG) {
+                    System.err.println("XXX VA "+ad.getName()+" VBO write: "+ad.getVBOName());
+                }
+                glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
                 if(null!=buffer) {
-                    glsl.glBufferData(ad.getVBOTarget(), buffer.limit() * ad.getComponentSize(), buffer, ad.getVBOUsage());
+                    glsl.glBufferData(ad.getVBOTarget(), ad.getByteSize(), buffer, ad.getVBOUsage());
                 }
                 ad.setVBOWritten(true);
+                st.glVertexAttribPointer(glsl, ad);
+            } else {
+                // didn't experience a performance hit on this query ..
+                int[] qi = new int[1];
+                glsl.glGetVertexAttribiv(ad.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
+                if(ad.getVBOName() != qi[0]) {
+                    if(DEBUG) {
+                        System.err.println("XXX VA "+ad.getName()+" VBO rebind: "+qi[0]+" -> "+ad.getVBOName());
+                    }
+                    glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
+                    st.glVertexAttribPointer(glsl, ad);
+                }
             }
-            passVertexAttribPointer(glsl, st);
         } else if(null!=buffer) {
-            passVertexAttribPointer(glsl, st);
+            st.glVertexAttribPointer(glsl, ad);
             ad.setVBOWritten(true);
         }
     } else {
         if(ad.isVBO()) {
             glsl.glBindBuffer(ad.getVBOTarget(), 0);
         }
-        st.glDisableVertexAttribArray(glsl, ad.getName());
+        st.glDisableVertexAttribArray(glsl, ad);
     }
   }
 

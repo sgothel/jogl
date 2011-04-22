@@ -124,14 +124,21 @@ public interface GLArrayData {
     public int getComponentType();
 
     /**
-     * The components size in bytes
+     * The component's size in bytes
      */
     public int getComponentSize();
 
     /**
-     * Return the number of elements.
+     * The current number of used elements.<br>
+     * In case the buffer's position is 0 (sealed, flipped), it's based on it's limit instead of it's position.
      */
     public int getElementNumber();
+    
+    /**
+     * The current number of used bytes.<br>
+     * In case the buffer's position is 0 (sealed, flipped), it's based on it's limit instead of it's position.
+     */
+    public int getByteSize();
 
     /**
      * True, if GL shall normalize fixed point data while converting 
