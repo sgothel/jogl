@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2011 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -50,9 +51,12 @@ public class FBObject {
         this.stencil_rb = 0;
         this.bound = false;
     }        
-
-    public boolean validateStatus(GL gl) {
-        /* vStatus = */ getStatus(gl);
+    
+    /**
+     * @return true if the FB status is valid, otherwise false
+     * @see #getStatus()
+     */
+    public boolean isStatusValid() {
         switch(vStatus) {
             case GL.GL_FRAMEBUFFER_COMPLETE:
                 return true;
@@ -72,17 +76,11 @@ public class FBObject {
         }
     }
         
-    /** @return {@link GL.GL_FRAMEBUFFER_COMPLETE} if ok, otherwise return GL FBO error state or -1 */
+    /** 
+     * @return The FB status. {@link GL.GL_FRAMEBUFFER_COMPLETE} if ok, otherwise return GL FBO error state or -1
+     * @see #validateStatus() 
+     */
     public int getStatus() {
-        return vStatus;
-    }
-
-    public int getStatus(GL gl) {
-        if(!gl.glIsFramebuffer(fb)) {
-            vStatus = -1;
-        } else {
-            vStatus = gl.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER);
-        }
         return vStatus;
     }
 
@@ -90,30 +88,28 @@ public class FBObject {
         return getStatusString(vStatus);
     }
     
-    public static String getStatusString(int fbStatus) {
+    public static final String getStatusString(int fbStatus) {
         switch(fbStatus) {
             case -1:
                 return "NOT A FBO";
             case GL.GL_FRAMEBUFFER_COMPLETE:
                 return "OK";
-            case GL.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                return("GL FBO: incomplete,incomplete attachment\n");
             case GL.GL_FRAMEBUFFER_UNSUPPORTED:
                 return("GL FBO: Unsupported framebuffer format");
+            case GL.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                return("GL FBO: incomplete, incomplete attachment\n");
             case GL.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                return("GL FBO: incomplete,missing attachment");
+                return("GL FBO: incomplete, missing attachment");
             case GL.GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-                return("GL FBO: incomplete,attached images must have same dimensions");
+                return("GL FBO: incomplete, attached images must have same dimensions");
             case GL.GL_FRAMEBUFFER_INCOMPLETE_FORMATS:
-                 return("GL FBO: incomplete,attached images must have same format");
-                 /*
+                 return("GL FBO: incomplete, attached images must have same format");
             case GL2.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-                return("GL FBO: incomplete,missing draw buffer");
+                return("GL FBO: incomplete, missing draw buffer");
             case GL2.GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-                return("GL FBO: incomplete,missing read buffer");
-            case GL2.GL_FRAMEBUFFER_INCOMPLETE_DUPLICATE_ATTACHMENT:
-                return("GL FBO: incomplete, duplicate attachment");
-                */
+                return("GL FBO: incomplete, missing read buffer");
+            case GL2.GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+                return("GL FBO: incomplete, missing multisample buffer");
             case 0:
                 return("GL FBO: incomplete, implementation fault");
             default:
@@ -153,6 +149,19 @@ public class FBObject {
         return init(gl, textureInternalFormat, textureDataFormat, textureDataType, magFilter, minFilter, wrapS, wrapT);
     }
 
+    private boolean checkNoError(GL gl, int err, String exceptionMessage) {
+        if(GL.GL_NO_ERROR != err) {
+            if(null != gl) {
+                destroy(gl);
+            }
+            if(null != exceptionMessage) {
+                throw new GLException(exceptionMessage+" GL Error 0x"+Integer.toHexString(err));
+            }
+            return false;
+        }
+        return true;
+    }
+        
     /**
      * Initializes this FBO's instance with it's texture.
      * 
@@ -175,6 +184,8 @@ public class FBObject {
             throw new GLException("FBO already initialized (fb "+fb+", tex "+fbo_tex+")");
         }
         
+        checkNoError(null, gl.glGetError(), "FBObject Init.pre"); // throws GLException if error
+        
         texInternalFormat=textureInternalFormat; 
         texDataFormat=textureDataFormat;
         texDataType=textureDataType;
@@ -188,24 +199,24 @@ public class FBObject {
             throw new GLException("null generated framebuffer");
         }
 
+        // bind fbo ..
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fb);        
+        checkNoError(gl, gl.glGetError(), "FBObject Init.bindFB");  // throws GLException if error        
+        if(!gl.glIsFramebuffer(fb)) {
+            checkNoError(gl, GL.GL_INVALID_VALUE, "FBObject Init.isFB"); // throws GLException
+        }
+        bound = true;        
+
         gl.glGenTextures(1, name, 0);
         fbo_tex = name[0];
         if(fbo_tex==0) {
             throw new GLException("null generated texture");
         }
-
-        // bind fbo ..
-        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fb);
-        if(!gl.glIsFramebuffer(fb)) {
-            destroy(gl);
-            System.err.println("not a framebuffer: "+ fb);
-            return false;            
-        }
-        bound = true;        
-
         gl.glBindTexture(GL.GL_TEXTURE_2D, fbo_tex);
+        checkNoError(gl, gl.glGetError(), "FBObject Init.bindTex");  // throws GLException if error        
         gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, texInternalFormat, width, height, 0,
                         texDataFormat, texDataType, null);
+        checkNoError(gl, gl.glGetError(), "FBObject Init.texImage2D");  // throws GLException if error        
         if( 0 < magFilter ) {
             gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, magFilter);
         }
@@ -224,7 +235,8 @@ public class FBObject {
                                   GL.GL_COLOR_ATTACHMENT0,
                                   GL.GL_TEXTURE_2D, fbo_tex, 0); 
 
-        return validateStatus(gl);                
+        updateStatus(gl);        
+        return isStatusValid();                
     }
 
     /**
@@ -263,7 +275,8 @@ public class FBObject {
         gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER,
                                         GL.GL_DEPTH_ATTACHMENT,
                                         GL.GL_RENDERBUFFER, depth_rb);
-        return validateStatus(gl);                
+        updateStatus(gl);
+        return isStatusValid();                
     }
     
     /**
@@ -297,7 +310,8 @@ public class FBObject {
         gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER,
                                         GL.GL_STENCIL_ATTACHMENT,
                                         GL.GL_RENDERBUFFER, stencil_rb);
-        return validateStatus(gl);                
+        updateStatus(gl);        
+        return isStatusValid();                
     }
 
     public void destroy(GL gl) {
@@ -351,12 +365,15 @@ public class FBObject {
     }
 
     public void use(GL gl) {
-        if(bound) {
-            unbind(gl);
-        }
-        gl.glBindTexture(GL.GL_TEXTURE_2D, fbo_tex); // to use it ..
+        checkBound(false);
+        gl.glBindTexture(GL.GL_TEXTURE_2D, fbo_tex); // use it ..
     }
 
+    public void unuse(GL gl) {
+        checkBound(false);
+        gl.glBindTexture(GL.GL_TEXTURE_2D, 0); // don't use it
+    }
+    
     public final boolean isBound() { return bound; }
     public final int getWidth() { return width; }
     public final int getHeight() { return height; }       
@@ -367,4 +384,12 @@ public class FBObject {
     public final String toString() {
         return "FBO[name "+fb+", size "+width+"x"+height+", tex "+fbo_tex+", depth "+depth_rb+", stencil "+stencil_rb+"]";
     }
+    
+    private void updateStatus(GL gl) {
+        if(!gl.glIsFramebuffer(fb)) {
+            vStatus = -1;
+        } else {
+            vStatus = gl.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER);
+        }
+    }       
 }
