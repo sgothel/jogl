@@ -43,6 +43,9 @@ package javax.media.opengl;
 import java.util.HashMap;
 import java.util.HashSet;
 import javax.media.nativewindow.AbstractGraphicsDevice;
+
+import com.jogamp.common.util.IntObjectHashMap;
+
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 
@@ -91,9 +94,10 @@ public abstract class GLContext {
   /** GLContext {@link com.jogamp.gluegen.runtime.ProcAddressTable} caching related: GL hardware implementation */
   protected static final int CTX_IMPL_ACCEL_HARD = 1 << 1;
 
-  private static ThreadLocal currentContext = new ThreadLocal();
+  private static ThreadLocal<GLContext> currentContext = new ThreadLocal<GLContext>();
 
-  private HashMap/*<int, Object>*/ attachedObjects = new HashMap();
+  private HashMap<String, Object> attachedObjectsByString = new HashMap<String, Object>();
+  private IntObjectHashMap attachedObjectsByInt = new IntObjectHashMap();
 
   /** The underlying native OpenGL context */
   protected long contextHandle;
@@ -112,9 +116,8 @@ public abstract class GLContext {
       ctxMinorVersion=-1;
       ctxOptions=0;
       ctxVersionString=null;
-      if(null!=attachedObjects) {
-        attachedObjects.clear();
-      }
+      attachedObjectsByString.clear();
+      attachedObjectsByInt.clear();
       contextHandle=0;
   }
 
@@ -248,7 +251,7 @@ public abstract class GLContext {
    * is current.
    */
   public static GLContext getCurrent() {
-    return (GLContext) currentContext.get();
+    return currentContext.get();
   }
 
   /**
@@ -258,6 +261,15 @@ public abstract class GLContext {
     return getCurrent() == this ; 
   }
 
+  /**
+   * @throws GLException if this GLContext is not current on this thread
+   */
+  public final void validateCurrent() throws GLException {  
+    if(getCurrent() != this) {
+        throw new GLException("Given GL context not current");
+    }
+  }
+  
   /**
    * Sets the thread-local variable returned by {@link #getCurrent}
    * and has no other side-effects. For use by third parties adding
@@ -314,32 +326,40 @@ public abstract class GLContext {
    * Returns the attached user object for the given name to this GLContext.
    */
   public final Object getAttachedObject(int name) {
-    return attachedObjects.get(new Integer(name));
+    return attachedObjectsByInt.get(name);
   }
 
   /**
    * Returns the attached user object for the given name to this GLContext.
    */
   public final Object getAttachedObject(String name) {
-    return attachedObjects.get(name);
+    return attachedObjectsByString.get(name);
   }
 
   /**
    * Sets the attached user object for the given name to this GLContext.
    * Returns the previously set object or null.
    */
-  public final Object putAttachedObject(int name, Object obj) {
-    return attachedObjects.put(new Integer(name), obj);
+  public final Object attachObject(int name, Object obj) {
+    return attachedObjectsByInt.put(name, obj);
   }
 
+  public final Object detachObject(int name) {
+      return attachedObjectsByInt.remove(name);
+  }
+  
   /**
    * Sets the attached user object for the given name to this GLContext.
    * Returns the previously set object or null.
    */
-  public final Object putAttachedObject(String name, Object obj) {
-    return attachedObjects.put(name, obj);
+  public final Object attachObject(String name, Object obj) {
+    return attachedObjectsByString.put(name, obj);
   }
 
+  public final Object detachObject(String name) {
+      return attachedObjectsByString.remove(name);
+  }
+  
   /**
    * Classname, GL, GLDrawable
    */
