@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2011 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -25,37 +25,32 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos;
+package com.jogamp.graph.curve.opengl;
 
+import javax.media.opengl.GL;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLUniformData;
 
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLAutoDrawable;
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.VersionUtil;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
-import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.curve.opengl.TextRenderer;
-
-public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
-    public GPUTextGLListener0A(RenderState rs, int numpass, int fbosize, boolean debug, boolean trace) {
-        super(rs, numpass, debug, trace);
-        setMatrix(-400, -30, 0f, -500, fbosize); 
-    }
+public interface RenderState {
     
-    public void init(GLAutoDrawable drawable) {
-        super.init(drawable);
-        
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
-        
-        final TextRenderer textRenderer = (TextRenderer) getRenderer();
-        
-        gl.setSwapInterval(1);
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-        textRenderer.init(gl);
-        textRenderer.setAlpha(gl, 1.0f);
-        textRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
-        //gl.glSampleCoverage(0.95f, false);
-        //gl.glEnable(GL2GL3.GL_SAMPLE_COVERAGE); // sample coverage doesn't really make a difference to lines
-        //gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_COVERAGE);
-        //gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_ONE);
-        MSAATool.dump(drawable);
-    }
+    ShaderState getShaderState();
+    Vertex.Factory<? extends Vertex> getPointFactory();
+    PMVMatrix getPMVMatrix();
+    GLUniformData getPMVMatrixUniform();
+    GLUniformData getSharpness();
+    GLUniformData getAlpha();
+    GLUniformData getColorStatic();
+    GLUniformData getStrength();
+    
+    RenderState attachTo(GL gl);
+    boolean detachFrom(GL gl);   
+    
+    StringBuilder toString(StringBuilder sb);
+    String toString();
 }

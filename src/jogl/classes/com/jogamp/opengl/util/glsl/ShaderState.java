@@ -594,8 +594,6 @@ public class ShaderState {
      * If data location is unset it will be retrieved via {@link #glGetAttribLocation(GL2ES2, GLArrayData)}, set
      * and cached in this state.
      * 
-     * Enables the attribute via {@link #glEnableVertexAttribArray(GL2ES2, GLArrayData)} , if it is not enabled yet.
-     * 
      * @return false, if the location could not be determined, otherwise true
      *
      * @throws GLException if the program is not in use
@@ -611,14 +609,6 @@ public class ShaderState {
         if(0 > data.getLocation()) {
             glGetAttribLocation(gl, data);
         }        
-        if(!enabledVertexAttribArraySet.contains(data.getName())) {
-            if(!glEnableVertexAttribArray(gl, data)) {
-                if(verbose) {
-                    Throwable tX = new Throwable("Info: glVertexAttribPointer: couldn't enable: "+data);
-                    tX.printStackTrace();
-                }
-            }
-        }
         if(0 <= data.getLocation()) {
             // only pass the data, if the attribute exists in the current shader
             if(DEBUG) {

@@ -33,6 +33,8 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLException;
+
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -89,8 +91,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     StringBuffer userString = new StringBuffer();
     boolean userInput = false;
     
-    public GPUTextRendererListenerBase01(Vertex.Factory<? extends Vertex> factory, int mode, boolean debug, boolean trace) {
-        super(TextRenderer.create(factory, mode), debug, trace);        
+    public GPUTextRendererListenerBase01(RenderState rs, int mode, boolean debug, boolean trace) {
+        super(TextRenderer.create(rs, mode), debug, trace);        
         this.font = FontFactory.get(fontSet).getDefault();
         dumpFontNames();
         

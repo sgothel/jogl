@@ -32,8 +32,12 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.Renderer;
+import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
 /** Demonstrate the rendering of multiple OutlineShapes
  *  into one region
@@ -60,7 +64,8 @@ public class GPURegionNewtDemo02 {
         window.setSize(800, 400);
         window.setTitle("GPU Curve Region Newt Demo 02 - r2t1 msaa0");
                 
-        GPURegionGLListener02  regionGLListener = new GPURegionGLListener02 (Region.TWO_PASS, 1140, DEBUG, TRACE); 
+        RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
+        GPURegionGLListener02  regionGLListener = new GPURegionGLListener02 (rs, Region.TWO_PASS, 1140, DEBUG, TRACE); 
         regionGLListener.attachInputListenerTo(window);                
         window.addGLEventListener(regionGLListener);
              

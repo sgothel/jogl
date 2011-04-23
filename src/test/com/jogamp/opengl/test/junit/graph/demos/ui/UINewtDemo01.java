@@ -31,8 +31,12 @@ package com.jogamp.opengl.test.junit.graph.demos.ui;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.Renderer;
+import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
 /** Demonstrate the rendering of multiple outlines into one region/OutlineShape
  *  These Outlines are not necessary connected or contained.
@@ -58,8 +62,8 @@ public class UINewtDemo01 {
         window.setPosition(10, 10);
         window.setSize(800, 400);
         window.setTitle("GPU UI Newt Demo 01");
-        
-        UIGLListener01 uiGLListener = new UIGLListener01 (DEBUG, TRACE);
+        RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
+        UIGLListener01 uiGLListener = new UIGLListener01 (rs, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);        
         window.addGLEventListener(uiGLListener);
 

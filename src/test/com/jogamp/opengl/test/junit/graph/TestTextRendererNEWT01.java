@@ -16,12 +16,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.graph.demos.GPUTextRendererListenerBase01;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
 
 public class TestTextRendererNEWT01 extends UITestCase {
@@ -66,7 +69,8 @@ public class TestTextRendererNEWT01 extends UITestCase {
         caps.setAlphaBits(4);    
 
         GLWindow window = createWindow("text-r2t1-msaa0", caps, 800,400);
-        TextGLListener textGLListener = new TextGLListener(Region.TWO_PASS, DEBUG, TRACE);
+        RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
+        TextGLListener textGLListener = new TextGLListener(rs, Region.TWO_PASS, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         
@@ -102,7 +106,8 @@ public class TestTextRendererNEWT01 extends UITestCase {
         caps.setNumSamples(4);
 
         GLWindow window = createWindow("text-r2t0-msaa1", caps, 800, 400);
-        TextGLListener textGLListener = new TextGLListener(Region.SINGLE_PASS, DEBUG, TRACE);
+        RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
+        TextGLListener textGLListener = new TextGLListener(rs, Region.SINGLE_PASS, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         
@@ -132,8 +137,8 @@ public class TestTextRendererNEWT01 extends UITestCase {
     private class TextGLListener extends GPUTextRendererListenerBase01 {
         String winTitle;
         
-        public TextGLListener(int type, boolean debug, boolean trace) {
-            super(SVertex.factory(), type, debug, trace);
+        public TextGLListener(RenderState rs, int type, boolean debug, boolean trace) {
+            super(rs, type, debug, trace);
         }
         
         public void attachInputListenerTo(GLWindow window) {
@@ -155,7 +160,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
             
             textRenderer.init(gl);
             textRenderer.setAlpha(gl, 1.0f);
-            textRenderer.setColor(gl, 0.0f, 0.0f, 0.0f);
+            textRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
         }
         
         public void display(GLAutoDrawable drawable) {

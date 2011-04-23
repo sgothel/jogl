@@ -27,53 +27,29 @@
  */
 package jogamp.graph.curve.opengl;
 
-import java.nio.FloatBuffer;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLUniformData;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+
+import jogamp.graph.curve.opengl.shader.AttributeNames;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-
 public class RegionRendererImpl01 extends RegionRenderer {
-    /**Sharpness is equivalent to the value of t value of texture coord
-     * on the off-curve vertex. The high value of sharpness will 
-     * result in high curvature.
-     */
-    private GLUniformData mgl_sharpness = new GLUniformData("p1y", 0.5f);
-    GLUniformData mgl_alpha = new GLUniformData("g_alpha", 1.0f);
-    private GLUniformData mgl_color = new GLUniformData("g_color", 3, FloatBuffer.allocate(3));
-    private GLUniformData mgl_strength = new GLUniformData("a_strength", 3.0f);
-    
-    public RegionRendererImpl01(Vertex.Factory<? extends Vertex> factory, int type) {
-        super(factory, type);
+    public RegionRendererImpl01(RenderState rs, int type) {
+        super(rs, type);
+        // rs.getSharpness().setData(0.5f);
+        // rs.getAlpha().setData(1.0f);
+        // rs.getStrength().setData(3.0f);                                
     }
     
-    protected boolean initImpl(GL2ES2 gl) {
-        boolean VBOsupported = gl.isFunctionAvailable("glGenBuffers") &&
-            gl.isFunctionAvailable("glBindBuffer") &&
-            gl.isFunctionAvailable("glBufferData") &&
-            gl.isFunctionAvailable("glDrawElements") &&
-            gl.isFunctionAvailable("glVertexAttribPointer") &&
-            gl.isFunctionAvailable("glDeleteBuffers");
-        
-        if(DEBUG) {
-            System.err.println("RegionRenderer: VBO Supported = " + VBOsupported);
-        }
-        
-        if(!VBOsupported){
-            return false;
-        }
-        
-        gl.glEnable(GL2ES2.GL_BLEND);
-        gl.glBlendFunc(GL2ES2.GL_SRC_ALPHA, GL2ES2.GL_ONE_MINUS_SRC_ALPHA);
+    protected boolean initShaderProgram(GL2ES2 gl) {
+        final ShaderState st = rs.getShaderState();
         
         ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RegionRendererImpl01.class,
                 "shader", "shader/bin", "curverenderer01");
@@ -85,60 +61,15 @@ public class RegionRendererImpl01 extends RegionRenderer {
         sp.add(rsFp);
 
         sp.init(gl);
-        gl.glBindAttribLocation(sp.program(), Region.VERTEX_ATTR_IDX, Region.VERTEX_ATTR_NAME);
-        gl.glBindAttribLocation(sp.program(), Region.TEXCOORD_ATTR_IDX, Region.TEXCOORD_ATTR_NAME);
+        st.attachShaderProgram(gl, sp);        
+        st.glBindAttribLocation(gl, AttributeNames.VERTEX_ATTR_IDX, AttributeNames.VERTEX_ATTR_NAME);
+        st.glBindAttribLocation(gl, AttributeNames.TEXCOORD_ATTR_IDX, AttributeNames.TEXCOORD_ATTR_NAME);        
         
         if(!sp.link(gl, System.err)) {
             throw new GLException("RegionRenderer: Couldn't link program: "+sp);
-        }
-    
-        st = new ShaderState();
-        st.attachShaderProgram(gl, sp);
-        
+        }    
         st.glUseProgram(gl, true);
     
-        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-        pmvMatrix.glLoadIdentity();
-        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmvMatrix.glLoadIdentity();
-        
-        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-        pmvMatrix.glLoadIdentity();
-        resetModelview(null);
-    
-        mgl_PMVMatrix = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());                  
-        if(!st.glUniform(gl, mgl_PMVMatrix)) {
-            if(DEBUG){
-                System.err.println("Error setting PMVMatrix in shader: "+st);
-            }
-            return false;
-        }
-        
-        if(!st.glUniform(gl, mgl_sharpness)) {
-            if(DEBUG){
-                System.err.println("Error setting sharpness in shader: "+st);
-            }
-            return false;
-        }
-                
-        if(!st.glUniform(gl, mgl_alpha)) {
-            if(DEBUG){
-                System.err.println("Error setting global alpha in shader: "+st);
-            }
-            return false;
-        }       
-        
-        if(!st.glUniform(gl, mgl_color)) {
-            if(DEBUG){
-                System.err.println("Error setting global color in shader: "+st);
-            }
-            return false;
-        }       
-        
-        if(!st.glUniform(gl, mgl_strength)) {
-            System.err.println("Error setting antialias strength in shader: "+st);
-        }
-        
         if(DEBUG) {
             System.err.println("RegionRendererImpl01 initialized: " + Thread.currentThread()+" "+st);
         }
@@ -150,30 +81,6 @@ public class RegionRendererImpl01 extends RegionRenderer {
         super.disposeImpl(gl);
     }
         
-    @Override
-    public float getAlpha() {
-        return mgl_alpha.floatValue();
-    }
-
-    @Override
-    public void setAlpha(GL2ES2 gl, float alpha_t) {
-        mgl_alpha.setData(alpha_t);
-        if(null != gl && st.inUse()) {
-            st.glUniform(gl, mgl_alpha);
-        }
-    }
-    
-    @Override
-    public void setColor(GL2ES2 gl, float r, float g, float b){
-        FloatBuffer fb = (FloatBuffer) mgl_color.getBuffer();
-        fb.put(0, r);
-        fb.put(1, r);
-        fb.put(2, r);
-        if(null != gl && st.inUse()) {
-            st.glUniform(gl, mgl_color);
-        }
-    }
-    
     
     @Override
     public void renderOutlineShape(GL2ES2 gl, OutlineShape outlineShape, float[] position, int texSize) {
@@ -184,10 +91,10 @@ public class RegionRendererImpl01 extends RegionRenderer {
         Region region = regions.get(hashCode);
         
         if(null == region) {
-            region = createRegion(gl, outlineShape, mgl_sharpness.floatValue());
+            region = createRegion(gl, outlineShape);
             regions.put(hashCode, region);
         }        
-        region.render(pmvMatrix, vp_width, vp_height, texSize);
+        region.render(gl, rs, vp_width, vp_height, texSize);
     }
     
     @Override
@@ -200,9 +107,9 @@ public class RegionRendererImpl01 extends RegionRenderer {
         Region region = regions.get(hashCode);
         
         if(null == region) {
-            region = createRegion(gl, outlineShapes, mgl_sharpness.floatValue());
+            region = createRegion(gl, outlineShapes);
             regions.put(hashCode, region);
         }        
-        region.render(pmvMatrix, vp_width, vp_height, texSize);
+        region.render(gl, rs, vp_width, vp_height, texSize);
     }    
 }

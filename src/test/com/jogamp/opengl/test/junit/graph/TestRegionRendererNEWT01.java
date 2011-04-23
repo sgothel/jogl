@@ -15,11 +15,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.Renderer;
+import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener01;
 import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener02;
 import com.jogamp.opengl.test.junit.graph.demos.GPURegionRendererListenerBase01;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
 
 public class TestRegionRendererNEWT01 extends UITestCase {
@@ -63,8 +67,8 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setAlphaBits(4);    
 
         GLWindow window = createWindow("shape-r2t1-msaa0", caps, 800,400);
-        
-        GPURegionGLListener02  demo02Listener = new GPURegionGLListener02 (Region.TWO_PASS, 1140, false, false); 
+        RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
+        GPURegionGLListener02  demo02Listener = new GPURegionGLListener02 (rs, Region.TWO_PASS, 1140, false, false); 
         demo02Listener.attachInputListenerTo(window);                
         window.addGLEventListener(demo02Listener);        
         
@@ -93,8 +97,9 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setNumSamples(4);
 
         GLWindow window = createWindow("shape-r2t0-msaa1", caps, 800, 400);
-        
-        GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (Region.SINGLE_PASS, 0, false, false);
+        RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
+
+        GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, Region.SINGLE_PASS, 0, false, false);
         demo01Listener.attachInputListenerTo(window);        
         window.addGLEventListener(demo01Listener);
                 

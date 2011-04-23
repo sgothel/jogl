@@ -38,12 +38,12 @@ import com.jogamp.graph.geom.Vertex.Factory;
  */
 public class RIButton extends UIControl{
     private float width = 4.0f, height= 3.0f;
-    private float spacing = 0.3f;
+    private float spacing = 2.0f;
     private float[] scale = new float[]{1.0f,1.0f};
-    private float corner = 0.5f;
+    private float corner = 1.0f;
     private float labelZOffset = -0.05f;
     
-    private float[] buttonColor = {0.0f, 0.0f, 0.0f};
+    private float[] buttonColor = {0.6f, 0.6f, 0.6f};
     private float[] labelColor = {1.0f, 1.0f, 1.0f};
     
     public RIButton(Factory<? extends Vertex> factory, String label){

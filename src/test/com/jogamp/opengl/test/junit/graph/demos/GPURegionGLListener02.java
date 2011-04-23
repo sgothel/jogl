@@ -34,7 +34,7 @@ import javax.media.opengl.GLAutoDrawable;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.graph.curve.opengl.RenderState;
 
 /** Demonstrate the rendering of multiple OutlineShapes
  *  into one region
@@ -43,14 +43,14 @@ import com.jogamp.graph.geom.opengl.SVertex;
 public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
     OutlineShape[] outlineShapes = new OutlineShape[2];
 
-    public GPURegionGLListener02 (int numpass, int fbosize, boolean debug, boolean trace) {
-        super(SVertex.factory(), numpass, debug, trace);
+    public GPURegionGLListener02 (RenderState rs, int numpass, int fbosize, boolean debug, boolean trace) {
+        super(rs, numpass, debug, trace);
         setMatrix(-20, 00, 0f, -50, fbosize);
     }
         
     private void createTestOutline(){
         float offset = 0;
-        outlineShapes[0] = new OutlineShape(SVertex.factory());
+        outlineShapes[0] = new OutlineShape(getRenderer().getFactory());
         outlineShapes[0].addVertex(0.0f,-10.0f,true);
         outlineShapes[0].addVertex(15.0f,-10.0f, true);
         outlineShapes[0].addVertex(10.0f,5.0f, false);
@@ -67,7 +67,7 @@ public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
         outlineShapes[0].closeLastOutline();
         
         /** Same shape as above but without any off-curve vertices */
-        outlineShapes[1] = new OutlineShape(SVertex.factory());
+        outlineShapes[1] = new OutlineShape(getRenderer().getFactory());
         offset = 30;
         outlineShapes[1].addVertex(offset+0.0f,-10.0f, true);
         outlineShapes[1].addVertex(offset+17.0f,-10.0f, true);
@@ -96,7 +96,7 @@ public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         regionRenderer.init(gl);
         regionRenderer.setAlpha(gl, 1.0f);
-        regionRenderer.setColor(gl, 0.0f, 0.0f, 0.0f);
+        regionRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
         MSAATool.dump(drawable);
         
         createTestOutline();

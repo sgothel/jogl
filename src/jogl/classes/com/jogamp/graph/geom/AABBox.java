@@ -36,14 +36,16 @@ import com.jogamp.graph.math.VectorUtil;
  * 
  */
 public class AABBox {
-    private float[] low = {Float.MAX_VALUE,Float.MAX_VALUE,Float.MAX_VALUE};
-    private float[] high = {-1*Float.MAX_VALUE,-1*Float.MAX_VALUE,-1*Float.MAX_VALUE};
+    private float[] low = new float[3];
+    private float[] high = new float[3];
     private float[] center = new float[3];
 
     /** Create a Axis Aligned bounding box (AABBox) 
      * where the low and and high MAX float Values.
      */
-    public AABBox() {}
+    public AABBox() {
+        reset();
+    }
 
     /** Create an AABBox specifying the coordinates 
      * of the low and high
@@ -57,6 +59,7 @@ public class AABBox {
     public AABBox(float lx, float ly, float lz,
             float hx, float hy, float hz)
     {
+        reset();
         resize(lx, ly, lz);
         resize(hx, hy, hz);
 
@@ -67,24 +70,31 @@ public class AABBox {
      * @param low min xyz-coordinates
      * @param high max xyz-coordinates
      */
-    public AABBox(float[] low, float[] high)
-    {
+    public AABBox(float[] low, float[] high) {
+        reset();
         resize(low[0],low[1],low[2]);
         resize(high[0],high[1],high[2]);
 
         computeCenter();
     }
+
+    /** resets this box to the inverse low/high, allowing the next {@link #resize(float, float, float)} command to hit. */
+    public void reset() {
+        setLow(Float.MAX_VALUE,Float.MAX_VALUE,Float.MAX_VALUE);
+        setHigh(-1*Float.MAX_VALUE,-1*Float.MAX_VALUE,-1*Float.MAX_VALUE);
+        center[0] = 0f;
+        center[1] = 0f;
+        center[2] = 0f;
+    }
     
     /** Get the max xyz-coordinates
      * @return a float array containing the max xyz coordinates
      */
-    public float[] getHigh() 
-    {
+    public float[] getHigh() {
         return high;
     }
     
-    private void setHigh(float hx, float hy, float hz) 
-    {
+    private void setHigh(float hx, float hy, float hz) {
         this.high[0] = hx;
         this.high[1] = hy;
         this.high[2] = hz;
@@ -93,13 +103,11 @@ public class AABBox {
     /** Get the min xyz-coordinates
      * @return a float array containing the min xyz coordinates
      */
-    public float[] getLow() 
-    {
+    public float[] getLow() {
         return low;
     }
     
-    private void setLow(float lx, float ly, float lz) 
-    {
+    private void setLow(float lx, float ly, float lz) {
         this.low[0] = lx;
         this.low[1] = ly;
         this.low[2] = lz;
@@ -108,8 +116,7 @@ public class AABBox {
     /** Resize the AABBox to encapsulate another AABox
      * @param newBox AABBox to be encapsulated in
      */
-    public void resize(AABBox newBox)
-    {
+    public void resize(AABBox newBox) {
         float[] newLow = newBox.getLow();
         float[] newHigh = newBox.getHigh();
 
@@ -132,8 +139,7 @@ public class AABBox {
         computeCenter();
     }
 
-    private void computeCenter()
-    {
+    private void computeCenter() {
         center[0] = (high[0] + low[0])/2;
         center[1] = (high[1] + low[1])/2;
         center[2] = (high[2] + low[2])/2;
@@ -145,8 +151,7 @@ public class AABBox {
      * @param y y-axis coordinate value
      * @param z z-axis coordinate value
      */
-    public void resize(float x, float y, float z)
-    {    
+    public void resize(float x, float y, float z) {    
         /** test low */
         if (x < low[0])
             low[0] = x;
@@ -173,7 +178,7 @@ public class AABBox {
      * @return true if  x belong to (low.x, high.x) and
      * y belong to (low.y, high.y)
      */
-    public boolean contains(float x, float y){
+    public boolean contains(float x, float y) {
         if(x<low[0] || x>high[0]){
             return false;
         }
@@ -191,7 +196,7 @@ public class AABBox {
      * @return true if  x belong to (low.x, high.x) and
      * y belong to (low.y, high.y) and  z belong to (low.z, high.z)
      */
-    public boolean contains(float x, float y, float z){
+    public boolean contains(float x, float y, float z) {
         if(x<low[0] || x>high[0]){
             return false;
         }
@@ -236,7 +241,7 @@ public class AABBox {
      * length of the vector between low and high.
      * @return a float representing the size of the AABBox
      */
-    public float getSize(){
+    public float getSize() {
         return VectorUtil.computeLength(low, high);
     }
 
@@ -288,7 +293,7 @@ public class AABBox {
     public float getDepth() {
         return high[2] - low[2];
     }
-    public AABBox clone(){
+    public AABBox clone() {
         return new AABBox(this.low, this.high);
     }
     

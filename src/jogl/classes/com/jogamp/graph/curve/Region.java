@@ -29,6 +29,9 @@ package com.jogamp.graph.curve;
 
 import java.util.ArrayList;
 
+import javax.media.opengl.GL2ES2;
+
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.AABBox;
 import jogamp.opengl.Debug;
 
@@ -48,33 +51,20 @@ import com.jogamp.opengl.util.PMVMatrix;
  */
 public interface Region {
     public static final boolean DEBUG = Debug.debug("graph.curve");
-    
-    /** The vertices index in an OGL object
-     */
-    public static int VERTEX_ATTR_IDX = 0;
-    public static String VERTEX_ATTR_NAME = "v_position";
-
-    /** The Texture Coord index in an OGL object
-     */
-    public static int TEXCOORD_ATTR_IDX = 1;
-    public static String TEXCOORD_ATTR_NAME = "texCoord";
-    
-    /** The color index in an OGL object
-     */
-    public static int COLOR_ATTR_IDX = 2;
-    public static String COLOR_ATTR_NAME = "v_color";
+    public static final boolean DEBUG_INSTANCE = false;
     
     /** single pass rendering, fast, but AA might not be perfect */
     public static int SINGLE_PASS = 1;
     
     /** two pass rendering, slower and more resource hungry (FBO), but AA is perfect */
     public static int TWO_PASS    = 2;
+    public static int TWO_PASS_DEFAULT_TEXTURE_UNIT = 0;
     
     /** Updates a graph region by updating the ogl related
      *  objects for use in rendering. if called for the first time
      *  it initialize the objects. 
      */
-    public void update();
+    public void update(GL2ES2 gl);
     
     /** Renders the associated OGL objects specifying
      * current width/hight of window for multi pass rendering
@@ -86,7 +76,7 @@ public interface Region {
      * 
      * @see update()
      */
-    public void render(PMVMatrix matrix, int vp_width, int vp_height, int width);
+    public void render(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int width);
     
     /** Adds a list of {@link Triangle} objects to the Region
      * These triangles are to be binded to OGL objects 
@@ -127,7 +117,7 @@ public interface Region {
     /** Delete and clean the associated OGL
      *  objects
      */
-    public void destroy();
+    public void destroy(GL2ES2 gl);
     
     public AABBox getBounds(); 
     

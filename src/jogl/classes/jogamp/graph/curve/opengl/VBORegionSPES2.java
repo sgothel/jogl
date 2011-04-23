@@ -31,14 +31,16 @@ import java.util.ArrayList;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLContext;
+
+import jogamp.graph.curve.opengl.shader.AttributeNames;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.opengl.util.GLArrayDataServer;
-import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class VBORegionSPES2  implements Region {
     private int numVertices = 0;
@@ -49,25 +51,40 @@ public class VBORegionSPES2  implements Region {
     private GLArrayDataServer texCoordAttr = null;
     private GLArrayDataServer indices = null;
     
-    private GLContext context;
-    
     private boolean flipped = false;
-    private boolean dirty = false;
+    private boolean dirty = true;
     
     private AABBox box = null;
     
-    public VBORegionSPES2(GLContext context){
-        this.context =context;
+    public VBORegionSPES2(RenderState rs){        
+        box = new AABBox();
+        
+        final int initialSize = 256;
+        final ShaderState st = rs.getShaderState();
+        
+        indices = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialSize, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);        
+        
+        verticeAttr = GLArrayDataServer.createGLSL(st, AttributeNames.VERTEX_ATTR_NAME, 3, 
+                                                   GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW); 
+        st.bindAttribute(verticeAttr);
+        
+        texCoordAttr = GLArrayDataServer.createGLSL(st, AttributeNames.TEXCOORD_ATTR_NAME, 2, 
+                                                    GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
+        st.bindAttribute(texCoordAttr);
+        
+        if(DEBUG_INSTANCE) {
+            System.err.println("VBORegionSPES2 Create: " + this);
+        }        
     }
     
-    public void update(){
-        box = new AABBox();
-        GL2ES2 gl = context.getGL().getGL2ES2();
+    public void update(GL2ES2 gl){
+        if(!dirty) {
+            return; 
+        }
         
-        destroy(gl);        
-
-        indices = GLArrayDataServer.createGLSL(gl, null, 3, GL2ES2.GL_SHORT, false, 
-                                               triangles.size(), GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);        
+        // process triangles
+        indices.seal(gl, false);
+        indices.rewind();        
         for(Triangle t:triangles){
             final Vertex[] t_vertices = t.getVertices();
             
@@ -95,12 +112,15 @@ public class VBORegionSPES2  implements Region {
             }
         }
         indices.seal(gl, true);
+        indices.enableBuffer(gl, false);
         
-        verticeAttr = GLArrayDataServer.createGLSL(gl, Region.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT, false,
-                                                   vertices.size(), GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER); 
-        verticeAttr.setLocation(Region.VERTEX_ATTR_IDX);
-        for(Vertex v:vertices){
-            
+        // process vertices and update bbox
+        box.reset();
+        verticeAttr.seal(gl, false); 
+        verticeAttr.rewind();
+        texCoordAttr.seal(gl, false);
+        texCoordAttr.rewind();
+        for(Vertex v:vertices){            
             if(flipped){
                 verticeAttr.putf(v.getX());
                 verticeAttr.putf(-1*v.getY());
@@ -115,29 +135,24 @@ public class VBORegionSPES2  implements Region {
                 
                 box.resize(v.getX(),v.getY(),v.getZ());
             }
-        }
-        verticeAttr.seal(gl, true);        
-        
-        texCoordAttr = GLArrayDataServer.createGLSL(gl, Region.TEXCOORD_ATTR_NAME, 2, GL2ES2.GL_FLOAT, false,
-                                                    vertices.size(), GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER);
-        texCoordAttr.setLocation(Region.TEXCOORD_ATTR_IDX);
-        for(Vertex v:vertices){
-            float[] tex = v.getTexCoord();
+            
+            final float[] tex = v.getTexCoord();
             texCoordAttr.putf(tex[0]);
             texCoordAttr.putf(tex[1]);
         }
+        verticeAttr.seal(gl, true);        
+        verticeAttr.enableBuffer(gl, false);
         texCoordAttr.seal(gl, true);
-        
-        verticeAttr.enableBuffer(gl, false);       
         texCoordAttr.enableBuffer(gl, false);
-        indices.enableBuffer(gl, false);
+        
+        // update all bbox related data: nope
         
         dirty = false;
+        
+        // the buffers were disabled, since due to real/fbo switching and other vbo usage
     }
     
-    private void render() {
-        GL2ES2 gl = context.getGL().getGL2ES2();
-
+    private void render(GL2ES2 gl) {
         verticeAttr.enableBuffer(gl, true);       
         texCoordAttr.enableBuffer(gl, true);
         indices.enableBuffer(gl, true);
@@ -149,8 +164,8 @@ public class VBORegionSPES2  implements Region {
         indices.enableBuffer(gl, false);
     }
     
-    public void render(PMVMatrix matrix, int vp_width, int vp_height, int width){
-        render();
+    public void render(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int width) {
+        render(gl);
     }
     
     public void addTriangles(ArrayList<Triangle> tris) {
@@ -172,12 +187,10 @@ public class VBORegionSPES2  implements Region {
         return dirty;
     }
     
-    public void destroy() {
-        GL2ES2 gl = context.getGL().getGL2ES2();
-        destroy(gl);        
-    }
-        
-    final void destroy(GL2ES2 gl) {        
+    public final void destroy(GL2ES2 gl) {
+        if(DEBUG_INSTANCE) {
+            System.err.println("VBORegionSPES2 Destroy: " + this);
+        }        
         if(null != verticeAttr) {
             verticeAttr.destroy(gl);
             verticeAttr = null;

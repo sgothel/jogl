@@ -33,7 +33,7 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.graph.curve.opengl.RenderState;
 
 /** Demonstrate the rendering of multiple outlines into one region/OutlineShape
  *  These Outlines are not necessary connected or contained.
@@ -45,8 +45,8 @@ import com.jogamp.graph.geom.opengl.SVertex;
 public class GPURegionGLListener01 extends GPURegionRendererListenerBase01 {
     OutlineShape outlineShape = null;
     
-    public GPURegionGLListener01 (int numpass, int fbosize, boolean debug, boolean trace) {
-        super(SVertex.factory(), numpass, debug, trace);
+    public GPURegionGLListener01 (RenderState rs, int numpass, int fbosize, boolean debug, boolean trace) {
+        super(rs, numpass, debug, trace);
         setMatrix(-20, 00, 0f, -50, fbosize);
     }
     
@@ -98,7 +98,7 @@ public class GPURegionGLListener01 extends GPURegionRendererListenerBase01 {
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         regionRenderer.init(gl);
         regionRenderer.setAlpha(gl, 1.0f);
-        regionRenderer.setColor(gl, 0.0f, 0.0f, 0.0f);
+        regionRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
         //gl.glSampleCoverage(0.95f, false);
         //gl.glEnable(GL2GL3.GL_SAMPLE_COVERAGE); // sample coverage doesn't really make a difference to lines
         //gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_ONE);

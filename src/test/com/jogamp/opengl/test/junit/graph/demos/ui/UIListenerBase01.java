@@ -129,7 +129,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
     public void dispose(GLAutoDrawable drawable) {
         autoDrawable = null;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
-        screenshot.dispose();
+        screenshot.dispose(gl);
         rRenderer.dispose(gl);
         tRenderer.dispose(gl);
     }    

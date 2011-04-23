@@ -116,12 +116,13 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         renderer.reshapePerspective(gl, 45.0f, width, height, 0.1f, 7000.0f);
         
         dumpMatrix();
+        System.err.println("Reshape: "+renderer.getRenderState());        
     }
     
     public void dispose(GLAutoDrawable drawable) {
         autoDrawable = null;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
-        screenshot.dispose();
+        screenshot.dispose(gl);
         renderer.dispose(gl);
     }    
     

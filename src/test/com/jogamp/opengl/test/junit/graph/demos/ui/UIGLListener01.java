@@ -36,21 +36,24 @@ import jogamp.graph.curve.text.GlyphString;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.opengl.test.junit.graph.demos.MSAATool;
 
 public class UIGLListener01 extends UIListenerBase01 {
     
-    public UIGLListener01 (boolean debug, boolean trace) {
-        super(RegionRenderer.create(SVertex.factory(), Region.SINGLE_PASS),
-                TextRenderer.create(SVertex.factory(), Region.SINGLE_PASS), debug, trace);
+    public UIGLListener01 (RenderState rs, boolean debug, boolean trace) {
+        super(RegionRenderer.create(rs, Region.SINGLE_PASS),
+              TextRenderer.create(rs, Region.SINGLE_PASS), debug, trace);
         setMatrix(-20, 00, 0f, -50);
         button = new RIButton(SVertex.factory(), "Click me!");
-        button.setLabelColor(1.0f,1.0f,1.0f);
-        button.setButtonColor(0.6f,0.6f,0.6f);
-        button.setCorner(0.5f);
-        button.setSpacing(0.3f);
+        /** Button defaults !
+            button.setLabelColor(1.0f,1.0f,1.0f);
+            button.setButtonColor(0.6f,0.6f,0.6f);
+            button.setCorner(1.0f);
+            button.setSpacing(2.0f);
+         */
         System.err.println(button);
     }
     
@@ -68,10 +71,12 @@ public class UIGLListener01 extends UIListenerBase01 {
         gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
         
         regionRenderer.init(gl);
-        regionRenderer.setAlpha(gl, 1.0f);
+        // default is 1.0f .. regionRenderer.setAlpha(gl, 1.0f);
+        // default is 0.5f .. regionRenderer.setSharpness(gl, 0.5f); 
+        // FIXME: What if Sharpness diff for text/outline-only ?!
         
-        glyphString = textRenderer.createString(gl, button.getFont(), 10, button.getLabel(), 0.5f);
-        glyphString.generateRegion(gl.getContext(), 0.5f, regionRenderer.getShaderState(), regionRenderer.getRenderType());
+        glyphString = textRenderer.createString(gl, button.getFont(), 10, button.getLabel());
+        glyphString.generateRegion(gl, regionRenderer.getRenderState(), regionRenderer.getRenderType());
         
         button.generate(glyphString.getBounds());
         MSAATool.dump(drawable);
@@ -90,14 +95,16 @@ public class UIGLListener01 extends UIListenerBase01 {
         regionRenderer.translate(null, getXTran(), getYTran(), getZoom());
         regionRenderer.rotate(gl, getAngle(), 0, 1, 0);
         float[] bColor = button.getButtonColor(); 
-        regionRenderer.setColor(gl, bColor[0], bColor[1], bColor[2]);
+        regionRenderer.setColorStatic(gl, bColor[0], bColor[1], bColor[2]);
         regionRenderer.renderOutlineShape(gl, button.getShape(glyphString.getBounds()), getPosition(), 0);
         float[] lColor = button.getLabelColor(); 
-        regionRenderer.setColor(gl, lColor[0], lColor[1], lColor[2]);
-        glyphString.renderString3D();
+        regionRenderer.setColorStatic(gl, lColor[0], lColor[1], lColor[2]);
+        glyphString.renderString3D(gl);
     }        
+    
     public void dispose(GLAutoDrawable drawable) {
+        GL2ES2 gl = drawable.getGL().getGL2ES2();
         super.dispose(drawable);
-        glyphString.destroy();
+        glyphString.destroy(gl);
     }
 }

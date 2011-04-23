@@ -32,9 +32,10 @@ import java.util.ArrayList;
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
+import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.geom.opengl.SVertex;
 
-import javax.media.opengl.GLContext;
+import javax.media.opengl.GL2ES2;
 
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
@@ -43,11 +44,10 @@ import jogamp.graph.geom.plane.PathIterator;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.RegionFactory;
-import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GlyphString {
-    private final Vertex.Factory<? extends Vertex> pointFactory;    
     private ArrayList<GlyphShape> glyphs = new ArrayList<GlyphShape>();
     private String str = "";
     private String fontname = "";
@@ -60,13 +60,10 @@ public class GlyphString {
      * associated with
      * @param str the string object
      */
-    public GlyphString(Vertex.Factory<? extends Vertex> factory, String fontname, String str){
-        pointFactory = factory;
+    public GlyphString(String fontname, String str){
         this.fontname = fontname;
         this.str = str;
     }
-    
-    public final Vertex.Factory<? extends Vertex> pointFactory() { return pointFactory; }
     
     public void addGlyphShape(GlyphShape glyph){
         glyphs.add(glyph);
@@ -76,10 +73,11 @@ public class GlyphString {
     }
 
     /** Creates the Curve based Glyphs from a Font 
+     * @param pointFactory TODO
      * @param paths a list of FontPath2D objects that define the outline
      * @param affineTransform a global affine transformation applied to the paths.
      */
-    public void createfromFontPath(Path2D[] paths, AffineTransform affineTransform){
+    public void createfromFontPath(Factory<? extends Vertex> pointFactory, Path2D[] paths, AffineTransform affineTransform) {
         final int numGlyps = paths.length;
         for (int index=0;index<numGlyps;index++){
             if(paths[index] == null){
@@ -109,11 +107,11 @@ public class GlyphString {
      * @param shaprness the curvature sharpness of the object.
      * @param st shader state
      */
-    public void generateRegion(GLContext context, float shaprness, ShaderState st, int type){
-        region = RegionFactory.create(context, st, type);
+    public void generateRegion(GL2ES2 gl, RenderState rs, int type){
+        region = RegionFactory.create(rs, type);
         region.setFlipped(true);
         
-        ArrayList<Triangle> tris = initializeTriangles(shaprness);
+        ArrayList<Triangle> tris = initializeTriangles(rs.getSharpness().floatValue());
         region.addTriangles(tris);
         
         int numVertices = region.getNumVertices();
@@ -126,7 +124,7 @@ public class GlyphString {
         }
         
         /** initialize the region */
-        region.update();
+        region.update(gl);
     }
     
     /** Generate a Hashcode for this object 
@@ -139,17 +137,17 @@ public class GlyphString {
     /** Render the Object based using the associated Region
      *  previously generated.
      */
-    public void renderString3D() {
-        region.render(null, 0, 0, 0);
+    public void renderString3D(GL2ES2 gl) {
+        region.render(gl, null, 0, 0, 0);
     }
     /** Render the Object based using the associated Region
      *  previously generated.
      */
-    public void renderString3D(PMVMatrix matrix, int vp_width, int vp_height, int size) {
-        region.render(matrix, vp_width, vp_height, size);
+    public void renderString3D(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int size) {
+        region.render(gl, rs, vp_width, vp_height, size);
     }
     
-    /** Get the Origion of this GlyphString
+    /** Get the Origin of this GlyphString
      * @return 
      */
     public Vertex getOrigin() {
@@ -158,8 +156,8 @@ public class GlyphString {
 
     /** Destroy the associated OGL objects
      */
-    public void destroy(){
-        region.destroy();
+    public void destroy(GL2ES2 gl){
+        region.destroy(gl);
     }
     
     public AABBox getBounds(){

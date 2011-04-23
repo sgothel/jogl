@@ -29,7 +29,7 @@ package com.jogamp.opengl.test.junit.graph.demos;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.curve.opengl.RenderState;
 
 /**
  *
@@ -46,7 +46,7 @@ import com.jogamp.graph.geom.Vertex;
 public abstract class GPURegionRendererListenerBase01 extends GPURendererListenerBase01 {
     OutlineShape outlineShape = null;
 
-    public GPURegionRendererListenerBase01(Vertex.Factory<? extends Vertex> factory, int mode, boolean debug, boolean trace) {
-        super(RegionRenderer.create(factory, mode), debug, trace);
+    public GPURegionRendererListenerBase01(RenderState rs, int mode, boolean debug, boolean trace) {
+        super(RegionRenderer.create(rs, mode), debug, trace);
     }        
 }

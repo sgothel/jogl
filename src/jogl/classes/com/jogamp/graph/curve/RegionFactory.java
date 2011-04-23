@@ -27,14 +27,12 @@
  */
 package com.jogamp.graph.curve;
 
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
 
-import com.jogamp.opengl.util.glsl.ShaderState;
+import com.jogamp.graph.curve.opengl.RenderState;
 
 import jogamp.graph.curve.opengl.VBORegionSPES2;
 import jogamp.graph.curve.opengl.VBORegion2PES2;
-
 
 /** RegionFactory to create a Context specific Region implementation. 
  *  
@@ -42,21 +40,30 @@ import jogamp.graph.curve.opengl.VBORegion2PES2;
  */
 public class RegionFactory {
     
-    /**Create a Region based on the GLContext attached
-     * @param context the current {@link GLContext}
-     * @param st the {@link ShaderState} object
-     * @param type can be one of Region.SINGLE_PASS or Region.TWO_PASS
+    /**
+     * Create a Region using the passed curren GL object.
+     * 
+     * <p> In case {@link Region#TWO_PASS} is being requested the default texture unit
+     * {@link Region#TWO_PASS_DEFAULT_TEXTURE_UNIT} is being used.</p>
+     * @param rs TODO
+     * @param type can be one of {@link Region#SINGLE_PASS} or {@link Region#TWO_PASS} 
+     * 
      * @return region 
      */
-    public static Region create(GLContext context, ShaderState st, int type){
-        if( !context.isGL2ES2() ) {
-            throw new GLException("At least a GL2ES2 GL context is required. Given: " + context);
-        }
+    public static Region create(RenderState rs, int type) {
         if( Region.TWO_PASS == type ){
-            return new VBORegion2PES2(context, st);
+            return new VBORegion2PES2(rs, Region.TWO_PASS_DEFAULT_TEXTURE_UNIT);
         }
         else{
-            return new VBORegionSPES2(context);
+            return new VBORegionSPES2(rs);
         }
+    }
+    
+    public static Region createSinglePass(RenderState rs) {
+        return new VBORegionSPES2(rs);
+    }
+    
+    public static Region createTwoPass(RenderState rs, int textureUnit) {
+        return new VBORegion2PES2(rs, textureUnit);
     }
 }

@@ -32,8 +32,12 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.Renderer;
+import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GPUTextNewtDemo01 {
     static final boolean DEBUG = false;
@@ -53,7 +57,8 @@ public class GPUTextNewtDemo01 {
         window.setSize(800, 400);
         window.setTitle("GPU Text Newt Demo 01 - r2t0 msaa1");
         
-        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(Region.SINGLE_PASS, 0, DEBUG, TRACE);
+        RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
+        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, Region.SINGLE_PASS, 0, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
 
