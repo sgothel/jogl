@@ -58,8 +58,8 @@ import jogamp.opengl.GLContextShareSet;
 import jogamp.opengl.GLDrawableImpl;
 
 public class WindowsWGLContext extends GLContextImpl {
-  static final Map/*<String, String>*/ functionNameMap;
-  static final Map/*<String, String>*/ extensionNameMap;
+  static final Map<String, String> functionNameMap;
+  static final Map<String, String> extensionNameMap;
   private boolean wglGetExtensionsStringEXTInitialized;
   private boolean wglGetExtensionsStringEXTAvailable;
   private boolean wglGLReadDrawableAvailableSet;
@@ -70,11 +70,11 @@ public class WindowsWGLContext extends GLContextImpl {
   private WGLExtProcAddressTable wglExtProcAddressTable;
 
   static {
-    functionNameMap = new HashMap();
+    functionNameMap = new HashMap<String, String>();
     functionNameMap.put("glAllocateMemoryNV", "wglAllocateMemoryNV");
     functionNameMap.put("glFreeMemoryNV", "wglFreeMemoryNV");
 
-    extensionNameMap = new HashMap();
+    extensionNameMap = new HashMap<String, String>();
     extensionNameMap.put("GL_ARB_pbuffer", "WGL_ARB_pbuffer");
     extensionNameMap.put("GL_ARB_pixel_format", "WGL_ARB_pixel_format");
   }
@@ -161,9 +161,9 @@ public class WindowsWGLContext extends GLContextImpl {
     return wglExtProcAddressTable;
   }
 
-  protected Map/*<String, String>*/ getFunctionNameMap() { return functionNameMap; }
+  protected Map<String, String> getFunctionNameMap() { return functionNameMap; }
 
-  protected Map/*<String, String>*/ getExtensionNameMap() { return extensionNameMap; }
+  protected Map<String, String> getExtensionNameMap() { return extensionNameMap; }
 
   protected void destroyContextARBImpl(long context) {
     WGL.wglMakeCurrent(0, 0);
@@ -405,12 +405,12 @@ public class WindowsWGLContext extends GLContextImpl {
     wglGLReadDrawableAvailableSet=false;
     wglGLReadDrawableAvailable=false;
 
-    WGLExtProcAddressTable table = null;
+    ProcAddressTable table = null;
     synchronized(mappedContextTypeObjectLock) {
-        table = (WGLExtProcAddressTable) mappedGLXProcAddress.get( key );
+        table = mappedGLXProcAddress.get( key );
     }
     if(null != table) {
-        wglExtProcAddressTable = table;
+        wglExtProcAddressTable = (WGLExtProcAddressTable) table;
         if(DEBUG) {
             System.err.println(getThreadName() + ": !!! GLContext WGL ProcAddressTable reusing key("+key+") -> "+table.hashCode());
         }

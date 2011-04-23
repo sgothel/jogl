@@ -56,8 +56,8 @@ import jogamp.nativewindow.x11.X11Util;
 public abstract class X11GLXContext extends GLContextImpl {
   protected static final boolean TRACE_CONTEXT_CURRENT = false; // true;
 
-  private static final Map/*<String, String>*/ functionNameMap;
-  private static final Map/*<String, String>*/ extensionNameMap;
+  private static final Map<String, String> functionNameMap;
+  private static final Map<String, String> extensionNameMap;
   private VersionNumber glXVersion;
   private boolean glXVersionOneThreeCapable;
   private boolean glXQueryExtensionsStringInitialized;
@@ -74,11 +74,11 @@ public abstract class X11GLXContext extends GLContextImpl {
   protected boolean isDirect;
 
   static {
-    functionNameMap = new HashMap();
+    functionNameMap = new HashMap<String, String>();
     functionNameMap.put("glAllocateMemoryNV", "glXAllocateMemoryNV");
     functionNameMap.put("glFreeMemoryNV", "glXFreeMemoryNV");
 
-    extensionNameMap = new HashMap();
+    extensionNameMap = new HashMap<String, String>();
     extensionNameMap.put("GL_ARB_pbuffer",      "GLX_SGIX_pbuffer");
     extensionNameMap.put("GL_ARB_pixel_format", "GLX_SGIX_pbuffer"); // good enough
   }
@@ -118,9 +118,9 @@ public abstract class X11GLXContext extends GLContextImpl {
     return glXExt;
   }
 
-  protected Map/*<String, String>*/ getFunctionNameMap() { return functionNameMap; }
+  protected Map<String, String> getFunctionNameMap() { return functionNameMap; }
 
-  protected Map/*<String, String>*/ getExtensionNameMap() { return extensionNameMap; }
+  protected Map<String, String> getExtensionNameMap() { return extensionNameMap; }
 
   public final boolean isGLXVersionGreaterEqualOneThree() {
     if(null == glXVersion) {
@@ -297,7 +297,6 @@ public abstract class X11GLXContext extends GLContextImpl {
 
     GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     GLProfile glp = glCaps.getGLProfile();
-    isVendorATI = factory.isGLXVendorATI(device);
 
     if(config.getFBConfigID()<0) {
         // not able to use FBConfig
@@ -472,12 +471,12 @@ public abstract class X11GLXContext extends GLContextImpl {
     glXQueryExtensionsStringInitialized = false;
     glXQueryExtensionsStringAvailable = false;
 
-    GLXExtProcAddressTable table = null;
+    ProcAddressTable table = null;
     synchronized(mappedContextTypeObjectLock) {
-        table = (GLXExtProcAddressTable) mappedGLXProcAddress.get( key );
+        table = mappedGLXProcAddress.get( key );
     }
     if(null != table) {
-        glXExtProcAddressTable = table;
+        glXExtProcAddressTable = (GLXExtProcAddressTable) table;
         if(DEBUG) {
             System.err.println(getThreadName() + ": !!! GLContext GLX ProcAddressTable reusing key("+key+") -> "+table.hashCode());
         }
@@ -581,7 +580,4 @@ public abstract class X11GLXContext extends GLContextImpl {
   //----------------------------------------------------------------------
   // Internals only below this point
   //
-
-  private boolean isVendorATI = false;
-
 }

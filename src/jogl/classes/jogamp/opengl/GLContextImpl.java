@@ -46,6 +46,7 @@ import java.util.Map;
 
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.gluegen.runtime.FunctionAddressResolver;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLExtensionNames;
@@ -65,7 +66,8 @@ import javax.media.opengl.GLProfile;
 public abstract class GLContextImpl extends GLContext {
   public static final boolean DEBUG = Debug.debug("GLContext");
     
-  protected GLContextLock lock = new GLContextLock();
+  // RecursiveLock maintains a queue of waiting Threads, ensuring the longest waiting thread will be notified at unlock.  
+  protected RecursiveLock lock = new RecursiveLock();
 
   /**
    * Context full qualified name: display_type + display_connection + major + minor + ctp.
@@ -92,15 +94,15 @@ public abstract class GLContextImpl extends GLContext {
   protected GL gl;
 
   protected static final Object mappedContextTypeObjectLock;
-  protected static final HashMap mappedExtensionAvailabilityCache;
-  protected static final HashMap mappedGLProcAddress;
-  protected static final HashMap mappedGLXProcAddress;
+  protected static final HashMap<String, ExtensionAvailabilityCache> mappedExtensionAvailabilityCache;
+  protected static final HashMap<String, ProcAddressTable> mappedGLProcAddress;
+  protected static final HashMap<String, ProcAddressTable> mappedGLXProcAddress;
 
   static {
       mappedContextTypeObjectLock = new Object();
-      mappedExtensionAvailabilityCache = new HashMap();
-      mappedGLProcAddress = new HashMap();
-      mappedGLXProcAddress = new HashMap();
+      mappedExtensionAvailabilityCache = new HashMap<String, ExtensionAvailabilityCache>();
+      mappedGLProcAddress = new HashMap<String, ProcAddressTable>();
+      mappedGLXProcAddress = new HashMap<String, ProcAddressTable>();
   }
 
   public GLContextImpl(GLDrawableImpl drawable, GLContext shareWith) {
@@ -145,7 +147,7 @@ public abstract class GLContextImpl extends GLContext {
     if(null!=read && drawable!=read && !isGLReadDrawableAvailable()) {
         throw new GLException("GL Read Drawable not available");
     }
-    boolean lockHeld = lock.isHeld();
+    boolean lockHeld = lock.isOwner();
     if(lockHeld) {
         release();
     }
@@ -185,19 +187,36 @@ public abstract class GLContextImpl extends GLContext {
   // This is only needed for Mac OS X on-screen contexts
   protected void update() throws GLException { }
 
+  boolean lockFailFast = true;
+  Object lockFailFastSync = new Object();
+  
   public boolean isSynchronized() {
-    return !lock.getFailFastMode();
+    synchronized (lockFailFastSync) {
+        return !lockFailFast;
+    }
   }
 
   public void setSynchronized(boolean isSynchronized) {
-    lock.setFailFastMode(!isSynchronized);
+    synchronized (lockFailFastSync) {
+        lockFailFast = !isSynchronized;
+    }
   }
 
+  private final void lockConsiderFailFast()  {
+      synchronized (lockFailFastSync) {
+          if(lockFailFast && lock.isLockedByOtherThread()) {
+                throw new GLException("Error: Attempt to make context current on thread " + Thread.currentThread() +
+                                      " which is already current on thread " + lock.getOwner());
+          }
+      }
+      lock.lock();
+  }
+    
   public abstract Object getPlatformGLExtensions();
 
   // Note: the surface is locked within [makeCurrent .. swap .. release]
   public void release() throws GLException {
-    if (!lock.isHeld()) {
+    if ( !lock.isOwner() ) {
       throw new GLException("Context not current on current thread");
     }
     setCurrent(null);
@@ -213,14 +232,14 @@ public abstract class GLContextImpl extends GLContext {
   protected abstract void releaseImpl() throws GLException;
 
   public final void destroy() {
-    if (lock.isHeld()) {
+    if ( lock.isOwner() ) {
         // release current context 
         release();
     }
 
     // Must hold the lock around the destroy operation to make sure we
     // don't destroy the context out from under another thread rendering to it
-    lock.lock();
+    lockConsiderFailFast();
     try {
       /* FIXME: refactor dependence on Java 2D / JOGL bridge
       if (tracker != null) {
@@ -347,7 +366,7 @@ public abstract class GLContextImpl extends GLContext {
         }
     }
 
-    lock.lock();
+    lockConsiderFailFast();
     int res = 0;
     try {
       res = makeCurrentLocking();
@@ -765,14 +784,14 @@ public abstract class GLContextImpl extends GLContext {
       name. Currently this is only used to map "glAllocateMemoryNV" and
       associated routines to wglAllocateMemoryNV / glXAllocateMemoryNV. */
   protected String mapToRealGLFunctionName(String glFunctionName) {
-    Map/*<String, String>*/ map = getFunctionNameMap();
-    String lookup = ( null != map ) ? (String) map.get(glFunctionName) : null;
+    Map<String, String> map = getFunctionNameMap();
+    String lookup = ( null != map ) ? map.get(glFunctionName) : null;
     if (lookup != null) {
       return lookup;
     }
     return glFunctionName;
   }
-  protected abstract Map/*<String, String>*/ getFunctionNameMap() ;
+  protected abstract Map<String, String> getFunctionNameMap() ;
 
   /** Maps the given "platform-independent" extension name to a real
       function name. Currently this is only used to map
@@ -780,14 +799,14 @@ public abstract class GLContextImpl extends GLContext {
       "GL_ARB_pixel_format" to  "WGL_ARB_pixel_format/n.a." 
    */
   protected String mapToRealGLExtensionName(String glExtensionName) {
-    Map/*<String, String>*/ map = getExtensionNameMap();
-    String lookup = ( null != map ) ? (String) map.get(glExtensionName) : null;
+    Map<String, String> map = getExtensionNameMap();
+    String lookup = ( null != map ) ? map.get(glExtensionName) : null;
     if (lookup != null) {
       return lookup;
     }
     return glExtensionName;
   }
-  protected abstract Map/*<String, String>*/ getExtensionNameMap() ;
+  protected abstract Map<String, String> getExtensionNameMap() ;
 
   /** Helper routine which resets a ProcAddressTable generated by the
       GLEmitter by looking up anew all of its function pointers. */
@@ -841,7 +860,7 @@ public abstract class GLContextImpl extends GLContext {
 
     ProcAddressTable table = null;
     synchronized(mappedContextTypeObjectLock) {
-        table = (ProcAddressTable) mappedGLProcAddress.get( contextFQN );
+        table = mappedGLProcAddress.get( contextFQN );
         if(null != table && !verifyInstance(gl.getGLProfile(), "ProcAddressTable", table)) {
             throw new InternalError("GLContext GL ProcAddressTable mapped key("+contextFQN+") -> "+
                   table.getClass().getName()+" not matching "+gl.getGLProfile().getGLImplBaseClassName());
@@ -877,7 +896,7 @@ public abstract class GLContextImpl extends GLContext {
     //
     ExtensionAvailabilityCache eCache;
     synchronized(mappedContextTypeObjectLock) {
-        eCache = (ExtensionAvailabilityCache) mappedExtensionAvailabilityCache.get( contextFQN );
+        eCache = mappedExtensionAvailabilityCache.get( contextFQN );
     }
     if(null !=  eCache) {
         extensionAvailability = eCache;
@@ -1046,7 +1065,7 @@ public abstract class GLContextImpl extends GLContext {
   //
 
   public boolean hasWaiters() {
-    return lock.hasWaiters();
+    return lock.getWaitingThreadQueueSize()>0;
   }
 
 }

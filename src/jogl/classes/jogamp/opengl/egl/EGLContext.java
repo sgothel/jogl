@@ -76,9 +76,9 @@ public abstract class EGLContext extends GLContextImpl {
         return eglExtProcAddressTable;
     }
 
-    protected Map/*<String, String>*/ getFunctionNameMap() { return null; }
+    protected Map<String, String> getFunctionNameMap() { return null; }
 
-    protected Map/*<String, String>*/ getExtensionNameMap() { return null; }
+    protected Map<String, String> getExtensionNameMap() { return null; }
 
     public final boolean isGLReadDrawableAvailable() {
         return true;
@@ -203,12 +203,12 @@ public abstract class EGLContext extends GLContextImpl {
         eglQueryStringInitialized = false;
         eglQueryStringAvailable = false;
 
-        EGLExtProcAddressTable table = null;
+        ProcAddressTable table = null;
         synchronized(mappedContextTypeObjectLock) {
-            table = (EGLExtProcAddressTable) mappedGLXProcAddress.get( key );
+            table = mappedGLXProcAddress.get( key );
         }
         if(null != table) {
-            eglExtProcAddressTable = table;
+            eglExtProcAddressTable = (EGLExtProcAddressTable) table;
             if(DEBUG) {
                 System.err.println(getThreadName() + ": !!! GLContext EGL ProcAddressTable reusing key("+key+") -> "+table.hashCode());
             }

@@ -82,9 +82,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     return cglExtProcAddressTable;
   }
 
-  protected Map/*<String, String>*/ getFunctionNameMap() { return null; }
+  protected Map<String, String> getFunctionNameMap() { return null; }
 
-  protected Map/*<String, String>*/ getExtensionNameMap() { return null; }
+  protected Map<String, String> getExtensionNameMap() { return null; }
 
   protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
       return 0; // FIXME
@@ -230,12 +230,12 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing CGL extension address table: "+key);
     }
-    CGLExtProcAddressTable table = null;
+    ProcAddressTable table = null;
     synchronized(mappedContextTypeObjectLock) {
-        table = (CGLExtProcAddressTable) mappedGLXProcAddress.get( key );
+        table = mappedGLXProcAddress.get( key );
     }
     if(null != table) {
-        cglExtProcAddressTable = table;
+        cglExtProcAddressTable = (CGLExtProcAddressTable) table;
         if(DEBUG) {
             System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable reusing key("+key+") -> "+table.hashCode());
         }
