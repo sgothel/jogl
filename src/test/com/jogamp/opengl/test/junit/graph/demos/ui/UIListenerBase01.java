@@ -294,7 +294,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
                             gl.setSwapInterval(i);
                             final GLAnimatorControl a = drawable.getAnimator();
                             if( null != a ) {
-                                a.resetCounter();
+                                a.resetFPSCounter();
                             }
                             System.err.println("Swap Interval: "+i);
                         }

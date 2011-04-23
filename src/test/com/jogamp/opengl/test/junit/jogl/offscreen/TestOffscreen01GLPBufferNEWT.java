@@ -92,7 +92,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
         WindowUtilNEWT.setDemoFields(demo, window, glWindow, false);
         glWindow.addGLEventListener(demo);
 
-        while ( glWindow.getTotalFrames() < 2) {
+        while ( glWindow.getTotalFPSFrames() < 2) {
             glWindow.display();
         }
 
@@ -187,7 +187,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
             glWindows[i].addGLEventListener(demos[i]);
         }
 
-        while ( glWindows[0].getTotalFrames() < 2) {
+        while ( glWindows[0].getTotalFPSFrames() < 2) {
             for(i=0; i<winnum; i++) {
                 glWindows[i].display();
             }
@@ -240,7 +240,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
             glWindows[i].addGLEventListener(demos[i]);
         }
 
-        while ( glWindows[0].getTotalFrames() < 2) {
+        while ( glWindows[0].getTotalFPSFrames() < 2) {
             for(i=0; i<winnum; i++) {
                 glWindows[i].display();
             }

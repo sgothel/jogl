@@ -137,11 +137,11 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         final int width = drawable.getWidth();
         final int height = drawable.getHeight();
         final GLAnimatorControl animator = drawable.getAnimator();
-        final boolean _drawFPS = drawFPS && null != animator && animator.getTotalFrames()>10;
+        final boolean _drawFPS = drawFPS && null != animator && animator.getTotalFPSFrames()>10;
 
         textRenderer.reshapeOrtho(null, width, height, 0.1f, 7000.0f);                
         if(_drawFPS) {
-            final float fps = ( animator.getTotalFrames() * 1000.0f ) / (float) animator.getDuration() ;
+            final float fps = ( animator.getTotalFPSFrames() * 1000.0f ) / (float) animator.getTotalFPSDuration() ;
             final String fpsS = String.valueOf(fps);
             final int fpsSp = fpsS.indexOf('.');
             textRenderer.resetModelview(null);

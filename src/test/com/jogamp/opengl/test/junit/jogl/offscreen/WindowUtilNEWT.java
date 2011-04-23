@@ -100,7 +100,7 @@ public class WindowUtilNEWT {
             System.err.println("+++++++++++++++++++++++++++");
         }
 
-        while ( windowOffScreen.getTotalFrames() < frames) {
+        while ( windowOffScreen.getTotalFPSFrames() < frames) {
             windowOffScreen.display();
         }
         windowOffScreen.removeAllSurfaceUpdatedListener();

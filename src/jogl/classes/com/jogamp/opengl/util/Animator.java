@@ -125,7 +125,7 @@ public class Animator extends AnimatorBase {
 
     class MainLoop implements Runnable {
         public String toString() {
-            return "[started "+isStartedImpl()+", animating "+isAnimatingImpl()+", paused "+isPausedImpl()+", frames "+getTotalFrames()+", drawable "+drawables.size()+"]";
+            return "[started "+isStartedImpl()+", animating "+isAnimatingImpl()+", paused "+isPausedImpl()+", drawable "+drawables.size()+"]";
         }
 
         public void run() {
@@ -134,11 +134,7 @@ public class Animator extends AnimatorBase {
                     if(DEBUG) {
                         System.err.println("Animator start:" + Thread.currentThread() + ": " + toString());
                     }
-
-                    startTime = System.currentTimeMillis();
-                    curTime   = startTime;
-                    totalFrames = 0;
-
+                    fpsCounter.resetFPSCounter();
                     animThread = Thread.currentThread();
                     setIsAnimatingSynced(false); // barrier
                     Animator.this.notifyAll();
@@ -161,9 +157,7 @@ public class Animator extends AnimatorBase {
 
                             if (wasPaused) {
                                 // resume from pause -> reset counter
-                                startTime = System.currentTimeMillis();
-                                curTime = startTime;
-                                totalFrames = 0;
+                                fpsCounter.resetFPSCounter();
                                 if (DEBUG) {
                                     System.err.println("Animator resume:" + Thread.currentThread() + ": " + toString());
                                 }
@@ -269,7 +263,7 @@ public class Animator extends AnimatorBase {
         if (runnable == null) {
             runnable = new MainLoop();
         }
-        resetCounter();
+        fpsCounter.resetFPSCounter();
         String threadName = Thread.currentThread().getName()+"-"+baseName;
         Thread thread;
         if(null==threadGroup) {

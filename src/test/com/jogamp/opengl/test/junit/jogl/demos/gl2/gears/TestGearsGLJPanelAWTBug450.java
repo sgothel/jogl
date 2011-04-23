@@ -114,10 +114,11 @@ public class TestGearsGLJPanelAWTBug450 extends UITestCase {
                     _frame.setVisible(true);
                 } } ) ;
 
+        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         animator.start();
         Assert.assertEquals(true, animator.isAnimating());
 
-        while(animator.isAnimating() && animator.getDuration()<duration) {
+        while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
 

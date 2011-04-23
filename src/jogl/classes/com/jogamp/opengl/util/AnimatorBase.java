@@ -30,7 +30,12 @@ package com.jogamp.opengl.util;
 
 import com.jogamp.common.util.locks.RecursiveLock;
 import jogamp.opengl.Debug;
+import jogamp.opengl.FPSCounterImpl;
+
+import java.io.PrintStream;
 import java.util.ArrayList;
+
+import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLProfile;
@@ -61,9 +66,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     protected Thread animThread;
     protected boolean ignoreExceptions;
     protected boolean printExceptions;
-    protected long startTime;
-    protected long curTime;
-    protected int  totalFrames;
+    protected FPSCounterImpl fpsCounter = new FPSCounterImpl();    
     protected RecursiveLock stateSync = new RecursiveLock();
 
     /** Creates a new, empty Animator. */
@@ -83,7 +86,6 @@ public abstract class AnimatorBase implements GLAnimatorControl {
             baseName = baseName.concat("-"+animatorCount);
             drawablesEmpty = true;
         }
-        resetCounter();
     }
 
     protected abstract String getBaseName(String prefix);
@@ -138,25 +140,48 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         lightweight widgets are continually being redrawn. */
     protected void display() {
         impl.display(drawables, ignoreExceptions, printExceptions);
-        curTime = System.currentTimeMillis();
-        totalFrames++;
+        fpsCounter.tickFPS();
     }
 
-    public long getCurrentTime() {
-        return curTime;
+    public final void setUpdateFPSFrames(int frames, PrintStream out) {
+        fpsCounter.setUpdateFPSFrames(frames, out);
+    }
+    
+    public final void resetFPSCounter() {
+        fpsCounter.resetFPSCounter();
     }
 
-    public long getDuration() {
-        return curTime - startTime;
+    public final int getUpdateFPSFrames() {
+        return fpsCounter.getUpdateFPSFrames();
+    }
+    
+    public final long getFPSStartTime()   {
+        return fpsCounter.getFPSStartTime();
     }
 
-    public long getStartTime() {
-        return startTime;
+    public final long getLastFPSUpdateTime() {
+        return fpsCounter.getLastFPSUpdateTime();
     }
 
-    public int getTotalFrames() {
-        return totalFrames;
+    public final long getLastFPSPeriod() {
+        return fpsCounter.getLastFPSPeriod();
     }
+    
+    public final float getLastFPS() {
+        return fpsCounter.getLastFPS();
+    }
+    
+    public final int getTotalFPSFrames() {
+        return fpsCounter.getTotalFPSFrames();
+    }
+
+    public final long getTotalFPSDuration() {
+        return fpsCounter.getTotalFPSDuration();
+    }
+    
+    public final float getTotalFPS() {
+        return fpsCounter.getTotalFPS();
+    }        
 
     public final Thread getThread() {
         stateSync.lock();
@@ -165,12 +190,6 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         } finally {
             stateSync.unlock();
         }
-    }
-
-    public synchronized void resetCounter() {
-        startTime = System.currentTimeMillis(); // overwrite startTime to real init one
-        curTime   = startTime;
-        totalFrames = 0;
     }
 
     /** Sets a flag causing this Animator to ignore exceptions produced
@@ -189,6 +208,6 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     }
 
     public String toString() {
-        return getClass().getName()+"[started "+isStarted()+", animating "+isAnimating()+", paused "+isPaused()+", frames "+getTotalFrames()+", drawable "+drawables.size()+"]";
+        return getClass().getName()+"[started "+isStarted()+", animating "+isAnimating()+", paused "+isPaused()+", drawable "+drawables.size()+"]";
     }
 }

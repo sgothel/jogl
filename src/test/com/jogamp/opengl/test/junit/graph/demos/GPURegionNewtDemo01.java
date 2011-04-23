@@ -28,6 +28,7 @@
 
 package com.jogamp.opengl.test.junit.graph.demos;
 
+import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
@@ -69,11 +70,12 @@ public class GPURegionNewtDemo01 {
         regionGLListener.attachInputListenerTo(window);        
         window.addGLEventListener(regionGLListener);
 
-        window.enablePerfLog(true);     
+        window.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);     
         window.setVisible(true);
 
         //FPSAnimator animator = new FPSAnimator(60);
         Animator animator = new Animator();
+        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
         animator.add(window);
         animator.start();
     }    

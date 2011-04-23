@@ -118,7 +118,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(false,window.isVisible());
 
         // lazy native creation sequence: Display, Screen and Window
-        Assert.assertEquals(0, window.getTotalFrames());
+        Assert.assertEquals(0, window.getTotalFPSFrames());
         window.setVisible(true);
 
         Assert.assertEquals(screen,window.getScreen());
@@ -130,14 +130,14 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
-        System.err.println("Frames for setVisible(true) 1: "+window.getTotalFrames());
-        Assert.assertTrue(0 < window.getTotalFrames());
+        System.err.println("Frames for setVisible(true) 1: "+window.getTotalFPSFrames());
+        Assert.assertTrue(0 < window.getTotalFPSFrames());
 
-        while(window.getDuration()<1*durationPerTest) {
+        while(window.getTotalFPSDuration()<1*durationPerTest) {
             window.display();
             Thread.sleep(100);
         }
-        System.err.println("duration: "+window.getDuration());
+        System.err.println("duration: "+window.getTotalFPSDuration());
 
         // just make the Window invisible
         window.setVisible(false);
@@ -145,19 +145,19 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(false,window.isVisible());
 
         // just make the Window visible again
-        window.resetCounter();
-        Assert.assertEquals(0, window.getTotalFrames());
+        window.resetFPSCounter();
+        Assert.assertEquals(0, window.getTotalFPSFrames());
         window.setVisible(true);
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
-        System.err.println("Frames for setVisible(true) 1: "+window.getTotalFrames());
-        Assert.assertTrue(0 < window.getTotalFrames());
+        System.err.println("Frames for setVisible(true) 1: "+window.getTotalFPSFrames());
+        Assert.assertTrue(0 < window.getTotalFPSFrames());
 
-        while(window.getDuration()<2*durationPerTest) {
+        while(window.getTotalFPSDuration()<2*durationPerTest) {
             window.display();
             Thread.sleep(100);
         }
-        System.err.println("duration: "+window.getDuration());
+        System.err.println("duration: "+window.getTotalFPSDuration());
 
         // destruction ..
         window.destroy();
@@ -172,12 +172,12 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(true, window.isValid());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
-        window.resetCounter();
-        Assert.assertEquals(0, window.getTotalFrames());
+        window.resetFPSCounter();
+        Assert.assertEquals(0, window.getTotalFPSFrames());
 
         // a display call shall not change a thing
         window.display();
-        Assert.assertEquals(0, window.getTotalFrames());
+        Assert.assertEquals(0, window.getTotalFPSFrames());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
@@ -193,14 +193,14 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
-        System.err.println("Frames for setVisible(true) 2: "+window.getTotalFrames());
-        Assert.assertTrue(0 < window.getTotalFrames());
+        System.err.println("Frames for setVisible(true) 2: "+window.getTotalFPSFrames());
+        Assert.assertTrue(0 < window.getTotalFPSFrames());
 
-        while(window.getDuration()<1*durationPerTest) {
+        while(window.getTotalFPSDuration()<1*durationPerTest) {
             window.display();
             Thread.sleep(100);
         }
-        System.err.println("duration: "+window.getDuration());
+        System.err.println("duration: "+window.getTotalFPSDuration());
 
         // destruction ..
         window.destroy();

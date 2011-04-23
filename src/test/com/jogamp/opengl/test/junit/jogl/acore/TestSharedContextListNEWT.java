@@ -29,6 +29,8 @@
 package com.jogamp.opengl.test.junit.jogl.acore;
 
 import com.jogamp.newt.opengl.GLWindow;
+
+import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLPbuffer;
@@ -106,8 +108,9 @@ public class TestSharedContextListNEWT extends UITestCase {
         GLWindow f1 = runTestGL(animator, 0, 0, true);
         GLWindow f2 = runTestGL(animator, width, 0, true);
         GLWindow f3 = runTestGL(animator, 0, height, false);
+        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         animator.start();
-        while(animator.isAnimating() && animator.getDuration()<duration) {
+        while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
         animator.stop();

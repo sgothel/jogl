@@ -70,11 +70,6 @@ public class TestParenting01cSwingAWT extends UITestCase {
 
     @Test
     public void testWindowParenting01CreateVisibleDestroy1() throws InterruptedException, InvocationTargetException {
-        int x = 0;
-        int y = 0;
-
-        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
-
         /**
          * JFrame . JPanel . Container . NewtCanvasAWT . GLWindow
          */
@@ -88,7 +83,9 @@ public class TestParenting01cSwingAWT extends UITestCase {
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         Animator animator1 = new Animator(glWindow1);
+        animator1.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
         animator1.start();
+        
         final GLWindow _glWindow1 = glWindow1;
         final GLRunnable _glRunnable = new GLRunnableDummy();
         Thread disturbanceThread = new Thread(new Runnable() {
@@ -143,7 +140,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         // visible test
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
-        while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
+        while(animator1.isAnimating() && animator1.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
         System.out.println("Demos: 2 - StopAnimator");
@@ -184,11 +181,6 @@ public class TestParenting01cSwingAWT extends UITestCase {
 
     @Test
     public void testWindowParenting05ReparentAWTWinHopFrame2Frame() throws InterruptedException, InvocationTargetException {
-        int x = 0;
-        int y = 0;
-
-        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
-
         /**
          * JFrame . JPanel . Container . NewtCanvasAWT . GLWindow
          */
@@ -202,7 +194,9 @@ public class TestParenting01cSwingAWT extends UITestCase {
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         Animator animator1 = new Animator(glWindow1);
+        animator1.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
         animator1.start();
+        
         final GLWindow _glWindow1 = glWindow1;
         final GLRunnable _glRunnable = new GLRunnableDummy();
         Thread disturbanceThread = new Thread(new Runnable() {
@@ -266,7 +260,6 @@ public class TestParenting01cSwingAWT extends UITestCase {
 
         final NewtCanvasAWT _newtCanvasAWT = newtCanvasAWT;
         final JFrame _jFrame1 = jFrame1;
-        final JPanel _jPanel1 = jPanel1;
         final Container _container1 = container1;
         final JFrame _jFrame2 = jFrame2;
         final JPanel _jPanel2 = jPanel2;
@@ -275,7 +268,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         int state = 0;
-        while(animator1.isAnimating() && animator1.getDuration()<3*durationPerTest) {
+        while(animator1.isAnimating() && animator1.getTotalFPSDuration()<3*durationPerTest) {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:

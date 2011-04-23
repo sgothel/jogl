@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAnimatorControl;
@@ -228,7 +229,10 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                             gl.setSwapInterval(i);
                             final GLAnimatorControl a = drawable.getAnimator();
                             if( null != a ) {
-                                a.resetCounter();
+                                a.resetFPSCounter();
+                            }
+                            if(drawable instanceof FPSCounter) {
+                                ((FPSCounter)drawable).resetFPSCounter();
                             }
                             System.err.println("Swap Interval: "+i);
                         }

@@ -34,6 +34,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.media.opengl.*;
+
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.newt.*;
@@ -136,9 +137,10 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
         Assert.assertEquals(true,window2.isVisible());
 
         animator.add(window2);
+        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         animator.start();
 
-        while(animator.getDuration()<durationPerTest) {
+        while(animator.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
 

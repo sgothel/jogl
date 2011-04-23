@@ -130,7 +130,7 @@ public class FPSAnimator extends AnimatorBase {
             }
         };
 
-        resetCounter();
+        fpsCounter.resetFPSCounter();
         shouldRun = true;
 
         if (scheduleAtFixedRate) {

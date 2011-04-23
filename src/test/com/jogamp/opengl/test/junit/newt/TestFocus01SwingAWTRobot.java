@@ -133,10 +133,10 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         Assert.assertTrue(AWTRobotUtil.toFront(robot, frame1));
 
         int wait=0;
-        while(wait<awtWaitTimeout/100 && glWindow1.getTotalFrames()<1) { Thread.sleep(awtWaitTimeout/10); wait++; }
-        System.err.println("Frames for initial setVisible(true): "+glWindow1.getTotalFrames());
+        while(wait<awtWaitTimeout/100 && glWindow1.getTotalFPSFrames()<1) { Thread.sleep(awtWaitTimeout/10); wait++; }
+        System.err.println("Frames for initial setVisible(true): "+glWindow1.getTotalFPSFrames());
         Assert.assertTrue(glWindow1.isVisible());
-        Assert.assertTrue(0 < glWindow1.getTotalFrames());
+        Assert.assertTrue(0 < glWindow1.getTotalFPSFrames());
 
         // Continuous animation ..
         Animator animator = new Animator(glWindow1);

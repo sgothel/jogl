@@ -29,6 +29,7 @@
 package com.jogamp.opengl.test.junit.jogl.demos.gl2.gears;
 
 import javax.media.opengl.*;
+
 import com.jogamp.opengl.util.FPSAnimator;
 import javax.media.opengl.awt.GLJPanel;
 
@@ -83,10 +84,11 @@ public class TestGearsGLJPanelAWT extends UITestCase {
                     _frame.setVisible(true);
                 } } ) ;
 
+        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         animator.start();
         Assert.assertEquals(true, animator.isAnimating());
 
-        while(animator.isAnimating() && animator.getDuration()<duration) {
+        while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
 

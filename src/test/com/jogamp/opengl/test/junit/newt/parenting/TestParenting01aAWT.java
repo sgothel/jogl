@@ -123,8 +123,9 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         Animator animator1 = new Animator(glWindow1);
+        animator1.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         animator1.start();
-        while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
+        while(animator1.isAnimating() && animator1.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
         animator1.stop();
@@ -180,8 +181,9 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         Animator animator1 = new Animator(glWindow1);
+        animator1.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
         animator1.start();
-        while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
+        while(animator1.isAnimating() && animator1.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
         animator1.stop();
@@ -215,10 +217,11 @@ public class TestParenting01aAWT extends UITestCase {
         frame.add(newtCanvasAWT);
 
         Animator animator1 = new Animator(glWindow1);
+        animator1.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
         animator1.start();
         Assert.assertEquals(true, animator1.isStarted());
         Assert.assertEquals(true, animator1.isAnimating());
-        while(animator1.isAnimating() && animator1.getDuration()<durationPerTest) {
+        while(animator1.isAnimating() && animator1.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
 
@@ -251,10 +254,11 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         Animator animator1 = new Animator(glWindow1);
+        animator1.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         animator1.start();
 
         int state = 0;
-        while(animator1.isAnimating() && animator1.getDuration()<3*durationPerTest) {
+        while(animator1.isAnimating() && animator1.getTotalFPSDuration()<3*durationPerTest) {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
@@ -306,10 +310,11 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         Animator animator1 = new Animator(glWindow1);
+        animator1.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         animator1.start();
 
         int state = 0;
-        while(animator1.isAnimating() && animator1.getDuration()<3*durationPerTest) {
+        while(animator1.isAnimating() && animator1.getTotalFPSDuration()<3*durationPerTest) {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
@@ -372,10 +377,11 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         Animator animator1 = new Animator(glWindow1);
+        animator1.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         animator1.start();
 
         int state = 0;
-        while(animator1.isAnimating() && animator1.getDuration()<3*durationPerTest) {
+        while(animator1.isAnimating() && animator1.getTotalFPSDuration()<3*durationPerTest) {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:

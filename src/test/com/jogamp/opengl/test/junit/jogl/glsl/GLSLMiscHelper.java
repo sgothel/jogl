@@ -34,11 +34,15 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 
 public class GLSLMiscHelper {
+    public static final int frames_perftest =  10000; // frames
+    public static final int frames_warmup   =    500; // frames
+    
     public static GLWindow createWindow() {
         GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
         GLCapabilities caps = new GLCapabilities(glp);
@@ -46,9 +50,13 @@ public class GLSLMiscHelper {
         window.setSize(800, 600);
         window.setVisible(true);
         Assert.assertTrue(window.isNativeValid());
-        window.display();
-        Assert.assertTrue(window.isRealized());
-        Assert.assertTrue(window.getContext().isCreated());        
+        Assert.assertTrue(window.isRealized());        
+        GLContext context = window.getContext();
+        Assert.assertNotNull(context);
+        context.setSynchronized(true);
+        context.makeCurrent(); // native context creation 
+        context.release();        
+        Assert.assertTrue(context.isCreated());        
         return window;
     }
     
@@ -72,9 +80,13 @@ public class GLSLMiscHelper {
         System.err.println("screen #"+num);
         if(preEnable) {
             vertices.enableBuffer(gl, true);
-            Assert.assertEquals(vertices.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
+            // invalid - Assert.assertEquals(vertices.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
             colors.enableBuffer(gl, true);
-            Assert.assertEquals(colors.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
+            // invalid - Assert.assertEquals(colors.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
+            //
+            // Above assertions are invalid, since GLSLArrayHandler will not bind the VBO to target
+            // if the VBO is already bound to the attribute itself.
+            // validateGLArrayDataServerState(..) does check proper VBO to attribute binding.
         }
         Assert.assertTrue(vertices.enabled());
         Assert.assertTrue(colors.enabled());

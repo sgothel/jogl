@@ -32,47 +32,7 @@ package javax.media.opengl;
  * An animator control interface, 
  * which implementation may drive a {@link javax.media.opengl.GLAutoDrawable} animation.
  */
-public interface GLAnimatorControl {
-
-    /**
-     * @return Time of the first display call in milliseconds.
-     *         This value is reset if started or resumed.
-     *
-     * @see #start()
-     * @see #resume()
-     */
-    long getStartTime();
-
-    /**
-     * @return Time of the last display call in milliseconds.
-     *         This value is reset if started or resumed.
-     *
-     * @see #start()
-     * @see #resume()
-     */
-    long getCurrentTime();
-
-    /**
-     * @return Duration <code>getCurrentTime() - getStartTime()</code>.
-     *
-     * @see #getStartTime()
-     * @see #getCurrentTime()
-     */
-    long getDuration();
-
-
-    /**
-     * @return Number of frame cycles displayed
-     *         since the first display call, ie <code>getStartTime()</code>.
-     *         This value is reset if started or resumed.
-     *
-     * @see #start()
-     * @see #resume()
-     */
-    int getTotalFrames();
-
-    /** Reset all performance counter (startTime, currentTime, frame number) */
-    public void resetCounter();
+public interface GLAnimatorControl extends FPSCounter {
 
     /**
      * Indicates whether this animator is running, ie. has been started and not stopped.

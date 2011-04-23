@@ -52,8 +52,6 @@ import org.junit.Test;
  */
 public class TestGLSLShaderState02NEWT extends UITestCase {
     static long durationPerTest = 10; // ms
-    static int frames_perftest =  5000; // frames
-    static int frames_warmup   =   100; // frames
 
     static final int vertices0_loc = 1;
     static final int colors0_loc = 2;
@@ -63,7 +61,6 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         // preset ..
         GLWindow window = GLSLMiscHelper.createWindow();
         GLContext context = window.getContext();
-        context.setSynchronized(true);
         context.makeCurrent();
         GL2ES2 gl = context.getGL().getGL2ES2();
 
@@ -212,7 +209,6 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         // preset ..
         GLWindow window = GLSLMiscHelper.createWindow();
         GLContext context = window.getContext();
-        context.setSynchronized(true);
         context.makeCurrent();
         GL2ES2 gl = context.getGL().getGL2ES2();
 
@@ -287,12 +283,12 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         long t0 = System.currentTimeMillis();
         int frames;
         // warmup ..
-        for(frames=0; frames<frames_warmup; frames++) {
+        for(frames=0; frames<GLSLMiscHelper.frames_warmup; frames+=2) {
             GLSLMiscHelper.displayVCArraysNoChecks(window, gl, true, vertices0, colors0, true);
             GLSLMiscHelper.displayVCArraysNoChecks(window, gl, true, vertices1, colors1, true);
         }        
         // measure ..
-        for(frames=0; frames<frames_perftest; frames+=2) {
+        for(frames=0; frames<GLSLMiscHelper.frames_perftest; frames+=4) {
             // SP0
             vertices0.setLocation(-1);
             colors0.setLocation(-1);        
@@ -338,9 +334,16 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         }
         if(wait) {
             while(-1 == System.in.read()) ;
+            TestGLSLShaderState02NEWT tst = new TestGLSLShaderState02NEWT();
+            try {
+                tst.testShaderState01PerformanceDouble();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }            
+        } else {
+            String tstname = TestGLSLShaderState02NEWT.class.getName();
+            org.junit.runner.JUnitCore.main(tstname);
+            System.err.println("main - end");
         }
-        String tstname = TestGLSLShaderState02NEWT.class.getName();
-        org.junit.runner.JUnitCore.main(tstname);
-        System.err.println("main - end");
     }    
 }

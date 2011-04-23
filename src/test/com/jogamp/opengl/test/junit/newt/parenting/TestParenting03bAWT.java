@@ -29,30 +29,20 @@
 package com.jogamp.opengl.test.junit.newt.parenting;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 
-import java.awt.Button;
 import java.awt.BorderLayout;
-import java.awt.Canvas;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Label;
 
 import javax.media.opengl.*;
-import javax.media.nativewindow.*;
 
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
@@ -82,13 +72,8 @@ public class TestParenting03bAWT extends UITestCase {
     }
 
     public void testWindowParenting1AWTTwoNewtChilds() throws InterruptedException, InvocationTargetException {
-        int x = 0;
-        int y = 0;
-
-        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
-
         GLWindow glWindow1 = GLWindow.create(glCaps);
-        glWindow1.enablePerfLog(true);
+        glWindow1.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
         glWindow1.setUndecorated(true);
         NewtCanvasAWT newtCanvasAWT1 = new NewtCanvasAWT(glWindow1);
         newtCanvasAWT1.setPreferredSize(size);
@@ -119,7 +104,7 @@ public class TestParenting03bAWT extends UITestCase {
         animator1.start();
 
         GLWindow glWindow2 = GLWindow.create(glCaps);
-        glWindow2.enablePerfLog(true);
+        glWindow2.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
         glWindow2.setUndecorated(true);
         NewtCanvasAWT newtCanvasAWT2 = new NewtCanvasAWT(glWindow2);
         newtCanvasAWT2.setPreferredSize(size);
@@ -153,7 +138,6 @@ public class TestParenting03bAWT extends UITestCase {
         cont1.setLayout(new BorderLayout());
         cont1.add(newtCanvasAWT1, BorderLayout.CENTER);
         cont1.setVisible(true);
-        final Container f_cont1 = cont1;
 
         Container cont2 = new Container();
         cont2.setLayout(new BorderLayout());

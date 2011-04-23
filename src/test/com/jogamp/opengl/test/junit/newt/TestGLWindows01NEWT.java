@@ -91,12 +91,12 @@ public class TestGLWindows01NEWT extends UITestCase {
 
         glWindow.setSize(width, height);
 
-        Assert.assertEquals(0, glWindow.getTotalFrames());
+        Assert.assertEquals(0, glWindow.getTotalFPSFrames());
         glWindow.setVisible(true);
         Assert.assertEquals(true,glWindow.isVisible());
         Assert.assertEquals(true,glWindow.isNativeValid());
-        System.out.println("Frames for initial setVisible(true): "+glWindow.getTotalFrames());
-        Assert.assertTrue(0 < glWindow.getTotalFrames());
+        System.out.println("Frames for initial setVisible(true): "+glWindow.getTotalFPSFrames());
+        Assert.assertTrue(0 < glWindow.getTotalFPSFrames());
 
         //
         // Create native OpenGL resources .. XGL/WGL/CGL .. 
@@ -195,7 +195,7 @@ public class TestGLWindows01NEWT extends UITestCase {
         for(state=0; state*100<durationPerTest; state++) {
             Thread.sleep(100);
         }
-        System.out.println("duration: "+window.getDuration());
+        System.out.println("duration: "+window.getTotalFPSDuration());
         destroyWindow(window);
     }
 
@@ -211,7 +211,7 @@ public class TestGLWindows01NEWT extends UITestCase {
         for(state=0; state*100<durationPerTest; state++) {
             Thread.sleep(100);
         }
-        System.out.println("duration: "+window.getDuration());
+        System.out.println("duration: "+window.getTotalFPSDuration());
         destroyWindow(window);
     }
 
@@ -226,7 +226,7 @@ public class TestGLWindows01NEWT extends UITestCase {
         for(state=0; state*100<durationPerTest; state++) {
             Thread.sleep(100);
         }
-        System.out.println("duration: "+window.getDuration());
+        System.out.println("duration: "+window.getTotalFPSDuration());
         destroyWindow(window);
     }
 
@@ -263,8 +263,8 @@ public class TestGLWindows01NEWT extends UITestCase {
         for(state=0; state*100<durationPerTest; state++) {
             Thread.sleep(100);
         }
-        System.out.println("duration1: "+window1.getDuration());
-        System.out.println("duration2: "+window2.getDuration());
+        System.out.println("duration1: "+window1.getTotalFPSDuration());
+        System.out.println("duration2: "+window2.getTotalFPSDuration());
 
         destroyWindow(window1);
         destroyWindow(window2);
@@ -325,8 +325,8 @@ public class TestGLWindows01NEWT extends UITestCase {
         for(state=0; state*100<durationPerTest; state++) {
             Thread.sleep(100);
         }
-        System.out.println("duration1: "+window1.getDuration());
-        System.out.println("duration2: "+window2.getDuration());
+        System.out.println("duration1: "+window1.getTotalFPSDuration());
+        System.out.println("duration2: "+window2.getTotalFPSDuration());
 
         // It is observed that some X11 drivers, eg ATI, fglrx 8.78.6,
         // are quite sensitive to multiple Display connections (NEWT Display -> X11 Display).

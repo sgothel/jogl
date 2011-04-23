@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.glsl;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
+import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -135,9 +136,10 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
 
         Animator animator = new Animator(glCanvas);
         frame.setVisible(true);
+        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         animator.start();
 
-        while(animator.isAnimating() && animator.getDuration()<duration) {
+        while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
 

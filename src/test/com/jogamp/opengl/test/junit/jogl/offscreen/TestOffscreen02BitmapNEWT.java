@@ -101,7 +101,7 @@ public class TestOffscreen02BitmapNEWT extends UITestCase {
         WindowUtilNEWT.setDemoFields(demo, window, glWindow, false);
         glWindow.addGLEventListener(demo);
 
-        while ( glWindow.getTotalFrames() < 2) {
+        while ( glWindow.getTotalFPSFrames() < 2) {
             glWindow.display();
         }
 

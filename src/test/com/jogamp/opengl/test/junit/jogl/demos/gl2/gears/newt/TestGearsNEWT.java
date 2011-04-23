@@ -37,6 +37,8 @@ import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.Gears;
+
+import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
@@ -98,9 +100,10 @@ public class TestGearsNEWT extends UITestCase {
 
         glWindow.setSize(width, height);
         glWindow.setVisible(true);
+        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
         animator.start();
 
-        while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getDuration()<duration) {
+        while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
 

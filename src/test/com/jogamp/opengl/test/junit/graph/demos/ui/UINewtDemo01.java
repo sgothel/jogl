@@ -28,6 +28,7 @@
 
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
+import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
@@ -67,10 +68,11 @@ public class UINewtDemo01 {
         uiGLListener.attachInputListenerTo(window);        
         window.addGLEventListener(uiGLListener);
 
-        window.enablePerfLog(true);     
+        window.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         window.setVisible(true);
 
         Animator animator = new Animator();
+        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
         animator.add(window);
         animator.start();
     }    

@@ -33,6 +33,7 @@ import com.jogamp.opengl.test.junit.util.GLSLSimpleProgram;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 
+import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLProfile;
@@ -117,9 +118,10 @@ public class TestGLSLSimple01NEWT extends UITestCase {
         window.addGLEventListener(new RedSquare0());
         
         Animator animator = new Animator(window);
+        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         animator.start();
         Assert.assertEquals(true, animator.isAnimating());
-        while(animator.isAnimating() && animator.getDuration()<durationPerTest) {
+        while(animator.isAnimating() && animator.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
         Assert.assertEquals(true, animator.isAnimating());
