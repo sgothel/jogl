@@ -397,6 +397,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
                 }
                 drawable.setRealized(true);
                 context = drawable.createContext(sharedContext);
+                context.setContextCreationFlags(additionalCtxCreationFlags);                
             }
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
                 String msg = "GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", fin";
@@ -428,6 +429,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     //
 
     private GLContext sharedContext = null;
+    private int additionalCtxCreationFlags = 0;
     private GLDrawableFactory factory;
     private GLDrawable drawable;
     private GLContext context;
@@ -455,6 +457,9 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
 
     public void setContext(GLContext newCtx) {
         context = newCtx;
+        if(null != context) {
+            context.setContextCreationFlags(additionalCtxCreationFlags);
+        }        
     }
 
     public GLContext getContext() {
@@ -545,7 +550,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
             }
         }
     }
-
+    
     /** This implementation uses a static value */
     public void setAutoSwapBufferMode(boolean onOrOff) {
         if(null!=helper) {
@@ -560,13 +565,21 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         }
         return false;
     }
-
+    
     public void swapBuffers() {
         if(drawable!=null && context != null) {
             drawable.swapBuffers();
         }
     }
 
+    public void setContextCreationFlags(int flags) {
+        additionalCtxCreationFlags = flags;
+    }
+      
+    public int getContextCreationFlags() {
+        return additionalCtxCreationFlags;                
+    }
+        
     private class InitAction implements Runnable {
         public final void run() {
             // Lock: Locked Surface/Window by MakeCurrent/Release

@@ -185,14 +185,14 @@ public interface GLAutoDrawable extends GLDrawable {
    * Enqueues a one-shot {@link javax.media.opengl.GLRunnable},
    * which will be executed with the next {@link #display()} call.</p>
    * <p>
-   * If a {@link javax.media.opengl.GLAnimatorControl} is registered, or if it's not animating, the default situation,<br>
+   * If no {@link javax.media.opengl.GLAnimatorControl} is registered, or if it is not animating, the default situation,<br>
    * or if the current thread is the animator thread,<br>
-   * a {@link #display()} call has to be issued after enqueue the <code>GLRunnable</code>.<br>
-   * No extra synchronization must be performed in case <code>wait</code> is true, since it is executed in the current thread.</p>
+   * a {@link #display()} call is issued after enqueue the <code>GLRunnable</code>.<br>
+   * No extra synchronization is performed in case <code>wait</code> is true, since it is executed in the current thread.</p>
    * <p>
    * If {@link javax.media.opengl.GLAnimatorControl} is registered and is animating,<br>
-   * no call of {@link #display()} must be issued, since the animator thread will performs it.<br>
-   * If <code>wait</code> is true, the implementation must wait until the <code>GLRunnable</code> is executed.<br>
+   * no {@link #display()} call is issued, since the animator thread performs it.<br>
+   * If <code>wait</code> is true, the implementation waits until the <code>GLRunnable</code> is executed.<br>
    * </p><br>
    *
    * @see #setAnimator(javax.media.opengl.GLAnimatorControl)
@@ -254,6 +254,19 @@ public interface GLAutoDrawable extends GLDrawable {
   /** Indicates whether automatic buffer swapping is enabled for this
       drawable. See {@link #setAutoSwapBufferMode}. */
   public boolean getAutoSwapBufferMode();
+
+  /**
+   * @param flags Additional context creation flags.
+   * 
+   * @see GLContext#setContextCreationFlags(int)
+   * @see GLContext#enableGLDebugMessage(boolean)
+   */
+  public void setContextCreationFlags(int flags);
+      
+  /**
+   * @return Additional context creation flags
+   */
+  public int getContextCreationFlags();
 
   /** Returns the {@link GL} pipeline object this GLAutoDrawable uses.
       If this method is called outside of the {@link

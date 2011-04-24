@@ -41,6 +41,7 @@
 package jogamp.opengl;
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,6 +59,8 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDebugListener;
+import javax.media.opengl.GLDebugMessage;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLPipelineFactory;
@@ -87,7 +90,10 @@ public abstract class GLContextImpl extends GLContext {
   private GLBufferSizeTracker bufferSizeTracker; // Singleton - Set by GLContextShareSet
   private GLBufferStateTracker bufferStateTracker = new GLBufferStateTracker();
   private GLStateTracker glStateTracker = new GLStateTracker();
-
+  /** currently only {@link GLContext#CTX_OPTION_DEBUG} is supported */ 
+  private int additionalCtxCreationFlags = 0;
+  private GLDebugMessageHandler glDebugHandler = null;
+  
   protected GLDrawableImpl drawable;
   protected GLDrawableImpl drawableRead;
 
@@ -115,6 +121,8 @@ public abstract class GLContextImpl extends GLContext {
 
     this.drawable = drawable;
     this.drawableRead = drawable;
+    
+    this.glDebugHandler = new GLDebugMessageHandler(this);
   }
 
   protected void resetStates() {
@@ -139,6 +147,7 @@ public abstract class GLContextImpl extends GLContext {
       glProcAddressTable = null;
       gl = null;
       contextFQN = null;
+      additionalCtxCreationFlags = 0;
 
       super.resetStates();
   }
@@ -233,7 +242,10 @@ public abstract class GLContextImpl extends GLContext {
 
   public final void destroy() {
     if ( lock.isOwner() ) {
-        // release current context 
+        // release current context
+        if(null != glDebugHandler) {
+            glDebugHandler.enable(false);
+        }
         release();
     }
 
@@ -267,6 +279,7 @@ public abstract class GLContextImpl extends GLContext {
           try {
               destroyImpl();
               contextHandle = 0;
+              glDebugHandler = null;
               GLContextShareSet.contextDestroyed(this);
           } finally {
               drawable.unlockSurface();
@@ -385,6 +398,7 @@ public abstract class GLContextImpl extends GLContext {
     if (res == CONTEXT_NOT_CURRENT) {
       lock.unlock();
     } else {
+      setCurrent(this);
       if(res == CONTEXT_CURRENT_NEW) {
         // check if the drawable's and the GL's GLProfile are equal
         // throws an GLException if not 
@@ -396,8 +410,8 @@ public abstract class GLContextImpl extends GLContext {
         if(TRACE_GL) {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) );
         }               
+        glDebugHandler.init(0 != (additionalCtxCreationFlags & GLContext.CTX_OPTION_DEBUG));
       }
-      setCurrent(this);
 
       /* FIXME: refactor dependence on Java 2D / JOGL bridge
 
@@ -520,8 +534,7 @@ public abstract class GLContextImpl extends GLContext {
    * @see #createContextARBImpl
    * @see #destroyContextARBImpl
    */
-  protected final long createContextARB(long share, boolean direct,
-                                        int major[], int minor[], int ctp[]) 
+  protected final long createContextARB(long share, boolean direct) 
   {
     AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     AbstractGraphicsDevice device = config.getScreen().getDevice();
@@ -554,6 +567,7 @@ public abstract class GLContextImpl extends GLContext {
 
     if( GLContext.getAvailableGLVersion(device, reqMajor, compat?CTX_PROFILE_COMPAT:CTX_PROFILE_CORE,
                                         _major, _minor, _ctp)) {
+        _ctp[0] |= additionalCtxCreationFlags;
         _ctx = createContextARBImpl(share, direct, _ctp[0], _major[0], _minor[0]);
         if(0!=_ctx) {
             setGLFunctionAvailability(true, _major[0], _minor[0], _ctp[0]);
@@ -1067,5 +1081,76 @@ public abstract class GLContextImpl extends GLContext {
   public boolean hasWaiters() {
     return lock.getWaitingThreadQueueSize()>0;
   }
+  
+  //---------------------------------------------------------------------------
+  // GL_ARB_debug_output, GL_AMD_debug_output helpers
+  //
 
+  public final String getGLDebugMessageExtension() {
+      return glDebugHandler.getExtension();
+  }
+
+  public final boolean isGLDebugMessageEnabled() {
+      return glDebugHandler.isEnabled();
+  }
+  
+  public int getContextCreationFlags() {
+      return additionalCtxCreationFlags;                
+  }
+
+  public void setContextCreationFlags(int flags) {
+      if(!isCreated()) {
+          additionalCtxCreationFlags = flags & GLContext.CTX_OPTION_DEBUG;
+      }
+  }
+  
+  public void enableGLDebugMessage(boolean enable) throws GLException {
+      if(!isCreated()) {
+          if(enable) {
+              additionalCtxCreationFlags |=  GLContext.CTX_OPTION_DEBUG;
+          } else {
+              additionalCtxCreationFlags &= ~GLContext.CTX_OPTION_DEBUG;
+          }
+      } else if(0 != (additionalCtxCreationFlags & GLContext.CTX_OPTION_DEBUG) &&
+                null != getGLDebugMessageExtension()) {
+          glDebugHandler.enable(enable);
+      }
+  }
+  
+  public void addGLDebugListener(GLDebugListener listener) { 
+      glDebugHandler.addListener(listener);
+  }
+  
+  public void removeGLDebugListener(GLDebugListener listener) {
+      glDebugHandler.removeListener(listener);
+  }    
+  
+  public int getGLDebugListenerSize() {
+      return glDebugHandler.listenerSize();      
+  }
+  
+  public void glDebugMessageControl(int source, int type, int severity, int count, IntBuffer ids, boolean enabled) {
+      if(glDebugHandler.isExtensionARB()) {
+          gl.getGL2GL3().glDebugMessageControlARB(source, type, severity, count, ids, enabled);
+      } else if(glDebugHandler.isExtensionAMD()) {
+          gl.getGL2GL3().glDebugMessageEnableAMD(GLDebugMessage.translateARB2AMDCategory(source, type), severity, count, ids, enabled);
+      }      
+  }
+  
+  public void glDebugMessageControl(int source, int type, int severity, int count, int[] ids, int ids_offset, boolean enabled) {
+      if(glDebugHandler.isExtensionARB()) {
+          gl.getGL2GL3().glDebugMessageControlARB(source, type, severity, count, ids, ids_offset, enabled);
+      } else if(glDebugHandler.isExtensionAMD()) {
+          gl.getGL2GL3().glDebugMessageEnableAMD(GLDebugMessage.translateARB2AMDCategory(source, type), severity, count, ids, ids_offset, enabled);
+      }
+  }
+  
+  public void glDebugMessageInsert(int source, int type, int id, int severity, int length, String buf) {
+      if(glDebugHandler.isExtensionARB()) {
+          gl.getGL2GL3().glDebugMessageInsertARB(source, type, id, severity, length, buf);
+      } else if(glDebugHandler.isExtensionAMD()) {
+          if(0>length) { length = 0; }
+          gl.getGL2GL3().glDebugMessageInsertAMD(GLDebugMessage.translateARB2AMDCategory(source, type), severity, id, length, buf);
+      }      
+  }
 }

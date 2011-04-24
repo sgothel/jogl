@@ -64,6 +64,7 @@ public class GLPbufferImpl implements GLPbuffer {
   private GLContextImpl context;
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private int floatMode;
+  private int additionalCtxCreationFlags = 0;
 
   public GLPbufferImpl(GLDrawableImpl pbufferDrawable,
                        GLContext parentContext) {
@@ -177,6 +178,9 @@ public class GLPbufferImpl implements GLPbuffer {
 
   public void setContext(GLContext ctx) {
     context=(GLContextImpl)ctx;
+    if(null != context) {
+        context.setContextCreationFlags(additionalCtxCreationFlags);
+    }    
   }
 
   public GLContext getContext() {
@@ -207,6 +211,17 @@ public class GLPbufferImpl implements GLPbuffer {
     invokeGL(swapBuffersAction);
   }
 
+  public void setContextCreationFlags(int flags) {
+    additionalCtxCreationFlags = flags;
+    if(null != context) {
+        context.setContextCreationFlags(additionalCtxCreationFlags);
+    }        
+  }
+      
+  public int getContextCreationFlags() {
+    return additionalCtxCreationFlags;                
+  }
+            
   public void bindTexture() {
     // Doesn't make much sense to try to do this on the event dispatch
     // thread given that it has to be called while the context is current

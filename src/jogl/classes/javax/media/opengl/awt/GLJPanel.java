@@ -136,6 +136,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private GLDrawableFactoryImpl factory;
   private GLCapabilitiesChooser chooser;
   private GLContext             shareWith;
+  private int additionalCtxCreationFlags = 0;
+  
   // Width of the actual GLJPanel
   private int panelWidth   = 0;
   private int panelHeight  = 0;
@@ -488,6 +490,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     if (backend == null) {
       return;
     }
+    if(null != ctx) {
+        ctx.setContextCreationFlags(additionalCtxCreationFlags);
+    }
     backend.setContext(ctx);
   }
 
@@ -531,7 +536,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     // Swing portion of the GLJPanel in any of the rendering paths.
     return true;
   }
-
+  
   public void swapBuffers() {
     // In the current implementation this is a no-op. Both the pbuffer
     // and pixmap based rendering paths use a single-buffered surface
@@ -540,6 +545,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     // Swing portion of the GLJPanel in any of the rendering paths.
   }
 
+  public void setContextCreationFlags(int flags) {
+    additionalCtxCreationFlags = flags;
+  }
+      
+  public int getContextCreationFlags() {
+    return additionalCtxCreationFlags;                
+  }
+            
   /** For a translucent GLJPanel (one for which {@link #setOpaque
       setOpaque}(false) has been called), indicates whether the
       application should preserve the OpenGL color buffer
@@ -1023,6 +1036,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                                                 Math.max(1, panelHeight));
       offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith);
       offscreenContext.setSynchronized(true);
+      offscreenContext.setContextCreationFlags(additionalCtxCreationFlags);
+      
       isInitialized = true;
     }
 
@@ -1108,6 +1123,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                                           pbufferWidth,
                                           pbufferHeight,
                                           shareWith);
+        pbuffer.setContextCreationFlags(additionalCtxCreationFlags);        
         pbuffer.addGLEventListener(updater);
         isInitialized = true;
       } catch (GLException e) {

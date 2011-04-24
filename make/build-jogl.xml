@@ -1217,6 +1217,8 @@
         <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
         <patternset id="c.src.files.jogl.desktop">
+          <include name="${rootrel.src.c}/JoglCommon.c"/>
+          <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/macosx/MacOSXCustomCGLCode.c" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface.m" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/ContextUpdater.m" if="isOSX"/>
@@ -1343,6 +1345,7 @@
     </target>
 
     <target name="c.build.jogl.prepare" depends="c.build.jogl.prepare.openMAX">
+      <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${classes}" class="jogamp.opengl.GLDebugMessageHandler" />
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
       <!--javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${classes}" class="com.jogamp.audio.windows.waveout.Mixer" /-->

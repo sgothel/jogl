@@ -318,14 +318,11 @@ public abstract class X11GLXContext extends GLContextImpl {
         return true;
     }
 
-    int minor[] = new int[1];
-    int major[] = new int[1];
-    int ctp[] = new int[1];
     boolean createContextARBTried = false;
 
     // utilize the shared context's GLXExt in case it was using the ARB method and it already exists
     if(null!=sharedContext && sharedContext.isCreatedWithARBMethod()) {
-        contextHandle = createContextARB(share, direct, major, minor, ctp);
+        contextHandle = createContextARB(share, direct);
         createContextARBTried = true;
         if (DEBUG && 0!=contextHandle) {
             System.err.println(getThreadName() + ": createContextImpl: OK (ARB, using sharedContext) share "+share);
@@ -351,7 +348,7 @@ public abstract class X11GLXContext extends GLContextImpl {
             if ( isCreateContextAttribsARBAvailable &&
                  isExtensionAvailable("GLX_ARB_create_context") ) {
                 // initial ARB context creation
-                contextHandle = createContextARB(share, direct, major, minor, ctp);
+                contextHandle = createContextARB(share, direct);
                 createContextARBTried=true;
                 if (DEBUG) {
                     if(0!=contextHandle) {
@@ -378,10 +375,10 @@ public abstract class X11GLXContext extends GLContextImpl {
         if(glp.isGL3()) {
           glXMakeContextCurrent(display, 0, 0, 0);
           GLX.glXDestroyContext(display, temp_ctx);
-          throw new GLException("X11GLXContext.createContextImpl failed, but context > GL2 requested "+getGLVersion(major[0], minor[0], ctp[0], "@creation")+", ");
+          throw new GLException("X11GLXContext.createContextImpl failed, but context > GL2 requested "+getGLVersion()+", ");
         }
         if(DEBUG) {
-          System.err.println("X11GLXContext.createContextImpl failed, fall back to !ARB context "+getGLVersion(major[0], minor[0], ctp[0], "@creation"));
+          System.err.println("X11GLXContext.createContextImpl failed, fall back to !ARB context "+getGLVersion());
         }
 
         // continue with temp context for GL <= 3.0

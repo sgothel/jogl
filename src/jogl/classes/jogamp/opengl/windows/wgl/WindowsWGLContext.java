@@ -273,14 +273,11 @@ public class WindowsWGLContext extends GLContextImpl {
       }
     }
 
-    int minor[] = new int[1];
-    int major[] = new int[1];
-    int ctp[] = new int[1];
     boolean createContextARBTried = false;
 
     // utilize the shared context's GLXExt in case it was using the ARB method and it already exists
     if( null!=sharedContext && sharedContext.isCreatedWithARBMethod() ) {
-        contextHandle = createContextARB(share, true, major, minor, ctp);
+        contextHandle = createContextARB(share, true);
         createContextARBTried = true;
         if (DEBUG && 0!=contextHandle) {
             System.err.println(getThreadName() + ": createImpl: OK (ARB, using sharedContext) share "+share);
@@ -306,7 +303,7 @@ public class WindowsWGLContext extends GLContextImpl {
             if(isCreateContextAttribsARBAvailable &&
                isExtensionAvailable("WGL_ARB_create_context") ) {
                 // initial ARB context creation
-                contextHandle = createContextARB(share, true, major, minor, ctp);
+                contextHandle = createContextARB(share, true);
                 createContextARBTried=true;
                 if (DEBUG) {
                     if(0!=contextHandle) {
@@ -334,10 +331,10 @@ public class WindowsWGLContext extends GLContextImpl {
         if(glCaps.getGLProfile().isGL3()) {
           WGL.wglMakeCurrent(0, 0);
           WGL.wglDeleteContext(temp_ctx);
-          throw new GLException("WindowsWGLContext.createContext failed, but context > GL2 requested "+getGLVersion(major[0], minor[0], ctp[0], "@creation")+", ");
+          throw new GLException("WindowsWGLContext.createContext failed, but context > GL2 requested "+getGLVersion()+", ");
         }
         if(DEBUG) {
-          System.err.println("WindowsWGLContext.createContext failed, fall back to !ARB context "+getGLVersion(major[0], minor[0], ctp[0], "@creation"));
+          System.err.println("WindowsWGLContext.createContext failed, fall back to !ARB context "+getGLVersion());
         }
 
         // continue with temp context for GL < 3.0

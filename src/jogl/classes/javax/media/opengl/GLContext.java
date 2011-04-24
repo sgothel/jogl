@@ -40,6 +40,7 @@
 
 package javax.media.opengl;
 
+import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -84,10 +85,10 @@ public abstract class GLContext {
   protected static final int CTX_PROFILE_ES     = 1 << 3;
   /** <code>ARB_create_context</code> related: flag forward compatible */
   protected static final int CTX_OPTION_FORWARD = 1 << 4;
-  /** <code>ARB_create_context</code> related: not flag forward compatible */
+  /** <code>ARB_create_context</code> related: flag not forward compatible */
   protected static final int CTX_OPTION_ANY     = 1 << 5;
   /** <code>ARB_create_context</code> related: flag debug */
-  protected static final int CTX_OPTION_DEBUG   = 1 << 6;
+  public static final int CTX_OPTION_DEBUG   = 1 << 6;
 
   /** GLContext {@link com.jogamp.gluegen.runtime.ProcAddressTable} caching related: GL software implementation */
   protected static final int CTX_IMPL_ACCEL_SOFT = 1 << 0;
@@ -419,6 +420,20 @@ public abstract class GLContext {
   public final boolean isGLForwardCompatible()    { return ( 0 != ( CTX_OPTION_FORWARD & ctxOptions ) ); }
   public final boolean isCreatedWithARBMethod()   { return ( 0 != ( CTX_IS_ARB_CREATED & ctxOptions ) ); }
 
+  /**
+   * @return Additional context creation flags, supported: {@link GLContext#CTX_OPTION_DEBUG}.
+   */
+  public abstract int getContextCreationFlags();
+
+  /**
+   * @param flags Additional context creation flags, supported: {@link GLContext#CTX_OPTION_DEBUG}.
+   *              Unsupported flags are masked out.
+   *              Only affects this context state if not created yet via {@link #makeCurrent()}.
+   * @see #enableGLDebugMessage(boolean)
+   * @see GLAutoDrawable#setContextCreationFlags(int)
+   */
+  public abstract void setContextCreationFlags(int flags);
+    
   /** 
    * Returns a valid OpenGL version string, ie<br>
    * <pre>
@@ -516,6 +531,87 @@ public abstract class GLContext {
       return isGL2ES2() ;
   }
 
+  /**
+   * @return The extension implementing the GLDebugOutput feature, 
+   *         either <i>GL_ARB_debug_output</i> or <i>GL_AMD_debug_output</i>. 
+   *         If unavailable or called before initialized via {@link #makeCurrent()}, <i>null</i> is returned. 
+   */
+  public abstract String getGLDebugMessageExtension();
+
+  /**
+   * @return true if the GLDebugOutput feature is enabled or not.
+   */
+  public abstract boolean isGLDebugMessageEnabled();
+  
+  /**
+   * Enables or disables the GLDebugOutput feature of extension <i>GL_ARB_debug_output</i> 
+   * or <i>GL_AMD_debug_output</i>, if available.
+   * 
+   * <p>To enable the GLDebugOutput feature {@link #enableGLDebugMessage(boolean) enableGLDebugMessage(true)}
+   * or {@link #setContextCreationFlags(int) setContextCreationFlags}({@link GLContext#CTX_OPTION_DEBUG})
+   * shall be called <b>before</b> context creation via {@link #makeCurrent()}!</p>
+   * 
+   * <p>In case {@link GLAutoDrawable} are being used, 
+   * {@link GLAutoDrawable#setContextCreationFlags(int) glAutoDrawable.setContextCreationFlags}({@link GLContext#CTX_OPTION_DEBUG})
+   * shall be issued before context creation via {@link #makeCurrent()}!</p>
+   * 
+   * <p>After context creation, the GLDebugOutput feature may be enabled or disabled at any time using this method.</p>
+   * 
+   * @param enable If true enables, otherwise disables the GLDebugOutput feature.
+   * 
+   * @throws GLException if this context is not current or GLDebugOutput registration failed (enable)
+   * 
+   * @see #setContextCreationFlags(int)
+   * @see #addGLDebugListener(GLDebugListener)
+   * @see GLAutoDrawable#setContextCreationFlags(int)
+   */
+  public abstract void enableGLDebugMessage(boolean enable) throws GLException;
+  
+  /**
+   * Add {@link GLDebugListener}.<br>
+   * 
+   * @param listener {@link GLDebugListener} handling {@GLDebugMessage}s
+   * @see #enableGLDebugMessage(boolean) 
+   * @see #removeGLDebugListener(GLDebugListener)
+   */
+  public abstract void addGLDebugListener(GLDebugListener listener);
+  
+  /**
+   * Remove {@link GLDebugListener}.<br>
+   * 
+   * @param listener {@link GLDebugListener} handling {@GLDebugMessage}s
+   * @see #enableGLDebugMessage(boolean) 
+   * @see #addGLDebugListener(GLDebugListener)
+   */
+  public abstract void removeGLDebugListener(GLDebugListener listener);
+  
+  /**
+   * @return number of added {@link GLDebugListener}. If > 0, the GLDebugFeature is turned on, otherwise off. 
+   * @see #enableGLDebugMessage(boolean) 
+   */
+  public abstract int getGLDebugListenerSize();
+  
+  /**
+   * Generic entry for {@link GL2GL3#glDebugMessageControlARB(int, int, int, int, IntBuffer, boolean)} 
+   * and {@link GL2GL3#glDebugMessageEnableAMD(int, int, int, IntBuffer, boolean)} of the GLDebugOutput feature.
+   * @see #enableGLDebugMessage(boolean) 
+   */
+  public abstract void glDebugMessageControl(int source, int type, int severity, int count, IntBuffer ids, boolean enabled);
+  
+  /**
+   * Generic entry for {@link GL2GL3#glDebugMessageControlARB(int, int, int, int, int[], int, boolean)} 
+   * and {@link GL2GL3#glDebugMessageEnableAMD(int, int, int, int[], int, boolean)} of the GLDebugOutput feature. 
+   * @see #enableGLDebugMessage(boolean) 
+   */
+  public abstract void glDebugMessageControl(int source, int type, int severity, int count, int[] ids, int ids_offset, boolean enabled);
+  
+  /**
+   * Generic entry for {@link GL2GL3#glDebugMessageInsertARB(int, int, int, int, int, String)} 
+   * and {@link GL2GL3#glDebugMessageInsertAMD(int, int, int, int, String)} of the GLDebugOutput feature.
+   * @see #enableGLDebugMessage(boolean) 
+   */
+  public abstract void glDebugMessageInsert(int source, int type, int id, int severity, int length, String buf);
+  
   public static final int GL_VERSIONS[][] = {
       /* 0.*/ { -1 },
       /* 1.*/ { 0, 1, 2, 3, 4, 5 },
@@ -750,7 +846,7 @@ public abstract class GLContext {
 
   public static String getGLVersion(int major, int minor, int ctp, String gl_version) {
     boolean needColon = false;
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append(major);
     sb.append(".");
     sb.append(minor);
@@ -759,6 +855,7 @@ public abstract class GLContext {
     needColon = appendString(sb, "compatibility profile", needColon, 0 != ( CTX_PROFILE_COMPAT & ctp ));
     needColon = appendString(sb, "core profile",          needColon, 0 != ( CTX_PROFILE_CORE & ctp ));
     needColon = appendString(sb, "forward compatible",    needColon, 0 != ( CTX_OPTION_FORWARD & ctp ));
+    needColon = appendString(sb, "debug",                 needColon, 0 != ( CTX_OPTION_DEBUG & ctp ));    
     needColon = appendString(sb, "any",                   needColon, 0 != ( CTX_OPTION_ANY & ctp ));
     needColon = appendString(sb, "new",                   needColon, 0 != ( CTX_IS_ARB_CREATED & ctp ));
     needColon = appendString(sb, "old",                   needColon, 0 == ( CTX_IS_ARB_CREATED & ctp ));
@@ -785,7 +882,7 @@ public abstract class GLContext {
     return "0x" + Long.toHexString(hex);
   }
 
-  private static boolean appendString(StringBuffer sb, String string, boolean needColon, boolean condition) {
+  private static boolean appendString(StringBuilder sb, String string, boolean needColon, boolean condition) {
     if(condition) {
         if(needColon) {
             sb.append(", ");
