@@ -35,12 +35,10 @@ import org.junit.Test;
 import javax.media.opengl.*;
 
 import com.jogamp.newt.*;
-import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.Gears;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 

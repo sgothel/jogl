@@ -33,12 +33,12 @@ void NewtCommon_init(JNIEnv *env) {
     if(NULL==runtimeExceptionClz) {
         jclass c = (*env)->FindClass(env, ClazzNameRuntimeException);
         if(NULL==c) {
-            NewtCommon_FatalError(env, "NEWT X11Window: can't find %s", ClazzNameRuntimeException);
+            NewtCommon_FatalError(env, "NEWT: can't find %s", ClazzNameRuntimeException);
         }
         runtimeExceptionClz = (jclass)(*env)->NewGlobalRef(env, c);
         (*env)->DeleteLocalRef(env, c);
         if(NULL==runtimeExceptionClz) {
-            NewtCommon_FatalError(env, "NEWT X11Window: can't use %s", ClazzNameRuntimeException);
+            NewtCommon_FatalError(env, "NEWT: can't use %s", ClazzNameRuntimeException);
         }
     }
 }

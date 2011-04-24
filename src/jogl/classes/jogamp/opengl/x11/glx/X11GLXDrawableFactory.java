@@ -212,7 +212,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 }
                 return new SharedResource(sharedDevice, sharedScreen, sharedDrawable, sharedContext, glXVersion, glXVendorName);
             } catch (Throwable t) {
-                throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources for "+connection, t);
+                throw new GLException("X11GLXDrawableFactory - Could not initialize shared resources for "+connection, t);
             } finally {
                 sharedDevice.unlock();
             }
