@@ -76,6 +76,7 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         // Create native windowing resources .. X11/Win/OSX
         // 
         GLWindow glWindow = GLWindow.create(caps);
+        glWindow.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
 
         GLEventListener demo = new Gears();
         setDemoFields(demo, glWindow);

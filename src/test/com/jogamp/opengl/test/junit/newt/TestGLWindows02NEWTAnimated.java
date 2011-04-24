@@ -74,6 +74,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         } else {
             glWindow = GLWindow.create(caps);
         }
+        glWindow.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         Assert.assertNotNull(glWindow);
         glWindow.setUndecorated(onscreen && undecorated);
 
@@ -226,6 +227,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         window2.setPosition(screen2.getWidth()-width, 0);
 
         Animator animator = new Animator();
+        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         Assert.assertEquals(false, animator.isStarted());
         Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());

@@ -71,6 +71,7 @@ public class TestGLWindows00NEWT extends UITestCase {
             glWindow = GLWindow.create(caps);
             Assert.assertNotNull(glWindow);
         }
+        glWindow.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
 
         GLEventListener demo = new Gears();
         glWindow.addGLEventListener(demo);

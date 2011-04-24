@@ -43,7 +43,7 @@ public class GLSLMiscHelper {
     public static final int frames_perftest =  10000; // frames
     public static final int frames_warmup   =    500; // frames
     
-    public static GLWindow createWindow() {
+    public static GLWindow createWindow() throws InterruptedException {
         GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
         GLCapabilities caps = new GLCapabilities(glp);
         GLWindow window = GLWindow.create(caps);
@@ -54,6 +54,10 @@ public class GLSLMiscHelper {
         GLContext context = window.getContext();
         Assert.assertNotNull(context);
         context.setSynchronized(true);
+        while(!context.isCreated()) {
+            // wait for context creation via above setVisible
+            Thread.sleep(100);
+        }
         context.makeCurrent(); // native context creation 
         context.release();        
         Assert.assertTrue(context.isCreated());        
