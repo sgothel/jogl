@@ -50,12 +50,11 @@ public class GLDrawableHelper {
   protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
   private static final boolean VERBOSE = Debug.verbose();
   private Object listenersLock = new Object();
-  private List listeners;
-  private volatile boolean listenersIter; // avoid java.util.ConcurrentModificationException
-  private Set listenersToBeInit;
+  private ArrayList<GLEventListener> listeners;
+  private HashSet<GLEventListener> listenersToBeInit;
   private boolean autoSwapBufferMode;
   private Object glRunnablesLock = new Object();
-  private ArrayList glRunnables;
+  private ArrayList<GLRunnable> glRunnables;
   private GLAnimatorControl animatorCtrl;
 
   public GLDrawableHelper() {
@@ -64,13 +63,12 @@ public class GLDrawableHelper {
 
   public final void reset() {
     synchronized(listenersLock) {
-        listeners = new ArrayList();
-        listenersIter = false;
-        listenersToBeInit = new HashSet();
+        listeners = new ArrayList<GLEventListener>();
+        listenersToBeInit = new HashSet<GLEventListener>();
     }
     autoSwapBufferMode = true;
     synchronized(glRunnablesLock) {
-        glRunnables = new ArrayList();
+        glRunnables = new ArrayList<GLRunnable>();
     }
     animatorCtrl = null;
   }
@@ -81,7 +79,6 @@ public class GLDrawableHelper {
     sb.append("GLAnimatorControl: "+animatorCtrl+", ");
     synchronized(listenersLock) {
         sb.append("GLEventListeners num "+listeners.size()+" [");
-        listenersIter = true;
         for (int i=0; i < listeners.size(); i++) {
           Object l = listeners.get(i);
           sb.append(l);
@@ -89,7 +86,6 @@ public class GLDrawableHelper {
           sb.append( !listenersToBeInit.contains(l) );
           sb.append("], ");
         }
-        listenersIter = false;
     }
     sb.append("]");
     return sb.toString();
@@ -107,29 +103,13 @@ public class GLDrawableHelper {
         // GLEventListener may be added after context is created,
         // hence we earmark initialization for the next display call.
         listenersToBeInit.add(listener);
-        if(!listenersIter) {
-            // fast path
-            listeners.add(index, listener);
-        } else {
-            // copy mode in case this is issued while iterating, eg via init, display, ..
-            List newListeners = (List) ((ArrayList) listeners).clone();
-            newListeners.add(index, listener);
-            listeners = newListeners;
-        }
+        listeners.add(index, listener);
     }
   }
   
   public final void removeGLEventListener(GLEventListener listener) {
     synchronized(listenersLock) {
-        if(!listenersIter) {
-            // fast path
-            listeners.remove(listener);
-        } else {
-            // copy mode in case this is issued while iterating, eg via init, display, ..
-            List newListeners = (List) ((ArrayList) listeners).clone();
-            newListeners.remove(listener);
-            listeners = newListeners;
-        }
+        listeners.remove(listener);
         listenersToBeInit.remove(listener);
     }
   }
@@ -141,12 +121,9 @@ public class GLDrawableHelper {
    */
   public final void dispose(GLAutoDrawable drawable) {
     synchronized(listenersLock) {
-        listenersIter = true;
         for (int i=0; i < listeners.size(); i++) {
-          GLEventListener listener = (GLEventListener) listeners.get(i) ;
-          listener.dispose(drawable);
+          listeners.get(i).dispose(drawable);
         }
-        listenersIter = false;
     }
   }
 
@@ -163,9 +140,8 @@ public class GLDrawableHelper {
 
   public final void init(GLAutoDrawable drawable) {
     synchronized(listenersLock) {
-        listenersIter = true;
         for (int i=0; i < listeners.size(); i++) {
-          GLEventListener listener = (GLEventListener) listeners.get(i) ;
+          final GLEventListener listener = listeners.get(i) ;
 
           // If make current ctx, invoked by invokGL(..), results in a new ctx, init gets called.
           // This may happen not just for initial setup, but for ctx recreation due to resource change (drawable/window),
@@ -176,21 +152,18 @@ public class GLDrawableHelper {
             throw new GLException("GLEventListener "+listener+" already initialized: "+drawable);
           }
         }
-        listenersIter = false;
     }
   }
 
   public final void display(GLAutoDrawable drawable) {
     synchronized(listenersLock) {
-        listenersIter = true;
         for (int i=0; i < listeners.size(); i++) {
-          GLEventListener listener = (GLEventListener) listeners.get(i) ;
+          final GLEventListener listener = listeners.get(i) ;
           // GLEventListener may need to be init, 
           // in case this one is added after the realization of the GLAutoDrawable
           init( listener, drawable, true ) ; 
           listener.display(drawable);
         }
-        listenersIter = false;
     }
     execGLRunnables(drawable);
   }
@@ -205,27 +178,25 @@ public class GLDrawableHelper {
 
   public final void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     synchronized(listenersLock) {
-        listenersIter = true;
         for (int i=0; i < listeners.size(); i++) {
           reshape((GLEventListener) listeners.get(i), drawable, x, y, width, height, 0==i);
         }
-        listenersIter = false;
     }
   }
 
   private void execGLRunnables(GLAutoDrawable drawable) {
     if(glRunnables.size()>0) {
         // swap one-shot list asap
-        ArrayList _glRunnables = null;
+        ArrayList<GLRunnable> _glRunnables = null;
         synchronized(glRunnablesLock) {
             if(glRunnables.size()>0) {
                 _glRunnables = glRunnables;
-                glRunnables = new ArrayList();
+                glRunnables = new ArrayList<GLRunnable>();
             }
         }
         if(null!=_glRunnables) {
             for (int i=0; i < _glRunnables.size(); i++) {
-              ((GLRunnable) _glRunnables.get(i)).run(drawable);
+              _glRunnables.get(i).run(drawable);
             }
         }
     }
