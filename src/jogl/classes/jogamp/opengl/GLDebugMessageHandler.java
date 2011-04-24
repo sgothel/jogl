@@ -234,6 +234,12 @@ public class GLDebugMessageHandler {
         }
     }
     
+    public static class StdErrGLDebugListener implements GLDebugListener {        
+        public void messageSent(GLDebugMessage event) {
+            System.err.println(event);            
+        }        
+    }
+    
     //
     // native -> java
     //
