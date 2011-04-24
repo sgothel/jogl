@@ -65,7 +65,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     Font font;
     
     int headType = 0;
-    boolean drawFPS = true;
+    boolean drawFPS = false;
     boolean updateFont = true;
     final int fontSizeFixed = 6;
     int fontSize = 40;

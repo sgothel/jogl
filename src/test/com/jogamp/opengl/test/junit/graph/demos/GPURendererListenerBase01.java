@@ -107,6 +107,8 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         if(trace) {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) ).getGL2ES2();
         }
+        System.err.println("*** "+gl.getContext().getGLVersion());
+        System.err.println("*** GLDebugMessage "+gl.getContext().isGLDebugMessageEnabled());
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
     

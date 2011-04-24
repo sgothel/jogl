@@ -1,10 +1,13 @@
 //Copyright 2010 JogAmp Community. All rights reserved.
 
+/**
+ * AMD complains: #version must occur before any other statement in the program
 #ifdef GL_ES
     #version 100
 #else
     #version 110
 #endif
+ */
 
 #include uniforms.glsl
 #include attributes.glsl
@@ -12,6 +15,7 @@
 
 void main(void)
 {
-  gl_Position = gcu_PMVMatrix[0] * gcu_PMVMatrix[1] * vec4(gca_Vertices, 1);
+  // gl_Position = gcu_PMVMatrix[0] * gcu_PMVMatrix[1] * vec4(gca_Vertices, 1);
+  gl_Position = gcu_PMVMatrix[0] * gcu_PMVMatrix[1] * gca_Vertices;
   gcv_TexCoord = gca_TexCoords;
 }

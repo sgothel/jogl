@@ -1,13 +1,15 @@
 //Copyright 2010 JogAmp Community. All rights reserved.
 
+/**
+ * AMD complains: #version must occur before any other statement in the program
 #ifdef GL_ES
     #version 100
 #else
-    #version 130
+    #version 110
 #endif
-
+ */
+ 
 #include uniforms.glsl
-#include attributes.glsl
 #include varyings.glsl
 
 const vec3 b_color = vec3(0.0, 0.0, 0.0);
