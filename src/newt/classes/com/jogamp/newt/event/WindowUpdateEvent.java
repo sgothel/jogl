@@ -31,7 +31,7 @@ package com.jogamp.newt.event;
 import javax.media.nativewindow.util.Rectangle;
 
 public class WindowUpdateEvent extends WindowEvent {
-    Rectangle bounds;
+    final Rectangle bounds;
 
     public WindowUpdateEvent(int eventType, Object source, long when, Rectangle bounds)
     {

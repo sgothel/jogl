@@ -97,7 +97,7 @@ public class MouseEvent extends InputEvent
     }
  }
 
- private int x, y, clickCount, button, wheelRotation;
+ private final int x, y, clickCount, button, wheelRotation;
 
  public static final int EVENT_MOUSE_CLICKED  = 200;
  public static final int EVENT_MOUSE_ENTERED  = 201;

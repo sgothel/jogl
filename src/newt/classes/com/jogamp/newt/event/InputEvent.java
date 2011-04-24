@@ -85,5 +85,5 @@ public abstract class InputEvent extends NEWTEvent
      return "InputEvent[modifiers:"+modifiers+", "+super.toString()+"]";
  }
 
- private int modifiers;
+ private final int modifiers;
 }

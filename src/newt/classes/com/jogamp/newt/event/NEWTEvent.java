@@ -47,9 +47,9 @@ package com.jogamp.newt.event;
  * </ul><br>
  */
 public class NEWTEvent extends java.util.EventObject {
-    private boolean isSystemEvent;
-    private int eventType;
-    private long when;
+    private final boolean isSystemEvent;
+    private final int eventType;
+    private final long when;
     private Object attachment;
 
     static final boolean DEBUG = false;

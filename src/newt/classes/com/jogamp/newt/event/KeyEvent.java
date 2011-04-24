@@ -110,8 +110,8 @@ public class KeyEvent extends InputEvent
     return false;
  }
 
-    private int keyCode;
-    private char keyChar;
+    private final int keyCode;
+    private final char keyChar;
 
     public static final int EVENT_KEY_PRESSED = 300;
     public static final int EVENT_KEY_RELEASED= 301;
