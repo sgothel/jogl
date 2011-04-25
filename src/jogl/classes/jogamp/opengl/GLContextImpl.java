@@ -542,6 +542,7 @@ public abstract class GLContextImpl extends GLContext {
     AbstractGraphicsDevice device = config.getScreen().getDevice();
     GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     GLProfile glp = glCaps.getGLProfile();
+    GLProfile glpImpl = GLProfile.get(glp.getImplName());
 
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! createContextARB: mappedVersionsAvailableSet("+device.getConnection()+"): "+
@@ -553,15 +554,15 @@ public abstract class GLContextImpl extends GLContext {
     }
 
     int reqMajor;
-    if(glp.isGL4()) {
+    if(glpImpl.isGL4()) {
         reqMajor=4;
-    } else if (glp.isGL3()) {
+    } else if (glpImpl.isGL3()) {
         reqMajor=3;
-    } else /* if (glp.isGL2()) */ {
+    } else /* if (glpImpl.isGL2()) */ {
         reqMajor=2;
     }
 
-    boolean compat = glp.isGL2(); // incl GL3bc and GL4bc
+    boolean compat = glpImpl.isGL2(); // incl GL3bc and GL4bc
     int _major[] = { 0 };
     int _minor[] = { 0 };
     int _ctp[] = { 0 };
@@ -580,10 +581,10 @@ public abstract class GLContextImpl extends GLContext {
 
   private final void mapGLVersions(AbstractGraphicsDevice device) {    
     synchronized (GLContext.deviceVersionAvailable) {
-        createContextARBMapVersionsAvailable(4, false /* core   */);  // GL4
         createContextARBMapVersionsAvailable(4, true  /* compat */);  // GL4bc
-        createContextARBMapVersionsAvailable(3, false /* core   */);  // GL3
+        createContextARBMapVersionsAvailable(4, false /* core   */);  // GL4
         createContextARBMapVersionsAvailable(3, true  /* compat */);  // GL3bc
+        createContextARBMapVersionsAvailable(3, false /* core   */);  // GL3
         createContextARBMapVersionsAvailable(2, true  /* compat */);  // GL2
         GLContext.setAvailableGLVersionsSet(device);
     }
