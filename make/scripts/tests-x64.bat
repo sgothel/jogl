@@ -48,10 +48,18 @@ REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestWindowClosingPr
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol03NewtAWT $*
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn %1 %2 %3 %4
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn %1 %2 %3 %4
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn %1 %2 %3 %4
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT -time 5000
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT
+
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo01
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo02
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo01
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo02
 
