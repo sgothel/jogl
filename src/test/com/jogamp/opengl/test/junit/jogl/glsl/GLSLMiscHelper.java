@@ -27,7 +27,10 @@
  */
 package com.jogamp.opengl.test.junit.jogl.glsl;
 
-import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.Display;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
+import com.jogamp.newt.Window;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
@@ -35,6 +38,8 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
@@ -43,27 +48,62 @@ public class GLSLMiscHelper {
     public static final int frames_perftest =  10000; // frames
     public static final int frames_warmup   =    500; // frames
     
-    public static GLWindow createWindow() throws InterruptedException {
-        GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
-        GLCapabilities caps = new GLCapabilities(glp);
-        GLWindow window = GLWindow.create(caps);
-        window.setSize(800, 600);
-        window.setVisible(true);
-        Assert.assertTrue(window.isNativeValid());
-        Assert.assertTrue(window.isRealized());        
-        GLContext context = window.getContext();
-        Assert.assertNotNull(context);
-        context.setSynchronized(true);
-        while(!context.isCreated()) {
-            // wait for context creation via above setVisible
-            Thread.sleep(100);
+    public static class WindowContext {        
+        public final Window window;
+        public final GLContext context;
+        
+        public WindowContext(Window w, GLContext c) {
+            window = w;
+            context = c;
         }
-        context.makeCurrent(); // native context creation 
-        context.release();        
-        Assert.assertTrue(context.isCreated());        
-        return window;
-    }
+    }       
     
+    public static WindowContext createWindow(GLProfile glp, boolean debugGL) {        
+        GLCapabilities caps = new GLCapabilities(glp);
+        //
+        // Create native windowing resources .. X11/Win/OSX
+        // 
+        Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+
+        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+
+        Window window = NewtFactory.createWindow(screen, caps);
+        Assert.assertNotNull(window);
+        window.setSize(480, 480);
+        window.setVisible(true);
+
+        GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
+        GLDrawable drawable = factory.createGLDrawable(window);
+        Assert.assertNotNull(drawable);
+        
+        drawable.setRealized(true);
+        
+        GLContext context = drawable.createContext(null);
+        Assert.assertNotNull(context);
+        
+        context.enableGLDebugMessage(debugGL);
+        
+        int res = context.makeCurrent();
+        Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);
+        
+        return new WindowContext(window, context);
+    }
+
+    public static void destroyWindow(WindowContext winctx) {
+        GLDrawable drawable = winctx.context.getGLDrawable();
+        
+        Assert.assertNotNull(winctx.context);
+        winctx.context.destroy();
+
+        Assert.assertNotNull(drawable);
+        drawable.setRealized(false);
+
+        Assert.assertNotNull(winctx.window);
+        winctx.window.destroy();
+    }
+        
     public static void validateGLArrayDataServerState(GL2ES2 gl, ShaderState st, GLArrayDataServer data) {
         int[] qi = new int[1];
         if(null != st) {            
@@ -89,7 +129,7 @@ public class GLSLMiscHelper {
         }        
     }
     
-    public static void displayVCArrays(GLWindow window, GL2ES2 gl, ShaderState st, boolean preEnable, GLArrayDataServer vertices, GLArrayDataServer colors, boolean postDisable, int num, long postDelay) throws InterruptedException {
+    public static void displayVCArrays(GLDrawable drawable, GL2ES2 gl, ShaderState st, boolean preEnable, GLArrayDataServer vertices, GLArrayDataServer colors, boolean postDisable, int num, long postDelay) throws InterruptedException {
         System.err.println("screen #"+num);
         if(preEnable) {
             vertices.enableBuffer(gl, true);
@@ -116,11 +156,11 @@ public class GLSLMiscHelper {
             Assert.assertTrue(!colors.enabled());
         }
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        window.swapBuffers();
+        drawable.swapBuffers();
         if(postDelay>0) { pause(postDelay); }        
     }
     
-    public static void displayVCArraysNoChecks(GLWindow window, GL2ES2 gl, boolean preEnable, GLArrayDataServer vertices, GLArrayDataServer colors, boolean postDisable) throws InterruptedException {
+    public static void displayVCArraysNoChecks(GLDrawable drawable, GL2ES2 gl, boolean preEnable, GLArrayDataServer vertices, GLArrayDataServer colors, boolean postDisable) throws InterruptedException {
         if(preEnable) {
             vertices.enableBuffer(gl, true);
             colors.enableBuffer(gl, true);
@@ -131,7 +171,7 @@ public class GLSLMiscHelper {
             vertices.enableBuffer(gl, false);
             colors.enableBuffer(gl, false);
         }
-        window.swapBuffers();
+        drawable.swapBuffers();
     }
     
     public static GLArrayDataServer createRSVertices0(GL2ES2 gl, ShaderState st, int location) {        

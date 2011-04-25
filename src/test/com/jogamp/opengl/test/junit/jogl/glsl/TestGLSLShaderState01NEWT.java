@@ -27,7 +27,6 @@
  */
 package com.jogamp.opengl.test.junit.jogl.glsl;
 
-import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -40,7 +39,8 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.io.IOException;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLUniformData;
 
 import org.junit.Assert;
@@ -59,10 +59,9 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
     @Test
     public void testShaderState01Validation() throws InterruptedException {
         // preset ..
-        GLWindow window = GLSLMiscHelper.createWindow();
-        GLContext context = window.getContext();
-        context.makeCurrent();
-        GL2ES2 gl = context.getGL().getGL2ES2();
+        GLSLMiscHelper.WindowContext winctx = GLSLMiscHelper.createWindow(GLProfile.getGL2ES2(), true);
+        GLDrawable drawable = winctx.context.getGLDrawable();
+        GL2ES2 gl = winctx.context.getGL().getGL2ES2();
 
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
@@ -144,7 +143,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         // reshape
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0F, (float) window.getWidth() / (float) window.getHeight(), 1.0F, 100.0F);
+        pmvMatrix.gluPerspective(45.0F, (float) drawable.getWidth() / (float) drawable.getHeight(), 1.0F, 100.0F);
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
@@ -152,13 +151,13 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
         // display #1 vertices0 / colors0 (post-disable)
-        GLSLMiscHelper.displayVCArrays(window, gl, st, true, vertices0, colors0, true, 1, durationPerTest);
+        GLSLMiscHelper.displayVCArrays(drawable, gl, st, true, vertices0, colors0, true, 1, durationPerTest);
 
         // display #2 #1 vertices1 / colors1 (post-disable)
-        GLSLMiscHelper.displayVCArrays(window, gl, st, true, vertices1, colors1, true, 2, durationPerTest);
+        GLSLMiscHelper.displayVCArrays(drawable, gl, st, true, vertices1, colors1, true, 2, durationPerTest);
         
         // display #3 vertices0 / colors0 (post-disable)
-        GLSLMiscHelper.displayVCArrays(window, gl, st, true, vertices0, colors0, true, 3, durationPerTest);
+        GLSLMiscHelper.displayVCArrays(drawable, gl, st, true, vertices0, colors0, true, 3, durationPerTest);
         
         // cleanup
         vertices1.destroy(gl);
@@ -167,8 +166,8 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         colors1.destroy(gl);
         st.glUseProgram(gl, false);
         sp.release(gl, true);
-        context.release();
-        window.destroy();        
+        
+        GLSLMiscHelper.destroyWindow(winctx);
     }
 
     @Test
@@ -182,11 +181,10 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
     
     void testShaderState00PerformanceSingle(boolean toggleEnable) throws InterruptedException {
         // preset ..
-        GLWindow window = GLSLMiscHelper.createWindow();
-        GLContext context = window.getContext();
-        context.makeCurrent();
-        GL2ES2 gl = context.getGL().getGL2ES2();
-
+        GLSLMiscHelper.WindowContext winctx = GLSLMiscHelper.createWindow(GLProfile.getGL2ES2(), false);
+        GLDrawable drawable = winctx.context.getGLDrawable();
+        GL2ES2 gl = winctx.context.getGL().getGL2ES2();
+        
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
         // test code ..        
@@ -227,7 +225,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         // reshape
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0F, (float) window.getWidth() / (float) window.getHeight(), 1.0F, 100.0F);
+        pmvMatrix.gluPerspective(45.0F, (float) drawable.getWidth() / (float) drawable.getHeight(), 1.0F, 100.0F);
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
@@ -237,15 +235,15 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         int frames;
         
         // validation ..
-        GLSLMiscHelper.displayVCArrays(window, gl, st, toggleEnable, vertices0, colors0, toggleEnable, 1, 0);
+        GLSLMiscHelper.displayVCArrays(drawable, gl, st, toggleEnable, vertices0, colors0, toggleEnable, 1, 0);
         
         // warmup ..
         for(frames=0; frames<GLSLMiscHelper.frames_warmup; frames++) {
-            GLSLMiscHelper.displayVCArraysNoChecks(window, gl, toggleEnable, vertices0, colors0, toggleEnable);
+            GLSLMiscHelper.displayVCArraysNoChecks(drawable, gl, toggleEnable, vertices0, colors0, toggleEnable);
         }        
         // measure ..
         for(frames=0; frames<GLSLMiscHelper.frames_perftest; frames++) {
-            GLSLMiscHelper.displayVCArraysNoChecks(window, gl, toggleEnable, vertices0, colors0, toggleEnable);
+            GLSLMiscHelper.displayVCArraysNoChecks(drawable, gl, toggleEnable, vertices0, colors0, toggleEnable);
         }        
         final long t1 = System.currentTimeMillis();
         final long dt = t1 - t0;        
@@ -259,17 +257,16 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         sp.release(gl, true);
         vertices0.destroy(gl);
         colors0.destroy(gl);
-        context.release();
-        window.destroy();        
+        
+        GLSLMiscHelper.destroyWindow(winctx);        
     }
     
     @Test
     public void testShaderState01PerformanceDouble() throws InterruptedException {
         // preset ..
-        GLWindow window = GLSLMiscHelper.createWindow();
-        GLContext context = window.getContext();
-        context.makeCurrent();
-        GL2ES2 gl = context.getGL().getGL2ES2();
+        GLSLMiscHelper.WindowContext winctx = GLSLMiscHelper.createWindow(GLProfile.getGL2ES2(), false);
+        GLDrawable drawable = winctx.context.getGLDrawable();
+        GL2ES2 gl = winctx.context.getGL().getGL2ES2();
 
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
@@ -319,27 +316,27 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         // reshape
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0F, (float) window.getWidth() / (float) window.getHeight(), 1.0F, 100.0F);
+        pmvMatrix.gluPerspective(45.0F, (float) drawable.getWidth() / (float) drawable.getHeight(), 1.0F, 100.0F);
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
         st.glUniform(gl, pmvMatrixUniform);
 
         // validation ..
-        GLSLMiscHelper.displayVCArrays(window, gl, st, true, vertices0, colors0, true, 1, 0);
-        GLSLMiscHelper.displayVCArrays(window, gl, st, true, vertices1, colors1, true, 2, 0);
+        GLSLMiscHelper.displayVCArrays(drawable, gl, st, true, vertices0, colors0, true, 1, 0);
+        GLSLMiscHelper.displayVCArrays(drawable, gl, st, true, vertices1, colors1, true, 2, 0);
         
         long t0 = System.currentTimeMillis();
         int frames;
         // warmup ..
         for(frames=0; frames<GLSLMiscHelper.frames_warmup; frames+=2) {
-            GLSLMiscHelper.displayVCArraysNoChecks(window, gl, true, vertices0, colors0, true);
-            GLSLMiscHelper.displayVCArraysNoChecks(window, gl, true, vertices1, colors1, true);
+            GLSLMiscHelper.displayVCArraysNoChecks(drawable, gl, true, vertices0, colors0, true);
+            GLSLMiscHelper.displayVCArraysNoChecks(drawable, gl, true, vertices1, colors1, true);
         }        
         // measure ..
         for(frames=0; frames<GLSLMiscHelper.frames_perftest; frames+=2) {
-            GLSLMiscHelper.displayVCArraysNoChecks(window, gl, true, vertices0, colors0, true);
-            GLSLMiscHelper.displayVCArraysNoChecks(window, gl, true, vertices1, colors1, true);
+            GLSLMiscHelper.displayVCArraysNoChecks(drawable, gl, true, vertices0, colors0, true);
+            GLSLMiscHelper.displayVCArraysNoChecks(drawable, gl, true, vertices1, colors1, true);
         }        
         final long t1 = System.currentTimeMillis();
         final long dt = t1 - t0;        
@@ -355,8 +352,8 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         vertices0.destroy(gl);
         colors0.destroy(gl);
         colors1.destroy(gl);
-        context.release();
-        window.destroy();        
+        
+        GLSLMiscHelper.destroyWindow(winctx);
     }
     
     public static void main(String args[]) throws IOException {
