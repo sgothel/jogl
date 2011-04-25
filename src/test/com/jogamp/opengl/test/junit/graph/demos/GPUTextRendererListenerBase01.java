@@ -28,6 +28,8 @@
 package com.jogamp.opengl.test.junit.graph.demos;
 
 import java.io.IOException;
+
+import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAnimatorControl;
@@ -127,21 +129,21 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     }
 
     public void display(GLAutoDrawable drawable) {
+        final int width = drawable.getWidth();
+        final int height = drawable.getHeight();
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Demo02 needs to have this set here as well .. hmm ?
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         final TextRenderer textRenderer = (TextRenderer) getRenderer();
+        textRenderer.reshapeOrtho(null, width, height, 0.1f, 7000.0f);
         
-        final int width = drawable.getWidth();
-        final int height = drawable.getHeight();
         final GLAnimatorControl animator = drawable.getAnimator();
         final boolean _drawFPS = drawFPS && null != animator && animator.getTotalFPSFrames()>10;
-
-        textRenderer.reshapeOrtho(null, width, height, 0.1f, 7000.0f);                
+        
         if(_drawFPS) {
-            final float fps = ( animator.getTotalFPSFrames() * 1000.0f ) / (float) animator.getTotalFPSDuration() ;
+            final float fps = animator.getTotalFPS();
             final String fpsS = String.valueOf(fps);
             final int fpsSp = fpsS.indexOf('.');
             textRenderer.resetModelview(null);
