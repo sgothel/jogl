@@ -83,7 +83,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
+        animator1.setUpdateFPSFrames(1, System.err);
         animator1.start();
         
         final GLWindow _glWindow1 = glWindow1;
@@ -194,7 +194,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
+        animator1.setUpdateFPSFrames(1, System.err);
         animator1.start();
         
         final GLWindow _glWindow1 = glWindow1;

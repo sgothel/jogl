@@ -35,7 +35,7 @@ import java.io.PrintStream;
  * Use {@link #setUpdateFPSFrames(int, PrintStream)} to enable and disable the FPSCounter feature.
  */
 public interface FPSCounter {
-    public static final int DEFAULT_FRAMES_PER_INTERVAL = 60;
+    public static final int DEFAULT_FRAMES_PER_INTERVAL = 5*60;
     
     /**
      * @param frames Update interval in frames.<br> At every rendered <i>frames</i> interval the currentTime and fps values are updated. 

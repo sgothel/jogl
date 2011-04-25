@@ -150,13 +150,13 @@ public class TestParenting01NEWT extends UITestCase {
         glWindow1.resetFPSCounter();
         glWindow2.resetFPSCounter();
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
+        animator1.setUpdateFPSFrames(1, System.err);        
         animator1.start();
         Assert.assertEquals(true, animator1.isAnimating());
         Assert.assertEquals(false, animator1.isPaused());
         Assert.assertNotNull(animator1.getThread());
         Animator animator2 = new Animator(glWindow2);
-        animator2.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
+        animator2.setUpdateFPSFrames(1, System.err);        
         animator2.start();
         Assert.assertEquals(true, animator2.isAnimating());
         Assert.assertEquals(false, animator2.isPaused());
@@ -374,10 +374,10 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertTrue(0 < glWindow1.getTotalFPSFrames());
 
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
+        animator1.setUpdateFPSFrames(1, System.err);
         animator1.start();
         Animator animator2 = new Animator(glWindow2);
-        animator2.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
+        animator2.setUpdateFPSFrames(1, System.err);
         animator2.start();
 
         int state = 0;
@@ -573,10 +573,10 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
+        animator1.setUpdateFPSFrames(1, System.err);
         animator1.start();
         Animator animator2 = new Animator(glWindow2);
-        animator2.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
+        animator2.setUpdateFPSFrames(1, System.err);
         animator2.start();
 
         int state = 0;

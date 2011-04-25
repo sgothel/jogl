@@ -83,7 +83,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         } else {
             glWindow = GLWindow.create(caps);
         }
-        glWindow.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
+        glWindow.setUpdateFPSFrames(1, System.err);
 
         GLEventListener demo = new Gears();
         setDemoFields(demo, glWindow);

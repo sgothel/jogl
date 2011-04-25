@@ -81,7 +81,7 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
 
         glWindow.setSize(width, height);
         glWindow.setVisible(true);
-        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
+        animator.setUpdateFPSFrames(1, System.err);        
         animator.start();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {

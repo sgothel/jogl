@@ -81,7 +81,7 @@ public class TestGearsAWT extends UITestCase {
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
         frame.setVisible(true);
-        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
+        animator.setUpdateFPSFrames(1, System.err);        
         animator.start();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {

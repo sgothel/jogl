@@ -108,7 +108,7 @@ public class TestSharedContextListNEWT extends UITestCase {
         GLWindow f1 = runTestGL(animator, 0, 0, true);
         GLWindow f2 = runTestGL(animator, width, 0, true);
         GLWindow f3 = runTestGL(animator, 0, height, false);
-        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
+        animator.setUpdateFPSFrames(1, System.err);        
         animator.start();
         while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);

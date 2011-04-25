@@ -136,7 +136,7 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
 
         Animator animator = new Animator(glCanvas);
         frame.setVisible(true);
-        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
+        animator.setUpdateFPSFrames(1, System.err);        
         animator.start();
 
         while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {

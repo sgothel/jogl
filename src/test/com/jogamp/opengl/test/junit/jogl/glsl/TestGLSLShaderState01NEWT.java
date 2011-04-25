@@ -53,8 +53,8 @@ import org.junit.Test;
 public class TestGLSLShaderState01NEWT extends UITestCase {
     static long durationPerTest = 10; // ms
 
-    static final int vertices0_loc = 1;
-    static final int colors0_loc = 2;
+    static final int vertices0_loc = 0; // FIXME: AMD needs this to be location 0 ? hu ?
+    static final int colors0_loc = 1;
     
     @Test
     public void testShaderState01Validation() throws InterruptedException {
@@ -75,12 +75,11 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
                 "shader", "shader/bin", "RedSquareShader");
 
         ShaderProgram sp = new ShaderProgram();
-        sp.add(rsVp);
-        sp.add(rsFp);
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
+        Assert.assertTrue(0>sp.program());
         
-        Assert.assertTrue(0>sp.program());        
-        sp.init(gl);
+        sp.add(gl, rsVp, System.err);
+        sp.add(gl, rsFp, System.err);
+        
         Assert.assertTrue(0<=sp.program()); 
         Assert.assertTrue(!sp.inUse());
         Assert.assertTrue(!sp.linked());
@@ -105,12 +104,10 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
         Assert.assertEquals(vertices0_loc, vertices0.getLocation());
-        Assert.assertEquals(vertices0_loc, st.glGetAttribLocation(gl, vertices0.getName()));
-        Assert.assertEquals(vertices0_loc, gl.glGetAttribLocation(st.shaderProgram().program(), vertices0.getName()));
+        GLSLMiscHelper.validateGLArrayDataServerState(gl, st, vertices0);
         
         Assert.assertEquals(colors0_loc, colors0.getLocation());
-        Assert.assertEquals(colors0_loc, st.glGetAttribLocation(gl, colors0.getName()));
-        Assert.assertEquals(colors0_loc, gl.glGetAttribLocation(st.shaderProgram().program(), colors0.getName()));
+        GLSLMiscHelper.validateGLArrayDataServerState(gl, st, colors0);
         
         Assert.assertEquals(null, ShaderState.getShaderState(gl));
         st.glUseProgram(gl, true);
@@ -131,11 +128,13 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         GLArrayDataServer vertices1 = GLSLMiscHelper.createRSVertices1(gl, st);
         System.err.println("vertices1: " + vertices1);
         vertices1.enableBuffer(gl, false);
+        GLSLMiscHelper.validateGLArrayDataServerState(gl, st, vertices1);
         
         // Allocate Color Array1
         GLArrayDataServer colors1 = GLSLMiscHelper.createRSColors1(gl, st);
         System.err.println("colors1: " + colors1);
         colors1.enableBuffer(gl, false);
+        GLSLMiscHelper.validateGLArrayDataServerState(gl, st, colors1);
         
         // misc GL setup
         gl.glClearColor(0, 0, 0, 1);
@@ -153,13 +152,13 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
         // display #1 vertices0 / colors0 (post-disable)
-        GLSLMiscHelper.displayVCArrays(window, gl, true, vertices0, colors0, true, 1, durationPerTest);
+        GLSLMiscHelper.displayVCArrays(window, gl, st, true, vertices0, colors0, true, 1, durationPerTest);
 
         // display #2 #1 vertices1 / colors1 (post-disable)
-        GLSLMiscHelper.displayVCArrays(window, gl, true, vertices1, colors1, true, 2, durationPerTest);
+        GLSLMiscHelper.displayVCArrays(window, gl, st, true, vertices1, colors1, true, 2, durationPerTest);
         
         // display #3 vertices0 / colors0 (post-disable)
-        GLSLMiscHelper.displayVCArrays(window, gl, true, vertices0, colors0, true, 3, durationPerTest);
+        GLSLMiscHelper.displayVCArrays(window, gl, st, true, vertices0, colors0, true, 3, durationPerTest);
         
         // cleanup
         vertices1.destroy(gl);
@@ -238,7 +237,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         int frames;
         
         // validation ..
-        GLSLMiscHelper.displayVCArrays(window, gl, toggleEnable, vertices0, colors0, toggleEnable, 1, 0);
+        GLSLMiscHelper.displayVCArrays(window, gl, st, toggleEnable, vertices0, colors0, toggleEnable, 1, 0);
         
         // warmup ..
         for(frames=0; frames<GLSLMiscHelper.frames_warmup; frames++) {
@@ -327,8 +326,8 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         st.glUniform(gl, pmvMatrixUniform);
 
         // validation ..
-        GLSLMiscHelper.displayVCArrays(window, gl, true, vertices0, colors0, true, 1, 0);
-        GLSLMiscHelper.displayVCArrays(window, gl, true, vertices1, colors1, true, 2, 0);
+        GLSLMiscHelper.displayVCArrays(window, gl, st, true, vertices0, colors0, true, 1, 0);
+        GLSLMiscHelper.displayVCArrays(window, gl, st, true, vertices1, colors1, true, 2, 0);
         
         long t0 = System.currentTimeMillis();
         int frames;

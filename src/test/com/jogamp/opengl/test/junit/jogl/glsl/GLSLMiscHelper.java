@@ -64,8 +64,17 @@ public class GLSLMiscHelper {
         return window;
     }
     
-    public static void validateGLArrayDataServerState(GL2ES2 gl, GLArrayDataServer data) {
+    public static void validateGLArrayDataServerState(GL2ES2 gl, ShaderState st, GLArrayDataServer data) {
         int[] qi = new int[1];
+        if(null != st) {            
+            Assert.assertEquals(data, st.getAttribute(data.getName()));            
+            if(st.shaderProgram().linked()) {
+                Assert.assertEquals(data.getLocation(), st.getAttribLocation(data.getName()));
+                Assert.assertEquals(data.getLocation(), st.glGetAttribLocation(gl, data));
+                Assert.assertEquals(data.getLocation(), st.glGetAttribLocation(gl, data.getName()));
+                Assert.assertEquals(data.getLocation(), gl.glGetAttribLocation(st.shaderProgram().program(), data.getName()));                
+            }
+        }
         gl.glGetVertexAttribiv(data.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_ENABLED, qi, 0);
         Assert.assertEquals(data.enabled()?GL.GL_TRUE:GL.GL_FALSE, qi[0]);
         gl.glGetVertexAttribiv(data.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
@@ -80,7 +89,7 @@ public class GLSLMiscHelper {
         }        
     }
     
-    public static void displayVCArrays(GLWindow window, GL2ES2 gl, boolean preEnable, GLArrayDataServer vertices, GLArrayDataServer colors, boolean postDisable, int num, long postDelay) throws InterruptedException {
+    public static void displayVCArrays(GLWindow window, GL2ES2 gl, ShaderState st, boolean preEnable, GLArrayDataServer vertices, GLArrayDataServer colors, boolean postDisable, int num, long postDelay) throws InterruptedException {
         System.err.println("screen #"+num);
         if(preEnable) {
             vertices.enableBuffer(gl, true);
@@ -95,8 +104,8 @@ public class GLSLMiscHelper {
         Assert.assertTrue(vertices.enabled());
         Assert.assertTrue(colors.enabled());
         
-        validateGLArrayDataServerState(gl, vertices);
-        validateGLArrayDataServerState(gl, colors);
+        validateGLArrayDataServerState(gl, st, vertices);
+        validateGLArrayDataServerState(gl, st, colors);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);        
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
@@ -144,9 +153,8 @@ public class GLSLMiscHelper {
         Assert.assertTrue(vertices0.sealed());
         Assert.assertEquals(4, vertices0.getElementNumber());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());        
-        Assert.assertEquals(vertices0, st.getAttribute("mgl_Vertex"));
         Assert.assertEquals(vertices0.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
-        validateGLArrayDataServerState(gl, vertices0);
+        validateGLArrayDataServerState(gl, st, vertices0);
         return vertices0;
     }
         
@@ -165,9 +173,8 @@ public class GLSLMiscHelper {
         Assert.assertTrue(vertices1.sealed());
         Assert.assertEquals(4, vertices1.getElementNumber());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        Assert.assertEquals(vertices1, st.getAttribute("mgl_Vertex"));
         Assert.assertEquals(vertices1.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
-        validateGLArrayDataServerState(gl, vertices1);
+        validateGLArrayDataServerState(gl, st, vertices1);
         return vertices1;
     }
         
@@ -186,9 +193,8 @@ public class GLSLMiscHelper {
         Assert.assertTrue(colors0.isVBOWritten());
         Assert.assertTrue(colors0.sealed());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        Assert.assertEquals(colors0, st.getAttribute("mgl_Color"));
         Assert.assertEquals(colors0.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
-        validateGLArrayDataServerState(gl, colors0);
+        validateGLArrayDataServerState(gl, st, colors0);
         return colors0;
     }
     
@@ -205,9 +211,8 @@ public class GLSLMiscHelper {
         Assert.assertTrue(colors1.isVBOWritten());
         Assert.assertTrue(colors1.sealed());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        Assert.assertEquals(colors1, st.getAttribute("mgl_Color"));
         Assert.assertEquals(colors1.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
-        validateGLArrayDataServerState(gl, colors1);
+        validateGLArrayDataServerState(gl, st, colors1);
         return colors1;        
     }    
 }

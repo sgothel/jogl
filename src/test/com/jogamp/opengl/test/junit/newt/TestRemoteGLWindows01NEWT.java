@@ -137,7 +137,7 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
         Assert.assertEquals(true,window2.isVisible());
 
         animator.add(window2);
-        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
+        animator.setUpdateFPSFrames(1, System.err);        
         animator.start();
 
         while(animator.getTotalFPSDuration()<durationPerTest) {
