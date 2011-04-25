@@ -51,7 +51,7 @@ public class ShaderUtil {
         public abstract boolean isProgramValid(GL gl, int programObj);
         public abstract boolean isProgramValid(GL gl, int programObj, PrintStream verboseOut);
         public abstract void createShader(GL gl, int type, IntBuffer shaders);
-        public abstract Set getShaderBinaryFormats(GL gl);
+        public abstract Set<Integer> getShaderBinaryFormats(GL gl);
         public abstract boolean isShaderCompilerAvailable(GL gl);
         public abstract void shaderSource(GL gl, int shader, java.lang.String[] source);
         public abstract void shaderSource(GL gl, IntBuffer shaders, java.lang.String[][] sources);
@@ -74,7 +74,7 @@ public class ShaderUtil {
         public String getShaderInfoLog(GL _gl, int shaderObj) {
             GL2ES2 gl = _gl.getGL2ES2();
             int[] infoLogLength=new int[1];
-            gl.glGetShaderiv(shaderObj, gl.GL_INFO_LOG_LENGTH, infoLogLength, 0);
+            gl.glGetShaderiv(shaderObj, GL2ES2.GL_INFO_LOG_LENGTH, infoLogLength, 0);
 
             if(infoLogLength[0]==0) {
                 return "(no info log)";
@@ -89,7 +89,7 @@ public class ShaderUtil {
         public String getProgramInfoLog(GL _gl, int programObj) {
             GL2ES2 gl = _gl.getGL2ES2();
             int[] infoLogLength=new int[1];
-            gl.glGetProgramiv(programObj, gl.GL_INFO_LOG_LENGTH, infoLogLength, 0);
+            gl.glGetProgramiv(programObj, GL2ES2.GL_INFO_LOG_LENGTH, infoLogLength, 0);
 
             if(infoLogLength[0]==0) {
                 return "(no info log)";
@@ -143,14 +143,13 @@ public class ShaderUtil {
 
         public boolean isProgramValid(GL _gl, int programObj, PrintStream verboseOut) {
             GL2ES2 gl = _gl.getGL2ES2();
-            int[] ires = new int[1];
             if(!gl.glIsProgram(programObj)) {
                 if(null!=verboseOut) {
                     verboseOut.println("Program name invalid: "+programObj);
                 }
                 return false;
             }
-            if(!isProgramStatusValid(gl, programObj, gl.GL_LINK_STATUS)) {
+            if(!isProgramStatusValid(gl, programObj, GL2ES2.GL_LINK_STATUS)) {
                 if(null!=verboseOut) {
                     verboseOut.println("Program link failed: "+programObj+"\n\t"+ getProgramInfoLog(gl, programObj));
                 }
@@ -159,7 +158,7 @@ public class ShaderUtil {
             if ( !gl.isGLES2() || isShaderCompilerAvailable(gl) ) {
                 // failed on APX2500 (ES2.0, no compiler) for valid programs
                 gl.glValidateProgram(programObj);
-                if(!isProgramStatusValid(gl, programObj, gl.GL_VALIDATE_STATUS)) {
+                if(!isProgramStatusValid(gl, programObj, GL2ES2.GL_VALIDATE_STATUS)) {
                     if(null!=verboseOut) {
                         verboseOut.println("Program validation failed: "+programObj+"\n\t"+ getProgramInfoLog(gl, programObj));
                     }
@@ -177,15 +176,15 @@ public class ShaderUtil {
         }
 
         private Boolean shaderCompilerAvailable = null;
-        private Set shaderBinaryFormats = null;
+        private Set<Integer> shaderBinaryFormats = null;
 
-        public Set getShaderBinaryFormats(GL _gl) {
+        public Set<Integer> getShaderBinaryFormats(GL _gl) {
             GL2ES2 gl = _gl.getGL2ES2();
             if(null==shaderBinaryFormats) {
                 gl.getContext().validateCurrent();
 
                 int[] param = new int[1];
-                shaderBinaryFormats = new HashSet();
+                shaderBinaryFormats = new HashSet<Integer>();
 
                 if (gl.isGLES2()) {
                     gl.glGetIntegerv(GL2ES2.GL_NUM_SHADER_BINARY_FORMATS, param, 0);
@@ -207,7 +206,7 @@ public class ShaderUtil {
             GL2ES2 gl = _gl.getGL2ES2();
             if(null==shaderCompilerAvailable) {
                 gl.getContext().validateCurrent();
-                Set bfs = getShaderBinaryFormats(gl);
+                Set<Integer> bfs = getShaderBinaryFormats(gl);
                 if(gl.isGLES2()) {
                     byte[] param = new byte[1];
                     gl.glGetBooleanv(GL2ES2.GL_SHADER_COMPILER, param, 0);
@@ -366,7 +365,7 @@ public class ShaderUtil {
                 verboseOut.println("createAndCompileShader: CompileShader failed, GL Error: 0x"+Integer.toHexString(err));
             }
 
-            return isShaderStatusValid(gl, shader, gl.GL_COMPILE_STATUS, verboseOut) && err == GL.GL_NO_ERROR;
+            return isShaderStatusValid(gl, shader, GL2ES2.GL_COMPILE_STATUS, verboseOut) && err == GL.GL_NO_ERROR;
         }
 
     }
@@ -411,7 +410,7 @@ public class ShaderUtil {
         getImpl(gl).createShader(gl, type, shaders);
     }
 
-    public static Set getShaderBinaryFormats(GL gl) {
+    public static Set<Integer> getShaderBinaryFormats(GL gl) {
         return getImpl(gl).getShaderBinaryFormats(gl);
     }
 

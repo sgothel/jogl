@@ -139,7 +139,7 @@ public class ShaderState {
     public synchronized void glUseProgram(GL2ES2 gl, boolean on) {
         if(null==shaderProgram) { throw new GLException("No program is attached"); }
         if(on) {
-            shaderProgram.glUseProgram(gl, true);
+            shaderProgram.useProgram(gl, true);
             // update the current ShaderState to the TLS ..
             gl.getContext().attachObject(ShaderState.class.getName(), this);
             if(resetAllShaderData) {
@@ -148,7 +148,7 @@ public class ShaderState {
                 glResetAllUniforms(gl);
             }
         } else {
-            shaderProgram.glUseProgram(gl, false);
+            shaderProgram.useProgram(gl, false);
         }
     }
 
@@ -204,7 +204,7 @@ public class ShaderState {
             if(shaderProgram.linked()) {
                 glUseProgram(gl, true);
                 if(!prgInUse) {
-                    shaderProgram.glUseProgram(gl, false);
+                    shaderProgram.useProgram(gl, false);
                 }
             }
         }
@@ -249,7 +249,7 @@ public class ShaderState {
         if(null!=shaderProgram) {
             prgInUse = shaderProgram.inUse();
             if(!prgInUse) {
-                shaderProgram.glUseProgram(gl, true);
+                shaderProgram.useProgram(gl, true);
             }
         }
         glReleaseAllVertexAttributes(gl);
@@ -258,7 +258,7 @@ public class ShaderState {
             if(releaseProgramToo) {
                 shaderProgram.release(gl, releaseShaderToo);
             } else if(!prgInUse) {
-                shaderProgram.glUseProgram(gl, false);
+                shaderProgram.useProgram(gl, false);
             }
         }
     }
@@ -512,6 +512,9 @@ public class ShaderState {
         if(null==shaderProgram) throw new GLException("No program is attached");
         if(0 > data.getLocation()) {
             glGetAttribLocation(gl, data);
+        } else {
+            // ensure data is the current bound one
+            vertexAttribMap2Data.put(data.getName(), data);             
         }
         return glEnableVertexAttribArray(gl, data.getName(), data.getLocation());
     }
@@ -608,7 +611,11 @@ public class ShaderState {
         // if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
         if(0 > data.getLocation()) {
             glGetAttribLocation(gl, data);
-        }        
+        } /* else {
+            // Already achieved by glEnableVertexAttribArray(..)
+            // ensure data is the current bound one
+            vertexAttribMap2Data.put(data.getName(), data); 
+        } */
         if(0 <= data.getLocation()) {
             // only pass the data, if the attribute exists in the current shader
             if(DEBUG) {

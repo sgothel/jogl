@@ -30,11 +30,12 @@ package com.jogamp.opengl.util.glsl;
 
 import javax.media.opengl.*;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.io.PrintStream;
 
 public class ShaderProgram {
+    
     public ShaderProgram() {
         id = getNextID();
     }
@@ -51,16 +52,8 @@ public class ShaderProgram {
 
     /**
      * returns the uniq shader id as an integer
-     * @see #key()
      */
-    public int        id() { return id.intValue(); }
-
-    /**
-     * returns the uniq shader id as an Integer
-     *
-     * @see #id()
-     */
-    public Integer    key() { return id; }
+    public int        id() { return id; }
 
     /**
      * Detaches all shader codes and deletes the program.
@@ -88,15 +81,18 @@ public class ShaderProgram {
      * If releaseShaderToo is true, destroys the shader codes as well.
      */
     public synchronized void release(GL2ES2 gl, boolean releaseShaderToo) {
-        glUseProgram(gl, false);
-        for(Iterator iter=shaderMap.values().iterator(); iter.hasNext(); ) {
-            ShaderCode shaderCode = (ShaderCode) iter.next();
-            ShaderUtil.detachShader(gl, shaderProgram, shaderCode.shader());
+        useProgram(gl, false);
+        for(Iterator<ShaderCode> iter=allShaderCode.iterator(); iter.hasNext(); ) {
+            ShaderCode shaderCode = iter.next();
+            if(attachedShaderCode.remove(shaderCode)) {
+                ShaderUtil.detachShader(gl, shaderProgram, shaderCode.shader());
+            }
             if(releaseShaderToo) {
                 shaderCode.destroy(gl);
             }
         }
-        shaderMap.clear();
+        allShaderCode.clear();
+        attachedShaderCode.clear();
         gl.glDeleteProgram(shaderProgram);
         shaderProgram=-1;
     }
@@ -106,35 +102,78 @@ public class ShaderProgram {
     //
 
     /**
-     * Adds a new shader to a this non running program.
-     *
-     * @return false if the program is in use, or the shader already exist,
-     *         otherwise true.
+     * Adds a new shader to this program.
+     * 
+     * <p>This command does not compile and attach the shader,
+     * use {@link #add(GL2ES2, ShaderCode)} for this purpose.</p>
      */
-    public synchronized boolean add(ShaderCode shaderCode) {
-        if(shaderMap.containsKey(shaderCode.key())) return false;
-        shaderMap.put(shaderCode.key(), shaderCode);
-        return true;
+    public synchronized void add(ShaderCode shaderCode) throws GLException {
+        allShaderCode.add(shaderCode);
     }
 
+    public synchronized boolean contains(ShaderCode shaderCode) {
+        return allShaderCode.contains(shaderCode);
+    }
+    
+    /**
+     * Warning slow O(n) operation ..
+     * @param id
+     * @return
+     */
     public synchronized ShaderCode getShader(int id) {
-        return (ShaderCode) shaderMap.get(new Integer(id));
+        for(Iterator<ShaderCode> iter=allShaderCode.iterator(); iter.hasNext(); ) {
+            ShaderCode shaderCode = iter.next();
+            if(shaderCode.id() == id) {
+                return shaderCode;
+            }
+        }
+        return null;
     }
 
     //
-    // Program handling
+    // ShaderCode / Program handling
     //
 
     /**
-     * Replace a shader in a 'running' program.
-     * Refetches all previously bin/get attribute names
-     * and resets all attribute data as well
+     * Creates the empty GL program object using {@link GL2ES2#glCreateProgram()}
+     *  
+     * @param gl
+     */
+    public synchronized final void init(GL2ES2 gl) {
+        if(0>shaderProgram) {
+            shaderProgram = gl.glCreateProgram();
+        }
+    }
+    
+    /**
+     * Adds a new shader to a this non running program.
+     *
+     * <p>Compiles and attaches the shader, if not done yet.</p>
+     * 
+     * @return true if the shader was successfully added, false if compilation failed.
+     */
+    public synchronized boolean add(GL2ES2 gl, ShaderCode shaderCode, PrintStream verboseOut) {
+        init(gl);
+        if( allShaderCode.add(shaderCode) ) {
+            if(!shaderCode.compile(gl, verboseOut)) {
+                return false;
+            }
+            if(attachedShaderCode.add(shaderCode)) {
+                ShaderUtil.attachShader(gl, shaderProgram, shaderCode.shader());
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Replace a shader in a program and re-links the program.
      *
      * @param gl 
-     * @param oldShaderID the to be replace Shader
+     * @param oldShader   the to be replace Shader
      * @param newShader   the new ShaderCode
-     * @param verboseOut  the optional verbose outputstream
-     * @throws GLException is the program is not linked
+     * @param verboseOut  the optional verbose output stream
+     * 
+     * @return true if all steps are valid, shader compilation, attachment and linking; otherwise false.
      *
      * @see ShaderState#glEnableVertexAttribArray
      * @see ShaderState#glDisableVertexAttribArray
@@ -145,47 +184,44 @@ public class ShaderProgram {
      * @see ShaderState#glResetAllVertexAttributes
      * @see ShaderState#glResetAllVertexAttributes
      */
-    public synchronized boolean glReplaceShader(GL2ES2 gl, int oldShaderID, ShaderCode newShader, PrintStream verboseOut) {
-        if(!programLinked) throw new GLException("Program is not linked");
-        boolean shaderWasInUse = programInUse;
-        glUseProgram(gl, false);
+    public synchronized boolean replaceShader(GL2ES2 gl, ShaderCode oldShader, ShaderCode newShader, PrintStream verboseOut) {
+        init(gl);
+        
         if(!newShader.compile(gl, verboseOut)) {
             return false;
-        } 
-        if(oldShaderID>=0) {
-            ShaderCode oldShader = (ShaderCode) shaderMap.remove(new Integer(oldShaderID));
-            if(null!=oldShader) {
+        }
+        
+        boolean shaderWasInUse = inUse();
+        if(shaderWasInUse) {
+            useProgram(gl, false);
+        }
+        
+        if(null != oldShader && allShaderCode.remove(oldShader)) {
+            if(attachedShaderCode.remove(oldShader)) {
                 ShaderUtil.detachShader(gl, shaderProgram, oldShader.shader());
             }
         }
+        
         add(newShader);
-
-        ShaderUtil.attachShader(gl, shaderProgram, newShader.shader());
+        if(attachedShaderCode.add(newShader)) {
+            ShaderUtil.attachShader(gl, shaderProgram, newShader.shader());
+        }
+        
         gl.glLinkProgram(shaderProgram);
-        if ( ! ShaderUtil.isProgramValid(gl, shaderProgram, System.err) )  {
-            return false;
+        
+        programLinked = ShaderUtil.isProgramValid(gl, shaderProgram, System.err);
+        if ( programLinked && shaderWasInUse )  {
+            useProgram(gl, true);
         }
-
-        if(shaderWasInUse) {
-            glUseProgram(gl, true);
-        }
-        return true;
+        return programLinked;
     }
 
     /**
-     * Creates the empty GL program object using {@link GL2ES2#glCreateProgram()}
-     *  
-     * @param gl
-     */
-    public final void init(GL2ES2 gl) {
-        if(0>shaderProgram) {
-            shaderProgram = gl.glCreateProgram();
-        }
-    }
-    
-    /**
-     * Compiles and links the shader code to the program.
-     * Within this process, all GL resources (shader and program objects) are created if necessary.
+     * Links the shader code to the program.
+     * 
+     * <p>Compiles and attaches the shader code to the program if not done by yet</p>
+     * 
+     * <p>Within this process, all GL resources (shader and program objects) are created if necessary.</p>
      *  
      * @param gl
      * @param verboseOut
@@ -194,18 +230,16 @@ public class ShaderProgram {
      * @see #init(GL2ES2)
      */
     public synchronized boolean link(GL2ES2 gl, PrintStream verboseOut) {
-        if(programLinked) throw new GLException("Program is already linked");
+        init(gl);
 
-        if(0>shaderProgram) {
-            shaderProgram = gl.glCreateProgram();
-        }
-
-        for(Iterator iter=shaderMap.values().iterator(); iter.hasNext(); ) {
-            ShaderCode shaderCode = (ShaderCode) iter.next();
+        for(Iterator<ShaderCode> iter=allShaderCode.iterator(); iter.hasNext(); ) {
+            final ShaderCode shaderCode = iter.next();
             if(!shaderCode.compile(gl, verboseOut)) {
                 return false;
             }
-            ShaderUtil.attachShader(gl, shaderProgram, shaderCode.shader());
+            if(attachedShaderCode.add(shaderCode)) {
+                ShaderUtil.attachShader(gl, shaderProgram, shaderCode.shader());
+            }
         }
 
         // Link the program
@@ -225,40 +259,37 @@ public class ShaderProgram {
     }
 
     public int hashCode() {
-        return id.intValue();
+        return id;
     }
 
     public String toString() {
         StringBuffer buf = new StringBuffer();
         buf.append("ShaderProgram[id="+id);
         buf.append(", linked="+programLinked+", inUse="+programInUse+", program: "+shaderProgram+", [");
-        for(Iterator iter=shaderMap.values().iterator(); iter.hasNext(); ) {
-            buf.append((ShaderCode) iter.next());
+        for(Iterator<ShaderCode> iter=allShaderCode.iterator(); iter.hasNext(); ) {
+            buf.append(iter.next());
             buf.append(" ");
         }
         buf.append("]");
         return buf.toString();
     }
 
-    protected synchronized void glUseProgram(GL2ES2 gl, boolean on) {
+    protected synchronized void useProgram(GL2ES2 gl, boolean on) {
         if(!programLinked) throw new GLException("Program is not linked");
         if(programInUse==on) return;
         gl.glUseProgram(on?shaderProgram:0);
         programInUse = on;
-
-        //Throwable tX = new Throwable("Info: ShaderProgram.glUseProgram: "+on);
-        //tX.printStackTrace();
-
     }
 
     protected boolean programLinked = false;
     protected boolean programInUse = false;
     protected int shaderProgram=-1;
-    protected HashMap shaderMap = new HashMap();
-    protected Integer    id = null;
+    protected HashSet<ShaderCode> allShaderCode = new HashSet<ShaderCode>();
+    protected HashSet<ShaderCode> attachedShaderCode = new HashSet<ShaderCode>();
+    protected int id = -1;
 
-    private static synchronized Integer getNextID() {
-        return new Integer(nextID++);
+    private static synchronized int getNextID() {
+        return nextID++;
     }
     protected static int nextID = 1;
 }
