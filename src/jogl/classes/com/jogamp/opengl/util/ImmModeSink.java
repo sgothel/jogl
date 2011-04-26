@@ -37,7 +37,7 @@ public class ImmModeSink {
    * a ShaderState must be current, using ShaderState.glUseProgram().
    *
    * @see #draw(GL, boolean)
-   * @see com.jogamp.opengl.util.glsl.ShaderState#glUseProgram(GL2ES2, boolean)
+   * @see com.jogamp.opengl.util.glsl.ShaderState#useProgram(GL2ES2, boolean)
    * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrentShaderState()
    */
   public static ImmModeSink createGLSL(GL gl, int glBufferUsage, int initialSize,
@@ -762,35 +762,35 @@ public class ImmModeSink {
         }
 
         if(vComps>0) {
-           st.glEnableVertexAttribArray(glsl, vArrayData);
-           st.glVertexAttribPointer(glsl, vArrayData);
+           st.enableVertexAttribArray(glsl, vArrayData);
+           st.vertexAttribPointer(glsl, vArrayData);
         }
         if(cComps>0) {
-           st.glEnableVertexAttribArray(glsl, cArrayData);
-           st.glVertexAttribPointer(glsl, cArrayData);
+           st.enableVertexAttribArray(glsl, cArrayData);
+           st.vertexAttribPointer(glsl, cArrayData);
         }
         if(nComps>0) {
-           st.glEnableVertexAttribArray(glsl, nArrayData);
-           st.glVertexAttribPointer(glsl, nArrayData);
+           st.enableVertexAttribArray(glsl, nArrayData);
+           st.vertexAttribPointer(glsl, nArrayData);
         }
         if(tComps>0) {
-           st.glEnableVertexAttribArray(glsl, tArrayData);
-           st.glVertexAttribPointer(glsl, tArrayData);
+           st.enableVertexAttribArray(glsl, tArrayData);
+           st.vertexAttribPointer(glsl, tArrayData);
         }
 
         glsl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
     } else {
         if(vComps>0) {
-           st.glDisableVertexAttribArray(glsl, vArrayData);
+           st.disableVertexAttribArray(glsl, vArrayData);
         }
         if(cComps>0) {
-           st.glDisableVertexAttribArray(glsl, cArrayData);
+           st.disableVertexAttribArray(glsl, cArrayData);
         }
         if(nComps>0) {
-           st.glDisableVertexAttribArray(glsl, nArrayData);
+           st.disableVertexAttribArray(glsl, nArrayData);
         }
         if(tComps>0) {
-           st.glDisableVertexAttribArray(glsl, tArrayData);
+           st.disableVertexAttribArray(glsl, tArrayData);
         }
     }
   }

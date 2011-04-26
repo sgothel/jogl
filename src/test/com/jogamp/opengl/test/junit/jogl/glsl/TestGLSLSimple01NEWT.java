@@ -118,7 +118,7 @@ public class TestGLSLSimple01NEWT extends UITestCase {
         window.addGLEventListener(new RedSquare0());
         
         Animator animator = new Animator(window);
-        animator.setUpdateFPSFrames(1, System.err);        
+        animator.setUpdateFPSFrames(1, null);        
         animator.start();
         Assert.assertEquals(true, animator.isAnimating());
         while(animator.isAnimating() && animator.getTotalFPSDuration()<durationPerTest) {

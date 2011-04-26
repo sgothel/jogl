@@ -93,7 +93,7 @@ public class VBORegion2PES2  implements Region {
         
         texCoordFboAttr = GLArrayDataServer.createGLSL(st, AttributeNames.TEXCOORD_ATTR_NAME, 2, 
                                                        GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
-        st.bindAttribute(texCoordFboAttr);
+        st.ownAttribute(texCoordFboAttr, true);
         texCoordFboAttr.putf(5); texCoordFboAttr.putf(5);        
         texCoordFboAttr.putf(5); texCoordFboAttr.putf(6);        
         texCoordFboAttr.putf(6); texCoordFboAttr.putf(6);        
@@ -102,7 +102,7 @@ public class VBORegion2PES2  implements Region {
         
         verticeFboAttr = GLArrayDataServer.createGLSL(st, AttributeNames.VERTEX_ATTR_NAME, 3, 
                                                       GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW); 
-        st.bindAttribute(verticeFboAttr);
+        st.ownAttribute(verticeFboAttr, true);
         
         
         box = new AABBox();
@@ -111,11 +111,11 @@ public class VBORegion2PES2  implements Region {
         
         verticeTxtAttr = GLArrayDataServer.createGLSL(st, AttributeNames.VERTEX_ATTR_NAME, 3, 
                                                       GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
-        st.bindAttribute(verticeTxtAttr);
+        st.ownAttribute(verticeTxtAttr, true);
         
         texCoordTxtAttr = GLArrayDataServer.createGLSL(st, AttributeNames.TEXCOORD_ATTR_NAME, 2, 
                                                        GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
-        st.bindAttribute(texCoordTxtAttr);
+        st.ownAttribute(texCoordTxtAttr, true);
         
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegion2PES2 Create: " + this);
@@ -232,7 +232,7 @@ public class VBORegion2PES2  implements Region {
         gl.glGetIntegerv(GL.GL_ACTIVE_TEXTURE, currentActiveTextureEngine, 0);
         */        
         gl.glActiveTexture(activeTexture);
-        st.glUniform(gl, mgl_ActiveTexture);
+        st.uniform(gl, mgl_ActiveTexture);
         
         fbo.use(gl);                        
         verticeFboAttr.enableBuffer(gl, true);       
@@ -275,14 +275,14 @@ public class VBORegion2PES2  implements Region {
         
         //render texture
         gl.glViewport(0, 0, tex_width_c, tex_height_c);
-        st.glUniform(gl, mgl_fboPMVMatrix); // use orthogonal matrix
+        st.uniform(gl, mgl_fboPMVMatrix); // use orthogonal matrix
         
         gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT | GL2ES2.GL_DEPTH_BUFFER_BIT);
         renderRegion(gl);
         fbo.unbind(gl);
         
-        st.glUniform(gl, rs.getPMVMatrixUniform()); // switch back to real PMV matrix
+        st.uniform(gl, rs.getPMVMatrix()); // switch back to real PMV matrix
     }
     
     private void renderRegion(GL2ES2 gl) {
@@ -316,28 +316,22 @@ public class VBORegion2PES2  implements Region {
         return dirty;
     }
     
-    public void destroy(GL2ES2 gl) {
+    public void destroy(GL2ES2 gl, RenderState rs) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegion2PES2 Destroy: " + this);
         }
-        destroyFbo(gl);
-        destroyTxtAttr(gl);
-        destroyFboAttr(gl);        
-        triangles.clear();
-        vertices.clear();        
-    }    
-    final void destroyFbo(GL2ES2 gl) {
+        final ShaderState st = rs.getShaderState();
         if(null != fbo) {
             fbo.destroy(gl);
             fbo = null;
         }        
-    }
-    final void destroyTxtAttr(GL2ES2 gl) {
         if(null != verticeTxtAttr) {
+            st.ownAttribute(verticeTxtAttr, false);
             verticeTxtAttr.destroy(gl);
             verticeTxtAttr = null;
         }
         if(null != texCoordTxtAttr) {
+            st.ownAttribute(texCoordTxtAttr, false);
             texCoordTxtAttr.destroy(gl);
             texCoordTxtAttr = null;
         }
@@ -345,13 +339,13 @@ public class VBORegion2PES2  implements Region {
             indicesTxt.destroy(gl);
             indicesTxt = null;
         }
-    }
-    final void destroyFboAttr(GL2ES2 gl) {
         if(null != verticeFboAttr) {
+            st.ownAttribute(verticeFboAttr, false);
             verticeFboAttr.destroy(gl);
             verticeFboAttr = null;
         }
         if(null != texCoordFboAttr) {
+            st.ownAttribute(texCoordFboAttr, false);
             texCoordFboAttr.destroy(gl);
             texCoordFboAttr = null;
         }
@@ -359,6 +353,8 @@ public class VBORegion2PES2  implements Region {
             indicesFbo.destroy(gl);
             indicesFbo = null;
         }
+        triangles.clear();
+        vertices.clear();        
     }
     
     public boolean isFlipped() {

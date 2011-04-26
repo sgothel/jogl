@@ -130,8 +130,8 @@ public abstract class UIListenerBase01 implements GLEventListener {
         autoDrawable = null;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         screenshot.dispose(gl);
-        rRenderer.dispose(gl);
-        tRenderer.dispose(gl);
+        rRenderer.destroy(gl);
+        tRenderer.destroy(gl);
     }    
     
     public void zoom(int v){

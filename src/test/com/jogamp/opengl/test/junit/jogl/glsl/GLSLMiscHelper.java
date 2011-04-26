@@ -110,8 +110,8 @@ public class GLSLMiscHelper {
             Assert.assertEquals(data, st.getAttribute(data.getName()));            
             if(st.shaderProgram().linked()) {
                 Assert.assertEquals(data.getLocation(), st.getAttribLocation(data.getName()));
-                Assert.assertEquals(data.getLocation(), st.glGetAttribLocation(gl, data));
-                Assert.assertEquals(data.getLocation(), st.glGetAttribLocation(gl, data.getName()));
+                Assert.assertEquals(data.getLocation(), st.getAttribLocation(gl, data));
+                Assert.assertEquals(data.getLocation(), st.getAttribLocation(gl, data.getName()));
                 Assert.assertEquals(data.getLocation(), gl.glGetAttribLocation(st.shaderProgram().program(), data.getName()));                
             }
         }
@@ -178,7 +178,7 @@ public class GLSLMiscHelper {
         // Allocate Vertex Array0
         GLArrayDataServer vertices0 = GLArrayDataServer.createGLSL(st, "mgl_Vertex", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         if(0<=location) {
-            st.glBindAttribLocation(gl, location, vertices0);
+            st.bindAttribLocation(gl, location, vertices0);
         }
         Assert.assertTrue(vertices0.isVBO());
         Assert.assertTrue(vertices0.isVertexAttribute());
@@ -221,7 +221,7 @@ public class GLSLMiscHelper {
     public static GLArrayDataServer createRSColors0(GL2ES2 gl, ShaderState st, int location) {        
         GLArrayDataServer colors0 = GLArrayDataServer.createGLSL(st, "mgl_Color", 4, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         if(0<=location) {
-            st.glBindAttribLocation(gl, location, colors0);
+            st.bindAttribLocation(gl, location, colors0);
         }        
         colors0.putf(1); colors0.putf(0); colors0.putf(0); colors0.putf(1);
         colors0.putf(0); colors0.putf(0); colors0.putf(1); colors0.putf(1);

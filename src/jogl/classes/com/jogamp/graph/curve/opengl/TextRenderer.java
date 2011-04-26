@@ -96,7 +96,7 @@ public abstract class TextRenderer extends Renderer {
        Iterator<GlyphString> iterator = stringCacheMap.values().iterator();
        while(iterator.hasNext()){
            GlyphString glyphString = iterator.next();
-           glyphString.destroy(gl);
+           glyphString.destroy(gl, rs);
        }
        stringCacheMap.clear();    
        stringCacheArray.clear();
@@ -167,7 +167,7 @@ public abstract class TextRenderer extends Renderer {
        final String key = getKey(font, str, fontSize);
        GlyphString glyphString = stringCacheMap.remove(key);
        if(null != glyphString) {
-           glyphString.destroy(gl);
+           glyphString.destroy(gl, rs);
        }       
        stringCacheArray.remove(key);
    }
@@ -176,7 +176,7 @@ public abstract class TextRenderer extends Renderer {
        final String key = stringCacheArray.remove(idx);
        final GlyphString glyphString = stringCacheMap.remove(key);
        if(null != glyphString) {
-           glyphString.destroy(gl);
+           glyphString.destroy(gl, rs);
        }
    }
       

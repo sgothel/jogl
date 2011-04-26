@@ -117,7 +117,7 @@ public interface Region {
     /** Delete and clean the associated OGL
      *  objects
      */
-    public void destroy(GL2ES2 gl);
+    public void destroy(GL2ES2 gl, RenderState rs);
     
     public AABBox getBounds(); 
     

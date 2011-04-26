@@ -29,15 +29,13 @@ package jogamp.graph.curve.opengl;
 
 import java.nio.FloatBuffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GLProfile;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLUniformData;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.graph.curve.opengl.shader.UniformNames;
 
 import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.VersionUtil;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -45,22 +43,22 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class RenderStateImpl implements RenderState {
     
-    public final ShaderState st;
-    public final Vertex.Factory<? extends Vertex> pointFactory;    
-    public final PMVMatrix pmvMatrix;
-    public final GLUniformData mgl_PMVMatrix;                    
+    private final ShaderState st;
+    private final Vertex.Factory<? extends Vertex> pointFactory;    
+    private final PMVMatrix pmvMatrix;
+    private final GLUniformData gcu_PMVMatrix;                    
         
     /**
      * Sharpness is equivalent to the texture-coord component <i>t</i>
      * on the off-curve vertex. Higher values of sharpness will 
      * result in higher curvature.
      */
-    public final GLUniformData mgl_sharpness;
-    public final GLUniformData mgl_alpha;
-    public final GLUniformData mgl_colorStatic;
-    public final GLUniformData mgl_strength;
+    private final GLUniformData gcu_Sharpness;
+    private final GLUniformData gcu_Alpha;
+    private final GLUniformData gcu_ColorStatic;
+    private final GLUniformData gcu_Strength;
 
-    public static final RenderState getRenderState(GL gl) {
+    public static final RenderState getRenderState(GL2ES2 gl) {
         return (RenderState) gl.getContext().getAttachedObject(RenderState.class.getName());
     }
     
@@ -68,12 +66,17 @@ public class RenderStateImpl implements RenderState {
         this.st = st;
         this.pointFactory = pointFactory;
         this.pmvMatrix = pmvMatrix;        
-        this.mgl_PMVMatrix = new GLUniformData(UniformNames.gcu_PMVMatrix, 4, 4, pmvMatrix.glGetPMvMatrixf());
+        this.gcu_PMVMatrix = new GLUniformData(UniformNames.gcu_PMVMatrix, 4, 4, pmvMatrix.glGetPMvMatrixf());
+        st.ownUniform(gcu_PMVMatrix);
         
-        mgl_sharpness = new GLUniformData(UniformNames.gcu_P1Y, 0.5f);
-        mgl_alpha = new GLUniformData(UniformNames.gcu_Alpha, 1.0f);
-        mgl_colorStatic = new GLUniformData(UniformNames.gcu_ColorStatic, 3, FloatBuffer.allocate(3));
-        mgl_strength = new GLUniformData(UniformNames.gcu_Strength, 3.0f);
+        gcu_Sharpness = new GLUniformData(UniformNames.gcu_P1Y, 0.5f);
+        st.ownUniform(gcu_PMVMatrix);
+        gcu_Alpha = new GLUniformData(UniformNames.gcu_Alpha, 1.0f);
+        st.ownUniform(gcu_Alpha);
+        gcu_ColorStatic = new GLUniformData(UniformNames.gcu_ColorStatic, 3, FloatBuffer.allocate(3));
+        st.ownUniform(gcu_ColorStatic);
+        gcu_Strength = new GLUniformData(UniformNames.gcu_Strength, 3.0f);
+        st.ownUniform(gcu_Strength);
     }
     
     public RenderStateImpl(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory) {
@@ -89,17 +92,21 @@ public class RenderStateImpl implements RenderState {
     
     public final ShaderState getShaderState() { return st; }
     public final Vertex.Factory<? extends Vertex> getPointFactory () { return pointFactory; }
-    public final PMVMatrix getPMVMatrix() { return pmvMatrix; }
-    public final GLUniformData getPMVMatrixUniform() { return mgl_PMVMatrix; }
-    public final GLUniformData getSharpness() { return mgl_sharpness; }
-    public final GLUniformData getAlpha() { return mgl_alpha; }
-    public final GLUniformData getColorStatic() { return mgl_colorStatic; }
-    public final GLUniformData getStrength() { return mgl_strength; }
+    public final PMVMatrix pmvMatrix() { return pmvMatrix; }
+    public final GLUniformData getPMVMatrix() { return gcu_PMVMatrix; }
+    public final GLUniformData getSharpness() { return gcu_Sharpness; }
+    public final GLUniformData getAlpha() { return gcu_Alpha; }
+    public final GLUniformData getColorStatic() { return gcu_ColorStatic; }
+    public final GLUniformData getStrength() { return gcu_Strength; }
     
-    public final RenderState attachTo(GL gl) {
+    public void destroy(GL2ES2 gl) {
+        st.destroy(gl);
+    }
+    
+    public final RenderState attachTo(GL2ES2 gl) {
         return (RenderState) gl.getContext().attachObject(RenderState.class.getName(), this);
     }
-    public final boolean detachFrom(GL gl) {
+    public final boolean detachFrom(GL2ES2 gl) {
         RenderState _rs = (RenderState) gl.getContext().getAttachedObject(RenderState.class.getName());
         if(_rs == this) {
             gl.getContext().detachObject(RenderState.class.getName());

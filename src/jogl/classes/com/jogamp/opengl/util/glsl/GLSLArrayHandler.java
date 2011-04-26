@@ -53,7 +53,7 @@ public class GLSLArrayHandler implements GLArrayHandler {
     GL2ES2 glsl = gl.getGL2ES2();
 
     if(enable) {
-        st.glEnableVertexAttribArray(glsl, ad);
+        st.enableVertexAttribArray(glsl, ad);
 
         Buffer buffer = ad.getBuffer();
 
@@ -68,7 +68,7 @@ public class GLSLArrayHandler implements GLArrayHandler {
                     glsl.glBufferData(ad.getVBOTarget(), ad.getByteSize(), buffer, ad.getVBOUsage());
                 }
                 ad.setVBOWritten(true);
-                st.glVertexAttribPointer(glsl, ad);
+                st.vertexAttribPointer(glsl, ad);
             } else {
                 // didn't experience a performance hit on this query ..
                 int[] qi = new int[1];
@@ -78,18 +78,18 @@ public class GLSLArrayHandler implements GLArrayHandler {
                         System.err.println("XXX VA "+ad.getName()+" VBO rebind: "+qi[0]+" -> "+ad.getVBOName());
                     }
                     glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
-                    st.glVertexAttribPointer(glsl, ad);
+                    st.vertexAttribPointer(glsl, ad);
                 }
             }
         } else if(null!=buffer) {
-            st.glVertexAttribPointer(glsl, ad);
+            st.vertexAttribPointer(glsl, ad);
             ad.setVBOWritten(true);
         }
     } else {
         if(ad.isVBO()) {
             glsl.glBindBuffer(ad.getVBOTarget(), 0);
         }
-        st.glDisableVertexAttribArray(glsl, ad);
+        st.disableVertexAttribArray(glsl, ad);
     }
   }
 

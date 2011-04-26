@@ -126,7 +126,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         autoDrawable = null;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         screenshot.dispose(gl);
-        renderer.dispose(gl);
+        renderer.destroy(gl);
     }    
     
     public void zoom(int v){

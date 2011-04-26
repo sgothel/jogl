@@ -63,7 +63,7 @@ public abstract class Renderer {
    
     /** 
      * Flushes all cached data
-     * @see #dispose(GL2ES2)
+     * @see #destroy(GL2ES2)
      */
     public abstract void flushCache(GL2ES2 gl);
     
@@ -130,58 +130,59 @@ public abstract class Renderer {
         rs.attachTo(gl);
         
         gl.glEnable(GL2ES2.GL_BLEND);
-        gl.glBlendFunc(GL2ES2.GL_SRC_ALPHA, GL2ES2.GL_ONE_MINUS_SRC_ALPHA);
+        gl.glBlendFunc(GL2ES2.GL_SRC_ALPHA, GL2ES2.GL_ONE_MINUS_SRC_ALPHA); // FIXME: alpha blending stage ?
         
         initialized = initShaderProgram(gl);
         if(!initialized) {
             return false;
         }
         
-        if(!rs.getShaderState().glUniform(gl, rs.getPMVMatrixUniform())) {
+        if(!rs.getShaderState().uniform(gl, rs.getPMVMatrix())) {
             if(DEBUG){
                 System.err.println("Error setting PMVMatrix in shader: "+rs.getShaderState());
             }
             return false;
         }
         
-        if(!rs.getShaderState().glUniform(gl, rs.getSharpness())) {
+        if(!rs.getShaderState().uniform(gl, rs.getSharpness())) {
             if(DEBUG){
                 System.err.println("Error setting sharpness in shader: "+rs.getShaderState());
             }
             return false;
         }
                 
-        if(!rs.getShaderState().glUniform(gl, rs.getAlpha())) {
+        if(!rs.getShaderState().uniform(gl, rs.getAlpha())) {
             if(DEBUG){
                 System.err.println("Error setting global alpha in shader: "+rs.getShaderState());
             }
             return false;
         }        
         
-        if(!rs.getShaderState().glUniform(gl, rs.getColorStatic())) {
+        if(!rs.getShaderState().uniform(gl, rs.getColorStatic())) {
             if(DEBUG){
                 System.err.println("Error setting global color in shader: "+rs.getShaderState());
             }
             return false;
         }        
         
-        if(!rs.getShaderState().glUniform(gl, rs.getStrength())) {
+        if(!rs.getShaderState().uniform(gl, rs.getStrength())) {
             System.err.println("Error setting antialias strength in shader: "+rs.getShaderState());
         }
                 
         return initialized;
     }
 
-    public void dispose(GL2ES2 gl) {
+    public void destroy(GL2ES2 gl) {
         if(!initialized){
             if(DEBUG_INSTANCE) {
                 System.err.println("TextRenderer: Not initialized!");
             }
             return;
         }
+        rs.getShaderState().useProgram(gl, false);
         flushCache(gl);
         disposeImpl(gl);
-        rs.getShaderState().destroy(gl);
+        rs.destroy(gl);
         initialized = false;        
     }
     
@@ -189,7 +190,7 @@ public abstract class Renderer {
     public final ShaderState getShaderState() { return rs.getShaderState(); }
     
     public final void enable(GL2ES2 gl, boolean enable) { 
-        rs.getShaderState().glUseProgram(gl, enable);
+        rs.getShaderState().useProgram(gl, enable);
     }
 
     public float getSharpness() {
@@ -199,7 +200,7 @@ public abstract class Renderer {
     public void setSharpness(GL2ES2 gl, float v) {
         rs.getSharpness().setData(v);
         if(null != gl && rs.getShaderState().inUse()) {
-            rs.getShaderState().glUniform(gl, rs.getSharpness());
+            rs.getShaderState().uniform(gl, rs.getSharpness());
         }
     }
 
@@ -210,7 +211,7 @@ public abstract class Renderer {
     public void setStrength(GL2ES2 gl, float v) {
         rs.getStrength().setData(v);
         if(null != gl && rs.getShaderState().inUse()) {
-            rs.getShaderState().glUniform(gl, rs.getStrength());
+            rs.getShaderState().uniform(gl, rs.getStrength());
         }
     }
     
@@ -221,7 +222,7 @@ public abstract class Renderer {
     public void setAlpha(GL2ES2 gl, float alpha_t) {
         rs.getAlpha().setData(alpha_t);
         if(null != gl && rs.getShaderState().inUse()) {
-            rs.getShaderState().glUniform(gl, rs.getAlpha());
+            rs.getShaderState().uniform(gl, rs.getAlpha());
         }
 
     }
@@ -239,36 +240,36 @@ public abstract class Renderer {
         fb.put(1, g);
         fb.put(2, b);
         if(null != gl && rs.getShaderState().inUse()) {
-            rs.getShaderState().glUniform(gl, rs.getColorStatic());
+            rs.getShaderState().uniform(gl, rs.getColorStatic());
         }
     }
     
-    public final PMVMatrix getMatrix() { return rs.getPMVMatrix(); }
+    public final PMVMatrix getMatrix() { return rs.pmvMatrix(); }
 
     public void rotate(GL2ES2 gl, float angle, float x, float y, float z) {
-        rs.getPMVMatrix().glRotatef(angle, x, y, z);
+        rs.pmvMatrix().glRotatef(angle, x, y, z);
         updateMatrix(gl);
     }
 
     public void translate(GL2ES2 gl, float x, float y, float z) {
-        rs.getPMVMatrix().glTranslatef(x, y, z);
+        rs.pmvMatrix().glTranslatef(x, y, z);
         updateMatrix(gl);
     }
     
     public void scale(GL2ES2 gl, float x, float y, float z) {
-        rs.getPMVMatrix().glScalef(x, y, z);
+        rs.pmvMatrix().glScalef(x, y, z);
         updateMatrix(gl);
     }
 
     public void resetModelview(GL2ES2 gl) {
-        rs.getPMVMatrix().glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        rs.getPMVMatrix().glLoadIdentity();
+        rs.pmvMatrix().glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        rs.pmvMatrix().glLoadIdentity();
         updateMatrix(gl);
     }
 
     public void updateMatrix(GL2ES2 gl) {
         if(initialized && null != gl && rs.getShaderState().inUse()) {
-            rs.getShaderState().glUniform(gl, rs.getPMVMatrixUniform());
+            rs.getShaderState().uniform(gl, rs.getPMVMatrix());
         }
     }
 
@@ -276,7 +277,7 @@ public abstract class Renderer {
         this.vp_width = width;
         this.vp_height = height;
         final float ratio = (float)width/(float)height;
-        final PMVMatrix p = rs.getPMVMatrix();
+        final PMVMatrix p = rs.pmvMatrix();
         p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         p.glLoadIdentity();
         p.gluPerspective(angle, ratio, near, far);
@@ -287,7 +288,7 @@ public abstract class Renderer {
     public boolean reshapeOrtho(GL2ES2 gl, int width, int height, float near, float far) {
         this.vp_width = width;
         this.vp_height = height;
-        final PMVMatrix p = rs.getPMVMatrix();
+        final PMVMatrix p = rs.pmvMatrix();
         p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         p.glLoadIdentity();
         p.glOrthof(0, width, 0, height, near, far);

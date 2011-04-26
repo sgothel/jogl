@@ -155,9 +155,10 @@ public class GlyphString {
     }
 
     /** Destroy the associated OGL objects
+     * @param rs TODO
      */
-    public void destroy(GL2ES2 gl){
-        region.destroy(gl);
+    public void destroy(GL2ES2 gl, RenderState rs){
+        region.destroy(gl, rs);
     }
     
     public AABBox getBounds(){

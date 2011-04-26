@@ -64,13 +64,13 @@ public class TextRendererImpl01 extends TextRenderer {
         
         sp.init(gl);
         st.attachShaderProgram(gl, sp);        
-        st.glBindAttribLocation(gl, AttributeNames.VERTEX_ATTR_IDX, AttributeNames.VERTEX_ATTR_NAME);
-        st.glBindAttribLocation(gl, AttributeNames.TEXCOORD_ATTR_IDX, AttributeNames.TEXCOORD_ATTR_NAME);        
+        st.bindAttribLocation(gl, AttributeNames.VERTEX_ATTR_IDX, AttributeNames.VERTEX_ATTR_NAME);
+        st.bindAttribLocation(gl, AttributeNames.TEXCOORD_ATTR_IDX, AttributeNames.TEXCOORD_ATTR_NAME);        
         
         if(!sp.link(gl, System.err)) {
             throw new GLException("TextRendererImpl01: Couldn't link program: "+sp);
         }
-        st.glUseProgram(gl, true);
+        st.useProgram(gl, true);
 
         if(DEBUG) {
             System.err.println("TextRendererImpl01 initialized: " + Thread.currentThread()+" "+st);

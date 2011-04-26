@@ -79,7 +79,7 @@ public abstract class RegionRenderer extends Renderer {
         Iterator<Region> iterator = regions.values().iterator();
         while(iterator.hasNext()){
             Region region = iterator.next();
-            region.destroy(gl);
+            region.destroy(gl, rs);
         }
         regions.clear();
     }       

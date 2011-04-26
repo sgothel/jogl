@@ -75,7 +75,7 @@ public interface GLArrayData {
      * Sets the determined location of the shader attribute
      * This is usually done within ShaderState.
      *
-     * @see com.jogamp.opengl.util.glsl.ShaderState#glVertexAttribPointer(GL2ES2, GLArrayData)
+     * @see com.jogamp.opengl.util.glsl.ShaderState#vertexAttribPointer(GL2ES2, GLArrayData)
      */
     public void setLocation(int v);
 

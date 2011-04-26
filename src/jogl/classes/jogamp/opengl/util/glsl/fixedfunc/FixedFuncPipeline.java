@@ -83,9 +83,9 @@ public class FixedFuncPipeline {
     }
 
     public void glEnableClientState(GL2ES2 gl, int glArrayIndex) {
-        shaderState.glUseProgram(gl, true);
+        shaderState.useProgram(gl, true);
 
-        shaderState.glEnableVertexAttribArray(gl, getArrayIndexName(glArrayIndex));
+        shaderState.enableVertexAttribArray(gl, getArrayIndexName(glArrayIndex));
         // textureCoordsEnabled |=  (1 << activeTextureUnit);
         if ( textureCoordsEnabled.get(activeTextureUnit) != 1 ) {
             textureCoordsEnabled.put(activeTextureUnit, 1);
@@ -94,9 +94,9 @@ public class FixedFuncPipeline {
     }
 
     public void glDisableClientState(GL2ES2 gl, int glArrayIndex) {
-        shaderState.glUseProgram(gl, true);
+        shaderState.useProgram(gl, true);
 
-        shaderState.glDisableVertexAttribArray(gl, getArrayIndexName(glArrayIndex));
+        shaderState.disableVertexAttribArray(gl, getArrayIndexName(glArrayIndex));
         // textureCoordsEnabled &= ~(1 << activeTextureUnit);
         if ( textureCoordsEnabled.get(activeTextureUnit) != 0 ) {
             textureCoordsEnabled.put(activeTextureUnit, 0);
@@ -105,37 +105,37 @@ public class FixedFuncPipeline {
     }
 
     public void glVertexPointer(GL2ES2 gl, GLArrayData data) {
-        shaderState.glUseProgram(gl, true);
-        shaderState.glVertexAttribPointer(gl, data);
+        shaderState.useProgram(gl, true);
+        shaderState.vertexAttribPointer(gl, data);
     }
 
     public void glColorPointer(GL2ES2 gl, GLArrayData data) {
-        shaderState.glUseProgram(gl, true);
-        shaderState.glVertexAttribPointer(gl, data);
+        shaderState.useProgram(gl, true);
+        shaderState.vertexAttribPointer(gl, data);
     }
 
     public void glColor4fv(GL2ES2 gl, FloatBuffer data ) {
-        shaderState.glUseProgram(gl, true);
+        shaderState.useProgram(gl, true);
         GLUniformData ud = shaderState.getUniform(mgl_ColorStatic);
         if(null!=ud) {
             ud.setData(data);
-            shaderState.glUniform(gl, ud);
+            shaderState.uniform(gl, ud);
         }
     }
 
     public void glNormalPointer(GL2ES2 gl, GLArrayData data) {
-        shaderState.glUseProgram(gl, true);
-        shaderState.glVertexAttribPointer(gl, data);
+        shaderState.useProgram(gl, true);
+        shaderState.vertexAttribPointer(gl, data);
     }
 
     public void glTexCoordPointer(GL2ES2 gl, GLArrayData data) {
-        shaderState.glUseProgram(gl, true);
+        shaderState.useProgram(gl, true);
         data.setName( getArrayIndexName(data.getIndex()) );
-        shaderState.glVertexAttribPointer(gl, data);
+        shaderState.vertexAttribPointer(gl, data);
     }
 
     public void glLightfv(GL2ES2 gl, int light, int pname, java.nio.FloatBuffer params) {
-        shaderState.glUseProgram(gl, true);
+        shaderState.useProgram(gl, true);
         light -=GLLightingFunc.GL_LIGHT0;
         if(0 <= light && light < MAX_LIGHTS) {
             GLUniformData ud = null;
@@ -178,7 +178,7 @@ public class FixedFuncPipeline {
             }
             if(null!=ud) {
                 ud.setData(params);
-                shaderState.glUniform(gl, ud);
+                shaderState.uniform(gl, ud);
             }
         } else if(verbose) {
             System.err.println("glLightfv light not within [0.."+MAX_LIGHTS+"]: "+light);
@@ -186,7 +186,7 @@ public class FixedFuncPipeline {
     }
 
     public void glMaterialfv(GL2ES2 gl, int face, int pname, java.nio.FloatBuffer params) {
-        shaderState.glUseProgram(gl, true);
+        shaderState.useProgram(gl, true);
 
         switch (face) {
             case GL.GL_FRONT:
@@ -228,33 +228,33 @@ public class FixedFuncPipeline {
         }
         if(null!=ud) {
             ud.setData(params);
-            shaderState.glUniform(gl, ud);
+            shaderState.uniform(gl, ud);
         }
     }
 
     public void glShadeModel(GL2ES2 gl, int mode) {
-        shaderState.glUseProgram(gl, true);
+        shaderState.useProgram(gl, true);
         GLUniformData ud = shaderState.getUniform(mgl_ShadeModel);
         if(null!=ud) {
             ud.setData(mode);
-            shaderState.glUniform(gl, ud);
+            shaderState.uniform(gl, ud);
         }
     }
 
     public void glActiveTexture(GL2ES2 gl, int textureUnit) {
         textureUnit -= GL.GL_TEXTURE0;
         if(0 <= textureUnit && textureUnit<MAX_TEXTURE_UNITS) {
-            shaderState.glUseProgram(gl, true);
+            shaderState.useProgram(gl, true);
             GLUniformData ud;
             ud = shaderState.getUniform(mgl_ActiveTexture);
             if(null!=ud) {
                 ud.setData(textureUnit);
-                shaderState.glUniform(gl, ud);
+                shaderState.uniform(gl, ud);
             }
             ud = shaderState.getUniform(mgl_ActiveTextureIdx);
             if(null!=ud) {
                 ud.setData(textureUnit);
-                shaderState.glUniform(gl, ud);
+                shaderState.uniform(gl, ud);
             }
             activeTextureUnit = textureUnit;
         } else {
@@ -310,20 +310,20 @@ public class FixedFuncPipeline {
     }
 
     public void validate(GL2ES2 gl) {
-        shaderState.glUseProgram(gl, true);
+        shaderState.useProgram(gl, true);
         GLUniformData ud;
         if(pmvMatrix.update()) {
             ud = shaderState.getUniform(mgl_PMVMatrix);
             if(null!=ud) {
                 // same data object ..
-                shaderState.glUniform(gl, ud);
+                shaderState.uniform(gl, ud);
             } else {
-                throw new GLException("Failed to update: mgl_PMVMatrix");
+                throw new GLException("Failed to update: gcu_PMVMatrix");
             }
             ud = shaderState.getUniform(mgl_NormalMatrix);
             if(null!=ud) {
                 // same data object ..
-                shaderState.glUniform(gl, ud);
+                shaderState.uniform(gl, ud);
             }
         }
         ud = shaderState.getUniform(mgl_ColorEnabled);
@@ -331,14 +331,14 @@ public class FixedFuncPipeline {
             int ca = (shaderState.isVertexAttribArrayEnabled(mgl_Color)==true)?1:0;
             if(ca!=ud.intValue()) {
                 ud.setData(ca);
-                shaderState.glUniform(gl, ud);
+                shaderState.uniform(gl, ud);
             }
         }
         ud = shaderState.getUniform(mgl_CullFace);
         if(null!=ud) {
             if(cullFace!=ud.intValue()) {
                 ud.setData(cullFace);
-                shaderState.glUniform(gl, ud);
+                shaderState.uniform(gl, ud);
             }
         }
 
@@ -346,7 +346,7 @@ public class FixedFuncPipeline {
             ud = shaderState.getUniform(mgl_LightsEnabled);
             if(null!=ud) {
                 // same data object 
-                shaderState.glUniform(gl, ud);
+                shaderState.uniform(gl, ud);
             }
             lightsEnabledDirty=false;
         }
@@ -355,7 +355,7 @@ public class FixedFuncPipeline {
             ud = shaderState.getUniform(mgl_TexCoordEnabled);
             if(null!=ud) {
                 // same data object 
-                shaderState.glUniform(gl, ud);
+                shaderState.uniform(gl, ud);
             }
             textureCoordsEnabledDirty=false;
         }
@@ -447,43 +447,43 @@ public class FixedFuncPipeline {
         }
 
         shaderState.attachShaderProgram(gl, shaderProgramColor);
-        shaderState.glUseProgram(gl, true);
+        shaderState.useProgram(gl, true);
 
         // mandatory ..
-        if(!shaderState.glUniform(gl, new GLUniformData(mgl_PMVMatrix, 4, 4, pmvMatrix.glGetPMvMviMatrixf()))) {
+        if(!shaderState.uniform(gl, new GLUniformData(mgl_PMVMatrix, 4, 4, pmvMatrix.glGetPMvMviMatrixf()))) {
             throw new GLException("Error setting PMVMatrix in shader: "+this);
         }
 
         // optional parameter ..
-        shaderState.glUniform(gl, new GLUniformData(mgl_NormalMatrix, 3, 3, pmvMatrix.glGetNormalMatrixf()));
+        shaderState.uniform(gl, new GLUniformData(mgl_NormalMatrix, 3, 3, pmvMatrix.glGetNormalMatrixf()));
 
-        shaderState.glUniform(gl, new GLUniformData(mgl_ColorEnabled,  0));
-        shaderState.glUniform(gl, new GLUniformData(mgl_ColorStatic, 4, zero4f));
-        shaderState.glUniform(gl, new GLUniformData(mgl_TexCoordEnabled,  1, textureCoordsEnabled));
-        shaderState.glUniform(gl, new GLUniformData(mgl_ActiveTexture, activeTextureUnit));
-        shaderState.glUniform(gl, new GLUniformData(mgl_ActiveTextureIdx, activeTextureUnit));
-        shaderState.glUniform(gl, new GLUniformData(mgl_ShadeModel, 0));
-        shaderState.glUniform(gl, new GLUniformData(mgl_CullFace, cullFace));
+        shaderState.uniform(gl, new GLUniformData(mgl_ColorEnabled,  0));
+        shaderState.uniform(gl, new GLUniformData(mgl_ColorStatic, 4, zero4f));
+        shaderState.uniform(gl, new GLUniformData(mgl_TexCoordEnabled,  1, textureCoordsEnabled));
+        shaderState.uniform(gl, new GLUniformData(mgl_ActiveTexture, activeTextureUnit));
+        shaderState.uniform(gl, new GLUniformData(mgl_ActiveTextureIdx, activeTextureUnit));
+        shaderState.uniform(gl, new GLUniformData(mgl_ShadeModel, 0));
+        shaderState.uniform(gl, new GLUniformData(mgl_CullFace, cullFace));
         for(int i=0; i<MAX_LIGHTS; i++) {
-            shaderState.glUniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].ambient", 4, defAmbient));
-            shaderState.glUniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].diffuse", 4, defDiffuse));
-            shaderState.glUniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].specular", 4, defSpecular));
-            shaderState.glUniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].position", 4, defPosition));
-            shaderState.glUniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].spotDirection", 3, defSpotDir));
-            shaderState.glUniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].spotExponent", defSpotExponent));
-            shaderState.glUniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].spotCutoff", defSpotCutoff));
-            shaderState.glUniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].constantAttenuation", defConstantAtten));
-            shaderState.glUniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].linearAttenuation", defLinearAtten));
-            shaderState.glUniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].quadraticAttenuation", defQuadraticAtten));
+            shaderState.uniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].ambient", 4, defAmbient));
+            shaderState.uniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].diffuse", 4, defDiffuse));
+            shaderState.uniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].specular", 4, defSpecular));
+            shaderState.uniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].position", 4, defPosition));
+            shaderState.uniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].spotDirection", 3, defSpotDir));
+            shaderState.uniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].spotExponent", defSpotExponent));
+            shaderState.uniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].spotCutoff", defSpotCutoff));
+            shaderState.uniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].constantAttenuation", defConstantAtten));
+            shaderState.uniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].linearAttenuation", defLinearAtten));
+            shaderState.uniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].quadraticAttenuation", defQuadraticAtten));
         }
-        shaderState.glUniform(gl, new GLUniformData(mgl_LightsEnabled,  1, lightsEnabled));
-        shaderState.glUniform(gl, new GLUniformData(mgl_FrontMaterial+".ambient", 4, defMatAmbient));
-        shaderState.glUniform(gl, new GLUniformData(mgl_FrontMaterial+".diffuse", 4, defMatDiffuse));
-        shaderState.glUniform(gl, new GLUniformData(mgl_FrontMaterial+".specular", 4, defMatSpecular));
-        shaderState.glUniform(gl, new GLUniformData(mgl_FrontMaterial+".emission", 4, defMatEmission));
-        shaderState.glUniform(gl, new GLUniformData(mgl_FrontMaterial+".shininess", defMatShininess));
+        shaderState.uniform(gl, new GLUniformData(mgl_LightsEnabled,  1, lightsEnabled));
+        shaderState.uniform(gl, new GLUniformData(mgl_FrontMaterial+".ambient", 4, defMatAmbient));
+        shaderState.uniform(gl, new GLUniformData(mgl_FrontMaterial+".diffuse", 4, defMatDiffuse));
+        shaderState.uniform(gl, new GLUniformData(mgl_FrontMaterial+".specular", 4, defMatSpecular));
+        shaderState.uniform(gl, new GLUniformData(mgl_FrontMaterial+".emission", 4, defMatEmission));
+        shaderState.uniform(gl, new GLUniformData(mgl_FrontMaterial+".shininess", defMatShininess));
 
-        shaderState.glUseProgram(gl, false);
+        shaderState.useProgram(gl, false);
     }
 
     protected static final boolean DEBUG=false;
@@ -508,7 +508,7 @@ public class FixedFuncPipeline {
     protected ShaderProgram shaderProgramColorTextureLight;
 
     // uniforms ..
-    protected static final String mgl_PMVMatrix        = "mgl_PMVMatrix";       // m4fv[3]
+    protected static final String mgl_PMVMatrix        = "gcu_PMVMatrix";       // m4fv[3]
     protected static final String mgl_NormalMatrix     = "mgl_NormalMatrix";    // m4fv
     protected static final String mgl_ColorEnabled     = "mgl_ColorEnabled";    //  1i
     protected static final String mgl_ColorStatic      = "mgl_ColorStatic";     //  4fv

@@ -62,15 +62,15 @@ public class VBORegionSPES2  implements Region {
         final int initialSize = 256;
         final ShaderState st = rs.getShaderState();
         
-        indices = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialSize, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);        
+        indices = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialSize, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
         
         verticeAttr = GLArrayDataServer.createGLSL(st, AttributeNames.VERTEX_ATTR_NAME, 3, 
-                                                   GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW); 
-        st.bindAttribute(verticeAttr);
+                                                   GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);         
+        st.ownAttribute(verticeAttr, true);
         
         texCoordAttr = GLArrayDataServer.createGLSL(st, AttributeNames.TEXCOORD_ATTR_NAME, 2, 
                                                     GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
-        st.bindAttribute(texCoordAttr);
+        st.ownAttribute(texCoordAttr, true);
         
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 Create: " + this);
@@ -187,15 +187,18 @@ public class VBORegionSPES2  implements Region {
         return dirty;
     }
     
-    public final void destroy(GL2ES2 gl) {
+    public final void destroy(GL2ES2 gl, RenderState rs) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 Destroy: " + this);
         }        
+        final ShaderState st = rs.getShaderState();
         if(null != verticeAttr) {
+            st.ownAttribute(verticeAttr, false);
             verticeAttr.destroy(gl);
             verticeAttr = null;
         }
         if(null != texCoordAttr) {
+            st.ownAttribute(texCoordAttr, false);
             texCoordAttr.destroy(gl);
             texCoordAttr = null;
         }

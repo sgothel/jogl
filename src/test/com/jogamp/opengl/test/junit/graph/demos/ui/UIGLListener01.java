@@ -104,7 +104,7 @@ public class UIGLListener01 extends UIListenerBase01 {
     
     public void dispose(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
+        glyphString.destroy(gl, getRegionRenderer().getRenderState());
         super.dispose(drawable);
-        glyphString.destroy(gl);
     }
 }

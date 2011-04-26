@@ -27,29 +27,28 @@
  */
 package com.jogamp.graph.curve.opengl;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GLProfile;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLUniformData;
 
-import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.VersionUtil;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public interface RenderState {
     
+    void destroy(GL2ES2 gl);
+    
     ShaderState getShaderState();
     Vertex.Factory<? extends Vertex> getPointFactory();
-    PMVMatrix getPMVMatrix();
-    GLUniformData getPMVMatrixUniform();
+    PMVMatrix pmvMatrix();
+    GLUniformData getPMVMatrix();
     GLUniformData getSharpness();
     GLUniformData getAlpha();
     GLUniformData getColorStatic();
     GLUniformData getStrength();
     
-    RenderState attachTo(GL gl);
-    boolean detachFrom(GL gl);   
+    RenderState attachTo(GL2ES2 gl);
+    boolean detachFrom(GL2ES2 gl);   
     
     StringBuilder toString(StringBuilder sb);
     String toString();
