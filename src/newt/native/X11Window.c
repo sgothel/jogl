@@ -188,7 +188,18 @@ static jmethodID displayCompletedID = NULL;
  * Display
  */
 
-static JNIEnv * x11ErrorHandlerJNIEnv = NULL;
+static JavaVM *jvmHandle = NULL;
+static int jvmVersion = 0;
+static JNIEnv * jvmEnv = NULL;
+
+static void setupJVMVars(JNIEnv * env) {
+    if(0 != (*env)->GetJavaVM(env, &jvmHandle)) {
+        jvmHandle = NULL;
+    }
+    jvmVersion = (*env)->GetVersion(env);
+    jvmEnv = env;
+}
+
 static XErrorHandler origErrorHandler = NULL ;
 
 static int displayDispatchErrorHandler(Display *dpy, XErrorEvent *e)
@@ -200,7 +211,7 @@ static int displayDispatchErrorHandler(Display *dpy, XErrorEvent *e)
     } else if (e->error_code == BadWindow) {
         fprintf(stderr, "         BadWindow (%p): Window probably already removed\n", (void*)e->resourceid);
     } else {
-        NewtCommon_throwNewRuntimeException(x11ErrorHandlerJNIEnv, "NEWT X11 Error: Display %p, Code 0x%X, errno %s", 
+        NewtCommon_throwNewRuntimeException(jvmEnv, "NEWT X11 Error: Display %p, Code 0x%X, errno %s", 
             dpy, e->error_code, strerror(errno));
     }
 
@@ -210,7 +221,7 @@ static int displayDispatchErrorHandler(Display *dpy, XErrorEvent *e)
 static void displayDispatchErrorHandlerEnable(int onoff, JNIEnv * env) {
     if(onoff) {
         if(NULL==origErrorHandler) {
-            x11ErrorHandlerJNIEnv = env;
+            setupJVMVars(env);
             origErrorHandler = XSetErrorHandler(displayDispatchErrorHandler);
         }
     } else {
@@ -663,6 +674,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Display_DispatchMessages0
                         (void*)evt.xclient.window, (unsigned int)evt.xclient.message_type);
                     (*env)->CallVoidMethod(env, jwindow, windowDestroyNotifyID);
                     // Called by Window.java: CloseWindow(); 
+                    num_events = 0; // end loop in case of destroyed display
                 }
                 break;
 
