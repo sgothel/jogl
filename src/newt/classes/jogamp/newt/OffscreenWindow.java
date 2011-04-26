@@ -70,12 +70,6 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
     }
 
     @Override
-    protected void invalidate(boolean unrecoverable) {
-        super.invalidate(unrecoverable);
-        surfaceHandle = 0;
-    }
-
-    @Override
     public synchronized void destroy() {
         super.destroy();
         surfaceHandle = 0;
