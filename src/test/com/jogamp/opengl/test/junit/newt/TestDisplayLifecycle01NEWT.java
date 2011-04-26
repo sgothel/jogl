@@ -83,7 +83,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         } else {
             glWindow = GLWindow.create(caps);
         }
-        glWindow.setUpdateFPSFrames(1, System.err);
+        glWindow.setUpdateFPSFrames(1, null);
 
         GLEventListener demo = new Gears();
         setDemoFields(demo, glWindow);
@@ -114,7 +114,6 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
 
         Assert.assertNotNull(window.getScreen());
-        Assert.assertEquals(true,window.isValid());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
@@ -170,7 +169,6 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(false,display.getEDTUtil().isRunning());
         Assert.assertEquals(0,screen.getReferenceCount());
         Assert.assertEquals(false,screen.isNativeValid());
-        Assert.assertEquals(true, window.isValid());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
         window.resetFPSCounter();
@@ -217,7 +215,6 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
 
         Assert.assertNotNull(window.getScreen());
-        Assert.assertEquals(true,window.isValid());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
     }

@@ -175,7 +175,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         // Shutdown the test.
         animator.stop();
         frame1.dispose();
-        glWindow1.invalidate();
+        glWindow1.destroy();
     }
 
     static int atoi(String a) {

@@ -74,7 +74,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         } else {
             glWindow = GLWindow.create(caps);
         }
-        glWindow.setUpdateFPSFrames(1, System.err);        
+        glWindow.setUpdateFPSFrames(1, null);        
         Assert.assertNotNull(glWindow);
         glWindow.setUndecorated(onscreen && undecorated);
 
@@ -119,13 +119,15 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertNotNull(caps);
         GLWindow window = createWindow(null, caps, width, height, true /* onscreen */, false /* undecorated */);
         Animator animator = new Animator(window);
-        animator.setUpdateFPSFrames(1, System.err);        
+        animator.setUpdateFPSFrames(1, null);        
         Assert.assertTrue(animator.start());
         while(animator.isAnimating() && animator.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
         destroyWindow(window);
-        Assert.assertEquals(true, animator.isAnimating());
+        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
+        Assert.assertEquals(true, animator.isStarted());
         Assert.assertTrue(animator.stop());
     }
 
@@ -135,14 +137,16 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertNotNull(caps);
         GLWindow window = createWindow(null, caps, width, height, true /* onscreen */, false /* undecorated */);
         Animator animator = new Animator(window);
-        animator.setUpdateFPSFrames(1, System.err);        
+        animator.setUpdateFPSFrames(1, null);        
         Assert.assertTrue(animator.start());
         while(animator.isAnimating() && animator.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
         destroyWindow(window);
         destroyWindow(window);
-        Assert.assertEquals(true, animator.isAnimating());
+        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(false, animator.isPaused());
+        Assert.assertEquals(true, animator.isStarted());
         Assert.assertTrue(animator.stop());
     }
 
@@ -165,7 +169,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         window2.setPosition(screen.getWidth()-width, 0);
 
         Animator animator = new Animator();
-        animator.setUpdateFPSFrames(1, System.err);        
+        animator.setUpdateFPSFrames(1, null);        
         Assert.assertEquals(false, animator.isStarted());
         Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
@@ -188,7 +192,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         while(animator.isAnimating() && animator.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
-        window1.invalidate();
+        window1.destroy();
         Assert.assertEquals(true, animator.isStarted());
         Assert.assertEquals(true, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
@@ -196,7 +200,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         while(animator.isAnimating() && animator.getTotalFPSDuration()<2*durationPerTest) {
             Thread.sleep(100);
         }
-        window2.invalidate();
+        window2.destroy();
         Assert.assertEquals(true, animator.isStarted());
         Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
@@ -227,7 +231,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         window2.setPosition(screen2.getWidth()-width, 0);
 
         Animator animator = new Animator();
-        animator.setUpdateFPSFrames(1, System.err);        
+        animator.setUpdateFPSFrames(1, null);        
         Assert.assertEquals(false, animator.isStarted());
         Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
@@ -260,17 +264,17 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         }
         destroyWindow(window2);
         Assert.assertEquals(true, animator.isStarted());
-        Assert.assertEquals(true, animator.isAnimating());
+        Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
 
         Assert.assertEquals(true, animator.pause());
-        Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(true, animator.isStarted());                
         Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(true, animator.isPaused());
 
         Assert.assertEquals(true, animator.resume());
         Assert.assertEquals(true, animator.isStarted());
-        Assert.assertEquals(true, animator.isAnimating());
+        Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
 
         Assert.assertTrue(animator.stop());

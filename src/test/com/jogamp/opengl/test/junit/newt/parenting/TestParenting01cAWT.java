@@ -125,20 +125,20 @@ public class TestParenting01cAWT extends UITestCase {
         }
 
         frame1.setVisible(false);
-        Assert.assertEquals(true, glWindow1.isValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
 
         frame1.setVisible(true);
-        Assert.assertEquals(true, glWindow1.isValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
 
         frame1.remove(newtCanvasAWT);
         // Assert.assertNull(glWindow1.getParent());
-        Assert.assertEquals(true, glWindow1.isValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
 
         frame1.dispose();
-        Assert.assertEquals(true, glWindow1.isValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
 
-        glWindow1.invalidate();
-        //Assert.assertEquals(false, glWindow1.isValid());
+        glWindow1.destroy();
+        Assert.assertEquals(false, glWindow1.isNativeValid());
     }
 
     @Test
@@ -196,7 +196,7 @@ public class TestParenting01cAWT extends UITestCase {
 
         frame1.dispose();
         frame2.dispose();
-        glWindow1.invalidate();
+        glWindow1.destroy();
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {

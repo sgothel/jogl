@@ -135,7 +135,7 @@ public class DefaultEDTUtil implements EDTUtil {
                 if(stop) {
                     edt.shouldStop = true;
                     if(DEBUG) {
-                        String msg = Thread.currentThread()+": EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - edt: "+edt;
+                        String msg = Thread.currentThread()+": EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - tasks: "+edt.tasks.size()+" - "+edt;
                         System.err.println(msg);
                         // Throwable t = new Throwable(msg);
                         // t.printStackTrace();

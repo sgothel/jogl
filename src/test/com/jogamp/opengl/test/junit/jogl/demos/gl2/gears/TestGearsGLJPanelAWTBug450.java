@@ -114,7 +114,7 @@ public class TestGearsGLJPanelAWTBug450 extends UITestCase {
                     _frame.setVisible(true);
                 } } ) ;
 
-        animator.setUpdateFPSFrames(1, System.err);        
+        animator.setUpdateFPSFrames(1, null);        
         animator.start();
         Assert.assertEquals(true, animator.isAnimating());
 

@@ -88,7 +88,7 @@ public class TestEventSourceNotAWTBug extends UITestCase {
                 f_jf.dispose();
             }
         });
-        glWindow.invalidate();
+        glWindow.destroy();
     }
 
     public static void main(String args[]) throws IOException {

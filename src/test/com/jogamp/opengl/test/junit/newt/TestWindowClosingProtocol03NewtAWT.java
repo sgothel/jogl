@@ -79,7 +79,6 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
         Assert.assertEquals(true,  frame.isDisplayable());
         Assert.assertEquals(true,  newtCanvas.isValid());
         Assert.assertEquals(true,  newtCanvas.isDisplayable());
-        Assert.assertEquals(true,  glWindow.isValid());
         Assert.assertEquals(true,  glWindow.isNativeValid());
         Assert.assertEquals(true,  windowClosingListener.isWindowClosing());
         windowClosingListener.reset();
@@ -102,7 +101,6 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
         Assert.assertEquals(false, frame.isDisplayable());
         Assert.assertEquals(false, newtCanvas.isValid());
         Assert.assertEquals(false, newtCanvas.isDisplayable());
-        Assert.assertEquals(true,  glWindow.isValid());
         Assert.assertEquals(false, glWindow.isNativeValid());
         Assert.assertEquals(true,  windowClosingListener.isWindowClosing());
     }

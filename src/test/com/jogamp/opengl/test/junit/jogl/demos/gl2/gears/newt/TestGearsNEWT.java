@@ -100,7 +100,7 @@ public class TestGearsNEWT extends UITestCase {
 
         glWindow.setSize(width, height);
         glWindow.setVisible(true);
-        animator.setUpdateFPSFrames(1, System.err);
+        animator.setUpdateFPSFrames(1, null);
         animator.start();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
@@ -108,7 +108,7 @@ public class TestGearsNEWT extends UITestCase {
         }
 
         animator.stop();
-        glWindow.invalidate();
+        glWindow.destroy();
     }
 
     @Test

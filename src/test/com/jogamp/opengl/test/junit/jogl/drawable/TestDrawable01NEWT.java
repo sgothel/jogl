@@ -145,7 +145,7 @@ public class TestDrawable01NEWT extends UITestCase {
 
         // GLWindow.destroy(..) sequence cont..
         Assert.assertNotNull(window);
-        window.invalidate();
+        window.destroy();
 
         drawable = null;
         context = null;

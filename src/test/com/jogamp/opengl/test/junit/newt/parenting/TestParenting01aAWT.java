@@ -123,7 +123,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, System.err);        
+        animator1.setUpdateFPSFrames(1, null);        
         animator1.start();
         while(animator1.isAnimating() && animator1.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
@@ -132,20 +132,20 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(false, animator1.isAnimating());
 
         frame1.setVisible(false);
-        Assert.assertEquals(true, glWindow1.isValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
 
         frame1.setVisible(true);
-        Assert.assertEquals(true, glWindow1.isValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
 
         frame1.remove(newtCanvasAWT);
         // Assert.assertNull(glWindow1.getParent());
-        Assert.assertEquals(true, glWindow1.isValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
 
         frame1.dispose();
-        Assert.assertEquals(true, glWindow1.isValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
 
-        glWindow1.invalidate();
-        //Assert.assertEquals(false, glWindow1.isValid());
+        glWindow1.destroy();
+        Assert.assertEquals(false, glWindow1.isNativeValid());
     }
 
     @Test
@@ -181,7 +181,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, System.err);
+        animator1.setUpdateFPSFrames(1, null);
         animator1.start();
         while(animator1.isAnimating() && animator1.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
@@ -190,7 +190,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(false, animator1.isAnimating());
 
         frame.dispose();
-        glWindow1.invalidate();
+        glWindow1.destroy();
     }
 
     @Test
@@ -217,7 +217,7 @@ public class TestParenting01aAWT extends UITestCase {
         frame.add(newtCanvasAWT);
 
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, System.err);
+        animator1.setUpdateFPSFrames(1, null);
         animator1.start();
         Assert.assertEquals(true, animator1.isStarted());
         Assert.assertEquals(true, animator1.isAnimating());
@@ -228,7 +228,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(true, animator1.isAnimating()); // !!!
 
         frame.dispose();
-        glWindow1.invalidate();
+        glWindow1.destroy();
     }
 
     @Test
@@ -254,7 +254,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, System.err);        
+        animator1.setUpdateFPSFrames(1, null);        
         animator1.start();
 
         int state = 0;
@@ -279,7 +279,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(false, animator1.isAnimating());
 
         frame.dispose();
-        glWindow1.invalidate();
+        glWindow1.destroy();
     }
 
     @Test
@@ -310,7 +310,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, System.err);        
+        animator1.setUpdateFPSFrames(1, null);        
         animator1.start();
 
         int state = 0;
@@ -335,7 +335,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(false, animator1.isAnimating());
 
         frame.dispose();
-        glWindow1.invalidate();
+        glWindow1.destroy();
     }
 
     @Test
@@ -377,7 +377,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, System.err);        
+        animator1.setUpdateFPSFrames(1, null);        
         animator1.start();
 
         int state = 0;
@@ -401,7 +401,7 @@ public class TestParenting01aAWT extends UITestCase {
 
         frame1.dispose();
         frame2.dispose();
-        glWindow1.invalidate();
+        glWindow1.destroy();
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {

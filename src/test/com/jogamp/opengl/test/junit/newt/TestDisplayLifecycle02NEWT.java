@@ -76,7 +76,7 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         // Create native windowing resources .. X11/Win/OSX
         // 
         GLWindow glWindow = GLWindow.create(caps);
-        glWindow.setUpdateFPSFrames(1, System.err);
+        glWindow.setUpdateFPSFrames(1, null);
 
         GLEventListener demo = new Gears();
         setDemoFields(demo, glWindow);
@@ -161,7 +161,6 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(0,screen.getReferenceCount());
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertNotNull(window.getScreen());
-        Assert.assertEquals(true,window.isValid());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
@@ -180,7 +179,6 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(screen,window.getScreen());
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
         Assert.assertEquals(1,display.getReferenceCount());
-        Assert.assertEquals(true,window.isValid());
         Assert.assertEquals(true,display.isNativeValid());
         Assert.assertEquals(true,display.getEDTUtil().isRunning());
         Assert.assertEquals(1,Screen.getActiveScreenNumber());
@@ -197,10 +195,8 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         }
         System.err.println("duration: "+window.getTotalFPSDuration());
 
-        // destruction + invalidate, ie Display/Screen will be unreferenced
-        window.invalidate();
-        Assert.assertNull(window.getScreen());
-        Assert.assertEquals(false,window.isValid());
+        window.destroy();
+        Assert.assertEquals(screen,window.getScreen());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
 
@@ -300,7 +296,6 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         // destruction ...
         window1.destroy();
         Assert.assertNotNull(window1.getScreen());
-        Assert.assertEquals(true,window1.isValid());
         Assert.assertEquals(false,window1.isNativeValid());
         Assert.assertEquals(false,window1.isVisible());
 
@@ -316,7 +311,6 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         // destruction
         window2.destroy();
         Assert.assertNotNull(window2.getScreen());
-        Assert.assertEquals(true,window2.isValid());
         Assert.assertEquals(false,window2.isNativeValid());
         Assert.assertEquals(false,window2.isVisible());
 
@@ -331,16 +325,12 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
 
         // invalidate .. remove all refs
-        window1.invalidate();
-        Assert.assertNull(window1.getScreen());
-        Assert.assertEquals(false,window1.isValid());
+        window1.destroy();
         Assert.assertEquals(false,window1.isNativeValid());
         Assert.assertEquals(false,window1.isVisible());
 
         // invalidate .. remove all refs
-        window2.invalidate();
-        Assert.assertNull(window2.getScreen());
-        Assert.assertEquals(false,window2.isValid());
+        window2.destroy();
         Assert.assertEquals(false,window2.isNativeValid());
         Assert.assertEquals(false,window2.isVisible());
 

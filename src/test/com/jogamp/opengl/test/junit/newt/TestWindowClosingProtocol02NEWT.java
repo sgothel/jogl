@@ -70,7 +70,6 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         Assert.assertEquals(WindowClosingProtocol.DO_NOTHING_ON_CLOSE, op);
 
         Assert.assertEquals(true, AWTRobotUtil.closeWindow(glWindow, false)); // nop
-        Assert.assertEquals(true, glWindow.isValid());
         Assert.assertEquals(true, glWindow.isNativeValid());
         Assert.assertEquals(true, windowClosingListener.isWindowClosing());
         windowClosingListener.reset();
@@ -83,7 +82,6 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         Assert.assertEquals(WindowClosingProtocol.DISPOSE_ON_CLOSE, op);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(glWindow, true));
-        Assert.assertEquals(true,  glWindow.isValid());
         Assert.assertEquals(false, glWindow.isNativeValid());
         Assert.assertEquals(true,  windowClosingListener.isWindowClosing());
     }

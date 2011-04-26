@@ -75,7 +75,7 @@ public class TestParenting03AWT extends UITestCase {
 
     public void testWindowParenting1AWTOneNewtChild() throws InterruptedException, InvocationTargetException {
         GLWindow glWindow1 = GLWindow.create(glCaps);
-        glWindow1.setUpdateFPSFrames(1, System.err);
+        glWindow1.setUpdateFPSFrames(1, null);
         glWindow1.setUndecorated(true);
         NewtCanvasAWT newtCanvasAWT1 = new NewtCanvasAWT(glWindow1);
         newtCanvasAWT1.setPreferredSize(size);
@@ -136,7 +136,7 @@ public class TestParenting03AWT extends UITestCase {
         Assert.assertEquals(null, animator1.getThread());
 
         frame1.dispose();
-        glWindow1.invalidate();
+        glWindow1.destroy();
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {

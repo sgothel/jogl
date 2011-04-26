@@ -341,25 +341,15 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
             }
             context = null;
             drawable = null;
-
+            
+            GLAnimatorControl ctrl = GLWindow.this.getAnimator();
+            if ( null!=ctrl ) {
+                ctrl.remove(GLWindow.this);
+            }            
+            // helper=null; // pending events ..
+            
             if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
                 System.err.println("GLWindow.destroy() "+Thread.currentThread()+", fin");
-            }
-        }
-
-        public synchronized void invalidate(boolean unrecoverable) {
-            if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
-                String msg = "GLWindow.invalidate("+unrecoverable+") "+Thread.currentThread()+", start";
-                System.err.println(msg);
-                //Exception e1 = new Exception(msg);
-                //e1.printStackTrace();
-            }
-            if(unrecoverable) {
-                GLAnimatorControl ctrl = GLWindow.this.getAnimator();
-                if ( null!=ctrl ) {
-                    ctrl.remove(GLWindow.this);
-                }
-                helper=null;
             }
         }
 
@@ -407,19 +397,20 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
             }
         }
         
+        private GLAnimatorControl savedAnimator = null;
+        
         public synchronized boolean pauseRenderingAction() {
             boolean animatorPaused = false;
-            GLAnimatorControl ctrl = GLWindow.this.getAnimator();
-            if ( null!=ctrl ) {
-                animatorPaused = ctrl.pause();
+            savedAnimator = GLWindow.this.getAnimator();
+            if ( null != savedAnimator ) {
+                animatorPaused = savedAnimator.pause();
             }
             return animatorPaused;
         }
 
         public synchronized void resumeRenderingAction() {
-            GLAnimatorControl ctrl = GLWindow.this.getAnimator();
-            if ( null!=ctrl && ctrl.isPaused() ) {
-                ctrl.resume();
+            if ( null != savedAnimator && savedAnimator.isPaused() ) {
+                savedAnimator.resume();
             }
         }
     }
@@ -849,10 +840,6 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         return window.surfaceSwap();
     }
 
-    public final void invalidate() {
-        window.invalidate();
-    }
-    
     public final long getWindowHandle() {
         return window.getWindowHandle();
 
@@ -917,7 +904,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         });
 
         glWindow.setVisible(true);
-        glWindow.invalidate();
+        glWindow.destroy();
     }
 
 }

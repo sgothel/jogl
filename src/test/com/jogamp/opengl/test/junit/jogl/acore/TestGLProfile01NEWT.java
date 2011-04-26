@@ -155,7 +155,7 @@ public class TestGLProfile01NEWT extends UITestCase {
 
         glWindow.display();
         Thread.sleep(100);
-        glWindow.invalidate();
+        glWindow.destroy();
     }
 
     public static void main(String args[]) throws IOException {

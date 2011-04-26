@@ -120,7 +120,7 @@ public class TestScreenMode00NEWT extends UITestCase {
             System.err.println("Your platform has no ScreenMode change support, sorry");
         }
 
-        window.invalidate();
+        window.destroy();
 
         Assert.assertEquals(false,window.isVisible());
         Assert.assertEquals(false,window.isNativeValid());

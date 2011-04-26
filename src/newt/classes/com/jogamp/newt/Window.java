@@ -109,17 +109,10 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * which will issue {@link Screen#destroy()} if the reference count becomes 0.<br>
      * This destruction sequence shall end up in {@link Display#destroy()}, if all reference counts become 0.
      * </p>
-     * @see #invalidate()
+     * @see #destroy()
      * @see #setVisible(boolean)
      */
     void destroy();
-
-    /**
-     * Destroys the Window via {@link #destroy()} and clears all Object references,
-     * eg. all states, size, position, parent handles, list of child Windows and reference to it's Screen.<br>
-     * This Window cannot be recreated after calling this method anymore.<br>
-     */
-    void invalidate();
 
     /**
      * <p>

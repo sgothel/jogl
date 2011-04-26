@@ -150,13 +150,13 @@ public class TestParenting01NEWT extends UITestCase {
         glWindow1.resetFPSCounter();
         glWindow2.resetFPSCounter();
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, System.err);        
+        animator1.setUpdateFPSFrames(1, null);        
         animator1.start();
         Assert.assertEquals(true, animator1.isAnimating());
         Assert.assertEquals(false, animator1.isPaused());
         Assert.assertNotNull(animator1.getThread());
         Animator animator2 = new Animator(glWindow2);
-        animator2.setUpdateFPSFrames(1, System.err);        
+        animator2.setUpdateFPSFrames(1, null);        
         animator2.start();
         Assert.assertEquals(true, animator2.isAnimating());
         Assert.assertEquals(false, animator2.isPaused());
@@ -212,10 +212,8 @@ public class TestParenting01NEWT extends UITestCase {
         glWindow2.destroy(); // can be recreated, refs are hold
         Assert.assertEquals(true,  glWindow1.isVisible());
         Assert.assertEquals(true,  glWindow1.isNativeValid());
-        Assert.assertEquals(true,  glWindow1.isValid());
         Assert.assertEquals(false, glWindow2.isVisible());
         Assert.assertEquals(false, glWindow2.isNativeValid());
-        Assert.assertEquals(true,  glWindow2.isValid());
 
         Assert.assertEquals(1,display.getReferenceCount());
         Assert.assertEquals(true,display.isNativeValid());
@@ -228,10 +226,8 @@ public class TestParenting01NEWT extends UITestCase {
         glWindow1.destroy(); // can be recreated, refs are hold
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
-        Assert.assertEquals(true,  glWindow1.isValid());
         Assert.assertEquals(false, glWindow2.isVisible());
         Assert.assertEquals(false, glWindow2.isNativeValid());
-        Assert.assertEquals(true,  glWindow2.isValid());
 
         Assert.assertEquals(0,display.getReferenceCount());
         Assert.assertEquals(false,display.isNativeValid());
@@ -266,9 +262,7 @@ public class TestParenting01NEWT extends UITestCase {
 
         // chain glwindow1 -> glwindow2 ; can be recreated ..
         glWindow1.destroy();
-        Assert.assertEquals(true, glWindow1.isValid());
         Assert.assertEquals(false, glWindow1.isNativeValid());
-        Assert.assertEquals(true, glWindow2.isValid());
         Assert.assertEquals(false, glWindow2.isNativeValid());
         Assert.assertEquals(0,display.getReferenceCount());
         Assert.assertEquals(false,display.isNativeValid());
@@ -278,13 +272,8 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
-        glWindow1.invalidate();
-        Assert.assertEquals(false, glWindow1.isValid());
-        Assert.assertEquals(false, glWindow2.isValid());
-
         // test double destroy/invalidate ..
-        glWindow2.invalidate();
-        Assert.assertEquals(false, glWindow2.isValid());
+        glWindow2.destroy();
 
         Assert.assertEquals(0,display.getReferenceCount());
         Assert.assertEquals(false,display.isNativeValid());
@@ -374,10 +363,10 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertTrue(0 < glWindow1.getTotalFPSFrames());
 
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, System.err);
+        animator1.setUpdateFPSFrames(1, null);
         animator1.start();
         Animator animator2 = new Animator(glWindow2);
-        animator2.setUpdateFPSFrames(1, System.err);
+        animator2.setUpdateFPSFrames(1, null);
         animator2.start();
 
         int state = 0;
@@ -460,10 +449,8 @@ public class TestParenting01NEWT extends UITestCase {
 
         // destroy glWindow2
         glWindow2.destroy();
-        Assert.assertEquals(true,  glWindow1.isValid());
         Assert.assertEquals(true,  glWindow1.isNativeValid());
         Assert.assertEquals(true,  glWindow1.isVisible());
-        Assert.assertEquals(true,  glWindow2.isValid());
         Assert.assertEquals(false, glWindow2.isNativeValid());
         Assert.assertEquals(false, glWindow2.isVisible());
 
@@ -478,10 +465,8 @@ public class TestParenting01NEWT extends UITestCase {
 
         // destroy glWindow1
         glWindow1.destroy();
-        Assert.assertEquals(true,  glWindow1.isValid());
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(true,  glWindow2.isValid());
         Assert.assertEquals(false, glWindow2.isNativeValid());
         Assert.assertEquals(false, glWindow2.isVisible());
 
@@ -493,13 +478,6 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(false,screen1.isNativeValid());
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
-
-        glWindow1.invalidate();
-        Assert.assertEquals(false, glWindow1.isValid());
-        Assert.assertEquals(true,  glWindow2.isValid());
-
-        glWindow2.invalidate();
-        Assert.assertEquals(false, glWindow2.isValid());
     }
 
     @Test
@@ -573,10 +551,10 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, System.err);
+        animator1.setUpdateFPSFrames(1, null);
         animator1.start();
         Animator animator2 = new Animator(glWindow2);
-        animator2.setUpdateFPSFrames(1, System.err);
+        animator2.setUpdateFPSFrames(1, null);
         animator2.start();
 
         int state = 0;
@@ -638,10 +616,8 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
         glWindow1.destroy(); // should destroy both windows, actually, since glWindow2 is a child
-        Assert.assertEquals(true,  glWindow1.isValid());
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(true,  glWindow2.isValid());
         Assert.assertEquals(false, glWindow2.isNativeValid());
         Assert.assertEquals(false, glWindow2.isVisible());
 
@@ -665,9 +641,9 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertEquals(false, glWindow2.isNativeValid());
 
-        glWindow1.invalidate(); // parent -> child
-        Assert.assertEquals(false, glWindow1.isValid());
-        Assert.assertEquals(false, glWindow2.isValid());
+        glWindow1.destroy(); // parent -> child
+        Assert.assertEquals(false, glWindow1.isNativeValid());
+        Assert.assertEquals(false, glWindow2.isNativeValid());
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
     }

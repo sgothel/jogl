@@ -156,7 +156,7 @@ public class TestParenting01bAWT extends UITestCase {
 
         frame1.dispose();
         frame2.dispose();
-        glWindow1.invalidate();
+        glWindow1.destroy();
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {

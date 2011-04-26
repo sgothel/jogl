@@ -38,7 +38,7 @@ public class RedSquareShader {
                 "  #define HIGHP\n" +
                 "#endif\n" +
                 "\n" +
-                "uniform MEDIUMP mat4    mgl_PMVMatrix[2];\n" +
+                "uniform MEDIUMP mat4    gcu_PMVMatrix[2];\n" +
                 "attribute HIGHP vec4    mgl_Vertex;\n" +
                 "attribute HIGHP vec4    mgl_Color;\n" +
                 "varying   HIGHP vec4    frontColor;\n" +
@@ -46,7 +46,7 @@ public class RedSquareShader {
                 "void main(void)\n" +
                 "{\n" +
                 "  frontColor=mgl_Color;\n" +
-                "  gl_Position = mgl_PMVMatrix[0] * mgl_PMVMatrix[1] * mgl_Vertex;\n" +
+                "  gl_Position = gcu_PMVMatrix[0] * gcu_PMVMatrix[1] * mgl_Vertex;\n" +
                 "}\n" ;
 
     public static String FRAGMENT_SHADER_TEXT =

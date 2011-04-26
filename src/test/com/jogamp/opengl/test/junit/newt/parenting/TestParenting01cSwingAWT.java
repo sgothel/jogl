@@ -83,7 +83,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, System.err);
+        animator1.setUpdateFPSFrames(1, null);
         animator1.start();
         
         final GLWindow _glWindow1 = glWindow1;
@@ -152,14 +152,14 @@ public class TestParenting01cSwingAWT extends UITestCase {
             System.out.println("Demos: 3 - !Visible");
                     _jFrame1.setVisible(false);
                 } });
-        Assert.assertEquals(true, glWindow1.isValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
             System.out.println("Demos: 4 - Visible");
                     _jFrame1.setVisible(true);
                 } });
-        Assert.assertEquals(true, glWindow1.isValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -167,16 +167,16 @@ public class TestParenting01cSwingAWT extends UITestCase {
                     _jPanel1.remove(_container1);
                 } });
         // Assert.assertNull(glWindow1.getParent());
-        Assert.assertEquals(true, glWindow1.isValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     _jFrame1.dispose();
                 } });
-        Assert.assertEquals(true, glWindow1.isValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
 
-        glWindow1.invalidate();
-        //Assert.assertEquals(false, glWindow1.isValid());
+        glWindow1.destroy();
+        Assert.assertEquals(false, glWindow1.isNativeValid());
     }
 
     @Test
@@ -194,7 +194,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, System.err);
+        animator1.setUpdateFPSFrames(1, null);
         animator1.start();
         
         final GLWindow _glWindow1 = glWindow1;
@@ -297,17 +297,17 @@ public class TestParenting01cSwingAWT extends UITestCase {
                     _jFrame1.setVisible(false);
                     _jFrame2.setVisible(false);
                 } });
-        Assert.assertEquals(true, glWindow1.isValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     _jFrame1.dispose();
                     _jFrame2.dispose();
                 } });
-        Assert.assertEquals(true, glWindow1.isValid());
+        Assert.assertEquals(true, glWindow1.isNativeValid());
 
-        glWindow1.invalidate();
-        //Assert.assertEquals(false, glWindow1.isValid());
+        glWindow1.destroy();
+        Assert.assertEquals(false, glWindow1.isNativeValid());
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {

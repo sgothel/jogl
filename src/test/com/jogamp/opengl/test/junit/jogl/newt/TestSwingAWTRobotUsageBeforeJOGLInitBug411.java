@@ -68,7 +68,7 @@ import org.junit.AfterClass;
 import org.junit.Test;
 
 public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
-    static long durationPerTest = 500; // ms
+    static long durationPerTest = 150; // ms
     static Robot robot;
     static Border border;
     static JFrame frame;
@@ -265,13 +265,12 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         runTestGL(newtCanvasAWT, win1);
 
         win0.destroy();
-        Assert.assertEquals(true, anim.isAnimating());
+        Assert.assertEquals(false, win0.isNativeValid());        
+        Assert.assertEquals(true, anim.isAnimating()); // due to newtCanvasAWT/win1
 
-        newtCanvasAWT.destroy();
-
-        win0.invalidate();
-        Assert.assertEquals(true, anim.isAnimating());
-        win1.invalidate();
+        newtCanvasAWT.destroy(); // destroys both newtCanvasAWT/win1
+        Assert.assertEquals(false, win0.isNativeValid());
+        Assert.assertEquals(false, win1.isNativeValid());
         Assert.assertEquals(false, anim.isAnimating());
 
         anim.stop();

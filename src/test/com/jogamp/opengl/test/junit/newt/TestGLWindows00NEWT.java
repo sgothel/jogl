@@ -71,7 +71,7 @@ public class TestGLWindows00NEWT extends UITestCase {
             glWindow = GLWindow.create(caps);
             Assert.assertNotNull(glWindow);
         }
-        glWindow.setUpdateFPSFrames(1, System.err);        
+        glWindow.setUpdateFPSFrames(1, null);        
 
         GLEventListener demo = new Gears();
         glWindow.addGLEventListener(demo);
@@ -86,9 +86,8 @@ public class TestGLWindows00NEWT extends UITestCase {
 
     static void destroyWindow(GLWindow glWindow) {
         if(null!=glWindow) {
-            glWindow.invalidate();
+            glWindow.destroy();
             Assert.assertEquals(false,glWindow.isNativeValid());
-            Assert.assertEquals(false,glWindow.isValid());
         }
     }
 
