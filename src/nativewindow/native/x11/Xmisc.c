@@ -154,7 +154,18 @@ static void _initClazzAccess(JNIEnv *env) {
     }
 }
 
-static JNIEnv * x11ErrorHandlerJNIEnv = NULL;
+static JavaVM *jvmHandle = NULL;
+static int jvmVersion = 0;
+static JNIEnv * jvmEnv = NULL;
+
+static void setupJVMVars(JNIEnv * env) {
+    if(0 != (*env)->GetJavaVM(env, &jvmHandle)) {
+        jvmHandle = NULL;
+    }
+    jvmVersion = (*env)->GetVersion(env);
+    jvmEnv = env;
+}
+
 static XErrorHandler origErrorHandler = NULL ;
 static int errorHandlerBlocked = 0 ;
 static int errorHandlerQuiet = 0 ;
@@ -168,7 +179,7 @@ static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
     // Since the X11 Error may happen anytime, a exception could mess up the JVM completely.
     // Experienced this for remote displays issuing non supported commands, eg. glXCreateContextAttribsARB(..)
     //
-    NativewindowCommon_throwNewRuntimeException(x11ErrorHandlerJNIEnv, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s", 
+    NativewindowCommon_throwNewRuntimeException(jvmEnv, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s", 
         dpy, e->error_code, strerror(errno));
 #endif
 
@@ -186,7 +197,7 @@ static void x11ErrorHandlerEnable(Display *dpy, int onoff, JNIEnv * env) {
 
     if(onoff) {
         if(NULL==origErrorHandler) {
-            x11ErrorHandlerJNIEnv = env;
+            setupJVMVars(env);
             if(NULL!=dpy) {
                 XSync(dpy, False);
             }
@@ -216,7 +227,7 @@ static XIOErrorHandler origIOErrorHandler = NULL;
 static int x11IOErrorHandler(Display *dpy)
 {
     fprintf(stderr, "Nativewindow X11 IOError: Display %p (%s): %s\n", dpy, XDisplayName(NULL), strerror(errno));
-    // NativewindowCommon_FatalError(x11ErrorHandlerJNIEnv, "Nativewindow X11 IOError: Display %p (%s): %s", dpy, XDisplayName(NULL), strerror(errno));
+    // NativewindowCommon_FatalError(jvmEnv, "Nativewindow X11 IOError: Display %p (%s): %s", dpy, XDisplayName(NULL), strerror(errno));
     if(NULL!=origIOErrorHandler) {
         origIOErrorHandler(dpy);
     }
@@ -226,7 +237,7 @@ static int x11IOErrorHandler(Display *dpy)
 static void x11IOErrorHandlerEnable(int onoff, JNIEnv * env) {
     if(onoff) {
         if(NULL==origIOErrorHandler) {
-            x11ErrorHandlerJNIEnv = env;
+            setupJVMVars(env);
             origIOErrorHandler = XSetIOErrorHandler(x11IOErrorHandler);
         }
     } else {
