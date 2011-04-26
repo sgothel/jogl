@@ -36,6 +36,10 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.newt.event.KeyAdapter;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.WindowAdapter;
+import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -53,22 +57,36 @@ public class GPUTextNewtDemo01 {
         caps.setNumSamples(4); // 2 samples is not enough ..
         System.out.println("Requested: "+caps);
         
-        GLWindow window = GLWindow.create(caps);        
+        final GLWindow window = GLWindow.create(caps);        
         window.setPosition(10, 10);
         window.setSize(800, 400);
         window.setTitle("GPU Text Newt Demo 01 - r2t0 msaa1");
         
-        RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
+        final RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
         GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, Region.SINGLE_PASS, 0, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
-               
         window.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
-        window.setVisible(true);
-        // FPSAnimator animator = new FPSAnimator(10);
-        Animator animator = new Animator();
+        
+        final Animator animator = new Animator();
         animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
         animator.add(window);
+        
+        window.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent arg0) {
+                if(arg0.getKeyCode() == KeyEvent.VK_F4) {
+                    window.destroy();
+                }
+            }
+        });
+        window.addWindowListener(new WindowAdapter() {
+            public void windowDestroyed(WindowEvent e) {
+                animator.stop();
+            }
+        });
+        
+        window.setVisible(true);
+        // FPSAnimator animator = new FPSAnimator(10);
         animator.start();
     }    
 }

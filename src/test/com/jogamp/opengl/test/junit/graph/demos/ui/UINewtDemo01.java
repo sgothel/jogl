@@ -35,6 +35,10 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.newt.event.KeyAdapter;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.WindowAdapter;
+import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -59,7 +63,7 @@ public class UINewtDemo01 {
         caps.setNumSamples(4);
         System.out.println("Requested: " + caps);
         
-        GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(caps);
         window.setPosition(10, 10);
         window.setSize(800, 400);
         window.setTitle("GPU UI Newt Demo 01");
@@ -71,9 +75,23 @@ public class UINewtDemo01 {
         window.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         window.setVisible(true);
 
-        Animator animator = new Animator();
+        final Animator animator = new Animator();
         animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
         animator.add(window);
+        
+        window.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent arg0) {
+                if(arg0.getKeyCode() == KeyEvent.VK_F4) {
+                    window.destroy();
+                }
+            }
+        });
+        window.addWindowListener(new WindowAdapter() {
+            public void windowDestroyed(WindowEvent e) {
+                animator.stop();
+            }
+        });
+                
         animator.start();
     }    
 }
