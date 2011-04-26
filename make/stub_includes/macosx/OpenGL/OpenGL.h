@@ -3,6 +3,7 @@
 
 /* Typedefs to get things working */
 typedef struct _cglObj* CGLContextObj;
+typedef struct _cglObj* CGLShareGroupObj;
 typedef struct _cglObj* CGLPBufferObj;
 typedef struct _cglObj* CGLPixelFormatObj;
 
@@ -110,7 +111,7 @@ CGLError CGLFlushDrawable ( CGLContextObj ctx);
 CGLError CGLSetParameter ( CGLContextObj ctx, CGLContextParameter pname, const int *params );
 CGLError CGLCopyContext ( CGLContextObj src, CGLContextObj dst, int mask );
 
-
+CGLShareGroupObj CGLGetShareGroup(CGLContextObj ctx);
 
 /* PBuffer manipulation */
 CGLError CGLCreatePBuffer(long width,
