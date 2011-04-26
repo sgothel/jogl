@@ -74,7 +74,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLCanvas"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.GLDebugMessageHandler"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
-    D_ARGS="-Djogl.debug.GLDebugMessageHandler"
+    #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL"
     #D_ARGS="-Dnativewindow.debug.ToolkitLock.TraceLock"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode"
