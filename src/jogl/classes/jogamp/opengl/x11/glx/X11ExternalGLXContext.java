@@ -80,14 +80,13 @@ public class X11ExternalGLXContext extends X11GLXContext {
     // of 0, which doesn't work in a subsequent call to glXChooseFBConfig; if this happens,
     // create and use a default config (this has been observed when running on CentOS 5.5 inside
     // of VMWare Server 2.0 with the Mesa 6.5.1 drivers)
-    if( 0 == X11GLXGraphicsConfiguration.glXFBConfigID2FBConfig(display, x11Screen.getIndex(), val[0]) ) {
+    if( X11GLXGraphicsConfiguration.GLXFBConfigIDValid(display, x11Screen.getIndex(), val[0]) ) {
         GLCapabilities glcapsDefault = new GLCapabilities(GLProfile.getDefault());
         cfg = X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(glcapsDefault, glcapsDefault, null, x11Screen);
         if(DEBUG) {
             System.err.println("X11ExternalGLXContext invalid FBCONFIG_ID "+val[0]+", using default cfg: " + cfg);
         }
-    }
-    else {
+    } else {
         cfg = X11GLXGraphicsConfiguration.create(glp, x11Screen, val[0]);
     }
 

@@ -207,6 +207,11 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
   }
 
   // FBConfig
+    
+  static boolean GLXFBConfigIDValid(long display, int screen, int fbcfgid) {      
+    long fbcfg = X11GLXGraphicsConfiguration.glXFBConfigID2FBConfig(display, screen, fbcfgid);
+    return (0 != fbcfg) ? X11GLXGraphicsConfiguration.GLXFBConfigValid( display, fbcfg ) : false ;
+  }
 
   static boolean GLXFBConfigValid(long display, long fbcfg) {
     int[] tmp = new int[1];

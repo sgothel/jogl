@@ -218,7 +218,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         int screen = x11Screen.getIndex();
 
         long fbcfg = X11GLXGraphicsConfiguration.glXFBConfigID2FBConfig(display, screen, fbID);
-        if( !X11GLXGraphicsConfiguration.GLXFBConfigValid( display, fbcfg ) ) {
+        if( 0 == fbcfg || !X11GLXGraphicsConfiguration.GLXFBConfigValid( display, fbcfg ) ) {
             if(DEBUG) {
                 System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: Failed - GLX FBConfig invalid: ("+x11Screen+","+toHexString(fbID)+"): fbcfg: "+toHexString(fbcfg));
             }
