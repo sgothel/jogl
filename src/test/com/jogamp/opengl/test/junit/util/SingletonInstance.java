@@ -61,10 +61,21 @@ public class SingletonInstance {
 
     public SingletonInstance(String lockFileBasename) {
         this.file = new File ( getCanonicalTempLockFilePath ( lockFileBasename ) );
+        setupFileCleanup();
     }
 
     public SingletonInstance(File lockFile) {
         this.file = lockFile ;
+        setupFileCleanup();
+    }
+
+    void setupFileCleanup() {
+        file.deleteOnExit();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                unlock();
+            }
+        });        
     }
 
     public synchronized void lock(long timeout_ms, long poll_ms) {
@@ -92,14 +103,6 @@ public class SingletonInstance {
             fileLock = randomAccessFile.getChannel().tryLock();
 
             if (fileLock != null) {
-                //final File f_file = file;
-                //final RandomAccessFile f_randomAccessFile = randomAccessFile;
-                //final FileLock f_fileLock = fileLock;
-                Runtime.getRuntime().addShutdownHook(new Thread() {
-                    public void run() {
-                        unlock();
-                    }
-                });
                 locked = true;
                 if(DEBUG) {
                     System.err.println("Locked " + file);
@@ -114,20 +117,29 @@ public class SingletonInstance {
     }
 
     public synchronized boolean unlock() {
-        if(locked) {
-            try {
-                fileLock.release();
-                randomAccessFile.close();
-                file.delete();
-                return true;
-            } catch (Exception e) {
-                System.err.println("Unable to remove lock file: " + file);
-                e.printStackTrace();
-            } finally {
+        try {
+            if(null != fileLock) {
+                if(locked) {
+                    fileLock.release();
+                }
                 fileLock = null;
-                randomAccessFile = null;
-                locked = false;
             }
+            if(null != randomAccessFile) {
+                randomAccessFile.close();
+                randomAccessFile = null;
+            }
+            if(null != file) {
+                file.delete();
+                file = null;
+            }
+            return true;
+        } catch (Exception e) {
+            System.err.println("Unable to remove lock file: " + file);
+            e.printStackTrace();
+        } finally {
+            fileLock = null;
+            randomAccessFile = null;
+            locked = false;
         }
         return false;
     }
