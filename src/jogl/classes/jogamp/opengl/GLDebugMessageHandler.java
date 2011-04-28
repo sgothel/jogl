@@ -78,6 +78,7 @@ public class GLDebugMessageHandler {
     private int extType;
     private long glDebugMessageCallbackProcAddress;
     private boolean extAvailable; 
+    private boolean synchronous;
     
     // licefycle: enable - disable/EOL
     private long handle;
@@ -94,6 +95,7 @@ public class GLDebugMessageHandler {
         this.extType = 0;
         this.extAvailable = false; 
         this.handle = 0;
+        this.synchronous = true;
     }
     
     public void init(boolean enable) {
@@ -176,7 +178,32 @@ public class GLDebugMessageHandler {
     }
     
     /**
-     * @throws GLException if context not current or callback registration failed (enable) 
+     * @see javax.media.opengl.GLContext#isGLDebugSynchronous() 
+     */
+    public final boolean isSynchronous() { return synchronous; }
+    
+    /**
+     * @see javax.media.opengl.GLContext#setGLDebugSynchronous(boolean) 
+     */
+    public final void setSynchronous(boolean synchronous) {
+        this.synchronous = synchronous;
+        if(isEnabled() && isExtensionARB()) {
+            setSynchronousImpl();
+        }
+    }    
+    private final void setSynchronousImpl() {
+        if(synchronous) {
+            ctx.getGL().glEnable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+        } else {
+            ctx.getGL().glDisable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+        }        
+        if(DEBUG) {
+            System.err.println("GLDebugMessageHandler: synchronous "+synchronous);
+        }
+    }
+    
+    /**
+     * @see javax.media.opengl.GLContext#enableGLDebugMessage(boolean) 
      */
     public final void enable(boolean enable) throws GLException {
         ctx.validateCurrent();
@@ -186,6 +213,7 @@ public class GLDebugMessageHandler {
         enableImpl(enable);
     }        
     final void enableImpl(boolean enable) throws GLException {
+        setSynchronousImpl();
         if(enable) {
             if(0 == handle) {
                 handle = register0(glDebugMessageCallbackProcAddress, extType);
@@ -234,9 +262,17 @@ public class GLDebugMessageHandler {
         }
     }
     
-    public static class StdErrGLDebugListener implements GLDebugListener {        
+    public static class StdErrGLDebugListener implements GLDebugListener {
+        boolean threadDump;
+        
+        public StdErrGLDebugListener(boolean threadDump) {
+            this.threadDump = threadDump;
+        }
         public void messageSent(GLDebugMessage event) {
-            System.err.println(event);            
+            System.err.println(event);
+            if(threadDump) {
+                Thread.dumpStack();
+            }
         }        
     }
     

@@ -10,6 +10,7 @@ REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLSimple
 
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.newt.TestParenting01AWT
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cAWT -time 50000
+REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT
 
@@ -34,5 +35,8 @@ REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.caps.TestMultis
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleNEWT -time 10000
 
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn %1 %2 %3 %4
-scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn %1 %2 %3 %4
+REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn %1 %2 %3 %4
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
+
+scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
+REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*

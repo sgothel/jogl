@@ -55,13 +55,15 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestO
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT
 
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01
+REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01
+REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT
-scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT
+REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo02
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo02
 
+scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*

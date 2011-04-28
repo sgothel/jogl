@@ -86,18 +86,17 @@ public class TestGLDebug01NEWT extends UITestCase {
         String glDebugExt = ctx.getGLDebugMessageExtension();
         System.err.println("glDebug extension: "+glDebugExt);
         System.err.println("glDebug enabled: "+ctx.isGLDebugMessageEnabled());
-        System.err.println("glDebug listener: "+ctx.getGLDebugListenerSize());        
+        System.err.println("glDebug sync: "+ ctx.isGLDebugSynchronous());
         System.err.println("context version: "+ctx.getGLVersion());
         
         Assert.assertEquals((null == glDebugExt) ? false : enable, ctx.isGLDebugMessageEnabled());
-        Assert.assertEquals(enable?1:0, ctx.getGLDebugListenerSize());
         if(ctx.isGLDebugMessageEnabled() && null != dbgTstMsg && 0 <= dbgTstId) {
             window.invoke(true, new GLRunnable() {
                 public void run(GLAutoDrawable drawable) {
                     drawable.getContext().glDebugMessageInsert(GL2GL3.GL_DEBUG_SOURCE_APPLICATION_ARB, 
                                                                GL2GL3.GL_DEBUG_TYPE_OTHER_ARB,
                                                                dbgTstId, 
-                                                               GL2GL3.GL_DEBUG_SEVERITY_MEDIUM_ARB, -1, dbgTstMsg);
+                                                               GL2GL3.GL_DEBUG_SEVERITY_MEDIUM_ARB, dbgTstMsg);
                 }
             });
             Assert.assertEquals(true, myGLDebugListener.received());
@@ -183,6 +182,7 @@ public class TestGLDebug01NEWT extends UITestCase {
                                         recSeverity== event.getDbgSeverity() ) {
                 received = true;                
             }
+            Thread.dumpStack();
         }        
     }
 }

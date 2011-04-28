@@ -407,7 +407,7 @@ public abstract class GLContextImpl extends GLContext {
         
         if(DEBUG_GL) {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, gl, null) );
-            glDebugHandler.addListener(new GLDebugMessageHandler.StdErrGLDebugListener());
+            glDebugHandler.addListener(new GLDebugMessageHandler.StdErrGLDebugListener(true));
         }
         if(TRACE_GL) {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) );
@@ -1096,17 +1096,23 @@ public abstract class GLContextImpl extends GLContext {
       return glDebugHandler.isEnabled();
   }
   
-  public int getContextCreationFlags() {
+  public final int getContextCreationFlags() {
       return additionalCtxCreationFlags;                
   }
 
-  public void setContextCreationFlags(int flags) {
+  public final void setContextCreationFlags(int flags) {
       if(!isCreated()) {
           additionalCtxCreationFlags = flags & GLContext.CTX_OPTION_DEBUG;
       }
   }
   
-  public void enableGLDebugMessage(boolean enable) throws GLException {
+  public final boolean isGLDebugSynchronous() { return glDebugHandler.isSynchronous(); }     
+  
+  public final void setGLDebugSynchronous(boolean synchronous) {
+      glDebugHandler.setSynchronous(synchronous);
+  }
+  
+  public final void enableGLDebugMessage(boolean enable) throws GLException {
       if(!isCreated()) {
           if(enable) {
               additionalCtxCreationFlags |=  GLContext.CTX_OPTION_DEBUG;
@@ -1119,19 +1125,15 @@ public abstract class GLContextImpl extends GLContext {
       }
   }
   
-  public void addGLDebugListener(GLDebugListener listener) { 
+  public final void addGLDebugListener(GLDebugListener listener) { 
       glDebugHandler.addListener(listener);
   }
   
-  public void removeGLDebugListener(GLDebugListener listener) {
+  public final void removeGLDebugListener(GLDebugListener listener) {
       glDebugHandler.removeListener(listener);
   }    
   
-  public int getGLDebugListenerSize() {
-      return glDebugHandler.listenerSize();      
-  }
-  
-  public void glDebugMessageControl(int source, int type, int severity, int count, IntBuffer ids, boolean enabled) {
+  public final void glDebugMessageControl(int source, int type, int severity, int count, IntBuffer ids, boolean enabled) {
       if(glDebugHandler.isExtensionARB()) {
           gl.getGL2GL3().glDebugMessageControlARB(source, type, severity, count, ids, enabled);
       } else if(glDebugHandler.isExtensionAMD()) {
@@ -1139,7 +1141,7 @@ public abstract class GLContextImpl extends GLContext {
       }      
   }
   
-  public void glDebugMessageControl(int source, int type, int severity, int count, int[] ids, int ids_offset, boolean enabled) {
+  public final void glDebugMessageControl(int source, int type, int severity, int count, int[] ids, int ids_offset, boolean enabled) {
       if(glDebugHandler.isExtensionARB()) {
           gl.getGL2GL3().glDebugMessageControlARB(source, type, severity, count, ids, ids_offset, enabled);
       } else if(glDebugHandler.isExtensionAMD()) {
@@ -1147,12 +1149,11 @@ public abstract class GLContextImpl extends GLContext {
       }
   }
   
-  public void glDebugMessageInsert(int source, int type, int id, int severity, int length, String buf) {
+  public final void glDebugMessageInsert(int source, int type, int id, int severity, String buf) {
       if(glDebugHandler.isExtensionARB()) {
-          gl.getGL2GL3().glDebugMessageInsertARB(source, type, id, severity, length, buf);
+          gl.getGL2GL3().glDebugMessageInsertARB(source, type, id, severity, -1, buf);
       } else if(glDebugHandler.isExtensionAMD()) {
-          if(0>length) { length = 0; }
-          gl.getGL2GL3().glDebugMessageInsertAMD(GLDebugMessage.translateARB2AMDCategory(source, type), severity, id, length, buf);
+          gl.getGL2GL3().glDebugMessageInsertAMD(GLDebugMessage.translateARB2AMDCategory(source, type), severity, id, 0, buf);
       }      
   }
 }

@@ -111,46 +111,33 @@ public class TestGLDebug00NEWT extends UITestCase {
     }
 
     
-    void test01GLDebug01EnableDisable(boolean enable, String dbgTstMsg, int dbgTstId) throws InterruptedException {
+    void test01GLDebug01EnableDisable(boolean enable) throws InterruptedException {
         GLProfile glp = GLProfile.getDefault();
         
         WindowContext winctx = createWindow(glp, enable);
-        MyGLDebugListener myGLDebugListener = new MyGLDebugListener(dbgTstMsg, dbgTstId);
-        if(enable) {
-            winctx.context.addGLDebugListener(myGLDebugListener);
-        }        
         String glDebugExt = winctx.context.getGLDebugMessageExtension();
         System.err.println("glDebug extension: "+glDebugExt);
         System.err.println("glDebug enabled: "+winctx.context.isGLDebugMessageEnabled());
-        System.err.println("glDebug listener: "+winctx.context.getGLDebugListenerSize());  
+        System.err.println("glDebug sync: "+winctx.context.isGLDebugSynchronous());
         System.err.println("context version: "+winctx.context.getGLVersion());        
         
         Assert.assertEquals((null == glDebugExt) ? false : enable, winctx.context.isGLDebugMessageEnabled());
-        Assert.assertEquals(enable?1:0, winctx.context.getGLDebugListenerSize());
-        
-        if(winctx.context.isGLDebugMessageEnabled() && null != dbgTstMsg && 0 <= dbgTstId) {
-            winctx.context.glDebugMessageInsert(GL2GL3.GL_DEBUG_SOURCE_APPLICATION_ARB, 
-                                                GL2GL3.GL_DEBUG_TYPE_OTHER_ARB,
-                                                dbgTstId, 
-                                                GL2GL3.GL_DEBUG_SEVERITY_MEDIUM_ARB, -1, dbgTstMsg);
-            Assert.assertEquals(true, myGLDebugListener.received());
-        }                
         
         destroyWindow(winctx);
     }
 
     @Test
-    public void test01GLDebug01Disabled() throws InterruptedException {
-        test01GLDebug01EnableDisable(false, null, -1);
+    public void test01GLDebugDisabled() throws InterruptedException {
+        test01GLDebug01EnableDisable(false);
     }
 
     @Test
-    public void test01GLDebug01Enabled() throws InterruptedException {
-        test01GLDebug01EnableDisable(true, dbgTstMsg0, dbgTstId0);
+    public void test01GLDebugEnabled() throws InterruptedException {
+        test01GLDebug01EnableDisable(true);
     }
     
     @Test
-    public void test02GLDebug01Error() throws InterruptedException {
+    public void test02GLDebugError() throws InterruptedException {
         GLProfile glp = GLProfile.getDefault();
         
         WindowContext winctx = createWindow(glp, true);
@@ -172,6 +159,27 @@ public class TestGLDebug00NEWT extends UITestCase {
         destroyWindow(winctx);
     }
     
+    @Test
+    public void test03GLDebugInsert() throws InterruptedException {
+        GLProfile glp = GLProfile.getDefault();
+        WindowContext winctx = createWindow(glp, true);
+        MyGLDebugListener myGLDebugListener = new MyGLDebugListener(dbgTstMsg0, dbgTstId0);
+        winctx.context.addGLDebugListener(myGLDebugListener);
+        
+        String glDebugExt = winctx.context.getGLDebugMessageExtension();        
+        Assert.assertEquals((null == glDebugExt) ? false : true, winctx.context.isGLDebugMessageEnabled());
+        
+        if( winctx.context.isGLDebugMessageEnabled() ) {
+            winctx.context.glDebugMessageInsert(GL2GL3.GL_DEBUG_SOURCE_APPLICATION_ARB, 
+                                                GL2GL3.GL_DEBUG_TYPE_OTHER_ARB,
+                                                dbgTstId0, 
+                                                GL2GL3.GL_DEBUG_SEVERITY_MEDIUM_ARB, dbgTstMsg0);
+            Assert.assertEquals(true, myGLDebugListener.received());
+        }                
+        
+        destroyWindow(winctx);
+    }
+
     
     public static void main(String args[]) throws IOException {
         String tstname = TestGLDebug00NEWT.class.getName();
@@ -214,6 +222,7 @@ public class TestGLDebug00NEWT extends UITestCase {
                                         recSeverity== event.getDbgSeverity() ) {
                 received = true;                
             }
+            Thread.dumpStack();
         }        
     }
 }

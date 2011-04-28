@@ -1,9 +1,21 @@
 
+#include <stdlib.h>
+#include <stdarg.h>
+
 #include "jogamp_opengl_GLDebugMessageHandler.h"
 #include "JoglCommon.h"
 
 #include <GL/gl.h>
 #include <GL/glext.h>
+
+// #define VERBOSE_ON 1
+
+#ifdef VERBOSE_ON
+    #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
+#else
+    #define DBG_PRINT(...)
+#endif
+
 
 static jmethodID glDebugMessageARB = NULL; // int source, int type, int id, int severity, String msg
 static jmethodID glDebugMessageAMD = NULL; // int id, int category, int severity, String msg
@@ -52,6 +64,7 @@ static void GLDebugMessageARBCallback(GLenum source, GLenum type, GLuint id, GLe
     JNIEnv *curEnv = NULL;
     JNIEnv *newEnv = NULL;
     int envRes ;
+    DBG_PRINT("GLDebugMessageARBCallback: 01 - %s\n", message);
 
     // retrieve this thread's JNIEnv curEnv - or detect it's detached
     envRes = (*vm)->GetEnv(vm, (void **) &curEnv, version) ;
@@ -62,6 +75,7 @@ static void GLDebugMessageARBCallback(GLenum source, GLenum type, GLuint id, GLe
             return;
         }
         curEnv = newEnv;
+        DBG_PRINT("GLDebugMessageARBCallback: 02 - attached .. \n");
     } else if( JNI_OK != envRes ) {
         // oops ..
         fprintf(stderr, "GLDebugMessageARBCallback: can't GetEnv: %d\n", envRes);
@@ -73,7 +87,13 @@ static void GLDebugMessageARBCallback(GLenum source, GLenum type, GLuint id, GLe
     if( NULL != newEnv ) {
         // detached attached thread
         (*vm)->DetachCurrentThread(vm);
+        DBG_PRINT("GLDebugMessageARBCallback: 04 - detached .. \n");
     }
+    DBG_PRINT("GLDebugMessageARBCallback: 0X\n");
+    /**
+     * On Java 32bit on 64bit Windows and w/ GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB disables,
+     * the unit test com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT crashes after this point.
+     */
 }
 
 // GLDEBUGAMD(GLuint id,GLenum category,GLenum severity,GLsizei length,const GLchar *message,GLvoid *userParam);
@@ -108,6 +128,10 @@ static void GLDebugMessageAMDCallback(GLuint id, GLenum category, GLenum severit
         // detached attached thread
         (*vm)->DetachCurrentThread(vm);
     }
+    /**
+     * On Java 32bit on 64bit Windows,
+     * the unit test com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT crashes after this point.
+     */
 }
 
 

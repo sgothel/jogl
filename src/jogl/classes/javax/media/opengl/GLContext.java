@@ -539,6 +539,21 @@ public abstract class GLContext {
   public abstract String getGLDebugMessageExtension();
 
   /**
+   * @return the current synchronous debug behavior via
+   * @see #setSynchronous(boolean)
+   */
+  public abstract boolean isGLDebugSynchronous();
+    
+  /**
+   * Enables or disables the synchronous debug behavior via
+   * {@link GL2GL3#GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB glEnable/glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB)}, 
+   * if extension is {@link #GL_ARB_debug_output}.
+   * There is no equivalent for {@link #GL_AMD_debug_output}.
+   * <p> The default is <code>true</code>, ie {@link GL2GL3#GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB}.</p> 
+   */
+  public abstract void setGLDebugSynchronous(boolean synchronous);
+  
+  /**
    * @return true if the GLDebugOutput feature is enabled or not.
    */
   public abstract boolean isGLDebugMessageEnabled();
@@ -586,12 +601,6 @@ public abstract class GLContext {
   public abstract void removeGLDebugListener(GLDebugListener listener);
   
   /**
-   * @return number of added {@link GLDebugListener}. If > 0, the GLDebugFeature is turned on, otherwise off. 
-   * @see #enableGLDebugMessage(boolean) 
-   */
-  public abstract int getGLDebugListenerSize();
-  
-  /**
    * Generic entry for {@link GL2GL3#glDebugMessageControlARB(int, int, int, int, IntBuffer, boolean)} 
    * and {@link GL2GL3#glDebugMessageEnableAMD(int, int, int, IntBuffer, boolean)} of the GLDebugOutput feature.
    * @see #enableGLDebugMessage(boolean) 
@@ -610,7 +619,7 @@ public abstract class GLContext {
    * and {@link GL2GL3#glDebugMessageInsertAMD(int, int, int, int, String)} of the GLDebugOutput feature.
    * @see #enableGLDebugMessage(boolean) 
    */
-  public abstract void glDebugMessageInsert(int source, int type, int id, int severity, int length, String buf);
+  public abstract void glDebugMessageInsert(int source, int type, int id, int severity, String buf);
   
   public static final int GL_VERSIONS[][] = {
       /* 0.*/ { -1 },
