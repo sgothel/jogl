@@ -62,6 +62,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         GLSLMiscHelper.WindowContext winctx = GLSLMiscHelper.createWindow(GLProfile.getGL2ES2(), true);
         GLDrawable drawable = winctx.context.getGLDrawable();
         GL2ES2 gl = winctx.context.getGL().getGL2ES2();
+        System.err.println(winctx.context);
 
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
@@ -116,15 +117,15 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         Assert.assertEquals(st, ShaderState.getShaderState(gl));        
         
-        // setup gcu_PMVMatrix
+        // setup mgl_PMVMatrix
         PMVMatrix pmvMatrix = new PMVMatrix();
-        GLUniformData pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+        GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         st.ownUniform(pmvMatrixUniform);
         
         st.uniform(gl, pmvMatrixUniform);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        Assert.assertEquals(pmvMatrixUniform, st.getUniform("gcu_PMVMatrix"));
+        Assert.assertEquals(pmvMatrixUniform, st.getUniform("mgl_PMVMatrix"));
         
         // Allocate Vertex Array1
         GLArrayDataServer vertices1 = GLSLMiscHelper.createRSVertices1(gl, st);
@@ -153,6 +154,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
         st.uniform(gl, pmvMatrixUniform);
+        gl.glViewport(0, 0, drawable.getWidth(), drawable.getHeight());        
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
         // display #1 vertices0 / colors0 (post-disable)
@@ -184,6 +186,8 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         GLSLMiscHelper.WindowContext winctx = GLSLMiscHelper.createWindow(GLProfile.getGL2ES2(), false);
         GLDrawable drawable = winctx.context.getGLDrawable();
         GL2ES2 gl = winctx.context.getGL().getGL2ES2();
+        System.err.println(winctx.context);
+        gl.setSwapInterval(0);
         
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
@@ -205,9 +209,9 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         st.attachShaderProgram(gl, sp);        
         st.useProgram(gl, true);
         
-        // setup gcu_PMVMatrix
+        // setup mgl_PMVMatrix
         PMVMatrix pmvMatrix = new PMVMatrix();
-        GLUniformData pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());       
+        GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());       
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
         
@@ -233,6 +237,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
         st.uniform(gl, pmvMatrixUniform);
+        gl.glViewport(0, 0, drawable.getWidth(), drawable.getHeight());        
 
         long t0 = System.currentTimeMillis();
         int frames;
@@ -267,7 +272,9 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         GLSLMiscHelper.WindowContext winctx = GLSLMiscHelper.createWindow(GLProfile.getGL2ES2(), false);
         GLDrawable drawable = winctx.context.getGLDrawable();
         GL2ES2 gl = winctx.context.getGL().getGL2ES2();
-
+        System.err.println(winctx.context);
+        gl.setSwapInterval(0);
+        
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
         // test code ..        
@@ -288,9 +295,9 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         st.attachShaderProgram(gl, sp);        
         st.useProgram(gl, true);
         
-        // setup gcu_PMVMatrix
+        // setup mgl_PMVMatrix
         PMVMatrix pmvMatrix = new PMVMatrix();
-        GLUniformData pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+        GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
         
@@ -326,6 +333,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
         st.uniform(gl, pmvMatrixUniform);
+        gl.glViewport(0, 0, drawable.getWidth(), drawable.getHeight());        
 
         // validation ..
         GLSLMiscHelper.displayVCArrays(drawable, gl, st, true, vertices0, colors0, true, 1, 0);

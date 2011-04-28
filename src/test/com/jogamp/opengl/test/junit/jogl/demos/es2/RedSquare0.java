@@ -58,16 +58,16 @@ public class RedSquare0 implements GLEventListener {
         myShader = GLSLSimpleProgram.create(gl, RedSquareShader.VERTEX_SHADER_TEXT, RedSquareShader.FRAGMENT_SHADER_TEXT, true);
         gl.glUseProgram(myShader.getShaderProgram());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        // setup gcu_PMVMatrix
+        // setup mgl_PMVMatrix
         pmvMatrix = new PMVMatrix();
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
-        mgl_PMVMatrix = gl.glGetUniformLocation(myShader.getShaderProgram(), "gcu_PMVMatrix");
+        mgl_PMVMatrix = gl.glGetUniformLocation(myShader.getShaderProgram(), "mgl_PMVMatrix");
         Assert.assertTrue(0 <= mgl_PMVMatrix);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
         pmvMatrixUniform.setLocation(mgl_PMVMatrix);
         gl.glUniform(pmvMatrixUniform);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
