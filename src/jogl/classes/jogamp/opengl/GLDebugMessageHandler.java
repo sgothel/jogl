@@ -192,13 +192,15 @@ public class GLDebugMessageHandler {
         }
     }    
     private final void setSynchronousImpl() {
-        if(synchronous) {
-            ctx.getGL().glEnable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
-        } else {
-            ctx.getGL().glDisable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
-        }        
-        if(DEBUG) {
-            System.err.println("GLDebugMessageHandler: synchronous "+synchronous);
+        if(isExtensionARB()) {
+            if(synchronous) {
+                ctx.getGL().glEnable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+            } else {
+                ctx.getGL().glDisable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+            }        
+            if(DEBUG) {
+                System.err.println("GLDebugMessageHandler: synchronous "+synchronous);
+            }
         }
     }
     
