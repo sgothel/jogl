@@ -95,7 +95,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
                 {
                    try {
                        _glWindow1.invoke(true, _glRunnable);
-                       Thread.yield();
+                       Thread.sleep(100);
                    } catch (Throwable t) {}
                }
             }
@@ -206,7 +206,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
                 {
                    try {
                        _glWindow1.invoke(true, _glRunnable);
-                       Thread.yield();
+                       Thread.sleep(100);
                    } catch (Throwable t) {}
                }
             }

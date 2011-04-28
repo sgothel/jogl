@@ -40,7 +40,7 @@ public class GLRunnableDummy implements GLRunnable {
     float r=0.0f;
     float g=0.0f;
     float b=0.0f;
-    float d=0.001f;
+    float d=0.1f;
 
     public void run(GLAutoDrawable drawable) {
         GL2ES1 gl = drawable.getGL().getGL2ES1();
