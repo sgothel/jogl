@@ -43,6 +43,7 @@ import javax.media.opengl.GLUniformData;
 
 import jogamp.opengl.Debug;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.opengl.util.GLArrayDataEditable;
 
@@ -202,7 +203,11 @@ public class ShaderState {
                 return;
             }
             prgInUse = shaderProgram.inUse();
-            useProgram(gl, false);
+            
+            if(prgInUse && null == prog) {
+                // only disable if in use _and_ no new prog shall be used
+                useProgram(gl, false);
+            }
             resetAllShaderData = true;
         }
 
@@ -936,34 +941,29 @@ public class ShaderState {
             sb = new StringBuilder();
         }
         
-        sb.append("ShaderState[");
-        sb.append(shaderProgram.toString());
-        sb.append(", enabledAttributes: [");
+        sb.append("ShaderState[ ");
+        sb.append(Platform.getNewline()).append(" ").append(shaderProgram.toString());
+        sb.append(Platform.getNewline()).append(" enabledAttributes [");
         for(Iterator<String> iter = enabledAttributes.iterator(); iter.hasNext(); ) {
-            sb.append("\n  ");
-            sb.append((String)iter.next());
+            sb.append(Platform.getNewline()).append("  ").append(iter.next());
         }
-        sb.append("], activeAttributes [");
+        sb.append(Platform.getNewline()).append(" ],").append(" activeAttributes [");
         for(Iterator<GLArrayData> iter = activeAttribDataMap.values().iterator(); iter.hasNext(); ) {
-            sb.append("\n  ");
-            sb.append(iter.next());
+            sb.append(Platform.getNewline()).append("  ").append(iter.next());
         }
-        sb.append("], managedAttributes [");
+        sb.append(Platform.getNewline()).append(" ],").append(" managedAttributes [");
         for(Iterator<GLArrayData> iter = managedAttributes.iterator(); iter.hasNext(); ) {
-            sb.append("\n  ");
-            sb.append(iter.next());
+            sb.append(Platform.getNewline()).append("  ").append(iter.next());
         }
-        sb.append("], activeUniforms [");
+        sb.append(Platform.getNewline()).append(" ],").append(" activeUniforms [");
         for(Iterator<GLUniformData> iter=activeUniformDataMap.values().iterator(); iter.hasNext(); ) {
-            sb.append("\n  ");
-            sb.append(iter.next());
+            sb.append(Platform.getNewline()).append("  ").append(iter.next());
         }
-        sb.append("], managedUniforms [");
+        sb.append(Platform.getNewline()).append(" ],").append(" managedUniforms [");
         for(Iterator<GLUniformData> iter = managedUniforms.iterator(); iter.hasNext(); ) {
-            sb.append("\n  ");
-            sb.append(iter.next());
+            sb.append(Platform.getNewline()).append("  ").append(iter.next());
         }
-        sb.append("]");
+        sb.append(Platform.getNewline()).append(" ]").append(Platform.getNewline()).append("]");
         return sb;
     }
     

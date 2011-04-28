@@ -30,6 +30,8 @@ package com.jogamp.opengl.util.glsl;
 
 import javax.media.opengl.*;
 
+import com.jogamp.common.os.Platform;
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.io.PrintStream;
@@ -262,18 +264,23 @@ public class ShaderProgram {
         return id;
     }
 
-    public String toString() {
-        StringBuffer buf = new StringBuffer();
-        buf.append("ShaderProgram[id="+id);
-        buf.append(", linked="+programLinked+", inUse="+programInUse+", program: "+shaderProgram+", [");
-        for(Iterator<ShaderCode> iter=allShaderCode.iterator(); iter.hasNext(); ) {
-            buf.append(iter.next());
-            buf.append(" ");
+    public StringBuilder toString(StringBuilder sb) {
+        if(null == sb) {
+            sb = new StringBuilder();
         }
-        buf.append("]");
-        return buf.toString();
+        sb.append("ShaderProgram[id=").append(id);
+        sb.append(", linked="+programLinked+", inUse="+programInUse+", program: "+shaderProgram+",");
+        for(Iterator<ShaderCode> iter=allShaderCode.iterator(); iter.hasNext(); ) {
+            sb.append(Platform.getNewline()).append("   ").append(iter.next());
+        }
+        sb.append("]");
+        return sb;
     }
-
+        
+    public String toString() {
+        return toString(null).toString();
+    }
+    
     protected synchronized void useProgram(GL2ES2 gl, boolean on) {
         if(!programLinked) throw new GLException("Program is not linked");
         if(programInUse==on) return;

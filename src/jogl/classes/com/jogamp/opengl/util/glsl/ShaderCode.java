@@ -245,7 +245,7 @@ public class ShaderCode {
         return id;
     }
     public String toString() {
-        StringBuffer buf = new StringBuffer("ShaderCode [id="+id+", type="+shaderTypeStr()+", valid="+valid+", shader: ");
+        StringBuffer buf = new StringBuffer("ShaderCode[id="+id+", type="+shaderTypeStr()+", valid="+valid+", shader: ");
         for(int i=0; i<shader.remaining(); i++) {
             buf.append(" "+shader.get(i));
         }
