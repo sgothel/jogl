@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
+import java.util.Date;
 
 public class SingletonInstance {
 
@@ -59,16 +60,20 @@ public class SingletonInstance {
         return getCanonicalTempPath() + File.separator + basename;
     }
 
-    public SingletonInstance(String lockFileBasename) {
+    public SingletonInstance(String name, String lockFileBasename) {
+        this.name = name;
         this.file = new File ( getCanonicalTempLockFilePath ( lockFileBasename ) );
         setupFileCleanup();
     }
 
-    public SingletonInstance(File lockFile) {
+    public SingletonInstance(String name, File lockFile) {
+        this.name = name;
         this.file = lockFile ;
         setupFileCleanup();
     }
 
+    public String getName() { return name; }
+    
     void setupFileCleanup() {
         file.deleteOnExit();
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -86,7 +91,7 @@ public class SingletonInstance {
                     return;
                 }
                 if(DEBUG && 0==i) {
-                    System.err.println("Wait for lock " + file);
+                    System.err.println("SLOCK "+System.currentTimeMillis()+" ??? "+name+" - Wait for lock " + file);
                 }
                 i++;
                 Thread.sleep(poll_ms);
@@ -94,7 +99,7 @@ public class SingletonInstance {
         } catch ( InterruptedException ie ) {
             throw new  RuntimeException(ie);
         }
-        throw new RuntimeException("SingletonInstance couldn't get lock within "+timeout_ms+"ms");
+        throw new RuntimeException("SLOCK "+System.currentTimeMillis()+" EEE "+name+" - couldn't get lock within "+timeout_ms+"ms");
     }
 
     public synchronized boolean tryLock() {
@@ -105,12 +110,12 @@ public class SingletonInstance {
             if (fileLock != null) {
                 locked = true;
                 if(DEBUG) {
-                    System.err.println("Locked " + file);
+                    System.err.println("SLOCK "+System.currentTimeMillis()+" +++ "+name+" - Locked " + file);
                 }
                 return true;
             }
         } catch (Exception e) {
-            System.err.println("Unable to create and/or lock file: " + file);
+            System.err.println("SLOCK "+System.currentTimeMillis()+" EEE "+name+" - Unable to create and/or lock file: " + file);
             e.printStackTrace();
         }
         return false;
@@ -121,6 +126,9 @@ public class SingletonInstance {
             if(null != fileLock) {
                 if(locked) {
                     fileLock.release();
+                    if(DEBUG) {
+                        System.err.println("SLOCK "+System.currentTimeMillis()+" --- "+name+" - Unlocked " + file);
+                    }        
                 }
                 fileLock = null;
             }
@@ -134,7 +142,7 @@ public class SingletonInstance {
             }
             return true;
         } catch (Exception e) {
-            System.err.println("Unable to remove lock file: " + file);
+            System.err.println("SLOCK "+System.currentTimeMillis()+" EEE "+name+" - Unable to remove lock file: " + file);
             e.printStackTrace();
         } finally {
             fileLock = null;
@@ -148,6 +156,7 @@ public class SingletonInstance {
         return locked;
     }
 
+    String name;
     File file = null;
     RandomAccessFile randomAccessFile = null;
     FileLock fileLock = null;
