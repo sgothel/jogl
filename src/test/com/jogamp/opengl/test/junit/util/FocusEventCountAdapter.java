@@ -28,49 +28,7 @@
  
 package com.jogamp.opengl.test.junit.util;
 
-import com.jogamp.newt.event.KeyAdapter;
-import com.jogamp.newt.event.KeyEvent;
-
-public class NEWTKeyAdapter extends KeyAdapter implements InputEventCountAdapter {
-
-    String prefix;
-    int keyTyped;
-    boolean pressed;
-
-    public NEWTKeyAdapter(String prefix) {
-        this.prefix = prefix;
-        reset();
-    }
-
-    public boolean isPressed() {
-        return pressed;
-    }
-    
-    public int getCount() {
-        return keyTyped;
-    }
-
-    public void reset() {
-        keyTyped = 0;
-        pressed = false;
-    }
-
-    public void keyPressed(KeyEvent e) {
-        pressed = true;
-        System.err.println("NEWT AWT PRESSED ["+pressed+"]: "+prefix+", "+e);
-    }
-    
-    public void keyReleased(KeyEvent e) {
-        pressed = false;
-        System.err.println("NEWT AWT RELEASED ["+pressed+"]: "+prefix+", "+e);
-    }
-     
-    @Override
-    public void keyTyped(KeyEvent e) {
-        ++keyTyped;
-        System.err.println("KEY NEWT TYPED ["+keyTyped+"]: "+prefix+", "+e);
-    }
-    
-    public String toString() { return prefix+"[pressed "+pressed+", typed "+keyTyped+"]"; }
+public interface FocusEventCountAdapter extends EventCountAdapter {
+    boolean hasFocus();
 }
 

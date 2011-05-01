@@ -32,23 +32,27 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Rule;
+import org.junit.rules.TestName;
 
 
 public abstract class UITestCase {
+    @Rule public TestName _unitTestName = new TestName();
 
     public static final String SINGLE_INSTANCE_LOCK_FILE = "UITestCase.lock";
 
-    static SingletonInstance singletonInstance;
+    static volatile SingletonInstance singletonInstance;
 
-    protected SingletonInstance getSingletonInstance() {
-        return singletonInstance;
+    private final synchronized void initSingletonInstance() {
+        if( null == singletonInstance )  {
+            singletonInstance = new SingletonInstance(getClass().getName(), SINGLE_INSTANCE_LOCK_FILE);
+            singletonInstance.lock(3*60*1000, 1000); // wait up to 3 min, poll every 1s            
+        }
     }
 
     @BeforeClass
     public static void oneTimeSetUp() {
-        // one-time initialization code        
-        singletonInstance = new SingletonInstance(SINGLE_INSTANCE_LOCK_FILE);
-        singletonInstance.lock(3*60*1000, 100); // wait up to 3 min, poll every 100ms
+        // one-time initialization code                
     }
 
     @AfterClass
@@ -60,12 +64,13 @@ public abstract class UITestCase {
 
     @Before
     public void setUp() {
-        System.err.println("++++ UITestCase.setUp: "+getClass().getName());
+        initSingletonInstance();
+        System.err.println("++++ UITestCase.setUp: "+getClass().getName()+" - "+_unitTestName.getMethodName());
     }
 
     @After
     public void tearDown() {
-        System.err.println("++++ UITestCase.tearDown: "+getClass().getName());
+        System.err.println("++++ UITestCase.tearDown: "+getClass().getName()+" - "+_unitTestName.getMethodName());
     }
 
 }

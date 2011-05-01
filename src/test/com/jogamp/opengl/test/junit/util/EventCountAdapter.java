@@ -29,8 +29,6 @@
 package com.jogamp.opengl.test.junit.util;
 
 public interface EventCountAdapter {
-
-    int getCount();
     void reset();
 }
 

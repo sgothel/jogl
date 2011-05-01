@@ -31,10 +31,10 @@ package com.jogamp.opengl.test.junit.util;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
-public class AWTFocusAdapter implements EventCountAdapter, FocusListener {
+public class AWTFocusAdapter implements FocusEventCountAdapter, FocusListener {
 
     String prefix;
-    int focusGained;
+    boolean focusGained;
     boolean wasTemporary;
 
     public AWTFocusAdapter(String prefix) {
@@ -42,13 +42,12 @@ public class AWTFocusAdapter implements EventCountAdapter, FocusListener {
         reset();
     }
 
-    /** @return the balance of focus gained/lost, ie should be 0 or 1 */
-    public int getCount() {
+    public boolean hasFocus() {
         return focusGained;
     }
-
+    
     public void reset() {
-        focusGained = 0;
+        focusGained = false;
         wasTemporary = false;
     }
 
@@ -59,15 +58,17 @@ public class AWTFocusAdapter implements EventCountAdapter, FocusListener {
 
     /* @Override */
     public void focusGained(FocusEvent e) {
-        ++focusGained;
+        focusGained = true;
         wasTemporary = e.isTemporary();
         System.err.println("FOCUS AWT  GAINED "+(wasTemporary?"TEMP":"PERM")+" ["+focusGained+"]: "+prefix+", "+e);
     }
 
     /* @Override */
     public void focusLost(FocusEvent e) {
-        --focusGained;
+        focusGained = false;
         wasTemporary = e.isTemporary();
         System.err.println("FOCUS AWT  LOST   "+(wasTemporary?"TEMP":"PERM")+" ["+focusGained+"]: "+prefix+", "+e);
     }
+    
+    public String toString() { return prefix+"[gained "+focusGained +", temp "+wasTemporary+"]"; }    
 }

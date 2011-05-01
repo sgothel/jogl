@@ -45,6 +45,7 @@
         <delete includeEmptyDirs="true" quiet="true">
             <fileset dir="${build.test}" />
             <fileset dir="." includes="*.tga" />
+            <fileset file="${jogl.test.jar}" />
         </delete>
     </target>
 
