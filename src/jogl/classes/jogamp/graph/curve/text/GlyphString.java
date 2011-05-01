@@ -29,6 +29,7 @@ package jogamp.graph.curve.text;
 
 import java.util.ArrayList;
 
+import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
@@ -38,6 +39,7 @@ import com.jogamp.graph.geom.opengl.SVertex;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLUniformData;
 
+import jogamp.graph.font.FontInt;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 import jogamp.graph.geom.plane.PathIterator;
@@ -45,6 +47,7 @@ import jogamp.graph.geom.plane.PathIterator;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.RegionFactory;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.font.Font;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 import java.util.Collection;
@@ -58,11 +61,17 @@ public class GlyphString
     extends ArrayList<GlyphShape>
 {
 
-    private String str = "";
-    private String fontname = "";
+    private TextRenderer renderer;
+    private AffineTransform transform;
+    private FontInt font;
+    private int fontSize;
+    private String fontname;
+    private StringBuilder string;
     private Region region;
-    
-    private SVertex origin = new SVertex();
+    /*
+     * Cache object, at least until we expose 'transform'.
+     */    
+    private Vertex origin;
     /**
      * Require generateRegion for Region (clear).  Edits not captured
      * by Region are those that drop triangles or vertices.
@@ -76,19 +85,41 @@ public class GlyphString
 
 
     /** Create a new GlyphString object
-     * @param fontname the name of the font that this String is
-     * associated with
-     * @param str the string object
+     * @param renderer {@link Renderer} context
+     * @param font {@link Font} to be used
+     * @param size Font size in pixels
+     * @param str {@link String} to be created
      */
-    public GlyphString(String fontname, String str){
+    public GlyphString(TextRenderer renderer, Font font, int size, String string){
         super();
-        this.fontname = fontname;
-        this.str = str;
+        if (null != renderer && (font instanceof FontInt) && 0 < size){
+            this.renderer = renderer;
+            this.font = (FontInt)font;
+            this.fontSize = size;
+            this.fontname = font.getName(Font.NAME_UNIQUNAME);
+            this.transform = new AffineTransform(renderer.getRenderState().getPointFactory());
+            if (null != string){
+                final int strlen = string.length();
+                if (0 < strlen){
+                    this.string = new StringBuilder(string);
+
+                    Path2D[] paths = new Path2D[strlen];
+                    ((FontInt)font).getOutline(string, size, this.transform, paths);
+                    this.add(paths);
+                }
+                else
+                    this.string = new StringBuilder();
+            }
+            else
+                this.string = new StringBuilder();
+        }
+        else
+            throw new IllegalArgumentException();
     }
 
 
     public String getString(){
-        return str;
+        return this.string.toString();
     }
     /**
      * @return Require call to {@link #generateRegion} to capture edits
@@ -96,26 +127,33 @@ public class GlyphString
     public boolean isDirty(){
         return this.dirty;
     }
-    /** Creates the Curve based Glyphs from a Font 
-     * @param pointFactory TODO
-     * @param paths a list of FontPath2D objects that define the outline
-     * @param affineTransform a global affine transformation applied to the paths.
+    /** Creates curve based Glyphs from Font paths
+     * 
+     * @param paths a list that defines the outline
+     * @return Modified this list
      */
-    public void createfromFontPath(Factory<? extends Vertex> pointFactory, Path2D[] paths, AffineTransform affineTransform) {
-        final int numGlyps = paths.length;
+    public boolean add(Path2D... paths) {
+        boolean mod = false;
+        if (null != paths){
+            Factory<? extends Vertex> pointFactory = this.renderer.getRenderState().getPointFactory();
 
-        for (int index=0;index<numGlyps;index++){
-            if ( null != paths[index]){
+            final int numGlyps = paths.length;
 
-                PathIterator iterator = paths[index].iterator(affineTransform);
-                GlyphShape glyphShape = new GlyphShape(pointFactory, iterator);
+            for (int index=0;index<numGlyps;index++){
+                if ( null != paths[index]){
+
+                    PathIterator iterator = paths[index].iterator(this.transform);
+
+                    GlyphShape glyphShape = new GlyphShape(pointFactory, iterator);
             
-                if ( 2 < glyphShape.getNumVertices()) {
+                    if ( 2 < glyphShape.getNumVertices()) {
 
-                    this.add(glyphShape);
+                        mod = (this.add(glyphShape) || mod);
+                    }
                 }
             }
         }
+        return mod;
     }
     /**
      * Region data set
@@ -211,12 +249,12 @@ public class GlyphString
             this.region.update(gl);
         }
     }
-    
+
     /** Generate a Hashcode for this object 
      * @return a string defining the hashcode
      */
     public String getTextHashCode(){
-        return "" + fontname.hashCode() + str.hashCode();
+        return "" + fontname.hashCode() + this.hashCode();
     }
 
     /** Render the Object based using the associated Region
@@ -236,6 +274,11 @@ public class GlyphString
      * @return 
      */
     public Vertex getOrigin() {
+        Vertex origin = this.origin;
+        if (null == origin){
+            origin = new SVertex(this.transform.getTranslateX(),this.transform.getTranslateY());
+            this.origin = origin;
+        }
         return origin;
     }
 
@@ -367,15 +410,27 @@ public class GlyphString
     @Override
     public void clear(){
         this.dirty = (null != this.region);
+        this.string.setLength(0);
         super.clear();
     }
     public boolean isNotEmpty(){
         return (0 < this.size());
     }
+    /**
+     * @return Clone requiring generateRegion
+     * @see #generateRegion
+     */
     public GlyphString clone(){
         GlyphString clone = (GlyphString)super.clone();
         clone.region = null;
         clone.dirty = false;
+        clone.transform = clone.transform.clone();
         return clone;
     }
+    public String toString(){
+        return this.string.toString();
+    }
+    /*
+     * Not defining hashCode or equals for instance object identity
+     */
 }
