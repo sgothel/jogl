@@ -55,7 +55,8 @@ public class AWTRobotUtil {
     public static int TIME_OUT     = 1000; // 1s
     public static int POLL_DIVIDER   = 20; // TO/20
     public static int TIME_SLICE   = TIME_OUT / POLL_DIVIDER ;
-
+    public static Integer AWT_CLICK_TO = null; 
+    
     public static Point getCenterLocation(Object obj) 
         throws InterruptedException, InvocationTargetException {
         Component comp = null;
@@ -148,6 +149,23 @@ public class AWTRobotUtil {
         robot.delay(ROBOT_DELAY);
     }
 
+    public static int getClickTimeout(Object obj) {
+        if(obj instanceof com.jogamp.newt.Window) {
+            return com.jogamp.newt.event.MouseEvent.getClickTimeout();
+        } else if(obj instanceof Component) {
+            if(null == AWT_CLICK_TO) {
+                AWT_CLICK_TO =
+                    (Integer) Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval");
+                if(null == AWT_CLICK_TO) { 
+                    AWT_CLICK_TO = new Integer(500);
+                }
+            }
+            return AWT_CLICK_TO.intValue();
+        } else {
+            throw new RuntimeException("Neither AWT nor NEWT: "+obj);
+        }        
+    }
+    
     /**
      * requestFocus, if robot is valid, use mouse operation,
      * otherwise programatic, ie call requestFocus
@@ -356,7 +374,7 @@ public class AWTRobotUtil {
             robot.setAutoWaitForIdle(true);
         }
 
-        final int clickTO = com.jogamp.newt.event.MouseEvent.getClickTimeout();
+        final int clickTO = getClickTimeout(obj);
 
         centerMouse(robot, obj);
 
