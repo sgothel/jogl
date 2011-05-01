@@ -28,26 +28,46 @@
  
 package com.jogamp.opengl.test.junit.util;
 
-public class AWTMouseAdapter extends java.awt.event.MouseAdapter implements EventCountAdapter {
+import java.awt.event.MouseEvent;
+
+public class AWTMouseAdapter extends java.awt.event.MouseAdapter implements InputEventCountAdapter {
     String prefix;
     int mouseClicked;
+    boolean pressed;
 
     public AWTMouseAdapter(String prefix) {
         this.prefix = prefix;
         reset();
     }
 
+    public boolean isPressed() {
+        return pressed;
+    }
+    
     public int getCount() {
         return mouseClicked;
     }
-
+    
     public void reset() {
         mouseClicked = 0;
+        pressed = false;
     }
 
+    public void mousePressed(MouseEvent e) {
+        pressed = true;
+        System.err.println("MOUSE AWT PRESSED ["+pressed+"]: "+prefix+", "+e);
+    }
+
+    public void mouseReleased(MouseEvent e) {
+        pressed = false;
+        System.err.println("MOUSE AWT RELEASED ["+pressed+"]: "+prefix+", "+e);
+    }
+    
     public void mouseClicked(java.awt.event.MouseEvent e) {
         mouseClicked+=e.getClickCount();
         System.err.println("MOUSE AWT CLICKED ["+mouseClicked+"]: "+prefix+", "+e);
-    }
+    }    
+    
+    public String toString() { return prefix+"[pressed "+pressed+", clicked "+mouseClicked+"]"; }
 }
 

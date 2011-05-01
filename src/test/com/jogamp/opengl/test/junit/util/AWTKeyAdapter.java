@@ -28,27 +28,47 @@
  
 package com.jogamp.opengl.test.junit.util;
 
-public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements EventCountAdapter {
+import java.awt.event.KeyEvent;
+
+public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements InputEventCountAdapter {
 
     String prefix;
     int keyTyped;
+    boolean pressed;
 
     public AWTKeyAdapter(String prefix) {
         this.prefix = prefix;
         reset();
     }
 
+    public boolean isPressed() {
+        return pressed;
+    }
+    
     public int getCount() {
         return keyTyped;
     }
 
     public void reset() {
         keyTyped = 0;
+        pressed = false;
+    }
+
+    public void keyPressed(KeyEvent e) {
+        pressed = true;
+        System.err.println("KEY AWT PRESSED ["+pressed+"]: "+prefix+", "+e);
+    }
+
+    public void keyReleased(KeyEvent e) {
+        pressed = false;
+        System.err.println("KEY AWT RELEASED ["+pressed+"]: "+prefix+", "+e);
     }
 
     public void keyTyped(java.awt.event.KeyEvent e) {
         ++keyTyped;
         System.err.println("KEY AWT  TYPED ["+keyTyped+"]: "+prefix+", "+e);
     }
+    
+    public String toString() { return prefix+"[pressed "+pressed+", typed "+keyTyped+"]"; }
 }
 

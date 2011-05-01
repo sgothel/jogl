@@ -31,27 +31,45 @@ package com.jogamp.opengl.test.junit.util;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 
-public class NEWTMouseAdapter extends MouseAdapter implements EventCountAdapter {
+public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAdapter {
 
     String prefix;
     int mouseClicked;
+    boolean pressed;
 
     public NEWTMouseAdapter(String prefix) {
         this.prefix = prefix;
         reset();
     }
 
+    public boolean isPressed() {
+        return pressed;
+    }
+    
     public int getCount() {
         return mouseClicked;
     }
 
     public void reset() {
         mouseClicked = 0;
+        pressed = false;
     }
 
+    public void mousePressed(MouseEvent e) {
+        pressed = true;
+        System.err.println("MOUSE NEWT PRESSED ["+pressed+"]: "+prefix+", "+e);
+    }
+    
+    public void mouseReleased(MouseEvent e) {
+        pressed = false;
+        System.err.println("MOUSE NEWT RELEASED ["+pressed+"]: "+prefix+", "+e);
+    }
+    
     public void mouseClicked(MouseEvent e) {
         mouseClicked+=e.getClickCount();
         System.err.println("MOUSE NEWT CLICKED ["+mouseClicked+"]: "+prefix+", "+e);
     }
+    
+    public String toString() { return prefix+"[pressed "+pressed+", clicked "+mouseClicked+"]"; }
 }
 

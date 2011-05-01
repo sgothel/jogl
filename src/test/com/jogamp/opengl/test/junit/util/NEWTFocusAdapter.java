@@ -28,37 +28,44 @@
  
 package com.jogamp.opengl.test.junit.util;
 
-import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
+import com.jogamp.newt.event.WindowListener;
+import com.jogamp.newt.event.WindowUpdateEvent;
 
-public class NEWTFocusAdapter extends WindowAdapter implements EventCountAdapter {
+public class NEWTFocusAdapter implements WindowListener, FocusEventCountAdapter {
 
     String prefix;
-    int focusGained;
+    boolean focusGained;
 
     public NEWTFocusAdapter(String prefix) {
         this.prefix = prefix;
         reset();
     }
 
-    public int getCount() {
+    public boolean hasFocus() {
         return focusGained;
     }
-
+    
     public void reset() {
-        focusGained = 0;
+        focusGained = false;
     }
 
-    @Override
     public void windowGainedFocus(WindowEvent e) {
-        ++focusGained;
+        focusGained = true;
         System.err.println("FOCUS NEWT GAINED ["+focusGained+"]: "+prefix+", "+e);
     }
 
-    @Override
     public void windowLostFocus(WindowEvent e) {
-        --focusGained;
+        focusGained = false;
         System.err.println("FOCUS NEWT LOST   ["+focusGained+"]: "+prefix+", "+e);
     }
+
+    public void windowResized(WindowEvent e) { }
+    public void windowMoved(WindowEvent e) { }
+    public void windowDestroyNotify(WindowEvent e) { }
+    public void windowDestroyed(WindowEvent e) { }
+    public void windowRepaint(WindowUpdateEvent e) { }
+    
+    public String toString() { return prefix+"[gained "+focusGained+"]"; }        
 }
 
