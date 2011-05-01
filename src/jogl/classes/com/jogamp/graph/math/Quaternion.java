@@ -29,14 +29,19 @@ package com.jogamp.graph.math;
 
 import jogamp.graph.math.MathFloat;
 
-public class Quaternion {
+public class Quaternion
+    extends Object
+    implements Cloneable
+{
+
     protected float x,y,z,w;
 
-    public Quaternion(){
 
+    public Quaternion(){
+        super();
     }
-    
     public Quaternion(float x, float y, float z, float w) {
+        super();
         this.x = x;
         this.y = y;
         this.z = z;
@@ -378,5 +383,14 @@ public class Quaternion {
     }
     private float determinant(float[] m) {
           return m[0]*m[4]*m[8] + m[3]*m[7]*m[2] + m[6]*m[1]*m[5] - m[0]*m[7]*m[5] - m[3]*m[1]*m[8] - m[6]*m[4]*m[2];
+    }
+    public Quaternion clone(){
+        try {
+            Quaternion clone = (Quaternion)super.clone();
+            return clone;
+        }
+        catch (CloneNotSupportedException exc){
+            throw new InternalError();
+        }
     }
 }

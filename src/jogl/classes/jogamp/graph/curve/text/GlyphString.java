@@ -47,13 +47,19 @@ import com.jogamp.graph.curve.RegionFactory;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class GlyphString {
-    private ArrayList<GlyphShape> glyphs = new ArrayList<GlyphShape>();
+/**
+ * 
+ */
+public class GlyphString
+    extends ArrayList<GlyphShape>
+{
+
     private String str = "";
     private String fontname = "";
     private Region region;
     
     private SVertex origin = new SVertex();
+
 
     /** Create a new GlyphString object
      * @param fontname the name of the font that this String is
@@ -61,13 +67,12 @@ public class GlyphString {
      * @param str the string object
      */
     public GlyphString(String fontname, String str){
+        super();
         this.fontname = fontname;
         this.str = str;
     }
-    
-    public void addGlyphShape(GlyphShape glyph){
-        glyphs.add(glyph);
-    }
+
+
     public String getString(){
         return str;
     }
@@ -79,23 +84,27 @@ public class GlyphString {
      */
     public void createfromFontPath(Factory<? extends Vertex> pointFactory, Path2D[] paths, AffineTransform affineTransform) {
         final int numGlyps = paths.length;
+
         for (int index=0;index<numGlyps;index++){
-            if(paths[index] == null){
-                continue;
-            }
-            PathIterator iterator = paths[index].iterator(affineTransform);
-            GlyphShape glyphShape = new GlyphShape(pointFactory, iterator);
+            if ( null != paths[index]){
+
+                PathIterator iterator = paths[index].iterator(affineTransform);
+                GlyphShape glyphShape = new GlyphShape(pointFactory, iterator);
             
-            if(glyphShape.getNumVertices() < 3) {
-                continue;
-            }            
-            addGlyphShape(glyphShape);
+                if ( 2 < glyphShape.getNumVertices()) {
+
+                    this.add(glyphShape);
+                }
+            }
         }
     }
-    
-    private ArrayList<Triangle> initializeTriangles(float sharpness){
+    /**
+     * @param sharpness 
+     * @return Triangulation for glyph string
+     */    
+    protected ArrayList<Triangle> triangulate(float sharpness){
         ArrayList<Triangle> triangles = new ArrayList<Triangle>();
-        for(GlyphShape glyph:glyphs){
+        for(GlyphShape glyph: this){
             ArrayList<Triangle> tris = glyph.triangulate(sharpness);
             triangles.addAll(tris);
         }
@@ -108,23 +117,34 @@ public class GlyphString {
      * @param st shader state
      */
     public void generateRegion(GL2ES2 gl, RenderState rs, int type){
-        region = RegionFactory.create(rs, type);
-        region.setFlipped(true);
+
+        if (null == this.region){
+
+            this.region = RegionFactory.create(rs, type);
+            this.region.setFlipped(true);
         
-        ArrayList<Triangle> tris = initializeTriangles(rs.getSharpness().floatValue());
-        region.addTriangles(tris);
+            ArrayList<Triangle> tris = this.triangulate(rs.getSharpness().floatValue());
+            this.region.addTriangles(tris);
         
-        int numVertices = region.getNumVertices();
-        for(GlyphShape glyph:glyphs){
-            ArrayList<Vertex> gVertices = glyph.getVertices();
-            for(Vertex vert:gVertices){
-                vert.setId(numVertices++);
+            int numVertices = this.region.getNumVertices();
+            for(GlyphShape glyph: this){
+                ArrayList<Vertex> gVertices = glyph.getVertices();
+                for(Vertex vert: gVertices){
+                    vert.setId(numVertices++);
+                }
+                this.region.addVertices(gVertices);
             }
-            region.addVertices(gVertices);
+            /*
+             * initialize the region
+             */
+            this.region.update(gl);
         }
-        
-        /** initialize the region */
-        region.update(gl);
+        else if (this.region.isDirty()){
+            /*
+             * clean the region
+             */
+            this.region.update(gl);
+        }
     }
     
     /** Generate a Hashcode for this object 
@@ -158,10 +178,23 @@ public class GlyphString {
      * @param rs TODO
      */
     public void destroy(GL2ES2 gl, RenderState rs){
-        region.destroy(gl, rs);
+        if (null != this.region){
+            this.region.destroy(gl, rs);
+        }
     }
     
     public AABBox getBounds(){
-        return region.getBounds();
+        if (null != this.region)
+            return this.region.getBounds();
+        else {
+            /*
+             * [TODO] Review this use case for expected frequency
+             */
+            AABBox bbox = new AABBox();
+            for (GlyphShape glyph: this){
+                bbox.resize(glyph.getBounds());
+            }
+            return bbox;
+        }
     }
 }

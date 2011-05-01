@@ -30,6 +30,7 @@ package jogamp.graph.curve.text;
 import java.util.ArrayList;
 
 import jogamp.graph.geom.plane.PathIterator;
+import static jogamp.graph.geom.plane.PathIterator.*;
 
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
@@ -37,17 +38,22 @@ import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.math.Quaternion;
 
-public class GlyphShape {
+/**
+ * 
+ */
+public class GlyphShape
+    extends OutlineShape
+{
     
     private Quaternion quat= null;
     private int numVertices = 0;
-    private OutlineShape shape = null;
+
     
     /** Create a new Glyph shape
      * based on Parametric curve control polyline
      */
     public GlyphShape(Vertex.Factory<? extends Vertex> factory){
-        shape = new OutlineShape(factory);
+        super(factory);
     }
     
     /** Create a GlyphShape from a font Path Iterator
@@ -62,39 +68,42 @@ public class GlyphShape {
             while(!pathIterator.isDone()){
                 float[] coords = new float[6];
                 int segmentType = pathIterator.currentSegment(coords);
-                addOutlineVerticesFromGlyphVector(coords, segmentType);
+                this.addOutlineVerticesFromGlyphVector(coords, segmentType);
 
                 pathIterator.next();
             }
         }
-        shape.transformOutlines(OutlineShape.QUADRATIC_NURBS);
+        this.transformOutlines(VerticesState.NURBS);
     }
     
-    public final Vertex.Factory<? extends Vertex> vertexFactory() { return shape.vertexFactory(); }
+
     
     private void addVertexToLastOutline(Vertex vertex){
-        shape.addVertex(vertex);
+        this.addVertex(vertex);
     }
     
     private void addOutlineVerticesFromGlyphVector(float[] coords, int segmentType){
-        if(segmentType == PathIterator.SEG_MOVETO){
-            if(!shape.getLastOutline().isEmpty()){
-                shape.addEmptyOutline();
+        switch (segmentType){
+        case SEG_MOVETO:{
+            if(!this.getLastOutline().isEmpty()){
+                this.addEmptyOutline();
             }            
             Vertex vert = vertexFactory().create(coords[0],coords[1]);
             vert.setOnCurve(true);
             addVertexToLastOutline(vert);
             
             numVertices++;
+            break;
         }
-        else if(segmentType == PathIterator.SEG_LINETO){
+        case SEG_LINETO:{
             Vertex vert1 = vertexFactory().create(coords[0],coords[1]);
             vert1.setOnCurve(true);
             addVertexToLastOutline(vert1);
             
             numVertices++;
+            break;
         }
-        else if(segmentType == PathIterator.SEG_QUADTO){
+        case SEG_QUADTO:{
             Vertex vert1 = vertexFactory().create(coords[0],coords[1]);
             vert1.setOnCurve(false);
             addVertexToLastOutline(vert1);
@@ -104,8 +113,9 @@ public class GlyphShape {
             addVertexToLastOutline(vert2);
             
             numVertices+=2;
+            break;
         }
-        else if(segmentType == PathIterator.SEG_CUBICTO){
+        case SEG_CUBICTO:{
             Vertex vert1 = vertexFactory().create(coords[0],coords[1]);
             vert1.setOnCurve(false);
             addVertexToLastOutline(vert1);
@@ -119,9 +129,13 @@ public class GlyphShape {
             addVertexToLastOutline(vert3);
             
             numVertices+=3;
+            break;
         }
-        else if(segmentType == PathIterator.SEG_CLOSE){
-            shape.closeLastOutline();
+        case SEG_CLOSE:
+            this.closeLastOutline();
+            break;
+        default:
+            throw new IllegalArgumentException(String.valueOf(segmentType));
         }
     }
     
@@ -143,19 +157,19 @@ public class GlyphShape {
     public void setQuat(Quaternion quat) {
         this.quat = quat;
     }
-    
-    /** Triangluate the glyph shape
-     * @param sharpness sharpness of the curved regions default = 0.5
-     * @return ArrayList of triangles which define this shape
-     */
-    public ArrayList<Triangle> triangulate(float sharpness){
-        return shape.triangulate(sharpness);
+    public GlyphShape clone(){
+        GlyphShape clone = (GlyphShape)super.clone();
+        if (null != clone.quat)
+            clone.quat = clone.quat.clone();
+        return clone;
     }
-
-    /** Get the list of Vertices of this Object
-     * @return arrayList of Vertices
+    /**
+     * Clear and reinitialize.  Drop any quaternion.
      */
-    public ArrayList<Vertex> getVertices(){
-        return shape.getVertices();
-    }    
+    @Override
+    public void clear(){
+        this.quat = null;
+        this.numVertices = 0;
+        super.clear();
+    }
 }
