@@ -45,6 +45,6 @@ public interface FontInt extends Font {
         public Path2D getPath(float pixelSize);         
     }
 
-    public void getOutline(String string, float pixelSize,
+    public void getOutline(CharSequence string, float pixelSize,
                            AffineTransform transform, Path2D[] result);
 }

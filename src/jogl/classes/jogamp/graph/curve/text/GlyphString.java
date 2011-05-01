@@ -54,11 +54,30 @@ import java.util.Collection;
 
 /**
  * This class manages a data set of triangles and vertices into the
- * JOGL pipeline.  A GlyphShape is completely formed and considered
- * immutable when it is added to this list.
+ * JOGL data path into Region.  It supports two primary APIs, the low
+ * level GlyphShape API and the high level CharSequence API.
+ * 
+ * <br><i>List of GlyphShape</i><br>
+ * 
+ * The List of GlyphShape API is independent of the Char Sequence /
+ * String Builder API, as a low level API employed primarily by this
+ * class internally, and available to subclasses interested in
+ * alternative approaches into the data path into Region.
+ * 
+ * A GlyphShape is completely formed and considered immutable when it
+ * is added to this list.
+ * 
+ * <br><i>Char Sequence</i><br>
+ * 
+ * The Char Sequence / String Builder API is an editor interface
+ * intended for use by UI Components.  It operates on the data path
+ * for subsequent indempotent-safe calls to the generateRegion and
+ * renderString3D methods.
+ * 
  */
 public class GlyphString
     extends ArrayList<GlyphShape>
+    implements CharSequence
 {
 
     private TextRenderer renderer;
@@ -85,12 +104,12 @@ public class GlyphString
 
 
     /** Create a new GlyphString object
-     * @param renderer {@link Renderer} context
+     * @param renderer {@link TextRenderer} context
      * @param font {@link Font} to be used
      * @param size Font size in pixels
-     * @param str {@link String} to be created
+     * @param string {@link CharSequence} to be created
      */
-    public GlyphString(TextRenderer renderer, Font font, int size, String string){
+    public GlyphString(TextRenderer renderer, Font font, int size, CharSequence string){
         super();
         if (null != renderer && (font instanceof FontInt) && 0 < size){
             this.renderer = renderer;
@@ -312,6 +331,9 @@ public class GlyphString
             return bbox;
         }
     }
+    /*
+     * List of GlyphShape
+     */
     @Override
     public boolean add(GlyphShape gs){
 
@@ -416,10 +438,41 @@ public class GlyphString
     public boolean isNotEmpty(){
         return (0 < this.size());
     }
+    /*
+     * CharSequence / StringBuilder
+     */
+    /**
+     * @return Char Sequence length
+     */
+    @Override
+    public int length(){
+        return this.string.length();
+    }
+    /**
+     * @return Char Sequence element
+     */
+    @Override
+    public char charAt(int idx){
+        return this.string.charAt(idx);
+    }
+    /**
+     * @return Char Sequence element
+     */
+    @Override
+    public GlyphString subSequence(int start, int end){
+
+        return new GlyphString(this.renderer,this.font,this.fontSize,this.string.subSequence(start,end));
+    }
+    /*
+     * Object
+     * 
+     * Not defining hashCode or equals for instance object identity
+     */
     /**
      * @return Clone requiring generateRegion
      * @see #generateRegion
      */
+    @Override
     public GlyphString clone(){
         GlyphString clone = (GlyphString)super.clone();
         clone.region = null;
@@ -427,10 +480,8 @@ public class GlyphString
         clone.transform = clone.transform.clone();
         return clone;
     }
+    @Override
     public String toString(){
         return this.string.toString();
     }
-    /*
-     * Not defining hashCode or equals for instance object identity
-     */
 }
