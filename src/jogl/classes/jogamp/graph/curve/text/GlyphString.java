@@ -36,19 +36,23 @@ import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.geom.opengl.SVertex;
 
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLUniformData;
 
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 import jogamp.graph.geom.plane.PathIterator;
-
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.RegionFactory;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
+import java.util.Collection;
+
 /**
- * 
+ * This class manages a data set of triangles and vertices into the
+ * JOGL pipeline.  A GlyphShape is completely formed and considered
+ * immutable when it is added to this list.
  */
 public class GlyphString
     extends ArrayList<GlyphShape>
@@ -59,6 +63,16 @@ public class GlyphString
     private Region region;
     
     private SVertex origin = new SVertex();
+    /**
+     * Require generateRegion for Region (clear).  Edits not captured
+     * by Region are those that drop triangles or vertices.
+     */
+    private boolean dirty;
+    /**
+     * Manage the render state sharpness in order to implement direct
+     * to region editing
+     */
+    private float sharpness = 0.5f; 
 
 
     /** Create a new GlyphString object
@@ -76,7 +90,12 @@ public class GlyphString
     public String getString(){
         return str;
     }
-
+    /**
+     * @return Require call to {@link #generateRegion} to capture edits
+     */
+    public boolean isDirty(){
+        return this.dirty;
+    }
     /** Creates the Curve based Glyphs from a Font 
      * @param pointFactory TODO
      * @param paths a list of FontPath2D objects that define the outline
@@ -99,45 +118,91 @@ public class GlyphString
         }
     }
     /**
+     * Region data set
+     * Vertices get IDs externally -- in Triangulation or Region.
      * @param sharpness 
      * @return Triangulation for glyph string
      */    
-    protected ArrayList<Triangle> triangulate(float sharpness){
+    protected ArrayList<Triangle> triangulate(){
         ArrayList<Triangle> triangles = new ArrayList<Triangle>();
         for(GlyphShape glyph: this){
-            ArrayList<Triangle> tris = glyph.triangulate(sharpness);
+            ArrayList<Triangle> tris = glyph.triangulate(this.sharpness);
             triangles.addAll(tris);
         }
         return triangles;
     }
-    
-    /** Generate a OGL Region to represent this Object.
-     * @param context the GLContext which the region is defined by.
-     * @param shaprness the curvature sharpness of the object.
-     * @param st shader state
-     */
-    public void generateRegion(GL2ES2 gl, RenderState rs, int type){
-
-        if (null == this.region){
-
-            this.region = RegionFactory.create(rs, type);
-            this.region.setFlipped(true);
-        
-            ArrayList<Triangle> tris = this.triangulate(rs.getSharpness().floatValue());
-            this.region.addTriangles(tris);
-        
+    /**
+     * Region data set
+     * @return Vertices require IDs
+     */    
+    protected ArrayList<Vertex> vertices(){
+        if (null != this.region){
             int numVertices = this.region.getNumVertices();
+            ArrayList<Vertex> re = new ArrayList<Vertex>();
             for(GlyphShape glyph: this){
                 ArrayList<Vertex> gVertices = glyph.getVertices();
                 for(Vertex vert: gVertices){
                     vert.setId(numVertices++);
                 }
-                this.region.addVertices(gVertices);
+                re.addAll(gVertices);
             }
+            return re;
+        }
+        else
+            throw new IllegalStateException();
+    }
+    
+    /** Generate a OGL Region to represent this Object.
+     * @param gl the GLContext which the region is defined by.
+     * @param rs the rendering context
+     * @param type Region rendering type, single or two pass
+     */
+    public void generateRegion(GL2ES2 gl, RenderState rs, int type){
+        /*
+         */
+        if (null != rs){
+            GLUniformData sharpness = rs.getSharpness();
+            if (null != sharpness){
+                float value = sharpness.floatValue();
+                this.dirty = (value != this.sharpness);
+                this.sharpness = value;
+            }
+        }
+
+        if (null == this.region){
+
+            this.region = RegionFactory.create(rs, type);
+            this.region.setFlipped(true);
             /*
-             * initialize the region
+             */        
+            ArrayList<Triangle> tris = this.triangulate();
+            this.region.addTriangles(tris);
+            /*
+             */
+            ArrayList<Vertex> vers = this.vertices();
+            this.region.addVertices(vers);
+            /*
              */
             this.region.update(gl);
+
+            this.dirty = false;
+        }
+        else if (this.dirty){
+
+            this.region.clear();
+            /*
+             */        
+            ArrayList<Triangle> tris = this.triangulate();
+            this.region.addTriangles(tris);
+            /*
+             */
+            ArrayList<Vertex> vers = this.vertices();
+            this.region.addVertices(vers);
+            /*
+             */
+            this.region.update(gl);
+
+            this.dirty = false;
         }
         else if (this.region.isDirty()){
             /*
@@ -179,7 +244,13 @@ public class GlyphString
      */
     public void destroy(GL2ES2 gl, RenderState rs){
         if (null != this.region){
-            this.region.destroy(gl, rs);
+            try {
+                this.region.destroy(gl, rs);
+            }
+            finally {
+                this.region = null;
+                this.dirty = false;
+            }
         }
     }
     
@@ -188,7 +259,8 @@ public class GlyphString
             return this.region.getBounds();
         else {
             /*
-             * [TODO] Review this use case for expected frequency
+             * Expected to be used once but not twice before we have a
+             * region
              */
             AABBox bbox = new AABBox();
             for (GlyphShape glyph: this){
@@ -196,5 +268,114 @@ public class GlyphString
             }
             return bbox;
         }
+    }
+    @Override
+    public boolean add(GlyphShape gs){
+
+        if (super.add(gs)){
+
+            if (null != this.region && (!this.dirty)){
+                /*
+                 * Region becomes dirty while GlyphString remains clean
+                 */
+                this.region.addTriangles(gs.triangulate(this.sharpness));
+
+                ArrayList<Vertex> gVertices = gs.getVertices();
+                {
+                    int numVertices = this.region.getNumVertices();
+                    for(Vertex vert: gVertices){
+                        vert.setId(numVertices++);
+                    }
+                }
+                this.region.addVertices(gVertices);
+            }
+            return true;
+        }
+        else
+            return false;
+    }
+    /**
+     * Insert
+     */
+    @Override
+    public void add(int index, GlyphShape glyphShape) {
+        if (null != glyphShape)
+            super.add(index,glyphShape);
+        else
+            throw new IllegalArgumentException();
+    }
+    /**
+     * Replace
+     */
+    @Override
+    public GlyphShape set(int index, GlyphShape gs) {
+        if (null != gs){
+            this.dirty = (null != this.region); // (old != new)
+            return super.set(index,gs);
+        }
+        else
+            throw new IllegalArgumentException();
+    }
+    @Override
+    public boolean addAll(Collection<? extends GlyphShape> c) {
+        if (c.isEmpty())
+            return false;
+        else if (null == this.region || this.dirty){
+
+            return super.addAll(c);
+        }
+        else {
+            boolean mod = false;
+            for (GlyphShape gs: c){
+
+                mod = (this.add(gs) || mod);
+            }
+            return mod;
+        }
+    }
+    @Override
+    public boolean addAll(int index, Collection<? extends GlyphShape> c) {
+        if (c.isEmpty())
+            return false;
+        else if (null == this.region || this.dirty){
+
+            return super.addAll(index,c);
+        }
+        else {
+
+            for (GlyphShape gs: c){
+
+                this.add(index++,gs);
+            }
+            return true;
+        }
+    }
+    @Override
+    public GlyphShape remove(int idx) {
+        GlyphShape gs = super.remove(idx);
+        if (null != gs)
+            this.dirty = true;
+        return gs;
+    }
+    @Override
+    public boolean remove(Object o) {
+        boolean mod = super.remove(o);
+        if (mod)
+            this.dirty = true;
+        return mod;
+    }
+    @Override
+    public void clear(){
+        this.dirty = (null != this.region);
+        super.clear();
+    }
+    public boolean isNotEmpty(){
+        return (0 < this.size());
+    }
+    public GlyphString clone(){
+        GlyphString clone = (GlyphString)super.clone();
+        clone.region = null;
+        clone.dirty = false;
+        return clone;
     }
 }

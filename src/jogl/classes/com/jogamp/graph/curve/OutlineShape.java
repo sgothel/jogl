@@ -170,10 +170,9 @@ public class OutlineShape
         this.add(new Outline());
     }
 
-    /** Adds an {@link Outline} to the OutlineShape object
-     * if last outline of the shape is empty, it will replace
-     * that last Outline with the new one. If outline is empty,
-     * it will do nothing.
+    /** Adds an {@link Outline} to the OutlineShape object.  If the
+     * last outline in this shape is empty, it will replace that last
+     * Outline with the new one.
      * @param outline an Outline object
      */
     @Override
@@ -201,13 +200,29 @@ public class OutlineShape
     }
     @Override
     public boolean addAll(Collection<? extends Outline> c) {
-
-        return super.addAll(c);
+        if (c.isEmpty())
+            return false;
+        else {
+            boolean mod = false;
+            Outline last = this.getLastOutline();
+            if (null != last && last.isEmpty()){
+                mod = this.remove(last);
+            }
+            return (super.addAll(c) || mod);
+        }
     }
     @Override
     public boolean addAll(int index, Collection<? extends Outline> c) {
-
-        return super.addAll(index,c);
+        if (c.isEmpty())
+            return false;
+        else {
+            boolean mod = false;
+            Outline last = this.getLastOutline();
+            if (null != last && last.isEmpty()){
+                mod = this.remove(last);
+            }
+            return (super.addAll(index,c) || mod);
+        }
     }
     /**
      * Clear and reinitialize vertices state.
@@ -301,15 +316,12 @@ public class OutlineShape
      */
     public void transformOutlines(VerticesState destinationType){
 
-        if (destinationType != this.state){
+        if (destinationType == VerticesState.NURBS){
 
-            if (destinationType == VerticesState.NURBS){
-
-                transformOutlinesQuadratic();
-            }
-            else
-                throw new IllegalStateException(String.format("Change to VerticesState %s from %s",destinationType.name(),this.state.name()));
+            transformOutlinesQuadratic();
         }
+        else
+            throw new IllegalStateException(String.format("Change to VerticesState %s from %s",destinationType.name(),this.state.name()));
     }
     /**
      * Transform in place

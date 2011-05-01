@@ -113,6 +113,12 @@ public interface Region {
      * @see update();
      */
     public boolean isDirty();
+
+    /**
+     * Reinitialize -- return to the initial state: dirty, requires
+     * triangles, vertices, update.
+     */
+    public void clear();
     
     /** Delete and clean the associated OGL
      *  objects
