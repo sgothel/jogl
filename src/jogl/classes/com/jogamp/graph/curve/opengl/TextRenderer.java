@@ -83,7 +83,7 @@ public abstract class TextRenderer extends Renderer {
         AffineTransform affineTransform = new AffineTransform(rs.getPointFactory());
         
         Path2D[] paths = new Path2D[str.length()];
-        ((FontInt)font).getOutline(str, size, affineTransform, paths);
+        ((FontInt)font).getPaths(str, size, affineTransform, paths);
         
         GlyphString glyphString = new GlyphString(font.getName(Font.NAME_UNIQUNAME), str);
         glyphString.createfromFontPath(rs.getPointFactory(), paths, affineTransform);

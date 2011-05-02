@@ -145,11 +145,10 @@ public class GlyphShape {
     }
     
     /** Triangluate the glyph shape
-     * @param sharpness sharpness of the curved regions default = 0.5
      * @return ArrayList of triangles which define this shape
      */
-    public ArrayList<Triangle> triangulate(float sharpness){
-        return shape.triangulate(sharpness);
+    public ArrayList<Triangle> triangulate(){
+        return shape.triangulate();
     }
 
     /** Get the list of Vertices of this Object

@@ -264,28 +264,19 @@ public class OutlineShape {
         return vertices;
     }
 
-    /** Triangulate the outline shape generating a list of triangles
-     * @return an arraylist of triangles representing the filled region
-     * which is produced by the combination of the outlines 
-     */
-    public ArrayList<Triangle> triangulate(){
-        return triangulate(0.5f);
-    }
 
     /**Triangulate the {@link OutlineShape} generating a list of triangles
-     * @param sharpness defines the curvature strength around the off-curve vertices.
-     * defaults to 0.5f
      * @return an arraylist of triangles representing the filled region
      * which is produced by the combination of the outlines
      */
-    public ArrayList<Triangle> triangulate(float sharpness){
+    public ArrayList<Triangle> triangulate(){
         if(outlines.size() == 0){
             return null;
         }
         sortOutlines();
         generateVertexIds();
         
-        CDTriangulator2D triangulator2d = new CDTriangulator2D(sharpness);
+        CDTriangulator2D triangulator2d = new CDTriangulator2D();
         for(int index = 0; index< outlines.size();index++){
             Outline outline = outlines.get(index);
             triangulator2d.addCurve(outline);

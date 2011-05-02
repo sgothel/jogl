@@ -77,7 +77,6 @@ public class RIButton extends UIControl{
     }
     
     public void generate(AABBox lbox) {
-//        AABBox lbox = font.getStringBounds(label, 10);
         createOutline(factory, lbox);
         scale[0] = getWidth()/(2*spacing + lbox.getWidth());
         scale[1] = getHeight()/(2*spacing + lbox.getHeight());

@@ -43,8 +43,8 @@ import com.jogamp.graph.curve.opengl.RenderState;
 public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
     OutlineShape[] outlineShapes = new OutlineShape[2];
 
-    public GPURegionGLListener02 (RenderState rs, int numpass, int fbosize, boolean debug, boolean trace) {
-        super(rs, numpass, debug, trace);
+    public GPURegionGLListener02 (RenderState rs, int numpass, boolean uniform, int fbosize, boolean debug, boolean trace) {
+        super(rs, numpass, uniform, debug, trace);
         setMatrix(-20, 00, 0f, -50, fbosize);
     }
         
@@ -94,6 +94,7 @@ public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
 
         gl.setSwapInterval(1);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+        gl.glEnable(GL2ES2.GL_BLEND);
         regionRenderer.init(gl);
         regionRenderer.setAlpha(gl, 1.0f);
         regionRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);

@@ -45,8 +45,8 @@ import com.jogamp.graph.curve.opengl.RenderState;
 public class GPURegionGLListener01 extends GPURegionRendererListenerBase01 {
     OutlineShape outlineShape = null;
     
-    public GPURegionGLListener01 (RenderState rs, int numpass, int fbosize, boolean debug, boolean trace) {
-        super(rs, numpass, debug, trace);
+    public GPURegionGLListener01 (RenderState rs, int numpass, boolean uniform, int fbosize, boolean debug, boolean trace) {
+        super(rs, numpass, uniform, debug, trace);
         setMatrix(-20, 00, 0f, -50, fbosize);
     }
     
@@ -96,12 +96,10 @@ public class GPURegionGLListener01 extends GPURegionRendererListenerBase01 {
 
         gl.setSwapInterval(1);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+        gl.glEnable(GL2ES2.GL_BLEND);
         regionRenderer.init(gl);
         regionRenderer.setAlpha(gl, 1.0f);
         regionRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
-        //gl.glSampleCoverage(0.95f, false);
-        //gl.glEnable(GL2GL3.GL_SAMPLE_COVERAGE); // sample coverage doesn't really make a difference to lines
-        //gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_ONE);
         MSAATool.dump(drawable);
         
         createTestOutline();
@@ -118,7 +116,10 @@ public class GPURegionGLListener01 extends GPURegionRendererListenerBase01 {
         regionRenderer.resetModelview(null);
         regionRenderer.translate(null, getXTran(), getYTran(), getZoom());
         regionRenderer.rotate(gl, getAngle(), 0, 1, 0);
-
+        if(weightUpdated){
+            regionRenderer.setWeight(gl, weight);
+            weightUpdated = false;
+        }
         regionRenderer.renderOutlineShape(gl, outlineShape, getPosition(), getTexSize());
     }        
 }

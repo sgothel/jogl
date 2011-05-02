@@ -68,7 +68,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);    
 
-        GLWindow window = createWindow("text-r2t1-msaa0", caps, 800,400);
+        GLWindow window = createWindow("text-vbaa1-msaa0", caps, 800,400);
         RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
         TextGLListener textGLListener = new TextGLListener(rs, Region.TWO_PASS, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
@@ -105,7 +105,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
 
-        GLWindow window = createWindow("text-r2t0-msaa1", caps, 800, 400);
+        GLWindow window = createWindow("text-vbaa0-msaa1", caps, 800, 400);
         RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
         TextGLListener textGLListener = new TextGLListener(rs, Region.SINGLE_PASS, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);

@@ -12,8 +12,8 @@
 #include uniforms.glsl
 #include varyings.glsl
 
-const vec3 b_color = vec3(0.0, 0.0, 0.0);
-const vec4 weights = vec4(0.075, 0.06, 0.045, 0.025);
+const vec3 b_color = vec3(1.0, 1.0, 1.0);
+const vec4 tex_weights = vec4(0.075, 0.06, 0.045, 0.025);
 
 void main (void)
 {
@@ -33,25 +33,25 @@ void main (void)
         rtex -= 5.0;
         vec4 t = texture2D(gcu_TextureUnit, rtex)* 0.18;
 
-        t += texture2D(gcu_TextureUnit, rtex + size*(vec2(1, 0)))*weights.x;
-        t += texture2D(gcu_TextureUnit, rtex - size*(vec2(1, 0)))*weights.x;
-        t += texture2D(gcu_TextureUnit, rtex + size*(vec2(0, 1)))*weights.x;
-        t += texture2D(gcu_TextureUnit, rtex - size*(vec2(0, 1)))*weights.x;
+        t += texture2D(gcu_TextureUnit, rtex + size*(vec2(1, 0)))*tex_weights.x;
+        t += texture2D(gcu_TextureUnit, rtex - size*(vec2(1, 0)))*tex_weights.x;
+        t += texture2D(gcu_TextureUnit, rtex + size*(vec2(0, 1)))*tex_weights.x;
+        t += texture2D(gcu_TextureUnit, rtex - size*(vec2(0, 1)))*tex_weights.x;
         
-        t += texture2D(gcu_TextureUnit, rtex + 2.0*size*(vec2(1, 0)))*weights.y;
-        t += texture2D(gcu_TextureUnit, rtex - 2.0*size*(vec2(1, 0)))*weights.y;
-        t += texture2D(gcu_TextureUnit, rtex + 2.0*size*(vec2(0, 1)))*weights.y; 
-        t += texture2D(gcu_TextureUnit, rtex - 2.0*size*(vec2(0, 1)))*weights.y;
+        t += texture2D(gcu_TextureUnit, rtex + 2.0*size*(vec2(1, 0)))*tex_weights.y;
+        t += texture2D(gcu_TextureUnit, rtex - 2.0*size*(vec2(1, 0)))*tex_weights.y;
+        t += texture2D(gcu_TextureUnit, rtex + 2.0*size*(vec2(0, 1)))*tex_weights.y; 
+        t += texture2D(gcu_TextureUnit, rtex - 2.0*size*(vec2(0, 1)))*tex_weights.y;
         
-        t += texture2D(gcu_TextureUnit, rtex + 3.0*size*(vec2(1, 0)))*weights.z;
-        t += texture2D(gcu_TextureUnit, rtex - 3.0*size*(vec2(1, 0)))*weights.z;
-        t += texture2D(gcu_TextureUnit, rtex + 3.0*size*(vec2(0, 1)))*weights.z;
-        t += texture2D(gcu_TextureUnit, rtex - 3.0*size*(vec2(0, 1)))*weights.z;
+        t += texture2D(gcu_TextureUnit, rtex + 3.0*size*(vec2(1, 0)))*tex_weights.z;
+        t += texture2D(gcu_TextureUnit, rtex - 3.0*size*(vec2(1, 0)))*tex_weights.z;
+        t += texture2D(gcu_TextureUnit, rtex + 3.0*size*(vec2(0, 1)))*tex_weights.z;
+        t += texture2D(gcu_TextureUnit, rtex - 3.0*size*(vec2(0, 1)))*tex_weights.z;
         
-        t += texture2D(gcu_TextureUnit, rtex + 4.0*size*(vec2(1, 0)))*weights.w;
-        t += texture2D(gcu_TextureUnit, rtex - 4.0*size*(vec2(1, 0)))*weights.w;
-        t += texture2D(gcu_TextureUnit, rtex + 4.0*size*(vec2(0, 1)))*weights.w;
-        t += texture2D(gcu_TextureUnit, rtex - 4.0*size*(vec2(0, 1)))*weights.w;
+        t += texture2D(gcu_TextureUnit, rtex + 4.0*size*(vec2(1, 0)))*tex_weights.w;
+        t += texture2D(gcu_TextureUnit, rtex - 4.0*size*(vec2(1, 0)))*tex_weights.w;
+        t += texture2D(gcu_TextureUnit, rtex + 4.0*size*(vec2(0, 1)))*tex_weights.w;
+        t += texture2D(gcu_TextureUnit, rtex - 4.0*size*(vec2(0, 1)))*tex_weights.w;
         
         if(t.w == 0.0){
             discard;
@@ -85,7 +85,7 @@ void main (void)
             alpha = gcu_Alpha;
         }  
         else if (a <= 0.0) {
-            alpha = 0.0;//discard;
+            discard;
         }
         else {           
             alpha = gcu_Alpha * a;

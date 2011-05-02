@@ -49,13 +49,10 @@ public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
         
         gl.setSwapInterval(1);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+        gl.glEnable(GL2ES2.GL_BLEND);
         textRenderer.init(gl);
         textRenderer.setAlpha(gl, 1.0f);
         textRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
-        //gl.glSampleCoverage(0.95f, false);
-        //gl.glEnable(GL2GL3.GL_SAMPLE_COVERAGE); // sample coverage doesn't really make a difference to lines
-        //gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_COVERAGE);
-        //gl.glEnable(GL2GL3.GL_SAMPLE_ALPHA_TO_ONE);
         MSAATool.dump(drawable);
     }
 }

@@ -42,10 +42,10 @@ public interface RenderState {
     Vertex.Factory<? extends Vertex> getPointFactory();
     PMVMatrix pmvMatrix();
     GLUniformData getPMVMatrix();
-    GLUniformData getSharpness();
+    GLUniformData getWeight();
     GLUniformData getAlpha();
     GLUniformData getColorStatic();
-    GLUniformData getStrength();
+   // GLUniformData getStrength();
     
     RenderState attachTo(GL2ES2 gl);
     boolean detachFrom(GL2ES2 gl);   

@@ -73,18 +73,18 @@ public class GlyphString {
     }
 
     /** Creates the Curve based Glyphs from a Font 
-     * @param pointFactory TODO
+     * @param vertexFactory vertex impl factory {@link Factory}
      * @param paths a list of FontPath2D objects that define the outline
      * @param affineTransform a global affine transformation applied to the paths.
      */
-    public void createfromFontPath(Factory<? extends Vertex> pointFactory, Path2D[] paths, AffineTransform affineTransform) {
+    public void createfromFontPath(Factory<? extends Vertex> vertexFactory, Path2D[] paths, AffineTransform affineTransform) {
         final int numGlyps = paths.length;
         for (int index=0;index<numGlyps;index++){
             if(paths[index] == null){
                 continue;
             }
             PathIterator iterator = paths[index].iterator(affineTransform);
-            GlyphShape glyphShape = new GlyphShape(pointFactory, iterator);
+            GlyphShape glyphShape = new GlyphShape(vertexFactory, iterator);
             
             if(glyphShape.getNumVertices() < 3) {
                 continue;
@@ -93,25 +93,26 @@ public class GlyphString {
         }
     }
     
-    private ArrayList<Triangle> initializeTriangles(float sharpness){
+    private ArrayList<Triangle> initializeTriangles(){
         ArrayList<Triangle> triangles = new ArrayList<Triangle>();
         for(GlyphShape glyph:glyphs){
-            ArrayList<Triangle> tris = glyph.triangulate(sharpness);
+            ArrayList<Triangle> tris = glyph.triangulate();
             triangles.addAll(tris);
         }
         return triangles;
     }
-    
+
     /** Generate a OGL Region to represent this Object.
-     * @param context the GLContext which the region is defined by.
-     * @param shaprness the curvature sharpness of the object.
-     * @param st shader state
+     * @param gl the current gl object
+     * @param rs the current attached RenderState
+     * @param type either {@link com.jogamp.graph.curve.Region#SINGLE_PASS} 
+     * or {@link com.jogamp.graph.curve.Region#TWO_PASS}
      */
     public void generateRegion(GL2ES2 gl, RenderState rs, int type){
         region = RegionFactory.create(rs, type);
         region.setFlipped(true);
         
-        ArrayList<Triangle> tris = initializeTriangles(rs.getSharpness().floatValue());
+        ArrayList<Triangle> tris = initializeTriangles();
         region.addTriangles(tris);
         
         int numVertices = region.getNumVertices();
@@ -155,7 +156,7 @@ public class GlyphString {
     }
 
     /** Destroy the associated OGL objects
-     * @param rs TODO
+     * @param rs the current attached RenderState
      */
     public void destroy(GL2ES2 gl, RenderState rs){
         region.destroy(gl, rs);

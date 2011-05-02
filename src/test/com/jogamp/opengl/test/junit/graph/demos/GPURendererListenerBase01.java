@@ -52,6 +52,7 @@ import com.jogamp.newt.opengl.GLWindow;
  * - 1/2: zoom in/out
  * - 6/7: 2nd pass texture size
  * - 0/9: rotate 
+ * - Q/W: change weight
  * - v: toggle v-sync
  * - s: screenshot
  */
@@ -73,6 +74,8 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     private float zoom = -70f;
     private int texSize = 400; 
 
+    protected float weight = 1.0f;
+    protected boolean weightUpdated = false;
     boolean ignoreInput = false;
 
     public GPURendererListenerBase01(Renderer renderer, boolean debug, boolean trace) {
@@ -143,6 +146,13 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         ang += delta;
         ang %= 360.0f;
         dumpMatrix();
+    }
+    public void editGlobalWeight(float delta){
+        if((weight+delta) > 1.9f || (weight+delta) < 0.0f)
+            return;
+        weight += delta;
+        weightUpdated = true;
+        System.err.println("Global Weight: "+ weight);
     }
     
     void dumpMatrix() {
@@ -221,6 +231,12 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
             else if(arg0.getKeyCode() == KeyEvent.VK_9){
                 rotate(-1);
             }  
+            else if(arg0.getKeyCode() == KeyEvent.VK_Q){
+                editGlobalWeight(-0.1f);
+            }
+            else if(arg0.getKeyCode() == KeyEvent.VK_W){
+                editGlobalWeight(0.1f);
+            }
             else if(arg0.getKeyCode() == KeyEvent.VK_V) {
                 if(null != autoDrawable) {
                     autoDrawable.invoke(false, new GLRunnable() {

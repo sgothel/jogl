@@ -80,15 +80,24 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     static final String text1 = "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789.:,;(*!?/\\\")$%^&-+@~#<>{}[]";
     static final String text2 = "The quick brown fox jumps over the lazy dog";
     static final String textX = 
-        "Residents of evacuated areas near Japan's stricken Fukushima\n"+
-        "nuclear plant have been warned that they may not be able\n"+
-        "to return to their homes for months as Japan's nuclear crisis\n"+
-        "stretched into a third week. The neighbourhoods near the plant\n"+
-        "will remain empty \"for the long term\", Yukio Edano, the country's\n"+
-        "chief cabinet secretary, said on Friday. Though he did not set a\n"+
-        "timetable, he said residents would not be able to return permanently\n"+
-        "\"in a matter of days or weeks. It will be longer than that\".\n"; 
+        "JOGAMP graph demo using Resolution Independent NURBS\n"+
+        "JOGAMP JOGL - OpenGL ES2 profile\n"+
+        "Press 1/2 to zoom in/out the below text\n"+
+        "Press 6/7 to edit texture size if using VBAA\n"+
+        "Press 0/9 to rotate the below string\n"+
+        "Press v to toggle vsync\n"+
+        "Press i for live input text input (CR ends it, backspace supported)\n"+
+        "Press f to toggle fps. H for different text, space for font type\n"; 
     
+    static final String textX2 = 
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec sapien tellus. \n"+
+        "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies \n"+
+        "quam iaculis urna cursus ornare. Nullam ut felis a ante ultrices ultricies nec a elit. \n"+
+        "In hac habitasse platea dictumst. Vivamus et mi a quam lacinia pharetra at venenatis est.\n"+ 
+        "Morbi quis bibendum nibh. Donec lectus orci, sagittis in consequat nec, volutpat nec nisi.\n"+
+        "Donec ut dolor et nulla tristique varius. In nulla magna, fermentum id tempus quis, semper \n"+
+        "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin. Quisque sit amet neque lorem,\n" +
+        "-------Press H to change text---------\n"; 
     
     StringBuffer userString = new StringBuffer();
     boolean userInput = false;
@@ -110,13 +119,16 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     }
     
     void switchHeadBox() {
-        headType = ( headType + 1 ) % 3 ; 
+        headType = ( headType + 1 ) % 4 ; 
         switch(headType) {
           case 0:
               headtext = null;
               break;
               
           case 1:
+              headtext= textX2;
+              break;
+          case 2:
               headtext= textX;
               break;
               
@@ -138,7 +150,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
         final TextRenderer textRenderer = (TextRenderer) getRenderer();
         textRenderer.reshapeOrtho(null, width, height, 0.1f, 7000.0f);
-        
+        textRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
         final GLAnimatorControl animator = drawable.getAnimator();
         final boolean _drawFPS = drawFPS && null != animator && animator.getTotalFPSFrames()>10;
         
@@ -172,7 +184,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         textRenderer.resetModelview(null);            
         textRenderer.translate(null, getXTran(), getYTran(), getZoom());
         textRenderer.rotate(gl, getAngle(), 0, 1, 0);
-
+        textRenderer.setColorStatic(gl, 1.0f, 0.0f, 0.0f);
         if(!userInput) {
             textRenderer.renderString3D(gl, font, text2, getPosition(), fontSize, getTexSize());
         } else {
@@ -264,8 +276,6 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         
         public void keyTyped(KeyEvent arg0) {
             if(userInput) {                
-                // System.err.println(arg0);
-                
                 char c = arg0.getKeyChar();
                 
                 if(c == 0x0d) {
