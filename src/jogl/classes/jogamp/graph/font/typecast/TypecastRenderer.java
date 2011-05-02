@@ -40,7 +40,7 @@ import com.jogamp.graph.font.Font;
  */
 public class TypecastRenderer {
 
-    public static void getOutline(TypecastFont font, 
+    public static void getPaths(TypecastFont font, 
                                   String string, float pixelSize, AffineTransform transform, Path2D[] p)
     {        
         if (string == null) {
