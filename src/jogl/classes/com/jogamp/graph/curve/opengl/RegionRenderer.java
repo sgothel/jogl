@@ -55,19 +55,19 @@ public abstract class RegionRenderer extends Renderer {
     /** Create a Hardware accelerated Region Renderer.
      * @param rs the used {@link RenderState}
      * @param type either {@link com.jogamp.graph.curve.Region#SINGLE_PASS} or {@link com.jogamp.graph.curve.Region#TWO_PASS}
-     * @param unifrom flag true unifrom weights for offcurve vertex, else otherwise.
+     * @param uniformWeight flag true uniform weights (equal 1.0f)for off-curve vertex, else otherwise.
      * @return an instance of Region Renderer
      */
-    public static RegionRenderer create(RenderState rs, int type, boolean unifrom) {
-        return new jogamp.graph.curve.opengl.RegionRendererImpl01(rs, type, unifrom);
+    public static RegionRenderer create(RenderState rs, int type, boolean uniformWeight) {
+        return new jogamp.graph.curve.opengl.RegionRendererImpl01(rs, type, uniformWeight);
     }
     
-    protected RegionRenderer(RenderState rs, int type, boolean unifrom) {
+    protected RegionRenderer(RenderState rs, int type, boolean uniformWeight) {
         super(rs, type);
-        this.uniform = unifrom;
+        this.uniform = uniformWeight;
     }
     
-    public boolean isUniform(){
+    public boolean isUniformWeight(){
         return uniform;
     }
     

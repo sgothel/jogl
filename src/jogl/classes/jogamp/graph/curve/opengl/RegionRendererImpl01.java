@@ -51,7 +51,7 @@ public class RegionRendererImpl01 extends RegionRenderer {
     }
     
     private String getFragmentShaderName(){
-        if(!isUniform()){
+        if(!isUniformWeight()){
             return "curverenderer02";
         }
         return "curverenderer01";
