@@ -75,7 +75,7 @@ public class GraphOutline {
 
     public void addVertex(GraphVertex v) {
         controlpoints.add(v);
-        outline.addVertex(v.getPoint());
+        outline.add(v.getPoint());
     }
     
 }

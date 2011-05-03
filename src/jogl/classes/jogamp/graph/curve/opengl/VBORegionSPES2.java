@@ -186,6 +186,12 @@ public class VBORegionSPES2  implements Region {
     public boolean isDirty(){
         return dirty;
     }
+    public void clear(){
+        this.triangles.clear();
+        this.vertices.clear();
+        //this.box.reset();//(more useful?)
+        this.dirty = true;
+    }
     
     public final void destroy(GL2ES2 gl, RenderState rs) {
         if(DEBUG_INSTANCE) {

@@ -35,7 +35,10 @@ import com.jogamp.graph.math.VectorUtil;
  * right corner of the box.
  * 
  */
-public class AABBox {
+public class AABBox
+    extends Object
+    implements Cloneable
+{
     private float[] low = new float[3];
     private float[] high = new float[3];
     private float[] center = new float[3];
@@ -294,9 +297,43 @@ public class AABBox {
         return high[2] - low[2];
     }
     public AABBox clone() {
-        return new AABBox(this.low, this.high);
+        try {
+            AABBox clone = (AABBox)super.clone();
+            clone.low = clone.low.clone();
+            clone.center = clone.center.clone();
+            clone.high = clone.high.clone();
+            return clone;
+        }
+        catch (CloneNotSupportedException exc){
+            throw new InternalError();
+        }
     }
-    
+    /**
+     * An instance of this class is usable as a hash map key while
+     * size is invariant.
+     * @return Size bits
+     * @see #getSize()
+     */
+    public int hashCode(){
+        return Float.floatToIntBits(this.getSize());
+    }
+    public boolean equals(Object that){
+        if (that instanceof AABBox)
+            return this.equals( (AABBox)that);
+        else
+            return false;
+    }
+    public boolean equals(AABBox that){
+        if (this == that)
+            return true;
+        else if (null == that)
+            return false;
+        else {
+            return (VectorUtil.checkEquality(this.low,that.low) &&
+                    VectorUtil.checkEquality(this.high,that.high) &&
+                    VectorUtil.checkEquality(this.center,that.center));
+        }
+    }
     public String toString() {
         return "[ "+low[0]+"/"+low[1]+"/"+low[1]+" .. "+high[0]+"/"+high[0]+"/"+high[0]+", ctr "+
                     center[0]+"/"+center[1]+"/"+center[1]+" ]";

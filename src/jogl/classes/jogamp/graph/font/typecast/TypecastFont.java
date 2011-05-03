@@ -199,11 +199,12 @@ class TypecastFont implements FontInt {
         return result;
     }
 
-    public void getPaths(String string, float pixelSize, AffineTransform transform, Path2D[] result) {
+
+    public void getPaths(CharSequence string, float pixelSize, AffineTransform transform, Path2D[] result) {
         TypecastRenderer.getPaths(this, string, pixelSize, transform, result);
     }
 
-    public float getStringWidth(String string, float pixelSize) {
+    public float getStringWidth(CharSequence string, float pixelSize) {
         float width = 0;
         final int len = string.length();
         for (int i=0; i< len; i++)
@@ -220,7 +221,7 @@ class TypecastFont implements FontInt {
         return (int)(width + 0.5f);        
     }
 
-    public float getStringHeight(String string, float pixelSize) {
+    public float getStringHeight(CharSequence string, float pixelSize) {
         int height = 0;
 
         for (int i=0; i<string.length(); i++)

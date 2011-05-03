@@ -46,7 +46,7 @@ public interface FontInt extends Font {
         public Path2D getPath(float pixelSize);         
     }
 
-    public void getPaths(String string, float pixelSize,
+    public void getPaths(CharSequence string, float pixelSize,
                            AffineTransform transform, Path2D[] result);
    //TODO: Rami - ADD getOutlines without path2D
 }

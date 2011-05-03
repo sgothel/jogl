@@ -80,13 +80,9 @@ public abstract class TextRenderer extends Renderer {
         if(DEBUG_INSTANCE) {
             System.err.println("createString: "+getCacheSize()+"/"+getCacheLimit()+" - "+Font.NAME_UNIQUNAME + " - " + str + " - " + size);
         }
-        AffineTransform affineTransform = new AffineTransform(rs.getPointFactory());
         
-        Path2D[] paths = new Path2D[str.length()];
-        ((FontInt)font).getPaths(str, size, affineTransform, paths);
-        
-        GlyphString glyphString = new GlyphString(font.getName(Font.NAME_UNIQUNAME), str);
-        glyphString.createfromFontPath(rs.getPointFactory(), paths, affineTransform);
+        GlyphString glyphString = new GlyphString(this, font, size, str);
+
         glyphString.generateRegion(gl, rs, renderType);
         
         return glyphString;
