@@ -49,14 +49,13 @@ public class RenderStateImpl implements RenderState {
     private final GLUniformData gcu_PMVMatrix;                    
         
     /**
-     * Sharpness is equivalent to the texture-coord component <i>t</i>
-     * on the off-curve vertex. Higher values of sharpness will 
-     * result in higher curvature.
+     * weight is equivalent to the 
+     * global off-curve vertex weight.
+     * TODO: change to per vertex
      */
-    private final GLUniformData gcu_Sharpness;
+    private final GLUniformData gcu_Weight;
     private final GLUniformData gcu_Alpha;
     private final GLUniformData gcu_ColorStatic;
-    private final GLUniformData gcu_Strength;
 
     public static final RenderState getRenderState(GL2ES2 gl) {
         return (RenderState) gl.getContext().getAttachedObject(RenderState.class.getName());
@@ -69,14 +68,14 @@ public class RenderStateImpl implements RenderState {
         this.gcu_PMVMatrix = new GLUniformData(UniformNames.gcu_PMVMatrix, 4, 4, pmvMatrix.glGetPMvMatrixf());
         st.ownUniform(gcu_PMVMatrix);
         
-        gcu_Sharpness = new GLUniformData(UniformNames.gcu_P1Y, 0.5f);
+        gcu_Weight = new GLUniformData(UniformNames.gcu_Weight, 1.0f);
         st.ownUniform(gcu_PMVMatrix);
         gcu_Alpha = new GLUniformData(UniformNames.gcu_Alpha, 1.0f);
         st.ownUniform(gcu_Alpha);
         gcu_ColorStatic = new GLUniformData(UniformNames.gcu_ColorStatic, 3, FloatBuffer.allocate(3));
         st.ownUniform(gcu_ColorStatic);
-        gcu_Strength = new GLUniformData(UniformNames.gcu_Strength, 3.0f);
-        st.ownUniform(gcu_Strength);
+//        gcu_Strength = new GLUniformData(UniformNames.gcu_Strength, 3.0f);
+//        st.ownUniform(gcu_Strength);
     }
     
     public RenderStateImpl(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory) {
@@ -94,10 +93,10 @@ public class RenderStateImpl implements RenderState {
     public final Vertex.Factory<? extends Vertex> getPointFactory () { return pointFactory; }
     public final PMVMatrix pmvMatrix() { return pmvMatrix; }
     public final GLUniformData getPMVMatrix() { return gcu_PMVMatrix; }
-    public final GLUniformData getSharpness() { return gcu_Sharpness; }
+    public final GLUniformData getWeight() { return gcu_Weight; }
     public final GLUniformData getAlpha() { return gcu_Alpha; }
     public final GLUniformData getColorStatic() { return gcu_ColorStatic; }
-    public final GLUniformData getStrength() { return gcu_Strength; }
+    //public final GLUniformData getStrength() { return gcu_Strength; }
     
     public void destroy(GL2ES2 gl) {
         st.destroy(gl);

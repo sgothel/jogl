@@ -41,17 +41,34 @@ import com.jogamp.graph.geom.Vertex;
 
 public abstract class RegionRenderer extends Renderer {
 
+    private boolean uniform = true;
     /** 
-     * Create a Hardware accelerated Text Renderer.
+     * Create a Hardware accelerated Region Renderer.
      * @param rs the used {@link RenderState} 
-     * @param renderType either {@link com.jogamp.graph.curve.Region#SINGLE_PASS} or {@link com.jogamp.graph.curve.Region#TWO_PASS}
+     * @param type either {@link com.jogamp.graph.curve.Region#SINGLE_PASS} or {@link com.jogamp.graph.curve.Region#TWO_PASS}
+     * @return an instance of Region Renderer
      */
     public static RegionRenderer create(RenderState rs, int type) {
-        return new jogamp.graph.curve.opengl.RegionRendererImpl01(rs, type);
+        return new jogamp.graph.curve.opengl.RegionRendererImpl01(rs, type, true);
     }
     
-    protected RegionRenderer(RenderState rs, int type) {
+    /** Create a Hardware accelerated Region Renderer.
+     * @param rs the used {@link RenderState}
+     * @param type either {@link com.jogamp.graph.curve.Region#SINGLE_PASS} or {@link com.jogamp.graph.curve.Region#TWO_PASS}
+     * @param unifrom flag true unifrom weights for offcurve vertex, else otherwise.
+     * @return an instance of Region Renderer
+     */
+    public static RegionRenderer create(RenderState rs, int type, boolean unifrom) {
+        return new jogamp.graph.curve.opengl.RegionRendererImpl01(rs, type, unifrom);
+    }
+    
+    protected RegionRenderer(RenderState rs, int type, boolean unifrom) {
         super(rs, type);
+        this.uniform = unifrom;
+    }
+    
+    public boolean isUniform(){
+        return uniform;
     }
     
     /** Render an array of {@link OutlineShape}s combined in one region
@@ -96,8 +113,10 @@ public abstract class RegionRenderer extends Renderer {
     protected Region createRegion(GL2ES2 gl, OutlineShape outlineShape) {
         Region region = RegionFactory.create(rs, renderType);
         
+
         outlineShape.transformOutlines(OutlineShape.VerticesState.NURBS);
-        ArrayList<Triangle> triangles = (ArrayList<Triangle>) outlineShape.triangulate(rs.getSharpness().floatValue());
+        ArrayList<Triangle> triangles = (ArrayList<Triangle>) outlineShape.triangulate();
+
         ArrayList<Vertex> vertices = (ArrayList<Vertex>) outlineShape.getVertices();
         region.addVertices(vertices);
         region.addTriangles(triangles);
@@ -118,7 +137,7 @@ public abstract class RegionRenderer extends Renderer {
         for(OutlineShape outlineShape:outlineShapes){
             outlineShape.transformOutlines(OutlineShape.VerticesState.NURBS);
 
-            ArrayList<Triangle> triangles = outlineShape.triangulate(rs.getSharpness().floatValue());
+            ArrayList<Triangle> triangles = outlineShape.triangulate();
             region.addTriangles(triangles);
             
             ArrayList<Vertex> vertices = outlineShape.getVertices();

@@ -42,11 +42,7 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class TextRendererImpl01 extends TextRenderer {    
     public TextRendererImpl01(RenderState rs, int type) {
-        super(rs, type);
-        // rs.getSharpness().setData(0.5f);
-        // rs.getAlpha().setData(1.0f);
-        // rs.getStrength().setData(3.0f);                        
-        rs.getStrength().setData(1.9f);                        
+        super(rs, type);                     
     }
     
     @Override

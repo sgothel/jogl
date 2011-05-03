@@ -30,6 +30,7 @@ package jogamp.graph.font;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 
+import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
 
 public interface FontInt extends Font {
@@ -45,6 +46,7 @@ public interface FontInt extends Font {
         public Path2D getPath(float pixelSize);         
     }
 
-    public void getOutline(CharSequence string, float pixelSize,
+    public void getPaths(CharSequence string, float pixelSize,
                            AffineTransform transform, Path2D[] result);
+   //TODO: Rami - ADD getOutlines without path2D
 }

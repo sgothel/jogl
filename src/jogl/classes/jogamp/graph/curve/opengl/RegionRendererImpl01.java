@@ -41,20 +41,29 @@ import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class RegionRendererImpl01 extends RegionRenderer {
-    public RegionRendererImpl01(RenderState rs, int type) {
-        super(rs, type);
-        // rs.getSharpness().setData(0.5f);
-        // rs.getAlpha().setData(1.0f);
-        // rs.getStrength().setData(3.0f);                                
+    public RegionRendererImpl01(RenderState rs, int type, boolean uniform) {
+        super(rs, type, uniform);
+        
+    }
+    
+    private String getVertexShaderName(){
+        return "curverenderer01";
+    }
+    
+    private String getFragmentShaderName(){
+        if(!isUniform()){
+            return "curverenderer02";
+        }
+        return "curverenderer01";
     }
     
     protected boolean initShaderProgram(GL2ES2 gl) {
         final ShaderState st = rs.getShaderState();
         
         ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RegionRendererImpl01.class,
-                "shader", "shader/bin", "curverenderer01");
+                "shader", "shader/bin", getVertexShaderName());
         ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, RegionRendererImpl01.class,
-                "shader", "shader/bin", "curverenderer01");
+                "shader", "shader/bin", getFragmentShaderName());
     
         ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);

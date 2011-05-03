@@ -71,9 +71,6 @@ public class UIGLListener01 extends UIListenerBase01 {
         gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
         
         regionRenderer.init(gl);
-        // default is 1.0f .. regionRenderer.setAlpha(gl, 1.0f);
-        // default is 0.5f .. regionRenderer.setSharpness(gl, 0.5f); 
-        // FIXME: What if Sharpness diff for text/outline-only ?!
         
         glyphString = textRenderer.createString(gl, button.getFont(), 10, button.getLabel());
         glyphString.generateRegion(gl, regionRenderer.getRenderState(), regionRenderer.getRenderType());

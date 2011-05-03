@@ -144,9 +144,9 @@ public abstract class Renderer {
             return false;
         }
         
-        if(!rs.getShaderState().uniform(gl, rs.getSharpness())) {
+        if(!rs.getShaderState().uniform(gl, rs.getWeight())) {
             if(DEBUG){
-                System.err.println("Error setting sharpness in shader: "+rs.getShaderState());
+                System.err.println("Error setting weight in shader: "+rs.getShaderState());
             }
             return false;
         }
@@ -164,10 +164,6 @@ public abstract class Renderer {
             }
             return false;
         }        
-        
-        if(!rs.getShaderState().uniform(gl, rs.getStrength())) {
-            System.err.println("Error setting antialias strength in shader: "+rs.getShaderState());
-        }
                 
         return initialized;
     }
@@ -193,25 +189,16 @@ public abstract class Renderer {
         rs.getShaderState().useProgram(gl, enable);
     }
 
-    public float getSharpness() {
-        return rs.getSharpness().floatValue();
+    public float getWeight() {
+        return rs.getWeight().floatValue();
     }
     
-    public void setSharpness(GL2ES2 gl, float v) {
-        rs.getSharpness().setData(v);
+    public void setWeight(GL2ES2 gl, float v) {
+        if(v > 1.9f || v < 0.0f)
+            return;
+        rs.getWeight().setData(v);
         if(null != gl && rs.getShaderState().inUse()) {
-            rs.getShaderState().uniform(gl, rs.getSharpness());
-        }
-    }
-
-    public float getStrength() {
-        return rs.getStrength().floatValue();
-    }
-    
-    public void setStrength(GL2ES2 gl, float v) {
-        rs.getStrength().setData(v);
-        if(null != gl && rs.getShaderState().inUse()) {
-            rs.getShaderState().uniform(gl, rs.getStrength());
+            rs.getShaderState().uniform(gl, rs.getWeight());
         }
     }
     

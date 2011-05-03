@@ -67,10 +67,10 @@ public class GPURegionNewtDemo01 {
         final GLWindow window = GLWindow.create(caps);
         window.setPosition(10, 10);
         window.setSize(800, 400);
-        window.setTitle("GPU Curve Region Newt Demo 01 - r2t0 msaa1");
+        window.setTitle("GPU Curve Region Newt Demo 01 - vbaa0 msaa1");
         
         RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
-        GPURegionGLListener01 regionGLListener = new GPURegionGLListener01 (rs, Region.SINGLE_PASS, 0, DEBUG, TRACE);
+        GPURegionGLListener01 regionGLListener = new GPURegionGLListener01 (rs, Region.SINGLE_PASS, false, 0, DEBUG, TRACE);
         regionGLListener.attachInputListenerTo(window);        
         window.addGLEventListener(regionGLListener);
 

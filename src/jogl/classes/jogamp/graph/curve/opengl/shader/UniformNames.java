@@ -4,7 +4,6 @@ public class UniformNames {
     public static final String gcu_PMVMatrix = "gcu_PMVMatrix"; // gcu_PMVMatrix[3]; // P, Mv, and Mvi
     public static final String gcu_ColorStatic = "gcu_ColorStatic";
     public static final String gcu_Alpha = "gcu_Alpha"; 
-    public static final String gcu_P1Y = "gcu_P1Y";
-    public static final String gcu_Strength = "gcu_Strength";
+    public static final String gcu_Weight = "gcu_Weight";
     public static final String gcu_TextureUnit = "gcu_TextureUnit";
 }

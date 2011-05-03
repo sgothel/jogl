@@ -96,11 +96,7 @@ public class GlyphString
      * by Region are those that drop triangles or vertices.
      */
     private boolean dirty;
-    /**
-     * Manage the render state sharpness in order to implement direct
-     * to region editing
-     */
-    private float sharpness = 0.5f; 
+
 
 
     /** Create a new GlyphString object
@@ -123,7 +119,7 @@ public class GlyphString
                     this.string = new StringBuilder(string);
 
                     Path2D[] paths = new Path2D[strlen];
-                    ((FontInt)font).getOutline(string, size, this.transform, paths);
+                    ((FontInt)font).getPaths(string, size, this.transform, paths);
                     this.add(paths);
                 }
                 else
@@ -174,20 +170,23 @@ public class GlyphString
         }
         return mod;
     }
+
     /**
      * Region data set
      * Vertices get IDs externally -- in Triangulation or Region.
-     * @param sharpness 
+     * 
      * @return Triangulation for glyph string
      */    
     protected ArrayList<Triangle> triangulate(){
         ArrayList<Triangle> triangles = new ArrayList<Triangle>();
         for(GlyphShape glyph: this){
-            ArrayList<Triangle> tris = glyph.triangulate(this.sharpness);
+            ArrayList<Triangle> tris = glyph.triangulate();
+
             triangles.addAll(tris);
         }
         return triangles;
     }
+
     /**
      * Region data set
      * @return Vertices require IDs
@@ -215,16 +214,6 @@ public class GlyphString
      * @param type Region rendering type, single or two pass
      */
     public void generateRegion(GL2ES2 gl, RenderState rs, int type){
-        /*
-         */
-        if (null != rs){
-            GLUniformData sharpness = rs.getSharpness();
-            if (null != sharpness){
-                float value = sharpness.floatValue();
-                this.dirty = (value != this.sharpness);
-                this.sharpness = value;
-            }
-        }
 
         if (null == this.region){
 
@@ -302,7 +291,7 @@ public class GlyphString
     }
 
     /** Destroy the associated OGL objects
-     * @param rs TODO
+     * @param rs the current attached RenderState
      */
     public void destroy(GL2ES2 gl, RenderState rs){
         if (null != this.region){
@@ -343,7 +332,7 @@ public class GlyphString
                 /*
                  * Region becomes dirty while GlyphString remains clean
                  */
-                this.region.addTriangles(gs.triangulate(this.sharpness));
+                this.region.addTriangles(gs.triangulate());
 
                 ArrayList<Vertex> gVertices = gs.getVertices();
                 {

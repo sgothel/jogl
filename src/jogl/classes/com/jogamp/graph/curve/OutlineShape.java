@@ -379,37 +379,32 @@ public class OutlineShape
         return vertices;
     }
 
-    /** Triangulate the outline shape generating a list of triangles
-     * @return an arraylist of triangles representing the filled region
-     * which is produced by the combination of the outlines 
-     */
-    public ArrayList<Triangle> triangulate(){
-        return triangulate(0.5f);
-    }
 
     /**Triangulate the {@link OutlineShape} generating a list of triangles
-     * @param sharpness defines the curvature strength around the off-curve vertices.
-     * defaults to 0.5f
      * @return an arraylist of triangles representing the filled region
      * which is produced by the combination of the outlines
      */
-    public ArrayList<Triangle> triangulate(float sharpness){
-        if(this.size() == 0){
+    public ArrayList<Triangle> triangulate(){
+        final int size = this.size();
+        if(size == 0){
             return null;
         }
-        sortOutlines();
-        generateVertexIds();
+        else {
+            sortOutlines();
+            generateVertexIds();
         
-        CDTriangulator2D triangulator2d = new CDTriangulator2D(sharpness);
-        for(int index = 0; index< this.size();index++){
-            Outline outline = this.get(index);
-            triangulator2d.addCurve(outline);
-        }
-        
-        ArrayList<Triangle> triangles = triangulator2d.generateTriangulation();
-        triangulator2d.reset();
+            CDTriangulator2D triangulator2d = new CDTriangulator2D();
+            for(int index = 0; index< size;index++){
+                Outline outline = this.get(index);
 
-        return triangles;
+                triangulator2d.addCurve(outline);
+            }
+        
+            ArrayList<Triangle> triangles = triangulator2d.generateTriangulation();
+            triangulator2d.reset();
+
+            return triangles;
+        }
     }
 
     /** Sort the outlines from large

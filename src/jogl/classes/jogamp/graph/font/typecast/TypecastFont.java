@@ -199,8 +199,9 @@ class TypecastFont implements FontInt {
         return result;
     }
 
-    public void getOutline(CharSequence string, float pixelSize, AffineTransform transform, Path2D[] result) {
-        TypecastRenderer.getOutline(this, string, pixelSize, transform, result);
+
+    public void getPaths(CharSequence string, float pixelSize, AffineTransform transform, Path2D[] result) {
+        TypecastRenderer.getPaths(this, string, pixelSize, transform, result);
     }
 
     public float getStringWidth(CharSequence string, float pixelSize) {

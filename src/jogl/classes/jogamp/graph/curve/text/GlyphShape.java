@@ -157,12 +157,14 @@ public class GlyphShape
     public void setQuat(Quaternion quat) {
         this.quat = quat;
     }
+
     public GlyphShape clone(){
         GlyphShape clone = (GlyphShape)super.clone();
         if (null != clone.quat)
             clone.quat = clone.quat.clone();
         return clone;
     }
+
     /**
      * Clear and reinitialize.  Drop any quaternion.
      */

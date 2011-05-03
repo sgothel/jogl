@@ -66,9 +66,9 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         //caps.setOnscreen(false);
         caps.setAlphaBits(4);    
 
-        GLWindow window = createWindow("shape-r2t1-msaa0", caps, 800,400);
+        GLWindow window = createWindow("shape-vbaa1-msaa0", caps, 800,400);
         RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
-        GPURegionGLListener02  demo02Listener = new GPURegionGLListener02 (rs, Region.TWO_PASS, 1140, false, false); 
+        GPURegionGLListener02  demo02Listener = new GPURegionGLListener02 (rs, Region.TWO_PASS, true, 1140, false, false); 
         demo02Listener.attachInputListenerTo(window);                
         window.addGLEventListener(demo02Listener);        
         
@@ -96,10 +96,40 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
 
-        GLWindow window = createWindow("shape-r2t0-msaa1", caps, 800, 400);
+        GLWindow window = createWindow("shape-vbaa0-msaa1", caps, 800, 400);
         RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
 
-        GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, Region.SINGLE_PASS, 0, false, false);
+        GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, Region.SINGLE_PASS, true, 0, false, false);
+        demo01Listener.attachInputListenerTo(window);        
+        window.addGLEventListener(demo01Listener);
+                
+        RegionGLListener listener = new RegionGLListener(demo01Listener, window.getTitle(), "GPURegion01");
+        window.addGLEventListener(listener);
+        
+        listener.setTech(-20, 00, 0f, -300, 400);
+        window.display();
+        
+        listener.setTech(-20, 00, 0f, -150, 800);
+        window.display();
+        
+        listener.setTech(-20, 00, 0f, -50, 1000);
+        window.display();
+        
+        destroyWindow(window); 
+    }
+    
+    @Test
+    public void testRegionRendererMSAA02() throws InterruptedException {
+        GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setAlphaBits(4);    
+        caps.setSampleBuffers(true);
+        caps.setNumSamples(4);
+
+        GLWindow window = createWindow("shape-vbaa0-msaa1", caps, 800, 400);
+        RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
+
+        GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, Region.SINGLE_PASS, false, 0, false, false);
         demo01Listener.attachInputListenerTo(window);        
         window.addGLEventListener(demo01Listener);
                 

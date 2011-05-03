@@ -58,16 +58,9 @@ public class CDTriangulator2D {
     private int maxTriID = 0;
 
     
-    public CDTriangulator2D() {
-        this(0.5f);
-    }
-    
     /** Constructor for a new Delaunay triangulator
-     * @param curveSharpness the curvature around
-     *  the off-curve vertices
      */
-    public CDTriangulator2D(float curveSharpness) {
-        this.sharpness = curveSharpness;
+    public CDTriangulator2D() {
         reset();
     }
     
