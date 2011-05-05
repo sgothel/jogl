@@ -67,7 +67,7 @@ public class GlyphShape {
                 pathIterator.next();
             }
         }
-        shape.transformOutlines(OutlineShape.QUADRATIC_NURBS);
+        shape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
     }
     
     public final Vertex.Factory<? extends Vertex> vertexFactory() { return shape.vertexFactory(); }

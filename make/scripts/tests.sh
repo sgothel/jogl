@@ -172,7 +172,7 @@ function testawtmt() {
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNewtAWTWrapper
 #testawt com.jogamp.opengl.test.junit.newt.TestEventSourceNotAWTBug
-testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot
+#testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT
@@ -213,7 +213,7 @@ testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot
 #testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo01 $*
+testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo02 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo02 $*

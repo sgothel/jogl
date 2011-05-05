@@ -35,6 +35,7 @@ import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.math.VectorUtil;
 
+import com.jogamp.graph.curve.OutlineShape.VerticesState;
 import com.jogamp.graph.curve.tess.CDTriangulator2D;
 
 /** A Generic shape objects which is defined by a list of Outlines.
@@ -53,7 +54,7 @@ import com.jogamp.graph.curve.tess.CDTriangulator2D;
       addVertex(...)
       addVertex(...)
       addVertex(...)
-      addEnptyOutline()
+      addEmptyOutline()
       addVertex(...)
       addVertex(...)
       addVertex(...)
@@ -91,9 +92,21 @@ import com.jogamp.graph.curve.tess.CDTriangulator2D;
  * @see Region
  */
 public class OutlineShape {
+  /**
+    * Outline has original user state (vertices) until transformed.
+    */
+    public enum VerticesState {
+        ORIGINAL(0), QUADRATIC_NURBS(1);
 
-    public static final int QUADRATIC_NURBS = 10;
+        public final int state;
+
+        VerticesState(int state){
+            this.state = state;
+        }
+    } 
+    
     private final Vertex.Factory<? extends Vertex> vertexFactory;
+    private VerticesState outlineState;
 
     /** The list of {@link Outline}s that are part of this 
      *  outline shape.
@@ -105,6 +118,7 @@ public class OutlineShape {
     public OutlineShape(Vertex.Factory<? extends Vertex> factory) {
         vertexFactory = factory;
         outlines.add(new Outline());
+        outlineState = VerticesState.ORIGINAL;
     }
 
     /** Returns the associated vertex factory of this outline shape
@@ -205,11 +219,15 @@ public class OutlineShape {
     /** Make sure that the outlines represent
      * the specified destinationType, if not
      * transform outlines to destination type.
-     * @param destinationType The curve type needed
+     * @param destinationType TODO
      */
-    public void transformOutlines(int destinationType){
-        if(destinationType == QUADRATIC_NURBS){
-            transformOutlinesQuadratic();
+    public void transformOutlines(VerticesState destinationType){
+        if(outlineState != destinationType){
+            if(destinationType == VerticesState.QUADRATIC_NURBS){
+                transformOutlinesQuadratic();
+            } else {
+                throw new IllegalStateException("destinationType "+destinationType.name()+" not supported (currently "+outlineState.name()+")");
+            }
         }
     }
 
@@ -240,6 +258,7 @@ public class OutlineShape {
             newOutlines.add(newOutline);
         }
         outlines = newOutlines;
+        outlineState = VerticesState.QUADRATIC_NURBS;
     }
 
     private void generateVertexIds(){
