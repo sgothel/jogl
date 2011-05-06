@@ -409,7 +409,7 @@ public class AffineTransform implements Cloneable, Serializable {
         float x = src.getX();
         float y = src.getY();
 
-        dst.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12);
+        dst.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, 0f);
         return dst;
     }
 
@@ -422,7 +422,7 @@ public class AffineTransform implements Cloneable, Serializable {
             if (dstPoint == null) {
                 throw new IllegalArgumentException("dst["+dstOff+"] is null");
             }
-            dstPoint.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12);
+            dstPoint.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, 0f);
             dst[dstOff++] = dstPoint;
         }
     }
@@ -452,7 +452,7 @@ public class AffineTransform implements Cloneable, Serializable {
         float x = src.getX();
         float y = src.getY();
 
-        dst.setCoord(x * m00 + y * m01, x * m10 + y * m11);
+        dst.setCoord(x * m00 + y * m01, x * m10 + y * m11, 0f);
         return dst;
     }
 
@@ -477,7 +477,7 @@ public class AffineTransform implements Cloneable, Serializable {
         float x = src.getX() - m02;
         float y = src.getY() - m12;
 
-        dst.setCoord((x * m11 - y * m01) / det, (y * m00 - x * m10) / det);
+        dst.setCoord((x * m11 - y * m01) / det, (y * m00 - x * m10) / det, 0f);
         return dst;
     }
 

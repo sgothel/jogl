@@ -27,7 +27,6 @@
  */
 package com.jogamp.graph.geom.opengl;
 
-
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.math.VectorUtil;
 
@@ -38,7 +37,7 @@ import com.jogamp.graph.math.VectorUtil;
 public class SVertex implements Vertex {
     private int id = Integer.MAX_VALUE;
     protected float[] coord = new float[3];
-    protected boolean onCurve = true;
+    protected boolean onCurve;
     private float[] texCoord = new float[2];
     
     static final Factory factory = new Factory();
@@ -46,133 +45,130 @@ public class SVertex implements Vertex {
     public static Factory factory() { return factory; } 
     
     public static class Factory implements Vertex.Factory<SVertex> {
-        @Override
         public SVertex create() {
             return new SVertex();
         }
 
-        @Override
-        public SVertex create(float x, float y) {
-            return new SVertex(x, y);
+        public SVertex create(float x, float y, float z, boolean onCurve) {
+            return new SVertex(x, y, z, onCurve);
         }
 
-        @Override
-        public SVertex create(float x, float y, float z) {
-            return new SVertex(x, y, z);
-        }
-
-        @Override
-        public SVertex create(float[] coordsBuffer, int offset, int length) {
-            return new SVertex(coordsBuffer, offset, length);
+        public SVertex create(float[] coordsBuffer, int offset, int length, boolean onCurve) {
+            return new SVertex(coordsBuffer, offset, length, onCurve);
         }        
     }
     
     public SVertex() {
     }
 
-    public SVertex(float x, float y) {
-        setCoord(x, y);
-    }
-    public SVertex(float x, float y, float z) {
+    public SVertex(float x, float y, float z, boolean onCurve) {
         setCoord(x, y, z);
-    }    
-    public SVertex(float[] coordsBuffer, int offset, int length) {
+        setOnCurve(onCurve);
+    }
+    
+    public SVertex(float[] coordsBuffer, int offset, int length, boolean onCurve) {
         setCoord(coordsBuffer, offset, length);
+        setOnCurve(onCurve);
     }
         
-    public void setCoord(float x, float y) {
-        this.coord[0] = x;
-        this.coord[1] = y;
-        this.coord[2] = 0f;
+    public SVertex(float[] coordsBuffer, int offset, int length, 
+                   float[] texCoordsBuffer, int offsetTC, int lengthTC, boolean onCurve) {
+        setCoord(coordsBuffer, offset, length);
+        setTexCoord(texCoordsBuffer, offsetTC, lengthTC);
+        setOnCurve(onCurve);
     }
-
-    public void setCoord(float x, float y, float z) {
+    
+    public final void setCoord(float x, float y, float z) {
         this.coord[0] = x;
         this.coord[1] = y;
         this.coord[2] = z;
     }
 
-    public void setCoord(float[] coordsBuffer, int offset, int length) {
-        if(length > coordsBuffer.length - offset) {
-            throw new IndexOutOfBoundsException("coordsBuffer too small: "+coordsBuffer.length+" - "+offset+" < "+length);
-        }
-        if(length > 3) {
-            throw new IndexOutOfBoundsException("length too big: "+length+" > "+3);
-        }        
-        int i=0;
-        while(i<length) {
-            this.coord[i++] = coordsBuffer[offset++];
-        }
+    public final void setCoord(float[] coordsBuffer, int offset, int length) {
+        System.arraycopy(coordsBuffer, offset, coord, 0, length);
     }
         
-    public float[] getCoord() {
+    public final float[] getCoord() {
         return coord;
     }
 
-    public void setX(float x) {
+    public final void setX(float x) {
         this.coord[0] = x;
     }
 
-    public void setY(float y) {
+    public final void setY(float y) {
         this.coord[1] = y;
     }
 
-    public void setZ(float z) {
+    public final void setZ(float z) {
         this.coord[2] = z;
     }
 
-    public float getX() {
+    public final float getX() {
         return this.coord[0];
     }
 
-    public float getY() {
+    public final float getY() {
         return this.coord[1];
     }
 
-    public float getZ() {
+    public final float getZ() {
         return this.coord[2];
     }
 
-    public boolean isOnCurve() {
+    public final boolean isOnCurve() {
         return onCurve;
     }
 
-    public void setOnCurve(boolean onCurve) {
+    public final void setOnCurve(boolean onCurve) {
         this.onCurve = onCurve;
     }
 
-    public int getId(){
+    public final int getId(){
         return id;
     }
     
-    public void setId(int id){
+    public final void setId(int id){
         this.id = id;
     }
     
-    public int compareTo(Vertex p) {
-        if(VectorUtil.checkEquality(coord, p.getCoord())) {
-            return 0;
+    public boolean equals(Object obj) {
+        if( obj == this) {
+            return true;
         }
-        return -1;
+        if( null == obj || !(obj instanceof Vertex) ) {
+            return false;
+        }
+        final Vertex v = (Vertex) obj;
+        return this == v || 
+               isOnCurve() == v.isOnCurve() && 
+               VectorUtil.checkEqualityVec2(getTexCoord(), v.getTexCoord()) &&
+               VectorUtil.checkEquality(getCoord(), v.getCoord()) ;
     }
     
-    public float[] getTexCoord() {
+    public final float[] getTexCoord() {
         return texCoord;
     }
 
-    public void setTexCoord(float s, float t) {
+    public final void setTexCoord(float s, float t) {
         this.texCoord[0] = s;
         this.texCoord[1] = t;
     }
-    
+
+    public final void setTexCoord(float[] texCoordsBuffer, int offset, int length) {
+        System.arraycopy(texCoordsBuffer, offset, texCoord, 0, length);
+    }
+        
+    /**
+     * @return deep clone of this Vertex, but keeping the id blank
+     */
     public SVertex clone(){
-        SVertex v = new SVertex(this.coord, 0, 3);
-        v.setOnCurve(this.onCurve);
-        return v;
+        return new SVertex(this.coord, 0, 3, this.texCoord, 0, 2, this.onCurve);
     }
     
     public String toString() {
-        return "[ID: " + id + " X: " + coord[0]
-                + " Y: " + coord[1] + " Z: " + coord[2] + "]";
+        return "[ID: " + id + ", onCurve: " + onCurve + 
+               ": p " + coord[0] + ", " + coord[1] + ", " + coord[2] +
+               ", t " + texCoord[0] + ", " + texCoord[1] + "]";
     }
 }

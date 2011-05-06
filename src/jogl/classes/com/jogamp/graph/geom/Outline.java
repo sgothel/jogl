@@ -43,110 +43,116 @@ import com.jogamp.graph.math.VectorUtil;
  *  
  *  @see OutlineShape, Region
  */
-public class Outline implements Comparable<Outline> {
+public class Outline implements Cloneable, Comparable<Outline> {
     
     private ArrayList<Vertex> vertices = new ArrayList<Vertex>(3);
     private boolean closed = false;
-    private AABBox box = new AABBox();
+    private AABBox bbox = new AABBox();
+    private boolean dirtyBBox = false;
     
     /**Create an outline defined by control vertices.
      * An outline can contain off Curve vertices which define curved
      * regions in the outline.
      */
-    public Outline(){
+    public Outline() {        
+    }
         
+    public final int getVertexNumber() {
+        return vertices.size();
     }
     
-    /** Add a vertex to the outline. The {@link Vertex} is added at the 
-     * end of the outline loop/strip.
+    /** Appends a vertex to the outline loop/strip.
      * @param vertex Vertex to be added
+     * @throws NullPointerException if the  {@link Vertex} element is null 
      */
-    public final void addVertex(Vertex vertex) {
-        vertices.add(vertex);
-        box.resize(vertex.getX(), vertex.getY(), vertex.getZ());
+    public final void addVertex(Vertex vertex) throws NullPointerException {
+        addVertex(vertices.size(), vertex);
     }
     
-    /**  Add a {@link Vertex} by specifying its 2D attributes to the outline. 
-     * The {@link Vertex} is added at the 
-     * end of the outline loop/strip. 
-     * @param factory a {@link Factory} to get the required Vertex impl
-     * @param x the x coordinate
-     * @param y the y coordinate
-     * @param onCurve flag if this vertex is on the final curve or defines a curved region
-     * of the shape around this vertex.
+    /** Insert the {@link Vertex} element at the given {@code position} to the outline loop/strip.
+     * @param position of the added Vertex
+     * @param vertex Vertex object to be added
+     * @throws NullPointerException if the  {@link Vertex} element is null 
+     * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position > getVertexNumber())
      */
-    public final void addVertex(Vertex.Factory<? extends Vertex> factory, float x, float y, boolean onCurve) {
-        addVertex(factory, x, y, 0f, onCurve);
+    public final void addVertex(int position, Vertex vertex) throws NullPointerException, IndexOutOfBoundsException {
+        if (null == vertex) {
+            throw new NullPointerException("vertex is null");
+        }
+        vertices.add(position, vertex);
+        if(!dirtyBBox) {
+            bbox.resize(vertex.getX(), vertex.getY(), vertex.getZ());
+        }
+    }
+        
+    /** Replaces the {@link Vertex} element at the given {@code position}.
+     * <p>Sets the bounding box dirty, hence a next call to {@link #getBounds()} will validate it.</p>
+     * 
+     * @param position of the replaced Vertex
+     * @param vertex replacement Vertex object 
+     * @throws NullPointerException if the  {@link Outline} element is null 
+     * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position >= getVertexNumber())
+     */
+    public final void setVertex(int position, Vertex vertex) throws NullPointerException, IndexOutOfBoundsException {
+        if (null == vertex) {
+            throw new NullPointerException("vertex is null");
+        }
+        vertices.set(position, vertex);
+        dirtyBBox = true;
     }
     
-    /** Add a {@link Vertex} by specifying its 3D attributes to the outline. 
-     * The {@link Vertex} is added at the 
-     * end of the outline loop/strip. 
-     * @param factory  a {@link Factory} to get the required Vertex impl
-     * @param x the x coordinate
-     * @param y the y coordinate
-     * @param z the z coordinate
-     * @param onCurve flag if this vertex is on the final curve or defines a curved region
-     * of the shape around this vertex.
-     */
-    public final void addVertex(Vertex.Factory<? extends Vertex> factory, float x, float y, float z, boolean onCurve) {
-        Vertex v = factory.create(x, y, z);
-        v.setOnCurve(onCurve);
-        addVertex(v);
-    }
-    
-    /** Add a vertex to the outline by passing a float array and specifying the 
-     * offset and length in which. The attributes of the vertex are located. 
-     * The attributes should be continuous (stride = 0).
-     * Attributes which value are not set (when length less than 3) 
-     * are set implicitly to zero.
-     * @param factory  a {@link Factory} to get the required Vertex impl
-     * @param coordsBuffer the coordinate array where the vertex attributes are to be picked from
-     * @param offset the offset in the buffer to the x coordinate
-     * @param length the number of attributes to pick from the buffer (maximum 3)
-     * @param onCurve flag if this vertex is on the final curve or defines a curved region
-     * of the shape around this vertex.
-     */
-    public final void addVertex(Vertex.Factory<? extends Vertex> factory, float[] coordsBuffer, int offset, int length, boolean onCurve) {
-        Vertex v = factory.create(coordsBuffer, offset, length);
-        v.setOnCurve(onCurve);
-        addVertex(v);
-    }
-    
-    public Vertex getVertex(int index){
+    public final Vertex getVertex(int index){
         return vertices.get(index);
     }
     
-    public boolean isEmpty(){
+    /** Removes the {@link Vertex} element at the given {@code position}.
+     * <p>Sets the bounding box dirty, hence a next call to {@link #getBounds()} will validate it.</p>
+     * 
+     * @param position of the to be removed Vertex
+     * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position >= getVertexNumber())
+     */
+    public final Vertex removeVertex(int position) throws IndexOutOfBoundsException {
+        dirtyBBox = true;        
+        return vertices.remove(position);
+    }
+    
+    public final boolean isEmpty(){
         return (vertices.size() == 0);
     }
-    public Vertex getLastVertex(){
+    
+    public final Vertex getLastVertex(){
         if(isEmpty()){
             return null;
         }
         return vertices.get(vertices.size()-1);
     }
     
-    public ArrayList<Vertex> getVertices() {
+    public final ArrayList<Vertex> getVertices() {
         return vertices;
     }
-    public void setVertices(ArrayList<Vertex> vertices) {
+
+    /**
+     * Use the given outline loop/strip.
+     * <p>Validates the bounding box.</p>
+     * 
+     * @param vertices the new outline loop/strip
+     */
+    public final void setVertices(ArrayList<Vertex> vertices) {
         this.vertices = vertices;
-    }
-    public AABBox getBox() {
-        return box;
-    }
-    public boolean isClosed() {
-        return closed;
+        validateBoundingBox();
     }
     
+    public final boolean isClosed() {
+        return closed;
+    }
+
     /** define if this outline is closed or not.
      * if set to closed, checks if the last vertex is 
      * equal to the first vertex. If not Equal adds a
      * vertex at the end to the list.
      * @param closed
      */
-    public void setClosed(boolean closed) {
+    public final void setClosed(boolean closed) {
         this.closed = closed;
         if(closed){
             Vertex first = vertices.get(0);
@@ -162,9 +168,9 @@ public class Outline implements Comparable<Outline> {
      * as criteria. 
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
-    public int compareTo(Outline outline) {
-        float size = box.getSize();
-        float newSize = outline.getBox().getSize();
+    public final int compareTo(Outline outline) {
+        float size = getBounds().getSize();
+        float newSize = outline.getBounds().getSize();
         if(size < newSize){
             return -1;
         }
@@ -173,4 +179,61 @@ public class Outline implements Comparable<Outline> {
         }
         return 0;
     }
+    
+    private final void validateBoundingBox() {
+        dirtyBBox = false;
+        bbox.reset();
+        for (int i=0; i<vertices.size(); i++) {
+            bbox.resize(vertices.get(i).getCoord(), 0);
+        }
+    }
+         
+    public final AABBox getBounds() {
+        if (dirtyBBox) {
+            validateBoundingBox();
+        }
+        return bbox;
+    }    
+
+    /**
+     * @param obj the Object to compare this Outline with
+     * @return true if {@code obj} is an Outline, not null, equals bounds and equal vertices in the same order 
+     */
+    public boolean equals(Object obj) {
+        if( obj == this) {
+            return true;
+        }
+        if( null == obj || !(obj instanceof Outline) ) {
+            return false;
+        }        
+        final Outline o = (Outline) obj;
+        if(getVertexNumber() != o.getVertexNumber()) {
+            return false;
+        }
+        if( !getBounds().equals( o.getBounds() ) ) {
+            return false;
+        }
+        for (int i=getVertexNumber()-1; i>=0; i--) {
+            if( ! getVertex(i).equals( o.getVertex(i) ) ) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * @return deep clone of this Outline
+     */
+    public Outline clone() {
+        Outline o;
+        try {
+            o = (Outline) super.clone();
+        } catch (CloneNotSupportedException e) { return null; /* never, ever */ }
+        o.bbox = bbox.clone();
+        o.vertices = new ArrayList<Vertex>(vertices.size());
+        for(int i=0; i<vertices.size(); i++) {
+            o.vertices.add(vertices.get(i).clone());
+        }
+        return o;
+    }       
 }

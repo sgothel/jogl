@@ -315,7 +315,7 @@ public final class Path2D implements Cloneable {
                 j -= pointShift[type];
             }
         }
-        return new SVertex(points[j], points[j + 1]);
+        return new SVertex(points[j], points[j + 1], 0f, true);
     }
 
     public void reset() {

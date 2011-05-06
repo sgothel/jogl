@@ -81,43 +81,22 @@ public class GlyphShape {
             if(!shape.getLastOutline().isEmpty()){
                 shape.addEmptyOutline();
             }            
-            Vertex vert = vertexFactory().create(coords[0],coords[1]);
-            vert.setOnCurve(true);
-            addVertexToLastOutline(vert);
-            
+            addVertexToLastOutline(vertexFactory().create(coords, 0, 2, true));            
             numVertices++;
         }
         else if(segmentType == PathIterator.SEG_LINETO){
-            Vertex vert1 = vertexFactory().create(coords[0],coords[1]);
-            vert1.setOnCurve(true);
-            addVertexToLastOutline(vert1);
-            
+            addVertexToLastOutline(vertexFactory().create(coords, 0, 2, true));            
             numVertices++;
         }
         else if(segmentType == PathIterator.SEG_QUADTO){
-            Vertex vert1 = vertexFactory().create(coords[0],coords[1]);
-            vert1.setOnCurve(false);
-            addVertexToLastOutline(vert1);
-
-            Vertex vert2 = vertexFactory().create(coords[2],coords[3]);
-            vert2.setOnCurve(true);
-            addVertexToLastOutline(vert2);
-            
+            addVertexToLastOutline(vertexFactory().create(coords, 0, 2, false));
+            addVertexToLastOutline(vertexFactory().create(coords, 2, 2, true));            
             numVertices+=2;
         }
         else if(segmentType == PathIterator.SEG_CUBICTO){
-            Vertex vert1 = vertexFactory().create(coords[0],coords[1]);
-            vert1.setOnCurve(false);
-            addVertexToLastOutline(vert1);
-
-            Vertex vert2 = vertexFactory().create(coords[2],coords[3]);
-            vert2.setOnCurve(false);
-            addVertexToLastOutline(vert2);
-
-            Vertex vert3 = vertexFactory().create(coords[4],coords[5]);
-            vert3.setOnCurve(true);
-            addVertexToLastOutline(vert3);
-            
+            addVertexToLastOutline(vertexFactory().create(coords, 0, 2, false));
+            addVertexToLastOutline(vertexFactory().create(coords, 2, 2, false));
+            addVertexToLastOutline(vertexFactory().create(coords, 4, 2, true));            
             numVertices+=3;
         }
         else if(segmentType == PathIterator.SEG_CLOSE){

@@ -197,9 +197,22 @@ public class VectorUtil {
      */
     public static boolean checkEquality(float[] v1, float[] v2)
     {
-        if(Float.compare(v1[0], v2[0]) == 0 
-                && Float.compare(v1[1] , v2[1]) == 0
-                && Float.compare(v1[2], v2[2]) == 0 )
+        if(Float.compare(v1[0], v2[0]) == 0 &&
+           Float.compare(v1[1], v2[1]) == 0 &&
+           Float.compare(v1[2], v2[2]) == 0 )
+            return true;
+        return false;
+    }
+
+    /**Check equality of 2 vec2 vectors
+     * @param v1 vertex 1
+     * @param v2 vertex 2
+     * @return
+     */
+    public static boolean checkEqualityVec2(float[] v1, float[] v2)
+    {
+        if(Float.compare(v1[0], v2[0]) == 0 && 
+           Float.compare(v1[1], v2[1]) == 0)
             return true;
         return false;
     }
