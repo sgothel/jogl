@@ -459,7 +459,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
         OutlineShape o;
         try {
             o = (OutlineShape) super.clone();
-        } catch (CloneNotSupportedException e) { return null; /* never, ever */ }
+        } catch (CloneNotSupportedException e) { throw new InternalError(); }
         o.bbox = bbox.clone();
         o.outlines = new ArrayList<Outline>(outlines.size());
         for(int i=0; i<outlines.size(); i++) {

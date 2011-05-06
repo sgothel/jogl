@@ -228,7 +228,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
         Outline o;
         try {
             o = (Outline) super.clone();
-        } catch (CloneNotSupportedException e) { return null; /* never, ever */ }
+        } catch (CloneNotSupportedException e) { throw new InternalError(); }
         o.bbox = bbox.clone();
         o.vertices = new ArrayList<Vertex>(vertices.size());
         for(int i=0; i<vertices.size(); i++) {

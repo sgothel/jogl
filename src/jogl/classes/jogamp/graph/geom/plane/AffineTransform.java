@@ -519,9 +519,9 @@ public class AffineTransform implements Cloneable, Serializable {
     }
 
     @Override
-    public Object clone() {
+    public AffineTransform clone() {
         try {
-            return super.clone();
+            return (AffineTransform) super.clone();
         } catch (CloneNotSupportedException e) {
             throw new InternalError();
         }
