@@ -88,8 +88,8 @@ public interface Font {
     public Glyph getGlyph(char symbol);
     public int getNumGlyphs();
     
-    public float getStringWidth(String string, float pixelSize);
-    public float getStringHeight(String string, float pixelSize);
+    public float getStringWidth(CharSequence string, float pixelSize);
+    public float getStringHeight(CharSequence string, float pixelSize);
     public AABBox getStringBounds(CharSequence string, float pixelSize);
     
     public boolean isPrintableChar( char c );      

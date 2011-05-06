@@ -45,12 +45,11 @@ import jogamp.graph.geom.plane.PathIterator;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.RegionFactory;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GlyphString {
     private ArrayList<GlyphShape> glyphs = new ArrayList<GlyphShape>();
-    private String str = "";
-    private String fontname = "";
+    private CharSequence str;
+    private String fontname;
     private Region region;
     
     private SVertex origin = new SVertex();
@@ -60,7 +59,7 @@ public class GlyphString {
      * associated with
      * @param str the string object
      */
-    public GlyphString(String fontname, String str){
+    public GlyphString(String fontname, CharSequence str){
         this.fontname = fontname;
         this.str = str;
     }
@@ -68,7 +67,8 @@ public class GlyphString {
     public void addGlyphShape(GlyphShape glyph){
         glyphs.add(glyph);
     }
-    public String getString(){
+    
+    public CharSequence getString(){
         return str;
     }
 
