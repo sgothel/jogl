@@ -467,31 +467,34 @@ public class Crossing {
         int cross = 0;
         float mx, my, cx, cy;
         mx = my = cx = cy = 0.0f;
-        float coords[] = new float[6];
+        final float coords[] = new float[6];
 
         while (!p.isDone()) {
-            switch (p.currentSegment(coords)) {
-            case PathIterator.SEG_MOVETO:
-                if (cx != mx || cy != my) {
-                    cross += crossLine(cx, cy, mx, my, x, y);
-                }
-                mx = cx = coords[0];
-                my = cy = coords[1];
-                break;
-            case PathIterator.SEG_LINETO:
-                cross += crossLine(cx, cy, cx = coords[0], cy = coords[1], x, y);
-                break;
-            case PathIterator.SEG_QUADTO:
-                cross += crossQuad(cx, cy, coords[0], coords[1], cx = coords[2], cy = coords[3], x, y);
-                break;
-            case PathIterator.SEG_CUBICTO:
-                cross += crossCubic(cx, cy, coords[0], coords[1], coords[2], coords[3], cx = coords[4], cy = coords[5], x, y);
-                break;
-            case PathIterator.SEG_CLOSE:
-                if (cy != my || cx != mx) {
-                    cross += crossLine(cx, cy, cx = mx, cy = my, x, y);
-                }
-                break;
+            final int segmentType = p.currentSegment(coords);
+            switch (segmentType) {
+                case PathIterator.SEG_MOVETO:
+                    if (cx != mx || cy != my) {
+                        cross += crossLine(cx, cy, mx, my, x, y);
+                    }
+                    mx = cx = coords[0];
+                    my = cy = coords[1];
+                    break;
+                case PathIterator.SEG_LINETO:
+                    cross += crossLine(cx, cy, cx = coords[0], cy = coords[1], x, y);
+                    break;
+                case PathIterator.SEG_QUADTO:
+                    cross += crossQuad(cx, cy, coords[0], coords[1], cx = coords[2], cy = coords[3], x, y);
+                    break;
+                case PathIterator.SEG_CUBICTO:
+                    cross += crossCubic(cx, cy, coords[0], coords[1], coords[2], coords[3], cx = coords[4], cy = coords[5], x, y);
+                    break;
+                case PathIterator.SEG_CLOSE:
+                    if (cy != my || cx != mx) {
+                        cross += crossLine(cx, cy, cx = mx, cy = my, x, y);
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);                
             }
             
             // checks if the point (x,y) is the vertex of shape with PathIterator p           
@@ -821,7 +824,7 @@ public class Crossing {
         int count;
         float mx, my, cx, cy;
         mx = my = cx = cy = 0.0f;
-        float coords[] = new float[6];
+        final float coords[] = new float[6];
 
         float rx1 = x;
         float ry1 = y;
@@ -830,30 +833,33 @@ public class Crossing {
 
         while (!p.isDone()) {
             count = 0;
-            switch (p.currentSegment(coords)) {
-            case PathIterator.SEG_MOVETO:
-                if (cx != mx || cy != my) {
-                    count = intersectLine(cx, cy, mx, my, rx1, ry1, rx2, ry2);
-                }
-                mx = cx = coords[0];
-                my = cy = coords[1];
-                break;
-            case PathIterator.SEG_LINETO:
-                count = intersectLine(cx, cy, cx = coords[0], cy = coords[1], rx1, ry1, rx2, ry2);
-                break;
-            case PathIterator.SEG_QUADTO:
-                count = intersectQuad(cx, cy, coords[0], coords[1], cx = coords[2], cy = coords[3], rx1, ry1, rx2, ry2);
-                break;
-            case PathIterator.SEG_CUBICTO:
-                count = intersectCubic(cx, cy, coords[0], coords[1], coords[2], coords[3], cx = coords[4], cy = coords[5], rx1, ry1, rx2, ry2);
-                break;
-            case PathIterator.SEG_CLOSE:
-                if (cy != my || cx != mx) {
-                    count = intersectLine(cx, cy, mx, my, rx1, ry1, rx2, ry2);
-                }
-                cx = mx;
-                cy = my;
-                break;
+            final int segmentType = p.currentSegment(coords);
+            switch (segmentType) {
+                case PathIterator.SEG_MOVETO:
+                    if (cx != mx || cy != my) {
+                        count = intersectLine(cx, cy, mx, my, rx1, ry1, rx2, ry2);
+                    }
+                    mx = cx = coords[0];
+                    my = cy = coords[1];
+                    break;
+                case PathIterator.SEG_LINETO:
+                    count = intersectLine(cx, cy, cx = coords[0], cy = coords[1], rx1, ry1, rx2, ry2);
+                    break;
+                case PathIterator.SEG_QUADTO:
+                    count = intersectQuad(cx, cy, coords[0], coords[1], cx = coords[2], cy = coords[3], rx1, ry1, rx2, ry2);
+                    break;
+                case PathIterator.SEG_CUBICTO:
+                    count = intersectCubic(cx, cy, coords[0], coords[1], coords[2], coords[3], cx = coords[4], cy = coords[5], rx1, ry1, rx2, ry2);
+                    break;
+                case PathIterator.SEG_CLOSE:
+                    if (cy != my || cx != mx) {
+                        count = intersectLine(cx, cy, mx, my, rx1, ry1, rx2, ry2);
+                    }
+                    cx = mx;
+                    cy = my;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);
             }
             if (count == CROSSING) {
                 return CROSSING;

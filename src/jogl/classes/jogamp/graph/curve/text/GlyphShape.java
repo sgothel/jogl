@@ -77,30 +77,34 @@ public class GlyphShape {
     }
     
     private void addOutlineVerticesFromGlyphVector(float[] coords, int segmentType){
-        if(segmentType == PathIterator.SEG_MOVETO){
-            if(!shape.getLastOutline().isEmpty()){
-                shape.addEmptyOutline();
-            }            
-            addVertexToLastOutline(vertexFactory().create(coords, 0, 2, true));            
-            numVertices++;
-        }
-        else if(segmentType == PathIterator.SEG_LINETO){
-            addVertexToLastOutline(vertexFactory().create(coords, 0, 2, true));            
-            numVertices++;
-        }
-        else if(segmentType == PathIterator.SEG_QUADTO){
-            addVertexToLastOutline(vertexFactory().create(coords, 0, 2, false));
-            addVertexToLastOutline(vertexFactory().create(coords, 2, 2, true));            
-            numVertices+=2;
-        }
-        else if(segmentType == PathIterator.SEG_CUBICTO){
-            addVertexToLastOutline(vertexFactory().create(coords, 0, 2, false));
-            addVertexToLastOutline(vertexFactory().create(coords, 2, 2, false));
-            addVertexToLastOutline(vertexFactory().create(coords, 4, 2, true));            
-            numVertices+=3;
-        }
-        else if(segmentType == PathIterator.SEG_CLOSE){
-            shape.closeLastOutline();
+        switch(segmentType) {
+            case PathIterator.SEG_MOVETO:
+                if(!shape.getLastOutline().isEmpty()){
+                    shape.addEmptyOutline();
+                }            
+                addVertexToLastOutline(vertexFactory().create(coords, 0, 2, true));            
+                numVertices++;
+                break;
+            case PathIterator.SEG_LINETO:
+                addVertexToLastOutline(vertexFactory().create(coords, 0, 2, true));            
+                numVertices++;
+                break;
+            case PathIterator.SEG_QUADTO:
+                addVertexToLastOutline(vertexFactory().create(coords, 0, 2, false));
+                addVertexToLastOutline(vertexFactory().create(coords, 2, 2, true));            
+                numVertices+=2;
+                break;
+            case PathIterator.SEG_CUBICTO:
+                addVertexToLastOutline(vertexFactory().create(coords, 0, 2, false));
+                addVertexToLastOutline(vertexFactory().create(coords, 2, 2, false));
+                addVertexToLastOutline(vertexFactory().create(coords, 4, 2, true));            
+                numVertices+=3;
+                break;
+            case PathIterator.SEG_CLOSE:
+                shape.closeLastOutline();
+                break;
+            default:
+                throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);
         }
     }
     
