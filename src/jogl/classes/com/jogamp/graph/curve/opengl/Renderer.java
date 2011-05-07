@@ -195,7 +195,8 @@ public abstract class Renderer {
     
     public void setWeight(GL2ES2 gl, float v) {
         if(v > 1.9f || v < 0.0f)
-            return;
+        	 throw new IllegalArgumentException("Weight out of range");
+        
         rs.getWeight().setData(v);
         if(null != gl && rs.getShaderState().inUse()) {
             rs.getShaderState().uniform(gl, rs.getWeight());
