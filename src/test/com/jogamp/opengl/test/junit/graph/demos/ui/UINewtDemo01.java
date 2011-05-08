@@ -33,7 +33,6 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -67,7 +66,7 @@ public class UINewtDemo01 {
         window.setPosition(10, 10);
         window.setSize(800, 400);
         window.setTitle("GPU UI Newt Demo 01");
-        RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
+        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
         UIGLListener01 uiGLListener = new UIGLListener01 (rs, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);        
         window.addGLEventListener(uiGLListener);
