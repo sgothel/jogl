@@ -72,16 +72,14 @@ public class GlyphShape {
     
     public final Vertex.Factory<? extends Vertex> vertexFactory() { return shape.vertexFactory(); }
     
-    private void addVertexToLastOutline(Vertex vertex){
+    private void addVertexToLastOutline(Vertex vertex) {
         shape.addVertex(vertex);
     }
     
     private void addOutlineVerticesFromGlyphVector(float[] coords, int segmentType){
         switch(segmentType) {
             case PathIterator.SEG_MOVETO:
-                if(!shape.getLastOutline().isEmpty()){
-                    shape.addEmptyOutline();
-                }            
+                shape.addEmptyOutline();
                 addVertexToLastOutline(vertexFactory().create(coords, 0, 2, true));            
                 numVertices++;
                 break;
@@ -106,6 +104,10 @@ public class GlyphShape {
             default:
                 throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);
         }
+    }
+    
+    public OutlineShape getShape() {
+        return shape;
     }
     
     public int getNumVertices() {
