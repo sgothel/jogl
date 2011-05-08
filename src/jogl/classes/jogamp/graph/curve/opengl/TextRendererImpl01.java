@@ -48,11 +48,11 @@ public class TextRendererImpl01 extends TextRenderer {
     @Override
     protected boolean initShaderProgram(GL2ES2 gl){
         final ShaderState st = rs.getShaderState();
-        
+
         ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, TextRendererImpl01.class,
-                "shader", "shader/bin", "curverenderer01");
+                "shader", "shader/bin", getVertexShaderName(gl));
         ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, TextRendererImpl01.class,
-                "shader", "shader/bin", "curverenderer01");
+                "shader", "shader/bin", getFragmentShaderName(gl));
         
         ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);
@@ -75,12 +75,12 @@ public class TextRendererImpl01 extends TextRenderer {
     }
     
     @Override
-    protected void disposeImpl(GL2ES2 gl) {
-        super.disposeImpl(gl);
+    protected void destroyImpl(GL2ES2 gl) {
+        super.destroyImpl(gl);
     }
     
     @Override
-    public void renderString3D(GL2ES2 gl, Font font, String str, float[] position, int fontSize, int texSize) {
+    public void drawString3D(GL2ES2 gl, Font font, String str, float[] position, int fontSize, int texSize) {
         if(!isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }

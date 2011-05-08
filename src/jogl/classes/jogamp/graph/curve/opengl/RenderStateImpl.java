@@ -31,23 +31,15 @@ import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLUniformData;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.graph.curve.opengl.shader.UniformNames;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class RenderStateImpl implements RenderState {
-    
-    private final ShaderState st;
-    private final Vertex.Factory<? extends Vertex> pointFactory;    
-    private final PMVMatrix pmvMatrix;
-    private final GLUniformData gcu_PMVMatrix;                    
-        
+public class RenderStateImpl extends RenderState {    
     /**
      * weight is equivalent to the 
      * global off-curve vertex weight.
@@ -62,11 +54,7 @@ public class RenderStateImpl implements RenderState {
     }
     
     public RenderStateImpl(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory, PMVMatrix pmvMatrix) {
-        this.st = st;
-        this.pointFactory = pointFactory;
-        this.pmvMatrix = pmvMatrix;        
-        this.gcu_PMVMatrix = new GLUniformData(UniformNames.gcu_PMVMatrix, 4, 4, pmvMatrix.glGetPMvMatrixf());
-        st.ownUniform(gcu_PMVMatrix);
+        super(st, pointFactory, pmvMatrix);
         
         gcu_Weight = new GLUniformData(UniformNames.gcu_Weight, 1.0f);
         st.ownUniform(gcu_PMVMatrix);
@@ -80,53 +68,12 @@ public class RenderStateImpl implements RenderState {
     
     public RenderStateImpl(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory) {
         this(st, pointFactory, new PMVMatrix());
-        
-        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-        pmvMatrix.glLoadIdentity();
-        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmvMatrix.glLoadIdentity();        
-        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-        pmvMatrix.glLoadIdentity();        
     }
     
-    public final ShaderState getShaderState() { return st; }
-    public final Vertex.Factory<? extends Vertex> getPointFactory () { return pointFactory; }
-    public final PMVMatrix pmvMatrix() { return pmvMatrix; }
-    public final GLUniformData getPMVMatrix() { return gcu_PMVMatrix; }
     public final GLUniformData getWeight() { return gcu_Weight; }
     public final GLUniformData getAlpha() { return gcu_Alpha; }
     public final GLUniformData getColorStatic() { return gcu_ColorStatic; }
     //public final GLUniformData getStrength() { return gcu_Strength; }
     
-    public void destroy(GL2ES2 gl) {
-        st.destroy(gl);
-    }
     
-    public final RenderState attachTo(GL2ES2 gl) {
-        return (RenderState) gl.getContext().attachObject(RenderState.class.getName(), this);
-    }
-    public final boolean detachFrom(GL2ES2 gl) {
-        RenderState _rs = (RenderState) gl.getContext().getAttachedObject(RenderState.class.getName());
-        if(_rs == this) {
-            gl.getContext().detachObject(RenderState.class.getName());
-            return true;
-        }
-        return false;
-    }    
-    
-    public StringBuilder toString(StringBuilder sb) {
-        if(null==sb) {
-            sb = new StringBuilder();
-        }
-
-        sb.append("RenderState[");
-        st.toString(sb).append(Platform.getNewline());
-        sb.append("]");
-
-        return sb;
-    }
-    
-    public String toString() {
-        return toString(null).toString();
-    }    
 }

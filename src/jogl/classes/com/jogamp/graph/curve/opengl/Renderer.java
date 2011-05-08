@@ -30,87 +30,86 @@ package com.jogamp.graph.curve.opengl;
 import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLUniformData;
+import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
-import jogamp.graph.curve.opengl.RenderStateImpl;
+import com.jogamp.opengl.util.glsl.ShaderState;
+import com.jogamp.opengl.util.PMVMatrix;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.opengl.util.PMVMatrix;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 public abstract class Renderer {
     protected static final boolean DEBUG = Region.DEBUG;
-    protected static final boolean DEBUG_INSTANCE = Region.DEBUG_INSTANCE;    
+    protected static final boolean DEBUG_INSTANCE = Region.DEBUG_INSTANCE;
 
-    public static RenderState createRenderState(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory, PMVMatrix pmvMatrix) {
-        return new RenderStateImpl(st, pointFactory, pmvMatrix);
+    public static boolean isWeightValid(float v) {
+        return 0.0f <= v && v <= 1.9f ;
     }
 
-    public static RenderState createRenderState(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory) {
-        return new RenderStateImpl(st, pointFactory);
-    }
+    protected final int renderModes;
+    protected int vp_width;
+    protected int vp_height;
+    protected boolean initialized;
+    protected final RenderState rs;
+    private boolean vboSupported = false; 
+    
+    public final boolean isInitialized() { return initialized; }
+
+    public final int getWidth() { return vp_width; }
+    public final int getHeight() { return vp_height; }
+
+    public float getWeight() { return rs.getWeight().floatValue(); }
+    public float getAlpha() { return rs.getAlpha().floatValue(); }
+    public final PMVMatrix getMatrix() { return rs.pmvMatrix(); }
     
     /**
      * Implementation shall load, compile and link the shader program and leave it active.
-     * @param gl
+     * @param gl referencing the current GLContext to which the ShaderState is bound to
      * @return
      */
     protected abstract boolean initShaderProgram(GL2ES2 gl);
     
-    protected abstract void disposeImpl(GL2ES2 gl);
+    protected abstract void destroyImpl(GL2ES2 gl);
    
-    /** 
-     * Flushes all cached data
-     * @see #destroy(GL2ES2)
-     */
-    public abstract void flushCache(GL2ES2 gl);
-    
-    protected final RenderState rs;
-    public final int renderType;    
-    
-    protected int vp_width = 0;
-    protected int vp_height = 0;
-    
-    private boolean vboSupported = false; 
-    private boolean initialized = false;
-    
     /**
      * @param rs the used {@link RenderState} 
-     * @param renderType either {@link com.jogamp.graph.curve.Region#SINGLE_PASS} or {@link com.jogamp.graph.curve.Region#TWO_PASS}
+     * @param renderModes bit-field of modes
      */
-    protected Renderer(RenderState rs, int renderType) {
+    protected Renderer(RenderState rs, int renderModes) {
         this.rs = rs;
-        this.renderType = renderType;
+        this.renderModes = renderModes;
     }
     
-    public Vertex.Factory<? extends Vertex> getFactory() { return rs.getPointFactory(); }
+    public final int getRenderModes() {
+        return renderModes;
+    }
     
-    public final boolean isInitialized() { return initialized; }
+    public boolean usesVariableCurveWeight() { return Region.usesVariableCurveWeight(renderModes); }
+
+    /**
+     * @return true if Region's renderModes contains all bits as this Renderer's renderModes
+     *         except {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, otherwise false.
+     */
+    public final boolean areRenderModesCompatible(Region region) {
+        final int cleanRenderModes = getRenderModes() & ( Region.VARIABLE_CURVE_WEIGHT_BIT );
+        return cleanRenderModes == ( region.getRenderModes() & cleanRenderModes ); 
+    }
     
     public final boolean isVBOSupported() { return vboSupported; }
     
-    public final int getRenderType() { return renderType; }
-    
-    public final int getWidth() { return vp_width; }
-    public final int getHeight() { return vp_height; }
-    
     /** 
-     * Initialize shader and bindings for GPU based rendering bound to the given GL object's GLContext.
-     *  
-     * Leaves the renderer enabled, ie ShaderState.
+     * Initialize shader and bindings for GPU based rendering bound to the given GL object's GLContext
+     * if not initialized yet.
+     * <p>Leaves the renderer enabled, ie ShaderState.</p>
+     * <p>Shall be called by a {@code draw()} method, e.g. {@link RegionRenderer#draw(GL2ES2, Region, float[], int)}</p>
      *  
      * @param gl referencing the current GLContext to which the ShaderState is bound to
-     * 
-     * @return true if succeeded, false otherwise
+     * @throws GLException if initialization failed
      */
-    public boolean init(GL2ES2 gl) {
+    public final void init(GL2ES2 gl) throws GLException {
         if(initialized){
-            if(DEBUG) {
-                System.err.println("TextRenderer: Already initialized!");
-            }
-            return true;
+            return;
         }
         vboSupported =  gl.isFunctionAvailable("glGenBuffers") &&
                         gl.isFunctionAvailable("glBindBuffer") &&
@@ -124,7 +123,7 @@ public abstract class Renderer {
         }
         
         if(!vboSupported){
-            return false;
+            throw new GLException("VBO not supported");
         }
         
         rs.attachTo(gl);
@@ -134,40 +133,30 @@ public abstract class Renderer {
         
         initialized = initShaderProgram(gl);
         if(!initialized) {
-            return false;
+            throw new GLException("Shader initialization failed");
         }
         
         if(!rs.getShaderState().uniform(gl, rs.getPMVMatrix())) {
-            if(DEBUG){
-                System.err.println("Error setting PMVMatrix in shader: "+rs.getShaderState());
-            }
-            return false;
+            throw new GLException("Error setting PMVMatrix in shader: "+rs.getShaderState());
         }
         
         if(!rs.getShaderState().uniform(gl, rs.getWeight())) {
-            if(DEBUG){
-                System.err.println("Error setting weight in shader: "+rs.getShaderState());
-            }
-            return false;
+            throw new GLException("Error setting weight in shader: "+rs.getShaderState());
         }
                 
         if(!rs.getShaderState().uniform(gl, rs.getAlpha())) {
-            if(DEBUG){
-                System.err.println("Error setting global alpha in shader: "+rs.getShaderState());
-            }
-            return false;
+            throw new GLException("Error setting global alpha in shader: "+rs.getShaderState());
         }        
         
         if(!rs.getShaderState().uniform(gl, rs.getColorStatic())) {
-            if(DEBUG){
-                System.err.println("Error setting global color in shader: "+rs.getShaderState());
-            }
-            return false;
+            throw new GLException("Error setting global color in shader: "+rs.getShaderState());
         }        
-                
-        return initialized;
     }
 
+    public final void flushCache(GL2ES2 gl) {  
+        // FIXME: REMOVE !
+    }
+        
     public void destroy(GL2ES2 gl) {
         if(!initialized){
             if(DEBUG_INSTANCE) {
@@ -176,8 +165,7 @@ public abstract class Renderer {
             return;
         }
         rs.getShaderState().useProgram(gl, false);
-        flushCache(gl);
-        disposeImpl(gl);
+        destroyImpl(gl);
         rs.destroy(gl);
         initialized = false;        
     }
@@ -189,24 +177,16 @@ public abstract class Renderer {
         rs.getShaderState().useProgram(gl, enable);
     }
 
-    public float getWeight() {
-        return rs.getWeight().floatValue();
-    }
-    
     public void setWeight(GL2ES2 gl, float v) {
-        if(v > 1.9f || v < 0.0f)
+        if( !isWeightValid(v) ) {
         	 throw new IllegalArgumentException("Weight out of range");
-        
+        }
         rs.getWeight().setData(v);
         if(null != gl && rs.getShaderState().inUse()) {
             rs.getShaderState().uniform(gl, rs.getWeight());
         }
     }
     
-    public float getAlpha() {
-        return rs.getAlpha().floatValue();
-    }
-
     public void setAlpha(GL2ES2 gl, float alpha_t) {
         rs.getAlpha().setData(alpha_t);
         if(null != gl && rs.getShaderState().inUse()) {
@@ -232,8 +212,6 @@ public abstract class Renderer {
         }
     }
     
-    public final PMVMatrix getMatrix() { return rs.pmvMatrix(); }
-
     public void rotate(GL2ES2 gl, float angle, float x, float y, float z) {
         rs.pmvMatrix().glRotatef(angle, x, y, z);
         updateMatrix(gl);
@@ -284,4 +262,19 @@ public abstract class Renderer {
         return true;        
     }
 
+    protected String getVertexShaderName(GL2ES2 gl) {
+        return "curverenderer01" + getShaderGLVersionSuffix(gl);
+    }
+    
+    protected String getFragmentShaderName(GL2ES2 gl) {
+        return "curverenderer01" + getShaderGLVersionSuffix(gl);
+    }
+        
+    protected String getShaderGLVersionSuffix(GL2ES2 gl) {
+        if(gl.isGLES2()) {
+            return "-es2";
+        }
+        return "-gl2";
+    }    
+    
 }

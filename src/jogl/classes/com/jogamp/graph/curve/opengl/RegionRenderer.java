@@ -27,137 +27,57 @@
  */
 package com.jogamp.graph.curve.opengl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLException;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.RegionFactory;
-import com.jogamp.graph.geom.Triangle;
-import com.jogamp.graph.geom.Vertex;
 
 public abstract class RegionRenderer extends Renderer {
 
-    private boolean uniform = true;
     /** 
      * Create a Hardware accelerated Region Renderer.
      * @param rs the used {@link RenderState} 
-     * @param type either {@link com.jogamp.graph.curve.Region#SINGLE_PASS} or {@link com.jogamp.graph.curve.Region#TWO_PASS}
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#TWO_PASS_RENDERING_BIT} 
      * @return an instance of Region Renderer
      */
-    public static RegionRenderer create(RenderState rs, int type) {
-        return new jogamp.graph.curve.opengl.RegionRendererImpl01(rs, type, true);
+    public static RegionRenderer create(RenderState rs, int renderModes) {
+        return new jogamp.graph.curve.opengl.RegionRendererImpl01(rs, renderModes);
     }
     
-    /** Create a Hardware accelerated Region Renderer.
-     * @param rs the used {@link RenderState}
-     * @param type either {@link com.jogamp.graph.curve.Region#SINGLE_PASS} or {@link com.jogamp.graph.curve.Region#TWO_PASS}
-     * @param uniformWeight flag true uniform weights (equal 1.0f)for off-curve vertex, else otherwise.
-     * @return an instance of Region Renderer
-     */
-    public static RegionRenderer create(RenderState rs, int type, boolean uniformWeight) {
-        return new jogamp.graph.curve.opengl.RegionRendererImpl01(rs, type, uniformWeight);
+    protected RegionRenderer(RenderState rs, int renderModes) {
+        super(rs, renderModes);
     }
     
-    protected RegionRenderer(RenderState rs, int type, boolean uniformWeight) {
-        super(rs, type);
-        this.uniform = uniformWeight;
-    }
     
-    public boolean isUniformWeight(){
-        return uniform;
-    }
-    
-    /** Render an array of {@link OutlineShape}s combined in one region
-     *  at the position provided the triangles of the 
-     *  shapes will be generated, if not yet generated
-     * @param outlineShapes array of OutlineShapes to Render.
-     * @param position the initial translation of the outlineShapes.
-     * @param texSize texture size for multipass render     * 
-     * @throws Exception if HwRegionRenderer not initialized
-     */
-    public abstract void renderOutlineShapes(GL2ES2 gl, OutlineShape[] outlineShapes, float[] position, int texSize);
-
     /** Render an {@link OutlineShape} in 3D space at the position provided
      *  the triangles of the shapes will be generated, if not yet generated
-     * @param outlineShape the OutlineShape to Render.
+     * @param region the OutlineShape to Render.
      * @param position the initial translation of the outlineShape. 
      * @param texSize texture size for multipass render
      * @throws Exception if HwRegionRenderer not initialized
      */
-    public abstract void renderOutlineShape(GL2ES2 gl, OutlineShape outlineShape, float[] position, int texSize);
-
-    protected HashMap<Integer, Region> regions = new HashMap<Integer, Region>();
-
-    public void flushCache(GL2ES2 gl) {
-        Iterator<Region> iterator = regions.values().iterator();
-        while(iterator.hasNext()){
-            Region region = iterator.next();
-            region.destroy(gl, rs);
+    public final void draw(GL2ES2 gl, Region region, float[] position, int texSize) {
+        if(!isInitialized()) {
+            throw new GLException("RegionRenderer: not initialized!");
         }
-        regions.clear();
-    }       
+        if( !areRenderModesCompatible(region) ) {
+            throw new GLException("Incompatible render modes, : region modes "+region.getRenderModes()+
+                                  " doesn't contain renderer modes "+this.getRenderModes());
+        }        
+        drawImpl(gl, region, position, texSize);
+    }
+    
+    /**
+     * Usually just dispatched the draw call to the Region's draw implementation,
+     * e.g. {@link com.jogamp.graph.curve.opengl.GLRegion#draw(GL2ES2, RenderState, int, int, int) GLRegion#draw(GL2ES2, RenderState, int, int, int)}.
+     */
+    protected abstract void drawImpl(GL2ES2 gl, Region region, float[] position, int texSize);
 
     @Override
-    protected void disposeImpl(GL2ES2 gl) {
-        // fluchCache(gl) already called
+    protected void destroyImpl(GL2ES2 gl) {
+        // nop
     }
     
-    /** 
-     * Create an ogl {@link Region} defining this {@link OutlineShape}
-     * @return the resulting Region.
-     */
-    protected Region createRegion(GL2ES2 gl, OutlineShape outlineShape) {
-        Region region = RegionFactory.create(rs, renderType);
-        
-        outlineShape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
-        ArrayList<Triangle> triangles = (ArrayList<Triangle>) outlineShape.triangulate();
-        ArrayList<Vertex> vertices = (ArrayList<Vertex>) outlineShape.getVertices();
-        region.addVertices(vertices);
-        region.addTriangles(triangles);
-        
-        region.update(gl);
-        return region;
-    }
     
-    /** Create an ogl {@link Region} defining the list of {@link OutlineShape}.
-     * Combining the Shapes into single buffers.
-     * @return the resulting Region inclusive the generated region
-     */
-    protected Region createRegion(GL2ES2 gl, OutlineShape[] outlineShapes) {
-        Region region = RegionFactory.create(rs, renderType);
-        
-        int numVertices = region.getNumVertices();
-        
-        for(OutlineShape outlineShape:outlineShapes){
-            outlineShape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
-
-            ArrayList<Triangle> triangles = outlineShape.triangulate();
-            region.addTriangles(triangles);
-            
-            ArrayList<Vertex> vertices = outlineShape.getVertices();
-            for(Vertex vert:vertices){
-                vert.setId(numVertices++);
-            }
-            region.addVertices(vertices);
-        }
-        
-        region.update(gl);
-        return region;
-    }
-    
-    protected static int getHashCode(OutlineShape outlineShape){
-        return outlineShape.hashCode();
-    }
-    
-    protected static int getHashCode(OutlineShape[] outlineShapes){
-        int hashcode = 0;
-        for(OutlineShape outlineShape:outlineShapes){
-            hashcode += getHashCode(outlineShape);
-        }
-        return hashcode;
-    }       
 }

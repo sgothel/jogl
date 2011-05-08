@@ -32,8 +32,8 @@ import javax.media.opengl.GLException;
 
 import jogamp.graph.curve.opengl.shader.AttributeNames;
 
-import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -41,29 +41,26 @@ import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class RegionRendererImpl01 extends RegionRenderer {
-    public RegionRendererImpl01(RenderState rs, int type, boolean uniform) {
-        super(rs, type, uniform);
+    public RegionRendererImpl01(RenderState rs, int renderModes) {
+        super(rs, renderModes);
         
     }
     
-    private String getVertexShaderName(){
-        return "curverenderer01";
-    }
-    
-    private String getFragmentShaderName(){
-        if(!isUniformWeight()){
-            return "curverenderer02";
+    @Override
+    protected String getFragmentShaderName(GL2ES2 gl) {
+        if(Region.usesVariableCurveWeight(renderModes)){
+            return "curverenderer02" + getShaderGLVersionSuffix(gl);
         }
-        return "curverenderer01";
+        return "curverenderer01" + getShaderGLVersionSuffix(gl);
     }
     
     protected boolean initShaderProgram(GL2ES2 gl) {
         final ShaderState st = rs.getShaderState();
         
         ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RegionRendererImpl01.class,
-                "shader", "shader/bin", getVertexShaderName());
+                "shader", "shader/bin", getVertexShaderName(gl));
         ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, RegionRendererImpl01.class,
-                "shader", "shader/bin", getFragmentShaderName());
+                "shader", "shader/bin", getFragmentShaderName(gl));
     
         ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);
@@ -86,39 +83,12 @@ public class RegionRendererImpl01 extends RegionRenderer {
     }
 
     @Override
-    protected void disposeImpl(GL2ES2 gl) {
-        super.disposeImpl(gl);
+    protected void destroyImpl(GL2ES2 gl) {
+        super.destroyImpl(gl);
     }
-        
-    
+
     @Override
-    public void renderOutlineShape(GL2ES2 gl, OutlineShape outlineShape, float[] position, int texSize) {
-        if(!isInitialized()){
-            throw new GLException("RegionRendererImpl01: not initialized!");
-        }
-        int hashCode = getHashCode(outlineShape);
-        Region region = regions.get(hashCode);
-        
-        if(null == region) {
-            region = createRegion(gl, outlineShape);
-            regions.put(hashCode, region);
-        }        
-        region.render(gl, rs, vp_width, vp_height, texSize);
-    }
-    
-    @Override
-    public void renderOutlineShapes(GL2ES2 gl, OutlineShape[] outlineShapes, float[] position, int texSize) {
-        if(!isInitialized()){
-            throw new GLException("RegionRendererImpl01: not initialized!");
-        }
-        
-        int hashCode = getHashCode(outlineShapes);
-        Region region = regions.get(hashCode);
-        
-        if(null == region) {
-            region = createRegion(gl, outlineShapes);
-            regions.put(hashCode, region);
-        }        
-        region.render(gl, rs, vp_width, vp_height, texSize);
+    protected void drawImpl(GL2ES2 gl, Region region, float[] position, int texSize) {
+        ((GLRegion)region).draw(gl, rs, vp_width, vp_height, texSize);
     }    
 }

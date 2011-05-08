@@ -6,4 +6,5 @@ public class UniformNames {
     public static final String gcu_Alpha = "gcu_Alpha"; 
     public static final String gcu_Weight = "gcu_Weight";
     public static final String gcu_TextureUnit = "gcu_TextureUnit";
+    public static final String gcu_TextureSize = "gcu_TextureSize";
 }
