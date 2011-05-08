@@ -39,6 +39,7 @@ import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 
 import com.jogamp.common.util.IntObjectHashMap;
+import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.AABBox;
 
@@ -139,13 +140,21 @@ class TypecastFont implements FontInt {
         }
         char2Glyph = new IntObjectHashMap(cmapentries + cmapentries/4);
     }
-
+    
+    public StringBuilder getName(StringBuilder sb, int nameIndex) {
+        return font.getName(nameIndex, sb);
+    }
     public String getName(int nameIndex) {
-        return font.getName(nameIndex);
+        return getName(null, nameIndex).toString();
     }
-    public StringBuffer getAllNames(StringBuffer buffer, String separator) {
-        return font.getAllNames(buffer, separator);
+    public StringBuilder getAllNames(StringBuilder sb, String separator) {
+        return font.getAllNames(sb, separator);
     }
+    public StringBuilder getFullFamilyName(StringBuilder sb) {
+        sb = getName(sb, Font.NAME_FAMILY).append("-");
+        getName(sb, Font.NAME_SUBFAMILY);
+        return sb;
+    }    
 
     public Metrics getMetrics() {
         if (metrics == null) {
@@ -274,4 +283,7 @@ class TypecastFont implements FontInt {
         return FontFactory.isPrintableChar(c);
     }
     
+    public String toString() {
+        return getFullFamilyName(null).toString();
+    }
 }

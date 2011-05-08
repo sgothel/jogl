@@ -82,7 +82,14 @@ public interface Font {
 
 
     public String getName(int nameIndex);
-    public StringBuffer getAllNames(StringBuffer buffer, String separator);
+    public StringBuilder getName(StringBuilder string, int nameIndex);
+    
+    /** Shall return the family and subfamily name, separated a dash.
+     * <p>{@link #getName(StringBuilder, int)} w/ {@link #NAME_FAMILY} and {@link #NAME_SUBFAMILY}</p>
+     * <p>Example: "{@code Ubuntu-Regular}"</p>  */
+    public StringBuilder getFullFamilyName(StringBuilder buffer);
+    
+    public StringBuilder getAllNames(StringBuilder string, String separator);
     
     public Metrics getMetrics();
     public Glyph getGlyph(char symbol);
@@ -92,5 +99,8 @@ public interface Font {
     public float getStringHeight(CharSequence string, float pixelSize);
     public AABBox getStringBounds(CharSequence string, float pixelSize);
     
-    public boolean isPrintableChar( char c );      
+    public boolean isPrintableChar( char c );  
+    
+    /** Shall return {@link #getFullFamilyName()} */
+    public String toString();
 }
