@@ -65,7 +65,7 @@ public class TypecastRenderer {
             t.setTransform(transform);
             char character = string.charAt(i);
             if (character == '\n') {
-                y -= advanceY;
+                y += advanceY;
                 advanceTotal = 0;
                 continue;
             } else if (character == ' ') {
@@ -118,39 +118,39 @@ public class TypecastRenderer {
             Point point_plus2 = glyph.getPoint(startIndex + (offset+2)%count);
             if(offset == 0)
             {
-                gp.moveTo(point.x, -point.y);
+                gp.moveTo(point.x, point.y);
             }
             
             if (point.onCurve) {
                 if (point_plus1.onCurve) {
-                    // s = new Line2D.Float(point.x, -point.y, point_plus1.x, -point_plus1.y);
-                    gp.lineTo( point_plus1.x, -point_plus1.y );
+                    // s = new Line2D.Float(point.x, point.y, point_plus1.x, point_plus1.y);
+                    gp.lineTo( point_plus1.x, point_plus1.y );
                     offset++;                    
                 } else {
                     if (point_plus2.onCurve) {
-                        // s = new QuadCurve2D.Float( point.x, -point.y, point_plus1.x, -point_plus1.y, point_plus2.x, -point_plus2.y);
-                        gp.quadTo(point_plus1.x, -point_plus1.y, point_plus2.x, -point_plus2.y);
+                        // s = new QuadCurve2D.Float( point.x, point.y, point_plus1.x, point_plus1.y, point_plus2.x, point_plus2.y);
+                        gp.quadTo(point_plus1.x, point_plus1.y, point_plus2.x, point_plus2.y);
                         offset+=2;                    
                     } else {
-                        // s = new QuadCurve2D.Float(point.x,-point.y,point_plus1.x,-point_plus1.y,
-                        //                           midValue(point_plus1.x, point_plus2.x), -midValue(point_plus1.y, point_plus2.y));
-                        gp.quadTo(point_plus1.x, -point_plus1.y, midValue(point_plus1.x, point_plus2.x), -midValue(point_plus1.y, point_plus2.y));
+                        // s = new QuadCurve2D.Float(point.x,point.y,point_plus1.x,point_plus1.y,
+                        //                           midValue(point_plus1.x, point_plus2.x), midValue(point_plus1.y, point_plus2.y));
+                        gp.quadTo(point_plus1.x, point_plus1.y, midValue(point_plus1.x, point_plus2.x), midValue(point_plus1.y, point_plus2.y));
                         offset+=2;
                     }
                 }
             } else {
                 if (point_plus1.onCurve) {
-                    // s = new QuadCurve2D.Float(midValue(point_minus1.x, point.x), -midValue(point_minus1.y, point.y),
-                    //                           point.x, -point.y, point_plus1.x, -point_plus1.y);
-                    //gp.curve3(point_plus1.x, -point_plus1.y, point.x, -point.y);
-                    gp.quadTo(point.x, -point.y, point_plus1.x, -point_plus1.y);
+                    // s = new QuadCurve2D.Float(midValue(point_minus1.x, point.x), midValue(point_minus1.y, point.y),
+                    //                           point.x, point.y, point_plus1.x, point_plus1.y);
+                    //gp.curve3(point_plus1.x, point_plus1.y, point.x, point.y);
+                    gp.quadTo(point.x, point.y, point_plus1.x, point_plus1.y);
                     offset++;
                     
                 } else {
-                    // s = new QuadCurve2D.Float(midValue(point_minus1.x, point.x), -midValue(point_minus1.y, point.y), point.x, -point.y,
-                    //                           midValue(point.x, point_plus1.x), -midValue(point.y, point_plus1.y));
-                    //gp.curve3(midValue(point.x, point_plus1.x), -midValue(point.y, point_plus1.y), point.x, -point.y);
-                    gp.quadTo(point.x, -point.y, midValue(point.x, point_plus1.x), -midValue(point.y, point_plus1.y));
+                    // s = new QuadCurve2D.Float(midValue(point_minus1.x, point.x), midValue(point_minus1.y, point.y), point.x, point.y,
+                    //                           midValue(point.x, point_plus1.x), midValue(point.y, point_plus1.y));
+                    //gp.curve3(midValue(point.x, point_plus1.x), midValue(point.y, point_plus1.y), point.x, point.y);
+                    gp.quadTo(point.x, point.y, midValue(point.x, point_plus1.x), midValue(point.y, point_plus1.y));
                     offset++;                    
                 }
             }
