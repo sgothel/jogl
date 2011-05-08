@@ -27,14 +27,12 @@
  */
 package jogamp.graph.curve.opengl;
 
-import java.util.ArrayList;
-
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 
 import jogamp.graph.curve.opengl.shader.AttributeNames;
 
-import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
@@ -42,50 +40,44 @@ import com.jogamp.graph.geom.Triangle;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class VBORegionSPES2  implements Region {
-    private int numVertices = 0;
-    
-    private ArrayList<Triangle> triangles = new ArrayList<Triangle>();
-    private ArrayList<Vertex> vertices = new ArrayList<Vertex>();
+public class VBORegionSPES2 extends GLRegion {
     private GLArrayDataServer verticeAttr = null;
     private GLArrayDataServer texCoordAttr = null;
     private GLArrayDataServer indices = null;
-    
-    private boolean flipped = false;
-    private boolean dirty = true;
-    
-    private AABBox box = null;
-    
-    public VBORegionSPES2(RenderState rs){        
-        box = new AABBox();
         
-        final int initialSize = 256;
-        final ShaderState st = rs.getShaderState();
-        
-        indices = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialSize, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
-        
-        verticeAttr = GLArrayDataServer.createGLSL(st, AttributeNames.VERTEX_ATTR_NAME, 3, 
-                                                   GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);         
-        st.ownAttribute(verticeAttr, true);
-        
-        texCoordAttr = GLArrayDataServer.createGLSL(st, AttributeNames.TEXCOORD_ATTR_NAME, 2, 
-                                                    GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
-        st.ownAttribute(texCoordAttr, true);
-        
-        if(DEBUG_INSTANCE) {
-            System.err.println("VBORegionSPES2 Create: " + this);
-        }        
+    protected VBORegionSPES2(int renderModes) { 
+        super(renderModes);
     }
     
-    public void update(GL2ES2 gl){
-        if(!dirty) {
+    protected void update(GL2ES2 gl, RenderState rs) {
+        if(!isDirty()) {
             return; 
+        }
+        
+        if(null == indices) {
+            final int initialSize = 256;
+            final ShaderState st = rs.getShaderState();
+            
+            indices = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialSize, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+            
+            verticeAttr = GLArrayDataServer.createGLSL(st, AttributeNames.VERTEX_ATTR_NAME, 3, 
+                                                       GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);         
+            st.ownAttribute(verticeAttr, true);
+            
+            texCoordAttr = GLArrayDataServer.createGLSL(st, AttributeNames.TEXCOORD_ATTR_NAME, 2, 
+                                                        GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
+            st.ownAttribute(texCoordAttr, true);
+            
+            if(DEBUG_INSTANCE) {
+                System.err.println("VBORegionSPES2 Create: " + this);
+            }
         }
         
         // process triangles
         indices.seal(gl, false);
         indices.rewind();        
-        for(Triangle t:triangles){
+        for(int i=0; i<triangles.size(); i++) {
+            final Triangle t = triangles.get(i);
             final Vertex[] t_vertices = t.getVertices();
             
             if(t_vertices[0].getId() == Integer.MAX_VALUE){
@@ -93,22 +85,17 @@ public class VBORegionSPES2  implements Region {
                 t_vertices[1].setId(numVertices++);
                 t_vertices[2].setId(numVertices++);
                                 
-                vertices.add(t.getVertices()[0]);
-                vertices.add(t.getVertices()[1]);
-                vertices.add(t.getVertices()[2]);
+                vertices.add(t_vertices[0]);
+                vertices.add(t_vertices[1]);
+                vertices.add(t_vertices[2]);
 
-                indices.puts((short) t.getVertices()[0].getId());
-                indices.puts((short) t.getVertices()[1].getId());
-                indices.puts((short) t.getVertices()[2].getId());
-            }
-            else{
-                Vertex v1 = t_vertices[0];
-                Vertex v2 = t_vertices[1];
-                Vertex v3 = t_vertices[2];
-                
-                indices.puts((short) v1.getId());
-                indices.puts((short) v2.getId());
-                indices.puts((short) v3.getId());
+                indices.puts((short) t_vertices[0].getId());
+                indices.puts((short) t_vertices[1].getId());
+                indices.puts((short) t_vertices[2].getId());
+            } else {
+                indices.puts((short) t_vertices[0].getId());
+                indices.puts((short) t_vertices[1].getId());
+                indices.puts((short) t_vertices[2].getId());
             }
         }
         indices.seal(gl, true);
@@ -120,21 +107,13 @@ public class VBORegionSPES2  implements Region {
         verticeAttr.rewind();
         texCoordAttr.seal(gl, false);
         texCoordAttr.rewind();
-        for(Vertex v:vertices){            
-            if(flipped){
-                verticeAttr.putf(v.getX());
-                verticeAttr.putf(-1*v.getY());
-                verticeAttr.putf(v.getZ());
-                
-                box.resize(v.getX(),-1*v.getY(),v.getZ());
-            }
-            else{
-                verticeAttr.putf(v.getX());
-                verticeAttr.putf(v.getY());
-                verticeAttr.putf(v.getZ());
-                
-                box.resize(v.getX(),v.getY(),v.getZ());
-            }
+        for(int i=0; i<vertices.size(); i++) {
+            final Vertex v = vertices.get(i);
+            final float ysign = isFlipped() ? -1.0f : 1.0f ; 
+            verticeAttr.putf(        v.getX());
+            verticeAttr.putf(ysign * v.getY());
+            verticeAttr.putf(        v.getZ());            
+            box.resize(v.getX(), ysign*v.getY(), v.getZ());
             
             final float[] tex = v.getTexCoord();
             texCoordAttr.putf(tex[0]);
@@ -147,12 +126,12 @@ public class VBORegionSPES2  implements Region {
         
         // update all bbox related data: nope
         
-        dirty = false;
+        setDirty(false);
         
         // the buffers were disabled, since due to real/fbo switching and other vbo usage
     }
-    
-    private void render(GL2ES2 gl) {
+        
+    protected void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int width) {
         verticeAttr.enableBuffer(gl, true);       
         texCoordAttr.enableBuffer(gl, true);
         indices.enableBuffer(gl, true);
@@ -162,30 +141,7 @@ public class VBORegionSPES2  implements Region {
         verticeAttr.enableBuffer(gl, false);       
         texCoordAttr.enableBuffer(gl, false);
         indices.enableBuffer(gl, false);
-    }
-    
-    public void render(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int width) {
-        render(gl);
-    }
-    
-    public void addTriangles(ArrayList<Triangle> tris) {
-        triangles.addAll(tris);
-        dirty = true;
-    }
-    
-    public int getNumVertices(){
-        return numVertices;
-    }
-    
-    public void addVertices(ArrayList<Vertex> verts){
-        vertices.addAll(verts);
-        numVertices = vertices.size();
-        dirty = true;
-    }
-    
-    public boolean isDirty(){
-        return dirty;
-    }
+    }    
     
     public final void destroy(GL2ES2 gl, RenderState rs) {
         if(DEBUG_INSTANCE) {
@@ -206,16 +162,5 @@ public class VBORegionSPES2  implements Region {
             indices.destroy(gl);
             indices = null;
         }
-    }
-    
-    public boolean isFlipped() {
-        return flipped;
-    }
-
-    public void setFlipped(boolean flipped) {
-        this.flipped = flipped;
-    }
-    public AABBox getBounds(){
-        return box;
-    }
+    }    
 }

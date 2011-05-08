@@ -27,7 +27,7 @@
  */
 package jogamp.graph.curve.opengl;
 
-import java.util.ArrayList;
+import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL2ES2;
 // FIXME: Subsume GL2GL3.GL_DRAW_FRAMEBUFFER -> GL2ES2.GL_DRAW_FRAMEBUFFER ! 
@@ -38,22 +38,18 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import jogamp.graph.curve.opengl.shader.AttributeNames;
 import jogamp.graph.curve.opengl.shader.UniformNames;
 
-import com.jogamp.graph.geom.AABBox;
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 
-import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.util.FBObject;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class VBORegion2PES2  implements Region {
-    private int numVertices = 0;
-    
-    private ArrayList<Triangle> triangles = new ArrayList<Triangle>();
-    private ArrayList<Vertex> vertices = new ArrayList<Vertex>();
+public class VBORegion2PES2  extends GLRegion {
     private GLArrayDataServer verticeTxtAttr;
     private GLArrayDataServer texCoordTxtAttr;
     private GLArrayDataServer indicesTxt;
@@ -61,97 +57,90 @@ public class VBORegion2PES2  implements Region {
     private GLArrayDataServer texCoordFboAttr;
     private GLArrayDataServer indicesFbo;
     
-    private boolean flipped = false;
     
-    private boolean dirty = true;
-    
-    private AABBox box;
     private FBObject fbo;
-
     private PMVMatrix fboPMVMatrix;
     GLUniformData mgl_fboPMVMatrix;
     
     private int tex_width_c = 0;
     private int tex_height_c = 0;
     GLUniformData mgl_ActiveTexture; 
-    int activeTexture; // texture engine 0 == GL.GL_TEXTURE0
+    GLUniformData mgl_TextureSize; // if GLSL < 1.30
+    final int activeTexture; // texture engine 0 == GL.GL_TEXTURE0
     
-    public VBORegion2PES2(RenderState rs, int textureEngine) {
-        fboPMVMatrix = new PMVMatrix();
-        mgl_fboPMVMatrix = new GLUniformData(UniformNames.gcu_PMVMatrix, 4, 4, fboPMVMatrix.glGetPMvMatrixf());
-        
+    public VBORegion2PES2(int renderModes, int textureEngine) {
+        super(renderModes);
         activeTexture = GL.GL_TEXTURE0 + textureEngine;
-        mgl_ActiveTexture = new GLUniformData(UniformNames.gcu_TextureUnit, textureEngine);
-        
-        final int initialSize = 256;
-        final ShaderState st = rs.getShaderState();
-        
-        indicesFbo = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialSize, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);                
-        indicesFbo.puts((short) 0); indicesFbo.puts((short) 1); indicesFbo.puts((short) 3);
-        indicesFbo.puts((short) 1); indicesFbo.puts((short) 2); indicesFbo.puts((short) 3);
-        indicesFbo.seal(true);
-        
-        texCoordFboAttr = GLArrayDataServer.createGLSL(st, AttributeNames.TEXCOORD_ATTR_NAME, 2, 
-                                                       GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
-        st.ownAttribute(texCoordFboAttr, true);
-        texCoordFboAttr.putf(5); texCoordFboAttr.putf(5);        
-        texCoordFboAttr.putf(5); texCoordFboAttr.putf(6);        
-        texCoordFboAttr.putf(6); texCoordFboAttr.putf(6);        
-        texCoordFboAttr.putf(6); texCoordFboAttr.putf(5);        
-        texCoordFboAttr.seal(true);
-        
-        verticeFboAttr = GLArrayDataServer.createGLSL(st, AttributeNames.VERTEX_ATTR_NAME, 3, 
-                                                      GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW); 
-        st.ownAttribute(verticeFboAttr, true);
-        
-        
-        box = new AABBox();
-        
-        indicesTxt = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialSize, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);                
-        
-        verticeTxtAttr = GLArrayDataServer.createGLSL(st, AttributeNames.VERTEX_ATTR_NAME, 3, 
-                                                      GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
-        st.ownAttribute(verticeTxtAttr, true);
-        
-        texCoordTxtAttr = GLArrayDataServer.createGLSL(st, AttributeNames.TEXCOORD_ATTR_NAME, 2, 
-                                                       GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
-        st.ownAttribute(texCoordTxtAttr, true);
-        
-        if(DEBUG_INSTANCE) {
-            System.err.println("VBORegion2PES2 Create: " + this);
-        }        
+        fboPMVMatrix = new PMVMatrix();
+        mgl_fboPMVMatrix = new GLUniformData(UniformNames.gcu_PMVMatrix, 4, 4, fboPMVMatrix.glGetPMvMatrixf());        
+        mgl_ActiveTexture = new GLUniformData(UniformNames.gcu_TextureUnit, textureEngine);        
     }
     
-    public void update(GL2ES2 gl){
-        if(!dirty) {
+    public void update(GL2ES2 gl, RenderState rs) {
+        if(!isDirty()) {
             return; 
         }
-        
+
+        if(null == indicesFbo) {
+            final int initialSize = 256;
+            final ShaderState st = rs.getShaderState();
+            
+            indicesFbo = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialSize, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);                
+            indicesFbo.puts((short) 0); indicesFbo.puts((short) 1); indicesFbo.puts((short) 3);
+            indicesFbo.puts((short) 1); indicesFbo.puts((short) 2); indicesFbo.puts((short) 3);
+            indicesFbo.seal(true);
+            
+            texCoordFboAttr = GLArrayDataServer.createGLSL(st, AttributeNames.TEXCOORD_ATTR_NAME, 2, 
+                                                           GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
+            st.ownAttribute(texCoordFboAttr, true);
+            texCoordFboAttr.putf(5); texCoordFboAttr.putf(5);        
+            texCoordFboAttr.putf(5); texCoordFboAttr.putf(6);        
+            texCoordFboAttr.putf(6); texCoordFboAttr.putf(6);        
+            texCoordFboAttr.putf(6); texCoordFboAttr.putf(5);        
+            texCoordFboAttr.seal(true);
+            
+            verticeFboAttr = GLArrayDataServer.createGLSL(st, AttributeNames.VERTEX_ATTR_NAME, 3, 
+                                                          GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW); 
+            st.ownAttribute(verticeFboAttr, true);
+            
+            
+            indicesTxt = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialSize, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);                
+            
+            verticeTxtAttr = GLArrayDataServer.createGLSL(st, AttributeNames.VERTEX_ATTR_NAME, 3, 
+                                                          GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
+            st.ownAttribute(verticeTxtAttr, true);
+            
+            texCoordTxtAttr = GLArrayDataServer.createGLSL(st, AttributeNames.TEXCOORD_ATTR_NAME, 2, 
+                                                           GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
+            st.ownAttribute(texCoordTxtAttr, true);
+            
+            if(DEBUG_INSTANCE) {
+                System.err.println("VBORegion2PES2 Create: " + this);
+            }                    
+        }
         // process triangles
         indicesTxt.seal(gl, false);
         indicesTxt.rewind();        
-        for(Triangle t:triangles){
-            if(t.getVertices()[0].getId() == Integer.MAX_VALUE){
-                t.getVertices()[0].setId(numVertices++);
-                t.getVertices()[1].setId(numVertices++);
-                t.getVertices()[2].setId(numVertices++);
+        for(int i=0; i<triangles.size(); i++) {
+            final Triangle t = triangles.get(i);
+            final Vertex[] t_vertices = t.getVertices();
+            
+            if(t_vertices[0].getId() == Integer.MAX_VALUE){
+                t_vertices[0].setId(numVertices++);
+                t_vertices[1].setId(numVertices++);
+                t_vertices[2].setId(numVertices++);
                 
-                vertices.add(t.getVertices()[0]);
-                vertices.add(t.getVertices()[1]);
-                vertices.add(t.getVertices()[2]);
+                vertices.add(t_vertices[0]);
+                vertices.add(t_vertices[1]);
+                vertices.add(t_vertices[2]);
                 
-                indicesTxt.puts((short) t.getVertices()[0].getId());
-                indicesTxt.puts((short) t.getVertices()[1].getId());
-                indicesTxt.puts((short) t.getVertices()[2].getId());
-            }
-            else{
-                Vertex v1 = t.getVertices()[0];
-                Vertex v2 = t.getVertices()[1];
-                Vertex v3 = t.getVertices()[2];
-                
-                indicesTxt.puts((short) v1.getId());
-                indicesTxt.puts((short) v2.getId());
-                indicesTxt.puts((short) v3.getId());
+                indicesTxt.puts((short) t_vertices[0].getId());
+                indicesTxt.puts((short) t_vertices[1].getId());
+                indicesTxt.puts((short) t_vertices[2].getId());
+            } else {
+                indicesTxt.puts((short) t_vertices[0].getId());
+                indicesTxt.puts((short) t_vertices[1].getId());
+                indicesTxt.puts((short) t_vertices[2].getId());                
             }
         }
         indicesTxt.seal(gl, true);
@@ -163,19 +152,13 @@ public class VBORegion2PES2  implements Region {
         verticeTxtAttr.rewind();
         texCoordTxtAttr.seal(gl, false);
         texCoordTxtAttr.rewind();
-        for(Vertex v:vertices){
-            verticeTxtAttr.putf(v.getX());
-            if(flipped){
-                verticeTxtAttr.putf(-1*v.getY());
-            } else {
-                verticeTxtAttr.putf(v.getY());
-            }
-            verticeTxtAttr.putf(v.getZ());
-            if(flipped){
-                box.resize(v.getX(), -1*v.getY(), v.getZ());
-            } else {
-                box.resize(v.getX(), v.getY(), v.getZ());
-            }
+        for(int i=0; i<vertices.size(); i++) {
+            final Vertex v = vertices.get(i);
+            final float ysign = isFlipped() ? -1.0f : 1.0f ; 
+            verticeTxtAttr.putf(        v.getX());
+            verticeTxtAttr.putf(ysign * v.getY());
+            verticeTxtAttr.putf(        v.getZ());            
+            box.resize(v.getX(), ysign*v.getY(), v.getZ());            
             
             final float[] tex = v.getTexCoord();
             texCoordTxtAttr.putf(tex[0]);
@@ -204,16 +187,16 @@ public class VBORegion2PES2  implements Region {
         indicesFbo.seal(gl, true);
         indicesFbo.enableBuffer(gl, false);
         
-        dirty = false;
+        setDirty(false);
         
         // the buffers were disabled, since due to real/fbo switching and other vbo usage
     }
     
-    public void render(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int width) {
+    protected void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int width) {
         if(vp_width <=0 || vp_height <= 0 || width <= 0){
             renderRegion(gl);
         } else {
-            if(width != tex_width_c){
+            if(width != tex_width_c) {
                 renderRegion2FBO(gl, rs, width);                
             }
             // System.out.println("Scale: " + matrix.glGetMatrixf().get(1+4*3) +" " + matrix.glGetMatrixf().get(2+4*3));
@@ -253,7 +236,7 @@ public class VBORegion2PES2  implements Region {
         final ShaderState st = rs.getShaderState();
         
         tex_width_c = tex_width;        
-        tex_height_c = (int)(tex_width_c*box.getHeight()/box.getWidth());
+        tex_height_c = (int) ( ( ( tex_width_c * box.getHeight() ) / box.getWidth() ) + 0.5f );
         
         // System.out.println("FBO Size: "+tex_width+" -> "+tex_height_c+"x"+tex_width_c);
         // System.out.println("FBO Scale: " + m.glGetMatrixf().get(0) +" " + m.glGetMatrixf().get(5));
@@ -283,6 +266,17 @@ public class VBORegion2PES2  implements Region {
         fbo.unbind(gl);
         
         st.uniform(gl, rs.getPMVMatrix()); // switch back to real PMV matrix
+        
+        // if( !gl.isGL3() ) {
+            // GLSL < 1.30
+            if(null == mgl_TextureSize) {
+                mgl_TextureSize = new GLUniformData(UniformNames.gcu_TextureSize, 2, Buffers.newDirectFloatBuffer(2));
+            }
+            final FloatBuffer texSize = (FloatBuffer) mgl_TextureSize.getBuffer();
+            texSize.put(0, (float)fbo.getWidth());
+            texSize.put(1, (float)fbo.getHeight());
+            st.uniform(gl, mgl_TextureSize);
+        //}                        
     }
     
     private void renderRegion(GL2ES2 gl) {
@@ -295,25 +289,6 @@ public class VBORegion2PES2  implements Region {
         verticeTxtAttr.enableBuffer(gl, false);       
         texCoordTxtAttr.enableBuffer(gl, false);
         indicesTxt.enableBuffer(gl, false);        
-    }
-    
-    public void addTriangles(ArrayList<Triangle> tris) {
-        triangles.addAll(tris);
-        dirty = true;
-    }
-    
-    public int getNumVertices(){
-        return numVertices;
-    }
-    
-    public void addVertices(ArrayList<Vertex> verts){
-        vertices.addAll(verts);
-        numVertices = vertices.size();
-        dirty = true;
-    }
-    
-    public boolean isDirty(){
-        return dirty;
     }
     
     public void destroy(GL2ES2 gl, RenderState rs) {
@@ -355,17 +330,5 @@ public class VBORegion2PES2  implements Region {
         }
         triangles.clear();
         vertices.clear();        
-    }
-    
-    public boolean isFlipped() {
-        return flipped;
-    }
-
-    public void setFlipped(boolean flipped) {
-        this.flipped = flipped;
-    }
-    
-    public AABBox getBounds(){
-        return box;
-    }
+    }       
 }
