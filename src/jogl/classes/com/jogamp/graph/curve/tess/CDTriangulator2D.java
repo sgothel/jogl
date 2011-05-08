@@ -173,13 +173,12 @@ public class CDTriangulator2D {
                 if(DEBUG){
                     System.err.println(t);
                 }
-                if(hole || holeLike) {
+                if( hole || holeLike ) {
                     v0.setTexCoord(0, -0.1f);
                     v2.setTexCoord(1, -0.1f);
                     v1.setTexCoord(0.5f, -1*sharpness -0.1f);
                     innerOutline.addVertex(currentVertex);
-                }
-                else {
+                } else {
                     v0.setTexCoord(0, 0.1f);
                     v2.setTexCoord(1, 0.1f);
                     v1.setTexCoord(0.5f, sharpness+0.1f);
