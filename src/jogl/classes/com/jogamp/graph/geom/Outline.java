@@ -154,7 +154,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
      */
     public final void setClosed(boolean closed) {
         this.closed = closed;
-        if(closed){
+        if( closed && !isEmpty() ) {
             Vertex first = vertices.get(0);
             Vertex last = getLastVertex();
             if(!VectorUtil.checkEquality(first.getCoord(), last.getCoord())){

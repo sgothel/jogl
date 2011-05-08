@@ -942,7 +942,13 @@ public class ShaderState {
         }
         
         sb.append("ShaderState[ ");
-        sb.append(Platform.getNewline()).append(" ").append(shaderProgram.toString());
+        
+        sb.append(Platform.getNewline()).append(" ");
+        if(null != shaderProgram) {
+            shaderProgram.toString(sb);
+        } else {
+            sb.append("ShaderProgram: null");
+        }
         sb.append(Platform.getNewline()).append(" enabledAttributes [");
         for(Iterator<String> iter = enabledAttributes.iterator(); iter.hasNext(); ) {
             sb.append(Platform.getNewline()).append("  ").append(iter.next());
