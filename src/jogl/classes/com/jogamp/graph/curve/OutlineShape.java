@@ -30,13 +30,13 @@ package com.jogamp.graph.curve;
 import java.util.ArrayList;
 import java.util.Collections;
 
+
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.math.VectorUtil;
 
-import com.jogamp.graph.curve.OutlineShape.VerticesState;
 import com.jogamp.graph.curve.tess.CDTriangulator2D;
 
 /** A Generic shape objects which is defined by a list of Outlines.
@@ -106,6 +106,8 @@ public class OutlineShape implements Comparable<OutlineShape> {
         }
     } 
     
+    public static final int DIRTY_BOUNDS = 1 << 0;
+    
     private final Vertex.Factory<? extends Vertex> vertexFactory;
     private VerticesState outlineState;
 
@@ -114,8 +116,10 @@ public class OutlineShape implements Comparable<OutlineShape> {
      */
     private ArrayList<Outline> outlines;
     private AABBox bbox;
-    private boolean dirtyBBox;    
 
+    /** dirty bits DIRTY_BOUNDS */
+    private int dirtyBits;  
+    
     /** Create a new Outline based Shape
      */
     public OutlineShape(Vertex.Factory<? extends Vertex> factory) {
@@ -124,9 +128,18 @@ public class OutlineShape implements Comparable<OutlineShape> {
         this.outlines.add(new Outline());
         this.outlineState = VerticesState.UNDEFINED;
         this.bbox = new AABBox();
-        this.dirtyBBox = false;    
+        this.dirtyBits = 0;    
     }
 
+    /** Clears all data and reset all states as if this instance was newly created */
+    public void clear() {
+        outlines.clear();
+        outlines.add(new Outline());
+        outlineState = VerticesState.UNDEFINED;
+        bbox.reset();
+        dirtyBits = 0;    
+    }
+    
     /** Returns the associated vertex factory of this outline shape
      * @return Vertex.Factory object
      */
@@ -137,19 +150,24 @@ public class OutlineShape implements Comparable<OutlineShape> {
     }
     
     /** Add a new empty {@link Outline} 
-     * to the shape, this new outline will
-     * be placed at the end of the outline list.
+     * to the end of this shape's outline list.
+     * <p>If the {@link #getLastOutline()} is empty already, no new one will be added.</p>
      * 
      * After a call to this function all new vertices added
      * will belong to the new outline
      */
     public void addEmptyOutline(){
-        outlines.add(new Outline());
+        if( !getLastOutline().isEmpty() ) {
+            outlines.add(new Outline());
+        }
     }
 
     /** Appends the {@link Outline} element to the end,
      * ensuring a clean tail.
-     * <p>A clean tail is ensured, ie no double empty Outlines. </p>
+     * 
+     * <p>A clean tail is ensured, no double empty Outlines are produced
+     * and a pre-existing empty outline will be replaced with the given one. </p>
+     * 
      * @param outline Outline object to be added
      * @throws NullPointerException if the  {@link Outline} element is null 
      */
@@ -158,8 +176,11 @@ public class OutlineShape implements Comparable<OutlineShape> {
     }
 
     /** Insert the {@link Outline} element at the given {@code position}.
+     * 
      * <p>If the {@code position} indicates the end of this list,
-     * a clean tail is ensured, ie no double empty Outlines. </p>
+     * a clean tail is ensured, no double empty Outlines are produced
+     * and a pre-existing empty outline will be replaced with the given one. </p>
+     * 
      * @param position of the added Outline
      * @param outline Outline object to be added
      * @throws NullPointerException if the  {@link Outline} element is null 
@@ -169,21 +190,39 @@ public class OutlineShape implements Comparable<OutlineShape> {
         if (null == outline) {
             throw new NullPointerException("outline is null");
         }
-        if(outlines.size() == position) {
-            if(outline.isEmpty()) {
+        if( outlines.size() == position ) {
+            final Outline lastOutline = getLastOutline();
+            if( outline.isEmpty() && lastOutline.isEmpty() ) {
                 return;
             }
-            if(getLastOutline().isEmpty()) {
+            if( lastOutline.isEmpty() ) {
                 outlines.set(position-1, outline);
-                if(!dirtyBBox) {
+                if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
                     bbox.resize(outline.getBounds());
                 }
+                return;
             }
-        } else {
-            outlines.add(position, outline);
-            if(!dirtyBBox) {
-                bbox.resize(outline.getBounds());
-            }
+        }
+        outlines.add(position, outline);
+        if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
+            bbox.resize(outline.getBounds());
+        }
+    }
+
+    /** Insert the {@link OutlineShape} elements of type {@link Outline}, .. at the end of this shape,
+     * using {@link #addOutline(Outline)} for each element.
+     * <p>Closes the current last outline via {@link #closeLastOutline()} before adding the new ones.</p>
+     * @param outlineShape OutlineShape elements to be added.
+     * @throws NullPointerException if the  {@link OutlineShape} is null 
+     * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position > getOutlineNumber())
+     */
+    public void addOutlineShape(OutlineShape outlineShape) throws NullPointerException {
+        if (null == outlineShape) {
+            throw new NullPointerException("OutlineShape is null");
+        }
+        closeLastOutline();
+        for(int i=0; i<outlineShape.getOutlineNumber(); i++) {
+            addOutline(outlineShape.getOutline(i));
         }
     }
         
@@ -200,7 +239,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
             throw new NullPointerException("outline is null");
         }
         outlines.set(position, outline);
-        dirtyBBox = true;
+        dirtyBits |= DIRTY_BOUNDS;
     }
     
     /** Removes the {@link Outline} element at the given {@code position}.
@@ -210,7 +249,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position >= getOutlineNumber())
      */
     public final Outline removeOutline(int position) throws IndexOutOfBoundsException {
-        dirtyBBox = true;        
+        dirtyBits |= DIRTY_BOUNDS;
         return outlines.remove(position);
     }
         
@@ -236,7 +275,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
     public final void addVertex(Vertex v){
         final Outline lo = getLastOutline();
         lo.addVertex(v);
-        if(!dirtyBBox) {
+        if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
             bbox.resize(lo.getBounds());
         }
     }
@@ -256,8 +295,8 @@ public class OutlineShape implements Comparable<OutlineShape> {
     /** Add a 3D {@link Vertex} to the last outline by defining the coordniate attribute
      * of the vertex.
      * @param x the x coordinate
-     * @param y the y coordniate
-     * @param z the z coordniate
+     * @param y the y coordinate
+     * @param z the z coordinate
      * @param onCurve flag if this vertex is on the final curve or defines a curved region
      * of the shape around this vertex.
      */
@@ -280,10 +319,10 @@ public class OutlineShape implements Comparable<OutlineShape> {
         addVertex(vertexFactory.create(coordsBuffer, offset, length, onCurve));
     }    
 
-    /** Closes the last outline in the shape
-     * if last vertex is not equal to first vertex.
+    /** Closes the last outline in the shape.
+     * <p>If last vertex is not equal to first vertex.
      * A new temp vertex is added at the end which 
-     * is equal to the first.
+     * is equal to the first.</p>
      */
     public void closeLastOutline(){
         getLastOutline().setClosed(true);
@@ -352,7 +391,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
     /** @return the list of concatenated vertices associated with all 
      * {@code Outline}s of this object
      */
-    public ArrayList<Vertex> getVertices(){
+    public ArrayList<Vertex> getVertices() {
         ArrayList<Vertex> vertices = new ArrayList<Vertex>();
         for(int i=0; i<outlines.size(); i++) {
             vertices.addAll(outlines.get(i).getVertices());
@@ -360,21 +399,21 @@ public class OutlineShape implements Comparable<OutlineShape> {
         return vertices;
     }
 
-    /**Triangulate the {@link OutlineShape} generating a list of triangles
+    /**
+     * Triangulate the {@link OutlineShape} generating a list of triangles
      * @return an arraylist of triangles representing the filled region
      * which is produced by the combination of the outlines
      */
-    public ArrayList<Triangle> triangulate(){
+    public ArrayList<Triangle> triangulate() {
         if(outlines.size() == 0){
             return null;
         }
         sortOutlines();
         generateVertexIds();
-        
+
         CDTriangulator2D triangulator2d = new CDTriangulator2D();
-        for(int index = 0; index< outlines.size();index++){
-            Outline outline = outlines.get(index);
-            triangulator2d.addCurve(outline);
+        for(int index = 0; index<outlines.size(); index++) {
+            triangulator2d.addCurve(outlines.get(index));
         }
         
         ArrayList<Triangle> triangles = triangulator2d.generateTriangulation();
@@ -408,7 +447,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
     }
     
     private final void validateBoundingBox() {
-        dirtyBBox = false;
+        dirtyBits &= ~DIRTY_BOUNDS;
         bbox.reset();
         for (int i=0; i<outlines.size(); i++) {
             bbox.resize(outlines.get(i).getBounds());
@@ -416,7 +455,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
     }
          
     public final AABBox getBounds() {
-        if (dirtyBBox) {
+        if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
             validateBoundingBox();
         }
         return bbox;
@@ -453,7 +492,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
     }
     
     /**
-     * @return deep clone of this OutlineShape
+     * @return deep clone of this OutlineShape w/o Region
      */
     public OutlineShape clone() {
         OutlineShape o;
@@ -466,5 +505,5 @@ public class OutlineShape implements Comparable<OutlineShape> {
             o.outlines.add(outlines.get(i).clone());
         }
         return o;
-    }           
+    }                
 }
