@@ -46,7 +46,7 @@ import com.jogamp.graph.curve.opengl.RenderState;
 public abstract class GPURegionRendererListenerBase01 extends GPURendererListenerBase01 {
     OutlineShape outlineShape = null;
 
-    public GPURegionRendererListenerBase01(RenderState rs, int mode, boolean uniform, boolean debug, boolean trace) {
-        super(RegionRenderer.create(rs, mode,uniform), debug, trace);
+    public GPURegionRendererListenerBase01(RenderState rs, int renderModes, boolean debug, boolean trace) {
+        super(RegionRenderer.create(rs, renderModes), renderModes, debug, trace);
     }        
 }

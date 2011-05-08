@@ -102,12 +102,12 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     StringBuffer userString = new StringBuffer();
     boolean userInput = false;
     
-    public GPUTextRendererListenerBase01(RenderState rs, int mode, boolean debug, boolean trace) {
-        super(TextRenderer.create(rs, mode), debug, trace);        
+    public GPUTextRendererListenerBase01(RenderState rs, int modes, boolean debug, boolean trace) {
+        super(TextRenderer.create(rs, modes), modes, debug, trace);        
         this.font = FontFactory.get(fontSet).getDefault();
         dumpFontNames();
         
-        this.fontName = font.getName(Font.NAME_FAMILY) + " - " + font.getName(Font.NAME_SUBFAMILY);
+        this.fontName = font.toString();
         this.fontNameBox = font.getStringBounds(fontName, fontSizeFixed*2);
         switchHeadBox();        
     }
@@ -160,7 +160,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             final int fpsSp = fpsS.indexOf('.');
             textRenderer.resetModelview(null);
             textRenderer.translate(gl, fontSizeFixed, fontSizeFixed, -6000);
-            textRenderer.renderString3D(gl, font, fpsS.substring(0, fpsSp+2)+" fps", getPosition(), fontSizeFixed*3, getTexSize());
+            textRenderer.drawString3D(gl, font, fpsS.substring(0, fpsSp+2)+" fps", getPosition(), fontSizeFixed*3, getTexSize());
         }
         
         int dx = width-(int)fontNameBox.getWidth()-2 ;
@@ -168,7 +168,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         
         textRenderer.resetModelview(null);
         textRenderer.translate(gl, dx, dy, -6000);
-        textRenderer.renderString3D(gl, font, fontName, getPosition(), fontSizeFixed*2, getTexSize());
+        textRenderer.drawString3D(gl, font, fontName, getPosition(), fontSizeFixed*2, getTexSize());
         
         dx  =  10;
         dy += -(int)fontNameBox.getHeight() - 10;
@@ -176,7 +176,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         if(null != headtext) { 
             textRenderer.resetModelview(null);
             textRenderer.translate(gl, dx, dy, -6000);
-            textRenderer.renderString3D(gl, font, headtext, getPosition(), fontSizeFixed*3, getTexSize());
+            textRenderer.drawString3D(gl, font, headtext, getPosition(), fontSizeFixed*3, getTexSize());
         }
         
         textRenderer.reshapePerspective(null, 45.0f, width, height, 0.1f, 7000.0f);             
@@ -186,9 +186,9 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         textRenderer.rotate(gl, getAngle(), 0, 1, 0);
         textRenderer.setColorStatic(gl, 1.0f, 0.0f, 0.0f);
         if(!userInput) {
-            textRenderer.renderString3D(gl, font, text2, getPosition(), fontSize, getTexSize());
+            textRenderer.drawString3D(gl, font, text2, getPosition(), fontSize, getTexSize());
         } else {
-            textRenderer.renderString3D(gl, font, userString.toString(), getPosition(), fontSize, getTexSize());
+            textRenderer.drawString3D(gl, font, userString.toString(), getPosition(), fontSize, getTexSize());
         }
     }        
         
@@ -200,8 +200,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
     public void nextFontSet() {
         fontSet = ( fontSet == FontFactory.UBUNTU ) ? FontFactory.JAVA : FontFactory.UBUNTU ;
-        font = FontFactory.get(fontSet).getDefault();        
-        this.fontName = font.getName(Font.NAME_FAMILY) + " - " + font.getName(Font.NAME_SUBFAMILY);
+        font = FontFactory.get(fontSet).getDefault();   
+        this.fontName = font.getFullFamilyName(null).toString();
         this.fontNameBox = font.getStringBounds(fontName, fontSizeFixed*3);
         dumpFontNames();
     }
@@ -243,7 +243,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     }
     
     public void printScreen(GLAutoDrawable drawable, String dir, String tech, boolean exportAlpha) throws GLException, IOException {
-        final String fn = font.getName(Font.NAME_FAMILY)+"-"+font.getName(Font.NAME_SUBFAMILY);
+        final String fn = font.getFullFamilyName(null).toString();        
         printScreen(drawable, dir, tech, fn.replace(' ', '_'), exportAlpha);
     }
     

@@ -41,6 +41,9 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLRunnable;
 
+
+import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
@@ -59,9 +62,12 @@ import com.jogamp.newt.opengl.GLWindow;
 public abstract class GPURendererListenerBase01 implements GLEventListener {
     private Screenshot screenshot;
     private Renderer renderer;
+    private int renderModes;
     private boolean debug;
     private boolean trace;
     
+    protected GLRegion region;
+
     private KeyAction keyAction;
     
     private volatile GLAutoDrawable autoDrawable = null;
@@ -74,18 +80,19 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     private float zoom = -70f;
     private int texSize = 400; 
 
-    protected float weight = 1.0f;
-    protected boolean weightUpdated = false;
+    protected volatile float weight = 1.0f;
     boolean ignoreInput = false;
 
-    public GPURendererListenerBase01(Renderer renderer, boolean debug, boolean trace) {
+    public GPURendererListenerBase01(Renderer renderer, int renderModes, boolean debug, boolean trace) {
         this.renderer = renderer;
+        this.renderModes = renderModes;
         this.debug = debug;
         this.trace = trace;
         this.screenshot = new Screenshot();
     }
     
     public final Renderer getRenderer() { return renderer; }
+    public final int getRenderModes() { return renderModes; }
     public final float getZoom() { return zoom; }
     public final float getXTran() { return xTran; }
     public final float getYTran() { return yTran; }
@@ -113,6 +120,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         System.err.println("*** "+gl.getContext().getGLVersion());
         System.err.println("*** GLDebugMessage "+gl.getContext().isGLDebugMessageEnabled());
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        getRenderer().init(gl);
     }
     
     public void reshape(GLAutoDrawable drawable, int xstart, int ystart, int width, int height) {
@@ -128,6 +136,9 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     public void dispose(GLAutoDrawable drawable) {
         autoDrawable = null;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
+        if(null != region) {
+            region.destroy(gl, renderer.getRenderState());
+        }
         screenshot.dispose(gl);
         renderer.destroy(gl);
     }    
@@ -147,11 +158,11 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         ang %= 360.0f;
         dumpMatrix();
     }
-    public void editGlobalWeight(float delta){
-        if((weight+delta) > 1.9f || (weight+delta) < 0.0f)
+    public void editGlobalWeight(float delta) {
+        if( !Renderer.isWeightValid(weight+delta) ) {
             return;
+        }
         weight += delta;
-        weightUpdated = true;
         System.err.println("Global Weight: "+ weight);
     }
     
@@ -263,7 +274,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                         autoDrawable.invoke(false, new GLRunnable() {
                             public void run(GLAutoDrawable drawable) {
                                 try {
-                                    final String type = ( 1 == renderer.getRenderType() ) ? "r2t0-msaa1" : "r2t1-msaa0" ; 
+                                    final String type = Region.usesTwoPassRendering(renderModes) ? "r2t0-msaa1" : "r2t1-msaa0" + ( Region.usesVariableCurveWeight(renderModes) ? "-vc" : "-uc" ) ; 
                                     printScreen(drawable, "./", "demo-"+type, "snap"+screenshot_num, false);
                                     screenshot_num++;
                                 } catch (GLException e) {
