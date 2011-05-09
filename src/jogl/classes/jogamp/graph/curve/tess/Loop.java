@@ -104,18 +104,25 @@ public class Loop {
         }
         boolean isCCW = VectorUtil.ccw(vertices.get(0).getPoint(), vertices.get(1).getPoint(),
                 vertices.get(2).getPoint());
-        boolean invert = isCCW && (direction == VectorUtil.CW);
+        boolean invert = isCCW != (direction == VectorUtil.CCW);
 
+        final int dir;
+        final int max;
+        final int edgeType;
+        int index;
         HEdge firstEdge = null;
         HEdge lastEdge = null;
-        int index =0;
-        int max = vertices.size();
-
-        int edgeType =  HEdge.BOUNDARY;
-        if(invert){
-            index = vertices.size() -1;
+        
+        if(!invert) {
+            dir = 1;
+            max = vertices.size();
+            edgeType = HEdge.BOUNDARY;
+            index = 0;
+        } else {
+            dir = -1;
             max = -1;
             edgeType = HEdge.HOLE;
+            index = vertices.size() -1;
         }
 
         while(index != max){
@@ -125,33 +132,26 @@ public class Loop {
             HEdge edge = new HEdge(v1, edgeType);
 
             v1.addEdge(edge);
-            if(lastEdge != null){
+            if(lastEdge != null) {
                 lastEdge.setNext(edge);
                 edge.setPrev(lastEdge);
-            }
-            else{
+            } else {
                 firstEdge = edge;
             }
 
-            if(!invert){
-                if(index == vertices.size()-1){
+            if(!invert) {
+                if(index == vertices.size()-1) {
                     edge.setNext(firstEdge);
                     firstEdge.setPrev(edge);
                 }
-            }
-            else if (index == 0){
+            } else if (index == 0) {
                 edge.setNext(firstEdge);
                 firstEdge.setPrev(edge);
             }
 
             lastEdge = edge;
 
-            if(!invert){
-                index++;
-            }
-            else{
-                index--;
-            }
+            index += dir;
         }
         return firstEdge;
     }

@@ -152,20 +152,19 @@ public class GlyphString {
         // region.setFlipped(true);
         
         int numVertices = region.getNumVertices();
-        ArrayList<Triangle> tris = new ArrayList<Triangle>();
         
         for(int i=0; i< glyphs.size(); i++) {
             final GlyphShape glyph = glyphs.get(i);
             ArrayList<Triangle> gtris = glyph.triangulate();
-            tris.addAll(gtris);
+            region.addTriangles(gtris);
             
-            ArrayList<Vertex> gVertices = glyph.getVertices();
+            final ArrayList<Vertex> gVertices = glyph.getVertices();
             for(int j=0; j<gVertices.size(); j++) {
-                gVertices.get(j).setId(numVertices++);
+                final Vertex gVert = gVertices.get(j);
+                gVert.setId(numVertices++);
+                region.addVertex(gVert);
             }
-            region.addVertices(gVertices);            
         }
-        region.addTriangles(tris);
         return region;
     }
     

@@ -83,6 +83,18 @@ public abstract class Region {
         return numVertices;
     }
         
+    /** Adds a {@link Triangle} object to the Region
+     * This triangle will be bound to OGL objects 
+     * on the next call to {@code update}
+     * @param tri a triangle object
+     * 
+     * @see update(GL2ES2)
+     */
+    public void addTriangle(Triangle tri) {
+        triangles.add(tri);
+        setDirty(true);
+    }
+        
     /** Adds a list of {@link Triangle} objects to the Region
      * These triangles are to be binded to OGL objects 
      * on the next call to {@code update}
@@ -95,6 +107,19 @@ public abstract class Region {
         setDirty(true);
     }
         
+    /** Adds a {@link Vertex} object to the Region
+     * This vertex will be bound to OGL objects 
+     * on the next call to {@code update}
+     * @param vert a vertex objects
+     * 
+     * @see update(GL2ES2)
+     */
+    public void addVertex(Vertex vert) {
+        vertices.add(vert);
+        numVertices++;
+        setDirty(true);
+    }
+    
     /** Adds a list of {@link Vertex} objects to the Region
      * These vertices are to be binded to OGL objects 
      * on the next call to {@code update}
