@@ -102,6 +102,7 @@ public class Loop {
         if(vertices.size()<3) {
             throw new IllegalArgumentException("outline's vertices < 3: " + vertices.size());
         }
+        //final VectorUtil.Winding hasWinding = VectorUtil.getWinding(outline.getVertices());
         final VectorUtil.Winding hasWinding = VectorUtil.getWinding(
                                  vertices.get(0).getPoint(), 
                                  vertices.get(1).getPoint(),
@@ -110,9 +111,9 @@ public class Loop {
         // skips inversion CW -> CCW ?
         final boolean invert =  hasWinding != reqWinding &&
                                 reqWinding == VectorUtil.Winding.CW;
-        /*if( hasWinding != reqWinding ) {
+        if( hasWinding != reqWinding ) {
             System.err.println("Winding: i "+invert+" "+hasWinding+" -> "+reqWinding);
-        }*/
+        }
        
         final int max;
         final int edgeType = reqWinding == VectorUtil.Winding.CCW ? HEdge.BOUNDARY : HEdge.HOLE ;

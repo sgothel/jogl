@@ -94,7 +94,7 @@ public class CDTriangulator2D {
         else {
             GraphOutline outline = new GraphOutline(polyline);
             GraphOutline innerPoly = extractBoundaryTriangles(outline, true);
-            vertices.addAll(innerPoly.getPoints());
+            vertices.addAll(innerPoly.getVertices());
             loop.addConstraintCurve(innerPoly);
         }
     }
@@ -140,7 +140,7 @@ public class CDTriangulator2D {
         return triangles;
     }
 
-    private GraphOutline extractBoundaryTriangles(GraphOutline outline, boolean hole){
+    private GraphOutline extractBoundaryTriangles(GraphOutline outline, boolean hole) {
         GraphOutline innerOutline = new GraphOutline();
         ArrayList<GraphVertex> outVertices = outline.getGraphPoint();
         int size = outVertices.size();

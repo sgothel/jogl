@@ -310,7 +310,7 @@ public class VectorUtil {
 
     /** Computes the area of a list of vertices to check if ccw
      * @param vertices
-     * @return positve area if ccw else negative area value
+     * @return positive area if ccw else negative area value
      */
     public static float area(ArrayList<Vertex> vertices) {
         int n = vertices.size();
@@ -322,5 +322,8 @@ public class VectorUtil {
             area += pCoord[0] * qCoord[1] - qCoord[0] * pCoord[1];
         }
         return area;
+    }
+    public static Winding getWinding(ArrayList<Vertex> vertices) {
+        return area(vertices) >= 0 ? Winding.CCW : Winding.CW ;
     }
 }
