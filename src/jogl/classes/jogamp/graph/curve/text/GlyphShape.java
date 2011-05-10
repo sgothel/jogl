@@ -73,7 +73,8 @@ public class GlyphShape {
     public final Vertex.Factory<? extends Vertex> vertexFactory() { return shape.vertexFactory(); }
     
     private void addVertexToLastOutline(Vertex vertex) {
-        shape.addVertex(vertex);
+    	//FIXME: assuming font outline comes in CW order
+        shape.addVertex(0, vertex);
     }
     
     private void addOutlineVerticesFromGlyphVector(float[] coords, int segmentType){

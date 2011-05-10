@@ -279,6 +279,19 @@ public class OutlineShape implements Comparable<OutlineShape> {
             bbox.resize(lo.getBounds());
         }
     }
+    
+    /** Adds a vertex to the last open outline in the shape. 
+     * at {@code position} 
+     * @param position indx at which the vertex will be added 
+     * @param v the vertex to be added to the OutlineShape
+     */
+    public final void addVertex(int position, Vertex v){
+        final Outline lo = getLastOutline();
+        lo.addVertex(position, v);
+        if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
+            bbox.resize(lo.getBounds());
+        }
+    }
 
     /** Add a 2D {@link Vertex} to the last outline by defining the coordniate attribute
      * of the vertex. The 2D vertex will be represented as Z=0.

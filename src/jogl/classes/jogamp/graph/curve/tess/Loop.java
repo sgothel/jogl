@@ -104,8 +104,8 @@ public class Loop {
         }
         boolean isCCW = VectorUtil.ccw(vertices.get(0).getPoint(), vertices.get(1).getPoint(),
                 vertices.get(2).getPoint());
-        boolean invert = isCCW != (direction == VectorUtil.CCW);
-
+        boolean invert = isCCW && (direction == VectorUtil.CW);
+        
         final int dir;
         final int max;
         final int edgeType;
