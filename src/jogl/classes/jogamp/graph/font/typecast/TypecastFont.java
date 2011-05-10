@@ -124,6 +124,7 @@ class TypecastFont implements FontInt {
             cmapentries += range.getEndCode() - range.getStartCode() + 1; // end included 
         }        
         if(DEBUG) {
+            System.err.println("font direction hint: "+font.getHeadTable().getFontDirectionHint());
             System.err.println("num glyphs: "+font.getNumGlyphs());
             System.err.println("num cmap entries: "+cmapentries);
             System.err.println("num cmap ranges: "+cmapFormat.getRangeCount());
@@ -198,9 +199,9 @@ class TypecastFont implements FontInt {
                 {
                     final HdmxTable.DeviceRecord dr = hdmx.getRecord(i); 
                     result.addAdvance(dr.getWidth(code), dr.getPixelSize());
-                    if(DEBUG) {
+                    /* if(DEBUG) {
                         System.err.println("hdmx advance : pixelsize = "+dr.getWidth(code)+" : "+ dr.getPixelSize());
-                    }
+                    } */
                 }
             }            
             char2Glyph.put(symbol, result);

@@ -35,8 +35,16 @@ import com.jogamp.graph.geom.Vertex;
 
 public class VectorUtil {
 
-    public static final int CW = -1;
-    public static final int CCW = 1;
+    public enum Winding {
+        CW(-1), CCW(1);
+
+        public final int dir;
+
+        Winding(int dir) {
+            this.dir = dir;
+        }
+    } 
+        
     public static final int COLLINEAR = 0;
 
     /** compute the dot product of two points
@@ -288,6 +296,16 @@ public class VectorUtil {
      */
     public static boolean ccw(Vertex a, Vertex b, Vertex c){
         return triArea(a,b,c) > 0;
+    }
+
+    /** Compute the winding of given points
+     * @param a first vertex
+     * @param b second vertex
+     * @param c third vertex
+     * @return Winding
+     */
+    public static Winding getWinding(Vertex a, Vertex b, Vertex c) {
+        return triArea(a,b,c) > 0 ? Winding.CCW : Winding.CW ;
     }
 
     /** Computes the area of a list of vertices to check if ccw

@@ -40,9 +40,9 @@ public class Loop {
     private AABBox box = new AABBox();
     private GraphOutline initialOutline = null;
 
-    public Loop(GraphOutline polyline, int direction){
+    public Loop(GraphOutline polyline, VectorUtil.Winding winding){
         initialOutline = polyline;
-        this.root = initFromPolyline(initialOutline, direction);
+        this.root = initFromPolyline(initialOutline, winding);
     }
 
     public HEdge getHEdge(){
@@ -94,34 +94,37 @@ public class Loop {
 
     /**Create a connected list of half edges (loop)
      * from the boundary profile
-     * @param direction requested winding of edges (CCW or CW)
+     * @param reqWinding requested winding of edges (CCW or CW)
      */
-    private HEdge initFromPolyline(GraphOutline outline, int direction){
+    private HEdge initFromPolyline(GraphOutline outline, VectorUtil.Winding reqWinding){
         ArrayList<GraphVertex> vertices = outline.getGraphPoint();
 
         if(vertices.size()<3) {
             throw new IllegalArgumentException("outline's vertices < 3: " + vertices.size());
         }
-        boolean isCCW = VectorUtil.ccw(vertices.get(0).getPoint(), vertices.get(1).getPoint(),
-                vertices.get(2).getPoint());
-        boolean invert = isCCW && (direction == VectorUtil.CW);
-        
-        final int dir;
+        final VectorUtil.Winding hasWinding = VectorUtil.getWinding(
+                                 vertices.get(0).getPoint(), 
+                                 vertices.get(1).getPoint(),
+                                 vertices.get(2).getPoint());
+        // isCCW && (reqWinding == VectorUtil.CW);
+        // skips inversion CW -> CCW ?
+        final boolean invert =  hasWinding != reqWinding &&
+                                reqWinding == VectorUtil.Winding.CW;
+        /*if( hasWinding != reqWinding ) {
+            System.err.println("Winding: i "+invert+" "+hasWinding+" -> "+reqWinding);
+        }*/
+       
         final int max;
-        final int edgeType;
+        final int edgeType = reqWinding == VectorUtil.Winding.CCW ? HEdge.BOUNDARY : HEdge.HOLE ;
         int index;
         HEdge firstEdge = null;
         HEdge lastEdge = null;
         
         if(!invert) {
-            dir = 1;
             max = vertices.size();
-            edgeType = HEdge.BOUNDARY;
             index = 0;
         } else {
-            dir = -1;
             max = -1;
-            edgeType = HEdge.HOLE;
             index = vertices.size() -1;
         }
 
@@ -144,14 +147,15 @@ public class Loop {
                     edge.setNext(firstEdge);
                     firstEdge.setPrev(edge);
                 }
-            } else if (index == 0) {
-                edge.setNext(firstEdge);
-                firstEdge.setPrev(edge);
+                index++;
+            } else {
+                if (index == 0) {
+                    edge.setNext(firstEdge);
+                    firstEdge.setPrev(edge);
+                }
+                index--;
             }
-
             lastEdge = edge;
-
-            index += dir;
         }
         return firstEdge;
     }
@@ -159,7 +163,7 @@ public class Loop {
     public void addConstraintCurve(GraphOutline polyline) {
         //        GraphOutline outline = new GraphOutline(polyline);
         /**needed to generate vertex references.*/
-        initFromPolyline(polyline, VectorUtil.CW); 
+        initFromPolyline(polyline, VectorUtil.Winding.CW); 
 
         GraphVertex v3 = locateClosestVertex(polyline);
         HEdge v3Edge = v3.findBoundEdge();

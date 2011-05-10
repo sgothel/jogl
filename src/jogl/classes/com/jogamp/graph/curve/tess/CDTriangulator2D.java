@@ -88,7 +88,7 @@ public class CDTriangulator2D {
             GraphOutline outline = new GraphOutline(polyline);
             GraphOutline innerPoly = extractBoundaryTriangles(outline, false);
             vertices.addAll(polyline.getVertices());
-            loop = new Loop(innerPoly, VectorUtil.CCW);
+            loop = new Loop(innerPoly, VectorUtil.Winding.CCW);
             loops.add(loop);
         }
         else {
