@@ -27,20 +27,12 @@
  */
 package com.jogamp.opengl.test.junit.jogl.glsl;
 
-import com.jogamp.newt.Display;
-import com.jogamp.newt.NewtFactory;
-import com.jogamp.newt.Screen;
-import com.jogamp.newt.Window;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 
@@ -48,62 +40,6 @@ public class GLSLMiscHelper {
     public static final int frames_perftest =  10000; // frames
     public static final int frames_warmup   =    500; // frames
     
-    public static class WindowContext {        
-        public final Window window;
-        public final GLContext context;
-        
-        public WindowContext(Window w, GLContext c) {
-            window = w;
-            context = c;
-        }
-    }       
-    
-    public static WindowContext createWindow(GLProfile glp, boolean debugGL) {        
-        GLCapabilities caps = new GLCapabilities(glp);
-        //
-        // Create native windowing resources .. X11/Win/OSX
-        // 
-        Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
-
-        Window window = NewtFactory.createWindow(screen, caps);
-        Assert.assertNotNull(window);
-        window.setSize(480, 480);
-        window.setVisible(true);
-
-        GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
-        GLDrawable drawable = factory.createGLDrawable(window);
-        Assert.assertNotNull(drawable);
-        
-        drawable.setRealized(true);
-        
-        GLContext context = drawable.createContext(null);
-        Assert.assertNotNull(context);
-        
-        context.enableGLDebugMessage(debugGL);
-        
-        int res = context.makeCurrent();
-        Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);
-        
-        return new WindowContext(window, context);
-    }
-
-    public static void destroyWindow(WindowContext winctx) {
-        GLDrawable drawable = winctx.context.getGLDrawable();
-        
-        Assert.assertNotNull(winctx.context);
-        winctx.context.destroy();
-
-        Assert.assertNotNull(drawable);
-        drawable.setRealized(false);
-
-        Assert.assertNotNull(winctx.window);
-        winctx.window.destroy();
-    }
-        
     public static void validateGLArrayDataServerState(GL2ES2 gl, ShaderState st, GLArrayDataServer data) {
         int[] qi = new int[1];
         if(null != st) {            

@@ -34,8 +34,9 @@ import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquare0;
-import com.jogamp.opengl.test.junit.jogl.glsl.GLSLMiscHelper.WindowContext;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NEWTGLContext;
+import com.jogamp.opengl.test.junit.util.NEWTGLContext.WindowContext;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.io.IOException;
@@ -70,7 +71,7 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
     
     private void testShaderState01Validation(boolean linkSP1) throws InterruptedException {
         // preset ..
-        GLSLMiscHelper.WindowContext winctx = GLSLMiscHelper.createWindow(GLProfile.getGL2ES2(), true);
+        NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(GLProfile.getGL2ES2(), 480, 480, true);
         GLDrawable drawable = winctx.context.getGLDrawable();
         GL2ES2 gl = winctx.context.getGL().getGL2ES2();
         System.err.println(winctx.context);
@@ -222,13 +223,13 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         // cleanup
         st.destroy(gl);
         
-        GLSLMiscHelper.destroyWindow(winctx);
+        NEWTGLContext.destroyWindow(winctx);
     }
 
     @Test
     public void testShaderState01PerformanceDouble() throws InterruptedException {
         // preset ..
-        GLSLMiscHelper.WindowContext winctx = GLSLMiscHelper.createWindow(GLProfile.getGL2ES2(), false);
+        NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(GLProfile.getGL2ES2(), 480, 480, false);
         GLDrawable drawable = winctx.context.getGLDrawable();
         GL2ES2 gl = winctx.context.getGL().getGL2ES2();
         System.err.println(winctx.context);
@@ -344,7 +345,7 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         
         // cleanup
         st.destroy(gl);
-        GLSLMiscHelper.destroyWindow(winctx);
+        NEWTGLContext.destroyWindow(winctx);
     }
     
     public static void main(String args[]) throws IOException {
