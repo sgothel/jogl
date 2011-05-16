@@ -133,7 +133,7 @@
             tofile="${archive}/README.txt"
             overwrite="true">
             <filterset>
-                <filter token="VERSION" value="${jogl.version}"/>
+                <filter token="VERSION"  value="${jogl.version}"/>
                 <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
                 <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
                 <filter token="BASEVERSION" value="${jogl_base_version}"/>
@@ -155,6 +155,17 @@
         <copy todir="${archive}/etc">
             <fileset dir="${project.root}/etc" includes="*" />
         </copy>
+        <zip destfile="${archive}/nativewindow-java-src.zip">
+            <fileset dir="${src}/nativewindow/classes"/>
+            <fileset dir="${build}/nativewindow/gensrc/classes"/>
+        </zip>
+        <zip destfile="${archive}/jogl-java-src.zip">
+            <fileset dir="${src}/jogl/classes"/>
+            <fileset dir="${build}/jogl/gensrc/classes"/>
+        </zip>
+        <zip destfile="${archive}/newt-java-src.zip">
+            <fileset dir="${src}/newt/classes"/>
+        </zip>
         <archive.7z destfile="${build}/${archive.name}.7z"
              basedir="${build}"
              includes="${archive.name}/**" />

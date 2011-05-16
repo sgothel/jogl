@@ -52,9 +52,9 @@ echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $LOGF
 #    -Djavacdebug="true" \
 #    -Djavacdebuglevel="source,lines,vars" \
 
+# BUILD_ARCHIVE=true \
 ant  \
     $CUSTOMLIBDIR \
-    -Djavacdebuglevel="source,lines,vars" \
     -Djogl.cg=1 \
     -Drootrel.build=build-x86_64 \
     -DuseKD=true \

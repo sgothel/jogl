@@ -206,7 +206,6 @@
         <!-- The source directories. -->
         <property name="src.java" value="${project.root}/${rootrel.src.java}" />
         <property name="src.c"    value="${project.root}/${rootrel.src.c}" />
-        <property name="tempdir"  value="${project.root}/build-temp" />
         
         <!-- The generated source directories. -->
         <property name="src.generated" value="${build.jogl}/gensrc" />
