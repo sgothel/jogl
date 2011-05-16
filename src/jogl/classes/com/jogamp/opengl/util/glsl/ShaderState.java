@@ -148,13 +148,17 @@ public class ShaderState {
                     resetAllAttributes(gl);
                     resetAllUniforms(gl);
                 }
-            } else if(resetAllShaderData) {
-                setAllAttributes(gl);
+            } else { 
+                if(resetAllShaderData) {
+                    setAllAttributes(gl);
+                }
                 if(!shaderProgram.link(gl, System.err)) {
                     throw new GLException("could not link program: "+shaderProgram);
                 }
                 shaderProgram.useProgram(gl, true);
-                resetAllUniforms(gl);
+                if(resetAllShaderData) {
+                    resetAllUniforms(gl);
+                }
             }
             resetAllShaderData = false;            
         } else {
