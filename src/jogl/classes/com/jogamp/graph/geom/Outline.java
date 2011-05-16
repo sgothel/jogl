@@ -49,11 +49,10 @@ public class Outline
     extends ArrayList<Vertex>
     implements Comparable<Outline>
 {
-    
 
-    private boolean closed, dirty;
-
-    private AABBox box = new AABBox();
+    private boolean closed = false;
+    private AABBox bbox = new AABBox();
+    private boolean dirtyBBox = false;
     
     /**Create an outline defined by control vertices.
      * An outline can contain off Curve vertices which define curved
@@ -62,30 +61,39 @@ public class Outline
     public Outline(){
         super();
     }
+        
+    public final int getVertexNumber() {
+        return this.size();
+    }
     
-    /** Add a vertex to the outline. The {@link Vertex} is added at the 
-     * end of the outline loop/strip.
+    /** Appends a vertex to the outline loop/strip.
      * @param vertex Vertex to be added
      * @return Whether this collection has been modified by the add
      */
     @Override
     public final boolean add(Vertex vertex) {
+        if (null != vertex){
+            if (vertex.isOnCurve())
+                this.bbox.resize(vertex.getX(), vertex.getY(), vertex.getZ());
 
-        if (vertex.isOnCurve())
-            this.box.resize(vertex.getX(), vertex.getY(), vertex.getZ());
-
-        return super.add(vertex);
+            return super.add(vertex);
+        }
+        else
+            throw new IllegalArgumentException();
     }
     /**
      * Insert
      */
     @Override
     public final void add(int index, Vertex vertex) {
+        if (null != vertex){
+            if (vertex.isOnCurve())
+                this.bbox.resize(vertex.getX(), vertex.getY(), vertex.getZ());
 
-        if (vertex.isOnCurve())
-            this.box.resize(vertex.getX(), vertex.getY(), vertex.getZ());
-
-        super.add(index,vertex);
+            super.add(index,vertex);
+        }
+        else
+            throw new IllegalArgumentException();
     }
     @Override
     public boolean addAll(Collection<? extends Vertex> c) {
@@ -107,87 +115,44 @@ public class Outline
         return mod;
     }
     /**
-     * Replace: makes dirty, needs subsequent clean.
-     * @see #clean()
+     * Replace
      */
     @Override
     public Vertex set(int index, Vertex v){
+        if (null != v){
+            this.dirtyBBox = true;
 
-        this.dirty = true;
-
-        return super.set(index,v);
+            return super.set(index,v);
+        }
+        else
+            throw new IllegalArgumentException();
     }
-    /**
-     * Remove: makes dirty, needs subsequent clean.
-     * @see #clean()
-     */
     @Override
     public Vertex remove(int index){
 
-        this.dirty = true;
+        this.dirtyBBox = true;
 
         return super.remove(index);
     }
-    /**
-     * Remove: makes dirty, needs subsequent clean.
-     * @see #clean()
-     */
     @Override
     public boolean remove(Object vertex){
 
-        this.dirty = true;
+        this.dirtyBBox = true;
 
         return super.remove(vertex);
     }
     /**
-     * Clear, clean and open (not closed path)
+     * Empty and open (not closed path)
      */
     @Override
     public void clear(){
-        this.dirty = false;
+        this.dirtyBBox = false;
         this.closed = false;
-        this.box.reset();
+        this.bbox.reset();
         super.clear();
-    }
-    /**
-     * Is dirty?  Needs clean.
-     * @return Recorded need for clean (calls to remove or replace operators)
-     */
-    public boolean isDirty(){
-        return this.dirty;
     }
     public boolean isNotEmpty(){
         return (0 < this.size());
-    }
-    /**
-     * Clean when dirty
-     */
-    public Outline clean(){
-        return this.clean(false);
-    }
-    /**
-     * After remove or replace, reset and resize the bounding box from
-     * this collection.
-     * 
-     * @param override Whether to override the recorded need for clean
-     * and do the clean anyway.
-     * 
-     * @see #isDirty()
-     */
-    public Outline clean(boolean override){
-
-        if (this.dirty || override){
-
-            this.dirty = false;
-
-            this.box.reset();
-
-            for (Vertex v: this){
-
-                box.resize(v.getX(), v.getY(), v.getZ());
-            }
-        }
-        return this;
     }
 
     /**  Add a {@link Vertex} by specifying its 2D attributes to the outline. 
@@ -216,8 +181,9 @@ public class Outline
      * @return Whether this collection has been modified by the add
      */
     public final boolean add(Vertex.Factory<? extends Vertex> factory, float x, float y, float z, boolean onCurve) {
-        Vertex v = factory.create(x, y, z);
-        v.setOnCurve(onCurve);
+
+        Vertex v = factory.create(x, y, z, onCurve);
+
         return this.add(v);
     }
     
@@ -235,8 +201,9 @@ public class Outline
      * @return Whether this collection has been modified by the add
      */
     public final boolean add(Vertex.Factory<? extends Vertex> factory, float[] coordsBuffer, int offset, int length, boolean onCurve) {
-        Vertex v = factory.create(coordsBuffer, offset, length);
-        v.setOnCurve(onCurve);
+
+        Vertex v = factory.create(coordsBuffer, offset, length, onCurve);
+
         return this.add(v);
     }
     
@@ -255,20 +222,18 @@ public class Outline
 
         this.addAll(vertices);
     }
-    public AABBox getBounds() {
-        return box;
-    }
+
     public boolean isClosed() {
         return closed;
     }
     
     /** Define outline is closed or not.
-     * if set to closed, checks if the last vertex is 
+     * If set to closed, checks if the last vertex is 
      * equal to the first vertex. If not Equal adds a
      * vertex at the end to the list.
      * @param closed
      */
-    public void setClosed(boolean closed) {
+    public final void setClosed(boolean closed) {
         this.closed = closed;
         if (closed){
             Vertex first = this.get(0);
@@ -279,57 +244,52 @@ public class Outline
             }
         }
     }
-    public boolean equals(Object that){
-        if (that instanceof Outline)
-            return this.equals( (Outline)that);
-        else
-            return false;
-    }
-    public boolean equals(Outline that){
-        if (this == that)
-            return true;
-        else if (null == that)
-            return false;
-        else if (this.size() == that.size() && 0 == this.compareTo(that)){
-
-            final int count = this.size();
-            if (0 < count){
-                Vertex[] thisAry = this.toArray(new Vertex[count]);
-                Vertex[] thatAry = that.toArray(new Vertex[count]);
-                Arrays.sort(thisAry);
-                Arrays.sort(thatAry);
-                for (int cc = 0; cc < count; cc++){
-
-                    if (!thisAry[cc].equals(thatAry[cc]))
-                        return false;
-                }
-            }
-            return true;
+    
+    private final void validateBoundingBox() {
+        dirtyBBox = false;
+        bbox.reset();
+        for (int i=0; i<this.size(); i++) {
+            bbox.resize(this.get(i).getCoord(), 0);
         }
-        else
-            return false;
     }
-    /** Compare two outlines with Bounding Box area
-     * as criteria. 
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
-    public int compareTo(Outline outline) {
-        float size = box.getSize();
-        float newSize = outline.getBounds().getSize();
-        if(size < newSize){
-            return -1;
+         
+    public final AABBox getBounds() {
+        if (dirtyBBox) {
+            validateBoundingBox();
         }
-        else if(size > newSize){
-            return 1;
-        }
-        return 0;
-    }
+        return bbox;
+    }    
     /**
-     * @return Shallow clone not vertices
+     * @return A deep clone of this Outline is constructed via clone,
+     * clone clear, and then clone add (clone of each vertex).  The
+     * clone will be clean when this is dirty.
      */
-    public Outline clone(){
-        Outline clone = (Outline)super.clone();
-        clone.box = clone.box.clone();
+    public Outline clone() {
+        Outline clone = (Outline) super.clone();
+
+        clone.clear();
+
+        final int count = this.size();
+        for(int i=0; i<count; i++) {
+            clone.add(this.get(i).clone());
+        }
         return clone;
+    }
+    /** Compare two outlines with bounding box area as criteria.
+     */
+    public int compareTo(Outline that){
+        if (this == that)
+            return 0;
+        else {
+            float thisSize = this.getBounds().getSize();
+            float thatSize = that.getBounds().getSize();
+
+            if (thisSize == thatSize)
+                return 0;
+            else if (thisSize < thatSize)
+                return -1;
+            else
+                return 1;
+        }
     }
 }

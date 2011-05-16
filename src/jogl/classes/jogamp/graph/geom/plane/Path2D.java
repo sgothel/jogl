@@ -268,32 +268,35 @@ public final class Path2D implements Cloneable {
 
     public void append(PathIterator path, boolean connect) {
         while (!path.isDone()) {
-            float coords[] = new float[6];
-            switch (path.currentSegment(coords)) {
-            case PathIterator.SEG_MOVETO:
-                if (!connect || typeSize == 0) {
-                    moveTo(coords[0], coords[1]);
+            final float coords[] = new float[6];
+            final int segmentType = path.currentSegment(coords);
+            switch (segmentType) {
+                case PathIterator.SEG_MOVETO:
+                    if (!connect || typeSize == 0) {
+                        moveTo(coords[0], coords[1]);
+                        break;
+                    }
+                    if (types[typeSize - 1] != PathIterator.SEG_CLOSE &&
+                        points[pointSize - 2] == coords[0] &&
+                        points[pointSize - 1] == coords[1])
+                    {
+                        break;
+                    }
+                // NO BREAK;
+                case PathIterator.SEG_LINETO:
+                    lineTo(coords[0], coords[1]);
                     break;
-                }
-                if (types[typeSize - 1] != PathIterator.SEG_CLOSE &&
-                    points[pointSize - 2] == coords[0] &&
-                    points[pointSize - 1] == coords[1])
-                {
+                case PathIterator.SEG_QUADTO:
+                    quadTo(coords[0], coords[1], coords[2], coords[3]);
                     break;
-                }
-            // NO BREAK;
-            case PathIterator.SEG_LINETO:
-                lineTo(coords[0], coords[1]);
-                break;
-            case PathIterator.SEG_QUADTO:
-                quadTo(coords[0], coords[1], coords[2], coords[3]);
-                break;
-            case PathIterator.SEG_CUBICTO:
-                curveTo(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
-                break;
-            case PathIterator.SEG_CLOSE:
-                closePath();
-                break;
+                case PathIterator.SEG_CUBICTO:
+                    curveTo(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
+                    break;
+                case PathIterator.SEG_CLOSE:
+                    closePath();
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);                
             }
             path.next();
             connect = false;
@@ -315,7 +318,7 @@ public final class Path2D implements Cloneable {
                 j -= pointShift[type];
             }
         }
-        return new SVertex(points[j], points[j + 1]);
+        return new SVertex(points[j], points[j + 1], 0f, true);
     }
 
     public void reset() {

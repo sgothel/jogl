@@ -135,6 +135,9 @@ public class GlyphString
 
     public String getString(){
         return this.string.toString();
+    }    
+    public void addGlyphShape(GlyphShape glyph){
+        this.add(glyph);
     }
     /**
      * @return Require call to {@link #generateRegion} to capture edits
@@ -284,7 +287,7 @@ public class GlyphString
     public Vertex getOrigin() {
         Vertex origin = this.origin;
         if (null == origin){
-            origin = new SVertex(this.transform.getTranslateX(),this.transform.getTranslateY());
+            origin = new SVertex(this.transform.getTranslateX(),this.transform.getTranslateY(),0.0f,false);
             this.origin = origin;
         }
         return origin;

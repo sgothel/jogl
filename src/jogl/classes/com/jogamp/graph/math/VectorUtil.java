@@ -193,13 +193,42 @@ public class VectorUtil {
     /**Check equality of 2 vec3 vectors
      * @param v1 vertex 1
      * @param v2 vertex 2
-     * @return
+     * @return Equality of 3- vectors
      */
     public static boolean checkEquality(float[] v1, float[] v2)
     {
-        if(Float.compare(v1[0], v2[0]) == 0 
-                && Float.compare(v1[1] , v2[1]) == 0
-                && Float.compare(v1[2], v2[2]) == 0 )
+        if(Float.compare(v1[0], v2[0]) == 0 &&
+           Float.compare(v1[1], v2[1]) == 0 &&
+           Float.compare(v1[2], v2[2]) == 0 )
+            return true;
+        return false;
+    }
+    /**
+     * Order comparisons on X then Y then Z.
+     * @return An arbitrary comparison of 3- vectors
+     */
+    public static int compare(float[] v1, float[] v2){
+        int c = Float.compare(v1[0],v2[0]);
+        if (0 == c){
+            c = Float.compare(v1[1],v2[1]);
+            if (0 == c)
+                return Float.compare(v1[2],v2[2]);
+            else
+                return c;
+        }
+        else
+            return c;
+    }
+
+    /**Check equality of 2 vec2 vectors
+     * @param v1 vertex 1
+     * @param v2 vertex 2
+     * @return
+     */
+    public static boolean checkEqualityVec2(float[] v1, float[] v2)
+    {
+        if(Float.compare(v1[0], v2[0]) == 0 && 
+           Float.compare(v1[1], v2[1]) == 0)
             return true;
         return false;
     }

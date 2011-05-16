@@ -113,8 +113,8 @@ public abstract class RegionRenderer extends Renderer {
     protected Region createRegion(GL2ES2 gl, OutlineShape outlineShape) {
         Region region = RegionFactory.create(rs, renderType);
         
+        outlineShape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
 
-        outlineShape.transformOutlines(OutlineShape.VerticesState.NURBS);
         ArrayList<Triangle> triangles = (ArrayList<Triangle>) outlineShape.triangulate();
 
         ArrayList<Vertex> vertices = (ArrayList<Vertex>) outlineShape.getVertices();
@@ -135,7 +135,8 @@ public abstract class RegionRenderer extends Renderer {
         int numVertices = region.getNumVertices();
         
         for(OutlineShape outlineShape:outlineShapes){
-            outlineShape.transformOutlines(OutlineShape.VerticesState.NURBS);
+
+            outlineShape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
 
             ArrayList<Triangle> triangles = outlineShape.triangulate();
             region.addTriangles(triangles);

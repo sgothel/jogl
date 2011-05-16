@@ -37,7 +37,8 @@ import com.jogamp.graph.math.VectorUtil;
  */
 public class AABBox
     extends Object
-    implements Cloneable
+    implements Cloneable,
+               Comparable<AABBox>
 {
     private float[] low = new float[3];
     private float[] high = new float[3];
@@ -82,7 +83,7 @@ public class AABBox
     }
 
     /** resets this box to the inverse low/high, allowing the next {@link #resize(float, float, float)} command to hit. */
-    public void reset() {
+    public final void reset() {
         setLow(Float.MAX_VALUE,Float.MAX_VALUE,Float.MAX_VALUE);
         setHigh(-1*Float.MAX_VALUE,-1*Float.MAX_VALUE,-1*Float.MAX_VALUE);
         center[0] = 0f;
@@ -93,11 +94,11 @@ public class AABBox
     /** Get the max xyz-coordinates
      * @return a float array containing the max xyz coordinates
      */
-    public float[] getHigh() {
+    public final float[] getHigh() {
         return high;
     }
     
-    private void setHigh(float hx, float hy, float hz) {
+    private final void setHigh(float hx, float hy, float hz) {
         this.high[0] = hx;
         this.high[1] = hy;
         this.high[2] = hz;
@@ -106,11 +107,11 @@ public class AABBox
     /** Get the min xyz-coordinates
      * @return a float array containing the min xyz coordinates
      */
-    public float[] getLow() {
+    public final float[] getLow() {
         return low;
     }
     
-    private void setLow(float lx, float ly, float lz) {
+    private final void setLow(float lx, float ly, float lz) {
         this.low[0] = lx;
         this.low[1] = ly;
         this.low[2] = lz;
@@ -119,7 +120,7 @@ public class AABBox
     /** Resize the AABBox to encapsulate another AABox
      * @param newBox AABBox to be encapsulated in
      */
-    public void resize(AABBox newBox) {
+    public final void resize(AABBox newBox) {
         float[] newLow = newBox.getLow();
         float[] newHigh = newBox.getHigh();
 
@@ -142,7 +143,7 @@ public class AABBox
         computeCenter();
     }
 
-    private void computeCenter() {
+    private final void computeCenter() {
         center[0] = (high[0] + low[0])/2;
         center[1] = (high[1] + low[1])/2;
         center[2] = (high[2] + low[2])/2;
@@ -154,7 +155,7 @@ public class AABBox
      * @param y y-axis coordinate value
      * @param z z-axis coordinate value
      */
-    public void resize(float x, float y, float z) {    
+    public final void resize(float x, float y, float z) {    
         /** test low */
         if (x < low[0])
             low[0] = x;
@@ -174,6 +175,15 @@ public class AABBox
         computeCenter();
     }
 
+    /** Resize the AABBox to encapsulate the passed
+     * xyz-coordinates. 
+     * @param xyz xyz-axis coordinate values
+     * @param offset of the array
+     */
+    public final void resize(float[] xyz, int offset) {
+        resize(xyz[0+offset], xyz[1+offset], xyz[2+offset]);
+    }
+
     /** Check if the x & y coordinates are bounded/contained
      *  by this AABBox
      * @param x  x-axis coordinate value
@@ -181,7 +191,7 @@ public class AABBox
      * @return true if  x belong to (low.x, high.x) and
      * y belong to (low.y, high.y)
      */
-    public boolean contains(float x, float y) {
+    public final boolean contains(float x, float y) {
         if(x<low[0] || x>high[0]){
             return false;
         }
@@ -199,7 +209,7 @@ public class AABBox
      * @return true if  x belong to (low.x, high.x) and
      * y belong to (low.y, high.y) and  z belong to (low.z, high.z)
      */
-    public boolean contains(float x, float y, float z) {
+    public final boolean contains(float x, float y, float z) {
         if(x<low[0] || x>high[0]){
             return false;
         }
@@ -220,7 +230,7 @@ public class AABBox
      * @param h hight
      * @return true if this AABBox might have a common region with this 2D region
      */
-    public boolean intersects(float x, float y, float w, float h) {
+    public final boolean intersects(float x, float y, float w, float h) {
         if (w <= 0 || h <= 0) {
             return false;
         }
@@ -244,21 +254,21 @@ public class AABBox
      * length of the vector between low and high.
      * @return a float representing the size of the AABBox
      */
-    public float getSize() {
+    public final float getSize() {
         return VectorUtil.computeLength(low, high);
     }
 
     /**Get the Center of the AABBox
      * @return the xyz-coordinates of the center of the AABBox
      */
-    public float[] getCenter() {
+    public final float[] getCenter() {
         return center;
     }
 
     /** Scale the AABBox by a constant
      * @param size a constant float value
      */
-    public void scale(float size) {
+    public final void scale(float size) {
         float[] diffH = new float[3];
         diffH[0] = high[0] - center[0];
         diffH[1] = high[1] - center[1];
@@ -277,23 +287,23 @@ public class AABBox
         low = VectorUtil.vectorAdd(center, diffL);
     }
 
-    public float getMinX() {
+    public final float getMinX() {
         return low[0];
     }
     
-    public float getMinY() {
+    public final float getMinY() {
         return low[1];
     }
     
-    public float getWidth(){
+    public final float getWidth(){
         return high[0] - low[0];
     }
     
-    public float getHeight() {
+    public final float getHeight() {
         return high[1] - low[1];
     }
     
-    public float getDepth() {
+    public final float getDepth() {
         return high[2] - low[2];
     }
     public AABBox clone() {
@@ -330,8 +340,21 @@ public class AABBox
             return false;
         else {
             return (VectorUtil.checkEquality(this.low,that.low) &&
-                    VectorUtil.checkEquality(this.high,that.high) &&
-                    VectorUtil.checkEquality(this.center,that.center));
+                    VectorUtil.checkEquality(this.high,that.high));
+        }
+    }
+    public int compareTo(AABBox that){
+        if (this == that)
+            return 0;
+        else if (VectorUtil.checkEquality(this.low,that.low) &&
+                 VectorUtil.checkEquality(this.high,that.high))
+            return 0;
+        else {
+            int c = VectorUtil.compare(this.low,that.low);
+            if (0 == c)
+                return VectorUtil.compare(this.high,that.high);
+            else
+                return c;
         }
     }
     public String toString() {
