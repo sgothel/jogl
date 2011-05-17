@@ -56,7 +56,7 @@ public class NEWTGLContext {
         }
     }
 
-    public static WindowContext createWindow(GLProfile glp, int width, int height, boolean debugGL) {        
+    public static WindowContext createWindow(GLProfile glp, int width, int height, boolean debugGL) throws InterruptedException {        
         GLCapabilities caps = new GLCapabilities(glp);
         //
         // Create native windowing resources .. X11/Win/OSX
@@ -71,7 +71,9 @@ public class NEWTGLContext {
         Assert.assertNotNull(window);
         window.setSize(width, height);
         window.setVisible(true);
-    
+        AWTRobotUtil.waitForVisible(window, true);
+        AWTRobotUtil.waitForRealized(window, true);
+            
         GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
         GLDrawable drawable = factory.createGLDrawable(window);
         Assert.assertNotNull(drawable);
