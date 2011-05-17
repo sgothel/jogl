@@ -95,8 +95,10 @@ public class ShaderProgram {
         }
         allShaderCode.clear();
         attachedShaderCode.clear();
-        gl.glDeleteProgram(shaderProgram);
-        shaderProgram=-1;
+        if(0<=shaderProgram) {
+            gl.glDeleteProgram(shaderProgram);
+            shaderProgram=-1;
+        }
     }
 
     //
