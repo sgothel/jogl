@@ -208,9 +208,15 @@ public class ShaderState {
             }
             prgInUse = shaderProgram.inUse();
             
-            if(prgInUse && null == prog) {
-                // only disable if in use _and_ no new prog shall be used
-                useProgram(gl, false);
+            if(prgInUse) {
+                // only disable if in use
+                if(null != prog) {
+                    // new program will issue glUseProgram(..)
+                    shaderProgram.programInUse = false;
+                } else {
+                    // no new program - disable
+                    useProgram(gl, false);
+                }
             }
             resetAllShaderData = true;
         }
@@ -222,9 +228,9 @@ public class ShaderState {
             // [re]set all data and use program if switching program, 
             // or  use program if program is linked
             if(shaderProgram.linked() || resetAllShaderData) {
-                useProgram(gl, true);
+                useProgram(gl, true); // may reset all data
                 if(!prgInUse) {
-                    shaderProgram.useProgram(gl, false);
+                    useProgram(gl, false);
                 }
             }
         }
@@ -707,11 +713,11 @@ public class ShaderState {
      */
     public void disableAllVertexAttributeArrays(GL2ES2 gl, boolean removeFromState) {
         for(Iterator<String> iter = enabledAttributes.iterator(); iter.hasNext(); ) {
-            String name = iter.next();
+            final String name = iter.next();
             if(removeFromState) {
                 enabledAttributes.remove(name);
             }
-            int index = getAttribLocation(gl, name);
+            final int index = getAttribLocation(gl, name);
             if(0<=index) {
                 gl.glDisableVertexAttribArray(index);
             }
@@ -720,8 +726,8 @@ public class ShaderState {
 
     private final void relocateAttribute(GL2ES2 gl, GLArrayData attribute) {
         // get new location ..
-        String name = attribute.getName();
-        int loc = getAttribLocation(gl, name);
+        final String name = attribute.getName();
+        final int loc = getAttribLocation(gl, name);
         attribute.setLocation(loc);
 
         if(0<=loc) {

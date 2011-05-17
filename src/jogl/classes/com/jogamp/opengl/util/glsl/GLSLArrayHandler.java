@@ -69,9 +69,9 @@ public class GLSLArrayHandler implements GLArrayHandler {
                 }
                 ad.setVBOWritten(true);
                 st.vertexAttribPointer(glsl, ad);
-            } else {
+            } else if(ad.getLocation() >= 0) {
                 // didn't experience a performance hit on this query ..
-                int[] qi = new int[1];
+                final int[] qi = new int[1];
                 glsl.glGetVertexAttribiv(ad.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
                 if(ad.getVBOName() != qi[0]) {
                     if(DEBUG) {
