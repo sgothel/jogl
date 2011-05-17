@@ -155,17 +155,24 @@
         <copy todir="${archive}/etc">
             <fileset dir="${project.root}/etc" includes="*" />
         </copy>
-        <zip destfile="${archive}/nativewindow-java-src.zip">
+        <zip destfile="${build}/nativewindow-java-src.zip">
             <fileset dir="${src}/nativewindow/classes"/>
             <fileset dir="${build}/nativewindow/gensrc/classes"/>
         </zip>
-        <zip destfile="${archive}/jogl-java-src.zip">
+        <zip destfile="${build}/jogl-java-src.zip">
             <fileset dir="${src}/jogl/classes"/>
             <fileset dir="${build}/jogl/gensrc/classes"/>
         </zip>
-        <zip destfile="${archive}/newt-java-src.zip">
+        <zip destfile="${build}/newt-java-src.zip">
             <fileset dir="${src}/newt/classes"/>
         </zip>
+        <copy todir="${archive}">
+            <fileset dir="${build}">
+                <include name="nativewindow-java-src.zip"/>
+                <include name="jogl-java-src.zip"/>
+                <include name="newt-java-src.zip"/>
+            </fileset>
+        </copy>
         <archive.7z destfile="${build}/${archive.name}.7z"
              basedir="${build}"
              includes="${archive.name}/**" />
