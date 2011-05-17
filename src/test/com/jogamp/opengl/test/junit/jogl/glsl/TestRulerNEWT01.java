@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph;
+package com.jogamp.opengl.test.junit.jogl.glsl;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.newt.util.MonitorMode;
@@ -58,40 +58,40 @@ public class TestRulerNEWT01 extends UITestCase {
     @Test
     public void test01() throws InterruptedException {
         // preset ..
-        NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(GLProfile.getGL2ES2(), 640, 480, true);
-        GLDrawable drawable = winctx.context.getGLDrawable();
-        GL2ES2 gl = winctx.context.getGL().getGL2ES2();
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(GLProfile.getGL2ES2(), 640, 480, true);
+        final GLDrawable drawable = winctx.context.getGLDrawable();
+        final GL2ES2 gl = winctx.context.getGL().getGL2ES2();
         System.err.println(winctx.context);
 
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         // test code ..        
-        ShaderState st = new ShaderState();
+        final ShaderState st = new ShaderState();
         
-        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RedSquare0.class,
+        final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RedSquare0.class,
                 "shader", "shader/bin", "default");
-        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, RedSquare0.class,
+        final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, RedSquare0.class,
                 "shader", "shader/bin", "ruler");
 
-        ShaderProgram sp = new ShaderProgram();
-        sp.add(gl, rsVp, System.err);
-        sp.add(gl, rsFp, System.err);       
-        Assert.assertTrue(0<=sp.program()); 
-        Assert.assertTrue(!sp.inUse());
-        Assert.assertTrue(!sp.linked());
+        final ShaderProgram sp0 = new ShaderProgram();
+        sp0.add(gl, vp0, System.err);
+        sp0.add(gl, fp0, System.err);       
+        Assert.assertTrue(0<=sp0.program()); 
+        Assert.assertTrue(!sp0.inUse());
+        Assert.assertTrue(!sp0.linked());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
-        st.attachShaderProgram(gl, sp);
+        st.attachShaderProgram(gl, sp0);
         st.useProgram(gl, true);
         
-        PMVMatrix pmvMatrix = new PMVMatrix();
-        GLUniformData pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+        final PMVMatrix pmvMatrix = new PMVMatrix();
+        final GLUniformData pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         st.ownUniform(pmvMatrixUniform);       
         st.uniform(gl, pmvMatrixUniform);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
          
-        GLUniformData rulerColor= new GLUniformData("gcu_RulerColor", 3, Buffers.newDirectFloatBuffer(3));
-        FloatBuffer rulerColorV = (FloatBuffer) rulerColor.getBuffer();
+        final GLUniformData rulerColor= new GLUniformData("gcu_RulerColor", 3, Buffers.newDirectFloatBuffer(3));
+        final FloatBuffer rulerColorV = (FloatBuffer) rulerColor.getBuffer();
         rulerColorV.put(0, 0.5f);
         rulerColorV.put(1, 0.5f);
         rulerColorV.put(2, 0.5f);
@@ -99,11 +99,11 @@ public class TestRulerNEWT01 extends UITestCase {
         st.uniform(gl, rulerColor);        
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
-        MonitorMode mmode = winctx.window.getScreen().getCurrentScreenMode().getMonitorMode();
-        DimensionReadOnly sdim = mmode.getScreenSizeMM();
-        DimensionReadOnly spix = mmode.getSurfaceSize().getResolution();   
-        GLUniformData rulerPixFreq = new GLUniformData("gcu_RulerPixFreq", 2, Buffers.newDirectFloatBuffer(2));
-        FloatBuffer rulerPixFreqV = (FloatBuffer) rulerPixFreq.getBuffer();
+        final MonitorMode mmode = winctx.window.getScreen().getCurrentScreenMode().getMonitorMode();
+        final DimensionReadOnly sdim = mmode.getScreenSizeMM();
+        final DimensionReadOnly spix = mmode.getSurfaceSize().getResolution();   
+        final GLUniformData rulerPixFreq = new GLUniformData("gcu_RulerPixFreq", 2, Buffers.newDirectFloatBuffer(2));
+        final FloatBuffer rulerPixFreqV = (FloatBuffer) rulerPixFreq.getBuffer();
         rulerPixFreqV.put(0, (float)spix.getWidth() / (float)sdim.getWidth() * 10.0f);
         rulerPixFreqV.put(1, (float)spix.getHeight() / (float)sdim.getHeight() * 10.0f);
         st.ownUniform(rulerPixFreq);
@@ -113,7 +113,7 @@ public class TestRulerNEWT01 extends UITestCase {
         System.err.println("Screen siz "+spix);
         System.err.println("Screen pixel/cm "+rulerPixFreqV.get(0)+", "+rulerPixFreqV.get(1));
 
-        GLArrayDataServer vertices0 = GLArrayDataServer.createGLSL(st, "gca_Vertices", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
+        final GLArrayDataServer vertices0 = GLArrayDataServer.createGLSL(st, "gca_Vertices", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         vertices0.putf(0); vertices0.putf(1);  vertices0.putf(0);
         vertices0.putf(1);  vertices0.putf(1);  vertices0.putf(0);
         vertices0.putf(0); vertices0.putf(0); vertices0.putf(0);
