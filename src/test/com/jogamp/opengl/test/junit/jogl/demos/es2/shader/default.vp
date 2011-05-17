@@ -11,10 +11,9 @@
 #endif
 
 uniform HIGHP mat4    gcu_PMVMatrix[3]; // P, Mv, and Mvi
-attribute HIGHP vec4    gca_Vertices;
+attribute HIGHP vec4  gca_Vertices;
 
 void main(void)
 {
-  // gl_Position = gcu_PMVMatrix[0] * gcu_PMVMatrix[1] * vec4(gca_Vertices, 1);
   gl_Position = gcu_PMVMatrix[0] * gcu_PMVMatrix[1] * gca_Vertices;
 }
