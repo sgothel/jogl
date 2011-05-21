@@ -65,7 +65,7 @@ public class GraphOutline {
         return controlpoints;
     }
     
-    public ArrayList<Vertex> getPoints() {
+    public ArrayList<Vertex> getVertices() {
         return outline.getVertices();
     }
 

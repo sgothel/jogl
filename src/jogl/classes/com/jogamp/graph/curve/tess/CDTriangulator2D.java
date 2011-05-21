@@ -80,21 +80,27 @@ public class CDTriangulator2D {
     public void addCurve(Outline polyline){
         Loop loop = null;
         
-        if(!loops.isEmpty()){
+        // FIXME: multiple in/out and CW/CCW tests (as follows) ??
+        
+        if(!loops.isEmpty()) {
+            // FIXME: #1 in/out test 
             loop = getContainerLoop(polyline);
         }
         
         if(loop == null) {
+            // Claim:  CCW (out)
             GraphOutline outline = new GraphOutline(polyline);
+            // FIXME: #2/#3 extract..(CCW) and new Loop(CCW).. does CW/CCW tests
             GraphOutline innerPoly = extractBoundaryTriangles(outline, false);
             vertices.addAll(polyline.getVertices());
-            loop = new Loop(innerPoly, VectorUtil.CCW);
+            loop = new Loop(innerPoly, VectorUtil.Winding.CCW);
             loops.add(loop);
-        }
-        else {
+        } else {
+            // Claim: CW (in)
             GraphOutline outline = new GraphOutline(polyline);
+            // FIXME: #3/#4 extract..(CW) and addContraint..(CW) does CW/CCW tests
             GraphOutline innerPoly = extractBoundaryTriangles(outline, true);
-            vertices.addAll(innerPoly.getPoints());
+            vertices.addAll(innerPoly.getVertices());
             loop.addConstraintCurve(innerPoly);
         }
     }
@@ -140,7 +146,7 @@ public class CDTriangulator2D {
         return triangles;
     }
 
-    private GraphOutline extractBoundaryTriangles(GraphOutline outline, boolean hole){
+    private GraphOutline extractBoundaryTriangles(GraphOutline outline, boolean hole) {
         GraphOutline innerOutline = new GraphOutline();
         ArrayList<GraphVertex> outVertices = outline.getGraphPoint();
         int size = outVertices.size();
@@ -159,12 +165,12 @@ public class CDTriangulator2D {
                 gv1.setBoundaryContained(true);
                 gv2.setBoundaryContained(true);
                 
-                Triangle t= null;
-                boolean holeLike = false;
-                if(VectorUtil.ccw(v0,v1,v2)){
+                final Triangle t;
+                final boolean holeLike;
+                if(VectorUtil.ccw(v0,v1,v2)) {
+                    holeLike = false;
                     t = new Triangle(v0, v1, v2);
-                }
-                else {
+                } else {
                     holeLike = true;
                     t = new Triangle(v2, v1, v0);
                 }
@@ -173,13 +179,12 @@ public class CDTriangulator2D {
                 if(DEBUG){
                     System.err.println(t);
                 }
-                if(hole || holeLike) {
+                if( hole || holeLike ) {
                     v0.setTexCoord(0, -0.1f);
                     v2.setTexCoord(1, -0.1f);
                     v1.setTexCoord(0.5f, -1*sharpness -0.1f);
                     innerOutline.addVertex(currentVertex);
-                }
-                else {
+                } else {
                     v0.setTexCoord(0, 0.1f);
                     v2.setTexCoord(1, 0.1f);
                     v1.setTexCoord(0.5f, sharpness+0.1f);
@@ -197,6 +202,7 @@ public class CDTriangulator2D {
     
     private Loop getContainerLoop(Outline polyline){
         ArrayList<Vertex> vertices = polyline.getVertices();
+        // FIXME: remove implicit iterator
         for(Vertex vert: vertices){
             for (Loop loop:loops){
                 if(loop.checkInside(vert)){

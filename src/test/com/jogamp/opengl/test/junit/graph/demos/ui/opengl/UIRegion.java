@@ -25,33 +25,53 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos;
-
+package com.jogamp.opengl.test.junit.graph.demos.ui.opengl;
 
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLAutoDrawable;
 
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.curve.opengl.TextRenderer;
+import com.jogamp.opengl.test.junit.graph.demos.ui.UIShape;
+import com.jogamp.opengl.test.junit.graph.demos.ui.UITextShape;
 
-public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
-    public GPUTextGLListener0A(RenderState rs, int numpass, int fbosize, boolean debug, boolean trace) {
-        super(rs, numpass, debug, trace);
-        setMatrix(-400, -30, 0f, -500, fbosize); 
+public class UIRegion {
+    protected static final int DIRTY_REGION  = 1 << 0 ;    
+    protected int dirty = DIRTY_REGION;
+    
+    private UIShape uiShape;
+    private GLRegion region;
+    
+    public UIRegion(UIShape uis) {
+        this.uiShape = uis;
     }
     
-    public void init(GLAutoDrawable drawable) {
-        super.init(drawable);
-        
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
-        
-        final TextRenderer textRenderer = (TextRenderer) getRenderer();
-        
-        gl.setSwapInterval(1);
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-        gl.glEnable(GL2ES2.GL_BLEND);
-        textRenderer.setAlpha(gl, 1.0f);
-        textRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
-        MSAATool.dump(drawable);
+    public boolean updateRegion(GL2ES2 gl, RenderState rs, int renderModes) {
+        if( uiShape.updateShape() || isRegionDirty() ) {
+            destroy(gl, rs);
+            if(uiShape instanceof UITextShape) {
+                region = ((UITextShape)uiShape).getGlyphString().createRegion(gl, rs, renderModes);    
+            } else {
+                region = GLRegion.create(uiShape.getShape(), renderModes);
+            }
+            dirty &= ~DIRTY_REGION;
+            return true;
+        }
+        return false;
+    }
+    
+    public GLRegion getRegion(GL2ES2 gl, RenderState rs, int renderModes) { 
+        updateRegion(gl, rs, renderModes);
+        return region; 
+    }
+    
+    public boolean isRegionDirty() {
+        return 0 != ( dirty & DIRTY_REGION ) ;
+    }
+    
+    public void destroy(GL2ES2 gl, RenderState rs) {
+        if(null != region) {
+            region.destroy(gl, rs);
+            region = null;
+        }                    
     }
 }

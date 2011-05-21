@@ -34,7 +34,6 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -69,9 +68,9 @@ public class GPURegionNewtDemo01 {
         window.setSize(800, 400);
         window.setTitle("GPU Curve Region Newt Demo 01 - vbaa0 msaa1");
         
-        RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
-        GPURegionGLListener01 regionGLListener = new GPURegionGLListener01 (rs, Region.SINGLE_PASS, false, 0, DEBUG, TRACE);
-        regionGLListener.attachInputListenerTo(window);        
+        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        GPURegionGLListener01 regionGLListener = new GPURegionGLListener01 (rs, Region.VARIABLE_CURVE_WEIGHT_BIT, 0, DEBUG, TRACE);
+        regionGLListener.attachInputListenerTo(window);                
         window.addGLEventListener(regionGLListener);
 
         window.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);     

@@ -62,7 +62,6 @@ import com.jogamp.opengl.test.junit.graph.demos.Screenshot;
 public abstract class UIListenerBase01 implements GLEventListener {
     private Screenshot screenshot;
     private RegionRenderer rRenderer;
-    private TextRenderer tRenderer;
     private boolean debug;
     private boolean trace;
     
@@ -82,16 +81,14 @@ public abstract class UIListenerBase01 implements GLEventListener {
 
     boolean ignoreInput = false;
 
-    public UIListenerBase01(RegionRenderer rRenderer, TextRenderer tRenderer, boolean debug, boolean trace) {
+    public UIListenerBase01(RegionRenderer rRenderer, boolean debug, boolean trace) {
         this.rRenderer = rRenderer;
-        this.tRenderer = tRenderer;
         this.debug = debug;
         this.trace = trace;
         this.screenshot = new Screenshot();
     }
     
     public final RegionRenderer getRegionRenderer() { return rRenderer; }
-    public final TextRenderer getTextRenderer() { return tRenderer; }
     public final float getZoom() { return zoom; }
     public final float getXTran() { return xTran; }
     public final float getYTran() { return yTran; }
@@ -115,6 +112,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) ).getGL2ES2();
         }
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        getRegionRenderer().init(gl);        
     }
     
     public void reshape(GLAutoDrawable drawable, int xstart, int ystart, int width, int height) {
@@ -122,7 +120,6 @@ public abstract class UIListenerBase01 implements GLEventListener {
         
         gl.glViewport(xstart, ystart, width, height);        
         rRenderer.reshapePerspective(gl, 45.0f, width, height, 0.1f, 7000.0f);
-        tRenderer.reshapePerspective(gl, 45.0f, width, height, 0.1f, 7000.0f);
         dumpMatrix();
     }
     
@@ -131,7 +128,6 @@ public abstract class UIListenerBase01 implements GLEventListener {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         screenshot.dispose(gl);
         rRenderer.destroy(gl);
-        tRenderer.destroy(gl);
     }    
     
     public void zoom(int v){
@@ -218,19 +214,16 @@ public abstract class UIListenerBase01 implements GLEventListener {
             button.setButtonColor(0.6f,0.6f,0.6f);
         }
 
-        @Override
         public void mouseMoved(MouseEvent e) {
             // TODO Auto-generated method stub
             
         }
 
-        @Override
         public void mouseDragged(MouseEvent e) {
             // TODO Auto-generated method stub
             
         }
 
-        @Override
         public void mouseWheelMoved(MouseEvent e) {
             // TODO Auto-generated method stub
             
@@ -307,7 +300,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
                         autoDrawable.invoke(false, new GLRunnable() {
                             public void run(GLAutoDrawable drawable) {
                                 try {
-                                    final String type = ( 1 == rRenderer.getRenderType() ) ? "r2t0-msaa1" : "r2t1-msaa0" ; 
+                                    final String type = ( 1 == rRenderer.getRenderModes() ) ? "r2t0-msaa1" : "r2t1-msaa0" ; 
                                     printScreen(drawable, "./", "demo-"+type, "snap"+screenshot_num, false);
                                     screenshot_num++;
                                 } catch (GLException e) {

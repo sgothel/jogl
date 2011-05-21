@@ -67,7 +67,7 @@ public class ShaderCode {
 
         if(DEBUG_CODE) {
             System.out.println("Created: "+toString());
-            dumpShaderSource(System.out);
+            // dumpShaderSource(System.out); // already done in readShaderSource
         }
     }
 
@@ -282,14 +282,18 @@ public class ShaderCode {
         }
     }
 
-    public static void readShaderSource(Class context, URL url, StringBuffer result) {
+    private static int readShaderSource(Class context, URL url, StringBuffer result, int lineno) {
         try {
             if(DEBUG_CODE) {
-                System.err.println("ShaderCode.readShaderSource<0>: "+url);
+                System.err.printf("%3d: // %s\n", lineno, url);
             }
             BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
             String line = null;
             while ((line = reader.readLine()) != null) {
+                lineno++;
+                if(DEBUG_CODE) {
+                    System.err.printf("%3d: %s\n", lineno, line);
+                }
                 if (line.startsWith("#include ")) {
                     String includeFile = line.substring(9).trim();
                     URL nextURL = null;
@@ -307,16 +311,26 @@ public class ShaderCode {
                         // Fail
                         throw new FileNotFoundException("Can't find include file " + includeFile);
                     }
-                    if(DEBUG_CODE) {
-                        System.err.println("ShaderCode.readShaderSource<I>: "+url+" + "+includeFile+" := "+nextURL);
-                    }                    
-                    readShaderSource(context, nextURL, result);
+                    lineno = readShaderSource(context, nextURL, result, lineno);
                 } else {
                     result.append(line + "\n");
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+        return lineno;
+    }
+    
+    public static void readShaderSource(Class context, URL url, StringBuffer result) {
+        if(DEBUG_CODE) {
+            System.err.println();
+            System.err.println("// -----------------------------------------------------------");
+        }
+        readShaderSource(context, url, result, 0);
+        if(DEBUG_CODE) {
+            System.err.println("// -----------------------------------------------------------");
+            System.err.println();
         }
     }
 

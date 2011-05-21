@@ -32,6 +32,8 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 
@@ -45,14 +47,14 @@ import com.jogamp.graph.curve.opengl.RenderState;
 public class GPURegionGLListener01 extends GPURegionRendererListenerBase01 {
     OutlineShape outlineShape = null;
     
-    public GPURegionGLListener01 (RenderState rs, int numpass, boolean uniform, int fbosize, boolean debug, boolean trace) {
-        super(rs, numpass, uniform, debug, trace);
+    public GPURegionGLListener01 (RenderState rs, int renderModes, int fbosize, boolean debug, boolean trace) {
+        super(rs, renderModes, debug, trace);
         setMatrix(-20, 00, 0f, -50, fbosize);
     }
     
     private void createTestOutline(){
         float offset = 0;
-        outlineShape = new OutlineShape(getRenderer().getFactory());
+        outlineShape = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
         outlineShape.addVertex(0.0f,-10.0f, true);
         outlineShape.addVertex(15.0f,-10.0f, true);
         outlineShape.addVertex(10.0f,5.0f, false);
@@ -69,8 +71,8 @@ public class GPURegionGLListener01 extends GPURegionRendererListenerBase01 {
         outlineShape.closeLastOutline();
         
         /** Same shape as above but without any off-curve vertices */
-        outlineShape.addEmptyOutline();
         offset = 30;
+        outlineShape.addEmptyOutline();
         outlineShape.addVertex(offset+0.0f,-10.0f, true);
         outlineShape.addVertex(offset+17.0f,-10.0f, true);
         outlineShape.addVertex(offset+11.0f,5.0f, true);
@@ -85,6 +87,8 @@ public class GPURegionGLListener01 extends GPURegionRendererListenerBase01 {
         outlineShape.addVertex(offset+10.0f,-5.0f, true);
         outlineShape.addVertex(offset+10.0f,0.0f, true);
         outlineShape.closeLastOutline();
+        
+        region = GLRegion.create(outlineShape, getRenderModes());
     }
 
     public void init(GLAutoDrawable drawable) {
@@ -97,7 +101,6 @@ public class GPURegionGLListener01 extends GPURegionRendererListenerBase01 {
         gl.setSwapInterval(1);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         gl.glEnable(GL2ES2.GL_BLEND);
-        regionRenderer.init(gl);
         regionRenderer.setAlpha(gl, 1.0f);
         regionRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
         MSAATool.dump(drawable);
@@ -116,10 +119,9 @@ public class GPURegionGLListener01 extends GPURegionRendererListenerBase01 {
         regionRenderer.resetModelview(null);
         regionRenderer.translate(null, getXTran(), getYTran(), getZoom());
         regionRenderer.rotate(gl, getAngle(), 0, 1, 0);
-        if(weightUpdated){
+        if( weight != regionRenderer.getWeight()) {
             regionRenderer.setWeight(gl, weight);
-            weightUpdated = false;
         }
-        regionRenderer.renderOutlineShape(gl, outlineShape, getPosition(), getTexSize());
+        regionRenderer.draw(gl, region, getPosition(), getTexSize());
     }        
 }

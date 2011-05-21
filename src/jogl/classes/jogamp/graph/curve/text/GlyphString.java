@@ -27,29 +27,28 @@
  */
 package jogamp.graph.curve.text;
 
-import java.util.ArrayList;
-
-import com.jogamp.graph.curve.opengl.TextRenderer;
-import com.jogamp.graph.geom.AABBox;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Triangle;
-import com.jogamp.graph.geom.Vertex.Factory;
-import com.jogamp.graph.geom.opengl.SVertex;
-
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLUniformData;
-
+import jogamp.graph.curve.opengl.RegionFactory;
 import jogamp.graph.font.FontInt;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 import jogamp.graph.geom.plane.PathIterator;
 
-import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.RegionFactory;
+import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.geom.AABBox;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.Triangle;
+import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLUniformData;
+
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -71,7 +70,7 @@ import java.util.Collection;
  * 
  * The Char Sequence / String Builder API is an editor interface
  * intended for use by UI Components.  It operates on the data path
- * for subsequent indempotent-safe calls to the generateRegion and
+ * for subsequent indempotent-safe calls to the createRegion and
  * renderString3D methods.
  * 
  */
@@ -79,47 +78,56 @@ public class GlyphString
     extends ArrayList<GlyphShape>
     implements CharSequence
 {
+    /** Static font size for all default font OutlineShape generations via {@link #createString(OutlineShape, Factory, Font, String)}.
+     * <p>The actual font size shall be accomplished by the GL PMV matrix.</p>
+     */
+    public static final int STATIC_FONT_SIZE = 10;
 
-    private TextRenderer renderer;
+
+
+    private Factory<? extends Vertex> factory;
     private AffineTransform transform;
     private FontInt font;
     private int fontSize;
     private String fontname;
     private StringBuilder string;
-    private Region region;
+    private GLRegion region;
     /*
      * Cache object, at least until we expose 'transform'.
      */    
     private Vertex origin;
     /**
-     * Require generateRegion for Region (clear).  Edits not captured
+     * Require createRegion for Region (clear).  Edits not captured
      * by Region are those that drop triangles or vertices.
      */
     private boolean dirty;
 
-
-
+    
     /** Create a new GlyphString object
      * @param renderer {@link TextRenderer} context
      * @param font {@link Font} to be used
-     * @param size Font size in pixels
+     * @param size Optional font size in pixels
      * @param string {@link CharSequence} to be created
      */
-    public GlyphString(TextRenderer renderer, Font font, int size, CharSequence string){
+    public GlyphString(Factory<? extends Vertex> factory, Font font, int size, CharSequence string){
         super();
-        if (null != renderer && (font instanceof FontInt) && 0 < size){
-            this.renderer = renderer;
+        if (null != factory && font instanceof FontInt){
+            this.factory = factory;
             this.font = (FontInt)font;
-            this.fontSize = size;
+            if (0 < size)
+                this.fontSize = size;
+            else
+                this.fontSize = STATIC_FONT_SIZE;
+
             this.fontname = font.getName(Font.NAME_UNIQUNAME);
-            this.transform = new AffineTransform(renderer.getRenderState().getPointFactory());
+            this.transform = new AffineTransform(factory);
             if (null != string){
                 final int strlen = string.length();
                 if (0 < strlen){
                     this.string = new StringBuilder(string);
 
                     Path2D[] paths = new Path2D[strlen];
-                    ((FontInt)font).getPaths(string, size, this.transform, paths);
+                    ((FontInt)font).getPaths(string, this.fontSize, this.transform, paths);
                     this.add(paths);
                 }
                 else
@@ -140,7 +148,7 @@ public class GlyphString
         this.add(glyph);
     }
     /**
-     * @return Require call to {@link #generateRegion} to capture edits
+     * @return Require call to {@link #createRegion} to capture edits
      */
     public boolean isDirty(){
         return this.dirty;
@@ -153,7 +161,6 @@ public class GlyphString
     public boolean add(Path2D... paths) {
         boolean mod = false;
         if (null != paths){
-            Factory<? extends Vertex> pointFactory = this.renderer.getRenderState().getPointFactory();
 
             final int numGlyps = paths.length;
 
@@ -162,7 +169,7 @@ public class GlyphString
 
                     PathIterator iterator = paths[index].iterator(this.transform);
 
-                    GlyphShape glyphShape = new GlyphShape(pointFactory, iterator);
+                    GlyphShape glyphShape = new GlyphShape(this.factory, iterator);
             
                     if ( 2 < glyphShape.getNumVertices()) {
 
@@ -211,16 +218,16 @@ public class GlyphString
             throw new IllegalStateException();
     }
     
-    /** Generate a OGL Region to represent this Object.
+    /** Create a OGL Region to represent this Object.
      * @param gl the GLContext which the region is defined by.
      * @param rs the rendering context
      * @param type Region rendering type, single or two pass
      */
-    public void generateRegion(GL2ES2 gl, RenderState rs, int type){
+    public GLRegion createRegion(GL2ES2 gl, RenderState rs, int type){
 
         if (null == this.region){
 
-            this.region = RegionFactory.create(rs, type);
+            this.region = RegionFactory.create(type);
             this.region.setFlipped(true);
             /*
              */        
@@ -232,7 +239,7 @@ public class GlyphString
             this.region.addVertices(vers);
             /*
              */
-            this.region.update(gl);
+            this.region.update(gl,rs);
 
             this.dirty = false;
         }
@@ -249,7 +256,7 @@ public class GlyphString
             this.region.addVertices(vers);
             /*
              */
-            this.region.update(gl);
+            this.region.update(gl,rs);
 
             this.dirty = false;
         }
@@ -257,8 +264,10 @@ public class GlyphString
             /*
              * clean the region
              */
-            this.region.update(gl);
+            this.region.update(gl,rs);
         }
+
+        return this.region;
     }
 
     /** Generate a Hashcode for this object 
@@ -269,16 +278,16 @@ public class GlyphString
     }
 
     /** Render the Object based using the associated Region
-     *  previously generated.
+     *  previously created.
      */
     public void renderString3D(GL2ES2 gl) {
-        region.render(gl, null, 0, 0, 0);
+        region.draw(gl, null, 0, 0, 0);
     }
     /** Render the Object based using the associated Region
-     *  previously generated.
+     *  previously created.
      */
     public void renderString3D(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int size) {
-        region.render(gl, rs, vp_width, vp_height, size);
+        region.draw(gl, rs, vp_width, vp_height, size);
     }
     
     /** Get the Origin of this GlyphString
@@ -298,13 +307,17 @@ public class GlyphString
      */
     public void destroy(GL2ES2 gl, RenderState rs){
         if (null != this.region){
-            try {
-                this.region.destroy(gl, rs);
+            if (null != gl && null != rs){
+                try {
+                    this.region.destroy(gl, rs);
+                }
+                finally {
+                    this.region = null;
+                    this.clear();
+                }
             }
-            finally {
-                this.region = null;
-                this.dirty = false;
-            }
+            else
+                throw new IllegalStateException("destroy called w/o GL context, but has a region");
         }
     }
     
@@ -453,7 +466,7 @@ public class GlyphString
     @Override
     public GlyphString subSequence(int start, int end){
 
-        return new GlyphString(this.renderer,this.font,this.fontSize,this.string.subSequence(start,end));
+        return new GlyphString(this.factory,this.font,this.fontSize,this.string.subSequence(start,end));
     }
     /*
      * Object
@@ -461,8 +474,8 @@ public class GlyphString
      * Not defining hashCode or equals for instance object identity
      */
     /**
-     * @return Clone requiring generateRegion
-     * @see #generateRegion
+     * @return Clone requiring createRegion
+     * @see #createRegion
      */
     @Override
     public GlyphString clone(){

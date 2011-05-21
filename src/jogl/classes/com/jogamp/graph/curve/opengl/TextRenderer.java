@@ -39,13 +39,16 @@ import jogamp.graph.font.FontInt;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 
+import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.Vertex.Factory;
 
 public abstract class TextRenderer extends Renderer {
     /** 
      * Create a Hardware accelerated Text Renderer.
      * @param rs the used {@link RenderState} 
-     * @param renderType either {@link com.jogamp.graph.curve.Region#SINGLE_PASS} or {@link com.jogamp.graph.curve.Region#TWO_PASS}
+     * @param renderModes either {@link com.jogamp.graph.curve.Region#SINGLE_PASS_RENDERING} or {@link com.jogamp.graph.curve.Region#TWO_PASS_RENDERING_BIT}
      */
     public static TextRenderer create(RenderState rs, int type) {
         return new jogamp.graph.curve.opengl.TextRendererImpl01(rs, type);
@@ -66,8 +69,8 @@ public abstract class TextRenderer extends Renderer {
      * @param texSize texture size for multipass render
      * @throws Exception if TextRenderer not initialized
      */
-    public abstract void renderString3D(GL2ES2 gl, Font font,
-                                        String str, float[] position, int fontSize, int texSize);
+    public abstract void drawString3D(GL2ES2 gl, Font font,
+                                      String str, float[] position, int fontSize, int texSize);
 
     /**Create the resulting {@link GlyphString} that represents
      * the String wrt to the font.
@@ -81,13 +84,14 @@ public abstract class TextRenderer extends Renderer {
             System.err.println("createString: "+getCacheSize()+"/"+getCacheLimit()+" - "+Font.NAME_UNIQUNAME + " - " + str + " - " + size);
         }
         
-        GlyphString glyphString = new GlyphString(this, font, size, str);
+        GlyphString glyphString = new GlyphString(rs.vertexFactory, font, size, str);
 
-        glyphString.generateRegion(gl, rs, renderType);
+        glyphString.createRegion(gl, rs, renderModes);
         
         return glyphString;
     }
     
+    /** FIXME
    public void flushCache(GL2ES2 gl) {
        Iterator<GlyphString> iterator = stringCacheMap.values().iterator();
        while(iterator.hasNext()){
@@ -96,11 +100,18 @@ public abstract class TextRenderer extends Renderer {
        }
        stringCacheMap.clear();    
        stringCacheArray.clear();
-   }
+   } */
    
    @Override
-   protected void disposeImpl(GL2ES2 gl) {
+   protected void destroyImpl(GL2ES2 gl) {
        // fluchCache(gl) already called
+       Iterator<GlyphString> iterator = stringCacheMap.values().iterator();
+       while(iterator.hasNext()){
+           GlyphString glyphString = iterator.next();
+           glyphString.destroy(gl, rs);
+       }
+       stringCacheMap.clear();    
+       stringCacheArray.clear();
    }
    
    /**
@@ -177,7 +188,9 @@ public abstract class TextRenderer extends Renderer {
    }
       
    protected final String getKey(Font font, String str, int fontSize) {
-       return font.getName(Font.NAME_UNIQUNAME) + "." + str.hashCode() + "." + fontSize;
+       final StringBuilder sb = new StringBuilder();
+       return font.getName(sb, Font.NAME_UNIQUNAME)
+              .append(".").append(str.hashCode()).append(".").append(fontSize).toString();
    }
 
    /** Default cache limit, see {@link #setCacheLimit(int)} */

@@ -65,7 +65,16 @@ public class Outline
     public final int getVertexNumber() {
         return this.size();
     }
-    
+    /** Append vertex
+     */
+    public final boolean addVertex(Vertex vertex) {
+        return this.add(vertex);
+    }
+    /** Insert to position
+     */
+    public final void addVertex(int index, Vertex vertex) {
+        this.add(index,vertex);
+    }
     /** Appends a vertex to the outline loop/strip.
      * @param vertex Vertex to be added
      * @return Whether this collection has been modified by the add
@@ -235,7 +244,8 @@ public class Outline
      */
     public final void setClosed(boolean closed) {
         this.closed = closed;
-        if (closed){
+
+        if( closed && !isEmpty() ) {
             Vertex first = this.get(0);
             Vertex last = getLastVertex();
             if(!VectorUtil.checkEquality(first.getCoord(), last.getCoord())){

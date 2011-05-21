@@ -25,45 +25,40 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.curve;
+package jogamp.graph.curve.opengl;
 
-import javax.media.opengl.GLProfile;
-
-import com.jogamp.graph.curve.opengl.RenderState;
-
-import jogamp.graph.curve.opengl.VBORegionSPES2;
-import jogamp.graph.curve.opengl.VBORegion2PES2;
+import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 
 /** RegionFactory to create a Context specific Region implementation. 
  *  
- * @see Region
+ * @see GLRegion
  */
 public class RegionFactory {
     
     /**
-     * Create a Region using the passed curren GL object.
+     * Create a Region using the passed render mode
      * 
-     * <p> In case {@link Region#TWO_PASS} is being requested the default texture unit
+     * <p> In case {@link Region#TWO_PASS_RENDERING_BIT} is being requested the default texture unit
      * {@link Region#TWO_PASS_DEFAULT_TEXTURE_UNIT} is being used.</p>
-     * @param rs TODO
-     * @param type can be one of {@link Region#SINGLE_PASS} or {@link Region#TWO_PASS} 
      * 
-     * @return region 
+     * @param rs the RenderState to be used
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#TWO_PASS_RENDERING_BIT} 
      */
-    public static Region create(RenderState rs, int type) {
-        if( Region.TWO_PASS == type ){
-            return new VBORegion2PES2(rs, Region.TWO_PASS_DEFAULT_TEXTURE_UNIT);
+    public static GLRegion create(int renderModes) {
+        if( 0 != ( Region.TWO_PASS_RENDERING_BIT & renderModes ) ){
+            return new VBORegion2PES2(renderModes, Region.TWO_PASS_DEFAULT_TEXTURE_UNIT);
         }
         else{
-            return new VBORegionSPES2(rs);
+            return new VBORegionSPES2(renderModes);
         }
     }
-    
-    public static Region createSinglePass(RenderState rs) {
-        return new VBORegionSPES2(rs);
+        
+    public static GLRegion createSinglePass(int renderModes) {
+        return new VBORegionSPES2(renderModes);
     }
     
-    public static Region createTwoPass(RenderState rs, int textureUnit) {
-        return new VBORegion2PES2(rs, textureUnit);
+    public static GLRegion createTwoPass(int renderModes, int textureUnit) {
+        return new VBORegion2PES2(renderModes, textureUnit);
     }
 }

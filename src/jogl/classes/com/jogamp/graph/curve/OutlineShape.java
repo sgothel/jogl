@@ -31,13 +31,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.math.VectorUtil;
 
-import com.jogamp.graph.curve.OutlineShape.VerticesState;
 import com.jogamp.graph.curve.tess.CDTriangulator2D;
 
 /** A Generic shape objects which is defined by a list of Outlines.
@@ -110,12 +110,16 @@ public class OutlineShape
         }
     } 
     
+    public static final int DIRTY_BOUNDS = 1 << 0;
+    
     private final Vertex.Factory<? extends Vertex> vertexFactory;
     private VerticesState outlineState;
 
     private AABBox bbox;
-    private boolean dirtyBBox;    
 
+    /** dirty bits DIRTY_BOUNDS */
+    private int dirtyBits;  
+    
     /** Create a new Outline based Shape
      */
     public OutlineShape(Vertex.Factory<? extends Vertex> factory) {
@@ -123,11 +127,20 @@ public class OutlineShape
         this.vertexFactory = factory;
         this.outlineState = VerticesState.UNDEFINED;
         this.bbox = new AABBox();
-        this.dirtyBBox = false;
         this.addEmptyOutline();
+        this.dirtyBits = 0;
     }
 
 
+    /** Clears all data and reset all states as if this instance was newly created */
+    public void clear() {
+        super.clear();
+        outlineState = VerticesState.UNDEFINED;
+        bbox.reset();
+        this.addEmptyOutline();
+        dirtyBits = 0;
+    }
+    
     /** Returns the associated vertex factory of this outline shape
      * @return Vertex.Factory object
      */
@@ -138,14 +151,14 @@ public class OutlineShape
     }
     
     /** Add a new empty {@link Outline} 
-     * to the shape, this new outline will
-     * be placed at the end of the outline list.
+     * to the end of this shape's outline list.
+     * <p>If the {@link #getLastOutline()} is empty already, no new one will be added.</p>
      * 
      * After a call to this function all new vertices added
      * will belong to the new outline
      */
     public void addEmptyOutline(){
-        this.add(new Outline());
+        this.addEmptyOutlineIfNot();
     }
     /** Add a new empty {@link Outline} to this shape if the last
      * outline is not empty (or does not exist).
@@ -156,7 +169,7 @@ public class OutlineShape
          */
         Outline outline = this.getLastOutline();
         if(null == outline || (!outline.isEmpty())){
-            this.addEmptyOutline();
+            this.add(new Outline());
         }            
     }
 
@@ -176,24 +189,51 @@ public class OutlineShape
         return mod;
     }
 
-    /** Appends the {@link Outline} element to the end.
-     * <p>A clean tail is ensured, ie no double empty Outlines. </p>
+    /** Appends the {@link Outline} element to the end,
+     * ensuring a clean tail.
+     * 
+     * <p>A clean tail is ensured, no double empty Outlines are produced
+     * and a pre-existing empty outline will be replaced with the given one. </p>
+     * 
      * @param outline Outline object to be added
-     * @throws NullPointerException if the  {@link Outline} element is null 
+     * @throws IllegalArgumentException if the  {@link Outline} element is null 
      */
-    public void addOutline(Outline outline) throws NullPointerException {
+    public void addOutline(Outline outline) throws IllegalArgumentException {
         this.add(outline);
     }
 
     /** Insert the {@link Outline} element at the given {@code position}.
-     * <p>A clean tail is ensured, ie no double empty Outlines. </p>
+     * 
+     * <p>If the {@code position} indicates the end of this list,
+     * a clean tail is ensured, no double empty Outlines are produced
+     * and a pre-existing empty outline will be replaced with the given one. </p>
+     * 
      * @param position of the added Outline
      * @param outline Outline object to be added
-     * @throws NullPointerException if the  {@link Outline} element is null 
+     * @throws IllegalArgumentException if the  {@link Outline} element is null 
      * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position > getOutlineNumber())
      */
-    public void addOutline(int position, Outline outline) throws NullPointerException, IndexOutOfBoundsException {
+    public void addOutline(int position, Outline outline) throws IllegalArgumentException, IndexOutOfBoundsException {
         this.add(position,outline);
+    }
+
+    /** Insert the {@link OutlineShape} elements of type {@link Outline}, .. at the end of this shape,
+     * using {@link #addOutline(Outline)} for each element.
+     * <p>Closes the current last outline via {@link #closeLastOutline()} before adding the new ones.</p>
+     * @param outlineShape OutlineShape elements to be added.
+     * @throws IllegalArgumentException if the  {@link OutlineShape} is null 
+     * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position > getOutlineNumber())
+     */
+    public void addOutlineShape(OutlineShape outlineShape) throws IllegalArgumentException {
+        if (null == outlineShape) {
+            throw new IllegalArgumentException("OutlineShape is null");
+        }
+        else {
+            closeLastOutline();
+            for(int i=0; i<outlineShape.getOutlineNumber(); i++) {
+                addOutline(outlineShape.getOutline(i));
+            }
+        }
     }
         
     /** Replaces the {@link Outline} element at the given {@code position}.
@@ -201,15 +241,12 @@ public class OutlineShape
      * 
      * @param position of the replaced Outline
      * @param outline replacement Outline object 
-     * @throws NullPointerException if the  {@link Outline} element is null 
+     * @throws IllegalArgumentException if the  {@link Outline} element is null 
      * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position >= getOutlineNumber())
      */
-    public void setOutline(int position, Outline outline) throws NullPointerException, IndexOutOfBoundsException {
-        if (null == outline) {
-            throw new NullPointerException("outline is null");
-        }
+    public void setOutline(int position, Outline outline) throws IllegalArgumentException, IndexOutOfBoundsException {
+
         this.set(position, outline);
-        dirtyBBox = true;
     }
     
     /** Removes the {@link Outline} element at the given {@code position}.
@@ -219,7 +256,7 @@ public class OutlineShape
      * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position >= getOutlineNumber())
      */
     public final Outline removeOutline(int position) throws IndexOutOfBoundsException {
-        dirtyBBox = true;        
+
         return this.remove(position);
     }
         
@@ -247,8 +284,21 @@ public class OutlineShape
      */
     public final void addVertex(Vertex v){
         final Outline lo = getLastOutline();
-        lo.add(v);
-        if(!dirtyBBox) {
+        lo.addVertex(v);
+        if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
+            bbox.resize(lo.getBounds());
+        }
+    }
+    
+    /** Adds a vertex to the last open outline in the shape. 
+     * at {@code position} 
+     * @param position indx at which the vertex will be added 
+     * @param v the vertex to be added to the OutlineShape
+     */
+    public final void addVertex(int position, Vertex v){
+        final Outline lo = getLastOutline();
+        lo.addVertex(position, v);
+        if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
             bbox.resize(lo.getBounds());
         }
     }
@@ -268,8 +318,8 @@ public class OutlineShape
     /** Add a 3D {@link Vertex} to the last outline by defining the coordniate attribute
      * of the vertex.
      * @param x the x coordinate
-     * @param y the y coordniate
-     * @param z the z coordniate
+     * @param y the y coordinate
+     * @param z the z coordinate
      * @param onCurve flag if this vertex is on the final curve or defines a curved region
      * of the shape around this vertex.
      */
@@ -292,13 +342,15 @@ public class OutlineShape
         addVertex(vertexFactory.create(coordsBuffer, offset, length, onCurve));
     }    
 
-    /** Closes the last outline in the shape
-     * if last vertex is not equal to first vertex.
+    /** Closes the last outline in the shape.
+     * <p>If last vertex is not equal to first vertex.
      * A new temp vertex is added at the end which 
-     * is equal to the first.
+     * is equal to the first.</p>
      */
     public void closeLastOutline(){
-        getLastOutline().setClosed(true);
+        Outline last = this.getLastOutline();
+        if (null != last)
+            last.setClosed(true);
     }
 
     /**
@@ -364,7 +416,7 @@ public class OutlineShape
     /** @return the list of concatenated vertices associated with all 
      * {@code Outline}s of this object
      */
-    public ArrayList<Vertex> getVertices(){
+    public ArrayList<Vertex> getVertices() {
         ArrayList<Vertex> vertices = new ArrayList<Vertex>();
         for(int i=0; i<this.size(); i++) {
             vertices.addAll(this.get(i).getVertices());
@@ -372,17 +424,18 @@ public class OutlineShape
         return vertices;
     }
 
-    /**Triangulate the {@link OutlineShape} generating a list of triangles
+    /**
+     * Triangulate the {@link OutlineShape} generating a list of triangles
      * @return an arraylist of triangles representing the filled region
      * which is produced by the combination of the outlines
      */
     public ArrayList<Triangle> triangulate(){
-        if(this.size() == 0){
+        if(this.isEmpty()){
             return null;
         }
         sortOutlines();
         generateVertexIds();
-        
+
         CDTriangulator2D triangulator2d = new CDTriangulator2D();
         for(int index = 0; index< this.size();index++){
             Outline outline = this.get(index);
@@ -420,7 +473,7 @@ public class OutlineShape
     }
     
     private final void validateBoundingBox() {
-        dirtyBBox = false;
+        dirtyBits &= ~DIRTY_BOUNDS;
         bbox.reset();
         for (int i=0; i<this.size(); i++) {
             bbox.resize(this.get(i).getBounds());
@@ -428,7 +481,7 @@ public class OutlineShape
     }
          
     public final AABBox getBounds() {
-        if (dirtyBBox) {
+        if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
             validateBoundingBox();
         }
         return bbox;
@@ -443,7 +496,7 @@ public class OutlineShape
         if (null != outline){
             boolean mod = false;
             mod = this.removeLastOutlineIfEmpty();
-            if(!dirtyBBox) {
+            if(0 == (this.dirtyBits & DIRTY_BOUNDS)) {
                 bbox.resize(outline.getBounds());
             }
             return (super.add(outline) || mod);
@@ -458,7 +511,7 @@ public class OutlineShape
     public void add(int index, Outline outline) {
         if (null != outline){
             this.removeLastOutlineIfEmpty();
-            if(!dirtyBBox) {
+            if(0 == (this.dirtyBits & DIRTY_BOUNDS)) {
                 bbox.resize(outline.getBounds());
             }
             super.add(index,outline);
@@ -502,9 +555,13 @@ public class OutlineShape
 
         if (null != outline){
 
-            this.dirtyBBox = true;
+            this.dirtyBits |= DIRTY_BOUNDS;
 
-            return super.set(index,outline);
+            Outline re = super.set(index,outline);
+            if (null == re || re != outline || 0 != re.getBounds().compareTo(outline.getBounds()))
+                this.dirtyBits |= DIRTY_BOUNDS;
+
+            return re;
         }
         else
             throw new IllegalArgumentException();
@@ -512,27 +569,23 @@ public class OutlineShape
     @Override
     public Outline remove(int index){
 
-        this.dirtyBBox = true;
-
-        return super.remove(index);
+        Outline re = super.remove(index);
+        if (null != re){
+            this.dirtyBits |= DIRTY_BOUNDS;
+        }
+        return re;
     }
     @Override
     public boolean remove(Object outline){
 
-        this.dirtyBBox = true;
+        if (super.remove(outline)){
+            this.dirtyBits |= DIRTY_BOUNDS;
+            return true;
+        }
+        else
+            return false;
+    }
 
-        return super.remove(outline);
-    }
-    /**
-     * Clear and reinitialize vertices state.
-     */
-    @Override
-    public void clear(){
-        super.clear();
-        this.outlineState = VerticesState.UNDEFINED;
-        this.bbox.reset();
-        this.dirtyBBox = false;    
-    }
     public boolean isNotEmpty(){
         return (0 < this.size());
     }
@@ -571,8 +624,7 @@ public class OutlineShape
     }
     
     /**
-     * @return A deep clone of this OutlineShape is constructed via
-     * clone, clone clear, and then clone add (clone of each outline).
+     * @return deep clone of this OutlineShape
      */
     public OutlineShape clone() {
         OutlineShape clone = (OutlineShape) super.clone();
@@ -585,5 +637,5 @@ public class OutlineShape
             clone.add(this.get(i).clone());
         }
         return clone;
-    }           
+    }
 }

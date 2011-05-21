@@ -25,33 +25,52 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos;
+package com.jogamp.opengl.test.junit.graph.demos.ui;
 
+import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.geom.AABBox;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.Vertex.Factory;
 
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLAutoDrawable;
+public abstract class UIShape {
+    private final Factory<? extends Vertex> vertexFactory;
+    protected OutlineShape shape;
+    
+    protected static final int DIRTY_SHAPE  = 1 << 0 ;    
+    protected int dirty = DIRTY_SHAPE;
 
-import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.curve.opengl.TextRenderer;
-
-public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
-    public GPUTextGLListener0A(RenderState rs, int numpass, int fbosize, boolean debug, boolean trace) {
-        super(rs, numpass, debug, trace);
-        setMatrix(-400, -30, 0f, -500, fbosize); 
+    public UIShape(Factory<? extends Vertex> factory) {
+        this.vertexFactory = factory;
+        this.shape = new OutlineShape(factory);
     }
     
-    public void init(GLAutoDrawable drawable) {
-        super.init(drawable);
-        
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
-        
-        final TextRenderer textRenderer = (TextRenderer) getRenderer();
-        
-        gl.setSwapInterval(1);
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-        gl.glEnable(GL2ES2.GL_BLEND);
-        textRenderer.setAlpha(gl, 1.0f);
-        textRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
-        MSAATool.dump(drawable);
+    public void clear() {
+        clearImpl();
+        shape.clear();
     }
+    protected abstract void clearImpl();
+    
+    protected abstract void createShape();
+    
+    public boolean updateShape() {
+        if( isShapeDirty() ) {
+            shape.clear();
+            createShape();
+            dirty &= ~DIRTY_SHAPE;
+            return true;
+        }
+        return false;
+    }
+    
+    public final Vertex.Factory<? extends Vertex> getVertexFactory() { return vertexFactory; }    
+    public AABBox getBounds() { return shape.getBounds(); }
+    
+    public OutlineShape getShape() { 
+        updateShape(); 
+        return shape; 
+    }
+    
+    public boolean isShapeDirty() {
+        return 0 != ( dirty & DIRTY_SHAPE ) ;
+    }    
 }

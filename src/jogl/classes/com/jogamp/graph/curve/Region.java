@@ -29,110 +29,148 @@ package com.jogamp.graph.curve;
 
 import java.util.ArrayList;
 
-import javax.media.opengl.GL2ES2;
-
-import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.geom.AABBox;
 import jogamp.opengl.Debug;
 
+import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.opengl.util.PMVMatrix;
 
-/** A Region is the OGL binding of one or more OutlineShapes
- *  Defined by its vertices and generated triangles. The Region
- *  defines the final shape of the OutlineShape(s), which shall produced a shaded 
- *  region on the screen.
- *  
- *  Implementations of the Region shall take care of the OGL 
- *  binding of the depending on its context, profile.
- * 
- * @see RegionFactory, OutlineShape
- */
-public interface Region {
+public abstract class Region {
     public static final boolean DEBUG = Debug.debug("graph.curve");
     public static final boolean DEBUG_INSTANCE = false;
-    
-    /** single pass rendering, fast, but AA might not be perfect */
-    public static int SINGLE_PASS = 1;
-    
-    /** two pass rendering, slower and more resource hungry (FBO), but AA is perfect */
-    public static int TWO_PASS    = 2;
-    public static int TWO_PASS_DEFAULT_TEXTURE_UNIT = 0;
-    
-    /** Updates a graph region by updating the ogl related
-     *  objects for use in rendering. if called for the first time
-     *  it initialize the objects. 
+
+    /** Default fast one pass MSAA region rendering.
      */
-    public void update(GL2ES2 gl);
+    public static final int SINGLE_PASS_RENDERING = 0;
+
+    /** Two pass region rendering, slower and more resource hungry (FBO), but AA is perfect. 
+     *  Otherwise the default fast one pass MSAA region rendering is being used. */
+    public static final int TWO_PASS_RENDERING_BIT = 1 << 0;
+
+    /** Use non uniform weights [0.0 .. 1.9] for curve region rendering.
+     *  Otherwise the default weight 1.0 for Bezier curve region rendering is being applied.  */
+    public static final int VARIABLE_CURVE_WEIGHT_BIT = 1 << 1;
     
-    /** Renders the associated OGL objects specifying
-     * current width/hight of window for multi pass rendering
-     * of the region.
-     * @param matrix current {@link PMVMatrix}.
-     * @param vp_width current screen width
-     * @param vp_height current screen height
-     * @param width texture width for mp rendering
+    public static final int TWO_PASS_DEFAULT_TEXTURE_UNIT = 0;
+    
+    private final int renderModes;
+    private boolean dirty = true;    
+    protected int numVertices = 0;    
+    protected boolean flipped = false;
+    protected final AABBox box = new AABBox();
+    protected ArrayList<Triangle> triangles = new ArrayList<Triangle>();
+    protected ArrayList<Vertex> vertices = new ArrayList<Vertex>();
+    
+    public static boolean usesTwoPassRendering(int renderModes) { 
+        return 0 != ( renderModes & Region.TWO_PASS_RENDERING_BIT ); 
+    }
+    
+    public static boolean usesVariableCurveWeight(int renderModes) { 
+        return 0 != ( renderModes & Region.VARIABLE_CURVE_WEIGHT_BIT ); 
+    }
+    
+    protected Region(int regionRenderModes) {
+        this.renderModes = regionRenderModes;
+    }
+
+
+    public final int getRenderModes() { return renderModes; }
+
+    public boolean usesTwoPassRendering() { return Region.usesTwoPassRendering(renderModes);  }
+    public boolean usesVariableCurveWeight() { return Region.usesVariableCurveWeight(renderModes); }
+    
+    /** Get the current number of vertices associated
+     * with this region. This number is not necessary equal to 
+     * the OGL bound number of vertices.
+     * @return vertices count
+     */
+    public final int getNumVertices(){
+        return numVertices;
+    }
+        
+    /** Adds a {@link Triangle} object to the Region
+     * This triangle will be bound to OGL objects 
+     * on the next call to {@code update}
+     * @param tri a triangle object
      * 
-     * @see update()
+     * @see update(GL2ES2)
      */
-    public void render(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int width);
-    
+    public void addTriangle(Triangle tri) {
+        triangles.add(tri);
+        setDirty(true);
+    }
+        
     /** Adds a list of {@link Triangle} objects to the Region
      * These triangles are to be binded to OGL objects 
      * on the next call to {@code update}
      * @param tris an arraylist of triangle objects
      * 
-     * @see update()
+     * @see update(GL2ES2)
      */
-    public void addTriangles(ArrayList<Triangle> tris);
-    
-    /** Get the current number of vertices associated
-     * with this region. This number is not necessary equal to 
-     * the OGL binded number of vertices.
-     * @return vertices count
+    public void addTriangles(ArrayList<Triangle> tris) {
+        triangles.addAll(tris);
+        setDirty(true);
+    }
+        
+    /** Adds a {@link Vertex} object to the Region
+     * This vertex will be bound to OGL objects 
+     * on the next call to {@code update}
+     * @param vert a vertex objects
      * 
-     * @see isDirty()
+     * @see update(GL2ES2)
      */
-    public int getNumVertices();
+    public void addVertex(Vertex vert) {
+        vertices.add(vert);
+        numVertices++;
+        setDirty(true);
+    }
     
     /** Adds a list of {@link Vertex} objects to the Region
      * These vertices are to be binded to OGL objects 
      * on the next call to {@code update}
      * @param verts an arraylist of vertex objects
      * 
-     * @see update()
+     * @see update(GL2ES2)
      */
-    public void addVertices(ArrayList<Vertex> verts);
+    public void addVertices(ArrayList<Vertex> verts) {
+        vertices.addAll(verts);
+        numVertices = vertices.size();
+        setDirty(true);
+    }
     
-    /** Check if this region is dirty. A region is marked dirty
-     * when new Vertices, Triangles, and or Lines are added after a 
-     * call to update()
-     * @return true if region is Dirty, false otherwise
-     * 
-     * @see update();
-     */
-    public boolean isDirty();
+    public final AABBox getBounds(){
+        return box;
+    }
 
-    /**
-     * Reinitialize -- return to the initial state: dirty, requires
-     * triangles, vertices, update.
-     */
-    public void clear();
-    
-    /** Delete and clean the associated OGL
-     *  objects
-     */
-    public void destroy(GL2ES2 gl, RenderState rs);
-    
-    public AABBox getBounds(); 
-    
-    public boolean isFlipped();
-    
     /** Set if the y coordinate of the region should be flipped
      *  {@code y=-y} used mainly for fonts since they use opposite vertex
      *  as origion
      * @param flipped flag if the coordinate is flipped defaults to false.
      */
-    public void setFlipped(boolean flipped);
+    public void setFlipped(boolean flipped) {
+        this.flipped = flipped;
+    }
+    
+    public final boolean isFlipped() {
+        return flipped;
+    }
+    
+    /** Check if this region is dirty. A region is marked dirty
+     * when new Vertices, Triangles, and or Lines are added after a 
+     * call to update()
+     * @return true if region is Dirty, false otherwise
+     */
+    public final boolean isDirty() {
+        return dirty;
+    }
+        
+    protected final void setDirty(boolean v) {
+        dirty = v;
+    }
+    public void clear(){
+        this.triangles.clear();
+        this.vertices.clear();
+        //this.box.reset();//(more useful?)
+        this.dirty = true;
+    }
 }

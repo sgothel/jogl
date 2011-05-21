@@ -346,9 +346,6 @@ public class AABBox
     public int compareTo(AABBox that){
         if (this == that)
             return 0;
-        else if (VectorUtil.checkEquality(this.low,that.low) &&
-                 VectorUtil.checkEquality(this.high,that.high))
-            return 0;
         else {
             int c = VectorUtil.compare(this.low,that.low);
             if (0 == c)

@@ -1,11 +1,4 @@
 //Copyright 2010 JogAmp Community. All rights reserved.
-/**
-#ifdef GL_ES
-    #version 100
-#else
-    #version 110
-#endif
- */
  
 #include uniforms.glsl
 #include varyings.glsl
@@ -27,7 +20,12 @@ void main (void)
         vec2 dfx = dFdx(gcv_TexCoord);
         vec2 dfy = dFdy(gcv_TexCoord);
         
-        vec2 size = 1.0/textureSize(gcu_TextureUnit,0); //version 130 - FIXME: replace with uniform value
+        // vec2 size;
+        //#if __VERSION__ < 130
+            vec2 size = 1.0/gcu_TextureSize;
+        //#else
+        //    size = 1.0/textureSize(gcu_TextureUnit,0);
+        //#endif
         rtex -= 5.0;
         vec4 t = texture2D(gcu_TextureUnit, rtex)* 0.18;
 
@@ -79,7 +77,7 @@ void main (void)
         float aph = 2.0 - 2.0*w;
         
         float gd = (aph*rtex.x*rtex.x + 2.0*rtex.x + 1.0)*(aph*rtex.x*rtex.x + 2.0*rtex.x + 1.0);
-        vec2 f = vec2((dtx.y - (w*dtx.x*(1.0 - 2*rtex.x))/gd), (dty.y - (w*dty.x*(1.0 - 2*rtex.x))/gd));
+        vec2 f = vec2((dtx.y - (w*dtx.x*(1.0 - 2.0*rtex.x))/gd), (dty.y - (w*dty.x*(1.0 - 2.0*rtex.x))/gd));
 
         float d = position/(length(f));
 		float a = (0.5 - d * sign(gcv_TexCoord.y));  

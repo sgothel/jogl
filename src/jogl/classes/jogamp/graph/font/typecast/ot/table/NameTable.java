@@ -106,22 +106,28 @@ public class NameTable implements Table {
         return null;
     }
 
-    public String getRecordsRecordString(int i) {
+    public StringBuilder getRecordsRecordString(StringBuilder sb, int i) {
         if(_numberOfNameRecords > i) {
-            return _records[i].getRecordString();
+            _records[i].getRecordString(sb);
+        } else {
+            sb.append(Table.notAvailable);
         }
-        return Table.notAvailable;
+        return sb;
     }
 
-    public String getRecordString(short nameId) {
-
+    public StringBuilder getNamedRecordString(StringBuilder sb, short nameId) {
         // Search for the first instance of this name ID
-        for (int i = 0; i < _numberOfNameRecords; i++) {
+        boolean done = false;
+        for (int i = 0; !done && i < _numberOfNameRecords; i++) {
             if (_records[i].getNameId() == nameId) {
-                return _records[i].getRecordString();
+                _records[i].getRecordString(sb);
+                done = true;
             }
         }
-        return "";
+        if(!done) {
+            sb.append(Table.notAvailable);
+        }
+        return sb;
     }
 
     public int getType() {

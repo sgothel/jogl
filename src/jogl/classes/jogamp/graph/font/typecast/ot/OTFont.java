@@ -101,16 +101,20 @@ public class OTFont {
     public OTFont(OTFontCollection fc) {
         _fc = fc;
     }
-    public String getName(int nameIndex) {
-        return _name.getRecordsRecordString(nameIndex);
+    public StringBuilder getName(int nameIndex, StringBuilder sb) {
+        if(null == sb) {
+            sb = new StringBuilder();
+        }        
+        return _name.getRecordsRecordString(sb, nameIndex);
     }
-    public StringBuffer getAllNames(StringBuffer sb, String separator) {
+    
+    public StringBuilder getAllNames(StringBuilder sb, String separator) {
         if(null != _name) {
             if(null == sb) {
-                sb = new StringBuffer();
+                sb = new StringBuilder();
             }
             for(int i=0; i<_name.getNumberOfNameRecords(); i++) {
-                sb.append(_name.getRecord(i).getRecordString()).append(separator);
+                _name.getRecord(i).getRecordString(sb).append(separator);
             }
         }
         return sb;  

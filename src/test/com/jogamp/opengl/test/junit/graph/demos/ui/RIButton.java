@@ -27,17 +27,16 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
-import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 
 /** GPU based resolution independent Button impl
  */
-public class RIButton extends UIControl{
-    private float width = 4.0f, height= 3.0f;
+public class RIButton extends UIShape {
+    private float width, height;
+    private Label label;
     private float spacing = 2.0f;
     private float[] scale = new float[]{1.0f,1.0f};
     private float corner = 1.0f;
@@ -46,62 +45,57 @@ public class RIButton extends UIControl{
     private float[] buttonColor = {0.6f, 0.6f, 0.6f};
     private float[] labelColor = {1.0f, 1.0f, 1.0f};
     
-    public RIButton(Factory<? extends Vertex> factory, String label){
+    public RIButton(Factory<? extends Vertex> factory, Font labelFont, String labelText, float width, float height) {
+        // w 4.0f, h 3.0f
+        // FontFactory.get(FontFactory.UBUNTU).getDefault()
         super(factory);
-        this.label = label;
-        setFont(FontFactory.get(FontFactory.UBUNTU).getDefault());
-    }
-
-    public RIButton(Factory<? extends Vertex> factory, String label, Font font){
-        super(factory);
-        setLabel(label);
-        setFont(font);
-    }
-    
-    public float getWidth() {
-        return width;
-    }
-
-    public void setDimensions(float width, float height) {
+        
+        // FIXME: Determine font size - PMV Matrix relation ?
+        // this.label = new Label(factory, labelFont, (int)(height - 2f * spacing), labelText);
+        this.label = new Label(factory, labelFont, 10, labelText);
         this.width = width;
         this.height = height;
-        setDirty(true);
     }
 
-    public float getHeight() {
-        return height;
+    public final float getWidth() { return width; }
+    public final float getHeight() { return height; }
+    public float getCorner() { return corner; }
+    public float[] getScale() { return scale; }    
+    public Label getLabel() { return label; }
+
+    public void setDimension(int width, int height) {
+        this.width = width;
+        this.height = height;
+        dirty |= DIRTY_SHAPE;
     }
 
-    public Font getFont() {
-        return font;
+    @Override
+    protected void clearImpl() {
+        label.clear();
     }
     
-    public void generate(AABBox lbox) {
-        createOutline(factory, lbox);
-        scale[0] = getWidth()/(2*spacing + lbox.getWidth());
-        scale[1] = getHeight()/(2*spacing + lbox.getHeight());
+    @Override
+    protected void createShape() {
+        // FIXME: Only possible if all data (color) is 
+        //        is incl. in Outline Shape.
+        //        Until then - draw each separately!
+        //shape.addOutlinShape( label.getShape() );
+        label.updateShape();
         
-        //FIXME: generate GlyphString to manipulate before rendering
-        setDirty(false);
-    }
-    
-    
-    public float[] getScale() {
-        return scale;
-    }
-
-    private void createOutline(Factory<? extends Vertex> factory, AABBox lbox){
-        shape = new OutlineShape(factory);
-        if(corner == 0.0f){
+        final AABBox lbox = label.getBounds();
+        if(corner == 0.0f) {
             createSharpOutline(lbox);
-        }
-        else{
+        } else {
             createCurvedOutline(lbox);
         }
+        scale[0] = getWidth() / ( 2f*spacing + lbox.getWidth() );
+        scale[1] = getHeight() / ( 2f*spacing + lbox.getHeight() );
     }
-    private void createSharpOutline(AABBox lbox){
-        float th = (2.0f*spacing) + lbox.getHeight();
-        float tw = (2.0f*spacing) + lbox.getWidth();
+    
+    
+    private void createSharpOutline(AABBox lbox) {
+        float th = (2f*spacing) + lbox.getHeight();
+        float tw = (2f*spacing) + lbox.getWidth();
         float minX = lbox.getMinX()-spacing;
         float minY = lbox.getMinY()-spacing;
         
@@ -137,9 +131,6 @@ public class RIButton extends UIControl{
         shape.closeLastOutline();
     }
 
-    public float getCorner() {
-        return corner;
-    }
 
     public void setCorner(float corner) {
         if(corner > 1.0f){
@@ -151,7 +142,7 @@ public class RIButton extends UIControl{
         else{
             this.corner = corner;
         }
-        setDirty(true);
+        dirty |= DIRTY_SHAPE;
     }
     
     public float getLabelZOffset() {
@@ -160,7 +151,7 @@ public class RIButton extends UIControl{
 
     public void setLabelZOffset(float labelZOffset) {
         this.labelZOffset = -labelZOffset;
-        setDirty(true);
+        dirty |= DIRTY_SHAPE;
     }
     public float getSpacing() {
         return spacing;
@@ -173,7 +164,7 @@ public class RIButton extends UIControl{
         else{
             this.spacing = spacing;
         }
-        setDirty(true);
+        dirty |= DIRTY_SHAPE;
     }
     
     public float[] getButtonColor() {
@@ -196,8 +187,9 @@ public class RIButton extends UIControl{
         this.labelColor[2] = b;
     }
     
-    public String toString(){
-        return "RIButton [ label: " + getLabel() + "," + "spacing: " + spacing
+    public String toString() {
+        return "RIButton [" + getWidth() + "x" + getHeight() + ", "
+            + getLabel() + "," + "spacing: " + spacing
             + ", " + "corner: " + corner + ", " + "shapeOffset: " + labelZOffset + " ]";
     }
 }

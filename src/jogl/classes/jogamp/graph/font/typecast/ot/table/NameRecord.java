@@ -92,8 +92,9 @@ public class NameRecord {
         return _platformId;
     }
 
-    public String getRecordString() {
-        return _record;
+    public StringBuilder getRecordString(StringBuilder sb) {
+        sb.append(_record);
+        return sb;
     }
 
     protected void loadString(DataInput di) throws IOException {

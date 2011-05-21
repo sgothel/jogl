@@ -27,54 +27,70 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
-import com.jogamp.graph.curve.OutlineShape;
+import jogamp.graph.curve.text.GlyphString;
+
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 
-public abstract class UIControl {
-    protected Font font = null;
-    protected OutlineShape shape = null;
-    protected String label = "Label";
-    protected Factory<? extends Vertex> factory;
+public class Label extends UIShape implements UITextShape {
+    protected Font font;
+    protected int size;
+    protected String text;
+    protected GlyphString glyphString; 
     
-    protected boolean dirty = true;
-
-    public UIControl(Factory<? extends Vertex> factory){
-        this.factory = factory;
+    public Label(Factory<? extends Vertex> factory, Font font, int size, String text) {
+        super(factory);
+        this.font = font;
+        this.size = size;
+        this.text = text;
     }
     
-    public abstract void generate(AABBox lbox);
-
+    public GlyphString getGlyphString() {
+        return glyphString;
+    }
+    
+    public String getText(){
+        return text;
+    }
+    
+    public void setText(String text) {
+        this.text = text;
+        dirty |= DIRTY_SHAPE;
+    }
+    
     public Font getFont() {
         return font;
     }
 
     public void setFont(Font font) {
         this.font = font;
+        dirty |= DIRTY_SHAPE;        
     }
 
-    public OutlineShape getShape(AABBox lbox) {
-        if(isDirty()){
-            generate(lbox);
-        }
-        return shape;
-    }
-    
-    public String getLabel(){
-        return label;
-    }
-    public void setLabel(String label) {
-        this.label = label;
-        setDirty(true);
-    }
-    
-    protected boolean isDirty() {
-        return dirty;
+    public int getSize() {
+        return size;
     }
 
-    protected void setDirty(boolean dirty) {
-        this.dirty = dirty;
+    public void setSize(int size) {
+        this.size = size;
+        dirty |= DIRTY_SHAPE;        
+    }
+
+    public String toString(){
+        return "Label [" + font.toString() + ", size " + size + ", " + getText() + "]";
+    }
+
+    @Override
+    protected void clearImpl() {
+        if(null != glyphString) {
+            glyphString.destroy(null, null);
+        }        
+    }
+    
+    @Override
+    protected void createShape() {
+        clearImpl();
+        glyphString = new GlyphString(getVertexFactory(), font, size, text);
     }
 }

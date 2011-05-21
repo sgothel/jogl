@@ -79,6 +79,7 @@ public class GlyphShape
 
     
     private void addVertexToLastOutline(Vertex vertex){
+    	//FIXME: assuming font outline comes in CW order
         this.addVertex(vertex);
     }
     
@@ -110,6 +111,10 @@ public class GlyphShape
             default:
                 throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);
         }
+    }
+    
+    public OutlineShape getShape() {
+        return this;
     }
     
     public int getNumVertices() {

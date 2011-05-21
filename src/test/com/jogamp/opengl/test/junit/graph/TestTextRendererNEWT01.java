@@ -17,7 +17,6 @@ import org.junit.Test;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.opengl.SVertex;
@@ -69,8 +68,8 @@ public class TestTextRendererNEWT01 extends UITestCase {
         caps.setAlphaBits(4);    
 
         GLWindow window = createWindow("text-vbaa1-msaa0", caps, 800,400);
-        RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
-        TextGLListener textGLListener = new TextGLListener(rs, Region.TWO_PASS, DEBUG, TRACE);
+        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        TextGLListener textGLListener = new TextGLListener(rs, Region.TWO_PASS_RENDERING_BIT, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         
@@ -106,8 +105,8 @@ public class TestTextRendererNEWT01 extends UITestCase {
         caps.setNumSamples(4);
 
         GLWindow window = createWindow("text-vbaa0-msaa1", caps, 800, 400);
-        RenderState rs = Renderer.createRenderState(new ShaderState(), SVertex.factory());
-        TextGLListener textGLListener = new TextGLListener(rs, Region.SINGLE_PASS, DEBUG, TRACE);
+        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        TextGLListener textGLListener = new TextGLListener(rs, 0, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         
@@ -158,7 +157,6 @@ public class TestTextRendererNEWT01 extends UITestCase {
             
             final TextRenderer textRenderer = (TextRenderer) getRenderer();
             
-            textRenderer.init(gl);
             textRenderer.setAlpha(gl, 1.0f);
             textRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
         }

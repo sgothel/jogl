@@ -1,14 +1,5 @@
 //Copyright 2010 JogAmp Community. All rights reserved.
 
-/**
- * AMD complains: #version must occur before any other statement in the program
-#ifdef GL_ES
-    #version 100
-#else
-    #version 110
-#endif
- */
- 
 #include uniforms.glsl
 #include varyings.glsl
 
@@ -29,7 +20,12 @@ void main (void)
         vec2 dfx = dFdx(gcv_TexCoord);
         vec2 dfy = dFdy(gcv_TexCoord);
         
-        vec2 size = 1.0/textureSize(gcu_TextureUnit,0); //version 130 - FIXME: replace with uniform value
+        vec2 size;
+        //#if __VERSION__ < 130
+            size = 1.0/gcu_TextureSize;
+        //#else
+        //    size = 1.0/textureSize(gcu_TextureUnit,0);
+        //#endif
         rtex -= 5.0;
         vec4 t = texture2D(gcu_TextureUnit, rtex)* 0.18;
 
