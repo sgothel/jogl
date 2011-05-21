@@ -106,13 +106,10 @@ public class Loop {
                                  vertices.get(0).getPoint(), 
                                  vertices.get(1).getPoint(),
                                  vertices.get(2).getPoint());
-        // isCCW && (reqWinding == VectorUtil.CW);
-        // skips inversion CW -> CCW ?
+        //FIXME: handle case when vertices come inverted - Rami
+        // skips inversion CW -> CCW
         final boolean invert =  hasWinding != reqWinding &&
                                 reqWinding == VectorUtil.Winding.CW;
-        if( hasWinding != reqWinding ) {
-            System.err.println("Winding: i "+invert+" "+hasWinding+" -> "+reqWinding);
-        }
        
         final int max;
         final int edgeType = reqWinding == VectorUtil.Winding.CCW ? HEdge.BOUNDARY : HEdge.HOLE ;
@@ -201,7 +198,8 @@ public class Loop {
         for(int i=0; i< initVertices.size()-1; i++){
             GraphVertex v = initVertices.get(i);
             GraphVertex nextV = initVertices.get(i+1);
-            for(GraphVertex cand:vertices){
+            for(int pos=0; pos<vertices.size(); pos++) {
+                GraphVertex cand = vertices.get(pos);
                 float distance = VectorUtil.computeLength(v.getCoord(), cand.getCoord());
                 if(distance < minDistance){
                     for (GraphVertex vert:vertices){

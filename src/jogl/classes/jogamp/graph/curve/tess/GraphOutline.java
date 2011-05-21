@@ -47,8 +47,8 @@ public class GraphOutline {
     public GraphOutline(Outline ol){
         this.outline = ol;
         ArrayList<Vertex> vertices = this.outline.getVertices();
-        for(Vertex v:vertices){
-            this.controlpoints.add(new GraphVertex(v));
+        for(int i = 0; i< vertices.size(); i++){
+            this.controlpoints.add(new GraphVertex(vertices.get(i)));
         }
     }
 

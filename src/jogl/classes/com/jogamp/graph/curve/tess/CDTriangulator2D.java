@@ -83,7 +83,6 @@ public class CDTriangulator2D {
         // FIXME: multiple in/out and CW/CCW tests (as follows) ??
         
         if(!loops.isEmpty()) {
-            // FIXME: #1 in/out test 
             loop = getContainerLoop(polyline);
         }
         

@@ -394,7 +394,8 @@ public class OutlineShape implements Comparable<OutlineShape> {
         int maxVertexId = 0;
         for(int i=0; i<outlines.size(); i++) {
             final ArrayList<Vertex> vertices = outlines.get(i).getVertices();
-            for(Vertex vert:vertices){
+            for(int pos=0; pos<vertices.size(); pos++) {
+                Vertex vert = vertices.get(pos);
                 vert.setId(maxVertexId);
                 maxVertexId++;
             }
