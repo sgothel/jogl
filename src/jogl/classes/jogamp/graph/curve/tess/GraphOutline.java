@@ -56,11 +56,6 @@ public class GraphOutline {
         return outline;
     }
 
-    /*public void setOutline(Outline<T> outline) {
-        this.outline = outline;
-    }*/
-    
-
     public ArrayList<GraphVertex> getGraphPoint() {
         return controlpoints;
     }
@@ -68,10 +63,6 @@ public class GraphOutline {
     public ArrayList<Vertex> getVertices() {
         return outline.getVertices();
     }
-
-    /*public void setControlpoints(ArrayList<GraphPoint<T>> controlpoints) {
-        this.controlpoints = controlpoints;
-    }*/
 
     public void addVertex(GraphVertex v) {
         controlpoints.add(v);

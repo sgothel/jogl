@@ -88,17 +88,13 @@ public class CDTriangulator2D {
         }
         
         if(loop == null) {
-            // Claim:  CCW (out)
             GraphOutline outline = new GraphOutline(polyline);
-            // FIXME: #2/#3 extract..(CCW) and new Loop(CCW).. does CW/CCW tests
             GraphOutline innerPoly = extractBoundaryTriangles(outline, false);
             vertices.addAll(polyline.getVertices());
             loop = new Loop(innerPoly, VectorUtil.Winding.CCW);
             loops.add(loop);
         } else {
-            // Claim: CW (in)
             GraphOutline outline = new GraphOutline(polyline);
-            // FIXME: #3/#4 extract..(CW) and addContraint..(CW) does CW/CCW tests
             GraphOutline innerPoly = extractBoundaryTriangles(outline, true);
             vertices.addAll(innerPoly.getVertices());
             loop.addConstraintCurve(innerPoly);
@@ -200,14 +196,17 @@ public class CDTriangulator2D {
         return innerOutline;
     }
     
-    private Loop getContainerLoop(Outline polyline){
+    private Loop getContainerLoop(Outline polyline) {
         ArrayList<Vertex> vertices = polyline.getVertices();
-        // FIXME: remove implicit iterator
-        for(Vertex vert: vertices){
-            for (Loop loop:loops){
-                if(loop.checkInside(vert)){
-                    return loop;
-                }
+        for(int i=0; i < loops.size(); i++) {
+            Loop loop = loops.get(i);
+            boolean inside = false;
+            for(int j=0; j < vertices.size(); j++) {
+                Vertex v = vertices.get(j);
+                inside |= loop.checkInside(v);
+            }
+            if(inside) {
+                return loop;
             }
         }
         return null;
