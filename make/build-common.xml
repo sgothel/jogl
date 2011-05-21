@@ -45,6 +45,7 @@
         <!-- Set the project root directory to be up one directory. -->
         <property name="project.root"               value=".." />
         <property name="build"                      value="${project.root}/${rootrel.build}" />
+        <property name="tempdir"                    value="${project.root}/build-temp" />
         <property name="src"                        value="${project.root}/src" />
         <property name="lib"                        value="${build}/lib" />
         <property name="jar"                        value="${build}/jar" />
@@ -63,18 +64,30 @@
              <format property="version.timestamp" pattern="yyyyMMdd"/>
         </tstamp>
 
-        <property file="${build}/artifact.properties"/>
         <property name="jogl.build.number" value="manual"/>
         <property name="jogl.build.id"     value="${version.timestamp}"/>
-        <property name="jogl.build.branch" value="master"/>
-        <property name="jogl.build.commit" value="manual"/>
+        <mkdir dir="${tempdir}" />
+        <exec dir="." executable="git" logError="true" failonerror="false" failifexecutionfails="false"
+                  output="${tempdir}/localbranch.raw">
+            <arg line="branch --no-color"/>
+        </exec>
+        <exec dir="." executable="sed" logError="true" failonerror="false" failifexecutionfails="false"
+                  outputproperty="jogl.build.branch">
+            <arg line="-e '/^[^*]/d' -e 's/* \(.*\)/\1/' ${tempdir}/localbranch.raw"/>
+        </exec>
+        <property name="jogl.build.branch" value="manual"/> <!-- fallback -->
+        <exec dir="${project.root}" executable="git" logError="true" failonerror="false" failifexecutionfails="false"
+                  outputproperty="jogl.build.commit">
+            <arg line="rev-parse HEAD"/>
+        </exec>
+        <property name="jogl.build.commit" value="manual"/> <!-- fallback -->
 
         <property name="nativewindow.version" value="${nativewindow_base_version}-b${jogl.build.number}-${version.timestamp}" />
         <property name="jogl.version"         value="${jogl_base_version}-b${jogl.build.number}-${version.timestamp}" />
         <property name="newt.version"         value="${newt_base_version}-b${jogl.build.number}-${version.timestamp}" />
 
-        <property name="archive.name"               value="jogl-${jogl.version}-${os.and.arch}" />
-        <property name="archive"                    value="${build}/${archive.name}" />
+        <property name="archive.name"         value="jogl-${jogl.version}-${os.and.arch}" />
+        <property name="archive"              value="${build}/${archive.name}" />
 
         <condition property="setup.nodesktop">
             <and>

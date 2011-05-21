@@ -28,6 +28,14 @@ and the following subdirectory:
   lib                         contains JOGL implementation, native libraries
   jnlp-files                  contains JOGL jnlp-file templates
 
+additionally the following Java source zip archives are added,
+allowing convenient IDE integration (javadoc, class/method help, etc).
+Generated Java source code is included as well.
+
+  nativewindow-java-src.zip   contains NativeWindow Java sources, reflecting nativewindow.all.jar
+  jogl-java-src.zip           contains JOGL Java sources, reflecting jogl.all.jar
+  newt-java-src.zip           contains NEWT Java sources, reflecting newt.all.jar
+
 For instructions on how to use these implementation files 
 to build or run a JOGL program look at:
     http://jogamp.org/

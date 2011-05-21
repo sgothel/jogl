@@ -21,6 +21,6 @@ varying   HIGHP vec4    frontColor;
 
 void main (void)
 {
-    gl_FragColor = frontColor.bgra;
+    gl_FragColor = vec4(0.0, frontColor.g, frontColor.b, 1.0);
 }
 

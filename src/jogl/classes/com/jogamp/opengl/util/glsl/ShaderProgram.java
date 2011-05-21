@@ -95,8 +95,10 @@ public class ShaderProgram {
         }
         allShaderCode.clear();
         attachedShaderCode.clear();
-        gl.glDeleteProgram(shaderProgram);
-        shaderProgram=-1;
+        if(0<=shaderProgram) {
+            gl.glDeleteProgram(shaderProgram);
+            shaderProgram=-1;
+        }
     }
 
     //
@@ -280,8 +282,8 @@ public class ShaderProgram {
     public String toString() {
         return toString(null).toString();
     }
-    
-    protected synchronized void useProgram(GL2ES2 gl, boolean on) {
+
+    public synchronized void useProgram(GL2ES2 gl, boolean on) {
         if(!programLinked) throw new GLException("Program is not linked");
         if(programInUse==on) return;
         gl.glUseProgram(on?shaderProgram:0);

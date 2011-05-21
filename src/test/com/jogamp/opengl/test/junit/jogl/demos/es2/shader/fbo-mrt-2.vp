@@ -1,0 +1,18 @@
+//Copyright 2010 JogAmp Community. All rights reserved.
+
+#version 110
+
+uniform mat4    gcu_PMVMatrix[2]; // P, Mv, and Mvi
+attribute vec4  gca_Vertices;
+attribute vec4  gca_Colors;
+attribute vec2  gca_TexCoords;
+
+varying vec4    frontColor;
+varying vec2    texCoord;
+
+void main(void)
+{
+  frontColor = gca_Colors;
+  texCoord = gca_TexCoords;
+  gl_Position = gcu_PMVMatrix[0] * gcu_PMVMatrix[1] * gca_Vertices;
+}

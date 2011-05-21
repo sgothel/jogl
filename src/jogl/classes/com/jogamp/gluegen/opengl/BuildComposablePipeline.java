@@ -934,10 +934,13 @@ public class BuildComposablePipeline {
                 output.println("    String txt = new String(\"" + m.getName() + "(\" +");
                 Class<?>[] params = m.getParameterTypes();
                 for (int i = 0; params != null && i < params.length; i++) {
-                    if (params[i].equals(int.class)) {
-                        output.println("    \"<" + params[i].getName() + "> 0x\"+Integer.toHexString(arg" + i + ").toUpperCase() +");
+                    output.print("    \"<" + params[i].getName() + ">");
+                    if (params[i].isArray()) {
+                        output.print("\" +");
+                    } else if (params[i].equals(int.class)) {
+                        output.print(" 0x\"+Integer.toHexString(arg" + i + ").toUpperCase() +");
                     } else {
-                        output.println("    \"<" + params[i].getName() + ">\" +");
+                        output.print(" \"+arg" + i + " +");
                     }
                     if (i < params.length - 1) {
                         output.println("    \", \" +");
@@ -1081,12 +1084,13 @@ public class BuildComposablePipeline {
         Class<?>[] params = m.getParameterTypes();
         output.print("    \"" + m.getName() + "(\"");
         for (int i = 0; i < params.length; i++) {
+            output.print("+\"<" + params[i].getName() + ">");
             if (params[i].isArray()) {
-                output.print("+\"<" + params[i].getName() + ">\"");
+                output.print("\"");
             } else if (params[i].equals(int.class)) {
-                output.print("+\"<" + params[i].getName() + "> 0x\"+Integer.toHexString(arg" + i + ").toUpperCase()");
+                output.print(" 0x\"+Integer.toHexString(arg" + i + ").toUpperCase()");
             } else {
-                output.print("+\"<" + params[i].getName() + "> \"+arg" + i);
+                output.print(" \"+arg" + i);
             }
             if (i < params.length - 1) {
                 output.print("+\", \"");

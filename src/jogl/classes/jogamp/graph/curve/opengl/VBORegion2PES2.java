@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import javax.media.opengl.GL2ES2;
 // FIXME: Subsume GL2GL3.GL_DRAW_FRAMEBUFFER -> GL2ES2.GL_DRAW_FRAMEBUFFER ! 
 import javax.media.opengl.GL;
+import javax.media.opengl.GLException;
 import javax.media.opengl.GLUniformData;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
@@ -67,11 +68,9 @@ public class VBORegion2PES2  extends GLRegion {
     private int tex_height_c = 0;
     GLUniformData mgl_ActiveTexture; 
     GLUniformData mgl_TextureSize; // if GLSL < 1.30
-    final int activeTexture; // texture engine 0 == GL.GL_TEXTURE0
     
     public VBORegion2PES2(int renderModes, int textureEngine) {
         super(renderModes);
-        activeTexture = GL.GL_TEXTURE0 + textureEngine;
         fboPMVMatrix = new PMVMatrix();
         mgl_fboPMVMatrix = new GLUniformData(UniformNames.gcu_PMVMatrix, 4, 4, fboPMVMatrix.glGetPMvMatrixf());        
         mgl_ActiveTexture = new GLUniformData(UniformNames.gcu_TextureUnit, textureEngine);        
@@ -210,17 +209,9 @@ public class VBORegion2PES2  extends GLRegion {
     private void renderFBO(GL2ES2 gl, RenderState rs, int width, int hight) {
         final ShaderState st = rs.getShaderState();
         
-        gl.glViewport(0, 0, width, hight);
-        
-        gl.glEnable(GL2ES2.GL_TEXTURE_2D);        
-        /* setback: 
-        int[] currentActiveTextureEngine = new int[1];
-        gl.glGetIntegerv(GL.GL_ACTIVE_TEXTURE, currentActiveTextureEngine, 0);
-        */        
-        gl.glActiveTexture(activeTexture);
-        st.uniform(gl, mgl_ActiveTexture);
-        
-        fbo.use(gl);                        
+        gl.glViewport(0, 0, width, hight);        
+        st.uniform(gl, mgl_ActiveTexture);        
+        fbo.use(gl, 0);                        
         verticeFboAttr.enableBuffer(gl, true);       
         texCoordFboAttr.enableBuffer(gl, true);
         indicesFbo.enableBuffer(gl, true);
@@ -251,10 +242,14 @@ public class VBORegion2PES2  extends GLRegion {
         
         if(null == fbo) {        
             fbo = new FBObject(tex_width_c, tex_height_c);
+            fbo.init(gl); 
             // FIXME: shall not use bilinear, due to own AA ? However, w/o bilinear result is not smooth
-            fbo.init(gl, GL2ES2.GL_LINEAR, GL2ES2.GL_LINEAR, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE); 
-            // fbo.init(gl, GL2ES2.GL_NEAREST, GL2ES2.GL_NEAREST, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+            fbo.attachTexture2D(gl, mgl_ActiveTexture.intValue(), GL2ES2.GL_LINEAR, GL2ES2.GL_LINEAR, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+            // fbo.attachTexture2D(gl, mgl_ActiveTexture.intValue(), GL2ES2.GL_NEAREST, GL2ES2.GL_NEAREST, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
             fbo.attachDepthBuffer(gl, GL.GL_DEPTH_COMPONENT16); // FIXME: or shall we use 24 or 32 bit depth ?
+            if(!fbo.isStatusValid()) {
+                throw new GLException("FBO invalid: "+fbo);
+            }
         } else {
             fbo.bind(gl);
         }
