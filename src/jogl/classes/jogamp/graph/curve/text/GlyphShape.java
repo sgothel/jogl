@@ -80,6 +80,7 @@ public class GlyphShape {
     private void addOutlineVerticesFromGlyphVector(float[] coords, int segmentType){
         switch(segmentType) {
             case PathIterator.SEG_MOVETO:
+                shape.closeLastOutline();
                 shape.addEmptyOutline();
                 addVertexToLastOutline(vertexFactory().create(coords, 0, 2, true));            
                 numVertices++;

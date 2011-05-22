@@ -86,7 +86,8 @@ public class GraphVertex {
         }
     }
     public HEdge findNextEdge(GraphVertex nextVert){
-        for(HEdge e:edges){
+        for(int i=0; i<edges.size(); i++) {
+            HEdge e = edges.get(i);
             if(e.getNext().getGraphPoint() == nextVert){
                 return e;
             }
@@ -94,7 +95,8 @@ public class GraphVertex {
         return null;
     }
     public HEdge findBoundEdge(){
-        for(HEdge e:edges){
+        for(int i=0; i<edges.size(); i++) {
+            HEdge e = edges.get(i);
             if((e.getType() == HEdge.BOUNDARY) || (e.getType() == HEdge.HOLE)){
                 return e;
             }
@@ -102,7 +104,8 @@ public class GraphVertex {
         return null;
     }
     public HEdge findPrevEdge(GraphVertex prevVert){
-        for(HEdge e:edges){
+        for(int i=0; i<edges.size(); i++) {
+            HEdge e = edges.get(i);
             if(e.getPrev().getGraphPoint() == prevVert){
                 return e;
             }

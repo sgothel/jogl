@@ -60,14 +60,16 @@ public abstract class GLRegion extends Region {
         
         int numVertices = region.getNumVertices();
         
-        for(OutlineShape outlineShape:outlineShapes){
+        for(int index=0; index<outlineShapes.length; index++) {
+            OutlineShape outlineShape = outlineShapes[index];
             outlineShape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
     
             ArrayList<Triangle> triangles = outlineShape.triangulate();
             region.addTriangles(triangles);
             
             ArrayList<Vertex> vertices = outlineShape.getVertices();
-            for(Vertex vert:vertices){
+            for(int pos=0; pos < vertices.size(); pos++){
+                Vertex vert = vertices.get(pos);
                 vert.setId(numVertices++);
             }
             region.addVertices(vertices);
