@@ -27,6 +27,8 @@
  */
 package jogamp.graph.font.typecast;
 
+import java.util.ArrayList;
+
 import jogamp.graph.font.FontInt;
 import jogamp.graph.font.typecast.ot.OTFont;
 import jogamp.graph.font.typecast.ot.OTFontCollection;
@@ -39,9 +41,12 @@ import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 
 import com.jogamp.common.util.IntObjectHashMap;
+import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.AABBox;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.Vertex.Factory;
 
 class TypecastFont implements FontInt {
     static final boolean DEBUG = false;
@@ -208,9 +213,10 @@ class TypecastFont implements FontInt {
         }
         return result;
     }
-
-    public void getPaths(CharSequence string, float pixelSize, AffineTransform transform, Path2D[] result) {
-        TypecastRenderer.getPaths(this, string, pixelSize, transform, result);
+   
+    public ArrayList<OutlineShape> getOutlineShapes(CharSequence string, float pixelSize, Factory<? extends Vertex> vertexFactory) {
+    	AffineTransform transform = new AffineTransform(vertexFactory);
+    	return TypecastRenderer.getOutlineShapes(this, string, pixelSize, transform, vertexFactory);
     }
 
     public float getStringWidth(CharSequence string, float pixelSize) {

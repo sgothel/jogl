@@ -40,10 +40,6 @@ import javax.media.opengl.GL2ES2;
 
 import jogamp.graph.curve.opengl.RegionFactory;
 import jogamp.graph.font.FontInt;
-import jogamp.graph.geom.plane.AffineTransform;
-import jogamp.graph.geom.plane.Path2D;
-import jogamp.graph.geom.plane.PathIterator;
-
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
@@ -68,9 +64,9 @@ public class GlyphString {
      * <p>No caching is performed.</p>
      * 
      * @param shape is not null, add all {@link GlyphShape}'s {@link Outline} to this instance.
-     * @param vertexFactory
-     * @param font
-     * @param str
+     * @param vertexFactory vertex impl factory {@link Factory}
+     * @param font the target {@link Font} 
+     * @param str string text
      * @return the created {@link GlyphString} instance
      */
     public static GlyphString createString(OutlineShape shape, Factory<? extends Vertex> vertexFactory, Font font, String str) {
@@ -81,20 +77,17 @@ public class GlyphString {
      * <p>No caching is performed.</p>
      * 
      * @param shape is not null, add all {@link GlyphShape}'s {@link Outline} to this instance.
-     * @param vertexFactory
-     * @param font
-     * @param size
-     * @param str
+     * @param vertexFactory vertex impl factory {@link Factory}
+     * @param font the target {@link Font} 
+     * @param size font size
+     * @param str string text
      * @return the created {@link GlyphString} instance
      */
     public static GlyphString createString(OutlineShape shape, Factory<? extends Vertex> vertexFactory, Font font, int fontSize, String str) {
-        AffineTransform affineTransform = new AffineTransform(vertexFactory);
-        
-        Path2D[] paths = new Path2D[str.length()];
-        ((FontInt)font).getPaths(str, fontSize, affineTransform, paths);
+    	ArrayList<OutlineShape> shapes = ((FontInt)font).getOutlineShapes(str, fontSize, vertexFactory);
         
         GlyphString glyphString = new GlyphString(font.getName(Font.NAME_UNIQUNAME), str);
-        glyphString.createfromFontPath(vertexFactory, paths, affineTransform);
+        glyphString.createfromOutlineShapes(vertexFactory, shapes);
         if(null != shape) {
             for(int i=0; i<glyphString.glyphs.size(); i++) {
                 shape.addOutlineShape(glyphString.glyphs.get(i).getShape());
@@ -121,19 +114,17 @@ public class GlyphString {
         return str;
     }
 
-    /** Creates the Curve based Glyphs from a Font 
+    /**Creates the Curve based Glyphs from a list of {@link OutlineShape} 
      * @param vertexFactory vertex impl factory {@link Factory}
-     * @param paths a list of FontPath2D objects that define the outline
-     * @param affineTransform a global affine transformation applied to the paths.
+     * @param shapes list of {@link OutlineShape} 
      */
-    public void createfromFontPath(Factory<? extends Vertex> vertexFactory, Path2D[] paths, AffineTransform affineTransform) {
-        final int numGlyps = paths.length;
+    public void createfromOutlineShapes(Factory<? extends Vertex> vertexFactory, ArrayList<OutlineShape> shapes) {
+        final int numGlyps = shapes.size();
         for (int index=0;index<numGlyps;index++){
-            if(paths[index] == null){
+            if(shapes.get(index) == null){
                 continue;
             }
-            PathIterator iterator = paths[index].iterator(affineTransform);
-            GlyphShape glyphShape = new GlyphShape(vertexFactory, iterator);
+            GlyphShape glyphShape = new GlyphShape(vertexFactory, shapes.get(index));
             
             if(glyphShape.getNumVertices() < 3) {
                 continue;
@@ -141,6 +132,7 @@ public class GlyphString {
             addGlyphShape(glyphShape);
         }
     }
+    
     
     /** Generate a OGL Region to represent this Object.
      * @param gl the current gl object

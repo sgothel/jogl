@@ -27,12 +27,19 @@
  */
 package jogamp.graph.font.typecast;
 
+import java.util.ArrayList;
+
+import jogamp.graph.curve.text.GlyphShape;
 import jogamp.graph.font.typecast.ot.OTGlyph;
 import jogamp.graph.font.typecast.ot.Point;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
+import jogamp.graph.geom.plane.PathIterator;
 
+import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.Vertex.Factory;
 
 /**
  * Factory to build a {@link com.jogamp.graph.geom.Path2D Path2D} from 
@@ -40,7 +47,7 @@ import com.jogamp.graph.font.Font;
  */
 public class TypecastRenderer {
 
-    public static void getPaths(TypecastFont font, 
+    private static void getPaths(TypecastFont font, 
                                 CharSequence string, float pixelSize, AffineTransform transform, Path2D[] p)
     {        
         if (string == null) {
@@ -79,6 +86,58 @@ public class TypecastRenderer {
             t.scale(scale, scale);
             p[i].append(gp.iterator(t), false);
             advanceTotal += glyph.getAdvance(pixelSize, true); 
+        }
+    }
+    
+    public static ArrayList<OutlineShape> getOutlineShapes(TypecastFont font, CharSequence string, float pixelSize, AffineTransform transform, Factory<? extends Vertex> vertexFactory) {
+    	Path2D[] paths = new Path2D[string.length()];
+    	getPaths(font, string, pixelSize, transform, paths);
+    	
+    	ArrayList<OutlineShape> shapes = new ArrayList<OutlineShape>();
+    	final int numGlyps = paths.length;
+        for (int index=0;index<numGlyps;index++) {
+            if(paths[index] == null){
+                continue;
+            }
+            OutlineShape shape = new OutlineShape(vertexFactory);
+            shapes.add(shape);
+            PathIterator iterator = paths[index].iterator(transform);
+            if(null != iterator){
+                while(!iterator.isDone()){
+                    float[] coords = new float[6];
+                    int segmentType = iterator.currentSegment(coords);
+                    addPathVertexToOutline(shape, vertexFactory, coords, segmentType);
+                    iterator.next();
+                }
+            }
+        }
+    	return shapes;
+    }
+    private static void addPathVertexToOutline(OutlineShape shape, Factory<? extends Vertex> vertexFactory, float[] coords, int segmentType){
+        switch(segmentType) {
+            case PathIterator.SEG_MOVETO:
+                shape.closeLastOutline();
+                shape.addEmptyOutline();
+                shape.addVertex(0, vertexFactory.create(coords, 0, 2, true));            
+                //numVertices++;
+                break;
+            case PathIterator.SEG_LINETO:
+            	shape.addVertex(0, vertexFactory.create(coords, 0, 2, true));            
+                break;
+            case PathIterator.SEG_QUADTO:
+            	shape.addVertex(0, vertexFactory.create(coords, 0, 2, false));
+            	shape.addVertex(0, vertexFactory.create(coords, 2, 2, true));            
+                break;
+            case PathIterator.SEG_CUBICTO:
+            	shape.addVertex(0, vertexFactory.create(coords, 0, 2, false));
+            	shape.addVertex(0, vertexFactory.create(coords, 2, 2, false));
+            	shape.addVertex(0, vertexFactory.create(coords, 4, 2, true));            
+                break;
+            case PathIterator.SEG_CLOSE:
+                shape.closeLastOutline();
+                break;
+            default:
+                throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);
         }
     }
     

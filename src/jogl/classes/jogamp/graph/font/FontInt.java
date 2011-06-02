@@ -27,11 +27,14 @@
  */
 package jogamp.graph.font;
 
-import jogamp.graph.geom.plane.AffineTransform;
+import java.util.ArrayList;
+
 import jogamp.graph.geom.plane.Path2D;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.Vertex.Factory;
 
 public interface FontInt extends Font {
 
@@ -46,7 +49,5 @@ public interface FontInt extends Font {
         public Path2D getPath(float pixelSize);         
     }
 
-    public void getPaths(CharSequence string, float pixelSize,
-                           AffineTransform transform, Path2D[] result);
-   //TODO: Rami - ADD getOutlines without path2D
+    public ArrayList<OutlineShape> getOutlineShapes(CharSequence string, float pixelSize, Factory<? extends Vertex> vertexFactory);
 }

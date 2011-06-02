@@ -31,18 +31,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 
 import jogamp.graph.curve.text.GlyphString;
-import jogamp.graph.font.FontInt;
-import jogamp.graph.geom.plane.AffineTransform;
-import jogamp.graph.geom.plane.Path2D;
 
-import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 
 public abstract class TextRenderer extends Renderer {
     /** 
