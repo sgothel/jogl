@@ -102,18 +102,14 @@ public class Loop {
         if(vertices.size()<3) {
             throw new IllegalArgumentException("outline's vertices < 3: " + vertices.size());
         }
-        //final VectorUtil.Winding hasWinding = VectorUtil.getWinding(outline.getVertices());
         final VectorUtil.Winding hasWinding = VectorUtil.getWinding(
                                  vertices.get(0).getPoint(), 
                                  vertices.get(1).getPoint(),
                                  vertices.get(2).getPoint());
-        // isCCW && (reqWinding == VectorUtil.CW);
-        // skips inversion CW -> CCW ?
+        //FIXME: handle case when vertices come inverted - Rami
+        // skips inversion CW -> CCW
         final boolean invert =  hasWinding != reqWinding &&
                                 reqWinding == VectorUtil.Winding.CW;
-        if( hasWinding != reqWinding ) {
-            System.err.println("Winding: i "+invert+" "+hasWinding+" -> "+reqWinding);
-        }
        
         final int max;
         final int edgeType = reqWinding == VectorUtil.Winding.CCW ? HEdge.BOUNDARY : HEdge.HOLE ;
@@ -202,7 +198,8 @@ public class Loop {
         for(int i=0; i< initVertices.size()-1; i++){
             GraphVertex v = initVertices.get(i);
             GraphVertex nextV = initVertices.get(i+1);
-            for(GraphVertex cand:vertices){
+            for(int pos=0; pos<vertices.size(); pos++) {
+                GraphVertex cand = vertices.get(pos);
                 float distance = VectorUtil.computeLength(v.getCoord(), cand.getCoord());
                 if(distance < minDistance){
                     for (GraphVertex vert:vertices){
@@ -298,74 +295,31 @@ public class Loop {
         return boundary;
     }
 
-
-    /** Check if vertex inside the Loop
-     * @param vertex the Vertex
-     * @return true if the vertex is inside, false otherwise
-     */
-    public boolean checkInside(Vertex vertex) {
-        if(!box.contains(vertex.getX(), vertex.getY(), vertex.getZ())){
+    public boolean checkInside(Vertex v) {
+        if(!box.contains(v.getX(), v.getY(), v.getZ())){
             return false;
         }
 
-        float[] center = box.getCenter();
-
-        int hits = 0;
+        boolean inside = false;
         HEdge current = root;
         HEdge next = root.getNext();
-        while(next!= root){
-            if(current.getType() == HEdge.INNER || next.getType() == HEdge.INNER){
-                current = next;
-                next = current.getNext();
-                continue;
+        do {
+            Vertex v2 = current.getGraphPoint().getPoint();
+            Vertex v1 = next.getGraphPoint().getPoint();
+
+            if ( ((v1.getY() > v.getY()) != (v2.getY() > v.getY())) &&
+                  (v.getX() < (v2.getX() - v1.getX()) * (v.getY() - v1.getY()) / (v2.getY() - v1.getY()) + v1.getX()) ){
+                inside = !inside;
             }
-            Vertex vert1 = current.getGraphPoint().getPoint();
-            Vertex vert2 = next.getGraphPoint().getPoint();
-
-            /** The ray is P0+s*D0, where P0 is the ray origin, D0 is a direction vector and s >= 0. 
-             * The segment is P1+t*D1, where P1 and P1+D1 are the endpoints, and 0 <= t <= 1. 
-             * perp(x,y) = (y,-x).
-             * if Dot(perp(D1),D0) is not zero,
-             * s = Dot(perp(D1),P1-P0)/Dot(perp(D1),D0)
-             * t = Dot(perp(D0),P1-P0)/Dot(perp(D1),D0)
-             */
-
-            float[] d0 = new float[]{center[0] - vertex.getX(), center[1]-vertex.getY(),
-                    center[2]-vertex.getZ()};
-            float[] d1 = {vert2.getX() - vert1.getX(), vert2.getY() - vert1.getY(),
-                    vert2.getZ() - vert1.getZ()};
-
-            float[] prep_d1 = {d1[1],-1*d1[0], d1[2]};
-            float[] prep_d0 = {d0[1],-1*d0[0], d0[2]};
-
-            float[] p0p1 = new float[]{vert1.getX() - vertex.getX(), vert1.getY() - vertex.getY(),
-                    vert1.getZ() - vertex.getZ()};
-
-            float dotD1D0 = VectorUtil.dot(prep_d1, d0);
-            if(dotD1D0 == 0){ 
-                /** ray parallel to segment */
-                current = next;
-                next = current.getNext();
-                continue;
-            }
-
-            float s = VectorUtil.dot(prep_d1,p0p1)/dotD1D0;
-            float t = VectorUtil.dot(prep_d0,p0p1)/dotD1D0;
-
-            if(s >= 0 && t >= 0 && t<= 1){
-                hits++;
-            }
+            
             current = next;
             next = current.getNext();
-        }
-
-        if(hits % 2 != 0){ 
-            /** check if hit count is even */
-            return true;
-        }
-        return false;
+            
+        } while(current != root);
+        
+        return inside;
     }
-
+    
     public int computeLoopSize(){
         int size = 0;
         HEdge e = root;

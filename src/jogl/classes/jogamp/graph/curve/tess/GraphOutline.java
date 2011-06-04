@@ -47,19 +47,14 @@ public class GraphOutline {
     public GraphOutline(Outline ol){
         this.outline = ol;
         ArrayList<Vertex> vertices = this.outline.getVertices();
-        for(Vertex v:vertices){
-            this.controlpoints.add(new GraphVertex(v));
+        for(int i = 0; i< vertices.size(); i++){
+            this.controlpoints.add(new GraphVertex(vertices.get(i)));
         }
     }
 
     public Outline getOutline() {
         return outline;
     }
-
-    /*public void setOutline(Outline<T> outline) {
-        this.outline = outline;
-    }*/
-    
 
     public ArrayList<GraphVertex> getGraphPoint() {
         return controlpoints;
@@ -68,10 +63,6 @@ public class GraphOutline {
     public ArrayList<Vertex> getVertices() {
         return outline.getVertices();
     }
-
-    /*public void setControlpoints(ArrayList<GraphPoint<T>> controlpoints) {
-        this.controlpoints = controlpoints;
-    }*/
 
     public void addVertex(GraphVertex v) {
         controlpoints.add(v);
