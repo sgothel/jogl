@@ -173,11 +173,11 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         NEWTGLContext.destroyWindow(winctx);
     }
 
-    @Test
+    @Test(timeout=60000)
     public void testShaderState00PerformanceSingleKeepEnabled() throws InterruptedException {
         testShaderState00PerformanceSingle(false);
     }
-    @Test
+    @Test(timeout=60000)
     public void testShaderState00PerformanceSingleToggleEnable() throws InterruptedException {
         testShaderState00PerformanceSingle(true);
     }
@@ -267,7 +267,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         NEWTGLContext.destroyWindow(winctx);        
     }
     
-    @Test
+    @Test(timeout=60000)
     public void testShaderState01PerformanceDouble() throws InterruptedException {
         // preset ..
         final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(GLProfile.getGL2ES2(), 480, 480, false);
