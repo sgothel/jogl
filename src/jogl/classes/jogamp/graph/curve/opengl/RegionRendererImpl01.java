@@ -48,7 +48,7 @@ public class RegionRendererImpl01 extends RegionRenderer {
     
     @Override
     protected String getFragmentShaderName(GL2ES2 gl) {
-        if(Region.usesVariableCurveWeight(renderModes)){
+        if(Region.isNonUniformWeight(renderModes)){
             return "curverenderer02" + getShaderGLVersionSuffix(gl);
         }
         return "curverenderer01" + getShaderGLVersionSuffix(gl);

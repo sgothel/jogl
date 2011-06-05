@@ -44,47 +44,47 @@ public class VBORegionSPES2 extends GLRegion {
     private GLArrayDataServer verticeAttr = null;
     private GLArrayDataServer texCoordAttr = null;
     private GLArrayDataServer indices = null;
-        
+
     protected VBORegionSPES2(int renderModes) { 
         super(renderModes);
     }
-    
+
     protected void update(GL2ES2 gl, RenderState rs) {
         if(!isDirty()) {
             return; 
         }
-        
+
         if(null == indices) {
             final int initialSize = 256;
             final ShaderState st = rs.getShaderState();
-            
+
             indices = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialSize, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
-            
+
             verticeAttr = GLArrayDataServer.createGLSL(st, AttributeNames.VERTEX_ATTR_NAME, 3, 
-                                                       GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);         
+                    GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);         
             st.ownAttribute(verticeAttr, true);
-            
+
             texCoordAttr = GLArrayDataServer.createGLSL(st, AttributeNames.TEXCOORD_ATTR_NAME, 2, 
-                                                        GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
+                    GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
             st.ownAttribute(texCoordAttr, true);
-            
+
             if(DEBUG_INSTANCE) {
                 System.err.println("VBORegionSPES2 Create: " + this);
             }
         }
-        
+
         // process triangles
         indices.seal(gl, false);
         indices.rewind();        
         for(int i=0; i<triangles.size(); i++) {
             final Triangle t = triangles.get(i);
             final Vertex[] t_vertices = t.getVertices();
-            
+
             if(t_vertices[0].getId() == Integer.MAX_VALUE){
                 t_vertices[0].setId(numVertices++);
                 t_vertices[1].setId(numVertices++);
                 t_vertices[2].setId(numVertices++);
-                                
+
                 vertices.add(t_vertices[0]);
                 vertices.add(t_vertices[1]);
                 vertices.add(t_vertices[2]);
@@ -100,7 +100,7 @@ public class VBORegionSPES2 extends GLRegion {
         }
         indices.seal(gl, true);
         indices.enableBuffer(gl, false);
-        
+
         // process vertices and update bbox
         box.reset();
         verticeAttr.seal(gl, false); 
@@ -109,12 +109,11 @@ public class VBORegionSPES2 extends GLRegion {
         texCoordAttr.rewind();
         for(int i=0; i<vertices.size(); i++) {
             final Vertex v = vertices.get(i);
-            final float ysign = isFlipped() ? -1.0f : 1.0f ; 
-            verticeAttr.putf(        v.getX());
-            verticeAttr.putf(ysign * v.getY());
-            verticeAttr.putf(        v.getZ());            
-            box.resize(v.getX(), ysign*v.getY(), v.getZ());
-            
+            verticeAttr.putf(v.getX());
+            verticeAttr.putf(v.getY());
+            verticeAttr.putf(v.getZ());            
+            box.resize(v.getX(), v.getY(), v.getZ());
+
             final float[] tex = v.getTexCoord();
             texCoordAttr.putf(tex[0]);
             texCoordAttr.putf(tex[1]);
@@ -123,26 +122,22 @@ public class VBORegionSPES2 extends GLRegion {
         verticeAttr.enableBuffer(gl, false);
         texCoordAttr.seal(gl, true);
         texCoordAttr.enableBuffer(gl, false);
-        
-        // update all bbox related data: nope
-        
+
         setDirty(false);
-        
-        // the buffers were disabled, since due to real/fbo switching and other vbo usage
     }
-        
+
     protected void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int width) {
         verticeAttr.enableBuffer(gl, true);       
         texCoordAttr.enableBuffer(gl, true);
         indices.enableBuffer(gl, true);
-        
+
         gl.glDrawElements(GL2ES2.GL_TRIANGLES, indices.getElementNumber() * indices.getComponentNumber(), GL2ES2.GL_UNSIGNED_SHORT, 0);         
-        
+
         verticeAttr.enableBuffer(gl, false);       
         texCoordAttr.enableBuffer(gl, false);
         indices.enableBuffer(gl, false);
     }    
-    
+
     public final void destroy(GL2ES2 gl, RenderState rs) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 Destroy: " + this);

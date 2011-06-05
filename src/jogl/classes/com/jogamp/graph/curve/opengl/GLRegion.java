@@ -39,15 +39,15 @@ import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import jogamp.graph.curve.opengl.RegionFactory;
 
-/** A Region is the OGL binding of one or more OutlineShapes
+/** A GLRegion is the OGL binding of one or more OutlineShapes
  *  Defined by its vertices and generated triangles. The Region
  *  defines the final shape of the OutlineShape(s), which shall produced a shaded 
  *  region on the screen.
  *  
- *  Implementations of the Region shall take care of the OGL 
+ *  Implementations of the GLRegion shall take care of the OGL 
  *  binding of the depending on its context, profile.
  * 
- * @see RegionFactory, OutlineShape
+ * @see Region, RegionFactory, OutlineShape
  */
 public abstract class GLRegion extends Region {    
     

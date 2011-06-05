@@ -85,7 +85,7 @@ public abstract class Renderer {
         return renderModes;
     }
     
-    public boolean usesVariableCurveWeight() { return Region.usesVariableCurveWeight(renderModes); }
+    public boolean usesVariableCurveWeight() { return Region.isNonUniformWeight(renderModes); }
 
     /**
      * @return true if Region's renderModes contains all bits as this Renderer's renderModes
