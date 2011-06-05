@@ -137,7 +137,7 @@ public class GlyphString {
     /** Generate a OGL Region to represent this Object.
      * @param gl the current gl object
      * @param rs the current attached RenderState
-     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#TWO_PASS_RENDERING_BIT} 
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT} 
      */
     public GLRegion createRegion(GL2ES2 gl, int renderModes){
         region = RegionFactory.create(renderModes);

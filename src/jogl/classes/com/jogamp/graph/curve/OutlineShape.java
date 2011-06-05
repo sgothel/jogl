@@ -30,14 +30,14 @@ package com.jogamp.graph.curve;
 import java.util.ArrayList;
 import java.util.Collections;
 
-
+import com.jogamp.graph.curve.tess.Triangulation;
+import com.jogamp.graph.curve.tess.Triangulator;
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.math.VectorUtil;
 
-import com.jogamp.graph.curve.tess.CDTriangulator2D;
 
 /** A Generic shape objects which is defined by a list of Outlines.
  * This Shape can be transformed to Triangulations.
@@ -433,7 +433,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
         sortOutlines();
         generateVertexIds();
 
-        CDTriangulator2D triangulator2d = new CDTriangulator2D();
+        Triangulator triangulator2d = Triangulation.create();
         for(int index = 0; index<outlines.size(); index++) {
             triangulator2d.addCurve(outlines.get(index));
         }

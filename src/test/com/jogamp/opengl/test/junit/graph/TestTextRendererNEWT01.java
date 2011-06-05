@@ -69,7 +69,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
 
         GLWindow window = createWindow("text-vbaa1-msaa0", caps, 800,400);
         RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        TextGLListener textGLListener = new TextGLListener(rs, Region.TWO_PASS_RENDERING_BIT, DEBUG, TRACE);
+        TextGLListener textGLListener = new TextGLListener(rs, Region.VBAA_RENDERING_BIT, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         
