@@ -77,7 +77,7 @@ public class CDTriangulator2D {
     /** Add a curve to the list of profiles provided
      * @param polyline a bounding {@link Outline}
      */
-    public void addCurve(Outline polyline){
+    public void addCurve(Outline polyline) {
         Loop loop = null;
         
         // FIXME: multiple in/out and CW/CCW tests (as follows) ??
@@ -103,7 +103,7 @@ public class CDTriangulator2D {
     /** Generate the triangulation of the provided 
      *  List of {@link Outline}s
      */
-    public ArrayList<Triangle> generateTriangulation(){    
+    public ArrayList<Triangle> generate() {    
         for(int i=0;i<loops.size();i++) {
             Loop loop = loops.get(i);
             int numTries = 0;

@@ -156,7 +156,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * After a call to this function all new vertices added
      * will belong to the new outline
      */
-    public void addEmptyOutline(){
+    public void addEmptyOutline() {
         if( !getLastOutline().isEmpty() ) {
             outlines.add(new Outline());
         }
@@ -257,7 +257,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * of outlines that define the shape
      * @return the last outline
      */
-    public final Outline getLastOutline(){
+    public final Outline getLastOutline() {
         return outlines.get(outlines.size()-1);
     }
     
@@ -272,7 +272,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
      *  shape. 
      * @param v the vertex to be added to the OutlineShape
      */
-    public final void addVertex(Vertex v){
+    public final void addVertex(Vertex v) {
         final Outline lo = getLastOutline();
         lo.addVertex(v);
         if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
@@ -285,7 +285,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * @param position indx at which the vertex will be added 
      * @param v the vertex to be added to the OutlineShape
      */
-    public final void addVertex(int position, Vertex v){
+    public final void addVertex(int position, Vertex v) {
         final Outline lo = getLastOutline();
         lo.addVertex(position, v);
         if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
@@ -337,7 +337,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * A new temp vertex is added at the end which 
      * is equal to the first.</p>
      */
-    public void closeLastOutline(){
+    public void closeLastOutline() {
         getLastOutline().setClosed(true);
     }
 
@@ -353,7 +353,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * 
      * @param destinationType the target outline's vertices state. Currently only {@link OutlineShape.VerticesState#QUADRATIC_NURBS} are supported.
      */
-    public void transformOutlines(VerticesState destinationType){
+    public void transformOutlines(VerticesState destinationType) {
         if(outlineState != destinationType){
             if(destinationType == VerticesState.QUADRATIC_NURBS){
                 transformOutlines2Quadratic();
@@ -363,34 +363,42 @@ public class OutlineShape implements Comparable<OutlineShape> {
         }
     }
 
-    private void transformOutlines2Quadratic(){
-        final int count = getOutlineNumber();
-        for (int cc = 0; cc < count; cc++){            
+    private void transformOutlines2Quadratic() {
+        int count = getOutlineNumber();
+        for (int cc = 0; cc < count; cc++) {            
             final Outline outline = getOutline(cc);
-            int vertexNumberLessOne = outline.getVertexNumber() - 1;
-            for(int i=0; i < vertexNumberLessOne; i++) {
+            int vertexCount = outline.getVertexCount();
+            
+            for(int i=0; i < vertexCount; i++) {
                 final Vertex currentVertex = outline.getVertex(i);
-                final Vertex nextVertex = outline.getVertex(i+1);
+                final Vertex nextVertex = outline.getVertex((i+1)%vertexCount);
                 if ( !currentVertex.isOnCurve() && !nextVertex.isOnCurve() ) {
-                    final float[] newCoords = VectorUtil.mid(currentVertex.getCoord(), nextVertex.getCoord());
+                    final float[] newCoords = VectorUtil.mid(currentVertex.getCoord(), 
+                            nextVertex.getCoord());
                     final Vertex v = vertexFactory.create(newCoords, 0, 3, true);
-                    v.setOnCurve(true);                    
                     i++;
-                    vertexNumberLessOne++;
+                    vertexCount++;
                     outline.addVertex(i, v);
                 }                
             }
-            // Cut off last vertex (which is on-curve)
-            // FIXME: original code skipped the last element (it _is_ unrelated to the xform above)
-            // FIXME: understand why the last element produces artifacts in rendering
-            if( vertexNumberLessOne >= 0 ) {
-                outline.removeVertex(vertexNumberLessOne);
-            }                
+            if(vertexCount <= 0) {
+                outlines.remove(outline);
+                cc--;
+                count--;
+                continue;
+            }
+            
+            if( vertexCount > 0 ) {
+                if(VectorUtil.checkEquality(outline.getVertex(0).getCoord(), 
+                        outline.getLastVertex().getCoord())) {
+                    outline.removeVertex(vertexCount-1);
+                }
+            }
         }
         outlineState = VerticesState.QUADRATIC_NURBS;
     }
 
-    private void generateVertexIds(){
+    private void generateVertexIds() {
         int maxVertexId = 0;
         for(int i=0; i<outlines.size(); i++) {
             final ArrayList<Vertex> vertices = outlines.get(i).getVertices();
@@ -430,7 +438,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
             triangulator2d.addCurve(outlines.get(index));
         }
         
-        ArrayList<Triangle> triangles = triangulator2d.generateTriangulation();
+        ArrayList<Triangle> triangles = triangulator2d.generate();
         triangulator2d.reset();
 
         return triangles;
