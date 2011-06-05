@@ -34,7 +34,6 @@ import jogamp.graph.curve.opengl.shader.AttributeNames;
 
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.opengl.util.GLArrayDataServer;

@@ -37,7 +37,6 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 import com.jogamp.opengl.util.PMVMatrix;
 
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.geom.Vertex;
 
 public abstract class Renderer {
     protected static final boolean DEBUG = Region.DEBUG;
