@@ -43,7 +43,7 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.AABBox;
 
-class TypecastFont implements FontInt {
+public class TypecastFont implements FontInt {
     static final boolean DEBUG = false;
     
     final OTFontCollection fontset;
