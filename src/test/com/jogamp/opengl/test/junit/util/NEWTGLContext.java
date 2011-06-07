@@ -31,8 +31,6 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
-import com.jogamp.opengl.util.GLArrayDataServer;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
@@ -56,7 +54,44 @@ public class NEWTGLContext {
         }
     }
 
-    public static WindowContext createWindow(GLProfile glp, int width, int height, boolean debugGL) throws InterruptedException {        
+    public static WindowContext createOffscreenWindow(GLProfile glp, int width, int height, boolean debugGL) throws InterruptedException {        
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setOnscreen(false);
+        
+        //
+        // Create native windowing resources .. X11/Win/OSX
+        // 
+        Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+    
+        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+    
+        Window window = NewtFactory.createWindow(screen, caps);
+        Assert.assertNotNull(window);
+        window.setSize(width, height);
+        window.setVisible(true);
+        AWTRobotUtil.waitForVisible(window, true);
+        AWTRobotUtil.waitForRealized(window, true);
+            
+        GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
+        GLDrawable drawable = factory.createGLDrawable(window);
+        Assert.assertNotNull(drawable);
+        
+        drawable.setRealized(true);
+        
+        GLContext context = drawable.createContext(null);
+        Assert.assertNotNull(context);
+        
+        context.enableGLDebugMessage(debugGL);
+        
+        int res = context.makeCurrent();
+        Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);
+        
+        return new WindowContext(window, context);
+    }
+
+    public static WindowContext createOnscreenWindow(GLProfile glp, int width, int height, boolean debugGL) throws InterruptedException {        
         GLCapabilities caps = new GLCapabilities(glp);
         //
         // Create native windowing resources .. X11/Win/OSX
