@@ -42,7 +42,6 @@ package com.jogamp.opengl.util.awt;
 import java.awt.Graphics2D;
 
 import javax.media.opengl.*;
-import com.jogamp.opengl.util.texture.*;
 
 /** Provides a Java 2D overlay on top of an arbitrary GLDrawable,
     making it easier to do things like draw text and images on top of
