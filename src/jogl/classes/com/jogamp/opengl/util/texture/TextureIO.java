@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2011 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,16 +40,33 @@
 
 package com.jogamp.opengl.util.texture;
 
-import java.io.*;
-import java.net.*;
-import java.nio.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+
 import jogamp.opengl.Debug;
-import com.jogamp.opengl.util.*;
-import com.jogamp.opengl.util.texture.spi.*;
+
+import com.jogamp.common.util.IOUtil;
+import com.jogamp.opengl.util.texture.spi.DDSImage;
+import com.jogamp.opengl.util.texture.spi.NetPbmTextureWriter;
+import com.jogamp.opengl.util.texture.spi.SGIImage;
+import com.jogamp.opengl.util.texture.spi.TGAImage;
+import com.jogamp.opengl.util.texture.spi.TextureProvider;
+import com.jogamp.opengl.util.texture.spi.TextureWriter;
 
 /** <P> Provides input and output facilities for both loading OpenGL
     textures from disk and streams as well as writing textures already
@@ -177,7 +195,7 @@ public class TextureIO {
                                              boolean mipmap,
                                              String fileSuffix) throws IOException {
         if (fileSuffix == null) {
-            fileSuffix = FileUtil.getFileSuffix(file);
+            fileSuffix = IOUtil.getFileSuffix(file);
         }
         return newTextureDataImpl(glp, file, 0, 0, mipmap, fileSuffix);
     }
@@ -234,7 +252,7 @@ public class TextureIO {
                                              boolean mipmap,
                                              String fileSuffix) throws IOException {
         if (fileSuffix == null) {
-            fileSuffix = FileUtil.getFileSuffix(url.getPath());
+            fileSuffix = IOUtil.getFileSuffix(url.getPath());
         }
         return newTextureDataImpl(glp, url, 0, 0, mipmap, fileSuffix);
     }
@@ -288,7 +306,7 @@ public class TextureIO {
         }
 
         if (fileSuffix == null) {
-            fileSuffix = FileUtil.getFileSuffix(file);
+            fileSuffix = IOUtil.getFileSuffix(file);
         }
 
         return newTextureDataImpl(glp, file, internalFormat, pixelFormat, mipmap, fileSuffix);
@@ -380,7 +398,7 @@ public class TextureIO {
         }
 
         if (fileSuffix == null) {
-            fileSuffix = FileUtil.getFileSuffix(url.getPath());
+            fileSuffix = IOUtil.getFileSuffix(url.getPath());
         }
 
         return newTextureDataImpl(glp, url, internalFormat, pixelFormat, mipmap, fileSuffix);
@@ -437,7 +455,7 @@ public class TextureIO {
     public static Texture newTexture(File file, boolean mipmap) throws IOException, GLException {
         GL gl = GLContext.getCurrentGL();
         GLProfile glp = gl.getGLProfile();
-        TextureData data = newTextureData(glp, file, mipmap, FileUtil.getFileSuffix(file));
+        TextureData data = newTextureData(glp, file, mipmap, IOUtil.getFileSuffix(file));
         Texture texture = newTexture(gl, data);
         data.flush();
         return texture;
@@ -494,7 +512,7 @@ public class TextureIO {
      */
     public static Texture newTexture(URL url, boolean mipmap, String fileSuffix) throws IOException, GLException {
         if (fileSuffix == null) {
-            fileSuffix = FileUtil.getFileSuffix(url.getPath());
+            fileSuffix = IOUtil.getFileSuffix(url.getPath());
         }
         GL gl = GLContext.getCurrentGL();
         GLProfile glp = gl.getGLProfile();
@@ -878,7 +896,7 @@ public class TextureIO {
                                           boolean mipmap,
                                           String fileSuffix) throws IOException {
             if (DDS.equals(fileSuffix) ||
-                DDS.equals(FileUtil.getFileSuffix(file))) {
+                DDS.equals(IOUtil.getFileSuffix(file))) {
                 DDSImage image = DDSImage.read(file);
                 return newTextureData(glp, image, internalFormat, pixelFormat, mipmap);
             }
@@ -893,7 +911,7 @@ public class TextureIO {
                                           String fileSuffix) throws IOException {
             if (DDS.equals(fileSuffix) ||
                 DDSImage.isDDSImage(stream)) {
-                byte[] data = StreamUtil.readAll2Array(stream);
+                byte[] data = IOUtil.copyStream2ByteArray(stream);
                 ByteBuffer buf = ByteBuffer.wrap(data);
                 DDSImage image = DDSImage.read(buf);
                 return newTextureData(glp, image, internalFormat, pixelFormat, mipmap);
@@ -1014,7 +1032,7 @@ public class TextureIO {
                                       internalFormat,
                                       pixelFormat,
                                       mipmap,
-                                      ((fileSuffix != null) ? fileSuffix : FileUtil.getFileSuffix(file)));
+                                      ((fileSuffix != null) ? fileSuffix : IOUtil.getFileSuffix(file)));
             } finally {
                 inStream.close();
             }
@@ -1113,7 +1131,7 @@ public class TextureIO {
     static class DDSTextureWriter implements TextureWriter {
         public boolean write(File file,
                              TextureData data) throws IOException {
-            if (DDS.equals(FileUtil.getFileSuffix(file))) {
+            if (DDS.equals(IOUtil.getFileSuffix(file))) {
                 // See whether the DDS writer can handle this TextureData
                 int pixelFormat = data.getPixelFormat();
                 int pixelType   = data.getPixelType();
@@ -1162,7 +1180,7 @@ public class TextureIO {
     static class SGITextureWriter implements TextureWriter {
         public boolean write(File file,
                              TextureData data) throws IOException {
-            String fileSuffix = FileUtil.getFileSuffix(file);
+            String fileSuffix = IOUtil.getFileSuffix(file);
             if (SGI.equals(fileSuffix) ||
                 SGI_RGB.equals(fileSuffix)) {
                 // See whether the SGI writer can handle this TextureData
@@ -1206,7 +1224,7 @@ public class TextureIO {
     static class TGATextureWriter implements TextureWriter {
         public boolean write(File file,
                              TextureData data) throws IOException {
-            if (TGA.equals(FileUtil.getFileSuffix(file))) {
+            if (TGA.equals(IOUtil.getFileSuffix(file))) {
                 // See whether the TGA writer can handle this TextureData
                 int pixelFormat = data.getPixelFormat();
                 int pixelType   = data.getPixelType();

@@ -42,12 +42,12 @@ package com.jogamp.opengl.util.texture.spi.awt;
 import java.awt.Graphics;
 import java.awt.image.*;
 import java.io.*;
-import java.net.*;
 import java.nio.*;
 import javax.imageio.*;
 
 import javax.media.opengl.*;
-import com.jogamp.opengl.util.*;
+
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.awt.*;
 import com.jogamp.opengl.util.texture.*;
 import com.jogamp.opengl.util.texture.spi.*;
@@ -101,7 +101,7 @@ public class IIOTextureWriter implements TextureWriter {
             ImageUtil.flipImageVertically(image);
 
             // Happened to notice that writing RGBA images to JPEGS is broken
-            if (TextureIO.JPG.equals(FileUtil.getFileSuffix(file)) &&
+            if (TextureIO.JPG.equals(IOUtil.getFileSuffix(file)) &&
                 image.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
                 BufferedImage tmpImage = new BufferedImage(image.getWidth(), image.getHeight(),
                                                            BufferedImage.TYPE_3BYTE_BGR);
@@ -111,7 +111,7 @@ public class IIOTextureWriter implements TextureWriter {
                 image = tmpImage;
             }
 
-            return ImageIO.write(image, FileUtil.getFileSuffix(file), file);
+            return ImageIO.write(image, IOUtil.getFileSuffix(file), file);
         }
       
         throw new IOException("ImageIO writer doesn't support this pixel format / type (only GL_RGB/A + bytes)");

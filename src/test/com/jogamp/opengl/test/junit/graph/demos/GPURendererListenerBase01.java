@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -48,6 +49,7 @@ import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.util.GLReadBufferUtil;
 
 /**
  *
@@ -60,7 +62,7 @@ import com.jogamp.newt.opengl.GLWindow;
  * - s: screenshot
  */
 public abstract class GPURendererListenerBase01 implements GLEventListener {
-    private Screenshot screenshot;
+    private GLReadBufferUtil screenshot;
     private Renderer renderer;
     private int renderModes;
     private boolean debug;
@@ -88,7 +90,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         this.renderModes = renderModes;
         this.debug = debug;
         this.trace = trace;
-        this.screenshot = new Screenshot();
+        this.screenshot = new GLReadBufferUtil(false, false);
     }
     
     public final Renderer getRenderer() { return renderer; }
@@ -191,8 +193,9 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         PrintWriter pw = new PrintWriter(sw);
         pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getWidth(), drawable.getHeight(), (int)Math.abs(zoom), texSize, objName);
         
-        String filename = dir + tech + sw +".tga";
-        screenshot.surface2File(drawable, filename /*, exportAlpha */);
+        final String filename = dir + tech + sw +".tga";
+        screenshot.readPixels(drawable.getGL(), drawable, false);
+        screenshot.write(new File(filename));
     }
     
     int screenshot_num = 0;

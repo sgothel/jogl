@@ -56,7 +56,7 @@ public class TypecastFontConstructor implements FontConstructor  {
     
     public Font create(URL furl) throws IOException {
         final File tf  = File.createTempFile( "joglfont", ".ttf");
-        final int len = IOUtil.copyURLToFile(furl, tf);
+        final int len = IOUtil.copyURL2File(furl, tf);
         if(len==0) {
             tf.delete();
             throw new GLException("Font of stream "+furl+" was zero bytes");

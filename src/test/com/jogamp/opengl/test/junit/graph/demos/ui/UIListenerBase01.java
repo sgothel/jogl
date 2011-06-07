@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -41,13 +42,12 @@ import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLRunnable;
 
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.test.junit.graph.demos.Screenshot;
+import com.jogamp.opengl.util.GLReadBufferUtil;
 
 /**
  *
@@ -60,7 +60,7 @@ import com.jogamp.opengl.test.junit.graph.demos.Screenshot;
  * - s: screenshot
  */
 public abstract class UIListenerBase01 implements GLEventListener {
-    private Screenshot screenshot;
+    private GLReadBufferUtil screenshot;
     private RegionRenderer rRenderer;
     private boolean debug;
     private boolean trace;
@@ -85,7 +85,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
         this.rRenderer = rRenderer;
         this.debug = debug;
         this.trace = trace;
-        this.screenshot = new Screenshot();
+        this.screenshot = new GLReadBufferUtil(false, false);
     }
     
     public final RegionRenderer getRegionRenderer() { return rRenderer; }
@@ -179,8 +179,9 @@ public abstract class UIListenerBase01 implements GLEventListener {
         PrintWriter pw = new PrintWriter(sw);
         pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getWidth(), drawable.getHeight(), (int)Math.abs(zoom), 0, objName);
         
-        String filename = dir + tech + sw +".tga";
-        screenshot.surface2File(drawable, filename /*, exportAlpha */);
+        final String filename = dir + tech + sw +".tga";
+        screenshot.readPixels(drawable.getGL(), drawable, false);
+        screenshot.write(new File(filename));
     }
     
     int screenshot_num = 0;

@@ -47,7 +47,7 @@ public class ReadBuffer2Screen extends ReadBufferBase {
     boolean enableBufferVBO    = true; // FIXME
 
     public ReadBuffer2Screen (GLDrawable externalRead) {
-        super(externalRead);
+        super(externalRead, true);
     }
 
     @Override

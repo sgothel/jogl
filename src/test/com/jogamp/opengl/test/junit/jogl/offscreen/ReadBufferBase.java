@@ -30,16 +30,19 @@ package com.jogamp.opengl.test.junit.jogl.offscreen;
 
 import javax.media.opengl.*;
 
+import com.jogamp.opengl.util.GLReadBufferUtil;
+
 public class ReadBufferBase implements GLEventListener {
     public boolean glDebug = false ;
     public boolean glTrace = false ;
 
     protected GLDrawable externalRead;
 
-    ReadBufferUtil readBufferUtil = new ReadBufferUtil();
+    GLReadBufferUtil readBufferUtil;
 
-    public ReadBufferBase (GLDrawable externalRead) {
+    public ReadBufferBase (GLDrawable externalRead, boolean write2Texture) {
         this.externalRead = externalRead ;
+        this.readBufferUtil = new GLReadBufferUtil(false, write2Texture);
     }
 
     public void init(GLAutoDrawable drawable) {
@@ -84,7 +87,7 @@ public class ReadBufferBase implements GLEventListener {
     public void display(GLAutoDrawable drawable) {
         GL gl = drawable.getGL();
 
-        readBufferUtil.fetchOffscreenTexture(drawable, gl);
+        readBufferUtil.readPixels(gl, drawable, false);
     }
 
 }

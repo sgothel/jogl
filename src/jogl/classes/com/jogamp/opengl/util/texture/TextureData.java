@@ -36,10 +36,11 @@
 
 package com.jogamp.opengl.util.texture;
 
-import java.nio.*;
+import java.nio.Buffer;
 
-import javax.media.opengl.*;
-import com.jogamp.opengl.util.*;
+import javax.media.opengl.GLProfile;
+
+import com.jogamp.opengl.util.GLBuffers;
 
 /**
  * Represents the data for an OpenGL texture. This is separated from

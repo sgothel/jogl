@@ -37,7 +37,7 @@ import java.io.File;
 public class ReadBuffer2File extends ReadBufferBase {
 
     public ReadBuffer2File(GLDrawable externalRead) {
-        super(externalRead);
+        super(externalRead, false);
     }
 
     @Override
@@ -52,10 +52,9 @@ public class ReadBuffer2File extends ReadBufferBase {
         }
 
         File file = File.createTempFile("shot" + shotNum + "-", ".ppm");
-        TextureIO.write(readBufferUtil.getTextureData(), file);
+        readBufferUtil.write(file);
         System.out.println("Wrote: " + file.getAbsolutePath() + ", ...");
         shotNum++;
-        readBufferUtil.rewindPixelBuffer();
     }
 
     @Override

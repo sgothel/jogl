@@ -29,6 +29,8 @@
 package com.jogamp.opengl.util.glsl;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.util.IOUtil;
+
 import javax.media.opengl.*;
 import com.jogamp.opengl.util.*;
 import jogamp.opengl.Debug;
@@ -350,7 +352,7 @@ public class ShaderCode {
             if (url == null) {
                 return null;
             }
-            return StreamUtil.readAll2Buffer(new BufferedInputStream(url.openStream()));
+            return IOUtil.copyStream2ByteBuffer( new BufferedInputStream( url.openStream() ) );
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -36,17 +36,20 @@
 
 package com.jogamp.opengl.util.awt;
 
-import java.awt.image.*;
-import java.io.*;
-import java.nio.*;
-import java.nio.channels.*;
-import javax.imageio.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
-import javax.media.opengl.glu.gl2.*;
+import javax.imageio.ImageIO;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GLException;
+import javax.media.opengl.glu.gl2.GLUgl2;
 
-import com.jogamp.opengl.util.*;
+import com.jogamp.common.util.IOUtil;
+import com.jogamp.opengl.util.GLPixelStorageModes;
+import com.jogamp.opengl.util.TGAWriter;
 
 /** Utilities for taking screenshots of OpenGL applications. */
 
@@ -148,8 +151,8 @@ public class Screenshot {
     GL2 gl = GLUgl2.getCurrentGL2();
 
     // Set up pixel storage modes
-    PixelStorageModes psm = new PixelStorageModes();
-    psm.save(gl);
+    GLPixelStorageModes psm = new GLPixelStorageModes();
+    psm.setPackAlignment(gl, 1);
 
     int readbackType = (alpha ? GL2.GL_ABGR_EXT : GL2.GL_BGR);
 
@@ -255,8 +258,8 @@ public class Screenshot {
     GL2 gl = GLUgl2.getCurrentGL2();
 
     // Set up pixel storage modes
-    PixelStorageModes psm = new PixelStorageModes();
-    psm.save(gl);
+    GLPixelStorageModes psm = new GLPixelStorageModes();
+    psm.setPackAlignment(gl, 1);
 
     // read the BGR values into the image
     gl.glReadPixels(x, y, width, height, readbackType,
@@ -375,7 +378,7 @@ public class Screenshot {
                                  int width,
                                  int height,
                                  boolean alpha) throws IOException, GLException {
-    String fileSuffix = FileUtil.getFileSuffix(file);
+    String fileSuffix = IOUtil.getFileSuffix(file);
     if (alpha && (fileSuffix.equals("jpg") || fileSuffix.equals("jpeg"))) {
       // JPEGs can't deal properly with alpha channels
       alpha = false;
@@ -387,46 +390,10 @@ public class Screenshot {
     }
   }
 
-  private static int glGetInteger(GL2 gl, int pname, int[] tmp) {
-    gl.glGetIntegerv(pname, tmp, 0);
-    return tmp[0];
-  }
-
   private static void checkExtABGR() {
     GL2 gl = GLUgl2.getCurrentGL2();
     if (!gl.isExtensionAvailable("GL_EXT_abgr")) {
       throw new IllegalArgumentException("Saving alpha channel requires GL_EXT_abgr");
     }
-  }
- 
-  static class PixelStorageModes {
-    int packAlignment;
-    int packRowLength;
-    int packSkipRows;
-    int packSkipPixels;
-    int packSwapBytes;
-    int[] tmp = new int[1];
-
-    void save(GL2 gl) {
-      packAlignment  = glGetInteger(gl, GL2.GL_PACK_ALIGNMENT, tmp);
-      packRowLength  = glGetInteger(gl, GL2.GL_PACK_ROW_LENGTH, tmp);
-      packSkipRows   = glGetInteger(gl, GL2.GL_PACK_SKIP_ROWS, tmp);
-      packSkipPixels = glGetInteger(gl, GL2.GL_PACK_SKIP_PIXELS, tmp);
-      packSwapBytes  = glGetInteger(gl, GL2.GL_PACK_SWAP_BYTES, tmp);
-
-      gl.glPixelStorei(GL2.GL_PACK_ALIGNMENT, 1);
-      gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH, 0);
-      gl.glPixelStorei(GL2.GL_PACK_SKIP_ROWS, 0);
-      gl.glPixelStorei(GL2.GL_PACK_SKIP_PIXELS, 0);
-      gl.glPixelStorei(GL2.GL_PACK_SWAP_BYTES, 0);
-    }
-
-    void restore(GL2 gl) {
-      gl.glPixelStorei(GL2.GL_PACK_ALIGNMENT, packAlignment);
-      gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH, packRowLength);
-      gl.glPixelStorei(GL2.GL_PACK_SKIP_ROWS, packSkipRows);
-      gl.glPixelStorei(GL2.GL_PACK_SKIP_PIXELS, packSkipPixels);
-      gl.glPixelStorei(GL2.GL_PACK_SWAP_BYTES, packSwapBytes);
-    }
-  }
+  } 
 }

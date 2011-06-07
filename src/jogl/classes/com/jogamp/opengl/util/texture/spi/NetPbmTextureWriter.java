@@ -40,13 +40,12 @@
 package com.jogamp.opengl.util.texture.spi;
 
 import java.io.*;
-import java.net.*;
 import java.nio.*;
 
 import javax.media.opengl.*;
-import com.jogamp.opengl.util.*;
+
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.texture.*;
-import com.jogamp.opengl.util.texture.spi.*;
 
 public class NetPbmTextureWriter implements TextureWriter {
     int magic;
@@ -87,17 +86,17 @@ public class NetPbmTextureWriter implements TextureWriter {
 
         // file suffix selection 
         if (0==magic) {
-            if (PPM.equals(FileUtil.getFileSuffix(file))) {
+            if (PPM.equals(IOUtil.getFileSuffix(file))) {
                 magic = 6;
-            } else if (PAM.equals(FileUtil.getFileSuffix(file))) {
+            } else if (PAM.equals(IOUtil.getFileSuffix(file))) {
                 magic = 7;
             } else {
                 return false;
             }
         }
 
-        int pixelFormat = data.getPixelFormat();
-        int pixelType   = data.getPixelType();
+        final int pixelFormat = data.getPixelFormat();
+        final int pixelType   = data.getPixelType();
         if ((pixelFormat == GL.GL_RGB ||
              pixelFormat == GL.GL_RGBA) &&
             (pixelType == GL.GL_BYTE ||

@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.offscreen;
 
 import javax.media.opengl.*;
 
+import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
 
 import java.io.File;
@@ -39,7 +40,7 @@ import javax.media.nativewindow.*;
 
 public class Surface2File implements SurfaceUpdatedListener {
 
-    ReadBufferUtil readBufferUtil = new ReadBufferUtil();
+    GLReadBufferUtil readBufferUtil = new GLReadBufferUtil(false, false);
     int shotNum = 0;
 
     public void dispose(GL gl) {
@@ -54,7 +55,7 @@ public class Surface2File implements SurfaceUpdatedListener {
                 GL gl = ctx.getGL();
                 // FIXME glFinish() is an expensive paranoia sync, should not be necessary due to spec
                 gl.glFinish();
-                readBufferUtil.fetchOffscreenTexture(drawable, gl);
+                readBufferUtil.readPixels(gl, drawable, false);
                 gl.glFinish();
                 try {
                     surface2File("shot");
@@ -71,9 +72,8 @@ public class Surface2File implements SurfaceUpdatedListener {
         }
 
         File file = File.createTempFile(basename + shotNum + "-", ".ppm");
-        TextureIO.write(readBufferUtil.getTextureData(), file);
+        readBufferUtil.write(file);
         System.err.println("Wrote: " + file.getAbsolutePath() + ", ...");
         shotNum++;
-        readBufferUtil.rewindPixelBuffer();
     }
 }
