@@ -38,7 +38,7 @@ public abstract class RegionRenderer extends Renderer {
     /** 
      * Create a Hardware accelerated Region Renderer.
      * @param rs the used {@link RenderState} 
-     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#TWO_PASS_RENDERING_BIT} 
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT} 
      * @return an instance of Region Renderer
      */
     public static RegionRenderer create(RenderState rs, int renderModes) {

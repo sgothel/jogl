@@ -57,7 +57,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
     public Outline() {        
     }
         
-    public final int getVertexNumber() {
+    public final int getVertexCount() {
         return vertices.size();
     }
     
@@ -207,13 +207,13 @@ public class Outline implements Cloneable, Comparable<Outline> {
             return false;
         }        
         final Outline o = (Outline) obj;
-        if(getVertexNumber() != o.getVertexNumber()) {
+        if(getVertexCount() != o.getVertexCount()) {
             return false;
         }
         if( !getBounds().equals( o.getBounds() ) ) {
             return false;
         }
-        for (int i=getVertexNumber()-1; i>=0; i--) {
+        for (int i=getVertexCount()-1; i>=0; i--) {
             if( ! getVertex(i).equals( o.getVertex(i) ) ) {
                 return false;
             }

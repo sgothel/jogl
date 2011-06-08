@@ -39,14 +39,14 @@ public class RegionFactory {
     /**
      * Create a Region using the passed render mode
      * 
-     * <p> In case {@link Region#TWO_PASS_RENDERING_BIT} is being requested the default texture unit
+     * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
      * {@link Region#TWO_PASS_DEFAULT_TEXTURE_UNIT} is being used.</p>
      * 
      * @param rs the RenderState to be used
-     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#TWO_PASS_RENDERING_BIT} 
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT} 
      */
     public static GLRegion create(int renderModes) {
-        if( 0 != ( Region.TWO_PASS_RENDERING_BIT & renderModes ) ){
+        if( 0 != ( Region.VBAA_RENDERING_BIT & renderModes ) ){
             return new VBORegion2PES2(renderModes, Region.TWO_PASS_DEFAULT_TEXTURE_UNIT);
         }
         else{

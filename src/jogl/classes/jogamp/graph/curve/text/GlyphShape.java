@@ -29,10 +29,9 @@ package jogamp.graph.curve.text;
 
 import java.util.ArrayList;
 
-import jogamp.graph.geom.plane.PathIterator;
-
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
+import com.jogamp.graph.geom.Vertex.Factory;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.math.Quaternion;
@@ -40,7 +39,6 @@ import com.jogamp.graph.math.Quaternion;
 public class GlyphShape {
     
     private Quaternion quat= null;
-    private int numVertices = 0;
     private OutlineShape shape = null;
     
     /** Create a new Glyph shape
@@ -50,70 +48,24 @@ public class GlyphShape {
         shape = new OutlineShape(factory);
     }
     
-    /** Create a GlyphShape from a font Path Iterator
-     * @param pathIterator the path iterator
-     * 
-     * @see PathIterator
+    /** Create a new GlyphShape from a {@link OutlineShape}
+     * @param factory vertex impl factory {@link Factory}
+     * @param shape {@link OutlineShape} representation of the Glyph
      */
-    public GlyphShape(Vertex.Factory<? extends Vertex> factory, PathIterator pathIterator){
+    public GlyphShape(Vertex.Factory<? extends Vertex> factory, OutlineShape shape){
         this(factory);
-        
-        if(null != pathIterator){
-            while(!pathIterator.isDone()){
-                float[] coords = new float[6];
-                int segmentType = pathIterator.currentSegment(coords);
-                addOutlineVerticesFromGlyphVector(coords, segmentType);
-
-                pathIterator.next();
-            }
-        }
-        shape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
+        this.shape = shape;
+        this.shape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
     }
     
     public final Vertex.Factory<? extends Vertex> vertexFactory() { return shape.vertexFactory(); }
-    
-    private void addVertexToLastOutline(Vertex vertex) {
-    	//FIXME: assuming font outline comes in CW order
-        shape.addVertex(0, vertex);
-    }
-    
-    private void addOutlineVerticesFromGlyphVector(float[] coords, int segmentType){
-        switch(segmentType) {
-            case PathIterator.SEG_MOVETO:
-                shape.closeLastOutline();
-                shape.addEmptyOutline();
-                addVertexToLastOutline(vertexFactory().create(coords, 0, 2, true));            
-                numVertices++;
-                break;
-            case PathIterator.SEG_LINETO:
-                addVertexToLastOutline(vertexFactory().create(coords, 0, 2, true));            
-                numVertices++;
-                break;
-            case PathIterator.SEG_QUADTO:
-                addVertexToLastOutline(vertexFactory().create(coords, 0, 2, false));
-                addVertexToLastOutline(vertexFactory().create(coords, 2, 2, true));            
-                numVertices+=2;
-                break;
-            case PathIterator.SEG_CUBICTO:
-                addVertexToLastOutline(vertexFactory().create(coords, 0, 2, false));
-                addVertexToLastOutline(vertexFactory().create(coords, 2, 2, false));
-                addVertexToLastOutline(vertexFactory().create(coords, 4, 2, true));            
-                numVertices+=3;
-                break;
-            case PathIterator.SEG_CLOSE:
-                shape.closeLastOutline();
-                break;
-            default:
-                throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);
-        }
-    }
     
     public OutlineShape getShape() {
         return shape;
     }
     
     public int getNumVertices() {
-        return numVertices;
+        return shape.getVertices().size();
     }
     
     /** Get the rotational Quaternion attached to this Shape

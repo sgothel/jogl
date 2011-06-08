@@ -25,29 +25,20 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.graph.font;
 
-import java.util.ArrayList;
+package com.jogamp.graph.curve.tess;
 
-import jogamp.graph.geom.plane.Path2D;
+import jogamp.graph.curve.tess.CDTriangulator2D;
 
-import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 
-public interface FontInt extends Font {
-
-    public interface Glyph extends Font.Glyph {
-        // reserved special glyph IDs 
-        // http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08#ba57949e
-        public static final int ID_UNKNOWN = 0;
-        public static final int ID_CR = 2;
-        public static final int ID_SPACE = 3;
-                
-        public Path2D getPath();  // unscaled path
-        public Path2D getPath(float pixelSize);         
+public class Triangulation {
+    /** Create a new instance of a triangulation.
+     *  Currently only a modified version of Constraint Delaunay 
+     *  is implemented.
+     * @return instance of a triangulator
+     * @see Triangulator
+     */
+    public static Triangulator create() {
+        return new CDTriangulator2D();
     }
-
-    public ArrayList<OutlineShape> getOutlineShapes(CharSequence string, float pixelSize, Factory<? extends Vertex> vertexFactory);
 }

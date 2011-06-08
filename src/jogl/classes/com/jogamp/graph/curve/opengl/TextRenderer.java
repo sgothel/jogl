@@ -31,27 +31,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 
 import jogamp.graph.curve.text.GlyphString;
-import jogamp.graph.font.FontInt;
-import jogamp.graph.geom.plane.AffineTransform;
-import jogamp.graph.geom.plane.Path2D;
 
-import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 
 public abstract class TextRenderer extends Renderer {
     /** 
      * Create a Hardware accelerated Text Renderer.
      * @param rs the used {@link RenderState} 
-     * @param renderModes either {@link com.jogamp.graph.curve.opengl.GLRegion#SINGLE_PASS} or {@link com.jogamp.graph.curve.Region#TWO_PASS_RENDERING_BIT}
+     * @param renderModes either {@link com.jogamp.graph.curve.opengl.GLRegion#SINGLE_PASS} or {@link com.jogamp.graph.curve.Region#VBAA_RENDERING_BIT}
      */
-    public static TextRenderer create(RenderState rs, int type) {
-        return new jogamp.graph.curve.opengl.TextRendererImpl01(rs, type);
+    public static TextRenderer create(RenderState rs, int renderModes) {
+        return new jogamp.graph.curve.opengl.TextRendererImpl01(rs, renderModes);
     }
     
     protected TextRenderer(RenderState rs, int type) {

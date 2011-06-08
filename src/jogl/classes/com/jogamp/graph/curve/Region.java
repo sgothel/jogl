@@ -39,9 +39,11 @@ public abstract class Region {
     public static final boolean DEBUG = Debug.debug("graph.curve");
     public static final boolean DEBUG_INSTANCE = false;
 
-    /** Two pass region rendering, slower and more resource hungry (FBO), but AA is perfect. 
-     *  Otherwise the default fast one pass MSAA region rendering is being used. */
-    public static final int TWO_PASS_RENDERING_BIT = 1 << 0;
+    /** View based Anti-Aliasing, A Two pass region rendering, slower 
+     *  and more resource hungry (FBO), but AA is perfect. 
+     *  Otherwise the default fast one pass MSAA region rendering is being used. 
+     */
+    public static final int VBAA_RENDERING_BIT = 1 << 0;
 
     /** Use non uniform weights [0.0 .. 1.9] for curve region rendering.
      *  Otherwise the default weight 1.0 for Bezier curve region rendering is being applied.  */
@@ -57,8 +59,8 @@ public abstract class Region {
     protected ArrayList<Triangle> triangles = new ArrayList<Triangle>();
     protected ArrayList<Vertex> vertices = new ArrayList<Vertex>();
     
-    public static boolean usesTwoPassRendering(int renderModes) { 
-        return 0 != ( renderModes & Region.TWO_PASS_RENDERING_BIT ); 
+    public static boolean isVBAA(int renderModes) { 
+        return 0 != ( renderModes & Region.VBAA_RENDERING_BIT ); 
     }
     
     public static boolean usesVariableCurveWeight(int renderModes) { 
@@ -71,7 +73,7 @@ public abstract class Region {
     
     public final int getRenderModes() { return renderModes; }
 
-    public boolean usesTwoPassRendering() { return Region.usesTwoPassRendering(renderModes);  }
+    public boolean isVBAA() { return Region.isVBAA(renderModes);  }
     public boolean usesVariableCurveWeight() { return Region.usesVariableCurveWeight(renderModes); }
     
     /** Get the current number of vertices associated

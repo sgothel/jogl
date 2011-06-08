@@ -25,29 +25,45 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.graph.font;
+
+package com.jogamp.graph.curve.tess;
 
 import java.util.ArrayList;
 
-import jogamp.graph.geom.plane.Path2D;
+import com.jogamp.graph.geom.Outline;
+import com.jogamp.graph.geom.Triangle;
 
-import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
-
-public interface FontInt extends Font {
-
-    public interface Glyph extends Font.Glyph {
-        // reserved special glyph IDs 
-        // http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08#ba57949e
-        public static final int ID_UNKNOWN = 0;
-        public static final int ID_CR = 2;
-        public static final int ID_SPACE = 3;
-                
-        public Path2D getPath();  // unscaled path
-        public Path2D getPath(float pixelSize);         
-    }
-
-    public ArrayList<OutlineShape> getOutlineShapes(CharSequence string, float pixelSize, Factory<? extends Vertex> vertexFactory);
+/** Interface to the triangulation algorithms provided
+ *  A triangulation of 2D outlines where you can
+ *  provides an easy one or more outlines to be triangulated
+ *  
+ *  example usage:
+ *      addCurve(o1);
+ *      addCurve(o2);
+ *      addCurve(o3);
+ *      generate();
+ *      reset();
+ *      
+ * @see Outline
+ * @see Triangulation
+ */
+public interface Triangulator {
+    
+    /** Add a curve to the list of Outlines
+     * describing the shape
+     * @param outline a bounding {@link Outline}
+     */
+    public void addCurve(Outline outline);
+    
+    /** Generate the triangulation of the provided 
+     *  List of {@link Outline}s
+     * @return an arraylist of {@link Triangle}s resembling the
+     * final shape.
+     */
+    public ArrayList<Triangle> generate();
+    
+    /** Reset the triangulation to initial state
+     *  Clearing cached data
+     */
+    public void reset();
 }

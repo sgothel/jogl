@@ -26,14 +26,12 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.graph.curve.tess;
+package jogamp.graph.curve.tess;
 
 import java.util.ArrayList;
 
-import jogamp.graph.curve.tess.GraphOutline;
-import jogamp.graph.curve.tess.GraphVertex;
-import jogamp.graph.curve.tess.Loop;
 
+import com.jogamp.graph.curve.tess.Triangulator;
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
@@ -46,7 +44,7 @@ import jogamp.opengl.Debug;
  * Closed Regions with optional n holes.
  * 
  */
-public class CDTriangulator2D {
+public class CDTriangulator2D implements Triangulator{
 
     protected static final boolean DEBUG = Debug.debug("Triangulation");
     
@@ -74,13 +72,8 @@ public class CDTriangulator2D {
         loops = new ArrayList<Loop>();
     }
     
-    /** Add a curve to the list of profiles provided
-     * @param polyline a bounding {@link Outline}
-     */
-    public void addCurve(Outline polyline){
+    public void addCurve(Outline polyline) {
         Loop loop = null;
-        
-        // FIXME: multiple in/out and CW/CCW tests (as follows) ??
         
         if(!loops.isEmpty()) {
             loop = getContainerLoop(polyline);
@@ -100,10 +93,7 @@ public class CDTriangulator2D {
         }
     }
     
-    /** Generate the triangulation of the provided 
-     *  List of {@link Outline}s
-     */
-    public ArrayList<Triangle> generateTriangulation(){    
+    public ArrayList<Triangle> generate() {    
         for(int i=0;i<loops.size();i++) {
             Loop loop = loops.get(i);
             int numTries = 0;
