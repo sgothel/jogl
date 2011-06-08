@@ -1,5 +1,7 @@
 package com.jogamp.opengl.util.glsl.sdk;
 
+import com.jogamp.common.util.IOUtil;
+
 import javax.media.opengl.*;
 import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.util.glsl.*;
@@ -51,7 +53,7 @@ public abstract class CompileShader {
         String justName = basename(resourceName);
         outName = justName.substring(0, justName.length() - suffixLen) +
                   ShaderCode.getFileSuffix(true, type);
-        URL resourceURL = Locator.getResource(null, resourceName);
+        URL resourceURL = IOUtil.getResource(null, resourceName);
         String dirName = dirname(resourceURL.getPath());
 
         outName = dirName + File.separator + "bin" + File.separator + 
@@ -63,7 +65,7 @@ public abstract class CompileShader {
     public void processOneShader(String resourceName, String outName, int type)
         throws IOException, UnsupportedEncodingException, InterruptedException
     {
-        URL resourceURL = Locator.getResource(null, resourceName);
+        URL resourceURL = IOUtil.getResource(null, resourceName);
         String dirName = dirname(resourceURL.getPath());
 
         String shader = ShaderCode.readShaderSource(null, resourceName);

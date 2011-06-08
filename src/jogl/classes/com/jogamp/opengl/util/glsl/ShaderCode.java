@@ -301,13 +301,13 @@ public class ShaderCode {
                     URL nextURL = null;
                     
                     // Try relative path first
-                    String next = Locator.getRelativeOf(url, includeFile);
+                    String next = IOUtil.getRelativeOf(url, includeFile);
                     if(null != next) {
-                        nextURL = Locator.getResource(context, next);        
+                        nextURL = IOUtil.getResource(context, next);        
                     }
                     if (nextURL == null) {
                         // Try absolute path
-                        nextURL = Locator.getResource(context, includeFile);        
+                        nextURL = IOUtil.getResource(context, includeFile);        
                     }
                     if (nextURL == null) {
                         // Fail
@@ -337,7 +337,7 @@ public class ShaderCode {
     }
 
     public static String readShaderSource(Class context, String path) {
-        URL url = Locator.getResource(context, path);        
+        URL url = IOUtil.getResource(context, path);        
         if (url == null) {
             return null;
         }
@@ -348,7 +348,7 @@ public class ShaderCode {
 
     public static ByteBuffer readShaderBinary(Class context, String path) {
         try {
-            URL url = Locator.getResource(context, path);
+            URL url = IOUtil.getResource(context, path);
             if (url == null) {
                 return null;
             }

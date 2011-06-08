@@ -31,10 +31,11 @@ import java.io.IOException;
 import javax.media.opengl.GLException;
 
 import com.jogamp.common.util.IntObjectHashMap;
+import com.jogamp.common.util.IOUtil;
+
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.opengl.util.Locator;
 import java.net.URL;
 
 public class UbuntuFontLoader implements FontSet {
@@ -121,7 +122,7 @@ public class UbuntuFontLoader implements FontSet {
     Font abspath(String fname, int family, int style) {
         final String err = "Problem loading font "+fname+", stream "+relPath+fname;
         try {
-            URL url = Locator.getResource(UbuntuFontLoader.class, relPath+fname);
+            URL url = IOUtil.getResource(UbuntuFontLoader.class, relPath+fname);
             if(null == url) {
                 throw new GLException(err);
             }
