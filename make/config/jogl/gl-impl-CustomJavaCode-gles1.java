@@ -98,60 +98,6 @@ public final GL2GL3 getGL2GL3() throws GLException {
 // Helpers for ensuring the correct amount of texture data
 //
 
-/** Returns the number of bytes required to fill in the appropriate
-    texture. This is computed as closely as possible based on the
-    pixel pack or unpack parameters. The logic in this routine is
-    based on code in the SGI OpenGL sample implementation. */
-
-private int imageSizeInBytes(int format, int type, int w, int h, int d,
-                             boolean pack) {
-  int elements = 0;
-  int esize = 0;
-  
-  if (w < 0) return 0;
-  if (h < 0) return 0;
-  if (d < 0) return 0;
-  switch (format) {
-  case GL_ALPHA:
-  case GL_LUMINANCE:
-    elements = 1;
-    break;
-  case GL_LUMINANCE_ALPHA:
-    elements = 2;
-    break;
-  case GL_RGB:
-    elements = 3;
-    break;
-  case GL_RGBA:
-    elements = 4;
-    break;
-  default:
-    return 0;
-  }
-  switch (type) {
-  case GL_BYTE:
-  case GL_UNSIGNED_BYTE:
-    esize = 1;
-    break;
-  case GL_SHORT:
-  case GL_UNSIGNED_SHORT:
-    esize = 2;
-    break;
-  case GL_UNSIGNED_SHORT_5_6_5:
-  case GL_UNSIGNED_SHORT_4_4_4_4:
-  case GL_UNSIGNED_SHORT_5_5_5_1:
-    esize = 2;
-    elements = 1;
-    break;
-  case GL_FLOAT:
-    esize = 4;
-    break;
-  default:
-    return 0;
-  }
-  return imageSizeInBytes(elements * esize, w, h, d, pack);
-}
-
 private GLBufferSizeTracker  bufferSizeTracker;
 private GLBufferStateTracker bufferStateTracker;
 private GLStateTracker       glStateTracker;
