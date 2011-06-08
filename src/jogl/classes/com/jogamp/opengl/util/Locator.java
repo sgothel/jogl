@@ -42,24 +42,24 @@ public class Locator {
     private Locator() {}
 
     /**
-     * Locates the resource using 'getResource(String path, ClassLoader cl)',
-     * with this context ClassLoader and the path as is,
-     * as well with the context's package name path plus the path.
+     * Locating a resource using 'getResource(String path, ClassLoader cl)',
+     * with the given context's ClassLoader and the resourcePath as is,
+     * as well with the context's package name-path plus the resourcePath.
      *
      * @see #getResource(String, ClassLoader)
      */
-    public static URL getResource(Class context, String path) {
-        if(null == path) {
+    public static URL getResource(Class context, String resourcePath) {
+        if(null == resourcePath) {
             return null;
         }
         ClassLoader contextCL = (null!=context)?context.getClassLoader():null;
-        URL url = getResource(path, contextCL);
+        URL url = getResource(resourcePath, contextCL);
         if (url == null && null!=context) {
             // Try again by scoping the path within the class's package
             String className = context.getName().replace('.', '/');
             int lastSlash = className.lastIndexOf('/');
             if (lastSlash >= 0) {
-                String tmpPath = className.substring(0, lastSlash + 1) + path;
+                String tmpPath = className.substring(0, lastSlash + 1) + resourcePath;
                 url = getResource(tmpPath, contextCL);
             }
         }
@@ -67,7 +67,7 @@ public class Locator {
     }
 
     /**
-     * Locates the resource using the ClassLoader's facility,
+     * Locating a resource using the ClassLoader's facility if not null,
      * the absolute URL and absolute file.
      *
      * @see ClassLoader#getResource(String)
@@ -75,26 +75,26 @@ public class Locator {
      * @see URL#URL(String)
      * @see File#File(String)
      */
-    public static URL getResource(String path, ClassLoader cl) {
-        if(null == path) {
+    public static URL getResource(String resourcePath, ClassLoader cl) {
+        if(null == resourcePath) {
             return null;
         }
         URL url = null;
         if (cl != null) {
-            url = cl.getResource(path);
+            url = cl.getResource(resourcePath);
             if(!urlExists(url)) {
                 url = null;
             }            
         } 
         if(null == url) {
-            url = ClassLoader.getSystemResource(path);
+            url = ClassLoader.getSystemResource(resourcePath);
             if(!urlExists(url)) {
                 url = null;
             }            
         }
         if(null == url) {
             try {
-                url = new URL(path);
+                url = new URL(resourcePath);
                 if(!urlExists(url)) {
                     url = null;
                 }
@@ -102,7 +102,7 @@ public class Locator {
         }
         if(null == url) {
             try {
-                File file = new File(path);
+                File file = new File(resourcePath);
                 if(file.exists()) {
                     url = file.toURL();
                 } else {
