@@ -130,15 +130,15 @@
             <fileset dir="${build}" includes="jogl-java-src.zip" />
             <fileset dir="${build}" includes="newt-java-src.zip" />
         </delete-->
-        <zip destfile="${build}/nativewindow-java-src.zip">
+        <zip destfile="${build}/nativewindow-java-src.zip" level="0">
             <fileset dir="${src}/nativewindow/classes"/>
             <fileset dir="${build}/nativewindow/gensrc/classes"/>
         </zip>
-        <zip destfile="${build}/jogl-java-src.zip">
+        <zip destfile="${build}/jogl-java-src.zip" level="0">
             <fileset dir="${src}/jogl/classes"/>
             <fileset dir="${build}/jogl/gensrc/classes"/>
         </zip>
-        <zip destfile="${build}/newt-java-src.zip">
+        <zip destfile="${build}/newt-java-src.zip" level="0">
             <fileset dir="${src}/newt/classes"/>
         </zip>
     </target>
