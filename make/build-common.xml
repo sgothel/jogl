@@ -58,7 +58,9 @@
         <property name="make"                       value="." />
         <property name="config"                     value="${make}/config" />
         <property name="stub.includes"              value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
-        <property name="stub.includes.common"       value="${stub.includes}/gluegen" />
+
+        <property name="stub.includes.gluegen.gg"  value="${gluegen.root}/make/stub_includes/gluegen" />
+        <property name="stub.includes.gluegen.cc"  value="${gluegen.root}/make/stub_includes/platform" />
 
         <tstamp>
              <format property="version.timestamp" pattern="yyyyMMdd"/>

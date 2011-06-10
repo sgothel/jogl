@@ -36,28 +36,13 @@
 #include <Windowsx.h>
 #include <tchar.h>
 #include <stdlib.h>
+
 // NOTE: it looks like SHFullScreen and/or aygshell.dll is not available on the APX 2500 any more
 // #ifdef UNDER_CE
 // #include "aygshell.h"
 // #endif
 
-/* This typedef is apparently needed for Microsoft compilers before VC8,
-   and on Windows CE and MingW32  */
-#if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1400 )
-    #ifdef _WIN64
-        typedef long long intptr_t;
-    #else
-        typedef int intptr_t;
-    #endif
-#elif !defined(__MINGW64__) && _MSC_VER <= 1500
-    #ifdef _WIN64 // [
-        typedef __int64           intptr_t;
-    #else // _WIN64 ][
-        typedef int               intptr_t;
-    #endif // _WIN64 ]
-#else
-    #include <inttypes.h>
-#endif
+#include <gluegen_stdint.h>
 
 #if !defined(__MINGW64__) && _MSC_VER <= 1500
     // FIXME: Determine for which MSVC versions ..

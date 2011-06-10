@@ -35,7 +35,7 @@
    determine whether the Xinerama extension is in use and therefore to
    treat the multiple AWT screens as one large screen. */
 
-#include <inttypes.h>
+#include <gluegen_stdint.h>
 #include <X11/Xlib.h>
 
 #ifdef __sun

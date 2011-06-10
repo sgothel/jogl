@@ -228,10 +228,10 @@
             <include name="${stub.includes}/macosx/**" />
             <include name="${stub.includes}/win32/**" />
             <include name="${stub.includes}/x11/**" />
-            <include name="${stub.includes}/gluegen/**" />
             <include name="${stub.includes}/khr/**" />
             <include name="${stub.includes}/jni/**" />
         </dirset>
+
         <fileset id="stub.includes.dependencies.fileset.1" dir="${stub.includes}">
             <include name="opengl/**" />
             <include name="macosx/**" />
@@ -253,8 +253,8 @@
             <include name="${stub.includes}/macosx/**" />
             <include name="${stub.includes}/win32/**" />
             <include name="${stub.includes}/x11/**" />
-            <include name="${stub.includes}/gluegen/**" />
             <include name="${stub.includes}/khr/**" />
+            <include name="${stub.includes}/jni/**" />
         </dirset>
         <fileset id="stub.includes.cg.dependencies.fileset" dir=".">
             <include name="${stub.includes}/cg/**" />
@@ -397,7 +397,8 @@
         <gluegen src="${stub.includes.opengl}/gles2.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl.cfg"
-                 includeRefid="stub.includes.fileset.all.gldesktop"
+                 includeRefid="stub.includes.fileset.all.gldesktop" 
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter"
                  debug="false">
             <classpath refid="gluegen-gl.classpath" />
@@ -411,6 +412,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl2_es1.cfg" 
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -423,6 +425,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl2_es2.cfg" 
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -435,6 +438,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl3-subset.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter"
                  debug="false">
             <classpath refid="gluegen-gl.classpath" />
@@ -443,6 +447,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl2_gl3.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -455,6 +460,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl2.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -467,6 +473,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl3.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -479,6 +486,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl3bc.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -491,6 +499,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl4.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -503,6 +512,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-gl4bc.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter"
                  debug="false">
             <classpath refid="gluegen-gl.classpath" />
@@ -516,6 +526,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-es1.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter"
                  debug="false">
             <classpath refid="gluegen-gl.classpath" />
@@ -529,6 +540,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-es2.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -541,6 +553,7 @@
         <gluegen src="${gl.c}" 
                  config="${gl.cfg.nsig}"
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.nativesig.NativeSignatureEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -553,6 +566,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/glu-base.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -565,6 +579,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/glu-gl2es1.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -577,6 +592,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/glu-gl2.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -589,6 +605,7 @@
                  outputRootDir="${build.jogl}"
                  config="${glext.platform.cfg}"
                  includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -602,6 +619,7 @@
                  outputRootDir="${build.jogl}"
                  config="${window.es.cfg}"
                  includeRefid="stub.includes.fileset.platform"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter"
                  debug="false">
             <classpath refid="gluegen-gl.classpath" />
@@ -616,6 +634,7 @@
                  outputRootDir="${build.jogl}"
                  config="${window.es.ext.cfg}"
                  includeRefid="stub.includes.fileset.platform"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter"
                  debug="false">
             <classpath refid="gluegen-gl.classpath" />
@@ -629,6 +648,7 @@
                  outputRootDir="${build.jogl}"
                  config="${window.os0.cfg}"
                  includeRefid="stub.includes.fileset.platform"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -641,6 +661,7 @@
                  outputRootDir="${build.jogl}"
                  config="${window.os1.cfg}"
                  includeRefid="stub.includes.fileset.platform"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -772,6 +793,7 @@
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/cg-common.cfg"
                  includeRefid="stub.includes.cg.fileset.all"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.procaddress.ProcAddressEmitter">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
@@ -1290,6 +1312,7 @@
               <compiler extends="@{compiler.cfg.id}" >
                 <sysincludepath path="${java.includes.dir}"/>
                 <sysincludepath path="${java.includes.dir.platform}"/>
+                <sysincludepath path="${stub.includes.gluegen.cc}"/>
                 <includepath path="stub_includes/khr"/>
                 <includepath path="stub_includes/egl"/>
                 <includepath path="stub_includes/opengl"/>

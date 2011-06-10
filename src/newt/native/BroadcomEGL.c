@@ -31,11 +31,7 @@
  * 
  */
 
-#ifdef _WIN32
-  #include <windows.h>
-#else
-  #include <inttypes.h>
-#endif
+#include <gluegen_stdint.h>
 
 #include <stdlib.h>
 #include <stdio.h>

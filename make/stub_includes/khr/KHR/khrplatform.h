@@ -132,16 +132,14 @@
 /*-------------------------------------------------------------------------
  * basic type definitions
  *-----------------------------------------------------------------------*/
-#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__SCO__) || defined(__USLC__)
-
 
 /*
- * Using <stddef.h>
- * Using <stdint.h>
+ * Using <gluegen_stddef.h>
+ * Using <gluegen_stdint.h>
  */
-#include <stddef.h>
+#include <gluegen_stddef.h>
 #define HAS_STDDEF 1
-#include <stdint.h>
+#include <gluegen_stdint.h>
 typedef int32_t                 khronos_int32_t;
 typedef uint32_t                khronos_uint32_t;
 typedef int64_t                 khronos_int64_t;
@@ -149,100 +147,14 @@ typedef uint64_t                khronos_uint64_t;
 #define KHRONOS_SUPPORT_INT64   1
 #define KHRONOS_SUPPORT_FLOAT   1
 
-#elif defined(__VMS ) || defined(__sgi)
-
-/*
- * Using <stddef.h>
- * Using <inttypes.h>
- */
-#include <stddef.h>
-#define HAS_STDDEF 1
-#include <inttypes.h>
-typedef int32_t                 khronos_int32_t;
-typedef uint32_t                khronos_uint32_t;
-typedef int64_t                 khronos_int64_t;
-typedef uint64_t                khronos_uint64_t;
-#define KHRONOS_SUPPORT_INT64   1
-#define KHRONOS_SUPPORT_FLOAT   1
-
-#elif defined(_WIN32) && !defined(__SCITECH_SNAP__)
-
-/*
- * Win32
- */
-typedef __int32                 khronos_int32_t;
-typedef unsigned __int32        khronos_uint32_t;
-typedef __int64                 khronos_int64_t;
-typedef unsigned __int64        khronos_uint64_t;
-#define KHRONOS_SUPPORT_INT64   1
-#define KHRONOS_SUPPORT_FLOAT   1
-
-#elif defined(__sun__) || defined(__digital__)
-
-/*
- * Sun or Digital
- */
-typedef int                     khronos_int32_t;
-typedef unsigned int            khronos_uint32_t;
-#if defined(__arch64__) || defined(_LP64)
-typedef long int                khronos_int64_t;
-typedef unsigned long int       khronos_uint64_t;
-#else
-typedef long long int           khronos_int64_t;
-typedef unsigned long long int  khronos_uint64_t;
-#endif /* __arch64__ */
-#define KHRONOS_SUPPORT_INT64   1
-#define KHRONOS_SUPPORT_FLOAT   1
-
-#elif 0
-
-/*
- * Hypothetical platform with no float or int64 support
- */
-typedef int                     khronos_int32_t;
-typedef unsigned int            khronos_uint32_t;
-#define KHRONOS_SUPPORT_INT64   0
-#define KHRONOS_SUPPORT_FLOAT   0
-
-#else
-
-/*
- * Generic fallback
- *
- * Using <stddef.h>
- * Using <stdint.h>
- */
-#include <stddef.h>
-#define HAS_STDDEF 1
-#include <stdint.h>
-typedef int32_t                 khronos_int32_t;
-typedef uint32_t                khronos_uint32_t;
-typedef int64_t                 khronos_int64_t;
-typedef uint64_t                khronos_uint64_t;
-#define KHRONOS_SUPPORT_INT64   1
-#define KHRONOS_SUPPORT_FLOAT   1
-
-#endif
-
-
-/*
- * Types that are (so far) the same on all platforms
- */
 typedef signed   char          khronos_int8_t;
 typedef unsigned char          khronos_uint8_t;
 typedef signed   short int     khronos_int16_t;
 typedef unsigned short int     khronos_uint16_t;
-#ifndef HAS_STDDEF
-    typedef signed   long  int      khronos_intptr_t;
-    typedef unsigned long  int      khronos_uintptr_t;
-    typedef signed   long  int      khronos_ssize_t;
-    typedef unsigned long  int      khronos_usize_t;
-#else
-    typedef ptrdiff_t               khronos_intptr_t;
-    typedef size_t                  khronos_uintptr_t;
-    typedef ptrdiff_t               khronos_ssize_t;
-    typedef size_t                  khronos_usize_t;
-#endif
+typedef ptrdiff_t              khronos_intptr_t;
+typedef size_t                 khronos_uintptr_t;
+typedef ptrdiff_t              khronos_ssize_t;
+typedef size_t                 khronos_usize_t;
 
 #if KHRONOS_SUPPORT_FLOAT
 /*

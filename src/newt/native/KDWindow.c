@@ -39,27 +39,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef _WIN32
-    /* This typedef is apparently needed for Microsoft compilers before VC8,
-       and on Windows CE */
-    #if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1400 )
-        #ifdef _WIN64
-            typedef long long intptr_t;
-        #else
-            typedef int intptr_t;
-        #endif
-    #elif !defined(__MINGW64__) && _MSC_VER <= 1500
-        #ifdef _WIN64 // [
-            typedef __int64           intptr_t;
-        #else // _WIN64 ][
-            typedef int               intptr_t;
-        #endif // _WIN64 ]
-    #else
-        #include <inttypes.h>
-    #endif
-#else
-    #include <inttypes.h>
-#endif
+#include <gluegen_stdint.h>
 
 #include <KD/kd.h>
 

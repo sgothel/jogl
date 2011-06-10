@@ -36,12 +36,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
-// Building on obsolete platform on SPARC right now
-#ifdef __sparc
-  #include <inttypes.h>
-#else
-  #include <stdint.h>
-#endif
+
+#include <gluegen_stdint.h>
+
 #include <unistd.h>
 #include <errno.h>
 #include <X11/Xlib.h>

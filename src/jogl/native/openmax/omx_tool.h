@@ -10,24 +10,9 @@
     // __declspec(dllimport) void __stdcall Sleep(unsigned long dwMilliseconds);
 
     #define usleep(t)    Sleep((t) / 1000)
-
-    #ifdef _MSC_VER
-        /* This typedef is apparently needed for Microsoft compilers before VC8,
-           and on Windows CE */
-        #if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1400 )
-            #ifdef _WIN64
-                typedef long long intptr_t;
-            #else
-                typedef int intptr_t;
-            #endif
-        #endif
-    #else
-        #include <inttypes.h>
-    #endif
-#else
-    #include <unistd.h>
-    #include <inttypes.h>
 #endif
+
+#include <gluegen_stdint.h>
 
 #include <OMX_Core.h>
 #include <OMX_Component.h>

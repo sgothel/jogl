@@ -232,6 +232,7 @@
                  outputRootDir="${build.nativewindow}"
                  config="${windowlib.os.cfg}"
                  includeRefid="stub.includes.fileset.platform"
+                 literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
@@ -246,8 +247,8 @@
         <gluegen src="${jawt.platform.header}"
                  outputRootDir="${build.nativewindow}"
                  config="${jawt.cfg}"
-                 literalInclude="${stub.includes}/jni"
                  includeRefid="stub.includes.fileset.platform"
+                 literalInclude="${stub.includes.gluegen.gg}, ${stub.includes}/jni"
                  emitter="com.jogamp.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
@@ -578,6 +579,7 @@
               <compiler extends="@{compiler.cfg.id}" >
                 <sysincludepath path="${java.includes.dir}"/>
                 <sysincludepath path="${java.includes.dir.platform}"/>
+                <sysincludepath path="${stub.includes.gluegen.cc}"/>
                 <!-- This is for the generated headers for handwritten C code -->
                 <includepath path="${src.generated.c}" />
                 <includepath path="${src.generated.c}/X11" if="isX11"/>

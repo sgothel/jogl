@@ -31,7 +31,7 @@
  * 
  */
 
-#include <inttypes.h>
+#include <gluegen_stdint.h>
 
 #include <stdlib.h>
 #include <stdio.h>
