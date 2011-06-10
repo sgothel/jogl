@@ -65,5 +65,8 @@ REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtD
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo02
 
-scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
+REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
+
+scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
+REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01
