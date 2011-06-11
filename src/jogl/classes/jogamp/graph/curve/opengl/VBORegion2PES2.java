@@ -153,11 +153,10 @@ public class VBORegion2PES2  extends GLRegion {
         texCoordTxtAttr.rewind();
         for(int i=0; i<vertices.size(); i++) {
             final Vertex v = vertices.get(i);
-            final float ysign = isFlipped() ? -1.0f : 1.0f ; 
-            verticeTxtAttr.putf(        v.getX());
-            verticeTxtAttr.putf(ysign * v.getY());
-            verticeTxtAttr.putf(        v.getZ());            
-            box.resize(v.getX(), ysign*v.getY(), v.getZ());            
+            verticeTxtAttr.putf(v.getX());
+            verticeTxtAttr.putf(v.getY());
+            verticeTxtAttr.putf(v.getZ());            
+            box.resize(v.getX(), v.getY(), v.getZ());            
             
             final float[] tex = v.getTexCoord();
             texCoordTxtAttr.putf(tex[0]);

@@ -54,10 +54,20 @@ public class RegionFactory {
         }
     }
         
+    /** Create a Single Pass Region using the passed render mode
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, 
+     * {@link Region#VBAA_RENDERING_BIT}
+     * @return
+     */
     public static GLRegion createSinglePass(int renderModes) {
         return new VBORegionSPES2(renderModes);
     }
     
+    /** Create a Two Pass (VBAA) Region using the passed render mode
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, 
+     * {@link Region#VBAA_RENDERING_BIT}
+     * @return
+     */
     public static GLRegion createTwoPass(int renderModes, int textureUnit) {
         return new VBORegion2PES2(renderModes, textureUnit);
     }

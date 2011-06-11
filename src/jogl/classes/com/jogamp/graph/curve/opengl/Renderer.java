@@ -37,7 +37,6 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 import com.jogamp.opengl.util.PMVMatrix;
 
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.geom.Vertex;
 
 public abstract class Renderer {
     protected static final boolean DEBUG = Region.DEBUG;
@@ -85,7 +84,7 @@ public abstract class Renderer {
         return renderModes;
     }
     
-    public boolean usesVariableCurveWeight() { return Region.usesVariableCurveWeight(renderModes); }
+    public boolean usesVariableCurveWeight() { return Region.isNonUniformWeight(renderModes); }
 
     /**
      * @return true if Region's renderModes contains all bits as this Renderer's renderModes

@@ -277,7 +277,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                         autoDrawable.invoke(false, new GLRunnable() {
                             public void run(GLAutoDrawable drawable) {
                                 try {
-                                    final String type = Region.isVBAA(renderModes) ? "vbaa0-msaa1" : "vbaa1-msaa0" + ( Region.usesVariableCurveWeight(renderModes) ? "-vc" : "-uc" ) ; 
+                                    final String type = Region.isVBAA(renderModes) ? "vbaa0-msaa1" : "vbaa1-msaa0" + ( Region.isNonUniformWeight(renderModes) ? "-vc" : "-uc" ) ; 
                                     printScreen(drawable, "./", "demo-"+type, "snap"+screenshot_num, false);
                                     screenshot_num++;
                                 } catch (GLException e) {

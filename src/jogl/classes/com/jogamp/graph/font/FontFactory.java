@@ -29,7 +29,6 @@ package com.jogamp.graph.font;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;

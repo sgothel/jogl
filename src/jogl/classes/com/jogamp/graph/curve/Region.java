@@ -35,8 +35,18 @@ import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 
+/** Abstract Outline shape GL representation
+ *  define the method an OutlineShape(s) is
+ *  binded rendered.
+ *  
+ *  @see GLRegion
+ */
 public abstract class Region {
+    
+    /** Debug flag for region impl (graph.curve)
+     */
     public static final boolean DEBUG = Debug.debug("graph.curve");
+    
     public static final boolean DEBUG_INSTANCE = false;
 
     /** View based Anti-Aliasing, A Two pass region rendering, slower 
@@ -46,36 +56,57 @@ public abstract class Region {
     public static final int VBAA_RENDERING_BIT = 1 << 0;
 
     /** Use non uniform weights [0.0 .. 1.9] for curve region rendering.
-     *  Otherwise the default weight 1.0 for Bezier curve region rendering is being applied.  */
+     *  Otherwise the default weight 1.0 for uniform curve region rendering is being applied.  
+     */
     public static final int VARIABLE_CURVE_WEIGHT_BIT = 1 << 1;
-    
+
     public static final int TWO_PASS_DEFAULT_TEXTURE_UNIT = 0;
-    
+
     private final int renderModes;
     private boolean dirty = true;    
     protected int numVertices = 0;    
-    protected boolean flipped = false;
     protected final AABBox box = new AABBox();
     protected ArrayList<Triangle> triangles = new ArrayList<Triangle>();
     protected ArrayList<Vertex> vertices = new ArrayList<Vertex>();
-    
+
     public static boolean isVBAA(int renderModes) { 
         return 0 != ( renderModes & Region.VBAA_RENDERING_BIT ); 
     }
-    
-    public static boolean usesVariableCurveWeight(int renderModes) { 
+
+    /** Check if render mode capable of non uniform weights
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, 
+     * {@link Region#VBAA_RENDERING_BIT} 
+     * @return true of capable of non uniform weights
+     */
+    public static boolean isNonUniformWeight(int renderModes) { 
         return 0 != ( renderModes & Region.VARIABLE_CURVE_WEIGHT_BIT ); 
     }
-    
+
     protected Region(int regionRenderModes) {
         this.renderModes = regionRenderModes;
     }
-    
-    public final int getRenderModes() { return renderModes; }
 
-    public boolean isVBAA() { return Region.isVBAA(renderModes);  }
-    public boolean usesVariableCurveWeight() { return Region.usesVariableCurveWeight(renderModes); }
-    
+    /** Get current Models
+     * @return bit-field of render modes 
+     */
+    public final int getRenderModes() { 
+        return renderModes; 
+    }
+
+    /** Check if current Region is using VBAA
+     * @return true if capable of two pass rendering - VBAA
+     */
+    public boolean isVBAA() { 
+        return Region.isVBAA(renderModes);  
+    }
+
+    /** Check if current instance uses non uniform weights 
+     * @return true if capable of nonuniform weights
+     */
+    public boolean isNonUniformWeight() { 
+        return Region.isNonUniformWeight(renderModes); 
+    }
+
     /** Get the current number of vertices associated
      * with this region. This number is not necessary equal to 
      * the OGL bound number of vertices.
@@ -84,7 +115,7 @@ public abstract class Region {
     public final int getNumVertices(){
         return numVertices;
     }
-        
+
     /** Adds a {@link Triangle} object to the Region
      * This triangle will be bound to OGL objects 
      * on the next call to {@code update}
@@ -96,7 +127,7 @@ public abstract class Region {
         triangles.add(tri);
         setDirty(true);
     }
-        
+
     /** Adds a list of {@link Triangle} objects to the Region
      * These triangles are to be binded to OGL objects 
      * on the next call to {@code update}
@@ -108,7 +139,7 @@ public abstract class Region {
         triangles.addAll(tris);
         setDirty(true);
     }
-        
+
     /** Adds a {@link Vertex} object to the Region
      * This vertex will be bound to OGL objects 
      * on the next call to {@code update}
@@ -121,7 +152,7 @@ public abstract class Region {
         numVertices++;
         setDirty(true);
     }
-    
+
     /** Adds a list of {@link Vertex} objects to the Region
      * These vertices are to be binded to OGL objects 
      * on the next call to {@code update}
@@ -134,24 +165,15 @@ public abstract class Region {
         numVertices = vertices.size();
         setDirty(true);
     }
-    
+
+    /**
+     * @return the AxisAligned bounding box of
+     * current region
+     */
     public final AABBox getBounds(){
         return box;
     }
 
-    /** Set if the y coordinate of the region should be flipped
-     *  {@code y=-y} used mainly for fonts since they use opposite vertex
-     *  as origion
-     * @param flipped flag if the coordinate is flipped defaults to false.
-     */
-    public void setFlipped(boolean flipped) {
-        this.flipped = flipped;
-    }
-    
-    public final boolean isFlipped() {
-        return flipped;
-    }
-    
     /** Check if this region is dirty. A region is marked dirty
      * when new Vertices, Triangles, and or Lines are added after a 
      * call to update()
@@ -162,7 +184,7 @@ public abstract class Region {
     public final boolean isDirty() {
         return dirty;
     }
-        
+
     protected final void setDirty(boolean v) {
         dirty = v;
     }

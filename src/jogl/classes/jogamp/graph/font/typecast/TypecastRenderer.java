@@ -29,7 +29,6 @@ package jogamp.graph.font.typecast;
 
 import java.util.ArrayList;
 
-import jogamp.graph.curve.text.GlyphShape;
 import jogamp.graph.font.typecast.ot.OTGlyph;
 import jogamp.graph.font.typecast.ot.Point;
 import jogamp.graph.geom.plane.AffineTransform;
