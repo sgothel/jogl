@@ -28,6 +28,8 @@
  
 package com.jogamp.opengl.test.junit.util;
 
+import com.jogamp.common.util.locks.SingletonInstance;
+
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
@@ -40,13 +42,20 @@ public abstract class UITestCase {
     @Rule public TestName _unitTestName = new TestName();
 
     public static final String SINGLE_INSTANCE_LOCK_FILE = "UITestCase.lock";
+    public static final int SINGLE_INSTANCE_LOCK_PORT = 59999;
+    
+    public static final long SINGLE_INSTANCE_LOCK_TO   = 3*60*1000; // wait up to 3 min
+    public static final long SINGLE_INSTANCE_LOCK_POLL =      1000; // poll every 1s
 
     static volatile SingletonInstance singletonInstance;
 
     private final synchronized void initSingletonInstance() {
         if( null == singletonInstance )  {
-            singletonInstance = new SingletonInstance(getClass().getName(), SINGLE_INSTANCE_LOCK_FILE);
-            singletonInstance.lock(3*60*1000, 1000); // wait up to 3 min, poll every 1s            
+            // singletonInstance = SingletonInstance.createFileLock(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_FILE);
+            singletonInstance = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
+            if(!singletonInstance.tryLock(SINGLE_INSTANCE_LOCK_TO)) {
+                throw new RuntimeException("Fatal: Could lock single instance: "+singletonInstance.getName());
+            }
         }
     }
 
