@@ -229,7 +229,7 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         NEWTGLContext.destroyWindow(winctx);
     }
 
-    @Test
+    @Test(timeout=120000)    
     public void testShaderState01PerformanceDouble() throws InterruptedException {
         // preset ..
         final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(GLProfile.getGL2ES2(), 480, 480, false);
@@ -308,6 +308,8 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         st.uniform(gl, pmvMatrixUniform);
         gl.glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
 
+        gl.setSwapInterval(0);
+        
         // validation ..
         st.attachShaderProgram(gl, sp0);
         GLSLMiscHelper.displayVCArrays(drawable, gl, st, true, vertices0, colors0, true, 1, 0);
@@ -316,18 +318,20 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         GLSLMiscHelper.displayVCArrays(drawable, gl, st, true, vertices0, colors0, true, 1, 0);
         GLSLMiscHelper.displayVCArrays(drawable, gl, st, true, vertices1, colors1, true, 2, 0);
         
-        long t0 = System.currentTimeMillis();
-        int frames;
         // warmup ..        
-        for(frames=0; frames<GLSLMiscHelper.frames_warmup; frames+=2) {
+        for(int frames=0; frames<GLSLMiscHelper.frames_warmup; frames+=2) {
             // SP0
             st.attachShaderProgram(gl, sp0);
             GLSLMiscHelper.displayVCArraysNoChecks(drawable, gl, true, vertices0, colors0, true);
             // SP1
             st.attachShaderProgram(gl, sp1);
             GLSLMiscHelper.displayVCArraysNoChecks(drawable, gl, true, vertices1, colors1, true);
-        }        
+        }
+        
         // measure ..
+        long t0 = System.currentTimeMillis();
+        int frames;
+        
         for(frames=0; frames<GLSLMiscHelper.frames_perftest; frames+=4) {
             // SP0
             st.attachShaderProgram(gl, sp0);
