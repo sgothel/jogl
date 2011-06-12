@@ -61,15 +61,18 @@ public class X11Util {
     private static int setX11ErrorHandlerRecCount = 0;
     private static Object setX11ErrorHandlerLock = new Object();
 
+    public static final boolean XINITTHREADS_ALWAYS_ENABLED = true;
+    
     public static synchronized void initSingleton(boolean firstX11ActionOnProcess) {
         if(!isInit) {
             NWJNILibLoader.loadNativeWindow("x11");
 
             /**
              * Always issue XInitThreads() since we have independent
-             * off-thread created Display connections able to utilize multithreading, ie NEWT */
-            initialize0( true );
-            // initialize0( firstX11ActionOnProcess );
+             * off-thread created Display connections able to utilize multithreading, 
+             * ie NEWT (jogamp.newt.x11.X11Display.createNativeImpl()) !!
+             */
+            initialize0( XINITTHREADS_ALWAYS_ENABLED ? true : firstX11ActionOnProcess );
             isFirstX11ActionOnProcess = firstX11ActionOnProcess;
 
             if(DEBUG) {

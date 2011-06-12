@@ -75,9 +75,14 @@ public class X11Display extends DisplayImpl {
             X11Util.closeDisplay(handle);
             throw e;
         }
-        aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, NativeWindowFactory.getNullToolkitLock());
-        // aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, NativeWindowFactory.createDefaultToolkitLockNoAWT(NativeWindowFactory.TYPE_X11, handle));
-        // aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT);
+        
+        if(X11Util.XINITTHREADS_ALWAYS_ENABLED) {
+            // Hack: Force non X11Display locking, even w/ AWT and w/o isFirstUIActionOnProcess() 
+            aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, NativeWindowFactory.getNullToolkitLock());            
+        } else {
+            // Proper: Use AWT/X11Display locking w/ AWT and X11Display locking only w/o isFirstUIActionOnProcess()
+            aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT);
+        }
     }
 
     protected void closeNativeImpl() {
