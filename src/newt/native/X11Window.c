@@ -513,9 +513,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Display_DispatchMessages0
         char keyChar = 0;
         char text[255];
 
-        // num_events = XPending(dpy); // I/O Flush ..
-        // num_events = XEventsQueued(dpy, QueuedAfterFlush); // I/O Flush only of no already queued events are available
-        // num_events = XEventsQueued(dpy, QueuedAlready); // no I/O Flush at all, doesn't work on some cards (eg ATI)
+        // QueuedAlready                 : No I/O Flush or system call  doesn't work on some cards (eg ATI) ?) 
+        // QueuedAfterFlush == XPending(): I/O Flush only if no already queued events are available
+        // QueuedAfterReading            : QueuedAlready + if queue==0, attempt to read more ..
         if ( 0 >= XEventsQueued(dpy, QueuedAfterFlush) ) {
             // DBG_PRINT( "X11: DispatchMessages 0x%X - Leave 1\n", dpy); 
             return;
