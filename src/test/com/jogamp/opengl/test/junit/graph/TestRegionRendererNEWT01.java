@@ -35,7 +35,6 @@ public class TestRegionRendererNEWT01 extends UITestCase {
     @BeforeClass
     public static void initClass() {
         GLProfile.initSingleton(true);
-        NativeWindowFactory.initSingleton(true);
     }
 
     static void destroyWindow(GLWindow window) {

@@ -42,10 +42,8 @@ public class NullToolkitLock implements ToolkitLock {
     
     public final void lock() {
         if(TRACE_LOCK) {
-            String msg = "NullToolkitLock.lock()";
-            System.err.println(msg);
-            // Throwable t = new Throwable(msg);
-            // t.printStackTrace();
+            System.err.println("NullToolkitLock.lock()");
+            // Thread.dumpStack();
         }
     }
 
