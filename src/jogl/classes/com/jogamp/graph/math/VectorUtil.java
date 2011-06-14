@@ -287,6 +287,36 @@ public class VectorUtil {
     public static float triArea(Vertex a, Vertex b, Vertex c){
         return (b.getX() - a.getX()) * (c.getY() - a.getY()) - (b.getY() - a.getY())*(c.getX() - a.getX());
     }
+    
+    /** Check if a vertex is in triangle using 
+     * barycentric coordinates computation. 
+     * @param a first triangle vertex
+     * @param b second triangle vertex
+     * @param c third triangle vertex
+     * @param p the vertex in question
+     * @return true if p is in triangle (a, b, c), false otherwise.
+     */
+    public static boolean vertexInTriangle(float[] a, float[]  b, float[]  c, float[]  p){
+    	// Compute vectors        
+    	float[] ac = computeVector(a, c); //v0
+    	float[] ab = computeVector(a, b); //v1
+    	float[] ap = computeVector(a, p); //v2
+
+    	// Compute dot products
+    	float dot00 = dot(ac, ac);
+    	float dot01 = dot(ac, ab);
+    	float dot02 = dot(ac, ap);
+    	float dot11 = dot(ab, ab);
+    	float dot12 = dot(ab, ap);
+
+    	// Compute barycentric coordinates
+    	float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    	float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    	float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+    	// Check if point is in triangle
+    	return (u > 0) && (v > 0) && (u + v < 1);
+    }
 
     /** Check if points are in ccw order
      * @param a first vertex
