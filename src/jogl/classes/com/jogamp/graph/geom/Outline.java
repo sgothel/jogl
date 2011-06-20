@@ -44,23 +44,23 @@ import com.jogamp.graph.math.VectorUtil;
  *  @see OutlineShape, Region
  */
 public class Outline implements Cloneable, Comparable<Outline> {
-    
+
     private ArrayList<Vertex> vertices = new ArrayList<Vertex>(3);
     private boolean closed = false;
     private AABBox bbox = new AABBox();
     private boolean dirtyBBox = false;
-    
+
     /**Create an outline defined by control vertices.
      * An outline can contain off Curve vertices which define curved
      * regions in the outline.
      */
     public Outline() {        
     }
-        
+
     public final int getVertexCount() {
         return vertices.size();
     }
-    
+
     /** Appends a vertex to the outline loop/strip.
      * @param vertex Vertex to be added
      * @throws NullPointerException if the  {@link Vertex} element is null 
@@ -68,7 +68,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
     public final void addVertex(Vertex vertex) throws NullPointerException {
         addVertex(vertices.size(), vertex);
     }
-    
+
     /** Insert the {@link Vertex} element at the given {@code position} to the outline loop/strip.
      * @param position of the added Vertex
      * @param vertex Vertex object to be added
@@ -84,7 +84,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
             bbox.resize(vertex.getX(), vertex.getY(), vertex.getZ());
         }
     }
-        
+
     /** Replaces the {@link Vertex} element at the given {@code position}.
      * <p>Sets the bounding box dirty, hence a next call to {@link #getBounds()} will validate it.</p>
      * 
@@ -100,11 +100,15 @@ public class Outline implements Cloneable, Comparable<Outline> {
         vertices.set(position, vertex);
         dirtyBBox = true;
     }
-    
+
     public final Vertex getVertex(int index){
         return vertices.get(index);
     }
-    
+
+    public int getVertexIndex(Vertex vertex){
+        return vertices.indexOf(vertex);
+    }
+
     /** Removes the {@link Vertex} element at the given {@code position}.
      * <p>Sets the bounding box dirty, hence a next call to {@link #getBounds()} will validate it.</p>
      * 
@@ -115,18 +119,18 @@ public class Outline implements Cloneable, Comparable<Outline> {
         dirtyBBox = true;        
         return vertices.remove(position);
     }
-    
+
     public final boolean isEmpty(){
         return (vertices.size() == 0);
     }
-    
+
     public final Vertex getLastVertex(){
         if(isEmpty()){
             return null;
         }
         return vertices.get(vertices.size()-1);
     }
-    
+
     public final ArrayList<Vertex> getVertices() {
         return vertices;
     }
@@ -141,7 +145,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
         this.vertices = vertices;
         validateBoundingBox();
     }
-    
+
     public final boolean isClosed() {
         return closed;
     }
@@ -163,7 +167,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
             }
         }
     }
-    
+
     /** Compare two outlines with Bounding Box area
      * as criteria. 
      * @see java.lang.Comparable#compareTo(java.lang.Object)
@@ -179,7 +183,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
         }
         return 0;
     }
-    
+
     private final void validateBoundingBox() {
         dirtyBBox = false;
         bbox.reset();
@@ -187,7 +191,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
             bbox.resize(vertices.get(i).getCoord(), 0);
         }
     }
-         
+
     public final AABBox getBounds() {
         if (dirtyBBox) {
             validateBoundingBox();
@@ -220,7 +224,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
         }
         return true;
     }
-    
+
     /**
      * @return deep clone of this Outline
      */
