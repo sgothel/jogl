@@ -91,6 +91,7 @@ public abstract class NativeWindowFactory {
     private static Class  x11ToolkitLockClass;
     private static Constructor x11ToolkitLockConstructor;
     private static boolean isFirstUIActionOnProcess;
+    private static boolean requiresToolkitLock;
 
     /** Creates a new NativeWindowFactory instance. End users do not
         need to call this method. */
@@ -124,6 +125,8 @@ public abstract class NativeWindowFactory {
     static boolean initialized = false;
 
     private static void initNativeImpl(final boolean firstUIActionOnProcess, final ClassLoader cl) {
+        isFirstUIActionOnProcess = firstUIActionOnProcess;
+
         String clazzName = null;
         if( TYPE_X11.equals(nativeWindowingTypePure) ) {
             clazzName = X11UtilClassName;
@@ -134,6 +137,11 @@ public abstract class NativeWindowFactory {
             ReflectionUtil.callStaticMethod(clazzName, "initSingleton",
                                             new Class[] { boolean.class },
                                             new Object[] { new Boolean(firstUIActionOnProcess) }, cl );
+            
+            final Boolean res = (Boolean) ReflectionUtil.callStaticMethod(clazzName, "requiresToolkitLock", null, null, cl);
+            requiresToolkitLock = res.booleanValue();             
+        } else {            
+            requiresToolkitLock = false;
         }
     }
 
@@ -176,9 +184,8 @@ public abstract class NativeWindowFactory {
 
             if(firstUIActionOnProcess) {
                 // X11 initialization before possible AWT initialization
-                initNativeImpl(firstUIActionOnProcess, cl);
+                initNativeImpl(true, cl);
             }
-            isFirstUIActionOnProcess = firstUIActionOnProcess;
             isAWTAvailable = false; // may be set to true below
 
             if( !Debug.getBooleanProperty("java.awt.headless", true, acc) &&
@@ -212,7 +219,7 @@ public abstract class NativeWindowFactory {
             }
             if(!firstUIActionOnProcess) {
                 // X11 initialization after possible AWT initialization
-                initNativeImpl(firstUIActionOnProcess, cl);
+                initNativeImpl(false, cl);
             }
             registeredFactories = Collections.synchronizedMap(new HashMap());
 
@@ -239,6 +246,7 @@ public abstract class NativeWindowFactory {
  
             if(DEBUG) {
                 System.err.println("NativeWindowFactory firstUIActionOnProcess "+firstUIActionOnProcess);
+                System.err.println("NativeWindowFactory requiresToolkitLock "+requiresToolkitLock);
                 System.err.println("NativeWindowFactory isAWTAvailable "+isAWTAvailable+", defaultFactory "+factory);
             }
         }
@@ -250,6 +258,11 @@ public abstract class NativeWindowFactory {
         return isFirstUIActionOnProcess;
     }
 
+    /** @return true if the underlying toolkit requires locking, otherwise false. */
+    public static boolean requiresToolkitLock() {
+        return requiresToolkitLock;
+    }    
+    
     /** @return true if not headless, AWT Component and NativeWindow's AWT part available */
     public static boolean isAWTAvailable() { return isAWTAvailable; }
 
@@ -318,7 +331,7 @@ public abstract class NativeWindowFactory {
      * </ul>
      */
     public static ToolkitLock getDefaultToolkitLock(String type) {
-        if( !isFirstUIActionOnProcess() ) {
+        if( requiresToolkitLock() ) {
             if( TYPE_X11 == type || TYPE_AWT == type && TYPE_X11 == getNativeWindowType(false) ) {
                 if( isAWTAvailable() ) {
                     return getAWTToolkitLock();
@@ -364,39 +377,13 @@ public abstract class NativeWindowFactory {
      * </ul>
      */
     public static ToolkitLock createDefaultToolkitLock(String type, long deviceHandle) {
-        if( !isFirstUIActionOnProcess() ) {
+        if( requiresToolkitLock() ) {
             if( TYPE_X11 == type ) {
                 if( 0== deviceHandle ) {
                     throw new RuntimeException("JAWTUtil.createDefaultToolkitLock() called with NULL device but on X11");
                 }
                 if( isAWTAvailable() ) {
                     return createX11AWTToolkitLock(deviceHandle);
-                }
-                return createX11ToolkitLock(deviceHandle);
-            }
-        }
-        return NativeWindowFactoryImpl.getNullToolkitLock();
-    }
-
-    /**
-     * Creates the default {@link ToolkitLock} for <code>type</code> and <code>deviceHandle</code>.
-     * <br>
-     * <ul>
-     *   <li> If {@link #initSingleton(boolean) initSingleton( <b>firstUIActionOnProcess := false</b> )} </li>
-     *   <ul>
-     *     <li>If <b>X11 type</b> </li>
-     *     <ul>
-     *       <li> return {@link jogamp.nativewindow.x11.X11ToolkitLock} </li>
-     *     </ul>
-     *   </ul>
-     *   <li> Otherwise return {@link jogamp.nativewindow.NullToolkitLock} </li>
-     * </ul>
-     */
-    public static ToolkitLock createDefaultToolkitLockNoAWT(String type, long deviceHandle) {
-        if( !isFirstUIActionOnProcess() ) {
-            if( TYPE_X11 == type ) {
-                if( 0== deviceHandle ) {
-                    throw new RuntimeException("JAWTUtil.createDefaultToolkitLockNoAWT() called with NULL device but on X11");
                 }
                 return createX11ToolkitLock(deviceHandle);
             }

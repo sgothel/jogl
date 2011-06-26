@@ -51,19 +51,29 @@ import javax.media.nativewindow.util.Point;
  * Contains a thread safe X11 utility to retrieve display connections.
  */
 public class X11Util {
+    /**
+     * 2011/06/14 libX11 1.4.2 and libxcb 1.7 bug 20708 - Multithreading Issues w/ OpenGL, ..
+     *            https://bugs.freedesktop.org/show_bug.cgi?id=20708
+     *            https://jogamp.org/bugzilla/show_bug.cgi?id=502
+     *            Affects: Ubuntu 11.04, OpenSuSE 11, ..
+     * If the property <b>nativewindow.x11.mt-bug</b> is set to true, extensive X11 locking 
+     * is being applied, avoiding X11 multithreading capabilities. 
+     */
+    public static final boolean MULTITHREADING_BUG = Debug.getBooleanProperty("nativewindow.x11.mt-bug", true, AccessController.getContext());
+    public static final boolean XINITTHREADS_ALWAYS_ENABLED = true;
+
     private static final boolean DEBUG = Debug.debug("X11Util");
     private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.getBooleanProperty("nativewindow.debug.X11Util.TraceDisplayLifecycle", true, AccessController.getContext());
 
     private static volatile String nullDisplayName = null;
-    private static boolean isFirstX11ActionOnProcess = false;
+    private static boolean requiresX11Lock = false;
     private static boolean isInit = false;
 
     private static int setX11ErrorHandlerRecCount = 0;
     private static Object setX11ErrorHandlerLock = new Object();
 
-    public static final boolean XINITTHREADS_ALWAYS_ENABLED = true;
     
-    public static synchronized void initSingleton(boolean firstX11ActionOnProcess) {
+    public static synchronized void initSingleton(final boolean firstX11ActionOnProcess) {
         if(!isInit) {
             NWJNILibLoader.loadNativeWindow("x11");
 
@@ -73,10 +83,14 @@ public class X11Util {
              * ie NEWT (jogamp.newt.x11.X11Display.createNativeImpl()) !!
              */
             initialize0( XINITTHREADS_ALWAYS_ENABLED ? true : firstX11ActionOnProcess );
-            isFirstX11ActionOnProcess = firstX11ActionOnProcess;
 
+            requiresX11Lock = !firstX11ActionOnProcess || MULTITHREADING_BUG;
+            
             if(DEBUG) {
-                System.out.println("X11Util.isFirstX11ActionOnProcess: "+isFirstX11ActionOnProcess);
+                System.out.println("X11Util firstX11ActionOnProcess: "+firstX11ActionOnProcess+
+                                   ", XINITTHREADS_ALWAYS_ENABLED "+XINITTHREADS_ALWAYS_ENABLED+
+                                   ", MULTITHREADING_BUG "+MULTITHREADING_BUG+
+                                   ", requiresX11Lock "+requiresX11Lock); 
             }
             isInit = true;
         }
@@ -101,19 +115,19 @@ public class X11Util {
         }
     }
 
-    public static boolean isFirstX11ActionOnProcess() {
-        return isFirstX11ActionOnProcess;
+    public static boolean requiresToolkitLock() {
+        return requiresX11Lock;
     }
 
     public static void lockDefaultToolkit(long dpyHandle) {
         NativeWindowFactory.getDefaultToolkitLock().lock();
-        if(!isFirstX11ActionOnProcess) {
+        if(requiresX11Lock) {
             X11Util.XLockDisplay(dpyHandle);
         }
     }
 
     public static void unlockDefaultToolkit(long dpyHandle) {
-        if(!isFirstX11ActionOnProcess) {
+        if(requiresX11Lock) {
             X11Util.XUnlockDisplay(dpyHandle);
         }
         NativeWindowFactory.getDefaultToolkitLock().unlock();
@@ -124,11 +138,11 @@ public class X11Util {
             synchronized(X11Util.class) {
                 if(null==nullDisplayName) {
                     NativeWindowFactory.getDefaultToolkitLock().lock();
+                    long dpy = X11Lib.XOpenDisplay(null);
                     try {
-                        long dpy = X11Lib.XOpenDisplay(null);
                         nullDisplayName = X11Lib.XDisplayString(dpy);
-                        X11Lib.XCloseDisplay(dpy);
                     } finally {
+                        X11Lib.XCloseDisplay(dpy);
                         NativeWindowFactory.getDefaultToolkitLock().unlock();
                     }
                     if(DEBUG) {

@@ -25,6 +25,8 @@
     }
   }
 
+  public static boolean requiresToolkitLock() { return false; }
+
   private static RegisteredClass dummyWindowClass = null;
   private static Object dummyWindowSync = new Object();
 

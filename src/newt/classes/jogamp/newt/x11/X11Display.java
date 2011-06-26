@@ -76,7 +76,7 @@ public class X11Display extends DisplayImpl {
             throw e;
         }
         
-        if(X11Util.XINITTHREADS_ALWAYS_ENABLED) {
+        if(X11Util.XINITTHREADS_ALWAYS_ENABLED && !X11Util.MULTITHREADING_BUG) {
             // Hack: Force non X11Display locking, even w/ AWT and w/o isFirstUIActionOnProcess() 
             aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, NativeWindowFactory.getNullToolkitLock());            
         } else {
