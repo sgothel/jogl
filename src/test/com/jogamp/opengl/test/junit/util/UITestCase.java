@@ -59,6 +59,18 @@ public abstract class UITestCase {
         }
     }
 
+    public final String getTestMethodName() {
+        return _unitTestName.getMethodName();
+    }
+    
+    public final String getSimpleTestName() {
+        return getClass().getSimpleName()+" - "+getTestMethodName();
+    }
+
+    public final String getFullTestName() {
+        return getClass().getName()+" - "+getTestMethodName();
+    }
+    
     @BeforeClass
     public static void oneTimeSetUp() {
         // one-time initialization code                
@@ -74,12 +86,12 @@ public abstract class UITestCase {
     @Before
     public void setUp() {
         initSingletonInstance();
-        System.err.println("++++ UITestCase.setUp: "+getClass().getName()+" - "+_unitTestName.getMethodName());
+        System.err.println("++++ UITestCase.setUp: "+getFullTestName());
     }
 
     @After
     public void tearDown() {
-        System.err.println("++++ UITestCase.tearDown: "+getClass().getName()+" - "+_unitTestName.getMethodName());
+        System.err.println("++++ UITestCase.tearDown: "+getFullTestName());
     }
 
 }
