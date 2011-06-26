@@ -187,14 +187,12 @@ static jmethodID displayCompletedID = NULL;
 
 static JavaVM *jvmHandle = NULL;
 static int jvmVersion = 0;
-static JNIEnv * jvmEnv = NULL;
 
 static void setupJVMVars(JNIEnv * env) {
     if(0 != (*env)->GetJavaVM(env, &jvmHandle)) {
         jvmHandle = NULL;
     }
     jvmVersion = (*env)->GetVersion(env);
-    jvmEnv = env;
 }
 
 static XErrorHandler origErrorHandler = NULL ;
@@ -208,8 +206,34 @@ static int displayDispatchErrorHandler(Display *dpy, XErrorEvent *e)
     } else if (e->error_code == BadWindow) {
         fprintf(stderr, "         BadWindow (%p): Window probably already removed\n", (void*)e->resourceid);
     } else {
-        NewtCommon_throwNewRuntimeException(jvmEnv, "NEWT X11 Error: Display %p, Code 0x%X, errno %s", 
-            dpy, e->error_code, strerror(errno));
+        JNIEnv *curEnv = NULL;
+        JNIEnv *newEnv = NULL;
+        int envRes ;
+        const char * errStr = strerror(errno);
+
+        fprintf(stderr, "Info: NEWT X11 Error: Display %p, Code 0x%X, errno %s\n", dpy, e->error_code, errStr);
+
+        // retrieve this thread's JNIEnv curEnv - or detect it's detached
+        envRes = (*jvmHandle)->GetEnv(jvmHandle, (void **) &curEnv, jvmVersion) ;
+        if( JNI_EDETACHED == envRes ) {
+            // detached thread - attach to JVM
+            if( JNI_OK != ( envRes = (*jvmHandle)->AttachCurrentThread(jvmHandle, (void**) &newEnv, NULL) ) ) {
+                fprintf(stderr, "NEWT X11 Error: can't attach thread: %d\n", envRes);
+                return;
+            }
+            curEnv = newEnv;
+        } else if( JNI_OK != envRes ) {
+            // oops ..
+            fprintf(stderr, "NEWT X11 Error: can't GetEnv: %d\n", envRes);
+            return;
+        }
+        NewtCommon_throwNewRuntimeException(curEnv, "Info: NEWT X11 Error: Display %p, Code 0x%X, errno %s", 
+                                            dpy, e->error_code, errStr);
+
+        if( NULL != newEnv ) {
+            // detached attached thread
+            (*jvmHandle)->DetachCurrentThread(jvmHandle);
+        }
     }
 
     return 0;
@@ -513,10 +537,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Display_DispatchMessages0
         char keyChar = 0;
         char text[255];
 
-        // QueuedAlready                 : No I/O Flush or system call  doesn't work on some cards (eg ATI) ?) 
-        // QueuedAfterFlush == XPending(): I/O Flush only if no already queued events are available
-        // QueuedAfterReading            : QueuedAlready + if queue==0, attempt to read more ..
-        if ( 0 >= XEventsQueued(dpy, QueuedAfterFlush) ) {
+        // XEventsQueued(dpy, X):
+        //   QueuedAlready                 : No I/O Flush or system call  doesn't work on some cards (eg ATI) ?) 
+        //   QueuedAfterFlush == XPending(): I/O Flush only if no already queued events are available
+        //   QueuedAfterReading            : QueuedAlready + if queue==0, attempt to read more ..
+        if ( 0 >= XPending(dpy) ) {
             // DBG_PRINT( "X11: DispatchMessages 0x%X - Leave 1\n", dpy); 
             return;
         }
@@ -583,8 +608,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Display_DispatchMessages0
             case ButtonPress:
                 (*env)->CallVoidMethod(env, jwindow, enqueueRequestFocusID, JNI_FALSE);
                 #ifdef USE_SENDIO_DIRECT
-                (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, 
-                                      (jint) EVENT_MOUSE_PRESSED, 
+                (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
                                       modifiers,
                                       (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
                 #else
@@ -1318,7 +1342,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_x11_X11Window_CreateWindow0
     }
 
     attrMask  = ( CWBackingStore | CWBackingPlanes | CWBackingPixel | CWBackPixmap |
-                  CWBorderPixel | CWColormap | CWOverrideRedirect ) ;
+                  CWBorderPixel | CWColormap | CWOverrideRedirect | CWEventMask ) ;
 
     memset(&xswa, 0, sizeof(xswa));
     xswa.override_redirect = False; // use the window manager, always
@@ -1327,6 +1351,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_x11_X11Window_CreateWindow0
     xswa.backing_store=NotUseful; /* NotUseful, WhenMapped, Always */
     xswa.backing_planes=0;        /* planes to be preserved if possible */
     xswa.backing_pixel=0;         /* value to use in restoring planes */
+    xswa.event_mask  = ButtonPressMask | ButtonReleaseMask | PointerMotionMask ;
+    xswa.event_mask |= KeyPressMask | KeyReleaseMask ;
+    xswa.event_mask |= FocusChangeMask | SubstructureNotifyMask | StructureNotifyMask | ExposureMask ;
 
     xswa.colormap = XCreateColormap(dpy,
                                     windowParent,
@@ -1353,18 +1380,6 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_x11_X11Window_CreateWindow0
     XSetWMProtocols(dpy, window, &wm_delete_atom, 1);
 
     setJavaWindowProperty(env, dpy, window, javaObjectAtom, (*env)->NewGlobalRef(env, obj));
-
-    // XClearWindow(dpy, window);
-    XSync(dpy, False);
-
-    {
-        long xevent_mask = 0;
-        xevent_mask |= ButtonPressMask | ButtonReleaseMask | PointerMotionMask ;
-        xevent_mask |= KeyPressMask | KeyReleaseMask ;
-        xevent_mask |= FocusChangeMask | SubstructureNotifyMask | StructureNotifyMask | ExposureMask ;
-
-        XSelectInput(dpy, window, xevent_mask);
-    }
 
     NewtWindows_setDecorations(dpy, window, ( JNI_TRUE == undecorated ) ? False : True );
     XSync(dpy, False);

@@ -156,14 +156,12 @@ static void _initClazzAccess(JNIEnv *env) {
 
 static JavaVM *jvmHandle = NULL;
 static int jvmVersion = 0;
-static JNIEnv * jvmEnv = NULL;
 
 static void setupJVMVars(JNIEnv * env) {
     if(0 != (*env)->GetJavaVM(env, &jvmHandle)) {
         jvmHandle = NULL;
     }
     jvmVersion = (*env)->GetVersion(env);
-    jvmEnv = env;
 }
 
 static XErrorHandler origErrorHandler = NULL ;
@@ -173,15 +171,35 @@ static int errorHandlerQuiet = 0 ;
 static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
 {
     if(!errorHandlerQuiet) {
-        fprintf(stderr, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s\n", dpy, e->error_code, strerror(errno));
+        JNIEnv *curEnv = NULL;
+        JNIEnv *newEnv = NULL;
+        int envRes ;
+        const char * errStr = strerror(errno);
+
+        fprintf(stderr, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s\n", dpy, e->error_code, errStr);
+
+        // retrieve this thread's JNIEnv curEnv - or detect it's detached
+        envRes = (*jvmHandle)->GetEnv(jvmHandle, (void **) &curEnv, jvmVersion) ;
+        if( JNI_EDETACHED == envRes ) {
+            // detached thread - attach to JVM
+            if( JNI_OK != ( envRes = (*jvmHandle)->AttachCurrentThread(jvmHandle, (void**) &newEnv, NULL) ) ) {
+                fprintf(stderr, "Nativewindow X11 Error: can't attach thread: %d\n", envRes);
+                return 0;
+            }
+            curEnv = newEnv;
+        } else if( JNI_OK != envRes ) {
+            // oops ..
+            fprintf(stderr, "Nativewindow X11 Error: can't GetEnv: %d\n", envRes);
+            return 0;
+        }
+        NativewindowCommon_throwNewRuntimeException(curEnv, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s", 
+                                                    dpy, e->error_code, errStr);
+
+        if( NULL != newEnv ) {
+            // detached attached thread
+            (*jvmHandle)->DetachCurrentThread(jvmHandle);
+        }
     }
-#if 0
-    // Since the X11 Error may happen anytime, a exception could mess up the JVM completely.
-    // Experienced this for remote displays issuing non supported commands, eg. glXCreateContextAttribsARB(..)
-    //
-    NativewindowCommon_throwNewRuntimeException(jvmEnv, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s", 
-        dpy, e->error_code, strerror(errno));
-#endif
 
 #if 0
     if(NULL!=origErrorHandler) {
@@ -226,8 +244,35 @@ static XIOErrorHandler origIOErrorHandler = NULL;
 
 static int x11IOErrorHandler(Display *dpy)
 {
-    fprintf(stderr, "Nativewindow X11 IOError: Display %p (%s): %s\n", dpy, XDisplayName(NULL), strerror(errno));
-    // NativewindowCommon_FatalError(jvmEnv, "Nativewindow X11 IOError: Display %p (%s): %s", dpy, XDisplayName(NULL), strerror(errno));
+    JNIEnv *curEnv = NULL;
+    JNIEnv *newEnv = NULL;
+    int envRes ;
+    const char * dpyName = XDisplayName(NULL);
+    const char * errStr = strerror(errno);
+
+    fprintf(stderr, "Nativewindow X11 IOError: Display %p (%s): %s\n", dpy, dpyName, errStr);
+
+    // retrieve this thread's JNIEnv curEnv - or detect it's detached
+    envRes = (*jvmHandle)->GetEnv(jvmHandle, (void **) &curEnv, jvmVersion) ;
+    if( JNI_EDETACHED == envRes ) {
+        // detached thread - attach to JVM
+        if( JNI_OK != ( envRes = (*jvmHandle)->AttachCurrentThread(jvmHandle, (void**) &newEnv, NULL) ) ) {
+            fprintf(stderr, "Nativewindow X11 IOError: can't attach thread: %d\n", envRes);
+            return;
+        }
+        curEnv = newEnv;
+    } else if( JNI_OK != envRes ) {
+        // oops ..
+        fprintf(stderr, "Nativewindow X11 IOError: can't GetEnv: %d\n", envRes);
+        return;
+    }
+
+    NativewindowCommon_FatalError(curEnv, "Nativewindow X11 IOError: Display %p (%s): %s", dpy, dpyName, errStr);
+
+    if( NULL != newEnv ) {
+        // detached attached thread
+        (*jvmHandle)->DetachCurrentThread(jvmHandle);
+    }
     if(NULL!=origIOErrorHandler) {
         origIOErrorHandler(dpy);
     }
