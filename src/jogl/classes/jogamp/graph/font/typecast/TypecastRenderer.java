@@ -47,7 +47,7 @@ import com.jogamp.graph.geom.Vertex.Factory;
 public class TypecastRenderer {
 
     private static void getPaths(TypecastFont font, 
-                                CharSequence string, float pixelSize, AffineTransform transform, Path2D[] p)
+            CharSequence string, float pixelSize, AffineTransform transform, Path2D[] p)
     {        
         if (string == null) {
             return;
@@ -87,13 +87,13 @@ public class TypecastRenderer {
             advanceTotal += glyph.getAdvance(pixelSize, true); 
         }
     }
-    
+
     public static ArrayList<OutlineShape> getOutlineShapes(TypecastFont font, CharSequence string, float pixelSize, AffineTransform transform, Factory<? extends Vertex> vertexFactory) {
-    	Path2D[] paths = new Path2D[string.length()];
-    	getPaths(font, string, pixelSize, transform, paths);
-    	
-    	ArrayList<OutlineShape> shapes = new ArrayList<OutlineShape>();
-    	final int numGlyps = paths.length;
+        Path2D[] paths = new Path2D[string.length()];
+        getPaths(font, string, pixelSize, transform, paths);
+
+        ArrayList<OutlineShape> shapes = new ArrayList<OutlineShape>();
+        final int numGlyps = paths.length;
         for (int index=0;index<numGlyps;index++) {
             if(paths[index] == null){
                 continue;
@@ -110,43 +110,42 @@ public class TypecastRenderer {
                 }
             }
         }
-    	return shapes;
+        return shapes;
     }
     private static void addPathVertexToOutline(OutlineShape shape, Factory<? extends Vertex> vertexFactory, float[] coords, int segmentType){
         switch(segmentType) {
-            case PathIterator.SEG_MOVETO:
-                shape.closeLastOutline();
-                shape.addEmptyOutline();
-                shape.addVertex(0, vertexFactory.create(coords, 0, 2, true));            
-                //numVertices++;
-                break;
-            case PathIterator.SEG_LINETO:
-            	shape.addVertex(0, vertexFactory.create(coords, 0, 2, true));            
-                break;
-            case PathIterator.SEG_QUADTO:
-            	shape.addVertex(0, vertexFactory.create(coords, 0, 2, false));
-            	shape.addVertex(0, vertexFactory.create(coords, 2, 2, true));            
-                break;
-            case PathIterator.SEG_CUBICTO:
-            	shape.addVertex(0, vertexFactory.create(coords, 0, 2, false));
-            	shape.addVertex(0, vertexFactory.create(coords, 2, 2, false));
-            	shape.addVertex(0, vertexFactory.create(coords, 4, 2, true));            
-                break;
-            case PathIterator.SEG_CLOSE:
-                shape.closeLastOutline();
-                break;
-            default:
-                throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);
+        case PathIterator.SEG_MOVETO:
+            shape.closeLastOutline();
+            shape.addEmptyOutline();
+            shape.addVertex(0, vertexFactory.create(coords, 0, 2, true));            
+            break;
+        case PathIterator.SEG_LINETO:
+            shape.addVertex(0, vertexFactory.create(coords, 0, 2, true));            
+            break;
+        case PathIterator.SEG_QUADTO:
+            shape.addVertex(0, vertexFactory.create(coords, 0, 2, false));
+            shape.addVertex(0, vertexFactory.create(coords, 2, 2, true));            
+            break;
+        case PathIterator.SEG_CUBICTO:
+            shape.addVertex(0, vertexFactory.create(coords, 0, 2, false));
+            shape.addVertex(0, vertexFactory.create(coords, 2, 2, false));
+            shape.addVertex(0, vertexFactory.create(coords, 4, 2, true));            
+            break;
+        case PathIterator.SEG_CLOSE:
+            shape.closeLastOutline();
+            break;
+        default:
+            throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);
         }
     }
-    
+
     /**
      * Build a {@link com.jogamp.graph.geom.Path2D Path2D} from a
      * {@link jogamp.graph.font.typecast.ot.OTGlyph Glyph}.  This glyph path can then
      * be transformed and rendered.
      */
     public static Path2D buildPath(OTGlyph glyph) {
-        
+
         if (glyph == null) {
             return null;
         }
@@ -167,7 +166,7 @@ public class TypecastRenderer {
         }
         return glyphPath;
     }
-    
+
     private static void addContourToPath(Path2D gp, OTGlyph glyph, int startIndex, int count) {
         int offset = 0;
         while (offset < count) {
@@ -178,7 +177,7 @@ public class TypecastRenderer {
             {
                 gp.moveTo(point.x, point.y);
             }
-            
+
             if (point.onCurve) {
                 if (point_plus1.onCurve) {
                     // s = new Line2D.Float(point.x, point.y, point_plus1.x, point_plus1.y);
@@ -203,7 +202,7 @@ public class TypecastRenderer {
                     //gp.curve3(point_plus1.x, point_plus1.y, point.x, point.y);
                     gp.quadTo(point.x, point.y, point_plus1.x, point_plus1.y);
                     offset++;
-                    
+
                 } else {
                     // s = new QuadCurve2D.Float(midValue(point_minus1.x, point.x), midValue(point_minus1.y, point.y), point.x, point.y,
                     //                           midValue(point.x, point_plus1.x), midValue(point.y, point_plus1.y));

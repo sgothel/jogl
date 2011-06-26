@@ -44,7 +44,7 @@ public class VectorUtil {
             this.dir = dir;
         }
     } 
-        
+
     public static final int COLLINEAR = 0;
 
     /** compute the dot product of two points
@@ -88,7 +88,7 @@ public class VectorUtil {
         newVector[2] = vector[2]*scale;
         return newVector;
     }
-    
+
     /** Adds to vectors
      * @param v1 vector 1
      * @param v2 vector 2
@@ -135,7 +135,7 @@ public class VectorUtil {
 
         return out;
     }
-    
+
     /** Matrix Vector multiplication
      * @param rawMatrix column matrix (4x4)
      * @param vec vector(x,y,z)
@@ -151,7 +151,7 @@ public class VectorUtil {
 
         return out;
     }
-    
+
     /** Calculate the midpoint of two values
      * @param p1 first value
      * @param p2 second vale
@@ -169,9 +169,9 @@ public class VectorUtil {
     public static float[] mid(float[] p1, float[] p2)
     {
         float[] midPoint = new float[3];
-        midPoint[0] = (p1[0] + p2[0])/2.0f;
-        midPoint[1] = (p1[1] + p2[1])/2.0f;
-        midPoint[2] = (p1[2] + p2[2])/2.0f;
+        midPoint[0] = (p1[0] + p2[0])*0.5f;
+        midPoint[1] = (p1[1] + p2[1])*0.5f;
+        midPoint[2] = (p1[2] + p2[2])*0.5f;
 
         return midPoint;
     }
@@ -206,8 +206,8 @@ public class VectorUtil {
     public static boolean checkEquality(float[] v1, float[] v2)
     {
         if(Float.compare(v1[0], v2[0]) == 0 &&
-           Float.compare(v1[1], v2[1]) == 0 &&
-           Float.compare(v1[2], v2[2]) == 0 )
+                Float.compare(v1[1], v2[1]) == 0 &&
+                Float.compare(v1[2], v2[2]) == 0 )
             return true;
         return false;
     }
@@ -220,7 +220,7 @@ public class VectorUtil {
     public static boolean checkEqualityVec2(float[] v1, float[] v2)
     {
         if(Float.compare(v1[0], v2[0]) == 0 && 
-           Float.compare(v1[1], v2[1]) == 0)
+                Float.compare(v1[1], v2[1]) == 0)
             return true;
         return false;
     }
@@ -288,6 +288,36 @@ public class VectorUtil {
         return (b.getX() - a.getX()) * (c.getY() - a.getY()) - (b.getY() - a.getY())*(c.getX() - a.getX());
     }
 
+    /** Check if a vertex is in triangle using 
+     * barycentric coordinates computation. 
+     * @param a first triangle vertex
+     * @param b second triangle vertex
+     * @param c third triangle vertex
+     * @param p the vertex in question
+     * @return true if p is in triangle (a, b, c), false otherwise.
+     */
+    public static boolean vertexInTriangle(float[] a, float[]  b, float[]  c, float[]  p){
+        // Compute vectors        
+        float[] ac = computeVector(a, c); //v0
+        float[] ab = computeVector(a, b); //v1
+        float[] ap = computeVector(a, p); //v2
+
+        // Compute dot products
+        float dot00 = dot(ac, ac);
+        float dot01 = dot(ac, ab);
+        float dot02 = dot(ac, ap);
+        float dot11 = dot(ab, ab);
+        float dot12 = dot(ab, ap);
+
+        // Compute barycentric coordinates
+        float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+        float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+        float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+        // Check if point is in triangle
+        return (u >= 0) && (v >= 0) && (u + v < 1);
+    }
+
     /** Check if points are in ccw order
      * @param a first vertex
      * @param b second vertex
@@ -323,7 +353,81 @@ public class VectorUtil {
         }
         return area;
     }
+
+    /** Compute the  general winding of the vertices
+     * @param vertices array of Vertices
+     * @return CCW or CW {@link Winding}
+     */
     public static Winding getWinding(ArrayList<Vertex> vertices) {
         return area(vertices) >= 0 ? Winding.CCW : Winding.CW ;
+    }
+
+
+    /** Compute intersection between two segments
+     * @param a vertex 1 of first segment
+     * @param b vertex 2 of first segment
+     * @param c vertex 1 of second segment
+     * @param d vertex 2 of second segment
+     * @return the intersection coordinates if the segments intersect, otherwise 
+     * returns null 
+     */
+    public static float[] seg2SegIntersection(Vertex a, Vertex b, Vertex c, Vertex d) {
+        float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
+
+        if (determinant == 0) 
+            return null;
+
+        float alpha = (a.getX()*b.getY()-a.getY()*b.getX());
+        float beta = (c.getX()*d.getY()-c.getY()*d.getY());
+        float xi = ((c.getX()-d.getX())*alpha-(a.getX()-b.getX())*beta)/determinant;
+        float yi = ((c.getY()-d.getY())*alpha-(a.getY()-b.getY())*beta)/determinant;
+
+        float gamma = (xi - a.getX())/(b.getX() - a.getX());
+        float gamma1 = (xi - c.getX())/(d.getX() - c.getX());
+        if(gamma <= 0 || gamma >= 1) return null;
+        if(gamma1 <= 0 || gamma1 >= 1) return null;
+
+        return new float[]{xi,yi,0};
+    }
+
+    /** Compute intersection between two lines
+     * @param a vertex 1 of first line
+     * @param b vertex 2 of first line
+     * @param c vertex 1 of second line
+     * @param d vertex 2 of second line
+     * @return the intersection coordinates if the lines intersect, otherwise 
+     * returns null 
+     */
+    public static float[] line2lineIntersection(Vertex a, Vertex b, Vertex c, Vertex d) {
+        float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
+
+        if (determinant == 0) 
+            return null;
+
+        float alpha = (a.getX()*b.getY()-a.getY()*b.getX());
+        float beta = (c.getX()*d.getY()-c.getY()*d.getY());
+        float xi = ((c.getX()-d.getX())*alpha-(a.getX()-b.getX())*beta)/determinant;
+        float yi = ((c.getY()-d.getY())*alpha-(a.getY()-b.getY())*beta)/determinant;
+
+        return new float[]{xi,yi,0};
+    }
+
+    /** Check if a segment intersects with a triangle
+     * @param a vertex 1 of the triangle
+     * @param b vertex 2 of the triangle
+     * @param c vertex 3 of the triangle
+     * @param d vertex 1 of first segment
+     * @param e vertex 2 of first segment
+     * @return true if the segment intersects at least one segment of the triangle, false otherwise
+     */
+    public static boolean tri2SegIntersection(Vertex a, Vertex b, Vertex c, Vertex d, Vertex e){
+        if(seg2SegIntersection(a, b, d, e) != null)
+            return true;
+        if(seg2SegIntersection(b, c, d, e) != null)
+            return true;
+        if(seg2SegIntersection(a, c, d, e) != null)
+            return true;
+
+        return false;
     }
 }
