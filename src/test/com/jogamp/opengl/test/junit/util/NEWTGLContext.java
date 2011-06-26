@@ -57,6 +57,7 @@ public class NEWTGLContext {
     public static WindowContext createOffscreenWindow(GLProfile glp, int width, int height, boolean debugGL) throws InterruptedException {        
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setOnscreen(false);
+        caps.setPBuffer(true);
         
         //
         // Create native windowing resources .. X11/Win/OSX

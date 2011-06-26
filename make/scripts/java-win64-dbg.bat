@@ -20,7 +20,7 @@ REM set D_ARGS="-Djogamp.debug.JNILibLoader=true" "-Djogamp.debug.NativeLibrary=
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug.Lock" "-Djogamp.debug.Lock.TraceLock"
 REM set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all"
 REM set D_ARGS="-Djogl.debug=all"
-set D_ARGS="-Djogl.debug.GLDebugMessageHandler" "-Djogl.debug.DebugGL"
+set D_ARGS="-Djogl.debug.GLDebugMessageHandler" "-Djogl.debug.DebugGL" "-Djogl.debug.TraceGL"
 REM set D_ARGS="-Djogl.debug.GLContext" "-Dnewt.debug=all"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnativewindow.debug.TraceLock"
 REM set D_ARGS="-Dnativewindow.debug.TraceLock"
