@@ -289,27 +289,36 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public final String getGLXVendorName(AbstractGraphicsDevice device) {
-    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
-    if(null!=sr) {
-      return ((SharedResource)sr).getGLXVendorName();
+    if(null != device) {
+        SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
+        if(null!=sr) {
+          return ((SharedResource)sr).getGLXVendorName();
+        }
+        return GLXUtil.getVendorName(device.getHandle());
     }
-    return GLXUtil.getVendorName(device.getHandle());
+    return null;
   }
 
   public final boolean isGLXVendorATI(AbstractGraphicsDevice device) {
-    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
-    if(null!=sr) {
-      return ((SharedResource)sr).isGLXVendorATI();
+    if(null != device) {
+        SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
+        if(null!=sr) {
+          return ((SharedResource)sr).isGLXVendorATI();
+        }
+        return GLXUtil.isVendorATI(device.getHandle());
     }
-    return GLXUtil.isVendorATI(device.getHandle());
+    return false;
   }
 
   public final boolean isGLXVendorNVIDIA(AbstractGraphicsDevice device) {
-    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
-    if(null!=sr) {
-      return ((SharedResource)sr).isGLXVendorNVIDIA();
+    if(null != device) {
+        SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
+        if(null!=sr) {
+          return ((SharedResource)sr).isGLXVendorNVIDIA();
+        }
+        return GLXUtil.isVendorNVIDIA(device.getHandle());
     }
-    return GLXUtil.isVendorNVIDIA(device.getHandle());
+    return false;
   }
 
   protected final void shutdownInstance() {
@@ -366,13 +375,15 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public final boolean isGLXVersionGreaterEqualOneThree(AbstractGraphicsDevice device) {
-    SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared(device);
-    if(null!=sr) {
-      return sr.isGLXVersionGreaterEqualOneThree();
-    }
-    if( device instanceof X11GraphicsDevice ) {
-      VersionNumber v = getGLXVersion( (X11GraphicsDevice) device);
-      return ( null != v ) ? v.compareTo(versionOneThree) >= 0 : false ;
+    if(null != device) {  
+        SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared(device);
+        if(null!=sr) {
+          return sr.isGLXVersionGreaterEqualOneThree();
+        }
+        if( device instanceof X11GraphicsDevice ) {
+          VersionNumber v = getGLXVersion( (X11GraphicsDevice) device);
+          return ( null != v ) ? v.compareTo(versionOneThree) >= 0 : false ;
+        }
     }
     return false;
   }
