@@ -83,7 +83,7 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
 
 
     private GLWindow prepareTest() {
-        if(!GLProfile.isGL3Available()) {
+        if(!GLProfile.isAvailable(GLProfile.GL3)) {
             System.err.println("GL3 not available");
             System.err.println(GLProfile.glAvailabilityToString());
             return null;
@@ -136,7 +136,7 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
 
     @Test(timeout=60000)
     public void testGlTransformFeedbackVaryings_WhenVarNameOK() {
-        if(!GLProfile.isGL3Available()) {
+        if(!GLProfile.isAvailable(GLProfile.GL3)) {
             return;
         }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -178,7 +178,7 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
 
     @Test(timeout=60000)
     public void testGlTransformFeedbackVaryings_WhenVarNameWrong() {
-        if(!GLProfile.isGL3Available()) {
+        if(!GLProfile.isAvailable(GLProfile.GL3)) {
             return;
         }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

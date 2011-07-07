@@ -165,17 +165,20 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   /** Creates a new GLCanvas component with a default set of OpenGL
       capabilities, using the default OpenGL capabilities selection
-      mechanism, on the default screen device. */
-  public GLCanvas() {
+      mechanism, on the default screen device. 
+   * @throws GLException if no default profile is available for the default desktop device.
+   */
+  public GLCanvas() throws GLException {
     this(null);
   }
 
   /** Creates a new GLCanvas component with the requested set of
       OpenGL capabilities, using the default OpenGL capabilities
       selection mechanism, on the default screen device. 
+   * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
    * @see GLCanvas#GLCanvas(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, javax.media.opengl.GLContext, java.awt.GraphicsDevice)
    */
-  public GLCanvas(GLCapabilitiesImmutable capsReqUser) {
+  public GLCanvas(GLCapabilitiesImmutable capsReqUser) throws GLException {
     this(capsReqUser, null, null, null);
   }
 
@@ -184,9 +187,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       selection mechanism, on the default screen device.
    *  This constructor variant also supports using a shared GLContext.
    *
+   * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
    * @see GLCanvas#GLCanvas(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, javax.media.opengl.GLContext, java.awt.GraphicsDevice)
    */
-  public GLCanvas(GLCapabilitiesImmutable capsReqUser, GLContext shareWith) {
+  public GLCanvas(GLCapabilitiesImmutable capsReqUser, GLContext shareWith) 
+          throws GLException 
+  {
     this(capsReqUser, null, shareWith, null);
   }
 
@@ -204,11 +210,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       sharing</a>. The passed GraphicsDevice indicates the screen on
       which to create the GLCanvas; the GLDrawableFactory uses the
       default screen device of the local GraphicsEnvironment if null
-      is passed for this argument. */
+      is passed for this argument. 
+   * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
+   */
   public GLCanvas(GLCapabilitiesImmutable capsReqUser,
                   GLCapabilitiesChooser chooser,
                   GLContext shareWith,
-                  GraphicsDevice device) {
+                  GraphicsDevice device) 
+      throws GLException 
+  {
     /*
      * Determination of the native window is made in 'super.addNotify()',
      * which creates the native peer using AWT's GraphicsConfiguration.

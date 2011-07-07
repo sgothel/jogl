@@ -79,8 +79,9 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
 
   /** Creates a GLCapabilities object. All attributes are in a default state.
     * @param glp GLProfile, or null for the default GLProfile
+    * @throws GLException if no profile is given and no default profile is available for the default device.
     */
-  public GLCapabilities(GLProfile glp) {
+  public GLCapabilities(GLProfile glp) throws GLException {
       glProfile = (null!=glp)?glp:GLProfile.getDefault(GLProfile.getDefaultDevice());
   }
 
