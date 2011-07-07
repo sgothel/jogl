@@ -83,43 +83,40 @@ public class SharedResourceRunner implements Runnable {
         this.impl = impl;
     }
 
-    public SharedResourceRunner.Resource getShared(AbstractGraphicsDevice device) {
-        String connection = device.getConnection();
-        return impl.mapGet(connection);
-    }
-
     public SharedResourceRunner.Resource getOrCreateShared(AbstractGraphicsDevice device) {
-        String connection = device.getConnection();
-        SharedResourceRunner.Resource sr = impl.mapGet(connection);
-
-        if (null == sr && !getDeviceTried(connection)) {
-            addDeviceTried(connection);
-            if (DEBUG) {
-                System.err.println("getOrCreateShared() " + connection + ": trying");
-            }
-            doAndWait(connection, null);
+        SharedResourceRunner.Resource sr = null;
+        if(null != device) {
+            String connection = device.getConnection();
             sr = impl.mapGet(connection);
-            if (DEBUG) {
-                Throwable t = new Throwable("getOrCreateSharedl() " + connection + ": done");
-                t.printStackTrace();
+            if (null == sr && !getDeviceTried(connection)) {
+                addDeviceTried(connection);
+                if (DEBUG) {
+                    System.err.println("getOrCreateShared() " + connection + ": trying");
+                }
+                doAndWait(connection, null);
+                sr = impl.mapGet(connection);
+                if (DEBUG) {
+                    System.err.println("getOrCreateShared() " + connection + ": "+ ( ( null != sr ) ? "success" : "failed" ) );               
+                }
             }
         }
         return sr;
     }
 
     public SharedResourceRunner.Resource releaseShared(AbstractGraphicsDevice device) {
-        String connection = device.getConnection();
-        SharedResourceRunner.Resource sr = impl.mapGet(connection);
-
-        if (null != sr) {
-            removeDeviceTried(connection);
-            if (DEBUG) {
-                System.err.println("releaseShared() " + connection + ": trying");
-            }
-            doAndWait(null, connection);
-            if (DEBUG) {
-                Throwable t = new Throwable("releaseSharedl() " + connection + ": done");
-                t.printStackTrace();
+        SharedResourceRunner.Resource sr = null;
+        if(null != device) {
+            String connection = device.getConnection();
+            sr = impl.mapGet(connection);    
+            if (null != sr) {
+                removeDeviceTried(connection);
+                if (DEBUG) {
+                    System.err.println("releaseShared() " + connection + ": trying");
+                }
+                doAndWait(null, connection);
+                if (DEBUG) {
+                    System.err.println("releaseShared() " + connection + ": done");
+                }
             }
         }
         return sr;
@@ -203,7 +200,12 @@ public class SharedResourceRunner implements Runnable {
                         if (DEBUG) {
                             System.err.println(threadName + " create Shared for: " + initConnection);
                         }
-                        Resource sr = impl.createSharedResource(initConnection);
+                        Resource sr = null;
+                        try {
+                            sr = impl.createSharedResource(initConnection);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                         if (null != sr) {
                             impl.mapPut(initConnection, sr);
                         }
@@ -212,10 +214,15 @@ public class SharedResourceRunner implements Runnable {
                         if (DEBUG) {
                             System.err.println(threadName + " release Shared for: " + releaseConnection);
                         }
-                        Resource sr = impl.mapPut(releaseConnection, null);
+                        Resource sr = impl.mapGet(releaseConnection);
                         if (null != sr) {
-                            impl.releaseSharedResource(sr);
-                        }
+                            try {
+                                impl.releaseSharedResource(sr);
+                                impl.mapPut(releaseConnection, null);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }                        
                     }
                 }
                 initConnection = null;
