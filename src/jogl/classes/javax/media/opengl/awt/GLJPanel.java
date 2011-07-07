@@ -197,15 +197,19 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   /** Creates a new GLJPanel component with a default set of OpenGL
       capabilities and using the default OpenGL capabilities selection
-      mechanism. */
-  public GLJPanel() {
+      mechanism. 
+   * @throws GLException if no default profile is available for the default desktop device.
+   */
+  public GLJPanel() throws GLException {
     this(null);
   }
 
   /** Creates a new GLJPanel component with the requested set of
       OpenGL capabilities, using the default OpenGL capabilities
-      selection mechanism. */
-  public GLJPanel(GLCapabilitiesImmutable userCapsRequest) {
+      selection mechanism. 
+   * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
+   */
+  public GLJPanel(GLCapabilitiesImmutable userCapsRequest) throws GLException {
     this(userCapsRequest, null, null);
   }
 
@@ -222,8 +226,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       <P>
       Note: Sharing cannot be enabled using J2D OpenGL FBO sharing,
       since J2D GL Context must be shared and we can only share one context.
+    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
   */
-  public GLJPanel(GLCapabilitiesImmutable userCapsRequest, GLCapabilitiesChooser chooser, GLContext shareWith) {
+  public GLJPanel(GLCapabilitiesImmutable userCapsRequest, GLCapabilitiesChooser chooser, GLContext shareWith) 
+          throws GLException 
+  {
     super();
 
     // Works around problems on many vendors' cards; we don't need a
@@ -233,7 +240,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         if (userCapsRequest != null) {
             caps = (GLCapabilities) userCapsRequest.cloneMutable();
         } else {
-            caps = new GLCapabilities(null);
+            caps = new GLCapabilities(GLProfile.getDefault(GLProfile.getDefaultDesktopDevice()));
         }
         caps.setDoubleBuffered(false);
         offscreenCaps = caps;
