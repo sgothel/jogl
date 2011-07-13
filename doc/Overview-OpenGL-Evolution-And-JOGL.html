@@ -1,0 +1,214 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link href="../../style.css" rel="stylesheet" type="text/css"/>
+        <title>OpenGL Evolution &amp; JOGL</title>
+    </head>
+    <body>
+        <div id="container">
+            <div id="header">
+                <div id="slogan">OpenGL &amp; JOGL</div>
+                <div id="logo"><a href="http://jogamp.org/">OpenGL &amp; JOGL</a></div>
+            </div>
+            <div id="menu">
+                <ul>
+                    <li><a href="http://jogamp.org/">Home</a></li>
+                    <li><a href="../../gluegen/www/">Gluegen</a></li>
+                    <li><a href="../../joal/www/">JOAL</a></li>
+                    <li><a href="../../jocl/www/">JOCL</a></li>
+                    <li><a href="../../jogl/www/">JOGL</a></li>
+                    <li><a href="../../demos/www/">Demos</a></li>
+                    <li><a href="../../wiki/">Wiki</a></li>
+                    <li><a href="../../deployment/jogl-next/javadoc_public/">JavaDoc</a></li>
+                    <li><a href="../../blog/">Blogs</a></li>
+                    <li><a href="../../forum.html">Forums</a></li>
+                </ul>
+            </div>
+            <div id="main">
+                <div id="text" class="fill">
+                    <h2>OpenGL Evolution &amp; JOGL</h2>
+
+                    <h3>OpenGL Evolution</h3>
+                    <hr/>
+
+<P>
+OpenGL is an application programming interface (API) giving application developers
+access to hardware accelerated 3D rendering (incl. 2D).</P>
+
+<P>
+SGI released the first OpenGL specification in January 1992. 
+Since this point OpenGL 1.x constantly evolved, first under the ARB and later under the Khronos Group.</P>
+
+<P>
+The OpenGL API was specified with the objective of maximal hardware acceleration,
+ie the API functions shall be implemented in hardware - as much as possible.
+Further more, OpenGL is considered a vendor neutral and platform agnostic API,
+ie should run anywhere, implemented by all 3D GPU manufacturer.</P>
+
+<P>
+Up until OpenGL 1.5, released in July 2003, the core API reflected the so called fixed function pipeline (FFP).
+FFP allowed a user to pass triangles, textures and attributes to the GPU.
+The attributes had to be utilized to select predefined function of rendering, 
+hence the name fixed function.</P>
+
+<P>
+Around 2000 new types of GPU hardware evolved,
+allowing custom code running on the GPU hardware, 
+instead of being restricted to the fixed function rendering code.</P>
+
+<P>
+To allow processing of such user defined algorithms on the GPU, 
+in 2002 the programmable shader pipeline (PSP) was introduced. 
+The OpenGL Shading Language (GLSL) used to write such shader programs
+became an extension to OpenGL 1.4.</P>
+
+<P>
+GLSL allows users to 
+<ul>
+ <li> write ANSI-C like shader programs</li>
+ <li> compile shader programs</li>
+ <li> upload shader programs to the GPU </li>
+</ul></P>
+
+<P>
+The shader, executed on the GPU, transform the
+triangle position and determine the pixel color.</P>
+
+<P>
+Within this process, the shader may use any form of data, 
+arrays, textures and framebuffer. 
+It reads it, computes and stores the result in the target framebuffer(s), 
+hence the name programmable.</P>
+
+<P>
+In September 2004, GLSL subsumed into the core OpenGL 2.0 API,
+hence OpenGL 2.0 supported both, FFP and PSP.</P>
+
+<P>
+The desire to utilize OpenGL on embedded devices increased
+the more 3D capabilities appeared.</P>
+
+<P>
+Around 2005 a subset of the FFP of OpenGL 1.3 
+for embedded systems was released, OpenGL ES 1.0.</P>
+
+<P>
+In March 2007 a programmable shader (PSP) only subset of OpenGL 2.0 
+for embedded systems was released.</P>
+
+<P>
+In July 2010 OpenGL 4.1 was released and it's core profile
+is fully compatible to OpenGL ES 2.0.</P>
+
+<P>
+Today, desktop and embedded GPU's implement the programmatic shader (PSP)
+based rendering.</P>
+
+<P>
+Still the fixed function subset is provided by most drivers.
+However, since the hardware itself does not implement such functionality anymore,
+it is completely implemented in software by the OpenGL driver.</P>
+
+<P>
+This leads to the conclusion it is best advised for OpenGL applications
+to avoid the FFP, but using the PSP. This allows the implementor
+to utilize application level optimization which usually cannot be reached 
+by the very generic implemented FFP in the OpenGL drivers.</P>
+ 
+                    <h3>JOGL &amp; The OpenGL Evolution</h3>
+                    <hr/>
+<P>
+Like <a href="http://jausoft.com/gl4java/">GL4Java</a>, the 1st JOGL release 1.x
+mapped OpenGL in one interface. This architecture was feasible and correct until the new OpenGL
+profiles surfaced. There was only one unique way to create an OpenGL context for all available 
+OpenGL versions.</P>
+
+<P>
+The continously developed <a href="http://jogamp.org/">JOGL 2.x</a> reflects the aforementioned OpenGL evolution
+by <a href="/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#overview_description">mapping the OpenGL profiles to interfaces</a>.
+This is essential since creating an OpenGL context for each class of OpenGL profiles
+requires it's <a href="/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#GLAPIInclusionCriteria">specific initialisation</a>.<br>
+Some OpenGL profiles like 
+    <a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GLES2.html">GLES2</a>
+for embedded may not be available on desktop machines.</P>
+
+<P>
+Fixed Function (FFP) Only Profiles:
+<ul>
+    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GLES1.html">GLES1</a></li>
+</ul></P>
+
+<P>
+Programmable Shader (PSP) Only Profiles:
+<ul>
+    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GLES2.html">GLES2</a></li>
+    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL3.html">GL3</a></li>
+    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL4.html">GL4</a></li>
+</ul></P>
+
+<P>
+FFP &amp; PSP Profiles:
+<ul>
+    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL2.html">GL2</a></li>
+    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL3bc.html">GL3bc</a></li>
+    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL4bc.html">GL4bc</a></li>
+</ul></P>
+
+<P>
+The following UML diagram show that JOGL also adds common subsets of OpenGL profiles
+to allow easy development of multiple target profiles.</P>
+
+<P>
+Common OpenGL Profile Subsets:
+<ul>
+    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL.html">GL</a></li>
+    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL2ES1.html">GL2ES1</a></li>
+    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL2ES2.html">GL2ES2</a></li>
+    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL2GL3.html">GL2GL3</a></li>
+</ul></P>
+
+<br>
+For example using the common interface 
+<a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL2ES2.html">GL2ES2</a>
+of <a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL2.html">GL2</a>
+and <a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GLES2.html">GLES2</a>,
+ensures the code complies with the GL2 and GLES2 profile and an implementation may use both:</P>
+<pre>
+    void renderSomethingForGL2(GL2 gl, int program) {
+        renderSomethingForGL2AndGLES2(gl, program);
+    }
+
+    void renderSomethingForGLES2(GLES2 gl, int program) {
+        renderSomethingForGL2AndGLES2(gl, program);
+    }
+
+    void renderSomethingForGL2AndGLES2(GL2ES2 gl, int program) {
+        gl.glValidateProgram(program);
+        ...
+
+    }
+</pre>
+
+<embed src="bouml/html-svg/fig128069.svg" width="1024" height="600"/>
+
+                    <h3>References</h3>
+<ul>
+    <li><a href="http://en.wikipedia.org/wiki/OpenGL">OpenGL on Wikipedia</a></li>
+    <li><a href="http://en.wikipedia.org/wiki/OpenGL_ES">OpenGL ES on Wikipedia</a></li>
+    <li><a href="http://en.wikipedia.org/wiki/GLSL">GLSL on Wikipedia</a></li>
+    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#overview_description">JOGL API Overview</a></li>
+</ul>
+                </div>
+            </div>
+            <div id="footer">
+                <div id="footer_left">
+                    <span>JogAmp.org</span>
+                    by <a href="http://jogamp.org">http://jogamp.org</a>
+                    is licensed under a <br/>
+                    <a href="http://creativecommons.org/licenses/by/3.0/us/">Creative Commons Attribution 3.0 License</a>.
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
