@@ -45,6 +45,7 @@ import com.jogamp.gluegen.JavaMethodBindingEmitter;
 import com.jogamp.gluegen.MethodBinding;
 import com.jogamp.gluegen.cgram.types.Type;
 import com.jogamp.gluegen.procaddress.ProcAddressJavaMethodBindingEmitter;
+
 import java.io.PrintWriter;
 
 /** A specialization of the proc address emitter which knows how to

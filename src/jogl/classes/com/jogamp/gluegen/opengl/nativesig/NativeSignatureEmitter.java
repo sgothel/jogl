@@ -46,6 +46,7 @@ import com.jogamp.gluegen.MethodBinding;
 import com.jogamp.gluegen.cgram.types.FunctionSymbol;
 import com.jogamp.gluegen.opengl.GLEmitter;
 import com.jogamp.gluegen.opengl.GLJavaMethodBindingEmitter;
+
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;

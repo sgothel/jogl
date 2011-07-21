@@ -38,6 +38,8 @@ import java.util.*;
 
 import com.jogamp.common.util.*;
 import com.jogamp.common.jvm.JVMUtil;
+import com.jogamp.common.os.Platform;
+
 import jogamp.nativewindow.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -73,9 +75,7 @@ public abstract class NativeWindowFactory {
     private static Map/*<Class, NativeWindowFactory>*/ registeredFactories;
     private static Class nativeWindowClass;
     private static String nativeWindowingTypePure;
-    private static String nativeOSNamePure;
     private static String nativeWindowingTypeCustom;
-    private static String nativeOSNameCustom;
     private static boolean isAWTAvailable;
     public static final String AWTComponentClassName = "java.awt.Component" ;
     public static final String JAWTUtilClassName = "jogamp.nativewindow.jawt.JAWTUtil" ;
@@ -98,17 +98,22 @@ public abstract class NativeWindowFactory {
     protected NativeWindowFactory() {
     }
 
-    private static String _getNativeWindowingType(String osNameLowerCase) {
-        if (osNameLowerCase.startsWith("kd")) {
-              return TYPE_EGL;
-        } else if (osNameLowerCase.startsWith("wind")) {
-              return TYPE_WINDOWS;
-        } else if (osNameLowerCase.startsWith("mac os x") ||
-                   osNameLowerCase.startsWith("darwin")) {
+    private static String _getNativeWindowingType() {
+        switch(Platform.OS_TYPE) {
+            case ANDROID:
+              throw new RuntimeException(Platform.OS_TYPE+" n/a yet");
+            case MACOS:
               return TYPE_MACOSX;
-        } else if (osNameLowerCase.equals("awt")) {
-              return TYPE_AWT;
-        } else {
+            case WINDOWS:
+              return TYPE_WINDOWS;                
+            case OPENKODE:
+              return TYPE_EGL;
+                
+            case LINUX:
+            case FREEBSD:
+            case SUNOS:
+            case HPUX:
+            default:
               return TYPE_X11;
         }
     }
@@ -170,14 +175,12 @@ public abstract class NativeWindowFactory {
 
             // Gather the windowing OS first
             AccessControlContext acc = AccessController.getContext();
-            nativeOSNamePure = Debug.getProperty("os.name", false, acc);
-            nativeWindowingTypePure = _getNativeWindowingType(nativeOSNamePure.toLowerCase());
-            nativeOSNameCustom = Debug.getProperty("nativewindow.ws.name", true, acc);
-            if(null==nativeOSNameCustom||nativeOSNameCustom.length()==0) {
-                nativeOSNameCustom = nativeOSNamePure;
+            nativeWindowingTypePure = _getNativeWindowingType();
+            String tmp = Debug.getProperty("nativewindow.ws.name", true, acc);
+            if(null==tmp || tmp.length()==0) {
                 nativeWindowingTypeCustom = nativeWindowingTypePure;
             } else {
-                nativeWindowingTypeCustom = nativeOSNameCustom;
+                nativeWindowingTypeCustom = tmp;
             }
 
             final ClassLoader cl = NativeWindowFactory.class.getClassLoader();
@@ -265,14 +268,6 @@ public abstract class NativeWindowFactory {
     
     /** @return true if not headless, AWT Component and NativeWindow's AWT part available */
     public static boolean isAWTAvailable() { return isAWTAvailable; }
-
-    /**
-     * @param useCustom if false return the native value, if true return a custom value if set, otherwise fallback to the native value.
-     * @return the native OS name
-     */
-    public static String getNativeOSName(boolean useCustom) {
-        return useCustom?nativeOSNameCustom:nativeOSNamePure;
-    }
 
     /**
      * @param useCustom if false return the native value, if true return a custom value if set, otherwise fallback to the native value.

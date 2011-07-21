@@ -47,6 +47,7 @@ import com.jogamp.gluegen.cgram.types.Type;
 import com.jogamp.gluegen.opengl.GLEmitter;
 import com.jogamp.gluegen.opengl.GLJavaMethodBindingEmitter;
 import com.jogamp.gluegen.procaddress.ProcAddressJavaMethodBindingEmitter;
+
 import java.io.PrintWriter;
 
 public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBindingEmitter {

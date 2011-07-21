@@ -52,6 +52,7 @@ import com.jogamp.gluegen.cgram.types.FunctionSymbol;
 import com.jogamp.gluegen.procaddress.ProcAddressEmitter;
 import com.jogamp.gluegen.procaddress.ProcAddressJavaMethodBindingEmitter;
 import com.jogamp.gluegen.runtime.opengl.GLExtensionNames;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;

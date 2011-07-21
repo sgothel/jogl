@@ -32,6 +32,7 @@
 
 package jogamp.nativewindow;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.*;
 import java.lang.reflect.*;
 
@@ -73,21 +74,21 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
     private NativeWindow getAWTNativeWindow(Object winObj, AbstractGraphicsConfiguration config) {
         if (nativeWindowConstructor == null) {
             try {
-                String osType = getNativeWindowType(true);
+                String windowingType = getNativeWindowType(true);
                 String windowClassName = null;
 
                 // We break compile-time dependencies on the AWT here to
                 // make it easier to run this code on mobile devices
 
-                if (osType.equals(TYPE_WINDOWS)) {
+                if (windowingType.equals(TYPE_WINDOWS)) {
                     windowClassName = "jogamp.nativewindow.jawt.windows.WindowsJAWTWindow";
-                } else if (osType.equals(TYPE_MACOSX)) {
+                } else if (windowingType.equals(TYPE_MACOSX)) {
                     windowClassName = "jogamp.nativewindow.jawt.macosx.MacOSXJAWTWindow";
-                } else if (osType.equals(TYPE_X11)) {
+                } else if (windowingType.equals(TYPE_X11)) {
                     // Assume Linux, Solaris, etc. Should probably test for these explicitly.
                     windowClassName = "jogamp.nativewindow.jawt.x11.X11JAWTWindow";
                 } else {
-                    throw new IllegalArgumentException("OS " + getNativeOSName(false) + " not yet supported");
+                    throw new IllegalArgumentException("OS " + Platform.getOS() + " not yet supported");
                 }
 
                 nativeWindowConstructor = ReflectionUtil.getConstructor(
