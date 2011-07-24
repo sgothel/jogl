@@ -1,4 +1,4 @@
-package jogamp.opengl.swt;
+package jogamp.opengl.swt.legacy;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.ProxySurface;

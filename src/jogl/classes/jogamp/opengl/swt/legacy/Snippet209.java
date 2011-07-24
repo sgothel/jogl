@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package jogamp.opengl.swt;
+package jogamp.opengl.swt.legacy;
 
 /*
  * SWT OpenGL snippet: use JOGL to draw to an SWT GLCanvas
