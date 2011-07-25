@@ -70,14 +70,16 @@ public class Snippet209 {
 
 		final jogamp.opengl.swt.legacy.GLCanvas canvas = new GLCanvas(comp,
 				SWT.NONE, null);
+//		final org.eclipse.swt.opengl.GLCanvas canvas = new org.eclipse.swt.opengl.GLCanvas(comp,
+//				SWT.NONE, null);
 
-		canvas.getContext().makeCurrent();
+		canvas.setCurrent();
 
 		canvas.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
 				Rectangle bounds = canvas.getBounds();
 				float fAspect = (float) bounds.width / (float) bounds.height;
-				canvas.getContext().makeCurrent();
+				canvas.setCurrent();
 				GL2 gl = canvas.getContext().getGL().getGL2();
 				gl.glViewport(0, 0, bounds.width, bounds.height);
 				gl.glMatrixMode(GL2.GL_PROJECTION);
@@ -90,7 +92,7 @@ public class Snippet209 {
 			}
 		});
 
-		canvas.getContext().makeCurrent();
+		canvas.setCurrent();
 
 		GL2 gl = canvas.getContext().getGL().getGL2();
 		gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -110,7 +112,7 @@ public class Snippet209 {
 
 			public void run() {
 				if (!canvas.isDisposed()) {
-					canvas.getContext().makeCurrent();
+					canvas.setCurrent();
 					GL2 gl = canvas.getContext().getGL().getGL2();
 					gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 					gl.glClearColor(.3f, .5f, .8f, 1.0f);
