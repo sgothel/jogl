@@ -61,7 +61,7 @@ public class GLCanvas extends Canvas implements SWTGLAutoDrawable,
 	};
 
 	private RecursiveLock drawableSync = new RecursiveLock();
-
+	
 	public GLCanvas(Composite parent, int style,
 			GLCapabilitiesImmutable capsReqUser, GLContext shareWith)
 			throws GLException {
@@ -156,7 +156,7 @@ public class GLCanvas extends Canvas implements SWTGLAutoDrawable,
 		// check if drawable is realized
 		// check if we are in the correct thread
 		// check for reshape request
-		// drawableHelper.display(this);
+		 drawableHelper.display(this);
 	}
 
 	@Override

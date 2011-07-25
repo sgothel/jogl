@@ -60,23 +60,24 @@ public class Snippet209 {
 		}
 	}
 
-	public static void main(String [] args) {
-		GLProfile.initSingleton( true );
+	public static void main(String[] args) {
+		GLProfile.initSingleton(true);
 		final Display display = new Display();
 		Shell shell = new Shell(display);
 		shell.setLayout(new FillLayout());
 		Composite comp = new Composite(shell, SWT.NONE);
 		comp.setLayout(new FillLayout());
 
-		final GLCanvas canvas = new GLCanvas(comp, SWT.NONE, GLProfile.get(GLProfile.GL2));
+		final jogamp.opengl.swt.legacy.GLCanvas canvas = new GLCanvas(comp,
+				SWT.NONE, null);
 
-		canvas.makeCurrent();
+		canvas.getContext().makeCurrent();
 
 		canvas.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
 				Rectangle bounds = canvas.getBounds();
 				float fAspect = (float) bounds.width / (float) bounds.height;
-				canvas.makeCurrent();
+				canvas.getContext().makeCurrent();
 				GL2 gl = canvas.getContext().getGL().getGL2();
 				gl.glViewport(0, 0, bounds.width, bounds.height);
 				gl.glMatrixMode(GL2.GL_PROJECTION);
@@ -85,12 +86,12 @@ public class Snippet209 {
 				glu.gluPerspective(45.0f, fAspect, 0.5f, 400.0f);
 				gl.glMatrixMode(GL2.GL_MODELVIEW);
 				gl.glLoadIdentity();
-				canvas.releaseContext();
+				canvas.getContext().release();
 			}
 		});
 
-		canvas.makeCurrent();
-		
+		canvas.getContext().makeCurrent();
+
 		GL2 gl = canvas.getContext().getGL().getGL2();
 		gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		gl.glColor3f(1.0f, 0.0f, 0.0f);
@@ -98,7 +99,7 @@ public class Snippet209 {
 		gl.glClearDepth(1.0);
 		gl.glLineWidth(2);
 		gl.glEnable(GL.GL_DEPTH_TEST);
-		canvas.releaseContext();
+		canvas.getContext().release();
 
 		shell.setText("SWT/JOGL Example");
 		shell.setSize(640, 480);
@@ -106,9 +107,10 @@ public class Snippet209 {
 
 		display.asyncExec(new Runnable() {
 			int rot = 0;
+
 			public void run() {
 				if (!canvas.isDisposed()) {
-					canvas.makeCurrent();
+					canvas.getContext().makeCurrent();
 					GL2 gl = canvas.getContext().getGL().getGL2();
 					gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 					gl.glClearColor(.3f, .5f, .8f, 1.0f);
@@ -120,9 +122,10 @@ public class Snippet209 {
 					rot++;
 					gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_LINE);
 					gl.glColor3f(0.9f, 0.9f, 0.9f);
-					drawTorus(gl, 1, 1.9f + ((float) Math.sin((0.004f * frot))), 15, 15);
+					drawTorus(gl, 1,
+							1.9f + ((float) Math.sin((0.004f * frot))), 15, 15);
 					canvas.swapBuffers();
-					canvas.releaseContext();
+					canvas.getContext().release();
 					display.asyncExec(this);
 					try {
 						Thread.sleep(50);
