@@ -4,7 +4,7 @@ import org.eclipse.swt.opengl.GLData;
 import org.eclipse.swt.widgets.Composite;
 
 public class GLCanvas extends jogamp.opengl.swt.GLCanvas implements
-		LegacySWTGLCanvasInterface {
+		SWTGLCanvasInterface {
 
 	public GLCanvas(Composite parent, int style, GLData data) {
 		super(parent, style, null, null);

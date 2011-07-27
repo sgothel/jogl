@@ -2,7 +2,7 @@ package jogamp.opengl.swt.legacy;
 
 import org.eclipse.swt.opengl.GLData;
 
-public interface LegacySWTGLCanvasInterface {
+public interface SWTGLCanvasInterface {
 
 	GLData getGLData();
 	
