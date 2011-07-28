@@ -127,6 +127,9 @@
         <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt-debug.jar">
           <istrue value="${isLinuxX86}" />
         </condition>
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt-debug.jar">
+          <istrue value="${isLinuxARMv7}" /> <!-- FIXME JAU .. hack -->
+        </condition>
         <condition property="swt.jar" value="${project.root}/make/lib/swt/cocoa-macosx-x86_64/swt-debug.jar">
           <and>
             <istrue value="${isOSX}" />
