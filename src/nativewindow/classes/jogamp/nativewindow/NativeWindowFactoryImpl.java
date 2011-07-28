@@ -88,7 +88,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
                     // Assume Linux, Solaris, etc. Should probably test for these explicitly.
                     windowClassName = "jogamp.nativewindow.jawt.x11.X11JAWTWindow";
                 } else {
-                    throw new IllegalArgumentException("OS " + Platform.getOS() + " not yet supported");
+                    throw new IllegalArgumentException("OS " + Platform.getOSName() + " not yet supported");
                 }
 
                 nativeWindowConstructor = ReflectionUtil.getConstructor(
