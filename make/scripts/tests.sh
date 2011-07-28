@@ -128,7 +128,7 @@ function testawtmt() {
 #testnoawt com.jogamp.nativewindow.NativeWindowVersion $*
 #testnoawt com.jogamp.opengl.JoglVersion $*
 #testnoawt com.jogamp.newt.NewtVersion $*
-#testnoawt com.jogamp.newt.opengl.GLWindow $*
+testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
@@ -212,7 +212,7 @@ function testawtmt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLSimple01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01 $*
 
 #testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
