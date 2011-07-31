@@ -70,7 +70,7 @@ void main (void)
         GRAPHP vec2 dtx = dFdx(rtex);
         GRAPHP vec2 dty = dFdy(rtex);
           
-		GRAPHP float w = gcu_Weight;
+        GRAPHP float w = gcu_Weight;
         GRAPHP float pd = ((2.0 - (2.0*w))*rtex.x*rtex.x) + 2.0*(w-1.0)*rtex.x + 1.0;
         GRAPHP float position = rtex.y - ((w*rtex.x*(1.0 - rtex.x))/pd);
 
@@ -80,7 +80,7 @@ void main (void)
         GRAPHP vec2 f = vec2((dtx.y - (w*dtx.x*(1.0 - 2.0*rtex.x))/gd), (dty.y - (w*dty.x*(1.0 - 2.0*rtex.x))/gd));
 
         GRAPHP float d = position/(length(f));
-		GRAPHP float a = (0.5 - d * sign(gcv_TexCoord.y));  
+        GRAPHP float a = (0.5 - d * sign(gcv_TexCoord.y));  
         if (a >= 1.0) {
             alpha = gcu_Alpha;
         }  else if (a <= 0.0) {
