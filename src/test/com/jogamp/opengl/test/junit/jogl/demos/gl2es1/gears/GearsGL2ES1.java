@@ -54,7 +54,7 @@ public class GearsGL2ES1 implements GLEventListener {
     // drawable.setGL(new DebugGL(drawable.getGL()));
 
     GL _gl = drawable.getGL();
-    GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl, true);
+    GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl/*, true*/);
     
     System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
     System.err.println("INIT GL IS: " + gl.getClass().getName());
