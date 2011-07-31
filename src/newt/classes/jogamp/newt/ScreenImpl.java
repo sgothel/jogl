@@ -432,8 +432,19 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 IntIntHashMap screenModesIdx2NativeIdx = new IntIntHashMap();
 
                 ArrayHashSet screenModes = collectNativeScreenModes(screenModesIdx2NativeIdx);
+                if(screenModes.size()==0) {
+                    ScreenMode sm0 = ( DEBUG_TEST_SCREENMODE_DISABLED ) ? null : getCurrentScreenModeImpl();
+                    if(null != sm0) {
+                        if(DEBUG) {
+                            System.err.println("ScreenImpl.initScreenModeStatus: added current (last resort, collect failed): "+sm0);
+                        }
+                        screenModes.getOrAdd(sm0);
+                    } else if(DEBUG) {
+                        System.err.println("ScreenImpl.initScreenModeStatus: Warning: No screen modes added!");
+                    }
+                }
                 sms = new ScreenModeStatus(screenModes, screenModesIdx2NativeIdx);
-                if(null!=screenModes && screenModes.size()>0) {
+                if(screenModes.size()>0) {
                     ScreenMode originalScreenMode = ( DEBUG_TEST_SCREENMODE_DISABLED ) ? null : getCurrentScreenModeImpl();
                     if(null != originalScreenMode) {
                         ScreenMode originalScreenMode0 = (ScreenMode) screenModes.get(originalScreenMode); // unify via value hash
