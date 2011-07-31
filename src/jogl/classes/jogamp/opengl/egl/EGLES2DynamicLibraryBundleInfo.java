@@ -55,11 +55,6 @@ public class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo 
         glesLibNames.add("libGLES20"); 
         glesLibNames.add("libGLESv2");
         glesLibNames.add("libGLESv2_CM");
-        // last but not least, we may even use the desktop GL library,
-        // which would be eg Mesa + Gallium EGL ..
-        glesLibNames.add("libGL.so.1");
-        glesLibNames.add("libGL.so");
-        glesLibNames.add("GL");
 
         libNames.add(glesLibNames);
         libNames.add(getEGLLibNamesList());

@@ -37,6 +37,7 @@ package jogamp.opengl.egl;
 
 import javax.media.opengl.*;
 import jogamp.opengl.*;
+
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import java.nio.*;
@@ -170,8 +171,8 @@ public abstract class EGLContext extends GLContextImpl {
         }
         contextHandle = EGL.eglCreateContext(eglDisplay, eglConfig, shareWith, contextAttrs, 0);
         if (contextHandle == 0) {
-            throw new GLException("Error creating OpenGL context: eglDisplay 0x"+Long.toHexString(eglDisplay)+
-                                  ", "+glProfile+", error 0x"+Integer.toHexString(EGL.eglGetError()));
+            throw new GLException("Error creating OpenGL context: eglDisplay "+toHexString(eglDisplay)+
+                                  ", eglConfig "+toHexString(eglConfig)+", "+glProfile+", error "+toHexString(EGL.eglGetError()));
         }
         GLContextShareSet.contextCreated(this);
         if (DEBUG) {
@@ -189,7 +190,15 @@ public abstract class EGLContext extends GLContextImpl {
             throw new GLException("Error making context 0x" +
                                   Long.toHexString(contextHandle) + " current: error code " + EGL.eglGetError());
         }
-        setGLFunctionAvailability(true, glProfile.usesNativeGLES2()?2:1, 0, CTX_PROFILE_ES|CTX_OPTION_ANY);
+        int ctp = CTX_PROFILE_ES|CTX_OPTION_ANY;
+        int major;
+        if(glProfile.usesNativeGLES2()) {
+            ctp |= CTX_PROFILE_ES2_COMPAT;
+            major = 2;
+        } else {            
+            major = 1;
+        }
+        setGLFunctionAvailability(true, major, 0, ctp);
         return true;
     }
 

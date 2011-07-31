@@ -49,7 +49,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
-  
     private static final GLDynamicLookupHelper eglES1DynamicLookupHelper;
     private static final GLDynamicLookupHelper eglES2DynamicLookupHelper;
 
@@ -121,10 +120,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
-      if(device instanceof EGLGraphicsDevice) {
-          return true;
-      }
-      return false;
+      return true; // via mappings (X11/WGL/.. -> EGL) we shall be able to handle all types.
     }
 
     private SharedResource getOrCreateShared(AbstractGraphicsDevice device) {
