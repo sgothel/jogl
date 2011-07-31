@@ -35,9 +35,9 @@ import javax.media.opengl.GLProfile;
 import java.util.Comparator;
 
 public class X11GLCapabilities extends GLCapabilities {
-  XVisualInfo xVisualInfo; // maybe null if !onscreen
-  long fbcfg;
-  int  fbcfgid;
+  final XVisualInfo xVisualInfo; // maybe null if !onscreen
+  final long fbcfg;
+  final int  fbcfgid;
 
   /** Comparing xvisual id only */
   public static class XVisualIDComparator implements Comparator {

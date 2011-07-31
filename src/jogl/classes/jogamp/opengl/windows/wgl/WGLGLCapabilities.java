@@ -38,8 +38,8 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 public class WGLGLCapabilities extends GLCapabilities {
-  PIXELFORMATDESCRIPTOR pfd;
-  int pfdID;
+  final PIXELFORMATDESCRIPTOR pfd;
+  final int pfdID;
   int arb_pixelformat; // -1 PFD, 0 NOP, 1 ARB
 
   /** Comparing pfd id only */
