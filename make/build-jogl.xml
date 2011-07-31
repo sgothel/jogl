@@ -1288,6 +1288,8 @@
         </patternset>
 
         <patternset id="c.src.files.jogl.es2">
+          <include name="${rootrel.src.c}/JoglCommon.c"/>
+          <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
           <include name="${rootrel.src.c.openmax}/com_jogamp_openmax_OMXInstance.c"  if="useOpenMAX"/>
@@ -1298,6 +1300,8 @@
         </patternset>
 
         <patternset id="c.src.files.jogl.es1">
+          <include name="${rootrel.src.c}/JoglCommon.c"/>
+          <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
           <include name="${rootrel.src.c.openmax}/com_jogamp_openmax_OMXInstance.c"  if="useOpenMAX"/>
