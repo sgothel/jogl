@@ -101,6 +101,8 @@ public class JoglVersion extends JogampVersion {
         sb.append(Platform.getNewline());
         sb.append("              ").append(ctx.getPlatformExtensionsString());
         sb.append(Platform.getNewline());
+        sb.append("GLSL          ").append(gl.hasGLSL()).append(", shader-compiler: ").append(gl.isFunctionAvailable("glCompileShader"));
+        sb.append(Platform.getNewline());
         sb.append(VersionUtil.SEPERATOR);
 
         return sb;
