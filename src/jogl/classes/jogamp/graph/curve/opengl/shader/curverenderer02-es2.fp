@@ -2,5 +2,8 @@
 
 #version 100
 
+// we require dFdx/dFdy
+#extension OES_standard_derivatives : require
+
 #include curverenderer02-xxx.fp
 
