@@ -134,7 +134,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     }
 
     public static EGLGLCapabilities EGLConfig2Capabilities(GLProfile glp, long display, long config,
-                                                                 boolean relaxed, boolean onscreen, boolean usePBuffer) {
+                                                           boolean relaxed, boolean onscreen, boolean usePBuffer) {
         ArrayList bucket = new ArrayList();
         final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
         if( EGLConfig2Capabilities(bucket, glp, display, config, winattrmask) ) {
@@ -165,9 +165,24 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
             }
             return false;
         }
-        GLCapabilities caps = new EGLGLCapabilities(config, val[0], glp);
-
-        // Read the actual configuration into the choosen caps
+        
+        if(!EGL.eglGetConfigAttrib(display, config, EGL.EGL_RENDERABLE_TYPE, val, 0)) {
+            if(DEBUG) {
+                System.err.println("EGL couldn't retrieve EGL_RENDERABLE_TYPE for config "+toHexString(config)+", error "+toHexString(EGL.eglGetError()));
+            }
+            return false;
+        }
+        EGLGLCapabilities caps = null;        
+        try {
+            caps = new EGLGLCapabilities(config, val[0], glp, val[0]);
+        } catch (GLException gle) {
+            if(DEBUG) {
+                System.err.println("config "+toHexString(config)+": "+gle);
+            }
+            return false;
+        }
+        
+        // Read the actual configuration into the chosen caps
         if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_RED_SIZE, val, 0)) {
             caps.setRedBits(val[0]);
         }

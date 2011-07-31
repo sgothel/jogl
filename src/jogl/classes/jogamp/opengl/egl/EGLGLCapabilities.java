@@ -34,8 +34,9 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 public class EGLGLCapabilities extends GLCapabilities {
-  long eglcfg;
-  int  eglcfgid;
+  final long eglcfg;
+  final int  eglcfgid;
+  final int renderableType;  
 
   /** Comparing EGLConfig ID only */
   public static class EglCfgIDComparator implements Comparator {
@@ -65,10 +66,24 @@ public class EGLGLCapabilities extends GLCapabilities {
       }
   }
 
-  public EGLGLCapabilities(long eglcfg, int eglcfgid, GLProfile glp) {
-      super(glp);
+  /**
+   * 
+   * @param eglcfg
+   * @param eglcfgid
+   * @param glp desired GLProfile, or null if determined by renderableType
+   * @param renderableType actual EGL renderableType
+   * 
+   * May throw GLException if given GLProfile is not compatible w/ renderableType
+   */
+  public EGLGLCapabilities(long eglcfg, int eglcfgid, GLProfile glp, int renderableType) {
+      super( ( null != glp ) ? glp : getCompatible(renderableType) );
       this.eglcfg = eglcfg;
       this.eglcfgid = eglcfgid;
+      if(!isCompatible(glp, renderableType)) {
+          throw new GLException("Incompatible "+glp+
+                                " with EGL-RenderableType["+renderableTypeToString(null, renderableType)+"]");
+      }
+      this.renderableType = renderableType;
   }
 
   public Object cloneMutable() {
@@ -85,12 +100,66 @@ public class EGLGLCapabilities extends GLCapabilities {
 
   final public long getEGLConfig() { return eglcfg; }
   final public int getEGLConfigID() { return eglcfgid; }
+  final public int getRenderableType() { return renderableType; }
+  
+  public static boolean isCompatible(GLProfile glp, int renderableType) {
+    if(null == glp) {
+        return true;
+    }
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT) && glp.usesNativeGLES1()) {
+        return true;
+    }
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT) && glp.usesNativeGLES2()) {
+        return true;
+    }
+    if(0 != (renderableType & EGL.EGL_OPENGL_BIT) && !glp.usesNativeGLES()) {
+        return true;
+    }
+    return false;
+  }
+
+  public static GLProfile getCompatible(int renderableType) {
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT) && GLProfile.isAvailable(GLProfile.GLES2)) {
+        return GLProfile.get(GLProfile.GLES2);
+    }
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT) && GLProfile.isAvailable(GLProfile.GLES1)) {
+        return GLProfile.get(GLProfile.GLES1);
+    }
+    if(0 != (renderableType & EGL.EGL_OPENGL_BIT)) {
+        return GLProfile.getDefault();
+    }
+    return null;
+  }
+  
+  public static StringBuffer renderableTypeToString(StringBuffer sink, int renderableType) {
+    if(null == sink) {
+        sink = new StringBuffer();
+    }
+    boolean first=true;
+    if(0 != (renderableType & EGL.EGL_OPENGL_BIT)) {
+        sink.append("GL"); first=false;
+    }
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT)) {
+        if(!first) sink.append(", "); sink.append("GLES1");  first=false;
+    }
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT)) {
+        if(!first) sink.append(", "); sink.append("GLES2");  first=false;
+    }
+    if(0 != (renderableType & EGL.EGL_OPENVG_API)) {
+        if(!first) sink.append(", "); sink.append("VG");  first=false;
+    }
+    return sink;      
+  }
   
   public StringBuffer toString(StringBuffer sink) {
     if(null == sink) {
         sink = new StringBuffer();
     }
+    sink.append("0x").append(Long.toHexString(eglcfg)).append(", ");
     sink.append("0x").append(Long.toHexString(eglcfgid)).append(": ");
-    return super.toString(sink);
+    super.toString(sink);
+    sink.append(", [");
+    renderableTypeToString(sink, renderableType);
+    return sink.append("]");
   }
 }
