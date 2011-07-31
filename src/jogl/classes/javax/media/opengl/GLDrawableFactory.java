@@ -312,16 +312,15 @@ public abstract class GLDrawableFactory {
 
   protected static GLDrawableFactory getFactoryImpl(String glProfileImplName) throws GLException {
     if ( GLProfile.usesNativeGLES(glProfileImplName) ) {
-        if(null==eglFactory) throw new GLException("EGLDrawableFactory unavailable: "+glProfileImplName);
+        if(null==eglFactory) {
+            throw new GLException("No EGLDrawableFactory available for profile: "+glProfileImplName);
+        }
         return eglFactory;
     }
-    if(null!=nativeOSFactory) {
-        return nativeOSFactory;
+    if(null==nativeOSFactory) {
+        throw new GLException("No native platform GLDrawableFactory available for profile: "+glProfileImplName);
     }
-    if(null!=eglFactory) {
-        return eglFactory;
-    }
-    throw new GLException("No native platform GLDrawableFactory, nor EGLDrawableFactory available: "+glProfileImplName);
+    return nativeOSFactory;
   }
 
   protected static GLDrawableFactory getFactoryImpl(AbstractGraphicsDevice device) throws GLException {
