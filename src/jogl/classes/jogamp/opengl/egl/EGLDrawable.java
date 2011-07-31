@@ -84,16 +84,16 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         }
 
         if(DEBUG) {
-            System.err.println("createSurface using eglDisplay 0x"+Long.toHexString(eglDisplay)+", "+eglConfig);
+            System.err.println("createSurface using eglDisplay "+toHexString(eglDisplay)+", "+eglConfig);
         }
 
         eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig(), surface.getSurfaceHandle());
         if (EGL.EGL_NO_SURFACE==eglSurface) {
-            throw new GLException("Creation of window surface failed: "+eglConfig+", error 0x"+Integer.toHexString(EGL.eglGetError()));
+            throw new GLException("Creation of window surface failed: "+eglConfig+", error "+toHexString(EGL.eglGetError()));
         }
 
         if(DEBUG) {
-            System.err.println("setSurface using component: handle 0x"+Long.toHexString(surface.getSurfaceHandle())+" -> 0x"+Long.toHexString(eglSurface));
+            System.err.println("setSurface using component: handle "+toHexString(surface.getSurfaceHandle())+" -> "+toHexString(eglSurface));
         }
     }
 
@@ -122,7 +122,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                         // surface holds static EGLSurface
                         eglSurface = surface.getSurfaceHandle();
                         if(DEBUG) {
-                            System.err.println("setSurface re-using component's EGLSurface: handle 0x"+Long.toHexString(eglSurface));
+                            System.err.println("setSurface re-using component's EGLSurface: handle "+toHexString(eglSurface));
                         }
                     } else {
                         // EGLSurface is ours ..
@@ -153,22 +153,22 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                 eglDisplay = EGL.eglGetDisplay(nDisplay);
                 if (eglDisplay == EGL.EGL_NO_DISPLAY) {
                     if(DEBUG) {
-                        System.err.println("eglDisplay("+Long.toHexString(nDisplay)+" <surfaceHandle>): failed, using EGL_DEFAULT_DISPLAY");
+                        System.err.println("eglDisplay("+toHexString(nDisplay)+" <surfaceHandle>): failed, using EGL_DEFAULT_DISPLAY");
                     }
                     nDisplay = EGL.EGL_DEFAULT_DISPLAY;
                     eglDisplay = EGL.eglGetDisplay(nDisplay);
                 }
                 if (eglDisplay == EGL.EGL_NO_DISPLAY) {
-                    throw new GLException("Failed to created EGL display: nhandle 0x"+Long.toHexString(nDisplay)+", "+aDevice+", error 0x"+Integer.toHexString(EGL.eglGetError()));
+                    throw new GLException("Failed to created EGL display: nhandle "+toHexString(nDisplay)+", "+aDevice+", error "+toHexString(EGL.eglGetError()));
                 } else if(DEBUG) {
-                    System.err.println("eglDisplay("+Long.toHexString(nDisplay)+"): 0x"+Long.toHexString(eglDisplay));
+                    System.err.println("eglDisplay("+toHexString(nDisplay)+"): "+toHexString(eglDisplay));
                 }
                 if (!EGL.eglInitialize(eglDisplay, null, null)) {
-                    throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
+                    throw new GLException("eglInitialize failed"+", error "+Integer.toHexString(EGL.eglGetError()));
                 }
                 EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
                 DefaultGraphicsScreen s = new DefaultGraphicsScreen(e, aConfig.getScreen().getIndex());
-                // yes, use the already choosen/requested Capabilities (x11,win32,..)
+                // yes, use the already chosen/requested Capabilities (x11,win32,..)
                 GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable) aConfig.getChosenCapabilities();
                 GLCapabilitiesImmutable capsRequested = (GLCapabilitiesImmutable) aConfig.getRequestedCapabilities();
                 eglConfig = (EGLGraphicsConfiguration) GraphicsConfigurationFactory.getFactory(e).chooseGraphicsConfiguration(
@@ -224,7 +224,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         return getClass().getName()+"[realized "+isRealized()+
                     ",\n\tfactory    "+getFactory()+
                     ",\n\tsurface    "+getNativeSurface()+
-                    ",\n\teglSurface  0x"+Long.toHexString(eglSurface)+
+                    ",\n\teglSurface "+toHexString(eglSurface)+
                     ",\n\teglConfig  "+eglConfig+
                     ",\n\trequested  "+getRequestedGLCapabilities()+
                     ",\n\tchosen     "+getChosenGLCapabilities()+"]";
