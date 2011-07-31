@@ -46,6 +46,10 @@ public final boolean isGL2ES2() {
     return false;
 }
 
+public final boolean isGLES2Compatible() {
+    return false;
+}
+
 public final boolean isGL2GL3() {
     return false;
 }

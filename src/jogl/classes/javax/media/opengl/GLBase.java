@@ -154,6 +154,13 @@ public interface GLBase {
   public boolean isGL2ES2();
 
   /**
+   * Indicates whether this GL object is compatible with OpenGL ES2.
+   * @return true if this context is an ES2 context or implements 
+   *         the extension <code>GL_ARB_ES2_compatibility</code>, otherwise false 
+   */
+  public boolean isGLES2Compatible();
+
+  /**
    * Indicates whether this GL object conforms to the GL2GL3 compatible profile.
    * @return whether this GL object conforms to the GL2GL3 profile
    */

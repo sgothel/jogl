@@ -32,6 +32,10 @@
         return _context.isGL2ES2();
     }
 
+    public final boolean isGLES2Compatible() {
+        return _context.isGLES2Compatible();
+    }
+
     public final boolean isGL2GL3() {
         return _context.isGL2GL3();
     }

@@ -646,6 +646,9 @@ public abstract class GLContextImpl extends GLContext {
     }
     if(0!=_context) {
         AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
+        if( isExtensionAvailable("GL_ARB_ES2_compatibility") ) {
+            ctp |= CTX_PROFILE_ES2_COMPAT;
+        }
         GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, major[0], minor[0], ctp);
         setGLFunctionAvailability(true, major[0], minor[0], ctp);
         destroyContextARBImpl(_context);
@@ -931,18 +934,12 @@ public abstract class GLContextImpl extends GLContext {
             }
         }
     }
-
-    hasNativeES2Methods = isGLES2() || isExtensionAvailable("GL_ARB_ES2_compatibility") ;
   }
 
   /**
    * Updates the platform's 'GLX' function cache
    */
   protected abstract void updateGLXProcAddressTable();
-
-  protected boolean hasNativeES2Methods = false;
-
-  public final boolean hasNativeES2Methods() { return hasNativeES2Methods; }
 
   /**
    * Returns true if the specified OpenGL core- or extension-function can be

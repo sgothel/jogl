@@ -630,6 +630,9 @@ public class BuildComposablePipeline {
             output.println("  public boolean isGLES() {");
             output.println("    return isGLES2() || isGLES1();");
             output.println("  }");
+            output.println("  public boolean isGLES2Compatible() {");
+            output.println("    return " + getDownstreamObjectName() + ".isGLES2Compatible();");
+            output.println("  }");
         }
 
         /**

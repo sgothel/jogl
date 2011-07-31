@@ -88,7 +88,9 @@ public abstract class GLContext {
   /** <code>ARB_create_context</code> related: flag not forward compatible */
   protected static final int CTX_OPTION_ANY     = 1 << 5;
   /** <code>ARB_create_context</code> related: flag debug */
-  public static final int CTX_OPTION_DEBUG   = 1 << 6;
+  public static final int CTX_OPTION_DEBUG   = 1 << 6;  
+  /** <code>GL_ARB_ES2_compatibility</code> related: Context is compatible w/ ES2 */
+  protected static final int CTX_PROFILE_ES2_COMPAT = 1 << 8;
 
   /** GLContext {@link com.jogamp.gluegen.runtime.ProcAddressTable} caching related: GL software implementation */
   protected static final int CTX_IMPL_ACCEL_SOFT = 1 << 0;
@@ -416,7 +418,6 @@ public abstract class GLContext {
   public final int getGLVersionMinor() { return ctxMinorVersion; }
   public final boolean isGLCompatibilityProfile() { return ( 0 != ( CTX_PROFILE_COMPAT & ctxOptions ) ); }
   public final boolean isGLCoreProfile()          { return ( 0 != ( CTX_PROFILE_CORE   & ctxOptions ) ); }
-  public final boolean isGLEmbeddedProfile()      { return ( 0 != ( CTX_PROFILE_ES     & ctxOptions ) ); }
   public final boolean isGLForwardCompatible()    { return ( 0 != ( CTX_OPTION_FORWARD & ctxOptions ) ); }
   public final boolean isCreatedWithARBMethod()   { return ( 0 != ( CTX_IS_ARB_CREATED & ctxOptions ) ); }
 
@@ -508,15 +509,15 @@ public abstract class GLContext {
   }
 
   public final boolean isGLES1() {
-      return ctxMajorVersion==1 && 0!=(ctxOptions & CTX_PROFILE_ES);
+      return ctxMajorVersion==1 && 0 != ( ctxOptions & CTX_PROFILE_ES ) ;
   }
 
   public final boolean isGLES2() {
-      return ctxMajorVersion==2 && 0!=(ctxOptions & CTX_PROFILE_ES);
+      return ctxMajorVersion==2 && 0 != ( ctxOptions & CTX_PROFILE_ES ) ;
   }
 
   public final boolean isGLES() {
-      return isGLEmbeddedProfile();
+      return 0 != ( CTX_PROFILE_ES & ctxOptions ) ;
   }
 
   public final boolean isGL2ES1() {
@@ -527,6 +528,14 @@ public abstract class GLContext {
       return isGL2GL3() || isGLES2() ;
   }
 
+  /**
+   * @return true if this context is an ES2 context or implements 
+   *         the extension <code>GL_ARB_ES2_compatibility</code>, otherwise false 
+   */
+  public final boolean isGLES2Compatible() {
+      return 0 != ( ctxOptions & CTX_PROFILE_ES2_COMPAT ) ;
+  }
+  
   public final boolean hasGLSL() {
       return isGL2ES2() ;
   }
@@ -861,6 +870,7 @@ public abstract class GLContext {
     sb.append(minor);
     sb.append(" (");
     needColon = appendString(sb, "ES",                    needColon, 0 != ( CTX_PROFILE_ES & ctp ));
+    needColon = appendString(sb, "ES2 compatible",        needColon, 0 != ( CTX_PROFILE_ES2_COMPAT & ctp ));
     needColon = appendString(sb, "compatibility profile", needColon, 0 != ( CTX_PROFILE_COMPAT & ctp ));
     needColon = appendString(sb, "core profile",          needColon, 0 != ( CTX_PROFILE_CORE & ctp ));
     needColon = appendString(sb, "forward compatible",    needColon, 0 != ( CTX_OPTION_FORWARD & ctp ));
