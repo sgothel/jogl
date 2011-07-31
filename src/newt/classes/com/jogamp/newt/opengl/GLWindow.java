@@ -876,13 +876,13 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         System.err.println(JoglVersion.getInstance());
         System.err.println(NewtVersion.getInstance());
 
-        GLProfile glp = GLProfile.getDefault();
-        GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
-        List/*<GLCapabilitiesImmutable>*/ availCaps = factory.getAvailableCapabilities(null);
+        final GLProfile glp = GLProfile.getDefault();
+        final GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
+        final List/*<GLCapabilitiesImmutable>*/ availCaps = factory.getAvailableCapabilities(null);
         for(int i=0; i<availCaps.size(); i++) {
             System.err.println(availCaps.get(i));
         }
-        GLCapabilitiesImmutable caps = new GLCapabilities( glp );
+        final GLCapabilitiesImmutable caps = new GLCapabilities( glp );
 
         GLWindow glWindow = GLWindow.create(caps);
         glWindow.setSize(128, 128);
@@ -891,6 +891,8 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
             public void init(GLAutoDrawable drawable) {
                 GL gl = drawable.getGL();
                 System.err.println(JoglVersion.getGLInfo(gl, null));
+                System.err.println("Requested: "+drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities());
+                System.err.println("Chosen   : "+drawable.getChosenGLCapabilities());
             }
 
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
