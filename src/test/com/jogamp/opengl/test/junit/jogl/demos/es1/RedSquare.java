@@ -61,7 +61,7 @@ public class RedSquare implements GLEventListener {
             glTrace = false;
         }
 
-        GL2ES1 gl = FixedFuncUtil.getFixedFuncImpl(_gl);
+        GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl);
         if(swapInterval>=0) {
             gl.setSwapInterval(swapInterval);
         }

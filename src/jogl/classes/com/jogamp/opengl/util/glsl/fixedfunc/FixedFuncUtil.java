@@ -15,29 +15,31 @@ import jogamp.opengl.util.glsl.fixedfunc.*;
 public class FixedFuncUtil {
     /**
      * @return If gl is a GL2ES1 and force is false, return the type cast object,
-     *         otherwise create a fixed function emulation pipeline with the GL2ES2 impl.
+     *         otherwise create a fixed function emulation pipeline using the given GL2ES2 impl
+     *         and hook it to the GLContext via {@link GLContext#setGL(GL)}.
      * @throws GLException if the GL object is neither GL2ES1 nor GL2ES2
      */
-    public static final GL2ES1 getFixedFuncImpl(GL gl, boolean force) {
-        if(!force && gl.isGL2ES1()) {
-            return gl.getGL2ES1();
-        } else if(gl.isGL2ES2()) {
+    public static final GL2ES1 wrapFixedFuncEmul(GL gl, boolean force) {
+        if(gl.isGL2ES2() && ( !gl.isGL2ES1() || force ) ) {
             GL2ES2 es2 = gl.getGL2ES2();
             FixedFuncHook hook = new FixedFuncHook(es2);
             FixedFuncImpl impl = new FixedFuncImpl(es2, hook);
             gl.getContext().setGL(impl);
             return impl;
+        } else if(gl.isGL2ES1()) {
+            return gl.getGL2ES1();
         }
         throw new GLException("GL Object is neither GL2ES1 nor GL2ES2: "+gl.getContext());
     }
 
     /**
      * @return If gl is a GL2ES1, return the type cast object,
-     *         otherwise create a fixed function emulation pipeline with the GL2ES2 impl.
+     *         otherwise create a fixed function emulation pipeline using the GL2ES2 impl.
+     *         and hook it to the GLContext via {@link GLContext#setGL(GL)}.
      * @throws GLException if the GL object is neither GL2ES1 nor GL2ES2
      */
-    public static final GL2ES1 getFixedFuncImpl(GL gl) {
-        return getFixedFuncImpl(gl, false);
+    public static final GL2ES1 wrapFixedFuncEmul(GL gl) {
+        return wrapFixedFuncEmul(gl, false);
     }
 
     /**
