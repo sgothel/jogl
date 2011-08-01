@@ -40,8 +40,6 @@
 
 package jogamp.opengl;
 
-import java.util.HashMap;
-
 import javax.media.opengl.*;
 import com.jogamp.common.util.IntIntHashMap;
 
@@ -100,14 +98,15 @@ public class GLBufferStateTracker {
     setBoundBufferObject(GL2.GL_PIXEL_UNPACK_BUFFER, 0);
   }
 
-  public final void setBoundBufferObject(int target, int buffer) {
-    bindingMap.put(target, buffer);
-        if (DEBUG) {
-          System.err.println();
-          System.err.println("GLBufferStateTracker.setBoundBufferObject(): mapped bound buffer 0x" +
-                             Integer.toHexString(buffer) + " for query target 0x" + Integer.toHexString(target));
-          Thread.dumpStack();
-        }
+  public final void setBoundBufferObject(int target, int value) {
+    bindingMap.put(target, value);
+    if (DEBUG) {
+      System.err.println();
+      System.err.println("GLBufferStateTracker.setBoundBufferObject() target 0x" + 
+                         Integer.toHexString(target) + " -> mapped bound buffer 0x" +
+                         Integer.toHexString(value));
+      // Thread.dumpStack();
+    }
   }
 
   /** Note: returns an unspecified value if the binding for the
@@ -131,23 +130,24 @@ public class GLBufferStateTracker {
       }
       if (gotQueryTarget) {
         caller.glGetIntegerv(queryTarget, bufTmp, 0);
+        value = bufTmp[0];
         if (DEBUG) {
           System.err.println();
-          System.err.println("GLBufferStateTracker.getBoundBufferObject(): queried bound buffer 0x" +
-                             Integer.toHexString(bufTmp[0]) +
-                             " for target 0x" + Integer.toHexString(target)+" / query 0x"+Integer.toHexString(queryTarget));
+          System.err.println("GLBufferStateTracker.getBoundBufferObject() [queried value]: target 0x" + 
+                             Integer.toHexString(target) + " / query 0x"+Integer.toHexString(queryTarget)+
+                             " -> mapped bound buffer 0x" + Integer.toHexString(value));
         }
-        setBoundBufferObject(target, bufTmp[0]);
-        return bufTmp[0];
+        setBoundBufferObject(target, value);
+        return value;
       }
       return 0;
     }
-        if (DEBUG) {
-          System.err.println();
-          System.err.println("GLBufferStateTracker.getBoundBufferObject(): mapped bound buffer 0x" +
-                             Integer.toHexString(value) + " for query target 0x" + Integer.toHexString(target));
-          Thread.dumpStack();
-        }
+    if (DEBUG) {
+      System.err.println();
+      System.err.println("GLBufferStateTracker.getBoundBufferObject() [mapped value]: target 0x" + 
+                         Integer.toHexString(target) + " -> mapped bound buffer 0x" +
+                         Integer.toHexString(value));
+    }
     return value;
   }
 
@@ -163,7 +163,7 @@ public class GLBufferStateTracker {
         if (DEBUG) {
           System.err.println();
           System.err.println("GLBufferStateTracker.clearBufferObjectState()");
-          Thread.dumpStack();
+          //Thread.dumpStack();
         }
   }
 }

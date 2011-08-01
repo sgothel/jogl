@@ -216,16 +216,16 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                        ", elements "+getElementNumber()+
                        ", components "+components+ 
                        ", stride "+stride+"u "+strideB+"b "+strideL+"c"+
-                       ", initialSize "+initialSize+ 
-                       ", vboUsage 0x"+Integer.toHexString(vboUsage)+ 
-                       ", vboTarget 0x"+Integer.toHexString(vboTarget)+ 
+                       ", initialSize "+initialSize+
                        ", vboEnabled "+vboEnabled+ 
                        ", vboName "+vboName+ 
+                       ", vboUsage 0x"+Integer.toHexString(vboUsage)+ 
+                       ", vboTarget 0x"+Integer.toHexString(vboTarget)+ 
+                       ", vboOffset 0x"+Long.toHexString(vboOffset)+                        
                        ", sealed "+sealed+ 
                        ", bufferEnabled "+bufferEnabled+ 
                        ", bufferWritten "+bufferWritten+ 
                        ", buffer "+buffer+ 
-                       ", offset "+vboOffset+
                        ", alive "+alive+                       
                        "]";
   }

@@ -102,15 +102,15 @@ public class GLArrayDataWrapper implements GLArrayData {
 
   public final String getName() { return name; }
 
-  public final long getVBOOffset() { return vboEnabled?vboOffset:-1; }
+  public final long getVBOOffset() { return vboEnabled?vboOffset:0; }
 
-  public final int getVBOName() { return vboEnabled?vboName:-1; }
+  public final int getVBOName() { return vboEnabled?vboName:0; }
 
   public final boolean isVBO() { return vboEnabled; }
 
-  public final int getVBOUsage() { return vboEnabled?vboUsage:-1; }
+  public final int getVBOUsage() { return vboEnabled?vboUsage:0; }
   
-  public final int getVBOTarget() { return vboEnabled?vboTarget:-1; }
+  public final int getVBOTarget() { return vboEnabled?vboTarget:0; }
   
   public final Buffer getBuffer() { return buffer; }
 
@@ -139,7 +139,7 @@ public class GLArrayDataWrapper implements GLArrayData {
     buffer = null;
     vboName=0;
     vboEnabled=false;
-    vboOffset=-1;
+    vboOffset=0;
     alive = false;
   }
 
@@ -154,11 +154,11 @@ public class GLArrayDataWrapper implements GLArrayData {
                        ", components "+components+ 
                        ", stride "+stride+"u "+strideB+"b "+strideL+"c"+
                        ", buffer "+buffer+ 
-                       ", offset "+vboOffset+
-                       ", vboUsage 0x"+Integer.toHexString(vboUsage)+ 
-                       ", vboTarget 0x"+Integer.toHexString(vboTarget)+ 
                        ", vboEnabled "+vboEnabled+ 
                        ", vboName "+vboName+ 
+                       ", vboUsage 0x"+Integer.toHexString(vboUsage)+ 
+                       ", vboTarget 0x"+Integer.toHexString(vboTarget)+ 
+                       ", vboOffset 0x"+Long.toHexString(vboOffset)+ 
                        ", alive "+alive+                       
                        "]";
   }

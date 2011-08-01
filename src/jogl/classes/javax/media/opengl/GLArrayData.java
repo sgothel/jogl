@@ -86,24 +86,24 @@ public interface GLArrayData {
     public boolean isVBO();
 
     /**
-     * The VBO buffer offset or -1 if not a VBO
+     * The VBO buffer offset or 0 if not a VBO
      */
     public long getVBOOffset();
 
     /**
-     * The VBO name or -1 if not a VBO
+     * The VBO name or 0 if not a VBO
      */
     public int getVBOName();
 
     /**
-     * The VBO usage or -1 if not a VBO
-     * @return -1 if not a GPU buffer, otherwise {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
+     * The VBO usage or 0 if not a VBO
+     * @return 0 if not a GPU buffer, otherwise {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
      */
     public int getVBOUsage();
 
     /**
-     * The VBO target or -1 if not a VBO
-     * @return -1 if not a GPU buffer, otherwise {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
+     * The VBO target or 0 if not a VBO
+     * @return 0 if not a GPU buffer, otherwise {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
      */
     public int getVBOTarget();
 

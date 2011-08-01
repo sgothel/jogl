@@ -52,7 +52,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   {
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
-      adc.init(name, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler, -1, -1, -1, -1);
+      adc.init(name, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler, 0, 0, 0, 0);
       return adc;
   }
 
@@ -83,7 +83,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   {
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
-      adc.init(name, index, comps, dataType, normalized, stride, buffer, comps*comps, false, glArrayHandler, -1, -1, -1, -1);
+      adc.init(name, index, comps, dataType, normalized, stride, buffer, comps*comps, false, glArrayHandler, 0, 0, 0, 0);
       return adc;
   }
 
@@ -104,7 +104,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   {
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLSLArrayHandler(st, adc);
-      adc.init(name, -1, comps, dataType, normalized, 0, null, initialSize, true, glArrayHandler, -1, -1, -1, -1);
+      adc.init(name, -1, comps, dataType, normalized, 0, null, initialSize, true, glArrayHandler, 0, 0, 0, 0);
       return adc;
   }
 
@@ -127,7 +127,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   {
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLSLArrayHandler(st, adc);
-      adc.init(name, -1, comps, dataType, normalized, stride, buffer, comps*comps, true, glArrayHandler, -1, -1, -1, -1);
+      adc.init(name, -1, comps, dataType, normalized, stride, buffer, comps*comps, true, glArrayHandler, 0, 0, 0, 0);
       return adc;
   }
 
