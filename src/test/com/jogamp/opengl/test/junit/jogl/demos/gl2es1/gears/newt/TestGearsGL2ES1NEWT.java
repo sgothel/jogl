@@ -53,7 +53,13 @@ public class TestGearsGL2ES1NEWT extends UITestCase {
     @BeforeClass
     public static void initClass() {
         GLProfile.initSingleton(true);
-        glp = GLProfile.getGL2ES1();
+        if(GLProfile.isAvailable(GLProfile.getDefaultEGLDevice(), GLProfile.GLES1)) {
+            // exact match
+            glp = GLProfile.get(GLProfile.getDefaultEGLDevice(), GLProfile.GLES1);
+        } else {
+            // default device, somehow ES1 compatible
+            glp = GLProfile.getGL2ES1(); 
+        }
         Assert.assertNotNull(glp);
         width  = 512;
         height = 512;
