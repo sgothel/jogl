@@ -45,9 +45,9 @@ package javax.media.nativewindow;
     contains the minimal number of routines which allow configuration
     on all supported window systems. */
 public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparable {
-  private int     redBits        = 5;
-  private int     greenBits      = 5;
-  private int     blueBits       = 5;
+  private int     redBits        = 8;
+  private int     greenBits      = 8;
+  private int     blueBits       = 8;
   private int     alphaBits      = 0;
 
   // Support for transparent windows containing OpenGL content
