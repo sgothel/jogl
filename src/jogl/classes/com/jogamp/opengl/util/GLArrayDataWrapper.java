@@ -279,7 +279,7 @@ public class GLArrayDataWrapper implements GLArrayData {
     this.vboOffset=vboOffset;
     
     switch(vboUsage) {
-        case -1: // nop
+        case 0: // nop
         case GL.GL_STATIC_DRAW:
         case GL.GL_DYNAMIC_DRAW:
         case GL2ES2.GL_STREAM_DRAW:
@@ -288,7 +288,7 @@ public class GLArrayDataWrapper implements GLArrayData {
             throw new GLException("invalid gpuBufferUsage: "+vboUsage+":\n\t"+this); 
     }
     switch(vboTarget) {
-        case -1: // nop
+        case 0: // nop
         case GL.GL_ARRAY_BUFFER:
         case GL.GL_ELEMENT_ARRAY_BUFFER:
             break;
