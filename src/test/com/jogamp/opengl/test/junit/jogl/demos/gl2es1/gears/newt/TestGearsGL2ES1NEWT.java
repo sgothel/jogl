@@ -110,7 +110,7 @@ public class TestGearsGL2ES1NEWT extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps);
     }
 
