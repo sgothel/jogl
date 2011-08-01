@@ -47,6 +47,7 @@ public class EGLES1DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo 
         List/*<List>*/ libNames = new ArrayList();
 
         List/*<String>*/ glesLibNames = new ArrayList();
+        // try default generic names first 
         glesLibNames.add("GLES_CM");
         glesLibNames.add("GLES_CL");
         glesLibNames.add("GLESv1_CM");
@@ -55,6 +56,8 @@ public class EGLES1DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo 
         glesLibNames.add("libGLES_CM");
         glesLibNames.add("libGLES_CL");
         glesLibNames.add("libGLESv1_CM");
+        // this is the default lib name, according to the spec 
+        glesLibNames.add("libGLESv1_CM.so.1");
 
         libNames.add(glesLibNames);
         libNames.add(getEGLLibNamesList());

@@ -39,7 +39,7 @@ public class X11GLXDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundl
     public List getToolLibNames() {
         List/*<List>*/ libNamesList = new ArrayList();
 
-        List/*<String>*/ glesLibNames = new ArrayList();
+        List/*<String>*/ glLibNames = new ArrayList();
 
         // Be aware that on DRI systems, eg ATI fglrx, etc, 
         // you have to set LIBGL_DRIVERS_PATH env variable.
@@ -47,16 +47,16 @@ public class X11GLXDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundl
         //    export LIBGL_DRIVERS_PATH=/usr/lib/fglrx/dri:/usr/lib32/fglrx/dri
         //
 
-        // this is the default GL lib name, according to the spec
-        glesLibNames.add("libGL.so.1");
+        // this is the default lib name, according to the spec
+        glLibNames.add("libGL.so.1");
 
         // try this one as well, if spec fails
-        glesLibNames.add("libGL.so");
+        glLibNames.add("libGL.so");
 
         // last but not least .. the generic one
-        glesLibNames.add("GL");
+        glLibNames.add("GL");
 
-        libNamesList.add(glesLibNames);
+        libNamesList.add(glLibNames);
 
         return libNamesList;
     }

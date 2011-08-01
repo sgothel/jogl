@@ -63,11 +63,13 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
 
     protected List/*<String>*/ getEGLLibNamesList() {
         List/*<String>*/ eglLibNames = new ArrayList();
-        // EGL
+        // try default generic names first 
         eglLibNames.add("EGL");
         // for windows distributions using the 'unlike' lib prefix, 
         // where our tool does not add it.
         eglLibNames.add("libEGL");
+        // this is the default EGL lib name, according to the spec 
+        eglLibNames.add("libEGL.so.1");
         return eglLibNames;
     }
 }
