@@ -103,7 +103,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
             AbstractGraphicsDevice aDevice = aConfig.getScreen().getDevice();
             if(aDevice instanceof EGLGraphicsDevice) {
                 if(DEBUG) {
-                    System.err.println("EGLDrawable.setRealized: using existing EGL config: "+this);
+                    System.err.println("EGLDrawable.setRealized: using existing EGL config - START");
                 }
                 // just fetch the data .. trust but verify ..
                 eglDisplay = aDevice.getHandle();
@@ -135,9 +135,12 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                 } else {
                     throw new GLException("EGLGraphicsDevice hold by non EGLGraphicsConfiguration: "+aConfig);
                 }
+                if(DEBUG) {
+                    System.err.println("EGLDrawable.setRealized: using existing EGL config - END: "+this);
+                }
             } else {
                 if(DEBUG) {
-                    System.err.println("EGLDrawable.setRealized: creating new EGL config: "+this);
+                    System.err.println("EGLDrawable.setRealized: creating new EGL config - START");
                 }
                 // create a new EGL config ..
                 ownEGLDisplay=true;
@@ -169,8 +172,8 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                 EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
                 DefaultGraphicsScreen s = new DefaultGraphicsScreen(e, aConfig.getScreen().getIndex());
                 // yes, use the already chosen/requested Capabilities (x11,win32,..)
-                GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable) aConfig.getChosenCapabilities();
-                GLCapabilitiesImmutable capsRequested = (GLCapabilitiesImmutable) aConfig.getRequestedCapabilities();
+                final GLCapabilitiesImmutable capsRequested = (GLCapabilitiesImmutable) aConfig.getRequestedCapabilities();
+                final GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable) aConfig.getChosenCapabilities();
                 eglConfig = (EGLGraphicsConfiguration) GraphicsConfigurationFactory.getFactory(e).chooseGraphicsConfiguration(
                         capsChosen, capsRequested, null, s);
                 if (null == eglConfig) {
@@ -179,6 +182,9 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                     System.err.println("Chosen eglConfig: "+eglConfig);
                 }
                 recreateSurface();
+                if(DEBUG) {
+                    System.err.println("EGLDrawable.setRealized: creating new EGL config - END: "+this);
+                }
             }
         } else if (ownEGLSurface && eglSurface != EGL.EGL_NO_SURFACE) {
             // Destroy the window surface

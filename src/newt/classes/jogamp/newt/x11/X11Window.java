@@ -50,10 +50,14 @@ public class X11Window extends WindowImpl {
     }
 
     protected void createNativeImpl() {
-        X11Screen screen = (X11Screen) getScreen();
-        X11Display display = (X11Display) screen.getDisplay();
-        config = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice()).chooseGraphicsConfiguration(
+        final X11Screen screen = (X11Screen) getScreen();
+        final X11Display display = (X11Display) screen.getDisplay();
+        final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice());
+        config = factory.chooseGraphicsConfiguration(
                 capsRequested, capsRequested, capabilitiesChooser, screen.getGraphicsScreen());
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("X11Window.createNativeImpl() factory: "+factory+", chosen config: "+config);
+        }        
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }

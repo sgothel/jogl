@@ -79,7 +79,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     public Object clone() {
         return super.clone();
     }
-
+        
     void updateGraphicsConfiguration() {
         EGLGraphicsConfiguration newConfig = (EGLGraphicsConfiguration)
             GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(
@@ -88,7 +88,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
             // FIXME: setScreen( ... );
             setChosenCapabilities(newConfig.getChosenCapabilities());
             if(DEBUG) {
-                System.err.println("!!! updateGraphicsConfiguration: "+this);
+                System.err.println("!!! updateGraphicsConfiguration(1): "+this);
             }
         }
     }
