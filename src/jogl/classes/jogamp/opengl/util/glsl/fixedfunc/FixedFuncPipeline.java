@@ -318,7 +318,7 @@ public class FixedFuncPipeline {
                 // same data object ..
                 shaderState.uniform(gl, ud);
             } else {
-                throw new GLException("Failed to update: gcu_PMVMatrix");
+                throw new GLException("Failed to update: mgl_PMVMatrix");
             }
             ud = shaderState.getUniform(mgl_NormalMatrix);
             if(null!=ud) {
@@ -508,7 +508,7 @@ public class FixedFuncPipeline {
     protected ShaderProgram shaderProgramColorTextureLight;
 
     // uniforms ..
-    protected static final String mgl_PMVMatrix        = "gcu_PMVMatrix";       // m4fv[3]
+    protected static final String mgl_PMVMatrix        = "mgl_PMVMatrix";       // m4fv[3]
     protected static final String mgl_NormalMatrix     = "mgl_NormalMatrix";    // m4fv
     protected static final String mgl_ColorEnabled     = "mgl_ColorEnabled";    //  1i
     protected static final String mgl_ColorStatic      = "mgl_ColorStatic";     //  4fv
