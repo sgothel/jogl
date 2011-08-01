@@ -54,7 +54,8 @@ public class GearsGL2ES1 implements GLEventListener {
     // drawable.setGL(new DebugGL(drawable.getGL()));
 
     GL _gl = drawable.getGL();
-    GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl/*, true*/);
+    // GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl /*, true*/);
+    GL2ES1 gl = _gl.getGL2ES1();
     
     System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
     System.err.println("INIT GL IS: " + gl.getClass().getName());
@@ -163,7 +164,7 @@ public class GearsGL2ES1 implements GLEventListener {
     gl.glPushMatrix();
     gl.glTranslatef(-3.0f, -2.0f, 0.0f);
     gl.glRotatef(angle, 0.0f, 0.0f, 1.0f);
-    gl.glMaterialfv(GL2ES1.GL_FRONT, GL2ES1.GL_AMBIENT_AND_DIFFUSE, red, 0);
+    gl.glMaterialfv(GL2ES1.GL_FRONT_AND_BACK, GL2ES1.GL_AMBIENT_AND_DIFFUSE, red, 0);
     gear1.draw(gl, disableBufferAfterDraw);
     gl.glPopMatrix();
             
@@ -171,7 +172,7 @@ public class GearsGL2ES1 implements GLEventListener {
     gl.glPushMatrix();
     gl.glTranslatef(3.1f, -2.0f, 0.0f);
     gl.glRotatef(-2.0f * angle - 9.0f, 0.0f, 0.0f, 1.0f);
-    gl.glMaterialfv(GL2ES1.GL_FRONT, GL2ES1.GL_AMBIENT_AND_DIFFUSE, green, 0);
+    gl.glMaterialfv(GL2ES1.GL_FRONT_AND_BACK, GL2ES1.GL_AMBIENT_AND_DIFFUSE, green, 0);
     gear2.draw(gl, disableBufferAfterDraw);
     gl.glPopMatrix();
             
@@ -179,7 +180,7 @@ public class GearsGL2ES1 implements GLEventListener {
     gl.glPushMatrix();
     gl.glTranslatef(-3.1f, 4.2f, 0.0f);
     gl.glRotatef(-2.0f * angle - 25.0f, 0.0f, 0.0f, 1.0f);
-    gl.glMaterialfv(GL2ES1.GL_FRONT, GL2ES1.GL_AMBIENT_AND_DIFFUSE, blue, 0);
+    gl.glMaterialfv(GL2ES1.GL_FRONT_AND_BACK, GL2ES1.GL_AMBIENT_AND_DIFFUSE, blue, 0);
     gear3.draw(gl, disableBufferAfterDraw);
     gl.glPopMatrix();
             
@@ -301,7 +302,7 @@ public class GearsGL2ES1 implements GLEventListener {
     /* draw back sides of teeth */
     ImmModeSink vboBackSide = ImmModeSink.createFixed(gl, GL.GL_STATIC_DRAW, 6*teeth,
                           /* vertex */ 3, GL.GL_FLOAT,  /* color */ 0, GL.GL_FLOAT,  
-                          /* normal */ 0, GL.GL_FLOAT,   /* texture */ 0, GL.GL_FLOAT);     
+                          /* normal */ 0, GL.GL_FLOAT,   /* texture */ 0, GL.GL_FLOAT);
     vboBackSide.glBegin(GL.GL_TRIANGLES);
     for (i = 0; i < teeth; i++) {
         // QUAD [s0..s3] -> 2x TRIs
@@ -329,10 +330,6 @@ public class GearsGL2ES1 implements GLEventListener {
     vboOutwardFace.glBegin(GL.GL_TRIANGLE_STRIP);
     for (i = 0; i < teeth; i++) {
         angle = i * 2.0f * (float) Math.PI / teeth;
-        /*if(i>0) {
-            vboOutwardFace.glVertex3f(r1 * (float)Math.cos(angle), r1 * (float)Math.sin(angle), dz);
-            vboOutwardFace.glVertex3f(r1 * (float)Math.cos(angle), r1 * (float)Math.sin(angle), -dz);
-        }*/
         u = r2 * (float)Math.cos(angle + da) - r1 * (float)Math.cos(angle);
         v = r2 * (float)Math.sin(angle + da) - r1 * (float)Math.sin(angle);
         len = (float)Math.sqrt(u * u + v * v);
@@ -365,8 +362,6 @@ public class GearsGL2ES1 implements GLEventListener {
         vboOutwardFace.glVertex3f(r1 * (float)Math.cos(angle), r1 * (float)Math.sin(angle), dz);
         vboOutwardFace.glVertex3f(r1 * (float)Math.cos(angle), r1 * (float)Math.sin(angle), -dz);
     }
-    //vboOutwardFace.glVertex3f(r1 * (float)Math.cos(0f), r1 * (float)Math.sin(0f), dz);
-    //vboOutwardFace.glVertex3f(r1 * (float)Math.cos(0f), r1 * (float)Math.sin(0f), -dz);
     vboOutwardFace.glEnd(gl, false /* immediate */);
     
     /* draw inside radius cylinder */

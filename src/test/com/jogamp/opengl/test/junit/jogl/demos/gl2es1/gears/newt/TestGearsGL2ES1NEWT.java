@@ -53,7 +53,7 @@ public class TestGearsGL2ES1NEWT extends UITestCase {
     @BeforeClass
     public static void initClass() {
         GLProfile.initSingleton(true);
-        glp = GLProfile.getDefault();
+        glp = GLProfile.getGL2ES1();
         Assert.assertNotNull(glp);
         width  = 512;
         height = 512;
