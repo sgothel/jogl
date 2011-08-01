@@ -36,7 +36,7 @@ class AWTNewtEventFactory {
 
     static {
         IntIntHashMap map = new IntIntHashMap();
-        map.setKeyNotFoundValue(-1);
+        map.setKeyNotFoundValue(0xFFFFFFFF);
         // n/a map.put(java.awt.event.WindowEvent.WINDOW_OPENED, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_OPENED);
         map.put(java.awt.event.WindowEvent.WINDOW_CLOSING, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
         map.put(java.awt.event.WindowEvent.WINDOW_CLOSED, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_DESTROYED);
@@ -92,7 +92,7 @@ class AWTNewtEventFactory {
 
     static final com.jogamp.newt.event.WindowEvent createWindowEvent(java.awt.event.WindowEvent event, com.jogamp.newt.Window newtSource) {
         int type = eventTypeAWT2NEWT.get(event.getID());
-        if(-1 < type) {
+        if(0xFFFFFFFF != type) {
             return new com.jogamp.newt.event.WindowEvent(type, ((null==newtSource)?(Object)event.getComponent():(Object)newtSource), System.currentTimeMillis());
         }
         return null; // no mapping ..
@@ -100,7 +100,7 @@ class AWTNewtEventFactory {
 
     static final com.jogamp.newt.event.WindowEvent createWindowEvent(java.awt.event.ComponentEvent event, com.jogamp.newt.Window newtSource) {
         int type = eventTypeAWT2NEWT.get(event.getID());
-        if(-1 < type) {
+        if(0xFFFFFFFF != type) {
             return new com.jogamp.newt.event.WindowEvent(type, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, System.currentTimeMillis());
         }
         return null; // no mapping ..
@@ -108,7 +108,7 @@ class AWTNewtEventFactory {
 
     static final com.jogamp.newt.event.WindowEvent createWindowEvent(java.awt.event.FocusEvent event, com.jogamp.newt.Window newtSource) {
         int type = eventTypeAWT2NEWT.get(event.getID());
-        if(-1 < type) {
+        if(0xFFFFFFFF != type) {
             return new com.jogamp.newt.event.WindowEvent(type, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, System.currentTimeMillis());
         }
         return null; // no mapping ..
@@ -116,7 +116,7 @@ class AWTNewtEventFactory {
 
     static final com.jogamp.newt.event.MouseEvent createMouseEvent(java.awt.event.MouseEvent event, com.jogamp.newt.Window newtSource) {
         int type = eventTypeAWT2NEWT.get(event.getID());
-        if(-1 < type) {
+        if(0xFFFFFFFF != type) {
             int rotation = 0;
             if (event instanceof java.awt.event.MouseWheelEvent) {
                 rotation = ((java.awt.event.MouseWheelEvent)event).getWheelRotation();
@@ -133,7 +133,7 @@ class AWTNewtEventFactory {
 
     static final com.jogamp.newt.event.KeyEvent createKeyEvent(java.awt.event.KeyEvent event, com.jogamp.newt.Window newtSource) {
         int type = eventTypeAWT2NEWT.get(event.getID());
-        if(-1 < type) {
+        if(0xFFFFFFFF != type) {
             return new com.jogamp.newt.event.KeyEvent(
                            type, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, event.getWhen(), 
                            awtModifiers2Newt(event.getModifiers(), false), 
