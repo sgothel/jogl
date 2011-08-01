@@ -195,12 +195,14 @@ public class GLArrayDataWrapper implements GLArrayData {
   }
 
   /**
-   * Set the VBO buffer name, if valid (>0) enable use of VBO
+   * Set the VBO buffer name, if valid (!= 0) enable use of VBO,
+   * otherwise (==0) disable VBO usage.
+   * 
    * @see #setVBOEnabled(boolean)
    */  
   public void    setVBOName(int vboName) {
     this.vboName=vboName;
-    setVBOEnabled(vboName>0);
+    setVBOEnabled(0!=vboName);
   }
 
  /**  
@@ -272,8 +274,8 @@ public class GLArrayDataWrapper implements GLArrayData {
     this.stride=stride;
     this.strideB=(0==stride)?components*componentSize:stride;
     this.strideL=(0==stride)?components:strideB/componentSize;
-    this.vboName=vboName;
-    this.vboEnabled=vboName>0;
+    this.vboName= vboName;
+    this.vboEnabled= 0 != vboName ;
     this.vboOffset=vboOffset;
     
     switch(vboUsage) {

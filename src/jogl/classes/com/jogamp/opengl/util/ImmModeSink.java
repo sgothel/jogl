@@ -303,8 +303,8 @@ public class ImmModeSink {
 
         this.sealed=false;
         this.sealedGL=false;
-        this.mode = -1;
-        this.modeOrig = -1;
+        this.mode = 0;
+        this.modeOrig = 0;
         this.bufferEnabled=false;
         this.bufferWritten=false;
     }
@@ -315,7 +315,7 @@ public class ImmModeSink {
     }
 
     protected void checkSeal(boolean test) throws GLException {
-        if(mode<0) {
+        if(0==mode) {
                 throw new GLException("No mode set yet, call glBegin(mode) first:\n\t"+this); 
         }
         if(sealed!=test) {
@@ -642,8 +642,8 @@ public class ImmModeSink {
         }
         rewind();
 
-        this.mode = -1;
-        this.modeOrig = -1;
+        this.mode = 0;
+        this.modeOrig = 0;
         this.sealed=false;
         this.bufferEnabled=false;
         this.bufferWritten=false;
