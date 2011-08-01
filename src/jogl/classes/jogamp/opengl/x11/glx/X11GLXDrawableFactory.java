@@ -181,7 +181,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 if (null == sharedScreen) {
                     throw new GLException("Couldn't create shared screen for device: "+sharedDevice+", idx 0");
                 }
-                GLProfile glp = GLProfile.getMinimum(sharedDevice);
+                GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP);
                 if (null == glp) {
                     throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
                 }

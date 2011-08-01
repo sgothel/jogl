@@ -366,6 +366,20 @@ public class GLProfile {
     public static final String[] GL_PROFILE_LIST_MIN = new String[] { GLES1, GLES2, GL2, GL3, GL3bc, GL4, GL4bc };
     
     /**
+     * Order of minimum original desktop profiles.
+     *
+     * <ul>
+     *  <li> GL2
+     *  <li> GL3bc
+     *  <li> GL4bc
+     *  <li> GL3
+     *  <li> GL4
+     * </ul>
+     *
+     */
+    public static final String[] GL_PROFILE_LIST_MIN_DESKTOP = new String[] { GL2, GL3bc, GL4bc, GL3, GL4 };
+    
+    /**
      * Order of maximum fixed function profiles
      *
      * <ul>
@@ -1260,11 +1274,12 @@ public class GLProfile {
             }
         }
 
-        final boolean addedAnyProfile = initProfilesForDevice(defaultDesktopDevice) ||
-                                        initProfilesForDevice(defaultEGLDevice);
+        final boolean addedDesktopProfile = initProfilesForDevice(defaultDesktopDevice);
+        final boolean addedEGLProfile = initProfilesForDevice(defaultEGLDevice);
+        final boolean addedAnyProfile = addedDesktopProfile || addedEGLProfile ;
 
         if(DEBUG) {
-            System.err.println("GLProfile.init addedAnyProfile      "+addedAnyProfile);
+            System.err.println("GLProfile.init addedAnyProfile(e/d) "+addedAnyProfile+" ("+addedDesktopProfile+"/"+addedEGLProfile+")");
             System.err.println("GLProfile.init isAWTAvailable       "+isAWTAvailable);
             System.err.println("GLProfile.init hasDesktopGLFactory  "+hasDesktopGLFactory);
             System.err.println("GLProfile.init hasGL234Impl         "+hasGL234Impl);
