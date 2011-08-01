@@ -89,19 +89,21 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GLGraphicsConfigurati
             displayHandle = X11Util.createDisplay(null);
             owner = true;
             if(DEBUG) {
-                System.err.println(Thread.currentThread().getName() + " - X11AWTGLXGraphicsConfigurationFactory: using a thread local X11 display");
+                System.err.println(Thread.currentThread().getName() + " - X11AWTGLXGraphicsConfigurationFactory: create local X11 display");
             }
         } else {
-            if(DEBUG) {
-                System.err.println(Thread.currentThread().getName() + " - X11AWTGLXGraphicsConfigurationFactory: using AWT X11 display 0x"+Long.toHexString(displayHandle));
-            }
             /**
-             * Using the AWT display handle works fine with NVidia and AMD drivers today 2011-02-22,
-             * hence no need for our own display instance anymore.
-               String name = X11Util.XDisplayString(displayHandle);
-               displayHandle = X11Util.createDisplay(name);
-               owner = true;
+             * Using the AWT display handle works fine with NVidia.
+             * However we experienced different results w/ AMD drivers, 
+             * some work, but some behave erratic. 
+             * I.e. hangs in XQueryExtension(..) via X11GraphicsScreen.
              */
+            final String displayName = X11Util.XDisplayString(displayHandle);
+            if(DEBUG) {
+                System.err.println(Thread.currentThread().getName() + " - X11AWTGLXGraphicsConfigurationFactory: create X11 display @ "+displayName+" / 0x"+Long.toHexString(displayHandle));
+            }
+            displayHandle = X11Util.createDisplay(displayName);
+            owner = true;
         }
         ((AWTGraphicsDevice)awtScreen.getDevice()).setSubType(NativeWindowFactory.TYPE_X11, displayHandle);
         X11GraphicsDevice x11Device = new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT);

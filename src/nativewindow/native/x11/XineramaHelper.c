@@ -37,6 +37,7 @@
 
 #include <gluegen_stdint.h>
 #include <X11/Xlib.h>
+#include <stdio.h>
 
 #ifdef __sun
 
@@ -98,23 +99,23 @@ Bool XineramaEnabled(Display* display) {
   
 #else
 
-  char* XinExtName = "XINERAMA";
+  static const char* XinExtName = "XINERAMA";
   int32_t major_opcode, first_event, first_error;
   Bool gotXinExt = False;
-  int32_t locNumScr = 0;
+  Bool isXinActive = False;
 
-  XineramaScreenInfo *xinInfo;
+  // fprintf(stderr, "XineramaEnabled: p0\n"); fflush(stderr);
 
   gotXinExt = XQueryExtension(display, XinExtName, &major_opcode,
                               &first_event, &first_error);
+  // fprintf(stderr, "XineramaEnabled: p1 gotXinExt %d\n",gotXinExt); fflush(stderr);
 
   if (gotXinExt) {
-    xinInfo = XineramaQueryScreens(display, &locNumScr);
-    if (xinInfo != NULL) {
-      return True;
-    }
+    isXinActive = XineramaIsActive(display);
   }
-  return False;
+  // fprintf(stderr, "XineramaEnabled: p2 XineramaIsActive %d\n", isXinActive); fflush(stderr);
+
+  return isXinActive;
 
 #endif
 }
