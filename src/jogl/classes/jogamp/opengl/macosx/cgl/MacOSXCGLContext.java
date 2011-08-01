@@ -224,9 +224,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   }
 
   protected final void updateGLXProcAddressTable() {
-    AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
-    String key = adevice.getUniqueID();
+    final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
+    final String key = "MacOSX-"+adevice.getUniqueID();
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing CGL extension address table: "+key);
     }

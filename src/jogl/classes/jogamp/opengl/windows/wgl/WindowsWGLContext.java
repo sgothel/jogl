@@ -391,9 +391,9 @@ public class WindowsWGLContext extends GLContextImpl {
   }
 
   protected final void updateGLXProcAddressTable() {
-    AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
-    String key = adevice.getUniqueID();
+    final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
+    final String key = "WGL-"+adevice.getUniqueID();
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing WGL extension address table: "+key);
     }

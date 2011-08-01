@@ -459,9 +459,9 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected final void updateGLXProcAddressTable() {
-    AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
-    String key = adevice.getUniqueID();
+    final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
+    final String key = "GLX-"+adevice.getUniqueID();
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing GLX extension address table: "+key);
     }
