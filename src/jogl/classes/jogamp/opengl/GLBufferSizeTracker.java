@@ -100,11 +100,11 @@ public class GLBufferSizeTracker {
 
   public GLBufferSizeTracker() {
       bufferSizeMap = new IntLongHashMap();
-      bufferSizeMap.setKeyNotFoundValue(-1);
+      bufferSizeMap.setKeyNotFoundValue(0xFFFFFFFFFFFFFFFFL);
   }
 
-  public void setBufferSize(GLBufferStateTracker bufferStateTracker,
-                            int target, GL caller, long size) {
+  public final void setBufferSize(GLBufferStateTracker bufferStateTracker,
+                                  int target, GL caller, long size) {
     // Need to do some similar queries to getBufferSize below
     int buffer = bufferStateTracker.getBoundBufferObject(target, caller);
     if (buffer != 0) {
@@ -116,11 +116,11 @@ public class GLBufferSizeTracker {
     // left to do except drop this piece of information on the floor.
   }
 
-  public void setDirectStateBufferSize(int buffer, GL caller, long size) {
+  public final void setDirectStateBufferSize(int buffer, GL caller, long size) {
       bufferSizeMap.put(buffer, size);
   }
 
-  public long getBufferSize(GLBufferStateTracker bufferStateTracker,
+  public final long getBufferSize(GLBufferStateTracker bufferStateTracker,
                            int target,
                            GL caller) {
     // See whether we know what buffer is currently bound to the given
@@ -140,16 +140,16 @@ public class GLBufferSizeTracker {
     return (long) tmp[0];
   }
 
-  public long getDirectStateBufferSize(int buffer, GL caller) {
+  public final long getDirectStateBufferSize(int buffer, GL caller) {
       return getBufferSizeImpl(0, buffer, caller);
   }
 
-  private long getBufferSizeImpl(int target, int buffer, GL caller) {
+  private final long getBufferSizeImpl(int target, int buffer, GL caller) {
       // See whether we know the size of this buffer object; at this
       // point we almost certainly should if the application is
       // written correctly
       long sz = bufferSizeMap.get(buffer);
-      if (0 > sz) {
+      if (0xFFFFFFFFFFFFFFFFL == sz) {
         // For robustness, try to query this value from the GL as we used to
         // FIXME: both functions return 'int' types, which is not suitable,
         // since buffer lenght is 64bit ?
@@ -188,7 +188,7 @@ public class GLBufferSizeTracker {
   // destruction if we don't know whether there are other currently-
   // created contexts that might be keeping the buffer objects alive
   // that we're dealing with
-  public void clearCachedBufferSizes() {
+  public final void clearCachedBufferSizes() {
     bufferSizeMap.clear();
   }
 }

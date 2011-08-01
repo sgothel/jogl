@@ -75,45 +75,45 @@ public class GLStateTracker {
     /**
      * set (client) pixel-store state, deep copy
      */ 
-    private void setPixelStateMap(IntIntHashMap pixelStateMap) {
+    private final void setPixelStateMap(IntIntHashMap pixelStateMap) {
         this.pixelStateMap = (IntIntHashMap) pixelStateMap.clone();
     }
     
     /**
      * get (client) pixel-store state, return reference
      */ 
-    private IntIntHashMap getPixelStateMap() { return pixelStateMap; }
+    private final IntIntHashMap getPixelStateMap() { return pixelStateMap; }
 
   }
   
 
   public GLStateTracker() {    
     pixelStateMap = new IntIntHashMap(PIXEL_STATE_MAP_CAPACITY, 0.75f);
-    pixelStateMap.setKeyNotFoundValue(-1);
+    pixelStateMap.setKeyNotFoundValue(0xFFFFFFFF);
     resetStates();
     
     stack = new ArrayList<SavedState>(MIN_CLIENT_ATTRIB_STACK_DEPTH);
   }
 
-  public void clearStates(boolean enable) {
+  public final void clearStates(boolean enable) {
     enabled = enable;    
     pixelStateMap.clear();
   }
 
-  public void setEnabled(boolean on) {
+  public final void setEnabled(boolean on) {
     enabled = on;    
   }
 
-  public boolean isEnabled() {
+  public final boolean isEnabled() {
     return enabled;
   }
 
   /** @return true if found in our map, otherwise false, 
    *  which forces the caller to query GL. */
-  public boolean getInt(int pname, int[] params, int params_offset) {
+  public final boolean getInt(int pname, int[] params, int params_offset) {
     if(enabled) {
         int value = pixelStateMap.get(pname);
-        if(0 <= value) {
+        if(0xFFFFFFFF != value) {
             params[params_offset] = value;
             return true;
         }
@@ -123,10 +123,10 @@ public class GLStateTracker {
 
   /** @return true if found in our map, otherwise false, 
    *  which forces the caller to query GL. */
-  public boolean getInt(int pname, IntBuffer params, int dummy) {
+  public final boolean getInt(int pname, IntBuffer params, int dummy) {
     if(enabled) {
         int value = pixelStateMap.get(pname);
-        if(0 <= value) {
+        if(0xFFFFFFFF != value) {
             params.put(params.position(), value);
             return true;
         }
@@ -134,13 +134,13 @@ public class GLStateTracker {
     return false;
   }
 
-  public void setInt(int pname, int param) {
+  public final void setInt(int pname, int param) {
     if(enabled) {
         pixelStateMap.put(pname, param);
     }
   }
 
-  public void pushAttrib(int flags) {
+  public final void pushAttrib(int flags) {
     if(enabled) {
         SavedState state = new SavedState(); // empty-slot
         if( 0 != (flags&GL2.GL_CLIENT_PIXEL_STORE_BIT) ) {
@@ -151,7 +151,7 @@ public class GLStateTracker {
     }
   }
 
-  public void popAttrib() {
+  public final void popAttrib() {
     if(enabled) {
         if(stack.isEmpty()) {
             throw new GLException("stack contains no elements");
@@ -169,7 +169,7 @@ public class GLStateTracker {
     }
   }
 
-  private void resetStates() {
+  private final void resetStates() {
     pixelStateMap.clear();
 
     // 16 values -> PIXEL_STATE_MAP_SIZE
