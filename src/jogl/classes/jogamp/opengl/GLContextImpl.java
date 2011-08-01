@@ -1147,10 +1147,11 @@ public abstract class GLContextImpl extends GLContext {
   }
   
   public final void glDebugMessageInsert(int source, int type, int id, int severity, String buf) {
+      final int len = (null != buf) ? buf.length() : 0;
       if(glDebugHandler.isExtensionARB()) {
-          gl.getGL2GL3().glDebugMessageInsertARB(source, type, id, severity, -1, buf);
+          gl.getGL2GL3().glDebugMessageInsertARB(source, type, id, severity, len, buf);
       } else if(glDebugHandler.isExtensionAMD()) {
-          gl.getGL2GL3().glDebugMessageInsertAMD(GLDebugMessage.translateARB2AMDCategory(source, type), severity, id, 0, buf);
+          gl.getGL2GL3().glDebugMessageInsertAMD(GLDebugMessage.translateARB2AMDCategory(source, type), severity, id, len, buf);
       }      
   }
 }
