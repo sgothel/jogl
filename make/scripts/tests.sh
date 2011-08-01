@@ -56,6 +56,8 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.EDT"
     # D_ARGS="-Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.X11Util.TraceDisplayLifecycle=true"
     D_ARGS="-Dnativewindow.x11.mt-bug=true"
+    #D_ARGS="-Dnativewindow.x11.mt-bug=true -Djogl.debug.DebugGL"
+    #D_ARGS="-Dnativewindow.x11.mt-bug=true -Djogl.debug=all"
     #D_ARGS="-Dnativewindow.x11.mt-bug=true -Dnativewindow.debug.NativeWindow -Dnativewindow.debug.X11Util -Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.X11Util.TraceDisplayLifecycle=true"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=1000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
@@ -102,7 +104,7 @@ function jrun() {
     echo $javaexe $X_ARGS $D_ARGS $C_ARG $*
     #LD_LIBRARY_PATH=/usr/local/projects/Xorg.modular/build-x86_64/lib:$LD_LIBRARY_PATH \
     #LD_LIBRARY_PATH=/opt-linux-x86_64/x11lib-1.3:$LD_LIBRARY_PATH \
-    LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64:$LD_LIBRARY_PATH \
+    #LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64:$LD_LIBRARY_PATH \
     $javaexe $X_ARGS $D_ARGS $C_ARG $*
     echo
     echo "Test End: $*"
@@ -128,7 +130,7 @@ function testawtmt() {
 #testnoawt com.jogamp.nativewindow.NativeWindowVersion $*
 #testnoawt com.jogamp.opengl.JoglVersion $*
 #testnoawt com.jogamp.newt.NewtVersion $*
-testnoawt com.jogamp.newt.opengl.GLWindow $*
+#testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
@@ -140,6 +142,7 @@ testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteGLWindows01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2es1.gears.newt.TestGearsGL2ES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated $*
 #testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
