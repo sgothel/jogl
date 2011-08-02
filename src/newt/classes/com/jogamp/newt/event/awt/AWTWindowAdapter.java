@@ -28,6 +28,8 @@
  
 package com.jogamp.newt.event.awt;
 
+import jogamp.newt.awt.event.AWTNewtEventFactory;
+
 public class AWTWindowAdapter 
     extends AWTAdapter 
     implements java.awt.event.ComponentListener, java.awt.event.WindowListener, java.awt.event.FocusListener

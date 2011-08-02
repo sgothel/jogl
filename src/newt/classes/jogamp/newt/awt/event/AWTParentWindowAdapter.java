@@ -26,7 +26,10 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.newt.event.awt;
+package jogamp.newt.awt.event;
+
+import com.jogamp.newt.event.awt.AWTAdapter;
+import com.jogamp.newt.event.awt.AWTWindowAdapter;
 
 /**
  * Specialized parent/client adapter,
@@ -69,20 +72,20 @@ public class AWTParentWindowAdapter
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: componentResized: "+comp);
         }
-        if(newtWindow.isValid()) {
-            newtWindow.runOnEDTIfAvail(false, new Runnable() {
+        if(getNewtWindow().isValid()) {
+            getNewtWindow().runOnEDTIfAvail(false, new Runnable() {
                 public void run() {
                     int cw = comp.getWidth();
                     int ch = comp.getHeight();
                     if( 0 < cw * ch ) {
-                        if( newtWindow.getWidth() != cw || newtWindow.getHeight() != ch ) {
-                            newtWindow.setSize(cw, ch);
-                            if(comp.isVisible() != newtWindow.isVisible()) {
-                                newtWindow.setVisible(comp.isVisible());
+                        if( getNewtWindow().getWidth() != cw || getNewtWindow().getHeight() != ch ) {
+                            getNewtWindow().setSize(cw, ch);
+                            if(comp.isVisible() != getNewtWindow().isVisible()) {
+                                getNewtWindow().setVisible(comp.isVisible());
                             }
                         }
-                    } else if(newtWindow.isVisible()) {
-                        newtWindow.setVisible(false);
+                    } else if(getNewtWindow().isVisible()) {
+                        getNewtWindow().setVisible(false);
                     }
                 }});
         }
@@ -101,7 +104,7 @@ public class AWTParentWindowAdapter
     }
 
     public void hierarchyChanged(java.awt.event.HierarchyEvent e) {
-        if( null == newtListener ) {
+        if( null == getNewtEventListener() ) {
             long bits = e.getChangeFlags();
             final java.awt.Component changed = e.getChanged();
             if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & bits ) ) {
@@ -109,11 +112,11 @@ public class AWTParentWindowAdapter
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("AWT: hierarchyChanged SHOWING_CHANGED: showing "+showing+", "+changed);
                 }
-                if(newtWindow.isValid()) {
-                    newtWindow.runOnEDTIfAvail(false, new Runnable() {
+                if(getNewtWindow().isValid()) {
+                    getNewtWindow().runOnEDTIfAvail(false, new Runnable() {
                         public void run() {
-                            if(newtWindow.isVisible() != showing) {
-                                newtWindow.setVisible(showing);
+                            if(getNewtWindow().isVisible() != showing) {
+                                getNewtWindow().setVisible(showing);
                             }
                         }});
                 }

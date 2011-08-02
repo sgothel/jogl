@@ -27,7 +27,7 @@
  */
  
 
-package com.jogamp.newt.awt;
+package jogamp.newt.awt.event;
 
 
 import javax.media.nativewindow.*;

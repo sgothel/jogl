@@ -162,6 +162,14 @@ public abstract class AWTAdapter implements java.util.EventListener
         }
     }
 
+    public final com.jogamp.newt.Window getNewtWindow() { 
+        return newtWindow; 
+    }
+    
+    public final com.jogamp.newt.event.NEWTEventListener getNewtEventListener() {
+        return newtListener; 
+    }
+    
     /** 
      * Due to the fact that some NEWT {@link com.jogamp.newt.event.NEWTEventListener}
      * are mapped to more than one {@link java.util.EventListener},

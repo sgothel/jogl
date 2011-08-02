@@ -28,6 +28,8 @@
  
 package com.jogamp.newt.event.awt;
 
+import jogamp.newt.awt.event.AWTNewtEventFactory;
+
 public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseListener, java.awt.event.MouseMotionListener
 {
     public AWTMouseAdapter(com.jogamp.newt.event.MouseListener newtListener) {

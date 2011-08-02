@@ -28,6 +28,8 @@
  
 package com.jogamp.newt.event.awt;
 
+import jogamp.newt.awt.event.AWTNewtEventFactory;
+
 public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListener
 {
     public AWTKeyAdapter(com.jogamp.newt.event.KeyListener newtListener) {
