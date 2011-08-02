@@ -221,7 +221,6 @@
                 <env key="CLASSPATH" value="${junit_jogl_newt.run.jars}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <arg line="${jvmarg.headless}"/>
-                <arg line="-Dnativewindow.x11.mt-bug=true"/> <!-- bug 502 workaround -->
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
                 -->
@@ -256,7 +255,6 @@
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
-            <jvmarg value="-Dnativewindow.x11.mt-bug=true"/> <!-- bug 502 workaround -->
 
             <!--
             <jvmarg value="-Dnewt.debug.EDT"/>
@@ -448,7 +446,6 @@
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
-            <jvmarg value="-Dnativewindow.x11.mt-bug=true"/> <!-- bug 502 workaround -->
 
             <!--
             <jvmarg value="-Dnewt.debug.EDT"/>
