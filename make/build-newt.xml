@@ -194,7 +194,7 @@
     <target name="java.compile.javase">
         <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
-               excludes="${java.excludes.all}"
+               excludes="${java.excludes.all},**/android/**"
                source="${target.sourcelevel}"
                fork="yes"
                includeAntRuntime="false"
