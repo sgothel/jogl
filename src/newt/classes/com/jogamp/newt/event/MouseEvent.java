@@ -132,7 +132,6 @@ public class MouseEvent extends InputEvent
         default: return "unknown (" + type + ")";
         }
     }
-
     private final int x[], y[], clickCount, button, wheelRotation;
 
     public static final int EVENT_MOUSE_CLICKED  = 200;

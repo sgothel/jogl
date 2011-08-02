@@ -44,9 +44,6 @@ public abstract class InputEvent extends NEWTEvent
  public static final int  BUTTON1_MASK   = 1 << 6;
  public static final int  BUTTON2_MASK   = 1 << 7;
  public static final int  BUTTON3_MASK   = 1 << 8;
- public static final int  POINTER1_MASK  = 1 << 16;
- public static final int  POINTER2_MASK  = 1 << 17;
- public static final int  POINTER3_MASK  = 1 << 18;
 
  protected InputEvent(int eventType, Object source, long when, int modifiers) {
     super(eventType, source, when);
@@ -100,36 +97,6 @@ public abstract class InputEvent extends NEWTEvent
 
  public final boolean isButton3Down()  {
     return (modifiers&BUTTON3_MASK)!=0;
- }
-
- /**
-  * @return Array of involved pointer [{@link MouseEvent#POINTER1} ..]. 
-  *         If none is down, the resulting array is of length 0.
-  */
- public final int[] getPointers()  {
-     int len = 0;
-     if(isPointer1()) { len++; }
-     if(isPointer2()) { len++; }
-     if(isPointer3()) { len++; }
-     
-     int[] res = new int[len];
-     int i=0;
-     if(isPointer1()) { res[i++] = MouseEvent.POINTER1; }
-     if(isPointer2()) { res[i++] = MouseEvent.POINTER2; }
-     if(isPointer3()) { res[i++] = MouseEvent.POINTER3; }
-     return res;
- }
- 
- public final boolean isPointer1()  {
-    return (modifiers&POINTER1_MASK)!=0;
- }
-
- public final boolean isPointer2()  {
-    return (modifiers&POINTER2_MASK)!=0;
- }
-
- public final boolean isPointer3()  {
-    return (modifiers&POINTER3_MASK)!=0;
  }
 
  public String toString() {
