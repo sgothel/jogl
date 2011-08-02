@@ -141,7 +141,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         Class windowClass = NewtFactory.getCustomClass(type, "Window");
         if(null==windowClass) {
             if (NativeWindowFactory.TYPE_EGL.equals(type)) {
-                windowClass = Class.forName("jogamp.newt.opengl.kd.KDWindow");
+                windowClass = Class.forName("jogamp.newt.egl.kd.KDWindow");
             } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
                 windowClass = Class.forName("jogamp.newt.windows.WindowsWindow");
             } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {

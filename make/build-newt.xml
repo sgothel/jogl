@@ -105,11 +105,11 @@
         <property name="java.part.macosx"
                   value="jogamp/newt/macosx/*"/>
 
-        <property name="java.part.opengl"
-                  value="com/jogamp/newt/opengl/* jogamp/newt/opengl/kd/*"/>
+        <property name="java.part.egl"
+                  value="jogamp/newt/egl/**"/>
 
-        <property name="java.part.broadcomegl"
-                  value="jogamp/newt/opengl/broadcom/egl/*"/>
+        <property name="java.part.opengl"
+                  value="com/jogamp/newt/opengl/** ${java.part.egl}"/>
 
         <property name="java.part.intelgdl"
                   value="jogamp/newt/intel/gdl/*"/>
@@ -121,8 +121,7 @@
            <isset property="setup.noAWT"/>
         </condition>
 
-        <condition property="java.excludes.opengl"
-                   value="${java.part.opengl} ${java.part.broadcomegl}">
+        <condition property="java.excludes.opengl" value="${java.part.opengl}">
            <isset property="setup.noOpenGL"/>
         </condition>
 
@@ -162,7 +161,7 @@
         <property name="javadoc.dev" value="${project.root}/javadoc_newt_dev" />
         <property name="javadoc.windowtitle" value="NEWT API -- ${newt_base_version} Specification" />
         <property name="javadoc.overview" value="spec-overview.html" />
-        <property name="javadoc.spec.packagenames" value="com.jogamp.newt, com.jogamp.newt.event.*, com.jogamp.newt.opengl" />
+        <property name="javadoc.spec.packagenames" value="com.jogamp.newt, com.jogamp.newt.event, com.jogamp.newt.opengl, com.jogamp.newt.util" />
 
         <property name="javadoc.packagenames" value="${javadoc.spec.packagenames}" />
 
@@ -549,7 +548,7 @@
     </macrodef>
 
     <target name="c.build.newt.prepare.KD" if="useKD">
-      <javah destdir="${src.generated.c}/KD" classpath="${classes}" class="jogamp.newt.opengl.kd.KDWindow" />
+      <javah destdir="${src.generated.c}/KD" classpath="${classes}" class="jogamp.newt.egl.kd.KDWindow" />
     </target>
 
     <target name="c.build.newt.prepare.IntelGDL" if="useIntelGDL">
@@ -559,7 +558,7 @@
     </target>
 
     <target name="c.build.newt.prepare.BroadcomEGL" if="useBroadcomEGL">
-      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${classes}" class="jogamp.newt.opengl.broadcom.egl.Window" />
+      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${classes}" class="jogamp.newt.egl.broadcom.Window" />
     </target>
 
     <target name="c.build.newt.prepare.desktop" unless="setup.nodesktop">
@@ -626,10 +625,6 @@
         <jar manifest="tempversion" destfile="${newt.ogl.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.opengl}"/>
-        </jar>
-        <jar manifest="tempversion" destfile="${newt.hw.broadcomegl.jar}" filesonly="true">
-            <fileset dir="${classes}"
-                     includes="${java.part.broadcomegl}"/>
         </jar>
     </target>
 

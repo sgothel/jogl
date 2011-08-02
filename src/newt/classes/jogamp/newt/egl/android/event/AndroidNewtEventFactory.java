@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package jogamp.newt.opengl.android.event;
+package jogamp.newt.egl.android.event;
 
 import com.jogamp.common.util.IntIntHashMap;
 

@@ -31,7 +31,7 @@
  * 
  */
 
-package jogamp.newt.opengl.kd;
+package jogamp.newt.egl.kd;
 
 import jogamp.newt.*;
 import jogamp.opengl.egl.*;

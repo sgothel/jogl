@@ -57,7 +57,7 @@ public abstract class DisplayImpl extends Display {
         Class displayClass = NewtFactory.getCustomClass(type, "Display");
         if(null==displayClass) {
             if (NativeWindowFactory.TYPE_EGL.equals(type)) {
-                displayClass = Class.forName("jogamp.newt.opengl.kd.KDDisplay");
+                displayClass = Class.forName("jogamp.newt.egl.kd.KDDisplay");
             } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
                 displayClass = Class.forName("jogamp.newt.windows.WindowsDisplay");
             } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {

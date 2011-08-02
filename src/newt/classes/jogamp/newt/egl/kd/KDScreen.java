@@ -31,32 +31,28 @@
  * 
  */
 
-package jogamp.newt.opengl.broadcom.egl;
+package jogamp.newt.egl.kd;
 
+import com.jogamp.newt.*;
+import jogamp.newt.ScreenImpl;
 import javax.media.nativewindow.*;
 
-public class Screen extends jogamp.newt.ScreenImpl {
-
+public class KDScreen extends ScreenImpl {
     static {
-        Display.initSingleton();
+        KDDisplay.initSingleton();
     }
 
-
-    public Screen() {
+    public KDScreen() {
     }
 
     protected void createNativeImpl() {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
-        setScreenSize(fixedWidth, fixedHeight);
     }
 
     protected void closeNativeImpl() { }
 
-    //----------------------------------------------------------------------
-    // Internals only
-    //
-
-    static final int fixedWidth = 1920;
-    static final int fixedHeight = 1080;
+    // elevate access to this package ..
+    protected void setScreenSize(int w, int h) {
+        super.setScreenSize(w, h);
+    }
 }
-

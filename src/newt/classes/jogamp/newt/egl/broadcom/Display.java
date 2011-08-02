@@ -31,7 +31,7 @@
  * 
  */
 
-package jogamp.newt.opengl.broadcom.egl;
+package jogamp.newt.egl.broadcom;
 
 import jogamp.newt.*;
 import jogamp.opengl.egl.*;
