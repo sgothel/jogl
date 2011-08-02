@@ -36,7 +36,7 @@ class AndroidNewtEventFactory {
 
     static {
         IntIntHashMap map = new IntIntHashMap();
-        map.setKeyNotFoundValue(-1);
+        map.setKeyNotFoundValue(0xFFFFFFFF);
         
         map.put(android.view.KeyEvent.ACTION_DOWN, com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED);
         map.put(android.view.KeyEvent.ACTION_UP, com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED);
@@ -51,6 +51,8 @@ class AndroidNewtEventFactory {
         map.put(android.view.MotionEvent.ACTION_POINTER_DOWN, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED_MINOR);
         map.put(android.view.MotionEvent.ACTION_POINTER_UP, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_PRESSED_MINOR);
         
+        map.put(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+
         eventTypeANDROID2NEWT = map;
     }
 
@@ -97,6 +99,14 @@ class AndroidNewtEventFactory {
         if (android.view.KeyEvent.KEYCODE_AT == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_AT;
         return 0;
     }
+    
+    static final com.jogamp.newt.event.WindowEvent createWindowEvent(android.view.accessibility.AccessibilityEvent event, com.jogamp.newt.Window newtSource) {
+        int type = eventTypeANDROID2NEWT.get(event.getEventType());
+        if(0xFFFFFFFF != type) {
+            return new com.jogamp.newt.event.WindowEvent(type, ((null==newtSource)?null:(Object)newtSource), event.getEventTime());
+        }
+        return null; // no mapping ..
+    }
 
     public static final int androidKeyModifiers2Newt(int androidMods) {
         int newtMods = 0;
@@ -109,7 +119,7 @@ class AndroidNewtEventFactory {
     
     static final com.jogamp.newt.event.KeyEvent createKeyEvent(android.view.KeyEvent event, com.jogamp.newt.Window newtSource) {
         int type = eventTypeANDROID2NEWT.get(event.getAction());
-        if(-1 < type) {
+        if(0xFFFFFFFF != type) {
             return new com.jogamp.newt.event.KeyEvent(
                            type, (null==newtSource)?null:(Object)newtSource, event.getEventTime(), 
                            androidKeyModifiers2Newt(event.getMetaState()), 
@@ -135,7 +145,7 @@ class AndroidNewtEventFactory {
 
     static final com.jogamp.newt.event.MouseEvent createMouseEvent(android.view.MotionEvent event, com.jogamp.newt.Window newtSource) {
         int type = eventTypeANDROID2NEWT.get(event.getAction());
-        if(-1 < type) {
+        if(0xFFFFFFFF != type) {
             int rotation = 0;
             int clickCount = 1;
             int modifiers = 0;
