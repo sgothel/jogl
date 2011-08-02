@@ -137,24 +137,28 @@ class AndroidNewtEventFactory {
         int type = eventTypeANDROID2NEWT.get(event.getAction());
         if(-1 < type) {
             int rotation = 0;
+            int clickCount = 1;
+            int modifiers = 0;
             
             int[] x = new int[event.getPointerCount()];
             int[] y = new int[event.getPointerCount()];
+            float[] pressure = new float[event.getPointerCount()];
             
             int index = 0;
             while(index < event.getPointerCount()) {
                 x[index] = (int)event.getX(index);
                 y[index] = (int)event.getY(index);
+                pressure[index] = event.getPressure(index);
                 index++;
             }
 
             int pointer = androidActionPointer2Newt(event);
             return new com.jogamp.newt.event.MouseEvent(
                            type, (null==newtSource)?null:(Object)newtSource, event.getEventTime(),
-                                  0 , 
-                           x, y, 1, 
+                                   modifiers , 
+                           x, y, pressure, clickCount, 
                            pointer+1, rotation);
-        }
+        } 
         return null; // no mapping ..
     }
 }

@@ -53,11 +53,9 @@ public class MouseEvent extends InputEvent
             int rotation)
     {
         super(eventType, source, when, modifiers); 
-        this.x = new int[1];
-        this.y = new int[1];
-
-        this.x[0]=x;
-        this.y[0]=y;
+        this.x = new int[]{x};
+        this.y = new int[]{y};
+        this.pressure = new float[]{0};
 
         this.clickCount=clickCount;
         this.button=button;
@@ -65,12 +63,13 @@ public class MouseEvent extends InputEvent
     }
 
     public MouseEvent(int eventType, Object source, long when,
-            int modifiers, int[] x, int[] y, int clickCount, int button,
+            int modifiers, int[] x, int[] y, float[] pressure, int clickCount, int button,
             int rotation)
     {
         super(eventType, source, when, modifiers); 
         this.x = x;
         this.y = y;
+        this.pressure = pressure;
 
         this.clickCount=clickCount;
         this.button=button;
@@ -81,10 +80,6 @@ public class MouseEvent extends InputEvent
         return x.length;
     }
     
-    public int getPointerID() {
-        return x.length;
-    }
-
     public int getButton() {
         return button;
     }
@@ -94,6 +89,7 @@ public class MouseEvent extends InputEvent
     public int getX() {
         return x[0];
     }
+    
     public int getY() {
         return y[0];
     }
@@ -105,7 +101,15 @@ public class MouseEvent extends InputEvent
     public int getY(int pointer) {
         return y[pointer];
     }
-
+    
+    public float getPressure(){
+        return pressure[0];
+    }
+    
+    public float getPressure(int pointer){
+        return pressure[pointer];
+    }
+    
     public int getWheelRotation() {
         return wheelRotation;
     }
@@ -133,6 +137,7 @@ public class MouseEvent extends InputEvent
         }
     }
     private final int x[], y[], clickCount, button, wheelRotation;
+    private final float pressure[];
 
     public static final int EVENT_MOUSE_CLICKED  = 200;
     public static final int EVENT_MOUSE_ENTERED  = 201;
