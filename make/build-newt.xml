@@ -263,9 +263,9 @@
       </linker>
 
       <linker id="linker.cfg.linux.armv7.newt.x11" extends="linker.cfg.linux.armv7">
-        <syslibset dir="${gluegen.root}/make/lib/arm-linux-gnueabi/ubuntu-11.04/lib" libs="X11"/>
-        <syslibset dir="${gluegen.root}/make/lib/arm-linux-gnueabi/ubuntu-11.04/lib" libs="Xrandr"/>
-        <syslibset dir="${gluegen.root}/make/lib/arm-linux-gnueabi/ubuntu-11.04/lib" libs="Xxf86vm" />
+        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="X11" />
+        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xrandr" />
+        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.solaris.newt.x11" extends="linker.cfg.solaris">
