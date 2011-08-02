@@ -36,14 +36,23 @@ package com.jogamp.newt.event;
 
 public class MouseEvent extends InputEvent
 {
+  /** Mouse button 1 name. Button names start with 1. */
   public static final int BUTTON1 = 1;
   public static final int BUTTON2 = 2;
   public static final int BUTTON3 = 3;
   public static final int BUTTON4 = 4;
   public static final int BUTTON5 = 5;
   public static final int BUTTON6 = 6;
+  /** Maximal number of supported mouse buttons. */
   public static final int BUTTON_NUMBER = 6;
 
+  /** Pointer device 1 name. Pointer names start with 0. */
+  public static final int POINTER1 = 0;
+  public static final int POINTER2 = 1;
+  public static final int POINTER3 = 2;
+  /** Maximal number of supported pointer devices. */
+  public static final int POINTER_NUMBER = 3;
+  
   public static final int getClickTimeout() { 
     return 300; 
   }
@@ -52,25 +61,52 @@ public class MouseEvent extends InputEvent
                    int modifiers, int x, int y, int clickCount, int button,
                    int rotation)
  {
-     super(eventType, source, when, modifiers); 
-     this.x=x;
-     this.y=y;
+     super(eventType, source, when, modifiers);
+     
+     this.pointerCount=1;
+     this.x=new int[1]; this.x[0] = x;
+     this.y=new int[1]; this.y[0] = y;
+     this.button=new int[1]; this.button[0] = button;
      this.clickCount=clickCount;
-     this.button=button;
      this.wheelRotation = rotation;
  }
-
+ 
+ public MouseEvent(int eventType, Object source, long when,
+                   int modifiers, int pointerCount, int[] x, int[] y, int[] button, int[] pressure,
+                   int clickCount, int rotation)
+ {
+     super(eventType, source, when, modifiers);
+     this.pointerCount=pointerCount;
+     this.x=x;
+     this.y=y;
+     this.button=button;
+     this.clickCount=clickCount;
+     this.wheelRotation = rotation;
+ }
+ 
+ public int getPointerCount() {
+     return pointerCount;     
+ }
  public int getButton() {
-    return button;
+    return button[0];
+ }
+ public int getX() {
+    return x[0];
+ }
+ public int getY() {
+    return y[0];
+ }
+ public int getButton(int pointerIdx) {
+    return button[pointerIdx];
+ }
+ public int getX(int pointerIdx) {
+    return x[pointerIdx];
+ }
+ public int getY(int pointerIdx) {
+    return y[pointerIdx];
  }
  public int getClickCount() {
     return clickCount;
- }
- public int getX() {
-    return x;
- }
- public int getY() {
-    return y;
  }
  public int getWheelRotation() {
     return wheelRotation;
@@ -97,7 +133,8 @@ public class MouseEvent extends InputEvent
     }
  }
 
- private final int x, y, clickCount, button, wheelRotation;
+ private final int pointerCount, clickCount, wheelRotation;
+ private final int x[], y[], button[];
 
  public static final int EVENT_MOUSE_CLICKED  = 200;
  public static final int EVENT_MOUSE_ENTERED  = 201;
