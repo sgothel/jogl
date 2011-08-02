@@ -31,5 +31,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/gluegen"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Ant"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/SWT"/>
+	<classpathentry kind="lib" path="/gluegen/make/lib/android-sdk/9/android.jar"/>
 	<classpathentry kind="output" path="build/eclipse-classes"/>
 </classpath>
