@@ -56,16 +56,18 @@ public abstract class DisplayImpl extends Display {
     {
         Class displayClass = NewtFactory.getCustomClass(type, "Display");
         if(null==displayClass) {
-            if (NativeWindowFactory.TYPE_EGL.equals(type)) {
-                displayClass = Class.forName("jogamp.newt.egl.kd.KDDisplay");
+            if (NativeWindowFactory.TYPE_ANDROID.equals(type)) {
+                displayClass = Class.forName("jogamp.newt.driver.android.Display");
+            } else if (NativeWindowFactory.TYPE_EGL.equals(type)) {
+                displayClass = Class.forName("jogamp.newt.driver.kd.KDDisplay");
             } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
-                displayClass = Class.forName("jogamp.newt.windows.WindowsDisplay");
+                displayClass = Class.forName("jogamp.newt.driver.windows.WindowsDisplay");
             } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
-                displayClass = Class.forName("jogamp.newt.macosx.MacDisplay");
+                displayClass = Class.forName("jogamp.newt.driver.macosx.MacDisplay");
             } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
-                displayClass = Class.forName("jogamp.newt.x11.X11Display");
+                displayClass = Class.forName("jogamp.newt.driver.x11.X11Display");
             } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
-                displayClass = Class.forName("jogamp.newt.awt.AWTDisplay");
+                displayClass = Class.forName("jogamp.newt.driver.awt.AWTDisplay");
             } else {
                 throw new RuntimeException("Unknown display type \"" + type + "\"");
             }

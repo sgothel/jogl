@@ -9,8 +9,7 @@ set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw64\bin;c:\mingw\bin;%PATH%
 set LIB_GEN=%THISDIR%\lib
 set CLASSPATH=.;%THISDIR%\build-win64\classes
 REM    -Dc.compiler.debug=true 
-REM    -DuseOpenMAX=true 
-REM    -DuseKD=true
-REM    -Djogl.cg=1
+REM    -Dsetup.addNativeOpenMAX=true 
+REM    -Dsetup.addNativeKD=true
 
-ant -Dc.compiler.debug=true -Drootrel.build=build-win64 -Djogl.cg=1 %1 %2 %3 %4 %5 %6 %7 %8 %9 > make.jogl.all.win64.log 2>&1
+ant -Dc.compiler.debug=true -Drootrel.build=build-win64 %1 %2 %3 %4 %5 %6 %7 %8 %9 > make.jogl.all.win64.log 2>&1

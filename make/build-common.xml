@@ -16,6 +16,7 @@
     <property name="gluegen.root" value="../../gluegen" />
     <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
     <import file="${gluegen.root}/make/jogamp-archivetasks.xml" />
+    <import file="${gluegen.root}/make/jogamp-androidtasks.xml" />
     <import file="${gluegen.root}/make/jogamp-env.xml" />
 
     <property name="ant-contrib.jar"  value="${gluegen.root}/make/lib/ant-contrib-1.0b3.jar" />
@@ -87,20 +88,27 @@
         <property name="nativewindow.version" value="${nativewindow_base_version}-b${jogl.build.number}-${version.timestamp}" />
         <property name="jogl.version"         value="${jogl_base_version}-b${jogl.build.number}-${version.timestamp}" />
         <property name="newt.version"         value="${newt_base_version}-b${jogl.build.number}-${version.timestamp}" />
+        <property name="jogl.version.plus"    value="${jogl_base_version}-${jogl.build.branch}-b${jogl.build.number}-${jogl.build.commit}-${version.timestamp}" />
 
         <property name="archive.name"         value="jogl-${jogl.version}-${os.and.arch}" />
         <property name="archive"              value="${build}/${archive.name}" />
 
-        <condition property="setup.nodesktop">
-            <and>
-                <isfalse value="${isWindows}" />
-                <isfalse value="${isOSX}" />
-                <isfalse value="${isX11}" />
-            </and>
+        <condition property="setup.noNativeAWT">
+            <or>
+                <isset property="setup.noAWT"/> 
+                <isset property="isAndroid"/> 
+            </or>
         </condition>
 
-        <echo message="setup.nodesktop: ${setup.nodesktop}" />
+        <condition property="setup.noNativeDesktop">
+            <or>
+                <isset property="isAndroid"/> 
+            </or>
+        </condition>
+
         <echo message="setup.noAWT: ${setup.noAWT}" />
+        <echo message="setup.noNativeAWT: ${setup.noNativeAWT}" />
+        <echo message="setup.noNativeDesktop: ${setup.noNativeDesktop}" />
 
         <!-- Load the user specified properties file that defines various host
            - specific paths.  The user will be notified if this is does not
@@ -112,6 +120,7 @@
         <echo message="Loaded ${user.home}/gluegen.properties." />
         <echo message="antlr.jar=${antlr.jar}" />
         <echo message="junit.jar=${junit.jar}" />
+        <echo message="android.jar=${android.jar}" />
 
         <!-- Set swt.jar to the correct file for this platform. We point to the debug JARs to allow
              stepping into SWT calls using the accompanying source code zip archives. -->
@@ -129,6 +138,9 @@
         </condition>
         <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt-debug.jar">
           <istrue value="${isLinuxARMv7}" /> <!-- FIXME JAU .. hack -->
+        </condition>
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt-debug.jar">
+          <istrue value="${isAndroid}" /> <!-- FIXME JAU .. hack -->
         </condition>
         <condition property="swt.jar" value="${project.root}/make/lib/swt/cocoa-macosx-x86_64/swt-debug.jar">
           <and>
@@ -227,161 +239,242 @@
           <pathelement location="${gluegen-gl.jar}" />
         </path>
 
-        <!-- JavaSE combinations -->
-        <property name="gluegen-rt.jar"             value="${build.gluegen}/gluegen-rt.jar" />
-        <property name="jogl.test.jar"              value="${build.jogl}/jogl.test.jar"/>
-
-        <!-- JavaSE combinations . AWT -->
-        <property name="nativewindow.all.jar"       value="${build.nativewindow}/nativewindow.all.jar" />
-        <property name="jogl.all.jar"               value="${build.jogl}/jogl.all.jar" />
-        <property name="newt.all.jar"               value="${build.newt}/newt.all.jar" />
-        <property name="newt.event.jar"             value="${build.newt}/newt.event.jar" />
-
-        <!-- JavaSE combinations . NO.AWT -->
-        <property name="nativewindow.all-noawt.jar" value="${build.nativewindow}/nativewindow.all-noawt.jar" />
-        <property name="jogl.all-noawt.jar"         value="${build.jogl}/jogl.all-noawt.jar" />
-        <property name="newt.all-noawt.jar"         value="${build.newt}/newt.all-noawt.jar" />
-
-        <path id="swt_gluegen.classpath">
-            <pathelement location="${gluegen-rt.jar}" />
-            <pathelement location="${swt.jar}" />
-        </path>
-
-        <path id="nativewindow_gluegen.classpath">
-            <pathelement location="${gluegen-rt.jar}" />
-            <pathelement location="${swt.jar}" />
-            <pathelement location="${nativewindow.all.jar}" />
-        </path>
-
-        <path id="nativewindow_gluegen_jogl.classpath">
-            <pathelement location="${gluegen-rt.jar}" />
-            <pathelement location="${swt.jar}" />
-            <pathelement location="${nativewindow.all.jar}" />
-            <pathelement location="${jogl.all.jar}" />
-        </path>
-
-        <path id="jogl_newt_all.classpath">
-            <pathelement location="${gluegen-rt.jar}" />
-            <pathelement location="${swt.jar}" />
-            <pathelement location="${nativewindow.all.jar}" />
-            <pathelement location="${jogl.all.jar}" />
-            <pathelement location="${newt.all.jar}" />
-        </path>
-
-        <path id="jogl_newt_all-noawt.classpath">
-            <pathelement location="${gluegen-rt.jar}" />
-            <pathelement location="${swt.jar}" />
-            <pathelement location="${nativewindow.all-noawt.jar}" />
-            <pathelement location="${jogl.all-noawt.jar}" />
-            <pathelement location="${newt.all-noawt.jar}" />
-        </path>
-
-        <path id="junit_jogl_newt.compile.classpath">
-            <pathelement location="${junit.jar}" />
-            <pathelement location="${ant.jar}" />
-            <pathelement location="${ant-junit.jar}" />
-            <pathelement location="${gluegen-rt.jar}" />
-            <pathelement location="${nativewindow.all.jar}" />
-            <pathelement location="${jogl.all.jar}" />
-            <pathelement location="${newt.all.jar}" />
-            <pathelement location="${swt.jar}" />
-        </path>
-
-        <path id="junit_jogl_awt.run.classpath">
-            <pathelement location="${junit.jar}" />
-            <pathelement location="${ant.jar}" />
-            <pathelement location="${ant-junit.jar}" />
-            <pathelement location="${gluegen-rt.jar}" />
-            <pathelement location="${nativewindow.all.jar}" />
-            <pathelement location="${jogl.all.jar}" />
-            <pathelement location="${newt.event.jar}" />
-            <pathelement location="${jogl.test.jar}" />
-        </path>
-
-        <!-- classpath used when running SWT tests -->
-        <path id="junit_jogl_swt.run.classpath">
-          <pathelement location="${junit.jar}" />
-          <pathelement location="${ant.jar}" />
-          <pathelement location="${ant-junit.jar}" />
-          <pathelement location="${gluegen-rt.jar}" />
-          <pathelement location="${swt.jar}" />
-          <pathelement location="${nativewindow.all.jar}" />
-          <pathelement location="${jogl.all.jar}" />
-          <pathelement location="${newt.event.jar}" />
-          <pathelement location="${jogl.test.jar}" />
-        </path>
-        <property name="junit_jogl_swt.run.jars"
-                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${swt.jar}${path.separator}${nativewindow.all.jar}${path.separator}${jogl.all.jar}${path.separator}${newt.all.jar}${path.separator}${jogl.test.jar}"/>
-
-        <path id="junit_jogl_newt.run.classpath">
-            <pathelement location="${junit.jar}" />
-            <pathelement location="${ant.jar}" />
-            <pathelement location="${ant-junit.jar}" />
-            <pathelement location="${gluegen-rt.jar}" />
-            <pathelement location="${nativewindow.all-noawt.jar}" />
-            <pathelement location="${jogl.all-noawt.jar}" />
-            <pathelement location="${newt.all-noawt.jar}" />
-            <pathelement location="${jogl.test.jar}" />
-        </path>
-        <property name="junit_jogl_newt.run.jars"
-                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${nativewindow.all-noawt.jar}${path.separator}${jogl.all-noawt.jar}${path.separator}${newt.all-noawt.jar}${path.separator}${jogl.test.jar}"/>
-
-        <path id="junit_jogl_newt_awt.run.classpath">
-            <pathelement location="${junit.jar}" />
-            <pathelement location="${ant.jar}" />
-            <pathelement location="${ant-junit.jar}" />
-            <pathelement location="${gluegen-rt.jar}" />
-            <pathelement location="${nativewindow.all.jar}" />
-            <pathelement location="${jogl.all.jar}" />
-            <pathelement location="${newt.all.jar}" />
-            <pathelement location="${jogl.test.jar}" />
-        </path>
-        <property name="junit_jogl_newt_awt.run.jars"
-                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${nativewindow.all.jar}${path.separator}${jogl.all.jar}${path.separator}${newt.all.jar}${path.separator}${jogl.test.jar}"/>
-
-
         <!-- Atomic JavaSE JARS -->
 
         <property name="nativewindow.core.jar"         value="${build.nativewindow}/nativewindow.core.jar" />
         <property name="nativewindow.awt.jar"          value="${build.nativewindow}/nativewindow.awt.jar"  />
         <property name="nativewindow.os.x11.jar"       value="${build.nativewindow}/nativewindow.os.x11.jar"  />
         <property name="nativewindow.os.win.jar"       value="${build.nativewindow}/nativewindow.os.win.jar"  />
+        <path id="nativewindow_all_atoms.classpath">
+            <pathelement location="${nativewindow.core.jar}" />
+            <pathelement location="${nativewindow.awt.jar}" />
+            <pathelement location="${nativewindow.os.x11.jar}" />
+            <pathelement location="${nativewindow.os.win.jar}" />
+        </path>
+        <path id="nativewindow_all-noawt_atoms.classpath">
+            <pathelement location="${nativewindow.core.jar}" />
+            <pathelement location="${nativewindow.os.x11.jar}" />
+            <pathelement location="${nativewindow.os.win.jar}" />
+        </path>
+        <path id="nativewindow_all-mobile_atoms.classpath">
+            <pathelement location="${nativewindow.core.jar}" />
+        </path>
         
         <property name="jogl.core.jar"                  value="${build.jogl}/jogl.core.jar" />
-        <property name="jogl.cg.jar"                    value="${build.jogl}/jogl.cg.jar" />
-        <property name="jogl.gles1.jar"                 value="${build.jogl}/jogl.gles1.jar" />
-        <property name="jogl.gles1.dbg.jar"             value="${build.jogl}/jogl.gles1.dbg.jar" />
-        <property name="jogl.gles2.jar"                 value="${build.jogl}/jogl.gles2.jar" />
-        <property name="jogl.gles2.dbg.jar"             value="${build.jogl}/jogl.gles2.dbg.jar" />
-        <property name="jogl.egl.jar"                   value="${build.jogl}/jogl.egl.jar" />
+        <property name="jogl.sdk.jar"                   value="${build.jogl}/jogl.sdk.jar" />
+        <property name="jogl.glmobile.jar"              value="${build.jogl}/jogl.glmobile.jar" />
+        <property name="jogl.glmobile.dbg.jar"          value="${build.jogl}/jogl.glmobile.dbg.jar" />
+        <property name="jogl.util.jar"                  value="${build.jogl}/jogl.util.jar" />
         <property name="jogl.glutess.jar"               value="${build.jogl}/jogl.glu.tess.jar" />
         <property name="jogl.glumipmap.jar"             value="${build.jogl}/jogl.glu.mipmap.jar" />
-        <property name="jogl.glugldesktop.jar"                value="${build.jogl}/jogl.glu.gldesktop.jar" />
-
+        <property name="jogl.util.fixedfuncemu.jar"     value="${build.jogl}/jogl.util.fixedfuncemu.jar" />
+        <property name="jogl.awt.jar"                   value="${build.jogl}/jogl.awt.jar" />
+        <property name="jogl.util.awt.jar"              value="${build.jogl}/jogl.util.awt.jar" />
         <property name="jogl.os.x11.jar"                value="${build.jogl}/jogl.os.x11.jar" />
         <property name="jogl.os.win.jar"                value="${build.jogl}/jogl.os.win.jar" />
         <property name="jogl.os.osx.jar"                value="${build.jogl}/jogl.os.osx.jar" />
-
         <property name="jogl.gldesktop.jar"             value="${build.jogl}/jogl.gldesktop.jar" />
         <property name="jogl.gldesktop.dbg.jar"         value="${build.jogl}/jogl.gldesktop.dbg.jar" />
-
+        <property name="jogl.glugldesktop.jar"          value="${build.jogl}/jogl.glu.gldesktop.jar" />
+        <property name="jogl.util.gldesktop.jar"        value="${build.jogl}/jogl.util.gldesktop.jar" />
         <property name="jogl.omx.jar"                   value="${build.jogl}/jogl.omx.jar" />
-
-        <property name="jogl.awt.jar"                   value="${build.jogl}/jogl.awt.jar" />
-        <property name="jogl.util.jar"                  value="${build.jogl}/jogl.util.jar" />
-        <property name="jogl.util.gldesktop.jar"              value="${build.jogl}/jogl.util.gldesktop.jar" />
-        <property name="jogl.util.awt.jar"              value="${build.jogl}/jogl.util.awt.jar" />
-        <property name="jogl.util.fixedfuncemu.jar"     value="${build.jogl}/jogl.util.fixedfuncemu.jar" />
-        <property name="jogl.sdk.jar"                   value="${build.jogl}/jogl.sdk.jar" />
+        <property name="jogl.cg.jar"                    value="${build.jogl}/jogl.cg.jar" />
+        <path id="jogl_all_atoms.classpath">
+            <pathelement location="${jogl.core.jar}" />
+            <pathelement location="${jogl.sdk.jar}" />
+            <pathelement location="${jogl.glmobile.jar}" />
+            <pathelement location="${jogl.glmobile.dbg.jar}" />
+            <pathelement location="${jogl.util.jar}" />
+            <pathelement location="${jogl.glutess.jar}" />
+            <pathelement location="${jogl.glumipmap.jar}" />
+            <pathelement location="${jogl.util.fixedfuncemu.jar}" />
+            <pathelement location="${jogl.awt.jar}" />
+            <pathelement location="${jogl.util.awt.jar}" />
+            <pathelement location="${jogl.os.x11.jar}" />
+            <pathelement location="${jogl.os.win.jar}" />
+            <pathelement location="${jogl.os.osx.jar}" />
+            <pathelement location="${jogl.gldesktop.jar}" />
+            <pathelement location="${jogl.gldesktop.dbg.jar}" />
+            <pathelement location="${jogl.glugldesktop.jar}" />
+            <pathelement location="${jogl.util.gldesktop.jar}" />
+            <pathelement location="${jogl.omx.jar}" />
+            <pathelement location="${jogl.cg.jar}" />
+        </path>
+        <path id="jogl_all-noawt_atoms.classpath">
+            <pathelement location="${jogl.core.jar}" />
+            <pathelement location="${jogl.sdk.jar}" />
+            <pathelement location="${jogl.glmobile.jar}" />
+            <pathelement location="${jogl.glmobile.dbg.jar}" />
+            <pathelement location="${jogl.util.jar}" />
+            <pathelement location="${jogl.glutess.jar}" />
+            <pathelement location="${jogl.glumipmap.jar}" />
+            <pathelement location="${jogl.util.fixedfuncemu.jar}" />
+            <pathelement location="${jogl.os.x11.jar}" />
+            <pathelement location="${jogl.os.win.jar}" />
+            <pathelement location="${jogl.os.osx.jar}" />
+            <pathelement location="${jogl.gldesktop.jar}" />
+            <pathelement location="${jogl.gldesktop.dbg.jar}" />
+            <pathelement location="${jogl.glugldesktop.jar}" />
+            <pathelement location="${jogl.util.gldesktop.jar}" />
+            <pathelement location="${jogl.omx.jar}" />
+            <pathelement location="${jogl.cg.jar}" />
+        </path>
+        <path id="jogl_all-mobile_atoms.classpath">
+            <pathelement location="${jogl.core.jar}" />
+            <pathelement location="${jogl.glmobile.jar}" />
+            <pathelement location="${jogl.glmobile.dbg.jar}" />
+            <pathelement location="${jogl.util.jar}" />
+            <pathelement location="${jogl.glutess.jar}" />
+            <pathelement location="${jogl.glumipmap.jar}" />
+            <pathelement location="${jogl.util.fixedfuncemu.jar}" />
+            <pathelement location="${jogl.omx.jar}" />
+        </path>
+        <!-- 
+            ${jogl.core.jar} ${jogl.cg.jar} ${jogl.glutess.jar} ${jogl.glumipmap.jar} ${jogl.glugldesktop.jar} ${jogl.os.x11.jar} ${jogl.os.win.jar} ${jogl.os.osx.jar} ${jogl.gldesktop.jar} ${jogl.gldesktop.dbg.jar} ${jogl.glmobile.jar} ${jogl.glmobile.dbg.jar} ${jogl.omx.jar} ${jogl.util.jar} ${jogl.util.gldesktop.jar} ${jogl.util.awt.jar} ${jogl.util.fixedfuncemu.jar} ${jogl.sdk.jar} -->
 
         <property name="newt.core.jar"                  value="${build.newt}/newt.core.jar" />
-        <property name="newt.awt.jar"                   value="${build.newt}/newt.awt.jar" />
-        <property name="newt.os.x11.jar"                value="${build.newt}/newt.os.x11.jar" />
-        <property name="newt.os.win.jar"                value="${build.newt}/newt.os.win.jar" />
-        <property name="newt.os.osx.jar"                value="${build.newt}/newt.os.osx.jar" />
         <property name="newt.ogl.jar"                   value="${build.newt}/newt.ogl.jar" />
-        <property name="newt.hw.broadcomegl.jar"        value="${build.newt}/newt.hw.broadcomegl.jar" />
-        <property name="newt.hw.intelgdl.jar"           value="${build.newt}/newt.hw.intelgdl.jar" />
+        <property name="newt.awt.jar"                   value="${build.newt}/newt.awt.jar" />
+        <property name="newt.driver.x11.jar"            value="${build.newt}/newt.driver.x11.jar" />
+        <property name="newt.driver.win.jar"            value="${build.newt}/newt.driver.win.jar" />
+        <property name="newt.driver.macosx.jar"         value="${build.newt}/newt.driver.macosx.jar" />
+        <property name="newt.driver.android.jar"        value="${build.newt}/newt.driver.android.jar" />     <!-- excluded from all -->
+        <property name="newt.driver.kd.jar"             value="${build.newt}/newt.driver.kd.jar" />          <!-- excluded from all -->
+        <property name="newt.driver.intelgdl.jar"       value="${build.newt}/newt.driver.intelgdl.jar" />    <!-- excluded from all -->
+        <property name="newt.driver.broadcomegl.jar"    value="${build.newt}/newt.driver.broadcomegl.jar" /> <!-- excluded from all -->
+        <path id="newt_all_atoms.classpath">
+            <pathelement location="${newt.core.jar}" />
+            <pathelement location="${newt.ogl.jar}" />
+            <pathelement location="${newt.awt.jar}" />
+            <pathelement location="${newt.driver.x11.jar}" />
+            <pathelement location="${newt.driver.win.jar}" />
+            <pathelement location="${newt.driver.macosx.jar}" />
+        </path>
+        <path id="newt_all-noawt_atoms.classpath">
+            <pathelement location="${newt.core.jar}" />
+            <pathelement location="${newt.ogl.jar}" />
+            <pathelement location="${newt.driver.x11.jar}" />
+            <pathelement location="${newt.driver.win.jar}" />
+            <pathelement location="${newt.driver.macosx.jar}" />
+        </path>
+        <path id="newt_all-mobile_atoms.classpath">
+            <pathelement location="${newt.core.jar}" />
+            <pathelement location="${newt.ogl.jar}" />
+            <pathelement location="${newt.driver.x11.jar}" />
+            <pathelement location="${newt.driver.win.jar}" />
+        </path>
+        <path id="newt_all-android_atoms.classpath">
+            <pathelement location="${newt.core.jar}" />
+            <pathelement location="${newt.ogl.jar}" />
+            <pathelement location="${newt.driver.android.jar}" />
+        </path>
+
+        <!-- JavaSE combinations -->
+        <property name="gluegen-rt.jar"                 value="${build.gluegen}/gluegen-rt.jar" />
+        <property name="jogl.test.jar"                  value="${build.test}/jogl.test.jar"/>
+
+        <!-- JavaSE combinations . AWT -->
+        <property name="jogl.all.jar"                   value="${jar}/jogl.all.jar" />
+        <property name="newt.event.jar"                 value="${jar}/newt.event.jar" />
+
+        <!-- JavaSE combinations . NO.AWT -->
+        <property name="jogl.all-noawt.jar"             value="${jar}/jogl.all-noawt.jar" />
+        <property name="jogl.all-mobile.jar"            value="${jar}/jogl.all-mobile.jar" />
+        <property name="jogl.all-android.jar"           value="${jar}/jogl.all-android.jar" />
+
+        <path id="swt_gluegen.classpath">
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${swt.jar}" />
+        </path>
+
+        <!-- JOGL Compilation .. -->
+        <path id="nativewindow_gluegen.classpath">
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${swt.jar}" />
+            <path refid="nativewindow_all_atoms.classpath" />
+        </path>
+
+        <!-- NEWT Compilation .. -->
+        <path id="jogl_nativewindow_gluegen.classpath">
+            <pathelement location="${android.jar}" />
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${swt.jar}" />
+            <path refid="nativewindow_all_atoms.classpath" />
+            <path refid="jogl_all_atoms.classpath" />
+        </path>
+
+        <!-- Test Compilation .. -->
+        <path id="junit_jogl_newt_android.compile.classpath">
+            <pathelement location="${android.jar}" />
+            <pathelement location="${junit.jar}" />
+            <pathelement location="${ant.jar}" />
+            <pathelement location="${ant-junit.jar}" />
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${swt.jar}" />
+            <path refid="nativewindow_all_atoms.classpath" />
+            <path refid="jogl_all_atoms.classpath" />
+            <path refid="newt_all_atoms.classpath" />
+            <pathelement location="${newt.driver.android.jar}" />
+        </path>
+
+        <!-- Postbuild: javadoc .. -->
+        <path id="jogl_all.classpath">
+            <pathelement location="${android.jar}" />
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${swt.jar}" />
+            <pathelement location="${jogl.all.jar}" />
+        </path>
+
+        <!-- Test Run w/ AWT .. -->
+        <path id="junit_jogl_awt.run.classpath">
+            <pathelement location="${junit.jar}" />
+            <pathelement location="${ant.jar}" />
+            <pathelement location="${ant-junit.jar}" />
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${jogl.all.jar}" />
+            <pathelement location="${jogl.test.jar}" />
+        </path>
+        <property name="junit_jogl_awt.run.jars"
+                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all.jar}${path.separator}${jogl.test.jar}"/>
+
+        <!-- Test Run w/o AWT .. -->
+        <path id="junit_jogl_noawt.run.classpath">
+            <pathelement location="${junit.jar}" />
+            <pathelement location="${ant.jar}" />
+            <pathelement location="${ant-junit.jar}" />
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${jogl.all-noawt.jar}" />
+            <pathelement location="${jogl.test.jar}" />
+        </path>
+        <property name="junit_jogl_noawt.run.jars"
+                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all-noawt.jar}${path.separator}${jogl.test.jar}"/>
+
+        <!-- Test Run w/ SWT .. -->
+        <path id="junit_jogl_swt.run.classpath">
+          <pathelement location="${junit.jar}" />
+          <pathelement location="${ant.jar}" />
+          <pathelement location="${ant-junit.jar}" />
+          <pathelement location="${gluegen-rt.jar}" />
+          <pathelement location="${swt.jar}" />
+          <pathelement location="${jogl.all.jar}" />
+          <pathelement location="${jogl.test.jar}" />
+        </path>
+        <property name="junit_jogl_swt.run.jars"
+                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${swt.jar}${path.separator}${jogl.all.jar}${path.separator}${jogl.test.jar}"/>
+
+        <!-- Test Run w/ Android [w/o AWT] .. -->
+        <path id="junit_jogl_android.run.classpath">
+            <pathelement location="${junit.jar}" />
+            <pathelement location="${ant.jar}" />
+            <pathelement location="${ant-junit.jar}" />
+            <pathelement location="${android.jar}" />
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${jogl.all-android.jar}" />
+            <pathelement location="${jogl.test.jar}" />
+        </path>
+        <property name="junit_jogl_android.run.jars"
+                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all-android.jar}${path.separator}${jogl.test.jar}"/>
+
 
         <!-- The location and name of the configuration ANT file that will 
            - validate to ensure that all user-define variables are set. -->

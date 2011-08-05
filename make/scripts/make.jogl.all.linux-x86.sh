@@ -28,15 +28,13 @@ if [ "$1" = "-libdir" ] ; then
 fi
 
 
-# -Djogl.cg=1
 #    -Dc.compiler.debug=true 
-#    -DuseOpenMAX=true \
+#    -Dsetup.addNativeOpenMAX=true \
 #    -Dgluegen.cpptasks.detected.os=true \
 #    -DisUnix=true \
 #    -DisLinux=true \
 #    -DisLinuxX86=true \
 #    -DisX11=true \
-#    -Djogl.cg=1 \
 
 #LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64
 #export LD_LIBRARY_PATH
@@ -55,10 +53,9 @@ echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $LOGF
 
 ant \
     $CUSTOMLIBDIR \
-    -Djogl.cg=1 \
     -Drootrel.build=build-x86 \
     -Dos.arch=x86 \
-    -DuseKD=true \
-    -DuseOpenMAX=true \
+    -Dsetup.addNativeOpenMAX=true \
+    -Dsetup.addNativeKD=true \
     $* 2>&1 | tee -a $LOGF
 

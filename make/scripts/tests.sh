@@ -55,7 +55,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.EDT"
     # D_ARGS="-Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.X11Util.TraceDisplayLifecycle=true"
-    D_ARGS="-Dnativewindow.x11.mt-bug=true"
+    #D_ARGS="-Dnativewindow.x11.mt-bug=true"
     #D_ARGS="-Dnativewindow.x11.mt-bug=true -Djogl.debug.DebugGL"
     #D_ARGS="-Dnativewindow.x11.mt-bug=true -Djogl.debug=all"
     #D_ARGS="-Dnativewindow.x11.mt-bug=true -Dnativewindow.debug.NativeWindow -Dnativewindow.debug.X11Util -Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.X11Util.TraceDisplayLifecycle=true"

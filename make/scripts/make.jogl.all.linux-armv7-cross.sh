@@ -31,9 +31,9 @@ ant \
     -DisX11=true \
     -DisCrosscompilation=true \
     \
-    -DuseKD=true \
-    -DuseOpenMAX=true \
-    -DuseBroadcomEGL=true \
+    -Dsetup.addNativeKD=true \
+    -Dsetup.addNativeOpenMAX=true \
+    -Dsetup.addNativeBroadcomEGL=true \
     $* 2>&1 | tee make.jogl.all.linux-armv7-cross.log
 
 

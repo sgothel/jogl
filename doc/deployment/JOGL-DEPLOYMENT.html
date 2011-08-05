@@ -38,26 +38,29 @@
 
                     <h2>Desktop All in One</h2>
 
-                    <h3>With AWT and NEWT</h3>
-                    <ul>
-                        <li><code>newt-all-awt.jnlp</code><br/>
-                            <ul>
-                                <li><code>jogl-all-awt.jnlp</code><br/>
-                                    <ul>
-                                        <li><code>gluegen-rt.jnlp</code></li>
-                                        <li><code>nativewindow-all-awt.jnlp</code></li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-
-                    <h3>With AWT - Without NEWT</h3>
+                    <h3>With AWT</h3>
                     <ul>
                         <li><code>jogl-all-awt.jnlp</code><br/>
                             <ul>
                                 <li><code>gluegen-rt.jnlp</code></li>
-                                <li><code>nativewindow-all-awt.jnlp</code></li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h3>Without AWT</h3>
+                    <ul>
+                        <li><code>jogl-all-noawt.jnlp</code><br/>
+                            <ul>
+                                <li><code>gluegen-rt.jnlp</code></li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h3>Mobile</h3>
+                    <ul>
+                        <li><code>jogl-all-mobile.jnlp</code><br/>
+                            <ul>
+                                <li><code>gluegen-rt.jnlp</code></li>
                             </ul>
                         </li>
                     </ul>
@@ -65,27 +68,6 @@
                         It loads the JAR files for the <a href="#NativeLibraries">native libraries</a>,<br/>
                         as well as the other <a href="#AllInOneJARs">All In One JAR files</a>
                         for <a href="#AllInOneJARsAWT">AWT support</a>.
-                    </p>
-
-                    <h3>Without AWT</h3>
-
-                    <ul>
-                        <li><code>newt-all-noawt.jnlp</code><br/>
-                            <ul>
-                                <li><code>jogl-all-noawt.jnlp</code><br/>
-                                    <ul>
-                                        <li><code>gluegen-rt.jnlp</code></li>
-                                        <li><code>nativewindow.jnlp</code></li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-
-                    <p>
-                        It loads the JAR files for the <a href="#NativeLibraries">native libraries</a>,<br/>
-                        as well as the other <a href="#AllInOneJARs">All In One JAR files</a>
-                        for <a href="#AllInOneJARsNoAWT">Without AWT support</a>.
                     </p>
 
                     <hr/>
@@ -108,9 +90,7 @@
                     JOGL native libraries
                     <ul>
                         <li>libjogl_desktop.so</li>
-                        <li>libjogl_gl2es12.so</li>
-                        <li>libjogl_es1.so</li>
-                        <li>libjogl_es2.so</li>
+                        <li>libjogl_mobile.so</li>
                         <li>libjogl_cg.so</li>
                     </ul>
 
@@ -141,18 +121,19 @@
 
                     <a name="AllInOneJARsAWT">With AWT</a>:
                     <ul>
-                        <li>nativewindow.all.jar</li>
                         <li>jogl.all.jar</li>
-                        <li>newt.all.jar (optional - redundant if no NEWT is used)</li>
                     </ul>
 
                     <a name="AllInOneJARsNoAWT">Without AWT</a>:
                     <ul>
-                        <li>nativewindow.all-noawt.jar</li>
                         <li>jogl.all-noawt.jar</li>
-                        <li>newt.all-noawt.jar</li>
                     </ul>
 
+                    <a name="AllInOneJARsNoAWT">Mobile</a>:
+                    <ul>
+                        <li>jogl.all-mobile.jar</li>
+                        <li>jogl.all-android.jar</li>
+                    </ul>
 
                     <h3>Atomic Deployment </h3>
 
@@ -190,17 +171,19 @@
 
                         <li>JOGL [pick your platform]:<br/>
                             <ul>
-                                <li>jogl.egl.jar</li>
                                 <li>jogl.os.x11.jar</li>
                                 <li>jogl.os.win.jar</li>
                                 <li>jogl.os.osx.jar</li>
+                                <li>none</li>
                             </ul></li>
 
                         <li>Newt [pick your platform] (optional):<br/>
                             <ul>
-                                <li>newt.os.x11.jar</li>
-                                <li>newt.os.win.jar</li>
-                                <li>newt.os.osx.jar</li>
+                                <li>newt.driver.x11.jar</li>
+                                <li>newt.driver.win.jar</li>
+                                <li>newt.driver.osx.jar</li>
+                                <li>newt.driver.kd.jar</li>
+                                <li>none</li>
                             </ul></li>
                     </ul>
 
@@ -211,13 +194,9 @@
                     <ul>
                         <li>Embedded Device Profiles<br/>
                             <ul>
-                                <li>jogl.gles1.jar<br/>
+                                <li>jogl.glmobile.jar</li>
                                     <ul>
-                                        <li>jogl.gles1.dbg.jar</li>
-                                    </ul></li>
-                                <li>jogl.gles2.jar<br/>
-                                    <ul>
-                                        <li>jogl.gles2.dbg.jar</li>
+                                        <li>jogl.glmobile.dbg.jar</li>
                                     </ul></li>
                             </ul></li>
 
@@ -227,7 +206,6 @@
                                     <ul>
                                         <li>jogl.gldesktop.dbg.jar</li>
                                     </ul></li>
-                                <li>jogl.gl2es12.jar (for desktop ES1/ES2 emulation)</li>
                             </ul></li>
                     </ul>
 

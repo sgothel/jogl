@@ -27,7 +27,6 @@ if [ "$1" = "-libdir" ] ; then
     shift
 fi
 
-# -Djogl.cg=1
 #    -Dc.compiler.debug=true \
 
 #    -Dgluegen.cpptasks.detected.os=true \
@@ -56,9 +55,8 @@ echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $LOGF
 ant  \
     $CUSTOMLIBDIR \
     -Djavacdebuglevel="source,lines,vars" \
-    -Djogl.cg=1 \
     -Drootrel.build=build-x86_64 \
-    -DuseKD=true \
-    -DuseOpenMAX=true \
+    -Dsetup.addNativeOpenMAX=true \
+    -Dsetup.addNativeKD=true \
     $* 2>&1 | tee -a $LOGF
 
