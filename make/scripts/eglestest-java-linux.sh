@@ -20,6 +20,7 @@ TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.gl2es1.gears.newt.TestGearsGL2E
 
 LOGFILE=`basename $0 .sh`.log
 
+#  -Djogamp.debug.NativeLibrary=true \
 #  -Djogamp.debug.NativeLibrary.Lookup=true \
 #  -Djogamp.debug.ProcAddressHelper=true \
 #  -Djogamp.debug=all \
@@ -28,13 +29,14 @@ LOGFILE=`basename $0 .sh`.log
 #  -Dnewt.debug=all \
 
 CP_BASE=../../gluegen/make/lib/junit.jar:$ANT_PATH/lib/ant.jar:$ANT_PATH/lib/ant-junit.jar:../../gluegen/make/$BUILD_DIR/gluegen.jar
-CP_JOGL_ALL=$BUILD_DIR/jar/nativewindow.all.jar:$BUILD_DIR/jar/jogl.all.jar:$BUILD_DIR/jar/newt.all.jar:$BUILD_DIR/jar/jogl.test.jar
-CP_JOGL_EGLES=$BUILD_DIR/jar/nativewindow.all-noawt.jar:$BUILD_DIR/jar/jogl.core.jar:$BUILD_DIR/jar/jogl.util.jar:$BUILD_DIR/jar/jogl.gles1.jar:$BUILD_DIR/jar/jogl.gles1.dbg.jar:$BUILD_DIR/jar/jogl.gles2.jar:$BUILD_DIR/jar/jogl.gles2.dbg.jar:$BUILD_DIR/jar/jogl.egl.jar:$BUILD_DIR/jar/jogl.util.fixedfuncemu.jar:$BUILD_DIR/jar/jogl.glu.tess.jar:$BUILD_DIR/jar/jogl.glu.mipmap.jar:$BUILD_DIR/jar/newt.all-noawt.jar:$BUILD_DIR/jar/jogl.test.jar
+CP_JOGL_ALL=$BUILD_DIR/jar/jogl.all.jar:$BUILD_DIR/test/build/jogl.test.jar
+CP_JOGL_MOBILE=$BUILD_DIR/jar/jogl.all-mobile.jar:$BUILD_DIR/test/build/jogl.test.jar
 
 export DISPLAY=:0.0 ;
 java \
   -Djava.library.path=../../gluegen/make/$BUILD_DIR/obj:$BUILD_DIR/lib \
-  -Djava.class.path=$CP_BASE:$CP_JOGL_EGLES \
+  -Djava.class.path=$CP_BASE:$CP_JOGL_MOBILE \
+  -Djogamp.debug.NativeLibrary=true \
   $TSTCLASS $* \
  2>&1 | tee $LOGFILE \
 

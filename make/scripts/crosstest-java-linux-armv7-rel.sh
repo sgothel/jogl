@@ -13,7 +13,7 @@ export ANT_PATH=/usr/share/ant
 
 #TSTCLASS=com.jogamp.nativewindow.NativeWindowVersion
 #TSTCLASS=com.jogamp.opengl.JoglVersion
-#TSTCLASS=com.jogamp.newt.NewtVersion
+TSTCLASS=com.jogamp.newt.NewtVersion
 #TSTCLASS=com.jogamp.newt.opengl.GLWindow
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLSimple01NEWT
@@ -22,7 +22,7 @@ export ANT_PATH=/usr/share/ant
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
 #TSTCLASS=com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo01
 #TSTCLASS=com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo02
-TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.gl2es1.gears.newt.TestGearsGL2ES1NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.gl2es1.gears.newt.TestGearsGL2ES1NEWT
 
 LOGFILE=`basename $0 .sh`.log
 
@@ -30,7 +30,7 @@ LOGFILE=`basename $0 .sh`.log
 #  -Djogamp.debug.ProcAddressHelper=true \
 
 RSYNC_EXCLUDES="--exclude 'build-x86*/' --exclude 'build-linux-x*/' --exclude 'build-android*/' --exclude 'build-win*/' --exclude 'build-mac*/' \
-                --exclude 'classes/' --exclude 'src/' --exclude '.git/' \
+                --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude 'jogl-java-src.zip' \
                 --delete-excluded"
 
 CP_BASE=../../gluegen/make/lib/junit.jar:$ANT_PATH/lib/ant.jar:$ANT_PATH/lib/ant-junit.jar:../../gluegen/make/$BUILD_DIR/gluegen.jar
