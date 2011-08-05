@@ -62,6 +62,9 @@ public abstract class NativeWindowFactory {
     /** X11 type, as retrieved with {@link #getNativeWindowType(boolean)} */
     public static final String TYPE_X11 = "X11";
 
+    /** Android/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}*/
+    public static final String TYPE_ANDROID = "ANDROID";
+
     /** Mac OS X type, as retrieved with {@link #getNativeWindowType(boolean)} */
     public static final String TYPE_MACOSX = "MacOSX";
 
@@ -101,7 +104,7 @@ public abstract class NativeWindowFactory {
     private static String _getNativeWindowingType() {
         switch(Platform.OS_TYPE) {
             case ANDROID:
-              throw new RuntimeException(Platform.OS_TYPE+" n/a yet");
+              return TYPE_ANDROID;
             case MACOS:
               return TYPE_MACOSX;
             case WINDOWS:

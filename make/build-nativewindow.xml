@@ -42,10 +42,8 @@
    - port to the ant-contrib CPPTask framework. Thanks to Athomas Goldberg for
    - the original OS detection code.
    -
-   - Some environment defs affecting compilation
-
-   - setup.nodesktop is set iff:
-        !isWindows && !isOSX && !isX11
+   - Some environment defs affecting native compilation
+       setup.noNativeAWT
 
    - Internal settings, may not be necessary to set them manually,
      since all JAR archives are orthogonal.
@@ -65,15 +63,6 @@
        - Base initialization and detection of operating system.
       -->
     <target name="base.init" depends="common.init">
-
-        <condition property="setup.noNativeAWT">
-            <or>
-                <isset property="setup.noAWT"/> 
-                <isset property="setup.nodesktop"/> 
-            </or>
-        </condition>
-
-        <echo message="setup.noNativeAWT: ${setup.noNativeAWT}" />
 
         <!-- partitioning -->
 
@@ -465,6 +454,12 @@
 
     <target name="c.configure.linux" depends="c.configure.linux.armv7,c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.ia64,c.configure.x11" if="isLinux" />
 
+    <target name="c.configure.android" if="isAndroid">
+      <echo message="Android" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.android" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.android" />
+    </target>
+    
     <target name="c.configure.solaris32" depends="c.configure.x11" if="isSolaris32Bit">
       <echo message="Solaris" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" />
@@ -514,7 +509,7 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.macosx.nativewindow" />
     </target>
     
-    <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.freebsd,c.configure.hpux" />
+    <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.android,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.freebsd,c.configure.hpux" />
 
     <target name="c.configure" depends="c.configure.1,c.configure.2" />
 
@@ -709,7 +704,7 @@
     <target name="setup-manifestfile">
         <property name="manifestfile" value="nativewindowversion"/>
         <copy file="${manifestfile}"
-          tofile="tempversion"
+          tofile="${build.nativewindow}/manifest.mf"
           overwrite="true">
           <filterset>
               <filter token="VERSION" value="${nativewindow.version}"/>
@@ -721,7 +716,7 @@
     </target>
 
     <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
-        <jar manifest="tempversion" destfile="${nativewindow.awt.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.awt}"
                      excludes="${java.excludes.awt}"/>
@@ -729,45 +724,30 @@
     </target>
 
     <target name="build-jars-x11" depends="setup-manifestfile">
-        <jar manifest="tempversion" destfile="${nativewindow.os.x11.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.os.x11.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.x11}" />
         </jar>
     </target>
 
     <target name="build-jars-windows" depends="setup-manifestfile">
-        <jar manifest="tempversion" destfile="${nativewindow.os.win.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.os.win.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.windows}" />
         </jar>
     </target>
 
-    <target name="build-jars-all" depends="setup-manifestfile" unless="setup.noAWT">
-        <jar manifest="tempversion" destfile="${nativewindow.all.jar}" filesonly="true">
-            <fileset dir="${classes}"
-                     includes="javax/media/nativewindow/** com/jogamp/nativewindow/** jogamp/nativewindow/**" />
-        </jar>
-    </target>
-    <target name="build-jars-all-noawt" depends="setup-manifestfile">
-        <jar manifest="tempversion" destfile="${nativewindow.all-noawt.jar}" filesonly="true">
-            <fileset dir="${classes}"
-                     includes="javax/media/nativewindow/** com/jogamp/nativewindow/** jogamp/nativewindow/**" 
-                     excludes="${java.part.awt}"/>
-        </jar>
-    </target>
-
-    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-windows,build-jars-all,build-jars-all-noawt">
-        <jar manifest="tempversion" destfile="${nativewindow.core.jar}" filesonly="true">
+    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-windows">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
                      excludes="${java.part.awt} ${java.part.x11} ${java.part.windows}"/>
         </jar>
-        <jar manifest="tempversion" destfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}.jar" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}.jar" filesonly="true">
             <fileset dir="${obj.nativewindow}">
               <include name="*.${native.library.suffix}" />
             </fileset>
         </jar>
-        <delete file="tempversion"/>
     </target>
 
     <!-- ================================================================== -->

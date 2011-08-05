@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Jogl Library</string>
+    <string name="app_name">JogAmp\'s Jogl Library</string>
+    <string name="app_descr">Contains Dalvik and native code, supporting native bindings.</string>
+    <string name="activity_v_name">Jogl</string>
+    <string name="activity_v_descr">The Jogl Library.</string>
+</resources>

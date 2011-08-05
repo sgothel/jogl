@@ -1,4 +1,5 @@
 
+#include <stdio.h> /* android */
 #include <stdlib.h>
 #include <stdarg.h>
 

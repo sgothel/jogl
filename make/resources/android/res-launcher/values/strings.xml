@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Jogl Launcher</string>
+    <string name="app_name">JogAmp\'s Jogl Launcher</string>
+    <string name="app_descr">Launches Jogl Applications.</string>
+    <string name="activity_v_name">Jogl\'s Version</string>
+    <string name="activity_v_descr">Shows the version of the Jogl Library.</string>
+    <string name="activity_gears1_name">Gears ES1</string>
+    <string name="activity_gears1_descr">Gears ES1</string>
+</resources>

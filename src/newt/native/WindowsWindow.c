@@ -81,9 +81,9 @@
 #define DISPLAY_DEVICE_ACTIVE 0x00000001
 #endif
 
-#include "jogamp_newt_windows_WindowsDisplay.h"
-#include "jogamp_newt_windows_WindowsScreen.h"
-#include "jogamp_newt_windows_WindowsWindow.h"
+#include "jogamp_newt_driver_windows_WindowsDisplay.h"
+#include "jogamp_newt_driver_windows_WindowsScreen.h"
+#include "jogamp_newt_driver_windows_WindowsWindow.h"
 
 #include "MouseEvent.h"
 #include "InputEvent.h"
@@ -1000,11 +1000,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 }
 
 /*
- * Class:     jogamp_newt_windows_WindowsDisplay
+ * Class:     jogamp_newt_driver_windows_WindowsDisplay
  * Method:    DispatchMessages
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_windows_WindowsDisplay_DispatchMessages0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsDisplay_DispatchMessages0
   (JNIEnv *env, jclass clazz)
 {
     int i = 0;
@@ -1029,22 +1029,22 @@ JNIEXPORT void JNICALL Java_jogamp_newt_windows_WindowsDisplay_DispatchMessages0
 }
 
 /*
- * Class:     jogamp_newt_windows_WindowsScreen
+ * Class:     jogamp_newt_driver_windows_WindowsScreen
  * Method:    getWidthImpl
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_windows_WindowsScreen_getWidthImpl0
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getWidthImpl0
   (JNIEnv *env, jobject obj, jint scrn_idx)
 {
     return (jint)GetSystemMetrics(SM_CXSCREEN);
 }
 
 /*
- * Class:     jogamp_newt_windows_WindowsScreen
+ * Class:     jogamp_newt_driver_windows_WindowsScreen
  * Method:    getHeightImpl
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_windows_WindowsScreen_getHeightImpl0
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getHeightImpl0
   (JNIEnv *env, jobject obj, jint scrn_idx)
 {
     return (jint)GetSystemMetrics(SM_CYSCREEN);
@@ -1124,11 +1124,11 @@ static HDC NewtScreen_createDisplayDC(LPCTSTR displayDeviceName) {
 }
 
 /*
- * Class:     jogamp_newt_windows_WindowsScreen
+ * Class:     jogamp_newt_driver_windows_WindowsScreen
  * Method:    getScreenMode0
  * Signature: (II)[I
  */
-JNIEXPORT jintArray JNICALL Java_jogamp_newt_windows_WindowsScreen_getScreenMode0
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getScreenMode0
   (JNIEnv *env, jobject obj, jint scrn_idx, jint mode_idx)
 {
     DISPLAY_DEVICE device;
@@ -1197,11 +1197,11 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_windows_WindowsScreen_getScreenMode
 }
 
 /*
- * Class:     jogamp_newt_windows_WindowsScreen
+ * Class:     jogamp_newt_driver_windows_WindowsScreen
  * Method:    setScreenMode0
  * Signature: (IIIIII)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_windows_WindowsScreen_setScreenMode0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_setScreenMode0
   (JNIEnv *env, jobject object, jint scrn_idx, jint width, jint height, jint bits, jint rate, jint rot)
 {
     DISPLAY_DEVICE device;
@@ -1234,11 +1234,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_windows_WindowsScreen_setScreenMode0
 }
 
 /*
- * Class:     jogamp_newt_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowsWindow
  * Method:    initIDs0
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_windows_WindowsWindow_initIDs0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_initIDs0
   (JNIEnv *env, jclass clazz)
 {
     NewtCommon_init(env);
@@ -1277,21 +1277,21 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_windows_WindowsWindow_initIDs0
 }
 
 /*
- * Class:     jogamp_newt_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowsWindow
  * Method:    getNewtWndProc0
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_windows_WindowsWindow_getNewtWndProc0
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_getNewtWndProc0
   (JNIEnv *env, jclass clazz)
 {
     return (jlong) (intptr_t) wndProc;
 }
 
 /*
- * Class:     jogamp_newt_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowsWindow
  * Method:    CreateWindow
  */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_windows_WindowsWindow_CreateWindow0
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWindow0
   (JNIEnv *env, jobject obj, 
    jlong hInstance, jstring jWndClassName, jstring jWndName, 
    jlong parent, jlong visualID, jboolean bIsUndecorated,
@@ -1367,11 +1367,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_windows_WindowsWindow_CreateWindow0
 }
 
 /*
- * Class:     jogamp_newt_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowsWindow
  * Method:    MonitorFromWindow
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_windows_WindowsWindow_MonitorFromWindow0
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_MonitorFromWindow0
   (JNIEnv *env, jobject obj, jlong window)
 {
     #if (_WIN32_WINNT >= 0x0500 || _WIN32_WINDOWS >= 0x0410 || WINVER >= 0x0500) && !defined(_WIN32_WCE)
@@ -1442,11 +1442,11 @@ int NewtWindow_setVisiblePosSize(JNIEnv *env, jobject obj, HWND hwnd, jboolean t
 }
 
 /*
- * Class:     jogamp_newt_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowsWindow
  * Method:    setVisible0
  * Signature: (JZ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_windows_WindowsWindow_setVisible0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_setVisible0
   (JNIEnv *env, jobject obj, jlong window, jboolean visible, jboolean top, jint x, jint y, jint width, jint height)
 {
     HWND hwnd = (HWND) (intptr_t) window;
@@ -1479,11 +1479,11 @@ static jboolean NewtWindows_setFullScreen(jboolean fullscreen)
 }
 
 /*
- * Class:     jogamp_newt_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowsWindow
  * Method:    reconfigureWindow0
  * Signature: (JIIIIZZII)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_windows_WindowsWindow_reconfigureWindow0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_reconfigureWindow0
   (JNIEnv *env, jobject obj, jlong parent, jlong window, jint x, jint y, jint width, jint height, 
    jboolean visible, jboolean parentChange, jint fullScreenChange, jint decorationChange)
 {
@@ -1552,11 +1552,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_windows_WindowsWindow_reconfigureWindow0
 }
 
 /*
- * Class:     jogamp_newt_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowsWindow
  * Method:    setTitle
  * Signature: (JLjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_windows_WindowsWindow_setTitle0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_setTitle0
   (JNIEnv *env, jclass clazz, jlong window, jstring title)
 {
     HWND hwnd = (HWND) (intptr_t) window;
@@ -1570,11 +1570,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_windows_WindowsWindow_setTitle0
 }
 
 /*
- * Class:     jogamp_newt_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowsWindow
  * Method:    requestFocus
  * Signature: (JZ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_windows_WindowsWindow_requestFocus0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_requestFocus0
   (JNIEnv *env, jobject obj, jlong window, jboolean force)
 {
     DBG_PRINT("*** WindowsWindow: RequestFocus0\n");

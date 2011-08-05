@@ -83,7 +83,7 @@ typedef int   EGLNativeDisplayType;
 typedef void *EGLNativeWindowType;
 typedef void *EGLNativePixmapType;
 
-#elif defined(__unix__)
+#elif defined(__X11__)
 
 /* X11 (tentative)  */
 #include <X11/Xlib.h>

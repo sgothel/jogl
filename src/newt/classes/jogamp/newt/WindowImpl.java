@@ -140,16 +140,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     {
         Class windowClass = NewtFactory.getCustomClass(type, "Window");
         if(null==windowClass) {
-            if (NativeWindowFactory.TYPE_EGL.equals(type)) {
-                windowClass = Class.forName("jogamp.newt.egl.kd.KDWindow");
+            if (NativeWindowFactory.TYPE_ANDROID.equals(type)) {
+                windowClass = Class.forName("jogamp.newt.driver.android.Window");
+            } else if (NativeWindowFactory.TYPE_EGL.equals(type)) {
+                windowClass = Class.forName("jogamp.newt.driver.kd.KDWindow");
             } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
-                windowClass = Class.forName("jogamp.newt.windows.WindowsWindow");
+                windowClass = Class.forName("jogamp.newt.driver.windows.WindowsWindow");
             } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
-                windowClass = Class.forName("jogamp.newt.macosx.MacWindow");
+                windowClass = Class.forName("jogamp.newt.driver.macosx.MacWindow");
             } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
-                windowClass = Class.forName("jogamp.newt.x11.X11Window");
+                windowClass = Class.forName("jogamp.newt.driver.x11.X11Window");
             } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
-                windowClass = Class.forName("jogamp.newt.awt.AWTWindow");
+                windowClass = Class.forName("jogamp.newt.driver.awt.AWTWindow");
             } else {
                 throw new NativeWindowException("Unknown window type \"" + type + "\"");
             }

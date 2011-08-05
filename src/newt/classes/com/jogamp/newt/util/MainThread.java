@@ -55,7 +55,7 @@ import com.jogamp.common.util.RunnableTask;
 import com.jogamp.newt.Display;
 import jogamp.newt.Debug;
 import jogamp.newt.NEWTJNILibLoader;
-import jogamp.newt.awt.AWTEDTUtil;
+import jogamp.newt.driver.awt.AWTEDTUtil;
 
 /**
  * NEWT Utility class MainThread<P>

@@ -35,10 +35,6 @@
    - property in gluegen.properties; again see the example file in this
    - directory.
    -   
-   - Optional properties:
-   -   -Djogl.cg=1 when combined with the build or javadoc targets will cause
-   -               the experimental binding to NVidia's Cg language to be built.
-   -
    - Thanks to Rob Grzywinski and Artur Biesiadowski for the bulk of the
    - ANT build, including the GlueGen and StaticGLInfo tasks, the building of
    - the Java generated sources, the first and second phase Java compiles, and
@@ -46,10 +42,13 @@
    - port to the ant-contrib CPPTask framework. Thanks to Athomas Goldberg for
    - the original OS detection code.
    -
-   - Some environment defs affecting compilation
+   - Some environment defs affecting native compilation (only)
+       setup.noNativeDesktop     - drop native desktop bindings (glx, wgl, ..)
 
-   - setup.nodesktop is set iff:
-        !isWindows && !isOSX && !isX11
+       setup.addNativeOpenMAX    - add experimental binding to Khrono's OpenMAX
+
+       setup.addNativeNVidiaCG   - add experimental binding to NVidia's Cg language 
+                                   (enabled for windows, osx and X11 per default)
 
    - Internal settings, may not be necessary to set them manually,
      since all JAR archives are orthogonal.
@@ -65,6 +64,14 @@
     <taskdef resource="net/sf/antcontrib/antlib.xml">
       <classpath> <pathelement location="${ant-contrib.jar}"/> </classpath>
     </taskdef>
+
+    <condition property="setup.addNativeNVidiaCG">
+        <or>
+            <isset property="${isWindows}" />
+            <isset property="${isOSX}" />
+            <isset property="${isX11}" />
+        </or>
+    </condition>
 
     <!-- ================================================================== -->
     <!-- 
@@ -150,20 +157,19 @@
         <property name="java.part.util.graph.shadercode"
                   value="jogamp/graph/curve/opengl/shader/* jogamp/graph/curve/opengl/shader/bin/**"/>
 
+        <property name="java.part.nonjava" 
+                  value="${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
+
         <property name="java.part.util.fixedfuncemu"
                   value="jogamp/opengl/util/glsl/fixedfunc/**"/>
 
         <property name="java.part.util.fixedfuncemu.shadercode"
                   value="jogamp/opengl/util/glsl/fixedfunc/shaders/* jogamp/opengl/util/glsl/fixedfunc/shaders/bin/**"/>
 
-        <!-- condition excludes -->
+        <property name="java.part.all-desktop" 
+                  value="${java.part.sdk} ${java.part.glx} ${java.part.wgl} ${java.part.cgl} ${java.part.gldesktop} ${java.part.glugldesktop} ${java.part.util.gldesktop}"/>
 
-        <condition property="java.excludes.nv-cg"
-                   value="${java.part.nv-cg}">
-          <not>
-           <isset property="jogl.cg"/> 
-          </not>
-        </condition>
+        <!-- condition excludes -->
 
         <condition property="java.excludes.awt"
                    value="${java.part.awt} ${java.part.util.awt}">
@@ -176,15 +182,7 @@
         <property name="java.excludes.fixme" 
                   value="jogamp/opengl/gl2/fixme/** com/jogamp/audio/windows/waveout/TestSpatialization.java" />
 
-        <property name="java.part.desktop"
-                   value="${java.part.glx} ${java.part.wgl} ${java.part.cgl} ${java.excludes.fixme} ${java.part.nv-cg} ${java.part.gldesktop} ${java.part.gldesktop.dbg} ${java.part.awt} ${java.part.glugldesktop} ${java.part.util.awt} ${java.part.util.gldesktop} com/jogamp/opengl/util/TGAWriter.java"/>
-
-        <condition property="java.excludes.desktop"
-                   value="${java.part.desktop}">
-           <isset property="setup.nodesktop"/> 
-        </condition>
-
-        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.nv-cg} ${java.excludes.awt} ${java.excludes.desktop}" />
+        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.awt}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
     </target>
 
@@ -691,7 +689,7 @@
             <src path="${src.java}" />
         </javac>
 
-        <jar manifest="${build.jogl}/tempversion" destfile="${gluegen-gl.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${gluegen-gl.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.gluegen-gl}"/>
         </jar>
@@ -781,7 +779,7 @@
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
-    <target name="java.generate.cg" depends="build.gluegen-gl.jar,java.generate.cg.check" if="jogl.cg" unless="java.generate.cg.skip">
+    <target name="java.generate.cg" depends="build.gluegen-gl.jar,java.generate.cg.check" unless="java.generate.cg.skip">
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
         <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
                  classpathref="gluegen.classpath" />
@@ -1039,7 +1037,7 @@
         <!-- make shadercode and fonts available in classpath -->
         <copy todir="${classes}">
             <fileset dir="${src.java}"
-                     includes="${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"
+                     includes="${java.part.nonjava}"
                      excludes="**/*.java"/>
         </copy>
     </target>
@@ -1189,6 +1187,12 @@
 
     <target name="c.configure.linux" depends="c.configure.linux.armv7,c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.ia64,c.configure.x11" if="isLinux" />
 
+    <target name="c.configure.android" if="isAndroid">
+      <echo message="Android" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.android" />
+      <property name="linker.cfg.id.os"                     value="linker.cfg.android" />
+    </target>
+    
     <target name="c.configure.solaris32" depends="c.configure.x11" if="isSolaris32Bit">
       <echo message="Solaris" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.solaris" />
@@ -1238,7 +1242,7 @@
       <property name="linker.cfg.id.os"                    value="linker.cfg.macosx.jogl" />
     </target>
     
-    <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.freebsd,c.configure.hpux" />
+    <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.android,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.freebsd,c.configure.hpux" />
 
     <target name="c.configure" depends="c.configure.1,c.configure.2" />
 
@@ -1275,8 +1279,8 @@
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c}/Mixer.cpp" if="isWindows"/-->
-          <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/com_jogamp_openmax_OMXInstance.c"  if="useOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="setup.addNativeOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/com_jogamp_openmax_OMXInstance.c"  if="setup.addNativeOpenMAX"/>
 
           <include name="${rootrel.generated.c.jogl}/gl4/GL4bcImpl_JNI.c"/>
           <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
@@ -1287,27 +1291,16 @@
           <include name="${rootrel.generated.c.jogl}/Windows/WGL*.c" if="isWindows"/>
         </patternset>
 
-        <patternset id="c.src.files.jogl.es2">
+        <patternset id="c.src.files.jogl.mobile">
           <include name="${rootrel.src.c}/JoglCommon.c"/>
           <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
-          <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/com_jogamp_openmax_OMXInstance.c"  if="useOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="setup.addNativeOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/com_jogamp_openmax_OMXInstance.c"  if="setup.addNativeOpenMAX"/>
 
           <include name="${rootrel.generated.c.jogl}/egl/EGL_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/egl/EGLExtImpl_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/es2/GLES2Impl_JNI.c"/>
-        </patternset>
-
-        <patternset id="c.src.files.jogl.es1">
-          <include name="${rootrel.src.c}/JoglCommon.c"/>
-          <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
-          <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
-          <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/com_jogamp_openmax_OMXInstance.c"  if="useOpenMAX"/>
-
-          <include name="${rootrel.generated.c.jogl}/egl/EGL_JNI.c"/>
-          <include name="${rootrel.generated.c.jogl}/egl/EGLExtImpl_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/es1/GLES1Impl_JNI.c"/>
           <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
           <!--include name="${rootrel.generated.c.jogl}/es1/GLUes1_JNI.c" EMPTY /-->
@@ -1349,15 +1342,15 @@
                 <includepath path="stub_includes/khr"/>
                 <includepath path="stub_includes/egl"/>
                 <includepath path="stub_includes/opengl"/>
-                <includepath path="stub_includes/openmax" if="useOpenMAX"/>
-                <includepath path="stub_includes/cg" if="jogl.cg"/>        
+                <includepath path="stub_includes/openmax" if="setup.addNativeOpenMAX"/>
+                <includepath path="stub_includes/cg" if="setup.addNativeNVidiaCG"/>        
       
                 <!-- This is for the generated headers for handwritten C code -->
                 <includepath path="${src.generated.c}" />
                 <includepath path="${src.generated.c}/X11" if="isX11"/>
                 <includepath path="${src.generated.c}/MacOSX" if="isOSX"/>
                 <includepath path="${src.generated.c}/Windows" if="isWindows"/>
-                <includepath path="${src.generated.c.openmax}" if="useOpenMAX"/>
+                <includepath path="${src.generated.c.openmax}" if="setup.addNativeOpenMAX"/>
       
                 <!-- This must come last to not override real include paths -->
                 <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
@@ -1395,7 +1388,7 @@
       </sequential>
     </macrodef>  
 
-    <target name="c.build.jogl.prepare.openMAX" if="useOpenMAX">
+    <target name="c.build.jogl.prepare.openMAX" if="setup.addNativeOpenMAX">
       <javah destdir="${src.generated.c.openmax}" classpath="${classes}" class="com.jogamp.openmax.OMXInstance" />
     </target>
 
@@ -1406,35 +1399,28 @@
       <!--javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${classes}" class="com.jogamp.audio.windows.waveout.Mixer" /-->
     </target>
 
-    <target name="c.build.jogl.desktop" unless="setup.nodesktop">
+    <target name="c.build.jogl.desktop" unless="setup.noNativeDesktop">
       <c.build c.compiler.src.files="c.src.files.jogl.desktop"
                output.lib.name="jogl_desktop"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.os}"/>
     </target>
 
-    <target name="c.build.jogl.es2">
-      <c.build c.compiler.src.files="c.src.files.jogl.es2"
-               output.lib.name="jogl_es2"
+    <target name="c.build.jogl.mobile">
+      <c.build c.compiler.src.files="c.src.files.jogl.mobile"
+               output.lib.name="jogl_mobile"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.base}"/>
     </target>
 
-    <target name="c.build.jogl.es1">
-      <c.build c.compiler.src.files="c.src.files.jogl.es1"
-               output.lib.name="jogl_es1"
-               compiler.cfg.id="${compiler.cfg.id}"
-               linker.cfg.id="${linker.cfg.id.base}"/>
-    </target>
-
-    <target name="c.build.jogl.cg" if="jogl.cg">
+    <target name="c.build.jogl.cg" if="setup.addNativeNVidiaCG">
       <c.build c.compiler.src.files="c.src.files.cg"
                output.lib.name="jogl_cg"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.os}"/>
     </target>
     
-    <target name="c.manifest.cg" if="jogl.cg">
+    <target name="c.manifest.cg" if="setup.addNativeNVidiaCG">
       <msvc.manifest objdir="${obj.jogl}" dllname="jogl_cg" />
     </target>
 
@@ -1446,7 +1432,7 @@
       <antcall target="c.manifest.cg" inheritRefs="true" />
     </target>
 
-    <target name="c.build.jogl" depends="c.configure,c.build.jogl.prepare,c.build.jogl.desktop,c.build.jogl.es2,c.build.jogl.es1,c.build.jogl.cg">
+    <target name="c.build.jogl" depends="c.configure,c.build.jogl.prepare,c.build.jogl.desktop,c.build.jogl.mobile,c.build.jogl.cg">
       <antcall target="c.manifest" inheritRefs="true" />
     </target>
 
@@ -1457,9 +1443,9 @@
     <target name="build-jars-dependset" depends="init,gluegen.cpptasks.detect.os" >
         <dependset>
             <srcfileset dir="${src.java}"
-                     includes="${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
+                     includes="${java.part.nonjava}"/>
             <targetfileset dir="."
-                     includes="${jogl.all.jar} ${jogl.all-noawt.jar} ${jogl.util.jar} ${jogl.util.fixedfuncemu.jar}" />
+                     includes="${jogl.util.jar} ${jogl.util.fixedfuncemu.jar}" />
         </dependset>
     </target>
     <target name="build-jars" depends="build-jars-dependset,build-jars-javase" />
@@ -1467,7 +1453,7 @@
     <target name="setup-manifestfile" depends="common.init">
         <property name="manifestfile" value="joglversion"/>
         <copy file="${manifestfile}"
-            tofile="${build.jogl}/tempversion"
+            tofile="${build.jogl}/manifest.mf"
             overwrite="true">
             <filterset>
                 <filter token="VERSION" value="${jogl.version}"/>
@@ -1478,148 +1464,105 @@
         </copy>
     </target>
 
-    <target name="build-cg-jar-javase" depends="setup-manifestfile" if="jogl.cg">
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.cg.jar}" filesonly="true">
-            <fileset dir="${classes}"
-                     includes="${java.part.nv-cg}"/>
-        </jar>
-    </target>
-
-    <target name="build-jars-os-desktop-javase" depends="setup-manifestfile" unless="setup.nodesktop">
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.os.x11.jar}" filesonly="true">
+    <target name="build-jars-os-desktop-javase" depends="setup-manifestfile">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.os.x11.jar}" filesonly="true">
             <fileset dir="${classes}" includes="${java.part.glx}"/>
         </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.os.win.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.os.win.jar}" filesonly="true">
             <fileset dir="${classes}" includes="${java.part.wgl}" />
         </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.os.osx.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.os.osx.jar}" filesonly="true">
             <fileset dir="${classes}" includes="${java.part.cgl}"/>
         </jar>
     </target>
 
-    <target name="build-jars-es-javase" depends="setup-manifestfile">
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.egl.jar}" filesonly="true">
+    <target name="build-jars-mobile-javase" depends="setup-manifestfile">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.glmobile.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.egl}"
-                     excludes="${java.part.awt}"/>
+                     includes="${java.part.egl} ${java.part.es1} ${java.part.es2}"
+                     excludes="${java.part.awt} ${java.part.es1.dbg} ${java.part.es2.dbg}"/>
         </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.gles1.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.glmobile.dbg.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.es1}"
-                     excludes="${java.part.es1.dbg}"/>
-        </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.gles1.dbg.jar}" filesonly="true">
-            <fileset dir="${classes}"
-                     includes="${java.part.es1.dbg}"/>
-        </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.gles2.jar}" filesonly="true">
-            <fileset dir="${classes}"
-                     includes="${java.part.es2} ${java.part.openmax}"
-                     excludes="${java.part.es2.dbg}"/>
-        </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.gles2.dbg.jar}" filesonly="true">
-            <fileset dir="${classes}"
-                     includes="${java.part.es2.dbg}"/>
+                     includes="${java.part.es1.dbg} ${java.part.es2.dbg}"/>
         </jar>
     </target>
 
     <target name="build-jars-awt-javase" depends="setup-manifestfile" unless="setup.noAWT">
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.awt.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.awt}" />
         </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.util.awt.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util.awt}"/>
         </jar>
     </target>
 
-    <target name="build-jars-all-awt-javase" depends="setup-manifestfile" unless="setup.noAWT">
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.all.jar}" filesonly="true">
-            <fileset dir="${classes}"
-                     includes="${java.part.openmax}">
-                <include name="javax/media/opengl/**" />
-                <include name="com/jogamp/gluegen/runtime/**" />
-                <include name="com/jogamp/opengl/**" />
-                <include name="com/jogamp/graph/**" />
-                <include name="jogamp/opengl/**" />
-                <include name="jogamp/graph/**" />
-            </fileset>
-        </jar>
-    </target>
-    <target name="build-jars-all-noawt-javase" depends="setup-manifestfile">
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.all-noawt.jar}" filesonly="true">
-            <fileset dir="${classes}"
-                     includes="${java.part.openmax}"
-                     excludes="${java.part.awt} ${java.part.util.awt}">
-                <include name="javax/media/opengl/**" />
-                <include name="com/jogamp/gluegen/runtime/**" />
-                <include name="com/jogamp/opengl/**" />
-                <include name="com/jogamp/graph/**" />
-                <include name="jogamp/opengl/**" />
-                <include name="jogamp/graph/**" />
-            </fileset>
-            <fileset dir="${src.java}"
-                     includes="${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
-        </jar>
-    </target>
-
-    <target name="build-jars-desktop-javase" depends="setup-manifestfile,build-jars-os-desktop-javase" unless="setup.nodesktop">
+    <target name="build-jars-desktop-javase" depends="setup-manifestfile,build-jars-os-desktop-javase">
         <!--os specific gldesktop-->
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.gldesktop.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.gldesktop.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.gldesktop} ${java.part.openmax}"
+                     includes="${java.part.gldesktop}"
                      excludes="${java.part.gldesktop.dbg} ${java.part.glugldesktop}"/>
         </jar>
 
         <!-- misc -->
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.gldesktop.dbg.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.gldesktop.dbg.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.gldesktop.dbg}"/>
         </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.glugldesktop.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.glugldesktop.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.glugldesktop}"/>
         </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.util.gldesktop.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.gldesktop.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util.gldesktop}"
                      excludes="${java.part.awt} ${java.part.util.awt}"/>
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile, build-jars-es-javase, build-jars-awt-javase, build-cg-jar-javase, build-jars-all-awt-javase, build-jars-all-noawt-javase, build-jars-desktop-javase">
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.core.jar}" filesonly="true">
+    <target name="build-jars-javase" depends="setup-manifestfile, build-jars-mobile-javase, build-jars-desktop-javase, build-jars-awt-javase">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
                      excludes="${java.part.core.exclude}"/>
         </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.sdk.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.sdk.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.sdk}"/>
         </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.glutess.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.glutess.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.glutess}"/>
         </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.glumipmap.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.glumipmap.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.glumipmap}"/>
         </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.util.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util} ${java.part.util.glsl} ${java.part.util.graph}"
                      excludes="${java.part.util.awt} ${java.part.util.gldesktop} ${java.part.util.fixedfuncemu}"/>
             <fileset dir="${src.java}"
                      includes="${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
         </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.util.fixedfuncemu.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.fixedfuncemu.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util.fixedfuncemu}"/>
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode}"/>
         </jar>
-        <jar manifest="${build.jogl}/tempversion" destfile="${build.jogl}/jogl-natives-${os.and.arch}.jar" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.omx.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.openmax}"/>
+        </jar>
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.cg.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.nv-cg}"/>
+        </jar>
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${build.jogl}/jogl-natives-${os.and.arch}.jar" filesonly="true">
             <fileset dir="${obj.jogl}">
               <include name="*.${native.library.suffix}" />
             </fileset>
@@ -1633,24 +1576,8 @@
        -        on the platform specific build targets.  To circumvent any 
        -        errors, ensure that the source is built first.
       -->
-    <target name="javadoc.nocg" depends="init" unless="jogl.cg">
-        <!-- Build the general public Javadoc -->
-        <javadoc packagenames="${javadoc.packagenames}"
-                 excludepackagenames="${java.excludes.javadoc.packagenames}"
-                 sourcepath="${src.java};${src.generated.java}"        
-                 destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
-                 overview="${javadoc.overview}" 
-                 source="${target.sourcelevel}"
-                 maxmemory="512m"
-                 linkoffline="${javadoc.link} 142-packages"
-         bottom="${javadoc.bottom}" >
-          <classpath refid="nativewindow_gluegen.classpath"/>
-          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
-        </javadoc>
-    </target>
-
     <!-- Same as above but with Cg directories added -->
-    <target name="javadoc.cg" depends="init" if="jogl.cg">
+    <target name="javadoc" depends="init">
         <!-- Build the general public Javadoc with CG -->
         <javadoc packagenames="${javadoc.packagenames},com.jogamp.opengl.cg"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
@@ -1666,27 +1593,7 @@
         </javadoc>
     </target>
 
-    <target name="javadoc" depends="javadoc.nocg,javadoc.cg" />
-
-    <target name="javadoc.spec.nocg" depends="init" unless="jogl.cg">
-        <!-- Build the specification Javadoc -->
-        <javadoc packagenames="${javadoc.spec.packagenames}"
-                 excludepackagenames="${java.excludes.javadoc.packagenames}"
-                 sourcepath="${src.java};${src.generated.java}"
-                 destdir="${javadoc.spec}" windowtitle="${javadoc.windowtitle}"
-                 overview="${javadoc.overview}"
-                 source="${target.sourcelevel}"
-                 maxmemory="512m"
-                 linkoffline="${javadoc.link} 142-packages"
-                 bottom="${javadoc.bottom}" >
-          <classpath refid="nativewindow_gluegen.classpath"/>
-          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
-        </javadoc>
-    </target>
-                                                                                                                                   
-    <!-- Same as above since Cg directories are not part of spec -->
-    <target name="javadoc.spec.cg" depends="init" if="jogl.cg">
-        <!-- Build the specification Javadoc with CG -->
+    <target name="javadoc.spec" depends="init">
         <javadoc packagenames="${javadoc.spec.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"
@@ -1701,27 +1608,7 @@
         </javadoc>
     </target>
 
-    <target name="javadoc.spec" depends="javadoc.spec.nocg,javadoc.spec.cg" />
-
-    <target name="javadoc.dev.nocg" unless="jogl.cg">
-        <!-- Build the internal developer Javadoc -->
-        <javadoc packagenames="${javadoc.dev.packagenames}"
-                 excludepackagenames="${java.excludes.javadoc.packagenames}"
-                 sourcepath="${src.java};${src.generated.java}"        
-                 destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
-                 overview="${javadoc.overview}" 
-                 source="${target.sourcelevel}"
-                 maxmemory="512m"
-                 linkoffline="${javadoc.link} 142-packages"
-         bottom="${javadoc.bottom}" >
-          <classpath refid="nativewindow_gluegen.classpath"/>
-          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
-        </javadoc>
-    </target>
-
-    <!-- Same as above but with Cg directories added -->
-    <target name="javadoc.dev.cg" if="jogl.cg">
-        <!-- Build the internal developer Javadoc -->
+    <target name="javadoc.dev.all" depends="init">
         <javadoc packagenames="${javadoc.dev.packagenames},com.jogamp.opengl.cg"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"        
@@ -1735,8 +1622,6 @@
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
-
-    <target name="javadoc.dev.all"  depends="init,javadoc.dev.nocg,javadoc.dev.cg" />
 
     <target name="all.doc" description="Build JOGL docs" depends="init,javadoc,javadoc.spec,javadoc.dev.all" />
 

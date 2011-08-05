@@ -48,9 +48,9 @@
 
 #include <X11/extensions/Xrandr.h>
 
-#include "jogamp_newt_x11_X11Screen.h"
-#include "jogamp_newt_x11_X11Display.h"
-#include "jogamp_newt_x11_X11Window.h"
+#include "jogamp_newt_driver_x11_X11Screen.h"
+#include "jogamp_newt_driver_x11_X11Display.h"
+#include "jogamp_newt_driver_x11_X11Window.h"
 
 #include "MouseEvent.h"
 #include "InputEvent.h"
@@ -254,11 +254,11 @@ static void displayDispatchErrorHandlerEnable(int onoff, JNIEnv * env) {
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Display
+ * Class:     jogamp_newt_driver_x11_X11Display
  * Method:    initIDs
  * Signature: (Z)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_x11_X11Display_initIDs0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Display_initIDs0
   (JNIEnv *env, jclass clazz)
 {
     jclass c;
@@ -286,11 +286,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_x11_X11Display_initIDs0
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Display
+ * Class:     jogamp_newt_driver_x11_X11Display
  * Method:    CompleteDisplay
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Display_CompleteDisplay0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_CompleteDisplay0
   (JNIEnv *env, jobject obj, jlong display)
 {
     Display * dpy = (Display *)(intptr_t)display;
@@ -514,11 +514,11 @@ static void NewtWindows_setFullscreen (Display *dpy, Window root, Window w, Bool
 #define USE_SENDIO_DIRECT 1
 
 /*
- * Class:     jogamp_newt_x11_X11Display
+ * Class:     jogamp_newt_driver_x11_X11Display
  * Method:    DispatchMessages
  * Signature: (JIJJ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Display_DispatchMessages0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
   (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong wmDeleteAtom)
 {
     Display * dpy = (Display *) (intptr_t) display;
@@ -786,11 +786,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Display_DispatchMessages0
  */
 
 /*
- * Class:     jogamp_newt_x11_X11Screen
+ * Class:     jogamp_newt_driver_x11_X11Screen
  * Method:    GetScreen
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_x11_X11Screen_GetScreen0
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Screen_GetScreen0
   (JNIEnv *env, jclass clazz, jlong display, jint screen_index)
 {
     Display * dpy = (Display *)(intptr_t)display;
@@ -813,14 +813,14 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_x11_X11Screen_GetScreen0
     return (jlong) (intptr_t) scrn;
 }
 
-JNIEXPORT jint JNICALL Java_jogamp_newt_x11_X11Screen_getWidth0
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getWidth0
   (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
 {
     Display * dpy = (Display *) (intptr_t) display;
     return (jint) XDisplayWidth( dpy, scrn_idx);
 }
 
-JNIEXPORT jint JNICALL Java_jogamp_newt_x11_X11Screen_getHeight0
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getHeight0
   (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
 {
     Display * dpy = (Display *) (intptr_t) display;
@@ -860,11 +860,11 @@ static int NewtScreen_XRotation2Degree(JNIEnv *env, int xrotation) {
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Screen
+ * Class:     jogamp_newt_driver_x11_X11Screen
  * Method:    getAvailableScreenModeRotations0
  * Signature: (JI)I
  */
-JNIEXPORT jintArray JNICALL Java_jogamp_newt_x11_X11Screen_getAvailableScreenModeRotations0
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_X11Screen_getAvailableScreenModeRotations0
   (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
 {
     Display *dpy = (Display *) (intptr_t) display;
@@ -910,18 +910,18 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_x11_X11Screen_getAvailableScreenMod
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Screen
+ * Class:     jogamp_newt_driver_x11_X11Screen
  * Method:    getNumScreenModeResolution0
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_x11_X11Screen_getNumScreenModeResolutions0
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getNumScreenModeResolutions0
   (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
 {
     Display *dpy = (Display *) (intptr_t) display;
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT("Java_jogamp_newt_x11_X11Screen_getNumScreenModeResolutions0: RANDR not available\n");
+        DBG_PRINT("Java_jogamp_newt_driver_x11_X11Screen_getNumScreenModeResolutions0: RANDR not available\n");
         return 0;
     }
 
@@ -932,18 +932,18 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_x11_X11Screen_getNumScreenModeResolution
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Screen
+ * Class:     jogamp_newt_driver_x11_X11Screen
  * Method:    getScreenModeResolutions0
  * Signature: (JII)[I
  */
-JNIEXPORT jintArray JNICALL Java_jogamp_newt_x11_X11Screen_getScreenModeResolution0
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_X11Screen_getScreenModeResolution0
   (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx, jint resMode_idx)
 {
     Display *dpy = (Display *) (intptr_t) display;
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT("Java_jogamp_newt_x11_X11Screen_getScreenModeResolution0: RANDR not available\n");
+        DBG_PRINT("Java_jogamp_newt_driver_x11_X11Screen_getScreenModeResolution0: RANDR not available\n");
         return (*env)->NewIntArray(env, 0);
     }
 
@@ -975,18 +975,18 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_x11_X11Screen_getScreenModeResoluti
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Screen
+ * Class:     jogamp_newt_driver_x11_X11Screen
  * Method:    getScreenModeRates0
  * Signature: (JII)[I
  */
-JNIEXPORT jintArray JNICALL Java_jogamp_newt_x11_X11Screen_getScreenModeRates0
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_X11Screen_getScreenModeRates0
   (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx, jint resMode_idx)
 {
     Display *dpy = (Display *) (intptr_t) display;
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT("Java_jogamp_newt_x11_X11Screen_getScreenModeRates0: RANDR not available\n");
+        DBG_PRINT("Java_jogamp_newt_driver_x11_X11Screen_getScreenModeRates0: RANDR not available\n");
         return (*env)->NewIntArray(env, 0);
     }
 
@@ -1019,18 +1019,18 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_x11_X11Screen_getScreenModeRates0
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Screen
+ * Class:     jogamp_newt_driver_x11_X11Screen
  * Method:    getCurrentScreenRate0
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_x11_X11Screen_getCurrentScreenRate0
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenRate0
   (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx) 
 {
     Display *dpy = (Display *) (intptr_t) display;
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT("Java_jogamp_newt_x11_X11Screen_getCurrentScreenRate0: RANDR not available\n");
+        DBG_PRINT("Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenRate0: RANDR not available\n");
         return -1;
     }
 
@@ -1045,18 +1045,18 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_x11_X11Screen_getCurrentScreenRate0
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Screen
+ * Class:     jogamp_newt_driver_x11_X11Screen
  * Method:    getCurrentScreenRotation0
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_x11_X11Screen_getCurrentScreenRotation0
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenRotation0
   (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
 {
     Display *dpy = (Display *) (intptr_t) display;
     Window root = RootWindow(dpy, (int)scrn_idx);
     
     if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT("Java_jogamp_newt_x11_X11Screen_getCurrentScreenRotation0: RANDR not available\n");
+        DBG_PRINT("Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenRotation0: RANDR not available\n");
         return -1;
     }
 
@@ -1074,18 +1074,18 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_x11_X11Screen_getCurrentScreenRotation0
 
 
 /*
- * Class:     jogamp_newt_x11_X11Screen
+ * Class:     jogamp_newt_driver_x11_X11Screen
  * Method:    getCurrentScreenResolutionIndex0
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_x11_X11Screen_getCurrentScreenResolutionIndex0
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenResolutionIndex0
   (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
 {
    Display *dpy = (Display *) (intptr_t) display;
    Window root = RootWindow(dpy, (int)scrn_idx);
   
    if(False == NewtScreen_hasRANDR(dpy)) {
-       DBG_PRINT("Java_jogamp_newt_x11_X11Screen_getCurrentScreenResolutionIndex0: RANDR not available\n");
+       DBG_PRINT("Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenResolutionIndex0: RANDR not available\n");
        return -1;
    }
 
@@ -1103,18 +1103,18 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_x11_X11Screen_getCurrentScreenResolution
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Screen
+ * Class:     jogamp_newt_driver_x11_X11Screen
  * Method:    setCurrentScreenModeStart0
  * Signature: (JIIII)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_x11_X11Screen_setCurrentScreenModeStart0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Screen_setCurrentScreenModeStart0
   (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jint resMode_idx, jint freq, jint rotation)
 {
     Display *dpy = (Display *) (intptr_t) display;
     Window root = RootWindow(dpy, (int)screen_idx);
 
     if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT("Java_jogamp_newt_x11_X11Screen_setCurrentScreenModeStart0: RANDR not available\n");
+        DBG_PRINT("Java_jogamp_newt_driver_x11_X11Screen_setCurrentScreenModeStart0: RANDR not available\n");
         return JNI_FALSE;
     }
 
@@ -1163,11 +1163,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_x11_X11Screen_setCurrentScreenModeSt
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Screen
+ * Class:     jogamp_newt_driver_x11_X11Screen
  * Method:    setCurrentScreenModePollEnd0
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_x11_X11Screen_setCurrentScreenModePollEnd0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Screen_setCurrentScreenModePollEnd0
   (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jint resMode_idx, jint freq, jint rotation)
 {
     Display *dpy = (Display *) (intptr_t) display;
@@ -1176,7 +1176,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_x11_X11Screen_setCurrentScreenModePo
     XRRScreenChangeNotifyEvent * scn_event = (XRRScreenChangeNotifyEvent *) &evt;
 
     if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT("Java_jogamp_newt_x11_X11Screen_setCurrentScreenModePollEnd0: RANDR not available\n");
+        DBG_PRINT("Java_jogamp_newt_driver_x11_X11Screen_setCurrentScreenModePollEnd0: RANDR not available\n");
         return JNI_FALSE;
     }
 
@@ -1225,11 +1225,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_x11_X11Screen_setCurrentScreenModePo
  */
 
 /*
- * Class:     jogamp_newt_x11_X11Window
+ * Class:     jogamp_newt_driver_x11_X11Window
  * Method:    initIDs
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_x11_X11Window_initIDs0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_initIDs0
   (JNIEnv *env, jclass clazz)
 {
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(IIZ)V");
@@ -1265,11 +1265,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_x11_X11Window_initIDs0
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Window
+ * Class:     jogamp_newt_driver_x11_X11Window
  * Method:    CreateWindow
  * Signature: (JJIJIIII)J
  */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_x11_X11Window_CreateWindow0
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
   (JNIEnv *env, jobject obj, jlong parent, jlong display, jint screen_index, 
                              jlong visualID, 
                              jlong javaObjectAtom, jlong windowDeleteAtom, 
@@ -1389,11 +1389,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_x11_X11Window_CreateWindow0
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Window
+ * Class:     jogamp_newt_driver_x11_X11Window
  * Method:    CloseWindow
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Window_CloseWindow0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_CloseWindow0
   (JNIEnv *env, jobject obj, jlong display, jlong window, jlong javaObjectAtom, jlong wmDeleteAtom)
 {
     Display * dpy = (Display *) (intptr_t) display;
@@ -1421,7 +1421,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Window_CloseWindow0
     XUnmapWindow(dpy, w);
 
     // Drain all events related to this window ..
-    Java_jogamp_newt_x11_X11Display_DispatchMessages0(env, obj, display, javaObjectAtom, wmDeleteAtom);
+    Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0(env, obj, display, javaObjectAtom, wmDeleteAtom);
 
     XDestroyWindow(dpy, w);
     XSync(dpy, False);
@@ -1449,11 +1449,11 @@ static void NewtWindows_setPosSize(Display *dpy, Window w, jint x, jint y, jint 
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Window
+ * Class:     jogamp_newt_driver_x11_X11Window
  * Method:    setVisible0
  * Signature: (JJZIIII)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Window_setVisible0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_setVisible0
   (JNIEnv *env, jobject obj, jlong display, jlong window, jboolean visible, jint x, jint y, jint width, jint height)
 {
     Display * dpy = (Display *) (intptr_t) display;
@@ -1475,11 +1475,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Window_setVisible0
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Window
+ * Class:     jogamp_newt_driver_x11_X11Window
  * Method:    reconfigureWindow0
  * Signature: (JIJJIIIIZZII)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Window_reconfigureWindow0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
   (JNIEnv *env, jobject obj, jlong jdisplay, jint screen_index, jlong jparent, jlong jwindow, 
    jint x, jint y, jint width, jint height, jboolean isVisible, jboolean parentChange, jint fullscreenChange, jint decorationChange)
 {
@@ -1544,22 +1544,22 @@ JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Window_reconfigureWindow0
 }
 
 /*
- * Class:     jogamp_newt_x11_X11Window
+ * Class:     jogamp_newt_driver_x11_X11Window
  * Method:    requestFocus0
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Window_requestFocus0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_requestFocus0
   (JNIEnv *env, jobject obj, jlong display, jlong window, jboolean force)
 {
     NewtWindows_requestFocus ( env, obj, (Display *) (intptr_t) display, (Window)window, force ) ;
 }
 
 /*
- * Class:     Java_jogamp_newt_x11_X11Window
+ * Class:     Java_jogamp_newt_driver_x11_X11Window
  * Method:    setTitle0
  * Signature: (JJLjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_x11_X11Window_setTitle0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_setTitle0
   (JNIEnv *env, jclass clazz, jlong display, jlong window, jstring title)
 {
     Display * dpy = (Display *) (intptr_t) display;
