@@ -83,10 +83,6 @@ public class MouseEvent extends InputEvent
         return x.length;
     }
     
-    public int getPointerId() {
-        return pointerids[0];
-    }
-    
     /**
      * @return the pointer id for the data at index.
      *  return -1 if index not available.
@@ -100,6 +96,7 @@ public class MouseEvent extends InputEvent
     public int getButton() {
         return button;
     }
+    
     public int getClickCount() {
         return clickCount;
     }

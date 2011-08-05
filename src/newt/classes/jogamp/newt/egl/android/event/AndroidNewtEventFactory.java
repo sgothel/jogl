@@ -48,8 +48,8 @@ class AndroidNewtEventFactory {
         map.put(android.view.MotionEvent.ACTION_MOVE, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_DRAGGED);
         map.put(android.view.MotionEvent.ACTION_OUTSIDE, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_MOVED);
         
-        map.put(android.view.MotionEvent.ACTION_POINTER_DOWN, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED);
-        map.put(android.view.MotionEvent.ACTION_POINTER_UP, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_PRESSED);
+        map.put(android.view.MotionEvent.ACTION_POINTER_DOWN, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_PRESSED);
+        map.put(android.view.MotionEvent.ACTION_POINTER_UP, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED);
         
         map.put(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
 
