@@ -31,9 +31,11 @@ package jogamp.opengl.egl;
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.NativeLibrary;
 import java.util.*;
+
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import jogamp.opengl.*;
+
 import java.security.*;
 
 /**
@@ -43,6 +45,12 @@ import java.security.*;
  * Currently two implementations exist, one for ES1 and one for ES2.
  */
 public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
+    static List/*<String>*/ glueLibNames;
+    static {
+        glueLibNames = new ArrayList();
+        glueLibNames.addAll(GLDynamicLibraryBundleInfo.getGlueLibNamesPreload());
+        glueLibNames.add("jogl_mobile");
+    }
 
     protected EGLDynamicLibraryBundleInfo() {
         super();
@@ -72,4 +80,8 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
         eglLibNames.add("libEGL.so.1");
         return eglLibNames;
     }
+    
+    public final List/*<String>*/ getGlueLibNames() {
+        return glueLibNames;
+    }    
 }

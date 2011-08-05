@@ -40,6 +40,7 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.glu.gl2.GLUgl2;
+import javax.media.opengl.glu.gl2es1.GLUgl2es1;
 
 import org.junit.Test;
 
@@ -73,7 +74,8 @@ public class TestBug463ScaleImageMemoryAWT implements GLEventListener {
         
         ByteBuffer bufferIn  = ByteBuffer.wrap(datain);
         ByteBuffer bufferOut = ByteBuffer.wrap(dataout);      
-        GLUgl2 glu = new GLUgl2();
+        // GLUgl2 glu = new GLUgl2();
+        GLUgl2es1 glu = new GLUgl2es1(); 
         // in the failing case, the system would run out of memory in here
         glu.gluScaleImage( GL.GL_RGBA,
                            widthin, heightin, GL.GL_UNSIGNED_BYTE, bufferIn,

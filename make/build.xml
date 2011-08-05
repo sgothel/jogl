@@ -117,7 +117,7 @@
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.all-mobile.jar}" filesonly="true" excludes="META-INF/*">
             <archives>
                 <zips>
-                    <path refid="nativewindow_all-mobile_atoms.classpath"/>
+                    <path refid="nativewindow_all-noawt_atoms.classpath"/>
                     <path refid="jogl_all-mobile_atoms.classpath"/>
                     <path refid="newt_all-mobile_atoms.classpath"/>
                 </zips>
@@ -126,7 +126,7 @@
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.all-android.jar}" filesonly="true" excludes="META-INF/*">
             <archives>
                 <zips>
-                    <path refid="nativewindow_all-mobile_atoms.classpath"/>
+                    <path refid="nativewindow_core_atoms.classpath"/>
                     <path refid="jogl_all-mobile_atoms.classpath"/>
                     <path refid="newt_all-android_atoms.classpath"/>
                 </zips>

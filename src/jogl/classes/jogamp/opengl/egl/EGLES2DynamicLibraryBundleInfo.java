@@ -32,13 +32,6 @@ import java.util.*;
 import jogamp.opengl.*;
 
 public class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo {
-    static List/*<String>*/ glueLibNames;
-    static {
-        glueLibNames = new ArrayList();
-        glueLibNames.addAll(GLDynamicLibraryBundleInfo.getGlueLibNamesPreload());
-        glueLibNames.add("jogl_es2");
-    }
-  
     protected EGLES2DynamicLibraryBundleInfo() {
         super();
     }
@@ -62,10 +55,6 @@ public class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo 
         libNames.add(glesLibNames);
         libNames.add(getEGLLibNamesList());
         return libNames;
-    }
-
-    public List/*<String>*/ getGlueLibNames() {
-        return glueLibNames;
     }
 }
 

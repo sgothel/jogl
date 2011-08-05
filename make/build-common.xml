@@ -256,7 +256,7 @@
             <pathelement location="${nativewindow.os.x11.jar}" />
             <pathelement location="${nativewindow.os.win.jar}" />
         </path>
-        <path id="nativewindow_all-mobile_atoms.classpath">
+        <path id="nativewindow_core_atoms.classpath">
             <pathelement location="${nativewindow.core.jar}" />
         </path>
         

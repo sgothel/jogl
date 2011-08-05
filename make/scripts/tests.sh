@@ -142,7 +142,7 @@ function testawtmt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteGLWindows01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2es1.gears.newt.TestGearsGL2ES1NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2es1.gears.newt.TestGearsGL2ES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated $*
 #testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
@@ -174,7 +174,8 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2es1.gears.newt.TestGearsGL2
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461OffscreenSupersamplingSwingAWT
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestGrayTextureFromFileAWTBug417
-#testawtmt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
+#testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
+testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug463ScaleImageMemoryAWT $*
 
 #
 # newt.awt (testawt)
