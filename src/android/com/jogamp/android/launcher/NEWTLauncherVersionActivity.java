@@ -29,6 +29,7 @@ package com.jogamp.android.launcher;
 
 import java.lang.reflect.Method;
 
+import dalvik.system.DexClassLoader;
 import dalvik.system.PathClassLoader;
 
 import android.app.Activity;
@@ -46,46 +47,21 @@ public class NEWTLauncherVersionActivity extends Activity {
        Log.d(TAG, "onCreate - S");
        super.onCreate(savedInstanceState);
        
-       String packageGlueGen = "com.jogamp.common";       
-       String apkGlueGen = null;
-       String packageJogl = "javax.media.opengl";
-       String apkJogl = null;
-       
        String clazzMDName= "jogamp.newt.driver.android.MD";
-       Method mdGetInfo = null;
-
-       try {
-           apkGlueGen = getPackageManager().getApplicationInfo(packageGlueGen,0).sourceDir;
-           apkJogl = getPackageManager().getApplicationInfo(packageJogl,0).sourceDir;
-       } catch (PackageManager.NameNotFoundException e) {
-           Log.d(TAG, "error: "+e, e);
-       }
-       if(null == apkGlueGen || null == apkJogl) {
-           Log.d(TAG, "not found: gluegen <"+apkGlueGen+">, jogl <"+apkJogl+">");
-       } else {
-           String cp = apkGlueGen + ":" + apkJogl ;
-           Log.d(TAG, "cp: " + cp);
-            
-           // add path to apk that contains classes you wish to load
-           PathClassLoader pathClassLoader = new dalvik.system.PathClassLoader(
-                    cp,
-                    ClassLoader.getSystemClassLoader());
-        
+       String mdInfo = null;
+       
+       ClassLoader cl = ClassLoaderUtil.createJogampClassLoaderSingleton(this, true);
+       if(null != cl) {
            try {
-               Class clazzMD= Class.forName(clazzMDName, true, pathClassLoader);
+               Class clazzMD= Class.forName(clazzMDName, true, cl);
                Log.d(TAG, "MD: "+clazzMD);
-               mdGetInfo = clazzMD.getMethod("getInfo");
+               Method mdGetInfo = clazzMD.getMethod("getInfo");
+               mdInfo = (String) mdGetInfo.invoke(null);
            } catch (Exception e) {
                Log.d(TAG, "error: "+e, e);
            }
        }
 
-       String mdInfo = null;
-       try {
-           mdInfo = (String) mdGetInfo.invoke(null);
-       } catch (Exception e) {
-           Log.d(TAG, "error: "+e, e);
-       }
        tv = new TextView(this);
        if(null != mdInfo) {
            tv.setText(mdInfo);

@@ -27,19 +27,69 @@
  */
 package jogamp.newt.driver.android;
 
+import javax.media.opengl.GLProfile;
+import javax.microedition.khronos.egl.EGL10;
+import javax.microedition.khronos.egl.EGLContext;
+import javax.microedition.khronos.egl.EGLDisplay;
+
 import android.content.Context;
+import android.util.Log;
+import android.view.Surface;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.SurfaceHolder.Callback2;
 
-public class NEWTSurfaceView extends SurfaceView {
+public class NEWTSurfaceView extends SurfaceView implements Callback2 {
 
-    SurfaceCallback scb;
-    
     public NEWTSurfaceView(Context context) {
         super(context);
-        scb = new SurfaceCallback();
-        this.getHolder().addCallback(scb);
+        
+        System.setProperty("jogl.debug", "all");
+        System.setProperty("jogamp.debug.JNILibLoader", "true");
+        System.setProperty("jogamp.debug.NativeLibrary", "true");
+        System.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
+        getHolder().addCallback(this);
     }
     
-    public void doSomething() {
+    boolean created = false;
+    
+    public final boolean isCreated() {
+        return created;        
+    }
+    
+    public void surfaceCreated(SurfaceHolder holder) {
+        Surface surface = getHolder().getSurface();
+
+        /**
+            EGL10 mEgl = (EGL10) EGLContext.getEGL();
+
+            EGLDisplay mEglDisplay = mEgl.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
+
+            if (mEglDisplay == EGL10.EGL_NO_DISPLAY) {
+                throw new RuntimeException("eglGetDisplay failed");
+            }
+            Log.d(MD.TAG, "EGL XXXXXX " + mEgl + ", " + mEglDisplay);
+        */
+        Log.d(MD.TAG, "YYYYYYYYYY ");
+        Log.d(MD.TAG, "surfaceCreated - 0 - isValid: "+surface.isValid());
+        GLProfile.initSingleton(true);
+        Log.d(MD.TAG, "surfaceCreated - 1");
+        Log.d(MD.TAG, MD.getInfo());
+        Log.d(MD.TAG, "surfaceCreated - X");
+        created = true;
+    }
+
+    public void surfaceChanged(SurfaceHolder holder, int format, int width,
+            int height) {
+        Log.d(MD.TAG, "surfaceChanged: f "+Integer.toString(format)+", "+width+"x"+height);
+    }
+
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        Log.d(MD.TAG, "surfaceDestroyed");
+        created = false;
+    }
+
+    public void surfaceRedrawNeeded(SurfaceHolder holder) {
+        Log.d(MD.TAG, "surfaceRedrawNeeded");
     }
 }

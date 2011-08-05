@@ -129,6 +129,7 @@
                     <path refid="nativewindow_core_atoms.classpath"/>
                     <path refid="jogl_all-mobile_atoms.classpath"/>
                     <path refid="newt_all-android_atoms.classpath"/>
+                    <fileset dir="${build.gluegen}" includes="gluegen-rt.jar"/> <!-- JAU hack in gluegen -->
                 </zips>
             </archives>
         </jar>
@@ -147,6 +148,9 @@
     </target>
 
     <target name="android.package" depends="init,gluegen.cpptasks.detect.os,android.package.skip.check" if="isAndroid" unless="android.package.skip">
+        <copy todir="${lib}">
+            <fileset dir="${build.gluegen}/obj" includes="libgluegen-rt.so"/> <!-- JAU hack in gluegen -->
+        </copy>
         <aapt.signed 
             jarbuilddir="${jar}"
             jarbasename="jogl.all-android"
@@ -157,6 +161,9 @@
             jarmanifest.path="${build.jogl}/manifest.mf"
             version.code="${jogl_int_version}"
             version.name="${jogl.version.plus}" />
+        <delete includeEmptyDirs="true" quiet="true" failonerror="false">
+            <fileset dir="${lib}" includes="libgluegen-rt.so" />
+        </delete>
     </target>
 
     <target name="android.launcher" depends="init,gluegen.cpptasks.detect.os" if="isAndroid">

@@ -33,15 +33,14 @@ import android.widget.TextView;
 import android.util.Log;
 
 public class NewtVersionActivity extends Activity {
-   TextView tv = null;
-   
+   NEWTSurfaceView nsv = null;
+           
    @Override
    public void onCreate(Bundle savedInstanceState) {
        Log.d(MD.TAG, "onCreate - S");
        super.onCreate(savedInstanceState);
-       tv = new TextView(this);
-       tv.setText("need launcher");
-       setContentView(tv);
+       nsv = new NEWTSurfaceView(this);
+       setContentView(nsv);
        Log.d(MD.TAG, "onCreate - X");
    }
    
