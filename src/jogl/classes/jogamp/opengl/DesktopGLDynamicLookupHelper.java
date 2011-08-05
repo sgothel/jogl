@@ -39,10 +39,6 @@ public class DesktopGLDynamicLookupHelper extends GLDynamicLookupHelper {
 
     public DesktopGLDynamicLibraryBundleInfo getDesktopGLBundleInfo() { return (DesktopGLDynamicLibraryBundleInfo) getBundleInfo(); }
 
-    public boolean hasGLBinding() {
-        return isToolLibLoaded() && isGlueLibLoaded(DesktopGLDynamicLibraryBundleInfo.getGlueLibPosGLDESKTOP());
-    }
-
     public synchronized boolean loadGLULibrary() {
         /** hacky code .. where all platform GLU libs are tried ..*/
         if(null==gluLib) {

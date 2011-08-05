@@ -1202,7 +1202,7 @@ public class GLProfile {
             if(null != desktopFactory) {
                 DesktopGLDynamicLookupHelper glLookupHelper = (DesktopGLDynamicLookupHelper) desktopFactory.getGLDynamicLookupHelper(0);
                 if(null!=glLookupHelper) {
-                    hasDesktopGLFactory = glLookupHelper.hasGLBinding();
+                    hasDesktopGLFactory = glLookupHelper.isLibComplete() && hasGL234Impl;
                 }
             }
         } catch (LinkageError le) {
@@ -1324,8 +1324,10 @@ public class GLProfile {
 
         boolean addedDesktopProfile = false;
         boolean addedEGLProfile = false;
-
-        if( hasDesktopGLFactory && desktopFactory.getIsDeviceCompatible(device)) {
+        boolean deviceIsDesktopCompatible = false;
+        boolean deviceIsEGLCompatible = false;
+        
+        if( hasDesktopGLFactory && ( deviceIsDesktopCompatible = desktopFactory.getIsDeviceCompatible(device)) ) {
             // 1st pretend we have all Desktop and EGL profiles ..
             computeProfileMap(device, true /* desktopCtxUndef*/, true  /* esCtxUndef */);
 
@@ -1343,7 +1345,8 @@ public class GLProfile {
                                                 1, 5, GLContext.CTX_PROFILE_COMPAT|GLContext.CTX_OPTION_ANY);
             }
             addedDesktopProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
-        } else if( null!=eglFactory && ( hasGLES2Impl || hasGLES1Impl ) && eglFactory.getIsDeviceCompatible(device)) {
+        } else if( hasEGLFactory && ( hasGLES2Impl || hasGLES1Impl ) && 
+                   ( deviceIsEGLCompatible = eglFactory.getIsDeviceCompatible(device)) ) {
             // 1st pretend we have all EGL profiles ..
             computeProfileMap(device, false /* desktopCtxUndef*/, true /* esCtxUndef */);
 
@@ -1371,7 +1374,13 @@ public class GLProfile {
         } else {
             setProfileMap(device, new HashMap()); // empty
             if(DEBUG) {
-                System.err.println("GLProfile: EGLFactory - Device is not available: "+device);
+                System.err.println("GLProfile: device could not be initialized: "+device);
+                System.err.println("GLProfile: compatible w/ desktop: "+deviceIsDesktopCompatible+
+                                            ", egl "+deviceIsEGLCompatible);
+                System.err.println("GLProfile: desktoplFactory      "+desktopFactory);
+                System.err.println("GLProfile: eglFactory           "+eglFactory);
+                System.err.println("GLProfile: hasGLES1Impl         "+hasGLES1Impl);
+                System.err.println("GLProfile: hasGLES2Impl         "+hasGLES2Impl);
             }
         }
 
