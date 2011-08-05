@@ -238,19 +238,13 @@
 
     <target name="developer-src-zip" depends="init">
         <!--delete includeEmptyDirs="true" quiet="true" failonerror="false">
-            <fileset dir="${build}" includes="nativewindow-java-src.zip" />
             <fileset dir="${build}" includes="jogl-java-src.zip" />
-            <fileset dir="${build}" includes="newt-java-src.zip" />
         </delete-->
-        <zip destfile="${build}/nativewindow-java-src.zip" level="0">
+        <zip destfile="${build}/jogl-java-src.zip" level="0">
             <fileset dir="${src}/nativewindow/classes"/>
             <fileset dir="${build}/nativewindow/gensrc/classes"/>
-        </zip>
-        <zip destfile="${build}/jogl-java-src.zip" level="0">
             <fileset dir="${src}/jogl/classes"/>
             <fileset dir="${build}/jogl/gensrc/classes"/>
-        </zip>
-        <zip destfile="${build}/newt-java-src.zip" level="0">
             <fileset dir="${src}/newt/classes"/>
         </zip>
     </target>
@@ -290,9 +284,7 @@
         </copy>
         <copy todir="${archive}">
             <fileset dir="${build}">
-                <include name="nativewindow-java-src.zip"/>
                 <include name="jogl-java-src.zip"/>
-                <include name="newt-java-src.zip"/>
             </fileset>
         </copy>
         <archive.7z destfile="${build}/${archive.name}.7z"
