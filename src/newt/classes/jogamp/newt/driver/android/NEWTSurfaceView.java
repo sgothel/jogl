@@ -59,18 +59,6 @@ public class NEWTSurfaceView extends SurfaceView implements Callback2 {
     
     public void surfaceCreated(SurfaceHolder holder) {
         Surface surface = getHolder().getSurface();
-
-        /**
-            EGL10 mEgl = (EGL10) EGLContext.getEGL();
-
-            EGLDisplay mEglDisplay = mEgl.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
-
-            if (mEglDisplay == EGL10.EGL_NO_DISPLAY) {
-                throw new RuntimeException("eglGetDisplay failed");
-            }
-            Log.d(MD.TAG, "EGL XXXXXX " + mEgl + ", " + mEglDisplay);
-        */
-        Log.d(MD.TAG, "YYYYYYYYYY ");
         Log.d(MD.TAG, "surfaceCreated - 0 - isValid: "+surface.isValid());
         GLProfile.initSingleton(true);
         Log.d(MD.TAG, "surfaceCreated - 1");
