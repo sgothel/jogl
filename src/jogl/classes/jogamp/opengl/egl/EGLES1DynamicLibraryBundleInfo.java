@@ -29,6 +29,9 @@
 package jogamp.opengl.egl;
 
 import java.util.*;
+
+import com.jogamp.common.os.Platform;
+
 import jogamp.opengl.*;
 
 public class EGLES1DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo {
@@ -40,6 +43,12 @@ public class EGLES1DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo 
         List/*<List>*/ libNames = new ArrayList();
 
         List/*<String>*/ glesLibNames = new ArrayList();
+        
+        if(Platform.getOSType() == Platform.OSType.ANDROID) {
+            // using the android-EGL fails
+            glesLibNames.add("/system/lib/egl/libGLESv1_CM_POWERVR_SGX530_125.so");
+        }
+        
         // try default generic names first 
         glesLibNames.add("GLES_CM");
         glesLibNames.add("GLES_CL");

@@ -30,6 +30,8 @@ package jogamp.opengl.egl;
 
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.NativeLibrary;
+import com.jogamp.common.os.Platform;
+
 import java.util.*;
 
 import javax.media.nativewindow.*;
@@ -71,8 +73,14 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
 
     protected List/*<String>*/ getEGLLibNamesList() {
         List/*<String>*/ eglLibNames = new ArrayList();
+        if(Platform.getOSType() == Platform.OSType.ANDROID) {
+            // using the android-EGL fails
+            eglLibNames.add("/system/lib/egl/libEGL_POWERVR_SGX530_125.so");
+        }
+        
         // try default generic names first 
         eglLibNames.add("EGL");
+        
         // for windows distributions using the 'unlike' lib prefix, 
         // where our tool does not add it.
         eglLibNames.add("libEGL");
