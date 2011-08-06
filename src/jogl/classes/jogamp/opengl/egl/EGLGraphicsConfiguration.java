@@ -155,10 +155,11 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
             return false;
         }
 
-        int[] val = new int[1];
+        int[] cfgID = new int[1];
+        int[] rType = new int[1];
 
         // get the configID
-        if(!EGL.eglGetConfigAttrib(display, config, EGL.EGL_CONFIG_ID, val, 0)) {
+        if(!EGL.eglGetConfigAttrib(display, config, EGL.EGL_CONFIG_ID, cfgID, 0)) {
             if(DEBUG) {
                 // FIXME: this happens on a ATI PC Emulation ..
                 System.err.println("EGL couldn't retrieve ConfigID for config "+toHexString(config)+", error "+toHexString(EGL.eglGetError()));
@@ -166,7 +167,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
             return false;
         }
         
-        if(!EGL.eglGetConfigAttrib(display, config, EGL.EGL_RENDERABLE_TYPE, val, 0)) {
+        if(!EGL.eglGetConfigAttrib(display, config, EGL.EGL_RENDERABLE_TYPE, rType, 0)) {
             if(DEBUG) {
                 System.err.println("EGL couldn't retrieve EGL_RENDERABLE_TYPE for config "+toHexString(config)+", error "+toHexString(EGL.eglGetError()));
             }
@@ -174,13 +175,15 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         }
         EGLGLCapabilities caps = null;        
         try {
-            caps = new EGLGLCapabilities(config, val[0], glp, val[0]);
+            caps = new EGLGLCapabilities(config, cfgID[0], glp, rType[0]);
         } catch (GLException gle) {
             if(DEBUG) {
                 System.err.println("config "+toHexString(config)+": "+gle);
             }
             return false;
         }
+        
+        int[] val = new int[1];
         
         // Read the actual configuration into the chosen caps
         if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_RED_SIZE, val, 0)) {
