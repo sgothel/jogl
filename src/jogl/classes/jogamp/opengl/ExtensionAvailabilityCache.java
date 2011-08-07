@@ -173,14 +173,16 @@ final class ExtensionAvailabilityCache {
         System.err.println(getThreadName() + ":ExtensionAvailabilityCache: ALL EXTENSIONS: "+availableExtensionCache.size());
       }
 
-      int major[] = new int[] { context.getGLVersionMajor() };
-      int minor[] = new int[] { context.getGLVersionMinor() };
-      while (GLContext.isValidGLVersion(major[0], minor[0])) {
-        availableExtensionCache.add("GL_VERSION_" + major[0] + "_" + minor[0]);
-        if (DEBUG) {
-            System.err.println(getThreadName() + ":ExtensionAvailabilityCache: Added GL_VERSION_" + major[0] + "_" + minor[0] + " to known extensions");
-        }
-        if(!GLContext.decrementGLVersion(major, minor)) break;
+      if(!context.isGLES()) {
+          int major[] = new int[] { context.getGLVersionMajor() };
+          int minor[] = new int[] { context.getGLVersionMinor() };
+          while (GLContext.isValidGLVersion(major[0], minor[0])) {
+            availableExtensionCache.add("GL_VERSION_" + major[0] + "_" + minor[0]);
+            if (DEBUG) {
+                System.err.println(getThreadName() + ":ExtensionAvailabilityCache: Added GL_VERSION_" + major[0] + "_" + minor[0] + " to known extensions");
+            }
+            if(!GLContext.decrementGLVersion(major, minor)) break;
+          }
       }
 
       // put a dummy var in here so that the cache is no longer empty even if
