@@ -172,7 +172,7 @@ public abstract class EGLContext extends GLContextImpl {
         contextHandle = EGL.eglCreateContext(eglDisplay, eglConfig, shareWith, contextAttrs, 0);
         if (contextHandle == 0) {
             throw new GLException("Error creating OpenGL context: eglDisplay "+toHexString(eglDisplay)+
-                                  ", eglConfig "+toHexString(eglConfig)+", "+glProfile+", error "+toHexString(EGL.eglGetError()));
+                                  ", eglConfig "+config+", "+glProfile+", shareWith "+toHexString(shareWith)+", error "+toHexString(EGL.eglGetError()));
         }
         GLContextShareSet.contextCreated(this);
         if (DEBUG) {

@@ -103,7 +103,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
             AbstractGraphicsDevice aDevice = aConfig.getScreen().getDevice();
             if(aDevice instanceof EGLGraphicsDevice) {
                 if(DEBUG) {
-                    System.err.println("EGLDrawable.setRealized: using existing EGL config - START");
+                    System.err.println("EGLDrawable.setRealized(true): using existing EGL config - START");
                 }
                 // just fetch the data .. trust but verify ..
                 eglDisplay = aDevice.getHandle();
@@ -128,19 +128,15 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                         // EGLSurface is ours ..
                         ownEGLSurface=true;
                         
-                        eglConfig.updateGraphicsConfiguration();
-
+                        // redundant, already a proper chosen EGLCapabilities eglConfig.updateGraphicsConfiguration();
                         recreateSurface();
                     }
                 } else {
                     throw new GLException("EGLGraphicsDevice hold by non EGLGraphicsConfiguration: "+aConfig);
                 }
-                if(DEBUG) {
-                    System.err.println("EGLDrawable.setRealized: using existing EGL config - END: "+this);
-                }
             } else {
                 if(DEBUG) {
-                    System.err.println("EGLDrawable.setRealized: creating new EGL config - START");
+                    System.err.println("EGLDrawable.setRealized(true): creating new EGL config - START");
                 }
                 // create a new EGL config ..
                 ownEGLDisplay=true;
@@ -182,11 +178,14 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                     System.err.println("Chosen eglConfig: "+eglConfig);
                 }
                 recreateSurface();
-                if(DEBUG) {
-                    System.err.println("EGLDrawable.setRealized: creating new EGL config - END: "+this);
-                }
+            }
+            if(DEBUG) {
+                System.err.println("EGLDrawable.setRealized(true): END: ownDisplay "+ownEGLDisplay+", ownSurface "+ownEGLSurface+" - "+this);
             }
         } else if (ownEGLSurface && eglSurface != EGL.EGL_NO_SURFACE) {
+            if(DEBUG) {
+                System.err.println("EGLDrawable.setRealized(false): ownDisplay "+ownEGLDisplay+", ownSurface "+ownEGLSurface);
+            }
             // Destroy the window surface
             if (!EGL.eglDestroySurface(eglDisplay, eglSurface)) {
                 throw new GLException("Error destroying window surface (eglDestroySurface)");
