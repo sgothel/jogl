@@ -155,7 +155,7 @@ public class EGLGLCapabilities extends GLCapabilities {
     if(null == sink) {
         sink = new StringBuffer();
     }
-    sink.append("0x").append(Long.toHexString(eglcfg)).append(", ");
+    // sink.append("0x").append(Long.toHexString(eglcfg)).append(", ");
     sink.append("0x").append(Long.toHexString(eglcfgid)).append(": ");
     super.toString(sink);
     sink.append(", [");

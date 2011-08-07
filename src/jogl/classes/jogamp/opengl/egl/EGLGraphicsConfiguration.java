@@ -278,12 +278,10 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         }
 
         // 26 
-
         attrs[idx++] = EGL.EGL_RENDERABLE_TYPE;
         if(caps.getGLProfile().usesNativeGLES1()) {
             attrs[idx++] = EGL.EGL_OPENGL_ES_BIT;
-        }
-        else if(caps.getGLProfile().usesNativeGLES2()) {
+        } else if(caps.getGLProfile().usesNativeGLES2()) {
             attrs[idx++] = EGL.EGL_OPENGL_ES2_BIT;
         } else {
             attrs[idx++] = EGL.EGL_OPENGL_BIT;

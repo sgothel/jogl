@@ -46,13 +46,14 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 
+import jogamp.opengl.x11.glx.GLX;
+
 public class EGLPbufferDrawable extends EGLDrawable {
     private int texFormat;
     protected static final boolean useTexture = false; // No yet ..
 
     protected EGLPbufferDrawable(EGLDrawableFactory factory, NativeSurface target) {
         super(factory, target);
-        ownEGLDisplay = true;
 
         // get choosen ones ..
         GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)
@@ -76,6 +77,10 @@ public class EGLPbufferDrawable extends EGLDrawable {
 
     }
 
+    protected void destroyImpl() {
+        setRealized(false);
+    }
+    
     protected long createSurface(long eglDpy, long eglNativeCfg, long surfaceHandle) {
         NativeSurface nw = getNativeSurface();
         int[] attrs = EGLGraphicsConfiguration.CreatePBufferSurfaceAttribList(nw.getWidth(), nw.getHeight(), texFormat);
