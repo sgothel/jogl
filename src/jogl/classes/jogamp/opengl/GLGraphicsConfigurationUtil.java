@@ -138,6 +138,7 @@ public class GLGraphicsConfigurationUtil {
             // fix caps ..
             GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
             caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
+            caps2.setOnscreen(false);
             caps2.setPBuffer(true);
             return caps2;
         }
