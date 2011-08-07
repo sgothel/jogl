@@ -37,6 +37,8 @@ java \
   -Djava.library.path=../../gluegen/make/$BUILD_DIR/obj:$BUILD_DIR/lib \
   -Djava.class.path=$CP_BASE:$CP_JOGL_MOBILE \
   -Djogamp.debug.NativeLibrary=true \
+  -Dnativewindow.debug=all \
+  -Djogl.debug=all \
   $TSTCLASS $* \
  2>&1 | tee $LOGFILE \
 

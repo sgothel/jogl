@@ -44,6 +44,7 @@ public class NEWTSurfaceView extends SurfaceView implements Callback2 {
     public NEWTSurfaceView(Context context) {
         super(context);
         
+        System.setProperty("nativewindow.debug", "all");
         System.setProperty("jogl.debug", "all");
         System.setProperty("jogamp.debug.JNILibLoader", "true");
         System.setProperty("jogamp.debug.NativeLibrary", "true");
