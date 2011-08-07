@@ -1279,7 +1279,7 @@ public class GLProfile {
         final boolean addedAnyProfile = addedDesktopProfile || addedEGLProfile ;
 
         if(DEBUG) {
-            System.err.println("GLProfile.init addedAnyProfile(e/d) "+addedAnyProfile+" ("+addedDesktopProfile+"/"+addedEGLProfile+")");
+            System.err.println("GLProfile.init addedAnyProfile(d/e) "+addedAnyProfile+" ("+addedDesktopProfile+"/"+addedEGLProfile+")");
             System.err.println("GLProfile.init isAWTAvailable       "+isAWTAvailable);
             System.err.println("GLProfile.init hasDesktopGLFactory  "+hasDesktopGLFactory);
             System.err.println("GLProfile.init hasGL234Impl         "+hasGL234Impl);
@@ -1333,7 +1333,7 @@ public class GLProfile {
 
             // Triggers eager initialization of share context in GLDrawableFactory for the device,
             // hence querying all available GLProfiles
-            boolean desktopSharedCtxAvail = desktopFactory.getIsSharedContextAvailable(device);
+            boolean desktopSharedCtxAvail = desktopFactory.getWasSharedContextCreated(device);
             if (DEBUG) {
                 System.err.println("GLProfile.initProfilesForDevice: "+device+": desktop Shared Ctx "+desktopSharedCtxAvail);
             }
@@ -1352,7 +1352,7 @@ public class GLProfile {
 
             // Triggers eager initialization of share context in GLDrawableFactory for the device,
             // hence querying all available GLProfiles
-            boolean eglSharedCtxAvail = eglFactory.getIsSharedContextAvailable(device);
+            boolean eglSharedCtxAvail = eglFactory.getWasSharedContextCreated(device);
             if (DEBUG) {
                 System.err.println("GLProfile.initProfilesForDevice: "+device+": egl Shared Ctx "+eglSharedCtxAvail);
             }

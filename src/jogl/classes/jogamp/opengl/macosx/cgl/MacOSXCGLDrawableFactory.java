@@ -116,9 +116,14 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
       return false;
   }
 
+  public final boolean getWasSharedContextCreated(AbstractGraphicsDevice device) {
+      // FIXME: not implemented .. needs a dummy OSX surface
+      return false;
+  }
+  
   protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
-        // FIXME: not implemented .. needs a dummy OSX surface
-        return null;
+      // FIXME: not implemented .. needs a dummy OSX surface
+      return null;
   }
 
   protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {

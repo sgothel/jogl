@@ -42,7 +42,9 @@ import javax.media.opengl.*;
 
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
+
 import jogamp.opengl.*;
+import jogamp.opengl.x11.glx.X11GLXContext;
 import jogamp.nativewindow.WrappedSurface;
 
 import java.util.HashMap;
@@ -102,15 +104,27 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     static class SharedResource {
       private EGLGraphicsDevice device;
-      //private EGLDrawable drawable;
-      //private EGLContext context;
+      // private EGLDrawable drawable;
+      // private EGLContext contextES1;
+      // private EGLContext contextES2;
+      private boolean wasES1ContextCreated;
+      private boolean wasES2ContextCreated;
 
-      SharedResource(EGLGraphicsDevice dev /*, EGLDrawable draw, EGLContext ctx */) {
+      SharedResource(EGLGraphicsDevice dev, boolean wasContextES1Created, boolean wasContextES2Created 
+                     /*EGLDrawable draw, EGLContext ctxES1, EGLContext ctxES2 */) {
           device = dev;
           // drawable = draw;
-          // context = ctx;
+          // contextES1 = ctxES1;
+          // contextES2 = ctxES2;
+          this.wasES1ContextCreated = wasContextES1Created;
+          this.wasES2ContextCreated = wasContextES2Created;
       }
-      EGLGraphicsDevice getDevice() { return device; }
+      final EGLGraphicsDevice getDevice() { return device; }
+      // final EGLDrawable getDrawable() { return drawable; }
+      // final EGLContext getContextES1() { return contextES1; }
+      // final EGLContext getContextES2() { return contextES2; }
+      final boolean wasES1ContextAvailable() { return wasES1ContextCreated; }
+      final boolean wasES2ContextAvailable() { return wasES2ContextCreated; }
     }
     HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
     EGLGraphicsDevice defaultDevice;
@@ -123,40 +137,81 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
       return true; // via mappings (X11/WGL/.. -> EGL) we shall be able to handle all types.
     }
 
-    private SharedResource getOrCreateShared(AbstractGraphicsDevice device) {
-        String connection = device.getConnection();
+    private boolean isEGLContextAvailable(EGLGraphicsDevice sharedDevice, String profile) {
+        boolean madeCurrent = false;
+        final GLCapabilities caps = new GLCapabilities(GLProfile.get(profile));
+        caps.setRedBits(5); caps.setGreenBits(5); caps.setBlueBits(5); caps.setAlphaBits(0);
+        caps.setDoubleBuffered(false);
+        caps.setOnscreen(false);
+        caps.setPBuffer(true);
+        final EGLDrawable drawable = (EGLDrawable) createGLDrawable( createOffscreenSurfaceImpl(sharedDevice, caps, caps, null, 64, 64) );        
+        if(null!=drawable) {
+            final EGLContext context = (EGLContext) drawable.createContext(null);
+            if (null != context) {
+                context.setSynchronized(true);
+                try {
+                    context.makeCurrent(); // could cause exception
+                    madeCurrent = context.isCurrent();
+                } catch (GLException gle) {
+                    if (DEBUG) {
+                        System.err.println("EGLDrawableFactory.createShared: INFO: makeCurrent failed");
+                        gle.printStackTrace();
+                    }                    
+                } finally {
+                    context.destroy();
+                }
+            }
+            drawable.destroy();
+        }
+        return madeCurrent;
+    }
+    
+    private SharedResource getOrCreateShared(AbstractGraphicsDevice adevice) {
+        String connection = adevice.getConnection();
         SharedResource sr;
         synchronized(sharedMap) {
             sr = (SharedResource) sharedMap.get(connection);
         }
-        if(null==sr) {
+        if(null==sr) {   
             long eglDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
             if (eglDisplay == EGL.EGL_NO_DISPLAY) {
                 throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
             } else if(DEBUG) {
-                System.err.println("eglDisplay(EGL_DEFAULT_DISPLAY): 0x"+Long.toHexString(eglDisplay));
+                System.err.println("EGLDrawableFactory.createShared: eglDisplay(EGL_DEFAULT_DISPLAY): 0x"+Long.toHexString(eglDisplay));
             }
             if (!EGL.eglInitialize(eglDisplay, null, null)) {
                 throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
             }
-            EGLGraphicsDevice sharedDevice = new EGLGraphicsDevice(eglDisplay, connection, device.getUnitID());
-            sr = new SharedResource(sharedDevice);
+            final EGLGraphicsDevice sharedDevice = new EGLGraphicsDevice(eglDisplay, connection, adevice.getUnitID());            
+            // final boolean madeCurrentES1 = isEGLContextAvailable(sharedDevice, GLProfile.GLES1);
+            // final boolean madeCurrentES2 = isEGLContextAvailable(sharedDevice, GLProfile.GLES2);
+            final boolean madeCurrentES1 = true; // FIXME
+            final boolean madeCurrentES2 = true; // FIXME
+            sr = new SharedResource(sharedDevice, madeCurrentES1, madeCurrentES2);
             synchronized(sharedMap) {
                 sharedMap.put(connection, sr);
             }
             if (DEBUG) {
-              System.err.println("!!! SharedDevice: "+sharedDevice);
-            }
+                System.err.println("EGLDrawableFactory.createShared: device:  " + sharedDevice);
+                System.err.println("EGLDrawableFactory.createShared: context ES1: " + madeCurrentES1);
+                System.err.println("EGLDrawableFactory.createShared: context ES2: " + madeCurrentES2);
+            }                        
         }
         return sr;
     }
 
-
-    protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
-        // FIXME: not implemented .. needs a dummy EGL surface - NEEDED ?
-        return null;
+    public final boolean getWasSharedContextCreated(AbstractGraphicsDevice device) {
+        SharedResource sr = getOrCreateShared(device);
+        if(null!=sr) {
+            return sr.wasES1ContextAvailable() || sr.wasES2ContextAvailable();
+        }
+        return false;        
     }
-
+    
+    protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
+        return null; // n/a for EGL .. since we don't keep the resources
+    }
+    
     protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {
         SharedResource sr = getOrCreateShared(device);
         if(null!=sr) {
@@ -205,7 +260,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
         GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         if(!caps.isPBuffer()) {
-            throw new GLException("Not yet implemented");
+            throw new GLException("Non pbuffer not yet implemented");
         }
         // PBuffer GLDrawable Creation
         return new EGLPbufferDrawable(this, target);

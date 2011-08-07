@@ -47,6 +47,7 @@ import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
 
 import jogamp.opengl.*;
+
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
 import jogamp.nativewindow.WrappedSurface;
@@ -260,6 +261,14 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       return false;
   }
 
+  public final boolean getWasSharedContextCreated(AbstractGraphicsDevice device) {
+    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
+    if(null!=sr) {
+      return null != sr.getContext();
+    }
+    return false;
+  }
+  
   protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
     SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
     if(null!=sr) {

@@ -260,19 +260,17 @@ public abstract class GLDrawableFactory {
   }
 
   /**
-   * Returns true if a shared context is already mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
-   * or if a new shared context could be created and mapped. Otherwise return false.<br>
-   * Creation of the shared context is tried only once.
+   * Returns true if a shared context could be created while initialization 
+   * of shared resources for <code>device</code> {@link AbstractGraphicsDevice#getConnection()}.<br>
+   * This does not imply a shared context is mapped, but was available<br>.
    *
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    */
-  public final boolean getIsSharedContextAvailable(AbstractGraphicsDevice device) {
-      return null != getOrCreateSharedContext(device);
-  }
+  public abstract boolean getWasSharedContextCreated(AbstractGraphicsDevice device);
 
   /**
    * Returns the shared context mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
-   * either a preexisting or newly created, or <code>null</code> if creation failed or not supported.<br>
+   * either a pre-existing or newly created, or <code>null</code> if creation failed or not supported.<br>
    * Creation of the shared context is tried only once.
    *
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
