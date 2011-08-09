@@ -52,6 +52,7 @@ import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
+import com.jogamp.opengl.test.junit.jogl.demos.gl2.OneTriangle;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
@@ -133,14 +134,14 @@ public class TestSWTAWT01GLn extends UITestCase {
             public void display( GLAutoDrawable glautodrawable ) {
                 Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getWidth(), glautodrawable.getHeight() );
                 GL2 gl = glautodrawable.getGL().getGL2();
-                OneTriangle.render( gl, rectangle );
+                OneTriangle.render( gl, rectangle.width, rectangle.height );
             }
 
             /* @Override */
             public void reshape( GLAutoDrawable glautodrawable, int x, int y, int width, int height ) {
                 Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getWidth(), glautodrawable.getHeight() );
                 GL2 gl = glautodrawable.getGL().getGL2();
-                OneTriangle.setup( gl, rectangle );
+                OneTriangle.setup( gl, rectangle.width, rectangle.height );
             }
         });
 

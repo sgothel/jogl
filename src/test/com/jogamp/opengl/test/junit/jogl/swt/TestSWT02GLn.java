@@ -51,6 +51,7 @@ import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
+import com.jogamp.opengl.test.junit.jogl.demos.gl2.OneTriangle;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.ProxySurface;
@@ -151,7 +152,7 @@ public class TestSWT02GLn extends UITestCase {
                 if( GLContext.CONTEXT_NOT_CURRENT < glcontext.makeCurrent() ) {
                     glok=true;
                     GL2 gl = glcontext.getGL().getGL2();
-                    OneTriangle.setup( gl, rectangle );
+                    OneTriangle.setup( gl, rectangle.width, rectangle.height );
                     glcontext.release();
                 } else {
                     sizeMissing[0] = true;
@@ -169,10 +170,10 @@ public class TestSWT02GLn extends UITestCase {
                     glok=true;
                     GL2 gl = glcontext.getGL().getGL2();
                     if(sizeMissing[0]) {
-                        OneTriangle.setup( gl, rectangle );
+                        OneTriangle.setup( gl, rectangle.width, rectangle.height);
                         sizeMissing[0] = false;
                     }
-                    OneTriangle.render( gl, rectangle );
+                    OneTriangle.render( gl, rectangle.width, rectangle.height);
                     drawable.swapBuffers();
                     glcontext.release();
                 }
