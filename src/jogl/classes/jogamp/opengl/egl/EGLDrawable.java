@@ -127,8 +127,6 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                     } else {
                         // EGLSurface is ours ..
                         ownEGLSurface=true;
-                        
-                        // redundant, already a proper chosen EGLCapabilities eglConfig.updateGraphicsConfiguration();
                         recreateSurface();
                     }
                 } else {

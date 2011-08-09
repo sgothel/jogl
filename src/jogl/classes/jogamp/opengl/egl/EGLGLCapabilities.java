@@ -37,7 +37,8 @@ public class EGLGLCapabilities extends GLCapabilities {
   final long eglcfg;
   final int  eglcfgid;
   final int renderableType;  
-
+  int nativeVisualID;
+  
   /** Comparing EGLConfig ID only */
   public static class EglCfgIDComparator implements Comparator {
 
@@ -101,6 +102,8 @@ public class EGLGLCapabilities extends GLCapabilities {
   final public long getEGLConfig() { return eglcfg; }
   final public int getEGLConfigID() { return eglcfgid; }
   final public int getRenderableType() { return renderableType; }
+  final public void setNativeVisualID(int vid) { nativeVisualID=vid; }
+  final public int getNativeVisualID() { return nativeVisualID; }
   
   public static boolean isCompatible(GLProfile glp, int renderableType) {
     if(null == glp) {
@@ -157,6 +160,7 @@ public class EGLGLCapabilities extends GLCapabilities {
     }
     // sink.append("0x").append(Long.toHexString(eglcfg)).append(", ");
     sink.append("0x").append(Long.toHexString(eglcfgid)).append(": ");
+    sink.append("vid 0x").append(Integer.toHexString(nativeVisualID)).append(", ");
     super.toString(sink);
     sink.append(", [");
     renderableTypeToString(sink, renderableType);

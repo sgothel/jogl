@@ -44,7 +44,6 @@ import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
 
 import jogamp.opengl.*;
-import jogamp.opengl.x11.glx.X11GLXContext;
 import jogamp.nativewindow.WrappedSurface;
 
 import java.util.HashMap;
@@ -276,10 +275,14 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return ns;
     }
 
-    protected ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice device, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {    
-        WrappedSurface ns = new WrappedSurface(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(device, capsRequested, capsRequested, chooser), windowHandle);
+    protected ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice adevice, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {    
+        // FIXME device/windowHandle -> screen ?!
+        EGLGraphicsDevice device = (EGLGraphicsDevice) adevice;
+        DefaultGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
+        EGLGraphicsConfiguration cfg = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen);
+        WrappedSurface ns = new WrappedSurface(cfg, windowHandle);
         return ns;
-    }    
+    }
     
     protected GLContext createExternalGLContextImpl() {
         AbstractGraphicsScreen absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_EGL);
