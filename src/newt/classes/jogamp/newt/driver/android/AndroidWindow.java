@@ -30,6 +30,7 @@ package jogamp.newt.driver.android;
 
 import java.nio.IntBuffer;
 
+import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.android.event.AndroidNewtEventFactory;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
@@ -86,6 +87,14 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     
     public AndroidWindow(Context ctx) {
         nsv = new MSurfaceView(ctx);
+        nsv.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, android.view.MotionEvent aEvent) {
+                MouseEvent newtEvent = AndroidNewtEventFactory.createMouseEvent(aEvent, AndroidWindow.this);
+                AndroidWindow.this.enqueueEvent(false, newtEvent);
+                return true;
+            }
+            
+        });
         SurfaceHolder sh = nsv.getHolder();
         sh.setFormat(getPixelFormat());
         sh.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
@@ -244,19 +253,6 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     volatile long surfaceHandle = 0;
     long eglSurface = 0;
     
-    class MouseInterceptor implements OnClickListener, OnTouchListener {
-
-        public void onClick(View v) {
-            // TODO Auto-generated method stub
-        }
-
-        public boolean onTouch(View v, MotionEvent event) {
-            // MouseEvent event = AndroidNewtEventFactory.createMouseEvent(event, AndroidWindow.this);
-            
-            return false;
-        }
-        
-    }
     static class MSurfaceView extends SurfaceView {
         public MSurfaceView (Context ctx) {
             super(ctx);
