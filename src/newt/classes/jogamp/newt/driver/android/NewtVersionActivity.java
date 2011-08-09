@@ -27,20 +27,55 @@
  */
 package jogamp.newt.driver.android;
 
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLProfile;
+
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Display;
+import com.jogamp.newt.Screen;
+import com.jogamp.newt.opengl.GLWindow;
+import jogamp.newt.driver.android.test.GearsGL2ES1;
+import com.jogamp.opengl.util.Animator;
+
+import jogamp.newt.driver.android.AndroidWindow;
+
 import android.app.Activity;
 import android.os.Bundle;
-import android.widget.TextView;
 import android.util.Log;
 
 public class NewtVersionActivity extends Activity {
-   NEWTSurfaceView nsv = null;
-           
+   AndroidWindow window = null;
+   GLWindow glWindow = null;
+   Animator animator = null;
    @Override
    public void onCreate(Bundle savedInstanceState) {
        Log.d(MD.TAG, "onCreate - S");
        super.onCreate(savedInstanceState);
-       nsv = new NEWTSurfaceView(this);
-       setContentView(nsv);
+       
+       System.setProperty("nativewindow.debug", "all");
+       System.setProperty("jogl.debug", "all");
+       System.setProperty("newt.debug", "all");
+       System.setProperty("jogamp.debug.JNILibLoader", "true");
+       System.setProperty("jogamp.debug.NativeLibrary", "true");
+       // System.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
+       
+       GLProfile.initSingleton(true);
+       
+       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES1));
+       // caps.setRedBits(5); caps.setGreenBits(6); caps.setBlueBits(5);
+       AndroidDisplay display = (AndroidDisplay) NewtFactory.createDisplay(null);
+       AndroidScreen screen = (AndroidScreen) NewtFactory.createScreen(display, 0);
+       screen.setAppContext(this.getApplicationContext());
+
+       window = (AndroidWindow) NewtFactory.createWindow(new Object[] { this }, screen, caps);
+       setContentView(window.getView());
+       
+       glWindow = GLWindow.create(window);
+       glWindow.addGLEventListener(new GearsGL2ES1(1));
+       glWindow.setVisible(true);
+       animator = new Animator(glWindow);
+       animator.setUpdateFPSFrames(1, null);
+       
        Log.d(MD.TAG, "onCreate - X");
    }
    
@@ -62,6 +97,9 @@ public class NewtVersionActivity extends Activity {
    public void onResume() {
      Log.d(MD.TAG, "onResume - S");
      super.onResume();
+     if(null != animator) {
+         animator.start();
+     }
      Log.d(MD.TAG, "onResume - X");
    }
 
@@ -69,6 +107,9 @@ public class NewtVersionActivity extends Activity {
    public void onPause() {
      Log.d(MD.TAG, "onPause - S");
      super.onPause();
+     if(null != animator) {
+         animator.pause();
+     }
      Log.d(MD.TAG, "onPause - X");
    }
 
@@ -82,7 +123,9 @@ public class NewtVersionActivity extends Activity {
    @Override
    public void onDestroy() {
      Log.d(MD.TAG, "onDestroy - S");
-     super.onDestroy();  
+     super.onDestroy(); 
+     glWindow.destroy();
+     window.destroy();
      Log.d(MD.TAG, "onDestroy - X");
    }   
 }
