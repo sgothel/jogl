@@ -50,10 +50,11 @@ public class GLRunnableTask implements GLRunnable {
         isExecuted = false;
     }
 
-    public void run(GLAutoDrawable drawable) {
+    public boolean run(GLAutoDrawable drawable) {
+        boolean res = true;
         if(null == notifyObject) {
             try {
-                runnable.run(drawable);
+                res = runnable.run(drawable);
             } catch (Throwable t) {
                 runnableException = t;
                 if(catchExceptions) {
@@ -67,7 +68,7 @@ public class GLRunnableTask implements GLRunnable {
         } else {
             synchronized (notifyObject) {
                 try {
-                    runnable.run(drawable);
+                    res = runnable.run(drawable);
                 } catch (Throwable t) {
                     runnableException = t;
                     if(catchExceptions) {
@@ -81,6 +82,7 @@ public class GLRunnableTask implements GLRunnable {
                 }
             }
         }
+        return res;
     }
 
     public boolean isExecuted() { return isExecuted; }

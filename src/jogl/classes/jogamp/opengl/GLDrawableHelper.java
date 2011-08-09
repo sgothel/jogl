@@ -156,16 +156,21 @@ public class GLDrawableHelper {
   }
 
   public final void display(GLAutoDrawable drawable) {
-    synchronized(listenersLock) {
-        for (int i=0; i < listeners.size(); i++) {
-          final GLEventListener listener = listeners.get(i) ;
-          // GLEventListener may need to be init, 
-          // in case this one is added after the realization of the GLAutoDrawable
-          init( listener, drawable, true ) ; 
-          listener.display(drawable);
-        }
+    displayImpl(drawable);
+    if(!execGLRunnables(drawable)) {
+        displayImpl(drawable);  
     }
-    execGLRunnables(drawable);
+  }
+  private void displayImpl(GLAutoDrawable drawable) {
+      synchronized(listenersLock) {
+          for (int i=0; i < listeners.size(); i++) {
+            final GLEventListener listener = listeners.get(i) ;
+            // GLEventListener may need to be init, 
+            // in case this one is added after the realization of the GLAutoDrawable
+            init( listener, drawable, true ) ; 
+            listener.display(drawable);
+          }
+      }
   }
 
   private void reshape(GLEventListener listener, GLAutoDrawable drawable,
@@ -184,7 +189,8 @@ public class GLDrawableHelper {
     }
   }
 
-  private void execGLRunnables(GLAutoDrawable drawable) {
+  private boolean execGLRunnables(GLAutoDrawable drawable) {
+    boolean res = true;
     if(glRunnables.size()>0) {
         // swap one-shot list asap
         ArrayList<GLRunnable> _glRunnables = null;
@@ -194,12 +200,14 @@ public class GLDrawableHelper {
                 glRunnables = new ArrayList<GLRunnable>();
             }
         }
+        
         if(null!=_glRunnables) {
             for (int i=0; i < _glRunnables.size(); i++) {
-              _glRunnables.get(i).run(drawable);
+              res = _glRunnables.get(i).run(drawable) && res;
             }
         }
     }
+    return res;
   }
 
   public final void setAnimator(GLAnimatorControl animator) throws GLException {

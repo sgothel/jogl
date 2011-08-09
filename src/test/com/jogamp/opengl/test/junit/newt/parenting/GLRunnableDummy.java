@@ -28,12 +28,6 @@
  
 package com.jogamp.opengl.test.junit.newt.parenting;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.AfterClass;
-import org.junit.Test;
-
 import javax.media.opengl.*;
 
 public class GLRunnableDummy implements GLRunnable {
@@ -42,7 +36,7 @@ public class GLRunnableDummy implements GLRunnable {
     float b=0.0f;
     float d=0.1f;
 
-    public void run(GLAutoDrawable drawable) {
+    public boolean run(GLAutoDrawable drawable) {
         GL2ES1 gl = drawable.getGL().getGL2ES1();
         gl.glClearColor(r, g, b, 1f);
         r+=d;
@@ -53,5 +47,6 @@ public class GLRunnableDummy implements GLRunnable {
             r=0f;
             d*=-1f;
         }
+        return true;
     }
 }
