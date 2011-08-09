@@ -27,13 +27,17 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
+import javax.media.opengl.GL2ES2;
+
 import jogamp.graph.curve.text.GlyphString;
 
+import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 
-public class Label extends UIShape implements UITextShape {
+public abstract class Label extends UIShape implements UITextShape {
     protected Font font;
     protected int size;
     protected String text;
@@ -50,7 +54,7 @@ public class Label extends UIShape implements UITextShape {
         return glyphString;
     }
     
-    public String getText(){
+    public String getText() {
         return text;
     }
     
@@ -92,5 +96,11 @@ public class Label extends UIShape implements UITextShape {
     protected void createShape() {
         clearImpl();
         glyphString = GlyphString.createString(shape, getVertexFactory(), font, size, text);        
+    }
+
+    @Override
+    public void render(GL2ES2 gl, RenderState rs, RegionRenderer renderer,
+            boolean selection) {
+        
     }
 }

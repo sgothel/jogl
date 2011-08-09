@@ -27,32 +27,42 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
+import javax.media.opengl.GL2ES2;
+
+import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.opengl.test.junit.graph.demos.ui.opengl.UIRegion;
 
 /** GPU based resolution independent Button impl
  */
-public class RIButton extends UIShape {
+public abstract class RIButton extends UIShape {
     private float width, height;
     private Label label;
-    private float spacing = 2.0f;
-    private float[] scale = new float[]{1.0f,1.0f};
+    private float spacing = 4.0f;
     private float corner = 1.0f;
     private float labelZOffset = -0.05f;
     
     private float[] buttonColor = {0.6f, 0.6f, 0.6f};
+    private float[] buttonSelectedColor = {0.8f,0.8f,0.8f};
     private float[] labelColor = {1.0f, 1.0f, 1.0f};
+    private float[] labelSelectedColor = {0.1f, 0.1f, 0.1f};
+ 
     
     public RIButton(Factory<? extends Vertex> factory, Font labelFont, String labelText, float width, float height) {
-        // w 4.0f, h 3.0f
-        // FontFactory.get(FontFactory.UBUNTU).getDefault()
         super(factory);
         
         // FIXME: Determine font size - PMV Matrix relation ?
         // this.label = new Label(factory, labelFont, (int)(height - 2f * spacing), labelText);
-        this.label = new Label(factory, labelFont, 10, labelText);
+        this.label = new Label(factory, labelFont, 10, labelText){
+            public void onClick() { }
+            public void onPressed() { }
+            public void onRelease() { }
+        };
+        
         this.width = width;
         this.height = height;
     }
@@ -60,7 +70,6 @@ public class RIButton extends UIShape {
     public final float getWidth() { return width; }
     public final float getHeight() { return height; }
     public float getCorner() { return corner; }
-    public float[] getScale() { return scale; }    
     public Label getLabel() { return label; }
 
     public void setDimension(int width, int height) {
@@ -68,7 +77,7 @@ public class RIButton extends UIShape {
         this.height = height;
         dirty |= DIRTY_SHAPE;
     }
-
+    
     @Override
     protected void clearImpl() {
         label.clear();
@@ -88,21 +97,26 @@ public class RIButton extends UIShape {
         } else {
             createCurvedOutline(lbox);
         }
-        scale[0] = getWidth() / ( 2f*spacing + lbox.getWidth() );
-        scale[1] = getHeight() / ( 2f*spacing + lbox.getHeight() );
+        float sx = getWidth() / ( 2f*spacing + lbox.getWidth() );
+        float sy = getHeight() / ( 2f*spacing + lbox.getHeight() );
+        
+        setScale(sx, sy, 1);
     }
     
     
     private void createSharpOutline(AABBox lbox) {
         float th = (2f*spacing) + lbox.getHeight();
         float tw = (2f*spacing) + lbox.getWidth();
+        
+        float[] pos = getPosition();
         float minX = lbox.getMinX()-spacing;
         float minY = lbox.getMinY()-spacing;
+        float minZ = labelZOffset;
         
-        shape.addVertex(minX, minY, labelZOffset,  true);
-        shape.addVertex(minX+tw, minY,  labelZOffset, true);
-        shape.addVertex(minX+tw, minY + th, labelZOffset,  true);
-        shape.addVertex(minX, minY + th, labelZOffset,  true);
+        shape.addVertex(minX, minY, minZ,  true);
+        shape.addVertex(minX+tw, minY,  minZ, true);
+        shape.addVertex(minX+tw, minY + th, minZ,  true);
+        shape.addVertex(minX, minY + th, minZ,  true);
         shape.closeLastOutline();
     }
     
@@ -113,25 +127,25 @@ public class RIButton extends UIShape {
         float cw = 0.5f*corner*Math.min(tw, th);
         float ch = 0.5f*corner*Math.min(tw, th);
         
+        float[] pos = getPosition();
         float minX = lbox.getMinX()-spacing;
         float minY = lbox.getMinY()-spacing;
-        
-        shape.addVertex(minX, minY + ch, labelZOffset, true);
-        shape.addVertex(minX, minY,  labelZOffset, false);
-        shape.addVertex(minX + cw, minY, labelZOffset,  true);
-        shape.addVertex(minX + tw - cw, minY,  labelZOffset, true);
-        shape.addVertex(minX + tw, minY, labelZOffset,  false);
-        shape.addVertex(minX + tw, minY + ch, labelZOffset,  true);
-        shape.addVertex(minX + tw, minY + th- ch, labelZOffset,  true);
-        shape.addVertex(minX + tw, minY + th, labelZOffset,  false);
-        shape.addVertex(minX + tw - cw, minY + th, labelZOffset,  true);
-        shape.addVertex(minX + cw, minY + th, labelZOffset,  true);
-        shape.addVertex(minX, minY + th, labelZOffset,  false);
-        shape.addVertex(minX, minY + th - ch, labelZOffset,  true);
+        float minZ = labelZOffset;
+        shape.addVertex(minX, minY + ch, minZ, true);
+        shape.addVertex(minX, minY,  minZ, false);
+        shape.addVertex(minX + cw, minY, minZ,  true);
+        shape.addVertex(minX + tw - cw, minY,  minZ, true);
+        shape.addVertex(minX + tw, minY, minZ,  false);
+        shape.addVertex(minX + tw, minY + ch, minZ,  true);
+        shape.addVertex(minX + tw, minY + th- ch, minZ,  true);
+        shape.addVertex(minX + tw, minY + th, minZ,  false);
+        shape.addVertex(minX + tw - cw, minY + th, minZ,  true);
+        shape.addVertex(minX + cw, minY + th, minZ,  true);
+        shape.addVertex(minX, minY + th, minZ,  false);
+        shape.addVertex(minX, minY + th - ch, minZ,  true);
         shape.closeLastOutline();
     }
-
-
+    
     public void setCorner(float corner) {
         if(corner > 1.0f){
             this.corner = 1.0f;
@@ -172,6 +186,7 @@ public class RIButton extends UIShape {
     }
 
     public void setButtonColor(float r, float g, float b) {
+        this.buttonColor = new float[3];
         this.buttonColor[0] = r;
         this.buttonColor[1] = g;
         this.buttonColor[2] = b;
@@ -180,16 +195,80 @@ public class RIButton extends UIShape {
     public float[] getLabelColor() {
         return labelColor;
     }
+    
+    private UIRegion buttonRegion = null;
+    private UIRegion labelRegion = null;
+    private boolean toggle =false;
+    private boolean toggleable = false;
 
+
+    public void render(GL2ES2 gl, RenderState rs, RegionRenderer renderer, boolean selection) {
+        if(null == buttonRegion) {
+            buttonRegion = new UIRegion(this);
+            labelRegion = new UIRegion(getLabel());
+        }  
+        
+        gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
+        gl.glPolygonOffset(0.0f, 1f);
+        
+        float[] bColor = buttonColor;
+        if(isPressed() || toggle){
+            bColor = buttonSelectedColor;
+        }
+        if(!selection){
+            renderer.setColorStatic(gl, bColor[0], bColor[1], bColor[2]);
+        }
+        renderer.draw(gl, buttonRegion.getRegion(gl, rs, 0), getPosition(), 0);
+        gl.glDisable(GL2ES2.GL_POLYGON_OFFSET_FILL);
+        
+        float[] lColor = labelColor;
+        if(isPressed() || toggle ){
+            lColor = labelSelectedColor;
+        }
+        if(!selection){
+            renderer.setColorStatic(gl, lColor[0], lColor[1], lColor[2]);
+        }
+        renderer.draw(gl, labelRegion.getRegion(gl, rs, 0), getPosition(), 0);
+    }
+    public void setPressed(boolean b) {
+        super.setPressed(b);
+        if(isToggleable() && b) {
+            toggle = !toggle;
+        }
+    }
+    
     public void setLabelColor(float r, float g, float b) {
+        this.labelColor = new float[3];
         this.labelColor[0] = r;
         this.labelColor[1] = g;
         this.labelColor[2] = b;
     }
     
+    public void setButtonSelectedColor(float r, float g, float b){
+        this.buttonSelectedColor = new float[3];
+        this.buttonSelectedColor[0] = r;
+        this.buttonSelectedColor[1] = g;
+        this.buttonSelectedColor[2] = b;
+    }
+    
+    public void setLabelSelectedColor(float r, float g, float b){
+        this.labelSelectedColor = new float[3];
+        this.labelSelectedColor[0] = r;
+        this.labelSelectedColor[1] = g;
+        this.labelSelectedColor[2] = b;
+    }
+
+    public boolean isToggleable() {
+        return toggleable;
+    }
+    
+    public void setToggleable(boolean toggleable) {
+        this.toggleable = toggleable;
+    }
+
     public String toString() {
         return "RIButton [" + getWidth() + "x" + getHeight() + ", "
-            + getLabel() + "," + "spacing: " + spacing
+            + getLabel() + ", " + "spacing: " + spacing
             + ", " + "corner: " + corner + ", " + "shapeOffset: " + labelZOffset + " ]";
     }
 }

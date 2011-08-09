@@ -56,33 +56,47 @@ public class MouseEvent extends InputEvent
         this.x = new int[]{x};
         this.y = new int[]{y};
         this.pressure = new float[]{0};
-
+        this.pointerids = new int[]{-1};
         this.clickCount=clickCount;
         this.button=button;
         this.wheelRotation = rotation;
     }
 
     public MouseEvent(int eventType, Object source, long when,
-            int modifiers, int[] x, int[] y, float[] pressure, int clickCount, int button,
+            int modifiers, int[] x, int[] y, float[] pressure, int[] pointerids, int clickCount, int button,
             int rotation)
     {
         super(eventType, source, when, modifiers); 
         this.x = x;
         this.y = y;
         this.pressure = pressure;
-
+        this.pointerids = pointerids;
         this.clickCount=clickCount;
         this.button=button;
         this.wheelRotation = rotation;
     }
     
+    /**
+     * @return the count of pointers involved in this event
+     */
     public int getPointerCount() {
         return x.length;
+    }
+    
+    /**
+     * @return the pointer id for the data at index.
+     *  return -1 if index not available.
+     */
+    public int getPointerId(int index) {
+        if(index >= pointerids.length)
+            return -1;
+        return pointerids[index];
     }
     
     public int getButton() {
         return button;
     }
+    
     public int getClickCount() {
         return clickCount;
     }
@@ -94,20 +108,29 @@ public class MouseEvent extends InputEvent
         return y[0];
     }
 
-    public int getX(int pointer) {
-        return x[pointer];
+    /** 
+     * @return x-coord at index where index refers to the 
+     * data coming from a pointer. 
+     * @see getPointerId(index)
+     */
+    public int getX(int index) {
+        return x[index];
     }
 
-    public int getY(int pointer) {
-        return y[pointer];
+    public int getY(int index) {
+        return y[index];
     }
     
     public float getPressure(){
         return pressure[0];
     }
     
-    public float getPressure(int pointer){
-        return pressure[pointer];
+    /**
+     * @return the pressure associated with the pointer at index.
+     * the value of zero is return if not available.
+     */
+    public float getPressure(int index){
+        return pressure[index];
     }
     
     public int getWheelRotation() {
@@ -131,14 +154,13 @@ public class MouseEvent extends InputEvent
         case EVENT_MOUSE_MOVED: return "EVENT_MOUSE_MOVED";
         case EVENT_MOUSE_DRAGGED: return "EVENT_MOUSE_DRAGGED";
         case EVENT_MOUSE_WHEEL_MOVED: return "EVENT_MOUSE_WHEEL_MOVED";
-        case EVENT_MOUSE_PRESSED_MINOR: return "EVENT_MOUSE_PRESSED_MINOR";
-        case EVENT_MOUSE_RELEASED_MINOR: return "EVENT_MOUSE_RELEASED_MINOR";
         default: return "unknown (" + type + ")";
         }
     }
     private final int x[], y[], clickCount, button, wheelRotation;
     private final float pressure[];
-
+    private final int pointerids[];
+    
     public static final int EVENT_MOUSE_CLICKED  = 200;
     public static final int EVENT_MOUSE_ENTERED  = 201;
     public static final int EVENT_MOUSE_EXITED   = 202;
@@ -147,6 +169,4 @@ public class MouseEvent extends InputEvent
     public static final int EVENT_MOUSE_MOVED    = 205;
     public static final int EVENT_MOUSE_DRAGGED  = 206;
     public static final int EVENT_MOUSE_WHEEL_MOVED = 207;
-    public static final int EVENT_MOUSE_PRESSED_MINOR  = 208;
-    public static final int EVENT_MOUSE_RELEASED_MINOR = 209;
 }

@@ -254,7 +254,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
             else if(arg0.getKeyCode() == KeyEvent.VK_V) {
                 if(null != autoDrawable) {
                     autoDrawable.invoke(false, new GLRunnable() {
-                        public void run(GLAutoDrawable drawable) {
+                        public boolean run(GLAutoDrawable drawable) {
                             GL gl = drawable.getGL();
                             int i = gl.getSwapInterval();      
                             i = i==0 ? 1 : 0;
@@ -267,6 +267,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                                 ((FPSCounter)drawable).resetFPSCounter();
                             }
                             System.err.println("Swap Interval: "+i);
+                            return true;
                         }
                     });
                 }                
@@ -275,7 +276,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                 rotate(-1);
                     if(null != autoDrawable) {
                         autoDrawable.invoke(false, new GLRunnable() {
-                            public void run(GLAutoDrawable drawable) {
+                            public boolean run(GLAutoDrawable drawable) {
                                 try {
                                     final String type = Region.isVBAA(renderModes) ? "vbaa0-msaa1" : "vbaa1-msaa0" + ( Region.isNonUniformWeight(renderModes) ? "-vc" : "-uc" ) ; 
                                     printScreen(drawable, "./", "demo-"+type, "snap"+screenshot_num, false);
@@ -284,7 +285,8 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                                     e.printStackTrace();
                                 } catch (IOException e) {
                                     e.printStackTrace();
-                                }                                
+                                }     
+                                return true;
                             }
                         });
                     }                

@@ -41,7 +41,11 @@ public interface GLRunnable {
     /**
      * Called by the drawable to initiate one-shot OpenGL commands by the
      * client, like {@link GLEventListener#display(GLAutoDrawable)}.
+     * 
+     * @param drawable the associated drawable the implementation shall use
+     * @return false if impl invalidates the back buffers, hence {@link GLAutoDrawable#display()} will 
+     *         issue another {@link GLEventListener#display(GLAutoDrawable)} call. Otherwise true.
      */
-    void run(GLAutoDrawable drawable);
+    boolean run(GLAutoDrawable drawable);
 }
 

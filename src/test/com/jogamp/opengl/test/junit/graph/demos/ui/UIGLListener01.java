@@ -51,7 +51,16 @@ public class UIGLListener01 extends UIListenerBase01 {
         super(RegionRenderer.create(rs, 0), debug, trace);
         setMatrix(-20, 00, 0f, -50);
         final Font font = FontFactory.get(FontFactory.UBUNTU).getDefault();
-        button = new RIButton(SVertex.factory(), font, "Click me!", 4f, 3f);
+        button = new RIButton(SVertex.factory(), font, "Click me!", 4f, 3f){
+            public void onClick() {
+            }
+            public void onPressed() {
+            }
+            public void onRelease() {
+            }
+            
+        };
+        button.setPosition(2,1,0);
         /** Button defaults !
             button.setLabelColor(1.0f,1.0f,1.0f);
             button.setButtonColor(0.6f,0.6f,0.6f);
@@ -99,7 +108,7 @@ public class UIGLListener01 extends UIListenerBase01 {
         
         regionRenderer.setColorStatic(gl, bColor[0], bColor[1], bColor[2]);
         regionRenderer.draw(gl, regionButton.getRegion(gl, rs, 0), getPosition(), 0);
-         
+//        regionRenderer.translate(gl, button.getPosition()[0], button.getPosition()[1], button.getPosition()[2]);
         regionRenderer.setColorStatic(gl, lColor[0], lColor[1], lColor[2]);
         regionRenderer.draw(gl, regionLabel.getRegion(gl, rs, 0), getPosition(), 0);
     }        

@@ -27,7 +27,11 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
+import javax.media.opengl.GL2ES2;
+
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
@@ -38,6 +42,8 @@ public abstract class UIShape {
     
     protected static final int DIRTY_SHAPE  = 1 << 0 ;    
     protected int dirty = DIRTY_SHAPE;
+    
+    private boolean down = false;
 
     public UIShape(Factory<? extends Vertex> factory) {
         this.vertexFactory = factory;
@@ -48,6 +54,39 @@ public abstract class UIShape {
         clearImpl();
         shape.clear();
     }
+    
+    public abstract void render(GL2ES2 gl, RenderState rs, RegionRenderer renderer, boolean selection);
+    
+    protected boolean positionDirty = false;
+    
+    private float[] position = new float[]{0,0,0};
+    private float[] scale = new float[]{1.0f,1.0f,1.0f};
+    public void setScale(float x, float y, float z){
+        scale[0] = x;
+        scale[1] = y;
+        scale[2] = z;
+    }
+    
+    public void setPosition(float x, float y, float z) {
+        this.position[0] = x;
+        this.position[1] = y;
+        this.position[2] = z;
+        positionDirty = true;
+    }
+    
+    private void updatePosition () {
+        float minX = shape.getBounds().getLow()[0];
+        float minY = shape.getBounds().getLow()[1];
+        float minZ = shape.getBounds().getLow()[2];
+        System.out.println("Position was: " + (position[0]) + " " + (position[1]) + " " + (position[2]));
+        System.out.println("Position became: " + (position[0] - minX) + " " + (position[1] - minY) + " " + (position[2] - minZ));
+        setPosition(position[0] - minX, position[1] - minY, position[2] - minZ);
+        positionDirty = false;
+    }
+    
+    public float[] getScale() { return scale; }   
+    public float[] getPosition() { return position; }
+    
     protected abstract void clearImpl();
     
     protected abstract void createShape();
@@ -56,6 +95,9 @@ public abstract class UIShape {
         if( isShapeDirty() ) {
             shape.clear();
             createShape();
+            if(positionDirty){
+                updatePosition();
+            }
             dirty &= ~DIRTY_SHAPE;
             return true;
         }
@@ -73,4 +115,16 @@ public abstract class UIShape {
     public boolean isShapeDirty() {
         return 0 != ( dirty & DIRTY_SHAPE ) ;
     }    
+    
+    public void setPressed(boolean b) {
+        this.down  = b;
+    }
+    
+    public boolean isPressed() {
+        return this.down;
+    }
+    
+    public abstract void onClick();
+    public abstract void onPressed();
+    public abstract void onRelease();
 }
