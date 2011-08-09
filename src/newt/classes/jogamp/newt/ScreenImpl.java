@@ -70,7 +70,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         Class screenClass = NewtFactory.getCustomClass(type, "Screen");
         if(null==screenClass) {
             if (NativeWindowFactory.TYPE_ANDROID.equals(type)) {
-                screenClass = Class.forName("jogamp.newt.driver.android.Screen");
+                screenClass = Class.forName("jogamp.newt.driver.android.AndroidScreen");
             } else if (NativeWindowFactory.TYPE_EGL.equals(type)) {
                 screenClass = Class.forName("jogamp.newt.driver.kd.KDScreen");
             } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {

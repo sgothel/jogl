@@ -141,7 +141,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         Class windowClass = NewtFactory.getCustomClass(type, "Window");
         if(null==windowClass) {
             if (NativeWindowFactory.TYPE_ANDROID.equals(type)) {
-                windowClass = Class.forName("jogamp.newt.driver.android.Window");
+                windowClass = Class.forName("jogamp.newt.driver.android.AndroidWindow");
             } else if (NativeWindowFactory.TYPE_EGL.equals(type)) {
                 windowClass = Class.forName("jogamp.newt.driver.kd.KDWindow");
             } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
@@ -262,12 +262,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if(screenReferenceAdded) {
                     throw new InternalError("XXX");
                 }
-                screen.addReference();
-                screenReferenceAdded = true;
-                createNativeImpl();
+                if(canCreateNativeImpl()) {
+                    screen.addReference();
+                    screenReferenceAdded = true;
+                    createNativeImpl();
+                    screen.addScreenModeListener(screenModeListenerImpl);
+                    setTitleImpl(title);
+                }
+                // always flag visible, 
+                // allowing to retry if visible && 0 == windowHandle
                 setVisibleImpl(true, x, y, width, height);
-                screen.addScreenModeListener(screenModeListenerImpl);
-                setTitleImpl(title);
             }
         } finally {
             if(null!=parentWindow) {
@@ -357,6 +361,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Window: Native implementation
     //
 
+    protected boolean canCreateNativeImpl() {
+        return true; // default: always able to be created
+    }
+    
     /** 
      * The native implementation must set the native windowHandle.<br>
      *
@@ -595,8 +603,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(0==windowHandle && visible) {
                 if( 0<width*height ) {
                     nativeWindowCreated = createNative();
-                    WindowImpl.this.waitForVisible(visible, true);
-                    madeVisible = visible;
+                    if(nativeWindowCreated) {
+                        WindowImpl.this.waitForVisible(visible, true);
+                        madeVisible = visible;
+                    }
                 }
             } else if(WindowImpl.this.visible != visible) {
                 if(0 != windowHandle) {
@@ -2077,7 +2087,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             // ee.printStackTrace();
         }
 
-        if(isNativeValid()) {
+        if(isValid()) {
             if(0>width) {
                 width=this.width;
             }
