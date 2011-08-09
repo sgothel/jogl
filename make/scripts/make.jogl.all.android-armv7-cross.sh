@@ -64,6 +64,7 @@ TARGET_FPU_ABI=softfp
 export TARGET_TOOL_PATH=${NDK_ROOT}/toolchains/${TARGET_ARCH}-${GCC_VERSION}/prebuilt/${HOST_ARCH}
 
 export TARGET_OS_PATH=${NDK_ROOT}/platforms/android-${ANDROID_VERSION}/arch-arm/usr
+export TARGET_PLATFORM_LIBS=${TARGET_OS_PATH}/lib
 export HOST_OS_PATH=${NDK_ROOT}/platforms/android-${ANDROID_VERSION}/arch-x86/usr
 
 export NDK_XBIN_PATH=${TARGET_TOOL_PATH}/bin
