@@ -29,31 +29,105 @@
 package jogamp.newt.driver.android;
 
 import javax.media.nativewindow.*;
-import android.content.Context;
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionReadOnly;
+import javax.media.nativewindow.util.SurfaceSize;
 
-public class Screen extends jogamp.newt.ScreenImpl {
+import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.util.MonitorMode;
+
+import android.content.Context;
+import android.graphics.PixelFormat;
+import android.util.DisplayMetrics;
+import android.view.Surface;
+import android.view.WindowManager;
+
+public class AndroidScreen extends jogamp.newt.ScreenImpl {
 
     static {
-        Display.initSingleton();
+        AndroidDisplay.initSingleton();
     }
 
-
-    public Screen() {
+    public AndroidScreen() {
     }
 
     protected void createNativeImpl() {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
-        // WINDOW_SERVICEUse with getSystemService(String) to retrieve a WindowManager for accessing
-        setScreenSize(fixedWidth, fixedHeight);
     }
 
     protected void closeNativeImpl() { }
 
+    public synchronized boolean setAppContext(Context ctx) {
+        if(!((AndroidDisplay) getDisplay()).setAppContext(ctx)) {
+            return false;
+        }
+        final WindowManager wmgr = (WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);
+        sm = getScreenMode(wmgr.getDefaultDisplay());
+        setScreenSize(sm.getMonitorMode().getSurfaceSize().getResolution().getWidth(),
+                      sm.getMonitorMode().getSurfaceSize().getResolution().getHeight());
+        return true;
+    }
+    public synchronized Context getAppContext() {
+        return ((AndroidDisplay) getDisplay()).getAppContext();
+    }
+    
+    protected ScreenMode getCurrentScreenModeImpl() {
+        return sm;
+    }
+    
+    ScreenMode sm = null;
+    
     //----------------------------------------------------------------------
     // Internals only
     //
+    static DimensionReadOnly getScreenSize(DisplayMetrics outMetrics) {
+        return new Dimension(outMetrics.widthPixels, outMetrics.heightPixels);
+    }    
+    static SurfaceSize getSurfaceSize(android.view.Display aDisplay, DimensionReadOnly dim) {
+        int bpp;
+        switch(aDisplay.getPixelFormat()) {
+            case PixelFormat.RGBA_8888: bpp=32; break;
+            case PixelFormat.RGBX_8888: bpp=32; break;
+            case PixelFormat.RGB_888:   bpp=24; break;
+            case PixelFormat.RGB_565:   bpp=16; break;
+            case PixelFormat.RGBA_5551: bpp=16; break;
+            case PixelFormat.RGBA_4444: bpp=16; break;
+            case PixelFormat.RGB_332:   bpp= 8; break;
+            default: bpp=32;   
+        }            
+        return new SurfaceSize(dim, bpp);        
+    }
+    static DimensionReadOnly getScreenSizeMM(DisplayMetrics outMetrics) {
+        final float iw = (float) outMetrics.widthPixels / outMetrics.xdpi;
+        final float ih = (float) outMetrics.heightPixels / outMetrics.xdpi;
+        final float mmpi = 25.4f;
+        return new Dimension((int) ((iw * mmpi)+0.5), (int) ((ih * mmpi)+0.5)); 
+    }    
+    static int getRotation(int androidRotation) {
+        int nrot;
+        switch(androidRotation) {
+            case Surface.ROTATION_270: nrot = ScreenMode.ROTATE_270; break;
+            case Surface.ROTATION_180: nrot = ScreenMode.ROTATE_180; break;
+            case Surface.ROTATION_90: nrot = ScreenMode.ROTATE_90; break;
+            case Surface.ROTATION_0:
+            default: nrot = ScreenMode.ROTATE_0;
+        }
+        return nrot;        
+    }
+    static ScreenMode getScreenMode(android.view.Display aDisplay) {
+        final DisplayMetrics outMetrics = new DisplayMetrics();
+        aDisplay.getMetrics(outMetrics);
+        
+        final DimensionReadOnly screenSize = getScreenSize(outMetrics);
+        final SurfaceSize surfaceSize = getSurfaceSize(aDisplay, screenSize);
+        final DimensionReadOnly screenSizeMM = getScreenSizeMM(outMetrics);        
+        final int refreshRate = (int) aDisplay.getRefreshRate();
+        final MonitorMode mm = new MonitorMode(surfaceSize, screenSizeMM, refreshRate);
+        
+        final int rotation = getRotation(aDisplay.getRotation());
+        return new ScreenMode(mm, rotation);
+    }
+    
 
-    static final int fixedWidth = 1920;
-    static final int fixedHeight = 1080;
 }
 

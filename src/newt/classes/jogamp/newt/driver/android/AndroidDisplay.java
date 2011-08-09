@@ -30,19 +30,20 @@ package jogamp.newt.driver.android;
 
 import jogamp.newt.*;
 import jogamp.opengl.egl.*;
+
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
+import javax.media.opengl.GLException;
+
 import android.content.Context;
+import android.view.Surface;
 
-public class Display extends jogamp.newt.DisplayImpl {
-
-    /*package*/ Context appContext;
-    
+public class AndroidDisplay extends jogamp.newt.DisplayImpl {
     static {
         NEWTJNILibLoader.loadNEWT();
 
-        if (!Window.initIDs()) {
-            throw new NativeWindowException("Failed to initialize BCEGL Window jmethodIDs");
+        if (!AndroidWindow.initIDs()) {
+            throw new NativeWindowException("Failed to initialize Android NEWT Windowing library");
         }
     }
 
@@ -51,29 +52,47 @@ public class Display extends jogamp.newt.DisplayImpl {
     }
 
 
-    public Display() {
+    public AndroidDisplay() {
     }
 
     protected void createNativeImpl() {
-        long handle = CreateDisplay(Screen.fixedWidth, Screen.fixedHeight);
-        if (handle == EGL.EGL_NO_DISPLAY) {
-            throw new NativeWindowException("BC EGL CreateDisplay failed");
+        // EGL Device
+        // final long eglDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
+        final long eglDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
+        if (eglDisplay == EGL.EGL_NO_DISPLAY) {
+            throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
+        } else if(DEBUG) {
+            System.err.println("Android Display.createNativeImpl: eglDisplay(EGL_DEFAULT_DISPLAY): 0x"+Long.toHexString(eglDisplay));
         }
-        aDevice = new EGLGraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+        if (!EGL.eglInitialize(eglDisplay, null, null)) {
+            throw new GLException("eglInitialize failed eglDisplay 0x"+Long.toHexString(eglDisplay)+", error 0x"+Integer.toHexString(EGL.eglGetError()));
+        }
+        aDevice = new EGLGraphicsDevice(eglDisplay, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);        
     }
 
     protected void closeNativeImpl() {
         if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
-            DestroyDisplay(aDevice.getHandle());
+            EGL.eglTerminate(aDevice.getHandle());
         }
     }
 
     protected void dispatchMessagesNative() {
         // n/a .. DispatchMessages();
     }
-
-    private native long CreateDisplay(int width, int height);
-    private native void DestroyDisplay(long dpy);
-    private native void DispatchMessages();
+    
+    public synchronized boolean setAppContext(Context ctx) {
+        if(null == appContext) {
+            appContext = ctx;
+            return true;
+        } else if(appContext != ctx) {
+            throw new RuntimeException("AppContext already set to "+appContext+", can't override w/ "+ctx);
+        }
+        return false;
+    }
+    public synchronized Context getAppContext() {
+        return appContext;
+    }
+    
+    private Context appContext;  
 }
 
