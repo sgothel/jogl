@@ -76,7 +76,7 @@ public class X11GLXDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundl
         return res;
     }
 
-    public final long toolDynamicLookupFunction(long toolGetProcAddressHandle, String funcName) {
+    public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
         return GLX.glXGetProcAddress(toolGetProcAddressHandle, funcName);
     }
 }

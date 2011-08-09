@@ -44,11 +44,6 @@ public class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo 
 
         List/*<String>*/ glesLibNames = new ArrayList();
         
-        if(Platform.getOSType() == Platform.OSType.ANDROID) {
-            // using the android-EGL fails
-            glesLibNames.add("/system/lib/egl/libGLESv2_POWERVR_SGX530_125.so");
-        }
-        
         // try default generic names first 
         glesLibNames.add("GLES20");
         glesLibNames.add("GLESv2");

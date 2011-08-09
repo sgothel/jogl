@@ -51,7 +51,7 @@ public class WindowsWGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryB
         return res;
     }
 
-    public final long toolDynamicLookupFunction(long toolGetProcAddressHandle, String funcName) {
+    public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
         return WGL.wglGetProcAddress(toolGetProcAddressHandle, funcName);
     }
 }

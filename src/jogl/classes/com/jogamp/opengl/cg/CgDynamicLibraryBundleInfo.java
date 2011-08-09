@@ -59,8 +59,12 @@ public class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
     }
 
     /** Tool has none **/
-    public final long toolDynamicLookupFunction(long toolGetProcAddressHandle, String funcName) {
+    public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
         return 0;
+    }
+    
+    public boolean useToolGetProcAdressFirst(String funcName) {
+        return false;
     }
 
     public List/*<List<String>>*/ getToolLibNames() {

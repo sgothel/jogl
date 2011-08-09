@@ -47,5 +47,10 @@ public abstract class DesktopGLDynamicLibraryBundleInfo extends GLDynamicLibrary
     public final List/*<String>*/ getGlueLibNames() {
         return glueLibNames;
     }
+    
+    public boolean useToolGetProcAdressFirst(String funcName) {
+        return true;
+    }
+    
 }
 

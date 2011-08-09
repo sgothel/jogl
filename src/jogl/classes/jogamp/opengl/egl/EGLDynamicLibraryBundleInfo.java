@@ -60,23 +60,26 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
 
     /** Might be a desktop GL library, and might need to allow symbol access to subsequent libs */
     public boolean shallLinkGlobal() { return true; }
+    
+    public boolean shallLookupGlobal() { return true; }
 
+    
     public final List getToolGetProcAddressFuncNameList() {
         List res = new ArrayList();
         res.add("eglGetProcAddress");
         return res;
     }
 
-    public final long toolDynamicLookupFunction(long toolGetProcAddressHandle, String funcName) {
+    public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
         return EGL.eglGetProcAddress(toolGetProcAddressHandle, funcName);
     }
 
+    public final boolean useToolGetProcAdressFirst(String funcName) {
+        return false; // JAU / FIXME funcName.startsWith("egl");
+    }
+    
     protected List/*<String>*/ getEGLLibNamesList() {
         List/*<String>*/ eglLibNames = new ArrayList();
-        if(Platform.getOSType() == Platform.OSType.ANDROID) {
-            // using the android-EGL fails
-            eglLibNames.add("/system/lib/egl/libEGL_POWERVR_SGX530_125.so");
-        }
         
         // try default generic names first 
         eglLibNames.add("EGL");

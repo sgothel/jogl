@@ -62,7 +62,7 @@ public class MacOSXCGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBu
         return res; */
     }
 
-    public final long toolDynamicLookupFunction(long toolGetProcAddressHandle, String funcName) {
+    public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
         return 0;
         /** OSX manual says: NSImage use is discouraged
             return CGL.getProcAddress(glFuncName); // manual implementation 
