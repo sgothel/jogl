@@ -28,53 +28,128 @@
 
 package jogamp.newt.driver.android;
 
-import jogamp.opengl.egl.*;
-import javax.media.nativewindow.*;
+import java.nio.IntBuffer;
+
+import jogamp.newt.driver.android.event.AndroidNewtEventFactory;
+import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.egl.EGLGraphicsDevice;
 import javax.media.nativewindow.util.Point;
-import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLException;
+
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.newt.event.MouseEvent;
+
+import jogamp.opengl.egl.EGL;
+import jogamp.opengl.egl.EGLGraphicsConfiguration;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.PixelFormat;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceHolder.Callback2;
+import android.view.SurfaceView;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 
-public class Window extends jogamp.newt.WindowImpl {
+public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     static {
-        Display.initSingleton();
+        AndroidDisplay.initSingleton();
     }
 
-    public Window() {
+    int getPixelFormat() {
+        /**
+        int bpp = capsRequested.getRedBits()+
+                  capsRequested.getGreenBits()+
+                  capsRequested.getBlueBits();
+        int alpha = capsRequested.getAlphaBits();
+        
+        if(bpp <= 16) {
+            
+        }
+        switch(aDisplay.getPixelFormat()) {
+            case PixelFormat.RGBA_8888: bpp=32; break;
+            case PixelFormat.RGBX_8888: bpp=32; break;
+            case PixelFormat.RGB_888:   bpp=24; break;
+            case PixelFormat.RGB_565:   bpp=16; break;
+            case PixelFormat.RGBA_5551: bpp=16; break;
+            case PixelFormat.RGBA_4444: bpp=16; break;
+            case PixelFormat.RGB_332:   bpp= 8; break;
+            default: bpp=32;   
+        } */
+        return PixelFormat.RGBA_8888;                       
     }
-
-    public Window(Context ctx) {
+    
+    public AndroidWindow(Context ctx) {
+        nsv = new MSurfaceView(ctx);
+        SurfaceHolder sh = nsv.getHolder();
+        sh.setFormat(getPixelFormat());
+        sh.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
+        sh.addCallback(this); 
     }
 
     public static Class[] getCustomConstructorArgumentTypes() {
         return new Class[] { Context.class } ;
     }
     
+    public SurfaceView getView() { return nsv; }
+    
+    protected boolean canCreateNativeImpl() {
+        final boolean b = 0 != surfaceHandle;
+        Log.d(MD.TAG, "canCreateNativeImpl: "+b);
+        return b;
+    }
+
     protected void createNativeImpl() {
         if(0!=getParentWindowHandle()) {
-            throw new RuntimeException("Window parenting not supported (yet)");
+            throw new NativeWindowException("Window parenting not supported (yet)");
         }
-        // query a good configuration .. even thought we drop this one 
-        // and reuse the EGLUtil choosen one later.
-        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(
-                capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen());
-        if (config == null) {
+        if(0==surfaceHandle) {
+            throw new InternalError("XXX");
+        }
+       
+        final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getScreen().getDisplay().getGraphicsDevice();
+        final EGLGraphicsConfiguration eglConfig = (EGLGraphicsConfiguration) GraphicsConfigurationFactory.getFactory(eglDevice)
+                .chooseGraphicsConfiguration(capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen());
+        if (eglConfig == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
-        setSizeImpl(getScreen().getWidth(), getScreen().getHeight());
-
-        setWindowHandle(realizeWindow(true, width, height));
-        if (0 == getWindowHandle()) {
-            throw new NativeWindowException("Error native Window Handle is null");
+        // query native VisualID and pass it to Surface
+        final long eglConfigHandle = eglConfig.getNativeConfig();
+        final IntBuffer nativeVisualID = Buffers.newDirectIntBuffer(1);
+        if(!EGL.eglGetConfigAttrib(eglDevice.getHandle(), eglConfigHandle, EGL.EGL_NATIVE_VISUAL_ID, nativeVisualID)) {
+            throw new NativeWindowException("eglgetConfigAttrib EGL_NATIVE_VISUAL_ID failed eglDisplay 0x"+Long.toHexString(eglDevice.getHandle())+ 
+                                  ", error 0x"+Integer.toHexString(EGL.eglGetError()));
+        }        
+        Log.d(MD.TAG, "nativeVisualID 0x"+Integer.toHexString(nativeVisualID.get(0)));
+        setSurfaceVisualID(surfaceHandle, nativeVisualID.get(0));
+        
+        eglSurface = EGL.eglCreateWindowSurface(eglDevice.getHandle(), eglConfig.getNativeConfig(), surfaceHandle, null);
+        if (EGL.EGL_NO_SURFACE==eglSurface) {
+            throw new NativeWindowException("Creation of window surface failed: "+eglConfig+", surfaceHandle 0x"+Long.toHexString(surfaceHandle)+", error "+toHexString(EGL.eglGetError()));
         }
+        
+        // propagate data ..
+        config = eglConfig;
+        setWindowHandle(surfaceHandle);
     }
 
+    @Override
     protected void closeNativeImpl() {
-        if(0!=windowHandleClose) {
-            CloseWindow(getDisplayHandle(), windowHandleClose);
-        }
+        surface = null;
+        surfaceHandle = 0;
+        eglSurface = 0;        
     }
 
+    @Override
+    public final long getSurfaceHandle() {
+        return eglSurface;
+    }
+    
     protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
         reconfigureWindowImpl(x, y, width, height, false, 0, 0);
         visibleChanged(visible);
@@ -82,87 +157,124 @@ public class Window extends jogamp.newt.WindowImpl {
 
     protected void requestFocusImpl(boolean reparented) { }
 
-    protected void setSizeImpl(int width, int height) {
-        if(0!=getWindowHandle()) {
-            // n/a in BroadcomEGL
-            System.err.println("BCEGL Window.setSizeImpl n/a in BroadcomEGL with realized window");
-        } else {
-            this.width = width;
-            this.height = height;
-        }
-    }
-
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, 
                                             boolean parentChange, int fullScreenChange, int decorationChange) {
         if(0!=getWindowHandle()) {
             if(0!=fullScreenChange) {
                 if( fullScreenChange > 0 ) {
-                    // n/a in BroadcomEGL
-                    System.err.println("setFullscreen n/a in BroadcomEGL");
+                    System.err.println("reconfigureWindowImpl.setFullscreen n/a");
                     return false;
                 }
             }
         }
         if(width>0 || height>0) {
             if(0!=getWindowHandle()) {
-                // n/a in BroadcomEGL
-                System.err.println("BCEGL Window.setSizeImpl n/a in BroadcomEGL with realized window");
-            } else {
-                this.width=(width>0)?width:this.width;
-                this.height=(height>0)?height:this.height;
+                System.err.println("reconfigureWindowImpl.setSize n/a");
+                return false;
             }
         }
         if(x>=0 || y>=0) {
-            System.err.println("BCEGL Window.setPositionImpl n/a in BroadcomEGL");
+            System.err.println("reconfigureWindowImpl.setPos n/a");
+            return false;
         }
         return true;
     }
 
+    /***
+    Canvas cLock = null;
+    
+    @Override
+    protected int lockSurfaceImpl() {
+        if (null != cLock) {
+            throw new InternalError("surface already locked");
+        }        
+        if (0 != surfaceHandle) {
+            cLock = nsv.getHolder().lockCanvas();
+        }
+        return ( null != cLock ) ? LOCK_SUCCESS : LOCK_SURFACE_NOT_READY;
+    }
+
+    @Override
+    protected void unlockSurfaceImpl() {
+        if (null == cLock) {
+            throw new InternalError("surface not locked");
+        }
+        nsv.getHolder().unlockCanvasAndPost(cLock);
+        cLock=null;
+    } */
+    
     protected Point getLocationOnScreenImpl(int x, int y) {
         return new Point(x,y);
     }
 
+    //----------------------------------------------------------------------
+    // Surface Callbacks 
+    //
+    
+    public void surfaceCreated(SurfaceHolder holder) {    
+        surface = holder.getSurface();
+        surfaceHandle = getSurfaceHandle(surface);
 
-    @Override
-    public boolean surfaceSwap() {
-        SwapWindow(getDisplayHandle(), getWindowHandle());
-        return true;
+        Log.d(MD.TAG, "surfaceCreated - 0 - isValid: "+surface.isValid()+
+                    ", surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
+                    ", "+nsv.getWidth()+"x"+nsv.getHeight());
+        sizeChanged(width, height, false);
+        windowRepaint(0, 0, nsv.getWidth(), nsv.getHeight());
     }
 
+    public void surfaceChanged(SurfaceHolder holder, int format, int width,
+            int height) {
+        Log.d(MD.TAG, "surfaceChanged: f "+Integer.toString(format)+", "+width+"x"+height);
+        sizeChanged(width, height, false);
+    }
+
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        Log.d(MD.TAG, "surfaceDestroyed");
+        windowDestroyNotify();
+    }
+
+    public void surfaceRedrawNeeded(SurfaceHolder holder) {
+        Log.d(MD.TAG, "surfaceRedrawNeeded");
+        windowRepaint(0, 0, getWidth(), getHeight());
+    }
+    
+    
+    MSurfaceView nsv;
+    Surface surface = null;
+    volatile long surfaceHandle = 0;
+    long eglSurface = 0;
+    
+    class MouseInterceptor implements OnClickListener, OnTouchListener {
+
+        public void onClick(View v) {
+            // TODO Auto-generated method stub
+        }
+
+        public boolean onTouch(View v, MotionEvent event) {
+            // MouseEvent event = AndroidNewtEventFactory.createMouseEvent(event, AndroidWindow.this);
+            
+            return false;
+        }
+        
+    }
+    static class MSurfaceView extends SurfaceView {
+        public MSurfaceView (Context ctx) {
+            super(ctx);
+            
+        }
+        /**
+        protected void dispatchDraw(Canvas canvas) {
+            // n/a
+        }
+        public void draw(Canvas canvas) {
+            // n/a
+        } */
+    }
     //----------------------------------------------------------------------
     // Internals only
     //
-
     protected static native boolean initIDs();
-    private        native long CreateWindow(long eglDisplayHandle, boolean chromaKey, int width, int height);
-    private        native void CloseWindow(long eglDisplayHandle, long eglWindowHandle);
-    private        native void SwapWindow(long eglDisplayHandle, long eglWindowHandle);
-
-
-    private long realizeWindow(boolean chromaKey, int width, int height) {
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("BCEGL Window.realizeWindow() with: chroma "+chromaKey+", "+width+"x"+height+", "+config);
-        }
-        long handle = CreateWindow(getDisplayHandle(), chromaKey, width, height);
-        if (0 == handle) {
-            throw new NativeWindowException("Error native Window Handle is null");
-        }
-        windowHandleClose = handle;
-        return handle;
-    }
-
-    private void windowCreated(int cfgID, int width, int height) {
-        this.width = width;
-        this.height = height;
-        GLCapabilitiesImmutable capsReq = (GLCapabilitiesImmutable) config.getRequestedCapabilities();
-        config = EGLGraphicsConfiguration.create(capsReq, getScreen().getGraphicsScreen(), cfgID);
-        if (config == null) {
-            throw new NativeWindowException("Error creating EGLGraphicsConfiguration from id: "+cfgID+", "+this);
-        }
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("BCEGL Window.windowCreated(): "+toHexString(cfgID)+", "+width+"x"+height+", "+config);
-        }
-    }
-
-    private long   windowHandleClose;
+    protected static native long getSurfaceHandle(Surface surface);
+    protected static native void setSurfaceVisualID(long surfaceHandle, int nativeVisualID);
+    
 }
