@@ -95,8 +95,7 @@ public class GLBufferSizeTracker {
   // pattern of buffer objects indicates that the fact that this map
   // never shrinks is probably not that bad.
   private IntLongHashMap bufferSizeMap;
-
-  protected static final boolean DEBUG = Debug.debug("GLStatusTracker");
+  protected static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.GLBufferSizeTracker", true);
 
   public GLBufferSizeTracker() {
       bufferSizeMap = new IntLongHashMap();
