@@ -1095,6 +1095,10 @@
         <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xxf86vm" />
       </linker>
 
+      <linker id="linker.cfg.android.jogl" extends="linker.cfg.android">
+        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="EGL" />
+      </linker>
+
       <linker id="linker.cfg.solaris.jogl.x11" extends="linker.cfg.solaris">
         <syslibset libs="X11"/>
       </linker>
@@ -1190,7 +1194,7 @@
     <target name="c.configure.android" if="isAndroid">
       <echo message="Android" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.android" />
-      <property name="linker.cfg.id.os"                     value="linker.cfg.android" />
+      <property name="linker.cfg.id.os"                     value="linker.cfg.android.jogl" />
     </target>
     
     <target name="c.configure.solaris32" depends="c.configure.x11" if="isSolaris32Bit">
@@ -1410,7 +1414,7 @@
       <c.build c.compiler.src.files="c.src.files.jogl.mobile"
                output.lib.name="jogl_mobile"
                compiler.cfg.id="${compiler.cfg.id}"
-               linker.cfg.id="${linker.cfg.id.base}"/>
+               linker.cfg.id="${linker.cfg.id.os}"/>
     </target>
 
     <target name="c.build.jogl.cg" if="setup.addNativeNVidiaCG">

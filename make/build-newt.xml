@@ -185,6 +185,7 @@
       -->
     <target name="init" depends="declare.common">
         <mkdir dir="${src.generated.c}" />
+        <mkdir dir="${src.generated.c}/Android" />
         <mkdir dir="${src.generated.c}/X11" />
         <mkdir dir="${src.generated.c}/MacOSX" />
         <mkdir dir="${src.generated.c}/Windows" />
@@ -276,6 +277,11 @@
         <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xxf86vm" />
       </linker>
 
+      <linker id="linker.cfg.android.newt" extends="linker.cfg.android">
+        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="android" />
+        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="EGL" />
+      </linker>
+
       <linker id="linker.cfg.solaris.newt.x11" extends="linker.cfg.solaris">
         <syslibset libs="X11"/>
       </linker>
@@ -315,28 +321,24 @@
     <target name="c.configure.win32.vc" if="isVCFamily">
       <echo message="Win32.VC" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.newt" />
     </target>
 
     <target name="c.configure.win32.mingw" if="isMingW32">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.mingw" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.mingw.newt" />
     </target>
 
     <target name="c.configure.win64.mingw" if="isMingW64">
       <echo message="Win64.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win64.mingw" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win64.mingw" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.win64.mingw.newt" />
     </target>
 
     <target name="c.configure.linux.x86" if="isLinuxX86">
       <echo message="Linux.x86" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.x86" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.x86" />
       <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.x86.newt.x11"
                                                             else="linker.cfg.linux.x86">
           <isset property="isX11" />
@@ -347,7 +349,6 @@
     <target name="c.configure.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.amd64" />
       <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.amd64.newt.x11"
                                                             else="linker.cfg.linux.amd64">
           <isset property="isX11" />
@@ -358,7 +359,6 @@
     <target name="c.configure.linux.armv7" if="isLinuxARMv7">
       <echo message="Linux.armv7" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv7.newt.x11" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.armv7" />
       <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.armv7.newt.x11"
                                                             else="linker.cfg.linux.armv7">
           <isset property="isX11" />
@@ -369,7 +369,6 @@
     <target name="c.configure.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.newt.x11" />
     </target>
 
@@ -378,14 +377,12 @@
     <target name="c.configure.android" if="isAndroid">
       <echo message="Android" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.android" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.android" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.android" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.android.newt" />
     </target>
     
     <target name="c.configure.solaris32" depends="c.configure.x11" if="isSolaris32Bit">
       <echo message="Solaris" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.newt.x11" />
     </target>
 
@@ -393,7 +390,6 @@
     <target name="c.configure.solaris.sparcv9" depends="c.configure.x11" if="isSolarisSparcv9">
       <echo message="SolarisSparcv9" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.sparcv9" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.sparcv9.newt.x11" />
     </target>
 
@@ -401,14 +397,12 @@
     <target name="c.configure.solaris.amd64" depends="c.configure.x11" if="isSolarisAMD64">
       <echo message="SolarisAMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.amd64" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.amd64.newt.x11" />
     </target>
 
     <target name="c.configure.freebsd.x86" if="isFreeBSDX86">
       <echo message="FreeBSD.x86" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.newt" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.freebsd" />
       <condition property="linker.cfg.id.oswin"             value="linker.cfg.freebsd.newt.x11"
                                                             else="linker.cfg.freebsd">
           <isset property="isX11" />
@@ -419,7 +413,6 @@
     <target name="c.configure.freebsd.amd64" if="isFreeBSDAMD64">
       <echo message="FreeBSD.AMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.newt" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.freebsd.amd64" />
       <condition property="linker.cfg.id.oswin"             value="linker.cfg.freebsd.amd64.newt.x11"
                                                             else="linker.cfg.freebsd.amd64">
           <isset property="isX11" />
@@ -432,7 +425,6 @@
     <target name="c.configure.hpux" depends="c.configure.x11" if="isHPUX">
       <echo message="HP-UX" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.hpux" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.hpux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.hpux.newt.x11" />
     </target>
 
@@ -442,7 +434,6 @@
 
     <target name="c.configure.macosx" if="isOSX">
       <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.macosx" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.macosx.newt" />
     </target>
 
@@ -477,11 +468,12 @@
         <patternset id="c.src.files.newt">
           <include name="${rootrel.src.c}/NewtCommon.c" />
           <include name="${rootrel.src.c}/WindowsWindow.c" if="isWindows"/>
-          <include name="${rootrel.src.c}/*.m" if="isOSX"/>
-          <include name="${rootrel.src.c}/X11Window.c" if="isX11"/>
-          <include name="${rootrel.src.c}/KDWindow.c"  if="setup.addNativeKD"/>
-          <include name="${rootrel.src.c}/IntelGDL.c"  if="setup.addNativeIntelGDL"/>
-          <include name="${rootrel.src.c}/BroadcomEGL.c"  if="setup.addNativeBroadcomEGL"/>
+          <include name="${rootrel.src.c}/*.m"             if="isOSX"/>
+          <include name="${rootrel.src.c}/AndroidWindow.c" if="isAndroid"/>
+          <include name="${rootrel.src.c}/X11Window.c"     if="isX11"/>
+          <include name="${rootrel.src.c}/KDWindow.c"      if="setup.addNativeKD"/>
+          <include name="${rootrel.src.c}/IntelGDL.c"      if="setup.addNativeIntelGDL"/>
+          <include name="${rootrel.src.c}/BroadcomEGL.c"   if="setup.addNativeBroadcomEGL"/>
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
@@ -519,13 +511,14 @@
                 <includepath path="/usr/X11/include" />
                 <!-- This is for the generated headers for handwritten C code -->
                 <includepath path="${src.generated.c}" />
-                <includepath path="${src.generated.c}/X11" if="isX11"/>
-                <includepath path="${src.generated.c}/MacOSX" if="isOSX"/>
-                <includepath path="${src.generated.c}/Windows" if="isWindows"/>
-                <includepath path="${src.generated.c}/KD" if="setup.addNativeKD" />
-                <includepath path="${src.generated.c}/IntelGDL" if="setup.addNativeIntelGDL" />
+                <includepath path="${src.generated.c}/Android"      if="isAndroid"/>
+                <includepath path="${src.generated.c}/X11"          if="isX11"/>
+                <includepath path="${src.generated.c}/MacOSX"       if="isOSX"/>
+                <includepath path="${src.generated.c}/Windows"      if="isWindows"/>
+                <includepath path="${src.generated.c}/KD"           if="setup.addNativeKD" />
+                <includepath path="${src.generated.c}/IntelGDL"     if="setup.addNativeIntelGDL" />
                 <includepath path="stub_includes/embedded/IntelGDL" if="setup.addNativeIntelGDL" />
-                <includepath path="${src.generated.c}/BroadcomEGL" if="setup.addNativeBroadcomEGL" />
+                <includepath path="${src.generated.c}/BroadcomEGL"  if="setup.addNativeBroadcomEGL" />
     
                 <!-- This must come last to not override real include paths -->
                 <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
@@ -564,23 +557,24 @@
     </macrodef>
 
     <target name="c.build.newt.prepare">
-      <javah destdir="${src.generated.c}/KD"          classpath="${classes}" class="jogamp.newt.driver.kd.KDWindow" />
+      <javah destdir="${src.generated.c}/KD"          classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.kd.KDWindow" />
 
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${classes}" class="jogamp.newt.driver.intel.gdl.Display" />
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${classes}" class="jogamp.newt.driver.intel.gdl.Screen" />
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${classes}" class="jogamp.newt.driver.intel.gdl.Window" />
+      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.intel.gdl.Display" />
+      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.intel.gdl.Screen" />
+      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.intel.gdl.Window" />
 
-      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${classes}" class="jogamp.newt.driver.broadcom.egl.Window" />
+      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.broadcom.egl.Window" />
 
-      <javah destdir="${src.generated.c}/Windows"     classpath="${classes}" class="jogamp.newt.driver.windows.WindowsWindow" />
-      <javah destdir="${src.generated.c}/Windows"     classpath="${classes}" class="jogamp.newt.driver.windows.WindowsScreen" />
-      <javah destdir="${src.generated.c}/Windows"     classpath="${classes}" class="jogamp.newt.driver.windows.WindowsDisplay" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${classes}" class="jogamp.newt.driver.macosx.MacWindow" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${classes}" class="jogamp.newt.driver.macosx.MacScreen" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${classes}" class="jogamp.newt.driver.macosx.MacDisplay" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${classes}" class="jogamp.newt.driver.x11.X11Window" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${classes}" class="jogamp.newt.driver.x11.X11Screen" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${classes}" class="jogamp.newt.driver.x11.X11Display" />
+      <javah destdir="${src.generated.c}/Windows"     classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.windows.WindowsWindow" />
+      <javah destdir="${src.generated.c}/Windows"     classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.windows.WindowsScreen" />
+      <javah destdir="${src.generated.c}/Windows"     classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.windows.WindowsDisplay" />
+      <javah destdir="${src.generated.c}/MacOSX"      classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.macosx.MacWindow" />
+      <javah destdir="${src.generated.c}/MacOSX"      classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.macosx.MacScreen" />
+      <javah destdir="${src.generated.c}/MacOSX"      classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.macosx.MacDisplay" />
+      <javah destdir="${src.generated.c}/X11"         classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.x11.X11Window" />
+      <javah destdir="${src.generated.c}/X11"         classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.x11.X11Screen" />
+      <javah destdir="${src.generated.c}/X11"         classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.x11.X11Display" />
+      <javah destdir="${src.generated.c}/Android"     classpath="${gluegen-rt.jar}:${classes}:${android.jar}" class="jogamp.newt.driver.android.AndroidWindow" />
     </target>
 
     <target name="c.build.newt.windowlib" unless="setup.nonatives">
