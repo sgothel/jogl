@@ -152,15 +152,15 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
                                                  GLProfile glp, long display, long config,
                                                  int winattrmask) {
         final int allDrawableTypeBits = EGLConfigDrawableTypeBits(display, config);
-        int drawableTypeBits = winattrmask & allDrawableTypeBits;
+        final int drawableTypeBits = winattrmask & allDrawableTypeBits;
 
         if( 0 == drawableTypeBits ) {
             return false;
         }
 
         final IntBuffer val = Buffers.newDirectIntBuffer(1);
-        int cfgID;
-        int rType;
+        final int cfgID;
+        final int rType;
         
         // get the configID
         if(!EGL.eglGetConfigAttrib(display, config, EGL.EGL_CONFIG_ID, val)) {
@@ -234,18 +234,6 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
                 caps.setTransparentAlphaValue(val.get(0)==EGL.EGL_DONT_CARE?-1:val.get(0));
             } */
         }
-        /**
-        if(caps.getNativeVisualID() == 0) {
-            boolean isWindowBit = 0 != ( drawableTypeBits & GLGraphicsConfigurationUtil.WINDOW_BIT );
-            drawableTypeBits &= ~GLGraphicsConfigurationUtil.WINDOW_BIT;
-            if( 0 == drawableTypeBits ) {
-                if(DEBUG) {
-                    System.err.println("EGL_NATIVE_VISUAL_ID: 0, windowBit removed: "+isWindowBit+
-                                       ", no drawable bits left, bail out for: "+ caps); 
-                }
-                return false;
-            }
-        } */
         return GLGraphicsConfigurationUtil.addGLCapabilitiesPermutations(capsBucket, caps, drawableTypeBits );
     }
 
