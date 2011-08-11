@@ -8,7 +8,6 @@
 
 #include <unistd.h>
 #include <errno.h>
-#include <EGL/egl.h>
 
 #include "jogamp_newt_driver_android_AndroidWindow.h"
 

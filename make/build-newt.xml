@@ -279,7 +279,6 @@
 
       <linker id="linker.cfg.android.newt" extends="linker.cfg.android">
         <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="android" />
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="EGL" />
       </linker>
 
       <linker id="linker.cfg.solaris.newt.x11" extends="linker.cfg.solaris">

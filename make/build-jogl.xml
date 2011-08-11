@@ -1096,7 +1096,6 @@
       </linker>
 
       <linker id="linker.cfg.android.jogl" extends="linker.cfg.android">
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="EGL" />
       </linker>
 
       <linker id="linker.cfg.solaris.jogl.x11" extends="linker.cfg.solaris">
