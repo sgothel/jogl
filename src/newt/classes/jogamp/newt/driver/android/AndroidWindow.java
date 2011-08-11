@@ -85,8 +85,8 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         return PixelFormat.RGBA_8888;                       
     }
     
-    public AndroidWindow(Context ctx) {
-        nsv = new MSurfaceView(ctx);
+    public AndroidWindow() {
+        nsv = new MSurfaceView(jogamp.common.os.android.StaticContext.getContext());
         nsv.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, android.view.MotionEvent aEvent) {
                 MouseEvent newtEvent = AndroidNewtEventFactory.createMouseEvent(aEvent, AndroidWindow.this);
@@ -101,10 +101,6 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         sh.addCallback(this); 
     }
 
-    public static Class[] getCustomConstructorArgumentTypes() {
-        return new Class[] { Context.class } ;
-    }
-    
     public SurfaceView getView() { return nsv; }
     
     protected boolean canCreateNativeImpl() {
@@ -234,6 +230,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     public void surfaceChanged(SurfaceHolder holder, int format, int width,
             int height) {
         Log.d(MD.TAG, "surfaceChanged: f "+Integer.toString(format)+", "+width+"x"+height);
+        getScreen().getCurrentScreenMode(); // if ScreenMode changed .. trigger ScreenMode event
         sizeChanged(width, height, false);
     }
 
@@ -258,13 +255,6 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
             super(ctx);
             
         }
-        /**
-        protected void dispatchDraw(Canvas canvas) {
-            // n/a
-        }
-        public void draw(Canvas canvas) {
-            // n/a
-        } */
     }
     //----------------------------------------------------------------------
     // Internals only

@@ -28,6 +28,8 @@
 
 package com.jogamp.newt;
 
+import javax.media.nativewindow.util.DimensionReadOnly;
+
 import com.jogamp.newt.util.MonitorMode;
 
 /** Immutable ScreenMode Class, consisting of it's read only components:<br>
@@ -149,6 +151,22 @@ public class ScreenMode implements Cloneable {
     public final int getRotation() {
         return rotation;
     }
+    
+    /** Returns the rotated screen width, 
+     *  derived from <code>getMonitorMode().getSurfaceSize().getResolution()</code>
+     *  and <code>getRotation()</code> 
+     */
+    public final int getRotatedWidth() {
+        return getRotatedWH(true);
+    }
+    
+    /** Returns the rotated screen height, 
+     *  derived from <code>getMonitorMode().getSurfaceSize().getResolution()</code>
+     *  and <code>getRotation()</code> 
+     */
+    public final int getRotatedHeight() {
+        return getRotatedWH(false);
+    }
 
     public final String toString() {
         return "[ " +  getMonitorMode() + ", " + rotation + " degr ]";
@@ -186,4 +204,13 @@ public class ScreenMode implements Cloneable {
         hash = ((hash << 5) - hash) + getRotation();
         return hash;
     }
+    
+    private final int getRotatedWH(boolean width) {
+        final DimensionReadOnly d = getMonitorMode().getSurfaceSize().getResolution();
+        final boolean swap = ScreenMode.ROTATE_90 == rotation || ScreenMode.ROTATE_270 == rotation ;
+        if ( (  width &&  swap ) || ( !width && !swap ) ) {
+            return d.getHeight();
+        }
+        return d.getWidth();
+    }        
 }

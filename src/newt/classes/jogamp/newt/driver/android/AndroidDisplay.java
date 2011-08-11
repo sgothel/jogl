@@ -35,9 +35,6 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 import javax.media.opengl.GLException;
 
-import android.content.Context;
-import android.view.Surface;
-
 public class AndroidDisplay extends jogamp.newt.DisplayImpl {
     static {
         NEWTJNILibLoader.loadNEWT();
@@ -57,7 +54,6 @@ public class AndroidDisplay extends jogamp.newt.DisplayImpl {
 
     protected void createNativeImpl() {
         // EGL Device
-        // final long eglDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
         final long eglDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
         if (eglDisplay == EGL.EGL_NO_DISPLAY) {
             throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
@@ -78,21 +74,6 @@ public class AndroidDisplay extends jogamp.newt.DisplayImpl {
 
     protected void dispatchMessagesNative() {
         // n/a .. DispatchMessages();
-    }
-    
-    public synchronized boolean setAppContext(Context ctx) {
-        if(null == appContext) {
-            appContext = ctx;
-            return true;
-        } else if(appContext != ctx) {
-            throw new RuntimeException("AppContext already set to "+appContext+", can't override w/ "+ctx);
-        }
-        return false;
-    }
-    public synchronized Context getAppContext() {
-        return appContext;
-    }
-    
-    private Context appContext;  
+    }    
 }
 

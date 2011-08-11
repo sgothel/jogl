@@ -230,6 +230,11 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         return fqname;
     }
 
+    /**
+     * Set the <b>rotated</b> ScreenSize.
+     * @see com.jogamp.newt.ScreenMode#getRotatedWidth()
+     * @see com.jogamp.newt.ScreenMode#getRotatedHeight()
+     */
     protected void setScreenSize(int w, int h) {
         System.err.println("Detected screen size "+w+"x"+h);
         width=w; height=h;
@@ -251,10 +256,19 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         return null != aScreen;
     }
 
+    
+    /**
+     * @return the <b>rotated</b> width.
+     * @see com.jogamp.newt.ScreenMode#getRotatedWidth()
+     */
     public final int getWidth() {
         return (usrWidth>0) ? usrWidth : (width>0) ? width : 480;
     }
 
+    /**
+     * @return the <b>rotated</b> height
+     * @see com.jogamp.newt.ScreenMode#getRotatedHeight()
+     */
     public final int getHeight() {
         return (usrHeight>0) ? usrHeight : (height>0) ? height : 480;
     }
@@ -287,13 +301,11 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             }
             sms.lock();
             try {
-                smU = (ScreenMode) sms.getScreenModes().get(sm0); // unify via value hash
-                if(null == smU) {
-                    throw new RuntimeException(sm0+" could not be hashed from ScreenMode list");
-                }
+                smU = (ScreenMode) sms.getScreenModes().getOrAdd(sm0); // unified instance, maybe new
 
                 // if mode has changed somehow, update it ..
                 if( sms.getCurrentScreenMode().hashCode() != smU.hashCode() ) {
+                    setScreenSize(smU.getRotatedWidth(), smU.getRotatedHeight());
                     sms.fireScreenModeChanged(smU, true);
                 }
             } finally {
@@ -321,8 +333,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
                 boolean success = setCurrentScreenModeImpl(smU);
                 if(success) {
-                    setScreenSize(screenMode.getMonitorMode().getSurfaceSize().getResolution().getWidth(),
-                                  screenMode.getMonitorMode().getSurfaceSize().getResolution().getHeight());
+                    setScreenSize(screenMode.getRotatedWidth(), screenMode.getRotatedHeight());
                 }
 
                 if(DEBUG) {

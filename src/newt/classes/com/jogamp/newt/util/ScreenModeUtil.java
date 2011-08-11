@@ -244,8 +244,8 @@ public class ScreenModeUtil {
      *
      * @param modeProperties the input data
      * @param offset the offset to the input data
-     * @return index of the identical (old or new) ScreenMode element in <code>screenModePool</code>,
-     *         matching the input <code>modeProperties</code>, or -1 if input could not be processed.
+     * @return ScreenMode element matching the input <code>modeProperties</code>, 
+     *         or null if input could not be processed.
      */
     public static ScreenMode streamIn(int[] modeProperties, int offset) {
         return streamInImpl(null, null, null, null, null, modeProperties, offset);

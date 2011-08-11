@@ -33,6 +33,8 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Screen;
+import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.event.ScreenModeListener;
 import com.jogamp.newt.opengl.GLWindow;
 import jogamp.newt.driver.android.test.GearsGL2ES1;
 import com.jogamp.opengl.util.Animator;
@@ -40,11 +42,12 @@ import com.jogamp.opengl.util.Animator;
 import jogamp.newt.driver.android.AndroidWindow;
 
 import android.app.Activity;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.SurfaceView;
 
 public class NewtVersionActivity extends Activity {
-   AndroidWindow window = null;
    GLWindow glWindow = null;
    Animator animator = null;
    @Override
@@ -59,22 +62,34 @@ public class NewtVersionActivity extends Activity {
        System.setProperty("jogamp.debug.NativeLibrary", "true");
        // System.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
        
+       // register application context 
+       jogamp.common.os.android.StaticContext.setContext(getApplicationContext());
+
+       // init GLProfile
        GLProfile.initSingleton(true);
        
+       // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES1));
-       // caps.setRedBits(5); caps.setGreenBits(6); caps.setBlueBits(5);
-       AndroidDisplay display = (AndroidDisplay) NewtFactory.createDisplay(null);
-       AndroidScreen screen = (AndroidScreen) NewtFactory.createScreen(display, 0);
-       screen.setAppContext(this.getApplicationContext());
+       glWindow = GLWindow.create(caps);
 
-       window = (AndroidWindow) NewtFactory.createWindow(new Object[] { this }, screen, caps);
-       setContentView(window.getView());
+       {
+           // use AndroidWindow's inner SurfaceView for this content view
+           SurfaceView view = ((AndroidWindow) glWindow.getWindow()).getView();
+           setContentView(view);
+       }
        
-       glWindow = GLWindow.create(window);
        glWindow.addGLEventListener(new GearsGL2ES1(1));
+       glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {
+        public void screenModeChangeNotify(ScreenMode sm) {
+        }
+
+        public void screenModeChanged(ScreenMode sm, boolean success) {
+            System.err.println("ScreenMode Changed: "+sm);
+        }
+       });
        glWindow.setVisible(true);
        animator = new Animator(glWindow);
-       animator.setUpdateFPSFrames(1, null);
+       animator.setUpdateFPSFrames(60, System.err);
        
        Log.d(MD.TAG, "onCreate - X");
    }
@@ -124,8 +139,12 @@ public class NewtVersionActivity extends Activity {
    public void onDestroy() {
      Log.d(MD.TAG, "onDestroy - S");
      super.onDestroy(); 
-     glWindow.destroy();
-     window.destroy();
+     if(null != animator) {
+         animator.stop();
+     }
+     if(null != glWindow) {
+         glWindow.destroy();
+     }
      Log.d(MD.TAG, "onDestroy - X");
    }   
 }

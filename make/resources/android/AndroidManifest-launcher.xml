@@ -15,6 +15,7 @@
         <activity android:name="com.jogamp.android.launcher.NEWTLauncherVersionActivity"
                   android:finishOnTaskLaunch="true"
                   android:launchMode="singleTop"
+                  android:configChanges="keyboardHidden|orientation"
                   android:label="@string/activity_v_name"
                   android:description="@string/activity_v_descr"
                   >
@@ -26,6 +27,7 @@
         <activity android:name="com.jogamp.android.launcher.NEWTLauncherGearsActivity"
                   android:finishOnTaskLaunch="true"
                   android:launchMode="singleTop"
+                  android:configChanges="keyboardHidden|orientation"
                   android:label="@string/activity_gears1_name"
                   android:description="@string/activity_gears1_descr"
                   >
