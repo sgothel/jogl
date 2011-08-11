@@ -27,86 +27,74 @@
  */
 package jogamp.newt.driver.android;
 
-import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
-import com.jogamp.newt.NewtFactory;
-import com.jogamp.newt.Display;
-import com.jogamp.newt.Screen;
-import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.Window;
-import com.jogamp.newt.event.ScreenModeListener;
 import com.jogamp.newt.opengl.GLWindow;
-import jogamp.newt.driver.android.test.GearsGL2ES1;
-import com.jogamp.opengl.util.Animator;
 
 import jogamp.newt.driver.android.AndroidWindow;
 
 import android.app.Activity;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.SurfaceView;
-import android.view.View;
 
-public class NewtVersionActivity extends NewtBaseActivity {
-   GLWindow glWindow = null;
-   Animator animator = null;
-   
-   @Override
-   public void onCreate(Bundle savedInstanceState) {
-       super.onCreate(savedInstanceState);
-       
-       System.setProperty("nativewindow.debug", "all");
-       System.setProperty("jogl.debug", "all");
-       System.setProperty("newt.debug", "all");
-       System.setProperty("jogamp.debug.JNILibLoader", "true");
-       System.setProperty("jogamp.debug.NativeLibrary", "true");
-       // System.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
-       
-       // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
-       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES1));
-       glWindow = GLWindow.create(caps);
-       setContentView(glWindow);
-       
-       glWindow.addGLEventListener(new GearsGL2ES1(1));
-       glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {
-        public void screenModeChangeNotify(ScreenMode sm) { }
-        public void screenModeChanged(ScreenMode sm, boolean success) {
-            System.err.println("ScreenMode Changed: "+sm);
-        }
-       });
-       glWindow.setVisible(true);
-       animator = new Animator(glWindow);
-       animator.setUpdateFPSFrames(60, System.err);
-       
-       Log.d(MD.TAG, "onCreate - X");
+public class NewtBaseActivity extends Activity {
+   public void setContentView(Window window) {
+       if(window instanceof GLWindow) {
+           window = ((GLWindow)window).getWindow();
+       }
+       if(window instanceof AndroidWindow) {
+           super.setContentView(((AndroidWindow)window).getView());
+       } else {
+           throw new IllegalArgumentException("Given NEWT Window is not an Android Window: "+window.getClass()); 
+       }
    }
    
    @Override
+   public void onCreate(Bundle savedInstanceState) {
+       Log.d(MD.TAG, "onCreate");
+       super.onCreate(savedInstanceState);
+              
+       // register application context 
+       jogamp.common.os.android.StaticContext.setContext(getApplicationContext());
+
+       // init GLProfile
+       GLProfile.initSingleton(true);       
+   }
+   
+   @Override
+   public void onStart() {
+     Log.d(MD.TAG, "onStart");
+     super.onStart();
+   }
+     
+   @Override
+   public void onRestart() {
+     Log.d(MD.TAG, "onRestart");
+     super.onRestart();
+   }
+
+   @Override
    public void onResume() {
+     Log.d(MD.TAG, "onResume");
      super.onResume();
-     if(null != animator) {
-         animator.start();
-     }
    }
 
    @Override
    public void onPause() {
+     Log.d(MD.TAG, "onPause");
      super.onPause();
-     if(null != animator) {
-         animator.pause();
-     }
+   }
+
+   @Override
+   public void onStop() {
+     Log.d(MD.TAG, "onStop");
+     super.onStop();  
    }
 
    @Override
    public void onDestroy() {
+     Log.d(MD.TAG, "onDestroy");
      super.onDestroy(); 
-     if(null != animator) {
-         animator.stop();
-     }
-     if(null != glWindow) {
-         glWindow.destroy();
-     }
    }   
 }
