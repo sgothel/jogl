@@ -30,6 +30,8 @@ package jogamp.graph.font.typecast;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import javax.media.opengl.GLException;
 
@@ -54,16 +56,27 @@ public class TypecastFontConstructor implements FontConstructor  {
         return null;
     }
     
-    public Font create(URL furl) throws IOException {
-        final File tf  = File.createTempFile( "joglfont", ".ttf");
-        final int len = IOUtil.copyURL2File(furl, tf);
-        if(len==0) {
-            tf.delete();
-            throw new GLException("Font of stream "+furl+" was zero bytes");
-        }
-        final Font f = create(tf);
-        tf.delete();
-        return f;
+    public Font create(final URL furl) throws IOException {
+        return (Font) AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+                File tf = null;
+                int len=0;
+                Font f = null;
+                try {
+                    tf = File.createTempFile( "joglfont", ".ttf");
+                    len = IOUtil.copyURL2File(furl, tf);
+                    if(len==0) {
+                        tf.delete();
+                        throw new GLException("Font of stream "+furl+" was zero bytes");
+                    }
+                    f = create(tf);
+                    tf.delete();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return f;
+            }
+        });        
     }
     
 }
