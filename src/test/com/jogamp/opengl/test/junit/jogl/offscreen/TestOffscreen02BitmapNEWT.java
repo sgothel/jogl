@@ -46,7 +46,7 @@ import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquare;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
 import java.io.IOException;
 
 public class TestOffscreen02BitmapNEWT extends UITestCase {
@@ -97,7 +97,7 @@ public class TestOffscreen02BitmapNEWT extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setVisible(true);
 
-        GLEventListener demo = new RedSquare();
+        GLEventListener demo = new RedSquareES1();
         WindowUtilNEWT.setDemoFields(demo, window, glWindow, false);
         glWindow.addGLEventListener(demo);
 
@@ -145,7 +145,7 @@ public class TestOffscreen02BitmapNEWT extends UITestCase {
         MouseListener ml=null;
         SurfaceUpdatedListener ul=null;
 
-        GLEventListener demo = new RedSquare();
+        GLEventListener demo = new RedSquareES1();
         Assert.assertNotNull(demo);
 
         WindowUtilNEWT.run(glWindow, demo, windowOnScreen, wl, ml, ul, 2, true /*snapshot*/, false /*debug*/);

@@ -1,3 +1,31 @@
+/*
+ * Copyright 2009 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 2010 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
 
 package jogamp.opengl.util.glsl.fixedfunc;
 
@@ -11,26 +39,6 @@ import java.nio.*;
 public class FixedFuncPipeline {
     public static final int MAX_TEXTURE_UNITS = 8;
     public static final int MAX_LIGHTS        = 8;
-
-    // We can't have any dependencies on the FixedFuncUtil class for build bootstrapping reasons
-    public static final String mgl_Vertex = "mgl_Vertex";
-    public static final String mgl_Normal = "mgl_Normal";
-    public static final String mgl_Color = "mgl_Color";
-    public static final String mgl_MultiTexCoord = "mgl_MultiTexCoord" ;
-
-    public static String getPredefinedArrayIndexName(int glArrayIndex) {
-        switch(glArrayIndex) {
-            case GLPointerFunc.GL_VERTEX_ARRAY:
-                return mgl_Vertex;
-            case GLPointerFunc.GL_NORMAL_ARRAY:
-                return mgl_Normal;
-            case GLPointerFunc.GL_COLOR_ARRAY:
-                return mgl_Color;
-            case GLPointerFunc.GL_TEXTURE_COORD_ARRAY:
-                return mgl_MultiTexCoord;
-        }
-        return null;
-    }
 
     public FixedFuncPipeline(GL2ES2 gl, PMVMatrix pmvMatrix) {
         init(gl, pmvMatrix, FixedFuncPipeline.class, shaderSrcRootDef, shaderBinRootDef, 
@@ -62,7 +70,7 @@ public class FixedFuncPipeline {
     }
 
     public String getArrayIndexName(int glArrayIndex) {
-      String name = getPredefinedArrayIndexName(glArrayIndex); 
+      String name = GLPointerFuncUtil.getPredefinedArrayIndexName(glArrayIndex); 
       switch(glArrayIndex) {
           case GLPointerFunc.GL_VERTEX_ARRAY:
           case GLPointerFunc.GL_NORMAL_ARRAY:
@@ -320,15 +328,10 @@ public class FixedFuncPipeline {
             } else {
                 throw new GLException("Failed to update: mgl_PMVMatrix");
             }
-            ud = shaderState.getUniform(mgl_NormalMatrix);
-            if(null!=ud) {
-                // same data object ..
-                shaderState.uniform(gl, ud);
-            }
         }
         ud = shaderState.getUniform(mgl_ColorEnabled);
         if(null!=ud) {
-            int ca = (shaderState.isVertexAttribArrayEnabled(mgl_Color)==true)?1:0;
+            int ca = (shaderState.isVertexAttribArrayEnabled(GLPointerFuncUtil.mgl_Color)==true)?1:0;
             if(ca!=ud.intValue()) {
                 ud.setData(ca);
                 shaderState.uniform(gl, ud);
@@ -450,12 +453,9 @@ public class FixedFuncPipeline {
         shaderState.useProgram(gl, true);
 
         // mandatory ..
-        if(!shaderState.uniform(gl, new GLUniformData(mgl_PMVMatrix, 4, 4, pmvMatrix.glGetPMvMviMatrixf()))) {
+        if(!shaderState.uniform(gl, new GLUniformData(mgl_PMVMatrix, 4, 4, pmvMatrix.glGetPMvMvitMatrixf()))) {
             throw new GLException("Error setting PMVMatrix in shader: "+this);
         }
-
-        // optional parameter ..
-        shaderState.uniform(gl, new GLUniformData(mgl_NormalMatrix, 3, 3, pmvMatrix.glGetNormalMatrixf()));
 
         shaderState.uniform(gl, new GLUniformData(mgl_ColorEnabled,  0));
         shaderState.uniform(gl, new GLUniformData(mgl_ColorStatic, 4, zero4f));
@@ -508,8 +508,7 @@ public class FixedFuncPipeline {
     protected ShaderProgram shaderProgramColorTextureLight;
 
     // uniforms ..
-    protected static final String mgl_PMVMatrix        = "mgl_PMVMatrix";       // m4fv[3]
-    protected static final String mgl_NormalMatrix     = "mgl_NormalMatrix";    // m4fv
+    protected static final String mgl_PMVMatrix        = "mgl_PMVMatrix";       // m4fv[4] - P, Mv, Mvi and Mvit
     protected static final String mgl_ColorEnabled     = "mgl_ColorEnabled";    //  1i
     protected static final String mgl_ColorStatic      = "mgl_ColorStatic";     //  4fv
 

@@ -64,7 +64,7 @@ import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.SurfaceUpdatedListener;
-import javax.media.nativewindow.util.DimensionReadOnly;
+import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.Rectangle;
@@ -1527,7 +1527,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
 
             if(success) {
-                DimensionReadOnly screenSize = sm.getMonitorMode().getSurfaceSize().getResolution();
+                DimensionImmutable screenSize = sm.getMonitorMode().getSurfaceSize().getResolution();
                 if ( getHeight() > screenSize.getHeight()  ||
                      getWidth() > screenSize.getWidth() ) {
                     setSize(screenSize.getWidth(), screenSize.getHeight());

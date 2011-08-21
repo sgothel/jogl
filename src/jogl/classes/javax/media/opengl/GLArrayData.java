@@ -116,7 +116,7 @@ public interface GLArrayData {
     /**
      * The number of components per element
      */
-    public int getComponentNumber();
+    public int getComponentCount();
 
     /**
      * The component's GL data type, ie. GL_FLOAT
@@ -126,19 +126,19 @@ public interface GLArrayData {
     /**
      * The component's size in bytes
      */
-    public int getComponentSize();
+    public int getComponentSizeInBytes();
 
     /**
      * The current number of used elements.<br>
      * In case the buffer's position is 0 (sealed, flipped), it's based on it's limit instead of it's position.
      */
-    public int getElementNumber();
+    public int getElementCount();
     
     /**
-     * The current number of used bytes.<br>
+     * The currently used size in bytes.<br>
      * In case the buffer's position is 0 (sealed, flipped), it's based on it's limit instead of it's position.
      */
-    public int getByteSize();
+    public int getSizeInBytes();
 
     /**
      * True, if GL shall normalize fixed point data while converting 
@@ -146,10 +146,9 @@ public interface GLArrayData {
      */
     public boolean getNormalized();
 
-    /**
-     * The distance to the next payload,
-     * allowing interleaved arrays.
-     */
+    /** 
+     * @return the byte offset between consecutive components
+     */      
     public int getStride();
 
     public String toString();

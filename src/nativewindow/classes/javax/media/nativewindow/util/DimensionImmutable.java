@@ -35,7 +35,7 @@ package javax.media.nativewindow.util;
  *  <li><code>height</code></li>
  * </ul>
  */
-public interface DimensionReadOnly extends Cloneable {
+public interface DimensionImmutable extends Cloneable {
 
     int getHeight();
 

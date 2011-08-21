@@ -19,7 +19,7 @@ void main(void)
 
   position  = mgl_PMVMatrix[1] * mgl_Vertex; // vertex eye position 
 
-  normal = normalize(mgl_NormalMatrix * mgl_Normal); 
+  normal = normalize(mgl_PMVMatrix[3] * mgl_Normal).xyz; 
   // cameraPosition:      (mgl_PMVMatrix[2] * vec4(0,0,0,1.0)).xyz                   
   cameraDir  = normalize( (mgl_PMVMatrix[2] * vec4(0,0,0,1.0)).xyz - mgl_Vertex.xyz ); 
 
@@ -50,7 +50,7 @@ void main(void)
       }
     }
   }
-  ambient  += mgl_FrontMaterial.ambient;
+  ambient  *= mgl_FrontMaterial.ambient;
   diffuse  *= mgl_FrontMaterial.diffuse;
   specular *= mgl_FrontMaterial.specular;
 

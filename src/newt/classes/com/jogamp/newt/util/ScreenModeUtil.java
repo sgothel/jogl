@@ -33,7 +33,7 @@ import com.jogamp.newt.ScreenMode;
 import java.util.ArrayList;
 import java.util.List;
 import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.DimensionReadOnly;
+import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.SurfaceSize;
 
 /**
@@ -84,7 +84,7 @@ public class ScreenModeUtil {
      * @param resolution
      * @return modes with nearest resolution, or matching ones
      */
-    public static List/*<ScreenMode>*/ filterByResolution(List/*<ScreenMode>*/ screenModes, DimensionReadOnly resolution) {
+    public static List/*<ScreenMode>*/ filterByResolution(List/*<ScreenMode>*/ screenModes, DimensionImmutable resolution) {
         if(null==screenModes || screenModes.size()==0) {
             return null;
         }
@@ -94,7 +94,7 @@ public class ScreenModeUtil {
 
         for (int i=0; null!=screenModes && i<screenModes.size(); i++) {
             ScreenMode sm = (ScreenMode)screenModes.get(i);
-            DimensionReadOnly res = sm.getMonitorMode().getSurfaceSize().getResolution();
+            DimensionImmutable res = sm.getMonitorMode().getSurfaceSize().getResolution();
             int dsq = Math.abs(resolution_sq - res.getHeight()*res.getWidth());
             if(dsq<sm_dsq) {
                 sm_dsq = dsq;
@@ -216,19 +216,19 @@ public class ScreenModeUtil {
     }
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
-    public static DimensionReadOnly streamInResolution(int[] resolutionProperties, int offset) {
+    public static DimensionImmutable streamInResolution(int[] resolutionProperties, int offset) {
         Dimension resolution = new Dimension(resolutionProperties[offset++], resolutionProperties[offset++]);
         return resolution;
     }
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
-    public static SurfaceSize streamInSurfaceSize(DimensionReadOnly resolution, int[] sizeProperties, int offset) {
+    public static SurfaceSize streamInSurfaceSize(DimensionImmutable resolution, int[] sizeProperties, int offset) {
         SurfaceSize surfaceSize = new SurfaceSize(resolution, sizeProperties[offset++]);
         return surfaceSize;
     }
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
-    public static MonitorMode streamInMonitorMode(SurfaceSize surfaceSize, DimensionReadOnly screenSizeMM, int[] monitorProperties, int offset) {
+    public static MonitorMode streamInMonitorMode(SurfaceSize surfaceSize, DimensionImmutable screenSizeMM, int[] monitorProperties, int offset) {
         int refreshRate = monitorProperties[offset++];
         return new MonitorMode(surfaceSize, screenSizeMM, refreshRate);
     }
@@ -288,10 +288,10 @@ public class ScreenModeUtil {
             throw new RuntimeException("properties array too short, should be >= "+NUM_SCREEN_MODE_PROPERTIES_ALL+", is "+(modeProperties.length-offset));
         }
         offset++;
-        DimensionReadOnly resolution = ScreenModeUtil.streamInResolution(modeProperties, offset);
+        DimensionImmutable resolution = ScreenModeUtil.streamInResolution(modeProperties, offset);
         offset += ScreenModeUtil.NUM_RESOLUTION_PROPERTIES;
         if(null!=resolutionPool) {
-            resolution = (DimensionReadOnly) resolutionPool.getOrAdd(resolution);
+            resolution = (DimensionImmutable) resolutionPool.getOrAdd(resolution);
         }
 
         SurfaceSize surfaceSize = ScreenModeUtil.streamInSurfaceSize(resolution, modeProperties, offset);
@@ -300,10 +300,10 @@ public class ScreenModeUtil {
             surfaceSize = (SurfaceSize) surfaceSizePool.getOrAdd(surfaceSize);
         }
 
-        DimensionReadOnly screenSizeMM = ScreenModeUtil.streamInResolution(modeProperties, offset);
+        DimensionImmutable screenSizeMM = ScreenModeUtil.streamInResolution(modeProperties, offset);
         offset += ScreenModeUtil.NUM_RESOLUTION_PROPERTIES;
         if(null!=screenSizeMMPool) {
-            screenSizeMM = (DimensionReadOnly) screenSizeMMPool.getOrAdd(screenSizeMM);
+            screenSizeMM = (DimensionImmutable) screenSizeMMPool.getOrAdd(screenSizeMM);
         }
 
         MonitorMode monitorMode = ScreenModeUtil.streamInMonitorMode(surfaceSize, screenSizeMM, modeProperties, offset);

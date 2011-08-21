@@ -63,30 +63,30 @@ public class FixedFuncUtil {
      * @see javax.media.opengl.fixedfunc.GLPointerFunc#glTexCoordPointer
      */
     public static String getPredefinedArrayIndexName(int glArrayIndex) {
-        return FixedFuncPipeline.getPredefinedArrayIndexName(glArrayIndex);
+        return GLPointerFuncUtil.getPredefinedArrayIndexName(glArrayIndex);
     }
 
     /**
      * String name for
      * @see javax.media.opengl.GL2#GL_VERTEX_ARRAY
      */
-    public static final String mgl_Vertex = FixedFuncPipeline.mgl_Vertex;
+    public static final String mgl_Vertex = GLPointerFuncUtil.mgl_Vertex;
 
     /**
      * String name for
      * @see javax.media.opengl.GL2#GL_NORMAL_ARRAY
      */
-    public static final String mgl_Normal = FixedFuncPipeline.mgl_Normal;
+    public static final String mgl_Normal = GLPointerFuncUtil.mgl_Normal;
 
     /**
      * String name for
      * @see javax.media.opengl.GL2#GL_COLOR_ARRAY
      */
-    public static final String mgl_Color = FixedFuncPipeline.mgl_Color;
+    public static final String mgl_Color = GLPointerFuncUtil.mgl_Color;
 
     /**
      * String name for
      * @see javax.media.opengl.GL2#GL_TEXTURE_COORD_ARRAY
      */
-    public static final String mgl_MultiTexCoord = FixedFuncPipeline.mgl_MultiTexCoord;
+    public static final String mgl_MultiTexCoord = GLPointerFuncUtil.mgl_MultiTexCoord;
 }

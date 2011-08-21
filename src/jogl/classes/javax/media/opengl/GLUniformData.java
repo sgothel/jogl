@@ -59,10 +59,10 @@ public class GLUniformData {
         init(name, rows, columns, data);
     }
 
-    public void setData(int data) { init(new Integer(data)); }
-    public void setData(float data) { init(new Float(data)); }
-    public void setData(IntBuffer data) { init(data); }
-    public void setData(FloatBuffer data) { init(data); }
+    public GLUniformData setData(int data) { init(new Integer(data)); return this; }
+    public GLUniformData setData(float data) { init(new Float(data)); return this; }
+    public GLUniformData setData(IntBuffer data) { init(data); return this; }
+    public GLUniformData setData(FloatBuffer data) { init(data); return this; }
 
     public int       intValue()   { return ((Integer)data).intValue(); };
     public float     floatValue() { return ((Float)data).floatValue(); };
@@ -105,8 +105,8 @@ public class GLUniformData {
 
     private void init(Object data) {
         if(data instanceof Buffer) {
-            int sz = rows*columns;
-            Buffer buffer = (Buffer)data;
+            final int sz = rows*columns;
+            final Buffer buffer = (Buffer)data;
             if(buffer.limit()<sz || 0!=buffer.limit()%sz) {
                 throw new GLException("data buffer size invalid: new buffer limit: "+buffer.limit()+"\n\t"+this);
             }
@@ -127,7 +127,7 @@ public class GLUniformData {
     /**
      * Sets the determined location of the shader uniform.
      */
-    public void setLocation(int location) { this.location=location; }
+    public GLUniformData setLocation(int location) { this.location=location; return this; }
 
     public Object getObject() {
         return data;

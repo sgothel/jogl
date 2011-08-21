@@ -62,7 +62,7 @@ public class ReadBuffer2Screen extends ReadBufferBase {
         if(null==readTextureVertices) {
             //readTextureVertices = GLArrayDataClient.createFixed(gl, GLPointerFunc.GL_VERTEX_ARRAY, "mgl_Vertex", 
             //                                                    2, GL.GL_FLOAT, true, 4);
-            readTextureVertices = GLArrayDataServer.createFixed(GLPointerFunc.GL_VERTEX_ARRAY, "mgl_Vertex", 2, 
+            readTextureVertices = GLArrayDataServer.createFixed(GLPointerFunc.GL_VERTEX_ARRAY, 2, 
                                                                 GL.GL_FLOAT, true, 4, GL.GL_STATIC_DRAW);
             readTextureVertices.setEnableAlways(enableBufferAlways);
             readTextureVertices.setVBOEnabled(enableBufferVBO);
@@ -142,7 +142,7 @@ public class ReadBuffer2Screen extends ReadBufferBase {
       if(null!=readTextureCoords) {
           readTextureCoords.enableBuffer(gl, true);
       }
-      gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, readTextureVertices.getElementNumber());
+      gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, readTextureVertices.getElementCount());
       /**
       if(null!=readTextureCoords) {
           readTextureCoords.enableBuffer(gl, false);
@@ -154,7 +154,7 @@ public class ReadBuffer2Screen extends ReadBufferBase {
 
     void updateTextureCoords(GL gl, boolean force) {
         if(force || null==readTextureCoords) {
-            readTextureCoords = GLArrayDataServer.createFixed(GLPointerFunc.GL_TEXTURE_COORD_ARRAY, "mgl_MultiTexCoord0", 2, 
+            readTextureCoords = GLArrayDataServer.createFixed(GLPointerFunc.GL_TEXTURE_COORD_ARRAY, 2, 
                                                               GL.GL_FLOAT, true, 4, GL.GL_STATIC_DRAW);
             readTextureCoords.setEnableAlways(enableBufferAlways);
             readTextureCoords.setVBOEnabled(enableBufferVBO);

@@ -52,7 +52,7 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.*;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquare;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
 
 public class TestParenting01cSwingAWT extends UITestCase {
     static int width, height;
@@ -79,7 +79,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParent());
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
-        GLEventListener demo1 = new RedSquare();
+        GLEventListener demo1 = new RedSquareES1();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         Animator animator1 = new Animator(glWindow1);
@@ -190,7 +190,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParent());
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
-        GLEventListener demo1 = new RedSquare();
+        GLEventListener demo1 = new RedSquareES1();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         Animator animator1 = new Animator(glWindow1);

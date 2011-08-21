@@ -46,7 +46,7 @@ import java.util.Iterator;
 import java.util.List;
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.DimensionReadOnly;
+import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.SurfaceSize;
 
 public class TestScreenMode00NEWT extends UITestCase {
@@ -66,9 +66,9 @@ public class TestScreenMode00NEWT extends UITestCase {
 
     @Test
     public void testScreenModeInfo00() throws InterruptedException {
-        DimensionReadOnly res = new Dimension(640, 480);
+        DimensionImmutable res = new Dimension(640, 480);
         SurfaceSize surfsz = new SurfaceSize(res, 32);
-        DimensionReadOnly mm = new Dimension(500, 400);
+        DimensionImmutable mm = new Dimension(500, 400);
         MonitorMode mon = new MonitorMode(surfsz, mm, 60);
         ScreenMode sm_out = new ScreenMode(mon, 90);
         System.err.println("00 out: "+sm_out);

@@ -1,5 +1,4 @@
-/*
- * Copyright 2009 Sun Microsystems, Inc. All Rights Reserved.
+/**
  * Copyright 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -27,35 +26,29 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.opengl.fixedfunc;
+package javax.media.nativewindow.util;
 
-import javax.media.opengl.*;
+/** Immutable Rectangle interface */
+public interface RectangleImmutable extends Cloneable {
 
-public interface GLPointerFunc { 
-  public static final int GL_VERTEX_ARRAY = 0x8074;
-  public static final int GL_NORMAL_ARRAY = 0x8075;
-  public static final int GL_COLOR_ARRAY = 0x8076;
-  public static final int GL_TEXTURE_COORD_ARRAY = 0x8078;
+    int getHeight();
 
-  public void glEnableClientState(int arrayName);
-  public void glDisableClientState(int arrayName);
+    int getWidth();
 
-  public void glVertexPointer(GLArrayData array);
-  public void glVertexPointer(int size, int type, int stride, java.nio.Buffer pointer);
-  public void glVertexPointer(int size, int type, int stride, long pointer_buffer_offset);
+    int getX();
 
-  public void glColorPointer(GLArrayData array);
-  public void glColorPointer(int size, int type, int stride, java.nio.Buffer pointer);
-  public void glColorPointer(int size, int type, int stride, long pointer_buffer_offset);
-  public void glColor4f(float red, float green, float blue, float alpha);
+    int getY();
 
-  public void glNormalPointer(GLArrayData array);
-  public void glNormalPointer(int type, int stride, java.nio.Buffer pointer);
-  public void glNormalPointer(int type, int stride, long pointer_buffer_offset);
+    /**
+     * Checks whether two rect objects are equal. Two instances
+     * of <code>Rectangle</code> are equal if the four integer values
+     * of the fields <code>y</code>, <code>x</code>,
+     * <code>height</code>, and <code>width</code> are all equal.
+     * @return      <code>true</code> if the two rectangles are equal;
+     * otherwise <code>false</code>.
+     */
+    boolean equals(Object obj);
 
-  public void glTexCoordPointer(GLArrayData array);
-  public void glTexCoordPointer(int size, int type, int stride, java.nio.Buffer pointer);
-  public void glTexCoordPointer(int size, int type, int stride, long pointer_buffer_offset);
+    int hashCode();
 
 }
-

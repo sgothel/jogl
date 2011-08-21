@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2011 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.demos.gl2es1.gears.newt;
+package com.jogamp.opengl.test.junit.jogl.demos.es1.newt;
 
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -36,7 +36,7 @@ import com.jogamp.opengl.test.junit.util.QuitAdapter;
 
 import com.jogamp.opengl.util.Animator;
 
-import com.jogamp.opengl.test.junit.jogl.demos.gl2es1.gears.GearsGL2ES1;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
@@ -46,17 +46,17 @@ import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-public class TestGearsGL2ES1NEWT extends UITestCase {
+public class TestGearsES1NEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
 
     @BeforeClass
     public static void initClass() {
         GLProfile.initSingleton(true);
-        if(GLProfile.isAvailable(GLProfile.getDefaultEGLDevice(), GLProfile.GLES1)) {
+        /* if(GLProfile.isAvailable(GLProfile.getDefaultEGLDevice(), GLProfile.GLES1)) {
             // exact match
             glp = GLProfile.get(GLProfile.getDefaultEGLDevice(), GLProfile.GLES1);
-        } else {
+        } else */ {
             // default device, somehow ES1 compatible
             glp = GLProfile.getGL2ES1(); 
         }
@@ -74,7 +74,7 @@ public class TestGearsGL2ES1NEWT extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test");
 
-        glWindow.addGLEventListener(new GearsGL2ES1());
+        glWindow.addGLEventListener(new GearsES1());
 
         Animator animator = new Animator(glWindow);
         QuitAdapter quitAdapter = new QuitAdapter();
@@ -131,6 +131,6 @@ public class TestGearsGL2ES1NEWT extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             }
         }
-        org.junit.runner.JUnitCore.main(TestGearsGL2ES1NEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGearsES1NEWT.class.getName());
     }
 }

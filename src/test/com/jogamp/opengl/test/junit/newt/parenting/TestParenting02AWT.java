@@ -57,7 +57,7 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.*;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquare;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.Gears;
 
 public class TestParenting02AWT extends UITestCase {

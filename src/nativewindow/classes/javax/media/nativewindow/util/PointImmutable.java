@@ -1,6 +1,6 @@
-/*
- * Copyright 2009 Sun Microsystems, Inc. All Rights Reserved.
+/**
  * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,35 +27,24 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.opengl.fixedfunc;
+package javax.media.nativewindow.util;
 
-import javax.media.opengl.*;
+/** Immutable Point interface */
+public interface PointImmutable extends Cloneable {
 
-public interface GLPointerFunc { 
-  public static final int GL_VERTEX_ARRAY = 0x8074;
-  public static final int GL_NORMAL_ARRAY = 0x8075;
-  public static final int GL_COLOR_ARRAY = 0x8076;
-  public static final int GL_TEXTURE_COORD_ARRAY = 0x8078;
+    int getX();
 
-  public void glEnableClientState(int arrayName);
-  public void glDisableClientState(int arrayName);
+    int getY();
 
-  public void glVertexPointer(GLArrayData array);
-  public void glVertexPointer(int size, int type, int stride, java.nio.Buffer pointer);
-  public void glVertexPointer(int size, int type, int stride, long pointer_buffer_offset);
+    /**
+     * Checks whether two points objects are equal. Two instances
+     * of <code>PointReadOnly</code> are equal if the two components
+     * <code>y</code> and <code>x</code> are equal.
+     * @return <code>true</code> if the two points are equal;
+     *         otherwise <code>false</code>.
+     */
+    public boolean equals(Object obj);
 
-  public void glColorPointer(GLArrayData array);
-  public void glColorPointer(int size, int type, int stride, java.nio.Buffer pointer);
-  public void glColorPointer(int size, int type, int stride, long pointer_buffer_offset);
-  public void glColor4f(float red, float green, float blue, float alpha);
-
-  public void glNormalPointer(GLArrayData array);
-  public void glNormalPointer(int type, int stride, java.nio.Buffer pointer);
-  public void glNormalPointer(int type, int stride, long pointer_buffer_offset);
-
-  public void glTexCoordPointer(GLArrayData array);
-  public void glTexCoordPointer(int size, int type, int stride, java.nio.Buffer pointer);
-  public void glTexCoordPointer(int size, int type, int stride, long pointer_buffer_offset);
-
+    public int hashCode();
+    
 }
-

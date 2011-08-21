@@ -1,11 +1,22 @@
 
 package com.jogamp.opengl.util;
 
-import javax.media.opengl.*;
+import java.nio.Buffer;
 
-import java.nio.*;
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLArrayData;
+import javax.media.opengl.GLException;
+import javax.media.opengl.fixedfunc.GLPointerFuncUtil;
 
-import com.jogamp.opengl.util.glsl.*;
+import jogamp.opengl.util.GLDataArrayHandler;
+import jogamp.opengl.util.GLFixedArrayHandler;
+import jogamp.opengl.util.GLFixedArrayHandlerFlat;
+import jogamp.opengl.util.GLFixedArrayHandlerInterleaved;
+import jogamp.opengl.util.glsl.GLSLArrayHandler;
+import jogamp.opengl.util.glsl.GLSLArrayHandlerFlat;
+
+import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataEditable {
 
@@ -22,6 +33,9 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    * EnableVertexAttribArray and VertexAttribPointer calls,
    * and a predefined vertex attribute variable name will be chosen.
    * 
+   * The default name mapping will be used, 
+   * see {@link GLPointerFuncUtil#getPredefinedArrayIndexName(int)}.
+   *              
    * @param index The GL array index
    * @param name  The optional custom name for the GL array index, maybe null.
    *              If null, the default name mapping will be used, see 'getPredefinedArrayIndexName(int)'.
@@ -35,13 +49,13 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    *
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
-  public static GLArrayDataServer createFixed(int index, String name, int comps, int dataType, boolean normalized, int stride,
+  public static GLArrayDataServer createFixed(int index, int comps, int dataType, boolean normalized, int stride,
                                               Buffer buffer, int vboUsage)
     throws GLException
   {
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLFixedArrayHandler(ads);
-    ads.init(name, index, comps, dataType, normalized, stride, buffer, buffer.limit(), false, glArrayHandler,
+    ads.init(null, index, comps, dataType, normalized, stride, buffer, buffer.limit(), false, glArrayHandler,
              0, 0, vboUsage, GL.GL_ARRAY_BUFFER);
     return ads;
   }
@@ -55,10 +69,10 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    * EnableVertexAttribArray and VertexAttribPointer calls,
    * and a predefined vertex attribute variable name will be chosen.
    * 
+   * The default name mapping will be used, 
+   * see {@link GLPointerFuncUtil#getPredefinedArrayIndexName(int)}.
+   *              
    * @param index The GL array index
-   * @param name  The optional custom name for the GL array index, maybe null.
-   *              If null, the default name mapping will be used, see 'getPredefinedArrayIndexName(int)'.
-   *              This name might be used as the shader attribute name.
    * @param comps The array component number
    * @param dataType The array index GL data type
    * @param normalized Whether the data shall be normalized
@@ -67,14 +81,14 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    *
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
-  public static GLArrayDataServer createFixed(int index, String name, int comps, int dataType, boolean normalized, int initialSize, 
+  public static GLArrayDataServer createFixed(int index, int comps, int dataType, boolean normalized, int initialSize, 
                                               int vboUsage)
     throws GLException
   {
-      GLArrayDataServer ads = new GLArrayDataServer();
-      GLArrayHandler glArrayHandler = new GLFixedArrayHandler(ads);
-      ads.init(name, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler,
-               0, 0, vboUsage, GL.GL_ARRAY_BUFFER);
+    GLArrayDataServer ads = new GLArrayDataServer();
+    GLArrayHandler glArrayHandler = new GLFixedArrayHandler(ads);
+    ads.init(null, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler,
+             0, 0, vboUsage, GL.GL_ARRAY_BUFFER);
     return ads;
   }
 
@@ -174,6 +188,51 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
   }
 
   
+  public static GLArrayDataServer createInterleaved(int comps, int dataType, boolean normalized, int initialSize, 
+                                              int vboUsage)
+    throws GLException
+  {
+    GLArrayDataServer ads = new GLArrayDataServer();
+    GLArrayHandler glArrayHandler = new GLFixedArrayHandlerInterleaved(ads);
+    ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, comps, dataType, false, 0, null, initialSize, false, glArrayHandler,
+             0, 0, vboUsage, GL.GL_ARRAY_BUFFER);
+    return ads;
+  }
+
+  int interleavedOffset = 0;
+  
+  public GLArrayData addFixedSubArray(int index, int comps) {
+      if(interleavedOffset >= getComponentCount() * getComponentSizeInBytes()) {
+          final int iOffC = interleavedOffset / getComponentSizeInBytes();
+          throw new GLException("Interleaved offset > total components ("+iOffC+" > "+getComponentCount()+")");
+      }
+      GLArrayDataWrapper ad = GLArrayDataWrapper.createFixed(
+              index, comps, getComponentType(), 
+              getNormalized(), getStride(), getBuffer(), 
+              getVBOName(), interleavedOffset, getVBOUsage());
+      ad.setVBOEnabled(isVBO());
+      interleavedOffset += comps * getComponentSizeInBytes();
+      GLArrayHandler handler = new GLFixedArrayHandlerFlat(ad);
+      glArrayHandler.addSubHandler(handler);
+      return ad;
+  }
+  
+  public GLArrayData addGLSLSubArray(ShaderState st, String name, int comps) {
+      if(interleavedOffset >= getComponentCount() * getComponentSizeInBytes()) {
+          final int iOffC = interleavedOffset / getComponentSizeInBytes();
+          throw new GLException("Interleaved offset > total components ("+iOffC+" > "+getComponentCount()+")");
+      }
+      GLArrayDataWrapper ad = GLArrayDataWrapper.createGLSL(
+              name, comps, getComponentType(), 
+              getNormalized(), getStride(), getBuffer(), 
+              getVBOName(), interleavedOffset, getVBOUsage());     
+      ad.setVBOEnabled(isVBO());
+      interleavedOffset += comps * getComponentSizeInBytes();
+      GLArrayHandler handler = new GLSLArrayHandlerFlat(st, ad);
+      glArrayHandler.addSubHandler(handler);
+      return ad;
+  }
+  
   //
   // Data matters GLArrayData
   //
@@ -213,9 +272,9 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                        ", isVertexAttribute "+isVertexAttribute+
                        ", dataType "+componentType+ 
                        ", bufferClazz "+componentClazz+ 
-                       ", elements "+getElementNumber()+
+                       ", elements "+getElementCount()+
                        ", components "+components+ 
-                       ", stride "+stride+"u "+strideB+"b "+strideL+"c"+
+                       ", stride "+strideB+"b "+strideL+"c"+
                        ", initialSize "+initialSize+
                        ", vboEnabled "+vboEnabled+ 
                        ", vboName "+vboName+ 

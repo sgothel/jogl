@@ -1,6 +1,5 @@
 /*
- * Copyright 2009 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2011 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -29,33 +28,28 @@
 
 package javax.media.opengl.fixedfunc;
 
-import javax.media.opengl.*;
+public class GLPointerFuncUtil { 
+    public static final String mgl_Vertex = "mgl_Vertex";
+    public static final String mgl_Normal = "mgl_Normal";
+    public static final String mgl_Color = "mgl_Color";
+    public static final String mgl_MultiTexCoord = "mgl_MultiTexCoord" ;
+    public static final String mgl_InterleaveArray = "mgl_InterleaveArray" ; // magic name for interleaved arrays w/ sub-arrays
 
-public interface GLPointerFunc { 
-  public static final int GL_VERTEX_ARRAY = 0x8074;
-  public static final int GL_NORMAL_ARRAY = 0x8075;
-  public static final int GL_COLOR_ARRAY = 0x8076;
-  public static final int GL_TEXTURE_COORD_ARRAY = 0x8078;
-
-  public void glEnableClientState(int arrayName);
-  public void glDisableClientState(int arrayName);
-
-  public void glVertexPointer(GLArrayData array);
-  public void glVertexPointer(int size, int type, int stride, java.nio.Buffer pointer);
-  public void glVertexPointer(int size, int type, int stride, long pointer_buffer_offset);
-
-  public void glColorPointer(GLArrayData array);
-  public void glColorPointer(int size, int type, int stride, java.nio.Buffer pointer);
-  public void glColorPointer(int size, int type, int stride, long pointer_buffer_offset);
-  public void glColor4f(float red, float green, float blue, float alpha);
-
-  public void glNormalPointer(GLArrayData array);
-  public void glNormalPointer(int type, int stride, java.nio.Buffer pointer);
-  public void glNormalPointer(int type, int stride, long pointer_buffer_offset);
-
-  public void glTexCoordPointer(GLArrayData array);
-  public void glTexCoordPointer(int size, int type, int stride, java.nio.Buffer pointer);
-  public void glTexCoordPointer(int size, int type, int stride, long pointer_buffer_offset);
-
+    /**
+     * @param glArrayIndex the fixed function array index
+     * @return default fixed function array name 
+     */
+    public static String getPredefinedArrayIndexName(int glArrayIndex) {
+        switch(glArrayIndex) {
+            case GLPointerFunc.GL_VERTEX_ARRAY:
+                return mgl_Vertex;
+            case GLPointerFunc.GL_NORMAL_ARRAY:
+                return mgl_Normal;
+            case GLPointerFunc.GL_COLOR_ARRAY:
+                return mgl_Color;
+            case GLPointerFunc.GL_TEXTURE_COORD_ARRAY:
+                return mgl_MultiTexCoord;
+        }
+        return null;
+    }
 }
-

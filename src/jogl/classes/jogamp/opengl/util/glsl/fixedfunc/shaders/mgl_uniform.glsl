@@ -6,8 +6,7 @@
 
 #include mgl_const.glsl
 
-uniform   HIGHP mat4    mgl_PMVMatrix[3]; // P, Mv, and Mvi
-uniform   HIGHP mat3    mgl_NormalMatrix; // transpose(inverse(ModelView)).3x3
+uniform HIGHP   mat4    mgl_PMVMatrix[4]; // P, Mv, Mvi and Mvit (transpose(inverse(ModelView)) == normalMatrix)
 uniform LOWP    int     mgl_ColorEnabled;
 uniform HIGHP   vec4    mgl_ColorStatic;
 uniform LOWP    int     mgl_TexCoordEnabled[MAX_TEXTURE_UNITS];

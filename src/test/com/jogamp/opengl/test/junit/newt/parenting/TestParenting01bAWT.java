@@ -59,7 +59,7 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.*;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquare;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.Gears;
 
 public class TestParenting01bAWT extends UITestCase {
@@ -94,7 +94,7 @@ public class TestParenting01bAWT extends UITestCase {
 
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUndecorated(true);
-        GLEventListener demo1 = new RedSquare();
+        GLEventListener demo1 = new RedSquareES1();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 

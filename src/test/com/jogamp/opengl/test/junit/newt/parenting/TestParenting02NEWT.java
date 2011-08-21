@@ -52,7 +52,7 @@ import com.jogamp.newt.opengl.*;
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.*;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquare;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.Gears;
 
 public class TestParenting02NEWT extends UITestCase {
@@ -122,7 +122,7 @@ public class TestParenting02NEWT extends UITestCase {
         glWindow1.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
         glWindow1.addWindowListener(new TraceWindowAdapter());
 
-        GLEventListener demo1 = new RedSquare();
+        GLEventListener demo1 = new RedSquareES1();
         setDemoFields(demo1, window1, glWindow1, false);
         // glWindow1.addGLEventListener(demo1);
 

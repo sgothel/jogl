@@ -5,7 +5,7 @@
 #include es_precision.glsl
 
 attribute HIGHP vec4    mgl_Vertex;
-attribute HIGHP vec3    mgl_Normal;
+attribute HIGHP vec4    mgl_Normal;
 attribute HIGHP vec4    mgl_Color;
 attribute HIGHP vec4    mgl_MultiTexCoord0;
 attribute HIGHP vec4    mgl_MultiTexCoord1;

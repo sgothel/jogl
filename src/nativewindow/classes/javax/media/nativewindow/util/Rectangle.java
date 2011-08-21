@@ -28,7 +28,7 @@
  
 package javax.media.nativewindow.util;
 
-public class Rectangle implements Cloneable, RectangleReadOnly {
+public class Rectangle implements Cloneable, RectangleImmutable {
     int x;
     int y;
     int width;

@@ -29,7 +29,7 @@
  
 package javax.media.nativewindow.util;
 
-public class Dimension implements Cloneable, DimensionReadOnly {
+public class Dimension implements Cloneable, DimensionImmutable {
     int width;
     int height;
 

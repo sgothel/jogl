@@ -34,7 +34,7 @@ import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
-import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquare0;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NEWTGLContext;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -42,7 +42,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 
-import javax.media.nativewindow.util.DimensionReadOnly;
+import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLDrawable;
@@ -67,9 +67,9 @@ public class TestRulerNEWT01 extends UITestCase {
         // test code ..        
         final ShaderState st = new ShaderState();
         
-        final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RedSquare0.class,
+        final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RedSquareES2.class,
                 "shader", "shader/bin", "default");
-        final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, RedSquare0.class,
+        final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, RedSquareES2.class,
                 "shader", "shader/bin", "ruler");
 
         final ShaderProgram sp0 = new ShaderProgram();
@@ -100,8 +100,8 @@ public class TestRulerNEWT01 extends UITestCase {
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
         final MonitorMode mmode = winctx.window.getScreen().getCurrentScreenMode().getMonitorMode();
-        final DimensionReadOnly sdim = mmode.getScreenSizeMM();
-        final DimensionReadOnly spix = mmode.getSurfaceSize().getResolution();   
+        final DimensionImmutable sdim = mmode.getScreenSizeMM();
+        final DimensionImmutable spix = mmode.getSurfaceSize().getResolution();   
         final GLUniformData rulerPixFreq = new GLUniformData("gcu_RulerPixFreq", 2, Buffers.newDirectFloatBuffer(2));
         final FloatBuffer rulerPixFreqV = (FloatBuffer) rulerPixFreq.getBuffer();
         rulerPixFreqV.put(0, (float)spix.getWidth() / (float)sdim.getWidth() * 10.0f);

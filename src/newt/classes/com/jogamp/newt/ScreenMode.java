@@ -28,7 +28,7 @@
 
 package com.jogamp.newt;
 
-import javax.media.nativewindow.util.DimensionReadOnly;
+import javax.media.nativewindow.util.DimensionImmutable;
 
 import com.jogamp.newt.util.MonitorMode;
 
@@ -206,7 +206,7 @@ public class ScreenMode implements Cloneable {
     }
     
     private final int getRotatedWH(boolean width) {
-        final DimensionReadOnly d = getMonitorMode().getSurfaceSize().getResolution();
+        final DimensionImmutable d = getMonitorMode().getSurfaceSize().getResolution();
         final boolean swap = ScreenMode.ROTATE_90 == rotation || ScreenMode.ROTATE_270 == rotation ;
         if ( (  width &&  swap ) || ( !width && !swap ) ) {
             return d.getHeight();

@@ -1,31 +1,24 @@
 
 package com.jogamp.opengl.util;
 
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
+
+import javax.media.opengl.GL;
+import javax.media.opengl.GLException;
+import javax.media.opengl.fixedfunc.GLPointerFuncUtil;
+
+import jogamp.opengl.util.GLFixedArrayHandler;
+import jogamp.opengl.util.glsl.GLSLArrayHandler;
+
 import com.jogamp.common.nio.Buffers;
-import java.security.*;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
-import javax.media.opengl.*;
-
-import com.jogamp.opengl.util.glsl.*;
-
-import jogamp.opengl.SystemUtil;
-
-import java.nio.*;
 
 public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayDataEditable {
-
-  /**
-   * The OpenGL ES emulation on the PC probably has a buggy VBO implementation,
-   * where we have to 'refresh' the VertexPointer or VertexAttribArray after each
-   * BindBuffer !
-   *
-   * This should not be necessary on proper native implementations.
-   */
-  public static final boolean hasVBOBug = AccessController.doPrivileged(new PrivilegedAction() {
-          public Object run() {
-              return SystemUtil.getenv("JOGL_VBO_BUG");
-          }
-      }) != null;
 
   /**
    * Create a client side buffer object, using a predefined fixed function array index
@@ -36,10 +29,10 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * EnableVertexAttribArray and VertexAttribPointer calls,
    * and a predefined vertex attribute variable name will be chosen.
    * 
+   * The default name mapping will be used, 
+   * see {@link GLPointerFuncUtil#getPredefinedArrayIndexName(int)}.
+   *              
    * @param index The GL array index
-   * @param name  The optional custom name for the GL array index, maybe null.
-   *            If null, the default name mapping will be used, see 'getPredefinedArrayIndexName(int)'.
-   *            This name might be used as the shader attribute name.
    * @param comps The array component number
    * @param dataType The array index GL data type
    * @param normalized Whether the data shall be normalized
@@ -47,12 +40,12 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    *
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
    */  
-  public static GLArrayDataClient createFixed(int index, String name, int comps, int dataType, boolean normalized, int initialSize)
+  public static GLArrayDataClient createFixed(int index, int comps, int dataType, boolean normalized, int initialSize)
     throws GLException
   {
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
-      adc.init(name, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler, 0, 0, 0, 0);
+      adc.init(null, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler, 0, 0, 0, 0);
       return adc;
   }
 
@@ -65,10 +58,10 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * EnableVertexAttribArray and VertexAttribPointer calls,
    * and a predefined vertex attribute variable name will be chosen.
    * 
+   * The default name mapping will be used, 
+   * see {@link GLPointerFuncUtil#getPredefinedArrayIndexName(int)}.
+   *              
    * @param index The GL array index
-   * @param name  The optional custom name for the GL array index, maybe null.
-   *            If null, the default name mapping will be used, see 'getPredefinedArrayIndexName(int)'.
-   *            This name might be used as the shader attribute name.
    * @param comps The array component number
    * @param dataType The array index GL data type
    * @param normalized Whether the data shall be normalized
@@ -77,13 +70,13 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    *
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
    */  
-  public static GLArrayDataClient createFixed(int index, String name, int comps, int dataType, boolean normalized, int stride, 
+  public static GLArrayDataClient createFixed(int index, int comps, int dataType, boolean normalized, int stride, 
                                               Buffer buffer)
     throws GLException
   {
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
-      adc.init(name, index, comps, dataType, normalized, stride, buffer, comps*comps, false, glArrayHandler, 0, 0, 0, 0);
+      adc.init(null, index, comps, dataType, normalized, stride, buffer, comps*comps, false, glArrayHandler, 0, 0, 0, 0);
       return adc;
   }
 
@@ -271,9 +264,9 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
                        ", isVertexAttribute "+isVertexAttribute+
                        ", dataType "+componentType+ 
                        ", bufferClazz "+componentClazz+ 
-                       ", elements "+getElementNumber()+
+                       ", elements "+getElementCount()+
                        ", components "+components+ 
-                       ", stride "+stride+"u "+strideB+"b "+strideL+"c"+
+                       ", stride "+strideB+"b "+strideL+"c"+
                        ", initialSize "+initialSize+ 
                        ", sealed "+sealed+ 
                        ", bufferEnabled "+bufferEnabled+ 

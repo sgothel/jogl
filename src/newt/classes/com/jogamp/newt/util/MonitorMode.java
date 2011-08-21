@@ -33,16 +33,16 @@ import javax.media.nativewindow.util.*;
 /** Immutable MonitorMode Class, consisting of it's read only components:<br>
  * <ul>
  *  <li>{@link javax.media.nativewindow.util.SurfaceSize} surface memory size</li>
- *  <li>{@link javax.media.nativewindow.util.DimensionReadOnly} size in [mm]</li>
+ *  <li>{@link javax.media.nativewindow.util.DimensionImmutable} size in [mm]</li>
  *  <li><code>refresh rate</code></li>
  * </ul>
  */
 public class MonitorMode  implements Cloneable {
     SurfaceSize surfaceSize;
-    DimensionReadOnly screenSizeMM; // in [mm]
+    DimensionImmutable screenSizeMM; // in [mm]
     int refreshRate;
 
-    public MonitorMode(SurfaceSize surfaceSize, DimensionReadOnly screenSizeMM, int refreshRate) {
+    public MonitorMode(SurfaceSize surfaceSize, DimensionImmutable screenSizeMM, int refreshRate) {
         if(null==surfaceSize || refreshRate<=0) {
             throw new IllegalArgumentException("surfaceSize must be set and refreshRate greater 0");
         }
@@ -63,7 +63,7 @@ public class MonitorMode  implements Cloneable {
         return surfaceSize;
     }
 
-    public final DimensionReadOnly getScreenSizeMM() {
+    public final DimensionImmutable getScreenSizeMM() {
         return screenSizeMM;
     }
 

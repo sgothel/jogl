@@ -43,7 +43,7 @@ import com.jogamp.newt.opengl.*;
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.*;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquare;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.Gears;
 
 public class TestParenting01NEWT extends UITestCase {
@@ -83,7 +83,7 @@ public class TestParenting01NEWT extends UITestCase {
 
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
         glWindow1.setSize(640, 480);
-        GLEventListener demo1 = new RedSquare();
+        GLEventListener demo1 = new RedSquareES1();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -305,7 +305,7 @@ public class TestParenting01NEWT extends UITestCase {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setTitle("testWindowParenting02ReparentTop2Win");
         glWindow1.setSize(640, 480);
-        GLEventListener demo1 = new RedSquare();
+        GLEventListener demo1 = new RedSquareES1();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         screen1 = glWindow1.getScreen();
@@ -502,7 +502,7 @@ public class TestParenting01NEWT extends UITestCase {
         display1 = screen1.getDisplay();
         glWindow1.setTitle("testWindowParenting03ReparentWin2Top");
         glWindow1.setSize(640, 480);
-        GLEventListener demo1 = new RedSquare();
+        GLEventListener demo1 = new RedSquareES1();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 

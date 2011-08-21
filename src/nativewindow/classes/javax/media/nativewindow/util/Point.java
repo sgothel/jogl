@@ -29,7 +29,7 @@
 
 package javax.media.nativewindow.util;
 
-public class Point implements Cloneable, PointReadOnly {
+public class Point implements Cloneable, PointImmutable {
     int x;
     int y;
 

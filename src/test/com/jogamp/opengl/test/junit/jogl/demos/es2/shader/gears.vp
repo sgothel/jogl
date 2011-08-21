@@ -1,0 +1,48 @@
+// Copyright (C) 2011 JogAmp Community. All rights reserved.
+// Details see GearsES2.java
+
+#ifdef GL_ES
+  #define MEDIUMP mediump
+  #define HIGHP highp
+#else
+  #define MEDIUMP
+  #define HIGHP
+#endif
+
+uniform MEDIUMP mat4 pmvMatrix[4]; // P, Mv, Mvi and Mvit
+uniform MEDIUMP vec3 lightPos;
+
+attribute MEDIUMP vec4 vertices;
+attribute MEDIUMP vec4 normals;
+
+varying MEDIUMP vec3 normal;
+varying MEDIUMP vec4 position;
+varying MEDIUMP vec3 lightDir;
+varying MEDIUMP float attenuation;
+varying MEDIUMP vec3 cameraDir;
+
+const MEDIUMP float constantAttenuation = 0.5; // 1.0;
+const MEDIUMP float linearAttenuation   = 0.001; // 0.0;
+const MEDIUMP float quadraticAttenuation= 0.0002; // 0.0;
+
+void main(void)
+{
+    // Transforming The Vertex Position To ModelView-Space
+    position  = pmvMatrix[1] * vertices; // vertex eye position
+    
+    // incl. projection 
+    gl_Position = pmvMatrix[0] * position;
+    
+    // Transforming The Normal To ModelView-Space
+    normal = normalize((pmvMatrix[3] * normals).xyz);
+    
+    // Calculating The Vector From The Vertex Position To The Light Position
+    lightDir = lightPos - position.xyz;
+    MEDIUMP float d = length(lightDir);
+    attenuation = 1.0 / ( 
+                       constantAttenuation + 
+                       linearAttenuation    * d +   
+                       quadraticAttenuation * d * d );
+    lightDir = normalize(lightDir);                
+    cameraDir  = normalize((pmvMatrix[2] * vec4(0,0,0,1.0)).xyz - vertices.xyz);                   
+}

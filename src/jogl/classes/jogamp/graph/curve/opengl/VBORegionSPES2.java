@@ -130,7 +130,7 @@ public class VBORegionSPES2 extends GLRegion {
         texCoordAttr.enableBuffer(gl, true);
         indices.enableBuffer(gl, true);
 
-        gl.glDrawElements(GL2ES2.GL_TRIANGLES, indices.getElementNumber() * indices.getComponentNumber(), GL2ES2.GL_UNSIGNED_SHORT, 0);         
+        gl.glDrawElements(GL2ES2.GL_TRIANGLES, indices.getElementCount() * indices.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);         
 
         verticeAttr.enableBuffer(gl, false);       
         texCoordAttr.enableBuffer(gl, false);

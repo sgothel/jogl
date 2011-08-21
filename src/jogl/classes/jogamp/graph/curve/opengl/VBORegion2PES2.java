@@ -212,7 +212,7 @@ public class VBORegion2PES2  extends GLRegion {
         texCoordFboAttr.enableBuffer(gl, true);
         indicesFbo.enableBuffer(gl, true);
         
-        gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesFbo.getElementNumber() * indicesFbo.getComponentNumber(), GL2ES2.GL_UNSIGNED_SHORT, 0);         
+        gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesFbo.getElementCount() * indicesFbo.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);         
         
         verticeFboAttr.enableBuffer(gl, false);       
         texCoordFboAttr.enableBuffer(gl, false);
@@ -278,7 +278,7 @@ public class VBORegion2PES2  extends GLRegion {
         texCoordTxtAttr.enableBuffer(gl, true);
         indicesTxt.enableBuffer(gl, true);        
         
-        gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesTxt.getElementNumber() * indicesTxt.getComponentNumber(), GL2ES2.GL_UNSIGNED_SHORT, 0);        
+        gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesTxt.getElementCount() * indicesTxt.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);        
         
         verticeTxtAttr.enableBuffer(gl, false);       
         texCoordTxtAttr.enableBuffer(gl, false);

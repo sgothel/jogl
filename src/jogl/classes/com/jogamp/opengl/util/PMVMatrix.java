@@ -48,49 +48,36 @@ public class PMVMatrix implements GLMatrixFunc {
     public PMVMatrix() {
           projectFloat = new ProjectFloat();
 
-          matrixIdent = Buffers.newDirectFloatBuffer(1*16);
-          projectFloat.gluMakeIdentityf(matrixIdent);
-          matrixIdent.rewind();
-
+          // I    Identity
           // T    Texture
           // P    Projection
           // Mv   ModelView
           // Mvi  Modelview-Inverse
           // Mvit Modelview-Inverse-Transpose
-          // Pmv  P * Mv
-          matrixTPMvMvitPmv = Buffers.newDirectFloatBuffer(6*16);     // grouping T + P  + Mv + Mvi + Mvit + Pmv
-          matrixPMvMvitPmv = slice(matrixTPMvMvitPmv, 1*16, 5*16); // grouping     P  + Mv + Mvi + Mvit + Pmv
-          matrixT       = slice(matrixTPMvMvitPmv, 0*16, 1*16);    //          T
-          matrixPMvMvit = slice(matrixTPMvMvitPmv, 1*16, 4*16);    // grouping     P  + Mv + Mvi + Mvit
-          matrixPMvMvi  = slice(matrixTPMvMvitPmv, 1*16, 3*16);    // grouping     P  + Mv + Mvi
-          matrixPMv     = slice(matrixTPMvMvitPmv, 1*16, 2*16);    // grouping     P  + Mv
-          matrixP       = slice(matrixTPMvMvitPmv, 1*16, 1*16);    //              P
-          matrixMv      = slice(matrixTPMvMvitPmv, 2*16, 1*16);    //                   Mv
-          matrixMvi     = slice(matrixTPMvMvitPmv, 3*16, 1*16);    //                        Mvi
-          matrixMvit    = slice(matrixTPMvMvitPmv, 4*16, 1*16);    //                              Mvit
-          matrixPmv     = slice(matrixTPMvMvitPmv, 5*16, 1*16);    //                                     Pmv
-          matrixTPMvMvitPmv.rewind();
+          matrixITPMvMvitL = Buffers.newDirectFloatBuffer(12*16); // I + T + P  + Mv + Mvi + Mvit + Local
+          matrixIdent   = slice(matrixITPMvMvitL,  0*16, 1*16);  //  I
+          matrixTex     = slice(matrixITPMvMvitL,  1*16, 1*16);  //      T
+          matrixPMvMvit = slice(matrixITPMvMvitL,  2*16, 4*16);  //          P  + Mv + Mvi + Mvit
+          matrixPMvMvi  = slice(matrixITPMvMvitL,  2*16, 3*16);  //          P  + Mv + Mvi
+          matrixPMv     = slice(matrixITPMvMvitL,  2*16, 2*16);  //          P  + Mv
+          matrixP       = slice(matrixITPMvMvitL,  2*16, 1*16);  //          P
+          matrixMv      = slice(matrixITPMvMvitL,  3*16, 1*16);  //               Mv
+          matrixMvi     = slice(matrixITPMvMvitL,  4*16, 1*16);  //                    Mvi
+          matrixMvit    = slice(matrixITPMvMvitL,  5*16, 1*16);  //                          Mvit
+          matrixMult    = slice(matrixITPMvMvitL,  6*16, 1*16);
+          matrixTrans   = slice(matrixITPMvMvitL,  7*16, 1*16);
+          matrixRot     = slice(matrixITPMvMvitL,  8*16, 1*16);
+          matrixScale   = slice(matrixITPMvMvitL,  9*16, 1*16);
+          matrixOrtho   = slice(matrixITPMvMvitL, 10*16, 1*16);
+          matrixFrustum = slice(matrixITPMvMvitL, 11*16, 1*16);
+          matrixITPMvMvitL.rewind();
 
-          matrixMvit3 = Buffers.newDirectFloatBuffer(3*3);
-
-          localBuf = Buffers.newDirectFloatBuffer(6*16);
-
-          matrixMult=slice(localBuf, 0*16, 16);
-
-          matrixTrans=slice(localBuf, 1*16, 16);
-          projectFloat.gluMakeIdentityf(matrixTrans);
-
-          matrixRot=slice(localBuf, 2*16, 16);
-          projectFloat.gluMakeIdentityf(matrixRot);
-
-          matrixScale=slice(localBuf, 3*16, 16);
-          projectFloat.gluMakeIdentityf(matrixScale);
-
-          matrixOrtho=slice(localBuf, 4*16, 16);
-          projectFloat.gluMakeIdentityf(matrixOrtho);
-
-          matrixFrustum=slice(localBuf, 5*16, 16);
-          projectFloat.gluMakeZero(matrixFrustum);
+          ProjectFloat.gluMakeIdentityf(matrixIdent);
+          ProjectFloat.gluMakeIdentityf(matrixTrans);
+          ProjectFloat.gluMakeIdentityf(matrixRot);
+          ProjectFloat.gluMakeIdentityf(matrixScale);
+          ProjectFloat.gluMakeIdentityf(matrixOrtho);
+          ProjectFloat.gluMakeZero(matrixFrustum);
 
           vec3f=new float[3];
 
@@ -105,6 +92,7 @@ public class PMVMatrix implements GLMatrixFunc {
           glMatrixMode(GL.GL_TEXTURE);
           glLoadIdentity();
           setDirty();
+          update();
     }
 
     public void destroy() {
@@ -112,17 +100,8 @@ public class PMVMatrix implements GLMatrixFunc {
             projectFloat.destroy(); projectFloat=null;
         }
 
-        if(null!=matrixIdent) {
-            matrixIdent.clear(); matrixIdent=null;
-        }
-        if(null!=matrixTPMvMvitPmv) {
-            matrixTPMvMvitPmv.clear(); matrixTPMvMvitPmv=null;
-        }
-        if(null!=matrixMvit3) {
-            matrixMvit3.clear(); matrixMvit3=null;
-        }
-        if(null!=localBuf) {
-            localBuf.clear(); localBuf=null;
+        if(null!=matrixITPMvMvitL) {
+            matrixITPMvMvitL.clear(); matrixITPMvMvitL=null;
         }
 
         if(null!=matrixPStack) {
@@ -139,8 +118,8 @@ public class PMVMatrix implements GLMatrixFunc {
             matrixTStack.clear(); matrixTStack=null;
         }
 
-        matrixTPMvMvitPmv=null; matrixPMvMvit=null; matrixPMvMvitPmv=null; matrixPMvMvi=null; matrixPMv=null; 
-        matrixP=null; matrixT=null; matrixMv=null; matrixMvi=null; matrixMvit=null; matrixPmv=null;
+        matrixITPMvMvitL=null; matrixPMvMvit=null; matrixPMvMvi=null; matrixPMv=null; 
+        matrixP=null; matrixTex=null; matrixMv=null; matrixMvi=null; matrixMvit=null;
         matrixMult=null; matrixTrans=null; matrixRot=null; matrixScale=null; matrixOrtho=null; matrixFrustum=null;
     }
 
@@ -228,16 +207,19 @@ public class PMVMatrix implements GLMatrixFunc {
         return modified!=0;
     }
 
+    /**
+     * Update the derived Mvi, Mvit and Pmv matrices
+     * in case Mv or P has changed.
+     * 
+     * @return
+     */
     public boolean update() {
-        // if(0==modified) return false;
+        if(0==modified) return false;
 
-        // int res = modified;
-        int res = DIRTY_MODELVIEW | DIRTY_PROJECTION ;
+        final int res = modified;
+        // int res = DIRTY_MODELVIEW | DIRTY_PROJECTION ;
         if( (res&DIRTY_MODELVIEW)!=0 ) {
             setMviMvit();
-        }
-        if( (res&DIRTY_MODELVIEW)!=0 || (res&DIRTY_PROJECTION)!=0 ) {
-            glMultMatrixf(matrixP, matrixMv, matrixPmv);
         }
         modified=0;
         return res!=0;
@@ -248,7 +230,7 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     public final FloatBuffer glGetTMatrixf() {
-        return matrixT;
+        return matrixTex;
     }
 
     public final FloatBuffer glGetPMatrixf() {
@@ -257,10 +239,6 @@ public class PMVMatrix implements GLMatrixFunc {
 
     public final FloatBuffer glGetMvMatrixf() {
         return matrixMv;
-    }
-
-    public final FloatBuffer glGetPMvMvitPmvMatrixf() {
-        return matrixPMvMvitPmv;
     }
 
     public final FloatBuffer glGetPMvMvitMatrixf() {
@@ -277,14 +255,6 @@ public class PMVMatrix implements GLMatrixFunc {
 
     public final FloatBuffer glGetMviMatrixf() {
         return matrixMvi;
-    }
-
-    public final FloatBuffer glGetPmvMatrixf() {
-        return matrixPmv;
-    }
-
-    public final FloatBuffer glGetNormalMatrixf() {
-        return matrixMvit3;
     }
 
    /*
@@ -304,7 +274,7 @@ public class PMVMatrix implements GLMatrixFunc {
         } else if(matrixName==GL_PROJECTION) {
             return matrixP;
         } else if(matrixName==GL.GL_TEXTURE) {
-            return matrixT;
+            return matrixTex;
         } else {
             throw new GLException("unsupported matrixName: "+matrixName);
         }
@@ -403,9 +373,9 @@ public class PMVMatrix implements GLMatrixFunc {
             matrixP.rewind();
             modified |= DIRTY_PROJECTION ;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            matrixT.clear();
-            matrixT.put(values, offset, len);
-            matrixT.rewind();
+            matrixTex.clear();
+            matrixTex.put(values, offset, len);
+            matrixTex.rewind();
             modified |= DIRTY_TEXTURE ;
         } 
     }
@@ -423,9 +393,9 @@ public class PMVMatrix implements GLMatrixFunc {
             matrixP.rewind();
             modified |= DIRTY_PROJECTION ;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            matrixT.clear();
-            matrixT.put(m);
-            matrixT.rewind();
+            matrixTex.clear();
+            matrixTex.put(m);
+            matrixTex.rewind();
             modified |= DIRTY_TEXTURE ;
         } 
         m.position(spos);
@@ -454,8 +424,8 @@ public class PMVMatrix implements GLMatrixFunc {
             matrixP.rewind();
             matrixPStack.add(0, stackEntry);
         } else if(matrixMode==GL.GL_TEXTURE) {
-            matrixT.get(stackEntry);
-            matrixT.rewind();
+            matrixTex.get(stackEntry);
+            matrixTex.rewind();
             matrixTStack.add(0, stackEntry);
         }
     }
@@ -474,9 +444,9 @@ public class PMVMatrix implements GLMatrixFunc {
             matrixIdent.rewind();
             modified |= DIRTY_PROJECTION ;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            matrixT.clear();
-            matrixT.put(matrixIdent);
-            matrixT.rewind();
+            matrixTex.clear();
+            matrixTex.put(matrixIdent);
+            matrixTex.rewind();
             matrixIdent.rewind();
             modified |= DIRTY_TEXTURE ;
         } 
@@ -496,10 +466,10 @@ public class PMVMatrix implements GLMatrixFunc {
             matrixP.rewind();
             modified |= DIRTY_PROJECTION ;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            glMultMatrixf(matrixT, m, matrixMult);
-            matrixT.clear();
-            matrixT.put(matrixMult);
-            matrixT.rewind();
+            glMultMatrixf(matrixTex, m, matrixMult);
+            matrixTex.clear();
+            matrixTex.put(matrixMult);
+            matrixTex.rewind();
             modified |= DIRTY_TEXTURE ;
         } 
         matrixMult.rewind();
@@ -519,10 +489,10 @@ public class PMVMatrix implements GLMatrixFunc {
             matrixP.rewind();
             modified |= DIRTY_PROJECTION ;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            glMultMatrixf(matrixT, m, m_offset, matrixMult);
-            matrixT.clear();
-            matrixT.put(matrixMult);
-            matrixT.rewind();
+            glMultMatrixf(matrixTex, m, m_offset, matrixMult);
+            matrixTex.clear();
+            matrixTex.put(matrixMult);
+            matrixTex.rewind();
             modified |= DIRTY_TEXTURE ;
         } 
         matrixMult.rewind();
@@ -541,13 +511,13 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     public final void glRotatef(final float angdeg, float x, float y, float z) {
-        float angrad = angdeg   * (float) Math.PI / 180;
+        float angrad = angdeg   * (float) Math.PI / 180.0f;
         float c = (float)Math.cos(angrad);
         float ic= 1.0f - c; 
         float s = (float)Math.sin(angrad);
 
         vec3f[0]=x; vec3f[1]=y; vec3f[2]=z;
-        projectFloat.normalize(vec3f);
+        ProjectFloat.normalize(vec3f);
         x = vec3f[0]; y = vec3f[1]; z = vec3f[2];
 
         // Rotation matrix:
@@ -661,19 +631,11 @@ public class PMVMatrix implements GLMatrixFunc {
                 matrixMvit.put(j+i*4, matrixMvi.get(i+j*4));
             }
         }
-
-        // fetch 3x3
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                matrixMvit3.put(i+j*3, matrixMvit.get(i+j*4));
-            }
-        }
     }
 
-    protected FloatBuffer matrixIdent;
-    protected FloatBuffer matrixTPMvMvitPmv, matrixPMvMvit, matrixPMvMvitPmv, matrixPMvMvi, matrixPMv, matrixP, matrixT, matrixMv, matrixMvi, matrixMvit, matrixPmv;
-    protected FloatBuffer matrixMvit3;
-    protected FloatBuffer localBuf, matrixMult, matrixTrans, matrixRot, matrixScale, matrixOrtho, matrixFrustum;
+    protected FloatBuffer matrixITPMvMvitL;
+    protected FloatBuffer matrixIdent, matrixPMvMvit, matrixPMvMvi, matrixPMv, matrixP, matrixTex, matrixMv, matrixMvi, matrixMvit;
+    protected FloatBuffer matrixMult, matrixTrans, matrixRot, matrixScale, matrixOrtho, matrixFrustum;
     protected float[] vec3f;
     protected List/*FloatBuffer*/ matrixTStack, matrixPStack, matrixMvStack;
     protected int matrixMode = GL_MODELVIEW;

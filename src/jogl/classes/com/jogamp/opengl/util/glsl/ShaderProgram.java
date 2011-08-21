@@ -229,7 +229,7 @@ public class ShaderProgram {
      *  
      * @param gl
      * @param verboseOut
-     * @return
+     * @return true if program was successfully linked and is valid, otherwise false
      * 
      * @see #init(GL2ES2)
      */

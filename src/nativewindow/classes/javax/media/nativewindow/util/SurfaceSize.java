@@ -31,15 +31,15 @@ package javax.media.nativewindow.util;
 
 /** Immutable SurfaceSize Class, consisting of it's read only components:<br>
  * <ul>
- *  <li>{@link javax.media.nativewindow.util.DimensionReadOnly} size in pixels</li>
+ *  <li>{@link javax.media.nativewindow.util.DimensionImmutable} size in pixels</li>
  *  <li><code>bits per pixel</code></li>
  * </ul>
  */
 public class SurfaceSize  implements Cloneable {
-    DimensionReadOnly resolution;
+    DimensionImmutable resolution;
     int bitsPerPixel;
 
-    public SurfaceSize(DimensionReadOnly resolution, int bitsPerPixel) {
+    public SurfaceSize(DimensionImmutable resolution, int bitsPerPixel) {
         if(null==resolution || bitsPerPixel<=0) {
             throw new IllegalArgumentException("resolution must be set and bitsPerPixel greater 0");
         }
@@ -55,7 +55,7 @@ public class SurfaceSize  implements Cloneable {
         }
     }
 
-    public final DimensionReadOnly getResolution() {
+    public final DimensionImmutable getResolution() {
         return resolution;
     }
 

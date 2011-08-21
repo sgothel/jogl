@@ -10,7 +10,7 @@ import javax.media.nativewindow.*;
 import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.util.glsl.fixedfunc.*;
 
-public class RedSquare implements GLEventListener {
+public class RedSquareES1 implements GLEventListener {
 
     public static boolean glDebugEmu = false;
     public static boolean glDebug = false ;
@@ -25,11 +25,11 @@ public class RedSquare implements GLEventListener {
 
     GLU glu = null;
 
-    public RedSquare() {
+    public RedSquareES1() {
         this(false);
     }
 
-    public RedSquare(boolean debug) {
+    public RedSquareES1(boolean debug) {
         this.debug = debug;
     }
 

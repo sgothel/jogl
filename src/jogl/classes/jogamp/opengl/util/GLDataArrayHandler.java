@@ -1,6 +1,5 @@
 /**
  * Copyright 2010 JogAmp Community. All rights reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,24 +26,48 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow.util;
+package jogamp.opengl.util;
 
-/** Immutable Point interface */
-public interface PointReadOnly extends Cloneable {
+import javax.media.opengl.*;
+import com.jogamp.opengl.util.*;
 
-    int getX();
+import java.nio.*;
 
-    int getY();
+/**
+ * Used for pure VBO data arrays, i.e. where the buffer data 
+ * does not represents a specific array name. 
+ */
+public class GLDataArrayHandler implements GLArrayHandler {
+  private GLArrayDataEditable ad;
 
-    /**
-     * Checks whether two points objects are equal. Two instances
-     * of <code>PointReadOnly</code> are equal if the two components
-     * <code>y</code> and <code>x</code> are equal.
-     * @return <code>true</code> if the two points are equal;
-     *         otherwise <code>false</code>.
-     */
-    public boolean equals(Object obj);
+  public GLDataArrayHandler(GLArrayDataEditable ad) {
+    this.ad = ad;
+    if(!ad.isVBO()) {
+        // makes no sense otherwise
+        throw new GLException("GLDataArrayHandler can only handle VBOs.");
+    }
+  }
 
-    public int hashCode();
-    
+  public final void addSubHandler(GLArrayHandler handler) {
+      throw new UnsupportedOperationException();
+  }
+  
+  public final void enableBuffer(GL gl, boolean enable) {
+    if(enable) {
+        Buffer buffer = ad.getBuffer();
+
+        // always bind and refresh the VBO mgr, 
+        // in case more than one gl*Pointer objects are in use
+        gl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
+        if(!ad.isVBOWritten()) {
+            if(null!=buffer) {
+                gl.glBufferData(ad.getVBOTarget(), buffer.limit() * ad.getComponentSizeInBytes(), buffer, ad.getVBOUsage());
+            }
+            ad.setVBOWritten(true);
+        }
+    } else {
+        gl.glBindBuffer(ad.getVBOTarget(), 0);
+    }
+  }
 }
+

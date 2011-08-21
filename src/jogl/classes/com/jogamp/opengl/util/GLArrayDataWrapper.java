@@ -2,6 +2,7 @@
 package com.jogamp.opengl.util;
 
 import javax.media.opengl.*;
+import javax.media.opengl.fixedfunc.GLPointerFuncUtil;
 
 import jogamp.opengl.util.glsl.fixedfunc.*;
 
@@ -85,7 +86,7 @@ public class GLArrayDataWrapper implements GLArrayData {
         }
         return false;
     }
-    return glp.isValidArrayDataType(getIndex(), getComponentNumber(), getComponentType(), isVertexAttribute(), throwException);
+    return glp.isValidArrayDataType(getIndex(), getComponentCount(), getComponentType(), isVertexAttribute(), throwException);
   }
     
   // 
@@ -114,24 +115,24 @@ public class GLArrayDataWrapper implements GLArrayData {
   
   public final Buffer getBuffer() { return buffer; }
 
-  public final int getComponentNumber() { return components; }
+  public final int getComponentCount() { return components; }
 
   public final int getComponentType() { return componentType; }
 
-  public final int getComponentSize() { return componentSize; }
+  public final int getComponentSizeInBytes() { return componentByteSize; }
   
-  public final int getElementNumber() {
+  public final int getElementCount() {
     if(null==buffer) return 0;
     return ( buffer.position()==0 ) ? ( buffer.limit() / components ) : ( buffer.position() / components ) ;
   }
-  public final int getByteSize() {
+  public final int getSizeInBytes() {
     if(null==buffer) return 0;
-    return ( buffer.position()==0 ) ? ( buffer.limit() * componentSize ) : ( buffer.position() * componentSize ) ;      
+    return ( buffer.position()==0 ) ? ( buffer.limit() * componentByteSize ) : ( buffer.position() * componentByteSize ) ;      
   }
   
   public final boolean getNormalized() { return normalized; }
 
-  public final int getStride() { return stride; }
+  public final int getStride() { return strideB; }
 
   public final Class getBufferClass() { return componentClazz; }
 
@@ -150,9 +151,9 @@ public class GLArrayDataWrapper implements GLArrayData {
                        ", isVertexAttribute "+isVertexAttribute+
                        ", dataType "+componentType+ 
                        ", bufferClazz "+componentClazz+ 
-                       ", elements "+getElementNumber()+
+                       ", elements "+getElementCount()+
                        ", components "+components+ 
-                       ", stride "+stride+"u "+strideB+"b "+strideL+"c"+
+                       ", stride "+strideB+"b "+strideL+"c"+
                        ", buffer "+buffer+ 
                        ", vboEnabled "+vboEnabled+ 
                        ", vboName "+vboName+ 
@@ -234,7 +235,7 @@ public class GLArrayDataWrapper implements GLArrayData {
         // ok ..
     } else if( GL.GL_ARRAY_BUFFER == vboTarget ) {
         // check name ..
-        this.name = ( null == name ) ? FixedFuncPipeline.getPredefinedArrayIndexName(index) : name ;
+        this.name = ( null == name ) ? GLPointerFuncUtil.getPredefinedArrayIndexName(index) : name ;
         if(null == this.name ) {
             throw new GLException("Not a valid array buffer index: "+index);
         }        
@@ -255,8 +256,8 @@ public class GLArrayDataWrapper implements GLArrayData {
         default:    
             this.normalized = false;
     }
-    componentSize = GLBuffers.sizeOfGLType(componentType);
-    if(0 > componentSize) {
+    componentByteSize = GLBuffers.sizeOfGLType(componentType);
+    if(0 > componentByteSize) {
         throw new GLException("Given componentType not supported: "+componentType+":\n\t"+this);       
     }
     if(0 >= components) {
@@ -264,16 +265,15 @@ public class GLArrayDataWrapper implements GLArrayData {
     }
     this.components = components;
 
-    if(0<stride && stride<components*componentSize) {
-        throw new GLException("stride ("+stride+") lower than component bytes, "+components+" * "+componentSize);
+    if(0<stride && stride<components*componentByteSize) {
+        throw new GLException("stride ("+stride+") lower than component bytes, "+components+" * "+componentByteSize);
     }
-    if(0<stride && stride%componentSize!=0) {
-        throw new GLException("stride ("+stride+") not a multiple of bpc "+componentSize);
+    if(0<stride && stride%componentByteSize!=0) {
+        throw new GLException("stride ("+stride+") not a multiple of bpc "+componentByteSize);
     }
     this.buffer = data;
-    this.stride=stride;
-    this.strideB=(0==stride)?components*componentSize:stride;
-    this.strideL=(0==stride)?components:strideB/componentSize;
+    this.strideB=(0==stride)?components*componentByteSize:stride;
+    this.strideL=strideB/componentByteSize;
     this.vboName= vboName;
     this.vboEnabled= 0 != vboName ;
     this.vboOffset=vboOffset;
@@ -309,9 +309,8 @@ public class GLArrayDataWrapper implements GLArrayData {
   protected int components;
   protected int componentType;
   protected Class componentClazz;
-  protected int componentSize;
+  protected int componentByteSize;
   protected boolean normalized;
-  protected int stride;  // user given stride
   protected int strideB; // stride in bytes
   protected int strideL; // stride in logical components
   protected Buffer buffer;

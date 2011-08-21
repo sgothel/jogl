@@ -42,7 +42,7 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLUniformData;
 import org.junit.Assert;
 
-public class RedSquare0 implements GLEventListener {
+public class RedSquareES2 implements GLEventListener {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintStream pbaos = new PrintStream(baos);
     GLSLSimpleProgram myShader;
@@ -82,18 +82,10 @@ public class RedSquare0 implements GLEventListener {
         {
             // Fill them up
             FloatBuffer verticeb = (FloatBuffer) vertices.getBuffer();
-            verticeb.put(-2);
-            verticeb.put(2);
-            verticeb.put(0);
-            verticeb.put(2);
-            verticeb.put(2);
-            verticeb.put(0);
-            verticeb.put(-2);
-            verticeb.put(-2);
-            verticeb.put(0);
-            verticeb.put(2);
-            verticeb.put(-2);
-            verticeb.put(0);
+            verticeb.put(-2); verticeb.put( 2); verticeb.put( 0);
+            verticeb.put( 2); verticeb.put( 2); verticeb.put( 0);
+            verticeb.put(-2); verticeb.put(-2); verticeb.put( 0);
+            verticeb.put( 2); verticeb.put(-2); verticeb.put( 0);
         }
         buffer.flip();
         vertices.setLocation(mgl_Vertex);
@@ -111,22 +103,10 @@ public class RedSquare0 implements GLEventListener {
         {
             // Fill them up
             FloatBuffer colorb = (FloatBuffer) colors.getBuffer();
-            colorb.put(1);
-            colorb.put(0);
-            colorb.put(0);
-            colorb.put(1);
-            colorb.put(0);
-            colorb.put(0);
-            colorb.put(1);
-            colorb.put(1);
-            colorb.put(1);
-            colorb.put(0);
-            colorb.put(0);
-            colorb.put(1);
-            colorb.put(1);
-            colorb.put(0);
-            colorb.put(0);
-            colorb.put(1);
+            colorb.put(1); colorb.put(0); colorb.put(0); colorb.put(1); 
+            colorb.put(0); colorb.put(0); colorb.put(1); colorb.put(1); 
+            colorb.put(1); colorb.put(0); colorb.put(0); colorb.put(1);
+            colorb.put(1); colorb.put(0); colorb.put(0); colorb.put(1);
         }
         buffer.flip();
         colors.setLocation(mgl_Color);

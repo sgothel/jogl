@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2011 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -26,29 +26,41 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow.util;
+package jogamp.opengl.util.glsl;
 
-/** Immutable Rectangle interface */
-public interface RectangleReadOnly extends Cloneable {
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLArrayData;
+import com.jogamp.opengl.util.GLArrayHandler;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
-    int getHeight();
+/**
+ * Used for interleaved GLSL arrays, i.e. where the buffer data itself is handled 
+ * separately and interleaves many arrays.
+ */
+public class GLSLArrayHandlerFlat implements GLArrayHandler {
+  private ShaderState st;
+  private GLArrayData ad;
 
-    int getWidth();
+  public GLSLArrayHandlerFlat(ShaderState st, GLArrayData ad) {
+    this.st = st;
+    this.ad = ad;
+  }
 
-    int getX();
+  public final void addSubHandler(GLArrayHandler handler) {
+      throw new UnsupportedOperationException();
+  }
+  
+  public final void enableBuffer(GL gl, boolean enable) {
+    GL2ES2 glsl = gl.getGL2ES2();
 
-    int getY();
-
-    /**
-     * Checks whether two rect objects are equal. Two instances
-     * of <code>Rectangle</code> are equal if the four integer values
-     * of the fields <code>y</code>, <code>x</code>,
-     * <code>height</code>, and <code>width</code> are all equal.
-     * @return      <code>true</code> if the two rectangles are equal;
-     * otherwise <code>false</code>.
-     */
-    boolean equals(Object obj);
-
-    int hashCode();
+    if(enable) {
+        st.vertexAttribPointer(glsl, ad);
+        st.enableVertexAttribArray(glsl, ad);
+    } else {
+        st.disableVertexAttribArray(glsl, ad);
+    }
+  }
 
 }
+

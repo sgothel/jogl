@@ -264,25 +264,25 @@ private native long dispatch_glMapNamedBufferEXT(int buffer, int access, long pr
 native private ByteBuffer newDirectByteBuffer(long addr, long capacity);
 
     public void glVertexPointer(GLArrayData array) {
-      if(array.getComponentNumber()==0) return;
+      if(array.getComponentCount()==0) return;
       if(array.isVBO()) {
-          glVertexPointer(array.getComponentNumber(), array.getComponentType(), array.getStride(), array.getVBOOffset());
+          glVertexPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getVBOOffset());
       } else {
-          glVertexPointer(array.getComponentNumber(), array.getComponentType(), array.getStride(), array.getBuffer());
+          glVertexPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getBuffer());
       }
     }
     public void glColorPointer(GLArrayData array) {
-      if(array.getComponentNumber()==0) return;
+      if(array.getComponentCount()==0) return;
       if(array.isVBO()) {
-          glColorPointer(array.getComponentNumber(), array.getComponentType(), array.getStride(), array.getVBOOffset());
+          glColorPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getVBOOffset());
       } else {
-          glColorPointer(array.getComponentNumber(), array.getComponentType(), array.getStride(), array.getBuffer());
+          glColorPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getBuffer());
       }
 
     }
     public void glNormalPointer(GLArrayData array) {
-      if(array.getComponentNumber()==0) return;
-      if(array.getComponentNumber()!=3) {
+      if(array.getComponentCount()==0) return;
+      if(array.getComponentCount()!=3) {
         throw new GLException("Only 3 components per normal allowed");
       }
       if(array.isVBO()) {
@@ -292,11 +292,11 @@ native private ByteBuffer newDirectByteBuffer(long addr, long capacity);
       }
     }
     public void glTexCoordPointer(GLArrayData array) {
-      if(array.getComponentNumber()==0) return;
+      if(array.getComponentCount()==0) return;
       if(array.isVBO()) {
-          glTexCoordPointer(array.getComponentNumber(), array.getComponentType(), array.getStride(), array.getVBOOffset());
+          glTexCoordPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getVBOOffset());
       } else {
-          glTexCoordPointer(array.getComponentNumber(), array.getComponentType(), array.getStride(), array.getBuffer());
+          glTexCoordPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getBuffer());
       }
     }
 

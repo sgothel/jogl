@@ -51,7 +51,7 @@ import org.junit.Test;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquare;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
 
 import com.jogamp.opengl.test.junit.util.*;
 
@@ -93,7 +93,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         // Create a window.
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setTitle("testNewtChildFocus");
-        GLEventListener demo1 = new RedSquare();
+        GLEventListener demo1 = new RedSquareES1();
         TestListenerCom01AWT.setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         NEWTFocusAdapter glWindow1FA = new NEWTFocusAdapter("GLWindow1");

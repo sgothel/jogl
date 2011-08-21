@@ -55,7 +55,7 @@ public class GLSLMiscHelper {
         Assert.assertEquals(data.enabled()?GL.GL_TRUE:GL.GL_FALSE, qi[0]);
         gl.glGetVertexAttribiv(data.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
         Assert.assertEquals(data.getVBOName(), qi[0]);  
-        Assert.assertEquals(data.getByteSize(), gl.glGetBufferSize(data.getVBOName()));        
+        Assert.assertEquals(data.getSizeInBytes(), gl.glGetBufferSize(data.getVBOName()));        
     }
 
     public static void pause(long ms) throws InterruptedException {
@@ -127,7 +127,7 @@ public class GLSLMiscHelper {
         vertices0.seal(gl, true);
         Assert.assertTrue(vertices0.isVBOWritten());
         Assert.assertTrue(vertices0.sealed());
-        Assert.assertEquals(4, vertices0.getElementNumber());
+        Assert.assertEquals(4, vertices0.getElementCount());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());        
         Assert.assertEquals(vertices0.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
         validateGLArrayDataServerState(gl, st, vertices0);
@@ -147,7 +147,7 @@ public class GLSLMiscHelper {
         vertices1.seal(gl, true);
         Assert.assertTrue(vertices1.isVBOWritten());
         Assert.assertTrue(vertices1.sealed());
-        Assert.assertEquals(4, vertices1.getElementNumber());
+        Assert.assertEquals(4, vertices1.getElementCount());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         Assert.assertEquals(vertices1.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
         validateGLArrayDataServerState(gl, st, vertices1);
