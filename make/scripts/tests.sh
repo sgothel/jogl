@@ -77,7 +77,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLCanvas"
-    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.GLDebugMessageHandler"
+    D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.GLDebugMessageHandler -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler"
@@ -142,7 +142,8 @@ function testawtmt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteGLWindows01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.newt.TestGearsNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2es1.gears.newt.TestGearsGL2ES1NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated $*
 #testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
@@ -175,7 +176,7 @@ function testawtmt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461OffscreenSupersamplingSwingAWT
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestGrayTextureFromFileAWTBug417
 #testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
-testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug463ScaleImageMemoryAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug463ScaleImageMemoryAWT $*
 
 #
 # newt.awt (testawt)
@@ -226,8 +227,11 @@ testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug463ScaleImageMemoryAWT $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo02 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo02 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.mobile.GPUTextNewtDemoMobile01
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.ElektronenMultiplizierer
 
 $spath/count-edt-start.sh java-run.log
 

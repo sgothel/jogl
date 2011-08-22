@@ -1038,7 +1038,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   public static void main(String args[]) {
     System.err.println(VersionUtil.getPlatformInfo());
     System.err.println(GlueGenVersion.getInstance());
-    System.err.println(NativeWindowVersion.getInstance());
+    // System.err.println(NativeWindowVersion.getInstance());
     System.err.println(JoglVersion.getInstance());
 
     GLProfile.initSingleton(false);

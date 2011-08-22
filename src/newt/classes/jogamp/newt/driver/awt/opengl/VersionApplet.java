@@ -86,17 +86,21 @@ public class VersionApplet extends Applet {
     System.err.println(s);
     tareaVersion.append(s);
 
+    /*
     s = NativeWindowVersion.getInstance().toString();
     System.err.println(s);
-    tareaVersion.append(NativeWindowVersion.getInstance().toString());
+    tareaVersion.append(NativeWindowVersion.getInstance().toString()); 
+    */
 
     s = JoglVersion.getInstance().toString();
     System.err.println(s);
     tareaVersion.append(s);
 
+    /*
     s = NewtVersion.getInstance().toString();
     System.err.println(s);
     tareaVersion.append(s);
+    */
 
     tareaCaps = new TextArea(120, 20);
     GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);

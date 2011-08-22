@@ -27,31 +27,21 @@
  */
 package jogamp.newt.driver.android;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
-
-import com.jogamp.newt.NewtFactory;
-import com.jogamp.newt.Display;
-import com.jogamp.newt.Screen;
-import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.Window;
-import com.jogamp.newt.event.ScreenModeListener;
+import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.VersionUtil;
 import com.jogamp.newt.opengl.GLWindow;
-import jogamp.newt.driver.android.test.GearsGL2ES1;
+import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.Animator;
 
-import jogamp.newt.driver.android.AndroidWindow;
-
-import android.app.Activity;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.SurfaceView;
-import android.view.View;
+import android.widget.TextView;
 
 public class NewtVersionActivity extends NewtBaseActivity {
    GLWindow glWindow = null;
    Animator animator = null;
+   TextView tv = null;
    
    @Override
    public void onCreate(Bundle savedInstanceState) {
@@ -64,12 +54,16 @@ public class NewtVersionActivity extends NewtBaseActivity {
        System.setProperty("jogamp.debug.NativeLibrary", "true");
        // System.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
        
+       tv = new TextView(this);
+       tv.setText(VersionUtil.getPlatformInfo()+Platform.NEWLINE+GlueGenVersion.getInstance()+Platform.NEWLINE+JoglVersion.getInstance()+Platform.NEWLINE);               
+       setContentView(tv);
+       /**
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES1));
        glWindow = GLWindow.create(caps);
        setContentView(glWindow);
        
-       glWindow.addGLEventListener(new GearsGL2ES1(1));
+       glWindow.addGLEventListener(new GearsES1(1));
        glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {
         public void screenModeChangeNotify(ScreenMode sm) { }
         public void screenModeChanged(ScreenMode sm, boolean success) {
@@ -78,7 +72,7 @@ public class NewtVersionActivity extends NewtBaseActivity {
        });
        glWindow.setVisible(true);
        animator = new Animator(glWindow);
-       animator.setUpdateFPSFrames(60, System.err);
+       animator.setUpdateFPSFrames(60, System.err); */
        
        Log.d(MD.TAG, "onCreate - X");
    }

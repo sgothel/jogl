@@ -1,9 +1,5 @@
 #! /bin/sh
 
-if [ -e ../../setenv-build-jogl-x86_64.sh ] ; then
-    . ../../setenv-build-jogl-x86_64.sh
-fi
-
 if [ -z "$ANT_PATH" ] ; then
     if [ -e /usr/share/ant/bin/ant -a -e /usr/share/ant/lib/ant.jar ] ; then
         ANT_PATH=/usr/share/ant

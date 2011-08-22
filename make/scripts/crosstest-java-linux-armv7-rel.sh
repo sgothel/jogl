@@ -1,5 +1,6 @@
 export HOST_UID=sven
 export HOST_IP=192.168.0.52
+#export HOST_IP=192.168.1.5
 export HOST_RSYNC_ROOT=PROJECTS/JOGL
 
 export TARGET_UID=jogamp
@@ -13,7 +14,7 @@ export ANT_PATH=/usr/share/ant
 
 #TSTCLASS=com.jogamp.nativewindow.NativeWindowVersion
 #TSTCLASS=com.jogamp.opengl.JoglVersion
-TSTCLASS=com.jogamp.newt.NewtVersion
+#TSTCLASS=com.jogamp.newt.NewtVersion
 #TSTCLASS=com.jogamp.newt.opengl.GLWindow
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLSimple01NEWT
@@ -22,7 +23,8 @@ TSTCLASS=com.jogamp.newt.NewtVersion
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
 #TSTCLASS=com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo01
 #TSTCLASS=com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo02
-#TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.gl2es1.gears.newt.TestGearsGL2ES1NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT
+TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT
 
 LOGFILE=`basename $0 .sh`.log
 
