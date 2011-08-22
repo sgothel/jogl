@@ -43,10 +43,6 @@ public class GLDataArrayHandler implements GLArrayHandler {
 
   public GLDataArrayHandler(GLArrayDataEditable ad) {
     this.ad = ad;
-    if(!ad.isVBO()) {
-        // makes no sense otherwise
-        throw new GLException("GLDataArrayHandler can only handle VBOs.");
-    }
   }
 
   public final void addSubHandler(GLArrayHandler handler) {
@@ -54,6 +50,10 @@ public class GLDataArrayHandler implements GLArrayHandler {
   }
   
   public final void syncData(GL gl, boolean enable) {
+    if(!ad.isVBO()) {
+        // makes no sense otherwise
+        throw new GLException("GLDataArrayHandler can only handle VBOs.");
+    }
     if(enable) {
         Buffer buffer = ad.getBuffer();
 
