@@ -9,7 +9,7 @@ set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%PATH%
 set BLD_DIR=..\%BLD_SUB%
 set LIB_DIR=%BLD_DIR%\lib;..\..\gluegen\%BLD_SUB%\obj
 
-set CP_ALL=.;%BLD_DIR%\jogl\jogl.all.jar;%BLD_DIR%\nativewindow\nativewindow.all.jar;%BLD_DIR%\newt\newt.all.jar;%BLD_DIR%\jogl\jogl.test.jar;..\..\gluegen\%BLD_SUB%\gluegen-rt.jar;..\..\gluegen\make\lib\junit.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar;%BLD_DIR%\..\make\lib\swt\win32-win32-x86_64\swt-debug.jar
+set CP_ALL=.;%BLD_DIR%\jar\jogl.all.jar;%BLD_DIR%\test\build\jogl.test.jar;..\..\gluegen\%BLD_SUB%\gluegen-rt.jar;..\..\gluegen\make\lib\junit.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar;%BLD_DIR%\..\make\lib\swt\win32-win32-x86_64\swt-debug.jar
 
 echo CP_ALL %CP_ALL%
 
@@ -18,9 +18,9 @@ REM set D_ARGS="-Djogl.debug.GLContext" "-Djogl.debug.ExtensionAvailabilityCache
 REM set D_ARGS="-Djogl.debug.GraphicsConfiguration"
 REM set D_ARGS="-Djogamp.debug.JNILibLoader=true" "-Djogamp.debug.NativeLibrary=true" "-Djogamp.debug.NativeLibrary.Lookup=true" "-Djogl.debug.GLProfile=true"
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug.Lock" "-Djogamp.debug.Lock.TraceLock"
-REM set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all"
+set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all"
 REM set D_ARGS="-Djogl.debug=all"
-set D_ARGS="-Djogl.debug.GLDebugMessageHandler" "-Djogl.debug.DebugGL" "-Djogl.debug.TraceGL"
+REM set D_ARGS="-Djogl.debug.GLDebugMessageHandler" "-Djogl.debug.DebugGL" "-Djogl.debug.TraceGL"
 REM set D_ARGS="-Djogl.debug.GLContext" "-Dnewt.debug=all"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnativewindow.debug.TraceLock"
 REM set D_ARGS="-Dnativewindow.debug.TraceLock"
