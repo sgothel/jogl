@@ -51,16 +51,20 @@ public class GLSLArrayHandlerFlat implements GLArrayHandler {
       throw new UnsupportedOperationException();
   }
   
-  public final void enableBuffer(GL gl, boolean enable) {
-    GL2ES2 glsl = gl.getGL2ES2();
+  public final void syncData(GL gl, boolean enable) {
+    if(enable) {
+        st.vertexAttribPointer(gl.getGL2ES2(), ad);
+    }
+  }
+
+  public final void enableState(GL gl, boolean enable) {
+    final GL2ES2 glsl = gl.getGL2ES2();
 
     if(enable) {
-        st.vertexAttribPointer(glsl, ad);
         st.enableVertexAttribArray(glsl, ad);
     } else {
         st.disableVertexAttribArray(glsl, ad);
     }
-  }
-
+  }  
 }
 

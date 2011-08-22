@@ -29,6 +29,7 @@
 package jogamp.opengl.util;
 
 import javax.media.opengl.*;
+
 import com.jogamp.opengl.util.*;
 
 import java.nio.*;
@@ -52,7 +53,7 @@ public class GLDataArrayHandler implements GLArrayHandler {
       throw new UnsupportedOperationException();
   }
   
-  public final void enableBuffer(GL gl, boolean enable) {
+  public final void syncData(GL gl, boolean enable) {
     if(enable) {
         Buffer buffer = ad.getBuffer();
 
@@ -67,7 +68,11 @@ public class GLDataArrayHandler implements GLArrayHandler {
         }
     } else {
         gl.glBindBuffer(ad.getVBOTarget(), 0);
-    }
+    }      
+  }
+  
+  public final void enableState(GL gl, boolean enable) { 
+      // no array association
   }
 }
 

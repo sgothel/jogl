@@ -54,15 +54,15 @@ public class GLFixedArrayHandlerInterleaved implements GLArrayHandler {
       subArrays.add(handler);
   }
 
-  private final void enableSubBuffer(GL gl, boolean enable) {
+  private final void syncSubData(GL gl, boolean enable) {
       for(int i=0; i<subArrays.size(); i++) {
-          subArrays.get(i).enableBuffer(gl, enable);
+          subArrays.get(i).syncData(gl, enable);
       }      
   }
   
-  public final void enableBuffer(GL gl, boolean enable) {
+  public final void syncData(GL gl, boolean enable) {
     if(enable) {
-        Buffer buffer = ad.getBuffer();
+        final Buffer buffer = ad.getBuffer();
 
         if(ad.isVBO()) {
             // always bind and refresh the VBO mgr, 
@@ -75,13 +75,19 @@ public class GLFixedArrayHandlerInterleaved implements GLArrayHandler {
                 ad.setVBOWritten(true);
             }
         }
-        enableSubBuffer(gl, true);
+        syncSubData(gl, true);
     } else {
-        enableSubBuffer(gl, false);
+        syncSubData(gl, false);
         if(ad.isVBO()) {
             gl.glBindBuffer(ad.getVBOTarget(), 0);
         }
     }
+  }
+  
+  public final void enableState(GL gl, boolean enable) {
+    for(int i=0; i<subArrays.size(); i++) {
+        subArrays.get(i).enableState(gl, enable);
+    }      
   }
 }
 

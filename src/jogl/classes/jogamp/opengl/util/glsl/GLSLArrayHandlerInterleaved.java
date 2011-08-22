@@ -60,21 +60,22 @@ public class GLSLArrayHandlerInterleaved implements GLArrayHandler {
       subArrays.add(handler);
   }
 
-  private final void enableSubBuffer(GL gl, boolean enable) {
+  private final void syncSubData(GL gl, boolean enable) {
       for(int i=0; i<subArrays.size(); i++) {
-          subArrays.get(i).enableBuffer(gl, enable);
+          subArrays.get(i).syncData(gl, enable);
       }      
   }
   
-  public final void enableBuffer(GL gl, boolean enable) {
+  public final void syncData(GL gl, boolean enable) {
     GL2ES2 glsl = gl.getGL2ES2();
 
     if(enable) {
         Buffer buffer = ad.getBuffer();
 
+        /*
+         * This would be the non optimized code path:
+         * 
         if(ad.isVBO()) {
-            // always bind and refresh the VBO mgr, 
-            // in case more than one attributes are in use
             glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
             if(!ad.isVBOWritten()) {
                 if(null!=buffer) {
@@ -83,13 +84,42 @@ public class GLSLArrayHandlerInterleaved implements GLArrayHandler {
                 ad.setVBOWritten(true);
             }
         }
-        enableSubBuffer(gl, true);
+        syncSubData(gl, true);
+        */
+        if(ad.isVBO()) {
+            // bind and refresh the VBO / vertex-attr only if necessary
+            if(!ad.isVBOWritten()) {
+                glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
+                if(null!=buffer) {
+                    glsl.glBufferData(ad.getVBOTarget(), ad.getSizeInBytes(), buffer, ad.getVBOUsage());
+                }
+                ad.setVBOWritten(true);
+                syncSubData(gl, true);
+            } else if(st.getAttribLocation(glsl, ad) >= 0) {
+                // didn't experience a performance hit on this query ..
+                // (using ShaderState's location query above to validate the location)
+                final int[] qi = new int[1];
+                glsl.glGetVertexAttribiv(ad.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
+                if(ad.getVBOName() != qi[0]) {
+                    glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
+                    syncSubData(gl, true);
+                }
+            }
+        } else if(null!=buffer) {
+            syncSubData(gl, true);
+        }
     } else {
-        enableSubBuffer(gl, false);
+        syncSubData(gl, false);
         if(ad.isVBO()) {
             glsl.glBindBuffer(ad.getVBOTarget(), 0);
         }
-    }
+    }      
+  }
+  
+  public final void enableState(GL gl, boolean enable) {
+    for(int i=0; i<subArrays.size(); i++) {
+        subArrays.get(i).enableState(gl, enable);
+    }      
   }
 
 }

@@ -45,7 +45,7 @@ public class GLSLMiscHelper {
         if(null != st) {            
             Assert.assertEquals(data, st.getAttribute(data.getName()));            
             if(st.shaderProgram().linked()) {
-                Assert.assertEquals(data.getLocation(), st.getAttribLocation(data.getName()));
+                Assert.assertEquals(data.getLocation(), st.getCachedAttribLocation(data.getName()));
                 Assert.assertEquals(data.getLocation(), st.getAttribLocation(gl, data));
                 Assert.assertEquals(data.getLocation(), st.getAttribLocation(gl, data.getName()));
                 Assert.assertEquals(data.getLocation(), gl.glGetAttribLocation(st.shaderProgram().program(), data.getName()));                

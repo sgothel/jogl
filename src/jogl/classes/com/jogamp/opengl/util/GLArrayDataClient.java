@@ -162,7 +162,13 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
             // init/generate VBO name if not done yet
             init_vbo(gl);
         }
-        glArrayHandler.enableBuffer(gl, enable);
+        if(enable) {
+            glArrayHandler.syncData(gl, true);
+            glArrayHandler.enableState(gl, true);
+        } else {
+            glArrayHandler.enableState(gl, false);
+            glArrayHandler.syncData(gl, false);
+        }
         bufferEnabled = enable;
     }
   }

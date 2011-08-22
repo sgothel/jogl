@@ -32,7 +32,7 @@ import java.nio.Buffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLException;
+
 import com.jogamp.opengl.util.GLArrayDataEditable;
 import com.jogamp.opengl.util.GLArrayHandler;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -54,12 +54,25 @@ public class GLSLArrayHandler implements GLArrayHandler {
       throw new UnsupportedOperationException();
   }
   
-  public final void enableBuffer(GL gl, boolean enable) {
-    GL2ES2 glsl = gl.getGL2ES2();
+  public final void syncData(GL gl, boolean enable) {
+    final GL2ES2 glsl = gl.getGL2ES2();
 
     if(enable) {
-        Buffer buffer = ad.getBuffer();
-
+        final Buffer buffer = ad.getBuffer();
+        /*
+         * This would be the non optimized code path:
+         * 
+        if(ad.isVBO()) {
+            glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
+            if(!ad.isVBOWritten()) {
+                if(null!=buffer) {
+                    glsl.glBufferData(ad.getVBOTarget(), ad.getSizeInBytes(), buffer, ad.getVBOUsage());
+                }
+                ad.setVBOWritten(true);
+            }
+        }
+        st.vertexAttribPointer(glsl, ad);
+        */
         if(ad.isVBO()) {
             // bind and refresh the VBO / vertex-attr only if necessary
             if(!ad.isVBOWritten()) {
@@ -69,8 +82,9 @@ public class GLSLArrayHandler implements GLArrayHandler {
                 }
                 ad.setVBOWritten(true);
                 st.vertexAttribPointer(glsl, ad);
-            } else if(ad.getLocation() >= 0) {
+            } else if(st.getAttribLocation(glsl, ad) >= 0) {
                 // didn't experience a performance hit on this query ..
+                // (using ShaderState's location query above to validate the location)
                 final int[] qi = new int[1];
                 glsl.glGetVertexAttribiv(ad.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
                 if(ad.getVBOName() != qi[0]) {
@@ -81,12 +95,18 @@ public class GLSLArrayHandler implements GLArrayHandler {
         } else if(null!=buffer) {
             st.vertexAttribPointer(glsl, ad);
         }
+    } else if(ad.isVBO()) {
+        glsl.glBindBuffer(ad.getVBOTarget(), 0);
+    }      
+  }
+  
+  public final void enableState(GL gl, boolean enable) {
+    final GL2ES2 glsl = gl.getGL2ES2();
+
+    if(enable) {
         st.enableVertexAttribArray(glsl, ad);
     } else {
         st.disableVertexAttribArray(glsl, ad);
-        if(ad.isVBO()) {
-            glsl.glBindBuffer(ad.getVBOTarget(), 0);
-        }
     }
   }
 

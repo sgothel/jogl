@@ -9,8 +9,8 @@ REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedCon
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT -time 30000
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT $*
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT %1 %2 %3
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %1 %2 %3
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT -time 5000
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT -time 5000
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01
@@ -61,7 +61,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestO
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT
-REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo02

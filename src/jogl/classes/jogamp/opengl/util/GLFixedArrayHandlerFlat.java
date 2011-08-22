@@ -50,29 +50,31 @@ public class GLFixedArrayHandlerFlat implements GLArrayHandler {
       throw new UnsupportedOperationException();
   }
   
-  private final void passArrayPointer(GLPointerFunc gl) {
-    switch(ad.getIndex()) {
-        case GLPointerFunc.GL_VERTEX_ARRAY:
-            gl.glVertexPointer(ad);
-            break;
-        case GLPointerFunc.GL_NORMAL_ARRAY:
-            gl.glNormalPointer(ad);
-            break;
-        case GLPointerFunc.GL_COLOR_ARRAY:
-            gl.glColorPointer(ad);
-            break;
-        case GLPointerFunc.GL_TEXTURE_COORD_ARRAY:
-            gl.glTexCoordPointer(ad);
-            break;
-        default:
-            throw new GLException("invalid glArrayIndex: "+ad.getIndex()+":\n\t"+ad); 
+  public final void syncData(GL gl, boolean enable) {
+    if(enable) {
+        final GLPointerFunc glp = gl.getGL2ES1();
+        switch(ad.getIndex()) {
+            case GLPointerFunc.GL_VERTEX_ARRAY:
+                glp.glVertexPointer(ad);
+                break;
+            case GLPointerFunc.GL_NORMAL_ARRAY:
+                glp.glNormalPointer(ad);
+                break;
+            case GLPointerFunc.GL_COLOR_ARRAY:
+                glp.glColorPointer(ad);
+                break;
+            case GLPointerFunc.GL_TEXTURE_COORD_ARRAY:
+                glp.glTexCoordPointer(ad);
+                break;
+            default:
+                throw new GLException("invalid glArrayIndex: "+ad.getIndex()+":\n\t"+ad); 
+        }
     }
   }
 
-  public final void enableBuffer(GL gl, boolean enable) {
-    GLPointerFunc glp = gl.getGL2ES1();
+  public final void enableState(GL gl, boolean enable) {
+    final GLPointerFunc glp = gl.getGL2ES1();
     if(enable) {
-        passArrayPointer(glp);
         glp.glEnableClientState(ad.getIndex());        
     } else {
         glp.glDisableClientState(ad.getIndex());

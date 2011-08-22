@@ -11,13 +11,21 @@ import javax.media.opengl.*;
 public interface GLArrayHandler {
 
   /**
-   * Implementation shall ensure the buffers data is synchronized to the GPU
-   * and the array state is enabled.
+   * Implementation shall associate the data with the array
+   * and synchronize the data with the GPU.
+   * 
+   * @param gl current GL object
+   * @param enable true if array data shall be valid, otherwise false.
+   */
+  public void syncData(GL gl, boolean enable);
+  
+  /**
+   * Implementation shall enable or disable the array state.
    * 
    * @param gl current GL object
    * @param enable true if array shall be enabled, otherwise false.
    */
-  public void enableBuffer(GL gl, boolean enable);
+  public void enableState(GL gl, boolean enable);
   
   /**
    * Supporting interleaved arrays, where sub handlers may handle 
