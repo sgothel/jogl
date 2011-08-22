@@ -40,7 +40,7 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.newt.opengl.GLWindow;
 
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 

@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- package com.jogamp.opengl.test.junit.jogl.demos.gl2.gears;
+ package com.jogamp.opengl.test.junit.jogl.demos.gl2.awt;
 
 import javax.media.opengl.*;
 
@@ -34,6 +34,7 @@ import com.jogamp.opengl.util.FPSAnimator;
 import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.gl2.GLUgl2;
 
+import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.awt.AWTException;
 import java.awt.BorderLayout;

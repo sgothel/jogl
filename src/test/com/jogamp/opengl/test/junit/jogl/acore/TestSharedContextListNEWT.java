@@ -38,7 +38,7 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;

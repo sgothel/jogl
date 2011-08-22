@@ -60,7 +60,7 @@ import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 
 public class TestParenting01aAWT extends UITestCase {
     static int width, height;

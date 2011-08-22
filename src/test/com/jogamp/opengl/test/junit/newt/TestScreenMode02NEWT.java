@@ -46,7 +46,7 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.util.ScreenModeUtil;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.util.List;
 import javax.media.nativewindow.util.Dimension;

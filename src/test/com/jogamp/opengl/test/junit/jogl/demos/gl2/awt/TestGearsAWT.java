@@ -26,33 +26,34 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.demos.gl2.gears;
+package com.jogamp.opengl.test.junit.jogl.demos.gl2.awt;
 
 import javax.media.opengl.*;
 
-import com.jogamp.opengl.util.FPSAnimator;
-import javax.media.opengl.awt.GLJPanel;
+import com.jogamp.opengl.util.Animator;
+import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.newt.event.awt.AWTKeyAdapter;
+import com.jogamp.newt.event.awt.AWTWindowAdapter;
+import com.jogamp.newt.event.TraceKeyAdapter;
+import com.jogamp.newt.event.TraceWindowAdapter;
 
+import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import java.awt.AWTException;
-import java.awt.BorderLayout;
-import java.lang.reflect.InvocationTargetException;
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
+import com.jogamp.opengl.test.junit.util.QuitAdapter;
+import java.awt.Frame;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
-public class TestGearsGLJPanelAWT extends UITestCase {
+public class TestGearsAWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(false);
+        GLProfile.initSingleton(true);
         glp = GLProfile.getDefault();
         Assert.assertNotNull(glp);
         width  = 512;
@@ -63,56 +64,48 @@ public class TestGearsGLJPanelAWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps)
-            throws AWTException, InterruptedException, InvocationTargetException
-    {
-        JFrame frame = new JFrame("Swing GLJPanel");
+    protected void runTestGL(GLCapabilities caps) throws InterruptedException {
+        Frame frame = new Frame("Gears AWT Test");
         Assert.assertNotNull(frame);
 
-        GLJPanel glJPanel = new GLJPanel(caps);
-        Assert.assertNotNull(glJPanel);
-        glJPanel.addGLEventListener(new Gears());
+        GLCanvas glCanvas = new GLCanvas(caps);
+        Assert.assertNotNull(glCanvas);
+        frame.add(glCanvas);
+        frame.setSize(512, 512);
 
-        FPSAnimator animator = new FPSAnimator(glJPanel, 60);
+        glCanvas.addGLEventListener(new Gears());
 
-        final JFrame _frame = frame;
-        final GLJPanel _glJPanel = glJPanel;
-        SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    _frame.getContentPane().add(_glJPanel, BorderLayout.CENTER);
-                    _frame.setSize(512, 512);
-                    _frame.setVisible(true);
-                } } ) ;
+        Animator animator = new Animator(glCanvas);
+        QuitAdapter quitAdapter = new QuitAdapter();
 
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glCanvas);
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+
+        frame.setVisible(true);
         animator.setUpdateFPSFrames(1, null);        
         animator.start();
-        Assert.assertEquals(true, animator.isAnimating());
 
-        while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
+        while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
 
         Assert.assertNotNull(frame);
-        Assert.assertNotNull(glJPanel);
+        Assert.assertNotNull(glCanvas);
         Assert.assertNotNull(animator);
 
         animator.stop();
         Assert.assertEquals(false, animator.isAnimating());
-        SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    _frame.setVisible(false);
-                    _frame.getContentPane().remove(_glJPanel);
-                    _frame.remove(_glJPanel);
-                    _glJPanel.destroy();
-                    _frame.dispose();
-                } } );
+        frame.setVisible(false);
+        Assert.assertEquals(false, frame.isVisible());
+        frame.remove(glCanvas);
+        frame.dispose();
+        frame=null;
+        glCanvas=null;
     }
 
     @Test
-    public void test01()
-            throws AWTException, InterruptedException, InvocationTargetException
-    {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+    public void test01() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps);
     }
 
@@ -127,6 +120,6 @@ public class TestGearsGLJPanelAWT extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             }
         }
-        org.junit.runner.JUnitCore.main(TestGearsGLJPanelAWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGearsAWT.class.getName());
     }
 }

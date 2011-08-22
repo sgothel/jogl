@@ -39,7 +39,8 @@ import com.jogamp.newt.opengl.*;
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.gears.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+
 import javax.media.nativewindow.AbstractGraphicsDevice;
 
 public class TestGLWindows00NEWT extends UITestCase {

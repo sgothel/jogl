@@ -1,5 +1,5 @@
 
-package com.jogamp.opengl.test.junit.jogl.demos.gl2.gears;
+package com.jogamp.opengl.test.junit.jogl.demos.gl2;
 
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
