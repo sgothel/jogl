@@ -59,8 +59,8 @@ public class GearsObjectES2 extends GearsObject {
     public void addInterleavedVertexAndNormalArrays(GLArrayDataServer array,
             int components) {
         final ShaderState st = ShaderState.getCurrentShaderState();
-        array.addGLSLSubArray(st, "vertices", 3);
-        array.addGLSLSubArray(st, "normals", 3);
+        array.addGLSLSubArray(st, "vertices", 3, GL.GL_ARRAY_BUFFER);
+        array.addGLSLSubArray(st, "normals", 3, GL.GL_ARRAY_BUFFER);
     }
 
     private void draw(GL2ES2 gl, GLArrayDataServer array, int mode) {

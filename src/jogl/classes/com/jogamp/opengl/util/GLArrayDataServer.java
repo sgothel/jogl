@@ -37,9 +37,6 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    * see {@link GLPointerFuncUtil#getPredefinedArrayIndexName(int)}.
    *              
    * @param index The GL array index
-   * @param name  The optional custom name for the GL array index, maybe null.
-   *              If null, the default name mapping will be used, see 'getPredefinedArrayIndexName(int)'.
-   *              This name might be used as the shader attribute name.
    * @param comps The array component number
    * @param dataType The array index GL data type
    * @param normalized Whether the data shall be normalized
@@ -97,7 +94,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    * and starting with a new created Buffer object with initialSize size
    * 
    * @param st The ShaderState managing the state of the used shader program, vertex attributes and uniforms
-   * @param name  The custom name for the GL attribute, maybe null if gpuBufferTarget is {@link GL#GL_ELEMENT_ARRAY_BUFFER}    
+   * @param name  The custom name for the GL attribute    
    * @param comps The array component number
    * @param dataType The array index GL data type
    * @param normalized Whether the data shall be normalized
@@ -121,7 +118,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    * and starting with a given Buffer object incl it's stride
    * 
    * @param st The ShaderState managing the state of the used shader program, vertex attributes and uniforms
-   * @param name  The custom name for the GL attribute, maybe null if gpuBufferTarget is     
+   * @param name  The custom name for the GL attribute     
    * @param comps The array component number
    * @param dataType The array index GL data type
    * @param normalized Whether the data shall be normalized
@@ -188,6 +185,19 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
   }
 
   
+  /**
+   * Create a VBO for interleaved array data
+   * starting with a new created Buffer object with initialSize size.
+   * <p>User needs to <i>configure</i> the interleaved segments via {@link #addFixedSubArray(int, int, int)}
+   * for fixed function arrays or via {@link #addGLSLSubArray(ShaderState, String, int, int)} for GLSL 
+   * attributes.</p>  
+   * 
+   * @param comps The total number of all interleaved components.
+   * @param dataType The array index GL data type
+   * @param normalized Whether the data shall be normalized
+   * @param initialSize 
+   * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
+   */
   public static GLArrayDataServer createInterleaved(int comps, int dataType, boolean normalized, int initialSize, 
                                               int vboUsage)
     throws GLException
@@ -201,7 +211,22 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
 
   int interleavedOffset = 0;
   
-  public GLArrayData addFixedSubArray(int index, int comps) {
+  /**
+   * Configure a segment of this interleaved array (see {@link #createInterleaved(int, int, boolean, int, int)})
+   * for fixed function usage.
+   * <p>
+   * This method may be called several times as long the sum of interleaved components does not
+   * exceed the total number of components of the created interleaved array.</p>
+   * <p>
+   * The memory of the the interleaved array is being used.</p>
+   * <p>
+   * Must be called before using the array, eg: {@link #seal(boolean)}, {@link #putf(float)}, .. </p>
+   * 
+   * @param index The GL array index, maybe -1 if vboTarget is {@link GL#GL_ELEMENT_ARRAY_BUFFER}
+   * @param comps This interleaved array segment's component number
+   * @param vboTarget {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
+   */
+  public GLArrayData addFixedSubArray(int index, int comps, int vboTarget) {
       if(interleavedOffset >= getComponentCount() * getComponentSizeInBytes()) {
           final int iOffC = interleavedOffset / getComponentSizeInBytes();
           throw new GLException("Interleaved offset > total components ("+iOffC+" > "+getComponentCount()+")");
@@ -209,15 +234,33 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
       GLArrayDataWrapper ad = GLArrayDataWrapper.createFixed(
               index, comps, getComponentType(), 
               getNormalized(), getStride(), getBuffer(), 
-              getVBOName(), interleavedOffset, getVBOUsage());
+              getVBOName(), interleavedOffset, getVBOUsage(), vboTarget);
       ad.setVBOEnabled(isVBO());
       interleavedOffset += comps * getComponentSizeInBytes();
-      GLArrayHandler handler = new GLFixedArrayHandlerFlat(ad);
-      glArrayHandler.addSubHandler(handler);
+      if(GL.GL_ARRAY_BUFFER == vboTarget) { 
+          GLArrayHandler handler = new GLFixedArrayHandlerFlat(ad);
+          glArrayHandler.addSubHandler(handler);
+      }
       return ad;
   }
   
-  public GLArrayData addGLSLSubArray(ShaderState st, String name, int comps) {
+  /**
+   * Configure a segment of this interleaved array (see {@link #createInterleaved(int, int, boolean, int, int)})
+   * for GLSL usage.
+   * <p>
+   * This method may be called several times as long the sum of interleaved components does not
+   * exceed the total number of components of the created interleaved array.</p>
+   * <p>
+   * The memory of the the interleaved array is being used.</p>
+   * <p>
+   * Must be called before using the array, eg: {@link #seal(boolean)}, {@link #putf(float)}, .. </p>
+   * 
+   * @param st The ShaderState managing the state of the used shader program, vertex attributes and uniforms
+   * @param name  The custom name for the GL attribute, maybe null if vboTarget is {@link GL#GL_ELEMENT_ARRAY_BUFFER}
+   * @param comps This interleaved array segment's component number
+   * @param vboTarget {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
+   */
+  public GLArrayData addGLSLSubArray(ShaderState st, String name, int comps, int vboTarget) {
       if(interleavedOffset >= getComponentCount() * getComponentSizeInBytes()) {
           final int iOffC = interleavedOffset / getComponentSizeInBytes();
           throw new GLException("Interleaved offset > total components ("+iOffC+" > "+getComponentCount()+")");
@@ -225,11 +268,13 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
       GLArrayDataWrapper ad = GLArrayDataWrapper.createGLSL(
               name, comps, getComponentType(), 
               getNormalized(), getStride(), getBuffer(), 
-              getVBOName(), interleavedOffset, getVBOUsage());     
+              getVBOName(), interleavedOffset, getVBOUsage(), vboTarget);     
       ad.setVBOEnabled(isVBO());
       interleavedOffset += comps * getComponentSizeInBytes();
-      GLArrayHandler handler = new GLSLArrayHandlerFlat(st, ad);
-      glArrayHandler.addSubHandler(handler);
+      if(GL.GL_ARRAY_BUFFER == vboTarget) { 
+          GLArrayHandler handler = new GLSLArrayHandlerFlat(st, ad);
+          glArrayHandler.addSubHandler(handler);
+      }
       return ad;
   }
   

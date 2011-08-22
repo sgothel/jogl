@@ -78,7 +78,7 @@ public class RedSquareES2 implements GLEventListener {
         Assert.assertTrue(0 <= mgl_Vertex);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         FloatBuffer buffer = Buffers.newDirectFloatBuffer(numElements * components);
-        GLArrayDataWrapper vertices = GLArrayDataWrapper.createGLSL("mgl_Vertex", 3, gl.GL_FLOAT, false, 0, buffer, 0, 0, 0);
+        GLArrayDataWrapper vertices = GLArrayDataWrapper.createGLSL("mgl_Vertex", 3, gl.GL_FLOAT, false, 0, buffer, 0, 0, 0, GL.GL_ARRAY_BUFFER);
         {
             // Fill them up
             FloatBuffer verticeb = (FloatBuffer) vertices.getBuffer();
@@ -99,7 +99,7 @@ public class RedSquareES2 implements GLEventListener {
         Assert.assertTrue(0 <= mgl_Color);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         buffer = Buffers.newDirectFloatBuffer(numElements * components);
-        GLArrayDataWrapper colors = GLArrayDataWrapper.createGLSL("mgl_Color", 4, gl.GL_FLOAT, false, 0, buffer, 0, 0, 0);
+        GLArrayDataWrapper colors = GLArrayDataWrapper.createGLSL("mgl_Color", 4, gl.GL_FLOAT, false, 0, buffer, 0, 0, 0, GL.GL_ARRAY_BUFFER);
         {
             // Fill them up
             FloatBuffer colorb = (FloatBuffer) colors.getBuffer();

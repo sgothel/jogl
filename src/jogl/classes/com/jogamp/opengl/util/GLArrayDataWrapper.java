@@ -22,19 +22,19 @@ public class GLArrayDataWrapper implements GLArrayData {
    * @param vboName
    * @param vboOffset
    * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
-   * 
+   * @param vboTarget {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
    * @return the new create instance
    * 
    * @throws GLException
    */
   public static GLArrayDataWrapper createFixed(int index, int comps, int dataType, boolean normalized, int stride, 
                                                Buffer buffer, int vboName,
-                                               long vboOffset, int vboUsage)
+                                               long vboOffset, int vboUsage, int vboTarget)
     throws GLException
   {
       GLArrayDataWrapper adc = new GLArrayDataWrapper();
       adc.init(null, index, comps, dataType, normalized, stride, buffer, false, 
-               vboName, vboOffset, vboUsage, GL.GL_ARRAY_BUFFER);
+               vboName, vboOffset, vboUsage, vboTarget);
       return adc;
   }
 
@@ -50,18 +50,18 @@ public class GLArrayDataWrapper implements GLArrayData {
    * @param vboName
    * @param vboOffset
    * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
-   * 
+   * @param vboTarget {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
    * @return the new create instance
    * @throws GLException
    */
   public static GLArrayDataWrapper createGLSL(String name, int comps, int dataType, boolean normalized, int stride, 
                                              Buffer buffer, int vboName,                                             
-                                             long vboOffset, int vboUsage)
+                                             long vboOffset, int vboUsage, int vboTarget)
     throws GLException
   {
       GLArrayDataWrapper adc = new GLArrayDataWrapper();
       adc.init(name, -1, comps, dataType, normalized, stride, buffer, true,
-              vboName, vboOffset, vboUsage, GL.GL_ARRAY_BUFFER);
+              vboName, vboOffset, vboUsage, vboTarget);
       return adc;
   }
 

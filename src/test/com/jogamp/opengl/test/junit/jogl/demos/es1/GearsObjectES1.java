@@ -44,8 +44,8 @@ public class GearsObjectES1 extends GearsObject {
     @Override
     public void addInterleavedVertexAndNormalArrays(GLArrayDataServer array,
             int components) {
-        array.addFixedSubArray(GLPointerFunc.GL_VERTEX_ARRAY, 3);
-        array.addFixedSubArray(GLPointerFunc.GL_NORMAL_ARRAY, 3);
+        array.addFixedSubArray(GLPointerFunc.GL_VERTEX_ARRAY, 3, GL.GL_ARRAY_BUFFER);
+        array.addFixedSubArray(GLPointerFunc.GL_NORMAL_ARRAY, 3, GL.GL_ARRAY_BUFFER);
     }
 
     private void draw(GL2ES1 gl, GLArrayDataServer array, int mode) {
