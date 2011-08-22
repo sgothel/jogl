@@ -28,6 +28,7 @@
  
 package jogamp.opengl.egl;
 
+import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
@@ -61,8 +62,14 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
     /** Might be a desktop GL library, and might need to allow symbol access to subsequent libs */
     public boolean shallLinkGlobal() { return true; }
     
-    public boolean shallLookupGlobal() { return true; }
-
+    public boolean shallLookupGlobal() {
+        if ( AndroidVersion.isAvailable ) {
+            // Android requires global symbol lookup
+            return true;
+        }
+        // default behavior for other platforms
+        return false;
+    }
     
     public final List getToolGetProcAddressFuncNameList() {
         List res = new ArrayList();
