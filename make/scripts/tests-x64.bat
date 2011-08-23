@@ -35,6 +35,7 @@ REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
+scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT
@@ -61,7 +62,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestO
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo02
@@ -72,7 +73,7 @@ REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
 
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
 
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01

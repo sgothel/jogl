@@ -41,9 +41,12 @@ import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.event.ScreenModeListener;
+import com.jogamp.newt.util.MonitorMode;
 import com.jogamp.newt.util.ScreenModeUtil;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.nativewindow.util.SurfaceSize;
 
 import java.security.*;
 import java.util.ArrayList;
@@ -61,13 +64,21 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     protected int width=-1, height=-1; // detected values: set using setScreenSize
     protected static int usrWidth=-1, usrHeight=-1; // property values: newt.ws.swidth and newt.ws.sheight
     private static AccessControlContext localACC = AccessController.getContext();
-    private List/*<ScreenModeListener>*/ referencedScreenModeListener = new ArrayList();
+    private ArrayList<ScreenModeListener> referencedScreenModeListener = new ArrayList<ScreenModeListener>();
     long t0; // creationTime
 
-    private static Class getScreenClass(String type) 
-    throws ClassNotFoundException 
+    static {
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+                registerShutdownHook();
+                return null;
+            }
+        });
+    }
+    
+    private static Class<? extends Screen> getScreenClass(String type) throws ClassNotFoundException 
     {
-        Class screenClass = NewtFactory.getCustomClass(type, "Screen");
+        Class<?> screenClass = NewtFactory.getCustomClass(type, "Screen");
         if(null==screenClass) {
             if (NativeWindowFactory.TYPE_ANDROID.equals(type)) {
                 screenClass = Class.forName("jogamp.newt.driver.android.AndroidScreen");
@@ -85,7 +96,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 throw new RuntimeException("Unknown window type \"" + type + "\"");
             }
         }
-        return screenClass;
+        return (Class<? extends Screen>)screenClass;
     }
 
     public static Screen create(Display display, final int idx) {
@@ -111,7 +122,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                         return screen0;
                     }
                 }
-                Class screenClass = getScreenClass(display.getType());
+                Class<? extends Screen> screenClass = getScreenClass(display.getType());
                 ScreenImpl screen  = (ScreenImpl) screenClass.newInstance();
                 screen.display = (DisplayImpl) display;
                 screen.screen_idx = idx;
@@ -278,8 +289,8 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         return "NEWT-Screen["+getFQName()+", idx "+screen_idx+", refCount "+refCount+", "+getWidth()+"x"+getHeight()+", "+aScreen+", "+display+"]";
     }
 
-    public final List/*<ScreenMode>*/ getScreenModes() {
-        ArrayHashSet screenModes = getScreenModesOrig();
+    public final List<ScreenMode> getScreenModes() {
+        ArrayHashSet<ScreenMode> screenModes = getScreenModesOrig();
         if(null != screenModes && 0 < screenModes.size()) {
             return screenModes.toArrayList();
         }
@@ -375,7 +386,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     }
 
     /** ScreenModeStatus bridge to native implementation */
-    protected final ArrayHashSet getScreenModesOrig() {
+    protected final ArrayHashSet<ScreenMode> getScreenModesOrig() {
         ScreenModeStatus sms = ScreenModeStatus.getScreenModeStatus(this.getFQName());
         if(null!=sms) {
             return sms.getScreenModes();
@@ -437,6 +448,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     }
 
     private void initScreenModeStatus() {
+        // JAU: FIXME: Add return ..
         ScreenModeStatus sms;
         ScreenModeStatus.lockScreenModeStatus();
         try {
@@ -444,7 +456,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             if(null==sms) {                
                 IntIntHashMap screenModesIdx2NativeIdx = new IntIntHashMap();
 
-                ArrayHashSet screenModes = collectNativeScreenModes(screenModesIdx2NativeIdx);
+                ArrayHashSet<ScreenMode> screenModes = collectNativeScreenModes(screenModesIdx2NativeIdx);
                 if(screenModes.size()==0) {
                     ScreenMode sm0 = ( DEBUG_TEST_SCREENMODE_DISABLED ) ? null : getCurrentScreenModeImpl();
                     if(null != sm0) {
@@ -476,14 +488,12 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     }
 
     /** ignores bpp < 15 */
-    private ArrayHashSet collectNativeScreenModes(IntIntHashMap screenModesIdx2NativeId) {
-        ArrayHashSet resolutionPool  = new ArrayHashSet();
-        ArrayHashSet surfaceSizePool = new ArrayHashSet();
-        ArrayHashSet screenSizeMMPool = new ArrayHashSet();
-        ArrayHashSet monitorModePool = new ArrayHashSet();
-        ArrayHashSet screenModePool = null;
-
-        screenModePool = new ArrayHashSet();
+    private ArrayHashSet<ScreenMode> collectNativeScreenModes(IntIntHashMap screenModesIdx2NativeId) {
+        ArrayHashSet<DimensionImmutable> resolutionPool   = new ArrayHashSet<DimensionImmutable>();
+        ArrayHashSet<SurfaceSize>        surfaceSizePool  = new ArrayHashSet<SurfaceSize>();
+        ArrayHashSet<DimensionImmutable> screenSizeMMPool = new ArrayHashSet<DimensionImmutable>();
+        ArrayHashSet<MonitorMode>        monitorModePool  = new ArrayHashSet<MonitorMode>();
+        ArrayHashSet<ScreenMode>         screenModePool   = new ArrayHashSet<ScreenMode>();
 
         int[] smProps = null;
         int num = 0;
@@ -526,7 +536,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         ScreenModeStatus sms;
         ScreenModeStatus.lockScreenModeStatus();
         try {
-            sms = ScreenModeStatus.getScreenModeStatus(this.getFQName());
+            sms = ScreenModeStatus.getScreenModeStatus(getFQName());
             if(null != sms) {
                 sms.lock();
                 try {
@@ -534,7 +544,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                         if(!sms.isOriginalMode()) {
                             setCurrentScreenMode(sms.getOriginalScreenMode());
                         }
-                        ScreenModeStatus.unmapScreenModeStatus(this.getFQName());
+                        ScreenModeStatus.unmapScreenModeStatus(getFQName());
                     }
                 } finally {
                     sms.unlock();
@@ -543,6 +553,39 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         } finally {
             ScreenModeStatus.unlockScreenModeStatus();
         }
+    }
+    
+    private final void shutdown() {
+        ScreenModeStatus sms = ScreenModeStatus.getScreenModeStatusUnlocked(getFQName());
+        if(null != sms) {
+            if(!sms.isOriginalMode()) {
+                try {
+                    setCurrentScreenModeImpl(sms.getOriginalScreenMode());
+                } catch (Throwable t) {
+                    // be quiet .. shutdown
+                }
+            }
+            ScreenModeStatus.unmapScreenModeStatusUnlocked(getFQName());
+        }            
+    }
+    private static final void shutdownAll() {
+        for(int i=0; i < screenList.size(); i++) {
+            ((ScreenImpl)screenList.get(i)).shutdown();
+        }
+    }
+    
+    private static synchronized void registerShutdownHook() {
+        final Thread shutdownHook = new Thread(new Runnable() {
+            public void run() {
+                ScreenImpl.shutdownAll();
+            }
+        });
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+                Runtime.getRuntime().addShutdownHook(shutdownHook);
+                return null;
+            }
+        });
     }
 }
 

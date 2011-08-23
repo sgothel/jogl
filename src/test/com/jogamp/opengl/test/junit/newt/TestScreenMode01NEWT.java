@@ -46,7 +46,7 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.util.ScreenModeUtil;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.util.List;
 import javax.media.nativewindow.util.Dimension;
@@ -55,8 +55,8 @@ public class TestScreenMode01NEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
     
-    static int waitTimeShort = 1000; // 1 sec
-    static int waitTimeLong = 5000; // 5 sec
+    static int waitTimeShort = 2000; // 2 sec
+    static int waitTimeLong = 8000; // 8 sec
     
     
 
@@ -74,7 +74,7 @@ public class TestScreenMode01NEWT extends UITestCase {
 
         GLWindow window = GLWindow.create(screen, caps);
         window.setSize(width, height);
-        window.addGLEventListener(new Gears());
+        window.addGLEventListener(new GearsES2());
         Assert.assertNotNull(window);
         window.setVisible(true);
         return window;
@@ -126,7 +126,7 @@ public class TestScreenMode01NEWT extends UITestCase {
         GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
         Assert.assertNotNull(window);
 
-        List screenModes = screen.getScreenModes();
+        List<ScreenMode> screenModes = screen.getScreenModes();
         if(null==screenModes) {
             // no support ..
             System.err.println("Your platform has no ScreenMode change support, sorry");
@@ -225,7 +225,7 @@ public class TestScreenMode01NEWT extends UITestCase {
         animator.start();
 
         ScreenMode smOrig = screen.getOriginalScreenMode();
-        List screenModes = screen.getScreenModes();
+        List<ScreenMode> screenModes = screen.getScreenModes();
         if(null==screenModes) {
             // no support ..
             destroyWindow(window);
