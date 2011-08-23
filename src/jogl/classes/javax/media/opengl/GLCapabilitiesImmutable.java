@@ -37,7 +37,7 @@ import javax.media.nativewindow.CapabilitiesImmutable;
  * @see javax.media.opengl.GLCapabilities
  * @see javax.media.nativewindow.CapabilitiesImmutable
  */
-public interface GLCapabilitiesImmutable extends WriteCloneable, CapabilitiesImmutable {
+public interface GLCapabilitiesImmutable extends CapabilitiesImmutable {
 
     /**
      * Returns the number of bits requested for the accumulation
