@@ -52,7 +52,7 @@
     }
 
     public final GL4 getGL4() throws GLException {
-        if(!isGL4bc()) {
+        if(!isGL4()) {
             throw new GLException("Not a GL4 implementation");
         }
         return this;
