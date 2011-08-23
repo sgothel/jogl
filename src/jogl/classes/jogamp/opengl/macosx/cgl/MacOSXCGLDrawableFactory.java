@@ -132,8 +132,8 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
 
   protected final void shutdownInstance() {}
 
-  protected List/*GLCapabilitiesImmutable*/ getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
-      return new ArrayList(0);
+  protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
+      return new ArrayList<GLCapabilitiesImmutable>(0);
   }
 
   protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {

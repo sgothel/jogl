@@ -33,7 +33,6 @@
 
 package jogamp.newt.driver.kd;
 
-import com.jogamp.newt.*;
 import jogamp.newt.ScreenImpl;
 import javax.media.nativewindow.*;
 

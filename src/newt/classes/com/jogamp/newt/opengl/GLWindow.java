@@ -39,7 +39,6 @@ import java.util.List;
 
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionUtil;
-import com.jogamp.nativewindow.NativeWindowVersion;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import jogamp.newt.WindowImpl;
@@ -635,13 +634,6 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         return fpsCounter.getTotalFPS();
     }        
 
-    private class SwapBuffersAction implements Runnable {
-        public final void run() {
-            drawable.swapBuffers();
-        }
-    }
-    private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
-
     //----------------------------------------------------------------------
     // GLDrawable methods
     //
@@ -872,13 +864,11 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     public static void main(String args[]) {
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(GlueGenVersion.getInstance());
-        // System.err.println(NativeWindowVersion.getInstance());
         System.err.println(JoglVersion.getInstance());
-        System.err.println(NewtVersion.getInstance());
 
         final GLProfile glp = GLProfile.getDefault();
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
-        final List/*<GLCapabilitiesImmutable>*/ availCaps = factory.getAvailableCapabilities(null);
+        final List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(null);
         for(int i=0; i<availCaps.size(); i++) {
             System.err.println(availCaps.get(i));
         }

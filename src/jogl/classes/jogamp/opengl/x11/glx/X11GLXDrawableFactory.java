@@ -338,7 +338,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     X11Util.shutdown( false, DEBUG );
   }
 
-  protected List/*GLCapabilitiesImmutable*/ getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
+  protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
     return X11GLXGraphicsConfigurationFactory.getAvailableCapabilities(this, device);
   }
 

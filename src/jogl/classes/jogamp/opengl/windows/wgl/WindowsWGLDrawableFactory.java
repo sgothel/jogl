@@ -414,7 +414,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     RegisteredClassFactory.shutdownSharedClasses();
   }
 
-  protected List/*GLCapabilitiesImmutable*/ getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
+  protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
     return WindowsWGLGraphicsConfigurationFactory.getAvailableCapabilities(this, device);
   }
 

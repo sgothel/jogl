@@ -100,7 +100,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
                                                  absScreen);
     }
 
-    protected static List/*<EGLGLCapabilities>*/ getAvailableCapabilities(EGLDrawableFactory factory, AbstractGraphicsDevice device) {
+    protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(EGLDrawableFactory factory, AbstractGraphicsDevice device) {
         EGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResource(device);
         if(null == sharedResource) {
             throw new GLException("Shared resource for device n/a: "+device);

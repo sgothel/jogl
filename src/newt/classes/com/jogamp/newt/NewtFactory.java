@@ -52,8 +52,8 @@ public class NewtFactory {
         WindowImpl.init(NativeWindowFactory.getNativeWindowType(true));
     }
 
-    public static Class getCustomClass(String packageName, String classBaseName) {
-        Class clazz = null;
+    public static Class<?> getCustomClass(String packageName, String classBaseName) {
+        Class<?> clazz = null;
         if(packageName!=null || classBaseName!=null) {
             String clazzName = packageName + "." + classBaseName ;
             try {
@@ -216,17 +216,6 @@ public class NewtFactory {
      */
     public static Display createDisplay(String type, long handle, boolean reuse) {
       return DisplayImpl.create(type, null, handle, false);
-    }
-
-    private static boolean instanceOf(Object obj, String clazzName) {
-        Class clazz = obj.getClass();
-        do {
-            if(clazz.getName().equals(clazzName)) {
-                return true;
-            }
-            clazz = clazz.getSuperclass();
-        } while (clazz!=null);
-        return false;
     }
 
     public static boolean isScreenCompatible(NativeWindow parent, Screen childScreen) {

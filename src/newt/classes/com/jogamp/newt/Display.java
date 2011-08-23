@@ -146,15 +146,15 @@ public abstract class Display {
     public abstract void dispatchMessages();
     
     // Global Displays
-    protected static ArrayList displayList = new ArrayList();
+    protected static ArrayList<Display> displayList = new ArrayList<Display>();
     protected static int displaysActive = 0;
 
     public static void dumpDisplayList(String prefix) {
         synchronized(displayList) {
-            Iterator i = displayList.iterator();
+            Iterator<Display> i = displayList.iterator();
             System.err.println(prefix+" DisplayList[] entries: "+displayList.size()+" - "+getThreadName());
             for(int j=0; i.hasNext(); j++) {
-                DisplayImpl d = (DisplayImpl) i.next();
+                Display d = i.next();
                 System.err.println("  ["+j+"] : "+d);
             }
         }
@@ -198,10 +198,10 @@ public abstract class Display {
     }
 
     /** Returns the global display collection */
-    public static Collection getAllDisplays() {
-        ArrayList list;
+    public static Collection<Display> getAllDisplays() {
+        ArrayList<Display> list;
         synchronized(displayList) {
-            list = (ArrayList) displayList.clone();
+            list = (ArrayList<Display>) displayList.clone();
         }
         return list;
     }

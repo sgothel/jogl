@@ -241,7 +241,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     protected final void shutdownInstance() {}
 
-    protected List/*GLCapabilitiesImmutable*/ getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
+    protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
         return EGLGraphicsConfigurationFactory.getAvailableCapabilities(this, device);
     }
 

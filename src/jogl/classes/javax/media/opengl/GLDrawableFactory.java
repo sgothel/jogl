@@ -96,7 +96,7 @@ public abstract class GLDrawableFactory {
   static final String macosxFactoryClassNameCGL = "jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory";
   static final String macosxFactoryClassNameAWTCGL = "jogamp.opengl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
 
-  protected static ArrayList/*<GLDrawableFactoryImpl>*/ glDrawableFactories = new ArrayList();
+  protected static ArrayList<GLDrawableFactory> glDrawableFactories = new ArrayList<GLDrawableFactory>();
 
   // Shutdown hook mechanism for the factory
   private static boolean factoryShutdownHookRegistered = false;
@@ -197,7 +197,7 @@ public abstract class GLDrawableFactory {
   private static void shutdownImpl() {
     synchronized(glDrawableFactories) {
         for(int i=0; i<glDrawableFactories.size(); i++) {
-            GLDrawableFactory factory = (GLDrawableFactory) glDrawableFactories.get(i);
+            GLDrawableFactory factory = glDrawableFactories.get(i);
             factory.shutdownInstance();
         }
         glDrawableFactories.clear();
@@ -340,14 +340,14 @@ public abstract class GLDrawableFactory {
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    * @return A list of {@link javax.media.opengl.GLCapabilitiesImmutable}'s, maybe empty if none is available.
    */
-  public final List/*GLCapabilitiesImmutable*/ getAvailableCapabilities(AbstractGraphicsDevice device) {
+  public final List<GLCapabilitiesImmutable> getAvailableCapabilities(AbstractGraphicsDevice device) {
       device = validateDevice(device);
       if(null!=device) {
         return getAvailableCapabilitiesImpl(device);
       }
       return null;
   }
-  protected abstract List/*GLCapabilitiesImmutable*/ getAvailableCapabilitiesImpl(AbstractGraphicsDevice device);
+  protected abstract List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device);
 
   //----------------------------------------------------------------------
   // Methods to create high-level objects

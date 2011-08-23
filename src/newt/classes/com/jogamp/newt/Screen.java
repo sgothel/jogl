@@ -155,7 +155,7 @@ public abstract class Screen {
      * @return a shallow copy of the internal immutable {@link com.jogamp.newt.ScreenMode}s,
      * or null if not implemented for this native type {@link com.jogamp.newt.Display#getType()}.
      */
-    public abstract List/*<ScreenMode>*/ getScreenModes();
+    public abstract List<ScreenMode> getScreenModes();
 
     /**
      * Return the original {@link com.jogamp.newt.ScreenMode}, as used at NEWT initialization.
@@ -180,7 +180,7 @@ public abstract class Screen {
     public abstract boolean setCurrentScreenMode(ScreenMode screenMode);
 
     // Global Screens
-    protected static ArrayList screenList = new ArrayList();
+    protected static ArrayList<Screen> screenList = new ArrayList<Screen>();
     protected static int screensActive = 0;
 
     /**
@@ -220,10 +220,10 @@ public abstract class Screen {
         return null;
     }
     /** Returns the global display collection */
-    public static Collection getAllScreens() {
-        ArrayList list;
+    public static Collection<Screen> getAllScreens() {
+        ArrayList<Screen> list;
         synchronized(screenList) {
-            list = (ArrayList) screenList.clone();
+            list = (ArrayList<Screen>) screenList.clone();
         }
         return list;
     }

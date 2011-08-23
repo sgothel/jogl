@@ -153,7 +153,6 @@ public class GLProfile {
      * @return true if the profile is available for the device, otherwise false.
      */
     public static boolean isAvailable(AbstractGraphicsDevice device, String profile) {
-        HashMap profileMap = null;
         try {
             return null != getProfileMap(device).get(profile);
         } catch (GLException gle) { /* profiles for device n/a */ }
@@ -246,13 +245,13 @@ public class GLProfile {
         }
 
         sb.append("], Profiles[");
-        HashMap profileMap = null;
+        HashMap<String /*GLProfile_name*/, GLProfile> profileMap = null;
         try {
             profileMap = getProfileMap(device);
         } catch (GLException gle) { /* profiles for device n/a */ }
         if(null != profileMap) {
-            for(Iterator i=profileMap.values().iterator(); i.hasNext(); ) {
-                sb.append(((GLProfile)i.next()).toString());
+            for(Iterator<GLProfile> i=profileMap.values().iterator(); i.hasNext(); ) {
+                sb.append(i.next().toString());
                 sb.append(", ");
             }
             sb.append(", default ");
@@ -610,8 +609,8 @@ public class GLProfile {
         if(null==profile || profile.equals("GL")) {
             profile = GL_DEFAULT;
         }
-        final HashMap glpMap = getProfileMap(device);
-        final GLProfile glp = (GLProfile) glpMap.get(profile);
+        final HashMap<String /*GLProfile_name*/, GLProfile> glpMap = getProfileMap(device);
+        final GLProfile glp = glpMap.get(profile);
         if(null == glp) {
             throw new GLException("Profile "+profile+" is not available on "+device+", but: "+glpMap.values());
         }
@@ -640,10 +639,10 @@ public class GLProfile {
     public static GLProfile get(AbstractGraphicsDevice device, String[] profiles)
         throws GLException
     {
-        HashMap map = getProfileMap(device);
+        HashMap<String /*GLProfile_name*/, GLProfile> map = getProfileMap(device);
         for(int i=0; i<profiles.length; i++) {
             String profile = profiles[i];
-            GLProfile glProfile = (GLProfile) map.get(profile);
+            GLProfile glProfile = map.get(profile);
             if(null!=glProfile) {
                 return glProfile;
             }
@@ -1372,7 +1371,7 @@ public class GLProfile {
             }
             addedEGLProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
         } else {
-            setProfileMap(device, new HashMap()); // empty
+            setProfileMap(device, new HashMap<String /*GLProfile_name*/, GLProfile>()); // empty
             if(DEBUG) {
                 System.err.println("GLProfile: device could not be initialized: "+device);
                 System.err.println("GLProfile: compatible w/ desktop: "+deviceIsDesktopCompatible+
@@ -1393,13 +1392,13 @@ public class GLProfile {
             System.err.println("GLProfile.initProfilesForDevice: "+device.getConnection()+": "+glAvailabilityToString(device));
             if(addedDesktopProfile) {
                 dumpGLInfo(desktopFactory, device);
-                List/*<GLCapabilitiesImmutable>*/ availCaps = desktopFactory.getAvailableCapabilities(device);
+                List<GLCapabilitiesImmutable> availCaps = desktopFactory.getAvailableCapabilities(device);
                 for(int i=0; i<availCaps.size(); i++) {
                     System.err.println(availCaps.get(i));
                 }
             } else if(addedEGLProfile) {
                 dumpGLInfo(eglFactory, device);
-                List/*<GLCapabilitiesImmutable>*/ availCaps = eglFactory.getAvailableCapabilities(device);
+                List<GLCapabilitiesImmutable> availCaps = eglFactory.getAvailableCapabilities(device);
                 for(int i=0; i<availCaps.size(); i++) {
                     System.err.println(availCaps.get(i));
                 }
@@ -1587,7 +1586,8 @@ public class GLProfile {
         }
     }
 
-    private static /*final*/ HashMap/*<device_connection, HashMap<GL-String, GLProfile>*/ deviceConn2ProfileMap = new HashMap();
+    private static /*final*/ HashMap<String /*device_connection*/, HashMap<String /*GLProfile_name*/, GLProfile>> deviceConn2ProfileMap = 
+                new HashMap<String /*device_connection*/, HashMap<String /*GLProfile_name*/, GLProfile>>();
 
     /**
      * This implementation support lazy initialization, while avoiding recursion/deadlocks.<br>
@@ -1599,13 +1599,13 @@ public class GLProfile {
      * @return the GLProfile HashMap if exists, otherwise null 
      * @throws GLException if no profile for the given device is available.
      */
-    private static HashMap getProfileMap(AbstractGraphicsDevice device) throws GLException {
+    private static HashMap<String /*GLProfile_name*/, GLProfile> getProfileMap(AbstractGraphicsDevice device) throws GLException {
         validateInitialization();
         if(null==device) {
             device = defaultDevice;
         }
         String deviceKey = device.getUniqueID();
-        HashMap map = (HashMap) deviceConn2ProfileMap.get(deviceKey);
+        HashMap<String /*GLProfile_name*/, GLProfile> map = deviceConn2ProfileMap.get(deviceKey);
         if( null == map ) {
             if( !initProfilesForDevice(device) ) {
                 throw new GLException("No Profile available for "+device);
@@ -1617,7 +1617,7 @@ public class GLProfile {
         return map;
     }
 
-    private static void setProfileMap(AbstractGraphicsDevice device, HashMap/*<GL-String, GLProfile>*/mappedProfiles) {
+    private static void setProfileMap(AbstractGraphicsDevice device, HashMap<String /*GLProfile_name*/, GLProfile> mappedProfiles) {
         validateInitialization();
         synchronized ( deviceConn2ProfileMap ) {
             deviceConn2ProfileMap.put(device.getUniqueID(), mappedProfiles);

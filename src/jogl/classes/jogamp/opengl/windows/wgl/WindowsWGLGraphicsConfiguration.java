@@ -299,10 +299,10 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
             throw new GLException("wglARBPFID2GLCapabilities: Error getting pixel format attributes for pixel format " + pfdID + 
                                   " of device context " + toHexString(hdc) + ", werr " + GDI.GetLastError());
         }
-        ArrayList bucket = new ArrayList(1);
+        ArrayList<WGLGLCapabilities> bucket = new ArrayList<WGLGLCapabilities>(1);
         final int winattrbits = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
         if(AttribList2GLCapabilities(bucket, glp, hdc, pfdID, iattributes, niattribs, iresults, winattrbits)) {
-            return (WGLGLCapabilities) bucket.get(0);
+            return bucket.get(0);
         }
         return null;
     }
@@ -376,7 +376,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         int[] iresults    = new int [2*MAX_ATTRIBS];
         int niattribs = fillAttribsForGeneralWGLARBQuery(sharedResource, iattributes);
 
-        ArrayList bucket = new ArrayList();
+        ArrayList<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>();
 
         for(int i = 0; i<numFormats; i++) {
             if ( pfdIDs[i] >= 1 &&
@@ -578,7 +578,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return val;
     }
 
-    static boolean AttribList2GLCapabilities( ArrayList capsBucket,
+    static boolean AttribList2GLCapabilities( ArrayList<? extends GLCapabilitiesImmutable> capsBucket,
                                               final GLProfile glp, final long hdc, final int pfdID, final int[] iattribs,
                                               final int niattribs,
                                               final int[] iresults, final int winattrmask) {
@@ -590,7 +590,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         }
         PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor();
 
-        if (GDI.DescribePixelFormat(hdc, pfdID, pfd.size(), pfd) == 0) {
+        if (GDI.DescribePixelFormat(hdc, pfdID, PIXELFORMATDESCRIPTOR.size(), pfd) == 0) {
             // remove displayable bits, since pfdID is non displayable
             drawableTypeBits = drawableTypeBits & ~(GLGraphicsConfigurationUtil.WINDOW_BIT | GLGraphicsConfigurationUtil.BITMAP_BIT);
             if( 0 == drawableTypeBits ) {
@@ -637,14 +637,14 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
 
     static WGLGLCapabilities PFD2GLCapabilities(GLProfile glp, long hdc, int pfdID, boolean onscreen) {
         final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, false);
-        ArrayList capsBucket = new ArrayList(1);
+        ArrayList<WGLGLCapabilities> capsBucket = new ArrayList<WGLGLCapabilities>(1);
         if( PFD2GLCapabilities(capsBucket, glp, hdc, pfdID, winattrmask) ) {
-            return (WGLGLCapabilities) capsBucket.get(0);
+            return capsBucket.get(0);
         }
         return null;
     }
 
-    static boolean  PFD2GLCapabilities(ArrayList capsBucket, final GLProfile glp, final long hdc, final int pfdID, final int winattrmask) {
+    static boolean  PFD2GLCapabilities(ArrayList<? extends GLCapabilitiesImmutable> capsBucket, final GLProfile glp, final long hdc, final int pfdID, final int winattrmask) {
         PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor(hdc, pfdID);
         if(null == pfd) {
             return false;

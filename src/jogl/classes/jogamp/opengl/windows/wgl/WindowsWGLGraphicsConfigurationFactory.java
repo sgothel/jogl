@@ -105,7 +105,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         return new WindowsWGLGraphicsConfiguration( absScreen, capsChosen, capsReq, (GLCapabilitiesChooser)chooser );
     }
 
-    protected static List/*<WGLGLCapabilities>*/ getAvailableCapabilities(WindowsWGLDrawableFactory factory, AbstractGraphicsDevice device) {
+    protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(WindowsWGLDrawableFactory factory, AbstractGraphicsDevice device) {
         WindowsWGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResource(device);
         if(null == sharedResource) {
             throw new GLException("Shared resource for device n/a: "+device);
@@ -113,7 +113,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         WindowsWGLDrawable sharedDrawable = sharedResource.getDrawable();
         GLCapabilitiesImmutable capsChosen = sharedDrawable.getChosenGLCapabilities();
         WindowsWGLContext sharedContext = sharedResource.getContext();
-        List availableCaps = null;
+        List/*<GLCapabilitiesImmutable>*/ availableCaps = null;
         
         if ( sharedResource.needsCurrentContext4ARBPFDQueries() ) {
             if(GLContext.CONTEXT_NOT_CURRENT == sharedContext.makeCurrent()) {
@@ -147,15 +147,15 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         return availableCaps;
     }
 
-    static List/*<WGLGLCapabilities>*/ getAvailableGLCapabilitiesARB(long hdc, WindowsWGLDrawableFactory.SharedResource sharedResource, GLProfile glProfile) {
+    static List/*<GLCapabilitiesImmutable>*/ getAvailableGLCapabilitiesARB(long hdc, WindowsWGLDrawableFactory.SharedResource sharedResource, GLProfile glProfile) {
         int[] pformats = WindowsWGLGraphicsConfiguration.wglAllARBPFIDs(sharedResource.getContext(), hdc);
         return WindowsWGLGraphicsConfiguration.wglARBPFIDs2AllGLCapabilities(sharedResource, hdc, pformats, glProfile);
     }
 
-    static List/*<WGLGLCapabilities>*/ getAvailableGLCapabilitiesGDI(long hdc, GLProfile glProfile) {
+    static List/*<GLCapabilitiesImmutable>*/ getAvailableGLCapabilitiesGDI(long hdc, GLProfile glProfile) {
         int[] pformats = WindowsWGLGraphicsConfiguration.wglAllGDIPFIDs(hdc);
         int numFormats = pformats.length;
-        ArrayList bucket = new ArrayList(numFormats);
+        ArrayList<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>(numFormats);
         for (int i = 0; i < numFormats; i++) {
             WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(bucket, glProfile, hdc, pformats[i], GLGraphicsConfigurationUtil.ALL_BITS);
         }
@@ -391,7 +391,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             if( null == pixelFormatCaps) {
                 throw new GLException("Null Capabilities with "+
                                       " chosen pfdID: native recommended "+ (recommendedIndex+1) +
-                                      " chosen "+pixelFormatCaps.getPFDID());
+                                      " chosen idx "+chosenIndex);
             }
             if (DEBUG) {
                 System.err.println("!!! chosen pfdID (ARB): native recommended "+ (recommendedIndex+1) +
