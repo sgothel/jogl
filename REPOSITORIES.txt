@@ -1,1 +1,5 @@
-test ..
+jogamp	 git://jogamp.org/srv/scm/jogl.git (fetch)
+sgothel	 git://github.com/sgothel/jogl.git (fetch)
+rsantina git://github.com/rsantina/jogl.git (fetch)
+wwalker	 git://github.com/WadeWalker/jogl.git (fetch)
+jausoft	 git://jausoft.com/srv/scm/jogl.git (fetch)

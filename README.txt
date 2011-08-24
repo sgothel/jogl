@@ -21,7 +21,7 @@ Contact Us
 ---------------
 
 Web                http://jogamp.org/
-Forum/Mailinglist  http://jogamp.762907.n3.nabble.com/
+Forum/Mailinglist  http://forum.jogamp.org/
 JogAmp Channel     server: conference.jabber.org room: jogamp
 Repository         http://jogamp.org/git/
 Email              mediastream _at_ jogamp _dot_ org
@@ -37,6 +37,9 @@ The JogAmp Community is grateful for all the contributions
 of all of the individuals who have advanced the project. 
 For sure we are not able to list all of them here.
 Please contact us if you like to be added to this list.
+
+This list can hardly cover all contributors and their contributions.
+You may like to check the author field of our SCM.
 
 (Chronological)
 
@@ -74,7 +77,12 @@ Java2D and JOGL in Java SE 6, and also co-authored the TextureIO
 subsystem.
 
 Sven Gothel refactored the windowing subsystem layer to be generic,
-introduced the support for multiple GL profiles, realized NEWT and more..
+introduced the support for multiple GL profiles, realized NEWT etc.
+Teamed up with Rami Santina, the new graph package was realized,
+exposing generic curve, text and UI support.
+
+Rami Santina researched and implemented the math behind the new 
+graph package, published .. <FIXME: Add reference>, etc.
 
 The following individuals made significant contributions to various
 areas of the project (Alphabetical):
@@ -84,10 +92,12 @@ Alban Cousinié
 Athomas Goldberg
 Yuri Vladimir Gushchin
 Gregory Pierce
-Rami Santina
+Dominik Ströhlein (DemoscenePassivist)
+Wade Walker
 Carsten Weisse
 
 The JogAmp Community is grateful for the support of the
-javagaming.org community, from where dozens, if not hundreds, of
-individuals have contributed discussions, bug reports, bug fixes, and
-other forms of support.
+javagaming.org community and it's own JogAmp forum, 
+from where dozens, if not hundreds, of individuals have 
+contributed discussions, bug reports, bug fixes, and other forms of support.
+
