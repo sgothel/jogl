@@ -84,10 +84,8 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
     
     private void testFocus01ProgrFocusImpl(Robot robot) 
         throws AWTException, InterruptedException, InvocationTargetException {
-        int x = 0;
-        int y = 0;
 
-        ArrayList eventCountAdapters = new ArrayList();
+        ArrayList<EventCountAdapter> eventCountAdapters = new ArrayList<EventCountAdapter>();
 
         /**
          * JFrame . JPanel . Container . NewtCanvasAWT . GLWindow
@@ -284,6 +282,7 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         return i;
     }
 
+    @SuppressWarnings("unused")
     public static void main(String args[]) 
         throws IOException, AWTException, InterruptedException, InvocationTargetException 
     {

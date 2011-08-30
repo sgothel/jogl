@@ -32,8 +32,6 @@ import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;

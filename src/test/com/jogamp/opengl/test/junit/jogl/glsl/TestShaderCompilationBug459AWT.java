@@ -50,6 +50,9 @@ import org.junit.Test;
  * This bug is Windows-only; it works on Mac OS X and CentOS.
  */
 public class TestShaderCompilationBug459AWT extends UITestCase {
+    static {
+        GLProfile.initSingleton(true);
+    }
     static GLProfile glp;
     static int width, height;
     static long duration = 500; // ms
@@ -58,7 +61,6 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
         glp = GLProfile.getDefault();
         Assert.assertNotNull(glp);
         width  = 512;

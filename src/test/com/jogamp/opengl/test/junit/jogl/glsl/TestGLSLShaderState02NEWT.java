@@ -52,6 +52,10 @@ import org.junit.Test;
  * and shader state in general.
  */
 public class TestGLSLShaderState02NEWT extends UITestCase {
+    static {
+        GLProfile.initSingleton(true);
+    }
+
     static long durationPerTest = 10; // ms
 
     static final int vertices0_loc = 0; // FIXME: AMD needs this to be location 0 ? hu ?

@@ -51,6 +51,10 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 public class TestGLDebug00NEWT extends UITestCase {
     
+    static {
+        GLProfile.initSingleton(true);
+    }
+    
     static String dbgTstMsg0 = "Hello World";
     static int dbgTstId0 = 42;
     

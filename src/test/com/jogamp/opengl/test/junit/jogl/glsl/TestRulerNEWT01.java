@@ -53,6 +53,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class TestRulerNEWT01 extends UITestCase {
+    static {
+        GLProfile.initSingleton(true);
+    }
+
     static long durationPerTest = 10; // ms
 
     @Test

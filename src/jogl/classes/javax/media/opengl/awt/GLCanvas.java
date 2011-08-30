@@ -86,7 +86,6 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.Threading;
 
-import com.jogamp.nativewindow.NativeWindowVersion;
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.opengl.JoglVersion;
