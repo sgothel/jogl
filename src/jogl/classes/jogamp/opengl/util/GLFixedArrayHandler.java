@@ -32,7 +32,6 @@ import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.*;
 
 import com.jogamp.opengl.util.GLArrayDataEditable;
-import com.jogamp.opengl.util.GLArrayHandler;
 
 import java.nio.*;
 
@@ -51,7 +50,7 @@ public class GLFixedArrayHandler implements GLArrayHandler {
       throw new UnsupportedOperationException();
   }
   
-  public final void syncData(GL gl, boolean enable) {
+  public final void syncData(GL gl, boolean enable, Object ext) {
     if(enable) {
         final Buffer buffer = ad.getBuffer();
         if(ad.isVBO()) {
@@ -87,7 +86,7 @@ public class GLFixedArrayHandler implements GLArrayHandler {
     }
   }
   
-  public final void enableState(GL gl, boolean enable) {
+  public final void enableState(GL gl, boolean enable, Object ext) {
     final GLPointerFunc glp = gl.getGL2ES1();
     if(enable) {
         glp.glEnableClientState(ad.getIndex());        

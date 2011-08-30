@@ -112,7 +112,7 @@ public class GLSLMiscHelper {
     
     public static GLArrayDataServer createRSVertices0(GL2ES2 gl, ShaderState st, int location) {        
         // Allocate Vertex Array0
-        GLArrayDataServer vertices0 = GLArrayDataServer.createGLSL(st, "mgl_Vertex", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
+        GLArrayDataServer vertices0 = GLArrayDataServer.createGLSL("mgl_Vertex", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         if(0<=location) {
             st.bindAttribLocation(gl, location, vertices0);
         }
@@ -135,7 +135,7 @@ public class GLSLMiscHelper {
     }
         
     public static GLArrayDataServer createRSVertices1(GL2ES2 gl, ShaderState st) {        
-        GLArrayDataServer vertices1 = GLArrayDataServer.createGLSL(st, "mgl_Vertex", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW); 
+        GLArrayDataServer vertices1 = GLArrayDataServer.createGLSL("mgl_Vertex", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW); 
         Assert.assertTrue(vertices1.isVBO());
         Assert.assertTrue(vertices1.isVertexAttribute());
         Assert.assertTrue(!vertices1.isVBOWritten());
@@ -155,7 +155,7 @@ public class GLSLMiscHelper {
     }
         
     public static GLArrayDataServer createRSColors0(GL2ES2 gl, ShaderState st, int location) {        
-        GLArrayDataServer colors0 = GLArrayDataServer.createGLSL(st, "mgl_Color", 4, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
+        GLArrayDataServer colors0 = GLArrayDataServer.createGLSL("mgl_Color", 4, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         if(0<=location) {
             st.bindAttribLocation(gl, location, colors0);
         }        
@@ -176,7 +176,7 @@ public class GLSLMiscHelper {
     
     public static GLArrayDataServer createRSColors1(GL2ES2 gl, ShaderState st) {        
         // Allocate Color Array1
-        GLArrayDataServer colors1 = GLArrayDataServer.createGLSL(st, "mgl_Color", 4, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
+        GLArrayDataServer colors1 = GLArrayDataServer.createGLSL("mgl_Color", 4, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         colors1.putf(1); colors1.putf(0); colors1.putf(1); colors1.putf(1);
         colors1.putf(0); colors1.putf(1); colors1.putf(0); colors1.putf(1);
         colors1.putf(1); colors1.putf(0); colors1.putf(1); colors1.putf(1);

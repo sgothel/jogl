@@ -39,6 +39,7 @@ import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public abstract class RenderState {
+    private static final String thisKey = "jogamp.graph.curve.RenderState" ;
     
     public static RenderState createRenderState(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory) {
         return new RenderStateImpl(st, pointFactory);
@@ -46,6 +47,10 @@ public abstract class RenderState {
 
     public static RenderState createRenderState(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory, PMVMatrix pmvMatrix) {
         return new RenderStateImpl(st, pointFactory, pmvMatrix);
+    }
+    
+    public static final RenderState getRenderState(GL2ES2 gl) {
+        return (RenderState) gl.getContext().getAttachedObject(thisKey);
     }
     
     protected final ShaderState st;
@@ -76,13 +81,13 @@ public abstract class RenderState {
     // public abstract GLUniformData getStrength();
     
     public final RenderState attachTo(GL2ES2 gl) {
-        return (RenderState) gl.getContext().attachObject(RenderState.class.getName(), this);
+        return (RenderState) gl.getContext().attachObject(thisKey, this);
     }
     
     public final boolean detachFrom(GL2ES2 gl) {
-        RenderState _rs = (RenderState) gl.getContext().getAttachedObject(RenderState.class.getName());
+        RenderState _rs = (RenderState) gl.getContext().getAttachedObject(thisKey);
         if(_rs == this) {
-            gl.getContext().detachObject(RenderState.class.getName());
+            gl.getContext().detachObject(thisKey);
             return true;
         }
         return false;

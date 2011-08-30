@@ -28,25 +28,24 @@
 
 package jogamp.opengl.util;
 
-import javax.media.opengl.*;
-import javax.media.opengl.fixedfunc.*;
 
-import com.jogamp.opengl.util.GLArrayDataEditable;
-import com.jogamp.opengl.util.GLArrayHandler;
-
-import java.nio.*;
+import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.media.opengl.GL;
+
+import com.jogamp.opengl.util.GLArrayDataEditable;
 
 /**
  * Interleaved fixed function arrays, i.e. where this buffer data 
  * represents many arrays. 
  */
-public class GLFixedArrayHandlerInterleaved implements GLArrayHandler {
+public class GLArrayHandlerInterleaved implements GLArrayHandler {
   private GLArrayDataEditable ad;
   private List<GLArrayHandler> subArrays = new ArrayList<GLArrayHandler>();
 
-  public GLFixedArrayHandlerInterleaved(GLArrayDataEditable ad) {
+  public GLArrayHandlerInterleaved(GLArrayDataEditable ad) {
     this.ad = ad;
   }
   
@@ -54,13 +53,13 @@ public class GLFixedArrayHandlerInterleaved implements GLArrayHandler {
       subArrays.add(handler);
   }
 
-  private final void syncSubData(GL gl, boolean enable) {
+  private final void syncSubData(GL gl, boolean enable, Object ext) {
       for(int i=0; i<subArrays.size(); i++) {
-          subArrays.get(i).syncData(gl, enable);
+          subArrays.get(i).syncData(gl, enable, ext);
       }      
-  }
+  }  
   
-  public final void syncData(GL gl, boolean enable) {
+  public final void syncData(GL gl, boolean enable, Object ext) {
     if(enable) {
         final Buffer buffer = ad.getBuffer();
 
@@ -75,18 +74,18 @@ public class GLFixedArrayHandlerInterleaved implements GLArrayHandler {
                 ad.setVBOWritten(true);
             }
         }
-        syncSubData(gl, true);
+        syncSubData(gl, true, ext);
     } else {
-        syncSubData(gl, false);
+        syncSubData(gl, false, ext);
         if(ad.isVBO()) {
             gl.glBindBuffer(ad.getVBOTarget(), 0);
         }
     }
   }
   
-  public final void enableState(GL gl, boolean enable) {
+  public final void enableState(GL gl, boolean enable, Object ext) {
     for(int i=0; i<subArrays.size(); i++) {
-        subArrays.get(i).enableState(gl, enable);
+        subArrays.get(i).enableState(gl, enable, ext);
     }      
   }
 }

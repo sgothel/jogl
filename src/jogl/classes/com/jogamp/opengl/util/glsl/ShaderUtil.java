@@ -461,11 +461,12 @@ public class ShaderUtil {
     private static Impl getImpl(GL _gl) {
         GL2ES2 gl = _gl.getGL2ES2();
         GLContext context = gl.getContext();
-        Impl impl = (Impl) context.getAttachedObject(ShaderUtil.class.getName());
+        Impl impl = (Impl) context.getAttachedObject(implObjectKey);
         if (impl == null) {
             impl = new GL2ES2Impl();
-            context.attachObject(ShaderUtil.class.getName(), impl);
+            context.attachObject(implObjectKey, impl);
         }
         return impl;
     }
+    private static final String implObjectKey = "jogamp.opengl.glsl.ShaderUtilImpl" ;
 }

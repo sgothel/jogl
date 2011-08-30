@@ -37,10 +37,9 @@ import com.jogamp.opengl.util.glsl.ShaderState;
  * author: Brian Paul (converted to Java by Sven Gothel) <P>
  */
 public class GearsObjectES2 extends GearsObject {
-    final ShaderState st;
-    final PMVMatrix pmvMatrix;
-    final GLUniformData pmvMatrixUniform;
-    final GLUniformData colorUniform;
+    PMVMatrix pmvMatrix;
+    GLUniformData pmvMatrixUniform;
+    GLUniformData colorUniform;
     
     public GearsObjectES2(float inner_radius, float outer_radius, float width,
                           int teeth, float tooth_depth,
@@ -49,18 +48,32 @@ public class GearsObjectES2 extends GearsObject {
                           GLUniformData colorUniform) 
     {
         super(inner_radius, outer_radius, width, teeth, tooth_depth);
-        this.st = ShaderState.getCurrentShaderState();
+        this.pmvMatrix = pmvMatrix;
+        this.pmvMatrixUniform = pmvMatrixUniform;
+        this.colorUniform = colorUniform;
+    }
+
+    public GearsObjectES2(GearsObject shared,
+                          PMVMatrix pmvMatrix, 
+                          GLUniformData pmvMatrixUniform,
+                          GLUniformData colorUniform) 
+    {
+        super(shared);
         this.pmvMatrix = pmvMatrix;
         this.pmvMatrixUniform = pmvMatrixUniform;
         this.colorUniform = colorUniform;
     }
 
     @Override
+    public GLArrayDataServer createInterleaved(int comps, int dataType, boolean normalized, int initialSize, int vboUsage) {
+        return GLArrayDataServer.createGLSLInterleaved(comps, dataType, normalized, initialSize, vboUsage);
+    }
+    
+    @Override
     public void addInterleavedVertexAndNormalArrays(GLArrayDataServer array,
             int components) {
-        final ShaderState st = ShaderState.getCurrentShaderState();
-        array.addGLSLSubArray(st, "vertices", 3, GL.GL_ARRAY_BUFFER);
-        array.addGLSLSubArray(st, "normals", 3, GL.GL_ARRAY_BUFFER);
+        array.addGLSLSubArray("vertices", 3, GL.GL_ARRAY_BUFFER);
+        array.addGLSLSubArray("normals", 3, GL.GL_ARRAY_BUFFER);
     }
 
     private void draw(GL2ES2 gl, GLArrayDataServer array, int mode) {
@@ -71,7 +84,8 @@ public class GearsObjectES2 extends GearsObject {
 
     @Override
     public void draw(GL _gl, float x, float y, float angle, FloatBuffer color) {
-        GL2ES2 gl = _gl.getGL2ES2();
+        final GL2ES2 gl = _gl.getGL2ES2();
+        final ShaderState st = ShaderState.getShaderState(gl);
         pmvMatrix.glPushMatrix();
         pmvMatrix.glTranslatef(x, y, 0f);
         pmvMatrix.glRotatef(angle, 0f, 0f, 1f);

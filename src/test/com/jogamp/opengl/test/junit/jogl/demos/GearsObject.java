@@ -44,9 +44,19 @@ public abstract class GearsObject {
     public final GLArrayDataServer outwardFace;
     public final GLArrayDataServer insideRadiusCyl;
 
+    public abstract GLArrayDataServer createInterleaved(int comps, int dataType, boolean normalized, int initialSize, int vboUsage);
     public abstract void addInterleavedVertexAndNormalArrays(GLArrayDataServer array, int components);
     public abstract void draw(GL gl, float x, float y, float angle, FloatBuffer color);
     
+    public GearsObject ( GearsObject shared ) {
+        frontFace = shared.frontFace;
+        frontSide = shared.frontSide;
+        backFace = shared.backFace;
+        backSide = shared.backSide;
+        outwardFace = shared.outwardFace;
+        insideRadiusCyl = shared.insideRadiusCyl;
+    }
+            
     public GearsObject (
             float inner_radius,
             float outer_radius,
@@ -73,19 +83,17 @@ public abstract class GearsObject {
         s[4] = 0; // sin(0f)
         c[4] = 1; // cos(0f)
 
-        System.err.println("teeth: "+teeth);
-
-        frontFace = GLArrayDataServer.createInterleaved(6, GL.GL_FLOAT, false, 4*teeth+2, GL.GL_STATIC_DRAW);
+        frontFace = createInterleaved(6, GL.GL_FLOAT, false, 4*teeth+2, GL.GL_STATIC_DRAW);
         addInterleavedVertexAndNormalArrays(frontFace, 3);
-        backFace = GLArrayDataServer.createInterleaved(6, GL.GL_FLOAT, false, 4*teeth+2, GL.GL_STATIC_DRAW);
+        backFace = createInterleaved(6, GL.GL_FLOAT, false, 4*teeth+2, GL.GL_STATIC_DRAW);
         addInterleavedVertexAndNormalArrays(backFace, 3);
-        frontSide = GLArrayDataServer.createInterleaved(6, GL.GL_FLOAT, false, 6*teeth, GL.GL_STATIC_DRAW);
+        frontSide = createInterleaved(6, GL.GL_FLOAT, false, 6*teeth, GL.GL_STATIC_DRAW);
         addInterleavedVertexAndNormalArrays(frontSide, 3);
-        backSide = GLArrayDataServer.createInterleaved(6, GL.GL_FLOAT, false, 6*teeth, GL.GL_STATIC_DRAW);
+        backSide = createInterleaved(6, GL.GL_FLOAT, false, 6*teeth, GL.GL_STATIC_DRAW);
         addInterleavedVertexAndNormalArrays(backSide, 3);
-        outwardFace = GLArrayDataServer.createInterleaved(6, GL.GL_FLOAT, false, 4*4*teeth+2, GL.GL_STATIC_DRAW);
+        outwardFace = createInterleaved(6, GL.GL_FLOAT, false, 4*4*teeth+2, GL.GL_STATIC_DRAW);
         addInterleavedVertexAndNormalArrays(outwardFace, 3);
-        insideRadiusCyl = GLArrayDataServer.createInterleaved(6, GL.GL_FLOAT, false, 2*teeth+2, GL.GL_STATIC_DRAW);
+        insideRadiusCyl = createInterleaved(6, GL.GL_FLOAT, false, 2*teeth+2, GL.GL_STATIC_DRAW);
         addInterleavedVertexAndNormalArrays(insideRadiusCyl, 3);
 
         for (i = 0; i < teeth; i++) {

@@ -194,7 +194,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
                  
-        vertices0 = GLArrayDataServer.createGLSL(st, "gca_Vertices", 2, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
+        vertices0 = GLArrayDataServer.createGLSL("gca_Vertices", 2, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         vertices0.putf(0);     vertices0.putf(YRESf);
         vertices0.putf(XRESf); vertices0.putf(YRESf);
         vertices0.putf(0);     vertices0.putf(0);
@@ -203,7 +203,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
         st.ownAttribute(vertices0, true);
         vertices0.enableBuffer(gl, false);
         
-        texCoords0 = GLArrayDataServer.createGLSL(st, "gca_TexCoords", 2, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
+        texCoords0 = GLArrayDataServer.createGLSL("gca_TexCoords", 2, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         texCoords0.putf(0f); texCoords0.putf(1f);
         texCoords0.putf(1f);  texCoords0.putf(1f);
         texCoords0.putf(0f);  texCoords0.putf(0f);        

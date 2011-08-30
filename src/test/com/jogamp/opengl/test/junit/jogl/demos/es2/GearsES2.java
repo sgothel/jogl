@@ -48,10 +48,14 @@ import javax.media.opengl.GLUniformData;
 public class GearsES2 implements GLEventListener {
     private final FloatBuffer lightPos = Buffers.newDirectFloatBuffer( new float[] { 5.0f, 5.0f, 10.0f } );
     
+    private ShaderState st = null;
+    private PMVMatrix pmvMatrix = null;
+    private GLUniformData pmvMatrixUniform = null;
+    private GLUniformData colorU = null;
     private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
-    private GearsObject gear1=null, gear2=null, gear3=null;
+    private GearsObjectES2 gear1=null, gear2=null, gear3=null;
     private float angle = 0.0f;
-    private int swapInterval;
+    private int swapInterval = 0;
 
     private int prevMouseX, prevMouseY;
 
@@ -63,10 +67,27 @@ public class GearsES2 implements GLEventListener {
         this.swapInterval = 1;
     }
 
-    ShaderState st;
-    PMVMatrix pmvMatrix;
-    GLUniformData pmvMatrixUniform;
-    GLUniformData colorU;
+    public void setGears(GearsObjectES2 g1, GearsObjectES2 g2, GearsObjectES2 g3) {
+        gear1 = g1;
+        gear2 = g2;
+        gear3 = g3;
+    }
+
+    /**
+     * @return gear1
+     */
+    public GearsObjectES2 getGear1() { return gear1; }
+
+    /**
+     * @return gear2
+     */
+    public GearsObjectES2 getGear2() { return gear2; }
+
+    /**
+     * @return gear3
+     */
+    public GearsObjectES2 getGear3() { return gear3; }
+
 
     public void init(GLAutoDrawable drawable) {
         System.err.println("Gears: Init: "+drawable);
@@ -96,6 +117,7 @@ public class GearsES2 implements GLEventListener {
         // drawable.setGL(new DebugGL(drawable.getGL()));
 
         pmvMatrix = new PMVMatrix();
+        st.attachObject("pmvMatrix", pmvMatrix);
         pmvMatrixUniform = new GLUniformData("pmvMatrix", 4, 4, pmvMatrix.glGetPMvMvitMatrixf()); // P, Mv, Mvi and Mvit
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
@@ -107,10 +129,31 @@ public class GearsES2 implements GLEventListener {
         colorU = new GLUniformData("color", 4, GearsObject.red);
         st.ownUniform(colorU);
         st.uniform(gl, colorU);
-        gear1 = new GearsObjectES2(1.0f, 4.0f, 1.0f, 20, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);         
-        gear2 = new GearsObjectES2(0.5f, 2.0f, 2.0f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
-        gear3 = new GearsObjectES2(1.3f, 2.0f, 0.5f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
 
+        if(null == gear1) {
+            gear1 = new GearsObjectES2(1.0f, 4.0f, 1.0f, 20, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
+            System.err.println("gear1 created: "+gear1);
+        } else {
+            gear1 = new GearsObjectES2(gear1, pmvMatrix, pmvMatrixUniform, colorU);
+            System.err.println("gear1 reused: "+gear1);
+        }
+                    
+        if(null == gear2) {
+            gear2 = new GearsObjectES2(0.5f, 2.0f, 2.0f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
+            System.err.println("gear2 created: "+gear2);
+        } else {
+            gear2 = new GearsObjectES2(gear2, pmvMatrix, pmvMatrixUniform, colorU);
+            System.err.println("gear2 reused: "+gear2);
+        }
+                
+        if(null == gear3) {
+            gear3 = new GearsObjectES2(1.3f, 2.0f, 0.5f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
+            System.err.println("gear3 created: "+gear3);
+        } else {
+            gear3 = new GearsObjectES2(gear3, pmvMatrix, pmvMatrixUniform, colorU);
+            System.err.println("gear3 reused: "+gear3);
+        }                
+        
         // MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
         MouseListener gearsMouse = new GearsMouseAdapter();    
         KeyListener gearsKeys = new GearsKeyAdapter();
@@ -119,15 +162,15 @@ public class GearsES2 implements GLEventListener {
             Window window = (Window) drawable;
             window.addMouseListener(gearsMouse);
             window.addKeyListener(gearsKeys);
-        } /* else if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
+        } else if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
             java.awt.Component comp = (java.awt.Component) drawable;
-            new AWTMouseAdapter(gearsMouse).addTo(comp);
-            new AWTKeyAdapter(gearsKeys).addTo(comp);
-        } */
+            new com.jogamp.newt.event.awt.AWTMouseAdapter(gearsMouse).addTo(comp);
+            new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys).addTo(comp);
+        }
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        System.err.println("Gears: Reshape "+x+"/"+y+" "+width+"x"+height);
+        System.err.println("Gears: Reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.setSwapInterval(swapInterval);
@@ -140,11 +183,14 @@ public class GearsES2 implements GLEventListener {
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0.0f, 0.0f, -40.0f);
-        st.uniform(gl, pmvMatrixUniform);        
+        st.uniform(gl, pmvMatrixUniform);
     }
 
     public void dispose(GLAutoDrawable drawable) {
         System.err.println("Gears: Dispose");
+        // GL2ES2 gl = drawable.getGL().getGL2ES2();
+        // st.useProgram(gl, false);
+        // st.destroy(gl);
     }
 
     public void display(GLAutoDrawable drawable) {
@@ -156,7 +202,16 @@ public class GearsES2 implements GLEventListener {
 
         gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-        gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT | GL2ES2.GL_DEPTH_BUFFER_BIT);
+        // Special handling for the case where the GLJPanel is translucent
+        // and wants to be composited with other Java 2D content
+        if (GLProfile.isAWTAvailable() && 
+            (drawable instanceof javax.media.opengl.awt.GLJPanel) &&
+            !((javax.media.opengl.awt.GLJPanel) drawable).isOpaque() &&
+            ((javax.media.opengl.awt.GLJPanel) drawable).shouldPreserveColorBufferIfTranslucent()) {
+          gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
+        } else {
+          gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        }
 
         pmvMatrix.glPushMatrix();
         pmvMatrix.glRotatef(view_rotx, 1.0f, 0.0f, 0.0f);

@@ -34,8 +34,6 @@ import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
-import com.jogamp.newt.event.awt.AWTKeyAdapter;
-import com.jogamp.newt.event.awt.AWTMouseAdapter;
 import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
 
 /**
@@ -59,6 +57,27 @@ public class GearsES1 implements GLEventListener {
   public GearsES1() {
     this.swapInterval = 1;
   }
+  
+  public void setGears(GearsObject g1, GearsObject g2, GearsObject g3) {
+      gear1 = g1;
+      gear2 = g2;
+      gear3 = g3;
+  }
+
+  /**
+   * @return gear1
+   */
+  public GearsObject getGear1() { return gear1; }
+
+  /**
+   * @return gear2
+   */
+  public GearsObject getGear2() { return gear2; }
+
+  /**
+   * @return gear3
+   */
+  public GearsObject getGear3() { return gear3; }
   
   public void init(GLAutoDrawable drawable) {
     System.err.println("Gears: Init: "+drawable);
@@ -115,8 +134,8 @@ public class GearsES1 implements GLEventListener {
         window.addKeyListener(gearsKeys);
     } else if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
         java.awt.Component comp = (java.awt.Component) drawable;
-        new AWTMouseAdapter(gearsMouse).addTo(comp);
-        new AWTKeyAdapter(gearsKeys).addTo(comp);
+        new com.jogamp.newt.event.awt.AWTMouseAdapter(gearsMouse).addTo(comp);
+        new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys).addTo(comp);
     }
   }
     
@@ -150,7 +169,16 @@ public class GearsES1 implements GLEventListener {
 
     gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-    gl.glClear(GL2ES1.GL_COLOR_BUFFER_BIT | GL2ES1.GL_DEPTH_BUFFER_BIT);
+    // Special handling for the case where the GLJPanel is translucent
+    // and wants to be composited with other Java 2D content
+    if (GLProfile.isAWTAvailable() && 
+        (drawable instanceof javax.media.opengl.awt.GLJPanel) &&
+        !((javax.media.opengl.awt.GLJPanel) drawable).isOpaque() &&
+        ((javax.media.opengl.awt.GLJPanel) drawable).shouldPreserveColorBufferIfTranslucent()) {
+      gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
+    } else {
+      gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+    }
 
     gl.glNormal3f(0.0f, 0.0f, 1.0f);
     

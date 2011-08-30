@@ -30,7 +30,6 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import com.jogamp.newt.opengl.GLWindow;
 
-import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLPbuffer;
@@ -38,18 +37,18 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestSharedContextListNEWT extends UITestCase {
+public class TestSharedContextVBOES2NEWT extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
     static int width, height;
     GLPbuffer sharedDrawable;
-    Gears sharedGears;
+    GearsES2 sharedGears;
 
     @BeforeClass
     public static void initClass() {
@@ -65,7 +64,7 @@ public class TestSharedContextListNEWT extends UITestCase {
     private void initShared() {
         sharedDrawable = GLDrawableFactory.getFactory(glp).createGLPbuffer(null, caps, null, width, height, null);
         Assert.assertNotNull(sharedDrawable);
-        sharedGears = new Gears();
+        sharedGears = new GearsES2();
         Assert.assertNotNull(sharedGears);
         sharedDrawable.addGLEventListener(sharedGears);
         // init and render one frame, which will setup the Gears display lists
@@ -82,13 +81,13 @@ public class TestSharedContextListNEWT extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Shared Gears NEWT Test: "+x+"/"+y+" shared "+useShared);
         if(useShared) {
-            glWindow.setSharedContext(sharedDrawable.getContext());
+            glWindow.setSharedContext(sharedDrawable.getContext());            
         }
 
         glWindow.setSize(width, height);
         glWindow.setPosition(x, y);
 
-        Gears gears = new Gears(vsync ? 1 : 0);
+        GearsES2 gears = new GearsES2(vsync ? 1 : 0);
         if(useShared) {
             gears.setGears(sharedGears.getGear1(), sharedGears.getGear2(), sharedGears.getGear3());
         }
@@ -138,6 +137,6 @@ public class TestSharedContextListNEWT extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             }
         }
-        org.junit.runner.JUnitCore.main(TestSharedContextListNEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestSharedContextVBOES2NEWT.class.getName());
     }
 }

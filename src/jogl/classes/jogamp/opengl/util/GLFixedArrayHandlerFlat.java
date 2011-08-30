@@ -33,7 +33,6 @@ import javax.media.opengl.GLArrayData;
 import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 
-import com.jogamp.opengl.util.GLArrayHandler;
 
 /**
  * Used for interleaved fixed function arrays, i.e. where the buffer data itself is handled 
@@ -50,7 +49,7 @@ public class GLFixedArrayHandlerFlat implements GLArrayHandler {
       throw new UnsupportedOperationException();
   }
   
-  public final void syncData(GL gl, boolean enable) {
+  public final void syncData(GL gl, boolean enable, Object ext) {
     if(enable) {
         final GLPointerFunc glp = gl.getGL2ES1();
         switch(ad.getIndex()) {
@@ -72,7 +71,7 @@ public class GLFixedArrayHandlerFlat implements GLArrayHandler {
     }
   }
 
-  public final void enableState(GL gl, boolean enable) {
+  public final void enableState(GL gl, boolean enable, Object ext) {
     final GLPointerFunc glp = gl.getGL2ES1();
     if(enable) {
         glp.glEnableClientState(ad.getIndex());        

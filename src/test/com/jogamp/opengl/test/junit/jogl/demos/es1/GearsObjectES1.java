@@ -42,6 +42,11 @@ public class GearsObjectES1 extends GearsObject {
     }
 
     @Override
+    public GLArrayDataServer createInterleaved(int comps, int dataType, boolean normalized, int initialSize, int vboUsage) {
+        return GLArrayDataServer.createFixedInterleaved(comps, dataType, normalized, initialSize, vboUsage);
+    }
+    
+    @Override
     public void addInterleavedVertexAndNormalArrays(GLArrayDataServer array,
             int components) {
         array.addFixedSubArray(GLPointerFunc.GL_VERTEX_ARRAY, 3, GL.GL_ARRAY_BUFFER);

@@ -29,7 +29,6 @@ package jogamp.graph.curve.opengl;
 
 import java.nio.FloatBuffer;
 
-import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLUniformData;
 
 import jogamp.graph.curve.opengl.shader.UniformNames;
@@ -49,10 +48,6 @@ public class RenderStateImpl extends RenderState {
     private final GLUniformData gcu_Alpha;
     private final GLUniformData gcu_ColorStatic;
 
-    public static final RenderState getRenderState(GL2ES2 gl) {
-        return (RenderState) gl.getContext().getAttachedObject(RenderState.class.getName());
-    }
-    
     public RenderStateImpl(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory, PMVMatrix pmvMatrix) {
         super(st, pointFactory, pmvMatrix);
         

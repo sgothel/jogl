@@ -11,6 +11,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLPointerFuncUtil;
 
+import jogamp.opengl.util.GLArrayHandler;
 import jogamp.opengl.util.GLFixedArrayHandler;
 import jogamp.opengl.util.glsl.GLSLArrayHandler;
 
@@ -45,7 +46,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   {
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
-      adc.init(null, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler, 0, 0, 0, 0);
+      adc.init(null, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler, 0, 0, 0, 0, false);
       return adc;
   }
 
@@ -76,36 +77,32 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   {
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
-      adc.init(null, index, comps, dataType, normalized, stride, buffer, comps*comps, false, glArrayHandler, 0, 0, 0, 0);
+      adc.init(null, index, comps, dataType, normalized, stride, buffer, comps*comps, false, glArrayHandler, 0, 0, 0, 0, false);
       return adc;
   }
 
   /**
    * Create a client side buffer object, using a custom GLSL array attribute name
    * and starting with a new created Buffer object with initialSize size
-   * 
-   * @param st The ShaderState managing the state of the used shader program, vertex attributes and uniforms 
    * @param name  The custom name for the GL attribute. 
    * @param comps The array component number
    * @param dataType The array index GL data type
    * @param normalized Whether the data shall be normalized
    * @param initialSize
    */
-  public static GLArrayDataClient createGLSL(ShaderState st, String name, 
-                                             int comps, int dataType, boolean normalized, int initialSize)
+  public static GLArrayDataClient createGLSL(String name, int comps, 
+                                             int dataType, boolean normalized, int initialSize)
     throws GLException
   {
       GLArrayDataClient adc = new GLArrayDataClient();
-      GLArrayHandler glArrayHandler = new GLSLArrayHandler(st, adc);
-      adc.init(name, -1, comps, dataType, normalized, 0, null, initialSize, true, glArrayHandler, 0, 0, 0, 0);
+      GLArrayHandler glArrayHandler = new GLSLArrayHandler(adc);
+      adc.init(name, -1, comps, dataType, normalized, 0, null, initialSize, true, glArrayHandler, 0, 0, 0, 0, true);
       return adc;
   }
 
   /**
    * Create a client side buffer object, using a custom GLSL array attribute name
    * and starting with a given Buffer object incl it's stride
-   * 
-   * @param st The ShaderState managing the state of the used shader program, vertex attributes and uniforms
    * @param name  The custom name for the GL attribute. 
    * @param comps The array component number
    * @param dataType The array index GL data type
@@ -113,14 +110,13 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * @param stride
    * @param buffer the user define data
    */
-  public static GLArrayDataClient createGLSL(ShaderState st, String name,
-                                             int comps, int dataType, boolean normalized, int stride, 
-                                             Buffer buffer)
+  public static GLArrayDataClient createGLSL(String name, int comps,
+                                             int dataType, boolean normalized, int stride, Buffer buffer)
     throws GLException
   {
       GLArrayDataClient adc = new GLArrayDataClient();
-      GLArrayHandler glArrayHandler = new GLSLArrayHandler(st, adc);
-      adc.init(name, -1, comps, dataType, normalized, stride, buffer, comps*comps, true, glArrayHandler, 0, 0, 0, 0);
+      GLArrayHandler glArrayHandler = new GLSLArrayHandler(adc);
+      adc.init(name, -1, comps, dataType, normalized, stride, buffer, comps*comps, true, glArrayHandler, 0, 0, 0, 0, true);
       return adc;
   }
 
@@ -162,12 +158,13 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
             // init/generate VBO name if not done yet
             init_vbo(gl);
         }
+        final Object ext = usesGLSL ? ShaderState.getShaderState(gl) : null ;
         if(enable) {
-            glArrayHandler.syncData(gl, true);
-            glArrayHandler.enableState(gl, true);
+            glArrayHandler.syncData(gl, true, ext);
+            glArrayHandler.enableState(gl, true, ext);
         } else {
-            glArrayHandler.enableState(gl, false);
-            glArrayHandler.syncData(gl, false);
+            glArrayHandler.enableState(gl, false, ext);
+            glArrayHandler.syncData(gl, false, ext);
         }
         bufferEnabled = enable;
     }
@@ -349,7 +346,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
 
   protected void init(String name, int index, int comps, int dataType, boolean normalized, int stride, Buffer data, 
                       int initialSize, boolean isVertexAttribute, GLArrayHandler handler,
-                      int vboName, long vboOffset, int vboUsage, int vboTarget)
+                      int vboName, long vboOffset, int vboUsage, int vboTarget, boolean usesGLSL)
     throws GLException
   {
     super.init(name, index, comps, dataType, normalized, stride, data, isVertexAttribute,
@@ -357,6 +354,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
 
     this.initialSize = initialSize;
     this.glArrayHandler = handler;
+    this.usesGLSL = usesGLSL;
     this.sealed=false;
     this.bufferEnabled=false;
     this.enableBufferAlways=false;
@@ -385,5 +383,6 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   protected int initialSize;
 
   protected GLArrayHandler glArrayHandler;
+  protected boolean usesGLSL;
 }
 

@@ -59,12 +59,12 @@ public class VBORegionSPES2 extends GLRegion {
 
             indices = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialSize, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
 
-            verticeAttr = GLArrayDataServer.createGLSL(st, AttributeNames.VERTEX_ATTR_NAME, 3, 
-                    GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);         
+            verticeAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT, 
+                    false, initialSize, GL.GL_STATIC_DRAW);         
             st.ownAttribute(verticeAttr, true);
 
-            texCoordAttr = GLArrayDataServer.createGLSL(st, AttributeNames.TEXCOORD_ATTR_NAME, 2, 
-                    GL2ES2.GL_FLOAT, false, initialSize, GL.GL_STATIC_DRAW);
+            texCoordAttr = GLArrayDataServer.createGLSL(AttributeNames.TEXCOORD_ATTR_NAME, 2, GL2ES2.GL_FLOAT, 
+                    false, initialSize, GL.GL_STATIC_DRAW);
             st.ownAttribute(texCoordAttr, true);
 
             if(DEBUG_INSTANCE) {

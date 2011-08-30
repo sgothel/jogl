@@ -49,7 +49,7 @@ public class GLDataArrayHandler implements GLArrayHandler {
       throw new UnsupportedOperationException();
   }
   
-  public final void syncData(GL gl, boolean enable) {
+  public final void syncData(GL gl, boolean enable, Object ext) {
     if(!ad.isVBO()) {
         // makes no sense otherwise
         throw new GLException("GLDataArrayHandler can only handle VBOs.");
@@ -71,7 +71,7 @@ public class GLDataArrayHandler implements GLArrayHandler {
     }      
   }
   
-  public final void enableState(GL gl, boolean enable) { 
+  public final void enableState(GL gl, boolean enable, Object ext) { 
       // no array association
   }
 }

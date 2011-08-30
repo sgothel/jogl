@@ -33,8 +33,9 @@ import java.nio.Buffer;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 
+import jogamp.opengl.util.GLArrayHandler;
+
 import com.jogamp.opengl.util.GLArrayDataEditable;
-import com.jogamp.opengl.util.GLArrayHandler;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 /**
@@ -43,10 +44,8 @@ import com.jogamp.opengl.util.glsl.ShaderState;
  */
 public class GLSLArrayHandler implements GLArrayHandler {
   private GLArrayDataEditable ad;
-  private ShaderState st;
 
-  public GLSLArrayHandler(ShaderState st, GLArrayDataEditable ad) {
-    this.st = st;
+  public GLSLArrayHandler(GLArrayDataEditable ad) {
     this.ad = ad;
   }
 
@@ -54,9 +53,10 @@ public class GLSLArrayHandler implements GLArrayHandler {
       throw new UnsupportedOperationException();
   }
   
-  public final void syncData(GL gl, boolean enable) {
+  public final void syncData(GL gl, boolean enable, Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
-
+    final ShaderState st = (ShaderState) ext;
+    
     if(enable) {
         final Buffer buffer = ad.getBuffer();
         /*
@@ -100,9 +100,10 @@ public class GLSLArrayHandler implements GLArrayHandler {
     }      
   }
   
-  public final void enableState(GL gl, boolean enable) {
+  public final void enableState(GL gl, boolean enable, Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
-
+    final ShaderState st = (ShaderState) ext;
+    
     if(enable) {
         st.enableVertexAttribArray(glsl, ad);
     } else {

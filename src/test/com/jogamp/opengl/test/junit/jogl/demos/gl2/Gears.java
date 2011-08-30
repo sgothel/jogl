@@ -5,9 +5,9 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
-import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.newt.Window;
+import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
@@ -30,7 +30,7 @@ public class Gears implements GLEventListener {
   private float angle = 0.0f;
   private int swapInterval;
 
-  private boolean mouseRButtonDown = false;
+  // private boolean mouseRButtonDown = false;
   private int prevMouseX, prevMouseY;
 
   public Gears(int swapInterval) {
@@ -347,14 +347,14 @@ public class Gears implements GLEventListener {
       public void mousePressed(MouseEvent e) {
         prevMouseX = e.getX();
         prevMouseY = e.getY();
-        if ((e.getModifiers() & e.BUTTON3_MASK) != 0) {
-          mouseRButtonDown = true;
+        if ((e.getModifiers() & InputEvent.BUTTON3_MASK) != 0) {
+          // mouseRButtonDown = true;
         }
       }
         
       public void mouseReleased(MouseEvent e) {
-        if ((e.getModifiers() & e.BUTTON3_MASK) != 0) {
-          mouseRButtonDown = false;
+        if ((e.getModifiers() & InputEvent.BUTTON3_MASK) != 0) {
+          // mouseRButtonDown = false;
         }
       }
         

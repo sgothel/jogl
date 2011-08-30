@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 JogAmp Community. All rights reserved.
+ * Copyright 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -26,47 +26,44 @@
  * or implied, of JogAmp Community.
  */
 
-package jogamp.opengl.util.glsl;
+package jogamp.opengl.util;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLArrayData;
-
-import jogamp.opengl.util.GLArrayHandler;
-
-import com.jogamp.opengl.util.glsl.ShaderState;
+import javax.media.opengl.*;
 
 /**
- * Used for interleaved GLSL arrays, i.e. where the buffer data itself is handled 
- * separately and interleaves many arrays.
+ * Handles consistency of buffer data and array state.
+ * Implementations shall consider buffer types (VBO, ..), interleaved, etc.
+ * They also need to consider array state types, i.e. fixed function or GLSL.
  */
-public class GLSLArrayHandlerFlat implements GLArrayHandler {
-  private GLArrayData ad;
+public interface GLArrayHandler {
 
-  public GLSLArrayHandlerFlat(GLArrayData ad) {
-    this.ad = ad;
-  }
-
-  public final void addSubHandler(GLArrayHandler handler) {
-      throw new UnsupportedOperationException();
-  }
+  /**
+   * Implementation shall associate the data with the array
+   * and synchronize the data with the GPU.
+   * 
+   * @param gl current GL object
+   * @param enable true if array data shall be valid, otherwise false.
+   * @param ext extension object allowing passing of an implementation detail 
+   */
+  public void syncData(GL gl, boolean enable, Object ext);
   
-  public final void syncData(GL gl, boolean enable, Object ext) {
-    final ShaderState st = (ShaderState) ext;
-    if(enable) {
-        st.vertexAttribPointer(gl.getGL2ES2(), ad);
-    }
-  }
+  /**
+   * Implementation shall enable or disable the array state.
+   * 
+   * @param gl current GL object
+   * @param enable true if array shall be enabled, otherwise false.
+   * @param ext extension object allowing passing of an implementation detail 
+   */
+  public void enableState(GL gl, boolean enable, Object ext);
+  
+  /**
+   * Supporting interleaved arrays, where sub handlers may handle 
+   * the array state and the <i>master</i> handler the buffer consistency.
+   *   
+   * @param handler the sub handler
+   * @throws UnsupportedOperationException if this array handler does not support interleaved arrays
+   */
+  public void addSubHandler(GLArrayHandler handler) throws UnsupportedOperationException;
 
-  public final void enableState(GL gl, boolean enable, Object ext) {
-    final GL2ES2 glsl = gl.getGL2ES2();
-    final ShaderState st = (ShaderState) ext;
-    
-    if(enable) {
-        st.enableVertexAttribArray(glsl, ad);
-    } else {
-        st.disableVertexAttribArray(glsl, ad);
-    }
-  }  
 }
 

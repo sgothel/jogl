@@ -49,7 +49,8 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
 
 public class ShaderState {
     public static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.GLSLState", true, AccessController.getContext());
-
+    private static final String currentStateKey = "jogamp.opengl.glsl.ShaderState" ;
+    
     public ShaderState() {
     }
 
@@ -78,7 +79,7 @@ public class ShaderState {
      * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrentShaderState()
      */
     public static synchronized ShaderState getShaderState(GL gl) { 
-        return (ShaderState) gl.getContext().getAttachedObject(ShaderState.class.getName());
+        return (ShaderState) gl.getContext().getAttachedObject(currentStateKey);
     }
 
     /**
@@ -141,7 +142,7 @@ public class ShaderState {
         if(null==shaderProgram) { throw new GLException("No program is attached"); }        
         if(on) {
             // update the current ShaderState to the TLS ..
-            gl.getContext().attachObject(ShaderState.class.getName(), this);
+            gl.getContext().attachObject(currentStateKey, this);
             if(shaderProgram.linked()) {
                 shaderProgram.useProgram(gl, true);
                 if(resetAllShaderData) {

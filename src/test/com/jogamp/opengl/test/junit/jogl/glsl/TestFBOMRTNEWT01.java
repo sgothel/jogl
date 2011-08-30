@@ -102,7 +102,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         st.uniform(gl, pmvMatrixUniform);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
-        final GLArrayDataServer vertices0 = GLArrayDataServer.createGLSL(st, "gca_Vertices", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
+        final GLArrayDataServer vertices0 = GLArrayDataServer.createGLSL("gca_Vertices", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         // st.bindAttribLocation(gl, 0, vertices0);
         vertices0.putf(0); vertices0.putf(1);  vertices0.putf(0);
         vertices0.putf(1);  vertices0.putf(1);  vertices0.putf(0);
@@ -113,7 +113,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         vertices0.enableBuffer(gl, false);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
-        final GLArrayDataServer colors0 = GLArrayDataServer.createGLSL(st, "gca_Colors", 4, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
+        final GLArrayDataServer colors0 = GLArrayDataServer.createGLSL("gca_Colors", 4, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         // st.bindAttribLocation(gl, 1, colors0);
         colors0.putf(1); colors0.putf(0);  colors0.putf(1); colors0.putf(1);
         colors0.putf(0);  colors0.putf(0);  colors0.putf(1); colors0.putf(1);
@@ -131,7 +131,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         st.ownUniform(texUnit1);       
         st.uniform(gl, texUnit1);
                 
-        final GLArrayDataServer texCoords0 = GLArrayDataServer.createGLSL(st, "gca_TexCoords", 2, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
+        final GLArrayDataServer texCoords0 = GLArrayDataServer.createGLSL("gca_TexCoords", 2, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         // st.bindAttribLocation(gl, 2, texCoords0);
         texCoords0.putf(0f); texCoords0.putf(1f);
         texCoords0.putf(1f);  texCoords0.putf(1f);

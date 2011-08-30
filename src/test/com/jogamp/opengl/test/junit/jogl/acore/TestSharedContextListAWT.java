@@ -83,7 +83,7 @@ public class TestSharedContextListAWT extends UITestCase {
         return new Frame("Shared Gears AWT Test: "+x+"/"+y+" shared "+useShared);
     }
 
-    protected GLCanvas runTestGL(final Frame frame, final Animator animator, final int x, final int y, final boolean useShared)
+    protected GLCanvas runTestGL(final Frame frame, final Animator animator, final int x, final int y, final boolean useShared, final boolean vsync)
             throws InterruptedException
     {
         final GLCanvas glCanvas = new GLCanvas(caps, useShared ? sharedDrawable.getContext() : null);        
@@ -92,7 +92,7 @@ public class TestSharedContextListAWT extends UITestCase {
         frame.setLocation(x, y);
         frame.setSize(width, height);
         
-        Gears gears = new Gears();
+        Gears gears = new Gears(vsync ? 1 : 0);
         if(useShared) {
             gears.setGears(sharedGears.getGear1(), sharedGears.getGear2(), sharedGears.getGear3());
         }
@@ -116,9 +116,9 @@ public class TestSharedContextListAWT extends UITestCase {
 
         Animator animator = new Animator();
 
-        GLCanvas glc1 = runTestGL(f1, animator, 0,     0,      true);
-        GLCanvas glc2 = runTestGL(f2, animator, width, 0,      true);
-        GLCanvas glc3 = runTestGL(f3, animator, 0,     height, false);
+        GLCanvas glc1 = runTestGL(f1, animator, 0,     0,      true, false);
+        GLCanvas glc2 = runTestGL(f2, animator, width, 0,      true, false);
+        GLCanvas glc3 = runTestGL(f3, animator, 0,     height, false, true);
 
         animator.setUpdateFPSFrames(1, null);        
         animator.start();
