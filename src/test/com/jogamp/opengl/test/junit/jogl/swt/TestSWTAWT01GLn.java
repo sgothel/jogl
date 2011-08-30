@@ -58,7 +58,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 /**
  * Tests that a basic SWT app can open without crashing under different GL profiles. Uses the AWT GL canvas with
  * the SWT_AWT bridge.
- * @author Wade Walker
+ * @author Wade Walker, et.al.
  */
 public class TestSWTAWT01GLn extends UITestCase {
 
@@ -97,10 +97,14 @@ public class TestSWTAWT01GLn extends UITestCase {
         Assert.assertNotNull( composite );
         Assert.assertNotNull( glcanvas );
         try {
-            frame.setVisible( false );
-            frame.remove( glcanvas );
-            frame.dispose();
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setVisible(false);
+                    frame.remove(glcanvas);
+                    frame.dispose();
+                }});
             composite.dispose();
+            shell.close();
             shell.dispose();
             display.dispose();
         }
