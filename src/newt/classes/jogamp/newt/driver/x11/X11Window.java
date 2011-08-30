@@ -64,7 +64,7 @@ public class X11Window extends WindowImpl {
         X11GraphicsConfiguration x11config = (X11GraphicsConfiguration) config;
         long visualID = x11config.getVisualID();
         long w = CreateWindow0(getParentWindowHandle(),
-                               display.getHandle(), screen.getIndex(), visualID, 
+                               display.getHandle(), display.getEDTHandle(), screen.getIndex(), visualID, 
                                display.getJavaObjectAtom(), display.getWindowDeleteAtom(), 
                                x, y, width, height, isUndecorated());
         if (w == 0) {
@@ -78,7 +78,7 @@ public class X11Window extends WindowImpl {
         if(0!=windowHandleClose && null!=getScreen() ) {
             X11Display display = (X11Display) getScreen().getDisplay();
             try {
-                CloseWindow0(display.getHandle(), windowHandleClose, 
+                CloseWindow0(display.getHandle(), display.getEDTHandle(), windowHandleClose, 
                              display.getJavaObjectAtom(), display.getWindowDeleteAtom());
             } catch (Throwable t) {
                 if(DEBUG_IMPLEMENTATION) { 
@@ -124,10 +124,10 @@ public class X11Window extends WindowImpl {
     //
 
     protected static native boolean initIDs0();
-    private native long CreateWindow0(long parentWindowHandle, long display, int screen_index, 
+    private native long CreateWindow0(long parentWindowHandle, long display, long displayEDT, int screen_index, 
                                             long visualID, long javaObjectAtom, long windowDeleteAtom, 
                                             int x, int y, int width, int height, boolean undecorated);
-    private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom);
+    private native void CloseWindow0(long display, long displayEDT, long windowHandle, long javaObjectAtom, long windowDeleteAtom);
     private native void setVisible0(long display, long windowHandle, boolean visible, int x, int y, int width, int height);
     private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long windowHandle, 
                                                   int x, int y, int width, int height, boolean isVisible,

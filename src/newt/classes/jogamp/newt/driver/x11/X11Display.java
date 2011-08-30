@@ -69,14 +69,23 @@ public class X11Display extends DisplayImpl {
         if( 0 == handle ) {
             throw new RuntimeException("Error creating display: "+name);
         }
+        if(USE_SEPARATE_DISPLAY_FOR_EDT) {
+            edtDisplayHandle = X11Util.createDisplay(name);
+            if( 0 == edtDisplayHandle ) {
+                X11Util.closeDisplay(handle);
+                throw new RuntimeException("Error creating display(EDT): "+name);
+            }
+        } else {
+            edtDisplayHandle = handle;
+        }
         try {
-            CompleteDisplay0(handle);
+            CompleteDisplay0(edtDisplayHandle);
         } catch(RuntimeException e) {
-            X11Util.closeDisplay(handle);
+            closeNativeImpl();
             throw e;
         }
         
-        if(X11Util.XINITTHREADS_ALWAYS_ENABLED && !X11Util.MULTITHREADING_BUG) {
+        if(X11Util.XINITTHREADS_ALWAYS_ENABLED) {
             // Hack: Force non X11Display locking, even w/ AWT and w/o isFirstUIActionOnProcess() 
             aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, NativeWindowFactory.getNullToolkitLock());            
         } else {
@@ -86,25 +95,29 @@ public class X11Display extends DisplayImpl {
     }
 
     protected void closeNativeImpl() {
-        X11Util.closeDisplay(getHandle());
+        final long handle = getHandle();
+        if(handle != edtDisplayHandle) {
+            X11Util.closeDisplay(edtDisplayHandle);
+        }
+        X11Util.closeDisplay(handle);
     }
 
     protected void dispatchMessagesNative() {
-        long dpy = getHandle();
-        if(0!=dpy) {
-            DispatchMessages0(dpy, javaObjectAtom, windowDeleteAtom);
+        if(0 != edtDisplayHandle) {
+            DispatchMessages0(edtDisplayHandle, javaObjectAtom, windowDeleteAtom);
         }
     }
 
+    protected long getEDTHandle() { return edtDisplayHandle; }
     protected long getJavaObjectAtom() { return javaObjectAtom; }
     protected long getWindowDeleteAtom() { return windowDeleteAtom; }
-
+    
     //----------------------------------------------------------------------
     // Internals only
     //
     private static native boolean initIDs0();
 
-    private native void CompleteDisplay0(long handle);
+    private native void CompleteDisplay0(long handleEDT);
 
     private native void DispatchMessages0(long display, long javaObjectAtom, long windowDeleteAtom);
 
@@ -113,7 +126,21 @@ public class X11Display extends DisplayImpl {
         this.windowDeleteAtom=windowDeleteAtom;
     }
 
+    /**
+     * 2011/06/14 libX11 1.4.2 and libxcb 1.7 bug 20708 - Multithreading Issues w/ OpenGL, ..
+     *            https://bugs.freedesktop.org/show_bug.cgi?id=20708
+     *            https://jogamp.org/bugzilla/show_bug.cgi?id=502
+     *            Affects: Ubuntu 11.04, OpenSuSE 11, ..
+     *            Workaround: Using a separate X11 Display connection for event dispatching (EDT)
+     */    
+    private final boolean USE_SEPARATE_DISPLAY_FOR_EDT = true;
+    
+    private long edtDisplayHandle;
+    
+    /** X11 Window delete atom marker used on EDT */
     private long windowDeleteAtom;
+    
+    /** X11 Window java object property used on EDT */
     private long javaObjectAtom;
 }
 

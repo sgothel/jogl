@@ -51,15 +51,6 @@ import javax.media.nativewindow.util.Point;
  * Contains a thread safe X11 utility to retrieve display connections.
  */
 public class X11Util {
-    /**
-     * 2011/06/14 libX11 1.4.2 and libxcb 1.7 bug 20708 - Multithreading Issues w/ OpenGL, ..
-     *            https://bugs.freedesktop.org/show_bug.cgi?id=20708
-     *            https://jogamp.org/bugzilla/show_bug.cgi?id=502
-     *            Affects: Ubuntu 11.04, OpenSuSE 11, ..
-     * If the property <b>nativewindow.x11.mt-bug</b> is set to true, extensive X11 locking 
-     * is being applied, avoiding X11 multithreading capabilities. 
-     */
-    public static final boolean MULTITHREADING_BUG = Debug.getBooleanProperty("nativewindow.x11.mt-bug", true, AccessController.getContext());
     public static final boolean XINITTHREADS_ALWAYS_ENABLED = true;
 
     private static final boolean DEBUG = Debug.debug("X11Util");
@@ -84,12 +75,11 @@ public class X11Util {
              */
             initialize0( XINITTHREADS_ALWAYS_ENABLED ? true : firstX11ActionOnProcess );
 
-            requiresX11Lock = !firstX11ActionOnProcess || MULTITHREADING_BUG;
+            requiresX11Lock = !firstX11ActionOnProcess ;
             
             if(DEBUG) {
                 System.out.println("X11Util firstX11ActionOnProcess: "+firstX11ActionOnProcess+
                                    ", XINITTHREADS_ALWAYS_ENABLED "+XINITTHREADS_ALWAYS_ENABLED+
-                                   ", MULTITHREADING_BUG "+MULTITHREADING_BUG+
                                    ", requiresX11Lock "+requiresX11Lock); 
             }
             isInit = true;
@@ -160,8 +150,8 @@ public class X11Util {
     // which is to tag a NamedDisplay uncloseable after creation.
     private static Object globalLock = new Object(); 
     private static LongObjectHashMap globalNamedDisplayMap = new LongObjectHashMap();
-    private static List openDisplayList = new ArrayList();
-    private static List pendingDisplayList = new ArrayList();
+    private static List<NamedDisplay> openDisplayList = new ArrayList<NamedDisplay>();
+    private static List<NamedDisplay> pendingDisplayList = new ArrayList<NamedDisplay>();
 
     public static class NamedDisplay {
         String name;
@@ -269,7 +259,7 @@ public class X11Util {
         synchronized(globalLock) {
             System.err.println("X11Util: Open X11 Display Connections: "+openDisplayList.size());
             for(int i=0; i<pendingDisplayList.size(); i++) {
-                NamedDisplay ndpy = (NamedDisplay) openDisplayList.get(i);
+                NamedDisplay ndpy = openDisplayList.get(i);
                 System.err.println("X11Util: ["+i+"]: "+ndpy);
                 if(null!=ndpy) {
                     Throwable t = ndpy.getCreationStack();
