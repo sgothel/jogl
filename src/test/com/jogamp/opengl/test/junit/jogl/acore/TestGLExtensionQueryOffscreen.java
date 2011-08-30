@@ -47,7 +47,7 @@ import org.junit.Test;
 public class TestGLExtensionQueryOffscreen {
     
     static {
-        GLProfile.initSingleton(false);
+        // redundant, since implicit (false): GLProfile.initSingleton(false);
     }
 
     public static void main(String[] args) {

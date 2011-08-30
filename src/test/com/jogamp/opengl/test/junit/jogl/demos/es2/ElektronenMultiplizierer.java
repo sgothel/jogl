@@ -471,7 +471,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
 //BEGIN --- main entry point ---
 
     static {
-        //stg dirty I dont wanna think about any further X-) ...
+        // Since we only use NEWT, allow X11 to be multithreaded w/o locking
         GLProfile.initSingleton(true);
     }
 

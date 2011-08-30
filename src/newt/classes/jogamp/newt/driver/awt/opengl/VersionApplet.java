@@ -29,7 +29,7 @@ import com.jogamp.opengl.JoglVersion;
 
 public class VersionApplet extends Applet {
   static {
-    GLProfile.initSingleton(false);
+    // redundant, since implicit (false): GLProfile.initSingleton(false);
   }
   TextArea tareaVersion;
   TextArea tareaCaps;
