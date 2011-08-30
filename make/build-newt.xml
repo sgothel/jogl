@@ -164,6 +164,8 @@
         <!-- The compiler output directories. -->
         <property name="classes" value="${build.newt}/classes" />
 
+        <property name="javah.classpath" value="${gluegen-rt.jar}:${build.nativewindow}/classes:${classes}" />
+
         <!-- The javadoc dirs. -->
         <property name="javadoc" value="${project.root}/javadoc_newt_public" />
         <property name="javadoc.spec" value="${project.root}/javadoc_newt_spec" />
@@ -556,24 +558,24 @@
     </macrodef>
 
     <target name="c.build.newt.prepare">
-      <javah destdir="${src.generated.c}/KD"          classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.kd.KDWindow" />
+      <javah destdir="${src.generated.c}/KD"          classpath="${javah.classpath}" class="jogamp.newt.driver.kd.KDWindow" />
 
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${gluegen-rt.jar}:${classes}:${build}/nativewindow/classes" class="jogamp.newt.driver.intel.gdl.Display" />
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.intel.gdl.Screen" />
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.intel.gdl.Window" />
+      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.Display" />
+      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.Screen" />
+      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.Window" />
 
-      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.broadcom.egl.Window" />
+      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${javah.classpath}" class="jogamp.newt.driver.broadcom.egl.Window" />
 
-      <javah destdir="${src.generated.c}/Windows"     classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.windows.WindowsWindow" />
-      <javah destdir="${src.generated.c}/Windows"     classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.windows.WindowsScreen" />
-      <javah destdir="${src.generated.c}/Windows"     classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.windows.WindowsDisplay" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.macosx.MacWindow" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.macosx.MacScreen" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.macosx.MacDisplay" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.x11.X11Window" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.x11.X11Screen" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.x11.X11Display" />
-      <javah destdir="${src.generated.c}/Android"     classpath="${gluegen-rt.jar}:${classes}:${android.jar}" class="jogamp.newt.driver.android.AndroidWindow" />
+      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowsWindow" />
+      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowsScreen" />
+      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowsDisplay" />
+      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.MacWindow" />
+      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.MacScreen" />
+      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.MacDisplay" />
+      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.X11Window" />
+      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.X11Screen" />
+      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.X11Display" />
+      <javah destdir="${src.generated.c}/Android"     classpath="${javah.classpath}:${android.jar}" class="jogamp.newt.driver.android.AndroidWindow" />
     </target>
 
     <target name="c.build.newt.windowlib" unless="setup.nonatives">

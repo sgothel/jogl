@@ -218,6 +218,8 @@
         <property name="obj.joglsub"                value="${obj.jogl}/jogl" />
         <property name="obj.cgsub"                  value="${obj.jogl}/cg" />
 
+        <property name="javah.classpath" value="${gluegen-rt.jar}:${build.nativewindow}/classes:${classes}" />
+
         <!-- The GL headers from which Java files are generated -->
         <property name="stub.includes.opengl"       value="${stub.includes}/opengl" />
 
@@ -1392,14 +1394,14 @@
     </macrodef>  
 
     <target name="c.build.jogl.prepare.openMAX" if="setup.addNativeOpenMAX">
-      <javah destdir="${src.generated.c.openmax}" classpath="${classes}" class="com.jogamp.openmax.OMXInstance" />
+      <javah destdir="${src.generated.c.openmax}" classpath="${javah.classpath}" class="com.jogamp.openmax.OMXInstance" />
     </target>
 
     <target name="c.build.jogl.prepare" depends="c.build.jogl.prepare.openMAX">
-      <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${classes}" class="jogamp.opengl.GLDebugMessageHandler" />
+      <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLDebugMessageHandler" />
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
-      <!--javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${classes}" class="com.jogamp.audio.windows.waveout.Mixer" /-->
+      <!--javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="com.jogamp.audio.windows.waveout.Mixer" /-->
     </target>
 
     <target name="c.build.jogl.desktop" unless="setup.noNativeDesktop">

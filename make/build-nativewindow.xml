@@ -120,6 +120,8 @@
         <!-- The compiler output directories. -->
         <property name="classes" value="${build.nativewindow}/classes" />
 
+        <property name="javah.classpath" value="${gluegen-rt.jar}:${classes}" />
+
         <!-- The headers from which Java files are generated -->
         <dirset id="stub.includes.fileset.all" dir=".">
             <include name="${stub.includes}/macosx/**" />
@@ -666,7 +668,7 @@
     </target>
 
     <target name="c.build.nativewindow.windowlib.x11" if="isX11">
-      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="jogamp.nativewindow.x11.X11Lib" />
+      <javah destdir="${src.generated.c}/X11" classpath="${javah.classpath}" class="jogamp.nativewindow.x11.X11Lib" />
 
       <c.build c.compiler.src.files="c.src.files.x11"
                output.lib.name="nativewindow_x11"
@@ -675,7 +677,7 @@
     </target>
 
     <target name="c.build.nativewindow.windowlib.windows" if="isWindows">
-      <javah destdir="${src.generated.c}/Windows" classpath="${classes}:${gluegen.root}/build/classes" class="jogamp.nativewindow.windows.GDI" />
+      <javah destdir="${src.generated.c}/Windows" classpath="${javah.classpath}" class="jogamp.nativewindow.windows.GDI" />
 
       <c.build c.compiler.src.files="c.src.files.windows"
                output.lib.name="nativewindow_win32"
