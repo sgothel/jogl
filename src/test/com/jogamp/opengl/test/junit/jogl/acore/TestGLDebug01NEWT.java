@@ -30,14 +30,12 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 
-import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDebugListener;
 import javax.media.opengl.GLDebugMessage;
-import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 
@@ -184,7 +182,7 @@ public class TestGLDebug01NEWT extends UITestCase {
                                         recSeverity== event.getDbgSeverity() ) {
                 received = true;                
             }
-            Thread.dumpStack();
+            // Thread.dumpStack();
         }        
     }
 }

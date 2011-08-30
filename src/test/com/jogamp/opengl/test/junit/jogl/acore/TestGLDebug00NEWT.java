@@ -222,7 +222,7 @@ public class TestGLDebug00NEWT extends UITestCase {
                                         recSeverity== event.getDbgSeverity() ) {
                 received = true;                
             }
-            Thread.dumpStack();
+            // Thread.dumpStack();
         }        
     }
 }
