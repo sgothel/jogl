@@ -124,6 +124,8 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
      * with the given GLCapabilities.
      * <P>
      * The resulting GLWindow owns the Window, Screen and Device, ie it will be destructed.
+     * <P>
+     * The default display connection will be used and reused if already in process.  
      */
     public static GLWindow create(GLCapabilitiesImmutable caps) {
         return new GLWindow(NewtFactory.createWindow(caps));

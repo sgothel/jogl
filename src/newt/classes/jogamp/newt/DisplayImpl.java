@@ -51,10 +51,10 @@ public abstract class DisplayImpl extends Display {
 
     private static int serialno = 1;
 
-    private static Class getDisplayClass(String type) 
+    private static Class<?> getDisplayClass(String type) 
         throws ClassNotFoundException 
     {
-        Class displayClass = NewtFactory.getCustomClass(type, "Display");
+        Class<?> displayClass = NewtFactory.getCustomClass(type, "Display");
         if(null==displayClass) {
             if (NativeWindowFactory.TYPE_ANDROID.equals(type)) {
                 displayClass = Class.forName("jogamp.newt.driver.android.AndroidDisplay");
@@ -78,7 +78,7 @@ public abstract class DisplayImpl extends Display {
     /** Make sure to reuse a Display with the same name */
     public static Display create(String type, String name, final long handle, boolean reuse) {
         try {
-            Class displayClass = getDisplayClass(type);
+            Class<?> displayClass = getDisplayClass(type);
             DisplayImpl display = (DisplayImpl) displayClass.newInstance();
             name = display.validateDisplayName(name, handle);
             synchronized(displayList) {
@@ -354,7 +354,7 @@ public abstract class DisplayImpl extends Display {
     protected abstract void dispatchMessagesNative();
 
     private Object eventsLock = new Object();
-    private ArrayList/*<NEWTEvent>*/ events = new ArrayList();
+    private ArrayList<NEWTEventTask> events = new ArrayList<NEWTEventTask>();
     private volatile boolean haveEvents = false;
 
     class DispatchMessagesRunnable implements Runnable {
@@ -384,21 +384,21 @@ public abstract class DisplayImpl extends Display {
         if(0==refCount) return; // no screens 
         if(null==getGraphicsDevice()) return; // no native device
 
-        ArrayList/*<NEWTEvent>*/ _events = null;
+        ArrayList<NEWTEventTask> _events = null;
 
         if(haveEvents) { // volatile: ok
             synchronized(eventsLock) {
                 if(haveEvents) {
                     // swap events list to free ASAP
                     _events = events;
-                    events = new ArrayList();
+                    events = new ArrayList<NEWTEventTask>();
                     haveEvents = false;
                 }
                 eventsLock.notifyAll();
             }
             if( null != _events ) {
                 for (int i=0; i < _events.size(); i++) {
-                    dispatchMessage((NEWTEventTask) _events.get(i));
+                    dispatchMessage(_events.get(i));
                 }
             }
         }
