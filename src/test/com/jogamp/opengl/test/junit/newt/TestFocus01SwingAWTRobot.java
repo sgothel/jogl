@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.newt;
 
 import org.junit.Assert;
 import org.junit.AfterClass;
+import org.junit.Assume;
 
 import java.awt.AWTException;
 import java.awt.BorderLayout;
@@ -88,7 +89,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
 
     private void testFocus01ProgrFocusImpl(Robot robot) throws AWTException,
             InvocationTargetException, InterruptedException {
-        ArrayList eventCountAdapters = new ArrayList();
+        ArrayList<EventCountAdapter> eventCountAdapters = new ArrayList<EventCountAdapter>();
 
         // Create a window.
         GLWindow glWindow1 = GLWindow.create(glCaps);
@@ -117,8 +118,8 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         eventCountAdapters.add(newtCanvasAWTFA);
 
         // Add the canvas to a frame, and make it all visible.
-        JFrame frame1 = new JFrame("Swing AWT Parent Frame: "
-                + glWindow1.getTitle());
+        final JFrame frame1 = new JFrame("Swing AWT Parent Frame: "
+                                         + glWindow1.getTitle());
         AWTFocusAdapter frame1FA = new AWTFocusAdapter("frame1");
         frame1.addFocusListener(frame1FA);
         frame1.getContentPane().add(newtCanvasAWT, BorderLayout.CENTER);
@@ -178,7 +179,16 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
 
         // Shutdown the test.
         animator.stop();
-        frame1.dispose();
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame1.setVisible(false);
+                    frame1.dispose();
+                }});
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }        
         glWindow1.destroy();
     }
 
