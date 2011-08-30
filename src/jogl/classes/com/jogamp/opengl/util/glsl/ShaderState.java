@@ -63,23 +63,39 @@ public class ShaderState {
      *
      * @see com.jogamp.opengl.util.glsl.ShaderState#useProgram(GL2ES2, boolean)
      * @see com.jogamp.opengl.util.glsl.ShaderState#getShaderState(GL)
+     * @see com.jogamp.opengl.util.glsl.ShaderState#setShaderState(GL)
      * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrentShaderState()
      */
-    public static synchronized ShaderState getCurrentShaderState() { 
+    public static ShaderState getCurrentShaderState() { 
         return getShaderState(GLContext.getCurrentGL());
     }
 
     /**
-     * Fetches the shader state from the GL object's GLContext
+     * Gets the shader state attached to the GL object's GLContext
      *
      * @param gl the GL object referencing the GLContext
      * 
      * @see com.jogamp.opengl.util.glsl.ShaderState#useProgram(GL2ES2, boolean)
      * @see com.jogamp.opengl.util.glsl.ShaderState#getShaderState(GL)
+     * @see com.jogamp.opengl.util.glsl.ShaderState#setShaderState(GL)
      * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrentShaderState()
      */
-    public static synchronized ShaderState getShaderState(GL gl) { 
+    public static ShaderState getShaderState(GL gl) { 
         return (ShaderState) gl.getContext().getAttachedObject(currentStateKey);
+    }
+
+    /**
+     * Attaches the shader state to the GL object's GLContext
+     *
+     * @param gl the GL object referencing the GLContext
+     * 
+     * @see com.jogamp.opengl.util.glsl.ShaderState#useProgram(GL2ES2, boolean)
+     * @see com.jogamp.opengl.util.glsl.ShaderState#getShaderState(GL)
+     * @see com.jogamp.opengl.util.glsl.ShaderState#setShaderState(GL)
+     * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrentShaderState()
+     */
+    public final ShaderState setShaderState(GL gl) { 
+        return (ShaderState) gl.getContext().attachObject(currentStateKey, this);
     }
 
     /**
@@ -141,8 +157,7 @@ public class ShaderState {
     public synchronized void useProgram(GL2ES2 gl, boolean on) throws GLException {
         if(null==shaderProgram) { throw new GLException("No program is attached"); }        
         if(on) {
-            // update the current ShaderState to the TLS ..
-            gl.getContext().attachObject(currentStateKey, this);
+            setShaderState(gl);
             if(shaderProgram.linked()) {
                 shaderProgram.useProgram(gl, true);
                 if(resetAllShaderData) {

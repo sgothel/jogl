@@ -158,7 +158,15 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
             // init/generate VBO name if not done yet
             init_vbo(gl);
         }
-        final Object ext = usesGLSL ? ShaderState.getShaderState(gl) : null ;
+        final Object ext;
+        if(usesGLSL) {
+            ext = ShaderState.getShaderState(gl);
+            if(null == ext) {
+                throw new GLException("A ShaderState must be bound to the GL context, use 'ShaderState.setShaderState(gl)'");
+            }
+        } else {
+            ext = null;
+        }
         if(enable) {
             glArrayHandler.syncData(gl, true, ext);
             glArrayHandler.enableState(gl, true, ext);
