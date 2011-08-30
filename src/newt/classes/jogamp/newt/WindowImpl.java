@@ -100,19 +100,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private FocusRunnable focusAction = null;
 
     private Object surfaceUpdatedListenersLock = new Object();
-    private ArrayList surfaceUpdatedListeners = new ArrayList();
+    private ArrayList<SurfaceUpdatedListener> surfaceUpdatedListeners = new ArrayList<SurfaceUpdatedListener>();
 
     private Object childWindowsLock = new Object();
-    private ArrayList childWindows = new ArrayList();
+    private ArrayList<NativeWindow> childWindows = new ArrayList<NativeWindow>();
 
-    private ArrayList mouseListeners = new ArrayList();
+    private ArrayList<MouseListener> mouseListeners = new ArrayList<MouseListener>();
     private int  mouseButtonPressed = 0;  // current pressed mouse button number
     private long lastMousePressed = 0;    // last time when a mouse button was pressed
     private int  lastMouseClickCount = 0; // last mouse button click count
 
-    private ArrayList keyListeners = new ArrayList();
+    private ArrayList<KeyListener> keyListeners = new ArrayList<KeyListener>();
 
-    private ArrayList windowListeners  = new ArrayList();
+    private ArrayList<WindowListener> windowListeners  = new ArrayList<WindowListener>();
     private boolean repaintQueued = false;
 
     ScreenModeListenerImpl screenModeListenerImpl = new ScreenModeListenerImpl();
@@ -135,10 +135,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Construction Methods
     //
 
-    private static Class getWindowClass(String type)
+    private static Class<?> getWindowClass(String type)
         throws ClassNotFoundException
     {
-        Class windowClass = NewtFactory.getCustomClass(type, "Window");
+        Class<?> windowClass = NewtFactory.getCustomClass(type, "Window");
         if(null==windowClass) {
             if (NativeWindowFactory.TYPE_ANDROID.equals(type)) {
                 windowClass = Class.forName("jogamp.newt.driver.android.AndroidWindow");
@@ -161,7 +161,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public static WindowImpl create(NativeWindow parentWindow, long parentWindowHandle, Screen screen, CapabilitiesImmutable caps) {
         try {
-            Class windowClass;
+            Class<?> windowClass;
             if(caps.isOnscreen()) {
                 windowClass = getWindowClass(screen.getDisplay().getType());
             } else {
@@ -182,8 +182,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public static WindowImpl create(Object[] cstrArguments, Screen screen, CapabilitiesImmutable caps) {
         try {
-            Class windowClass = getWindowClass(screen.getDisplay().getType());
-            Class[] cstrArgumentTypes = getCustomConstructorArgumentTypes(windowClass);
+            Class<?> windowClass = getWindowClass(screen.getDisplay().getType());
+            Class<?>[] cstrArgumentTypes = getCustomConstructorArgumentTypes(windowClass);
             if(null==cstrArgumentTypes) {
                 throw new NativeWindowException("WindowClass "+windowClass+" doesn't support custom arguments in constructor");
             }
@@ -593,7 +593,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(!visible && null!=childWindows && childWindows.size()>0) {
               synchronized(childWindowsLock) {
                 for(int i = 0; i < childWindows.size(); i++ ) {
-                    NativeWindow nw = (NativeWindow) childWindows.get(i);
+                    NativeWindow nw = childWindows.get(i);
                     if(nw instanceof WindowImpl) {
                         ((WindowImpl)nw).setVisible(false);
                     }
@@ -623,7 +623,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(0!=windowHandle && visible && null!=childWindows && childWindows.size()>0) {
               synchronized(childWindowsLock) {
                 for(int i = 0; i < childWindows.size(); i++ ) {
-                    NativeWindow nw = (NativeWindow) childWindows.get(i);
+                    NativeWindow nw = childWindows.get(i);
                     if(nw instanceof WindowImpl) {
                         ((WindowImpl)nw).setVisible(true);
                     }
@@ -743,9 +743,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 synchronized(childWindowsLock) {
                   if(childWindows.size()>0) {
                     // avoid ConcurrentModificationException: parent -> child -> parent.removeChild(this)
-                    ArrayList clonedChildWindows = (ArrayList) childWindows.clone();
+                    @SuppressWarnings("unchecked")
+                    ArrayList<NativeWindow> clonedChildWindows = (ArrayList<NativeWindow>) childWindows.clone();
                     while( clonedChildWindows.size() > 0 ) {
-                      NativeWindow nw = (NativeWindow) clonedChildWindows.remove(0);
+                      NativeWindow nw = clonedChildWindows.remove(0);
                       if(nw instanceof WindowImpl) {
                           ((WindowImpl)nw).sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
                           ((WindowImpl)nw).destroy();
@@ -1545,18 +1546,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Child Window Management
     // 
 
-    public final void removeChild(NativeWindow win) {
+    public final boolean removeChild(NativeWindow win) {
         synchronized(childWindowsLock) {
-            childWindows.remove(win);
+            return childWindows.remove(win);
         }
     }
 
-    public final void addChild(NativeWindow win) {
+    public final boolean addChild(NativeWindow win) {
         if (win == null) {
-            return;
+            return false;
         }
         synchronized(childWindowsLock) {
-            childWindows.add(win);
+            return childWindows.add(win);
         }
     }
 
@@ -1663,7 +1664,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public void removeAllSurfaceUpdatedListener() {
         synchronized(surfaceUpdatedListenersLock) {
-            surfaceUpdatedListeners = new ArrayList();
+            surfaceUpdatedListeners = new ArrayList<SurfaceUpdatedListener>();
         }
     }
 
@@ -1672,7 +1673,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(0>index) { 
                 index = surfaceUpdatedListeners.size()-1; 
             }
-            return (SurfaceUpdatedListener) surfaceUpdatedListeners.get(index);
+            return surfaceUpdatedListeners.get(index);
         }
     }
 
@@ -1685,7 +1686,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
         synchronized(surfaceUpdatedListenersLock) {
           for(int i = 0; i < surfaceUpdatedListeners.size(); i++ ) {
-            SurfaceUpdatedListener l = (SurfaceUpdatedListener) surfaceUpdatedListeners.get(i);
+            SurfaceUpdatedListener l = surfaceUpdatedListeners.get(i);
             l.surfaceUpdated(updater, ns, when);
           }
         }
@@ -1770,7 +1771,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(l == null) {
             return;
         }
-        ArrayList clonedListeners = (ArrayList) mouseListeners.clone();
+        @SuppressWarnings("unchecked")
+        ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
         if(0>index) { 
             index = clonedListeners.size(); 
         }
@@ -1782,17 +1784,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if (l == null) {
             return;
         }
-        ArrayList clonedListeners = (ArrayList) mouseListeners.clone();
+        @SuppressWarnings("unchecked")
+        ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
         clonedListeners.remove(l);
         mouseListeners = clonedListeners;
     }
 
     public MouseListener getMouseListener(int index) {
-        ArrayList clonedListeners = (ArrayList) mouseListeners.clone();
+        @SuppressWarnings("unchecked")
+        ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
         if(0>index) { 
             index = clonedListeners.size()-1; 
         }
-        return (MouseListener) clonedListeners.get(index);
+        return clonedListeners.get(index);
     }
 
     public MouseListener[] getMouseListeners() {
@@ -1805,7 +1809,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
 
         for(int i = 0; i < mouseListeners.size(); i++ ) {
-            MouseListener l = (MouseListener) mouseListeners.get(i);
+            MouseListener l = mouseListeners.get(i);
             switch(e.getEventType()) {
                 case MouseEvent.EVENT_MOUSE_CLICKED:
                     l.mouseClicked(e);
@@ -1857,7 +1861,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(l == null) {
             return;
         }
-        ArrayList clonedListeners = (ArrayList) keyListeners.clone();
+        @SuppressWarnings("unchecked")
+        ArrayList<KeyListener> clonedListeners = (ArrayList<KeyListener>) keyListeners.clone();
         if(0>index) { 
             index = clonedListeners.size();
         }
@@ -1869,17 +1874,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if (l == null) {
             return;
         }
-        ArrayList clonedListeners = (ArrayList) keyListeners.clone();
+        @SuppressWarnings("unchecked")
+        ArrayList<KeyListener> clonedListeners = (ArrayList<KeyListener>) keyListeners.clone();
         clonedListeners.remove(l);
         keyListeners = clonedListeners;
     }
 
     public KeyListener getKeyListener(int index) {
-        ArrayList clonedListeners = (ArrayList) keyListeners.clone();
+        @SuppressWarnings("unchecked")
+        ArrayList<KeyListener> clonedListeners = (ArrayList<KeyListener>) keyListeners.clone();
         if(0>index) { 
             index = clonedListeners.size()-1;
         }
-        return (KeyListener) clonedListeners.get(index);
+        return clonedListeners.get(index);
     }
 
     public KeyListener[] getKeyListeners() {
@@ -1891,7 +1898,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             System.err.println("consumeKeyEvent: "+e);
         }
         for(int i = 0; i < keyListeners.size(); i++ ) {
-            KeyListener l = (KeyListener) keyListeners.get(i);
+            KeyListener l = keyListeners.get(i);
             switch(e.getEventType()) {
                 case KeyEvent.EVENT_KEY_PRESSED:
                     l.keyPressed(e);
@@ -1929,7 +1936,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(l == null) {
             return;
         }
-        ArrayList clonedListeners = (ArrayList) windowListeners.clone();
+        @SuppressWarnings("unchecked")
+        ArrayList<WindowListener> clonedListeners = (ArrayList<WindowListener>) windowListeners.clone();
         if(0>index) { 
             index = clonedListeners.size(); 
         }
@@ -1941,17 +1949,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if (l == null) {
             return;
         }
-        ArrayList clonedListeners = (ArrayList) windowListeners.clone();
+        @SuppressWarnings("unchecked")
+        ArrayList<WindowListener> clonedListeners = (ArrayList<WindowListener>) windowListeners.clone();
         clonedListeners.remove(l);
         windowListeners = clonedListeners;
     }
 
     public WindowListener getWindowListener(int index) {
-        ArrayList clonedListeners = (ArrayList) windowListeners.clone();
+        @SuppressWarnings("unchecked")
+        ArrayList<WindowListener> clonedListeners = (ArrayList<WindowListener>) windowListeners.clone();
         if(0>index) { 
             index = clonedListeners.size()-1; 
         }
-        return (WindowListener) clonedListeners.get(index);
+        return clonedListeners.get(index);
     }
 
     public WindowListener[] getWindowListeners() {
@@ -1963,7 +1973,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             System.err.println("consumeWindowEvent: "+e+", visible "+isVisible()+" "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
         }
         for(int i = 0; i < windowListeners.size(); i++ ) {
-            WindowListener l = (WindowListener) windowListeners.get(i);
+            WindowListener l = windowListeners.get(i);
             switch(e.getEventType()) {
                 case WindowEvent.EVENT_WINDOW_RESIZED:
                     l.windowResized(e);
@@ -2105,16 +2115,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Reflection helper ..
     //
 
-    private static Class[] getCustomConstructorArgumentTypes(Class windowClass) {
-        Class[] argTypes = null;
+    private static Class<?>[] getCustomConstructorArgumentTypes(Class<?> windowClass) {
+        Class<?>[] argTypes = null;
         try {
-            Method m = windowClass.getDeclaredMethod("getCustomConstructorArgumentTypes", new Class[] {});
+            Method m = windowClass.getDeclaredMethod("getCustomConstructorArgumentTypes");
             argTypes = (Class[]) m.invoke(null, (Object[])null);
         } catch (Throwable t) {}
         return argTypes;
     }
 
-    private static int verifyConstructorArgumentTypes(Class[] types, Object[] args) {
+    private static int verifyConstructorArgumentTypes(Class<?>[] types, Object[] args) {
         if(types.length != args.length) {
             return -1;
         }
@@ -2137,7 +2147,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return sb.toString();
     }
 
-    private static String getTypeStrList(Class[] types) {
+    private static String getTypeStrList(Class<?>[] types) {
         StringBuilder sb = new StringBuilder();
         for(int i=0; i<types.length; i++) {
             sb.append(types[i]);

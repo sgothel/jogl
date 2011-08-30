@@ -147,9 +147,9 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     // Child Window Management
     // 
 
-    void addChild(NativeWindow win);
+    boolean addChild(NativeWindow win);
 
-    void removeChild(NativeWindow win);
+    boolean removeChild(NativeWindow win);
 
     //
     // Modes / States
