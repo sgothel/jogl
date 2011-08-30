@@ -43,7 +43,7 @@ import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 public class TestGLWindows02NEWTAnimated extends UITestCase {
     static GLProfile glp;
@@ -58,7 +58,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         glp = GLProfile.getDefault();
     }
 
-    static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
+    static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height, boolean onscreen, boolean undecorated, boolean vsync) {
         Assert.assertNotNull(caps);
         caps.setOnscreen(onscreen);
         // System.out.println("Requested: "+caps);
@@ -78,7 +78,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setUndecorated(onscreen && undecorated);
 
-        GLEventListener demo = new Gears();
+        GLEventListener demo = new GearsES2(vsync ? 1 : 0);
         setDemoFields(demo, glWindow);
         glWindow.addGLEventListener(demo);
         glWindow.addWindowListener(new TraceWindowAdapter());
@@ -117,7 +117,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
     public void testWindowDecor01Simple() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-        GLWindow window = createWindow(null, caps, width, height, true /* onscreen */, false /* undecorated */);
+        GLWindow window = createWindow(null, caps, width, height, true /* onscreen */, false /* undecorated */, true /* vsync */);
         Animator animator = new Animator(window);
         animator.setUpdateFPSFrames(1, null);        
         Assert.assertTrue(animator.start());
@@ -135,7 +135,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
     public void testWindowDecor02DestroyWinTwiceA() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-        GLWindow window = createWindow(null, caps, width, height, true /* onscreen */, false /* undecorated */);
+        GLWindow window = createWindow(null, caps, width, height, true /* onscreen */, false /* undecorated */, true /* vsync */);
         Animator animator = new Animator(window);
         animator.setUpdateFPSFrames(1, null);        
         Assert.assertTrue(animator.start());
@@ -160,11 +160,11 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
 
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
-        GLWindow window1 = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+        GLWindow window1 = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */, false /* vsync */);
         Assert.assertNotNull(window1);
         window1.setPosition(0, 0);
 
-        GLWindow window2 = createWindow(screen, caps, width-10, height-10, true /* onscreen */, false /* undecorated */);
+        GLWindow window2 = createWindow(screen, caps, width-10, height-10, true /* onscreen */, false /* undecorated */, true /* vsync */);
         Assert.assertNotNull(window2);
         window2.setPosition(screen.getWidth()-width, 0);
 
@@ -196,8 +196,8 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertEquals(true, animator.isStarted());
         Assert.assertEquals(true, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
-
-        while(animator.isAnimating() && animator.getTotalFPSDuration()<2*durationPerTest) {
+        // animator.resetFPSCounter();
+        while(animator.isAnimating() && animator.getTotalFPSDuration()<durationPerTest+durationPerTest/10) {
             Thread.sleep(100);
         }
         window2.destroy();
@@ -220,13 +220,13 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
 
         Screen screen1  = NewtFactory.createScreen(display1, 0); // screen 0
         Assert.assertNotNull(screen1);
-        GLWindow window1 = createWindow(screen1, caps, width, height, true /* onscreen */, false /* undecorated */);
+        GLWindow window1 = createWindow(screen1, caps, width, height, true /* onscreen */, false /* undecorated */, false /* vsync */);
         Assert.assertNotNull(window1);
         window1.setPosition(0, 0);
 
         Screen screen2  = NewtFactory.createScreen(display2, 0); // screen 0
         Assert.assertNotNull(screen2);
-        GLWindow window2 = createWindow(screen2, caps, width-10, height-10, true /* onscreen */, false /* undecorated */);
+        GLWindow window2 = createWindow(screen2, caps, width-10, height-10, true /* onscreen */, false /* undecorated */, true /* vsync */);
         Assert.assertNotNull(window2);
         window2.setPosition(screen2.getWidth()-width, 0);
 
@@ -259,7 +259,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertEquals(true, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
 
-        while(animator.isAnimating() && animator.getTotalFPSDuration()<2*durationPerTest) {
+        while(animator.isAnimating() && animator.getTotalFPSDuration()<durationPerTest+durationPerTest/10) {
             Thread.sleep(100);
         }
         destroyWindow(window2);
