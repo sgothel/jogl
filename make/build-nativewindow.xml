@@ -675,7 +675,7 @@
     </target>
 
     <target name="c.build.nativewindow.windowlib.windows" if="isWindows">
-      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="jogamp.nativewindow.windows.GDI" />
+      <javah destdir="${src.generated.c}/Windows" classpath="${classes}:${gluegen.root}/build/classes" class="jogamp.nativewindow.windows.GDI" />
 
       <c.build c.compiler.src.files="c.src.files.windows"
                output.lib.name="nativewindow_win32"

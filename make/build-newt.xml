@@ -558,7 +558,7 @@
     <target name="c.build.newt.prepare">
       <javah destdir="${src.generated.c}/KD"          classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.kd.KDWindow" />
 
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.intel.gdl.Display" />
+      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${gluegen-rt.jar}:${classes}:${build}/nativewindow/classes" class="jogamp.newt.driver.intel.gdl.Display" />
       <javah destdir="${src.generated.c}/IntelGDL"    classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.intel.gdl.Screen" />
       <javah destdir="${src.generated.c}/IntelGDL"    classpath="${gluegen-rt.jar}:${classes}" class="jogamp.newt.driver.intel.gdl.Window" />
 
