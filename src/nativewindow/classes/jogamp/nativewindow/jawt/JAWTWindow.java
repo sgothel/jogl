@@ -226,34 +226,39 @@ public abstract class JAWTWindow implements NativeWindow {
   }
 
   public Point getLocationOnScreen(Point storage) {
-        if( 0 != getWindowHandle() ) {
-            Point d;
-            // windowLock.lock();
-            try {
-                d = getLocationOnScreenImpl(0, 0);
-            } finally {
-                // windowLock.unlock();
+      int lockRes = lockSurface();
+      if(LOCK_SURFACE_NOT_READY == lockRes) {
+          // FIXME: Shall we deal with already locked or unrealized surfaces ?
+          System.err.println("Warning: JAWT Lock couldn't be acquired!");
+          Thread.dumpStack();
+          return null;
+      }
+      try {
+          Point d = getLocationOnScreenImpl(0, 0);
+          if(null!=d) {
+            if(null!=storage) {
+                storage.translate(d.getX(),d.getY());
+                return storage;
             }
-            if(null!=d) {
-                if(null!=storage) {
-                    storage.translate(d.getX(),d.getY());
-                    return storage;
-                }
-                return d;
-            }
-            // fall through intended ..
-        }
-
-        if(!Thread.holdsLock(component.getTreeLock())) {
-            return null; // avoid deadlock ..
-        }
-        java.awt.Point awtLOS = component.getLocationOnScreen();
-        int dx = (int) ( awtLOS.getX() + .5 ) ;
-        int dy = (int) ( awtLOS.getY() + .5 ) ;
-        if(null!=storage) {
-            return storage.translate(dx, dy);
-        }
-        return new Point(dx, dy);
+            return d;
+          }
+          // fall through intended ..
+          if(!Thread.holdsLock(component.getTreeLock())) {
+              // FIXME: Verify if this check is still required!
+              System.err.println("Warning: JAWT Lock hold, but not the AWT tree lock!");
+              Thread.dumpStack();
+              return null; // avoid deadlock ..
+          }
+          java.awt.Point awtLOS = component.getLocationOnScreen();
+          int dx = (int) ( awtLOS.getX() + .5 ) ;
+          int dy = (int) ( awtLOS.getY() + .5 ) ;
+          if(null!=storage) {
+              return storage.translate(dx, dy);
+          }
+          return new Point(dx, dy);
+      } finally {
+          unlockSurface();
+      }
   }
   protected abstract Point getLocationOnScreenImpl(int x, int y);
 

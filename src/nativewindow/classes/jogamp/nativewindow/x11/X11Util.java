@@ -78,7 +78,7 @@ public class X11Util {
             requiresX11Lock = !firstX11ActionOnProcess ;
             
             if(DEBUG) {
-                System.out.println("X11Util firstX11ActionOnProcess: "+firstX11ActionOnProcess+
+                System.err.println("X11Util firstX11ActionOnProcess: "+firstX11ActionOnProcess+
                                    ", XINITTHREADS_ALWAYS_ENABLED "+XINITTHREADS_ALWAYS_ENABLED+
                                    ", requiresX11Lock "+requiresX11Lock); 
             }
