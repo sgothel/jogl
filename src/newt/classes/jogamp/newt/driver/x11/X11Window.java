@@ -107,7 +107,8 @@ public class X11Window extends WindowImpl {
     }
 
     protected void requestFocusImpl(boolean force) {
-        requestFocus0(getDisplayHandle(), getWindowHandle(), force);
+        final X11Display display = (X11Display) getScreen().getDisplay();
+        requestFocus0(display.getHandle(), display.getEDTHandle(), getWindowHandle(), force);
     }
 
     @Override
@@ -133,7 +134,7 @@ public class X11Window extends WindowImpl {
                                                   int x, int y, int width, int height, boolean isVisible,
                                                   boolean parentChange, int fullScreenChange, int decorationChange);
     private native void setTitle0(long display, long windowHandle, String title);
-    private native void requestFocus0(long display, long windowHandle, boolean force);
+    private native void requestFocus0(long display, long displayEDT, long windowHandle, boolean force);
     private native Object getRelativeLocation0(long display, int screen_index, long src_win, long dest_win, int src_x, int src_y);
 
     private void windowReparented(long gotParentHandle) {

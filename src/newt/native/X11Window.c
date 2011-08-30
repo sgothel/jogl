@@ -430,7 +430,7 @@ static Window NewtWindows_getParent (Display *dpy, Window w) {
 }
 
 
-static void NewtWindows_requestFocus (JNIEnv *env, jobject window, Display *dpy, Window w, jboolean force) {
+static void NewtWindows_requestFocus (JNIEnv *env, jobject window, Display *dpy, Display *dpyEDT, Window w, jboolean force) {
     XWindowAttributes xwa;
     Window focus_return;
     int revert_to_return;
@@ -439,14 +439,16 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, Display *dpy,
     if( JNI_TRUE==force || focus_return!=w) {
         if(  JNI_TRUE==force || JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
             XRaiseWindow(dpy, w);
+            XSync(dpy, False);
+
             // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
-            XGetWindowAttributes(dpy, w, &xwa);
+            XGetWindowAttributes(dpyEDT, w, &xwa);
             if(xwa.map_state == IsViewable) {
-                XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
+                XSetInputFocus(dpyEDT, w, RevertToParent, CurrentTime);
             }
+            XSync(dpyEDT, False);
         }
     }
-    XSync(dpy, False);
 }
 
 #define MWM_HINTS_DECORATIONS   (1L << 1)
@@ -1426,13 +1428,18 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_CloseWindow0
 
     XSync(dpy, False);
     XSelectInput(dpyEDT, w, 0);
+    XSync(dpyEDT, False);
     XUnmapWindow(dpy, w);
+    XSync(dpy, False);
 
     // Drain all events related to this window ..
     Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0(env, obj, displayEDT, javaObjectAtom, wmDeleteAtom);
+    XSync(dpyEDT, False);
 
     XDestroyWindow(dpy, w);
     XSync(dpy, False);
+    XSync(dpyEDT, False);
+    Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0(env, obj, displayEDT, javaObjectAtom, wmDeleteAtom);
 
     (*env)->DeleteGlobalRef(env, jwindow);
 
@@ -1557,9 +1564,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_requestFocus0
-  (JNIEnv *env, jobject obj, jlong display, jlong window, jboolean force)
+  (JNIEnv *env, jobject obj, jlong display, jlong displayEDT, jlong window, jboolean force)
 {
-    NewtWindows_requestFocus ( env, obj, (Display *) (intptr_t) display, (Window)window, force ) ;
+    NewtWindows_requestFocus ( env, obj, (Display *) (intptr_t) display, (Display *) (intptr_t) displayEDT,
+                                         (Window)window, force ) ;
 }
 
 /*
