@@ -37,8 +37,10 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.awt.Frame;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
@@ -90,11 +92,18 @@ public class TestAWTTextRendererUseVertexArrayBug464 extends UITestCase {
 
     @After
     public void cleanupTest() {
-        frame.setVisible(false);
-        frame.remove(glCanvas);
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setVisible(false);
+                    frame.remove(glCanvas);
+                    frame.dispose();
+                }});
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }        
         glCanvas=null;
-        Assert.assertNotNull(frame);
-        frame.dispose();
         frame=null;
     }
 
