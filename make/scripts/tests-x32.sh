@@ -1,7 +1,11 @@
 #! /bin/bash
 
-spath=`dirname $0`
+SDIR=`dirname $0` 
 
-. $spath/tests.sh  /opt-linux-x86/j2se6/bin/java ../build-x86 $*
+if [ -e $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86.sh ] ; then
+    . $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86.sh
+fi
+
+. $SDIR/tests.sh  `which java` ../build-x86 $*
 
 
