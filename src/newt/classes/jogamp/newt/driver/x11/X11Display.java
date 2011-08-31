@@ -67,7 +67,7 @@ public class X11Display extends DisplayImpl {
     protected void createNativeImpl() {
         long handle = X11Util.createDisplay(name);
         if( 0 == handle ) {
-            throw new RuntimeException("Error creating display: "+name);
+            throw new RuntimeException("Error creating display(Win): "+name);
         }
         if(USE_SEPARATE_DISPLAY_FOR_EDT) {
             edtDisplayHandle = X11Util.createDisplay(name);
@@ -95,11 +95,16 @@ public class X11Display extends DisplayImpl {
     }
 
     protected void closeNativeImpl() {
+        DisplayRelease0(edtDisplayHandle, javaObjectAtom, windowDeleteAtom);
+        javaObjectAtom = 0;
+        windowDeleteAtom = 0;
+        // closing using ATI driver bug 'same order'
         final long handle = getHandle();
+        X11Util.closeDisplay(handle);
         if(handle != edtDisplayHandle) {
             X11Util.closeDisplay(edtDisplayHandle);
         }
-        X11Util.closeDisplay(handle);
+        edtDisplayHandle = 0;
     }
 
     protected void dispatchMessagesNative() {
@@ -119,12 +124,13 @@ public class X11Display extends DisplayImpl {
 
     private native void CompleteDisplay0(long handleEDT);
 
-    private native void DispatchMessages0(long display, long javaObjectAtom, long windowDeleteAtom);
-
     private void displayCompleted(long javaObjectAtom, long windowDeleteAtom) {
         this.javaObjectAtom=javaObjectAtom;
         this.windowDeleteAtom=windowDeleteAtom;
     }
+    private native void DisplayRelease0(long handleEDT, long javaObjectAtom, long windowDeleteAtom);
+
+    private native void DispatchMessages0(long displayEDT, long javaObjectAtom, long windowDeleteAtom);
 
     /**
      * 2011/06/14 libX11 1.4.2 and libxcb 1.7 bug 20708 - Multithreading Issues w/ OpenGL, ..

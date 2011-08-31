@@ -291,34 +291,57 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Display_initIDs0
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_CompleteDisplay0
-  (JNIEnv *env, jobject obj, jlong display)
+  (JNIEnv *env, jobject obj, jlong displayEDT)
 {
-    Display * dpy = (Display *)(intptr_t)display;
+    Display * dpyEDT = (Display *)(intptr_t)displayEDT;
     jlong javaObjectAtom;
     jlong windowDeleteAtom;
 
-    if(dpy==NULL) {
+    if(dpyEDT==NULL) {
         NewtCommon_FatalError(env, "invalid display connection..");
     }
 
-    javaObjectAtom = (jlong) XInternAtom(dpy, "NEWT_JAVA_OBJECT", False);
+    javaObjectAtom = (jlong) XInternAtom(dpyEDT, "NEWT_JAVA_OBJECT", False);
     if(None==javaObjectAtom) {
-        NewtCommon_throwNewRuntimeException(env, "could not create Atom JOGL_JAVA_OBJECT, bail out!");
+        NewtCommon_throwNewRuntimeException(env, "could not create Atom NEWT_JAVA_OBJECT, bail out!");
         return;
     }
 
-    windowDeleteAtom = (jlong) XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+    windowDeleteAtom = (jlong) XInternAtom(dpyEDT, "WM_DELETE_WINDOW", False);
     if(None==windowDeleteAtom) {
         NewtCommon_throwNewRuntimeException(env, "could not create Atom WM_DELETE_WINDOW, bail out!");
         return;
     }
 
-    // XSetCloseDownMode(dpy, RetainTemporary); // Just a try ..
+    // XSetCloseDownMode(dpyEDT, RetainTemporary); // Just a try ..
 
-    DBG_PRINT("X11: X11Display_completeDisplay dpy %p\n", dpy);
+    DBG_PRINT("X11: X11Display_completeDisplay dpyEDT %p\n", dpyEDT);
 
     (*env)->CallVoidMethod(env, obj, displayCompletedID, javaObjectAtom, windowDeleteAtom);
 }
+
+/*
+ * Class:     jogamp_newt_driver_x11_X11Display
+ * Method:    DisplayRelease0
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DisplayRelease0
+  (JNIEnv *env, jobject obj, jlong displayEDT, jlong javaObjectAtom, jlong windowDeleteAtom)
+{
+    Display * dpyEDT = (Display *)(intptr_t)displayEDT;
+    Atom wm_javaobject_atom = (Atom)javaObjectAtom;
+    Atom wm_delete_atom = (Atom)windowDeleteAtom;
+
+    if(dpyEDT==NULL) {
+        NewtCommon_FatalError(env, "invalid display connection..");
+    }
+    // nothing to do to free the atoms !
+    (void) wm_javaobject_atom;
+    (void) wm_delete_atom;
+
+    DBG_PRINT("X11: X11Display_DisplayRelease dpyEDT %p\n", dpyEDT);
+}
+
 
 /**
  * Window
@@ -521,12 +544,12 @@ static void NewtWindows_setFullscreen (Display *dpy, Window root, Window w, Bool
  * Signature: (JIJJ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
-  (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong wmDeleteAtom)
+  (JNIEnv *env, jobject obj, jlong displayEDT, jlong javaObjectAtom, jlong wmDeleteAtom)
 {
-    Display * dpy = (Display *) (intptr_t) display;
+    Display * dpyEDT = (Display *) (intptr_t) displayEDT;
     int num_events = 100;
 
-    if ( NULL == dpy ) {
+    if ( NULL == dpyEDT ) {
         return;
     }
 
@@ -539,16 +562,16 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
         char keyChar = 0;
         char text[255];
 
-        // XEventsQueued(dpy, X):
+        // XEventsQueued(dpyEDT, X):
         //   QueuedAlready                 : No I/O Flush or system call  doesn't work on some cards (eg ATI) ?) 
         //   QueuedAfterFlush == XPending(): I/O Flush only if no already queued events are available
         //   QueuedAfterReading            : QueuedAlready + if queue==0, attempt to read more ..
-        if ( 0 >= XPending(dpy) ) {
-            // DBG_PRINT( "X11: DispatchMessages 0x%X - Leave 1\n", dpy); 
+        if ( 0 >= XPending(dpyEDT) ) {
+            // DBG_PRINT( "X11: DispatchMessages 0x%X - Leave 1\n", dpyEDT); 
             return;
         }
 
-        XNextEvent(dpy, &evt);
+        XNextEvent(dpyEDT, &evt);
         num_events--;
 
         if( 0==evt.xany.window ) {
@@ -556,16 +579,16 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
             return ;
         }
 
-        if(dpy!=evt.xany.display) {
+        if(dpyEDT!=evt.xany.display) {
             NewtCommon_throwNewRuntimeException(env, "wrong display, bail out!");
             return ;
         }
 
-        DBG_PRINT( "X11: DispatchMessages dpy %p, win %p, Event %d\n", (void*)dpy, (void*)evt.xany.window, evt.type);
+        DBG_PRINT( "X11: DispatchMessages dpyEDT %p, win %p, Event %d\n", (void*)dpyEDT, (void*)evt.xany.window, evt.type);
 
         displayDispatchErrorHandlerEnable(1, env);
 
-        jwindow = getJavaWindowProperty(env, dpy, evt.xany.window, javaObjectAtom,
+        jwindow = getJavaWindowProperty(env, dpyEDT, evt.xany.window, javaObjectAtom,
         #ifdef VERBOSE_ON
                 True
         #else
@@ -577,7 +600,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
 
         if(NULL==jwindow) {
             fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for X11 window %p\n", 
-                (void*)dpy, evt.type, (void*)evt.xany.window);
+                (void*)dpyEDT, evt.type, (void*)evt.xany.window);
             continue;
         }
  
@@ -748,14 +771,14 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
                     #ifdef VERBOSE_ON
                         Window oldParentRoot, oldParentTopParent;
                         Window parentRoot, parentTopParent;
-                        if( 0 == NewtWindows_getRootAndParent(dpy, evt.xreparent.event, &oldParentRoot, &oldParentTopParent) ) {
+                        if( 0 == NewtWindows_getRootAndParent(dpyEDT, evt.xreparent.event, &oldParentRoot, &oldParentTopParent) ) {
                             oldParentRoot=0; oldParentTopParent = 0;
                         }
-                        if( 0 == NewtWindows_getRootAndParent(dpy, evt.xreparent.parent, &parentRoot, &parentTopParent) ) {
+                        if( 0 == NewtWindows_getRootAndParent(dpyEDT, evt.xreparent.parent, &parentRoot, &parentTopParent) ) {
                             parentRoot=0; parentTopParent = 0;
                         }
                     #endif
-                    if( 0 == NewtWindows_getRootAndParent(dpy, evt.xreparent.window, &winRoot, &winTopParent) ) {
+                    if( 0 == NewtWindows_getRootAndParent(dpyEDT, evt.xreparent.window, &winRoot, &winTopParent) ) {
                         winRoot=0; winTopParent = 0;
                     }
                     if(evt.xreparent.parent == winRoot) {
