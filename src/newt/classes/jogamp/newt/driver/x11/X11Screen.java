@@ -212,7 +212,7 @@ public class X11Screen extends ScreenImpl {
             throw new RuntimeException("Invalid resolution index: ! 0 < "+resIdx+" < "+resNumber+", screenMode["+screenModeIdx+"] "+screenMode);
         }
 
-        long dpy = X11Util.createDisplay(display.getName());
+        long dpy = X11Util.openDisplay(display.getName());
         if( 0 == dpy ) {
             throw new RuntimeException("Error creating display: "+display.getName());
         }

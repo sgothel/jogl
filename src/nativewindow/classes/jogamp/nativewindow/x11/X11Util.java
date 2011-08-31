@@ -329,7 +329,7 @@ public class X11Util {
     }
 
     /** Returns this created named display. */
-    public static long createDisplay(String name) {
+    public static long openDisplay(String name) {
         name = validateDisplayName(name);
         long dpy = XOpenDisplay(name);
         if(0==dpy) {

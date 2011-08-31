@@ -86,7 +86,7 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GLGraphicsConfigurati
         long displayHandle = X11SunJDKReflection.graphicsDeviceGetDisplay(device);
         boolean owner = false;
         if(0==displayHandle) {
-            displayHandle = X11Util.createDisplay(null);
+            displayHandle = X11Util.openDisplay(null);
             owner = true;
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName() + " - X11AWTGLXGraphicsConfigurationFactory: create local X11 display");
@@ -102,7 +102,7 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GLGraphicsConfigurati
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName() + " - X11AWTGLXGraphicsConfigurationFactory: create X11 display @ "+displayName+" / 0x"+Long.toHexString(displayHandle));
             }
-            displayHandle = X11Util.createDisplay(displayName);
+            displayHandle = X11Util.openDisplay(displayName);
             owner = true;
         }
         ((AWTGraphicsDevice)awtScreen.getDevice()).setSubType(NativeWindowFactory.TYPE_X11, displayHandle);

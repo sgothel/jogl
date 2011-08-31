@@ -172,7 +172,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         public SharedResourceRunner.Resource createSharedResource(String connection) {
-            X11GraphicsDevice sharedDevice = new X11GraphicsDevice(X11Util.createDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT);
+            X11GraphicsDevice sharedDevice = new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT);
             sharedDevice.setCloseDisplay(true);
             sharedDevice.lock();
             try {

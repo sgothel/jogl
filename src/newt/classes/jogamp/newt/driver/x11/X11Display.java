@@ -65,12 +65,12 @@ public class X11Display extends DisplayImpl {
     }
 
     protected void createNativeImpl() {
-        long handle = X11Util.createDisplay(name);
+        long handle = X11Util.openDisplay(name);
         if( 0 == handle ) {
             throw new RuntimeException("Error creating display(Win): "+name);
         }
         if(USE_SEPARATE_DISPLAY_FOR_EDT) {
-            edtDisplayHandle = X11Util.createDisplay(name);
+            edtDisplayHandle = X11Util.openDisplay(name);
             if( 0 == edtDisplayHandle ) {
                 X11Util.closeDisplay(handle);
                 throw new RuntimeException("Error creating display(EDT): "+name);
