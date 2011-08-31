@@ -55,13 +55,13 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.X11Util.TraceDisplayLifecycle=true -Dnativewindow.debug.X11Util"
+    #D_ARGS="-Dnativewindow.debug.X11Util -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.x11.mt-bug=true"
     #D_ARGS="-Dnativewindow.x11.mt-bug=true -Djogl.debug.DebugGL"
     #D_ARGS="-Dnativewindow.x11.mt-bug=true -Djogl.debug=all"
     #D_ARGS="-Dnativewindow.x11.mt-bug=true -Dnativewindow.debug.NativeWindow -Dnativewindow.debug.X11Util -Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.X11Util.TraceDisplayLifecycle=true"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=1000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
-    # D_ARGS="-Dnewt.debug.Window -Dnewt.debug.EDT -Dnewt.debug.Display "
     #D_ARGS="-Dnewt.debug.EDT -Djogamp.common.utils.locks.Lock.timeout=600000 -Djogl.debug.Animator -Dnewt.debug.Display -Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.Window -Djogamp.common.utils.locks.Lock.timeout=600000 -Djogl.debug.Animator"
     #D_ARGS="-Djogl.debug.Animator -Dnewt.debug=all"
@@ -105,6 +105,8 @@ function jrun() {
     #LD_LIBRARY_PATH=/usr/local/projects/Xorg.modular/build-x86_64/lib:$LD_LIBRARY_PATH \
     #LD_LIBRARY_PATH=/opt-linux-x86_64/x11lib-1.3:$LD_LIBRARY_PATH \
     #LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64:$LD_LIBRARY_PATH \
+    #LIBGL_DRIVERS_PATH=/usr/lib/mesa:/usr/lib32/mesa \
+    #LD_LIBRARY_PATH=/usr/lib/mesa:/usr/lib32/mesa:$LD_LIBRARY_PATH \
     $javaexe $X_ARGS $D_ARGS $C_ARG $*
     echo
     echo "Test End: $*"
@@ -134,7 +136,7 @@ function testawtmt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT $*
@@ -187,7 +189,7 @@ function testawtmt() {
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper
 #testawt com.jogamp.opengl.test.junit.newt.TestEventSourceNotAWTBug
-testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot
+#testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT
