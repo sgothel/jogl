@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.ArrayList;
 
 public abstract class DesktopGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
-    private static List/*<String>*/ glueLibNames;
+    private static List<String> glueLibNames;
     static {
-        glueLibNames = new ArrayList();
+        glueLibNames = new ArrayList<String>();
 
         glueLibNames.addAll(getGlueLibNamesPreload());
         glueLibNames.add("jogl_desktop");
@@ -44,7 +44,7 @@ public abstract class DesktopGLDynamicLibraryBundleInfo extends GLDynamicLibrary
         super();
     }
 
-    public final List/*<String>*/ getGlueLibNames() {
+    public final List<String> getGlueLibNames() {
         return glueLibNames;
     }
     

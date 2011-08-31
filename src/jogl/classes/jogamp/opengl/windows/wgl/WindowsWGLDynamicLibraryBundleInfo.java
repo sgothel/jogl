@@ -36,17 +36,16 @@ public class WindowsWGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryB
         super();
     }
 
-    public List getToolLibNames() {
-        List/*<String>*/ libNamesList = new ArrayList();
-
-        libNamesList.add("OpenGL32");
-
-        return libNamesList;
+    public List<List<String>> getToolLibNames() {
+        final List<List<String>> libsList = new ArrayList<List<String>>();
+        final List<String> libsGL = new ArrayList<String>();
+        libsGL.add("OpenGL32");
+        libsList.add(libsGL);        
+        return libsList;
     }
-
-
-    public final List getToolGetProcAddressFuncNameList() {
-        List res = new ArrayList();
+    
+    public final List<String> getToolGetProcAddressFuncNameList() {
+        List<String> res = new ArrayList<String>();
         res.add("wglGetProcAddress");
         return res;
     }

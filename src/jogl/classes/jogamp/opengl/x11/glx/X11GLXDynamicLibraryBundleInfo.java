@@ -36,11 +36,10 @@ public class X11GLXDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundl
         super();
     }
 
-    public List getToolLibNames() {
-        List/*<List>*/ libNamesList = new ArrayList();
-
-        List/*<String>*/ glLibNames = new ArrayList();
-
+    public List<List<String>> getToolLibNames() {
+        final List<List<String>> libsList = new ArrayList<List<String>>();
+        final List<String> libsGL = new ArrayList<String>();
+        
         // Be aware that on DRI systems, eg ATI fglrx, etc, 
         // you have to set LIBGL_DRIVERS_PATH env variable.
         // Eg on Ubuntu 64bit systems this is:
@@ -48,19 +47,18 @@ public class X11GLXDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundl
         //
 
         // this is the default lib name, according to the spec
-        glLibNames.add("libGL.so.1");
+        libsGL.add("libGL.so.1");
 
         // try this one as well, if spec fails
-        glLibNames.add("libGL.so");
+        libsGL.add("libGL.so");
 
         // last but not least .. the generic one
-        glLibNames.add("GL");
-
-        libNamesList.add(glLibNames);
-
-        return libNamesList;
-    }
-
+        libsGL.add("GL");
+        
+        libsList.add(libsGL);        
+        return libsList;
+    }    
+    
     /** 
      * This respects old DRI requirements:<br>
      * <pre>
@@ -69,8 +67,8 @@ public class X11GLXDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundl
      */
     public boolean shallLinkGlobal() { return true; }
 
-    public final List getToolGetProcAddressFuncNameList() {
-        List res = new ArrayList();
+    public final List<String> getToolGetProcAddressFuncNameList() {
+        List<String> res = new ArrayList<String>();
         res.add("glXGetProcAddressARB");
         res.add("glXGetProcAddress");
         return res;

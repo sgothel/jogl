@@ -32,9 +32,9 @@ import com.jogamp.common.os.DynamicLibraryBundleInfo;
 import java.util.*;
 
 public class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
-    private static List/*<String>*/ glueLibNames;
+    private static List<String> glueLibNames;
     static {
-        glueLibNames = new ArrayList();
+        glueLibNames = new ArrayList<String>();
         // glueLibNames.addAll(getGlueLibNamesPreload());
         glueLibNames.add("jogl_cg");
     }
@@ -54,7 +54,7 @@ public class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
     public boolean shallLookupGlobal() { return false; }
 
     /** Tool has none **/
-    public final List getToolGetProcAddressFuncNameList() {
+    public final List<String> getToolGetProcAddressFuncNameList() {
         return null;
     }
 
@@ -67,16 +67,20 @@ public class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
         return false;
     }
 
-    public List/*<List<String>>*/ getToolLibNames() {
-        List/*<List>*/ libNamesList = new ArrayList();
+    public List<List<String>> getToolLibNames() {
+        final List<List<String>> libsList = new ArrayList<List<String>>();
+        final List<String> libsCg = new ArrayList<String>();
+        libsCg.add("Cg");
+        libsList.add(libsCg);
+        
+        final List<String> libsCgGL = new ArrayList<String>();
+        libsCgGL.add("CgGL");
+        libsList.add(libsCgGL);
 
-        libNamesList.add("Cg");
-        libNamesList.add("CgGL");
-
-        return libNamesList;
+        return libsList;
     }
 
-    public final List/*<String>*/ getGlueLibNames() {
+    public final List<String> getGlueLibNames() {
         return glueLibNames;
     }
 }

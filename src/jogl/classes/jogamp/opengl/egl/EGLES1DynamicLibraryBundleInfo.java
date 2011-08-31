@@ -39,26 +39,30 @@ public class EGLES1DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo 
         super();
     }
 
-    public List getToolLibNames() {
-        List/*<List>*/ libNames = new ArrayList();
-
-        List/*<String>*/ glesLibNames = new ArrayList();
+    public List<List<String>> getToolLibNames() {
+        final List<List<String>> libsList = new ArrayList<List<String>>();
+        {
+            final List<String> libsGL = new ArrayList<String>();
+            
+            // try default generic names first 
+            libsGL.add("GLES_CM");
+            libsGL.add("GLES_CL");
+            libsGL.add("GLESv1_CM");
+            
+            // for windows distributions using the 'unlike' lib prefix, 
+            // where our tool does not add it.
+            libsGL.add("libGLES_CM");
+            libsGL.add("libGLES_CL");
+            libsGL.add("libGLESv1_CM");
+            
+            // this is the default lib name, according to the spec 
+            libsGL.add("libGLESv1_CM.so.1");
+    
+            libsList.add(libsGL);
+        }
+        libsList.add(getEGLLibNamesList());
         
-        // try default generic names first 
-        glesLibNames.add("GLES_CM");
-        glesLibNames.add("GLES_CL");
-        glesLibNames.add("GLESv1_CM");
-        // for windows distributions using the 'unlike' lib prefix, 
-        // where our tool does not add it.
-        glesLibNames.add("libGLES_CM");
-        glesLibNames.add("libGLES_CL");
-        glesLibNames.add("libGLESv1_CM");
-        // this is the default lib name, according to the spec 
-        glesLibNames.add("libGLESv1_CM.so.1");
-
-        libNames.add(glesLibNames);
-        libNames.add(getEGLLibNamesList());
-        return libNames;
-    }
+        return libsList;
+    }    
 }
 

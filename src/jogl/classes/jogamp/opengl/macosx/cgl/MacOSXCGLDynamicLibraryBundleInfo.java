@@ -29,32 +29,23 @@
 package jogamp.opengl.macosx.cgl;
 
 import jogamp.opengl.*;
-import com.jogamp.common.os.DynamicLookupHelper;
-import com.jogamp.common.os.NativeLibrary;
-import com.jogamp.common.os.Platform;
 import java.util.*;
-import java.security.*;
-import javax.media.opengl.GLException;
 
 public class MacOSXCGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundleInfo  {
     protected MacOSXCGLDynamicLibraryBundleInfo() {
         super();
     }
 
-    public List getToolLibNames() {
-        List/*<List>*/ libNamesList = new ArrayList();
-
-        List/*<String>*/ glesLibNames = new ArrayList();
-
-        glesLibNames.add("/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib");
-        glesLibNames.add("GL");
-
-        libNamesList.add(glesLibNames);
-
-        return libNamesList;
+    public List<List<String>> getToolLibNames() {
+        final List<List<String>> libsList = new ArrayList<List<String>>();
+        final List<String> libsGL = new ArrayList<String>();
+        libsGL.add("/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib");
+        libsGL.add("GL");
+        libsList.add(libsGL);        
+        return libsList;
     }
-
-    public final List getToolGetProcAddressFuncNameList() {
+    
+    public final List<String> getToolGetProcAddressFuncNameList() {
         return null; 
         /** OSX manual says: NSImage use is discouraged
         List res = new ArrayList();

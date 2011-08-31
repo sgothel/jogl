@@ -48,9 +48,9 @@ import java.security.*;
  * Currently two implementations exist, one for ES1 and one for ES2.
  */
 public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
-    static List/*<String>*/ glueLibNames;
+    static List<String> glueLibNames;
     static {
-        glueLibNames = new ArrayList();
+        glueLibNames = new ArrayList<String>();
         glueLibNames.addAll(GLDynamicLibraryBundleInfo.getGlueLibNamesPreload());
         glueLibNames.add("jogl_mobile");
     }
@@ -71,8 +71,8 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
         return false;
     }
     
-    public final List getToolGetProcAddressFuncNameList() {
-        List res = new ArrayList();
+    public final List<String> getToolGetProcAddressFuncNameList() {
+        List<String> res = new ArrayList<String>();
         res.add("eglGetProcAddress");
         return res;
     }
@@ -85,21 +85,21 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
         return false; // JAU / FIXME funcName.startsWith("egl");
     }
     
-    protected List/*<String>*/ getEGLLibNamesList() {
-        List/*<String>*/ eglLibNames = new ArrayList();
+    protected List<String> getEGLLibNamesList() {
+        List<String> eglLibNames = new ArrayList<String>();
         
         // try default generic names first 
-        eglLibNames.add("EGL");
-        
+        eglLibNames.add("EGL");        
         // for windows distributions using the 'unlike' lib prefix, 
         // where our tool does not add it.
         eglLibNames.add("libEGL");
         // this is the default EGL lib name, according to the spec 
         eglLibNames.add("libEGL.so.1");
+        
         return eglLibNames;
     }
     
-    public final List/*<String>*/ getGlueLibNames() {
+    public final List<String> getGlueLibNames() {
         return glueLibNames;
     }    
 }

@@ -32,9 +32,9 @@ import com.jogamp.common.os.DynamicLibraryBundleInfo;
 import java.util.*;
 
 public abstract class GLDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
-    static List/*<String>*/ glueLibNamesPreload;
+    static List<String> glueLibNamesPreload;
     static {
-        glueLibNamesPreload = new ArrayList();
+        glueLibNamesPreload = new ArrayList<String>();
         glueLibNamesPreload.add("nativewindow_x11");
     }
 
@@ -47,7 +47,7 @@ public abstract class GLDynamicLibraryBundleInfo implements DynamicLibraryBundle
     /** default **/
     public boolean shallLookupGlobal() { return false; }
 
-    public static List/*<String>*/ getGlueLibNamesPreload() {
+    public static List<String> getGlueLibNamesPreload() {
         return glueLibNamesPreload;
     }
 }
