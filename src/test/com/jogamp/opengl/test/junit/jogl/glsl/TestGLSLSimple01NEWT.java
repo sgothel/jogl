@@ -52,10 +52,6 @@ import javax.media.opengl.GL2ES2;
 import org.junit.AfterClass;
 
 public class TestGLSLSimple01NEWT extends UITestCase {
-    static {
-        GLProfile.initSingleton(true);
-    }
-
     static long durationPerTest = 100; // ms
 
     @BeforeClass

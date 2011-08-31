@@ -470,11 +470,6 @@ public class ElektronenMultiplizierer implements GLEventListener {
 
 //BEGIN --- main entry point ---
 
-    static {
-        // Since we only use NEWT, allow X11 to be multithreaded w/o locking
-        GLProfile.initSingleton(true);
-    }
-
     public static void main(String args[]) throws Exception {
         String tRoutineClassName = null;
         boolean tMultiSampling = false;
