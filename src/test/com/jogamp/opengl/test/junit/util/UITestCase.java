@@ -49,7 +49,7 @@ public abstract class UITestCase {
 
     static volatile SingletonInstance singletonInstance;
 
-    private final synchronized void initSingletonInstance() {
+    private static final synchronized void initSingletonInstance() {
         if( null == singletonInstance )  {
             // singletonInstance = SingletonInstance.createFileLock(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_FILE);
             singletonInstance = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
@@ -74,6 +74,7 @@ public abstract class UITestCase {
     @BeforeClass
     public static void oneTimeSetUp() {
         // one-time initialization code                
+        initSingletonInstance();
     }
 
     @AfterClass
@@ -85,7 +86,6 @@ public abstract class UITestCase {
 
     @Before
     public void setUp() {
-        initSingletonInstance();
         System.err.println("++++ UITestCase.setUp: "+getFullTestName());
     }
 
