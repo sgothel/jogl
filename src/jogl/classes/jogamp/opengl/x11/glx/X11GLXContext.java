@@ -47,6 +47,7 @@ import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.X11GraphicsDevice;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.VersionNumber;
 import jogamp.opengl.*;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
@@ -124,12 +125,10 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   public final boolean isGLXVersionGreaterEqualOneThree() {
     if(null == glXVersion) {
-        X11GLXDrawableFactory factory = (X11GLXDrawableFactory)drawable.getFactoryImpl();
-
         X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
         X11GraphicsDevice device = (X11GraphicsDevice) config.getScreen().getDevice();
 
-        glXVersion = factory.getGLXVersion(device);
+        glXVersion = X11GLXDrawableFactory.getGLXVersion(device);
         glXVersionOneThreeCapable = ( null != glXVersion ) ? glXVersion.compareTo(X11GLXDrawableFactory.versionOneThree) >= 0 : false ;
     }
     return glXVersionOneThreeCapable;
@@ -177,6 +176,19 @@ public abstract class X11GLXContext extends GLContextImpl {
     GLX.glXDestroyContext(display, ctx);
   }
 
+  private static final int ctx_arb_attribs_idx_major = 0;
+  private static final int ctx_arb_attribs_idx_minor = 2;
+  private static final int ctx_arb_attribs_idx_flags = 6;
+  private static final int ctx_arb_attribs_idx_profile = 8;
+  private static final int ctx_arb_attribs_rom[] = {
+        /*  0 */ GLX.GLX_CONTEXT_MAJOR_VERSION_ARB, 0,
+        /*  2 */ GLX.GLX_CONTEXT_MINOR_VERSION_ARB, 0,
+        /*  4 */ GLX.GLX_RENDER_TYPE,               GLX.GLX_RGBA_TYPE, // default
+        /*  6 */ GLX.GLX_CONTEXT_FLAGS_ARB,         0,
+        /*  8 */ 0,                                 0,
+        /* 10 */ 0
+    };
+    
   protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
     updateGLXProcAddressTable();
     GLXExt _glXExt = getGLXExt();
@@ -193,35 +205,28 @@ public abstract class X11GLXContext extends GLContextImpl {
 
     long ctx=0;
 
-    final int idx_flags = 6;
-    final int idx_profile = 8;
-
-    int attribs[] = {
-        /*  0 */ GLX.GLX_CONTEXT_MAJOR_VERSION_ARB, major,
-        /*  2 */ GLX.GLX_CONTEXT_MINOR_VERSION_ARB, minor,
-        /*  4 */ GLX.GLX_RENDER_TYPE,               GLX.GLX_RGBA_TYPE, // default
-        /*  6 */ GLX.GLX_CONTEXT_FLAGS_ARB,         0,
-        /*  8 */ 0,                                 0,
-        /* 10 */ 0
-    };
-
+    IntBuffer attribs = Buffers.newDirectIntBuffer(ctx_arb_attribs_rom);
+    attribs.put(ctx_arb_attribs_idx_major + 1, major);
+    attribs.put(ctx_arb_attribs_idx_minor + 1, minor);
+    
     if ( major > 3 || major == 3 && minor >= 2  ) {
-        // FIXME: Verify with a None drawable binding (default framebuffer)
-        attribs[idx_profile+0]  = GLX.GLX_CONTEXT_PROFILE_MASK_ARB;
+        attribs.put(ctx_arb_attribs_idx_profile + 0, GLX.GLX_CONTEXT_PROFILE_MASK_ARB);
         if( ctBwdCompat ) {
-            attribs[idx_profile+1]  = GLX.GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+            attribs.put(ctx_arb_attribs_idx_profile + 1, GLX.GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
         } else {
-            attribs[idx_profile+1]  = GLX.GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+            attribs.put(ctx_arb_attribs_idx_profile + 1, GLX.GLX_CONTEXT_CORE_PROFILE_BIT_ARB);
         } 
     } 
 
     if ( major >= 3 ) {
+        int flags = attribs.get(ctx_arb_attribs_idx_flags + 1);
         if( !ctBwdCompat && ctFwdCompat ) {
-            attribs[idx_flags+1] |= GLX.GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+            flags |= GLX.GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
         }
         if( ctDebug) {
-            attribs[idx_flags+1] |= GLX.GLX_CONTEXT_DEBUG_BIT_ARB;
+            flags |= GLX.GLX_CONTEXT_DEBUG_BIT_ARB;
         }
+        attribs.put(ctx_arb_attribs_idx_flags + 1, flags);
     }
 
     X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
@@ -232,7 +237,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         // critical path, a remote display might not support this command,
         // hence we need to catch the X11 Error within this block.
         X11Util.XSync(display, false);
-        ctx = _glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
+        ctx = _glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs);
         X11Util.XSync(display, false);
     } catch (RuntimeException re) {
         if(DEBUG) {
