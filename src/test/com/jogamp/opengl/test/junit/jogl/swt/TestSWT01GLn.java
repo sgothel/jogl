@@ -73,7 +73,7 @@ public class TestSWT01GLn extends UITestCase {
 
     @BeforeClass
     public static void startup() {
-        GLProfile.initSingleton( true );
+        GLProfile.initSingleton(true);
         System.out.println( "GLProfile " + GLProfile.glAvailabilityToString() );
     }
 

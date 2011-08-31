@@ -46,20 +46,22 @@ import javax.media.opengl.GLUniformData;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.BeforeClass;
 
 /**
  * Testing different vertex attribute (VA) data sets on one shader
  * and shader state in general.
  */
 public class TestGLSLShaderState01NEWT extends UITestCase {
-    static {
-        GLProfile.initSingleton(true);
-    }
-
     static long durationPerTest = 10; // ms
 
     static final int vertices0_loc = 0; // FIXME: AMD needs this to be location 0 ? hu ?
     static final int colors0_loc = 1;
+    
+    @BeforeClass
+    public static void initClass() {
+        GLProfile.initSingleton(true);
+    }
     
     @Test
     public void testShaderState01Validation() throws InterruptedException {

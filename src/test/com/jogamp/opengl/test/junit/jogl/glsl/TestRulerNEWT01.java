@@ -51,14 +51,16 @@ import javax.media.opengl.GLUniformData;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.BeforeClass;
 
 public class TestRulerNEWT01 extends UITestCase {
-    static {
-        GLProfile.initSingleton(true);
-    }
-
     static long durationPerTest = 10; // ms
 
+    @BeforeClass
+    public static void initClass() {
+        GLProfile.initSingleton(true);
+    }
+    
     @Test
     public void test01() throws InterruptedException {
         // preset ..

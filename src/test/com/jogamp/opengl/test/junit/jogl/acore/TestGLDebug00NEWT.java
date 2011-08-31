@@ -42,6 +42,7 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.BeforeClass;
 
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
@@ -51,12 +52,13 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 public class TestGLDebug00NEWT extends UITestCase {
     
-    static {
-        GLProfile.initSingleton(true);
-    }
-    
     static String dbgTstMsg0 = "Hello World";
     static int dbgTstId0 = 42;
+    
+    @BeforeClass
+    public static void initClass() {
+        // GLProfile.initSingleton(true);
+    }
     
     public class WindowContext {        
         public final Window window;

@@ -41,18 +41,20 @@ import javax.media.opengl.GLRunnable;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.BeforeClass;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 public class TestGLDebug01NEWT extends UITestCase {
     
-    static {
-        GLProfile.initSingleton(true);
-    }
-
     static String dbgTstMsg0 = "Hello World";
     static int dbgTstId0 = 42;
+    
+    @BeforeClass
+    public static void initClass() {
+        GLProfile.initSingleton(true);
+    }
     
     GLWindow createWindow(GLProfile glp, boolean debugGL) {        
         GLCapabilities caps = new GLCapabilities(glp);
