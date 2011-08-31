@@ -51,6 +51,21 @@ import javax.media.nativewindow.util.Point;
  * Contains a thread safe X11 utility to retrieve display connections.
  */
 public class X11Util {
+    /** 
+     * See Bug 515 - https://jogamp.org/bugzilla/show_bug.cgi?id=515
+     * 
+     * It is observed that ATI X11 drivers, eg. fglrx 8.78.6 and fglrx 11.08/8.881,
+     * are quite sensitive to multiple Display connections.
+     * Here, closing displays shall happen in the same order as
+     * they were opened, -OR- shall not be closed at all!
+     * Otherwise some driver related bug appears and brings down the JVM.
+     * You may test this, ie just reverse the destroy order below.
+     * See also native test: jogl/test/native/displayMultiple02.c
+     * 
+     * Our current 'workaround' is to not close them at all if driver vendor is ATI.
+     */
+    public static final boolean ATI_HAS_XCLOSEDISPLAY_BUG = true;
+    
     public static final boolean XINITTHREADS_ALWAYS_ENABLED = true;
 
     private static final boolean DEBUG = Debug.debug("X11Util");
@@ -59,6 +74,7 @@ public class X11Util {
     private static volatile String nullDisplayName = null;
     private static boolean requiresX11Lock = false;
     private static boolean isInit = false;
+    private static boolean markAllDisplaysUnclosable = false; // ATI/AMD X11 driver issues
 
     private static int setX11ErrorHandlerRecCount = 0;
     private static Object setX11ErrorHandlerLock = new Object();
@@ -143,7 +159,14 @@ public class X11Util {
         }
         return nullDisplayName;
     }
-
+    
+    public static boolean getMarkAllDisplaysUnclosable() {
+        return markAllDisplaysUnclosable;
+    }
+    public static void setMarkAllDisplaysUnclosable(boolean v) {
+        markAllDisplaysUnclosable = v;
+    }
+    
     private X11Util() {}
 
     // not exactly thread safe, but good enough for our purpose,
@@ -319,6 +342,9 @@ public class X11Util {
             globalNamedDisplayMap.put(dpy, namedDpy);
             openDisplayList.add(namedDpy);
             pendingDisplayList.add(namedDpy);
+        }
+        if(markAllDisplaysUnclosable) {
+            namedDpy.setUncloseable(true);
         }
         if(DEBUG) {
             Exception e = new Exception("X11Util.Display: Created new "+namedDpy+". Thread "+Thread.currentThread().getName());

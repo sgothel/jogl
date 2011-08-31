@@ -177,6 +177,10 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
             sharedDevice.lock();
             try {
                 String glXVendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
+                if(X11Util.ATI_HAS_XCLOSEDISPLAY_BUG && GLXUtil.isVendorATI(glXVendorName)) {
+                    X11Util.setMarkAllDisplaysUnclosable(true);
+                    X11Util.markDisplayUncloseable(sharedDevice.getHandle());
+                }
                 X11GraphicsScreen sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
 
                 if (null == sharedScreen) {
