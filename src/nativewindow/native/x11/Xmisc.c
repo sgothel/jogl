@@ -170,15 +170,14 @@ static int errorHandlerQuiet = 0 ;
 
 static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
 {
-    const char * errStr = strerror(errno);
-
-    fprintf(stderr, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s\n", dpy, e->error_code, errStr);
-    fflush(stderr);
-
     if(!errorHandlerQuiet) {
         JNIEnv *curEnv = NULL;
         JNIEnv *newEnv = NULL;
         int envRes ;
+        const char * errStr = strerror(errno);
+
+        fprintf(stderr, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s\n", dpy, e->error_code, errStr);
+        fflush(stderr);
 
         // retrieve this thread's JNIEnv curEnv - or detect it's detached
         envRes = (*jvmHandle)->GetEnv(jvmHandle, (void **) &curEnv, jvmVersion) ;
