@@ -167,6 +167,8 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
 
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.setup(): Before JOGL init");
 
+        // just to trigger JOGL initialization at a well defined point ..
+        // ofc it's not the first UI command
         GLProfile.initSingleton(false);
 
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.setup(): End Pre-JOGL-Swing");

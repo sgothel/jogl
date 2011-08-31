@@ -45,11 +45,6 @@ public class TestAWT02WindowClosing extends UITestCase {
 
     static long durationPerTest = 200; // ms
 
-    @BeforeClass
-    public static void initClass() {
-        GLProfile.initSingleton(true);
-    }
-
     @Test
     public void test01WindowClosing() throws InterruptedException {
         Frame frame = new Frame();

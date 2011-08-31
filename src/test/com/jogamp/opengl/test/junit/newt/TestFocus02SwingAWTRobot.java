@@ -74,7 +74,6 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         f.dispose();
         f=null;
 
-        GLProfile.initSingleton(false);
         glCaps = new GLCapabilities(null);
     }
 

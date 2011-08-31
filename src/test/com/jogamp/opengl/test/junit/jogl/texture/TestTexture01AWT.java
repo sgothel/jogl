@@ -49,6 +49,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import org.junit.Assert;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -60,7 +61,6 @@ public class TestTexture01AWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
         glp = GLProfile.get(GLProfile.GL2GL3);
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);
@@ -103,9 +103,8 @@ public class TestTexture01AWT extends UITestCase {
 
     @Test
     public void test1() throws InterruptedException {
-        GLCanvas glCanvas = new GLCanvas(caps);
-
-        Frame frame = new Frame("Texture Test");
+        final GLCanvas glCanvas = new GLCanvas(caps);
+        final Frame frame = new Frame("Texture Test");
         Assert.assertNotNull(frame);
         frame.add(glCanvas);
         frame.setSize(512, 512);
@@ -121,12 +120,17 @@ public class TestTexture01AWT extends UITestCase {
         Thread.sleep(500); // 500 ms
 
         animator.stop();
-        frame.setVisible(false);
-        frame.remove(glCanvas);
-        glCanvas=null;
-        Assert.assertNotNull(frame);
-        frame.dispose();
-        frame=null;
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setVisible(false);
+                    frame.remove(glCanvas);
+                    frame.dispose();
+                }});
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }                
     }
 
     public static void main(String args[]) throws IOException {

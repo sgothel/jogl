@@ -70,7 +70,6 @@ public class TestParenting01aAWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() throws InterruptedException {
-        GLProfile.initSingleton(true);
         width  = 640;
         height = 480;
         glCaps = new GLCapabilities(null);

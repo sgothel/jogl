@@ -28,7 +28,6 @@
  
 package com.jogamp.opengl.test.junit.jogl.acore;
 
-import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLPbuffer;
@@ -44,6 +43,7 @@ import java.awt.Frame;
 import javax.swing.SwingUtilities;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -56,7 +56,6 @@ public class TestSharedContextListAWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
         glp = GLProfile.getDefault();
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);
@@ -110,15 +109,15 @@ public class TestSharedContextListAWT extends UITestCase {
     public void test01() throws InterruptedException {
         initShared();
 
-        Frame f1 = createFrame(0, 0, true);
-        Frame f2 = createFrame(width, 0, true);
-        Frame f3 = createFrame(0, height, false);
+        final Frame f1 = createFrame(0, 0, true);
+        final Frame f2 = createFrame(width, 0, true);
+        final Frame f3 = createFrame(0, height, false);
 
         Animator animator = new Animator();
 
-        GLCanvas glc1 = runTestGL(f1, animator, 0,     0,      true, false);
-        GLCanvas glc2 = runTestGL(f2, animator, width, 0,      true, false);
-        GLCanvas glc3 = runTestGL(f3, animator, 0,     height, false, true);
+        final GLCanvas glc1 = runTestGL(f1, animator, 0,     0,      true, false);
+        final GLCanvas glc2 = runTestGL(f2, animator, width, 0,      true, false);
+        final GLCanvas glc3 = runTestGL(f3, animator, 0,     height, false, true);
 
         animator.setUpdateFPSFrames(1, null);        
         animator.start();
@@ -128,17 +127,27 @@ public class TestSharedContextListAWT extends UITestCase {
         animator.stop();
 
         // here we go again: On AMD/X11 the create/destroy sequence must be the same
-        // even though this is agains the chicken/egg logic here ..
+        // even though this is agains the chicken/egg logic
         releaseShared();
 
-        f1.dispose();
-        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc1, false));
-
-        f2.dispose();
-        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc2, false));
-
-        f3.dispose();
-        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc3, false));
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    try {
+                        f1.dispose();
+                        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc1, false));
+                        f2.dispose();
+                        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc2, false));
+                        f3.dispose();
+                        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc3, false));
+                    } catch (Throwable t) {
+                        throw new RuntimeException(t);
+                    }
+                }});
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }                
         
         // see above ..
         //releaseShared();

@@ -71,7 +71,6 @@ public class TestAWTTextRendererUseVertexArrayBug464 extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
         glp = GLProfile.get(GLProfile.GL2);
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);

@@ -44,7 +44,6 @@ public class TestBug460GLCanvasNPEAWT {
 
     @Test
     public void testIncompleteGLCanvasNPE() {
-        GLProfile.initSingleton(false);
         GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         GLCanvas glc = new GLCanvas(caps);
         // GLDrawableFactory factory = glc.getFactory(); // null ok: not realized

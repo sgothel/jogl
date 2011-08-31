@@ -70,7 +70,6 @@ public class TestParenting01bAWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
         width  = 640;
         height = 480;
         glCaps = new GLCapabilities(null);

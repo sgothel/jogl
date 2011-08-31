@@ -65,7 +65,6 @@ public class TestGrayTextureFromFileAWTBug417 extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
         glp = GLProfile.get(GLProfile.GL2GL3);
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);
@@ -85,9 +84,8 @@ public class TestGrayTextureFromFileAWTBug417 extends UITestCase {
 
     @Test
     public void test1() throws InterruptedException {
-        GLCanvas glCanvas = new GLCanvas(caps);
-
-        Frame frame = new Frame("Texture Test");
+        final GLCanvas glCanvas = new GLCanvas(caps);
+        final Frame frame = new Frame("Texture Test");
         Assert.assertNotNull(frame);
         frame.add(glCanvas);
         frame.setSize( 256, 128 );
@@ -118,12 +116,17 @@ public class TestGrayTextureFromFileAWTBug417 extends UITestCase {
         Thread.sleep(500); // 500 ms
 
         animator.stop();
-        frame.setVisible(false);
-        frame.remove(glCanvas);
-        glCanvas=null;
-        Assert.assertNotNull(frame);
-        frame.dispose();
-        frame=null;
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setVisible(false);
+                    frame.remove(glCanvas);
+                    frame.dispose();
+                }});
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }        
     }
 
     public static void main(String args[]) throws IOException {

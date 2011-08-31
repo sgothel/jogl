@@ -53,7 +53,6 @@ public class TestGearsGLJPanelAWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        // redundant, since implicit (false): GLProfile.initSingleton(false);
         glp = GLProfile.getDefault();
         Assert.assertNotNull(glp);
         width  = 512;

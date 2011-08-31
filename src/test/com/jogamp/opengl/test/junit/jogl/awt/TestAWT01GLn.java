@@ -52,7 +52,6 @@ public class TestAWT01GLn extends UITestCase {
 
     @BeforeClass
     public static void startup() {
-        GLProfile.initSingleton(true);
         System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
     }
 

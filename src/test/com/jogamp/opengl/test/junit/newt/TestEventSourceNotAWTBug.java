@@ -55,7 +55,6 @@ public class TestEventSourceNotAWTBug extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
     }
 
     @Test

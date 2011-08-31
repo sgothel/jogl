@@ -30,7 +30,6 @@ package com.jogamp.opengl.test.junit.jogl.glsl;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
-import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -41,6 +40,7 @@ import javax.media.opengl.awt.GLCanvas;
 import java.awt.Frame;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -50,10 +50,6 @@ import org.junit.Test;
  * This bug is Windows-only; it works on Mac OS X and CentOS.
  */
 public class TestShaderCompilationBug459AWT extends UITestCase {
-    static {
-        GLProfile.initSingleton(true);
-    }
-    static GLProfile glp;
     static int width, height;
     static long duration = 500; // ms
     /** Exception in shader code sets this, since it won't bubble up through AWT. */
@@ -61,8 +57,6 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        glp = GLProfile.getDefault();
-        Assert.assertNotNull(glp);
         width  = 512;
         height = 512;
     }
@@ -73,7 +67,7 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
 
     @Test
     public void compileShader() throws InterruptedException {
-        GLProfile glp = GLProfile.get("GL2GL3");         
+        GLProfile glp = GLProfile.get(GLProfile.GL2GL3);         
         GLCapabilities caps = new GLCapabilities(glp);   
         // commenting out this line makes it work
         caps.setStencilBits(8);
@@ -81,10 +75,10 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
         // commenting in this line also makes it work
         //caps.setSampleBuffers(true); 
 
-        Frame frame = new Frame("Bug 459 shader compilation test");
+        final Frame frame = new Frame("Bug 459 shader compilation test");
         Assert.assertNotNull(frame);
 
-        GLCanvas glCanvas = new GLCanvas(caps);
+        final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
         frame.add(glCanvas);
         frame.setSize(512, 512);
@@ -152,12 +146,17 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
 
         animator.stop();
         Assert.assertEquals(false, animator.isAnimating());
-        frame.setVisible(false);
-        Assert.assertEquals(false, frame.isVisible());
-        frame.remove(glCanvas);
-        frame.dispose();
-        frame=null;
-        glCanvas=null;
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setVisible(false);
+                    frame.remove(glCanvas);
+                    frame.dispose();
+                }});
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }        
     }
 
     public static void main(String args[]) {
