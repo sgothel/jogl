@@ -77,7 +77,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLCanvas"
-    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLDebugMessageHandler -Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.GLDebugMessageHandler -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler"
@@ -154,7 +154,7 @@ function testawtmt() {
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT
-testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
+#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT -time 1000000
@@ -232,7 +232,7 @@ testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
 
 $spath/count-edt-start.sh java-run.log
 

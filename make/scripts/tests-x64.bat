@@ -35,7 +35,7 @@ REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
-scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT
+REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT
@@ -77,3 +77,6 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGPUMe
 
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01
+
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT %1 %2 %3 %4
+
