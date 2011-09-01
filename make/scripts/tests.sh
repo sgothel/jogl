@@ -72,7 +72,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
-    D_ARGS="-Dnewt.debug=all"
+    #D_ARGS="-Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GraphicsConfiguration"
@@ -147,14 +147,14 @@ function testawtmt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated $*
 #testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
+testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT -time 1000000

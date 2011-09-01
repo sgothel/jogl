@@ -99,13 +99,21 @@ public class TestScreenMode01NEWT extends UITestCase {
         Animator animator = new Animator(window);
         animator.start();
         
+        Assert.assertEquals(false, window.isFullscreen());
+        Assert.assertEquals(width, window.getWidth());
+        Assert.assertEquals(height, window.getHeight());
+        
         window.setFullscreen(true);
         Assert.assertEquals(true, window.isFullscreen());
+        Assert.assertEquals(window.getScreen().getWidth(), window.getWidth());
+        Assert.assertEquals(window.getScreen().getHeight(), window.getHeight());
         
         Thread.sleep(waitTimeShort);
 
         window.setFullscreen(false);
         Assert.assertEquals(false, window.isFullscreen());
+        Assert.assertEquals(width, window.getWidth());
+        Assert.assertEquals(height, window.getHeight());
         
         Thread.sleep(waitTimeShort);
 
