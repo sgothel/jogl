@@ -1,58 +1,12 @@
 /**
  * Copyright 2011 JogAmp Community. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
  * 
- *    1. Redistributions of source code must retain the above copyright notice, this list of
- *       conditions and the following disclaimer.
- * 
- *    2. Redistributions in binary form must reproduce the above copyright notice, this list
- *       of conditions and the following disclaimer in the documentation and/or other materials
- *       provided with the distribution.
- * 
- * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * The views and conclusions contained in the software and documentation are those of the
- * authors and should not be interpreted as representing official policies, either expressed
- * or implied, of JogAmp Community.
+ * Details see: src/test/com/jogamp/opengl/test/junit/jogl/demos/es2/ElektronenMultiplizierer.java
  */
 
 /**
- **   __ __|_  ___________________________________________________________________________  ___|__ __
- **  //    /\                                           _                                  /\    \\  
- ** //____/  \__     __ _____ _____ _____ _____ _____  | |     __ _____ _____ __        __/  \____\\ 
- **  \    \  / /  __|  |     |   __|  _  |     |  _  | | |  __|  |     |   __|  |      /\ \  /    /  
- **   \____\/_/  |  |  |  |  |  |  |     | | | |   __| | | |  |  |  |  |  |  |  |__   "  \_\/____/   
- **  /\    \     |_____|_____|_____|__|__|_|_|_|__|    | | |_____|_____|_____|_____|  _  /    /\     
- ** /  \____\                       http://jogamp.org  |_|                              /____/  \    
- ** \  /   "' _________________________________________________________________________ `"   \  /    
- **  \/____.                                                                             .____\/     
- **
- ** JOGL2 port of my PC 4k intro competition entry for Revision 2011. The shader encapsulates basically 
- ** two different routines: A sphere-tracing based raymarcher for a single fractal formula and a bitmap
- ** orbit trap julia+mandelbrot fractal renderer. Additionally an inline-processing analog-distortion
- ** filter is applied to all rendered fragments to make the overall look more interesting.
- ** 
- ** Papers and articles you should be familiar with before trying to understand the code:
- **
- ** Distance rendering for fractals: http://www.iquilezles.org/www/articles/distancefractals/distancefractals.htm
- ** Geometric orbit traps: http://www.iquilezles.org/www/articles/ftrapsgeometric/ftrapsgeometric.htm
- ** Bitmap orbit traps: http://www.iquilezles.org/www/articles/ftrapsbitmap/ftrapsbitmap.htm
- ** Ambient occlusion techniques: http://www.iquilezles.org/www/articles/ao/ao.htm
- ** Sphere tracing: A geometric method for the antialiased ray tracing of implicit surfaces: http://graphics.cs.uiuc.edu/~jch/papers/zeno.pdf
- ** Rendering fractals with distance estimation function: http://www.iquilezles.org/www/articles/mandelbulb/mandelbulb.htm
- **
- ** For an impression how this routine looks like see here: http://www.youtube.com/watch?v=lvC8maVHh8Q
- ** Original release from the Revision can be found here: http://www.pouet.net/prod.php?which=56860
+ * http://www.youtube.com/user/DemoscenePassivist
+ * author: Dominik Ströhlein (DemoscenePassivist) 
  **/
 
 //When I wrote this, only God and I understood what I was doing ...

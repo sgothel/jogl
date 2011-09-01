@@ -26,69 +26,98 @@
  * or implied, of JogAmp Community.
  */
 
-
 package com.jogamp.opengl.test.junit.jogl.demos.es2;
 
-import java.nio.*;
+import static javax.media.opengl.GL.*;
 
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
+import java.nio.FloatBuffer;
 
-import com.jogamp.common.nio.*;
-import com.jogamp.newt.opengl.*;
-import com.jogamp.opengl.util.*;
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLUniformData;
+
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.opengl.util.GLArrayDataServer;
+import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-import static javax.media.opengl.GL2ES2.*;
-
 /**
- **   __ __|_  ___________________________________________________________________________  ___|__ __
- **  //    /\                                           _                                  /\    \\  
- ** //____/  \__     __ _____ _____ _____ _____ _____  | |     __ _____ _____ __        __/  \____\\ 
- **  \    \  / /  __|  |     |   __|  _  |     |  _  | | |  __|  |     |   __|  |      /\ \  /    /  
- **   \____\/_/  |  |  |  |  |  |  |     | | | |   __| | | |  |  |  |  |  |  |  |__   "  \_\/____/   
- **  /\    \     |_____|_____|_____|__|__|_|_|_|__|    | | |_____|_____|_____|_____|  _  /    /\     
- ** /  \____\                       http://jogamp.org  |_|                              /____/  \    
- ** \  /   "' _________________________________________________________________________ `"   \  /    
- **  \/____.                                                                             .____\/     
- **
- ** JOGL2 port of my PC 4k intro competition entry for Revision 2011. Sure it got a little bigger 
- ** while porting but the shader and control code remained more or less untouched. The intro renders
- ** a fullscreen billboard using a single fragment shader. The shader encapsulates basically two 
- ** different routines: A sphere-tracing based raymarcher for a single fractal formula and a bitmap
- ** orbit trap julia+mandelbrot fractal renderer. Additionally an inline-processing analog-distortion
- ** filter is applied to all rendered fragments to make the overall look more interesting.
- **
- ** The different intro parts are all parameter variations of the two routines in the fragment shader 
- ** synched to the music: Parts 3+5 are obviously the mandelbrot and julia bitmap orbit traps, and parts
- ** 1,2,4 and 6 are pure fractal sphere tracing.
- **
- ** During the development of the intro it turned out that perfectly raymarching every pixel of the orbit
- ** trapped julia+mandelbrot fractal was way to slow even on highend hardware. So I inserted a lowres 
- ** intermediate FBO to be used by the bitmap based orbit trap routine wich was ofcourse way faster, but
- ** had the obvious upscaling artefacts. Maybe I'll produce a perfect quality version for very patient 
- ** people with insane hardware :)
- **
- ** Papers and articles you should be familiar with before trying to understand the code:
- **
- ** Distance rendering for fractals: http://www.iquilezles.org/www/articles/distancefractals/distancefractals.htm
- ** Geometric orbit traps: http://www.iquilezles.org/www/articles/ftrapsgeometric/ftrapsgeometric.htm
- ** Bitmap orbit traps: http://www.iquilezles.org/www/articles/ftrapsbitmap/ftrapsbitmap.htm
- ** Ambient occlusion techniques: http://www.iquilezles.org/www/articles/ao/ao.htm
- ** Sphere tracing: A geometric method for the antialiased ray tracing of implicit surfaces: http://graphics.cs.uiuc.edu/~jch/papers/zeno.pdf
- ** Rendering fractals with distance estimation function: http://www.iquilezles.org/www/articles/mandelbulb/mandelbulb.htm
- **
- ** For an impression how this routine looks like see here: http://www.youtube.com/watch?v=lvC8maVHh8Q
- ** Original release from the Revision can be found here: http://www.pouet.net/prod.php?which=56860
- **/
+ * <pre>
+ *   __ __|_  ___________________________________________________________________________  ___|__ __
+ *  //    /\                                           _                                  /\    \\  
+ * //____/  \__     __ _____ _____ _____ _____ _____  | |     __ _____ _____ __        __/  \____\\ 
+ *  \    \  / /  __|  |     |   __|  _  |     |  _  | | |  __|  |     |   __|  |      /\ \  /    /  
+ *   \____\/_/  |  |  |  |  |  |  |     | | | |   __| | | |  |  |  |  |  |  |  |__   "  \_\/____/   
+ *  /\    \     |_____|_____|_____|__|__|_|_|_|__|    | | |_____|_____|_____|_____|  _  /    /\     
+ * /  \____\                       http://jogamp.org  |_|                              /____/  \    
+ * \  /   "' _________________________________________________________________________ `"   \  /    
+ *  \/____.                                                                             .____\/
+ * </pre>     
+ *
+ * <p>
+ * JOGL2 port of my PC 4k intro competition entry for Revision 2011. Sure it got a little bigger 
+ * while porting but the shader and control code remained more or less untouched. The intro renders
+ * a fullscreen billboard using a single fragment shader. The shader encapsulates basically two 
+ * different routines: A sphere-tracing based raymarcher for a single fractal formula and a bitmap
+ * orbit trap julia+mandelbrot fractal renderer. Additionally an inline-processing analog-distortion
+ * filter is applied to all rendered fragments to make the overall look more interesting.
+ * </p>
+ *
+ * <p>
+ * The different intro parts are all parameter variations of the two routines in the fragment shader 
+ * synched to the music: Parts 3+5 are obviously the mandelbrot and julia bitmap orbit traps, and parts
+ * 1,2,4 and 6 are pure fractal sphere tracing.
+ * </p>
+ *
+ * <p>
+ * During the development of the intro it turned out that perfectly raymarching every pixel of the orbit
+ * trapped julia+mandelbrot fractal was way to slow even on highend hardware. So I inserted a lowres 
+ * intermediate FBO to be used by the bitmap based orbit trap routine wich was ofcourse way faster, but
+ * had the obvious upscaling artefacts. Maybe I'll produce a perfect quality version for very patient 
+ * people with insane hardware :)
+ * </p>
+ *
+ * <p>
+ * Papers and articles you should be familiar with before trying to understand the code:
+ * </p>
+ *
+ * <p>
+ * <ul>
+ * <li>Distance rendering for fractals: http://www.iquilezles.org/www/articles/distancefractals/distancefractals.htm</li>
+ * <li>Geometric orbit traps: http://www.iquilezles.org/www/articles/ftrapsgeometric/ftrapsgeometric.htm</li>
+ * <li>Bitmap orbit traps: http://www.iquilezles.org/www/articles/ftrapsbitmap/ftrapsbitmap.htm</li>
+ * <li>Ambient occlusion techniques: http://www.iquilezles.org/www/articles/ao/ao.htm</li>
+ * <li>Sphere tracing: A geometric method for the antialiased ray tracing of implicit surfaces: http://graphics.cs.uiuc.edu/~jch/papers/zeno.pdf</li>
+ * <li>Rendering fractals with distance estimation function: http://www.iquilezles.org/www/articles/mandelbulb/mandelbulb.htm</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * <ul>
+ * <li>For an impression how this routine looks like see here: http://www.youtube.com/watch?v=lvC8maVHh8Q</li>
+ * <li>Original release from the Revision can be found here: http://www.pouet.net/prod.php?which=56860</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * http://www.youtube.com/user/DemoscenePassivist
+ * </p>
+ *
+ * @author Dominik Ströhlein (DemoscenePassivist)
+ */
 public class ElektronenMultiplizierer implements GLEventListener {
 
 //BEGIN --- BaseGlobalEnvironment replacement ---
 
     private final GLCapabilities mCaps; 
-    private final GLU mGlu;
+    // private final GLU mGlu;
 
     private String      mCommandLineParameter_BaseRoutineClassName;
     private boolean     mCommandLineParameter_MultiSampling;
@@ -101,11 +130,9 @@ public class ElektronenMultiplizierer implements GLEventListener {
     private int         mFrameCounter;
     private int         mCommandLineParameter_FrameRate;
     private long        mFrameSkipAverageFramerateTimeStart;
-    private boolean     mFrameSkipAverageFrameStartTimeInitialized;
     private long        mFrameSkipAverageFramerateTimeEnd; 
-    private double      mFrameCounterDifference;
-    private double      mFrameCounterTargetValue;
-    private int         mSkippedFramesCounter;
+    private boolean     mFrameSkipManual;
+    // private int         mSkippedFramesCounter;
 //    private BaseMusic mBaseMusic;
     boolean             mMusicSyncStartTimeInitialized = false;
 
@@ -114,7 +141,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
     private GLUniformData pmvMatrixUniform;
     private GLUniformData mScreenDimensionUniform;
     private GLArrayDataServer vertices0;
-    private GLArrayDataServer texCoords0;
+    // private GLArrayDataServer texCoords0;
     
     public String   getBaseRoutineClassName()       { return mCommandLineParameter_BaseRoutineClassName; }
     public boolean  preferMultiSampling()           { return mCommandLineParameter_MultiSampling; }
@@ -133,9 +160,9 @@ public class ElektronenMultiplizierer implements GLEventListener {
             boolean inAnisotropicFiltering,
             float inAnisotropyLevel,
             boolean inFrameCapture,
-            boolean inFrameSkip, int desiredFrameRate
+            boolean inFrameSkip, int desiredFrameRate, int startFrame
     ) {
-        mGlu = new GLU();
+        // mGlu = new GLU();
         mCommandLineParameter_BaseRoutineClassName = inBaseRoutineClassName;
         mCommandLineParameter_MultiSampling = inMultiSampling;
         mCommandLineParameter_NumberOfSampleBuffers = (inNumberOfSampleBuffers==-1) ? 2 : inNumberOfSampleBuffers;
@@ -156,6 +183,20 @@ public class ElektronenMultiplizierer implements GLEventListener {
             // turns out we need to have alpha, otherwise no AA will be visible
             mCaps.setAlphaBits(1); 
         }
+        
+        mFrameSkipAverageFramerateTimeStart = 0;
+        mFrameCounter = 0;        
+        skipFrames(startFrame);
+    }
+    
+    /**
+     * skip frames by turning back start time
+     * @param frames positive or negative values 
+     */
+    public void skipFrames(int frames) {
+        final long dft = 1000000000/mCommandLineParameter_FrameRate;
+        mFrameSkipAverageFramerateTimeStart -= frames * dft ;
+        mFrameSkipManual = true;
     }
     
     public GLCapabilitiesImmutable getGLCapabilities() {
@@ -165,14 +206,13 @@ public class ElektronenMultiplizierer implements GLEventListener {
     public void init(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         gl.setSwapInterval(1);
-        mFrameCounter = 0;        
 
         st = new ShaderState();        
         final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, this.getClass(),
                 "shader", "shader/bin", "default");
         final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, this.getClass(),
-           //   "shader", "shader/bin", "elektronenmultiplizierer_development");
-                "shader", "shader/bin", "elektronenmultiplizierer_port");
+                "shader", "shader/bin", "elektronenmultiplizierer_development");
+          //    "shader", "shader/bin", "elektronenmultiplizierer_port");
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
         sp0.add(gl, fp0, System.err);       
@@ -203,6 +243,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
         st.ownAttribute(vertices0, true);
         vertices0.enableBuffer(gl, false);
         
+        /**
         texCoords0 = GLArrayDataServer.createGLSL("gca_TexCoords", 2, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         texCoords0.putf(0f); texCoords0.putf(1f);
         texCoords0.putf(1f);  texCoords0.putf(1f);
@@ -210,7 +251,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
         texCoords0.putf(1f); texCoords0.putf(0f);
         texCoords0.seal(gl, true);
         st.ownAttribute(texCoords0, true);
-        texCoords0.enableBuffer(gl, false);
+        texCoords0.enableBuffer(gl, false); */
 
         //generate framebufferobject
         int[] result = new int[1];
@@ -239,22 +280,38 @@ public class ElektronenMultiplizierer implements GLEventListener {
 
         gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
+        // if NO music is used sync to mainloop start ...
+        // (add up current time due to possible turned back start time by skip frames)
+        mFrameSkipAverageFramerateTimeStart += System.nanoTime();
+        
 //        mBaseMusic = new BaseMusic(BaseGlobalEnvironment.getInstance().getMusicFileName());
 //        mBaseMusic.init();
 //        mBaseMusic.play();
     }
 
     public void display(GLAutoDrawable drawable) {
+        if (wantsFrameSkip()) {
+            mFrameSkipAverageFramerateTimeEnd = System.nanoTime();
+            double tDesiredFrameRate = (float)getDesiredFramerate();
+            double tSingleFrameTime = 1000000000.0f/tDesiredFrameRate;
+            double tElapsedTime = mFrameSkipAverageFramerateTimeEnd - mFrameSkipAverageFramerateTimeStart;
+            double mFrameCounterTargetValue = tElapsedTime/tSingleFrameTime;
+            double mFrameCounterDifference = mFrameCounterTargetValue-mFrameCounter;
+            if (mFrameSkipManual || mFrameCounterDifference>2) {
+                mFrameCounter+=mFrameCounterDifference;
+                // mSkippedFramesCounter+=mFrameCounterDifference;
+            } else if (mFrameCounterDifference<-2) {
+                //hold framecounter advance ...
+                mFrameCounter--;
+            }
+            mFrameSkipManual = false;
+        }
+       
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         
         final int XRES = drawable.getWidth();
         final int YRES = drawable.getHeight();
 
-        //if NO music is used sync to mainloop start ...
-        if (!mFrameSkipAverageFrameStartTimeInitialized) {
-            mFrameSkipAverageFrameStartTimeInitialized = true;
-            mFrameSkipAverageFramerateTimeStart = System.nanoTime();
-        }
 //        if (!getBaseMusic().isOffline()) {
 //            //if music IS used sync to first second of music ...
 //            if (BaseRoutineRuntime.getInstance().getBaseMusic().getPositionInMilliseconds()>0 && !mMusicSyncStartTimeInitialized) {
@@ -267,7 +324,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
 //        mBaseMusic.synchonizeMusic();
 
         //use this for offline rendering/capture ...
-        int MMTime_u_ms = (int)((((double)mFrameCounter)*44100.0f)/60.0f);
+        int MMTime_u_ms = (int)((((float)mFrameCounter)*44100.0f)/60.0f);
         //use this for music synched rendering ...
         //int MMTime_u_ms = (int)(BaseRoutineRuntime.getInstance().getBaseMusic().getPositionInMilliseconds()*(44100.0f/1000.0f));
         //dedicated sync variable for each event ... kinda lame but who cares X-)
@@ -280,14 +337,14 @@ public class ElektronenMultiplizierer implements GLEventListener {
         if (MMTime_u_ms>=4438408 && !mSyncEvent_07) { mSyncEvent_07 = true; handleSyncEvent(MMTime_u_ms); }
         if (MMTime_u_ms>=5482831 && !mSyncEvent_08) { mSyncEvent_08 = true; handleSyncEvent(MMTime_u_ms); }
         //calculate current time based on 60fps reference framerate ...
-        MMTime_u_ms = (int)((((double)mFrameCounter)*44100.0)/60.0);
+        MMTime_u_ms = (int)((((float)mFrameCounter)*44100.0f)/60.0f);
         gl.glDisable(GL_CULL_FACE);
         gl.glDisable(GL_DEPTH_TEST);
 
         st.useProgram(gl, true);
 
         vertices0.enableBuffer(gl, true);
-        texCoords0.enableBuffer(gl, true);
+        // texCoords0.enableBuffer(gl, true);
 
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
@@ -378,27 +435,11 @@ public class ElektronenMultiplizierer implements GLEventListener {
         gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);        
 
         vertices0.enableBuffer(gl, false);
-        texCoords0.enableBuffer(gl, false);         
+        // texCoords0.enableBuffer(gl, false);         
         st.useProgram(gl, false);
 
         //---
         mFrameCounter++;
-        if (wantsFrameSkip()) {
-            mFrameSkipAverageFramerateTimeEnd = System.nanoTime();
-            double tDesiredFrameRate = (float)getDesiredFramerate();
-            double tSingleFrameTime = 1000000000.0f/tDesiredFrameRate;
-            double tElapsedTime = mFrameSkipAverageFramerateTimeEnd - mFrameSkipAverageFramerateTimeStart;
-            mFrameCounterTargetValue = tElapsedTime/tSingleFrameTime;
-            mFrameCounterDifference = mFrameCounterTargetValue-mFrameCounter;
-            if (mFrameCounterDifference>2) {
-                mFrameCounter+=mFrameCounterDifference;
-                mSkippedFramesCounter+=mFrameCounterDifference;
-            } else if (mFrameCounterDifference<-2) {
-                //hold framecounter advance ...
-                mFrameCounter--;
-            }
-        }
-       
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
@@ -466,45 +507,5 @@ public class ElektronenMultiplizierer implements GLEventListener {
             mEffectSyncTime = inMMTime_u_ms;
         }
     }
-
-
-//BEGIN --- main entry point ---
-
-    public static void main(String args[]) throws Exception {
-        String tRoutineClassName = null;
-        boolean tMultiSampling = false;
-        int tNumberOfSampleBuffers = -1;
-        boolean tAnisotropicFiltering = false;
-        float tAnisotropyLevel = -1.0f;
-        boolean tFrameCapture = false;
-        boolean tFrameSkip = true;
-        int desiredFrameRate = 30;
-        
-        final ElektronenMultiplizierer demo = new ElektronenMultiplizierer(
-                tRoutineClassName,
-                tMultiSampling,tNumberOfSampleBuffers,
-                tAnisotropicFiltering,tAnisotropyLevel,
-                tFrameCapture,
-                tFrameSkip, desiredFrameRate
-        );
-        GLCapabilitiesImmutable caps = demo.getGLCapabilities();
-        
-        GLWindow glWindow = GLWindow.create(caps);
-        glWindow.setSize(640, 480);
-        glWindow.setTitle("Jogamp.org - ElektronenMultiplizierer - GL2ES2/NEWT");   
-        glWindow.addGLEventListener(demo);
-        final Animator animator = new Animator(glWindow);
-        animator.setUpdateFPSFrames(60, System.err);
-        glWindow.addWindowListener(new com.jogamp.newt.event.WindowAdapter() {
-            public void windowDestroyNotify(com.jogamp.newt.event.WindowEvent e) {
-                animator.stop();
-                System.exit(0);
-            }
-        });
-        glWindow.setVisible(true);
-        animator.start();
-    }
-    
-//END --- main entry point ---
     
 }

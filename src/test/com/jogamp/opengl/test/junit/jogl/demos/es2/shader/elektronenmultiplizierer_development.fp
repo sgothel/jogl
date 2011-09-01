@@ -1,62 +1,13 @@
 /**
  * Copyright 2011 JogAmp Community. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
  * 
- *    1. Redistributions of source code must retain the above copyright notice, this list of
- *       conditions and the following disclaimer.
- * 
- *    2. Redistributions in binary form must reproduce the above copyright notice, this list
- *       of conditions and the following disclaimer in the documentation and/or other materials
- *       provided with the distribution.
- * 
- * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * The views and conclusions contained in the software and documentation are those of the
- * authors and should not be interpreted as representing official policies, either expressed
- * or implied, of JogAmp Community.
+ * Details see: src/test/com/jogamp/opengl/test/junit/jogl/demos/es2/ElektronenMultiplizierer.java
  */
 
 /**
- **   __ __|_  ___________________________________________________________________________  ___|__ __
- **  //    /\                                           _                                  /\    \\  
- ** //____/  \__     __ _____ _____ _____ _____ _____  | |     __ _____ _____ __        __/  \____\\ 
- **  \    \  / /  __|  |     |   __|  _  |     |  _  | | |  __|  |     |   __|  |      /\ \  /    /  
- **   \____\/_/  |  |  |  |  |  |  |     | | | |   __| | | |  |  |  |  |  |  |  |__   "  \_\/____/   
- **  /\    \     |_____|_____|_____|__|__|_|_|_|__|    | | |_____|_____|_____|_____|  _  /    /\     
- ** /  \____\                       http://jogamp.org  |_|                              /____/  \    
- ** \  /   "' _________________________________________________________________________ `"   \  /    
- **  \/____.                                                                             .____\/     
- **
- ** JOGL2 port of my PC 4k intro competition entry for Revision 2011. The shader encapsulates basically 
- ** two different routines: A sphere-tracing based raymarcher for a single fractal formula and a bitmap
- ** orbit trap julia+mandelbrot fractal renderer. Additionally an inline-processing analog-distortion
- ** filter is applied to all rendered fragments to make the overall look more interesting.
- ** 
- ** Papers and articles you should be familiar with before trying to understand the code:
- **
- ** Distance rendering for fractals: http://www.iquilezles.org/www/articles/distancefractals/distancefractals.htm
- ** Geometric orbit traps: http://www.iquilezles.org/www/articles/ftrapsgeometric/ftrapsgeometric.htm
- ** Bitmap orbit traps: http://www.iquilezles.org/www/articles/ftrapsbitmap/ftrapsbitmap.htm
- ** Ambient occlusion techniques: http://www.iquilezles.org/www/articles/ao/ao.htm
- ** Sphere tracing: A geometric method for the antialiased ray tracing of implicit surfaces: http://graphics.cs.uiuc.edu/~jch/papers/zeno.pdf
- ** Rendering fractals with distance estimation function: http://www.iquilezles.org/www/articles/mandelbulb/mandelbulb.htm
- **
- ** For an impression how this routine looks like see here: http://www.youtube.com/watch?v=lvC8maVHh8Q
- ** Original release from the Revision can be found here: http://www.pouet.net/prod.php?which=56860
+ * http://www.youtube.com/user/DemoscenePassivist
+ * author: Dominik Ströhlein (DemoscenePassivist) 
  **/
-
-//When I wrote this, only God and I understood what I was doing ...
-// ... now only God knows! X-)
 
 #ifdef GL_ES
   #define MEDIUMP mediump
@@ -68,22 +19,22 @@
   #define LOWP
 #endif
 
-uniform HIGHP int en;         //effectnumber
-uniform HIGHP float et;       //effecttime
-uniform HIGHP sampler2D fb;   //fbotexture
-uniform HIGHP float br;       //brightness
-uniform HIGHP float tm;       //time
-uniform HIGHP vec2 resolution;//screen resolution/fbo resolution
+uniform MEDIUMP int en;         //effectnumber
+uniform MEDIUMP float et;       //effecttime
+uniform MEDIUMP sampler2D fb;   //fbotexture
+uniform MEDIUMP float br;       //brightness
+uniform MEDIUMP float tm;       //time
+uniform MEDIUMP vec2 resolution;//screen resolution/fbo resolution
  
-float camerafocallengthdode;
-vec3 camerapositiondode;
-vec2 sizedode;
-vec3 backgroundcolor = vec3(0,0.6,0.46);
-mat3 worldrotationxyz;
-mat3 fractalplanerotationx;
-mat3 fractalplanerotationy;
-mat3 camerarotationdode;
-vec2 oglFragCoord;
+MEDIUMP float camerafocallengthdode;
+MEDIUMP vec3 camerapositiondode;
+MEDIUMP vec2 sizedode;
+MEDIUMP vec3 backgroundcolor = vec3(0,0.6,0.46);
+MEDIUMP mat3 worldrotationxyz;
+MEDIUMP mat3 fractalplanerotationx;
+MEDIUMP mat3 fractalplanerotationy;
+MEDIUMP mat3 camerarotationdode;
+MEDIUMP vec2 oglFragCoord;
 
 //fractal formula used for sphreretracing/distance-estimation
 //dodecahedron serpinski (knighty)
@@ -92,29 +43,29 @@ vec2 oglFragCoord;
 //(phi^2, 1, -phi), (-phi, phi^2, 1), (1, -phi, phi^2), (-phi*(1+phi), phi^2-1, 1+phi), (1+phi, -phi*(1+phi), phi^2-1) and x=0, y=0, z=0 planes.
 
 //const pre-calc
-const float phi = 1.618;
-const float _IKVNORM_ = 1.0 / sqrt(pow(phi * (1.0 + phi), 2.0) + pow(phi * phi - 1.0, 2.0) + pow(1.0 + phi, 2.0));
-const float _C1_ = phi * (1.0 + phi) * _IKVNORM_;
-const float _C2_ = (phi * phi - 1.0) * _IKVNORM_;
-const float _1C_ = (1.0 + phi) * _IKVNORM_;
-const vec3 phi3 = vec3(0.5, 0.5 / phi, 0.5 * phi);
-const vec3 c3   = vec3(_C1_, _C2_, _1C_);
+const MEDIUMP float phi = 1.618;
+const MEDIUMP float _IKVNORM_ = 1.0 / sqrt(pow(phi * (1.0 + phi), 2.0) + pow(phi * phi - 1.0, 2.0) + pow(1.0 + phi, 2.0));
+const MEDIUMP float _C1_ = phi * (1.0 + phi) * _IKVNORM_;
+const MEDIUMP float _C2_ = (phi * phi - 1.0) * _IKVNORM_;
+const MEDIUMP float _1C_ = (1.0 + phi) * _IKVNORM_;
+const MEDIUMP vec3 phi3 = vec3(0.5, 0.5 / phi, 0.5 * phi);
+const MEDIUMP vec3 c3   = vec3(_C1_, _C2_, _1C_);
 
-vec3 distancefunction(vec3 w) {
+MEDIUMP vec3 distancefunction(MEDIUMP vec3 w) {
 //!P center scale offset ...   
-    vec3 offset;
+    MEDIUMP vec3 offset;
     if (en==6) {
         offset = vec3(0.61,0.1*et,0.99);
     } else {
         offset = vec3(0.61,0.0,0.99);
     } 
 //!P center scale \0/ this is awesome for fadeins !!!
-    float scale = 2.;
+    MEDIUMP float scale = 2.;
     w *= worldrotationxyz;
-    float d, t;
-    float md = 1000.0, cd = 0.0;
+    MEDIUMP float d, t;
+    MEDIUMP float md = 1000.0, cd = 0.0;
 //!P iterations (8) ... 2x see below
-    for (int i = 0; i < 8; i++) {
+    for (MEDIUMP int i = 0; i < 8; i++) {
         w *= fractalplanerotationx;
         w = abs(w);        
         t = w.x * phi3.z + w.y * phi3.y - w.z * phi3.x;
@@ -139,33 +90,33 @@ vec3 distancefunction(vec3 w) {
         }
     }
 //!P max iterations (8)        
-    return vec3((length(w) - 2.0) * pow(scale, -8.0), md, cd);
+    return MEDIUMP vec3((length(w) - 2.0) * pow(scale, -8.0), md, cd);
 }
 
 //calculate ray direction fragment coordinates
-vec3 raydirection(vec2 pixel) {
-    vec2 p = (0.5*sizedode-pixel)/vec2(sizedode.x,-sizedode.y);
+MEDIUMP vec3 raydirection(MEDIUMP vec2 pixel) {
+    MEDIUMP vec2 p = (0.5*sizedode-pixel)/vec2(sizedode.x,-sizedode.y);
 //!P aspect ratio of dode
     p.x *= sizedode.x/sizedode.y;
 //!P vec3 w = vec3(0, 0, 1), vec3 v = vec3(0, 1, 0), vec3 u = vec3(1, 0, 0);   
-    vec3 d = (p.x * vec3(1, 0, 0)+p.y * vec3(0, 1, 0)-camerafocallengthdode * vec3(0, 0, 1));   
+    MEDIUMP vec3 d = (p.x * vec3(1, 0, 0)+p.y * vec3(0, 1, 0)-camerafocallengthdode * vec3(0, 0, 1));   
     return normalize(camerarotationdode * d);
 }
 
 //iq's fake ambient occlusion
 //http://www.iquilezles.org/www/material/nvscene2008/rwwtt.pdf
 //http://www.iquilezles.org/www/articles/ao/ao.htm
-float ambientocclusion(vec3 p, vec3 n, float eps) {
-    float o = 1.0;
+MEDIUMP float ambientocclusion(MEDIUMP vec3 p, MEDIUMP vec3 n, MEDIUMP float eps) {
+    MEDIUMP float o = 1.0;
 //!P ao spread (10.6)
 //   spreads the output color intensity 
     eps *= 10.6;
 //!P ao intensity (0.16)
-    float k = 0.16 / eps;
+    MEDIUMP float k = 0.16 / eps;
     //add little start distance to the surface
-    float d = 2.0 * eps;
+    MEDIUMP float d = 2.0 * eps;
 //!P ao iterations (5) ...    
-    for (int i = 0; i < 5; ++i) {
+    for (MEDIUMP int i = 0; i < 5; ++i) {
         o -= (d - distancefunction(p + n * d).x) * k;
         d += eps;
         //fade ao when distance to the surface increases
@@ -174,28 +125,28 @@ float ambientocclusion(vec3 p, vec3 n, float eps) {
     return clamp(o, 0.0, 1.0);
 }
 
-vec4 render(vec2 pixel) {
-    vec3  ray_direction = raydirection(pixel);
+MEDIUMP vec4 render(vec2 pixel) {
+    MEDIUMP vec3  ray_direction = raydirection(pixel);
 //!P minimum ray length (6e-5)    
-    float ray_length = 6e-5;
-    vec3  ray = camerapositiondode + ray_length * ray_direction;
+    MEDIUMP float ray_length = 6e-5;
+    MEDIUMP vec3  ray = camerapositiondode + ray_length * ray_direction;
 //!P minimum epsilon (6e-7) ...
-    float eps = 6e-7;
-    vec3  dist;
-    vec3  normal = vec3(0);
-    int   steps = 0;
-    bool  hit = false;
-    float minmarch = 0.0;
+    MEDIUMP float eps = 6e-7;
+    MEDIUMP vec3  dist;
+    MEDIUMP vec3  normal = vec3(0);
+    MEDIUMP int   steps = 0;
+    MEDIUMP bool  hit = false;
+    MEDIUMP float minmarch = 0.0;
 //!P maxmarch = 10000.0;
-    float maxmarch = 25.0;
+    MEDIUMP float maxmarch = 25.0;
 //!P field of view scale = (1.0 / sqrt(1.0 + camerafocallengthdode * camerafocallengthdode))   
 //!P detail of surface approximation =  1.22
 //!P pixelscale = (1.0 / min(sizedode.x, sizedode.y))
-    float epsfactor = 2.0 * (1.0 / sqrt(1.0 + camerafocallengthdode * camerafocallengthdode)) * (1.0 / min(sizedode.x, sizedode.y)) * 1.22;    
+    MEDIUMP float epsfactor = 2.0 * (1.0 / sqrt(1.0 + camerafocallengthdode * camerafocallengthdode)) * (1.0 / min(sizedode.x, sizedode.y)) * 1.22;    
     ray_length = minmarch;
     ray = camerapositiondode + ray_length * ray_direction;
 //!P max number of raymarching steps (90);
-    for (int i = 0; i < 90; i++) {
+    for (MEDIUMP int i = 0; i < 90; i++) {
         steps = i;
         dist = distancefunction(ray);
 //!P X-) questionable surface smoothing (0.53)            
@@ -214,15 +165,15 @@ vec4 render(vec2 pixel) {
          }
     }
     //\0/ there is a hit!
-    vec4 color = vec4(backgroundcolor,0.5);
+    MEDIUMP vec4 color = vec4(backgroundcolor,0.5);
     if (hit) {
-        float aof = 1.0;
+        MEDIUMP float aof = 1.0;
         if (steps < 1 || ray_length < minmarch) {
             normal = normalize(ray);
         } else {
             //gradient in x,y and z direction for intersection point 
             //!P minimum normal (1.5e-7)
-            float e = max(eps * 0.5, 1.5e-7);
+            MEDIUMP float e = max(eps * 0.5, 1.5e-7);
             normal = normalize(vec3(
                 distancefunction(ray + vec3(e, 0, 0)).x - distancefunction(ray - vec3(e, 0, 0)).x, 
                 distancefunction(ray + vec3(0, e, 0)).x - distancefunction(ray - vec3(0, e, 0)).x, 
@@ -231,7 +182,7 @@ vec4 render(vec2 pixel) {
             aof = ambientocclusion(ray, normal, eps);
         }        
 //!P hardcoded light position vec3(-50,150,-25)
-        float diffuse = max(dot(normal, normalize(vec3(-50,150,-25) - ray)), 0.0);
+        MEDIUMP float diffuse = max(dot(normal, normalize(vec3(-50,150,-25) - ray)), 0.0);
 //blinn/phong specular stuff ...
 //!P specular exponent (4)
 //!P specularity (0.8)
@@ -245,39 +196,39 @@ vec4 render(vec2 pixel) {
     return color;
 }
 
-mat3 xmatrixrotation(float angle) {
-    return mat3(
+MEDIUMP mat3 xmatrixrotation(MEDIUMP float angle) {
+    return MEDIUMP mat3(
         vec3(1.0,         0.0,        0.0),
         vec3(0.0,  cos(angle), sin(angle)),
         vec3(0.0, -sin(angle), cos(angle))
     );
 }
 
-mat3 ymatrixrotation(float angle) {
-    return mat3(
+MEDIUMP mat3 ymatrixrotation(MEDIUMP float angle) {
+    return MEDIUMP mat3(
         vec3(cos(angle), 0.0, -sin(angle)),
         vec3(       0.0, 1.0,         0.0),
         vec3(sin(angle), 0.0,  cos(angle))
     );
 }
 
-vec4 raymarch_orbittrap_image(vec2 fragcoord) {    
+MEDIUMP vec4 raymarch_orbittrap_image(MEDIUMP vec2 fragcoord) {    
     //do the matrix calculations by hand X-)
     //as mat4 constructor and arithmetic assignments are 
     //currently broken (2010-09-21) on ATI cards i found
     //a workaround using vec4 constructors wich works on
     //both NVIDIA+ATI --- MAGIC. DO NOT TOUCH! -=#:-)     
-    mat3  identitymatrix = mat3(1,0,0,0,1,0,0,0,1);    
-    float sin_phi = sin(0.1*tm);
-    float cos_phi = cos(0.1*tm);
-    mat3 zrot = mat3(
+    MEDIUMP mat3  identitymatrix = mat3(1,0,0,0,1,0,0,0,1);    
+    MEDIUMP float sin_phi = sin(0.1*tm);
+    MEDIUMP float cos_phi = cos(0.1*tm);
+    MEDIUMP mat3 zrot = MEDIUMP mat3(
         vec3( cos_phi, sin_phi, 0.0),
         vec3(-sin_phi, cos_phi, 0.0),
         vec3(     0.0,     0.0, 1.0)
     );
-    vec2 position;
-    float fractalplanex_var;
-    float fractalplaney_var;
+    MEDIUMP vec2 position;
+    MEDIUMP float fractalplanex_var;
+    MEDIUMP float fractalplaney_var;
     position = oglFragCoord.xy;
     camerafocallengthdode = 1.0;      
     if (en==2) {
@@ -308,16 +259,16 @@ vec4 raymarch_orbittrap_image(vec2 fragcoord) {
     fractalplanerotationx = xmatrixrotation(fractalplanex_var)*identitymatrix;
     fractalplanerotationy = xmatrixrotation(fractalplaney_var)*identitymatrix;
     camerarotationdode = ymatrixrotation(3.14)*identitymatrix;                             
-    vec4 color = render(position);
+    MEDIUMP vec4 color = render(position);
     return color;
 }
 
 //----------------------------------------------------------------------------------------------------------
 
-vec4 orbitmapping(vec4 c, vec2 w) {
+MEDIUMP vec4 orbitmapping(MEDIUMP vec4 c, MEDIUMP vec2 w) {
 //!P orbit trap scale and offset    
-    vec2 orbittrapoffset = vec2(0.24,-0.24);
-    float orbittrapscale;
+    MEDIUMP vec2 orbittrapoffset = vec2(0.24,-0.24);
+    MEDIUMP float orbittrapscale;
     if (en==0) {
         //julia set ...
         orbittrapscale = 0.625;
@@ -333,12 +284,12 @@ vec4 orbitmapping(vec4 c, vec2 w) {
     return c;
 }
 
-vec4 orbittrap(vec2 z) {
-    float powerjulia = 2.;
-    vec3  colorjulia = vec3(1.0);
-    vec4  color = vec4(colorjulia, 0.0);
-    float n = 0.0;
-    vec2 c;
+MEDIUMP vec4 orbittrap(MEDIUMP vec2 z) {
+    MEDIUMP float powerjulia = 2.;
+    MEDIUMP vec3  colorjulia = vec3(1.0);
+    MEDIUMP vec4  color = vec4(colorjulia, 0.0);
+    MEDIUMP float n = 0.0;
+    MEDIUMP vec2 c;
     if (en==0) {    
         //julia mode ...
 //!P use offset-julia from 2.25 to 2.5
@@ -363,20 +314,20 @@ vec4 orbittrap(vec2 z) {
         }
     }
 //!P max iterations for julia (128.0) ...
-    float blend = clamp(1.0 - (n / 128.0) * 2.0, 0.0, 1.0);
+    MEDIUMP float blend = clamp(1.0 - (n / 128.0) * 2.0, 0.0, 1.0);
     color.rgb = mix(colorjulia, color.rgb, blend);
     return color;
 }
 
 void main() {
-    vec2 sizejulia = resolution;
+    MEDIUMP vec2 sizejulia = resolution;
     sizedode = sizejulia;
     oglFragCoord = gl_FragCoord.xy;
-    vec4 color;
+    MEDIUMP vec4 color;
     if (en==0 || en==1) {
         //render 2d julia/mandelbrot
 //!P camera position for julia ...
-        vec3 camerapositionjulia;
+        MEDIUMP vec3 camerapositionjulia;
         if (en==0) {
             //julia
             camerapositionjulia = vec3(-0.2,-0.515,0.095347+(et*1.75));
@@ -385,7 +336,7 @@ void main() {
             camerapositionjulia = vec3(0.325895,0.049551,0.0005+et);
         }
 //!P absolute output size of julia orbit trap ...
-        vec2  z = ((oglFragCoord.xy - (sizejulia * 0.5)) / sizejulia) *
+        MEDIUMP vec2  z = ((oglFragCoord.xy - (sizejulia * 0.5)) / sizejulia) *
                     vec2(sizejulia.x/sizejulia.y, 1.0) * //aspect ratio 
                          camerapositionjulia.z + 
                          camerapositionjulia.xy;
