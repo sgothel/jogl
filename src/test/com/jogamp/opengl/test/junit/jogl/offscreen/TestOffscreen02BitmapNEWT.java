@@ -46,7 +46,7 @@ import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import java.io.IOException;
 
 public class TestOffscreen02BitmapNEWT extends UITestCase {
@@ -97,7 +97,7 @@ public class TestOffscreen02BitmapNEWT extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setVisible(true);
 
-        GLEventListener demo = new RedSquareES1();
+        GLEventListener demo = new RedSquareES2();
         WindowUtilNEWT.setDemoFields(demo, window, glWindow, false);
         glWindow.addGLEventListener(demo);
 
@@ -140,19 +140,15 @@ public class TestOffscreen02BitmapNEWT extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setVisible(true);
 
-        GLWindow windowOnScreen = null;
         WindowListener wl=null;
         MouseListener ml=null;
         SurfaceUpdatedListener ul=null;
 
-        GLEventListener demo = new RedSquareES1();
+        GLEventListener demo = new RedSquareES2();
         Assert.assertNotNull(demo);
 
-        WindowUtilNEWT.run(glWindow, demo, windowOnScreen, wl, ml, ul, 2, true /*snapshot*/, false /*debug*/);
+        WindowUtilNEWT.run(glWindow, demo, null, wl, ml, ul, 2, true /*snapshot*/, false /*debug*/);
 
-        if(null!=windowOnScreen) {
-            windowOnScreen.destroy();
-        }
         if(null!=glWindow) {
             glWindow.destroy();
         }

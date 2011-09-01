@@ -42,7 +42,7 @@ import com.jogamp.newt.opengl.*;
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
@@ -100,7 +100,7 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
         Animator animator = new Animator();
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-        GLWindow window1 = createWindow(null, caps, new Gears(1)); // local with vsync
+        GLWindow window1 = createWindow(null, caps, new GearsES2(1)); // local with vsync
         Assert.assertEquals(true,window1.isNativeValid());
         Assert.assertEquals(true,window1.isVisible());
         AbstractGraphicsDevice device1 = window1.getScreen().getDisplay().getGraphicsDevice();
@@ -125,7 +125,7 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
             System.err.println("");
             System.err.println("GLProfiles window2: "+device2.getConnection()+": "+GLProfile.glAvailabilityToString(device2));
             screen2  = NewtFactory.createScreen(display2, 0); // screen 0
-            window2 = createWindow(screen2, caps, new Gears(0)); // remote, no vsync
+            window2 = createWindow(screen2, caps, new GearsES2(0)); // remote, no vsync
         } catch (NativeWindowException nwe) {
             System.err.println(nwe);
             Assume.assumeNoException(nwe);

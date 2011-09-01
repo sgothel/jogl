@@ -28,7 +28,8 @@
  
 package com.jogamp.opengl.test.junit.jogl.newt;
 
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+
 import com.jogamp.opengl.test.junit.util.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -110,8 +111,6 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
 
     @BeforeClass
     public static void setup() throws InterruptedException, InvocationTargetException, AWTException {
-        int count;
-
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.setup(): Start Pre-JOGL-Swing");
 
         // GLProfile.initSingleton(false);
@@ -203,7 +202,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
 
         AWTRobotUtil.toFront(robot, frame);
 
-        drawable.addGLEventListener(new Gears());
+        drawable.addGLEventListener(new GearsES2());
 
         for(int i=0; i<100; i++) {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -220,7 +219,6 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         drawable.addGLEventListener(new SwingGLAction());
 
         Point p0 = canvas.getLocationOnScreen();
-        Rectangle r0 = canvas.getBounds();
         robot.mouseMove( (int) ( p0.getX() + .5 ) ,
                          (int) ( p0.getY() + .5 ) );
         robot.mousePress(InputEvent.BUTTON1_MASK);
@@ -257,7 +255,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         win0.setVisible(true);
         Screen screen = win0.getScreen();
         win0.setPosition(screen.getWidth()-150, 0);
-        win0.addGLEventListener(new Gears());
+        win0.addGLEventListener(new GearsES2());
         Animator anim = new Animator(win0);
         anim.start();
 

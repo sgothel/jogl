@@ -34,7 +34,7 @@ import javax.media.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import java.awt.Frame;
 
@@ -83,7 +83,7 @@ public class TestAWT01GLn extends UITestCase {
     protected void runTestGL(GLCapabilities caps) throws InterruptedException {
         glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
-        glCanvas.addGLEventListener(new Gears());
+        glCanvas.addGLEventListener(new GearsES2());
         frame.add(glCanvas);
 
         // Revalidate size/layout.

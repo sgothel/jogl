@@ -28,37 +28,23 @@
  
 package com.jogamp.opengl.test.junit.newt;
 
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 
-import java.awt.Button;
-import java.awt.BorderLayout;
-import java.awt.Canvas;
 import java.awt.Frame;
 
 import javax.media.opengl.*;
-import javax.media.nativewindow.*;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.*;
-import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.*;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 public class TestListenerCom01AWT extends UITestCase {
     static int width, height;
@@ -80,7 +66,7 @@ public class TestListenerCom01AWT extends UITestCase {
 
         System.out.println("durationPerTest "+durationPerTest);
 
-        GLEventListener demo = new Gears();
+        GLEventListener demo = new GearsES2();
         setDemoFields(demo, glWindow, false);
         glWindow.addGLEventListener(demo);
 

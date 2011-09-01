@@ -29,20 +29,11 @@
 
 package com.jogamp.opengl.test.junit.newt.parenting;
 
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 
 import javax.media.opengl.*;
-import javax.media.nativewindow.*;
 import javax.media.nativewindow.*;
 
 import com.jogamp.newt.*;
@@ -52,8 +43,8 @@ import com.jogamp.newt.opengl.*;
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.*;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 public class TestParenting02NEWT extends UITestCase {
     static int width, height;
@@ -122,7 +113,7 @@ public class TestParenting02NEWT extends UITestCase {
         glWindow1.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
         glWindow1.addWindowListener(new TraceWindowAdapter());
 
-        GLEventListener demo1 = new RedSquareES1();
+        GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, window1, glWindow1, false);
         // glWindow1.addGLEventListener(demo1);
 
@@ -144,7 +135,7 @@ public class TestParenting02NEWT extends UITestCase {
         glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
         // glWindow2.addMouseListener(new TraceMouseAdapter());
 
-        GLEventListener demo2 = new Gears();
+        GLEventListener demo2 = new GearsES2();
         setDemoFields(demo2, window2, glWindow2, false);
         // glWindow2.addGLEventListener(demo2);
 

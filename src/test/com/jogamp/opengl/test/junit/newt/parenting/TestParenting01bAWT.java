@@ -28,26 +28,15 @@
  
 package com.jogamp.opengl.test.junit.newt.parenting;
 
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 
 import java.awt.Button;
 import java.awt.BorderLayout;
-import java.awt.Canvas;
 import java.awt.Frame;
-import java.awt.Dimension;
 
 import javax.media.opengl.*;
-import javax.media.nativewindow.*;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.FPSAnimator;
@@ -59,8 +48,7 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.*;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 
 public class TestParenting01bAWT extends UITestCase {
     static int width, height;
@@ -86,14 +74,9 @@ public class TestParenting01bAWT extends UITestCase {
     }
 
     public void testWindowParenting05ReparentAWTWinHopFrame2FrameImpl(int fps) throws InterruptedException {
-        int x = 0;
-        int y = 0;
-
-        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
-
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUndecorated(true);
-        GLEventListener demo1 = new RedSquareES1();
+        GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 

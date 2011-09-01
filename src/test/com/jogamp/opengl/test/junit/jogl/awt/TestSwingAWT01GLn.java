@@ -35,7 +35,8 @@ import javax.media.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+
 
 import java.awt.Frame;
 import java.awt.Window;
@@ -46,12 +47,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assume.*;
-import static org.junit.Assert.*;
 import static javax.swing.SwingUtilities.*;
 
 /**
  * Tests context creation + display on various kinds of Window implementations.
- * @author Michael Bien
+ * @author Michael Bien, et. al.
  */
 public class TestSwingAWT01GLn extends UITestCase {
     private Window[] windows;
@@ -83,7 +83,7 @@ public class TestSwingAWT01GLn extends UITestCase {
             Runnable test = new Runnable() {
                 public void run() {
                     glCanvas[0] = new GLCanvas(caps);
-                    glCanvas[0].addGLEventListener(new Gears());
+                    glCanvas[0].addGLEventListener(new GearsES2());
                     window.add(glCanvas[0]);
 
                     // Revalidate size/layout.

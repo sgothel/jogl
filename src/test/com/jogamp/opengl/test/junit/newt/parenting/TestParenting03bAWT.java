@@ -51,7 +51,7 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.*;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 public class TestParenting03bAWT extends UITestCase {
     static Dimension size;
@@ -77,7 +77,7 @@ public class TestParenting03bAWT extends UITestCase {
         NewtCanvasAWT newtCanvasAWT1 = new NewtCanvasAWT(glWindow1);
         newtCanvasAWT1.setPreferredSize(size);
 
-        GLEventListener demo1 = new Gears(1);
+        GLEventListener demo1 = new GearsES2(1);
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         final NewtCanvasAWT f_newtCanvasAWT1 = newtCanvasAWT1;
@@ -108,7 +108,7 @@ public class TestParenting03bAWT extends UITestCase {
         NewtCanvasAWT newtCanvasAWT2 = new NewtCanvasAWT(glWindow2);
         newtCanvasAWT2.setPreferredSize(size);
 
-        GLEventListener demo2 = new Gears(1);
+        GLEventListener demo2 = new GearsES2(1);
         setDemoFields(demo2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
         final NewtCanvasAWT f_newtCanvasAWT2 = newtCanvasAWT2;

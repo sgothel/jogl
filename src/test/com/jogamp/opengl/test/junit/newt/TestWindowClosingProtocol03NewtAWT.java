@@ -42,7 +42,8 @@ import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -57,7 +58,7 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
         final GLWindow glWindow = GLWindow.create(caps);
         final AWTRobotUtil.WindowClosingListener windowClosingListener = AWTRobotUtil.addClosingListener(glWindow);
 
-        glWindow.addGLEventListener(new Gears());
+        glWindow.addGLEventListener(new GearsES2());
 
         NewtCanvasAWT newtCanvas = new NewtCanvasAWT(glWindow);
 

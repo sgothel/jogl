@@ -42,7 +42,8 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -55,7 +56,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
         final GLCanvas glCanvas = new GLCanvas(caps);
-        glCanvas.addGLEventListener(new Gears());
+        glCanvas.addGLEventListener(new GearsES2());
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 frame.add(glCanvas);
@@ -104,7 +105,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
         GLCanvas glCanvas = new GLCanvas(caps);
-        glCanvas.addGLEventListener(new Gears());
+        glCanvas.addGLEventListener(new GearsES2());
         frame.getContentPane().add(glCanvas);
         frame.pack();
         frame.setSize(512, 512);

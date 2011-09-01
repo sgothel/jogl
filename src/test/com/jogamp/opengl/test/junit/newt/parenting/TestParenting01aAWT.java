@@ -28,39 +28,25 @@
 
 package com.jogamp.opengl.test.junit.newt.parenting;
 
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 
 import java.awt.Button;
 import java.awt.BorderLayout;
-import java.awt.Canvas;
 import java.awt.Container;
 import java.awt.Frame;
-import java.awt.Dimension;
 
 import javax.media.opengl.*;
-import javax.media.nativewindow.*;
 
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.newt.*;
-import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.*;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 
 public class TestParenting01aAWT extends UITestCase {
     static int width, height;
@@ -78,18 +64,13 @@ public class TestParenting01aAWT extends UITestCase {
 
     @Test
     public void testWindowParenting01CreateVisibleDestroy1() throws InterruptedException {
-        int x = 0;
-        int y = 0;
-
-        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
-
         GLWindow glWindow1 = GLWindow.create(glCaps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParent());
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
-        GLEventListener demo1 = new RedSquareES1();
+        GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -149,17 +130,12 @@ public class TestParenting01aAWT extends UITestCase {
 
     @Test
     public void testWindowParenting02CreateVisibleDestroy2Defered() throws InterruptedException {
-        int x = 0;
-        int y = 0;
-
-        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
-
         GLWindow glWindow1 = GLWindow.create(glCaps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParent());
-        GLEventListener demo1 = new RedSquareES1();
+        GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -194,13 +170,8 @@ public class TestParenting01aAWT extends UITestCase {
 
     @Test
     public void testWindowParenting02CreateVisibleDestroy3Odd() throws InterruptedException {
-        int x = 0;
-        int y = 0;
-
-        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
-
         GLWindow glWindow1 = GLWindow.create(glCaps);
-        GLEventListener demo1 = new RedSquareES1();
+        GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -232,13 +203,8 @@ public class TestParenting01aAWT extends UITestCase {
 
     @Test
     public void testWindowParenting03ReparentNewtWin2Top() throws InterruptedException {
-        int x = 0;
-        int y = 0;
-
-        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
-
         GLWindow glWindow1 = GLWindow.create(glCaps);
-        GLEventListener demo1 = new RedSquareES1();
+        GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -283,13 +249,8 @@ public class TestParenting01aAWT extends UITestCase {
 
     @Test
     public void testWindowParenting04ReparentNewtWin2TopLayouted() throws InterruptedException {
-        int x = 0;
-        int y = 0;
-
-        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
-
         GLWindow glWindow1 = GLWindow.create(glCaps);
-        GLEventListener demo1 = new RedSquareES1();
+        GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -339,14 +300,9 @@ public class TestParenting01aAWT extends UITestCase {
 
     @Test
     public void testWindowParenting05ReparentAWTWinHopFrame2Frame() throws InterruptedException {
-        int x = 0;
-        int y = 0;
-
-        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
-
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUndecorated(true);
-        GLEventListener demo1 = new RedSquareES1();
+        GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 

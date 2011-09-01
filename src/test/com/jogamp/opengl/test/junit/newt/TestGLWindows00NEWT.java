@@ -39,7 +39,7 @@ import com.jogamp.newt.opengl.*;
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 
@@ -74,7 +74,7 @@ public class TestGLWindows00NEWT extends UITestCase {
         }
         glWindow.setUpdateFPSFrames(1, null);        
 
-        GLEventListener demo = new Gears();
+        GLEventListener demo = new GearsES2();
         glWindow.addGLEventListener(demo);
 
         glWindow.setSize(512, 512);

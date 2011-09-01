@@ -41,7 +41,7 @@ import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 public class TestGLWindows01NEWT extends UITestCase {
     static GLProfile glp;
@@ -82,7 +82,7 @@ public class TestGLWindows01NEWT extends UITestCase {
         Assert.assertEquals(false,glWindow.isVisible());
         Assert.assertEquals(false,glWindow.isNativeValid());
 
-        GLEventListener demo = new Gears();
+        GLEventListener demo = new GearsES2();
         setDemoFields(demo, glWindow);
         if(!addGLEventListenerAfterVisible) {
             glWindow.addGLEventListener(demo);

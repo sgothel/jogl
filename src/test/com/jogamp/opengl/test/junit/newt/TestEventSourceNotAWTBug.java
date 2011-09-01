@@ -28,11 +28,7 @@
  
 package com.jogamp.opengl.test.junit.newt;
 
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -45,7 +41,7 @@ import javax.swing.WindowConstants;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.*;
 
 /**
@@ -69,7 +65,7 @@ public class TestEventSourceNotAWTBug extends UITestCase {
         jf.getContentPane().add(canvas);
 
         // The following line isn't event necessary to see the problem.
-        glWindow.addGLEventListener(new Gears());
+        glWindow.addGLEventListener(new GearsES2());
 
         final JFrame f_jf = jf;
 
