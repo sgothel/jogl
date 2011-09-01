@@ -6,7 +6,7 @@
 
 /**
  * http://www.youtube.com/user/DemoscenePassivist
- * author: Dominik Ströhlein (DemoscenePassivist) 
+ * author: Dominik Stroehlein (DemoscenePassivist) 
  **/
 
 //When I wrote this, only God and I understood what I was doing ...
