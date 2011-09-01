@@ -72,12 +72,12 @@ function jrun() {
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
-    #D_ARGS="-Dnewt.debug=all"
+    D_ARGS="-Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLCanvas"
-    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.GLDebugMessageHandler -Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLDebugMessageHandler -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler"
@@ -136,7 +136,7 @@ function testawtmt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT $*
@@ -147,7 +147,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated $*
 #testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
@@ -232,7 +232,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.ElektronenMultiplizierer
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
 
 $spath/count-edt-start.sh java-run.log
 
