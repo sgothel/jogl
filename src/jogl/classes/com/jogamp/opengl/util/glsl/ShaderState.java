@@ -1037,7 +1037,7 @@ public class ShaderState {
         return toString(null).toString();
     }
     
-    private boolean verbose = false;
+    private boolean verbose = DEBUG ? true : false;
     private ShaderProgram shaderProgram=null;
     
     private HashSet<String> enabledAttributes = new HashSet<String>();
