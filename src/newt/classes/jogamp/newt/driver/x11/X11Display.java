@@ -122,15 +122,15 @@ public class X11Display extends DisplayImpl {
     //
     private static native boolean initIDs0();
 
-    private native void CompleteDisplay0(long handleEDT);
+    private native void CompleteDisplay0(long handle);
 
     private void displayCompleted(long javaObjectAtom, long windowDeleteAtom) {
         this.javaObjectAtom=javaObjectAtom;
         this.windowDeleteAtom=windowDeleteAtom;
     }
-    private native void DisplayRelease0(long handleEDT, long javaObjectAtom, long windowDeleteAtom);
+    private native void DisplayRelease0(long handle, long javaObjectAtom, long windowDeleteAtom);
 
-    private native void DispatchMessages0(long displayEDT, long javaObjectAtom, long windowDeleteAtom);
+    private native void DispatchMessages0(long display, long javaObjectAtom, long windowDeleteAtom);
 
     /**
      * 2011/06/14 libX11 1.4.2 and libxcb 1.7 bug 20708 - Multithreading Issues w/ OpenGL, ..

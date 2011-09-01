@@ -64,7 +64,7 @@ public class X11Window extends WindowImpl {
         X11GraphicsConfiguration x11config = (X11GraphicsConfiguration) config;
         long visualID = x11config.getVisualID();
         long w = CreateWindow0(getParentWindowHandle(),
-                               display.getHandle(), display.getEDTHandle(), screen.getIndex(), visualID, 
+                               display.getEDTHandle(), screen.getIndex(), visualID, 
                                display.getJavaObjectAtom(), display.getWindowDeleteAtom(), 
                                x, y, width, height, isUndecorated());
         if (w == 0) {
@@ -78,7 +78,7 @@ public class X11Window extends WindowImpl {
         if(0!=windowHandleClose && null!=getScreen() ) {
             X11Display display = (X11Display) getScreen().getDisplay();
             try {
-                CloseWindow0(display.getHandle(), display.getEDTHandle(), windowHandleClose, 
+                CloseWindow0(display.getEDTHandle(), windowHandleClose, 
                              display.getJavaObjectAtom(), display.getWindowDeleteAtom());
             } catch (Throwable t) {
                 if(DEBUG_IMPLEMENTATION) { 
@@ -92,7 +92,7 @@ public class X11Window extends WindowImpl {
     }
 
     protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
-        setVisible0(getDisplayHandle(), getWindowHandle(), visible, x, y, width, height);
+        setVisible0(getDisplayEDTHandle(), getWindowHandle(), visible, x, y, width, height);
     }
 
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, 
@@ -101,40 +101,43 @@ public class X11Window extends WindowImpl {
         reparentCount=0;
         long reqNewParentHandle = ( fullScreenChange > 0 ) ? 0 : getParentWindowHandle() ;
 
-        reconfigureWindow0( getDisplayHandle(), getScreenIndex(), reqNewParentHandle, getWindowHandle(),
+        reconfigureWindow0( getDisplayEDTHandle(), getScreenIndex(), reqNewParentHandle, getWindowHandle(),
                             x, y, width, height, isVisible(), parentChange, fullScreenChange, decorationChange);
         return true;
     }
 
     protected void requestFocusImpl(boolean force) {
-        final X11Display display = (X11Display) getScreen().getDisplay();
-        requestFocus0(display.getHandle(), display.getEDTHandle(), getWindowHandle(), force);
+        requestFocus0(getDisplayEDTHandle(), getWindowHandle(), force);
     }
 
     @Override
     protected void setTitleImpl(String title) {
-        setTitle0(getDisplayHandle(), getWindowHandle(), title);
+        setTitle0(getDisplayEDTHandle(), getWindowHandle(), title);
     }
 
     protected Point getLocationOnScreenImpl(int x, int y) {
-        return X11Util.GetRelativeLocation( getDisplayHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
+        return X11Util.GetRelativeLocation( getDisplayEDTHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
     }
 
     //----------------------------------------------------------------------
     // Internals only
     //
+    
+    private final long getDisplayEDTHandle() {
+        return ((X11Display) getScreen().getDisplay()).getEDTHandle();
+    }
 
     protected static native boolean initIDs0();
-    private native long CreateWindow0(long parentWindowHandle, long display, long displayEDT, int screen_index, 
+    private native long CreateWindow0(long parentWindowHandle, long display, int screen_index, 
                                             long visualID, long javaObjectAtom, long windowDeleteAtom, 
                                             int x, int y, int width, int height, boolean undecorated);
-    private native void CloseWindow0(long display, long displayEDT, long windowHandle, long javaObjectAtom, long windowDeleteAtom);
+    private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom);
     private native void setVisible0(long display, long windowHandle, boolean visible, int x, int y, int width, int height);
     private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long windowHandle, 
                                                   int x, int y, int width, int height, boolean isVisible,
                                                   boolean parentChange, int fullScreenChange, int decorationChange);
     private native void setTitle0(long display, long windowHandle, String title);
-    private native void requestFocus0(long display, long displayEDT, long windowHandle, boolean force);
+    private native void requestFocus0(long display, long windowHandle, boolean force);
     private native Object getRelativeLocation0(long display, int screen_index, long src_win, long dest_win, int src_x, int src_y);
 
     private void windowReparented(long gotParentHandle) {
