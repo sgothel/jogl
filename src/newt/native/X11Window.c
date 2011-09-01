@@ -60,7 +60,7 @@
 
 #include "NewtCommon.h"
 
-#define VERBOSE_ON 1
+// #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
     #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
@@ -522,6 +522,7 @@ static void NewtWindows_setFullscreen (Display *dpy, Window root, Window w, Bool
         xev.xclient.data.l[1] = _NET_WM_STATE_FULLSCREEN;
         xev.xclient.data.l[2] = _NET_WM_STATE_ABOVE;
         xev.xclient.data.l[3] = 1; //source indication for normal applications
+        XChangeProperty( dpy, w, _NET_WM_STATE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, ntypes);
     } else {
         xev.xclient.data.l[0] = _NET_WM_STATE_REMOVE;
         xev.xclient.data.l[1] = _NET_WM_STATE_FULLSCREEN;
@@ -529,7 +530,6 @@ static void NewtWindows_setFullscreen (Display *dpy, Window root, Window w, Bool
         xev.xclient.data.l[3] = 1; //source indication for normal applications
     }
 
-    XChangeProperty( dpy, w, _NET_WM_STATE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, ntypes);
     XSync(dpy, False);
     XSendEvent (dpy, root, False, SubstructureRedirectMask | SubstructureNotifyMask, &xev );
 }
@@ -1460,7 +1460,7 @@ static void NewtWindows_setPosSize(Display *dpy, Window w, jint x, jint y, jint 
         XWindowChanges xwc;
         unsigned int mod_flags = ( (x>=0)?CWX:0 ) | ( (y>=0)?CWY:0 ) | 
                                  ( (width>0)?CWWidth:0 ) | ( (height>0)?CWHeight:0 ) ;
-        DBG_PRINT( "X11: reconfigureWindow0 pos/size mod: 0x%X\n", mod_flags);
+        DBG_PRINT( "X11: reconfigureWindow0 %d/%d %dx%d, mod: 0x%X\n", x, y, width, height, mod_flags);
         memset(&xwc, 0, sizeof(XWindowChanges));
         xwc.x=x;
         xwc.y=y;
@@ -1481,7 +1481,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_setVisible0
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
-    DBG_PRINT( "X11: setVisible0 vis %d\n", visible);
+    DBG_PRINT( "X11: setVisible0 vis %d - %d/%d %dx%d\n", visible, x, y, width, height);
 
     if(dpy==NULL) {
         NewtCommon_FatalError(env, "invalid display connection..");
@@ -1524,7 +1524,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
         (void*)dpy, screen_index, (void*)scrn, (void*) jparent, (void*)parent, (void*) topParentParent, (void*)w, (void*)topParentWindow,
         x, y, width, height, isVisible, parentChange, fullscreenChange, decorationChange);
 
-    if(parentChange && JNI_TRUE == isVisible) { // unmap window if visible, reduce X11 internal signaling (WM unmap)
+    if(JNI_TRUE == isVisible) { // unmap window if visible, reduce X11 internal signaling (WM unmap)
         XUnmapWindow(dpy, w);
         XSync(dpy, False);
     }
@@ -1556,7 +1556,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
         XSync(dpy, False);
     }
     
-    if(parentChange && JNI_TRUE == isVisible) { // map window 
+    if(JNI_TRUE == isVisible) { // map window 
         XMapRaised(dpy, w);
         XSync(dpy, False);
     }

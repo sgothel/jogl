@@ -1031,7 +1031,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
 
                     // set visible again, and revalidate 'ok',
-                    // since it has been experience that in some cases the reparented window gets hidden
+                    // since it has been experienced that in some cases the reparented window gets hidden
                     if(ok) {
                         display.dispatchMessagesNative(); // status up2date
                         if(wasVisible) {
@@ -1459,10 +1459,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     DisplayImpl display = (DisplayImpl) screen.getDisplay();
                     display.dispatchMessagesNative(); // status up2date
                     boolean wasVisible = isVisible();
-                    setVisibleImpl(false, x, y, width, height);
+                    setVisibleImpl(false, x, y, w, h);
                     WindowImpl.this.waitForVisible(false, true);
                     display.dispatchMessagesNative(); // status up2date
-
+                    
                     // write back mirrored values, to be able to detect satisfaction
                     WindowImpl.this.x = x;
                     WindowImpl.this.y = y;
@@ -1472,7 +1472,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     display.dispatchMessagesNative(); // status up2date
 
                     if(wasVisible) {
-                        setVisibleImpl(true, x, y, width, height);
+                        setVisibleImpl(true, x, y, w, h);
                         boolean ok = WindowImpl.this.waitForVisible(true, true, Screen.SCREEN_MODE_CHANGE_TIMEOUT);
                         display.dispatchMessagesNative(); // status up2date
                         if( ok &&
@@ -1485,7 +1485,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                 System.err.println("Window fs (reconfig): "+x+"/"+y+" "+w+"x"+h+", "+screen);
                             }
                             // reset pos/size .. due to some native impl flakyness
-                            reconfigureWindowImpl(x, y, width, height, false, 0, 0);
+                            reconfigureWindowImpl(x, y, w, h, false, 0, 0);
                             display.dispatchMessagesNative(); // status up2date
                         }
                         requestFocusImpl(true);
