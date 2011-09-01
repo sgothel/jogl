@@ -38,7 +38,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
 
 /**
  * GearsES1.java <BR>
- * author: Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
+ * @author Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
  */
 public class GearsES1 implements GLEventListener {
   private final float pos[] = { 5.0f, 5.0f, 10.0f, 0.0f };

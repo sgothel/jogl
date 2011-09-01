@@ -43,7 +43,7 @@ import javax.media.opengl.GLUniformData;
 
 /**
  * GearsES2.java <BR>
- * author: Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
+ * @author Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
  */
 public class GearsES2 implements GLEventListener {
     private final FloatBuffer lightPos = Buffers.newDirectFloatBuffer( new float[] { 5.0f, 5.0f, 10.0f } );

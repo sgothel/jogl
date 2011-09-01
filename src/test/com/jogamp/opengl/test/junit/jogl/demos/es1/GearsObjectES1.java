@@ -32,7 +32,7 @@ import com.jogamp.opengl.util.GLArrayDataServer;
 
 /**
  * GearsObjectES1.java <BR>
- * author: Brian Paul (converted to Java by Sven Gothel) <P>
+ * @author Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
  */
 public class GearsObjectES1 extends GearsObject {
 

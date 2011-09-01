@@ -34,7 +34,7 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 
 /**
  * GearsObjectES2.java <BR>
- * author: Brian Paul (converted to Java by Sven Gothel) <P>
+ * @author Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
  */
 public class GearsObjectES2 extends GearsObject {
     PMVMatrix pmvMatrix;

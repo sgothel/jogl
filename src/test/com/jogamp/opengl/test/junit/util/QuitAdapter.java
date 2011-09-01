@@ -36,13 +36,13 @@ public class QuitAdapter extends WindowAdapter implements WindowListener, KeyLis
     public boolean shouldQuit() { return shouldQuit; }
 
     public void windowDestroyNotify(WindowEvent e) {
-        System.out.println("QUIT Window "+Thread.currentThread());
+        System.err.println("QUIT Window "+Thread.currentThread());
         shouldQuit = true;
     }
 
     public void keyTyped(KeyEvent e) {
         if(e.getKeyChar()=='q') {
-            System.out.println("QUIT Key "+Thread.currentThread());
+            System.err.println("QUIT Key "+Thread.currentThread());
             shouldQuit = true;
         }
     }

@@ -29,7 +29,7 @@ import com.jogamp.opengl.util.GLArrayDataServer;
 
 /**
  * GearsObject.java <BR>
- * author: Brian Paul (converted to Java by Sven Gothel) <P>
+ * @author Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
  */
 public abstract class GearsObject {
     public static final FloatBuffer red = Buffers.newDirectFloatBuffer( new float[] { 0.8f, 0.1f, 0.0f, 0.7f } );
