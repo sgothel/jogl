@@ -29,8 +29,6 @@
 package com.jogamp.opengl.test.junit.jogl.glu;
 
 import java.awt.Frame;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.nio.ByteBuffer;
 
 import javax.media.opengl.GL;
@@ -39,10 +37,12 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
-import javax.media.opengl.glu.gl2.GLUgl2;
 import javax.media.opengl.glu.gl2es1.GLUgl2es1;
 
+import org.junit.Assume;
 import org.junit.Test;
+
+import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
  * Tests for bug 463, where gluScaleImage uses up all system memory. This was due to creating millions of
@@ -52,7 +52,7 @@ import org.junit.Test;
  * was in JOGL 1) solves the problem.  
  * @author Wade Walker
  */
-public class TestBug463ScaleImageMemoryAWT implements GLEventListener {
+public class TestBug463ScaleImageMemoryAWT extends UITestCase implements GLEventListener {
 
     /* @Override */
     public void init(GLAutoDrawable drawable) {
@@ -74,7 +74,6 @@ public class TestBug463ScaleImageMemoryAWT implements GLEventListener {
         
         ByteBuffer bufferIn  = ByteBuffer.wrap(datain);
         ByteBuffer bufferOut = ByteBuffer.wrap(dataout);      
-        // GLUgl2 glu = new GLUgl2();
         GLUgl2es1 glu = new GLUgl2es1(); 
         // in the failing case, the system would run out of memory in here
         glu.gluScaleImage( GL.GL_RGBA,
@@ -92,22 +91,42 @@ public class TestBug463ScaleImageMemoryAWT implements GLEventListener {
     }
 
     @Test
-    public void test01() {
-        Frame frame = new Frame("Test");
+    public void test01() throws InterruptedException {
         GLProfile glprofile = GLProfile.getDefault();
         GLCapabilities glCapabilities = new GLCapabilities(glprofile);
         final GLCanvas canvas = new GLCanvas(glCapabilities);
-        frame.setSize(256, 256);
-        frame.add(canvas);
-        frame.setVisible( true );
         canvas.addGLEventListener( this );
+        
+        final Frame frame = new Frame("Test");
+        frame.add(canvas);
+        frame.setSize(256, 256);        
+        frame.validate();
 
-        frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing( WindowEvent e ) {
-                System.exit(0);
-            }
-        });
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setVisible(true);
+                }});
+        } catch (Throwable t) {
+            t.printStackTrace();
+            Assume.assumeNoException(t);
+        }
+        
         canvas.display();
+
+        Thread.sleep(200);
+        
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setVisible(false);
+                    frame.remove(canvas);
+                    frame.dispose();
+                }});
+        } catch (Throwable t) {
+            t.printStackTrace();
+            Assume.assumeNoException(t);
+        }        
    }
 
     public static void main(String args[]) {
