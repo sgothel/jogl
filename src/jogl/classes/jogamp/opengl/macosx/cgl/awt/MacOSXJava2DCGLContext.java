@@ -104,7 +104,7 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
     if (ctx == 0) {
       return false;
     }
-    setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY); // use GL_VERSION
+    setGLFunctionAvailability(true, true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY); // use GL_VERSION
     // FIXME: think about GLContext sharing
     contextHandle = ctx;
     isNSContext = true;

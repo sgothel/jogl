@@ -156,7 +156,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     if(!isNSContext()) { // FIXME: ??
         throw new GLException("Not a NS Context");
     }
-    setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
+    setGLFunctionAvailability(true, true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
     return true;
   }
 

@@ -57,6 +57,7 @@ import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL3;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDebugListener;
@@ -573,7 +574,7 @@ public abstract class GLContextImpl extends GLContext {
         _ctp[0] |= additionalCtxCreationFlags;
         _ctx = createContextARBImpl(share, direct, _ctp[0], _major[0], _minor[0]);
         if(0!=_ctx) {
-            setGLFunctionAvailability(true, _major[0], _minor[0], _ctp[0]);
+            setGLFunctionAvailability(true, true, _major[0], _minor[0], _ctp[0]);
         }
     }
     return _ctx;
@@ -587,12 +588,11 @@ public abstract class GLContextImpl extends GLContext {
         createContextARBMapVersionsAvailable(3, false /* core   */);  // GL3
         createContextARBMapVersionsAvailable(2, true  /* compat */);  // GL2
         GLContext.setAvailableGLVersionsSet(device);
+        resetStates();
     }
   }
 
   private final void createContextARBMapVersionsAvailable(int reqMajor, boolean compat) {
-    resetStates();
-
     long _context;
     int reqProfile = compat ? CTX_PROFILE_COMPAT : CTX_PROFILE_CORE ;
     int ctp = CTX_IS_ARB_CREATED | CTX_PROFILE_CORE | CTX_OPTION_ANY; // default
@@ -650,9 +650,8 @@ public abstract class GLContextImpl extends GLContext {
             ctp |= CTX_PROFILE_ES2_COMPAT;
         }
         GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, major[0], minor[0], ctp);
-        setGLFunctionAvailability(true, major[0], minor[0], ctp);
+        setGLFunctionAvailability(true, true, major[0], minor[0], ctp);
         destroyContextARBImpl(_context);
-        resetStates();
         if (DEBUG) {
           System.err.println(getThreadName() + ": !!! createContextARBMapVersionsAvailable HAVE: "+
                   GLContext.getAvailableGLVersionAsString(device, reqMajor, reqProfile));
@@ -679,7 +678,23 @@ public abstract class GLContextImpl extends GLContext {
         }
         _context = createContextARBImpl(share, direct, ctxOptionFlags, major[0], minor[0]);
 
-        if(0==_context) {
+        boolean ok = 0!=_context;
+        
+        if(ok && major[0]>=3) {
+            int[] hasMajor = new int[1]; int[] hasMinor = new int[1];
+            setGLFunctionAvailability(true, false, major[0], minor[0], ctxOptionFlags);
+            gl.glGetIntegerv(GL3.GL_MAJOR_VERSION, hasMajor, 0);
+            gl.glGetIntegerv(GL3.GL_MINOR_VERSION, hasMinor, 0);
+            ok = hasMajor[0]>major[0] || ( hasMajor[0]==major[0] && hasMinor[0]>=minor[0] ) ;
+            if(!ok) {
+                destroyContextARBImpl(_context);
+                _context = 0;
+            }
+            if (DEBUG) {
+                System.err.println(getThreadName() + ": createContextARBVersions: version verification - expected "+major[0]+"."+minor[0]+", has "+hasMajor[0]+"."+hasMinor[0]+" == "+ok);
+            }
+        }
+        if(!ok) {
             if(!GLContext.decrementGLVersion(major, minor)) break;
         }
     }
@@ -844,19 +859,20 @@ public abstract class GLContextImpl extends GLContext {
    *
    * @param force force the setting, even if is already being set.
    *              This might be useful if you change the OpenGL implementation.
+   * @param cached whether this version's data shall be cached or not
    * @param major OpenGL major version
    * @param minor OpenGL minor version
    * @param ctxProfileBits OpenGL context profile and option bits, see {@link javax.media.opengl.GLContext#CTX_OPTION_ANY}
-   *
    * @see #setContextVersion
    * @see javax.media.opengl.GLContext#CTX_OPTION_ANY
    * @see javax.media.opengl.GLContext#CTX_PROFILE_COMPAT
    */
-  protected final void setGLFunctionAvailability(boolean force, int major, int minor, int ctxProfileBits) {
+  protected final void setGLFunctionAvailability(boolean force, boolean cached, int major, int minor, int ctxProfileBits) {
     if(null!=this.gl && null!=glProcAddressTable && !force) {
         return; // already done and not forced
     }
-    if(null==this.gl || force) {
+    
+    if(null==this.gl || !verifyInstance(gl.getGLProfile(), "Impl", this.gl)) {
         setGL(createGL(getGLDrawable().getGLProfile()));
     }
 
@@ -873,10 +889,6 @@ public abstract class GLContextImpl extends GLContext {
     //
     // UpdateGLProcAddressTable functionality
     //
-    if(null==this.gl) {
-        throw new GLException("setGLFunctionAvailability not called yet");
-    }
-
     ProcAddressTable table = null;
     synchronized(mappedContextTypeObjectLock) {
         table = mappedGLProcAddress.get( contextFQN );
@@ -897,10 +909,12 @@ public abstract class GLContextImpl extends GLContext {
                                                                  new Object[] { new GLProcAddressResolver() } );
         }
         resetProcAddressTable(getGLProcAddressTable());
-        synchronized(mappedContextTypeObjectLock) {
-            mappedGLProcAddress.put(contextFQN, getGLProcAddressTable());
-            if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext GL ProcAddressTable mapping key("+contextFQN+") -> "+getGLProcAddressTable().hashCode());
+        if(cached) {
+            synchronized(mappedContextTypeObjectLock) {
+                mappedGLProcAddress.put(contextFQN, getGLProcAddressTable());
+                if(DEBUG) {
+                    System.err.println(getThreadName() + ": !!! GLContext GL ProcAddressTable mapping key("+contextFQN+") -> "+getGLProcAddressTable().hashCode());
+                }
             }
         }
     }
@@ -910,27 +924,29 @@ public abstract class GLContextImpl extends GLContext {
     //
     setContextVersion(major, minor, ctxProfileBits);
 
-    //
-    // Update ExtensionAvailabilityCache
-    //
-    ExtensionAvailabilityCache eCache;
-    synchronized(mappedContextTypeObjectLock) {
-        eCache = mappedExtensionAvailabilityCache.get( contextFQN );
-    }
-    if(null !=  eCache) {
-        extensionAvailability = eCache;
-        if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache reusing key("+contextFQN+") -> "+eCache.hashCode());
-        }
-    } else {
-        if(null==extensionAvailability) {
-            extensionAvailability = new ExtensionAvailabilityCache(this);
-        }
-        extensionAvailability.reset();
+    if(cached) {
+        //
+        // Update ExtensionAvailabilityCache
+        //
+        ExtensionAvailabilityCache eCache;
         synchronized(mappedContextTypeObjectLock) {
-            mappedExtensionAvailabilityCache.put(contextFQN, extensionAvailability);
+            eCache = mappedExtensionAvailabilityCache.get( contextFQN );
+        }
+        if(null !=  eCache) {
+            extensionAvailability = eCache;
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+extensionAvailability.hashCode());
+                System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache reusing key("+contextFQN+") -> "+eCache.hashCode());
+            }
+        } else {
+            if(null==extensionAvailability) {
+                extensionAvailability = new ExtensionAvailabilityCache(this);
+            }
+            extensionAvailability.reset();
+            synchronized(mappedContextTypeObjectLock) {
+                mappedExtensionAvailabilityCache.put(contextFQN, extensionAvailability);
+                if(DEBUG) {
+                    System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+extensionAvailability.hashCode());
+                }
             }
         }
     }

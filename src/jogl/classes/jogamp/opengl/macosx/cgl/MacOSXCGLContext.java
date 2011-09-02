@@ -162,7 +162,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       throw new GLException("Error making Context (NS) current");
     }
     isNSContext = true;
-    setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
+    setGLFunctionAvailability(true, true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
     GLContextShareSet.contextCreated(this);
     return true;
   }
