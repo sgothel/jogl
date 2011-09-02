@@ -25,7 +25,6 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
@@ -50,6 +49,7 @@ public class GearsES1 implements GLEventListener {
   private GearsObject gear1=null, gear2=null, gear3=null;
   private float angle = 0.0f;
   private int swapInterval;
+  private boolean initialized = false;
 
   private int prevMouseX, prevMouseY;
 
@@ -84,7 +84,8 @@ public class GearsES1 implements GLEventListener {
   
   public void init(GLAutoDrawable drawable) {
     System.err.println(Thread.currentThread()+" GearsES1.init ...");
-    Assert.assertNull("Gear1 object is not null -> already init", gear1);
+    Assert.assertEquals("already init", false, initialized);
+    initialized = true;
     
     // Use debug pipeline
     // drawable.setGL(new DebugGL(drawable.getGL()));
@@ -147,7 +148,7 @@ public class GearsES1 implements GLEventListener {
     
   public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     System.err.println(Thread.currentThread()+" GearsES1.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
-    Assert.assertNotNull("Gear1 object is null -> not init or already disposed", gear1);    
+    Assert.assertEquals("not init or already disposed", true, initialized);
     GL2ES1 gl = drawable.getGL().getGL2ES1();
 
     gl.setSwapInterval(swapInterval);
@@ -166,7 +167,8 @@ public class GearsES1 implements GLEventListener {
 
   public void dispose(GLAutoDrawable drawable) {
     System.err.println(Thread.currentThread()+" GearsES1.dispose ... ");
-    Assert.assertNotNull("Gear1 object is null -> not init or already disposed", gear1);
+    Assert.assertEquals("not init or already disposed", true, initialized);
+    initialized = false;
     GL gl = drawable.getGL();
     gear1.destroy(gl);
     gear1 = null;
@@ -178,7 +180,7 @@ public class GearsES1 implements GLEventListener {
   }
 
   public void display(GLAutoDrawable drawable) {
-    Assert.assertNotNull("Gear1 object is null -> not init or already disposed", gear1);
+    Assert.assertEquals("not init or already disposed", true, initialized);
     
     // Turn the gears' teeth
     angle += 2.0f;
