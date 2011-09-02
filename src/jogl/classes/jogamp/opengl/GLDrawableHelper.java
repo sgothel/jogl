@@ -278,7 +278,7 @@ public class GLDrawableHelper {
     return autoSwapBufferMode;
   }
 
-  private static final ThreadLocal perThreadInitAction = new ThreadLocal();
+  private static final ThreadLocal<Runnable> perThreadInitAction = new ThreadLocal<Runnable>();
 
   /** Principal helper method which runs a Runnable with the context
       made current. This could have been made part of GLContext, but a
@@ -318,7 +318,7 @@ public class GLDrawableHelper {
     // other drawables' display() methods from within another one's
     // FIXME: re-evaluate due to possible expensive TLS access ? 
     GLContext lastContext    = GLContext.getCurrent();
-    Runnable  lastInitAction = (Runnable) perThreadInitAction.get();
+    Runnable  lastInitAction = perThreadInitAction.get();
     if (lastContext != null) {
       lastContext.release();
     }

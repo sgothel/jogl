@@ -239,7 +239,7 @@ public class GLArrayDataWrapper implements GLArrayData {
         if(null == this.name ) {
             throw new GLException("Not a valid array buffer index: "+index);
         }        
-    } else if( 0 <= vboTarget ) {
+    } else if( 0 < vboTarget ) {
         throw new GLException("Invalid GPUBuffer target: 0x"+Integer.toHexString(vboTarget));
     }
     
