@@ -45,6 +45,8 @@ import java.io.IOException;
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+// import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
+// import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
 
 public class TestParenting02NEWT extends UITestCase {
     static int width, height;
@@ -155,12 +157,12 @@ public class TestParenting02NEWT extends UITestCase {
         while (duration>0 && !shouldQuit) {
             glWindow1.display();
             glWindow2.display();
-            Thread.sleep(step);
             duration -= step;
             x += 1;
             y += 1;
-            glWindow1.setPosition(x,y);
+            // glWindow1.setPosition(x,y);
             glWindow2.setPosition(glWindow1.getWidth()/2,glWindow1.getHeight()/2-y);
+            Thread.sleep(step);
 
             while( null != ( event = (NEWTEvent) eventFifo.get() ) ) {
                 Window source = (Window) event.getSource();
