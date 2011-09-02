@@ -172,7 +172,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             window.parentWindowHandle = parentWindowHandle;
             window.screen = (ScreenImpl) screen;
             window.capsRequested = (CapabilitiesImmutable) caps.cloneMutable();
-            window.setUndecorated(0!=parentWindowHandle);
+            window.setUndecorated(0!=parentWindowHandle || !caps.isBackgroundOpaque());
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
@@ -194,6 +194,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             WindowImpl window = (WindowImpl) ReflectionUtil.createInstance( windowClass, cstrArgumentTypes, cstrArguments ) ;
             window.screen = (ScreenImpl) screen;
             window.capsRequested = (CapabilitiesImmutable) caps.cloneMutable();
+            window.setUndecorated(!caps.isBackgroundOpaque());
             return window;
         } catch (Throwable t) {
             throw new NativeWindowException(t);
