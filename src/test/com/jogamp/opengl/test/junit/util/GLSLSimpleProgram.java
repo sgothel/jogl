@@ -39,11 +39,13 @@ public class GLSLSimpleProgram {
     private int shaderProgram;
     private int vertShader;
     private int fragShader;
+    private boolean isValid;
 
     private GLSLSimpleProgram(int shaderProgram, int vertShader, int fragShader) {
         this.shaderProgram = shaderProgram;
         this.vertShader = vertShader;
         this.fragShader = fragShader;
+        this.isValid = true;
     }
 
     public static GLSLSimpleProgram create(GL2ES2 gl, String vertShaderCode, String fragShaderCode, boolean link) {
@@ -105,6 +107,10 @@ public class GLSLSimpleProgram {
         gl.glDetachShader(shaderProgram, fragShader);
         gl.glDeleteShader(fragShader);
         gl.glDeleteProgram(shaderProgram);
+        isValid = false;
+        shaderProgram = 0;
+        vertShader = 0;
+        fragShader = 0;
     }
 
     public int getFragShader() {
@@ -117,5 +123,9 @@ public class GLSLSimpleProgram {
 
     public int getVertShader() {
         return vertShader;
+    }
+    
+    public boolean isValid() {
+        return isValid;
     }
 }
