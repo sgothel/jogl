@@ -1435,9 +1435,6 @@ int NewtWindow_setVisiblePosSize(JNIEnv *env, jobject obj, HWND hwnd, jboolean t
     InvalidateRect(hwnd, NULL, TRUE);
     UpdateWindow(hwnd);
 
-    // we report back the size of client area
-    (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height, JNI_FALSE);
-
     return iRes;
 }
 

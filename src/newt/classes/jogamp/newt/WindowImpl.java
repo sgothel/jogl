@@ -1405,8 +1405,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if ( WindowImpl.this.x != x || WindowImpl.this.y != y ) {
                     if(!fullscreen) {
                         if(0!=windowHandle) {
-                            // this.x/this.y will be set by windowChanged, called by the native implementation
-                            reconfigureWindowImpl(x, y, -1, -1, false, 0, 0);
+                            // this.x/this.y will be set by sizeChanged, triggered by windowing event system
+                            reconfigureWindowImpl(x, y, 0, 0, false, 0, 0);
                         } else {
                             WindowImpl.this.x = x;
                             WindowImpl.this.y = y;
@@ -2054,6 +2054,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.sizeChanged: ("+getThreadName()+"): force "+force+", "+width+"x"+height+" -> "+newWidth+"x"+newHeight+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
+            if(0>newWidth || 0>newHeight) {
+                throw new NativeWindowException("Illegal width or height "+newWidth+"x"+newHeight+" (must be >= 0)");
+            }
             width = newWidth;
             height = newHeight;
             if(isNativeValid()) {
@@ -2091,22 +2094,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void windowRepaint(int x, int y, int width, int height) {
+        final int _width = ( 0 > width ) ? this.width : width;
+        final int _height = ( 0 > height ) ? this.height : height;
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.windowRepaint "+getThreadName()+" - "+x+"/"+y+" "+width+"x"+height);
-            // Exception ee = new Exception("Window.windowRepaint: "+" - "+x+"/"+y+" "+width+"x"+height);
-            // ee.printStackTrace();
+            System.err.println("Window.windowRepaint "+getThreadName()+" - "+x+"/"+y+" "+_width+"x"+_height);
         }
 
         if(isValid()) {
-            if(0>width) {
-                width=this.width;
-            }
-            if(0>height) {
-                height=this.height;
-            }
-
             NEWTEvent e = new WindowUpdateEvent(WindowEvent.EVENT_WINDOW_REPAINT, this, System.currentTimeMillis(),
-                                                new Rectangle(x, y, width, height));
+                                                new Rectangle(x, y, _width, _height));
             doEvent(false, false, e);
         }
     }
