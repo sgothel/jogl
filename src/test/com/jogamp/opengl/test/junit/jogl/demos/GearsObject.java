@@ -51,12 +51,25 @@ public abstract class GearsObject {
     
     public void destroy(GL gl) {
         if(!isShared) {
-            frontFace.destroy(gl);
-            frontSide.destroy(gl);
-            backFace.destroy(gl);
-            backSide.destroy(gl);
-            outwardFace.destroy(gl);
-            insideRadiusCyl.destroy(gl);            
+            // could be already destroyed by shared configuration
+            if(null != frontFace) {
+                frontFace.destroy(gl);
+            }
+            if(null != frontSide) {
+                frontSide.destroy(gl);
+            }
+            if(null != backFace) {
+                backFace.destroy(gl);
+            }
+            if(null != backSide) {
+                backSide.destroy(gl);
+            }
+            if(null != outwardFace) {
+                outwardFace.destroy(gl);
+            }
+            if(null != insideRadiusCyl) {
+                insideRadiusCyl.destroy(gl);
+            }
         }
         frontFace=null;
         frontSide=null;
