@@ -121,7 +121,7 @@ public class AWTWindow extends WindowImpl {
         new AWTWindowAdapter(this).addTo(container); // fwd all AWT Window events to here
 
         if(null!=frame) {
-            frame.setUndecorated(undecorated||fullscreen);
+            frame.setUndecorated(isUndecorated());
         }
 
         setWindowHandle(1); // just a marker ..

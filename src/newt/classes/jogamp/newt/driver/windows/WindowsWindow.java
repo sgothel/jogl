@@ -105,7 +105,7 @@ public class WindowsWindow extends WindowImpl {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
         setWindowHandle(CreateWindow0(display.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
-                                      getParentWindowHandle(), 0, undecorated, x, y, width, height));
+                                      getParentWindowHandle(), 0, isUndecorated(), x, y, width, height));
         if (getWindowHandle() == 0) {
             throw new NativeWindowException("Error creating window");
         }

@@ -1168,9 +1168,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         public final void run() {
             windowLock.lock();
             try {
-                if(!fullscreen && isNativeValid() && WindowImpl.this.undecorated != undecorated) {
-                    WindowImpl.this.undecorated = undecorated;
-                    // mirror pos/size so native change notification can get overwritten
+                if(WindowImpl.this.undecorated != undecorated) {
+                  // set current state
+                  WindowImpl.this.undecorated = undecorated;
+                  
+                  if( !fullscreen && isNativeValid() ) {
+                    // Change decoration on active window
+                      
+                    // Mirror pos/size so native change notification can get overwritten
                     int x = WindowImpl.this.x;
                     int y = WindowImpl.this.y;
                     int width = WindowImpl.this.width;
@@ -1202,6 +1207,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                             display.dispatchMessagesNative(); // status up2date
                         }
                     }
+                  }
                 }
             } finally {
                 windowLock.unlock();
