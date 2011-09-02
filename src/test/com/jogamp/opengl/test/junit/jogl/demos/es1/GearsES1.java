@@ -25,7 +25,10 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
+
+import org.junit.Assert;
 
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
@@ -80,7 +83,9 @@ public class GearsES1 implements GLEventListener {
   public GearsObject getGear3() { return gear3; }
   
   public void init(GLAutoDrawable drawable) {
-    System.err.println("Gears: Init: "+drawable);
+    System.err.println(Thread.currentThread()+" GearsES1.init ...");
+    Assert.assertNull("Gear1 object is not null -> already init", gear1);
+    
     // Use debug pipeline
     // drawable.setGL(new DebugGL(drawable.getGL()));
 
@@ -137,10 +142,12 @@ public class GearsES1 implements GLEventListener {
         new com.jogamp.newt.event.awt.AWTMouseAdapter(gearsMouse).addTo(comp);
         new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys).addTo(comp);
     }
+    System.err.println(Thread.currentThread()+" GearsES1.init FIN");
   }
     
   public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-    System.err.println("Gears: Reshape "+x+"/"+y+" "+width+"x"+height);
+    System.err.println(Thread.currentThread()+" GearsES1.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
+    Assert.assertNotNull("Gear1 object is null -> not init or already disposed", gear1);    
     GL2ES1 gl = drawable.getGL().getGL2ES1();
 
     gl.setSwapInterval(swapInterval);
@@ -154,13 +161,25 @@ public class GearsES1 implements GLEventListener {
     gl.glMatrixMode(GL2ES1.GL_MODELVIEW);
     gl.glLoadIdentity();
     gl.glTranslatef(0.0f, 0.0f, -40.0f);
+    System.err.println(Thread.currentThread()+" GearsES1.reshape FIN");
   }
 
   public void dispose(GLAutoDrawable drawable) {
-    System.err.println("Gears: Dispose");
+    System.err.println(Thread.currentThread()+" GearsES1.dispose ... ");
+    Assert.assertNotNull("Gear1 object is null -> not init or already disposed", gear1);
+    GL gl = drawable.getGL();
+    gear1.destroy(gl);
+    gear1 = null;
+    gear2.destroy(gl);
+    gear2 = null;
+    gear3.destroy(gl);
+    gear3 = null;
+    System.err.println(Thread.currentThread()+" GearsES1.dispose FIN");
   }
 
   public void display(GLAutoDrawable drawable) {
+    Assert.assertNotNull("Gear1 object is null -> not init or already disposed", gear1);
+    
     // Turn the gears' teeth
     angle += 2.0f;
 

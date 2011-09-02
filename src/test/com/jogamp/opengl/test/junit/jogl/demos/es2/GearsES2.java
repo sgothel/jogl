@@ -38,8 +38,11 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLUniformData;
+
+import junit.framework.Assert;
 
 /**
  * GearsES2.java <BR>
@@ -90,7 +93,8 @@ public class GearsES2 implements GLEventListener {
 
 
     public void init(GLAutoDrawable drawable) {
-        System.err.println("Gears: Init: "+drawable);
+        System.err.println(Thread.currentThread()+" GearsES2.init ...");
+        Assert.assertNull("ShaderState object is not null -> already init", st);
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
@@ -167,16 +171,20 @@ public class GearsES2 implements GLEventListener {
             new com.jogamp.newt.event.awt.AWTMouseAdapter(gearsMouse).addTo(comp);
             new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys).addTo(comp);
         }
+        st.useProgram(gl, false);
+        System.err.println(Thread.currentThread()+" GearsES2.init FIN");
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        System.err.println("Gears: Reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
+        System.err.println(Thread.currentThread()+" GearsES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
+        Assert.assertNotNull("ShaderState object is null -> not init or already disposed", st);
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.setSwapInterval(swapInterval);
 
         float h = (float)height / (float)width;
 
+        st.useProgram(gl, true);
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glFrustumf(-1.0f, 1.0f, -h, h, 5.0f, 60.0f);
@@ -184,16 +192,31 @@ public class GearsES2 implements GLEventListener {
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0.0f, 0.0f, -40.0f);
         st.uniform(gl, pmvMatrixUniform);
+        st.useProgram(gl, false);
+        
+        System.err.println(Thread.currentThread()+" GearsES2.reshape FIN");
     }
 
     public void dispose(GLAutoDrawable drawable) {
-        System.err.println("Gears: Dispose");
-        // GL2ES2 gl = drawable.getGL().getGL2ES2();
-        // st.useProgram(gl, false);
-        // st.destroy(gl);
+        System.err.println(Thread.currentThread()+" GearsES2.dispose ... ");
+        Assert.assertNotNull("ShaderState object is null -> not init or already disposed", st);
+        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        st.useProgram(gl, false);
+        gear1.destroy(gl);
+        gear1 = null;
+        gear2.destroy(gl);
+        gear2 = null;
+        gear3.destroy(gl);
+        gear3 = null;        
+        pmvMatrix = null;
+        colorU = null;        
+        st.destroy(gl);
+        st = null;
+        System.err.println(Thread.currentThread()+" GearsES2.dispose FIN");
     }
 
     public void display(GLAutoDrawable drawable) {
+        Assert.assertNotNull("ShaderState object is null -> not init or already disposed", st);
         // Turn the gears' teeth
         angle += 2.0f;
 
@@ -213,6 +236,7 @@ public class GearsES2 implements GLEventListener {
           gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         }
 
+        st.useProgram(gl, true);
         pmvMatrix.glPushMatrix();
         pmvMatrix.glRotatef(view_rotx, 1.0f, 0.0f, 0.0f);
         pmvMatrix.glRotatef(view_roty, 0.0f, 1.0f, 0.0f);
@@ -222,6 +246,7 @@ public class GearsES2 implements GLEventListener {
         gear2.draw(gl,  3.1f, -2.0f, -2f * angle -  9.0f, GearsObject.green);
         gear3.draw(gl, -3.1f,  4.2f, -2f * angle - 25.0f, GearsObject.blue);    
         pmvMatrix.glPopMatrix();
+        st.useProgram(gl, false);
     }
 
     class GearsKeyAdapter extends KeyAdapter {      

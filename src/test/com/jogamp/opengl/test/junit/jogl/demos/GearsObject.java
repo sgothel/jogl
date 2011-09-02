@@ -37,18 +37,38 @@ public abstract class GearsObject {
     public static final FloatBuffer blue = Buffers.newDirectFloatBuffer( new float[] { 0.2f, 0.2f, 1.0f, 0.7f } );
     public static final float M_PI = (float)Math.PI;
     
-    public final GLArrayDataServer frontFace;
-    public final GLArrayDataServer frontSide;
-    public final GLArrayDataServer backFace;
-    public final GLArrayDataServer backSide;
-    public final GLArrayDataServer outwardFace;
-    public final GLArrayDataServer insideRadiusCyl;
+    public GLArrayDataServer frontFace;
+    public GLArrayDataServer frontSide;
+    public GLArrayDataServer backFace;
+    public GLArrayDataServer backSide;
+    public GLArrayDataServer outwardFace;
+    public GLArrayDataServer insideRadiusCyl;
+    public boolean isShared;
 
     public abstract GLArrayDataServer createInterleaved(int comps, int dataType, boolean normalized, int initialSize, int vboUsage);
     public abstract void addInterleavedVertexAndNormalArrays(GLArrayDataServer array, int components);
     public abstract void draw(GL gl, float x, float y, float angle, FloatBuffer color);
     
+    public void destroy(GL gl) {
+        if(!isShared) {
+            frontFace.destroy(gl);
+            frontSide.destroy(gl);
+            backFace.destroy(gl);
+            backSide.destroy(gl);
+            outwardFace.destroy(gl);
+            insideRadiusCyl.destroy(gl);            
+        }
+        frontFace=null;
+        frontSide=null;
+        backFace=null;
+        backSide=null;
+        outwardFace=null;
+        insideRadiusCyl=null;            
+        isShared = false;
+    }
+    
     public GearsObject ( GearsObject shared ) {
+        isShared = true;
         frontFace = shared.frontFace;
         frontSide = shared.frontSide;
         backFace = shared.backFace;
@@ -74,6 +94,8 @@ public abstract class GearsObject {
         float normal[] = new float[3];
         // final int tris_per_tooth = 32;
 
+        isShared = false;
+        
         r0 = inner_radius;
         r1 = outer_radius - tooth_depth / 2.0f;
         r2 = outer_radius + tooth_depth / 2.0f;
