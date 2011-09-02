@@ -1,5 +1,6 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/extensions/Xrender.h>
 
 // Routines needed from Xlib.h and Xutil.h (placed here to avoid having
 // XVisualInfo generated multiple times)
@@ -76,3 +77,6 @@ Bool XF86VidModeSetGammaRamp(
     unsigned short *red_array,
     unsigned short *green_array,
     unsigned short *blue_array);
+
+XRenderPictFormat * XRenderFindVisualFormat (Display *dpy, _Xconst Visual *visual);
+
