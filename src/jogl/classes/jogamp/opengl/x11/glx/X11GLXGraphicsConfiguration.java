@@ -252,6 +252,14 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return null;
   }
 
+  static boolean GLXFBConfigHasAlphaMask(long dpy, long fbcfg, long visual) {
+    XRenderPictFormat renderPictFmt = X11Lib.XRenderFindVisualFormat(dpy, visual);
+    if(null == renderPictFmt) {
+        return false;
+    }
+    return renderPictFmt.getDirect().getAlphaMask() > 0 ;
+  }
+
   static boolean GLXFBConfig2GLCapabilities(ArrayList capsBucket,
                                             GLProfile glp, long display, long fbcfg,
                                             int winattrmask, boolean isMultisampleAvailable) {
@@ -298,6 +306,9 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       res.setSampleBuffers(glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
       res.setNumSamples   (glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLES,        tmp, 0));
     }
+
+    res.setBackgroundOpaque( (null == visualInfo ) ? true : !GLXFBConfigHasAlphaMask(display, fbcfg, visualInfo.getVisual()) );
+    /***
     res.setBackgroundOpaque(glXGetFBConfig(display, fbcfg, GLX.GLX_TRANSPARENT_TYPE, tmp, 0) == GLX.GLX_NONE);
     if(!res.isBackgroundOpaque()) {
         glXGetFBConfig(display, fbcfg, GLX.GLX_TRANSPARENT_RED_VALUE,  tmp, 0);
@@ -311,7 +322,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
 
         glXGetFBConfig(display, fbcfg, GLX.GLX_TRANSPARENT_ALPHA_VALUE,  tmp, 0);
         res.setTransparentAlphaValue(tmp[0]==GLX.GLX_DONT_CARE?-1:tmp[0]);
-    }
+    } */
     try { 
         res.setPbufferFloatingPointBuffers(glXGetFBConfig(display, fbcfg, GLXExt.GLX_FLOAT_COMPONENTS_NV, tmp, 0) != GL.GL_FALSE);
     } catch (Exception e) {}
