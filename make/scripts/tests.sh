@@ -67,7 +67,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.Animator -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.EDT -Dnewt.debug.Display -Dnativewindow.debug.X11Util -Djogl.debug.GLDrawable -Djogl.debug.GLCanvas"
     #D_ARGS="-Djogl.debug.GLContext -Dnewt.debug=all"
-    D_ARGS="-Djogl.debug.GraphicsConfiguration -Djogl.debug.CapabilitiesChooser -Dnewt.debug=all"
+    D_ARGS="-Djogl.debug.GraphicsConfiguration -Djogl.debug.CapabilitiesChooser"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
