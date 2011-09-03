@@ -343,36 +343,42 @@
         <syslibset dir="/usr/local/lib" libs="X11"/>
         <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
         <syslibset dir="/usr/local/lib" libs="Xinerama"/>
+        <syslibset dir="/usr/local/lib" libs="Xrender"/>
       </linker>
 
       <linker id="linker.cfg.freebsd.amd64.nativewindow.x11" extends="linker.cfg.freebsd.amd64">
         <syslibset dir="/usr/local/lib" libs="X11" />
         <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
         <syslibset dir="/usr/local/lib" libs="Xinerama"/>
+        <syslibset dir="/usr/local/lib" libs="Xrender"/>
       </linker>
 
       <linker id="linker.cfg.linux.nativewindow.x11" extends="linker.cfg.linux">
         <syslibset libs="X11"/>
         <syslibset libs="Xxf86vm" />
         <syslibset libs="Xinerama"/>
+        <syslibset libs="Xrender"/>
       </linker>
 
       <linker id="linker.cfg.linux.x86.nativewindow.x11" extends="linker.cfg.linux.x86">
         <syslibset libs="X11"/>
         <syslibset libs="Xxf86vm" />
         <syslibset libs="Xinerama"/>
+        <syslibset libs="Xrender"/>
       </linker>
 
       <linker id="linker.cfg.linux.amd64.nativewindow.x11" extends="linker.cfg.linux.amd64">
         <syslibset libs="X11"/>
         <syslibset libs="Xxf86vm" />
         <syslibset libs="Xinerama"/>
+        <syslibset libs="Xrender"/>
       </linker>
 
       <linker id="linker.cfg.linux.armv7.nativewindow.x11" extends="linker.cfg.linux.armv7">
         <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="X11" />
         <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xxf86vm" />
         <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xinerama" />
+        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xrender" />
       </linker>
 
       <linker id="linker.cfg.solaris.nativewindow.x11" extends="linker.cfg.solaris">
