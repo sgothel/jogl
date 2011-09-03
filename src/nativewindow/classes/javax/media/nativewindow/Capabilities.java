@@ -52,10 +52,10 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
 
   // Support for transparent windows containing OpenGL content
   private boolean backgroundOpaque = true;
-  private int     transparentValueRed = -1;
-  private int     transparentValueGreen = -1;
-  private int     transparentValueBlue = -1;
-  private int     transparentValueAlpha = -1;
+  private int     transparentValueRed = 0;
+  private int     transparentValueGreen = 0;
+  private int     transparentValueBlue = 0;
+  private int     transparentValueAlpha = 0;
 
   // Switch for on- or offscreen
   private boolean onscreen  = true;

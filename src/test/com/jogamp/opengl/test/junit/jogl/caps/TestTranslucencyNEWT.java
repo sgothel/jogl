@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
+package com.jogamp.opengl.test.junit.jogl.caps;
 
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -46,7 +46,7 @@ import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-public class TestGearsES2NEWT extends UITestCase {
+public class TestTranslucencyNEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
 
@@ -115,15 +115,27 @@ public class TestGearsES2NEWT extends UITestCase {
     }
 
     @Test
-    public void test01() throws InterruptedException {
+    public void test01OpaqueDecorated() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);
-        caps.setBackgroundOpaque(opaque);
-        runTestGL(caps, undecorated);
+        caps.setBackgroundOpaque(true); // default
+        runTestGL(caps, false);
     }
 
+    @Test
+    public void test01TransparentDecorated() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBackgroundOpaque(false);
+        runTestGL(caps, false);
+    }
+
+    @Test
+    public void test01TransparentUndecorated() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBackgroundOpaque(false);
+        runTestGL(caps, true);
+    }
+    
     static long duration = 500; // ms
-    static boolean opaque = true;
-    static boolean undecorated = false;
 
     public static void main(String args[]) {
         for(int i=0; i<args.length; i++) {
@@ -132,12 +144,8 @@ public class TestGearsES2NEWT extends UITestCase {
                 try {
                     duration = Integer.parseInt(args[i]);
                 } catch (Exception ex) { ex.printStackTrace(); }
-            } else if(args[i].equals("-translucent")) {
-                opaque = false;
-            } else if(args[i].equals("-undecorated")) {
-                undecorated = true;
             }
         }
-        org.junit.runner.JUnitCore.main(TestGearsES2NEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestTranslucencyNEWT.class.getName());
     }
 }

@@ -49,9 +49,9 @@ public abstract class GLGraphicsConfigurationFactory extends GraphicsConfigurati
             return -1; // none available
         }
 
-        if(null == chooser && 0 <= recommendedIndex) {
+        if(null == chooser && 0 <= recommendedIndex && capsRequested.isBackgroundOpaque()) {
             if (DEBUG) {
-                System.err.println("chooseCapabilities: Using recommendedIndex: idx " + recommendedIndex);
+                System.err.println("chooseCapabilities: Using recommendedIndex (opaque): idx " + recommendedIndex);
             }
             return recommendedIndex;
         }

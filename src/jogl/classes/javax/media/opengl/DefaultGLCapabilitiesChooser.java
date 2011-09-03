@@ -120,16 +120,18 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
 
     // Create score array
     int[] scores = new int[availnum];
-    int NO_SCORE = -9999999;
-    int DOUBLE_BUFFER_MISMATCH_PENALTY = 1000;
-    int STENCIL_MISMATCH_PENALTY = 500;
+    final int NO_SCORE = -9999999;
+    final int DOUBLE_BUFFER_MISMATCH_PENALTY = 1000;
+    final int OPAQUE_MISMATCH_PENALTY = 750;
+    final int STENCIL_MISMATCH_PENALTY = 500;
     // Pseudo attempt to keep equal rank penalties scale-equivalent
     // (e.g., stencil mismatch is 3 * accum because there are 3 accum
     // components)
-    int COLOR_MISMATCH_PENALTY_SCALE     = 36;
-    int DEPTH_MISMATCH_PENALTY_SCALE     = 6;
-    int ACCUM_MISMATCH_PENALTY_SCALE     = 1;
-    int STENCIL_MISMATCH_PENALTY_SCALE   = 3;
+    final int COLOR_MISMATCH_PENALTY_SCALE     = 36;
+    final int DEPTH_MISMATCH_PENALTY_SCALE     = 6;
+    final int ACCUM_MISMATCH_PENALTY_SCALE     = 1;
+    final int STENCIL_MISMATCH_PENALTY_SCALE   = 3;
+    
     for (int i = 0; i < scores.length; i++) {
       scores[i] = NO_SCORE;
     }
@@ -165,6 +167,9 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       score += STENCIL_MISMATCH_PENALTY_SCALE * sign(score) * (cur.getStencilBits() - gldes.getStencilBits());
       if (cur.getDoubleBuffered() != gldes.getDoubleBuffered()) {
         score += sign(score) * DOUBLE_BUFFER_MISMATCH_PENALTY;
+      }
+      if (cur.isBackgroundOpaque() != gldes.isBackgroundOpaque()) {
+        score += sign(score) * OPAQUE_MISMATCH_PENALTY;
       }
       if ((gldes.getStencilBits() > 0) && (cur.getStencilBits() == 0)) {
         score += sign(score) * STENCIL_MISMATCH_PENALTY;
