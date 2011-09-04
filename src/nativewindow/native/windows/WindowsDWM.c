@@ -37,7 +37,8 @@ static int initWindowsDWM() {
             _DwmIsCompositionEnabled = (DwmIsCompositionEnabledPROCADDR) GetProcAddressA (shell, "DwmIsCompositionEnabled");
             _DwmEnableBlurBehindWindow = (DwmEnableBlurBehindWindowPROCADDR) GetProcAddressA (shell, "DwmEnableBlurBehindWindow");
             _DwmExtendFrameIntoClientArea = (DwmExtendFrameIntoClientAreaPROCADDR) GetProcAddressA (shell, "DwmExtendFrameIntoClientArea");
-            if(NULL != _DwmEnableBlurBehindWindow && NULL != _DwmExtendFrameIntoClientArea) {
+            if(NULL != _DwmEnableComposition && NULL != _DwmIsCompositionEnabled && 
+               NULL != _DwmEnableBlurBehindWindow && NULL != _DwmExtendFrameIntoClientArea) {
                 _init = 2;
             }
         }

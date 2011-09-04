@@ -29,12 +29,4 @@
     BOOL DwmEnableBlurBehindWindow(HWND hwnd, const DWM_BLURBEHIND* pBlurBehind);
     BOOL DwmExtendFrameIntoClientArea(HWND hwnd, const MARGINS *pMarInset);
       
-    /*
-        DWM_BLURBEHIND bb = {0};
-        bb.dwFlags = DWM_BB_ENABLE;
-        bb.fEnable = true;
-        bb.hRgnBlur = NULL;
-        DwmEnableBlurBehindWindow(hWnd, &bb);
-    */
-
 #endif /* _WINDOWS_DWM_H_ */
