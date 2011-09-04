@@ -37,6 +37,7 @@ import jogamp.nativewindow.x11.X11Util;
 import jogamp.newt.WindowImpl;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
+import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
 public class X11Window extends WindowImpl {
@@ -119,6 +120,10 @@ public class X11Window extends WindowImpl {
         return X11Util.GetRelativeLocation( getDisplayEDTHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
     }
 
+    protected void updateInsetsImpl(Insets insets) {
+        // TODO !!        
+    }
+    
     //----------------------------------------------------------------------
     // Internals only
     //

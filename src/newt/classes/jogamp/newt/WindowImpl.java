@@ -66,6 +66,7 @@ import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Insets;
+import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.Rectangle;
 
@@ -84,9 +85,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected CapabilitiesImmutable capsRequested = null;
     protected CapabilitiesChooser capabilitiesChooser = null; // default null -> default
     protected boolean fullscreen = false, visible = false, hasFocus = false;    
-    protected int width = 128, height = 128, x = 0, y = 0; // default values
+    protected int width = 128, height = 128, x = 0, y = 0; // client-area size/pos w/o insets
+    protected Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
         
-    protected int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen dimensions ..
+    protected int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen client-area size/pos w/o insets
     protected String title = "Newt Window";
     protected boolean undecorated = false;
     private LifecycleHook lifecycleHook = null;
@@ -404,8 +406,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * 
      * @param x -1 if no position change requested, otherwise greater than zero
      * @param y -1 if no position change requested, otherwise greater than zero
-     * @param width -1 if no size change requested, otherwise greater than zero
-     * @param height -1 if no size change requested, otherwise greater than zero
+     * @param width 0 if no size change requested, otherwise greater than zero
+     * @param height 0 if no size change requested, otherwise greater than zero
      * @param parentChange true if reparenting requested, otherwise false
      * @param fullScreenChange 0 if unchanged, -1 fullscreen off, 1 fullscreen on
      * @param decorationChange 0 if unchanged, -1 undecorated, 1 decorated
@@ -426,6 +428,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @return if not null, the screen location of the given coordinates
      */
     protected abstract Point getLocationOnScreenImpl(int x, int y);
+    
+    /** Triggered by user via {@link #getInsets()}.<br>
+     * Implementations may implement this hook to update the insets.<br> 
+     * However, they may prefer the event driven path via {@link #insetsChanged(int, int, int, int)}.
+     * 
+     * @see #getInsets()
+     * @see #insetsChanged(int, int, int, int)
+     */
+    protected abstract void updateInsetsImpl(Insets insets);
 
     //----------------------------------------------------------------------
     // NativeSurface
@@ -718,6 +729,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(isValid()) {
             runOnEDTIfAvail(true, new SetSizeActionImpl(width, height));
         }
+    }
+    
+    public void setTopLevelSize(int width, int height) {
+        setSize(width - getInsets().getTotalWidth(), height - getInsets().getTotalHeight());
     }
 
     private class DestroyAction implements Runnable {
@@ -1222,7 +1237,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    public boolean isUndecorated() {
+    public final boolean isUndecorated() {
         return 0 != parentWindowHandle || undecorated || fullscreen ;
     }
 
@@ -1230,14 +1245,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         enqueueRequestFocus(true);
     }
 
-    public boolean hasFocus() {
+    public final boolean hasFocus() {
         return hasFocus;
     }
 
-    public Insets getInsets() {
-        return new Insets(0,0,0,0);
+    public final InsetsImmutable getInsets() {
+        if(isUndecorated()) {
+            return Insets.getZero();
+        }
+        updateInsetsImpl(insets);
+        return insets;
     }
-
+    
     public final int getWidth() {
         return width;
     }
@@ -1429,6 +1448,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(isValid()) {
             runOnEDTIfAvail(true, new SetPositionActionImpl(x, y));
         }
+    }
+    
+    public void setTopLevelPosition(int x, int y) {
+        setPosition(x + getInsets().getLeftWidth(), y + getInsets().getTopHeight());
     }
 
     private class FullScreenActionImpl implements Runnable {
@@ -2010,9 +2033,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    /**
-     * @param focusGained
-     */
+    /** Triggered by implementation's WM events to update the focus state. */ 
     protected void focusChanged(boolean focusGained) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.focusChanged: ("+getThreadName()+"): "+this.hasFocus+" -> "+focusGained+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
@@ -2025,6 +2046,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    /** Triggered by implementation's WM events to update the visibility state. */ 
     protected void visibleChanged(boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.visibleChanged ("+getThreadName()+"): "+this.visible+" -> "+visible+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
@@ -2055,6 +2077,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return this.visible == visible;
     }
 
+    /** Triggered by implementation's WM events to update the client-area size w/o insets/decorations. */ 
     protected void sizeChanged(int newWidth, int newHeight, boolean force) {
         if(force || width != newWidth || height != newHeight) {
             if(DEBUG_IMPLEMENTATION) {
@@ -2071,6 +2094,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    /** Triggered by implementation's WM events to update the position. */ 
     protected void positionChanged(int newX, int newY) {
         if( 0==parentWindowHandle && ( x != newX || y != newY ) ) {
             if(DEBUG_IMPLEMENTATION) {
@@ -2082,6 +2106,27 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    /**
+     * Triggered by implementation's WM events to update the insets. 
+     * 
+     * @see #getInsets()
+     * @see #updateInsetsImpl(Insets)
+     */
+    protected void insetsChanged(int left, int right, int top, int bottom) {
+        if ( left >= 0 && right >= 0 && top >= 0 && bottom >= 0 &&
+             (left != insets.getLeftWidth() || right != insets.getRightWidth() || 
+              top != insets.getTopHeight() || bottom != insets.getBottomHeight() )
+           ) {
+            insets.setLeftWidth(left);
+            insets.setRightWidth(right);            
+            insets.setTopHeight(top);
+            insets.setBottomHeight(bottom);            
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("Window.insetsChanged: "+insets);
+            }
+        }
+    }
+    
     protected void windowDestroyNotify() {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.windowDestroyNotify START "+getThreadName());
@@ -2100,15 +2145,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void windowRepaint(int x, int y, int width, int height) {
-        final int _width = ( 0 > width ) ? this.width : width;
-        final int _height = ( 0 > height ) ? this.height : height;
+        x = ( 0 > x ) ? this.x : x;
+        y = ( 0 > y ) ? this.y : y;
+        width = ( 0 >= width ) ? this.width : width;
+        height = ( 0 >= height ) ? this.height : height;
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.windowRepaint "+getThreadName()+" - "+x+"/"+y+" "+_width+"x"+_height);
+            System.err.println("Window.windowRepaint "+getThreadName()+" - "+x+"/"+y+" "+width+"x"+height);
         }
 
         if(isValid()) {
             NEWTEvent e = new WindowUpdateEvent(WindowEvent.EVENT_WINDOW_REPAINT, this, System.currentTimeMillis(),
-                                                new Rectangle(x, y, _width, _height));
+                                                new Rectangle(x, y, width, height));
             doEvent(false, false, e);
         }
     }

@@ -46,7 +46,6 @@ public class WindowsWindow extends WindowImpl {
     private long hmon;
     private long hdc;
     private long windowHandleClose;
-    private final Insets insets = new Insets(0, 0, 0, 0);
 
     static {
         WindowsDisplay.initSingleton();
@@ -167,15 +166,14 @@ public class WindowsWindow extends WindowImpl {
         setTitle0(getWindowHandle(), title);
     }
 
-    @Override
-    public Insets getInsets() {
-        return (Insets)insets.clone();
-    }
-
     protected Point getLocationOnScreenImpl(int x, int y) {
         return GDI.GetRelativeLocation( getWindowHandle(), 0 /*root win*/, x, y);
     }
 
+    protected void updateInsetsImpl(Insets insets) {
+        // nop - using event driven insetsChange(..)         
+    }
+    
     //----------------------------------------------------------------------
     // Internals only
     //
@@ -193,17 +191,4 @@ public class WindowsWindow extends WindowImpl {
     private static native void setTitle0(long windowHandle, String title);
     private native void requestFocus0(long windowHandle, boolean force);
 
-    private void insetsChanged(int left, int top, int right, int bottom) {
-        if (left != -1 && top != -1 && right != -1 && bottom != -1) {
-            if (left != insets.left || top != insets.top || right != insets.right || bottom != insets.bottom) {
-                insets.left = left;
-                insets.top = top;
-                insets.right = right;
-                insets.bottom = bottom;
-                if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.insetsChanged: "+insets);
-                }
-            }
-        }
-    }
 }

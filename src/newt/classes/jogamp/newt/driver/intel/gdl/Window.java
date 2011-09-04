@@ -34,6 +34,7 @@
 package jogamp.newt.driver.intel.gdl;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
 public class Window extends jogamp.newt.WindowImpl {
@@ -128,6 +129,10 @@ public class Window extends jogamp.newt.WindowImpl {
         return new Point(x,y);
     }
 
+    protected void updateInsetsImpl(Insets insets) {
+        // nop ..        
+    }
+    
     //----------------------------------------------------------------------
     // Internals only
     //

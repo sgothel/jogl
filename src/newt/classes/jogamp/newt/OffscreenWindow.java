@@ -35,6 +35,7 @@
 package jogamp.newt;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
 public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
@@ -121,9 +122,13 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
      }
      return new Point(0,0);
     }
-
+    
     protected Point getLocationOnScreenImpl(int x, int y) {
         return new Point(x,y);
+    }
+    
+    protected void updateInsetsImpl(Insets insets) {
+        // nop ..        
     }
 }
 

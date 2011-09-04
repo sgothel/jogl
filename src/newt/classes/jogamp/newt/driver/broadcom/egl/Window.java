@@ -35,7 +35,7 @@ package jogamp.newt.driver.broadcom.egl;
 
 import jogamp.opengl.egl.*;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
@@ -119,6 +119,9 @@ public class Window extends jogamp.newt.WindowImpl {
         return new Point(x,y);
     }
 
+    protected void updateInsetsImpl(Insets insets) {
+        // nop ..        
+    }
 
     @Override
     public boolean surfaceSwap() {

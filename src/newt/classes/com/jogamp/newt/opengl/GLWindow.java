@@ -44,8 +44,8 @@ import com.jogamp.newt.event.*;
 import jogamp.newt.WindowImpl;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
-import javax.media.nativewindow.util.Insets;
 import javax.media.opengl.*;
 
 import jogamp.opengl.FPSCounterImpl;
@@ -234,12 +234,15 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         return window.hasFocus();
     }
 
-    public final Insets getInsets() {
+    public final InsetsImmutable getInsets() {    
         return window.getInsets();
     }
 
     public final void setPosition(int x, int y) {
         window.setPosition(x, y);
+    }
+    public void setTopLevelPosition(int x, int y) {        
+        window.setTopLevelPosition(x, y);
     }
 
     public final boolean setFullscreen(boolean fullscreen) {
@@ -291,7 +294,10 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     public final void setSize(int width, int height) {
         window.setSize(width, height);
     }
-
+    public void setTopLevelSize(int width, int height) {
+        window.setTopLevelSize(width, height);        
+    }
+    
     public final boolean isValid() {
         return window.isValid();
     }
@@ -900,5 +906,4 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         glWindow.setVisible(true);
         glWindow.destroy();
     }
-
 }

@@ -35,6 +35,7 @@ import jogamp.newt.driver.android.event.AndroidNewtEventFactory;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.egl.EGLGraphicsDevice;
+import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.GLException;
 
@@ -212,6 +213,10 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         return new Point(x,y);
     }
 
+    protected void updateInsetsImpl(Insets insets) {
+        // nop ..        
+    }
+    
     //----------------------------------------------------------------------
     // Surface Callbacks 
     //
@@ -262,5 +267,5 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     protected static native boolean initIDs();
     protected static native long getSurfaceHandle(Surface surface);
     protected static native void setSurfaceVisualID(long surfaceHandle, int nativeVisualID);
-    
+
 }

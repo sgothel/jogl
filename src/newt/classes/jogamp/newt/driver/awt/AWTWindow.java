@@ -181,15 +181,12 @@ public class AWTWindow extends WindowImpl {
         
     }
 
-    @Override
-    public javax.media.nativewindow.util.Insets getInsets() {
-        final int insets[] = new int[] { 0, 0, 0, 0 };
+    protected void updateInsetsImpl(javax.media.nativewindow.util.Insets insets) {
         Insets contInsets = container.getInsets();
-        insets[0] = contInsets.top;
-        insets[1] = contInsets.left;
-        insets[2] = contInsets.bottom;
-        insets[3] = contInsets.right;
-        return new javax.media.nativewindow.util.Insets(insets[0],insets[1],insets[2],insets[3]);
+        insets.setLeftWidth(contInsets.left);
+        insets.setRightWidth(contInsets.right);
+        insets.setTopHeight(contInsets.top);
+        insets.setBottomHeight(contInsets.bottom);
     }
 
     protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final boolean parentChange, final int fullScreenChange, final int decorationChange) {

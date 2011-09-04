@@ -40,6 +40,7 @@
 
 package javax.media.nativewindow;
 
+import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
 /** Extend the {@link NativeSurface} interface with windowing
@@ -74,10 +75,41 @@ public interface NativeWindow extends NativeSurface {
    */
   public long getWindowHandle();
 
+  /** 
+   * Returns the insets defined as the difference between
+   * the top-level window with decorations and the client area.<br>
+   * Insets are zero if the window is undecorated, including child windows.
+   * 
+   * The top-level window area's top-left corner is located at
+   * <pre>
+   *   getX() - getInsets().{@link InsetsImmutable#getLeftWidth() getLeftWidth()}
+   *   getY() - getInsets().{@link InsetsImmutable#getTopHeight() getTopHeight()}
+   * </pre> 
+   * 
+   * The top-level window size is
+   * <pre>
+   *   getWidth()  + getInsets().{@link InsetsImmutable#getTotalWidth() getTotalWidth()} 
+   *   getHeight() + getInsets().{@link InsetsImmutable#getTotalHeight() getTotalHeight()}
+   * </pre> 
+   * 
+   * @return insets
+   */
+  public InsetsImmutable getInsets();
+  
   /** Returns the current x position of this window, relative to it's parent. */
+  
+  /** 
+   * @return the current x position of the top-left corner
+   *         of the client area, hence excluding decorations if enabled.<br> 
+   * @see #getInsets()
+   */
   public int getX();
 
-  /** Returns the current y position of this window, relative to it's parent. */
+  /** 
+   * @return the current y position of the top-left corner
+   *         of the client area, hence excluding decorations if enabled.<br> 
+   * @see #getInsets()
+   */
   public int getY();
 
   /** 

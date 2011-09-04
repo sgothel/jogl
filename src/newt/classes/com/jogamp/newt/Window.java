@@ -37,7 +37,6 @@ import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.WindowClosingProtocol;
-import javax.media.nativewindow.util.Insets;
 
 /**
  * Specifying the public Window functionality for the
@@ -124,13 +123,13 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * Zero size semantics are respected, see {@link #setSize(int,int)}:<br>
      * <pre>
      * if ( 0 == windowHandle && visible ) {
-     * this.visible = visible;
-     * if( 0<width*height ) {
-     * createNative();
-     * }
+     *   this.visible = visible;
+     *   if( 0 &lt; width*height ) {
+     *     createNative();
+     *   }
      * } else if ( this.visible != visible ) {
-     * this.visible = visible;
-     * setNativeSizeImpl();
+     *   this.visible = visible;
+     *   setNativeSizeImpl();
      * }
      * </pre></p>
      * <p>
@@ -156,39 +155,72 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     //
 
     /**
-     * Sets the size of the client area of the window, excluding decorations
-     * Total size of the window will be
-     * {@code width+insets.left+insets.right, height+insets.top+insets.bottom}<br>
+     * Sets the size of the window's client area, excluding decorations.
+     * 
      * <p>
      * Zero size semantics are respected, see {@link #setVisible(boolean)}:<br>
      * <pre>
-     * if ( 0 != windowHandle && 0>=width*height && visible ) {
-     * setVisible(false);
-     * } else if ( 0 == windowHandle && 0<width*height && visible ) {
-     * setVisible(true);
+     * if ( 0 != windowHandle && 0 &ge; width*height && visible ) {
+     *   setVisible(false);
+     * } else if ( 0 == windowHandle && 0 &lt; width*height && visible ) {
+     *   setVisible(true);
      * } else {
-     * // as expected ..
+     *   // as expected ..
      * }
      * </pre></p>
      * <p>
      * This call is ignored if in fullscreen mode.<br></p>
      *
-     * @param width of the client area of the window
-     * @param height of the client area of the window
+     * @param width of the window's client area
+     * @param height of the window's client area
+     * 
+     * @see #getInsets()
      */
     void setSize(int width, int height);
 
     /**
-     * Returns the width of the client area of this window
-     * @return width of the client area
+     * Sets the size of the top-level window including decorations.
+     * 
+     * @param width of the top-level window area
+     * @param height of the top-level window area
+     * 
+     * @see #setSize(int, int)
+     * @see #getInsets()
      */
-    int getWidth();
-
+    void setTopLevelSize(int width, int height);
+    
     /**
-     * Returns the height of the client area of this window
-     * @return height of the client area
+     * Sets the location of the window's client area, excluding decorations.<br>
+     * 
+     * This call is ignored if in fullscreen mode.<br>
+     *
+     * @param x coord of the client-area's top left corner
+     * @param y coord of the client-area's top left corner
+     * 
+     * @see #getInsets()
      */
-    int getHeight();
+    void setPosition(int x, int y);
+    
+    /**
+     * Sets the location of the top-level window inclusive decorations.<br>
+     * 
+     * This call is ignored if in fullscreen mode.<br>
+     *
+     * @param x coord of the top-level left corner
+     * @param y coord of the top-level left corner
+     * 
+     * @see #setPosition(int, int)
+     * @see #getInsets()
+     */
+    void setTopLevelPosition(int x, int y);
+
+    void setUndecorated(boolean value);
+    
+    boolean isUndecorated();
+    
+    void setTitle(String title);
+
+    String getTitle();
 
     /** Defining ids for the reparenting strategy */
     public interface ReparentAction {
@@ -227,38 +259,6 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     boolean setFullscreen(boolean fullscreen);
     
     boolean isFullscreen();
-
-    /**
-     * Sets the location of the top left corner of the window, including
-     * decorations (so the client area will be placed at
-     * {@code x+insets.left,y+insets.top}.<br>
-     *
-     * This call is ignored if in fullscreen mode.<br>
-     *
-     * @param x coord of the top left corner
-     * @param y coord of the top left corner
-     */
-    void setPosition(int x, int y);
-
-    int getX();
-
-    int getY();
-
-    /**
-     * Returns the insets for this native window (the difference between the
-     * size of the toplevel window with the decorations and the client area).
-     *
-     * @return insets for this platform window
-     */
-    Insets getInsets();
-
-    void setUndecorated(boolean value);
-    
-    boolean isUndecorated();
-    
-    void setTitle(String title);
-
-    String getTitle();
 
     static interface FocusRunnable {
         /**

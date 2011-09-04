@@ -46,8 +46,11 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.util.Insets;
+import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.Rectangle;
+import javax.media.nativewindow.util.RectangleImmutable;
 
 public abstract class JAWTWindow implements NativeWindow {
   protected static final boolean DEBUG = JAWTUtil.DEBUG;
@@ -89,7 +92,9 @@ public abstract class JAWTWindow implements NativeWindow {
   }
 
   /** @return the JAWT_DrawingSurfaceInfo's (JAWT_Rectangle) bounds, updated with lock */
-  public final Rectangle getBounds() { return bounds; }
+  public final RectangleImmutable getBounds() { return bounds; }
+  
+  public final InsetsImmutable getInsets() { return Insets.getZero(); }
 
   public final Component getAWTComponent() {
     return component;

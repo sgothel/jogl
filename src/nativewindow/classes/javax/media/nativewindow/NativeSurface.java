@@ -135,10 +135,16 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    */
   public long getSurfaceHandle();
 
-  /** Returns the current width of this surface. */
+  /**
+   * Returns the width of the client area.
+   * @return width of the client area
+   */
   public int getWidth();
 
-  /** Returns the current height of this surface. */
+  /**
+   * Returns the height of the client area.
+   * @return height of the client area
+   */
   public int getHeight();
 
   /**

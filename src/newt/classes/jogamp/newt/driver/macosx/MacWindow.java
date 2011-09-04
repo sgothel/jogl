@@ -132,9 +132,6 @@ public class MacWindow extends WindowImpl {
 
     private volatile long surfaceHandle;
 
-    // non fullscreen dimensions ..
-    private final Insets insets = new Insets(0,0,0,0);
-
     static {
         MacDisplay.initSingleton();
     }
@@ -171,19 +168,6 @@ public class MacWindow extends WindowImpl {
     @Override
     public final long getSurfaceHandle() {
         return surfaceHandle;
-    }
-
-    @Override
-    public Insets getInsets() {
-        // in order to properly calculate insets we need the window to be
-        // created
-        nsViewLock.lock();
-        try {
-            createWindow(false, getX(), getY(), getWidth(), getHeight(), isFullscreen());
-            return (Insets) insets.clone();
-        } finally {
-            nsViewLock.unlock();
-        }
     }
 
     private RecursiveLock nsViewLock = new RecursiveLock();
@@ -273,19 +257,10 @@ public class MacWindow extends WindowImpl {
         return null;
     }
     
-    private void insetsChanged(int left, int top, int right, int bottom) {
-        if (DEBUG_IMPLEMENTATION) {
-            System.err.println(Thread.currentThread().getName()+
-                " Insets changed to " + left + ", " + top + ", " + right + ", " + bottom);
-        }
-        if (left != -1 && top != -1 && right != -1 && bottom != -1) {
-            insets.left = left;
-            insets.top = top;
-            insets.right = right;
-            insets.bottom = bottom;
-        }
+    protected void updateInsetsImpl(Insets insets) {
+        // nop - using event driven insetsChange(..)
     }
-
+        
     private char convertKeyChar(char keyChar) {
         if (keyChar == '\r') {
             // Turn these into \n

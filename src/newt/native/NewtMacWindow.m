@@ -173,7 +173,7 @@ static jmethodID windowDestroyNotifyID = NULL;
     jint right = (jint)(frameRect.size.width - (contentRect.size.width + l));
 
     (*env)->CallVoidMethod(env, javaWindowObject, insetsChangedID,
-                           left, top, right, bottom);
+                           left, right, top, bottom);
 }
 
 - (id) initWithContentRect: (NSRect) contentRect
