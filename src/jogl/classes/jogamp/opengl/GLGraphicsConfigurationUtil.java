@@ -145,4 +145,17 @@ public class GLGraphicsConfigurationUtil {
         return capsRequested;
     }
 
+    public static GLCapabilitiesImmutable fixOpaqueGLCapabilities(GLCapabilitiesImmutable capsRequested, boolean isOpaque)
+    {
+        GLCapabilities caps2 = null;
+        
+        if( capsRequested.isBackgroundOpaque() != isOpaque) {
+            // fix caps ..
+            caps2 = (GLCapabilities) capsRequested.cloneMutable();
+            caps2.setBackgroundOpaque(isOpaque);
+            return caps2;
+        }
+        return capsRequested;
+    }
+    
 }

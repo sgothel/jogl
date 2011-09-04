@@ -26,6 +26,7 @@ typedef HANDLE              HMODULE;
 typedef HANDLE              HINSTANCE;
 typedef HANDLE              HPALETTE;
 typedef HANDLE              HWND;
+typedef HANDLE              HRGN;
 typedef __int32             LONG;
 typedef const char*         LPCSTR;
 typedef void*               LPVOID;
@@ -38,6 +39,7 @@ typedef unsigned short      WORD;
 typedef unsigned short      ATOM;
 typedef intptr_t            DWORD_PTR;
 typedef intptr_t*           PDWORD_PTR;
+typedef __int32             HRESULT;
 
 /* Necessary handle typedefs for parsing wglext.h */
 

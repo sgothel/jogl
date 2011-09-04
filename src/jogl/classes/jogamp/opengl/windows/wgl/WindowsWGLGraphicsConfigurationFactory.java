@@ -42,6 +42,7 @@ import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLContext;
@@ -298,9 +299,14 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         }
 
         GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+        boolean isOpaque = capsChosen.isBackgroundOpaque() && GDI.DwmIsCompositionEnabled();
         boolean onscreen = capsChosen.isOnscreen();
         boolean usePBuffer = capsChosen.isPBuffer();
         GLProfile glProfile = capsChosen.getGLProfile();
+        
+        if(DEBUG) {
+            System.err.println("!!! translucency requested: "+(!capsChosen.isBackgroundOpaque())+", compositioning enabled: "+GDI.DwmIsCompositionEnabled()+" -> translucency "+(!isOpaque));
+        }
 
         WGLGLCapabilities pixelFormatCaps = null; // chosen or preset PFD ID's caps
         boolean pixelFormatSet = false; // indicates a preset PFD ID [caps]
@@ -316,6 +322,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             }
             pixelFormatSet = true;
             pixelFormatCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, hdc, presetPFDID, glProfile, onscreen, usePBuffer);
+            pixelFormatCaps = (WGLGLCapabilities) GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(pixelFormatCaps, isOpaque);
         } else {
             int recommendedIndex = -1; // recommended index
 
@@ -393,6 +400,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                                       " chosen pfdID: native recommended "+ (recommendedIndex+1) +
                                       " chosen idx "+chosenIndex);
             }
+            pixelFormatCaps = (WGLGLCapabilities) GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(pixelFormatCaps, isOpaque);
             if (DEBUG) {
                 System.err.println("!!! chosen pfdID (ARB): native recommended "+ (recommendedIndex+1) +
                                    " chosen "+pixelFormatCaps);

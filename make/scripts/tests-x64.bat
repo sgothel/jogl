@@ -10,7 +10,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLPro
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT -time 30000
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT %1 %2 %3
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %1 %2 %3
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %1 %2 %3 %4 %5 %6
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT -time 5000
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT -time 5000
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01
@@ -78,5 +78,5 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGPUMe
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01
 
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT %1 %2 %3 %4
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT %1 %2 %3 %4
 
