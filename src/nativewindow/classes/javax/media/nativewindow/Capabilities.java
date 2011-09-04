@@ -194,32 +194,35 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
     this.alphaBits = alphaBits;
   }
 
-  /** For on-screen OpenGL contexts on some platforms, sets whether
-      the background of the context should be considered opaque. On
-      supported platforms, setting this to false, in conjunction with
-      the transparency values, may allow
-      hardware-accelerated OpenGL content inside of windows of
-      arbitrary shape. To achieve this effect it is necessary to use
-      an OpenGL clear color with an alpha less than 1.0. The default
-      value for this flag is <code>true</code>; setting it to false
-      may incur a certain performance penalty, so it is not
-      recommended to arbitrarily set it to false.<br>
-      If not set already, the transparency values for red, green, blue and alpha
-      are set to their default value, which is half of the value range
-      of the framebuffer's corresponding component,
-      ie <code> redValue = ( 1 << ( redBits - 1 ) ) -1 </code>.
-    */
+    /**
+     * Defaults to true, ie. opaque surface.
+     * <p>
+     * On supported platforms, setting opaque to false may result in a translucent surface. </p>
+     * 
+     * <p>
+     * Platform implementations may need an alpha component in the surface (eg. Windows), 
+     * or expect pre-multiplied alpha values (eg. X11/XRender).<br>
+     * To unify the experience, this method also invokes {@link #setAlphaBits(int) setAlphaBits(1)}
+     * if {@link #getAlphaBits()} == 0.<br>
+     * Please note that in case alpha is required on the platform the 
+     * clear color shall have an alpha lower than 1.0 to allow anything shining through.
+     * </p>
+     *   
+     * <p>
+     * Mind that translucency may cause a performance penalty
+     * due to the composite work required by the window manager.</p>
+     *
+     * <p>
+     * The platform implementation may utilize the transparency RGBA values.<br>
+     * This is true for the original GLX transparency specification, which is no more used today.<br>
+     * Actually these values are currently not used by any implementation, 
+     * so we may mark them deprecated soon, if this doesn't change.<br>
+     * </p>
+     */
   public void setBackgroundOpaque(boolean opaque) {
     backgroundOpaque = opaque;
-    if(!opaque) {
-        if(transparentValueRed<0)
-            transparentValueRed = ( 1 << ( getRedBits() - 1 ) )  - 1 ;
-        if(transparentValueGreen<0)
-            transparentValueGreen = ( 1 << ( getGreenBits() - 1 ) )  - 1 ;
-        if(transparentValueBlue<0)
-            transparentValueBlue = ( 1 << ( getBlueBits() - 1 ) )  - 1 ;
-        if(transparentValueAlpha<0)
-            transparentValueAlpha = ( 1 << ( getAlphaBits() - 1 ) )  - 1 ;
+    if(!opaque && getAlphaBits()==0) {
+        setAlphaBits(1);
     }
   }
 

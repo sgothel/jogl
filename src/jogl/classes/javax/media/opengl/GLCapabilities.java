@@ -211,19 +211,19 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
 
   /** 
    * Enables or disables pbuffer usage.<br>
-   * If enabled, onscreen := false.
+   * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}<br>
    * Defaults to false.
    */
-  public void setPBuffer(boolean onOrOff) {
-    if(onOrOff) {
+  public void setPBuffer(boolean enable) {
+    if(enable) {
       setOnscreen(false);
     }
-    pbuffer = onOrOff;
+    pbuffer = enable;
   }
 
   /**
    * Sets whether the drawable surface supports onscreen.<br>
-   * If enabled, pbuffer := false.<br>
+   * If enabled this method also invokes {@link #setPBuffer(int) setPBuffer(false)}<br>
    * Defaults to true.
   */
   public void setOnscreen(boolean onscreen) {
@@ -239,8 +239,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   }
 
   /** Enables or disables double buffering. */
-  public void setDoubleBuffered(boolean onOrOff) {
-    doubleBuffered = onOrOff;
+  public void setDoubleBuffered(boolean enable) {
+    doubleBuffered = enable;
   }
 
   /** Indicates whether stereo is enabled. */
@@ -249,8 +249,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   }
   
   /** Enables or disables stereo viewing. */
-  public void setStereo(boolean onOrOff) {
-    stereo = onOrOff;
+  public void setStereo(boolean enable) {
+    stereo = enable;
   }
 
   /** Indicates whether hardware acceleration is enabled. */
@@ -259,8 +259,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   }
   
   /** Enables or disables hardware acceleration. */
-  public void setHardwareAccelerated(boolean onOrOff) {
-    hardwareAccelerated = onOrOff;
+  public void setHardwareAccelerated(boolean enable) {
+    hardwareAccelerated = enable;
   }
 
   /** Returns the number of bits requested for the depth buffer. */
@@ -347,11 +347,19 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     this.accumAlphaBits = accumAlphaBits;
   }
 
-  /** Indicates whether sample buffers for full-scene antialiasing
-      (FSAA) should be allocated for this drawable. Defaults to
-      false. */
-  public void setSampleBuffers(boolean onOrOff) {
-    sampleBuffers = onOrOff;
+  /**
+   * Defaults to false.<br>
+   * Indicates whether sample buffers for full-scene antialiasing
+   * (FSAA) should be allocated for this drawable.<br>
+   * Mind that this requires the alpha component.<br>
+   * If enabled this method also invokes {@link #setAlphaBits(int) setAlphaBits(1)}
+   * if {@link #getAlphaBits()} == 0.<br>
+   */
+  public void setSampleBuffers(boolean enable) {
+    sampleBuffers = enable;
+    if(sampleBuffers && getAlphaBits()==0) {
+        setAlphaBits(1);
+    }        
   }
 
   /** Returns whether sample buffers for full-scene antialiasing
@@ -375,8 +383,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
 
   /** For pbuffers only, indicates whether floating-point buffers
       should be used if available. Defaults to false. */
-  public void setPbufferFloatingPointBuffers(boolean onOrOff) {
-    pbufferFloatingPointBuffers = onOrOff;
+  public void setPbufferFloatingPointBuffers(boolean enable) {
+    pbufferFloatingPointBuffers = enable;
   }
 
   /** For pbuffers only, returns whether floating-point buffers should
@@ -387,8 +395,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
 
   /** For pbuffers only, indicates whether the render-to-texture
       extension should be used if available.  Defaults to false. */
-  public void setPbufferRenderToTexture(boolean onOrOff) {
-    pbufferRenderToTexture = onOrOff;
+  public void setPbufferRenderToTexture(boolean enable) {
+    pbufferRenderToTexture = enable;
   }
 
   /** For pbuffers only, returns whether the render-to-texture
@@ -400,8 +408,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   /** For pbuffers only, indicates whether the
       render-to-texture-rectangle extension should be used if
       available. Defaults to false. */
-  public void setPbufferRenderToTextureRectangle(boolean onOrOff) {
-    pbufferRenderToTextureRectangle = onOrOff;
+  public void setPbufferRenderToTextureRectangle(boolean enable) {
+    pbufferRenderToTextureRectangle = enable;
   }
 
   /** For pbuffers only, returns whether the render-to-texture
