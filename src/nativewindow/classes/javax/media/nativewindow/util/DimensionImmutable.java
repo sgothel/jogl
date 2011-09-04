@@ -29,13 +29,15 @@
 
 package javax.media.nativewindow.util;
 
+import com.jogamp.common.type.WriteCloneable;
+
 /** Immutable Dimension Interface, consisting of it's read only components:<br>
  * <ul>
  *  <li><code>width</code></li>
  *  <li><code>height</code></li>
  * </ul>
  */
-public interface DimensionImmutable extends Cloneable {
+public interface DimensionImmutable extends WriteCloneable {
 
     int getHeight();
 

@@ -42,6 +42,10 @@ public class Point implements Cloneable, PointImmutable {
         this(0, 0);
     }
 
+    public Object cloneMutable() {
+      return clone();
+    }
+  
     public Object clone() {
         try {
             return super.clone();
@@ -59,11 +63,11 @@ public class Point implements Cloneable, PointImmutable {
         return false;
     }
 
-    public int getX() {
+    public final int getX() {
         return x;
     }
 
-    public int getY() {
+    public final int getY() {
         return y;
     }
 

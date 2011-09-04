@@ -101,8 +101,6 @@ public interface CapabilitiesImmutable extends WriteCloneable {
      */
     int getTransparentAlphaValue();
 
-    Object cloneMutable();
-    
     /** Equality over the immutable attributes of both objects */
     @Override
     boolean equals(Object obj);

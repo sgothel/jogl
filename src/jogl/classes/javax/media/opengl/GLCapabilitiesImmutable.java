@@ -28,7 +28,6 @@
 
 package javax.media.opengl;
 
-import com.jogamp.common.type.WriteCloneable;
 import javax.media.nativewindow.CapabilitiesImmutable;
 
 /**
@@ -136,8 +135,6 @@ public interface GLCapabilitiesImmutable extends CapabilitiesImmutable {
      * Indicates whether pbuffer is used/requested.
      */
     boolean isPBuffer();
-
-    Object cloneMutable();
 
     @Override
     boolean equals(Object obj);

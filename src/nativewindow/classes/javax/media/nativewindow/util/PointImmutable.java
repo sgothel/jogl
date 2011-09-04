@@ -29,8 +29,10 @@
 
 package javax.media.nativewindow.util;
 
+import com.jogamp.common.type.WriteCloneable;
+
 /** Immutable Point interface */
-public interface PointImmutable extends Cloneable {
+public interface PointImmutable extends WriteCloneable {
 
     int getX();
 

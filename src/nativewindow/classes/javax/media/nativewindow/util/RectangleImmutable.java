@@ -28,8 +28,10 @@
 
 package javax.media.nativewindow.util;
 
+import com.jogamp.common.type.WriteCloneable;
+
 /** Immutable Rectangle interface */
-public interface RectangleImmutable extends Cloneable {
+public interface RectangleImmutable extends WriteCloneable {
 
     int getHeight();
 

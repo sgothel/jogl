@@ -37,7 +37,7 @@ import javax.media.nativewindow.util.*;
  *  <li><code>refresh rate</code></li>
  * </ul>
  */
-public class MonitorMode  implements Cloneable {
+public class MonitorMode {
     SurfaceSize surfaceSize;
     DimensionImmutable screenSizeMM; // in [mm]
     int refreshRate;
@@ -49,14 +49,6 @@ public class MonitorMode  implements Cloneable {
         this.surfaceSize=surfaceSize;
         this.screenSizeMM=screenSizeMM;
         this.refreshRate=refreshRate;
-    }
-
-    public Object clone() {
-        try {
-            return super.clone();
-        } catch (CloneNotSupportedException ex) {
-            throw new InternalError();
-        }
     }
 
     public final SurfaceSize getSurfaceSize() {

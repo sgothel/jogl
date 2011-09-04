@@ -35,7 +35,7 @@ package javax.media.nativewindow.util;
  *  <li><code>bits per pixel</code></li>
  * </ul>
  */
-public class SurfaceSize  implements Cloneable {
+public class SurfaceSize {
     DimensionImmutable resolution;
     int bitsPerPixel;
 
@@ -45,14 +45,6 @@ public class SurfaceSize  implements Cloneable {
         }
         this.resolution=resolution;
         this.bitsPerPixel=bitsPerPixel;
-    }
-
-    public Object clone() {
-        try {
-            return super.clone();
-        } catch (CloneNotSupportedException ex) {
-            throw new InternalError();
-        }
     }
 
     public final DimensionImmutable getResolution() {
