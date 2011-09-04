@@ -80,7 +80,8 @@ public class TestMultisampleNEWT {
     }
     // turns out we need to have alpha, 
     // otherwise no AA will be visible.
-    caps.setAlphaBits(1); 
+    // This is done implicit now ..
+    // caps.setAlphaBits(1); 
 
     window = GLWindow.create(caps);
     window.setCapabilitiesChooser(chooser);

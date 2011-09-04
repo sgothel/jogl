@@ -125,6 +125,8 @@ public class TestTranslucencyNEWT extends UITestCase {
     public void test01TransparentDecorated() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setBackgroundOpaque(false);
+        // This is done implicit now ..
+        // caps.setAlphaBits(1); 
         runTestGL(caps, false);
     }
 
@@ -132,6 +134,8 @@ public class TestTranslucencyNEWT extends UITestCase {
     public void test01TransparentUndecorated() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setBackgroundOpaque(false);
+        // This is done implicit now ..
+        // caps.setAlphaBits(1); 
         runTestGL(caps, true);
     }
     
