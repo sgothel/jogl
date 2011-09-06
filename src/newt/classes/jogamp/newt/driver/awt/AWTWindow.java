@@ -184,7 +184,7 @@ public class AWTWindow extends WindowImpl {
             if(!container.isDisplayable()) {
                 frame.setUndecorated(isUndecorated());
             } else {
-                if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                if(DEBUG_IMPLEMENTATION) {
                     System.err.println("AWTWindow can't undecorate already created frame");
                 }
             }

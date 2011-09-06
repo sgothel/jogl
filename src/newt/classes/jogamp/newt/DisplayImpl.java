@@ -381,8 +381,12 @@ public abstract class DisplayImpl extends Display {
     
     public void dispatchMessages() {
         // System.err.println("Display.dispatchMessages() 0 "+this+" "+getThreadName());
-        if(0==refCount) return; // no screens 
-        if(null==getGraphicsDevice()) return; // no native device
+        if(0==refCount || // no screens 
+           null==getGraphicsDevice() // no native device
+          ) 
+        {
+            return;
+        }
 
         ArrayList<NEWTEventTask> _events = null;
 

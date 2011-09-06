@@ -84,7 +84,7 @@ public class WindowsWindow extends WindowImpl {
         if(0!=getWindowHandle()) {
             long _hmon = MonitorFromWindow0(getWindowHandle());
             if (hmon != _hmon) {
-                if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                if(DEBUG_IMPLEMENTATION) {
                     Exception e = new Exception("Info: Window Device Changed "+Thread.currentThread().getName()+
                                                 ", HMON "+toHexString(hmon)+" -> "+toHexString(_hmon));
                     e.printStackTrace();

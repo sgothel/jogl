@@ -326,7 +326,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         }
 
         public synchronized void destroyActionInLock() {
-            if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
+            if(Window.DEBUG_IMPLEMENTATION) {
                 String msg = "GLWindow.destroy() "+Thread.currentThread()+", start";
                 System.err.println(msg);
                 //Exception e1 = new Exception(msg);
@@ -355,20 +355,20 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
             }            
             // helper=null; // pending events ..
             
-            if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
+            if(Window.DEBUG_IMPLEMENTATION) {
                 System.err.println("GLWindow.destroy() "+Thread.currentThread()+", fin");
             }
         }
 
         public synchronized void resetCounter() {
-            if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
+            if(Window.DEBUG_IMPLEMENTATION) {
                 System.err.println("GLWindow.resetCounter() "+Thread.currentThread());
             }
             GLWindow.this.resetFPSCounter();
         }
 
         public synchronized void setVisibleActionPost(boolean visible, boolean nativeWindowCreated) {
-            if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
+            if(Window.DEBUG_IMPLEMENTATION) {
                 String msg = "GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", start";
                 System.err.println(msg);
                 // Exception e1 = new Exception(msg);
@@ -396,7 +396,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
                 context = drawable.createContext(sharedContext);
                 context.setContextCreationFlags(additionalCtxCreationFlags);                
             }
-            if(Window.DEBUG_WINDOW_EVENT || Window.DEBUG_IMPLEMENTATION) {
+            if(Window.DEBUG_IMPLEMENTATION) {
                 String msg = "GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", fin";
                 System.err.println(msg);
                 //Exception e1 = new Exception(msg);
