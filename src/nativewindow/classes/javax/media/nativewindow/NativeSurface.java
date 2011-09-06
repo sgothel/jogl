@@ -136,13 +136,13 @@ public interface NativeSurface extends SurfaceUpdatedListener {
   public long getSurfaceHandle();
 
   /**
-   * Returns the width of the client area.
+   * Returns the width of the client area excluding insets (window decorations).
    * @return width of the client area
    */
   public int getWidth();
 
   /**
-   * Returns the height of the client area.
+   * Returns the height of the client area excluding insets (window decorations).
    * @return height of the client area
    */
   public int getHeight();

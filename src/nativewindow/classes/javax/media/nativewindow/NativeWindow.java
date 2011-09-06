@@ -76,10 +76,14 @@ public interface NativeWindow extends NativeSurface {
   public long getWindowHandle();
 
   /** 
-   * Returns the insets defined as the difference between
-   * the top-level window with decorations and the client area.<br>
+   * Returns the insets defined as the width and height of the window decoration
+   * on the left, right, top and bottom.<br>
    * Insets are zero if the window is undecorated, including child windows.
    * 
+   * <p>
+   * Insets are available only after the native window has been created,
+   * ie. the native window has been made visible.<br>
+   *   
    * The top-level window area's top-left corner is located at
    * <pre>
    *   getX() - getInsets().{@link InsetsImmutable#getLeftWidth() getLeftWidth()}
@@ -100,14 +104,14 @@ public interface NativeWindow extends NativeSurface {
   
   /** 
    * @return the current x position of the top-left corner
-   *         of the client area, hence excluding decorations if enabled.<br> 
+   *         of the client area, hence excluding insets (window decorations).<br> 
    * @see #getInsets()
    */
   public int getX();
 
   /** 
    * @return the current y position of the top-left corner
-   *         of the client area, hence excluding decorations if enabled.<br> 
+   *         of the client area, hence excluding insets (window decorations).<br> 
    * @see #getInsets()
    */
   public int getY();

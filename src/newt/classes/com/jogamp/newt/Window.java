@@ -179,8 +179,12 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     void setSize(int width, int height);
 
     /**
-     * Sets the size of the top-level window including decorations.
+     * Sets the size of the top-level window including insets (window decorations).
      * 
+     * <p>
+     * Note: Insets (if supported) are available only after the window is set visible and hence has been created.
+     * </p>
+     *
      * @param width of the top-level window area
      * @param height of the top-level window area
      * 
@@ -190,7 +194,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     void setTopLevelSize(int width, int height);
     
     /**
-     * Sets the location of the window's client area, excluding decorations.<br>
+     * Sets the location of the window's client area, excluding insets (window decorations).<br>
      * 
      * This call is ignored if in fullscreen mode.<br>
      *
@@ -202,7 +206,11 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     void setPosition(int x, int y);
     
     /**
-     * Sets the location of the top-level window inclusive decorations.<br>
+     * Sets the location of the top-level window inclusive insets (window decorations).<br>
+     * 
+     * <p>
+     * Note: Insets (if supported) are available only after the window is set visible and hence has been created.
+     * </p>
      * 
      * This call is ignored if in fullscreen mode.<br>
      *
