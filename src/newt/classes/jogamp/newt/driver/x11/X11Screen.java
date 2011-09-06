@@ -32,12 +32,12 @@
  */
 package jogamp.newt.driver.x11;
 
-import jogamp.nativewindow.x11.X11Util;
 import jogamp.newt.ScreenImpl;
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.util.ScreenModeUtil;
 import java.util.List;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.x11.*;
 
 public class X11Screen extends ScreenImpl {
@@ -212,14 +212,15 @@ public class X11Screen extends ScreenImpl {
             throw new RuntimeException("Invalid resolution index: ! 0 < "+resIdx+" < "+resNumber+", screenMode["+screenModeIdx+"] "+screenMode);
         }
 
-        long dpy = X11Util.openDisplay(display.getName());
-        if( 0 == dpy ) {
-            throw new RuntimeException("Error creating display: "+display.getName());
+        final AbstractGraphicsDevice aDevice = display.getGraphicsDevice();
+        if(null == aDevice) {
+            throw new RuntimeException("null device - not initialized: "+display);
         }
-
+        aDevice.lock();
         boolean done = false;
         long t0 = System.currentTimeMillis();
         try {
+            long dpy = aDevice.getHandle();
             int f = screenMode.getMonitorMode().getRefreshRate();
             int r = screenMode.getRotation();
             if( setCurrentScreenModeStart0(dpy, screen_idx, resIdx, f, r) ) {
@@ -231,7 +232,7 @@ public class X11Screen extends ScreenImpl {
                 }
             }
         } finally {
-            X11Util.closeDisplay(dpy);
+            aDevice.unlock();
         }
 
         if(!done) {
