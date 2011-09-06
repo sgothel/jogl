@@ -409,7 +409,7 @@ static jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, j
             XFree(jogl_java_object_data_pp);
             if(True==showWarning) {
                 fprintf(stderr, "Warning: NEWT X11Window: Fetched invalid Atom NEWT_JAVA_OBJECT window property (res %d) nitems %ld, bytes_after %ld, actual_type %ld, NEWT_JAVA_OBJECT %ld, result 0!\n", 
-                res, nitems, bytes_after, (long)actual_type, javaObjectAtom);
+                res, nitems, bytes_after, (long)actual_type, (long)javaObjectAtom);
             }
             return NULL;
         }
@@ -484,15 +484,15 @@ static Status NewtWindows_getFrameExtends(Display *dpy, Window window, int *left
                                  &nitems, &bytes_after, &frame_extends_data_pp);
 
         if ( Success != res ) {
-            fprintf(stderr, "Warning: NEWT X11Window: Could not fetch Atom _NET_FRAME_EXTENTS window property (res %d) nitems %ld, bytes_after %ld, result 0!\n", res, nitems, bytes_after);
+            fprintf(stderr, "Error: NEWT X11Window: Could not fetch Atom _NET_FRAME_EXTENTS window property (res %d) nitems %ld, bytes_after %ld, result 0!\n", res, nitems, bytes_after);
             return 0; // Error
         }
 
         if(nitems<nitems_32 || NULL==frame_extends_data_pp) {
             XFree(frame_extends_data_pp);
-            fprintf(stderr, "Warning: NEWT X11Window: Fetched invalid Atom _NET_FRAME_EXTENTS window property (res %d) nitems %ld, bytes_after %ld, actual_type %ld, actual_format %d, _NET_FRAME_EXTENTS %ld, result 0!\n", 
+            DBG_PRINT( "Warning: NEWT X11Window: Fetched invalid Atom _NET_FRAME_EXTENTS window property (res %d) nitems %ld, bytes_after %ld, actual_type %ld, actual_format %d, _NET_FRAME_EXTENTS %ld, result 0!\n", 
                 res, nitems, bytes_after, (long)actual_type, actual_format, _NET_FRAME_EXTENTS);
-            return 0; // Error
+            return 0; // Error, but ok - ie window not mapped
         }
     }
     long * extends = (long*) frame_extends_data_pp;
