@@ -122,13 +122,13 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     };
 
     /** sets a new NEWT child, provoking reparenting on the NEWT level. */
-    public NewtCanvasAWT setNEWTChild(Window child) {
+    /*package */ NewtCanvasAWT setNEWTChild(Window child) {
         if(newtChild!=child) {
             newtChild = child;
             if(null!=nativeWindow) {
                 java.awt.Container cont = AWTMisc.getContainer(this);
                 // reparent right away, addNotify has been called already
-                reparentWindow( (null!=newtChild) ? true : false, cont );
+                reparentWindow( (null!=child) ? true : false, cont );
             }
         }
         return this;
@@ -151,7 +151,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         return awtWindowClosingProtocol.setDefaultCloseOperation(op);
     }
 
-    void configureNewtChild(boolean attach) {
+    /* package */ void configureNewtChild(boolean attach) {
         if(null!=awtAdapter) {
           awtAdapter.removeFrom(this);
           awtAdapter=null;
@@ -233,7 +233,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       } else {
           configureNewtChild(false);
           nativeWindow = null;
-          newtChild.setVisible(false);
           newtChild.reparentWindow(null);
       }
     }
