@@ -172,7 +172,6 @@ static jmethodID focusChangedID = NULL;
 static jmethodID visibleChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowRepaintID = NULL;
-static jmethodID windowReparentedID = NULL;
 static jmethodID enqueueMouseEventID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID enqueueKeyEventID = NULL;
@@ -490,8 +489,8 @@ static Status NewtWindows_getFrameExtends(Display *dpy, Window window, int *left
 
         if(nitems<nitems_32 || NULL==frame_extends_data_pp) {
             XFree(frame_extends_data_pp);
-            DBG_PRINT( "Warning: NEWT X11Window: Fetched invalid Atom _NET_FRAME_EXTENTS window property (res %d) nitems %ld, bytes_after %ld, actual_type %ld, actual_format %d, _NET_FRAME_EXTENTS %ld, result 0!\n", 
-                res, nitems, bytes_after, (long)actual_type, actual_format, _NET_FRAME_EXTENTS);
+            // DBG_PRINT( "Warning: NEWT X11Window: Fetched invalid Atom _NET_FRAME_EXTENTS window property (res %d) nitems %ld, bytes_after %ld, actual_type %ld, actual_format %d, _NET_FRAME_EXTENTS %ld, result 0!\n", 
+            //     res, nitems, bytes_after, (long)actual_type, actual_format, _NET_FRAME_EXTENTS);
             return 0; // Error, but ok - ie window not mapped
         }
     }
@@ -501,8 +500,8 @@ static Status NewtWindows_getFrameExtends(Display *dpy, Window window, int *left
     *top = (int) *(extends + 2);
     *bottom = (int) *(extends + 3);
 
-    DBG_PRINT( "X11: _NET_FRAME_EXTENTS: window %p insets [ l %d, r %d, t %d, b %d ]\n",
-        (void*)window, *left, *right, *top, *bottom);
+    // DBG_PRINT( "X11: _NET_FRAME_EXTENTS: window %p insets [ l %d, r %d, t %d, b %d ]\n",
+    //     (void*)window, *left, *right, *top, *bottom);
         
     XFree(frame_extends_data_pp);
 
@@ -878,8 +877,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
                             (void*)evt.xreparent.parent, (void*)parentRoot, (void*)parentTopParent,
                             (void*)evt.xreparent.window, (void*)winRoot, (void*)winTopParent);
                     #endif
-
-                    (*env)->CallVoidMethod(env, jwindow, windowReparentedID, parentResult);
                 }
                 break;
 
@@ -1350,7 +1347,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_initIDs0
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(IIII)V");
-    windowReparentedID = (*env)->GetMethodID(env, clazz, "windowReparented", "(J)V");
     enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZIIIC)V");
@@ -1365,7 +1361,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_initIDs0
         visibleChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowRepaintID == NULL ||
-        windowReparentedID == NULL ||
         enqueueMouseEventID == NULL ||
         sendMouseEventID == NULL ||
         enqueueKeyEventID == NULL ||

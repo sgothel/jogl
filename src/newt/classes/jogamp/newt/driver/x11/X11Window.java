@@ -98,8 +98,6 @@ public class X11Window extends WindowImpl {
             System.err.println("X11Window reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
                                getReconfigureFlagsAsString(null, flags));
         }
-        reparentHandle=0;
-        reparentCount=0;
 
         if(0 == ( FLAG_IS_UNDECORATED & flags)) {
             final InsetsImmutable i = getInsets();         
@@ -151,15 +149,5 @@ public class X11Window extends WindowImpl {
     private native void setTitle0(long display, long windowHandle, String title);
     private native void requestFocus0(long display, long windowHandle, boolean force);
 
-    private void windowReparented(long gotParentHandle) {
-        reparentHandle = gotParentHandle;
-        reparentCount++;
-        if(DEBUG_IMPLEMENTATION) { 
-            System.err.println("******** new parent ("+reparentCount+"): " + toHexString(reparentHandle) );
-        }
-    }
-
     private long   windowHandleClose;
-    private volatile long reparentHandle;
-    private volatile int reparentCount;
 }
