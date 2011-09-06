@@ -335,7 +335,7 @@ public abstract class DisplayImpl extends Display {
         return aDevice;
     }
 
-    public final boolean isNativeValid() {
+    public synchronized final boolean isNativeValid() {
         return null != aDevice;
     }
 

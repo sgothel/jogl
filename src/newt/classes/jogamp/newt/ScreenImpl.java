@@ -169,10 +169,15 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 System.err.println("Screen.createNative() START ("+DisplayImpl.getThreadName()+", "+this+")");
             }
             t0 = System.currentTimeMillis();
-            display.addReference();
-            createNativeImpl();
-            if(null == aScreen) {
-                throw new NativeWindowException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
+            display.createNative(); // 1st display: trigger creation w/o incr ref count (hold native dispatching) 
+            try {
+                createNativeImpl();
+                if(null == aScreen) {
+                    throw new NativeWindowException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
+                }
+                initScreenModeStatus();
+            } finally {
+                display.addReference(); // 1st display: allow native dispatching
             }
             if(DEBUG) {
                 System.err.println("Screen.createNative() END ("+DisplayImpl.getThreadName()+", "+this+")");
@@ -181,7 +186,8 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 screensActive++;
             }
         }
-        initScreenModeStatus();
+        ScreenModeStatus sms = ScreenModeStatus.getScreenModeStatus(this.getFQName());
+        sms.addListener(this);
     }
 
     public synchronized final void destroy() {
@@ -263,7 +269,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         return aScreen;
     }
 
-    public final boolean isNativeValid() {
+    public synchronized final boolean isNativeValid() {
         return null != aScreen;
     }
 
@@ -447,8 +453,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         return false;
     }
 
-    private void initScreenModeStatus() {
-        // JAU: FIXME: Add return ..
+    private ScreenModeStatus initScreenModeStatus() {
         ScreenModeStatus sms;
         ScreenModeStatus.lockScreenModeStatus();
         try {
@@ -481,10 +486,10 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 }
                 ScreenModeStatus.mapScreenModeStatus(this.getFQName(), sms);
             }
-            sms.addListener(this);
         } finally {
             ScreenModeStatus.unlockScreenModeStatus();
         }
+        return sms;
     }
 
     /** ignores bpp < 15 */
