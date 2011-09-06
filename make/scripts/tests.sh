@@ -67,13 +67,13 @@ function jrun() {
     #D_ARGS="-Djogl.debug.Animator -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.EDT -Dnewt.debug.Display -Dnativewindow.debug.X11Util -Djogl.debug.GLDrawable -Djogl.debug.GLCanvas"
     #D_ARGS="-Djogl.debug.GLContext -Dnewt.debug=all"
-    D_ARGS="-Djogl.debug.GraphicsConfiguration -Djogl.debug.CapabilitiesChooser"
+    #D_ARGS="-Djogl.debug.GraphicsConfiguration -Djogl.debug.CapabilitiesChooser"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
-    #D_ARGS="-Dnewt.debug=all"
+    D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GraphicsConfiguration"
@@ -142,18 +142,18 @@ function testawtmt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteWindow01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteGLWindows01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated $*
 #testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
@@ -193,14 +193,14 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cAWT
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02AWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT -time 100000
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03bAWT -time 100000
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03bAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleNEWT $*

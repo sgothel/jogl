@@ -6,11 +6,12 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GL
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.awt.TestSwingAWT01GLn
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT -time 5000
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT -time 5000
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT %1 %2 %3 %4 %5 %6
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT -time 30000
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT %1 %2 %3
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %1 %2 %3 %4 %5 %6
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %1 %2 %3 %4 %5 %6
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT -time 5000
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT -time 5000
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01
@@ -30,6 +31,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestFocus02Swin
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.nativewindow.TestRecursiveToolkitLockCORE
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT -time 100000
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting03bAWT -time 100000
 
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT
@@ -39,7 +41,7 @@ REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.ManualScreenMode03N
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT
+REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT %1 %2 %3 %4
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT -time 10000
