@@ -1566,6 +1566,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(animatorPaused) {
                 lifecycleHook.resumeRenderingAction();
             }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
     }
 
