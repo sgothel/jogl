@@ -227,7 +227,7 @@ public class X11Screen extends ScreenImpl {
                 while(!done && System.currentTimeMillis()-t0 < SCREEN_MODE_CHANGE_TIMEOUT) {
                     done = setCurrentScreenModePollEnd0(dpy, screen_idx, resIdx, f, r);
                     if(!done) {
-                        Thread.yield();
+                        try { Thread.sleep(10); } catch (InterruptedException e) { }
                     }
                 }
             }
