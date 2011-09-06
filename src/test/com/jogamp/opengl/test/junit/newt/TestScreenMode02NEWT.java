@@ -145,8 +145,6 @@ public class TestScreenMode02NEWT extends UITestCase {
 
         // check reset ..
 
-        ScreenMode saveOrigMode = (ScreenMode) smOrig.clone();
-
         Assert.assertEquals(true,display.isNativeValid());
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window.isNativeValid());
@@ -169,7 +167,7 @@ public class TestScreenMode02NEWT extends UITestCase {
         System.err.println("[1] current/orig: "+smCurrent);
 
         Assert.assertNotNull(smCurrent);
-        Assert.assertEquals(saveOrigMode, smOrig);
+        Assert.assertEquals(smCurrent, smOrig);
 
         screen.destroy();
 
