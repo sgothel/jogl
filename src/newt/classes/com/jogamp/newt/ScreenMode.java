@@ -101,7 +101,7 @@ import com.jogamp.newt.util.MonitorMode;
  * </pre>
  *
  */
-public class ScreenMode implements Cloneable {
+public class ScreenMode {
     /** zero rotation, compared to normal settings */
     public static final int ROTATE_0   = 0;
 
@@ -132,14 +132,6 @@ public class ScreenMode implements Cloneable {
         }
         this.monitorMode = monitorMode;
         this.rotation = rotation;
-    }
-
-    public Object clone() {
-        try {
-            return super.clone();
-        } catch (CloneNotSupportedException ex) {
-            throw new InternalError();
-        }
     }
 
     /** Returns the unrotated <code>MonitorMode</code> */
