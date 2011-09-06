@@ -102,11 +102,11 @@ public class TestScreenMode00NEWT extends UITestCase {
 
         Screen screen = window.getScreen();
 
-        List screenModes = screen.getScreenModes();
+        List<ScreenMode> screenModes = screen.getScreenModes();
         if(null != screenModes) {
             Assert.assertTrue(screenModes.size()>0);
             int i=0;
-            for(Iterator iter=screenModes.iterator(); iter.hasNext(); i++) {
+            for(Iterator<ScreenMode> iter=screenModes.iterator(); iter.hasNext(); i++) {
                 System.err.println(i+": "+iter.next());
             }
             ScreenMode sm_o = screen.getOriginalScreenMode();

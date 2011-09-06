@@ -35,6 +35,7 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.opengl.util.Animator;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -48,6 +49,7 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.util.ScreenModeUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+
 import java.util.List;
 import javax.media.nativewindow.util.Dimension;
 
@@ -57,8 +59,6 @@ public class TestScreenMode01NEWT extends UITestCase {
     
     static int waitTimeShort = 2000; // 2 sec
     static int waitTimeLong = 8000; // 8 sec
-    
-    
 
     @BeforeClass
     public static void initClass() {
@@ -68,6 +68,11 @@ public class TestScreenMode01NEWT extends UITestCase {
         glp = GLProfile.getDefault();
     }
 
+    @AfterClass
+    public static void releaseClass() throws InterruptedException {
+        Thread.sleep(waitTimeShort);
+    }
+    
     static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
         Assert.assertNotNull(caps);
         caps.setOnscreen(onscreen);
@@ -88,6 +93,7 @@ public class TestScreenMode01NEWT extends UITestCase {
     
     @Test
     public void testFullscreenChange01() throws InterruptedException {
+        Thread.sleep(waitTimeShort);
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
@@ -162,6 +168,7 @@ public class TestScreenMode01NEWT extends UITestCase {
         screenModes = ScreenModeUtil.filterByResolution(screenModes, new Dimension(801, 601));
         Assert.assertNotNull(screenModes);
         Assert.assertTrue(screenModes.size()>0);
+        
         screenModes = ScreenModeUtil.getHighestAvailableBpp(screenModes);
         Assert.assertNotNull(screenModes);
         Assert.assertTrue(screenModes.size()>0);
@@ -183,6 +190,7 @@ public class TestScreenMode01NEWT extends UITestCase {
 
         animator.stop();
         destroyWindow(window);
+        Thread.sleep(waitTimeShort);
 
         Assert.assertEquals(false,window.isVisible());
         Assert.assertEquals(false,window.isNativeValid());
@@ -204,22 +212,18 @@ public class TestScreenMode01NEWT extends UITestCase {
 
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
-
-        Thread.sleep(waitTimeShort);
     }
 
-    // @Test
+    @Test
     public void testScreenModeChangeWithFS01Pre() throws InterruptedException {
         Thread.sleep(waitTimeShort);
         testScreenModeChangeWithFS01Impl(true) ;
-        Thread.sleep(waitTimeShort);
     }
 
     @Test
     public void testScreenModeChangeWithFS01Post() throws InterruptedException {
         Thread.sleep(waitTimeShort);
         testScreenModeChangeWithFS01Impl(false) ;
-        Thread.sleep(waitTimeShort);
     }
 
     protected void testScreenModeChangeWithFS01Impl(boolean preFS) throws InterruptedException {
@@ -230,7 +234,13 @@ public class TestScreenMode01NEWT extends UITestCase {
         Animator animator = new Animator(window);
         animator.start();
 
+        ScreenMode smCurrent = screen.getCurrentScreenMode();
+        Assert.assertNotNull(smCurrent);
         ScreenMode smOrig = screen.getOriginalScreenMode();
+        Assert.assertNotNull(smOrig);
+        Assert.assertEquals(smCurrent, smOrig);
+        System.err.println("[0] current/orig: "+smCurrent);
+        
         List<ScreenMode> screenModes = screen.getScreenModes();
         if(null==screenModes) {
             // no support ..
@@ -275,6 +285,7 @@ public class TestScreenMode01NEWT extends UITestCase {
 
         animator.stop();
         destroyWindow(window);
+        Thread.sleep(waitTimeShort);
 
         Assert.assertEquals(false,window.isVisible());
         Assert.assertEquals(false,window.isNativeValid());
@@ -286,7 +297,7 @@ public class TestScreenMode01NEWT extends UITestCase {
         Assert.assertEquals(true,display.isNativeValid());
         Assert.assertEquals(true,screen.isNativeValid());
         
-        ScreenMode smCurrent = screen.getCurrentScreenMode();
+        smCurrent = screen.getCurrentScreenMode();
         System.err.println("[1] current/orig: "+smCurrent);
 
         Assert.assertNotNull(smCurrent);

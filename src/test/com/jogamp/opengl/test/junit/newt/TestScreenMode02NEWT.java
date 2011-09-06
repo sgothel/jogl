@@ -35,6 +35,7 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.opengl.util.Animator;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -66,6 +67,11 @@ public class TestScreenMode02NEWT extends UITestCase {
         glp = GLProfile.getDefault();
     }
 
+    @AfterClass
+    public static void releaseClass() throws InterruptedException {
+        Thread.sleep(waitTimeShort);
+    }
+    
     static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
         Assert.assertNotNull(caps);
         caps.setOnscreen(onscreen);
@@ -173,8 +179,6 @@ public class TestScreenMode02NEWT extends UITestCase {
 
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
-
-        Thread.sleep(waitTimeShort);
     }
 
     public static void main(String args[]) throws IOException {
