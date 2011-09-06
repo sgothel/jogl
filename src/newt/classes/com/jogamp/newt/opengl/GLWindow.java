@@ -237,7 +237,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     public final InsetsImmutable getInsets() {    
         return window.getInsets();
     }
-
+    
     public final void setPosition(int x, int y) {
         window.setPosition(x, y);
     }
@@ -348,12 +348,6 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
             }
             context = null;
             drawable = null;
-            
-            GLAnimatorControl ctrl = GLWindow.this.getAnimator();
-            if ( null!=ctrl ) {
-                ctrl.remove(GLWindow.this);
-            }            
-            // helper=null; // pending events ..
             
             if(Window.DEBUG_IMPLEMENTATION) {
                 System.err.println("GLWindow.destroy() "+Thread.currentThread()+", fin");
