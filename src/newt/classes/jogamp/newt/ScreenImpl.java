@@ -338,7 +338,6 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         if(smU.equals(smC)) {
             if(DEBUG) {
                 System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): 0.0 is-current (skip) "+smU+" == "+smC);
-                Thread.dumpStack();
             }            
             return true;
         }
