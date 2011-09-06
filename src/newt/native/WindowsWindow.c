@@ -761,9 +761,7 @@ static void WmSize(JNIEnv *env, jobject window, HWND wnd, UINT type)
 
     DBG_PRINT("*** WindowsWindow: WmSize window %p, %dx%d, visible %d\n", (void*)wnd, w, h, isVisible);
 
-    if(isVisible) {
-        (*env)->CallVoidMethod(env, window, sizeChangedID, w, h, JNI_FALSE);
-    }
+    (*env)->CallVoidMethod(env, window, sizeChangedID, w, h, JNI_FALSE);
 }
 
 static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
@@ -961,8 +959,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 
     case WM_MOVE:
         DBG_PRINT("*** WindowsWindow: WM_MOVE window %p, %d/%d\n", wnd, (int)LOWORD(lParam), (int)HIWORD(lParam));
-        (*env)->CallVoidMethod(env, window, positionChangedID,
-                               (jint)LOWORD(lParam), (jint)HIWORD(lParam));
+        (*env)->CallVoidMethod(env, window, positionChangedID, (jint)LOWORD(lParam), (jint)HIWORD(lParam));
         useDefWindowProc = 1;
         break;
 
