@@ -172,13 +172,14 @@ public class X11Util {
     // not exactly thread safe, but good enough for our purpose,
     // which is to tag a NamedDisplay uncloseable after creation.
     private static Object globalLock = new Object(); 
-    private static LongObjectHashMap globalNamedDisplayMap = new LongObjectHashMap();
+    private static LongObjectHashMap openDisplayMap = new LongObjectHashMap(); // handle -> name
     private static List<NamedDisplay> openDisplayList = new ArrayList<NamedDisplay>();
     private static List<NamedDisplay> pendingDisplayList = new ArrayList<NamedDisplay>();
 
     public static class NamedDisplay {
-        String name;
-        long   handle;
+        final String name;
+        final long   handle;
+        final int    hash32;
         int    refCount;
         boolean unCloseable;
         Throwable creationStack;
@@ -186,8 +187,14 @@ public class X11Util {
         protected NamedDisplay(String name, long handle) {
             this.name=name;
             this.handle=handle;
-            this.refCount=1;
+            this.refCount=0;
             this.unCloseable=false;
+            {
+                int h32;
+                h32 = 31 +                 (int)   handle          ; // lo
+                h32 = ((h32 << 5) - h32) + (int) ( handle >>> 32 ) ; // hi
+                hash32 = h32;
+            }
             if(DEBUG) {
                 this.creationStack=new Throwable("NamedDisplay Created at:");
             } else {
@@ -195,6 +202,22 @@ public class X11Util {
             }
         }
 
+        public final int hashCode() {
+            return hash32;
+        }
+        
+        public final boolean equals(Object obj) {
+            if(this == obj) { return true; }
+            if(obj instanceof NamedDisplay) {
+                NamedDisplay n = (NamedDisplay) obj;
+                return handle == n.handle;
+            }
+            return false;
+        }
+        
+        public final void addRef() { refCount++; }
+        public final void removeRef() { refCount--; }
+        
         public final String getName() { return name; }
         public final long   getHandle() { return handle; }
         public final int    getRefCount() { return refCount; }
@@ -222,8 +245,8 @@ public class X11Util {
         int num=0;
         if(DEBUG||verbose||pendingDisplayList.size() > 0) {
             String msg = "X11Util.Display: Shutdown (close open / pending Displays: "+realXCloseOpenAndPendingDisplays+
-                         ", open (no close attempt): "+globalNamedDisplayMap.size()+"/"+openDisplayList.size()+
-                         ", open (no close attempt and uncloseable): "+pendingDisplayList.size()+")" ;
+                         ", open (no close attempt): "+openDisplayMap.size()+"/"+openDisplayList.size()+
+                         ", pending (not closed, marked uncloseable): "+pendingDisplayList.size()+")" ;
             if(DEBUG) {
                 Exception e = new Exception(msg);
                 e.printStackTrace();
@@ -244,7 +267,7 @@ public class X11Util {
             }
             openDisplayList.clear();
             pendingDisplayList.clear();
-            globalNamedDisplayMap.clear();
+            openDisplayMap.clear();
         }
         return num;
     }
@@ -319,7 +342,7 @@ public class X11Util {
     public static boolean markDisplayUncloseable(long handle) {
         NamedDisplay ndpy;
         synchronized(globalLock) {
-            ndpy = (NamedDisplay) globalNamedDisplayMap.get(handle);
+            ndpy = (NamedDisplay) openDisplayMap.get(handle);
         }
         if( null != ndpy ) {
             ndpy.setUncloseable(true);
@@ -328,26 +351,40 @@ public class X11Util {
         return false;
     }
 
-    /** Returns this created named display. */
+    /** Returns a created or reused named display. */
     public static long openDisplay(String name) {
+        long dpy = 0;
+        NamedDisplay namedDpy = null;
         name = validateDisplayName(name);
-        long dpy = XOpenDisplay(name);
-        if(0==dpy) {
-            throw new NativeWindowException("X11Util.Display: Unable to create a display("+name+") connection. Thread "+Thread.currentThread().getName());
-        }
-        // if you like to debug and synchronize X11 commands ..
-        // setSynchronizeDisplay(dpy, true);
-        NamedDisplay namedDpy = new NamedDisplay(name, dpy);
-        synchronized(globalLock) {
-            globalNamedDisplayMap.put(dpy, namedDpy);
+        boolean reused = false;
+        
+        synchronized(globalLock) {            
+            for(int i=0; i<pendingDisplayList.size(); i++) {
+                if(pendingDisplayList.get(i).getName().equals(name)) {
+                    namedDpy = pendingDisplayList.remove(i);
+                    dpy = namedDpy.getHandle();
+                    reused = true;
+                    break;
+                }
+            }
+            if(0 == dpy) {
+                dpy = XOpenDisplay(name);
+                if(0==dpy) {
+                    throw new NativeWindowException("X11Util.Display: Unable to create a display("+name+") connection. Thread "+Thread.currentThread().getName());
+                }
+                // if you like to debug and synchronize X11 commands ..
+                // setSynchronizeDisplay(dpy, true);
+                namedDpy = new NamedDisplay(name, dpy);
+            }
+            namedDpy.addRef();
+            openDisplayMap.put(dpy, namedDpy);
             openDisplayList.add(namedDpy);
-            pendingDisplayList.add(namedDpy);
-        }
-        if(markAllDisplaysUnclosable) {
-            namedDpy.setUncloseable(true);
+            if(markAllDisplaysUnclosable) {
+                namedDpy.setUncloseable(true);
+            }
         }
         if(DEBUG) {
-            Exception e = new Exception("X11Util.Display: Created new "+namedDpy+". Thread "+Thread.currentThread().getName());
+            Exception e = new Exception("X11Util.Display: openDisplay [reuse "+reused+"] "+namedDpy+". Thread "+Thread.currentThread().getName());
             e.printStackTrace();
         }
         return namedDpy.getHandle();
@@ -357,36 +394,36 @@ public class X11Util {
         NamedDisplay namedDpy;
 
         synchronized(globalLock) {
-            namedDpy = (NamedDisplay) globalNamedDisplayMap.remove(handle);
-            if(namedDpy!=null) {
-                if(!openDisplayList.remove(namedDpy)) { throw new RuntimeException("Internal: "+namedDpy); }
+            namedDpy = (NamedDisplay) openDisplayMap.remove(handle);
+            if(null==namedDpy) {
+                X11Util.dumpPendingDisplayConnections();
+                throw new RuntimeException("X11Util.Display: Display(0x"+Long.toHexString(handle)+") with given handle is not mapped. Thread "+Thread.currentThread().getName());
             }
-        }
-        if(null==namedDpy) {
-            X11Util.dumpPendingDisplayConnections();
-            throw new RuntimeException("X11Util.Display: Display(0x"+Long.toHexString(handle)+") with given handle is not mapped. Thread "+Thread.currentThread().getName());
-        }
-        if(namedDpy.getHandle()!=handle) {
-            X11Util.dumpPendingDisplayConnections();
-            throw new RuntimeException("X11Util.Display: Display(0x"+Long.toHexString(handle)+") Mapping error: "+namedDpy+". Thread "+Thread.currentThread().getName());
-        }
-
-        if(DEBUG) {
-            Exception e = new Exception("X11Util.Display: Closing new "+namedDpy+". Thread "+Thread.currentThread().getName());
-            e.printStackTrace();
-        }
-
-        if(!namedDpy.isUncloseable()) {
-            synchronized(globalLock) {
-                if(!pendingDisplayList.remove(namedDpy)) { throw new RuntimeException("Internal: "+namedDpy); }
+            if(namedDpy.getHandle()!=handle) {
+                X11Util.dumpPendingDisplayConnections();
+                throw new RuntimeException("X11Util.Display: Display(0x"+Long.toHexString(handle)+") Mapping error: "+namedDpy+". Thread "+Thread.currentThread().getName());
             }
-            XCloseDisplay(namedDpy.getHandle());
+    
+            namedDpy.removeRef();
+            if(!openDisplayList.remove(namedDpy)) { throw new RuntimeException("Internal: "+namedDpy); }
+            
+            if(!namedDpy.isUncloseable()) {
+                XCloseDisplay(namedDpy.getHandle());
+            } else {
+                // for reuse
+                pendingDisplayList.add(namedDpy);
+            }
+            
+            if(DEBUG) {
+                Exception e = new Exception("X11Util.Display: Closing new "+namedDpy+". Thread "+Thread.currentThread().getName());
+                e.printStackTrace();
+            }    
         }
     }
 
     public static NamedDisplay getNamedDisplay(long handle) {
         synchronized(globalLock) {
-            return (NamedDisplay) globalNamedDisplayMap.get(handle);
+            return (NamedDisplay) openDisplayMap.get(handle);
         }
     }
 
