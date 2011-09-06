@@ -29,6 +29,8 @@ package com.jogamp.opengl.test.junit.newt.parenting;
 
 import java.awt.Frame;
 
+import javax.media.nativewindow.util.InsetsImmutable;
+
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -49,16 +51,35 @@ class NewtAWTReparentingKeyAdapter extends KeyAdapter {
         if(e.getKeyChar()=='d') {
             glWindow.setUndecorated(!glWindow.isUndecorated());
         } else if(e.getKeyChar()=='f') {
-            glWindow.setFullscreen(!glWindow.isFullscreen());
+            glWindow.setFullscreen(!glWindow.isFullscreen());                
+        } else if(e.getKeyChar()=='p') {
+            new Thread() {
+                public void run() {
+                    if(glWindow.getAnimator().isPaused()) {
+                        glWindow.getAnimator().resume();
+                    } else {
+                        glWindow.getAnimator().pause();    
+                    }                                
+                }
+            }.run();
         } else if(e.getKeyChar()=='r') {
             if(glWindow.getParent()==null) {
                 System.err.println("XXX glWin to home");
                 glWindow.reparentWindow(newtCanvasAWT.getNativeWindow());
             } else {
-                System.err.println("XXX glWin to TOP");
-                glWindow.setUndecorated(false);
+                final InsetsImmutable nInsets = glWindow.getInsets();
+                java.awt.Insets aInsets = frame.getInsets();
+                System.err.println("XXX glWin to TOP - insets " + nInsets + ", " + aInsets);
                 glWindow.reparentWindow(null);
-                glWindow.setTopLevelPosition(frame.getX()+frame.getWidth(), frame.getY());
+                int dx, dy;
+                if(nInsets.getTotalHeight()==0) {
+                    dx = aInsets.left;
+                    dy = aInsets.top;
+                } else {
+                    dx = nInsets.getLeftWidth();
+                    dy = nInsets.getTopHeight();
+                }
+                glWindow.setPosition(frame.getX()+frame.getWidth()+dx, frame.getY()+dy);
             }
             glWindow.requestFocus();
         }

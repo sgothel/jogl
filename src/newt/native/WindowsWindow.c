@@ -1452,19 +1452,17 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_reconfigure
         windowStyle |= WS_VISIBLE ;
     }
     
-    if( TST_FLAG_CHANGE_FULLSCREEN(flags) && !TST_FLAG_IS_FULLSCREEN(flags) ) { // FS off
-        NewtWindows_setFullScreen(JNI_FALSE);
-    }
-
     // order of call sequence: (MS documentation)
     //    TOP:  SetParent(.., NULL); Clear WS_CHILD [, Set WS_POPUP]
     //  CHILD:  Set WS_CHILD [, Clear WS_POPUP]; SetParent(.., PARENT) 
     //
     if( TST_FLAG_CHANGE_PARENTING(flags) && NULL == hwndP ) {
+        // TOP: in -> out
         SetParent(hwnd, NULL);
     }
     
     if( TST_FLAG_CHANGE_FULLSCREEN(flags) && TST_FLAG_IS_FULLSCREEN(flags) ) { // FS on
+        // TOP: in -> out
         NewtWindows_setFullScreen(JNI_TRUE);
     }
 
@@ -1480,7 +1478,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_reconfigure
         SetWindowPos(hwnd, 0, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER );
     }
 
+    if( TST_FLAG_CHANGE_FULLSCREEN(flags) && !TST_FLAG_IS_FULLSCREEN(flags) ) { // FS off
+        // CHILD: out -> in
+        NewtWindows_setFullScreen(JNI_FALSE);
+    }
+
     if ( TST_FLAG_CHANGE_PARENTING(flags) && NULL != hwndP ) {
+        // CHILD: out -> in
         SetParent(hwnd, hwndP );
     }
 

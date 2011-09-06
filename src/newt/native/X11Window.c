@@ -1567,6 +1567,14 @@ static void NewtWindows_setPosSize(Display *dpy, int screen_index, Window w, jin
     }
 }
 
+static Bool WaitForMapNotify( Display *dpy, XEvent *event, XPointer arg ) {
+    return (event->type == MapNotify) && (event->xmap.window == (Window) arg);
+}
+
+static Bool WaitForUnmapNotify( Display *dpy, XEvent *event, XPointer arg ) {
+    return (event->type == UnmapNotify) && (event->xmap.window == (Window) arg);
+}
+
 /*
  * Class:     jogamp_newt_driver_x11_X11Window
  * Method:    reconfigureWindow0
@@ -1583,56 +1591,81 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
     Window parent = (0!=jparent)?(Window)jparent:root;
     Window topParentParent;
     Window topParentWindow;
+    XEvent event;
+    Bool tempInvisible = ( TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_PARENTING(flags) ) &&
+                          !TST_FLAG_CHANGE_VISIBILITY(flags) && TST_FLAG_IS_VISIBLE(flags) ;
 
     displayDispatchErrorHandlerEnable(1, env);
 
     topParentParent = NewtWindows_getParent (dpy, parent);
     topParentWindow = NewtWindows_getParent (dpy, w);
 
-    DBG_PRINT( "X11: reconfigureWindow0 dpy %p, scrn %d/%p, parent %p/%p (top %p), win %p (top %p), %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, visibleChange %d, visible %d\n",
+    DBG_PRINT( "X11: reconfigureWindow0 dpy %p, scrn %d/%p, parent %p/%p (top %p), win %p (top %p), %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, visibleChange %d, visible %d, tempInvisible %d\n",
         (void*)dpy, screen_index, (void*)scrn, (void*) jparent, (void*)parent, (void*) topParentParent, (void*)w, (void*)topParentWindow,
         x, y, width, height, 
         TST_FLAG_CHANGE_PARENTING(flags),  TST_FLAG_HAS_PARENT(flags),
         TST_FLAG_CHANGE_DECORATION(flags), TST_FLAG_IS_UNDECORATED(flags),
         TST_FLAG_CHANGE_FULLSCREEN(flags), TST_FLAG_IS_FULLSCREEN(flags),
-        TST_FLAG_CHANGE_VISIBILITY(flags), TST_FLAG_IS_VISIBLE(flags));
+        TST_FLAG_CHANGE_VISIBILITY(flags), TST_FLAG_IS_VISIBLE(flags), tempInvisible);
 
-    if( TST_FLAG_CHANGE_FULLSCREEN(flags) && !TST_FLAG_IS_FULLSCREEN(flags) ) { // FS off
-        NewtWindows_setFullscreen(dpy, root, w, False );
-        XSync(dpy, False);
+    if( tempInvisible ) {
+        DBG_PRINT( "X11: reconfigureWindow0 TEMP VISIBLE OFF\n");
+        XUnmapWindow(dpy, w);
+        XIfEvent( dpy, &event, WaitForUnmapNotify, (XPointer) w );
     }
 
-    if( TST_FLAG_CHANGE_DECORATION(flags) && TST_FLAG_IS_UNDECORATED(flags) ) {
-        NewtWindows_setDecorations (dpy, w, False);
-        XSync(dpy, False);
-    }
-
-    if( TST_FLAG_CHANGE_PARENTING(flags) ) {
+    if( TST_FLAG_CHANGE_PARENTING(flags) && !TST_FLAG_HAS_PARENT(flags) ) {
+        // TOP: in -> out
+        DBG_PRINT( "X11: reconfigureWindow0 PARENTING in->out\n");
         XReparentWindow( dpy, w, parent, x, y ); // actual reparent call
         XSync(dpy, False);
     }
 
-    if( TST_FLAG_CHANGE_DECORATION(flags) && !TST_FLAG_IS_UNDECORATED(flags) ) {
-        NewtWindows_setDecorations (dpy, w, True);
+    if( TST_FLAG_CHANGE_FULLSCREEN(flags) && TST_FLAG_IS_FULLSCREEN(flags) ) { // FS on
+        // TOP: in -> out
+        DBG_PRINT( "X11: reconfigureWindow0 FULLSCREEN in->out\n");
+        NewtWindows_setFullscreen(dpy, root, w, True );
         XSync(dpy, False);
+    }
+
+    DBG_PRINT( "X11: reconfigureWindow0 DECORATIONS\n");
+    NewtWindows_setDecorations (dpy, w, TST_FLAG_IS_UNDECORATED(flags) ? False : True);
+    XSync(dpy, False);
+
+    if( TST_FLAG_CHANGE_FULLSCREEN(flags) && !TST_FLAG_IS_FULLSCREEN(flags) ) { // FS off
+        // CHILD: out -> in
+        DBG_PRINT( "X11: reconfigureWindow0 FULLSCREEN out->in\n");
+        NewtWindows_setFullscreen(dpy, root, w, False );
+        XSync(dpy, False);
+    }
+    
+    DBG_PRINT( "X11: reconfigureWindow0 setPosSize\n");
+    NewtWindows_setPosSize(dpy, screen_index, w, x, y, width, height, TST_FLAG_IS_UNDECORATED(flags) ? True : False);
+
+    if( TST_FLAG_CHANGE_PARENTING(flags) && TST_FLAG_HAS_PARENT(flags) ) {
+        // CHILD: out -> in
+        DBG_PRINT( "X11: reconfigureWindow0 PARENTING out->in\n");
+        XReparentWindow( dpy, w, parent, x, y ); // actual reparent call
+        XSync(dpy, False);
+    }
+
+    if( tempInvisible ) {
+        DBG_PRINT( "X11: reconfigureWindow0 TEMP VISIBLE ON\n");
+        XMapRaised(dpy, w);
+        XIfEvent( dpy, &event, WaitForMapNotify, (XPointer) w );
     }
 
     if( TST_FLAG_CHANGE_VISIBILITY(flags) ) {
         if( TST_FLAG_IS_VISIBLE(flags) ) {
+            DBG_PRINT( "X11: reconfigureWindow0 VISIBLE ON\n");
             XMapRaised(dpy, w);
         } else {
+            DBG_PRINT( "X11: reconfigureWindow0 VISIBLE OFF\n");
             XUnmapWindow(dpy, w);
         }
         XSync(dpy, False);
     }
 
-    NewtWindows_setPosSize(dpy, screen_index, w, x, y, width, height, TST_FLAG_IS_UNDECORATED(flags) ? True : False);
-
-    if( TST_FLAG_CHANGE_FULLSCREEN(flags) && TST_FLAG_IS_FULLSCREEN(flags) ) { // FS on
-        NewtWindows_setFullscreen(dpy, root, w, True );
-        XSync(dpy, False);
-    }
-    
     displayDispatchErrorHandlerEnable(0, env);
 
     DBG_PRINT( "X11: reconfigureWindow0 X\n");

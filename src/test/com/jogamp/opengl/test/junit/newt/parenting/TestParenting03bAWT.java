@@ -44,7 +44,6 @@ import javax.media.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.*;
-import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
@@ -74,7 +73,6 @@ public class TestParenting03bAWT extends UITestCase {
         Frame frame1 = new Frame("AWT Parent Frame");
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUpdateFPSFrames(1, null);
-        glWindow1.setUndecorated(true);
         NewtCanvasAWT newtCanvasAWT1 = new NewtCanvasAWT(glWindow1);
         newtCanvasAWT1.setPreferredSize(size);
 
@@ -87,7 +85,6 @@ public class TestParenting03bAWT extends UITestCase {
 
         GLWindow glWindow2 = GLWindow.create(glCaps);
         glWindow2.setUpdateFPSFrames(1, null);
-        glWindow2.setUndecorated(true);
         NewtCanvasAWT newtCanvasAWT2 = new NewtCanvasAWT(glWindow2);
         newtCanvasAWT2.setPreferredSize(size);
 
