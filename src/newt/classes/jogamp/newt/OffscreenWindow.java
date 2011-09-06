@@ -85,11 +85,6 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
         return surfaceHandle;
     }
 
-    protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
-        sizeChanged(width, height, false);
-        visibleChanged(visible);
-    }
-
     protected void requestFocusImpl(boolean reparented) {
     }
 
@@ -108,8 +103,14 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
         // nop
         return false;
     }
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, boolean parentChange, int fullScreenChange, int decorationChange) {
-        shouldNotCallThis();
+    
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
+            sizeChanged(width, height, false);
+            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));            
+        } else {
+            shouldNotCallThis();
+        }
         return false;
     }
 

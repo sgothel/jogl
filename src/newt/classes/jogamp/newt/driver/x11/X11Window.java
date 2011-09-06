@@ -38,6 +38,7 @@ import jogamp.newt.WindowImpl;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.nativewindow.util.Insets;
+import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
 public class X11Window extends WindowImpl {
@@ -92,18 +93,26 @@ public class X11Window extends WindowImpl {
         }
     }
 
-    protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
-        setVisible0(getDisplayEDTHandle(), getWindowHandle(), visible, x, y, width, height);
-    }
-
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, 
-                                            boolean parentChange, int fullScreenChange, int decorationChange) {
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) { 
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("X11Window reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
+                               getReconfigureFlagsAsString(null, flags));
+        }
         reparentHandle=0;
         reparentCount=0;
-        long reqNewParentHandle = ( fullScreenChange > 0 ) ? 0 : getParentWindowHandle() ;
 
-        reconfigureWindow0( getDisplayEDTHandle(), getScreenIndex(), reqNewParentHandle, getWindowHandle(),
-                            x, y, width, height, isVisible(), parentChange, fullScreenChange, decorationChange);
+        if(0 == ( FLAG_IS_UNDECORATED & flags)) {
+            final InsetsImmutable i = getInsets();         
+            
+            // client position -> top-level window position
+            x -= i.getLeftWidth() ;
+            y -= i.getTopHeight() ;
+            if( 0 > x ) { x = 0; }
+            if( 0 > y ) { y = 0; }            
+        }        
+        reconfigureWindow0( getDisplayEDTHandle(), getScreenIndex(), getParentWindowHandle(), getWindowHandle(),
+                            x, y, width, height, flags);
+
         return true;
     }
 
@@ -121,7 +130,7 @@ public class X11Window extends WindowImpl {
     }
 
     protected void updateInsetsImpl(Insets insets) {
-        // TODO !!        
+        // nop - using event driven insetsChange(..)         
     }
     
     //----------------------------------------------------------------------
@@ -137,13 +146,10 @@ public class X11Window extends WindowImpl {
                                             long visualID, long javaObjectAtom, long windowDeleteAtom, 
                                             int x, int y, int width, int height, boolean undecorated);
     private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom);
-    private native void setVisible0(long display, long windowHandle, boolean visible, int x, int y, int width, int height);
-    private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long windowHandle, 
-                                                  int x, int y, int width, int height, boolean isVisible,
-                                                  boolean parentChange, int fullScreenChange, int decorationChange);
+    private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long windowHandle,
+                                           int x, int y, int width, int height, int flags);    
     private native void setTitle0(long display, long windowHandle, String title);
     private native void requestFocus0(long display, long windowHandle, boolean force);
-    private native Object getRelativeLocation0(long display, int screen_index, long src_win, long dest_win, int src_x, int src_y);
 
     private void windowReparented(long gotParentHandle) {
         reparentHandle = gotParentHandle;

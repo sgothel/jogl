@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import com.jogamp.newt.opengl.GLWindow;
 
+import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLPbuffer;
@@ -57,8 +58,8 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-        width  = 512;
-        height = 512;
+        width  = 256;
+        height = 256;
     }
 
     private void initShared() {
@@ -85,7 +86,6 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
         }
 
         glWindow.setSize(width, height);
-        glWindow.setPosition(x, y);
 
         GearsES1 gears = new GearsES1(vsync ? 1 : 0);
         if(useShared) {
@@ -97,6 +97,9 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
 
         glWindow.setVisible(true);
 
+        /** insets (if supported) are available only if window is set visible and hence is created */
+        glWindow.setTopLevelPosition(x, y);
+        
         return glWindow;
     }
 
@@ -105,8 +108,9 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
         initShared();
         Animator animator = new Animator();
         GLWindow f1 = runTestGL(animator, 0, 0, true, false);
-        GLWindow f2 = runTestGL(animator, width, 0, true, false);
-        GLWindow f3 = runTestGL(animator, 0, height, false, true);
+        InsetsImmutable insets = f1.getInsets();
+        GLWindow f2 = runTestGL(animator, width+insets.getTotalWidth(), 0, true, false);
+        GLWindow f3 = runTestGL(animator, 0, height+insets.getTotalHeight(), false, true);
         animator.setUpdateFPSFrames(1, null);        
         animator.start();
         while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {

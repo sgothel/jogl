@@ -71,6 +71,7 @@ public class TestParenting03bAWT extends UITestCase {
     }
 
     public void testWindowParenting1AWTTwoNewtChilds() throws InterruptedException, InvocationTargetException {
+        Frame frame1 = new Frame("AWT Parent Frame");
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUpdateFPSFrames(1, null);
         glWindow1.setUndecorated(true);
@@ -80,25 +81,7 @@ public class TestParenting03bAWT extends UITestCase {
         GLEventListener demo1 = new GearsES2(1);
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        final NewtCanvasAWT f_newtCanvasAWT1 = newtCanvasAWT1;
-        final GLWindow f_glWindow1 = glWindow1;
-        glWindow1.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                if(e.getKeyChar()=='d') {
-                    f_glWindow1.setUndecorated(!f_glWindow1.isUndecorated());
-                } else if(e.getKeyChar()=='f') {
-                    f_glWindow1.setFullscreen(!f_glWindow1.isFullscreen());
-                } else if(e.getKeyChar()=='r') {
-                    if(f_glWindow1.getParent()==null) {
-                        System.err.println("XXX glWin1 to home");
-                        f_glWindow1.reparentWindow(f_newtCanvasAWT1.getNativeWindow());
-                    } else {
-                        System.err.println("XXX glWin1 to TOP");
-                        f_glWindow1.reparentWindow(null);
-                    }
-                }
-            }
-        });
+        glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1));
         GLAnimatorControl animator1 = new Animator(glWindow1);
         animator1.start();
 
@@ -111,25 +94,7 @@ public class TestParenting03bAWT extends UITestCase {
         GLEventListener demo2 = new GearsES2(1);
         setDemoFields(demo2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
-        final NewtCanvasAWT f_newtCanvasAWT2 = newtCanvasAWT2;
-        final GLWindow f_glWindow2 = glWindow2;
-        glWindow2.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                if(e.getKeyChar()=='d') {
-                    f_glWindow2.setUndecorated(!f_glWindow2.isUndecorated());
-                } else if(e.getKeyChar()=='f') {
-                    f_glWindow2.setFullscreen(!f_glWindow2.isFullscreen());
-                } else if(e.getKeyChar()=='r') {
-                    if(f_glWindow2.getParent()==null) {
-                        System.err.println("XXX glWin2 to home");
-                        f_glWindow2.reparentWindow(f_newtCanvasAWT2.getNativeWindow());
-                    } else {
-                        System.err.println("XXX glWin2 to TOP");
-                        f_glWindow2.reparentWindow(null);
-                    }
-                }
-            }
-        });
+        glWindow2.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT2, glWindow2));
         GLAnimatorControl animator2 = new Animator(glWindow2);
         animator2.start();
 
@@ -144,7 +109,6 @@ public class TestParenting03bAWT extends UITestCase {
         cont2.setVisible(true);
         final Container f_cont2 = cont2;
 
-        Frame frame1 = new Frame("AWT Parent Frame");
         frame1.setLayout(new BorderLayout());
         frame1.add(cont1, BorderLayout.EAST);
         frame1.add(new Label("center"), BorderLayout.CENTER);

@@ -393,31 +393,76 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     protected abstract void requestFocusImpl(boolean force);
 
-    /** 
-     * The native implementation must invoke {@link #visibleChanged(boolean)}
-     * to change the visibility state. This may happen asynchronous within 
-     * {@link #TIMEOUT_NATIVEWINDOW}.
-     */
-    protected abstract void setVisibleImpl(boolean visible, int x, int y, int width, int height);
+    public static final int FLAG_CHANGE_PARENTING       = 1 << 0;
+    public static final int FLAG_CHANGE_DECORATION      = 1 << 1;
+    public static final int FLAG_CHANGE_FULLSCREEN      = 1 << 2;
+    public static final int FLAG_CHANGE_VISIBILITY      = 1 << 3;
+    public static final int FLAG_HAS_PARENT             = 1 << 4;
+    public static final int FLAG_IS_UNDECORATED         = 1 << 5;
+    public static final int FLAG_IS_FULLSCREEN          = 1 << 6;
+    public static final int FLAG_IS_VISIBLE             = 1 << 7;
 
     /**
      * The native implementation should invoke the referenced java state callbacks
      * to notify this Java object of state changes.
      * 
-     * @param x -1 if no position change requested, otherwise greater than zero
-     * @param y -1 if no position change requested, otherwise greater than zero
-     * @param width 0 if no size change requested, otherwise greater than zero
-     * @param height 0 if no size change requested, otherwise greater than zero
-     * @param parentChange true if reparenting requested, otherwise false
-     * @param fullScreenChange 0 if unchanged, -1 fullscreen off, 1 fullscreen on
-     * @param decorationChange 0 if unchanged, -1 undecorated, 1 decorated
+     * <p>
+     * Implementations shall set x/y to 0, in case it's negative. This could happen due
+     * to insets and positioning a decorated window to 0/0, which would place the frame
+     * outside of the screen.</p>
+     * 
+     * @param x client-area position
+     * @param y client-area position
+     * @param width client-area size
+     * @param height client-area size
+     * @param flags bitfield of change and status flags
      *
      * @see #sizeChanged(int,int)
      * @see #positionChanged(int,int)
      */
-    protected abstract boolean reconfigureWindowImpl(int x, int y, int width, int height, 
-                                                     boolean parentChange, int fullScreenChange, int decorationChange);
+    protected abstract boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags);
 
+    protected int getReconfigureFlags(int changeFlags, boolean visible) {
+        return changeFlags |= ( ( 0 != getParentWindowHandle() ) ? FLAG_HAS_PARENT : 0 ) |
+                              ( isUndecorated() ? FLAG_IS_UNDECORATED : 0 ) |
+                              ( isFullscreen() ? FLAG_IS_FULLSCREEN : 0 ) |
+                              ( visible ? FLAG_IS_VISIBLE : 0 ) ;
+    }
+    protected static String getReconfigureFlagsAsString(StringBuffer sb, int flags) {
+        if(null == sb) { sb = new StringBuffer(); }
+        sb.append("[");
+        
+        if( 0 != ( FLAG_CHANGE_PARENTING & flags) ) {
+            sb.append("*");
+        }
+        sb.append("PARENT_");
+        sb.append(0 != ( FLAG_HAS_PARENT & flags));
+        sb.append(", ");
+        
+        if( 0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
+            sb.append("*");
+        }
+        sb.append("FS_");
+        sb.append(0 != ( FLAG_IS_FULLSCREEN & flags));
+        sb.append(", ");
+
+        if( 0 != ( FLAG_CHANGE_DECORATION & flags) ) {
+            sb.append("*");
+        }
+        sb.append("UNDECOR_");
+        sb.append(0 != ( FLAG_IS_UNDECORATED & flags));
+        sb.append(", ");
+        
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
+            sb.append("*");
+        }
+        sb.append("VISIBLE_");
+        sb.append(0 != ( FLAG_IS_VISIBLE & flags));
+        
+        sb.append("]");
+        return sb.toString();
+    }
+    
     protected void setTitleImpl(String title) {}
 
     /**
@@ -679,7 +724,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             runOnEDTIfAvail(true, new VisibleAction(visible));
         }
     }
-
+    
+    protected final void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
+        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_VISIBILITY, visible));           
+    }
+    
     private class SetSizeActionImpl implements Runnable {
         int width, height;
 
@@ -706,7 +755,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         WindowImpl.this.height = height;
                     } else if ( 0 != windowHandle ) {
                         // this width/height will be set by windowChanged, called by the native implementation
-                        reconfigureWindowImpl(x, y, width, height, false, 0, 0);
+                        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(0, isVisible()));
                     } else {
                         WindowImpl.this.width = width;
                         WindowImpl.this.height = height;
@@ -969,7 +1018,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
 
                     // Case: Top Window
-                    if( 0 == getParentWindowHandle() ) {
+                    if( 0 == parentWindowHandle ) {
                         // Already Top Window
                         reparentAction = ACTION_UNCHANGED;
                     } else if( !isNativeValid() || DEBUG_TEST_REPARENT_INCOMPATIBLE || forceDestroyCreate ) {
@@ -1024,12 +1073,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
 
                     // Lock parentWindow only during reparenting (attempt)
-                    NativeWindow parentWindowLocked = null;
+                    final NativeWindow parentWindowLocked;
                     if( null != parentWindow ) {
                         parentWindowLocked = parentWindow;
                         if( NativeSurface.LOCK_SURFACE_NOT_READY >= parentWindowLocked.lockSurface() ) {
                             throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
                         }
+                    } else {
+                        parentWindowLocked = null;
                     }
                     boolean ok = false;
                     try {
@@ -1038,36 +1089,20 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         WindowImpl.this.y = y;
                         WindowImpl.this.width = width;
                         WindowImpl.this.height = height;
-                        ok = reconfigureWindowImpl(x, y, width, height, true, 0, isUndecorated()?-1:1);
+                        ok = reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_PARENTING | FLAG_CHANGE_DECORATION, isVisible()));
                     } finally {
                         if(null!=parentWindowLocked) {
                             parentWindowLocked.unlockSurface();
                         }
                     }
 
-                    // set visible again, and revalidate 'ok',
-                    // since it has been experienced that in some cases the reparented window gets hidden
+                    // set visible again
                     if(ok) {
                         display.dispatchMessagesNative(); // status up2date
                         if(wasVisible) {
                             setVisibleImpl(true, x, y, width, height);
                             ok = WindowImpl.this.waitForVisible(true, false);
                             display.dispatchMessagesNative(); // status up2date
-                            if( ok &&
-                                ( WindowImpl.this.x != x ||
-                                  WindowImpl.this.y != y ||
-                                  WindowImpl.this.width != width ||
-                                  WindowImpl.this.height != height ) )
-                            {
-                                if(DEBUG_IMPLEMENTATION) {
-                                    System.err.println("Window.reparent (reconfig)");
-                                }
-                                // reset pos/size .. due to some native impl flakyness
-                                reconfigureWindowImpl(x, y, width, height, false, 0, 0);
-                                display.dispatchMessagesNative(); // status up2date
-                                WindowImpl.this.waitForVisible(true, false);
-                                display.dispatchMessagesNative(); // status up2date
-                            }
                         }
                     }
 
@@ -1086,7 +1121,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                 }
 
-                // write back mirrored values, ensuring persitence
+                // write back mirrored values, ensuring persistence
                 // and not relying on native messaging
                 WindowImpl.this.x = x;
                 WindowImpl.this.y = y;
@@ -1184,10 +1219,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             windowLock.lock();
             try {
                 if(WindowImpl.this.undecorated != undecorated) {
+                  final boolean nativeUndecorationChange = !fullscreen && isNativeValid() && 
+                                                           isUndecorated() != undecorated ;
+                  
                   // set current state
                   WindowImpl.this.undecorated = undecorated;
                   
-                  if( !fullscreen && isNativeValid() ) {
+                  if( nativeUndecorationChange) {
                     // Change decoration on active window
                       
                     // Mirror pos/size so native change notification can get overwritten
@@ -1199,28 +1237,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if( 0 != windowHandle ) {
                         DisplayImpl display = (DisplayImpl) screen.getDisplay();
                         display.dispatchMessagesNative(); // status up2date
-                        boolean wasVisible = isVisible();
-                        setVisibleImpl(false, x, y, width, height);
-                        WindowImpl.this.waitForVisible(false, true);
-                        display.dispatchMessagesNative(); // status up2date
-                        reconfigureWindowImpl(x, y, width, height, false, 0, undecorated?-1:1);
-                        display.dispatchMessagesNative(); // status up2date
-                        if(wasVisible) {
-                            setVisibleImpl(true, x, y, width, height);
-                            WindowImpl.this.waitForVisible(true, true);
-                            display.dispatchMessagesNative(); // status up2date
-                            if( WindowImpl.this.x != x ||
-                                WindowImpl.this.y != y ||
-                                WindowImpl.this.width != width ||
-                                WindowImpl.this.height != height ) 
-                            {
-                                // reset pos/size .. due to some native impl flakyness
-                                reconfigureWindowImpl(x, y, width, height, false, 0, 0);
-                                display.dispatchMessagesNative(); // status up2date
-                            }
-                            requestFocusImpl(true);
-                            display.dispatchMessagesNative(); // status up2date
-                        }
+                        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_DECORATION, isVisible()));
+                        display.dispatchMessagesNative(); // status up2date                        
                     }
                   }
                 }
@@ -1324,7 +1342,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
 
     protected final long getParentWindowHandle() {
-        return parentWindowHandle;
+        return isFullscreen() ? 0 : parentWindowHandle;
     }
 
     @Override
@@ -1431,7 +1449,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if(!fullscreen) {
                         if(0!=windowHandle) {
                             // this.x/this.y will be set by sizeChanged, triggered by windowing event system
-                            reconfigureWindowImpl(x, y, 0, 0, false, 0, 0);
+                            reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(0, isVisible()));
                         } else {
                             WindowImpl.this.x = x;
                             WindowImpl.this.y = y;
@@ -1468,13 +1486,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     int x,y,w,h;
                     WindowImpl.this.fullscreen = fullscreen;
                     if(fullscreen) {
+                        nfs_x = WindowImpl.this.x;
+                        nfs_y = WindowImpl.this.y;
+                        nfs_width = WindowImpl.this.width;
+                        nfs_height = WindowImpl.this.height;
                         x = 0; y = 0;
                         w = screen.getWidth();
                         h = screen.getHeight();
-                        nfs_width = width;
-                        nfs_height = height;
-                        nfs_x = x;
-                        nfs_y = y;
                     } else {
                         x = nfs_x;
                         y = nfs_y;
@@ -1497,26 +1515,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     WindowImpl.this.y = y;
                     WindowImpl.this.width = w;
                     WindowImpl.this.height = h;
-                    reconfigureWindowImpl(x, y, w, h, getParentWindowHandle()!=0, fullscreen?1:-1, isUndecorated()?-1:1);
+                    reconfigureWindowImpl(x, y, width, height, 
+                            getReconfigureFlags( ( ( 0 != parentWindowHandle ) ? FLAG_CHANGE_PARENTING : 0 ) | 
+                                                 FLAG_CHANGE_FULLSCREEN | FLAG_CHANGE_DECORATION, isVisible()) );
                     display.dispatchMessagesNative(); // status up2date
 
                     if(wasVisible) {
                         setVisibleImpl(true, x, y, w, h);
-                        boolean ok = WindowImpl.this.waitForVisible(true, true, Screen.SCREEN_MODE_CHANGE_TIMEOUT);
+                        WindowImpl.this.waitForVisible(true, true, Screen.SCREEN_MODE_CHANGE_TIMEOUT);
                         display.dispatchMessagesNative(); // status up2date
-                        if( ok &&
-                            ( WindowImpl.this.x != x ||
-                              WindowImpl.this.y != y ||
-                              WindowImpl.this.width != w ||
-                              WindowImpl.this.height != h ) )
-                        {
-                            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                                System.err.println("Window fs (reconfig): "+x+"/"+y+" "+w+"x"+h+", "+screen);
-                            }
-                            // reset pos/size .. due to some native impl flakyness
-                            reconfigureWindowImpl(x, y, w, h, false, 0, 0);
-                            display.dispatchMessagesNative(); // status up2date
-                        }
                         requestFocusImpl(true);
                         display.dispatchMessagesNative(); // status up2date
                         if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
@@ -2093,7 +2100,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
         }
     }
-
+    
     /** Triggered by implementation's WM events to update the position. */ 
     protected void positionChanged(int newX, int newY) {
         if( 0==parentWindowHandle && ( x != newX || y != newY ) ) {
@@ -2113,16 +2120,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @see #updateInsetsImpl(Insets)
      */
     protected void insetsChanged(int left, int right, int top, int bottom) {
-        if ( left >= 0 && right >= 0 && top >= 0 && bottom >= 0 &&
-             (left != insets.getLeftWidth() || right != insets.getRightWidth() || 
-              top != insets.getTopHeight() || bottom != insets.getBottomHeight() )
-           ) {
-            insets.setLeftWidth(left);
-            insets.setRightWidth(right);            
-            insets.setTopHeight(top);
-            insets.setBottomHeight(bottom);            
-            if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.insetsChanged: "+insets);
+        if ( left >= 0 && right >= 0 && top >= 0 && bottom >= 0 ) {
+            if(isUndecorated()) {
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window.insetsChanged: skip insets change for undecoration mode");
+                }
+            } else if ( (left != insets.getLeftWidth() || right != insets.getRightWidth() || 
+                         top != insets.getTopHeight() || bottom != insets.getBottomHeight() )
+                       ) {
+                insets.setLeftWidth(left);
+                insets.setRightWidth(right);            
+                insets.setTopHeight(top);
+                insets.setBottomHeight(bottom);            
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window.insetsChanged: "+insets);
+                }
             }
         }
     }

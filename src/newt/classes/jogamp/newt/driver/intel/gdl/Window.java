@@ -80,39 +80,38 @@ public class Window extends jogamp.newt.WindowImpl {
         }
     }
 
-    protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
-        reconfigureWindowImpl(x, y, width, height, false, 0, 0);
-        if(visible) {
-            ((Display)getScreen().getDisplay()).setFocus(this);
-        }
-        this.visibleChanged(visible);
-    }
-
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, boolean parentChange, int fullScreenChange, int decorationChange) {
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         Screen  screen = (Screen) getScreen();
 
-        int _x=(x>=0)?x:this.x;
-        int _y=(x>=0)?y:this.y;
-        int _w=(width>0)?width:this.width;
-        int _h=(height>0)?height:this.height;
+        x=(x>=0)?x:this.x;
+        y=(x>=0)?y:this.y;
+        width=(width>0)?width:this.width;
+        height=(height>0)?height:this.height;
 
-        if(_w>screen.getWidth()) {
-            _w=screen.getWidth();
+        if(width>screen.getWidth()) {
+            width=screen.getWidth();
         }
-        if(_h>screen.getHeight()) {
-            _h=screen.getHeight();
+        if(height>screen.getHeight()) {
+            height=screen.getHeight();
         }
-        if((_x+_w)>screen.getWidth()) {
-            _x=screen.getWidth()-_w;
+        if((x+width)>screen.getWidth()) {
+            x=screen.getWidth()-width;
         }
-        if((_y+_h)>screen.getHeight()) {
-            _y=screen.getHeight()-_h;
+        if((y+height)>screen.getHeight()) {
+            y=screen.getHeight()-height;
         }
 
         if(0!=surfaceHandle) {
-            SetBounds0(surfaceHandle, getScreen().getWidth(), getScreen().getHeight(), _x, _y, _w, _h);
+            SetBounds0(surfaceHandle, getScreen().getWidth(), getScreen().getHeight(), x, y, width, height);
         }
 
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
+            if(0 != ( FLAG_IS_VISIBLE & flags)) {
+                ((Display)getScreen().getDisplay()).setFocus(this);
+            }
+            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));
+        }
+        
         return true;
     }
 

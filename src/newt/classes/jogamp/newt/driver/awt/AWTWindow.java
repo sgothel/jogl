@@ -155,20 +155,6 @@ public class AWTWindow extends WindowImpl {
         return res;
     }
 
-    protected void setVisibleImpl(final boolean visible, int x, int y, int width, int height) {
-        container.setVisible(visible);
-
-        reconfigureWindowImpl(x, y, width, height, false, 0, 0);
-        config = canvas.getAWTGraphicsConfiguration();
-
-        if (config == null) {
-            throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
-        }
-
-        updateDeviceData();
-        visibleChanged(visible);
-    }
-
     private void updateDeviceData() {
         // propagate new info ..
         ((AWTScreen)getScreen()).setAWTGraphicsScreen((AWTGraphicsScreen)config.getScreen());
@@ -189,8 +175,12 @@ public class AWTWindow extends WindowImpl {
         insets.setBottomHeight(contInsets.bottom);
     }
 
-    protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final boolean parentChange, final int fullScreenChange, final int decorationChange) {
-        if(decorationChange!=0 && null!=frame) {
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {        
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
+            container.setVisible(0 != ( FLAG_IS_VISIBLE & flags));
+        }
+        
+        if(0 != ( FLAG_CHANGE_DECORATION & flags) && null!=frame) {
             if(!container.isDisplayable()) {
                 frame.setUndecorated(isUndecorated());
             } else {
@@ -199,15 +189,27 @@ public class AWTWindow extends WindowImpl {
                 }
             }
         }
-        int _x=(x>=0)?x:AWTWindow.this.x;
-        int _y=(x>=0)?y:AWTWindow.this.y;
-        int _w=(width>0)?width:AWTWindow.this.width;
-        int _h=(height>0)?height:AWTWindow.this.height;
+        x=(x>=0)?x:AWTWindow.this.x;
+        y=(x>=0)?y:AWTWindow.this.y;
+        width=(width>0)?width:AWTWindow.this.width;
+        height=(height>0)?height:AWTWindow.this.height;
 
-        container.setLocation(_x, _y);
+        container.setLocation(x, y);
         Insets insets = container.getInsets();
-        container.setSize(_w + insets.left + insets.right,
-                          _h + insets.top + insets.bottom);
+        container.setSize(width + insets.left + insets.right,
+                          height + insets.top + insets.bottom);
+
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {        
+            config = canvas.getAWTGraphicsConfiguration();
+
+            if (config == null) {
+                throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
+            }
+
+            updateDeviceData();
+            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));
+        }
+        
         return true;
     }
 

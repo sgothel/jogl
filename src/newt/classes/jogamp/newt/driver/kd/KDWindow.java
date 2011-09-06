@@ -34,6 +34,7 @@
 package jogamp.newt.driver.kd;
 
 import jogamp.newt.*;
+import jogamp.newt.driver.intel.gdl.Display;
 import jogamp.opengl.egl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.util.Insets;
@@ -82,19 +83,17 @@ public class KDWindow extends WindowImpl {
         }
     }
 
-    protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
-        setVisible0(eglWindowHandle, visible);
-        reconfigureWindowImpl(x, y, width, height, false, 0, 0);
-        visibleChanged(visible);
-    }
-
     protected void requestFocusImpl(boolean reparented) { }
 
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, 
-                                            boolean parentChange, int fullScreenChange, int decorationChange) {
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
+            setVisible0(eglWindowHandle, 0 != ( FLAG_IS_VISIBLE & flags));
+            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));
+        }
+        
         if(0!=eglWindowHandle) {
-            if(0!=fullScreenChange) {
-                boolean fs = fullScreenChange > 0;
+            if(0 != ( FLAG_CHANGE_FULLSCREEN & flags)) {
+                final boolean fs = 0 != ( FLAG_IS_FULLSCREEN & flags) ;
                 setFullScreen0(eglWindowHandle, fs);
                 if(fs) {
                     return true;
@@ -102,15 +101,20 @@ public class KDWindow extends WindowImpl {
             }
             // int _x=(x>=0)?x:this.x;
             // int _y=(x>=0)?y:this.y;
-            int _w=(width>0)?width:this.width;
-            int _h=(height>0)?height:this.height;
+            width=(width>0)?width:this.width;
+            height=(height>0)?height:this.height;
             if(width>0 || height>0) {
-                setSize0(eglWindowHandle, _w, _h);
+                setSize0(eglWindowHandle, width, height);
             }
             if(x>=0 || y>=0) {
                 System.err.println("setPosition n/a in KD");
             }
         }
+        
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
+            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));
+        }
+        
         return true;
     }
 

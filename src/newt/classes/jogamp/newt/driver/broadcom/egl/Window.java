@@ -72,11 +72,6 @@ public class Window extends jogamp.newt.WindowImpl {
         }
     }
 
-    protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
-        reconfigureWindowImpl(x, y, width, height, false, 0, 0);
-        visibleChanged(visible);
-    }
-
     protected void requestFocusImpl(boolean reparented) { }
 
     protected void setSizeImpl(int width, int height) {
@@ -89,11 +84,10 @@ public class Window extends jogamp.newt.WindowImpl {
         }
     }
 
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, 
-                                            boolean parentChange, int fullScreenChange, int decorationChange) {
-        if(0!=getWindowHandle()) {
-            if(0!=fullScreenChange) {
-                if( fullScreenChange > 0 ) {
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) { 
+        if(0!=getWindowHandle()) {            
+            if(0 != ( FLAG_CHANGE_FULLSCREEN & flags)) {
+                if( 0 != ( FLAG_IS_FULLSCREEN & flags) ) {
                     // n/a in BroadcomEGL
                     System.err.println("setFullscreen n/a in BroadcomEGL");
                     return false;
@@ -111,6 +105,10 @@ public class Window extends jogamp.newt.WindowImpl {
         }
         if(x>=0 || y>=0) {
             System.err.println("BCEGL Window.setPositionImpl n/a in BroadcomEGL");
+        }
+        
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
+            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));
         }
         return true;
     }

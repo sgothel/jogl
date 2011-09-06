@@ -183,25 +183,6 @@ public class MacWindow extends WindowImpl {
         nsViewLock.unlock();
     }
 
-    protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
-        nsViewLock.lock();
-        try {
-            if (visible) {
-                createWindow(false, x, y, width, height, isFullscreen());
-                if (getWindowHandle() != 0) {
-                    makeKeyAndOrderFront0(getWindowHandle());
-                }
-            } else {
-                if (getWindowHandle() != 0) {
-                    orderOut0(getWindowHandle());
-                }
-            }
-            visibleChanged(visible);
-        } finally {
-            nsViewLock.unlock();
-        }
-    }
-
     @Override
     protected void setTitleImpl(final String title) {
         // FIXME: move nsViewLock up to window lock
@@ -223,28 +204,41 @@ public class MacWindow extends WindowImpl {
         }
     }
     
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, boolean parentChange, int fullScreenChange, int decorationChange) {
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         nsViewLock.lock();
         try {
-            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                System.err.println("MacWindow reconfig: parentChange "+parentChange+", fullScreenChange "+fullScreenChange+", decorationChange "+decorationChange+" "+x+"/"+y+" "+width+"x"+height);
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("MacWindow reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
+                                   getReconfigureFlagsAsString(null, flags));
             }
-            int _x=(x>=0)?x:this.x;
-            int _y=(x>=0)?y:this.y;
-            int _w=(width>0)?width:this.width;
-            int _h=(height>0)?height:this.height;
-
-            if(decorationChange!=0 || parentChange || fullScreenChange!=0) {
-                createWindow(true, _x, _y, _w, _h, fullScreenChange>0);
-                if (getWindowHandle() != 0) {
-                    makeKeyAndOrderFront0(getWindowHandle());
+            
+            if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
+                if (0 != ( FLAG_IS_VISIBLE & flags)) {
+                    createWindow(false, x, y, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
+                    if (getWindowHandle() != 0) {
+                        makeKeyAndOrderFront0(getWindowHandle());
+                    }
+                } else {
+                    if (getWindowHandle() != 0) {
+                        orderOut0(getWindowHandle());
+                    }
                 }
-            } else {
-                if(x>=0 || y>=0) {
-                    setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), _x, _y);
-                }
-                if(width>0 || height>0) {
-                    setContentSize0(getWindowHandle(), _w, _h);
+                visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));
+            } else {            
+                if( 0 != ( FLAG_CHANGE_DECORATION & flags) ||
+                    0 != ( FLAG_CHANGE_PARENTING & flags) ||
+                    0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
+                    createWindow(true, x, y, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
+                    if (getWindowHandle() != 0) {
+                        makeKeyAndOrderFront0(getWindowHandle());
+                    }
+                } else {
+                    if(x>=0 || y>=0) {
+                        setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), x, y);
+                    }
+                    if(width>0 || height>0) {
+                        setContentSize0(getWindowHandle(), width, height);
+                    }
                 }
             }
         } finally {
@@ -353,12 +347,19 @@ public class MacWindow extends WindowImpl {
         super.enqueueKeyEvent(wait, eventType, modifiers, key, keyChar);
     }
 
-    private void createWindow(final boolean recreate, final int x, final int y, final int width, final int height, final boolean fullscreen) {
+    private void createWindow(final boolean recreate, 
+                              int x, int y, int width, int height, 
+                              final boolean fullscreen) {
 
         if(0!=getWindowHandle() && !recreate) {
             return;
         }
 
+        x=(x>=0)?x:this.x;
+        y=(x>=0)?y:this.y;
+        width=(width>0)?width:this.width;
+        height=(height>0)?height:this.height;
+        
         try {
             //runOnEDTIfAvail(true, new Runnable() {
             //    public void run() {

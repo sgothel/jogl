@@ -30,14 +30,12 @@ package jogamp.newt.driver.android;
 
 import java.nio.IntBuffer;
 
-import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.android.event.AndroidNewtEventFactory;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.egl.EGLGraphicsDevice;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
-import javax.media.opengl.GLException;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.newt.event.MouseEvent;
@@ -46,17 +44,13 @@ import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLGraphicsConfiguration;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.graphics.PixelFormat;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback2;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 
 public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     static {
@@ -156,18 +150,12 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         return eglSurface;
     }
     
-    protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
-        reconfigureWindowImpl(x, y, width, height, false, 0, 0);
-        visibleChanged(visible);
-    }
-
     protected void requestFocusImpl(boolean reparented) { }
 
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, 
-                                            boolean parentChange, int fullScreenChange, int decorationChange) {
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         if(0!=getWindowHandle()) {
-            if(0!=fullScreenChange) {
-                if( fullScreenChange > 0 ) {
+            if( 0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
+                if( 0 != ( FLAG_IS_FULLSCREEN & flags) ) {
                     System.err.println("reconfigureWindowImpl.setFullscreen n/a");
                     return false;
                 }
@@ -182,6 +170,9 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         if(x>=0 || y>=0) {
             System.err.println("reconfigureWindowImpl.setPos n/a");
             return false;
+        }
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
+            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));            
         }
         return true;
     }

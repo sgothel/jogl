@@ -39,6 +39,7 @@ import jogamp.newt.WindowImpl;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Insets;
+import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
 public class WindowsWindow extends WindowImpl {
@@ -109,7 +110,7 @@ public class WindowsWindow extends WindowImpl {
             throw new NativeWindowException("Error creating window");
         }
         windowHandleClose = getWindowHandle();
-        if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+        if(DEBUG_IMPLEMENTATION) {
             Exception e = new Exception("Info: Window new window handle "+Thread.currentThread().getName()+
                                         " (Parent HWND "+toHexString(getParentWindowHandle())+
                                         ") : HWND "+toHexString(getWindowHandle())+", "+Thread.currentThread());
@@ -145,15 +146,30 @@ public class WindowsWindow extends WindowImpl {
         }
     }
 
-    protected void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
-        setVisible0(getWindowHandle(), visible, (getParentWindowHandle()==0)?true:false, x, y, width, height);
-        visibleChanged(visible);
-    }
-
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, 
-                                            boolean parentChange, int fullScreenChange, int decorationChange) {
-        reconfigureWindow0( (fullScreenChange>0)?0:getParentWindowHandle(), 
-                             getWindowHandle(), x, y, width, height, isVisible(), parentChange, fullScreenChange, decorationChange);
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("WindowsWindow reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
+                               getReconfigureFlagsAsString(null, flags));
+        }
+        
+        if(0 == ( FLAG_IS_UNDECORATED & flags)) {
+            final InsetsImmutable i = getInsets();
+            
+            // client position -> top-level window position
+            x -= i.getLeftWidth() ;
+            y -= i.getTopHeight() ;
+            if( 0 > x ) { x = 0; }
+            if( 0 > y ) { y = 0; }
+            
+            // client size -> top-level window size
+            width += i.getTotalWidth();
+            height += i.getTotalHeight();
+        }
+        reconfigureWindow0( getParentWindowHandle(), getWindowHandle(), x, y, width, height, flags);
+        
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
+            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));            
+        }
         return true;
     }
 
@@ -184,10 +200,8 @@ public class WindowsWindow extends WindowImpl {
                                       long parentWindowHandle, long visualID, boolean isUndecorated,
                                       int x, int y, int width, int height);
     private native long MonitorFromWindow0(long windowHandle);
-    private native void setVisible0(long windowHandle, boolean visible, boolean top, int x, int y, int width, int height);
-    private native void reconfigureWindow0(long parentWindowHandle, long windowHandle, 
-                                                  int x, int y, int width, int height, boolean isVisible,
-                                                  boolean parentChange, int fullScreenChange, int decorationChange);
+    private native void reconfigureWindow0(long parentWindowHandle, long windowHandle,
+                                           int x, int y, int width, int height, int flags);
     private static native void setTitle0(long windowHandle, String title);
     private native void requestFocus0(long windowHandle, boolean force);
 

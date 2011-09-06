@@ -90,12 +90,23 @@ public class TestGearsES2NEWT extends UITestCase {
                 if(e.getKeyChar()=='f') {
                     new Thread() {
                         public void run() {
+                            System.err.println("[set fullscreen  pre]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", f "+f_glWindow.isFullscreen()+", "+f_glWindow.getInsets());
                             f_glWindow.setFullscreen(!f_glWindow.isFullscreen());
+                            System.err.println("[set fullscreen post]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", f "+f_glWindow.isFullscreen()+", "+f_glWindow.getInsets());
                     } }.start();
                 } else if(e.getKeyChar()=='d') {
                     new Thread() {
                         public void run() {
+                            System.err.println("[set undecorated  pre]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", d "+f_glWindow.isUndecorated()+", "+f_glWindow.getInsets());
                             f_glWindow.setUndecorated(!f_glWindow.isUndecorated());
+                            System.err.println("[set undecorated post]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", d "+f_glWindow.isUndecorated()+", "+f_glWindow.getInsets());
+                    } }.start();
+                } else if(e.getKeyChar()=='s') {
+                    new Thread() {
+                        public void run() {
+                            System.err.println("[set position  pre]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", "+f_glWindow.getInsets());
+                            f_glWindow.setPosition(100, 100);
+                            System.err.println("[set position post]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", "+f_glWindow.getInsets());
                     } }.start();
                 }
             }
@@ -103,6 +114,9 @@ public class TestGearsES2NEWT extends UITestCase {
 
         glWindow.setSize(width, height);
         glWindow.setVisible(true);
+        
+        System.err.println("size/pos: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", "+f_glWindow.getInsets());
+        
         animator.setUpdateFPSFrames(1, null);
         animator.start();
 

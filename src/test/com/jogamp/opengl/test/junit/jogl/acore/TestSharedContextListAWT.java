@@ -60,8 +60,8 @@ public class TestSharedContextListAWT extends UITestCase {
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-        width  = 512;
-        height = 512;
+        width  = 256;
+        height = 256;
     }
 
     private void initShared() {
