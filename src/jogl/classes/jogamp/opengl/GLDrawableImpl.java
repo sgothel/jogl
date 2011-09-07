@@ -87,7 +87,6 @@ public abstract class GLDrawableImpl implements GLDrawable {
                 return;
             }
             try {
-                AbstractGraphicsDevice aDevice = getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
                 if (NativeSurface.LOCK_SURFACE_CHANGED == lockRes) {
                     updateHandle();
                 }

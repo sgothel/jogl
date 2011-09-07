@@ -114,7 +114,7 @@ public class Animator extends AnimatorBase {
         }
     }
 
-    private void setIsAnimatingSynced(boolean v) {
+    private final void setIsAnimatingSynced(boolean v) {
         stateSync.lock();
         try {
             isAnimating = v;
