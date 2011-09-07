@@ -692,6 +692,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         } finally {
             windowLock.unlock();
         }
+        if( nativeWindowCreated || madeVisible ) {
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
+        }        
     }
     
     private class VisibleAction implements Runnable {
@@ -1121,10 +1124,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             } finally {
                 windowLock.unlock();
             }
+            if(wasVisible) {
+                switch (reparentAction) {
+                    case ACTION_NATIVE_REPARENTING:
+                        // trigger a resize/relayout and repaint to listener
+                        sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
+                        break;
 
-            if(wasVisible && ACTION_NATIVE_CREATION == reparentAction) {
-                // This may run on the new Display/Screen connection, hence a new EDT task
-                runOnEDTIfAvail(true, reparentActionRecreate);
+                    case ACTION_NATIVE_CREATION:
+                        // This may run on the new Display/Screen connection, hence a new EDT task
+                        runOnEDTIfAvail(true, reparentActionRecreate);
+                        break;
+                }
             }
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.reparentWindow: END-X ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+x+"/"+y+" "+width+"x"+height);
@@ -1226,6 +1237,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             } finally {
                 windowLock.unlock();
             }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
     }
 
@@ -1527,6 +1539,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             } finally {
                 windowLock.unlock();
             }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
     }
 
