@@ -756,6 +756,11 @@ public abstract class GLContext {
           }
       }
   }
+  
+  protected static void shutdown() {
+      deviceVersionAvailable.clear();
+      deviceVersionsAvailableSet.clear();
+  }
 
   /**
    * Called by {@link jogamp.opengl.GLContextImpl#createContextARBMapVersionsAvailable} not intended to be used by

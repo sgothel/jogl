@@ -137,6 +137,7 @@ public class GLProfile {
         if(initialized) {
             initialized = false;
             GLDrawableFactory.shutdown();
+            GLContext.shutdown();
         }
     }
 
@@ -1194,6 +1195,8 @@ public class GLProfile {
         // - Instantiate GLDrawableFactory incl its shared dummy drawable/context,
         //   which will register at GLContext ..
         //
+        GLDrawableFactory.initialize();
+        
         Throwable t=null;
         // if successfull it has a shared dummy drawable and context created
         try {
@@ -1318,7 +1321,7 @@ public class GLProfile {
             // System.err.println(msg);
         }
         if(isSet) {
-            return null != GLProfile.getDefault(device);
+            return GLProfile.isAvailable(device, GL_DEFAULT);
         }
 
         boolean addedDesktopProfile = false;

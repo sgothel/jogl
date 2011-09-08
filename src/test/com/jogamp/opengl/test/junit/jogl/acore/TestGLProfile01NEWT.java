@@ -56,7 +56,7 @@ public class TestGLProfile01NEWT extends UITestCase {
         System.err.println(NewtVersion.getInstance());
 
         GLDrawableFactory factory = GLDrawableFactory.getFactory(GLProfile.getDefault());
-        List/*<GLCapabilitiesImmutable>*/ availCaps = factory.getAvailableCapabilities(null);
+        List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(null);
         for(int i=0; i<availCaps.size(); i++) {
             System.err.println(availCaps.get(i));
         }
@@ -65,6 +65,9 @@ public class TestGLProfile01NEWT extends UITestCase {
     @Test
     public void test01GLProfileDefault() throws InterruptedException {
         System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
+        System.out.println("GLProfile.getDefaultDesktopDevice(): "+GLProfile.getDefaultDesktopDevice());
+        System.out.println("GLProfile.getDefaultEGLDevice(): "+GLProfile.getDefaultEGLDevice());
+        System.out.println("GLProfile.getDefaultDevice(): "+GLProfile.getDefaultDevice());        
         GLProfile glp = GLProfile.getDefault();
         System.out.println("GLProfile.getDefault(): "+glp);
         if(glp.getName().equals(GLProfile.GL4bc)) {
@@ -133,6 +136,17 @@ public class TestGLProfile01NEWT extends UITestCase {
         System.out.println("GLProfile GL2ES2: "+glp);
         dumpVersion(glp);
     }
+    
+    @Test
+    public void test06GLProfileShutdownRecreate() throws InterruptedException {
+        GLProfile.shutdown();
+        GLProfile.initSingleton(true);
+        System.out.println("GLProfile.getDefault(): "+GLProfile.getDefault());
+        System.out.println("GLProfile.getDefaultDesktopDevice(): "+GLProfile.getDefaultDesktopDevice());
+        System.out.println("GLProfile.getDefaultEGLDevice(): "+GLProfile.getDefaultEGLDevice());
+        System.out.println("GLProfile.getDefaultDevice(): "+GLProfile.getDefaultDevice());
+    }
+
 
     protected void dumpVersion(GLProfile glp) throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);

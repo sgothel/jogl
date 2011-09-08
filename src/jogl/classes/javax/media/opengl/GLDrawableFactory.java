@@ -90,11 +90,13 @@ import javax.media.nativewindow.ProxySurface;
 
 public abstract class GLDrawableFactory {
 
-  private static final GLDrawableFactory eglFactory;
-  private static final GLDrawableFactory nativeOSFactory;
   private static final String nativeOSType;
   static final String macosxFactoryClassNameCGL = "jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory";
   static final String macosxFactoryClassNameAWTCGL = "jogamp.opengl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
+  
+  private static volatile boolean initialized = false;
+  private static GLDrawableFactory eglFactory;
+  private static GLDrawableFactory nativeOSFactory;
 
   protected static ArrayList<GLDrawableFactory> glDrawableFactories = new ArrayList<GLDrawableFactory>();
 
@@ -106,15 +108,15 @@ public abstract class GLDrawableFactory {
    * Instantiate singleton factories if available, EGLES1, EGLES2 and the OS native ones.
    */
   static {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-            registerFactoryShutdownHook();
-            return null;
-        }
-    });
-
     nativeOSType = NativeWindowFactory.getNativeWindowType(true);
+  }
 
+  protected static final void initialize() {
+    if(initialized) { return; }
+    initialized = true;
+    
+    registerFactoryShutdownHook();
+    
     GLDrawableFactory tmp = null;
     String factoryClassName = Debug.getProperty("jogl.gldrawablefactory.class.name", true, AccessController.getContext());
     ClassLoader cl = GLDrawableFactory.class.getClassLoader();
@@ -205,16 +207,12 @@ public abstract class GLDrawableFactory {
   }
 
   protected static void shutdown() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-            unregisterFactoryShutdownHook();
-            return null;
-        }
-    });
+    unregisterFactoryShutdownHook();
     shutdownImpl();
+    eglFactory = null;
+    nativeOSFactory = null;    
+    initialized = false;    
   }
-
-  private AbstractGraphicsDevice defaultSharedDevice = null;
 
   protected GLDrawableFactory() {
     synchronized(glDrawableFactories) {
