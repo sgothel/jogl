@@ -1,0 +1,66 @@
+http://forum.jogamp.org/Re-JOGL-amp-UI-Toolkit-s-td862612.html
+
+Sven Gothel - Jun 01, 2010; 9:21pm Re: JOGL & UI Toolkit[s] 
+
+++++
+
+A UI toolkit should be agnostic (as possible) in regards to the
+windowing toolkit (NEWT) and maybe event to the rendering toolkit (JOGL).
+
+So allow me to start with the Windowing Toolkit.
+
+(REQ-WinTK-01) Windowing Toolkit: Seamless integrations into the underlying native one.
+
+The following sub requirements shall be implemented if supported by the
+underlying native windowing toolkit.
+Proper behaviour in case of lack of support, shall be achieved.
+
+NEWT covers sub-requirements [01-01 .. 01-06] already.
+
+(REQ-WinTK-01-01) Creation/Destruction of top level and child windows
+(REQ-WinTK-01-02) Multithreaded Window Surface Access
+(REQ-WinTK-01-03) Parenting and Re-Parenting
+(REQ-WinTK-01-04) Decorated- or Undecorated - Windows
+(REQ-WinTK-01-05) Passive Fullscreen Mode, no change of display mode
+(REQ-WinTK-01-06) Event handling, at least per creation thread (-> REQ-WinTK-01-01)
+
+(REQ-WinTK-01-07) Transparency
+        - API prepared
+(REQ-WinTK-01-08) Active Fullscreen Mode, change of display mode
+        - API prepared
+(REQ-WinTK-01-20) Drag & Drop
+        - Pending
+
++++++
+
+
+Phenomenon for a UI toolkit may start with the following:
+
+(REQ-UITK-01) UI Toolkit: Generic UI Object Rendering
+(REQ-UITK-01-01) Should be abstracted from the windowing toolkit.
+(REQ-UITK-01-02) Should support multithreading (-> REQ-WinTK-01-02)
+(REQ-UITK-01-02) Should include implementation using native rendering TKs (JOGL, ..)
+(REQ-UITK-01-03) Render primitives on a 2D plane
+
+(REQ-UITK-02) UI Toolkit: User Interaction
+(REQ-UITK-02-01) Should be abstracted from the windowing toolkit -> Events.
+(REQ-UITK-01-02) Mouse feedback from a picked 2D plane
+
+
+REQ-WinTK-01-02 and REQ-UITK-01-01 already reject AWT/Swing usage.
+
+REQ-UITK-01-03 and REQ-UITK-01-02 almost request at least a little basic scenegraph,
+or an offscreen UI rendering (texture) approach will be used.
+
+It may turn out that a seamless integration of a UI
+cannot be completely application independent, since such application
+already utilized a scenegraph and some meaning of UI.
+
+IMHO the only generic UI TK path would be supporting offscreen
+rendered UI elements, the application may add on a 2D place in the scene
+and propagates events to the UI TK event dispatcher.
+
+Additionally we could just offer such a 'realizer' adapter for simple applications,
+ie render the UI textures and propagating catched events on it's plane.
+
+
