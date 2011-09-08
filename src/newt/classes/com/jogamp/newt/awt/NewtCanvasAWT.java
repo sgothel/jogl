@@ -159,16 +159,12 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         if( null != newtChild ) {
             if(attach) {
                 awtAdapter = new AWTParentWindowAdapter(newtChild).addTo(this);
-                if(newtChild.isValid()) {
-                    newtChild.addWindowListener(clearAWTMenusOnNewtFocus);
-                }
+                newtChild.addWindowListener(clearAWTMenusOnNewtFocus);
                 newtChild.setFocusAction(focusAction); // enable AWT focus traversal
                 newtChildCloseOp = newtChild.setDefaultCloseOperation(WindowClosingProtocol.DO_NOTHING_ON_CLOSE);
                 awtWindowClosingProtocol.addClosingListenerOneShot();
             } else {
-                if(newtChild.isValid()) {
-                    newtChild.removeWindowListener(clearAWTMenusOnNewtFocus);
-                }
+                newtChild.removeWindowListener(clearAWTMenusOnNewtFocus);
                 newtChild.setFocusAction(null);
                 newtChild.setDefaultCloseOperation(newtChildCloseOp);
                 awtWindowClosingProtocol.removeClosingListener();

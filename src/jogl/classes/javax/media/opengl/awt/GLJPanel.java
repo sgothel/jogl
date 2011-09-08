@@ -280,8 +280,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       if(null!=animator) {
         if(regenerate) {
             animatorPaused = animator.pause();
-        } else {
-            animator.remove(this);
         }
       }
 

@@ -55,17 +55,8 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     //
 
     /**
-     * @return True if native window is valid, can be created or recovered.
-     * Otherwise false, ie this window is unrecoverable due to a <code>destroy(true)</code> call.
-     *
-     * @see #destroy(boolean)
-     * @see #setVisible(boolean)
-     */
-    boolean isValid();
-
-    /**
      * @return true if the native window handle is valid and ready to operate, ie
-     * if the native window has been created, otherwise false.
+     * if the native window has been created via {@link #setVisible(boolean) setVisible(true)}, otherwise false.
      *
      * @see #setVisible(boolean)
      * @see #destroy(boolean)
@@ -102,6 +93,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     /**
      * Destroy the Window and it's children, incl. native destruction.<br>
      * The Window can be recreate via {@link #setVisible(boolean) setVisible(true)}.
+     * <p>Visibility is set to false.</p>
      * <p>
      * This method invokes {@link Screen#removeReference()} after it's own destruction,<br>
      * which will issue {@link Screen#destroy()} if the reference count becomes 0.<br>

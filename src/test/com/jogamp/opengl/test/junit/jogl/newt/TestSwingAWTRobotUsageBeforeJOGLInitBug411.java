@@ -50,7 +50,6 @@ import java.awt.Dimension;
 import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -269,11 +268,12 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         Assert.assertEquals(true, anim.isAnimating()); // due to newtCanvasAWT/win1
 
         newtCanvasAWT.destroy(); // destroys both newtCanvasAWT/win1
-        Assert.assertEquals(false, win0.isNativeValid());
         Assert.assertEquals(false, win1.isNativeValid());
+        Assert.assertEquals(false, win0.isNativeValid());
+        Assert.assertEquals(true, anim.isAnimating());
+        
+        Assert.assertEquals(true, anim.stop());
         Assert.assertEquals(false, anim.isAnimating());
-
-        anim.stop();
 
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test01NewtCanvasAWT(): End");
     }
@@ -304,11 +304,15 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         anim.add(glCanvas);
         runTestGL(glCanvas, glCanvas);
 
+        Assert.assertEquals(true, anim.isAnimating());
+        anim.remove(glCanvas);
+        Assert.assertEquals(false, anim.isAnimating());
+        
         /**
         win0.destroy();
         Assert.assertEquals(true, anim.isAnimating());
          */
-        anim.stop();
+        Assert.assertEquals(true, anim.stop());
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test02GLCanvas(): End");
     }
 

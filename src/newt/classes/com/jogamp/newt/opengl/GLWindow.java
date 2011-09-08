@@ -66,7 +66,7 @@ import com.jogamp.opengl.JoglVersion;
  * <p>
  */
 public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSCounter {
-    private WindowImpl window;
+    private final WindowImpl window;
 
     /**
      * Constructor. Do not call this directly -- use {@link #create()} instead.
@@ -298,10 +298,6 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         window.setTopLevelSize(width, height);        
     }
     
-    public final boolean isValid() {
-        return window.isValid();
-    }
-
     public final boolean isNativeValid() {
         return window.isNativeValid();
     }
@@ -511,28 +507,20 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     }
 
     public void display() {
-        display(false);
-    }
-
-    public void display(boolean forceReshape) {
-        if( null == window ) { return; }
-
-        if(sendDestroy || ( null!=window && window.hasDeviceChanged() && GLAutoDrawable.SCREEN_CHANGE_ACTION_ENABLED ) ) {
+        if( !isNativeValid() || !isVisible() ) { return; }
+        
+        if(sendDestroy || ( window.hasDeviceChanged() && GLAutoDrawable.SCREEN_CHANGE_ACTION_ENABLED ) ) {
             sendDestroy=false;
             destroy();
             return;
         }
-
-        if( null == context && isVisible() && 0<getWidth()*getHeight() ) {
-            // retry native window and drawable/context creation 
+        
+        if( null == context && 0<getWidth()*getHeight() ) { // TODO: Check memory sync
+            // retry drawable and context creation 
             setVisible(true);
         }
 
-        if(forceReshape) {
-            sendReshape = true;
-        }
-        
-        if( isVisible() && null != context ) {
+        if( null != context ) { // TODO: Check memory sync
             if( NativeSurface.LOCK_SURFACE_NOT_READY < lockSurface() ) {
                 try {
                     helper.invokeGL(drawable, context, displayAction, initAction);

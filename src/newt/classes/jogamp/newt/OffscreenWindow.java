@@ -90,7 +90,7 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
 
     @Override
     public void setSize(int width, int height) {
-        if(!visible) {
+        if(!isVisible()) {
             sizeChanged(width, height, false);
         }
     }

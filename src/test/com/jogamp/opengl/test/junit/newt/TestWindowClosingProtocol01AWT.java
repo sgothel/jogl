@@ -77,6 +77,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         Assert.assertEquals(true, AWTRobotUtil.closeWindow(frame, false)); // nop
         Thread.sleep(100);
         Assert.assertEquals(true, frame.isDisplayable());
+        Assert.assertEquals(true,  frame.isVisible());
         Assert.assertEquals(true, glCanvas.isValid());
         Assert.assertEquals(true, glCanvas.isDisplayable());
 
@@ -90,6 +91,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false)); // no frame close
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, false));
         Assert.assertEquals(true,  frame.isDisplayable());
+        Assert.assertEquals(true,  frame.isVisible());
         Assert.assertEquals(false, glCanvas.isRealized());
 
         SwingUtilities.invokeLater(new Runnable() {

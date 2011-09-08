@@ -74,17 +74,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 {
     public static final boolean DEBUG_TEST_REPARENT_INCOMPATIBLE = Debug.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
     
+    private volatile long windowHandle = 0; // lifecycle critical
+    private volatile boolean visible = false; // lifecycle critical
     private RecursiveLock windowLock = new RecursiveLock();  // Window instance wide lock
     private RecursiveLock surfaceLock = new RecursiveLock(); // Surface only lock
-    private long   windowHandle = 0;
-    private ScreenImpl screen = null;
+    
+    private ScreenImpl screen; // never null after create - may change reference though (reparent)
     private boolean screenReferenceAdded = false;
     private NativeWindow parentWindow = null;
     private long parentWindowHandle = 0;
     protected AbstractGraphicsConfiguration config = null;
     protected CapabilitiesImmutable capsRequested = null;
     protected CapabilitiesChooser capabilitiesChooser = null; // default null -> default
-    protected boolean fullscreen = false, visible = false, hasFocus = false;    
+    protected boolean fullscreen = false, hasFocus = false;    
     protected int width = 128, height = 128, x = 0, y = 0; // client-area size/pos w/o insets
     protected Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
         
@@ -272,7 +274,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     setTitleImpl(title);
                 }
                 // always flag visible, 
-                // allowing to retry if visible && 0 == windowHandle
+                // allowing to retry if visible && !isNativeValid()
                 setVisibleImpl(true, x, y, width, height);
             }
         } finally {
@@ -283,7 +285,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.createNative() END ("+getThreadName()+", "+this+")");
         }
-        return 0 != windowHandle ;
+        return isNativeValid() ;
     }
 
     private void removeScreenReference() {
@@ -625,11 +627,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
 
     public final boolean isNativeValid() {
-        return null != getScreen() && 0 != getWindowHandle() ;
-    }
-
-    public final boolean isValid() {
-        return null != getScreen() ;
+        return 0 != windowHandle ;
     }
 
     public final Screen getScreen() {
@@ -656,7 +654,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
               }
             }
-            if(0==windowHandle && visible) {
+            if(!isNativeValid() && visible) {
                 if( 0<width*height ) {
                     nativeWindowCreated = createNative();
                     if(nativeWindowCreated) {
@@ -665,7 +663,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                 }
             } else if(WindowImpl.this.visible != visible) {
-                if(0 != windowHandle) {
+                if(isNativeValid()) {
                     setVisibleImpl(visible, x, y, width, height);
                     WindowImpl.this.waitForVisible(visible, true);
                     madeVisible = visible;
@@ -676,7 +674,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 lifecycleHook.setVisibleActionPost(visible, nativeWindowCreated);
             }
 
-            if(0!=windowHandle && visible && null!=childWindows && childWindows.size()>0) {
+            if(isNativeValid() && visible && null!=childWindows && childWindows.size()>0) {
               synchronized(childWindowsLock) {
                 for(int i = 0; i < childWindows.size(); i++ ) {
                     NativeWindow nw = childWindows.get(i);
@@ -710,19 +708,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void setVisible(boolean visible) {
-        if(isValid()) {
-            if( 0==windowHandle && visible && 0>=width*height ) {
-                // fast-path: not realized yet, make visible, but zero size
-                return;
-            }
-
-            if(DEBUG_IMPLEMENTATION) {
-                String msg = "Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow);
-                System.err.println(msg);
-                Thread.dumpStack();
-            }
-            runOnEDTIfAvail(true, new VisibleAction(visible));
+        if( !isNativeValid() && visible && 0>=width*height ) {
+            // fast-path: not realized yet, make visible, but zero size
+            return;
         }
+
+        if(DEBUG_IMPLEMENTATION) {
+            String msg = "Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow);
+            System.err.println(msg);
+            Thread.dumpStack();
+        }
+        runOnEDTIfAvail(true, new VisibleAction(visible));
     }
     
     protected final void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
@@ -745,15 +741,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         String msg = "Window setSize: START "+WindowImpl.this.width+"x"+WindowImpl.this.height+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible;
                         System.err.println(msg);
                     }
-                    if ( 0 != windowHandle && 0>=width*height && visible ) {
+                    if ( isNativeValid() && 0>=width*height && visible ) {
                         visibleAction=1; // invisible
                         WindowImpl.this.width = 0;
                         WindowImpl.this.height = 0;
-                    } else if ( 0 == windowHandle && 0<width*height && visible ) {
+                    } else if ( !isNativeValid() && 0<width*height && visible ) {
                         visibleAction = 2; // visible (create)
                         WindowImpl.this.width = width;
                         WindowImpl.this.height = height;
-                    } else if ( 0 != windowHandle ) {
+                    } else if ( isNativeValid() ) {
                         // this width/height will be set by windowChanged, called by the native implementation
                         reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(0, isVisible()));
                     } else {
@@ -775,9 +771,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void setSize(int width, int height) {
-        if(isValid()) {
-            runOnEDTIfAvail(true, new SetSizeActionImpl(width, height));
-        }
+        runOnEDTIfAvail(true, new SetSizeActionImpl(width, height));
     }
     
     public void setTopLevelSize(int width, int height) {
@@ -795,10 +789,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
             windowLock.lock();
             try {
-                if( !isValid() ) {
-                    return; // nop
-                }
-
                 if(DEBUG_IMPLEMENTATION) {
                     String msg = "!!! Window DestroyAction() "+getThreadName();
                     System.err.println(msg);
@@ -827,7 +817,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
 
                 if( null != screen ) {
-                    if( 0 != windowHandle ) {
+                    if( isNativeValid() ) {
                         screen.removeScreenModeListener(screenModeListenerImpl);
                         closeNativeImpl();
                         removeScreenReference();
@@ -850,13 +840,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(animatorPaused) {
                 lifecycleHook.resumeRenderingAction();
             }
-            windowHandle = 0;
+            setWindowHandle(0);
             visible = false;
             fullscreen = false;
             hasFocus = false;
             parentWindowHandle = 0;
             
-            // these refs shall be kept alive - resurrection 
+            // these refs shall be kept alive - resurrection via setVisible(true)
             /**
             if(null!=parentWindow && parentWindow instanceof Window) {
                 ((Window)parentWindow).removeChild(WindowImpl.this);
@@ -876,15 +866,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void destroy() {
-        if( isValid() ) {
-            if(DEBUG_IMPLEMENTATION) {
-                String msg = "Window.destroy() START "+getThreadName();
-                System.err.println(msg);
-                //Exception ee = new Exception(msg);
-                //ee.printStackTrace();
-            }
-            runOnEDTIfAvail(true, destroyAction);
-        }
+        visible = false; // Immediately mark synchronized visibility flag, avoiding possible recreation 
+        runOnEDTIfAvail(true, destroyAction);
     }
 
     private class ReparentActionImpl implements Runnable, ReparentAction {
@@ -902,7 +885,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             return reparentAction;
         }
 
-        private void setScreen(ScreenImpl newScreen) {
+        private void setScreen(ScreenImpl newScreen) { // never null !
             WindowImpl.this.removeScreenReference();
             screen = newScreen;
         }
@@ -1163,13 +1146,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public int reparentWindow(NativeWindow newParent, boolean forceDestroyCreate) {
-        int reparentActionStrategy = ReparentAction.ACTION_INVALID;
-        if(isValid()) {
-            ReparentActionImpl reparentAction = new ReparentActionImpl(newParent, forceDestroyCreate);
-            runOnEDTIfAvail(true, reparentAction);
-            reparentActionStrategy = reparentAction.getStrategy();
-        }
-        return reparentActionStrategy;
+        ReparentActionImpl reparentAction = new ReparentActionImpl(newParent, forceDestroyCreate);
+        runOnEDTIfAvail(true, reparentAction);
+        return reparentAction.getStrategy();
     }
 
     public CapabilitiesChooser setCapabilitiesChooser(CapabilitiesChooser chooser) {
@@ -1226,7 +1205,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     int width = WindowImpl.this.width;
                     int height = WindowImpl.this.height;
 
-                    if( 0 != windowHandle ) {
+                    if( isNativeValid() ) {
                         DisplayImpl display = (DisplayImpl) screen.getDisplay();
                         display.dispatchMessagesNative(); // status up2date
                         reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_DECORATION, isVisible()));
@@ -1242,9 +1221,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void setUndecorated(boolean value) {
-        if(isValid()) {
-            runOnEDTIfAvail(true, new DecorationActionImpl(value));
-        }
+        runOnEDTIfAvail(true, new DecorationActionImpl(value));
     }
 
     public final boolean isUndecorated() {
@@ -1455,9 +1432,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void setPosition(int x, int y) {
-        if(isValid()) {
-            runOnEDTIfAvail(true, new SetPositionActionImpl(x, y));
-        }
+        runOnEDTIfAvail(true, new SetPositionActionImpl(x, y));
     }
     
     public void setTopLevelPosition(int x, int y) {
@@ -1544,9 +1519,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public boolean setFullscreen(boolean fullscreen) {
-        if(isValid()) {
-            runOnEDTIfAvail(true, new FullScreenActionImpl(fullscreen));
-        }
+        runOnEDTIfAvail(true, new FullScreenActionImpl(fullscreen));
         return this.fullscreen;
     }
 
@@ -1619,7 +1592,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
-        if(isValid()) {
+        if(isNativeValid()) {
             ((DisplayImpl)getScreen().getDisplay()).enqueueEvent(wait, event);
         }
     }
@@ -2180,7 +2153,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         // send synced destroy notifications
         enqueueWindowEvent(true, WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
 
-        if(handleDestroyNotify && DISPOSE_ON_CLOSE == defaultCloseOperation && isValid()) {
+        if(handleDestroyNotify && DISPOSE_ON_CLOSE == defaultCloseOperation) {
             destroy();
         }
 
@@ -2198,7 +2171,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             System.err.println("Window.windowRepaint "+getThreadName()+" - "+x+"/"+y+" "+width+"x"+height);
         }
 
-        if(isValid()) {
+        if(isNativeValid()) {
             NEWTEvent e = new WindowUpdateEvent(WindowEvent.EVENT_WINDOW_REPAINT, this, System.currentTimeMillis(),
                                                 new Rectangle(x, y, width, height));
             doEvent(false, false, e);

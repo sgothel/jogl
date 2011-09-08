@@ -72,23 +72,21 @@ public class AWTParentWindowAdapter
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: componentResized: "+comp);
         }
-        if(getNewtWindow().isValid()) {
-            getNewtWindow().runOnEDTIfAvail(false, new Runnable() {
-                public void run() {
-                    int cw = comp.getWidth();
-                    int ch = comp.getHeight();
-                    if( 0 < cw * ch ) {
-                        if( getNewtWindow().getWidth() != cw || getNewtWindow().getHeight() != ch ) {
-                            getNewtWindow().setSize(cw, ch);
-                            if(comp.isVisible() != getNewtWindow().isVisible()) {
-                                getNewtWindow().setVisible(comp.isVisible());
-                            }
+        getNewtWindow().runOnEDTIfAvail(false, new Runnable() {
+            public void run() {
+                int cw = comp.getWidth();
+                int ch = comp.getHeight();
+                if( 0 < cw * ch ) {
+                    if( getNewtWindow().getWidth() != cw || getNewtWindow().getHeight() != ch ) {
+                        getNewtWindow().setSize(cw, ch);
+                        if(comp.isVisible() != getNewtWindow().isVisible()) {
+                            getNewtWindow().setVisible(comp.isVisible());
                         }
-                    } else if(getNewtWindow().isVisible()) {
-                        getNewtWindow().setVisible(false);
                     }
-                }});
-        }
+                } else if(getNewtWindow().isVisible()) {
+                    getNewtWindow().setVisible(false);
+                }
+            }});
     }
 
     public void componentMoved(java.awt.event.ComponentEvent e) {
@@ -112,14 +110,12 @@ public class AWTParentWindowAdapter
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("AWT: hierarchyChanged SHOWING_CHANGED: showing "+showing+", "+changed);
                 }
-                if(getNewtWindow().isValid()) {
-                    getNewtWindow().runOnEDTIfAvail(false, new Runnable() {
-                        public void run() {
-                            if(getNewtWindow().isVisible() != showing) {
-                                getNewtWindow().setVisible(showing);
-                            }
-                        }});
-                }
+                getNewtWindow().runOnEDTIfAvail(false, new Runnable() {
+                    public void run() {
+                        if(getNewtWindow().isVisible() != showing) {
+                            getNewtWindow().setVisible(showing);
+                        }
+                    }});
             } 
             if(DEBUG_IMPLEMENTATION) {
                 if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
