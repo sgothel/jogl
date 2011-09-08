@@ -70,11 +70,13 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug.GraphicsConfiguration -Djogl.debug.CapabilitiesChooser"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
+    #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
-    D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Screen"
+    #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator"
+    #D_ARGS="-Djogl.debug.Animator"
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GraphicsConfiguration"
@@ -156,7 +158,9 @@ function testawtmt() {
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT
+#testawt com.jogamp.opengl.test.junit.newt.TestScreenMode00bNEWT
 testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
+#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01bNEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT
 #testawt com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT -time 1000000
@@ -207,7 +211,6 @@ testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.glsl.TestShaderCompilationBug459AWT
 
-#testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 
 #testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*
@@ -235,6 +238,16 @@ testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
+
+#
+# regressions
+#
+#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
+#testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol03NewtAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
 
 $spath/count-edt-start.sh java-run.log
 

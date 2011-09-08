@@ -38,6 +38,7 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.event.NEWTEvent;
 import com.jogamp.newt.event.NEWTEventConsumer;
+
 import jogamp.newt.event.NEWTEventTask;
 import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.newt.util.MainThread;
@@ -445,6 +446,24 @@ public abstract class DisplayImpl extends Display {
         }
     }
 
+    public interface DisplayRunnable {
+        Object run(long dpy);
+    }    
+    public final Object runWithLockedDisplayHandle(DisplayRunnable action) {
+        final AbstractGraphicsDevice aDevice = getGraphicsDevice();
+        if(null == aDevice) {
+            throw new RuntimeException("null device - not initialized: "+this);
+        }
+        Object res;
+        aDevice.lock();
+        try {
+            res = action.run(aDevice.getHandle());
+        } finally {
+            aDevice.unlock();
+        }
+        return res;
+    }
+    
     protected EDTUtil edtUtil = null;
     protected int id;
     protected String name;

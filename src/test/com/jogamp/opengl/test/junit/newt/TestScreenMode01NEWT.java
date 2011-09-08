@@ -29,12 +29,12 @@
 package com.jogamp.opengl.test.junit.newt;
 
 import java.io.IOException;
-import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.opengl.util.Animator;
 
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -53,6 +53,12 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.util.List;
 import javax.media.nativewindow.util.Dimension;
 
+/**
+ * Demonstrates fullscreen with and without ScreenMode change.
+ * 
+ * <p>
+ * Also documents NV RANDR/GL bug, see {@link TestScreenMode01NEWT#cleanupGL()}.</p> 
+ */
 public class TestScreenMode01NEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
@@ -62,7 +68,7 @@ public class TestScreenMode01NEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        NativeWindowFactory.initSingleton(true);
+        GLProfile.initSingleton(true);
         width  = 640;
         height = 480;
         glp = GLProfile.getDefault();
@@ -71,6 +77,43 @@ public class TestScreenMode01NEWT extends UITestCase {
     @AfterClass
     public static void releaseClass() throws InterruptedException {
         Thread.sleep(waitTimeShort);
+    }
+    
+    /**
+     * Following configurations results in a SIGSEGV:
+     * <pre>
+     *   Ubuntu 11.04 (natty), NV GTX 460, driver [280.10* - 285.03]
+     * </pre>
+     * 
+     * Situation:
+     * <pre>
+     *   1 - Create Screen, GLWindow (w/ context)
+     *   2 - ScreenMode change
+     *   3 - Destroy GLWindow (w/ context), Screen
+     *   4 - Create  Screen, GLWindow (w/ context) (*)
+     * </pre>
+     *   
+     * Step 4 causes the exception within 1st 'glXMakeContextCurrent(..)' call
+     * on the the created GL context.
+     * 
+     * Remedy:
+     * <pre>
+     *   A) Releasing all resources before step 4 .. works.
+     *   B) Holding the native Display/Screen in NEWT also works (ie screen.addReference()).
+     * </pre>
+     * 
+     * Hence there must be some correlations with the screen randr mode
+     * and some of the glcontext/gldrawables.
+     * 
+     * <pre>
+     * Remedy A) is demonstrated here
+     * Remedy B) is shown in {@link TestScreenMode01bNEWT}
+     * </pre>
+     */
+    @After
+    public void cleanupGL() throws InterruptedException {
+        GLProfile.shutdown();
+        GLProfile.initSingleton(true);
     }
     
     static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
@@ -158,6 +201,8 @@ public class TestScreenMode01NEWT extends UITestCase {
         Assert.assertNotNull(smOrig);
         Assert.assertEquals(smCurrent, smOrig);
         System.err.println("[0] current/orig: "+smCurrent);
+        Assert.assertEquals(smCurrent.getRotatedWidth(), screen.getWidth());
+        Assert.assertEquals(smCurrent.getRotatedHeight(), screen.getHeight());
 
         screenModes = ScreenModeUtil.filterByRate(screenModes, smOrig.getMonitorMode().getRefreshRate());
         Assert.assertNotNull(screenModes);
@@ -178,6 +223,8 @@ public class TestScreenMode01NEWT extends UITestCase {
         screen.setCurrentScreenMode(sm);
         Assert.assertEquals(sm, screen.getCurrentScreenMode());
         Assert.assertNotSame(smOrig, screen.getCurrentScreenMode());
+        Assert.assertEquals(sm.getRotatedWidth(), screen.getWidth());
+        Assert.assertEquals(sm.getRotatedHeight(), screen.getHeight());
 
         Thread.sleep(waitTimeLong);
 
@@ -207,6 +254,8 @@ public class TestScreenMode01NEWT extends UITestCase {
 
         Assert.assertNotNull(smCurrent);
         Assert.assertEquals(smCurrent, smOrig);
+        Assert.assertEquals(smCurrent.getRotatedWidth(), screen.getWidth());
+        Assert.assertEquals(smCurrent.getRotatedHeight(), screen.getHeight());
 
         screen.destroy();
 
@@ -240,6 +289,8 @@ public class TestScreenMode01NEWT extends UITestCase {
         Assert.assertNotNull(smOrig);
         Assert.assertEquals(smCurrent, smOrig);
         System.err.println("[0] current/orig: "+smCurrent);
+        Assert.assertEquals(smCurrent.getRotatedWidth(), screen.getWidth());
+        Assert.assertEquals(smCurrent.getRotatedHeight(), screen.getHeight());
         
         List<ScreenMode> screenModes = screen.getScreenModes();
         if(null==screenModes) {
@@ -266,6 +317,8 @@ public class TestScreenMode01NEWT extends UITestCase {
 
         System.err.println("[0] set current: "+screenMode);
         screen.setCurrentScreenMode(screenMode);
+        Assert.assertEquals(screenMode.getRotatedWidth(), screen.getWidth());
+        Assert.assertEquals(screenMode.getRotatedHeight(), screen.getHeight());
         
         if(!preFS) {
             System.err.println("[0] set FS post 0: "+window.isFullscreen());
@@ -302,6 +355,8 @@ public class TestScreenMode01NEWT extends UITestCase {
 
         Assert.assertNotNull(smCurrent);
         Assert.assertEquals(smCurrent, smOrig);
+        Assert.assertEquals(smCurrent.getRotatedWidth(), screen.getWidth());
+        Assert.assertEquals(smCurrent.getRotatedHeight(), screen.getHeight());
 
         screen.destroy();
     }

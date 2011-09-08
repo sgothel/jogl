@@ -910,14 +910,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Screen_GetScreen0
         NewtCommon_FatalError(env, "invalid display connection..");
     }
 
-    scrn = ScreenOfDisplay(dpy,screen_index);
+    scrn = ScreenOfDisplay(dpy, screen_index);
     if(scrn==NULL) {
-        scrn=DefaultScreenOfDisplay(dpy);
+        fprintf(stderr, "couldn't get screen idx %d\n", screen_index);
     }
-    if(scrn==NULL) {
-        fprintf(stderr, "couldn't get screen ..\n");
-    }
-    DBG_PRINT("X11: X11Screen_GetScreen0 scrn %p DONE\n", scrn);
+    DBG_PRINT("X11: X11Screen_GetScreen0 idx %d -> scrn %p DONE\n", screen_index, scrn);
     return (jlong) (intptr_t) scrn;
 }
 

@@ -169,16 +169,12 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 System.err.println("Screen.createNative() START ("+DisplayImpl.getThreadName()+", "+this+")");
             }
             t0 = System.currentTimeMillis();
-            display.createNative(); // 1st display: trigger creation w/o incr ref count (hold native dispatching) 
-            try {
-                createNativeImpl();
-                if(null == aScreen) {
-                    throw new NativeWindowException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
-                }
-                initScreenModeStatus();
-            } finally {
-                display.addReference(); // 1st display: allow native dispatching
+            display.addReference();
+            createNativeImpl();
+            if(null == aScreen) {
+                throw new NativeWindowException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
             }
+            initScreenModeStatus();
             if(DEBUG) {
                 System.err.println("Screen.createNative() END ("+DisplayImpl.getThreadName()+", "+this+")");
             }
@@ -322,7 +318,6 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
                 // if mode has changed somehow, update it ..
                 if( sms.getCurrentScreenMode().hashCode() != smU.hashCode() ) {
-                    setScreenSize(smU.getRotatedWidth(), smU.getRotatedHeight());
                     sms.fireScreenModeChanged(smU, true);
                 }
             } finally {
@@ -391,6 +386,9 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     }
 
     public void screenModeChanged(ScreenMode sm, boolean success) {
+        if(success) {
+            setScreenSize(sm.getRotatedWidth(), sm.getRotatedHeight());
+        }
         for(int i=0; i<referencedScreenModeListener.size(); i++) {
             ((ScreenModeListener)referencedScreenModeListener.get(i)).screenModeChanged(sm, success);
         }
