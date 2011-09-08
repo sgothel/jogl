@@ -238,6 +238,8 @@ public class TestParenting02AWT extends UITestCase {
             }
         }
         String tstname = TestParenting02AWT.class.getName();
+        org.junit.runner.JUnitCore.main(tstname);
+        /*
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",
@@ -248,7 +250,7 @@ public class TestParenting02AWT extends UITestCase {
             "logfailedtests=true",
             "logtestlistenerevents=true",
             "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } ); */
     }
 
 }
