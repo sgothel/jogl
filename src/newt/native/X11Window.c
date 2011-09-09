@@ -1618,9 +1618,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
 
         XMapWindow(dpy, window);
         XIfEvent( dpy, &event, WaitForMapNotify, (XPointer) window ); // wait to get proper insets values
+
+        // send insets before visibility, allowing java code a proper sync point!
+        NewtWindows_updateInsets(env, jwindow, dpy, window, &left, &right, &top, &bottom);
         (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_TRUE);
 
-        NewtWindows_updateInsets(env, jwindow, dpy, window, &left, &right, &top, &bottom);
         if(!userPos) {
             // get position from WM
             int dest_x, dest_y;

@@ -1388,9 +1388,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
             BOOL userPos = 0<=x && 0<=y ;
 
             ShowWindow(window, SW_SHOW);
+
+            // send insets before visibility, allowing java code a proper sync point!
+            insets = UpdateInsets(env, wud->jinstance, window);
             (*env)->CallVoidMethod(env, wud->jinstance, visibleChangedID, JNI_TRUE);
 
-            insets = UpdateInsets(env, wud->jinstance, window);
             if(!userPos) {
                 GetWindowRect(window, &rc);
                 x = rc.left + insets->left; // client coords

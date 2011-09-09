@@ -274,18 +274,22 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     throw new InternalError("XXX");
                 }
                 if(canCreateNativeImpl()) {
-                    final int _x = x, _y = y; // orig req pos
+                    int _x = x, _y = y; // orig req pos
                     screen.addReference();
                     screenReferenceAdded = true;
                     createNativeImpl();
                     screen.addScreenModeListener(screenModeListenerImpl);
                     setTitleImpl(title);
-                    waitForVisible(true, false);
-                    if(userPos) {
-                        // wait for user req position
-                        waitForPosSize(_x, _y, -1, -1, false, TIMEOUT_NATIVEWINDOW);
-                    } else {
-                        waitForAnyPos(false, TIMEOUT_NATIVEWINDOW);
+                    if(waitForVisible(true, false)) {
+                        if(userPos) {
+                            // fix req position about window decoration
+                            _x = Math.max(_x, insets.getLeftWidth());
+                            _y = Math.max(_y, insets.getTopHeight());
+                            // wait for user req position
+                            waitForPosSize(_x, _y, -1, -1, false, TIMEOUT_NATIVEWINDOW);
+                        } else {
+                            waitForAnyPos(false, TIMEOUT_NATIVEWINDOW);
+                        }
                     }
                 }
                 // always flag visible, 
@@ -387,8 +391,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /** 
      * The native implementation must set the native windowHandle.<br>
      *
+     * <p>
      * The implementation should invoke the referenced java state callbacks
-     * to notify this Java object of state changes.
+     * to notify this Java object of state changes.</p>
+     * 
+     * <p>
+     * In case the implementation supports a deterministic size/pos mechanism,
+     * i.e. is able to determine the correct size/pos,
+     * it shall invalidate such values via the callbacks allowing the caller
+     * to wait until the values are reached - notified by the WM.<br>
+     * This is currently implemented for X11 and Windows.</p>
      * 
      * @see #windowDestroyNotify()
      * @see #focusChanged(boolean)
