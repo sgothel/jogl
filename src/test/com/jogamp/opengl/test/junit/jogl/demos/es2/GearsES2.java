@@ -37,6 +37,7 @@ import java.nio.FloatBuffer;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLUniformData;
@@ -173,6 +174,19 @@ public class GearsES2 implements GLEventListener {
             new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys).addTo(comp);
         }
         st.useProgram(gl, false);
+        
+        int[] maxVals = new int[] { -1, -1 } ;
+        GLContext glc = drawable.getContext();
+        boolean r = glc.queryMaxSwapGroups(maxVals, 0, maxVals, 1);
+        System.err.println("swap group max groups "+maxVals[0]+", barriers "+maxVals[0]+", "+r);
+        if(maxVals[0]>0) {
+            System.err.println("swap group joing 1: "+glc.joinSwapGroup(1));
+            if(maxVals[1]>0) {
+                System.err.println("swap group bind 1-1: "+glc.bindSwapBarrier(1, 1));
+            }
+        }
+        glc.setSwapInterval(swapInterval);
+        
         System.err.println(Thread.currentThread()+" GearsES2.init FIN");
     }
 
@@ -180,8 +194,6 @@ public class GearsES2 implements GLEventListener {
         System.err.println(Thread.currentThread()+" GearsES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
         Assert.assertEquals("not init or already disposed", true, initialized);
         GL2ES2 gl = drawable.getGL().getGL2ES2();
-
-        gl.setSwapInterval(swapInterval);
 
         float h = (float)height / (float)width;
 

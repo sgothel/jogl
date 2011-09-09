@@ -46,6 +46,7 @@ import java.util.Map;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -64,10 +65,12 @@ public class WindowsWGLContext extends GLContextImpl {
   private boolean wglGetExtensionsStringEXTAvailable;
   private boolean wglGLReadDrawableAvailableSet;
   private boolean wglGLReadDrawableAvailable;
-  private WGLExt wglExt;
+  private WGLExt _wglExt;
   // Table that holds the addresses of the native C-language entry points for
   // WGL extension functions.
   private WGLExtProcAddressTable wglExtProcAddressTable;
+  private int hasSwapIntervalSGI = 0;
+  private int hasSwapGroupNV = 0;
 
   static {
     functionNameMap = new HashMap<String, String>();
@@ -85,13 +88,17 @@ public class WindowsWGLContext extends GLContextImpl {
     super(drawable, shareWith);
   }
 
-  protected void resetState() {
+  @Override
+  protected void resetStates() {
     wglGetExtensionsStringEXTInitialized=false;
     wglGetExtensionsStringEXTAvailable=false;
     wglGLReadDrawableAvailableSet=false;
     wglGLReadDrawableAvailable=false;
     // no inner state _wglExt=null;
     wglExtProcAddressTable=null;
+    hasSwapIntervalSGI = 0;
+    hasSwapGroupNV = 0;    
+    super.resetStates();    
   }
   
   public Object getPlatformGLExtensions() {
@@ -102,10 +109,10 @@ public class WindowsWGLContext extends GLContextImpl {
     if( null == getWGLExtProcAddressTable()) {
         throw new InternalError("Null WGLExtProcAddressTable");
     }
-    if (wglExt == null) {
-      wglExt = new WGLExtImpl(this);
+    if (_wglExt == null) {
+      _wglExt = new WGLExtImpl(this);
     }
-    return wglExt;
+    return _wglExt;
   }
 
   public final boolean isGLReadDrawableAvailable() {
@@ -141,8 +148,8 @@ public class WindowsWGLContext extends GLContextImpl {
     int werr = ( !ok ) ? GDI.GetLastError() : GDI.ERROR_SUCCESS;
     if(DEBUG && !ok) {
         Throwable t = new Throwable ("Info: wglMakeContextCurrent draw "+
-                this.toHexString(hDrawDC) + ", read " + this.toHexString(hReadDC) +
-                ", ctx " + this.toHexString(ctx) + ", werr " + werr);
+                GLContext.toHexString(hDrawDC) + ", read " + GLContext.toHexString(hReadDC) +
+                ", ctx " + GLContext.toHexString(ctx) + ", werr " + werr);
         t.printStackTrace();
     }
     if(!ok && 0==hDrawDC && 0==hReadDC) {
@@ -427,27 +434,95 @@ public class WindowsWGLContext extends GLContextImpl {
     }
   }
   
-  public String getPlatformExtensionsString() {
+  protected final StringBuffer getPlatformExtensionsStringImpl() {
+    StringBuffer sb = new StringBuffer();
+    
     if (!wglGetExtensionsStringEXTInitialized) {
       wglGetExtensionsStringEXTAvailable = (WGL.wglGetProcAddress("wglGetExtensionsStringEXT") != 0);
       wglGetExtensionsStringEXTInitialized = true;
     }
     if (wglGetExtensionsStringEXTAvailable) {
-      return getWGLExt().wglGetExtensionsStringEXT();
-    } else {
-      return "";
+      sb.append(getWGLExt().wglGetExtensionsStringEXT());
     }
+    return sb;
   }
-
+  
+  @Override
   protected void setSwapIntervalImpl(int interval) {
     WGLExt wglExt = getWGLExt();
-    if (wglExt.isExtensionAvailable("WGL_EXT_swap_control")) {
-      if ( wglExt.wglSwapIntervalEXT(interval) ) {
-        currentSwapInterval = interval ;
-      }
+    if(0==hasSwapIntervalSGI) {
+        try {
+            hasSwapIntervalSGI = wglExt.isExtensionAvailable("WGL_EXT_swap_control")?1:-1;
+        } catch (Throwable t) { hasSwapIntervalSGI=1; }
+    }
+    if (hasSwapIntervalSGI>0) {
+        try {
+            if ( wglExt.wglSwapIntervalEXT(interval) ) {
+                currentSwapInterval = interval ;
+            }
+        } catch (Throwable t) { hasSwapIntervalSGI=-1; }
     }
   }
-
+  
+  private final int initSwapGroupImpl(WGLExt wglExt) {
+      if(0==hasSwapGroupNV) {
+        try {
+            hasSwapGroupNV = wglExt.isExtensionAvailable("WGL_NV_swap_group")?1:-1;
+        } catch (Throwable t) { hasSwapGroupNV=1; }
+        if(DEBUG) {
+            System.err.println("initSwapGroupImpl: hasSwapGroupNV: "+hasSwapGroupNV);
+        }
+      }
+      return hasSwapGroupNV;
+  }
+  
+  @Override
+  protected final boolean queryMaxSwapGroupsImpl(int[] maxGroups, int maxGroups_offset,
+                                                 int[] maxBarriers, int maxBarriers_offset) {
+      boolean res = false;
+      WGLExt wglExt = getWGLExt();
+      if (initSwapGroupImpl(wglExt)>0) {
+        final NativeSurface ns = drawable.getNativeSurface();
+        try {
+            if( wglExt.wglQueryMaxSwapGroupsNV(ns.getDisplayHandle(), 
+                                               maxGroups, maxGroups_offset,
+                                               maxBarriers, maxBarriers_offset) ) {
+                res = true;
+            }
+        } catch (Throwable t) { hasSwapGroupNV=-1; }
+      }
+      return res;
+  }
+  
+  @Override
+  protected final boolean joinSwapGroupImpl(int group) {
+      boolean res = false;
+      WGLExt wglExt = getWGLExt();
+      if (initSwapGroupImpl(wglExt)>0) {
+        try {
+            if( wglExt.wglJoinSwapGroupNV(drawable.getHandle(), group) ) {
+                currentSwapGroup = group;
+                res = true;
+            }
+        } catch (Throwable t) { hasSwapGroupNV=-1; }
+      }
+      return res;
+  }
+  
+  @Override
+  protected final boolean bindSwapBarrierImpl(int group, int barrier) {
+      boolean res = false;
+      WGLExt wglExt = getWGLExt();
+      if (initSwapGroupImpl(wglExt)>0) {
+        try {
+            if( wglExt.wglBindSwapBarrierNV(group, barrier) ) {
+                res = true;
+            }
+        } catch (Throwable t) { hasSwapGroupNV=-1; }
+      }
+      return res;  
+  }
+  
   public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
     return getWGLExt().wglAllocateMemoryNV(arg0, arg1, arg2, arg3);
   }

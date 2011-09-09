@@ -44,6 +44,8 @@ import java.nio.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 
+import com.jogamp.common.util.VersionNumber;
+
 /** Extends GLDrawableFactory with a few methods for handling
     typically software-accelerated offscreen rendering (Device
     Independent Bitmaps on Windows, pixmaps on X11). Direct access to
@@ -51,6 +53,11 @@ import javax.media.opengl.*;
     they may be instantiated by the GLJPanel implementation. */
 public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
+  public static final VersionNumber versionOneZero = new VersionNumber(1, 0, 0);
+  public static final VersionNumber versionOneOne = new VersionNumber(1, 1, 0);
+  public static final VersionNumber versionOneTwo = new VersionNumber(1, 2, 0);
+  public static final VersionNumber versionOneThree = new VersionNumber(1, 3, 0);
+  public static final VersionNumber versionOneFour = new VersionNumber(1, 4, 0);
 
   protected GLDrawableFactoryImpl() {
     super();

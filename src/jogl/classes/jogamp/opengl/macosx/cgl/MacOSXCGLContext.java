@@ -51,7 +51,7 @@ import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 public abstract class MacOSXCGLContext extends GLContextImpl
 {    
   protected boolean isNSContext;
-  private CGLExt cglExt;
+  private CGLExt _cglExt;
   // Table that holds the addresses of the native C-language entry points for
   // CGL extension functions.
   private CGLExtProcAddressTable cglExtProcAddressTable;
@@ -61,6 +61,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     super(drawable, shareWith);
   }
   
+  @Override
+  protected void resetStates() {
+    isNSContext = false;
+    // no inner state _cglExt = null;
+    super.resetStates();
+  }
+
   public Object getPlatformGLExtensions() {
     return getCGLExt();
   }
@@ -68,10 +75,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   protected boolean isNSContext() { return isNSContext; }
 
   public CGLExt getCGLExt() {
-    if (cglExt == null) {
-      cglExt = new CGLExtImpl(this);
+    if (_cglExt == null) {
+      _cglExt = new CGLExtImpl(this);
     }
-    return cglExt;
+    return _cglExt;
   }
 
   public final ProcAddressTable getPlatformExtProcAddressTable() {
@@ -255,9 +262,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
   }
     
-  public String getPlatformExtensionsString()
-  {
-    return "";
+  protected final StringBuffer getPlatformExtensionsStringImpl() {
+    return new StringBuffer();
   }
     
   protected void swapBuffers() {

@@ -549,6 +549,48 @@ public abstract class GLContext {
       return isGL2ES2() ;
   }
 
+  public final void setSwapInterval(int interval) {
+    if (!isCurrent()) {
+        throw new GLException("This context is not current. Current context: "+getCurrent()+", this context "+this);
+    }
+    setSwapIntervalImpl(interval);
+  }
+  protected void setSwapIntervalImpl(int interval) { /** nop per default .. **/  }
+  protected int currentSwapInterval = -1; // default: not set yet ..
+  public int getSwapInterval() {
+    return currentSwapInterval;
+  }
+  
+  public final boolean queryMaxSwapGroups(int[] maxGroups, int maxGroups_offset,
+                                          int[] maxBarriers, int maxBarriers_offset) {
+      
+    if (!isCurrent()) {
+        throw new GLException("This context is not current. Current context: "+getCurrent()+", this context "+this);
+    }
+    return queryMaxSwapGroupsImpl(maxGroups, maxGroups_offset, maxBarriers, maxBarriers_offset);
+  }
+  protected boolean queryMaxSwapGroupsImpl(int[] maxGroups, int maxGroups_offset,
+                                          int[] maxBarriers, int maxBarriers_offset) { return false; }
+  public final boolean joinSwapGroup(int group) {
+    if (!isCurrent()) {
+        throw new GLException("This context is not current. Current context: "+getCurrent()+", this context "+this);
+    }
+    return joinSwapGroupImpl(group);
+  }
+  protected boolean joinSwapGroupImpl(int group) { /** nop per default .. **/  return false; }
+  protected int currentSwapGroup = -1; // default: not set yet ..  
+  public int getSwapGroup() {
+      return currentSwapGroup;
+  }
+  public final boolean bindSwapBarrier(int group, int barrier) {
+    if (!isCurrent()) {
+        throw new GLException("This context is not current. Current context: "+getCurrent()+", this context "+this);
+    }
+    return bindSwapBarrierImpl(group, barrier);    
+  }
+  protected boolean bindSwapBarrierImpl(int group, int barrier) { /** nop per default .. **/  return false; }
+
+  
   /**
    * @return The extension implementing the GLDebugOutput feature, 
    *         either <i>GL_ARB_debug_output</i> or <i>GL_AMD_debug_output</i>. 

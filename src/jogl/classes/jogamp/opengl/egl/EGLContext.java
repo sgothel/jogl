@@ -42,13 +42,14 @@ import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import java.nio.*;
 import java.util.*;
+
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 
 public abstract class EGLContext extends GLContextImpl {
     private boolean eglQueryStringInitialized;
     private boolean eglQueryStringAvailable;
-    private EGLExt eglExt;
+    private EGLExt _eglExt;
     // Table that holds the addresses of the native C-language entry points for
     // EGL extension functions.
     private EGLExtProcAddressTable eglExtProcAddressTable;
@@ -58,15 +59,23 @@ public abstract class EGLContext extends GLContextImpl {
         super(drawable, shareWith);
     }
 
+    @Override
+    protected void resetStates() {
+        eglQueryStringInitialized = false;
+        eglQueryStringAvailable = false;
+        // no inner state _eglExt = null;
+        super.resetStates();
+    }
+    
     public Object getPlatformGLExtensions() {
       return getEGLExt();
     }
 
     public EGLExt getEGLExt() {
-      if (eglExt == null) {
-        eglExt = new EGLExtImpl(this);
+      if (_eglExt == null) {
+        _eglExt = new EGLExtImpl(this);
       }
-      return eglExt;
+      return _eglExt;
     }
 
     public final ProcAddressTable getPlatformExtProcAddressTable() {
@@ -237,22 +246,22 @@ public abstract class EGLContext extends GLContextImpl {
         }
     }
   
-    public synchronized String getPlatformExtensionsString() {
+    protected final StringBuffer getPlatformExtensionsStringImpl() {
+        StringBuffer sb = new StringBuffer();        
         if (!eglQueryStringInitialized) {
           eglQueryStringAvailable =
             getDrawableImpl().getGLDynamicLookupHelper().dynamicLookupFunction("eglQueryString") != 0;
           eglQueryStringInitialized = true;
         }
         if (eglQueryStringAvailable) {
-            String ret = EGL.eglQueryString(((EGLDrawable)drawable).getDisplay(), 
-                                            EGL.EGL_EXTENSIONS);
+            final String ret = EGL.eglQueryString(((EGLDrawable)drawable).getDisplay(), 
+                                                  EGL.EGL_EXTENSIONS);
             if (DEBUG) {
               System.err.println("!!! EGL extensions: " + ret);
             }
-            return ret;
-        } else {
-          return "";
+            sb.append(ret);
         }
+        return sb;
     }
 
     protected void setSwapIntervalImpl(int interval) {

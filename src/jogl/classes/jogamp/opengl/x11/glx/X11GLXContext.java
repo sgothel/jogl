@@ -60,14 +60,14 @@ public abstract class X11GLXContext extends GLContextImpl {
   private static final Map<String, String> functionNameMap;
   private static final Map<String, String> extensionNameMap;
   private VersionNumber glXVersion;
+  private boolean glXVersionOneOneCapable;
   private boolean glXVersionOneThreeCapable;
-  private boolean glXQueryExtensionsStringInitialized;
-  private boolean glXQueryExtensionsStringAvailable;
-  private GLXExt glXExt;
+  private GLXExt _glXExt;
   // Table that holds the addresses of the native C-language entry points for
   // GLX extension functions.
   private GLXExtProcAddressTable glXExtProcAddressTable;
   private int hasSwapIntervalSGI = 0;
+  private int hasSwapGroupNV = 0;
 
   // This indicates whether the context we have created is indirect
   // and therefore requires the toolkit to be locked around all GL
@@ -89,15 +89,17 @@ public abstract class X11GLXContext extends GLContextImpl {
     super(drawable, shareWith);
   }
   
-  protected void resetState() {
+  @Override
+  protected void resetStates() {
     glXVersion = null;
+    glXVersionOneOneCapable = false;
     glXVersionOneThreeCapable = false;
-    glXQueryExtensionsStringInitialized=false;
-    glXQueryExtensionsStringAvailable=false;
-    // no inner state glXExt=null;
+    // no inner state _glXExt=null;
     glXExtProcAddressTable = null;
     hasSwapIntervalSGI = 0;
+    hasSwapGroupNV = 0;
     isDirect = false;
+    super.resetStates();
   }
 
   public final ProcAddressTable getPlatformExtProcAddressTable() {
@@ -113,24 +115,32 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   public GLXExt getGLXExt() {
-    if (glXExt == null) {
-      glXExt = new GLXExtImpl(this);
+    if (_glXExt == null) {
+      _glXExt = new GLXExtImpl(this);
     }
-    return glXExt;
+    return _glXExt;
   }
 
   protected Map<String, String> getFunctionNameMap() { return functionNameMap; }
 
   protected Map<String, String> getExtensionNameMap() { return extensionNameMap; }
 
-  public final boolean isGLXVersionGreaterEqualOneThree() {
+  private final void initGLXVersion() {
     if(null == glXVersion) {
         X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
         X11GraphicsDevice device = (X11GraphicsDevice) config.getScreen().getDevice();
 
         glXVersion = X11GLXDrawableFactory.getGLXVersion(device);
-        glXVersionOneThreeCapable = ( null != glXVersion ) ? glXVersion.compareTo(X11GLXDrawableFactory.versionOneThree) >= 0 : false ;
-    }
+        glXVersionOneOneCapable   = ( null != glXVersion ) ? glXVersion.compareTo(GLDrawableFactoryImpl.versionOneOne) >= 0 : false ;
+        glXVersionOneThreeCapable = ( null != glXVersion ) ? glXVersion.compareTo(GLDrawableFactoryImpl.versionOneThree) >= 0 : false ;
+    }      
+  }
+  public final boolean isGLXVersionGreaterEqualOneOne() {
+    initGLXVersion();
+    return glXVersionOneOneCapable;
+  }
+  public final boolean isGLXVersionGreaterEqualOneThree() {
+    initGLXVersion();
     return glXVersionOneThreeCapable;
   }
 
@@ -470,9 +480,6 @@ public abstract class X11GLXContext extends GLContextImpl {
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing GLX extension address table: "+key);
     }
-    glXQueryExtensionsStringInitialized = false;
-    glXQueryExtensionsStringAvailable = false;
-
     ProcAddressTable table = null;
     synchronized(mappedContextTypeObjectLock) {
         table = mappedGLXProcAddress.get( key );
@@ -497,22 +504,36 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
   }
 
-  public synchronized String getPlatformExtensionsString() {
-    if (!glXQueryExtensionsStringInitialized) {
-      glXQueryExtensionsStringAvailable =
-        getDrawableImpl().getGLDynamicLookupHelper().dynamicLookupFunction("glXQueryExtensionsString") != 0;
-      glXQueryExtensionsStringInitialized = true;
+  protected final StringBuffer getPlatformExtensionsStringImpl() {
+    StringBuffer sb = new StringBuffer();
+    if (DEBUG) {
+      System.err.println("!!! GLX Version "+glXVersion);
     }
-    if (glXQueryExtensionsStringAvailable) {
-        NativeSurface ns = drawable.getNativeSurface();
-        String ret = GLX.glXQueryExtensionsString(ns.getDisplayHandle(), ns.getScreenIndex());
-        if (DEBUG) {
-          System.err.println("!!! GLX extensions: " + ret);
+    if(isGLXVersionGreaterEqualOneOne()) {
+        final NativeSurface ns = drawable.getNativeSurface();
+        {
+            final String ret = GLX.glXGetClientString(ns.getDisplayHandle(), GLX.GLX_EXTENSIONS);
+            if (DEBUG) {
+              System.err.println("!!! GLX extensions (glXGetClientString): " + ret);
+            }
+            sb.append(ret).append(" ");
         }
-        return ret;
-    } else {
-      return "";
+        {
+            final String ret = GLX.glXQueryExtensionsString(ns.getDisplayHandle(), ns.getScreenIndex());
+            if (DEBUG) {
+              System.err.println("!!! GLX extensions (glXQueryExtensionsString): " + ret);
+            }
+            sb.append(ret).append(" ");
+        }
+        {
+            final String ret = GLX.glXQueryServerString(ns.getDisplayHandle(), ns.getScreenIndex(), GLX.GLX_EXTENSIONS);
+            if (DEBUG) {
+              System.err.println("!!! GLX extensions (glXQueryServerString): " + ret);
+            }
+            sb.append(ret).append(" ");
+        }
     }
+    return sb;
   }
 
   public boolean isExtensionAvailable(String glExtensionName) {
@@ -524,6 +545,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     return super.isExtensionAvailable(glExtensionName);
   }
 
+  @Override
   protected void setSwapIntervalImpl(int interval) {
     X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
@@ -544,6 +566,66 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
   }
 
+  private final int initSwapGroupImpl(GLXExt glXExt) {
+      if(0==hasSwapGroupNV) {
+        try {
+            hasSwapGroupNV = glXExt.isExtensionAvailable("GLX_NV_swap_group")?1:-1;
+        } catch (Throwable t) { hasSwapGroupNV=1; }
+        if(DEBUG) {
+            System.err.println("initSwapGroupImpl: hasSwapGroupNV: "+hasSwapGroupNV);
+        }
+      }
+      return hasSwapGroupNV;
+  }
+  
+  @Override
+  protected final boolean queryMaxSwapGroupsImpl(int[] maxGroups, int maxGroups_offset,
+                                                 int[] maxBarriers, int maxBarriers_offset) {
+      boolean res = false;
+      GLXExt glXExt = getGLXExt();
+      if (initSwapGroupImpl(glXExt)>0) {
+        final NativeSurface ns = drawable.getNativeSurface();
+        try {
+            if( glXExt.glXQueryMaxSwapGroupsNV(ns.getDisplayHandle(), ns.getScreenIndex(), 
+                                               maxGroups, maxGroups_offset,
+                                               maxBarriers, maxBarriers_offset) ) {
+                res = true;
+            }
+        } catch (Throwable t) { hasSwapGroupNV=-1; }
+      }
+      return res;
+  }
+  
+  @Override
+  protected final boolean joinSwapGroupImpl(int group) {
+      boolean res = false;
+      GLXExt glXExt = getGLXExt();
+      if (initSwapGroupImpl(glXExt)>0) {
+        try {
+            if( glXExt.glXJoinSwapGroupNV(drawable.getNativeSurface().getDisplayHandle(), drawable.getHandle(), group) ) {
+                currentSwapGroup = group;
+                res = true;
+            }
+        } catch (Throwable t) { hasSwapGroupNV=-1; }
+      }
+      return res;
+  }
+  
+  @Override
+  protected final boolean bindSwapBarrierImpl(int group, int barrier) {
+      boolean res = false;
+      GLXExt glXExt = getGLXExt();
+      if (initSwapGroupImpl(glXExt)>0) {
+        try {
+            if( glXExt.glXBindSwapBarrierNV(drawable.getNativeSurface().getDisplayHandle(), group, barrier) ) {
+                res = true;
+            }
+        } catch (Throwable t) { hasSwapGroupNV=-1; }
+      }
+      return res;  
+  }
+
+  @Override
   public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
     return getGLXExt().glXAllocateMemoryNV(arg0, arg1, arg2, arg3);
   }

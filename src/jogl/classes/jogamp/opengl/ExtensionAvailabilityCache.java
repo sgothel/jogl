@@ -41,6 +41,7 @@
 package jogamp.opengl;
 
 import javax.media.opengl.*;
+
 import java.util.*;
 
 /**
@@ -132,9 +133,9 @@ final class ExtensionAvailabilityCache {
       if(useGetStringi) {
         GL2GL3 gl2gl3 = gl.getGL2GL3();
         int[] numExtensions = { 0 } ;
-        gl2gl3.glGetIntegerv(gl2gl3.GL_NUM_EXTENSIONS, numExtensions, 0);
+        gl2gl3.glGetIntegerv(GL2GL3.GL_NUM_EXTENSIONS, numExtensions, 0);
         for (int i = 0; i < numExtensions[0]; i++) {
-            sb.append(gl2gl3.glGetStringi(gl2gl3.GL_EXTENSIONS, i));
+            sb.append(gl2gl3.glGetStringi(GL.GL_EXTENSIONS, i));
             if(i < numExtensions[0]) {
                 sb.append(" ");
             }
@@ -151,8 +152,21 @@ final class ExtensionAvailabilityCache {
         sb.append(gl.glGetString(GL.GL_EXTENSIONS));
       }
       glExtensions = sb.toString();
-      glXExtensions = context.getPlatformExtensionsString();
-
+      
+      // Platform Extensions
+      {         
+          // unify platform extension .. might have duplicates
+          HashSet<String> platformSet = new HashSet<String>(50);
+          StringTokenizer tok = new StringTokenizer(context.getPlatformExtensionsStringImpl().toString());
+          while (tok.hasMoreTokens()) {
+              platformSet.add(tok.nextToken().trim());              
+          }
+          final StringBuffer sb2 = new StringBuffer();
+          for(Iterator<String> iter = platformSet.iterator(); iter.hasNext(); ) {
+              sb2.append(iter.next()).append(" ");
+          }
+          glXExtensions = sb2.toString();
+      }
       sb.append(" ");
       sb.append(glXExtensions);
 
@@ -210,7 +224,7 @@ final class ExtensionAvailabilityCache {
   private boolean initialized = false;
   private String glExtensions = null;
   private String glXExtensions = null;
-  private HashSet availableExtensionCache = new HashSet(50);
+  private HashSet<String> availableExtensionCache = new HashSet<String>(50);
   private GLContextImpl context;
 
   static String getThreadName() {

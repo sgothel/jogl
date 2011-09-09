@@ -56,7 +56,6 @@ import jogamp.nativewindow.x11.*;
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   
   private static final DesktopGLDynamicLookupHelper x11GLXDynamicLookupHelper;
-  static final VersionNumber versionOneThree = new VersionNumber(1, 3, 0);
 
   static {
     DesktopGLDynamicLookupHelper tmp = null;
