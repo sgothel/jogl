@@ -175,17 +175,7 @@ public class GearsES2 implements GLEventListener {
         }
         st.useProgram(gl, false);
         
-        int[] maxVals = new int[] { -1, -1 } ;
-        GLContext glc = drawable.getContext();
-        boolean r = glc.queryMaxSwapGroups(maxVals, 0, maxVals, 1);
-        System.err.println("swap group max groups "+maxVals[0]+", barriers "+maxVals[0]+", "+r);
-        if(maxVals[0]>0) {
-            System.err.println("swap group joing 1: "+glc.joinSwapGroup(1));
-            if(maxVals[1]>0) {
-                System.err.println("swap group bind 1-1: "+glc.bindSwapBarrier(1, 1));
-            }
-        }
-        glc.setSwapInterval(swapInterval);
+        gl.setSwapInterval(swapInterval);
         
         System.err.println(Thread.currentThread()+" GearsES2.init FIN");
     }

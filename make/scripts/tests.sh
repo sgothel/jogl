@@ -75,7 +75,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
-    D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
+    #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
     #D_ARGS="-Djogl.debug.Animator"
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GraphicsConfiguration"
@@ -158,7 +158,7 @@ function testawtmt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT
+testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00bNEWT
@@ -208,13 +208,11 @@ function testawtmt() {
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
-testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03bAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03bAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.glsl.TestShaderCompilationBug459AWT
-
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 
 #testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
