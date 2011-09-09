@@ -156,14 +156,18 @@ public class WindowsWindow extends WindowImpl {
             final InsetsImmutable i = getInsets();
             
             // client position -> top-level window position
-            x -= i.getLeftWidth() ;
-            y -= i.getTopHeight() ;
-            if( 0 > x ) { x = 0; }
-            if( 0 > y ) { y = 0; }
+            if(0<=x && 0<=y) {
+                x -= i.getLeftWidth() ;
+                y -= i.getTopHeight() ;
+                if( 0 > x ) { x = 0; }
+                if( 0 > y ) { y = 0; }
+            }
             
-            // client size -> top-level window size
-            width += i.getTotalWidth();
-            height += i.getTotalHeight();
+            if(0<width && 0<height) {
+                // client size -> top-level window size
+                width += i.getTotalWidth();
+                height += i.getTotalHeight();
+            }
         }
         reconfigureWindow0( getParentWindowHandle(), getWindowHandle(), x, y, width, height, flags);
         

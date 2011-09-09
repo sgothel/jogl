@@ -1284,6 +1284,33 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_getNewtWnd
     return (jlong) (intptr_t) wndProc;
 }
 
+static void NewtWindow_setVisiblePosSize(HWND hwnd, BOOL top, BOOL visible, 
+                                         int x, int y, int width, int height)
+{
+    UINT flags;
+    BOOL bRes;
+    
+    DBG_PRINT("*** WindowsWindow: NewtWindow_setVisiblePosSize %d/%d %dx%d, top %d, visible %d\n", 
+        x, y, width, height, top, visible);
+
+    if(visible) {
+        flags = SWP_SHOWWINDOW;
+    } else {
+        flags = SWP_NOACTIVATE | SWP_NOZORDER;
+    }
+    if(0>x || 0>y) {
+        flags |= SWP_NOMOVE;
+    }
+    if(0>=width || 0>=height ) {
+        flags |= SWP_NOSIZE;
+    }
+
+    SetWindowPos(hwnd, top ? HWND_TOPMOST : HWND_TOP, x, y, width, height, flags);
+
+    InvalidateRect(hwnd, NULL, TRUE);
+    UpdateWindow(hwnd);
+}
+
 /*
  * Class:     jogamp_newt_driver_windows_WindowsWindow
  * Method:    CreateWindow
@@ -1301,6 +1328,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
     int x=(int)jx, y=(int)jy;
     int width=(int)defaultWidth, height=(int)defaultHeight;
     HWND window = NULL;
+    int _x = x, _y = y; // pos for CreateWindow, might be tweaked
 
 #ifdef UNICODE
     wndClassName = NewtCommon_GetNullTerminatedStringChars(env, jWndClassName);
@@ -1309,6 +1337,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
     wndClassName = (*env)->GetStringUTFChars(env, jWndClassName, NULL);
     wndName = (*env)->GetStringUTFChars(env, jWndName, NULL);
 #endif
+
 
     if(NULL!=parentWindow) {
         if (!IsWindow(parentWindow)) {
@@ -1320,14 +1349,17 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
         windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
     } else {
         windowStyle |= WS_OVERLAPPEDWINDOW;
-        x = CW_USEDEFAULT;
-        y = 0;
+        if(0>_x || 0>_y) {
+            // user didn't requested specific position, use WM default
+            _x = CW_USEDEFAULT;
+            _y = 0;
+        }
     }
 
     (void) visualID; // FIXME: use the visualID ..
 
     window = CreateWindow(wndClassName, wndName, windowStyle,
-                          x, y, width, height,
+                          _x, _y, width, height,
                           parentWindow, NULL,
                           (HINSTANCE) (intptr_t) hInstance,
                           NULL);
@@ -1348,7 +1380,37 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
 #else
         SetWindowLongPtr(window, GWLP_USERDATA, (intptr_t) wud);
 #endif
-        (void)UpdateInsets(env, wud->jinstance, window);
+
+        // gather and adjust position and size
+        {
+            RECT rc;
+            RECT * insets;
+            BOOL userPos = 0<=x && 0<=y ;
+
+            ShowWindow(window, SW_SHOW);
+            (*env)->CallVoidMethod(env, wud->jinstance, visibleChangedID, JNI_TRUE);
+
+            insets = UpdateInsets(env, wud->jinstance, window);
+            if(!userPos) {
+                GetWindowRect(window, &rc);
+                x = rc.left + insets->left; // client coords
+                y = rc.top + insets->top;   // client coords
+            }
+            DBG_PRINT("*** WindowsWindow: CreateWindow client: %d/%d %dx%d (is user-pos %d)\n", x, y, width, height, userPos);
+
+            x -= insets->left; // top-level
+            y -= insets->top;  // top-level
+            width += insets->left + insets->right;   // top-level
+            height += insets->top + insets->bottom;  // top-level
+            DBG_PRINT("*** WindowsWindow: CreateWindow top-level %d/%d %dx%d\n", x, y, width, height);
+
+            if(userPos) {
+                // mark pos as undef, which cases java to wait for WM reported pos
+                (*env)->CallVoidMethod(env, wud->jinstance, positionChangedID, -1, -1);
+            }
+            NewtWindow_setVisiblePosSize(window, (NULL == parentWindow) ? TRUE : FALSE /* top */, 
+                                         TRUE, x, y, width, height);
+        }
     }
 
 #ifdef UNICODE
@@ -1375,28 +1437,6 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_MonitorFro
     #else
         return 0;
     #endif
-}
-
-void NewtWindow_setVisiblePosSize(JNIEnv *env, jobject obj, HWND hwnd, 
-                                  BOOL top, BOOL undecorated, BOOL visible, 
-                                  int x, int y, int width, int height)
-{
-    UINT flags;
-    BOOL bRes;
-    
-    DBG_PRINT("*** WindowsWindow: NewtWindow_setVisiblePosSize %d/%d %dx%d, top %d, undecorated %d, visible %d\n", 
-        x, y, width, height, top, undecorated, visible);
-
-    if(visible) {
-        flags = SWP_SHOWWINDOW;
-    } else {
-        flags = SWP_NOACTIVATE | SWP_NOZORDER;
-    }
-
-    SetWindowPos(hwnd, top ? HWND_TOPMOST : HWND_TOP, x, y, width, height, flags);
-
-    InvalidateRect(hwnd, NULL, TRUE);
-    UpdateWindow(hwnd);
 }
 
 static jboolean NewtWindows_setFullScreen(jboolean fullscreen)
@@ -1488,8 +1528,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_reconfigure
         SetParent(hwnd, hwndP );
     }
 
-    NewtWindow_setVisiblePosSize(env, obj, hwnd, (NULL == hwndP) ? JNI_TRUE : JNI_FALSE /* top */, 
-                                 TST_FLAG_IS_UNDECORATED(flags), TST_FLAG_IS_VISIBLE(flags), x, y, width, height);
+    NewtWindow_setVisiblePosSize(hwnd, (NULL == hwndP) ? TRUE : FALSE /* top */, 
+                                 TST_FLAG_IS_VISIBLE(flags), x, y, width, height);
 
     if( TST_FLAG_CHANGE_VISIBILITY(flags) ) {
         if( TST_FLAG_IS_VISIBLE(flags) ) {

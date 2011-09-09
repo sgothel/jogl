@@ -87,7 +87,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected CapabilitiesImmutable capsRequested = null;
     protected CapabilitiesChooser capabilitiesChooser = null; // default null -> default
     protected boolean fullscreen = false, hasFocus = false;    
-    protected int width = 128, height = 128, x = 0, y = 0; // client-area size/pos w/o insets
+    protected int width = 128, height = 128; // client-area size w/o insets, default: may be overwritten by user
+    protected int x = -1, y = -1; // client-area pos w/o insets, default: undefined (allow WM to choose if not set by user)
     protected Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
         
     protected int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen client-area size/pos w/o insets
@@ -257,9 +258,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.createNative() START ("+getThreadName()+", "+this+")");
         }
+        final boolean userPos = 0<=x && 0<=y; // user has specified a position
+        
         if( null != parentWindow && 
             NativeSurface.LOCK_SURFACE_NOT_READY >= parentWindow.lockSurface() ) {
-                throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
+            throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
+        }        
+        if( !userPos && ( isUndecorated() || null != parentWindow ) ) {
+            // default child/undecorated window position is 0/0, if not set by user
+            x = 0; y = 0;
         }
         try {
             if(validateParentWindowHandle()) {
@@ -267,11 +274,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     throw new InternalError("XXX");
                 }
                 if(canCreateNativeImpl()) {
+                    final int _x = x, _y = y; // orig req pos
                     screen.addReference();
                     screenReferenceAdded = true;
                     createNativeImpl();
                     screen.addScreenModeListener(screenModeListenerImpl);
                     setTitleImpl(title);
+                    waitForVisible(true, false);
+                    if(userPos) {
+                        // wait for user req position
+                        waitForPosSize(_x, _y, -1, -1, false, TIMEOUT_NATIVEWINDOW);
+                    } else {
+                        waitForAnyPos(false, TIMEOUT_NATIVEWINDOW);
+                    }
                 }
                 // always flag visible, 
                 // allowing to retry if visible && !isNativeValid()
@@ -413,10 +428,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * to insets and positioning a decorated window to 0/0, which would place the frame
      * outside of the screen.</p>
      * 
-     * @param x client-area position
-     * @param y client-area position
-     * @param width client-area size
-     * @param height client-area size
+     * @param x client-area position, or <0 if unchanged
+     * @param y client-area position, or <0 if unchanged
+     * @param width client-area size, or <=0 if unchanged
+     * @param height client-area size, or <=0 if unchanged
      * @param flags bitfield of change and status flags
      *
      * @see #sizeChanged(int,int)
@@ -1488,21 +1503,33 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     display.dispatchMessagesNative(); // status up2date
                     boolean wasVisible = isVisible();
                     
-                    reconfigureWindowImpl(x, y, w, h, 
-                            getReconfigureFlags( ( ( 0 != parentWindowHandle ) ? FLAG_CHANGE_PARENTING : 0 ) | 
-                                                 FLAG_CHANGE_FULLSCREEN | FLAG_CHANGE_DECORATION, wasVisible) ); 
-                    display.dispatchMessagesNative(); // status up2date
-
-                    if(wasVisible) {
-                        // visibility should be implicit if needed by native impl, 
-                        // however .. this is a little fallback code
-                        if(!WindowImpl.this.waitForVisible(true, true, TIMEOUT_NATIVEWINDOW)) {
-                            setVisibleImpl(true, x, y, w, h);
-                            WindowImpl.this.waitForVisible(true, true, TIMEOUT_NATIVEWINDOW);
-                            display.dispatchMessagesNative(); // status up2date                            
+                    // Lock parentWindow only during reparenting (attempt)
+                    final NativeWindow parentWindowLocked;
+                    if( null != parentWindow ) {
+                        parentWindowLocked = parentWindow;
+                        if( NativeSurface.LOCK_SURFACE_NOT_READY >= parentWindowLocked.lockSurface() ) {
+                            throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
                         }
-                        // ensure size is set, request focus .. and done
+                    } else {
+                        parentWindowLocked = null;
+                    }
+                    try {
+                        reconfigureWindowImpl(x, y, w, h, 
+                                              getReconfigureFlags( ( ( null != parentWindowLocked ) ? FLAG_CHANGE_PARENTING : 0 ) | 
+                                                                   FLAG_CHANGE_FULLSCREEN | FLAG_CHANGE_DECORATION, wasVisible) ); 
+                    } finally {
+                        if(null!=parentWindowLocked) {
+                            parentWindowLocked.unlockSurface();
+                        }
+                    }
+                    display.dispatchMessagesNative(); // status up2date
+                    
+                    if(wasVisible) {
+                        setVisibleImpl(true, x, y, w, h);
+                        WindowImpl.this.waitForVisible(true, false);
+                        display.dispatchMessagesNative(); // status up2date                                                        
                         WindowImpl.this.waitForPosSize(-1, -1, w, h, false, TIMEOUT_NATIVEWINDOW);
+                        display.dispatchMessagesNative(); // status up2date                                                        
                         requestFocusImpl(true);
                         display.dispatchMessagesNative(); // status up2date
                         
@@ -2047,16 +2074,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         DisplayImpl display = (DisplayImpl) screen.getDisplay();
         for(long sleep = timeOut; 0<sleep && this.visible != visible; sleep-=10 ) {
             display.dispatchMessagesNative(); // status up2date
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException ie) {}
+            try { Thread.sleep(10); } catch (InterruptedException ie) {}
             sleep -=10;
         }
         if(this.visible != visible) {
+            final String msg = "Visibility not reached as requested within "+timeOut+"ms : requested "+visible+", is "+this.visible; 
             if(failFast) {
-                throw new NativeWindowException("Visibility not reached as requested within "+timeOut+"ms : requested "+visible+", is "+this.visible);
+                throw new NativeWindowException(msg);
             } else if (DEBUG_IMPLEMENTATION) {
-                System.err.println("******* Visibility not reached as requested within "+timeOut+"ms : requested "+visible+", is "+this.visible);
+                System.err.println(msg);
             }
         }
         return this.visible == visible;
@@ -2091,17 +2117,39 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 reached = true;
             } else {
                 display.dispatchMessagesNative(); // status up2date
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException ie) {}
+                try { Thread.sleep(10); } catch (InterruptedException ie) {}
                 sleep -=10;
             }
         }
         if(!reached) {
+            final String msg = "Size/Pos not reached as requested within "+timeOut+"ms : requested "+x+"/"+y+" "+w+"x"+h+", is "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight();
             if(failFast) {
-                throw new NativeWindowException("Size/Pos not reached as requested within "+timeOut+"ms : requested "+x+"/"+y+" "+w+"x"+h+", is "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
+                throw new NativeWindowException(msg);
             } else if (DEBUG_IMPLEMENTATION) {
-                System.err.println("********** Size/Pos not reached as requested within "+timeOut+"ms : requested "+x+"/"+y+" "+w+"x"+h+", is "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
+                System.err.println(msg);
+            }
+        }
+        return reached;
+    }
+    
+    private boolean waitForAnyPos(boolean failFast, long timeOut) {
+        DisplayImpl display = (DisplayImpl) screen.getDisplay();
+        boolean reached = false;
+        for(long sleep = timeOut; !reached && 0<sleep; sleep-=10 ) {
+            if( 0<=getX() && 0<=getY() ) {
+                reached = true;
+            } else {
+                display.dispatchMessagesNative(); // status up2date
+                try { Thread.sleep(10); } catch (InterruptedException ie) {}
+                sleep -=10;
+            }
+        }
+        if(!reached) {
+            final String msg = "Any Pos not reached as requested within "+timeOut+"ms : is "+getX()+"/"+getY();
+            if(failFast) {
+                throw new NativeWindowException(msg);
+            } else if (DEBUG_IMPLEMENTATION) {
+                System.err.println(msg);
             }
         }
         return reached;

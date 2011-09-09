@@ -34,6 +34,8 @@
 package jogamp.newt.driver.x11;
 
 import jogamp.nativewindow.x11.X11Util;
+import jogamp.newt.DisplayImpl;
+import jogamp.newt.DisplayImpl.DisplayRunnable;
 import jogamp.newt.WindowImpl;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
@@ -99,7 +101,7 @@ public class X11Window extends WindowImpl {
                                getReconfigureFlagsAsString(null, flags));
         }
 
-        if(0 == ( FLAG_IS_UNDECORATED & flags)) {
+        if(0 == ( FLAG_IS_UNDECORATED & flags) && 0<=x && 0<=y) {
             final InsetsImmutable i = getInsets();         
             
             // client position -> top-level window position
@@ -119,12 +121,18 @@ public class X11Window extends WindowImpl {
     }
 
     @Override
-    protected void setTitleImpl(String title) {
-        setTitle0(getDisplayEDTHandle(), getWindowHandle(), title);
+    protected void setTitleImpl(final String title) {
+        runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable() {
+            public Object run(long dpy) {
+                setTitle0(dpy, getWindowHandle(), title);
+                return null;
+            }
+        });
     }
 
-    protected Point getLocationOnScreenImpl(int x, int y) {
-        return X11Util.GetRelativeLocation( getDisplayEDTHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
+    protected Point getLocationOnScreenImpl(final int x, final int y) {
+        // X11Util.GetRelativeLocation: locks display already !
+        return X11Util.GetRelativeLocation( getScreen().getDisplay().getHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
     }
 
     protected void updateInsetsImpl(Insets insets) {
@@ -137,6 +145,10 @@ public class X11Window extends WindowImpl {
     
     private final long getDisplayEDTHandle() {
         return ((X11Display) getScreen().getDisplay()).getEDTHandle();
+    }
+    private final Object runWithLockedDisplayHandle(DisplayRunnable action) {
+        return ((DisplayImpl) getScreen().getDisplay()).runWithLockedDisplayHandle(action);
+        // return runWithTempDisplayHandle(action);
     }
 
     protected static native boolean initIDs0();

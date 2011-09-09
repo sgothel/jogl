@@ -28,19 +28,12 @@
  
 package com.jogamp.opengl.test.junit.newt;
 
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.util.Point;
 
 import com.jogamp.newt.*;
 import java.io.IOException;
@@ -53,11 +46,13 @@ public class TestWindows01NEWT extends UITestCase {
     @BeforeClass
     public static void initClass() {
         NativeWindowFactory.initSingleton(true);
-        width  = 640;
-        height = 480;
+        width  = 256;
+        height = 256;
     }
 
-    static Window createWindow(Screen screen, Capabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
+    static Window createWindow(Capabilities caps, int x, int y, int width, int height, boolean onscreen, boolean undecorated) throws InterruptedException {
+        final boolean userPos = x>=0 && y>=0 ; // user has specified a position
+        
         Assert.assertNotNull(caps);
         caps.setOnscreen(onscreen);
         // System.out.println("Requested: "+caps);
@@ -65,110 +60,120 @@ public class TestWindows01NEWT extends UITestCase {
         //
         // Create native windowing resources .. X11/Win/OSX
         // 
-        Window window = NewtFactory.createWindow(screen, caps);
+        Window window = NewtFactory.createWindow(caps);
         Assert.assertNotNull(window);
+        Screen screen = window.getScreen();
+        Display display = screen.getDisplay();
         window.setUndecorated(onscreen && undecorated);
+        if(userPos) {
+            window.setPosition(x, y);
+        }
         window.setSize(width, height);
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
         window.setVisible(true);
+        // System.err.println("************* Created: "+window);
+        
+        Assert.assertEquals(true,display.isNativeValid());            
+        Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
         Assert.assertEquals(true,window.isNativeValid());
-        // Assert.assertEquals(width,window.getWidth());
-        // Assert.assertEquals(height,window.getHeight());
-        // System.out.println("Created: "+window);
+        Assert.assertEquals(width, window.getWidth());
+        Assert.assertEquals(height, window.getHeight());
+        
+        Point p0  = window.getLocationOnScreen(null);
+        Assert.assertEquals(p0.getX(), window.getX());
+        Assert.assertEquals(p0.getY(), window.getY());
+        if(userPos) {
+            Assert.assertEquals(x, window.getX());
+            Assert.assertEquals(y, window.getY());
+        }
 
-        //
-        // Create native OpenGL resources .. XGL/WGL/CGL .. 
-        // equivalent to GLAutoDrawable methods: setVisible(true)
-        // 
         CapabilitiesImmutable chosenCapabilities = window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
         Assert.assertNotNull(chosenCapabilities);
         Assert.assertTrue(chosenCapabilities.getGreenBits()>=5);
         Assert.assertTrue(chosenCapabilities.getBlueBits()>=5);
         Assert.assertTrue(chosenCapabilities.getRedBits()>=5);
         Assert.assertEquals(chosenCapabilities.isOnscreen(),onscreen);
-
+        
         return window;
     }
 
-    static void destroyWindow(Display display, Screen screen, Window window) {
-        if(null!=window) {
-            window.destroy();
+    static void destroyWindow(Window window, boolean last) {
+        if(null==window) {
+            return;
         }
-        if(null!=screen) {
-            screen.destroy();
+        Screen screen = window.getScreen();
+        Display display = screen.getDisplay();
+        window.destroy();
+        // System.err.println("************* Destroyed: "+window);
+        if(last) {
+            Assert.assertEquals(false,screen.isNativeValid());
+            Assert.assertEquals(false,display.isNativeValid());
+        } else {
+            Assert.assertEquals(true,screen.isNativeValid());
+            Assert.assertEquals(true,display.isNativeValid());            
         }
-        if(null!=display) {
-            display.destroy();
-        }
+        Assert.assertEquals(false,window.isNativeValid());
+        Assert.assertEquals(false,window.isVisible());
+    }
+
+
+    @Test
+    public void testWindowDecorSimpleWMPos() throws InterruptedException {
+        Capabilities caps = new Capabilities();
+        Assert.assertNotNull(caps);
+
+        Window window = createWindow(caps, -1, -1, width, height, true /* onscreen */, false /* undecorated */);
+        destroyWindow(window, true);
+    }
+
+
+    @Test
+    public void testWindowDecorSimpleUserPos() throws InterruptedException {
+        Capabilities caps = new Capabilities();
+        Assert.assertNotNull(caps);
+
+        Window window = createWindow(caps, 100, 100, width, height, true /* onscreen */, false /* undecorated */);
+        destroyWindow(window, true);
     }
 
     @Test
     public void testWindowNativeRecreate01Simple() throws InterruptedException {
         Capabilities caps = new Capabilities();
         Assert.assertNotNull(caps);
-        Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
 
-        Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-        window.destroy();
-        Assert.assertEquals(false,window.isNativeValid());
-        Assert.assertEquals(false,window.isVisible());
-
+        Window window = createWindow(caps, -1, -1, width, height, true /* onscreen */, false /* undecorated */);
+        destroyWindow(window, true);
+        
         window.setVisible(true);
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
+        Assert.assertEquals(width, window.getWidth());
+        Assert.assertEquals(height, window.getHeight());
 
-        Thread.sleep(100); // 100 ms
-        destroyWindow(display, screen, window);
+        destroyWindow(window, true);
+    }
+    
+    @Test
+    public void testWindowDecorDestroyWinTwiceA() throws InterruptedException {
+        Capabilities caps = new Capabilities();
+        Assert.assertNotNull(caps);
+
+        Window window = createWindow(caps, -1, -1, width, height, true /* onscreen */, false /* undecorated */);
+        destroyWindow(window, true);
+        destroyWindow(window, true);
     }
 
     @Test
-    public void testWindowDecor01Simple() throws InterruptedException {
+    public void testWindowDecorTwoWin() throws InterruptedException {
         Capabilities caps = new Capabilities();
         Assert.assertNotNull(caps);
-        Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
 
-        Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-        Thread.sleep(100); // 100 ms
-        destroyWindow(display, screen, window);
-    }
-
-    @Test
-    public void testWindowDecor02DestroyWinTwiceA() throws InterruptedException {
-        Capabilities caps = new Capabilities();
-        Assert.assertNotNull(caps);
-        Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
-
-        Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-        Thread.sleep(100); // 100 ms
-        destroyWindow(null, null, window);
-        destroyWindow(display, screen, window);
-    }
-
-    @Test
-    public void testWindowDecor03TwoWin() throws InterruptedException {
-        Capabilities caps = new Capabilities();
-        Assert.assertNotNull(caps);
-        Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
-
-        Window window1 = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-        Window window2 = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-        Thread.sleep(100); // 100 ms
-        destroyWindow(null, null, window2);
-        destroyWindow(display, screen, window1);
+        Window window1 = createWindow(caps, -1, -1, width, height, true /* onscreen */, false /* undecorated */);
+        Window window2 = createWindow(caps, 100, 100, width, height, true /* onscreen */, false /* undecorated */);
+        destroyWindow(window2, false);
+        destroyWindow(window1, true);
     }
 
     public static void main(String args[]) throws IOException {
