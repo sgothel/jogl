@@ -408,6 +408,10 @@ public class X11Util {
             if(!openDisplayList.remove(namedDpy)) { throw new RuntimeException("Internal: "+namedDpy); }
             
             if(!namedDpy.isUncloseable()) {
+                if(DEBUG) {
+                    System.err.println("X11Util.Display: XCloseDisplay "+namedDpy+". Thread "+Thread.currentThread().getName());
+                    Thread.dumpStack();
+                }
                 XCloseDisplay(namedDpy.getHandle());
             } else {
                 // for reuse
@@ -415,8 +419,7 @@ public class X11Util {
             }
             
             if(DEBUG) {
-                Exception e = new Exception("X11Util.Display: Closing new "+namedDpy+". Thread "+Thread.currentThread().getName());
-                e.printStackTrace();
+                System.err.println("X11Util.Display: Closed (real: "+(!namedDpy.isUncloseable())+") "+namedDpy+". Thread "+Thread.currentThread().getName());
             }    
         }
     }
@@ -468,7 +471,17 @@ public class X11Util {
                 Throwable t = new Throwable(Thread.currentThread()+" - X11Util.XCloseDisplay() 0x"+Long.toHexString(display));
                 t.printStackTrace();
             }
-            return X11Lib.XCloseDisplay(display);
+            int res = -1;            
+            X11Util.setX11ErrorHandler(true, DEBUG ? false : true);
+            try {
+                res = X11Lib.XCloseDisplay(display);
+            } catch (Exception ex) {
+                System.err.println("X11Util: Catched Exception:");
+                ex.printStackTrace();
+            } finally {
+                X11Util.setX11ErrorHandler(false, false);                    
+            }
+            return res;            
         } finally {
             NativeWindowFactory.getDefaultToolkitLock().unlock();
         }
