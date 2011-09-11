@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<jnlp codebase="JOGL_CODEBASE_TAG" href="javaws-version.jnlp" version="JOGAMP_VERSION">
+<jnlp codebase="JOGL_CODEBASE_TAG" href="jogl-javaws-version.jnlp" version="JOGAMP_VERSION">
   <information>
     <title>JOGL JNLP Javaws Version</title>
     <vendor>JogAmp Community</vendor>

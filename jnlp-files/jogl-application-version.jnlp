@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<jnlp codebase="JOGL_CODEBASE_TAG" href="applet-version.jnlp" version="JOGAMP_VERSION">
+<jnlp codebase="JOGL_CODEBASE_TAG" href="jogl-application-version.jnlp" version="JOGAMP_VERSION">
   <information>
-    <title>JOGL JNLP Applet Version</title>
+    <title>JOGL JNLP Application Version</title>
     <vendor>JogAmp Community</vendor>
     <homepage href="http://jogamp.org/"/>
     <description>JOGL Version</description>
@@ -15,10 +15,5 @@
       <extension name="jogl-all-awt" href="JOGL_CODEBASE_TAG/jogl-all-awt.jnlp" />
     </resources>
 
-  <applet-desc 
-      name="Version-Applet"
-      main-class="jogamp.newt.driver.awt.opengl.VersionApplet"
-      width="800" 
-      height="600">
-  </applet-desc>
+  <application-desc main-class="jogamp.newt.driver.awt.opengl.VersionApplet"/>
 </jnlp>
