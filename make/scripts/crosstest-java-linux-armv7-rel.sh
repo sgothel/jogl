@@ -36,7 +36,7 @@ RSYNC_EXCLUDES="--exclude 'build-x86*/' --exclude 'build-linux-x*/' --exclude 'b
                 --delete-excluded"
 
 CP_BASE=../../gluegen/make/lib/junit.jar:$ANT_PATH/lib/ant.jar:$ANT_PATH/lib/ant-junit.jar:../../gluegen/make/$BUILD_DIR/gluegen.jar
-CP_JOGL_MOBILE=$BUILD_DIR/jar/jogl.all-mobile.jar:$BUILD_DIR/test/build/jogl.test.jar
+CP_JOGL_MOBILE=$BUILD_DIR/jar/jogl.all-mobile.jar:$BUILD_DIR/jar/jogl.test.jar
 
 #  -Djogl.debug=all \
 #  -Dnewt.debug=all \

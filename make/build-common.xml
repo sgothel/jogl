@@ -371,7 +371,7 @@
 
         <!-- JavaSE combinations -->
         <property name="gluegen-rt.jar"                 value="${build.gluegen}/gluegen-rt.jar" />
-        <property name="jogl.test.jar"                  value="${build.test}/jogl.test.jar"/>
+        <property name="jogl.test.jar"                  value="${jar}/jogl.test.jar"/>
 
         <!-- JavaSE combinations . AWT -->
         <property name="jogl.all.jar"                   value="${jar}/jogl.all.jar" />

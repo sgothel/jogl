@@ -29,8 +29,8 @@ LOGFILE=`basename $0 .sh`.log
 #  -Dnewt.debug=all \
 
 CP_BASE=../../gluegen/make/lib/junit.jar:$ANT_PATH/lib/ant.jar:$ANT_PATH/lib/ant-junit.jar:../../gluegen/make/$BUILD_DIR/gluegen.jar
-CP_JOGL_ALL=$BUILD_DIR/jar/jogl.all.jar:$BUILD_DIR/test/build/jogl.test.jar
-CP_JOGL_MOBILE=$BUILD_DIR/jar/jogl.all-mobile.jar:$BUILD_DIR/test/build/jogl.test.jar
+CP_JOGL_ALL=$BUILD_DIR/jar/jogl.all.jar:$BUILD_DIR/jar/jogl.test.jar
+CP_JOGL_MOBILE=$BUILD_DIR/jar/jogl.all-mobile.jar:$BUILD_DIR/jar/jogl.test.jar
 
 export DISPLAY=:0.0 ;
 java \

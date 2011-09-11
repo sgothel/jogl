@@ -54,7 +54,7 @@ export LD_LIBRARY_PATH=/system/lib:$TARGET_ROOT/gluegen/make/$BUILD_DIR/obj:$TAR
 export BOOTCLASSPATH=/system/framework/core.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar ; \
 dalvikvm \
   -Xjnigreflimit:2000 \
-  -cp ../../gluegen/make/lib/ant-junit-all.apk:../../gluegen/make/$BUILD_DIR/gluegen-rt.apk:$BUILD_DIR/jar/jogl.all-android.apk:$BUILD_DIR/test/build/jogl.test.jar \
+  -cp ../../gluegen/make/lib/ant-junit-all.apk:../../gluegen/make/$BUILD_DIR/gluegen-rt.apk:$BUILD_DIR/jar/jogl.all-android.apk:$BUILD_DIR/jar/jogl.test.jar \
   -Djogamp.debug.JNILibLoader=true \
   -Djogamp.debug.NativeLibrary=true \
   -Djogamp.debug.NativeLibrary.Lookup=true \
