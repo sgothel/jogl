@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp codebase="JOGL_CODEBASE_TAG"
+      href="newt-awt-jogl.jnlp" version="JOGAMP_VERSION">
+  <information>
+    <title>NEWT - New Windowing Toolkit (AWT, JOGL)</title>
+    <vendor>JogAmp Community</vendor>
+    <homepage href="http://jogamp.org/"/>
+    <description>NEWT - A NativeWindow Interface implementation - AWT, JOGL</description>
+    <description kind="short">NEWT - A NativeWindow Interface implementation - AWT, JOGL</description>
+    <offline-allowed/>
+  </information>
+  <update check="background" policy="always"/>
+  <security>
+      <all-permissions/>
+  </security>
+    <resources>
+      <jar href="jar/atomic/newt.core.jar" />
+      <jar href="jar/atomic/newt.ogl.jar" />
+      <jar href="jar/atomic/newt.awt.jar" />
+      <extension name="jogl-awt" href="JOGL_CODEBASE_TAG/jogl-awt.jnlp" />
+    </resources>
+
+    <resources os="Windows" arch="x86">
+      <jar href="jar/atomic/newt.driver.win.jar" />
+      <nativelib href = "jar/atomic/newt-natives-windows-i586.jar" />
+    </resources>
+    <resources os="Windows" arch="amd64">
+      <jar href="jar/atomic/newt.driver.win.jar" />
+      <nativelib href = "jar/atomic/newt-natives-windows-amd64.jar" />
+    </resources>
+    <resources os="Windows" arch="x86_64">
+      <jar href="jar/atomic/newt.driver.win.jar" />
+      <nativelib href = "jar/atomic/newt-natives-windows-amd64.jar" />
+    </resources>
+    <resources os="SunOS" arch="sparc">
+      <jar href="jar/atomic/newt.driver.x11.jar" />
+      <nativelib href = "jar/atomic/newt-natives-solaris-sparc.jar" />
+    </resources>
+    <resources os="SunOS" arch="sparcv9">
+      <jar href="jar/atomic/newt.driver.x11.jar" />
+      <nativelib href = "jar/atomic/newt-natives-solaris-sparcv9.jar" />
+    </resources>
+    <resources os="SunOS" arch="x86">
+      <jar href="jar/atomic/newt.driver.x11.jar" />
+      <nativelib href = "jar/atomic/newt-natives-solaris-i586.jar" />
+    </resources>
+    <resources os="SunOS" arch="amd64">
+      <jar href="jar/atomic/newt.driver.x11.jar" />
+      <nativelib href = "jar/atomic/newt-natives-solaris-amd64.jar" />
+    </resources>
+    <resources os="SunOS" arch="x86_64">
+      <jar href="jar/atomic/newt.driver.x11.jar" />
+      <nativelib href = "jar/atomic/newt-natives-solaris-amd64.jar" />
+    </resources>
+    <resources os="Linux" arch="i386">
+      <jar href="jar/atomic/newt.driver.x11.jar" />
+      <nativelib href = "jar/atomic/newt-natives-linux-i586.jar" />
+    </resources>
+    <resources os="Linux" arch="x86">
+      <jar href="jar/atomic/newt.driver.x11.jar" />
+      <nativelib href = "jar/atomic/newt-natives-linux-i586.jar" />
+    </resources>
+    <resources os="Linux" arch="amd64">
+      <jar href="jar/atomic/newt.driver.x11.jar" />
+      <nativelib href = "jar/atomic/newt-natives-linux-amd64.jar" />
+    </resources>
+    <resources os="Linux" arch="x86_64">
+      <jar href="jar/atomic/newt.driver.x11.jar" />
+      <nativelib href = "jar/atomic/newt-natives-linux-amd64.jar" />
+    </resources>
+    <resources os="Linux" arch="arm">
+      <jar href="jar/atomic/newt.driver.x11.jar" />
+      <nativelib href = "jar/atomic/newt-natives-linux-armv7.jar" />
+    </resources>
+    <resources os="Linux" arch="armv7">
+      <jar href="jar/atomic/newt.driver.x11.jar" />
+      <nativelib href = "jar/atomic/newt-natives-linux-armv7.jar" />
+    </resources>
+    <resources os="Mac OS X" arch="i386">
+      <jar href="jar/atomic/newt.driver.osx.jar" />
+      <nativelib href = "jar/atomic/newt-natives-macosx-universal.jar" />
+    </resources>
+    <resources os="Mac OS X" arch="x86_64">
+      <jar href="jar/atomic/newt.driver.osx.jar" />
+      <nativelib href = "jar/atomic/newt-natives-macosx-universal.jar" />
+    </resources>
+
+  <component-desc />
+</jnlp>

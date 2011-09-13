@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp codebase="JOGL_CODEBASE_TAG"
+      href="nativewindow-awt.jnlp" version="JOGAMP_VERSION">
+  <information>
+    <title>Java(tm) NativeWindow Interface API (AWT)</title>
+    <vendor>JogAmp Community</vendor>
+    <homepage href="http://jogamp.org/"/>
+    <description>Java API for a binding to a native windowing system - 2.0 - AWT</description>
+    <description kind="short">Java API for a binding to a native windowing system - 2.0 - AWT</description>
+    <offline-allowed/>
+  </information>
+  <update check="background" policy="always"/>
+  <security>
+      <all-permissions/>
+  </security>
+    <resources>
+      <jar href="jar/atomic/nativewindow.core.jar" />
+      <jar href="jar/atomic/nativewindow.awt.jar"/>
+      <extension name="gluegen-rt"   href="GLUEGEN_CODEBASE_TAG/gluegen-rt.jnlp" />
+    </resources>
+
+    <resources os="Windows" arch="x86">
+      <nativelib href = "jar/atomic/nativewindow-natives-windows-i586.jar" />
+    </resources>
+    <resources os="Windows" arch="amd64">
+      <nativelib href = "jar/atomic/nativewindow-natives-windows-amd64.jar" />
+    </resources>
+    <resources os="Windows" arch="x86_64">
+      <nativelib href = "jar/atomic/nativewindow-natives-windows-amd64.jar" />
+    </resources>
+    <resources os="SunOS" arch="sparc">
+      <nativelib href = "jar/atomic/nativewindow-natives-solaris-sparc.jar" />
+    </resources>
+    <resources os="SunOS" arch="sparcv9">
+      <nativelib href = "jar/atomic/nativewindow-natives-solaris-sparcv9.jar" />
+    </resources>
+    <resources os="SunOS" arch="x86">
+      <nativelib href = "jar/atomic/nativewindow-natives-solaris-i586.jar" />
+    </resources>
+    <resources os="SunOS" arch="amd64">
+      <nativelib href = "jar/atomic/nativewindow-natives-solaris-amd64.jar" />
+    </resources>
+    <resources os="SunOS" arch="x86_64">
+      <nativelib href = "jar/atomic/nativewindow-natives-solaris-amd64.jar" />
+    </resources>
+    <resources os="Linux" arch="i386">
+      <nativelib href = "jar/atomic/nativewindow-natives-linux-i586.jar" />
+    </resources>
+    <resources os="Linux" arch="x86">
+      <nativelib href = "jar/atomic/nativewindow-natives-linux-i586.jar" />
+    </resources>
+    <resources os="Linux" arch="amd64">
+      <nativelib href = "jar/atomic/nativewindow-natives-linux-amd64.jar" />
+    </resources>
+    <resources os="Linux" arch="x86_64">
+      <nativelib href = "jar/atomic/nativewindow-natives-linux-amd64.jar" />
+    </resources>
+    <resources os="Linux" arch="arm">
+      <nativelib href = "jar/atomic/nativewindow-natives-linux-armv7.jar" />
+    </resources>
+    <resources os="Linux" arch="armv7">
+      <nativelib href = "jar/atomic/nativewindow-natives-linux-armv7.jar" />
+    </resources>
+    <resources os="Mac OS X" arch="i386">
+      <nativelib href = "jar/atomic/nativewindow-natives-macosx-universal.jar" />
+    </resources>
+    <resources os="Mac OS X" arch="x86_64">
+      <nativelib href = "jar/atomic/nativewindow-natives-macosx-universal.jar" />
+    </resources>
+
+  <component-desc />
+</jnlp>
