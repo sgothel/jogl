@@ -5,7 +5,7 @@
     <title>Java(tm) Binding to the OpenGL(r) API (ALL.MOBILE)</title>
     <vendor>JogAmp Community</vendor>
     <homepage href="http://jogamp.org/"/>
-    <description>Java Binding to the OpenGL API - JSR-231 2.0.0 - ALL.MOBILE</description>
+    <description>Java Binding to the OpenGL API - 2.0.0 - ALL.MOBILE</description>
     <description kind="short">Java programming language binding for the OpenGL 3D graphics API - ALL.MOBILE</description>
     <offline-allowed/>
   </information>
