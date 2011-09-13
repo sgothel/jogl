@@ -87,7 +87,7 @@
         </copy>
     </target>
 
-    <target name="one.jar.dir" depends="one.lib.dir" unless="one.dir.skip">
+    <target name="one.jar.dir.prep" depends="one.lib.dir" unless="one.dir.skip">
         <delete includeEmptyDirs="true" quiet="true" dir="${jar}" failonerror="false" />
         <mkdir dir="${jar}" />
         <mkdir dir="${jar}/atomic" />
@@ -96,6 +96,21 @@
             <fileset dir="${build.nativewindow}" includes="*.jar" />
             <fileset dir="${build.newt}" includes="*.jar" />
         </copy>
+    </target>
+
+    <target name="one.jar.dir.android" depends="one.jar.dir.prep" if="isAndroid" unless="one.dir.skip">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.all-android.jar}" filesonly="true" excludes="META-INF/*">
+            <archives>
+                <zips>
+                    <path refid="nativewindow_core_atoms.classpath"/>
+                    <path refid="jogl_all-mobile_atoms.classpath"/>
+                    <path refid="newt_all-android_atoms.classpath"/>
+                </zips>
+            </archives>
+        </jar>
+    </target>
+
+    <target name="one.jar.dir" depends="one.jar.dir.prep,one.jar.dir.android" unless="one.dir.skip">
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.all.jar}" filesonly="true" excludes="META-INF/*">
             <archives>
                 <zips>
@@ -123,16 +138,6 @@
                 </zips>
             </archives>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.all-android.jar}" filesonly="true" excludes="META-INF/*">
-            <archives>
-                <zips>
-                    <path refid="nativewindow_core_atoms.classpath"/>
-                    <path refid="jogl_all-mobile_atoms.classpath"/>
-                    <path refid="newt_all-android_atoms.classpath"/>
-                    <fileset dir="${build.gluegen}" includes="gluegen-rt.jar"/> <!-- JAU hack in gluegen -->
-                </zips>
-            </archives>
-        </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jar}/jogl-all-natives-${os.and.arch}.jar" filesonly="true">
             <fileset dir="${lib}">
               <include name="*.${native.library.suffix}" />
@@ -148,9 +153,6 @@
     </target>
 
     <target name="android.package" depends="init,gluegen.cpptasks.detect.os,android.package.skip.check" if="isAndroid" unless="android.package.skip">
-        <copy todir="${lib}">
-            <fileset dir="${build.gluegen}/obj" includes="libgluegen-rt.so"/> <!-- JAU hack in gluegen -->
-        </copy>
         <aapt.signed 
             jarbuilddir="${jar}"
             jarbasename="jogl.all-android"
@@ -275,7 +277,7 @@
         </copy>
         <mkdir dir="${archive}/jar" />
         <copy todir="${archive}/jar">
-            <fileset dir="${build}/jar" includes="*"/>
+            <fileset dir="${build}/jar" includes="**"/>
         </copy>
         <mkdir dir="${archive}/lib" />
         <copy todir="${archive}/lib">
@@ -283,7 +285,7 @@
         </copy>
         <mkdir dir="${archive}/jnlp-files" />
         <copy todir="${archive}/jnlp-files">
-            <fileset dir="${project.root}/jnlp-files" includes="*" />
+            <fileset dir="${project.root}/jnlp-files" includes="**" />
         </copy>
         <mkdir dir="${archive}/etc" />
         <copy todir="${archive}/etc">

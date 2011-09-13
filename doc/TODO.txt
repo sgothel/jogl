@@ -1,7 +1,5 @@
 WIP:
 
-- Protected access for Impl classes
-
 Random, somewhat old to-do list:
 
 - Non-const array types must be properly released with JNI_COMMIT in
