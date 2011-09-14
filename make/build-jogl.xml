@@ -157,14 +157,14 @@
         <property name="java.part.util.graph.shadercode"
                   value="jogamp/graph/curve/opengl/shader/* jogamp/graph/curve/opengl/shader/bin/**"/>
 
-        <property name="java.part.nonjava" 
-                  value="${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
-
         <property name="java.part.util.fixedfuncemu"
                   value="jogamp/opengl/util/glsl/fixedfunc/**"/>
 
         <property name="java.part.util.fixedfuncemu.shadercode"
                   value="jogamp/opengl/util/glsl/fixedfunc/shaders/* jogamp/opengl/util/glsl/fixedfunc/shaders/bin/**"/>
+
+        <property name="java.part.nonjava" 
+                  value="${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
 
         <property name="java.part.all-desktop" 
                   value="${java.part.sdk} ${java.part.glx} ${java.part.wgl} ${java.part.cgl} ${java.part.gldesktop} ${java.part.glugldesktop} ${java.part.util.gldesktop}"/>
@@ -1550,14 +1550,10 @@
             <fileset dir="${classes}"
                      includes="${java.part.util} ${java.part.util.glsl} ${java.part.util.graph}"
                      excludes="${java.part.util.awt} ${java.part.util.gldesktop} ${java.part.util.fixedfuncemu}"/>
-            <fileset dir="${src.java}"
-                     includes="${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.fixedfuncemu.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util.fixedfuncemu}"/>
-            <fileset dir="${src.java}"
-                     includes="${java.part.util.fixedfuncemu.shadercode}"/>
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.omx.jar}" filesonly="true">
             <fileset dir="${classes}"

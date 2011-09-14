@@ -33,8 +33,6 @@
         <condition property="jvmarg.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
 
         <property name="batchtest.timeout"    value="1800000"/> <!-- 30 min -->
-
-        <property name="java.part.test.shadercode" value="com/jogamp/opengl/test/junit/jogl/demos/es2/shader/*"/>
     </target>
     
     <!-- ================================================================== -->
@@ -90,21 +88,19 @@
             <classpath refid="junit_jogl_newt_android.compile.classpath"/>
             <src path="${src.test}" />
         </javac>
+        <!-- include any resource files that tests may require -->
+        <copy todir="${classes}">
+            <fileset dir="${src.test}">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
         <jar destfile="${jogl.test.jar}" filesonly="true">
             <!-- get all class files, but skip any resource files that external tools
                  might have copied into the class directory (otherwise, it's possible
                  to get the same resource file twice in the jar) -->
             <fileset dir="${classes}"
                 includes="${java.part.test}"/>
-            <!-- include any resource files that tests may requre -->
-            <fileset dir="${src.test}">
-                <exclude name="**/*.java"/>
-            </fileset>
-            <fileset dir="${src.test}" includes="${java.part.test.shadercode}"/>
         </jar>
-        <copy todir="${classes}">
-            <fileset dir="${src.test}" includes="${java.part.test.shadercode}"/>
-        </copy>
     </target>
 
     <target name="test.manual.run" depends="test.compile">
