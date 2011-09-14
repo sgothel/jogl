@@ -17,7 +17,7 @@
 
   <applet-desc 
       name="Version-Applet"
-      main-class="jogamp.newt.driver.awt.opengl.VersionApplet"
+      main-class="jogamp.opengl.awt.VersionApplet"
       width="800" 
       height="600">
   </applet-desc>

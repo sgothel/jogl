@@ -1,4 +1,4 @@
-package jogamp.newt.driver.awt.opengl;
+package jogamp.opengl.awt;
 
 import java.applet.Applet;
 import java.awt.BorderLayout;
@@ -23,14 +23,10 @@ import javax.media.opengl.GLEventListener;
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
-import com.jogamp.nativewindow.NativeWindowVersion;
-import com.jogamp.newt.NewtVersion;
 import com.jogamp.opengl.JoglVersion;
 
+@SuppressWarnings("serial")
 public class VersionApplet extends Applet {
-  static {
-    // redundant, since implicit (false): GLProfile.initSingleton(false);
-  }
   TextArea tareaVersion;
   TextArea tareaCaps;
   GLCanvas canvas;
@@ -96,15 +92,9 @@ public class VersionApplet extends Applet {
     System.err.println(s);
     tareaVersion.append(s);
 
-    /*
-    s = NewtVersion.getInstance().toString();
-    System.err.println(s);
-    tareaVersion.append(s);
-    */
-
     tareaCaps = new TextArea(120, 20);
     GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
-    List/*<GLCapabilitiesImmutable>*/ availCaps = factory.getAvailableCapabilities(null);
+    List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(null);
     for(int i=0; i<availCaps.size(); i++) {
         s = ((GLCapabilitiesImmutable) availCaps.get(i)).toString();
         System.err.println(s);

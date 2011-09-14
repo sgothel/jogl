@@ -15,5 +15,5 @@
       <extension name="jogl-all-awt" href="JOGL_CODEBASE_TAG/jogl-all-awt.jnlp" />
     </resources>
 
-  <application-desc main-class="jogamp.newt.driver.awt.opengl.VersionApplet"/>
+  <application-desc main-class="jogamp.opengl.awt.VersionApplet"/>
 </jnlp>
