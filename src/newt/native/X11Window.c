@@ -590,8 +590,9 @@ static void NewtWindows_setDecorations (Display *dpy, Window w, Bool decorated) 
 /**
  * Set fullscreen using Extended Window Manager Hints (EWMH)
  *
- * Be aware that _NET_WM_STATE_FULLSCREEN requires a mapped window
- * which shall be on the top of the stack to wor reliable.
+ * Fullscreen on:
+ *   Be aware that _NET_WM_STATE_FULLSCREEN requires a mapped window
+ *   which shall be on the top of the stack to work reliable.
  *
  * The WM will internally save the size and position when entering FS
  * and resets it when leaving FS.
@@ -644,22 +645,20 @@ static Bool NewtWindows_setFullscreenEWMH (Display *dpy, Window root, Window w, 
         return False;
     }
 
-    if(!isVisible) {
-        if(True==fullscreen) {
-            // Update Client State first (-> ABOVE)
-            Atom types[2]={0};
-            int ntypes=0;
+    if(!isVisible && True==fullscreen) {
+        // Update Client State first (-> ABOVE)
+        Atom types[2]={0};
+        int ntypes=0;
 
-            if( 0 != ( _NET_WM_ACTION_FULLSCREEN_SUPPORTED & emwhMask ) ) {
-                types[ntypes++] = _NET_WM_STATE_FULLSCREEN;
-            }
-            if( 0 != ( _NET_WM_ACTION_ABOVE_SUPPORTED & emwhMask ) ) {
-                types[ntypes++] = _NET_WM_STATE_ABOVE;
-            }
-            XChangeProperty( dpy, w, _NET_WM_STATE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, ntypes);
-            XSync(dpy, False);
-            DBG_PRINT( "X11: reconfigureWindow0 FULLSCREEN Old on:%d (xsend-status %d)\n", fullscreen, s);
+        if( 0 != ( _NET_WM_ACTION_FULLSCREEN_SUPPORTED & emwhMask ) ) {
+            types[ntypes++] = _NET_WM_STATE_FULLSCREEN;
         }
+        if( 0 != ( _NET_WM_ACTION_ABOVE_SUPPORTED & emwhMask ) ) {
+            types[ntypes++] = _NET_WM_STATE_ABOVE;
+        }
+        XChangeProperty( dpy, w, _NET_WM_STATE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, ntypes);
+        XSync(dpy, False);
+        DBG_PRINT( "X11: reconfigureWindow0 FULLSCREEN Old on:%d (xsend-status %d)\n", fullscreen, s);
     } else {
         if(fullscreen) {
             NewtWindows_setCWAbove(dpy, w);
@@ -1708,29 +1707,30 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
     XEvent event;
     Bool isVisible = !TST_FLAG_CHANGE_VISIBILITY(flags) && TST_FLAG_IS_VISIBLE(flags) ;
     Bool tempInvisible = ( TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_PARENTING(flags) ) && isVisible ;
-    int fsEWMHMask = TST_FLAG_CHANGE_FULLSCREEN(flags) ? NewtWindows_isFullscreenEWMHSupported(dpy, w) : 0;
+    int fsEWMHMask = ( TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) ? NewtWindows_isFullscreenEWMHSupported(dpy, w) : 0;
+    if( TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) {
+        fsEWMHMask &= ~_NET_WM_ACTION_FULLSCREEN_SUPPORTED ; // disable fullscreen action - ABOVE only!
+    }
 
     displayDispatchErrorHandlerEnable(1, env);
 
-    DBG_PRINT( "X11: reconfigureWindow0 dpy %p, scrn %d, parent %p/%p, win %p, %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, visibleChange %d, visible %d, tempInvisible %d, fsEWMHMask %d\n",
+    DBG_PRINT( "X11: reconfigureWindow0 dpy %p, scrn %d, parent %p/%p, win %p, %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d, tempInvisible %d, fsEWMHMask %d\n",
         (void*)dpy, screen_index, (void*) jparent, (void*)parent, (void*)w,
         x, y, width, height, 
-        TST_FLAG_CHANGE_PARENTING(flags),  TST_FLAG_HAS_PARENT(flags),
-        TST_FLAG_CHANGE_DECORATION(flags), TST_FLAG_IS_UNDECORATED(flags),
-        TST_FLAG_CHANGE_FULLSCREEN(flags), TST_FLAG_IS_FULLSCREEN(flags),
-        TST_FLAG_CHANGE_VISIBILITY(flags), TST_FLAG_IS_VISIBLE(flags), tempInvisible, fsEWMHMask);
+        TST_FLAG_CHANGE_PARENTING(flags),   TST_FLAG_HAS_PARENT(flags),
+        TST_FLAG_CHANGE_DECORATION(flags),  TST_FLAG_IS_UNDECORATED(flags),
+        TST_FLAG_CHANGE_FULLSCREEN(flags),  TST_FLAG_IS_FULLSCREEN(flags),
+        TST_FLAG_CHANGE_ALWAYSONTOP(flags), TST_FLAG_IS_ALWAYSONTOP(flags),
+        TST_FLAG_CHANGE_VISIBILITY(flags),  TST_FLAG_IS_VISIBLE(flags), tempInvisible, fsEWMHMask);
 
     // FS Note: To toggle FS, utilizing the _NET_WM_STATE_FULLSCREEN WM state shall be enough.
     //          However, we have to consider other cases like reparenting and WM which don't support it.
 
-    if( fsEWMHMask && TST_FLAG_CHANGE_FULLSCREEN(flags) && !TST_FLAG_CHANGE_PARENTING(flags) && isVisible ) {
-        NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHMask, isVisible, TST_FLAG_IS_FULLSCREEN(flags));
+    if( fsEWMHMask && !TST_FLAG_CHANGE_PARENTING(flags) && isVisible &&
+        ( TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) ) {
+        NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHMask, isVisible, TST_FLAG_IS_FULLSCREEN(flags) || TST_FLAG_IS_ALWAYSONTOP(flags));
         displayDispatchErrorHandlerEnable(0, env);
         return;
-    }
-
-    if( fsEWMHMask && TST_FLAG_CHANGE_FULLSCREEN(flags) && !TST_FLAG_IS_FULLSCREEN(flags) ) { // FS off
-        NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHMask, isVisible, True);
     }
 
     if( tempInvisible ) {
@@ -1738,6 +1738,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
         XUnmapWindow(dpy, w);
         XIfEvent( dpy, &event, WaitForUnmapNotify, (XPointer) w );
         // no need to notify the java side .. just temp change
+    }
+
+    if( fsEWMHMask && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && !TST_FLAG_IS_FULLSCREEN(flags) ) || 
+                        ( TST_FLAG_CHANGE_ALWAYSONTOP(flags) && !TST_FLAG_IS_ALWAYSONTOP(flags) ) ) ) { // FS off
+        NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHMask, isVisible, False);
     }
 
     if( TST_FLAG_CHANGE_PARENTING(flags) && !TST_FLAG_HAS_PARENT(flags) ) {
@@ -1779,7 +1784,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
         XSync(dpy, False);
     }
 
-    if( fsEWMHMask && TST_FLAG_CHANGE_FULLSCREEN(flags) && TST_FLAG_IS_FULLSCREEN(flags) ) { // FS on
+    if( fsEWMHMask && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && TST_FLAG_IS_FULLSCREEN(flags) ) || 
+                        ( TST_FLAG_CHANGE_ALWAYSONTOP(flags) && TST_FLAG_IS_ALWAYSONTOP(flags) ) ) ) { // FS on
         NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHMask, isVisible, True);
     }
 
