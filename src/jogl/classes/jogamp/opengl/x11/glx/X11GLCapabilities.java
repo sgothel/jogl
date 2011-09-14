@@ -44,11 +44,11 @@ public class X11GLCapabilities extends GLCapabilities {
 
       public int compare(Object o1, Object o2) {
         if ( ! ( o1 instanceof X11GLCapabilities ) ) {
-            Class c = (null != o1) ? o1.getClass() : null ;
+            Class<?> c = (null != o1) ? o1.getClass() : null ;
             throw new ClassCastException("arg1 not a X11GLCapabilities object: " + c);
         }
         if ( ! ( o2 instanceof X11GLCapabilities ) ) {
-            Class c = (null != o2) ? o2.getClass() : null ;
+            Class<?> c = (null != o2) ? o2.getClass() : null ;
             throw new ClassCastException("arg2 not a X11GLCapabilities object: " + c);
         }
 

@@ -232,7 +232,6 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
                                                                                    GLCapabilitiesImmutable capsReq,
                                                                                    GLCapabilitiesChooser chooser,
                                                                                    X11GraphicsScreen x11Screen) {
-        long recommendedFBConfig = -1;
         int recommendedIndex = -1;
         PointerBuffer fbcfgsL = null;
         GLProfile glProfile = capsChosen.getGLProfile();
@@ -262,12 +261,11 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
                 }
             }
             if(availableCaps.size() > 0) {
-                recommendedFBConfig = fbcfgsL.get(0);
-                recommendedIndex=0;
+                recommendedIndex = capsChosen.isBackgroundOpaque() ? 0 : -1; // only use recommended idx if not translucent
                 if (DEBUG) {
-                    System.err.println("!!! glXChooseFBConfig recommended fbcfg " + toHexString(recommendedFBConfig) + ", idx " + recommendedIndex);
+                    System.err.println("!!! glXChooseFBConfig recommended fbcfg " + toHexString(fbcfgsL.get(0)) + ", idx " + recommendedIndex);
                     System.err.println("!!! user  caps " + capsChosen);
-                    System.err.println("!!! fbcfg caps " + availableCaps.get(recommendedIndex));
+                    System.err.println("!!! fbcfg caps " + availableCaps.get(0));
                 }
             } else if (DEBUG) {
                 System.err.println("!!! glXChooseFBConfig no caps for recommended fbcfg " + toHexString(fbcfgsL.get(0)));
@@ -278,7 +276,6 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         // 2nd choice: get all GLCapabilities available, no preferred recommendedIndex available
         if( 0 == availableCaps.size() ) {
             // reset ..
-            recommendedFBConfig = -1;
             recommendedIndex = -1;
 
             fbcfgsL = GLX.glXChooseFBConfig(display, screen, null, 0, count, 0);
@@ -355,8 +352,8 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
                     System.err.println("X11GLXGraphicsConfiguration.getAvailableGLCapabilitiesXVisual: XVisual invalid: ("+x11Screen+"): fbcfg: "+toHexString(infos[i].getVisualid()));
                 }
             } else {
-                // Attempt to find the visual chosenIndex by glXChooseVisual
-                if (recommendedVis != null && recommendedVis.getVisualid() == infos[i].getVisualid()) {
+                // Attempt to find the visual chosenIndex by glXChooseVisual, if not translucent
+                if (capsChosen.isBackgroundOpaque() && recommendedVis != null && recommendedVis.getVisualid() == infos[i].getVisualid()) {
                     recommendedIndex = availableCaps.size() - 1;
                 }
             }

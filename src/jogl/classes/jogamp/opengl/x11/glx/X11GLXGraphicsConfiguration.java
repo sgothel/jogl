@@ -138,6 +138,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
             res[idx++] = GLX.GLX_STEREO;
             res[idx++] = caps.getStereo()?GL.GL_TRUE:GL.GL_FALSE;
             res[idx++] = GLX.GLX_TRANSPARENT_TYPE;
+            res[idx++] = GLX.GLX_NONE;
+            /**
             res[idx++] = caps.isBackgroundOpaque()?GLX.GLX_NONE:GLX.GLX_TRANSPARENT_RGB;
             if(!caps.isBackgroundOpaque()) {
                 res[idx++] = GLX.GLX_TRANSPARENT_RED_VALUE;
@@ -148,7 +150,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
                 res[idx++] = caps.getTransparentBlueValue()>=0?caps.getTransparentBlueValue():(int)GLX.GLX_DONT_CARE;
                 res[idx++] = GLX.GLX_TRANSPARENT_ALPHA_VALUE;
                 res[idx++] = caps.getTransparentAlphaValue()>=0?caps.getTransparentAlphaValue():(int)GLX.GLX_DONT_CARE;
-            }
+            } */
         } else {
             if (caps.getDoubleBuffered()) {
               res[idx++] = GLX.GLX_DOUBLEBUFFER;
@@ -252,12 +254,12 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return null;
   }
 
-  static boolean GLXFBConfigHasAlphaMask(long dpy, long fbcfg, long visual) {
+  static XRenderDirectFormat XVisual2XRenderMask(long dpy, long visual) {
     XRenderPictFormat renderPictFmt = X11Lib.XRenderFindVisualFormat(dpy, visual);
     if(null == renderPictFmt) {
-        return false;
+        return null;
     }
-    return renderPictFmt.getDirect().getAlphaMask() > 0 ;
+    return renderPictFmt.getDirect();
   }
 
   static boolean GLXFBConfig2GLCapabilities(ArrayList capsBucket,
@@ -306,23 +308,18 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       res.setSampleBuffers(glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
       res.setNumSamples   (glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLES,        tmp, 0));
     }
-
-    res.setBackgroundOpaque( (null == visualInfo ) ? true : !GLXFBConfigHasAlphaMask(display, fbcfg, visualInfo.getVisual()) );
-    /***
-    res.setBackgroundOpaque(glXGetFBConfig(display, fbcfg, GLX.GLX_TRANSPARENT_TYPE, tmp, 0) == GLX.GLX_NONE);
-    if(!res.isBackgroundOpaque()) {
-        glXGetFBConfig(display, fbcfg, GLX.GLX_TRANSPARENT_RED_VALUE,  tmp, 0);
-        res.setTransparentRedValue(tmp[0]==GLX.GLX_DONT_CARE?-1:tmp[0]);
-
-        glXGetFBConfig(display, fbcfg, GLX.GLX_TRANSPARENT_GREEN_VALUE,  tmp, 0);
-        res.setTransparentGreenValue(tmp[0]==GLX.GLX_DONT_CARE?-1:tmp[0]);
-
-        glXGetFBConfig(display, fbcfg, GLX.GLX_TRANSPARENT_BLUE_VALUE,  tmp, 0);
-        res.setTransparentBlueValue(tmp[0]==GLX.GLX_DONT_CARE?-1:tmp[0]);
-
-        glXGetFBConfig(display, fbcfg, GLX.GLX_TRANSPARENT_ALPHA_VALUE,  tmp, 0);
-        res.setTransparentAlphaValue(tmp[0]==GLX.GLX_DONT_CARE?-1:tmp[0]);
-    } */
+    final XRenderDirectFormat xrmask = ( null != visualInfo ) ? 
+                                         XVisual2XRenderMask( display, visualInfo.getVisual() ) : 
+                                         null ;
+    final int alphaMask = ( null != xrmask ) ? xrmask.getAlphaMask() : 0;
+    res.setBackgroundOpaque( 0 >= alphaMask );
+    if( !res.isBackgroundOpaque() ) {
+        res.setTransparentRedValue(xrmask.getRedMask());
+        res.setTransparentGreenValue(xrmask.getGreenMask());
+        res.setTransparentBlueValue(xrmask.getBlueMask());
+        res.setTransparentAlphaValue(alphaMask);
+    }
+    
     try { 
         res.setPbufferFloatingPointBuffers(glXGetFBConfig(display, fbcfg, GLXExt.GLX_FLOAT_COMPONENTS_NV, tmp, 0) != GL.GL_FALSE);
     } catch (Exception e) {}
@@ -430,6 +427,17 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     if (isMultisampleEnabled) {
       res.setSampleBuffers(glXGetConfig(display, info, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
       res.setNumSamples   (glXGetConfig(display, info, GLX.GLX_SAMPLES,        tmp, 0));
+    }
+    final XRenderDirectFormat xrmask = ( null != info ) ? 
+                                         XVisual2XRenderMask( display, info.getVisual() ) : 
+                                         null ;
+    final int alphaMask = ( null != xrmask ) ? xrmask.getAlphaMask() : 0;
+    res.setBackgroundOpaque( 0 >= alphaMask );
+    if( !res.isBackgroundOpaque() ) {
+        res.setTransparentRedValue(xrmask.getRedMask());
+        res.setTransparentGreenValue(xrmask.getGreenMask());
+        res.setTransparentBlueValue(xrmask.getBlueMask());
+        res.setTransparentAlphaValue(alphaMask);
     }
 
     return GLGraphicsConfigurationUtil.addGLCapabilitiesPermutations(capsBucket, res, drawableTypeBits);

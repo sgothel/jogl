@@ -117,7 +117,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
   /** comparing RGBA values only */
   public int compareTo(Object o) {
     if ( ! ( o instanceof Capabilities ) ) {
-        Class c = (null != o) ? o.getClass() : null ;
+        Class<?> c = (null != o) ? o.getClass() : null ;
         throw new ClassCastException("Not a Capabilities object: " + c);
     }
 
@@ -310,14 +310,15 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
     } else {
         sink.append("offscr");
     }
-    sink.append(", rgba ").append(redBits).append("/").append(greenBits).append("/").append(blueBits).append("/").append(alphaBits);
+    sink.append(", rgba 0x").append(toHexString(redBits)).append("/").append(toHexString(greenBits)).append("/").append(toHexString(blueBits)).append("/").append(toHexString(alphaBits));
     if(backgroundOpaque) {
         sink.append(", opaque");
     } else {
-        sink.append(", trans-rgba 0x").append(Integer.toHexString(transparentValueRed)).append("/").append(Integer.toHexString(transparentValueGreen)).append("/").append(Integer.toHexString(transparentValueBlue)).append("/").append(Integer.toHexString(transparentValueAlpha));
+        sink.append(", trans-rgba 0x").append(toHexString(transparentValueRed)).append("/").append(toHexString(transparentValueGreen)).append("/").append(toHexString(transparentValueBlue)).append("/").append(toHexString(transparentValueAlpha));
     }
     return sink;
   }
+  protected final String toHexString(int val) { return Integer.toHexString(val); }
 
   /** Returns a textual representation of this Capabilities
       object. */ 
