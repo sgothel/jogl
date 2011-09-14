@@ -70,6 +70,7 @@ public class TestGearsES2NEWT extends UITestCase {
     }
 
     protected void runTestGL(GLCapabilities caps, boolean undecorated) throws InterruptedException {
+        System.err.println("requested: "+caps);
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test (translucent "+!caps.isBackgroundOpaque()+")");
@@ -94,6 +95,13 @@ public class TestGearsES2NEWT extends UITestCase {
                             f_glWindow.setFullscreen(!f_glWindow.isFullscreen());
                             System.err.println("[set fullscreen post]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", f "+f_glWindow.isFullscreen()+", "+f_glWindow.getInsets());
                     } }.start();
+                } else if(e.getKeyChar()=='a') {
+                    new Thread() {
+                        public void run() {
+                            System.err.println("[set alwaysontop pre]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", a "+f_glWindow.isAlwaysOnTop()+", "+f_glWindow.getInsets());
+                            f_glWindow.setAlwaysOnTop(!f_glWindow.isAlwaysOnTop());
+                            System.err.println("[set alwaysontop post]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", a "+f_glWindow.isAlwaysOnTop()+", "+f_glWindow.getInsets());
+                    } }.start();
                 } else if(e.getKeyChar()=='d') {
                     new Thread() {
                         public void run() {
@@ -116,6 +124,7 @@ public class TestGearsES2NEWT extends UITestCase {
         glWindow.setVisible(true);
         
         System.err.println("size/pos: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", "+f_glWindow.getInsets());
+        System.err.println("chosen: "+glWindow.getChosenCapabilities());
         
         animator.setUpdateFPSFrames(1, null);
         animator.start();

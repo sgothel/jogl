@@ -94,6 +94,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen client-area size/pos w/o insets
     protected String title = "Newt Window";
     protected boolean undecorated = false;
+    protected boolean alwaysOnTop = false;
     private LifecycleHook lifecycleHook = null;
 
     private DestroyAction destroyAction = new DestroyAction();
@@ -422,14 +423,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     protected abstract void requestFocusImpl(boolean force);
 
-    public static final int FLAG_CHANGE_PARENTING       = 1 << 0;
-    public static final int FLAG_CHANGE_DECORATION      = 1 << 1;
-    public static final int FLAG_CHANGE_FULLSCREEN      = 1 << 2;
-    public static final int FLAG_CHANGE_VISIBILITY      = 1 << 3;
-    public static final int FLAG_HAS_PARENT             = 1 << 4;
-    public static final int FLAG_IS_UNDECORATED         = 1 << 5;
-    public static final int FLAG_IS_FULLSCREEN          = 1 << 6;
-    public static final int FLAG_IS_VISIBLE             = 1 << 7;
+    public static final int FLAG_CHANGE_PARENTING       = 1 <<  0;
+    public static final int FLAG_CHANGE_DECORATION      = 1 <<  1;
+    public static final int FLAG_CHANGE_FULLSCREEN      = 1 <<  2;
+    public static final int FLAG_CHANGE_ALWAYSONTOP     = 1 <<  3;
+    public static final int FLAG_CHANGE_VISIBILITY      = 1 <<  4;
+    
+    public static final int FLAG_HAS_PARENT             = 1 <<  8;
+    public static final int FLAG_IS_UNDECORATED         = 1 <<  9;
+    public static final int FLAG_IS_FULLSCREEN          = 1 << 10;
+    public static final int FLAG_IS_ALWAYSONTOP         = 1 << 11;
+    public static final int FLAG_IS_VISIBLE             = 1 << 12;
 
     /**
      * The native implementation should invoke the referenced java state callbacks
@@ -455,6 +459,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return changeFlags |= ( ( 0 != getParentWindowHandle() ) ? FLAG_HAS_PARENT : 0 ) |
                               ( isUndecorated() ? FLAG_IS_UNDECORATED : 0 ) |
                               ( isFullscreen() ? FLAG_IS_FULLSCREEN : 0 ) |
+                              ( isAlwaysOnTop() ? FLAG_IS_ALWAYSONTOP : 0 ) |
                               ( visible ? FLAG_IS_VISIBLE : 0 ) ;
     }
     protected static String getReconfigureFlagsAsString(StringBuffer sb, int flags) {
@@ -1223,14 +1228,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                   // set current state
                   WindowImpl.this.undecorated = undecorated;
                   
-                  if( nativeUndecorationChange) {
+                  if( nativeUndecorationChange ) {
                     // Change decoration on active window
                       
                     // Mirror pos/size so native change notification can get overwritten
-                    int x = WindowImpl.this.x;
-                    int y = WindowImpl.this.y;
-                    int width = WindowImpl.this.width;
-                    int height = WindowImpl.this.height;
+                    final int x = WindowImpl.this.x;
+                    final int y = WindowImpl.this.y;
+                    final int width = WindowImpl.this.width;
+                    final int height = WindowImpl.this.height;
 
                     if( isNativeValid() ) {
                         DisplayImpl display = (DisplayImpl) screen.getDisplay();
@@ -1255,6 +1260,55 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return 0 != parentWindowHandle || undecorated || fullscreen ;
     }
 
+    private class AlwaysOnTopActionImpl implements Runnable {
+        boolean alwaysOnTop;
+
+        private AlwaysOnTopActionImpl(boolean undecorated) {
+            this.alwaysOnTop = undecorated;
+        }
+
+        public final void run() {
+            windowLock.lock();
+            try {
+                if(WindowImpl.this.alwaysOnTop != alwaysOnTop) {
+                  final boolean nativeAlwaysOnTopChange = !fullscreen && isNativeValid() && 
+                                                           isAlwaysOnTop() != alwaysOnTop ;
+                  
+                  // set current state
+                  WindowImpl.this.alwaysOnTop = alwaysOnTop;
+                  
+                  if( nativeAlwaysOnTopChange ) {
+                    // Change decoration on active window
+                      
+                    // Mirror pos/size so native change notification can get overwritten
+                    final int x = WindowImpl.this.x;
+                    final int y = WindowImpl.this.y;
+                    final int width = WindowImpl.this.width;
+                    final int height = WindowImpl.this.height;
+
+                    if( isNativeValid() ) {
+                        DisplayImpl display = (DisplayImpl) screen.getDisplay();
+                        display.dispatchMessagesNative(); // status up2date
+                        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()));
+                        display.dispatchMessagesNative(); // status up2date
+                    }
+                  }
+                }
+            } finally {
+                windowLock.unlock();
+            }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
+        }
+    }
+
+    public final void setAlwaysOnTop(boolean value) {
+        runOnEDTIfAvail(true, new AlwaysOnTopActionImpl(value));
+    }
+    
+    public final boolean isAlwaysOnTop() {
+        return alwaysOnTop || fullscreen ;
+    }
+        
     public void requestFocus() {
         enqueueRequestFocus(true);
     }
@@ -1354,7 +1408,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     "\n, Pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                     "\n, Visible "+isVisible()+
                     "\n, Undecorated "+undecorated+" ("+isUndecorated()+")"+
-                    "\n, Fullscreen "+fullscreen+
+                    "\n, AlwaysOnTop "+alwaysOnTop+", Fullscreen "+fullscreen+
                     "\n, WrappedWindow "+getWrappedWindow()+
                     "\n, ChildWindows "+childWindows.size());
 

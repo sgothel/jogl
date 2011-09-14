@@ -222,6 +222,14 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         return window.isUndecorated();
     }
 
+    public final void setAlwaysOnTop(boolean value) {
+        window.setAlwaysOnTop(value);
+    }
+    
+    public final boolean isAlwaysOnTop() {
+        return window.isAlwaysOnTop();
+    }
+    
     public final void setFocusAction(FocusRunnable focusAction) {
         window.setFocusAction(focusAction);
     }

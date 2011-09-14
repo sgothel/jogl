@@ -217,6 +217,10 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     
     boolean isUndecorated();
     
+    void setAlwaysOnTop(boolean value);
+    
+    boolean isAlwaysOnTop();
+    
     void setTitle(String title);
 
     String getTitle();
