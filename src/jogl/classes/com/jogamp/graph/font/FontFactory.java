@@ -80,22 +80,7 @@ public class FontFactory {
     }
 
     public static final Font get(final URL url) throws IOException {
-        final IOException[] ioeA = new IOException[1];
-        
-        Font f = (Font) AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
-                try {
-                    return fontConstr.create(url);
-                } catch (IOException ioe) {
-                    ioeA[0] = ioe;
-                }
-                return null;
-            }
-        });
-        if(null != ioeA[0]) {
-            throw ioeA[0];
-        }
-        return f;
+        return fontConstr.create(url);
     }    
     
     public static boolean isPrintableChar( char c ) {

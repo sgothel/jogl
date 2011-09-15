@@ -29,6 +29,8 @@ package jogamp.graph.font;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import javax.media.opengl.GLException;
 
@@ -60,7 +62,16 @@ public class JavaFontLoader implements FontSet {
     final String javaFontPath;
     
     private JavaFontLoader() {
-        javaFontPath = System.getProperty("java.home") + "/lib/fonts/";
+        final String javaHome = AccessController.doPrivileged(new PrivilegedAction<String>() {
+            public String run() {
+                return System.getProperty("java.home");
+            }
+        });
+        if(null != javaHome) {
+            javaFontPath = javaHome + "/lib/fonts/";
+        } else {
+            javaFontPath = null;
+        }
     }
 
     // FIXME: Add cache size to limit memory usage 
@@ -87,7 +98,9 @@ public class JavaFontLoader implements FontSet {
             } else {
                 font = abspath(availableFontFileNames[4], family, style);
             }
-            fontMap.put( ( family << 8 ) | style, font );
+            if(null != font) {
+                fontMap.put( ( family << 8 ) | style, font );
+            }
             return font;
         }
         
@@ -123,6 +136,9 @@ public class JavaFontLoader implements FontSet {
     }
     
     Font abspath(String fname, int family, int style) {
+        if(null == javaFontPath) {
+            throw new GLException("java font path undefined");
+        }
         final String err = "Problem loading font "+fname+", file "+javaFontPath+fname ;
                 
         try {
