@@ -66,16 +66,17 @@ public class X11Window extends WindowImpl {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
         X11GraphicsConfiguration x11config = (X11GraphicsConfiguration) config;
-        long visualID = x11config.getVisualID();
-        long w = CreateWindow0(getParentWindowHandle(),
+        final long visualID = x11config.getVisualID();
+        final int flags = getReconfigureFlags(0, true) & 
+                          ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;        
+        setWindowHandle(CreateWindow0(getParentWindowHandle(),
                                display.getEDTHandle(), screen.getIndex(), visualID, 
                                display.getJavaObjectAtom(), display.getWindowDeleteAtom(), 
-                               x, y, width, height, isUndecorated());
-        if (w == 0) {
-            throw new NativeWindowException("Error creating window: "+w);
+                               x, y, width, height, flags));
+        windowHandleClose = getWindowHandle();
+        if (0 == windowHandleClose) {
+            throw new NativeWindowException("Error creating window");
         }
-        setWindowHandle(w);
-        windowHandleClose = w;
     }
 
     protected void closeNativeImpl() {
@@ -154,7 +155,7 @@ public class X11Window extends WindowImpl {
     protected static native boolean initIDs0();
     private native long CreateWindow0(long parentWindowHandle, long display, int screen_index, 
                                             long visualID, long javaObjectAtom, long windowDeleteAtom, 
-                                            int x, int y, int width, int height, boolean undecorated);
+                                            int x, int y, int width, int height, int flags); 
     private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom);
     private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long windowHandle,
                                            int x, int y, int width, int height, int flags);    

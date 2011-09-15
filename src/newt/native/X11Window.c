@@ -635,7 +635,7 @@ static int NewtWindows_isFullscreenEWMHSupported (Display *dpy, Window w) {
     return res;
 }
 
-static Bool NewtWindows_setFullscreenEWMH (Display *dpy, Window root, Window w, int emwhMask, Bool isVisible, Bool fullscreen) {
+static Bool NewtWindows_setFullscreenEWMH (Display *dpy, Window root, Window w, int emwhMask, Bool isVisible, Bool enable) {
     Atom _NET_WM_STATE = XInternAtom( dpy, "_NET_WM_STATE", False );
     Atom _NET_WM_STATE_ABOVE = XInternAtom( dpy, "_NET_WM_STATE_ABOVE", False );
     Atom _NET_WM_STATE_FULLSCREEN = XInternAtom( dpy, "_NET_WM_STATE_FULLSCREEN", False );
@@ -645,7 +645,7 @@ static Bool NewtWindows_setFullscreenEWMH (Display *dpy, Window root, Window w, 
         return False;
     }
 
-    if(!isVisible && True==fullscreen) {
+    if(!isVisible && True==enable) {
         // Update Client State first (-> ABOVE)
         Atom types[2]={0};
         int ntypes=0;
@@ -658,9 +658,9 @@ static Bool NewtWindows_setFullscreenEWMH (Display *dpy, Window root, Window w, 
         }
         XChangeProperty( dpy, w, _NET_WM_STATE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, ntypes);
         XSync(dpy, False);
-        DBG_PRINT( "X11: reconfigureWindow0 FULLSCREEN Old on:%d (xsend-status %d)\n", fullscreen, s);
+        DBG_PRINT( "X11: reconfigureWindow0 FULLSCREEN Old on:%d (xsend-status %d)\n", enable, s);
     } else {
-        if(fullscreen) {
+        if(enable) {
             NewtWindows_setCWAbove(dpy, w);
         }
         XEvent xev;
@@ -675,7 +675,7 @@ static Bool NewtWindows_setFullscreenEWMH (Display *dpy, Window root, Window w, 
         xev.xclient.message_type = _NET_WM_STATE;
         xev.xclient.format = 32;
             
-        xev.xclient.data.l[i++] = ( True == fullscreen ) ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE ;
+        xev.xclient.data.l[i++] = ( True == enable ) ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE ;
         if( 0 != ( _NET_WM_ACTION_FULLSCREEN_SUPPORTED & emwhMask ) ) {
             xev.xclient.data.l[i++] = _NET_WM_STATE_FULLSCREEN;
         }
@@ -687,7 +687,7 @@ static Bool NewtWindows_setFullscreenEWMH (Display *dpy, Window root, Window w, 
         s = XSendEvent (dpy, root, False, mask, &xev );
     }
     XSync(dpy, False);
-    DBG_PRINT( "X11: reconfigureWindow0 FULLSCREEN EWMH ON %d, emwhMask 0x%X, visible %d  (xsend-status %d)\n", fullscreen, emwhMask, isVisible, s);
+    DBG_PRINT( "X11: reconfigureWindow0 FULLSCREEN EWMH ON %d, emwhMask 0x%X, visible %d  (xsend-status %d)\n", enable, emwhMask, isVisible, s);
     return Success == s;
 }
 
@@ -1489,12 +1489,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
   (JNIEnv *env, jobject obj, jlong parent, jlong display, jint screen_index, 
                              jlong visualID, 
                              jlong javaObjectAtom, jlong windowDeleteAtom, 
-                             jint x, jint y, jint width, jint height,
-                             jboolean undecorated)
+                             jint x, jint y, jint width, jint height, int flags)
 {
     Display * dpy = (Display *)(intptr_t)display;
     Atom wm_delete_atom = (Atom)windowDeleteAtom;
     int       scrn_idx = (int)screen_index;
+    Window root = RootWindow(dpy, scrn_idx);
     Window  windowParent = (Window) parent;
     Window  window = 0;
     jobject jwindow = 0;
@@ -1523,13 +1523,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
 
     scrn = ScreenOfDisplay(dpy, scrn_idx);
     if(0==windowParent) {
-        windowParent = XRootWindowOfScreen(scrn);
+        windowParent = root;
     }
-    if( XRootWindowOfScreen(scrn) != XRootWindow(dpy, scrn_idx) ) {
-        NewtCommon_FatalError(env, "XRoot Malfunction: %p != %p"+XRootWindowOfScreen(scrn), XRootWindow(dpy, scrn_idx));
-    }
-    DBG_PRINT( "X11: CreateWindow dpy %p, parent %p, %x/%d %dx%d, undeco %d\n", 
-        (void*)dpy, (void*)windowParent, x, y, width, height, undecorated);
+    DBG_PRINT( "X11: CreateWindow dpy %p, parent %p, %x/%d %dx%d, undeco %d, alwaysOnTop %d\n", 
+        (void*)dpy, (void*)windowParent, x, y, width, height,
+        TST_FLAG_IS_UNDECORATED(flags), TST_FLAG_IS_ALWAYSONTOP(flags));
 
     // try given VisualID on screen
     memset(&visualTemplate, 0, sizeof(XVisualInfo));
@@ -1605,7 +1603,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
     jwindow = (*env)->NewGlobalRef(env, obj);
     setJavaWindowProperty(env, dpy, window, javaObjectAtom, jwindow);
 
-    NewtWindows_setDecorations(dpy, window, ( JNI_TRUE == undecorated ) ? False : True );
+    NewtWindows_setDecorations(dpy, window, TST_FLAG_IS_UNDECORATED(flags) ? False : True );
     XSync(dpy, False);
 
     // since native creation happens at setVisible(true) .. 
@@ -1641,6 +1639,10 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
             (*env)->CallVoidMethod(env, jwindow, positionChangedID, -1, -1); 
         }
         NewtWindows_setPosSize(dpy, window, x, y, width, height);
+
+        if( TST_FLAG_IS_ALWAYSONTOP(flags) ) {
+            NewtWindows_setFullscreenEWMH(dpy, root, window, _NET_WM_ACTION_ABOVE_SUPPORTED, True, True);
+        }
     }
 
     DBG_PRINT( "X11: [CreateWindow] created window %p on display %p\n", (void*)window, dpy);

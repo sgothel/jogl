@@ -104,8 +104,10 @@ public class WindowsWindow extends WindowImpl {
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
+        final int flags = getReconfigureFlags(0, true) & 
+                          ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;
         setWindowHandle(CreateWindow0(display.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
-                                      getParentWindowHandle(), 0, isUndecorated(), x, y, width, height));
+                                      getParentWindowHandle(), x, y, width, height, flags)); 
         if (getWindowHandle() == 0) {
             throw new NativeWindowException("Error creating window");
         }
@@ -201,8 +203,8 @@ public class WindowsWindow extends WindowImpl {
     protected static native long getNewtWndProc0();
 
     private native long CreateWindow0(long hInstance, String wndClassName, String wndName,
-                                      long parentWindowHandle, long visualID, boolean isUndecorated,
-                                      int x, int y, int width, int height);
+                                      long parentWindowHandle,
+                                      int x, int y, int width, int height, int flags);
     private native long MonitorFromWindow0(long windowHandle);
     private native void reconfigureWindow0(long parentWindowHandle, long windowHandle,
                                            int x, int y, int width, int height, int flags);

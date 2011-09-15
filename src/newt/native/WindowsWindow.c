@@ -1284,14 +1284,14 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_getNewtWnd
     return (jlong) (intptr_t) wndProc;
 }
 
-static void NewtWindow_setVisiblePosSize(HWND hwnd, BOOL top, BOOL visible, 
+static void NewtWindow_setVisiblePosSize(HWND hwnd, BOOL atop, BOOL visible, 
                                          int x, int y, int width, int height)
 {
     UINT flags;
     BOOL bRes;
     
-    DBG_PRINT("*** WindowsWindow: NewtWindow_setVisiblePosSize %d/%d %dx%d, top %d, visible %d\n", 
-        x, y, width, height, top, visible);
+    DBG_PRINT("*** WindowsWindow: NewtWindow_setVisiblePosSize %d/%d %dx%d, atop %d, visible %d\n", 
+        x, y, width, height, atop, visible);
 
     if(visible) {
         flags = SWP_SHOWWINDOW;
@@ -1305,7 +1305,14 @@ static void NewtWindow_setVisiblePosSize(HWND hwnd, BOOL top, BOOL visible,
         flags |= SWP_NOSIZE;
     }
 
-    SetWindowPos(hwnd, top ? HWND_TOPMOST : HWND_TOP, x, y, width, height, flags);
+    if(atop) {
+        SetWindowPos(hwnd, HWND_TOP, x, y, width, height, flags);
+        SetWindowPos(hwnd, HWND_TOPMOST, x, y, width, height, flags);
+    } else {
+        SetWindowPos(hwnd, HWND_NOTOPMOST, x, y, width, height, flags);
+        SetWindowPos(hwnd, HWND_TOP, x, y, width, height, flags);
+    }
+    // SetWindowPos(hwnd, atop ? HWND_TOPMOST : HWND_TOP, x, y, width, height, flags);
 
     InvalidateRect(hwnd, NULL, TRUE);
     UpdateWindow(hwnd);
@@ -1318,8 +1325,8 @@ static void NewtWindow_setVisiblePosSize(HWND hwnd, BOOL top, BOOL visible,
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWindow0
   (JNIEnv *env, jobject obj, 
    jlong hInstance, jstring jWndClassName, jstring jWndName, 
-   jlong parent, jlong visualID, jboolean bIsUndecorated,
-   jint jx, jint jy, jint defaultWidth, jint defaultHeight)
+   jlong parent,
+   jint jx, jint jy, jint defaultWidth, jint defaultHeight, jint flags)
 {
     HWND parentWindow = (HWND) (intptr_t) parent;
     const TCHAR* wndClassName = NULL;
@@ -1338,14 +1345,13 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
     wndName = (*env)->GetStringUTFChars(env, jWndName, NULL);
 #endif
 
-
-    if(NULL!=parentWindow) {
+    if( NULL!=parentWindow ) {
         if (!IsWindow(parentWindow)) {
             DBG_PRINT("*** WindowsWindow: CreateWindow failure: Passed parentWindow %p is invalid\n", parentWindow);
             return 0;
         }
         windowStyle |= WS_CHILD ;
-    } else if (bIsUndecorated) {
+    } else if ( TST_FLAG_IS_UNDECORATED(flags) ) {
         windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
     } else {
         windowStyle |= WS_OVERLAPPEDWINDOW;
@@ -1356,16 +1362,15 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
         }
     }
 
-    (void) visualID; // FIXME: use the visualID ..
-
     window = CreateWindow(wndClassName, wndName, windowStyle,
                           _x, _y, width, height,
                           parentWindow, NULL,
                           (HINSTANCE) (intptr_t) hInstance,
                           NULL);
 
-    DBG_PRINT("*** WindowsWindow: CreateWindow thread 0x%X, parent %p, window %p, %d/%d %dx%d\n", 
-        (int)GetCurrentThreadId(), parentWindow, window, x, y, width, height);
+    DBG_PRINT("*** WindowsWindow: CreateWindow thread 0x%X, parent %p, window %p, %d/%d %dx%d, undeco %d, alwaysOnTop %d\n", 
+        (int)GetCurrentThreadId(), parentWindow, window, x, y, width, height,
+        TST_FLAG_IS_UNDECORATED(flags), TST_FLAG_IS_ALWAYSONTOP(flags));
 
     if (NULL == window) {
         int lastError = (int) GetLastError();
@@ -1410,8 +1415,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
                 // mark pos as undef, which cases java to wait for WM reported pos
                 (*env)->CallVoidMethod(env, wud->jinstance, positionChangedID, -1, -1);
             }
-            NewtWindow_setVisiblePosSize(window, (NULL == parentWindow) ? TRUE : FALSE /* top */, 
-                                         TRUE, x, y, width, height);
+            NewtWindow_setVisiblePosSize(window, TST_FLAG_IS_ALWAYSONTOP(flags), TRUE, x, y, width, height);
         }
     }
 
@@ -1473,11 +1477,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_reconfigure
     DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN ;
     BOOL styleChange = TST_FLAG_CHANGE_DECORATION(flags) || TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_PARENTING(flags) ;
 
-    DBG_PRINT( "*** WindowsWindow: reconfigureWindow0 parent %p, window %p, %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, visibleChange %d, visible %d -> styleChange %d\n",
+    DBG_PRINT( "*** WindowsWindow: reconfigureWindow0 parent %p, window %p, %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d -> styleChange %d\n",
         parent, window, x, y, width, height,
-        TST_FLAG_CHANGE_PARENTING(flags),  TST_FLAG_HAS_PARENT(flags),
-        TST_FLAG_CHANGE_DECORATION(flags), TST_FLAG_IS_UNDECORATED(flags),
-        TST_FLAG_CHANGE_FULLSCREEN(flags), TST_FLAG_IS_FULLSCREEN(flags),
+        TST_FLAG_CHANGE_PARENTING(flags),   TST_FLAG_HAS_PARENT(flags),
+        TST_FLAG_CHANGE_DECORATION(flags),  TST_FLAG_IS_UNDECORATED(flags),
+        TST_FLAG_CHANGE_FULLSCREEN(flags),  TST_FLAG_IS_FULLSCREEN(flags),
+        TST_FLAG_CHANGE_ALWAYSONTOP(flags), TST_FLAG_IS_ALWAYSONTOP(flags),
         TST_FLAG_CHANGE_VISIBILITY(flags), TST_FLAG_IS_VISIBLE(flags), styleChange);
 
     if (!IsWindow(hwnd)) {
@@ -1530,8 +1535,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_reconfigure
         SetParent(hwnd, hwndP );
     }
 
-    NewtWindow_setVisiblePosSize(hwnd, (NULL == hwndP) ? TRUE : FALSE /* top */, 
-                                 TST_FLAG_IS_VISIBLE(flags), x, y, width, height);
+    NewtWindow_setVisiblePosSize(hwnd, TST_FLAG_IS_ALWAYSONTOP(flags), TST_FLAG_IS_VISIBLE(flags), x, y, width, height);
 
     if( TST_FLAG_CHANGE_VISIBILITY(flags) ) {
         if( TST_FLAG_IS_VISIBLE(flags) ) {
