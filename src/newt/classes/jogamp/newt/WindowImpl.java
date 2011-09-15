@@ -291,6 +291,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         } else {
                             waitForAnyPos(false, TIMEOUT_NATIVEWINDOW);
                         }
+                        if(isFullscreen()) {
+                            fullscreen = false;
+                            FullScreenActionImpl fsa = new FullScreenActionImpl(true);
+                            fsa.run();
+                        }
                     }
                 }
                 // always flag visible, 
@@ -392,6 +397,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /** 
      * The native implementation must set the native windowHandle.<br>
      *
+     * <p>
+     * The implementation shall respect the states {@link #isAlwaysOnTop()}/{@link #FLAG_IS_ALWAYSONTOP} and
+     * {@link #isUndecorated()}/{@link #FLAG_IS_UNDECORATED}, ie. the created window shall reflect those settings.
+     * </p>
+     * 
      * <p>
      * The implementation should invoke the referenced java state callbacks
      * to notify this Java object of state changes.</p>
@@ -1530,9 +1540,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         public final void run() {
             windowLock.lock();
             try {
-                if(isNativeValid() && WindowImpl.this.fullscreen != fullscreen) {
+              if(WindowImpl.this.fullscreen != fullscreen) {
+                final boolean nativeFullscreenChange = isNativeValid() && 
+                                                       isFullscreen() != fullscreen ;
+                  
+                // set current state
+                WindowImpl.this.fullscreen = fullscreen;
+                  
+                if( nativeFullscreenChange ) {
                     int x,y,w,h;
-                    WindowImpl.this.fullscreen = fullscreen;
+                    
                     if(fullscreen) {
                         nfs_x = WindowImpl.this.x;
                         nfs_y = WindowImpl.this.y;
@@ -1604,6 +1621,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         }
                     }
                 }
+              }    
             } finally {
                 windowLock.unlock();
             }
