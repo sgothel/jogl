@@ -74,7 +74,10 @@ public class TestGearsES2NEWT extends UITestCase {
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test (translucent "+!caps.isBackgroundOpaque()+")");
+        glWindow.setSize(width, height);
         glWindow.setUndecorated(undecorated);
+        glWindow.setAlwaysOnTop(alwaysOnTop);
+        glWindow.setFullscreen(fullscreen);
         glWindow.addGLEventListener(new GearsES2());
 
         Animator animator = new Animator(glWindow);
@@ -120,7 +123,6 @@ public class TestGearsES2NEWT extends UITestCase {
             }
         });
 
-        glWindow.setSize(width, height);
         glWindow.setVisible(true);
         
         System.err.println("size/pos: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", "+f_glWindow.getInsets());
@@ -147,6 +149,8 @@ public class TestGearsES2NEWT extends UITestCase {
     static long duration = 500; // ms
     static boolean opaque = true;
     static boolean undecorated = false;
+    static boolean alwaysOnTop = false;
+    static boolean fullscreen = false;
 
     public static void main(String args[]) {
         for(int i=0; i<args.length; i++) {
@@ -159,6 +163,10 @@ public class TestGearsES2NEWT extends UITestCase {
                 opaque = false;
             } else if(args[i].equals("-undecorated")) {
                 undecorated = true;
+            } else if(args[i].equals("-atop")) {
+                alwaysOnTop = true;
+            } else if(args[i].equals("-fullscreen")) {
+                fullscreen = true;
             }
         }
         org.junit.runner.JUnitCore.main(TestGearsES2NEWT.class.getName());
