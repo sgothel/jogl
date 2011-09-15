@@ -7,6 +7,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.KeyListener;
 
 import javax.media.opengl.*;
+
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import java.awt.BorderLayout;
@@ -40,11 +41,14 @@ import java.awt.BorderLayout;
            &lt;param name="gl_swap_interval" value="1"&gt;
            &lt;param name="gl_undecorated" value="true"&gt;
            &lt;param name="gl_alwaysontop" value="true"&gt;
+           &lt;param name="gl_alpha" value="1"&gt;
+           &lt;param name="gl_multisamplebuffer" value="0"&gt;
            &lt;param name="gl_opaque" value="false"&gt;
            &lt;param name="gl_dx" value="10"&gt;
            &lt;param name="gl_dy" value="0"&gt;
            &lt;param name="gl_width" value="100"&gt;
            &lt;param name="gl_height" value="100"&gt;
+           &lt;param name="gl_nodefaultkeyListener" value="true"&gt;
            &lt;param name="gl_debug" value="false"&gt;
            &lt;param name="gl_trace" value="false"&gt;
            &lt;param name="jnlp_href" value="jogl-newt-applet-runner.jnlp"&gt;
@@ -75,6 +79,9 @@ public class JOGLNewtApplet1Run extends Applet {
         boolean glUndecorated=false;
         boolean glAlwaysOnTop=false;
         boolean glOpaque=true;
+        int glAlphaBits=0;
+        int glNumMultisampleBuffer=0;
+        boolean glNoDefaultKeyListener = false;
         try {
             glEventListenerClazzName = getParameter("gl_event_listener_class");
             glProfileName = getParameter("gl_profile");
@@ -84,10 +91,13 @@ public class JOGLNewtApplet1Run extends Applet {
             glUndecorated = JOGLNewtAppletBase.str2Bool(getParameter("gl_undecorated"), glUndecorated);
             glAlwaysOnTop = JOGLNewtAppletBase.str2Bool(getParameter("gl_alwaysontop"), glAlwaysOnTop);
             glOpaque = JOGLNewtAppletBase.str2Bool(getParameter("gl_opaque"), glOpaque);
+            glAlphaBits = JOGLNewtAppletBase.str2Int(getParameter("gl_alpha"), glAlphaBits);
+            glNumMultisampleBuffer = JOGLNewtAppletBase.str2Int(getParameter("gl_multisamplebuffer"), glNumMultisampleBuffer); 
             glXd = JOGLNewtAppletBase.str2Int(getParameter("gl_dx"), glXd);
             glYd = JOGLNewtAppletBase.str2Int(getParameter("gl_dy"), glYd);
             glWidth = JOGLNewtAppletBase.str2Int(getParameter("gl_width"), glWidth);
             glHeight = JOGLNewtAppletBase.str2Int(getParameter("gl_height"), glHeight);
+            glNoDefaultKeyListener = JOGLNewtAppletBase.str2Bool(getParameter("gl_nodefaultkeyListener"), glNoDefaultKeyListener);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -98,14 +108,21 @@ public class JOGLNewtApplet1Run extends Applet {
         
         base = new JOGLNewtAppletBase(glEventListenerClazzName, 
                                       glSwapInterval,
+                                      glNoDefaultKeyListener,
                                       glDebug,
                                       glTrace);
 
         try {
             GLProfile.initSingleton(false);
             GLCapabilities caps = new GLCapabilities(GLProfile.get(glProfileName));
+            caps.setAlphaBits(glAlphaBits);
+            if(0<glNumMultisampleBuffer) {
+                caps.setSampleBuffers(true);
+                caps.setNumSamples(glNumMultisampleBuffer);
+            }
             caps.setBackgroundOpaque(glOpaque);
             glWindow = GLWindow.create(caps);
+            glWindow.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
             glWindow.setUndecorated(glUndecorated);
             glWindow.setAlwaysOnTop(glAlwaysOnTop);
             if(glStandalone) {

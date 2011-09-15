@@ -6,6 +6,7 @@ import java.security.PrivilegedAction;
 
 import javax.media.nativewindow.NativeWindow;
 import javax.media.opengl.*;
+
 import com.jogamp.opengl.util.*;
 
 import com.jogamp.newt.event.*;
@@ -14,9 +15,10 @@ import com.jogamp.newt.opengl.GLWindow;
 /** Shows how to deploy an applet using JOGL. This demo must be
     referenced from a web page via an &lt;applet&gt; tag. */
 
-public class JOGLNewtAppletBase extends WindowAdapter implements KeyListener, MouseListener, GLEventListener {
+public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     String glEventListenerClazzName;
     int glSwapInterval;
+    boolean noDefaultKeyListener;
     boolean glDebug;
     boolean glTrace;
 
@@ -28,11 +30,13 @@ public class JOGLNewtAppletBase extends WindowAdapter implements KeyListener, Mo
 
     public JOGLNewtAppletBase(String glEventListenerClazzName, 
                               int glSwapInterval,
+                              boolean noDefaultKeyListener,
                               boolean glDebug,
                               boolean glTrace) {
     
         this.glEventListenerClazzName=glEventListenerClazzName;
         this.glSwapInterval=glSwapInterval;
+        this.noDefaultKeyListener = noDefaultKeyListener;
         this.glDebug = glDebug;
         this.glTrace = glTrace;
     }
@@ -129,22 +133,25 @@ public class JOGLNewtAppletBase extends WindowAdapter implements KeyListener, Mo
             if(glEventListener instanceof WindowListener) {
                 glWindow.addWindowListener((WindowListener)glEventListener);
             }
-            glWindow.addWindowListener(this);
 
             if(glEventListener instanceof MouseListener) {
                 glWindow.addMouseListener((MouseListener)glEventListener);
             }
-            glWindow.addMouseListener(this);
 
             if(glEventListener instanceof KeyListener) {
                 glWindow.addKeyListener((KeyListener)glEventListener);
             }
-            glWindow.addKeyListener(this);
+            
+            if(!noDefaultKeyListener) {
+                glWindow.addKeyListener(this);
+            }
 
             glWindow.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
 
             // glAnimator = new FPSAnimator(canvas, 60);
             glAnimator = new Animator(tg, glWindow);
+            glAnimator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, null);
+            
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
@@ -233,27 +240,5 @@ public class JOGLNewtAppletBase extends WindowAdapter implements KeyListener, Mo
             }
        }
     }
-
-    // ***********************************************************************************
-    // ***********************************************************************************
-    // ***********************************************************************************
-
-    public void mouseClicked(MouseEvent e) {
-    }
-    public void mouseEntered(MouseEvent e) {
-    }
-    public void mouseExited(MouseEvent e) {
-    }
-    public void mousePressed(MouseEvent e) {
-    }
-    public void mouseReleased(MouseEvent e) {
-    }
-    public void mouseMoved(MouseEvent e) {
-    }
-    public void mouseDragged(MouseEvent e) {
-    }
-    public void mouseWheelMoved(MouseEvent e) {
-    }
-
 }
 
