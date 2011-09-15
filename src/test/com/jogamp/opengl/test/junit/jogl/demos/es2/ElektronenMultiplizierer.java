@@ -42,6 +42,9 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLUniformData;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.newt.event.KeyAdapter;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -153,6 +156,17 @@ public class ElektronenMultiplizierer implements GLEventListener {
     public boolean  wantsFrameSkip()                { return mCommandLineParameter_FrameSkip; }
     public boolean  usesFullScreenMode()            { return mUsesFullScreenMode; }
 
+    class TimeShiftKeys extends KeyAdapter {
+        public void keyPressed(KeyEvent e) {
+            if(KeyEvent.VK_RIGHT == e.getKeyCode()) {
+                skipFrames(120);
+            } else if(KeyEvent.VK_LEFT == e.getKeyCode()) {
+                skipFrames(-120);
+            }                
+        }    
+    }
+    TimeShiftKeys timeShiftKeys;
+    
     public ElektronenMultiplizierer (
             String inBaseRoutineClassName,
             boolean inMultiSampling,
@@ -187,6 +201,11 @@ public class ElektronenMultiplizierer implements GLEventListener {
         mFrameSkipAverageFramerateTimeStart = 0;
         mFrameCounter = 0;        
         skipFrames(startFrame);
+        timeShiftKeys = new TimeShiftKeys();
+    }
+    
+    public ElektronenMultiplizierer() {
+        this(null, false, -1, false, -1.0f, false, true, 30, 0);        
     }
     
     /**
@@ -204,6 +223,12 @@ public class ElektronenMultiplizierer implements GLEventListener {
     }
 
     public void init(GLAutoDrawable drawable) {
+        if(drawable instanceof GLWindow) {
+            final GLWindow glw = (GLWindow) drawable;
+            if ( glw.getKeyListener(0) != timeShiftKeys ) {
+                glw.addKeyListener(0, timeShiftKeys);
+            }
+        }
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         gl.setSwapInterval(1);
 

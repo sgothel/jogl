@@ -114,15 +114,6 @@ public class TestElektronenMultipliziererNEWT extends UITestCase {
                     } }.start();
                 }
             }
-            public void keyPressed(KeyEvent e) {
-                if(KeyEvent.VK_RIGHT == e.getKeyCode()) {
-                    demo.skipFrames(120);
-                    System.err.println("->");
-                } else if(KeyEvent.VK_LEFT == e.getKeyCode()) {
-                    demo.skipFrames(-120);
-                    System.err.println("<-");
-                }                
-            }
         });
 
         glWindow.setVisible(true);

@@ -1,6 +1,8 @@
 package com.jogamp.newt.awt.applet;
 
 import java.lang.reflect.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import javax.media.nativewindow.NativeWindow;
 import javax.media.opengl.*;
@@ -56,11 +58,22 @@ public class JOGLNewtAppletBase extends WindowAdapter implements KeyListener, Mo
         return def;
     }
 
-    public static GLEventListener createInstance(String clazzName) {
+    public static GLEventListener createInstance(final String clazzName) {
         Object instance = null;
 
         try {
-            Class<?> clazz = Class.forName(clazzName);
+            final Class<?> clazz = AccessController.doPrivileged(new PrivilegedAction<Class<?>>() {
+                public Class<?> run() {
+                    final ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                    Class<?> clazz = null;
+                    try {
+                        clazz = Class.forName(clazzName, false, cl);
+                    } catch (Throwable t) {
+                        t.printStackTrace();
+                    }
+                    return clazz;
+                }
+            });
             instance = clazz.newInstance();
         } catch (Throwable t) {
             t.printStackTrace();
@@ -97,9 +110,13 @@ public class JOGLNewtAppletBase extends WindowAdapter implements KeyListener, Mo
     }
 
     public void init(ThreadGroup tg, GLWindow glWindow) {
+        isValid = false;
         this.glWindow = glWindow;
 
         glEventListener = createInstance(glEventListenerClazzName);
+        if(null == glEventListener) {
+            return;
+        }
 
         try {
             if(!setField(glEventListener, "window", glWindow)) {
