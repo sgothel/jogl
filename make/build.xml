@@ -55,6 +55,8 @@
             <fileset dir="${build}" />
             <fileset dir="." includes="*.tga" />
         </delete>
+        <delete includeEmptyDirs="true" quiet="true" dir="${jar}" failonerror="false" />
+        <delete includeEmptyDirs="true" quiet="true" dir="${lib}" failonerror="false" />
     </target>        
 
     <!-- ================================================================== -->
@@ -78,7 +80,6 @@
     </target>
 
     <target name="one.lib.dir" depends="init,gluegen.cpptasks.detect.os" unless="one.dir.skip">
-        <delete includeEmptyDirs="true" quiet="true" dir="${lib}" failonerror="false" />
         <mkdir dir="${lib}" />
         <copy todir="${lib}">
             <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix}" />
@@ -88,7 +89,6 @@
     </target>
 
     <target name="one.jar.dir.prep" depends="one.lib.dir" unless="one.dir.skip">
-        <delete includeEmptyDirs="true" quiet="true" dir="${jar}" failonerror="false" />
         <mkdir dir="${jar}" />
         <mkdir dir="${jar}/atomic" />
         <copy todir="${jar}/atomic">
@@ -163,9 +163,6 @@
             jarmanifest.path="${build.jogl}/manifest.mf"
             version.code="${jogl_int_version}"
             version.name="${jogl.version.plus}" />
-        <delete includeEmptyDirs="true" quiet="true" failonerror="false">
-            <fileset dir="${lib}" includes="libgluegen-rt.so" />
-        </delete>
     </target>
 
     <target name="android.launcher" depends="init,gluegen.cpptasks.detect.os" if="isAndroid">
