@@ -1,6 +1,5 @@
-package com.jogamp.opengl.test.junit.graph.demos.mobile;
+package com.jogamp.opengl.test.junit.graph.demos;
 
-import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAnimatorControl;
@@ -14,15 +13,16 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
-import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.graph.demos.ui.Label;
 import com.jogamp.opengl.test.junit.graph.demos.ui.RIButton;
 import com.jogamp.opengl.test.junit.graph.demos.ui.SceneUIController;
 import com.jogamp.opengl.test.junit.graph.demos.ui.opengl.UIRegion;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class GPUGraphGLListenerMT implements GLEventListener {
+public class GPUUISceneGLListener0A implements GLEventListener {
 
     private boolean debug = false;
     private boolean trace = false; 
@@ -50,9 +50,8 @@ public class GPUGraphGLListenerMT implements GLEventListener {
     
     private int numSelectable = 6;
     
-    private int mouseX, mouseY;
     private SceneUIController sceneUIController = null;
-    
+    private MultiTouchListener multiTouchListener = null;
     private boolean showFPS = false;
     private GLAutoDrawable cDrawable;
     private float fps = 0; 
@@ -60,7 +59,11 @@ public class GPUGraphGLListenerMT implements GLEventListener {
     private String jogamp = "JogAmp - Jogl Graph Module Demo";
     private float angText = 0;
     
-    public GPUGraphGLListenerMT(RenderState rs, boolean debug, boolean trace) {
+    public GPUUISceneGLListener0A() {
+      this(RenderState.createRenderState(new ShaderState(), SVertex.factory()), false, false);    
+    }
+    
+    public GPUUISceneGLListener0A(RenderState rs, boolean debug, boolean trace) {
         this.rs = rs;
         
         this.debug = debug;
@@ -173,8 +176,11 @@ public class GPUGraphGLListenerMT implements GLEventListener {
         labels = new Label[3];
     }
 
-    @Override
     public void init(GLAutoDrawable drawable) {
+        if(drawable instanceof GLWindow) {
+            final GLWindow glw = (GLWindow) drawable;
+            attachInputListenerTo(glw);
+        }
         final int width = drawable.getWidth();
         final int height = drawable.getHeight();
         cDrawable = drawable;
@@ -217,14 +223,17 @@ public class GPUGraphGLListenerMT implements GLEventListener {
         jogampRegion = new UIRegion(jlabel);
     }
 
-    @Override
     public void dispose(GLAutoDrawable drawable) {
+        if(drawable instanceof GLWindow) {
+            final GLWindow glw = (GLWindow) drawable;
+            detachInputListenerFrom(glw);
+        }
+        
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         sceneUIController = null;
         regionRenderer.destroy(gl);
     }
 
-    @Override
     public void display(GLAutoDrawable drawable) {
         final int width = drawable.getWidth();
         final int height = drawable.getHeight();
@@ -241,8 +250,6 @@ public class GPUGraphGLListenerMT implements GLEventListener {
   }
     
     private void renderScene(GLAutoDrawable drawable) {
-        final int width = drawable.getWidth();
-        final int height = drawable.getHeight();
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         
         regionRenderer.resetModelview(null);
@@ -300,9 +307,7 @@ public class GPUGraphGLListenerMT implements GLEventListener {
         }
     }
     
-    @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width,
-            int height) {
+    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         
         gl.glViewport(x, y, width, height);        
@@ -310,30 +315,29 @@ public class GPUGraphGLListenerMT implements GLEventListener {
     }
 
     public void attachInputListenerTo(GLWindow window) {
-        MultiTouchListener multiTouchListener = new MultiTouchListener();
-        window.addMouseListener(multiTouchListener);
-        sceneUIController = new SceneUIController();
-        window.addGLEventListener(sceneUIController);
-        sceneUIController.attachInputListenerTo(window);
+        if ( null == multiTouchListener ) {
+            multiTouchListener = new MultiTouchListener();
+            window.addMouseListener(multiTouchListener);
+            sceneUIController = new SceneUIController();
+            window.addGLEventListener(sceneUIController);
+            sceneUIController.attachInputListenerTo(window);
+        }
     }
     
-    private class MultiTouchListener implements MouseListener {
+    public void detachInputListenerFrom(GLWindow window) {
+        if ( null != multiTouchListener ) {
+            window.removeMouseListener(multiTouchListener);
+            window.removeGLEventListener(sceneUIController);
+            sceneUIController.detachInputListenerFrom(window);
+        }
+    }
+    
+    private class MultiTouchListener extends MouseAdapter {
         int lx = 0;
         int ly = 0;
         
         boolean first = false;
-        @Override
-        public void mouseClicked(MouseEvent e) {
-        }
-
-        @Override
-        public void mouseEntered(MouseEvent e) {
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-        }
-
+        
         @Override
         public void mousePressed(MouseEvent e) {
             first = true;  
@@ -342,11 +346,6 @@ public class GPUGraphGLListenerMT implements GLEventListener {
         @Override
         public void mouseReleased(MouseEvent e) {
             first = false;
-        }
-
-        @Override
-        public void mouseMoved(MouseEvent e) {
-            
         }
 
         @Override
@@ -367,11 +366,6 @@ public class GPUGraphGLListenerMT implements GLEventListener {
             
             lx = e.getX();
             ly = e.getY();
-        }
-
-        @Override
-        public void mouseWheelMoved(MouseEvent e) {
-            
         }
     }
 }      

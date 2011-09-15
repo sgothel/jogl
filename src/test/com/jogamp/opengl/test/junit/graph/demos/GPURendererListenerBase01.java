@@ -180,11 +180,10 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         }
     }
     
-    public void detachFrom(GLWindow window) {
+    public void detachInputListenerFrom(GLWindow window) {
         if ( null == keyAction ) {
             return;
         }
-        window.removeGLEventListener(this);
         window.removeKeyListener(keyAction);
     }
     

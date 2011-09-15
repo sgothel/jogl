@@ -73,7 +73,6 @@ public class GPUTextNewtDemo02 {
         RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
         GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, Region.VBAA_RENDERING_BIT, window.getWidth()*3, DEBUG, TRACE);
         // ((TextRenderer)textGLListener.getRenderer()).setCacheLimit(32);
-        textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         
         window.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        

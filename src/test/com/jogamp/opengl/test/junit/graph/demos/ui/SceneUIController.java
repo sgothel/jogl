@@ -52,10 +52,18 @@ public class SceneUIController implements GLEventListener{
     }
     
     public void attachInputListenerTo(GLWindow window) {
-        sbcMouseListener = new SBCMouseListener();;
-        window.addMouseListener(sbcMouseListener);
+        if(null == sbcMouseListener) {
+            sbcMouseListener = new SBCMouseListener();
+            window.addMouseListener(sbcMouseListener);
+        }
     }
 
+    public void detachInputListenerFrom(GLWindow window) {
+        if(null != sbcMouseListener) {
+            window.removeMouseListener(sbcMouseListener);
+        }
+    }
+    
     public ArrayList<UIShape> getShapes() {
         return shapes;
     }
@@ -187,9 +195,6 @@ public class SceneUIController implements GLEventListener{
     }
     
     private class SBCMouseListener implements MouseListener {
-        int lx = 0;
-        int ly = 0;
-        boolean selection = false;
         int mouseX = -1;
         int mouseY = -1;
         
@@ -201,7 +206,6 @@ public class SceneUIController implements GLEventListener{
         }
 
         public void mousePressed(MouseEvent e) {
-            selection = true;
             mouseX = e.getX();
             mouseY = e.getY();
             

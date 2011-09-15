@@ -229,13 +229,12 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             keyAction = new KeyAction();
             window.addKeyListener(keyAction);
             super.attachInputListenerTo(window);            
-        }
-                
+        }                
     }
 
     @Override
-    public void detachFrom(GLWindow window) {
-        super.detachFrom(window);
+    public void detachInputListenerFrom(GLWindow window) {
+        super.detachInputListenerFrom(window);
         if ( null == keyAction ) {
             return;
         }

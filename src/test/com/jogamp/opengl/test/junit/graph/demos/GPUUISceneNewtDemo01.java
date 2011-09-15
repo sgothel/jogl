@@ -1,4 +1,4 @@
-package com.jogamp.opengl.test.junit.graph.demos.mobile;
+package com.jogamp.opengl.test.junit.graph.demos;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
@@ -11,7 +11,7 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class GPUTextNewtDemoMobile01 {
+public class GPUUISceneNewtDemo01 {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
     
@@ -29,7 +29,7 @@ public class GPUTextNewtDemoMobile01 {
         window.setTitle("GraphUI Newt Demo");
         
         final RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        GPUGraphGLListenerMT textGLListener = new GPUGraphGLListenerMT(rs, DEBUG, TRACE);
+        GPUUISceneGLListener0A textGLListener = new GPUUISceneGLListener0A(rs, DEBUG, TRACE);
         window.addGLEventListener(textGLListener);
         textGLListener.attachInputListenerTo(window);
         
