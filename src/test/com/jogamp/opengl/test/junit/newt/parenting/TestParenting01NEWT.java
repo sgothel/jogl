@@ -47,7 +47,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 public class TestParenting01NEWT extends UITestCase {
     static int width, height;
-    static long durationPerTest = 500;
+    static long durationPerTest = 600;
     static long waitAbout10FramesAt30fps = 10*34; // 10 frames @ 30fps
     static GLCapabilities glCaps;
 
