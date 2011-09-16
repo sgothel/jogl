@@ -58,9 +58,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 public class TestFocus02SwingAWTRobot extends UITestCase {
     static int width, height;
-    static long durationPerTest = 800;
     static long awtWaitTimeout = 1000;
-    static long waitReparent = 0;
     static GLCapabilities glCaps;
 
     @BeforeClass
@@ -161,7 +159,7 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         Assert.assertTrue(AWTRobotUtil.toFront(robot, jFrame1));
 
         int wait=0;
-        while(wait<awtWaitTimeout/100 && glWindow1.getTotalFPSFrames()<1) { Thread.sleep(awtWaitTimeout/10); wait++; }
+        while(wait<awtWaitTimeout/10 && glWindow1.getTotalFPSFrames()<1) { Thread.sleep(awtWaitTimeout/100); wait++; }
         System.err.println("Frames for initial setVisible(true): "+glWindow1.getTotalFPSFrames());
         Assert.assertTrue(glWindow1.isVisible());
         Assert.assertTrue(0 < glWindow1.getTotalFPSFrames());
@@ -285,15 +283,6 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
     public static void main(String args[]) 
         throws IOException, AWTException, InterruptedException, InvocationTargetException 
     {
-        for(int i=0; i<args.length; i++) {
-            if(args[i].equals("-time")) {
-                durationPerTest = atoi(args[++i]);
-            } else if(args[i].equals("-wait")) {
-                waitReparent = atoi(args[++i]);
-            }
-        }
-        System.err.println("durationPerTest "+durationPerTest);
-        System.err.println("waitReparent "+waitReparent);
         if(true) {
             String tstname = TestFocus02SwingAWTRobot.class.getName();
             org.junit.runner.JUnitCore.main(tstname);

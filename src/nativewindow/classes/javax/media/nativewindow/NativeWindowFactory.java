@@ -198,7 +198,7 @@ public abstract class NativeWindowFactory {
                 ReflectionUtil.isClassAvailable(AWTComponentClassName, cl) &&
                 ReflectionUtil.isClassAvailable("javax.media.nativewindow.awt.AWTGraphicsDevice", cl) ) {
 
-                AccessController.doPrivileged(new PrivilegedAction() {
+                AccessController.doPrivileged(new PrivilegedAction<Object>() {
                     public Object run() {
                         try {
                             jawtUtilClass = Class.forName(JAWTUtilClassName, false, NativeWindowFactory.class.getClassLoader());

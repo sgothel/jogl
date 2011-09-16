@@ -294,7 +294,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
                 // always flag visible, 
                 // allowing to retry if visible && !isNativeValid()
-                setVisibleImpl(true, x, y, width, height);
+                visible = true;
             }
         } finally {
             if(null!=parentWindow) {
@@ -693,10 +693,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(!isNativeValid() && visible) {
                 if( 0<width*height ) {
                     nativeWindowCreated = createNative();
-                    if(nativeWindowCreated) {
-                        WindowImpl.this.waitForVisible(visible, true);
-                        madeVisible = visible;
-                    }
+                    madeVisible = nativeWindowCreated;
                 }
             } else if(WindowImpl.this.visible != visible) {
                 if(isNativeValid()) {

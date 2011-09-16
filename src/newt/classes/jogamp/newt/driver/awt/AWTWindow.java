@@ -120,10 +120,9 @@ public class AWTWindow extends WindowImpl {
         container.setLocation(x, y);
         new AWTWindowAdapter(this).addTo(container); // fwd all AWT Window events to here
 
-        if(null!=frame) {
-            frame.setUndecorated(isUndecorated());
-        }
-
+        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_VISIBILITY | FLAG_CHANGE_DECORATION, true));
+        // throws exception if failed ..
+        
         setWindowHandle(1); // just a marker ..
     }
 
@@ -175,11 +174,7 @@ public class AWTWindow extends WindowImpl {
         insets.setBottomHeight(contInsets.bottom);
     }
 
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {        
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            container.setVisible(0 != ( FLAG_IS_VISIBLE & flags));
-        }
-        
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         if(0 != ( FLAG_CHANGE_DECORATION & flags) && null!=frame) {
             if(!container.isDisplayable()) {
                 frame.setUndecorated(isUndecorated());
@@ -189,6 +184,11 @@ public class AWTWindow extends WindowImpl {
                 }
             }
         }
+        
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
+            container.setVisible(0 != ( FLAG_IS_VISIBLE & flags));
+        }
+        
         x=(x>=0)?x:AWTWindow.this.x;
         y=(x>=0)?y:AWTWindow.this.y;
         width=(width>0)?width:AWTWindow.this.width;
@@ -199,14 +199,16 @@ public class AWTWindow extends WindowImpl {
         container.setSize(width + insets.left + insets.right,
                           height + insets.top + insets.bottom);
 
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {        
-            config = canvas.getAWTGraphicsConfiguration();
-
-            if (config == null) {
-                throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
+            if( 0 != ( FLAG_IS_VISIBLE & flags ) ) {
+                if( !hasDeviceChanged() ) {
+                    // oops ??
+                    config = canvas.getAWTGraphicsConfiguration();
+                    if(null == config) {
+                        throw new NativeWindowException("Error: !hasDeviceChanged && null == GraphicsConfiguration: "+this);
+                    }
+                }
             }
-
-            updateDeviceData();
             visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));
         }
         

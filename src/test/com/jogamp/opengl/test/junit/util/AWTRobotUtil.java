@@ -39,7 +39,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
-import java.awt.event.InputEvent;
 
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
