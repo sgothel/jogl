@@ -1092,9 +1092,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if( ACTION_NATIVE_REPARENTING == reparentAction ) {
                     DisplayImpl display = (DisplayImpl) screen.getDisplay();
                     display.dispatchMessagesNative(); // status up2date
+
                     if(wasVisible) {
                         setVisibleImpl(false, x, y, width, height);
                         WindowImpl.this.waitForVisible(false, true);
+                        // some composite WM behave slacky .. give 'em chance to change state -> invisible,
+                        // even though we do exactly that (KDE+Composite)
+                        try { Thread.sleep(100); } catch (InterruptedException e) { }
+                        display.dispatchMessagesNative(); // status up2date
                     }
 
                     // Lock parentWindow only during reparenting (attempt)
@@ -1102,8 +1107,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if( null != parentWindow ) {
                         parentWindowLocked = parentWindow;
                         if( NativeSurface.LOCK_SURFACE_NOT_READY >= parentWindowLocked.lockSurface() ) {
-                            throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
+                            throw new NativeWindowException("Parent surface lock: not ready: "+parentWindowLocked);
                         }
+                        // update native handle, locked state
+                        parentWindowHandle = parentWindowLocked.getWindowHandle();
                     } else {
                         parentWindowLocked = null;
                     }
@@ -1476,6 +1483,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public void setFocusAction(FocusRunnable focusAction) {
         this.focusAction = focusAction;
     }
+
+    /** Called by native requestFocusImpl() */
     protected boolean focusAction() {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.focusAction() START - "+getThreadName()+", focusAction: "+focusAction+" - windowHandle "+toHexString(getWindowHandle()));
@@ -1546,7 +1555,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                   
                 // set current state
                 WindowImpl.this.fullscreen = fullscreen;
-                  
+
                 if( nativeFullscreenChange ) {
                     int x,y,w,h;
                     
@@ -2159,7 +2168,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         for(long sleep = timeOut; 0<sleep && this.visible != visible; sleep-=10 ) {
             display.dispatchMessagesNative(); // status up2date
             try { Thread.sleep(10); } catch (InterruptedException ie) {}
-            sleep -=10;
         }
         if(this.visible != visible) {
             final String msg = "Visibility not reached as requested within "+timeOut+"ms : requested "+visible+", is "+this.visible; 
@@ -2202,7 +2210,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             } else {
                 display.dispatchMessagesNative(); // status up2date
                 try { Thread.sleep(10); } catch (InterruptedException ie) {}
-                sleep -=10;
             }
         }
         if(!reached) {
@@ -2225,7 +2232,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             } else {
                 display.dispatchMessagesNative(); // status up2date
                 try { Thread.sleep(10); } catch (InterruptedException ie) {}
-                sleep -=10;
             }
         }
         if(!reached) {

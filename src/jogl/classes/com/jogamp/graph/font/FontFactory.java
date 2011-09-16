@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.security.AccessController;
-import java.security.PrivilegedAction;
 
 import com.jogamp.common.util.ReflectionUtil;
 
