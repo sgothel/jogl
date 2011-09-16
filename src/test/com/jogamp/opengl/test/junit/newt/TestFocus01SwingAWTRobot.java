@@ -43,7 +43,9 @@ import javax.media.opengl.GLEventListener;
 import javax.swing.JFrame;
 
 import java.util.ArrayList;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -204,6 +206,9 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
                 durationPerTest = atoi(args[++i]);
             }
         }
+        // BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+        // System.err.println("Press enter to continue");
+        // System.err.println(stdin.readLine());
         System.out.println("durationPerTest: "+durationPerTest);
         String tstname = TestFocus01SwingAWTRobot.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
