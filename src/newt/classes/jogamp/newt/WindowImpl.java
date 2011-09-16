@@ -2261,7 +2261,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     
     /** Triggered by implementation's WM events to update the position. */ 
     protected void positionChanged(int newX, int newY) {
-        if( 0==parentWindowHandle && ( x != newX || y != newY ) ) {
+        if ( x != newX || y != newY ) {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.positionChanged: ("+getThreadName()+"): "+x+"/"+y+" -> "+newX+"/"+newY+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
