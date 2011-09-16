@@ -273,18 +273,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     throw new InternalError("XXX");
                 }
                 if(canCreateNativeImpl()) {
-                    int _x = x, _y = y; // orig req pos
                     screen.addReference();
                     screenReferenceAdded = true;
                     createNativeImpl();
                     screen.addScreenModeListener(screenModeListenerImpl);
                     setTitleImpl(title);
                     if(waitForVisible(true, false)) {
-                        // fix req position about window decoration
-                        _x = Math.max(_x, insets.getLeftWidth());
-                        _y = Math.max(_y, insets.getTopHeight());
-                        // wait for user req position
-                        waitForPosSize(_x, _y, width, height, false, TIMEOUT_NATIVEWINDOW);
                         if(isFullscreen()) {
                             fullscreen = false;
                             FullScreenActionImpl fsa = new FullScreenActionImpl(true);
@@ -399,13 +393,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * <p>
      * The implementation should invoke the referenced java state callbacks
      * to notify this Java object of state changes.</p>
-     * 
-     * <p>
-     * In case the implementation supports a deterministic size/pos mechanism,
-     * i.e. is able to determine the correct size/pos,
-     * it shall invalidate such values via the callbacks allowing the caller
-     * to wait until the values are reached - notified by the WM.<br>
-     * This is currently implemented for X11 and Windows.</p>
      * 
      * @see #windowDestroyNotify()
      * @see #focusChanged(boolean)
@@ -1127,7 +1114,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                             ok = WindowImpl.this.waitForVisible(true, false);
                             display.dispatchMessagesNative(); // status up2date
                             if(ok) {
-                                ok = WindowImpl.this.waitForPosSize(-1, -1, width, height, false, TIMEOUT_NATIVEWINDOW);
+                                ok = WindowImpl.this.waitForSize(width, height, false, TIMEOUT_NATIVEWINDOW);
                             }
                             if(ok) {
                                 requestFocusImpl(true);
@@ -1625,7 +1612,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         setVisibleImpl(true, x, y, w, h);
                         WindowImpl.this.waitForVisible(true, false);
                         display.dispatchMessagesNative(); // status up2date                                                        
-                        WindowImpl.this.waitForPosSize(-1, -1, w, h, false, TIMEOUT_NATIVEWINDOW);
+                        WindowImpl.this.waitForSize(w, h, false, TIMEOUT_NATIVEWINDOW);
                         display.dispatchMessagesNative(); // status up2date                                                        
                         requestFocusImpl(true);
                         display.dispatchMessagesNative(); // status up2date
@@ -2202,14 +2189,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
     
-    private boolean waitForPosSize(int x, int y, int w, int h, boolean failFast, long timeOut) {
+    private boolean waitForSize(int w, int h, boolean failFast, long timeOut) {
         DisplayImpl display = (DisplayImpl) screen.getDisplay();
-        final boolean wpos = 0<x && 0<y ; // 0/0 maybe be -1/-1 (at least X11)
-        final boolean wsiz = 0<w && 0<h;
         boolean reached = false;
         for(long sleep = timeOut; !reached && 0<sleep; sleep-=10 ) {
-            if( ( wpos && x==getX() && y==getY() || !wpos ) &&
-                ( wsiz && w==getWidth() && h==getHeight() || !wsiz ) ) {
+            if( w==getWidth() && h==getHeight() ) {
                 // reached pos/size
                 reached = true;
             } else {
@@ -2218,11 +2202,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
         }
         if(!reached) {
-            final String msg = "Size/Pos not reached as requested within "+timeOut+"ms : requested "+x+"/"+y+" "+w+"x"+h+", is "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight();
+            final String msg = "Size/Pos not reached as requested within "+timeOut+"ms : requested "+w+"x"+h+", is "+getWidth()+"x"+getHeight();
             if(failFast) {
                 throw new NativeWindowException(msg);
             } else if (DEBUG_IMPLEMENTATION) {
                 System.err.println(msg);
+                Thread.dumpStack();
             }
         }
         return reached;

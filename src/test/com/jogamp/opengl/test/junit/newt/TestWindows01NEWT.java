@@ -80,14 +80,15 @@ public class TestWindows01NEWT extends UITestCase {
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(width, window.getWidth());
         Assert.assertEquals(height, window.getHeight());
-        
+
+        /** we don't sync on position - unreliable test
         Point p0  = window.getLocationOnScreen(null);
         Assert.assertEquals(p0.getX(), window.getX());
         Assert.assertEquals(p0.getY(), window.getY());
         if(userPos) {
             Assert.assertEquals(x, window.getX());
             Assert.assertEquals(y, window.getY());
-        }
+        } */
 
         CapabilitiesImmutable chosenCapabilities = window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
         Assert.assertNotNull(chosenCapabilities);

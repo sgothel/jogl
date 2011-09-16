@@ -1664,10 +1664,6 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
         if(0>x) { x = 0; }
         if(0>y) { y = 0; }
         DBG_PRINT("X11: [CreateWindow]: top-level: %d/%d\n", x, y);
-        if(userPos) {
-            // mark pos as undef, which cases java to wait for WM reported pos
-            (*env)->CallVoidMethod(env, jwindow, positionChangedID, -1, -1); 
-        }
         NewtWindows_setPosSize(dpy, window, x, y, width, height);
 
         if( TST_FLAG_IS_ALWAYSONTOP(flags) ) {

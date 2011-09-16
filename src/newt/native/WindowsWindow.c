@@ -1411,10 +1411,6 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
             height += insets->top + insets->bottom;  // top-level
             DBG_PRINT("*** WindowsWindow: CreateWindow top-level %d/%d %dx%d\n", x, y, width, height);
 
-            if(userPos) {
-                // mark pos as undef, which cases java to wait for WM reported pos
-                (*env)->CallVoidMethod(env, wud->jinstance, positionChangedID, -1, -1);
-            }
             NewtWindow_setVisiblePosSize(window, TST_FLAG_IS_ALWAYSONTOP(flags), TRUE, x, y, width, height);
         }
     }
