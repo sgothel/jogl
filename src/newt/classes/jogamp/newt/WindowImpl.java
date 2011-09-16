@@ -258,14 +258,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private boolean createNative() {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.createNative() START ("+getThreadName()+", "+this+")");
-        }
-        final boolean userPos = 0<=x && 0<=y; // user has specified a position
-        
+        }        
         if( null != parentWindow && 
             NativeSurface.LOCK_SURFACE_NOT_READY >= parentWindow.lockSurface() ) {
             throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
         }        
-        if( !userPos && ( isUndecorated() || null != parentWindow ) ) {
+        if( ( 0>x || 0>y ) && ( isUndecorated() || null != parentWindow ) ) {
             // default child/undecorated window position is 0/0, if not set by user
             x = 0; y = 0;
         }
@@ -282,15 +280,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     screen.addScreenModeListener(screenModeListenerImpl);
                     setTitleImpl(title);
                     if(waitForVisible(true, false)) {
-                        if(userPos) {
-                            // fix req position about window decoration
-                            _x = Math.max(_x, insets.getLeftWidth());
-                            _y = Math.max(_y, insets.getTopHeight());
-                            // wait for user req position
-                            waitForPosSize(_x, _y, -1, -1, false, TIMEOUT_NATIVEWINDOW);
-                        } else {
-                            waitForAnyPos(false, TIMEOUT_NATIVEWINDOW);
-                        }
+                        // fix req position about window decoration
+                        _x = Math.max(_x, insets.getLeftWidth());
+                        _y = Math.max(_y, insets.getTopHeight());
+                        // wait for user req position
+                        waitForPosSize(_x, _y, width, height, false, TIMEOUT_NATIVEWINDOW);
                         if(isFullscreen()) {
                             fullscreen = false;
                             FullScreenActionImpl fsa = new FullScreenActionImpl(true);
@@ -2213,8 +2207,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     
     private boolean waitForPosSize(int x, int y, int w, int h, boolean failFast, long timeOut) {
         DisplayImpl display = (DisplayImpl) screen.getDisplay();
-        final boolean wpos = x>=0 && y>=0;
-        final boolean wsiz = w>0 && h>0;
+        final boolean wpos = 0<x && 0<y ; // 0/0 maybe be -1/-1 (at least X11)
+        final boolean wsiz = 0<w && 0<h;
         boolean reached = false;
         for(long sleep = timeOut; !reached && 0<sleep; sleep-=10 ) {
             if( ( wpos && x==getX() && y==getY() || !wpos ) &&
@@ -2228,28 +2222,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
         if(!reached) {
             final String msg = "Size/Pos not reached as requested within "+timeOut+"ms : requested "+x+"/"+y+" "+w+"x"+h+", is "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight();
-            if(failFast) {
-                throw new NativeWindowException(msg);
-            } else if (DEBUG_IMPLEMENTATION) {
-                System.err.println(msg);
-            }
-        }
-        return reached;
-    }
-    
-    private boolean waitForAnyPos(boolean failFast, long timeOut) {
-        DisplayImpl display = (DisplayImpl) screen.getDisplay();
-        boolean reached = false;
-        for(long sleep = timeOut; !reached && 0<sleep; sleep-=10 ) {
-            if( 0<=getX() && 0<=getY() ) {
-                reached = true;
-            } else {
-                display.dispatchMessagesNative(); // status up2date
-                try { Thread.sleep(10); } catch (InterruptedException ie) {}
-            }
-        }
-        if(!reached) {
-            final String msg = "Any Pos not reached as requested within "+timeOut+"ms : is "+getX()+"/"+getY();
             if(failFast) {
                 throw new NativeWindowException(msg);
             } else if (DEBUG_IMPLEMENTATION) {
