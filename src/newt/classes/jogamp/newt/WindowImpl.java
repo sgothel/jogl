@@ -1086,6 +1086,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
 
                 if( ACTION_NATIVE_CREATION_PENDING == reparentAction ) {
+                    // make size and position persistent for proper recreation
+                    WindowImpl.this.x = x;
+                    WindowImpl.this.y = y;
+                    WindowImpl.this.width = width;
+                    WindowImpl.this.height = height;
                     return;
                 }
 
@@ -1140,6 +1145,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         }
                     }
 
+                    if(!ok || !wasVisible) {
+                        // make size and position persistent manual, 
+                        // since we don't have a WM feedback (invisible or recreation)
+                        WindowImpl.this.x = x;
+                        WindowImpl.this.y = y;
+                        WindowImpl.this.width = width;
+                        WindowImpl.this.height = height;                        
+                    }
+                    
                     if(!ok) {
                         // native reparent failed -> try creation
                         if(DEBUG_IMPLEMENTATION) {
