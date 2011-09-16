@@ -101,7 +101,6 @@ public class X11Window extends WindowImpl {
             System.err.println("X11Window reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
                                getReconfigureFlagsAsString(null, flags));
         }
-
         if(0 == ( FLAG_IS_UNDECORATED & flags) && 0<=x && 0<=y) {
             final InsetsImmutable i = getInsets();         
             
@@ -117,6 +116,13 @@ public class X11Window extends WindowImpl {
         return true;
     }
 
+    protected void reparentNotify(long newParentWindowHandle) {
+        if(DEBUG_IMPLEMENTATION) {
+            final long p0 = getParentWindowHandle();
+            System.err.println("Window.reparentNotify ("+getThreadName()+"): "+toHexString(p0)+" -> "+toHexString(newParentWindowHandle));
+        }
+    }
+    
     protected void requestFocusImpl(boolean force) {
         requestFocus0(getDisplayEDTHandle(), getWindowHandle(), force);
     }
@@ -161,6 +167,7 @@ public class X11Window extends WindowImpl {
                                            int x, int y, int width, int height, int flags);    
     private native void setTitle0(long display, long windowHandle, String title);
     private native void requestFocus0(long display, long windowHandle, boolean force);
+    private native long getParentWindow0(long display, long windowHandle);
 
     private long   windowHandleClose;
 }
