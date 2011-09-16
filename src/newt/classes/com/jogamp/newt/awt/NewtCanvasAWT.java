@@ -95,6 +95,11 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 } catch (Exception e) {
                     throw new NativeWindowException(e);
                 }
+                /**
+                // wait for AWT focus !
+                for(long sleep = Window.TIMEOUT_NATIVEWINDOW; 0<sleep && !isFocusOwner(); sleep-=10 ) {
+                    try { Thread.sleep(10); } catch (InterruptedException e) { }
+                } */
             }
             return focusActionImpl.result;
         }
@@ -279,7 +284,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     }
 
     final void requestFocusAWTParent() {
-        super.requestFocus();
+        super.requestFocusInWindow();
     }
 
     final void requestFocusNEWTChild() {
@@ -292,13 +297,13 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
 
     @Override
     public void requestFocus() {
-        requestFocusAWTParent();
+        super.requestFocus();
         requestFocusNEWTChild();
     }
 
     @Override
     public boolean requestFocus(boolean temporary) {
-        boolean res = super.requestFocus(temporary);
+        final boolean res = super.requestFocus(temporary);
         if(res) {
             requestFocusNEWTChild();
         }
@@ -307,7 +312,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
 
     @Override
     public boolean requestFocusInWindow() {
-        boolean res = super.requestFocusInWindow();
+        final boolean res = super.requestFocusInWindow();
         if(res) {
             requestFocusNEWTChild();
         }
@@ -316,7 +321,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
 
     @Override
     public boolean requestFocusInWindow(boolean temporary) {
-        boolean res = super.requestFocusInWindow(temporary);
+        final boolean res = super.requestFocusInWindow(temporary);
         if(res) {
             requestFocusNEWTChild();
         }
@@ -333,10 +338,10 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
   private void disableBackgroundErase() {
     if (!disableBackgroundEraseInitialized) {
       try {
-        AccessController.doPrivileged(new PrivilegedAction() {
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
               try {
-                Class clazz = getToolkit().getClass();
+                Class<?> clazz = getToolkit().getClass();
                 while (clazz != null && disableBackgroundEraseMethod == null) {
                   try {
                     disableBackgroundEraseMethod =
