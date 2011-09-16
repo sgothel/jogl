@@ -37,11 +37,11 @@ import java.awt.BorderLayout;
 import java.awt.Frame;
 
 import javax.media.opengl.*;
+import javax.swing.SwingUtilities;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.newt.*;
-import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
@@ -80,9 +80,9 @@ public class TestParenting01bAWT extends UITestCase {
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
-        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
+        final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
 
-        Frame frame1 = new Frame("AWT Parent Frame");
+        final Frame frame1 = new Frame("AWT Parent Frame");
         frame1.setLayout(new BorderLayout());
         frame1.add(new Button("North"), BorderLayout.NORTH);
         frame1.add(new Button("South"), BorderLayout.SOUTH);
@@ -92,7 +92,7 @@ public class TestParenting01bAWT extends UITestCase {
         frame1.setLocation(0, 0);
         frame1.setVisible(true);
 
-        Frame frame2 = new Frame("AWT Parent Frame");
+        final Frame frame2 = new Frame("AWT Parent Frame");
         frame2.setLayout(new BorderLayout());
         frame2.add(new Button("North"), BorderLayout.NORTH);
         frame2.add(new Button("South"), BorderLayout.SOUTH);
@@ -118,12 +118,24 @@ public class TestParenting01bAWT extends UITestCase {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
-                    frame1.remove(newtCanvasAWT);
-                    frame2.add(newtCanvasAWT, BorderLayout.CENTER);
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            frame1.remove(newtCanvasAWT);
+                            frame2.add(newtCanvasAWT, BorderLayout.CENTER);
+                            frame1.validate();
+                            frame2.validate();
+                        }
+                    });                    
                     break;
                 case 1:
-                    frame2.remove(newtCanvasAWT);
-                    frame1.add(newtCanvasAWT, BorderLayout.CENTER);
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            frame2.remove(newtCanvasAWT);
+                            frame1.add(newtCanvasAWT, BorderLayout.CENTER);
+                            frame2.validate();
+                            frame1.validate();
+                        }
+                    });                    
                     break;
             }
         }

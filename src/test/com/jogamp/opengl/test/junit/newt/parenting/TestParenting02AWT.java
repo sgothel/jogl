@@ -44,6 +44,7 @@ import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -61,46 +62,46 @@ public class TestParenting02AWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting01NewtChildOnAWTParentLayouted() throws InterruptedException {
+    public void testWindowParenting01NewtChildOnAWTParentLayouted() throws InterruptedException, InvocationTargetException {
         runNewtChildOnAWTParent(true, false);
     }
 
     @Test
-    public void testWindowParenting02NewtChildOnAWTParentLayoutedDef() throws InterruptedException {
+    public void testWindowParenting02NewtChildOnAWTParentLayoutedDef() throws InterruptedException, InvocationTargetException {
         runNewtChildOnAWTParent(true, true);
     }
 
     @Test
-    public void testWindowParenting03NewtChildOnAWTParentDirect() throws InterruptedException {
+    public void testWindowParenting03NewtChildOnAWTParentDirect() throws InterruptedException, InvocationTargetException {
         runNewtChildOnAWTParent(false, false);
     }
 
     @Test
-    public void testWindowParenting04NewtChildOnAWTParentDirectDef() throws InterruptedException {
+    public void testWindowParenting04NewtChildOnAWTParentDirectDef() throws InterruptedException, InvocationTargetException {
         runNewtChildOnAWTParent(false, true);
     }
 
-    public void runNewtChildOnAWTParent(boolean useLayout, boolean deferredPeer) throws InterruptedException {
+    public void runNewtChildOnAWTParent(final boolean useLayout, final boolean deferredPeer) throws InterruptedException, InvocationTargetException {
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
         // setup NEWT GLWindow ..
-        GLWindow glWindow = GLWindow.create(new GLCapabilities(null));
+        final GLWindow glWindow = GLWindow.create(new GLCapabilities(null));
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("NEWT - CHILD");
         glWindow.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
         glWindow.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
-        GLEventListener demo = new GearsES2();
+        final GLEventListener demo = new GearsES2();
         setDemoFields(demo, glWindow, false);
         glWindow.addGLEventListener(demo);
 
         // attach NEWT GLWindow to AWT Canvas
-        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
+        final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
         Assert.assertNotNull(newtCanvasAWT);
         Assert.assertEquals(false, glWindow.isVisible());
         Assert.assertEquals(false, glWindow.isNativeValid());
         Assert.assertNull(glWindow.getParent());
 
-        Frame frame = new Frame("AWT Parent Frame");
+        final Frame frame = new Frame("AWT Parent Frame");
         Assert.assertNotNull(frame);
         if(useLayout) {
             frame.setLayout(new BorderLayout());
@@ -119,15 +120,22 @@ public class TestParenting02AWT extends UITestCase {
 
         frame.setSize(width, height);
 
-        frame.setVisible(true);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.setVisible(true);
+            }});
         // X11: true, Windows: false - Assert.assertEquals(true, glWindow.isVisible());
 
         if(deferredPeer) {
-            if(useLayout) {
-                frame.add(newtCanvasAWT, BorderLayout.CENTER);
-            } else {
-                frame.add(newtCanvasAWT);
-            }
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    if(useLayout) {
+                        frame.add(newtCanvasAWT, BorderLayout.CENTER);
+                    } else {
+                        frame.add(newtCanvasAWT);
+                    }
+                    frame.validate();
+                }});
         }
 
         // Since it is not defined when AWT's addNotify call happen
@@ -149,7 +157,11 @@ public class TestParenting02AWT extends UITestCase {
 
         if(useLayout) {
             // test some fancy re-layout ..
-            frame.remove(newtCanvasAWT);
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.remove(newtCanvasAWT);
+                    frame.validate();
+                }});
             Assert.assertEquals(false, glWindow.isVisible());
             Assert.assertEquals(true, glWindow.isNativeValid());
             Assert.assertNull(glWindow.getParent());
@@ -159,7 +171,11 @@ public class TestParenting02AWT extends UITestCase {
             Thread.sleep(waitReparent);
 
             // should recreate properly ..
-            frame.add(newtCanvasAWT, BorderLayout.CENTER);
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.add(newtCanvasAWT, BorderLayout.CENTER);
+                    frame.validate();
+                }});
             glWindow.display();
             Assert.assertEquals(true, glWindow.isVisible());
             Assert.assertEquals(true, glWindow.isNativeValid());
@@ -202,7 +218,10 @@ public class TestParenting02AWT extends UITestCase {
 
         glWindow.destroy();
         if(useLayout) {
-            frame.remove(newtCanvasAWT);
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.remove(newtCanvasAWT);
+                }});
         }
         frame.dispose();
     }

@@ -101,13 +101,13 @@ public class TestParenting01cSwingAWT extends UITestCase {
         disturbanceThread.start();
 
 
-        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
+        final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         Assert.assertNotNull(newtCanvasAWT);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParent());
 
-        Container container1 = new Container();
+        final Container container1 = new Container();
         container1.setLayout(new BorderLayout());
         container1.add(new Button("north"), BorderLayout.NORTH);
         container1.add(new Button("south"), BorderLayout.SOUTH);
@@ -115,7 +115,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         container1.add(new Button("west"), BorderLayout.WEST);
         container1.add(newtCanvasAWT, BorderLayout.CENTER);
 
-        JPanel jPanel1 = new JPanel();
+        final JPanel jPanel1 = new JPanel();
         jPanel1.setLayout(new BorderLayout());
         jPanel1.add(new Button("north"), BorderLayout.NORTH);
         jPanel1.add(new Button("south"), BorderLayout.SOUTH);
@@ -123,17 +123,13 @@ public class TestParenting01cSwingAWT extends UITestCase {
         jPanel1.add(new Button("west"), BorderLayout.WEST);
         jPanel1.add(container1, BorderLayout.CENTER);
 
-        JFrame jFrame1 = new JFrame("Swing Parent JFrame");
+        final JFrame jFrame1 = new JFrame("Swing Parent JFrame");
         // jFrame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
         jFrame1.setContentPane(jPanel1);
         jFrame1.setSize(width, height);
         System.out.println("Demos: 1 - Visible");
         jFrame1.setVisible(true); // from here on, we need to run modifications on EDT
-
-        final JFrame _jFrame1 = jFrame1;
-        final JPanel _jPanel1 = jPanel1;
-        final Container _container1 = container1;
 
         // visible test
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
@@ -148,28 +144,29 @@ public class TestParenting01cSwingAWT extends UITestCase {
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
             System.out.println("Demos: 3 - !Visible");
-                    _jFrame1.setVisible(false);
+                    jFrame1.setVisible(false);
                 } });
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
             System.out.println("Demos: 4 - Visible");
-                    _jFrame1.setVisible(true);
+                    jFrame1.setVisible(true);
                 } });
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
             System.out.println("Demos: 5 - X Container");
-                    _jPanel1.remove(_container1);
+                    jPanel1.remove(container1);
+                    jFrame1.validate();
                 } });
         // Assert.assertNull(glWindow1.getParent());
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    _jFrame1.dispose();
+                    jFrame1.dispose();
                 } });
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
@@ -211,13 +208,13 @@ public class TestParenting01cSwingAWT extends UITestCase {
         });
         disturbanceThread.start();
 
-        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
+        final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         Assert.assertNotNull(newtCanvasAWT);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParent());
 
-        Container container1 = new Container();
+        final Container container1 = new Container();
         container1.setLayout(new BorderLayout());
         container1.add(new Button("north"), BorderLayout.NORTH);
         container1.add(new Button("south"), BorderLayout.SOUTH);
@@ -225,7 +222,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         container1.add(new Button("west"), BorderLayout.WEST);
         container1.add(newtCanvasAWT, BorderLayout.CENTER);
 
-        JPanel jPanel1 = new JPanel();
+        final JPanel jPanel1 = new JPanel();
         jPanel1.setLayout(new BorderLayout());
         jPanel1.add(new Button("north"), BorderLayout.NORTH);
         jPanel1.add(new Button("south"), BorderLayout.SOUTH);
@@ -233,7 +230,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         jPanel1.add(new Button("west"), BorderLayout.WEST);
         jPanel1.add(container1, BorderLayout.CENTER);
 
-        JFrame jFrame1 = new JFrame("Swing Parent JFrame");
+        final JFrame jFrame1 = new JFrame("Swing Parent JFrame");
         // jFrame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
         jFrame1.setContentPane(jPanel1);
@@ -241,26 +238,20 @@ public class TestParenting01cSwingAWT extends UITestCase {
         jFrame1.setSize(width, height);
         jFrame1.setVisible(true); // from here on, we need to run modifications on EDT
 
-        JPanel jPanel2 = new JPanel();
+        final JPanel jPanel2 = new JPanel();
         jPanel2.setLayout(new BorderLayout());
         jPanel2.add(new Button("north"), BorderLayout.NORTH);
         jPanel2.add(new Button("south"), BorderLayout.SOUTH);
         jPanel2.add(new Button("east"), BorderLayout.EAST);
         jPanel2.add(new Button("west"), BorderLayout.WEST);
 
-        JFrame jFrame2 = new JFrame("Swing Parent JFrame");
+        final JFrame jFrame2 = new JFrame("Swing Parent JFrame");
         // jFrame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jFrame2.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
         jFrame2.setContentPane(jPanel2);
         jFrame2.setLocation(640, 480);
         jFrame2.setSize(width, height);
         jFrame2.setVisible(true); // from here on, we need to run modifications on EDT
-
-        final NewtCanvasAWT _newtCanvasAWT = newtCanvasAWT;
-        final JFrame _jFrame1 = jFrame1;
-        final Container _container1 = container1;
-        final JFrame _jFrame2 = jFrame2;
-        final JPanel _jPanel2 = jPanel2;
 
         // visible test
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
@@ -272,15 +263,19 @@ public class TestParenting01cSwingAWT extends UITestCase {
                 case 0:
                     SwingUtilities.invokeAndWait(new Runnable() {
                             public void run() {
-                                _container1.remove(_newtCanvasAWT);
-                                _jPanel2.add(_newtCanvasAWT, BorderLayout.CENTER);
+                                container1.remove(newtCanvasAWT);
+                                jPanel2.add(newtCanvasAWT, BorderLayout.CENTER);
+                                jFrame1.validate();
+                                jFrame2.validate();
                             } });
                     break;
                 case 1:
                     SwingUtilities.invokeAndWait(new Runnable() {
                             public void run() {
-                                _jPanel2.remove(_newtCanvasAWT);
-                                _container1.add(_newtCanvasAWT, BorderLayout.CENTER);
+                                jPanel2.remove(newtCanvasAWT);
+                                container1.add(newtCanvasAWT, BorderLayout.CENTER);
+                                jFrame1.validate();
+                                jFrame2.validate();                                
                             } });
                     break;
             }
@@ -292,15 +287,15 @@ public class TestParenting01cSwingAWT extends UITestCase {
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    _jFrame1.setVisible(false);
-                    _jFrame2.setVisible(false);
+                    jFrame1.setVisible(false);
+                    jFrame2.setVisible(false);
                 } });
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    _jFrame1.dispose();
-                    _jFrame2.dispose();
+                    jFrame1.dispose();
+                    jFrame2.dispose();
                 } });
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
