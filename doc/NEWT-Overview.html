@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link href="../../style.css" rel="stylesheet" type="text/css"/>
+        <title>NEWT - JOGL&#8217;s High Performance Native Windowing Toolkit</title>
+    </head>
+    <body>
+        <div id="container">
+            <div id="header">
+                <div id="slogan">NEWT &amp; JOGL</div>
+                <div id="logo"><a href="http://jogamp.org/jogl/">OpenGL &amp; JOGL</a></div>
+            </div>
+            <div id="menu">
+                <ul>
+                    <li><a href="http://jogamp.org/">Home</a></li>
+                    <li><a href="../../gluegen/www/">Gluegen</a></li>
+                    <li><a href="../../joal/www/">JOAL</a></li>
+                    <li><a href="../../jocl/www/">JOCL</a></li>
+                    <li><a href="../../jogl/www/">JOGL</a></li>
+                    <li><a href="../../demos/www/">Demos</a></li>
+                    <li><a href="../../wiki/">Wiki</a></li>
+                    <li><a href="../../deployment/jogl-next/javadoc_public/">JavaDoc</a></li>
+                    <li><a href="../../blog/">Blogs</a></li>
+                    <li><a href="../../forum.html">Forums</a></li>
+                </ul>
+            </div>
+            <div id="main">
+                <div id="text" class="fill">
+<h2>NEWT - JOGL&#8217;s High Performance Native Windowing Toolkit</h2>
+
+<h4>NEWT Usage</h4>
+
+<p>
+Consider the classic demo code
+    <a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/demos/es2/GearsES2.java;hb=HEAD">GearsES2.java</a>
+    [<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/demos/es2/GearsES2.java;h=d92d98894acc4cfe42e77ec316858d16d202b5b8;hb=HEAD">v2.0-rc3</a>],
+which implements a
+<a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GLEventListener.html">GLEventEventListener</a>.</p>
+
+<p>
+The simple application
+<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/demos/es2/newt/TestGearsES2NEWT.java;hb=HEAD">TestGearsES2NEWT.java</a>
+    [<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/demos/es2/newt/TestGearsES2NEWT.java;h=df86b83d2c3af9efed44d973aac24e678e85cd4c;hb=HEAD">v2.0-rc3</a>]
+creates a NEWT 
+<a href="/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/newt/opengl/GLWindow.html">GLWindow</a>,
+which implements a
+<a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GLAutoDrawable.html">GLAutoDrawable</a>
+and hence is able to add the demo code.
+NEWT&#8217;s GLWindow also implements the NEWT <a href="/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/newt/Window.html">Window</a>,
+which gives you full control of the native windowing, as shown in the demo.</p>
+
+<p>
+Finally we just add our GLWindow to an
+<a href="/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/util/Animator.html">Animator</a> instance,
+which renders our demo in it's own rendering thread independent from user input.</p>
+
+<p>
+For NEWT&#8217;s AWT integration, please read the dedicated section below.
+</p>
+
+<h4>NEWT Threading Overview</h4>
+
+<p>NEWT&#8217;s event model is pretty simple.<br />
+It spawns one Event Dispatch Thread (EDT) for each unique Display which role is to handle:</p>
+<ul>
+<li> input events </li>
+<li> window lifecycle actions (window visibility, resize, .. etc) </li>
+<li> <b>not</b> rendering </li>
+</ul>
+
+<p>
+High performance rendering is achieved without being blocked by input events or vice versa.<br/>
+As demonstrated in the above NEWT example, rendering does not disturb or lag user input.<br/>
+This gives you fluent animation even for complex models.</p>
+
+<h4>NEWT&#8217;s AWT integration and NEWT Applet&#8217;s</h4>
+
+<p>
+<a href="/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/newt/awt/NewtCanvasAWT.html">NewtCanvasAWT</a>,
+representing an AWT Canvas, allows you to hook a NEWT Window into it.<p/>
+Since the NewtCanvasAWT is an AWT heavyweight Component, this gives you the ability hook NEWT into an AWT UI.<br/>
+<p>
+The implementation uses the AWT native JAWT API to reparent the NEWT Window natively into the AWT one<br/>
+and hence is even more compatible with JOGL&#8217;s GLCanvas implementation.<p/>
+<p>
+This enables us to use both worlds, AWT/Swing UI and decoupled high performance rendering.</p>
+
+<p>
+<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/newt/parenting/TestParenting01cAWT.java;hb=HEAD">TestParenting01cAWT.java</a>
+[<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/newt/parenting/TestParenting01cAWT.java;h=4477c3f8e8ebc43c91ea90a82af69a5bb0f38091;hb=HEAD">v2.0-rc3</a>] 
+shows you how to add an GLWindow to an NewtCanvasAWT, which iself is added to an AWT Frame.</br>
+It also shows how the NewtCanvasAWT can be easily removed from the AWT Frame and placed into another AWT Container.<br/>
+Since we use native reparenting, the native window resource keeps alive and hence your OpenGL application (GLEventListener)
+is not being asked to dispose all resources.<br/> 
+<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/newt/parenting/TestParenting01cSwingAWT.java;hb=HEAD">TestParenting01cSwingAWT.java</a>
+[<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/newt/parenting/TestParenting01cSwingAWT.java;h=478e00007b14f2d4d14da3d5ccca0500b441ba96;hb=HEAD">v2.0-rc3</a>] 
+shows the same example using Swing.<br/>
+</p>
+
+<p>
+Last but not least, the above mechanism can be used to show NEWT Window&#8217;s in an AWT Applet.<br/>
+<a href="/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/newt/awt/applet/JOGLNewtApplet1Run.html">JOGLNewtApplet1Run</a>
+is an Applet launcher for any
+<a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GLEventListener.html">GLEventEventListener</a>
+exposing a default constructor.
+See it <a href="/deployment/jogamp-next/jogl-test-applets.html"><i>alive</i> here</a>.
+</p>
+
+
+<!---
+    <a href="">TestParenting01cSwingAWT.java</a>
+    [<a href="">v2.0-rc3</a>]
+-->
+
+<h4>How to pass user input back to the rendering loop ?</h4>
+
+The following example shows you how to use a fifo to pipe events from the EDT (listener) to the rendering loop.
+<ul>
+<li>
+    <a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/newt/parenting/TestParenting02NEWT.java;hb=HEAD">TestParenting02NEWT.java</a>
+    [<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/newt/parenting/TestParenting02NEWT.java;h=13aad0c25873a29f8c5df80e71bb76c96c5d4197;hb=HEAD">v2.0-rc3</a>]
+</li>
+<li>
+    <a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/newt/parenting/KeyAction.java;hb=HEAD">KeyAction.java</a>
+    [<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/newt/parenting/KeyAction.java;h=3313ec65c59783c67b01cd6bc387a25df943e60f;hb=HEAD">v2.0-rc3</a>]
+</li>
+</ul>
+<p><b>How to inject some GL action to the rendering loop ?</b><br />
+  Shows you how to inject GL render actions into a GL fifo from another thread.</p>
+<ul>
+<li>
+    <a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/newt/parenting/TestParenting01cSwingAWT.java;hb=HEAD">TestParenting01cSwingAWT.java</a>
+    [<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/newt/parenting/TestParenting01cSwingAWT.java;h=478e00007b14f2d4d14da3d5ccca0500b441ba96;hb=HEAD">v2.0-rc3</a>]
+</li>
+
+<li>
+    <a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/newt/parenting/GLRunnableDummy.java;hb=HEAD">GLRunnableDummy.java</a>
+    [<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/newt/parenting/GLRunnableDummy.java;h=1ca74774b73963ba4e3b20fc3491b0b2f7bfe454;hb=HEAD">v2.0-rc3</a>]
+</li>
+</ul>
+
+<p><b>AWT agnostic input event listener</b><br />
+We also have a way to write AWT agnostic input event listener:</p>
+<ul>
+<li>
+    <a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/demos/gl2/newt/TestGearsNEWT.java;hb=HEAD">TestGearsNEWT.java</a>
+     [<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/demos/gl2/newt/TestGearsNEWT.java;h=4b6f7999a194bf8515d828124239b0acba81fd49;hb=HEAD">v2.0-rc3</a>]
+</li>
+
+<li>
+    <a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/demos/gl2/awt/TestGearsAWT.java;hb=HEAD">TestGearsAWT.java</a>
+     [<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/demos/gl2/awt/TestGearsAWT.java;h=8ab641267c8a4e958ccf1709bc07fd050c8a7213;hb=HEAD">v2.0-rc3</a>]
+</li>
+</ul>
+
+<p>We provide some utilities to make life a bit easier.<br />
+These are not really necessary, ie you could write and use your own, sure.</p>
+<p>The NEWT threading requirements are easy &#8211; they are just <b>none</b> for rendering,<br />
+
+and the input event listener should better not lock the rendering GL context.<br />
+Well, they can using <code>GLContext.setSynchronized(true) etc .. </code>,<br />
+but that would be a pity performance wise.</p>
+
+                    <h3>References</h3>
+<ul>
+    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/newt/package-summary.html">NEWT API Overview</a></li>
+</ul>
+                </div>
+            </div>
+            <div id="footer">
+                <div id="footer_left">
+                    <span>JogAmp.org</span>
+                    by <a href="http://jogamp.org">http://jogamp.org</a>
+                    is licensed under a <br/>
+                    <a href="http://creativecommons.org/licenses/by/3.0/us/">Creative Commons Attribution 3.0 License</a>.
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
