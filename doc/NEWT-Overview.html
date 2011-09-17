@@ -78,18 +78,18 @@ This gives you fluent animation even for complex models.</p>
 
 <p>
 <a href="/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/newt/awt/NewtCanvasAWT.html">NewtCanvasAWT</a>,
-representing an AWT Canvas, allows you to hook a NEWT Window into it.<p/>
+representing an AWT Canvas, allows you to hook a NEWT Window into it.</p>
 Since the NewtCanvasAWT is an AWT heavyweight Component, this gives you the ability hook NEWT into an AWT UI.<br/>
 <p>
 The implementation uses the AWT native JAWT API to reparent the NEWT Window natively into the AWT one<br/>
-and hence is even more compatible with JOGL&#8217;s GLCanvas implementation.<p/>
+and hence is even more compatible with JOGL&#8217;s GLCanvas implementation.</p>
 <p>
 This enables us to use both worlds, AWT/Swing UI and decoupled high performance rendering.</p>
 
 <p>
 <a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/newt/parenting/TestParenting01cAWT.java;hb=HEAD">TestParenting01cAWT.java</a>
 [<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/newt/parenting/TestParenting01cAWT.java;h=4477c3f8e8ebc43c91ea90a82af69a5bb0f38091;hb=HEAD">v2.0-rc3</a>] 
-shows you how to add an GLWindow to an NewtCanvasAWT, which iself is added to an AWT Frame.</br>
+shows you how to add an GLWindow to an NewtCanvasAWT, which iself is added to an AWT Frame.<br/>
 It also shows how the NewtCanvasAWT can be easily removed from the AWT Frame and placed into another AWT Container.<br/>
 Since we use native reparenting, the native window resource keeps alive and hence your OpenGL application (GLEventListener)
 is not being asked to dispose all resources.<br/> 
