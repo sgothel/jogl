@@ -18,7 +18,7 @@
     </resources>
 
   <applet-desc 
-      name="JOGLNewtApplet2Run-Applet"
+      name="JOGLNewtApplet1Run-Applet"
       main-class="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run"
       width="200" 
       height="200">

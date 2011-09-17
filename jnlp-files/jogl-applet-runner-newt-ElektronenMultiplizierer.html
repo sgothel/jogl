@@ -10,7 +10,21 @@ Demoscene Passivist's Elektronen-Multiplizierer
 </P>
 
 <P>
-<applet width=640 height=480>
+<applet code="org.jdesktop.applet.util.JNLPAppletLauncher" 
+      width=640 height=480
+      archive="jar/applet-launcher.jar,
+               jar/gluegen-rt.jar,
+               jar/jogl.all.jar,
+               jar/junit.jar,
+               jar/jogl.test.jar">
+   <param name="codebase_lookup" value="false">
+   <param name="subapplet.classname" value="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run">
+   <param name="subapplet.displayname" value="ElektronenMultiplizierer">
+   <param name="noddraw.check" value="true">
+   <param name="progressbar" value="true">
+   <param name="jnlpNumExtensions" value="1">
+   <param name="jnlpExtension1"
+          value="jogl-all-awt.jnlp">
    <param name="java_arguments" value="-Dsun.java2d.noddraw=true">
    <param name="gl_event_listener_class" value="com.jogamp.opengl.test.junit.jogl.demos.es2.ElektronenMultiplizierer">
    <param name="gl_profile" value="GL2ES2">

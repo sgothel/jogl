@@ -1,23 +1,9 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
-<title>JOGL NEWT JNLP Applet Runner - GearsES2 - normal</title>
+<title>JOGL NEWT JNLP Applet Runner - GearsES2 - normal - launcheronly</title>
 </head>
 <body  BGCOLOR="#ffffff">
-
-<P>
-In case your <a href="https://jdk6.dev.java.net/plugin2/jnlp/">Java Plugin supports JNLP</a>, 
-the <em>jogl-applet-runner-newt.jnlp</em> is used, 
-otherwise it shall fallback to <a href="http://jogamp.org/applet-launcher/www/">JNLPAppletLauncher</a>.
-</P>
-
-<P>
-Note that it is important for the startup time to have the same JVM arguments in the applet tags,
-as well as within the JNLP applet description, here see property <em>sun.java2d.noddraw</em>. <br>
-Only if JVM arguments of the JNLP applet description are satisfied by the applet tag's JVM,<br>
-the plugin will not need to start a new JVM. OF course, the applet tag's JVM spec may exceed the
-JNLP applet's one.
-</P>
 
 <P>
 JOGL NEWT JNLP Applet Runner Special Keys:<br>
@@ -51,7 +37,6 @@ JOGL NEWT JNLP Applet Runner Special Keys:<br>
    <param name="gl_swap_interval" value="1">
    <param name="gl_debug" value="false">
    <param name="gl_trace" value="false">
-   <param name="jnlp_href" value="jogl-applet-runner-newt.jnlp">
 </applet>
 </P>
 
@@ -83,37 +68,6 @@ The applet above is instantiated with the following code:
    &lt;param name="gl_trace" value="false"&gt;
    &lt;param name="jnlp_href" value="jogl-applet-runner-newt.jnlp"&gt;
 &lt;/applet&gt;
-</pre>
-
-Where the referenced JNLP file <em>jogl-applet-runner-newt.jnlp</em> looks as follow:
-
-<pre>
-&lt;?xml version="1.0" encoding="utf-8"?&gt;
-&lt;jnlp codebase="http://jogamp.org/deployment/jogamp-current" href="jogl-applet-runner-newt.jnlp" version="v2.0-rc3"&gt;
-  &lt;information&gt;
-    &lt;title&gt;JOGL JNLP Applet Runner NEWT&lt;/title&gt;
-    &lt;vendor&gt;JogAmp Community&lt;/vendor&gt;
-    &lt;homepage href="http://jogamp.org/"/&gt;
-    &lt;description&gt;JOGL JNLP Applet Runner NEWT&lt;/description&gt;
-    &lt;offline-allowed/&gt;
-  &lt;/information&gt;
-  &lt;update check="background" policy="always"/&gt;
-
-    &lt;resources&gt;
-      &lt;j2se href="http://java.sun.com/products/autodl/j2se" version="1.4+"/&gt;
-      &lt;property name="sun.java2d.noddraw" value="true"/&gt;
-      &lt;jar href="jar/jogl.test.jar" main="true"/&gt;
-      &lt;jar href="jar/junit.jar" /&gt;
-      &lt;extension name="jogl-all-awt" href="http://jogamp.org/deployment/jogamp-current/jogl-all-awt.jnlp" /&gt;
-    &lt;/resources&gt;
-
-  &lt;applet-desc 
-      name="JOGLNewtApplet1Run-Applet"
-      main-class="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run"
-      width="200" 
-      height="200"&gt;
-  &lt;/applet-desc&gt;
-&lt;/jnlp&gt;
 </pre>
 
 </P>
