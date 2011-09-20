@@ -28,12 +28,24 @@
             <div id="main">
                 <div id="text" class="fill">
 
-                    <h1>JNLP Deployment</h1>
+                    <h1><a name="JNLPFiles">JNLP Files</a></h1>
+
+                    <p>
+                    You may choose to use JNLP to deploy your application
+                    and reference the JOGL resources.<p/>
+
+                    <p>
+                    You have the choice to use <a href="http://jdk6.dev.java.net/plugin2/jnlp/">JNLP Applets</a>
+                    or <a href="http://java.sun.com/products/javawebstart/">Java Webstart</a>.<p/>
+
+                    <p>
+                    You might want to have a look at our <a href="http://jogamp.org/deployment/jogamp-current/jogl-test-applets.html">Test page for JOGL Applets</a>. Here is a <a href="http://jogamp.org/deployment/jogamp-current/jogl-applet-runner-newt-gears-normal.html">documented example</a><p/>
 
                     Supported JNLP bases are:
                     <ul>
-                        <li> Current <code> http://jogamp.org/deployment/jogamp-current/ </code></li>
-                        <li> Next <code> http://jogamp.org/deployment/jogamp-next/ </code></li>
+                        <li> <code><b> http://jogamp.org/deployment/jogamp-current/ </b></code> Current Version </li>
+                        <li> <code><b> http://jogamp.org/deployment/jogamp-next/ </b></code> Next Version </li>
+                        <li> <code><b> http://jogamp.org/deployment/v2.0-rc3/ </b></code> Specific Version </li>
                     </ul>
 
                     <h2>Desktop All in One</h2>
@@ -65,48 +77,53 @@
                         </li>
                     </ul>
                     <p>
-                        It loads the JAR files for the <a href="#NativeLibraries">native libraries</a>,<br/>
-                        as well as the other <a href="#AllInOneJARs">All In One JAR files</a>
-                        for <a href="#AllInOneJARsAWT">AWT support</a>.
+                        The above JNLP files will load the <a href="#GluegenJARs">GlueGen JARs</a>
+                        as well as the <a href="#JOGLAllInOneJARs">JOGL All-In-One JARs</a>.
                     </p>
 
                     <hr/>
-                    <h1>Manual Deployment</h1>
+                    <h1><a name="JARFiles">JAR Files</a></h1>
 
-                    <h2><a name="NativeLibraries">Native Libraries</a></h2>
+                    <h2><a name="NativeJARFiles">Native JAR Files</a></h2>
+                    All JAR files containing platform dependent native libraries 
+                    contain the string <code>natives</code> and the 
+                    <a href="#NativeJARFileNameConvention"><b><i>os.and.arch</i></b></a>
+                    identifier in their name.
 
-                    Gluegen native libraries:
+                    The actual native library files are <a href="#NativeLibraryFiles">listed below</a>.
+
+                    <h3><a name="NativeJARFileNameConvention">Naming Convention</a></h3>
+                    JogAmp's build system has the notion of <b><i>os.and.arch</i></b> string identifier,
+                    to name platform dependent build artifacts.<br/> 
+                    Currently used and supported names are:
                     <ul>
-                        <li>libgluegen-rt.so</li>
+                        <li>freebsd-i586</li>
+                        <li>freebsd-amd64</li>
+                        <li>hpux-hppa</li>
+                        <li>linux-amd64</li>
+                        <li>linux-ia64</li>
+                        <li>linux-i586</li>
+                        <li>linux-armv7</li>
+                        <li>android-armv7</li>
+                        <li>macosx-universal</li>
+                        <li>solaris-sparc</li>
+                        <li>solaris-sparcv9</li>
+                        <li>solaris-amd64</li>
+                        <li>solaris-i586</li>
+                        <li>windows-amd64</li>
+                        <li>windows-i586</li>
                     </ul>
 
-                    NativeWindow native libraries
+                    <h2><a name="GluegenJARs">Gluegen JARs - Mandatory</a></h2>
                     <ul>
-                        <li>libnativewindow_awt.so</li>
-                        <li>libnativewindow_jvm.so</li>
-                        <li>libnativewindow_x11.so</li>
+                        <li><code>gluegen-rt.jar</code><br/>
+                            <ul>
+                                <li><code>gluegen-rt-natives-<b><i>os.and.arch</i></b>.jar</code></li>
+                            </ul>
+                        </li>
                     </ul>
 
-                    JOGL native libraries
-                    <ul>
-                        <li>libjogl_desktop.so</li>
-                        <li>libjogl_mobile.so</li>
-                        <li>libjogl_cg.so</li>
-                    </ul>
-
-                    NEWT native libraries
-                    <ul>
-                        <li>libnewt.so</li>
-                    </ul>
-
-                    <h2><a name="JavaLibraries">Java Libraries (JARs)</a></h2>
-
-                    <h3><a name="GluegenJAR">Gluegen JAR - Mandatory</a></h3>
-                    <ul>
-                        <li>gluegen-rt.jar</li>
-                    </ul>
-
-                    <h3><a name="AllInOneJARs">All In One Deployment</a></h3>
+                    <h3><a name="JOGLAllInOneJARs">JOGL JARs - All-In-One</a></h3>
 
                     <p>
                         This might be the best solution
@@ -119,20 +136,40 @@
                         be reuseable.<br/>
                     </p>
 
-                    <a name="AllInOneJARsAWT">With AWT</a>:
+                    <a name="JOGLAllInOneJARsAWT">With AWT</a>:
                     <ul>
-                        <li>jogl.all.jar</li>
+                        <li><code>jogl.all.jar</code><br/>
+                            <ul>
+                                <li><code>jogl-all-natives-<b><i>os.and.arch</i></b>.jar</code></li>
+                            </ul>
+                        </li>
                     </ul>
 
-                    <a name="AllInOneJARsNoAWT">Without AWT</a>:
+                    <a name="JOGLAllInOneJARsNoAWT">Without AWT</a>:
                     <ul>
-                        <li>jogl.all-noawt.jar</li>
+                        <li><code>jogl.all-noawt.jar</code><br/>
+                            <ul>
+                                <li><code>jogl-all-natives-<b><i>os.and.arch</i></b>.jar</code></li>
+                            </ul>
+                        </li>
                     </ul>
 
-                    <a name="AllInOneJARsNoAWT">Mobile</a>:
+                    <a name="JOGLAllInOneJARsMobile">Mobile</a>:
                     <ul>
-                        <li>jogl.all-mobile.jar</li>
-                        <li>jogl.all-android.jar</li>
+                        <li><code>jogl.all-mobile.jar</code><br/>
+                            <ul>
+                                <li><code>jogl-all-natives-<b><i>os.and.arch</i></b>.jar</code></li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <a name="JOGLAllInOneJARsAndroid">Android</a>:
+                    <ul>
+                        <li><code>jogl.all-android.jar</code><br/>
+                            <ul>
+                                <li><code>jogl-all-natives-<b><i>os.and.arch</i></b>.jar</code></li>
+                            </ul>
+                        </li>
                     </ul>
 
                     <h3>Atomic Deployment </h3>
@@ -232,6 +269,32 @@
                         <li>jogl.glutess.jar</li>
                         <li>jogl.glumipmap.jar</li>
                         <li>jogl.glugl2.jar</li>
+                    </ul>
+
+                    <h2><a name="NativeLibraryFiles">Native Library Files</a></h2>
+
+                    Gluegen native libraries:
+                    <ul>
+                        <li>libgluegen-rt.so</li>
+                    </ul>
+
+                    NativeWindow native libraries
+                    <ul>
+                        <li>libnativewindow_awt.so</li>
+                        <li>libnativewindow_jvm.so</li>
+                        <li>libnativewindow_x11.so</li>
+                    </ul>
+
+                    JOGL native libraries
+                    <ul>
+                        <li>libjogl_desktop.so</li>
+                        <li>libjogl_mobile.so</li>
+                        <li>libjogl_cg.so</li>
+                    </ul>
+
+                    NEWT native libraries
+                    <ul>
+                        <li>libnewt.so</li>
                     </ul>
 
                 </div>
