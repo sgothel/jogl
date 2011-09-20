@@ -46,7 +46,7 @@ L.1) The JOGL source tree contains code from the JogAmp Community
 
    You can address the JogAmp Community via:
        Web                http://jogamp.org/
-       Forum/Mailinglist  http://jogamp.762907.n3.nabble.com/
+       Forum/Mailinglist  http://forum.jogamp.org
        JogAmp Channel     server: conference.jabber.org room: jogamp
        Repository         http://jogamp.org/git/
        Email              mediastream _at_ jogamp _dot_ org
@@ -102,6 +102,8 @@ L.3) The JOGL source tree contains code ported from the OpenGL sample
    Amphitheatre Parkway, Mountain View, CA 94043-1351, or at:
    
    http://oss.sgi.com/projects/FreeB
+   http://oss.sgi.com/projects/FreeB/SGIFreeSWLicB.2.0.pdf
+   Or within this repository: doc/licenses/SGIFreeSWLicB.2.0.pdf
    
    Note that, as provided in the License, the Software is distributed on an
    "AS IS" basis, with ALL EXPRESS AND IMPLIED WARRANTIES AND CONDITIONS
@@ -216,9 +218,9 @@ Author: The Apache Software Foundation (http://www.apache.org/).
 
 Copyright 2006, 2010 The Apache Software Foundation.
 
-Apache License
-Version 2.0, January 2004
-http://www.apache.org/licenses/
+Apache License Version 2.0, January 2004
+http://www.apache.org/licenses/LICENSE-2.0
+Or within this repository: doc/licenses/Apache.LICENSE-2.0
 
 Files:
     src/jogamp/graph/geom/plane/AffineTransform.java
@@ -231,7 +233,7 @@ Files:
 
 
 A.3) The JOGL source tree contains code from David Schweinsberg
-     which is covered by the Apache License Version 2.0
+     which is covered by the Apache License Version 1.1 and Version 2.0
 
 Typecast
 ========
@@ -244,12 +246,23 @@ Author: David Schweinsberg
 
 Copyright (C) 1999-2003 The Apache Software Foundation. All rights reserved.
 
-Apache License
-Version 2.0, January 2004
+Apache Licenses
 http://www.apache.org/licenses/
 
+Apache License Version 1.1
+http://www.apache.org/licenses/LICENSE-1.1
+Or within this repository: doc/licenses/Apache.LICENSE-1.1
 Files:
-    src/net/java/dev/typecast/**
+    src/jogl/classes/jogamp/graph/font/typecast/ot/*
+    src/jogl/classes/jogamp/graph/font/typecast/ot/table/*
+
+Apache License Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0
+Or within this repository: doc/licenses/Apache.LICENSE-2.0
+    src/jogl/classes/jogamp/graph/font/typecast/ot/*
+    src/jogl/classes/jogamp/graph/font/typecast/ot/mac/*
+    src/jogl/classes/jogamp/graph/font/typecast/ot/table/*
+    src/jogl/classes/jogamp/graph/font/typecast/tt/engine/*
 
 A.4) The JOGL source tree contains fonts from Ubuntu
      which is covered by the UBUNTU FONT LICENCE Version 1.0
@@ -269,8 +282,9 @@ Author: Canonical Ltd., Dalton Maag
 UBUNTU FONT LICENCE 
 Version 1.0
 http://font.ubuntu.com/ufl/ubuntu-font-licence-1.0.txt
+Or within this repository: doc/licenses/ubuntu-font-licence-1.0.txt
 
 Files:
-    src/jogamp/graph/font/fonts/ubuntu/
+    src/jogamp/graph/font/fonts/ubuntu/*
 
 

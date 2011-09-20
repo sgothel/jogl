@@ -82,7 +82,7 @@ Teamed up with Rami Santina, the new graph package was realized,
 exposing generic curve, text and UI support.
 
 Rami Santina researched and implemented the math behind the new 
-graph package, published .. <FIXME: Add reference>, etc.
+graph package [RSantina], etc.
 
 The following individuals made significant contributions to various
 areas of the project (Alphabetical):
@@ -100,4 +100,8 @@ The JogAmp Community is grateful for the support of the
 javagaming.org community and it's own JogAmp forum, 
 from where dozens, if not hundreds, of individuals have 
 contributed discussions, bug reports, bug fixes, and other forms of support.
+
++++
+
+[RSantina]: Resolution Independent NURBS Curve Rendering using Programmable Graphics Pipeline
 
