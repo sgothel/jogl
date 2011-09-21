@@ -1,14 +1,12 @@
-JOGL as a whole may be used under the terms of the New BSD 3-clause license,
-which is the common denominator of the following used 5 BSD licenses L.1 - L.5.
+The JOGL source code is mostly licensed under the New BSD 2-clause license,
+however it contains other licensed material as well.
+
+Below you find a detailed list of licenses used in this project.
 
 +++
 
-Additional licenses compatible with the BSD 3-clause license are listed below A.1 - A...
-
-+++
-
-Exception is the content of folder 'make/lib'.
-This folder contains build/test time only Java binaries (JAR) to ease the build setup.
+The content of folder 'make/lib' contains build- and test-time only 
+Java binaries (JAR) to ease the build setup.
 Each JAR file has it's corresponding LICENSE file containing the 
 source location and license text. None of these binaries are contained in any way 
 by the generated and deployed JOGL binaries.
