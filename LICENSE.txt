@@ -180,7 +180,13 @@ L.5) The JOGL source tree also contains a Java port of Brian Paul's Tile
 A.1) The JOGL source tree also contains header files from Khronos,
      reflecting OpenKODE, EGL, OpenGL ES1, OpenGL ES2 and OpenGL.
 
-     http://www.khronos.org/legal/license/
+   http://www.khronos.org/legal/license/
+
+   Files:
+     make/stub_includes/opengl/**
+     make/stub_includes/egl/**
+     make/stub_includes/khr/**
+     make/stub_includes/openmax/**
 
    Copyright (c) 2007-2010 The Khronos Group Inc.
     
@@ -207,20 +213,20 @@ A.1) The JOGL source tree also contains header files from Khronos,
 A.2) The JOGL source tree contains code from The Apache Software Foundation
      which is covered by the Apache License Version 2.0
 
-Apache Harmony - Open Source Java SE
-=====================================
+   Apache Harmony - Open Source Java SE
+   =====================================
 
-<http://harmony.apache.org/>
+   <http://harmony.apache.org/>
 
-Author: The Apache Software Foundation (http://www.apache.org/).
+   Author: The Apache Software Foundation (http://www.apache.org/).
 
-Copyright 2006, 2010 The Apache Software Foundation.
+   Copyright 2006, 2010 The Apache Software Foundation.
 
-Apache License Version 2.0, January 2004
-http://www.apache.org/licenses/LICENSE-2.0
-Or within this repository: doc/licenses/Apache.LICENSE-2.0
+   Apache License Version 2.0, January 2004
+   http://www.apache.org/licenses/LICENSE-2.0
+   Or within this repository: doc/licenses/Apache.LICENSE-2.0
 
-Files:
+   Files:
     src/jogamp/graph/geom/plane/AffineTransform.java
     src/jogamp/graph/geom/plane/IllegalPathStateException.java
     src/jogamp/graph/geom/plane/NoninvertibleTransformException.java
@@ -233,30 +239,30 @@ Files:
 A.3) The JOGL source tree contains code from David Schweinsberg
      which is covered by the Apache License Version 1.1 and Version 2.0
 
-Typecast
-========
+   Typecast
+   ========
 
-Typecast is a font development environment for OpenType font technology.
+   Typecast is a font development environment for OpenType font technology.
 
-<http://typecast.dev.java.net/>
+   <http://typecast.dev.java.net/>
 
-Author: David Schweinsberg
+   Author: David Schweinsberg
 
-Copyright (C) 1999-2003 The Apache Software Foundation. All rights reserved.
+   Copyright (C) 1999-2003 The Apache Software Foundation. All rights reserved.
 
-Apache Licenses
-http://www.apache.org/licenses/
+   Apache Licenses
+   http://www.apache.org/licenses/
 
-Apache License Version 1.1
-http://www.apache.org/licenses/LICENSE-1.1
-Or within this repository: doc/licenses/Apache.LICENSE-1.1
-Files:
+   Apache License Version 1.1
+   http://www.apache.org/licenses/LICENSE-1.1
+   Or within this repository: doc/licenses/Apache.LICENSE-1.1
+   Files:
     src/jogl/classes/jogamp/graph/font/typecast/ot/*
     src/jogl/classes/jogamp/graph/font/typecast/ot/table/*
 
-Apache License Version 2.0
-http://www.apache.org/licenses/LICENSE-2.0
-Or within this repository: doc/licenses/Apache.LICENSE-2.0
+   Apache License Version 2.0
+   http://www.apache.org/licenses/LICENSE-2.0
+   Or within this repository: doc/licenses/Apache.LICENSE-2.0
     src/jogl/classes/jogamp/graph/font/typecast/ot/*
     src/jogl/classes/jogamp/graph/font/typecast/ot/mac/*
     src/jogl/classes/jogamp/graph/font/typecast/ot/table/*
@@ -265,24 +271,68 @@ Or within this repository: doc/licenses/Apache.LICENSE-2.0
 A.4) The JOGL source tree contains fonts from Ubuntu
      which is covered by the UBUNTU FONT LICENCE Version 1.0
 
-Ubunut Font Family
-==================
+   Ubunut Font Family
+   ==================
 
-The Ubuntu Font Family are libre fonts funded by Canonical Ltd on behalf of the Ubuntu project. 
+   The Ubuntu Font Family are libre fonts funded by Canonical Ltd on behalf of the Ubuntu project. 
 
-<http://font.ubuntu.com/>
+   <http://font.ubuntu.com/>
 
-Copyright 2010 Canonical Ltd.  
-Licensed under the Ubuntu Font Licence 1.0
+   Copyright 2010 Canonical Ltd.  
+   Licensed under the Ubuntu Font Licence 1.0
 
-Author: Canonical Ltd., Dalton Maag
+   Author: Canonical Ltd., Dalton Maag
 
-UBUNTU FONT LICENCE 
-Version 1.0
-http://font.ubuntu.com/ufl/ubuntu-font-licence-1.0.txt
-Or within this repository: doc/licenses/ubuntu-font-licence-1.0.txt
+   UBUNTU FONT LICENCE 
+   Version 1.0
+   http://font.ubuntu.com/ufl/ubuntu-font-licence-1.0.txt
+   Or within this repository: doc/licenses/ubuntu-font-licence-1.0.txt
 
-Files:
+   Files:
     src/jogamp/graph/font/fonts/ubuntu/*
 
+A.5) The JOGL source tree also contains header files from NVIDIA,
+     reflecting Cg.
 
+   Files:
+     make/stub_includes/cg/CG/**
+
+   Copyright (c) 2002, NVIDIA Corporation
+   
+   NVIDIA Corporation("NVIDIA") supplies this software to you in consideration 
+   of your agreement to the following terms, and your use, installation, 
+   modification or redistribution of this NVIDIA software constitutes 
+   acceptance of these terms.  If you do not agree with these terms, please do 
+   not use, install, modify or redistribute this NVIDIA software.
+   
+   In consideration of your agreement to abide by the following terms, and 
+   subject to these terms, NVIDIA grants you a personal, non-exclusive license,
+   under NVIDIA's copyrights in this original NVIDIA software (the "NVIDIA 
+   Software"), to use, reproduce, modify and redistribute the NVIDIA 
+   Software, with or without modifications, in source and/or binary forms; 
+   provided that if you redistribute the NVIDIA Software, you must retain the 
+   copyright notice of NVIDIA, this notice and the following text and 
+   disclaimers in all such redistributions of the NVIDIA Software. Neither the 
+   name, trademarks, service marks nor logos of NVIDIA Corporation may be used 
+   to endorse or promote products derived from the NVIDIA Software without 
+   specific prior written permission from NVIDIA.  Except as expressly stated 
+   in this notice, no other rights or licenses express or implied, are granted 
+   by NVIDIA herein, including but not limited to any patent rights that may be 
+   infringed by your derivative works or by other works in which the NVIDIA 
+   Software may be incorporated. No hardware is licensed hereunder. 
+   
+   THE NVIDIA SOFTWARE IS BEING PROVIDED ON AN "AS IS" BASIS, WITHOUT 
+   WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING 
+   WITHOUT LIMITATION, WARRANTIES OR CONDITIONS OF TITLE, NON-INFRINGEMENT, 
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR ITS USE AND OPERATION 
+   EITHER ALONE OR IN COMBINATION WITH OTHER PRODUCTS.
+   
+   IN NO EVENT SHALL NVIDIA BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL, 
+   EXEMPLARY, CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, LOST 
+   PROFITS; PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+   PROFITS; OR BUSINESS INTERRUPTION) OR ARISING IN ANY WAY OUT OF THE USE, 
+   REPRODUCTION, MODIFICATION AND/OR DISTRIBUTION OF THE NVIDIA SOFTWARE, 
+   HOWEVER CAUSED AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING 
+   NEGLIGENCE), STRICT LIABILITY OR OTHERWISE, EVEN IF NVIDIA HAS BEEN ADVISED 
+   OF THE POSSIBILITY OF SUCH DAMAGE.
+   
