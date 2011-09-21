@@ -1566,6 +1566,7 @@
         <jar manifest="${build.jogl}/manifest.mf" destfile="${build.jogl}/jogl-natives-${os.and.arch}.jar" filesonly="true">
             <fileset dir="${obj.jogl}">
               <include name="*.${native.library.suffix}" />
+              <exclude name="*jogl_cg.${native.library.suffix}" />
             </fileset>
         </jar>
     </target>
