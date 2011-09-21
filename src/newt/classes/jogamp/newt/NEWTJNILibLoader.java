@@ -39,21 +39,16 @@
 
 package jogamp.newt;
 
-// FIXME: refactor Java SE dependencies
-//import java.awt.Toolkit;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.HashSet;
 import com.jogamp.common.jvm.JNILibLoaderBase;
 
 public class NEWTJNILibLoader extends JNILibLoaderBase {
   
   public static void loadNEWT() {
-    AccessController.doPrivileged(new PrivilegedAction() {
+    AccessController.doPrivileged(new PrivilegedAction<Object>() {
       public Object run() {
-        loadLibrary("newt", null, true);
+        loadLibrary("newt", false);
         return null;
       }
     });

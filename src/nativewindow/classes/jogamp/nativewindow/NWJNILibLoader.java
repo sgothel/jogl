@@ -36,9 +36,9 @@ import com.jogamp.common.jvm.JNILibLoaderBase;
 public class NWJNILibLoader extends JNILibLoaderBase {
   
   public static void loadNativeWindow(final String ossuffix) {
-    AccessController.doPrivileged(new PrivilegedAction() {
+    AccessController.doPrivileged(new PrivilegedAction<Object>() {
       public Object run() {
-        loadLibrary("nativewindow_"+ossuffix, null, false);
+        loadLibrary("nativewindow_"+ossuffix, false);
         return null;
       }
     });
