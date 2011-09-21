@@ -279,6 +279,7 @@
         <property name="jogl.util.gldesktop.jar"        value="${build.jogl}/jogl.util.gldesktop.jar" />
         <property name="jogl.omx.jar"                   value="${build.jogl}/jogl.omx.jar" />
         <property name="jogl.cg.jar"                    value="${build.jogl}/jogl.cg.jar" />
+
         <path id="jogl_all_atoms.classpath">
             <pathelement location="${jogl.core.jar}" />
             <pathelement location="${jogl.sdk.jar}" />
@@ -298,7 +299,6 @@
             <pathelement location="${jogl.glugldesktop.jar}" />
             <pathelement location="${jogl.util.gldesktop.jar}" />
             <pathelement location="${jogl.omx.jar}" />
-            <pathelement location="${jogl.cg.jar}" />
         </path>
         <path id="jogl_all-noawt_atoms.classpath">
             <pathelement location="${jogl.core.jar}" />
@@ -317,7 +317,6 @@
             <pathelement location="${jogl.glugldesktop.jar}" />
             <pathelement location="${jogl.util.gldesktop.jar}" />
             <pathelement location="${jogl.omx.jar}" />
-            <pathelement location="${jogl.cg.jar}" />
         </path>
         <path id="jogl_all-mobile_atoms.classpath">
             <pathelement location="${jogl.core.jar}" />
@@ -330,7 +329,7 @@
             <pathelement location="${jogl.omx.jar}" />
         </path>
         <!-- 
-            ${jogl.core.jar} ${jogl.cg.jar} ${jogl.glutess.jar} ${jogl.glumipmap.jar} ${jogl.glugldesktop.jar} ${jogl.os.x11.jar} ${jogl.os.win.jar} ${jogl.os.osx.jar} ${jogl.gldesktop.jar} ${jogl.gldesktop.dbg.jar} ${jogl.glmobile.jar} ${jogl.glmobile.dbg.jar} ${jogl.omx.jar} ${jogl.util.jar} ${jogl.util.gldesktop.jar} ${jogl.util.awt.jar} ${jogl.util.fixedfuncemu.jar} ${jogl.sdk.jar} -->
+            ${jogl.core.jar} ${jogl.glutess.jar} ${jogl.glumipmap.jar} ${jogl.glugldesktop.jar} ${jogl.os.x11.jar} ${jogl.os.win.jar} ${jogl.os.osx.jar} ${jogl.gldesktop.jar} ${jogl.gldesktop.dbg.jar} ${jogl.glmobile.jar} ${jogl.glmobile.dbg.jar} ${jogl.omx.jar} ${jogl.util.jar} ${jogl.util.gldesktop.jar} ${jogl.util.awt.jar} ${jogl.util.fixedfuncemu.jar} ${jogl.sdk.jar} -->
 
         <property name="newt.core.jar"                  value="${build.newt}/newt.core.jar" />
         <property name="newt.ogl.jar"                   value="${build.newt}/newt.ogl.jar" />
