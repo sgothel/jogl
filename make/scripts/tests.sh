@@ -96,7 +96,7 @@ function jrun() {
     #D_ARGS="-Djogamp.debug.TempFileCache"
     #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.JARUtil"
     D_ARGS="-Djogamp.debug.JNILibLoader"
-    #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.gluegen.UseTempJarCache=false"
+    #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.gluegen.UseTempJarCache=false -Djogamp.debug.JARUtil"
     #X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=true"
     #X_ARGS="-verbose:jni"
 
