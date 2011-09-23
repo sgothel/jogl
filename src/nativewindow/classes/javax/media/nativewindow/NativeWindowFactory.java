@@ -37,7 +37,6 @@ import java.security.*;
 import java.util.*;
 
 import com.jogamp.common.util.*;
-import com.jogamp.common.jvm.JVMUtil;
 import com.jogamp.common.os.Platform;
 
 import jogamp.nativewindow.*;
@@ -75,8 +74,8 @@ public abstract class NativeWindowFactory {
     public static final String TYPE_DEFAULT = "default";
 
     private static NativeWindowFactory defaultFactory;
-    private static Map/*<Class, NativeWindowFactory>*/ registeredFactories;
-    private static Class nativeWindowClass;
+    private static Map<Class<?>, NativeWindowFactory> registeredFactories;
+    private static Class<?> nativeWindowClass;
     private static String nativeWindowingTypePure;
     private static String nativeWindowingTypeCustom;
     private static boolean isAWTAvailable;
@@ -86,13 +85,13 @@ public abstract class NativeWindowFactory {
     public static final String GDIClassName = "jogamp.nativewindow.windows.GDI";
     public static final String X11JAWTToolkitLockClassName = "jogamp.nativewindow.jawt.x11.X11JAWTToolkitLock" ;
     public static final String X11ToolkitLockClassName = "jogamp.nativewindow.x11.X11ToolkitLock" ;
-    private static Class  jawtUtilClass;
+    private static Class<?>  jawtUtilClass;
     private static Method jawtUtilGetJAWTToolkitMethod;
     private static Method jawtUtilInitMethod;
-    private static Class  x11JAWTToolkitLockClass;
-    private static Constructor x11JAWTToolkitLockConstructor;
-    private static Class  x11ToolkitLockClass;
-    private static Constructor x11ToolkitLockConstructor;
+    private static Class<?>  x11JAWTToolkitLockClass;
+    private static Constructor<?> x11JAWTToolkitLockConstructor;
+    private static Class<?>  x11ToolkitLockClass;
+    private static Constructor<?> x11ToolkitLockConstructor;
     private static boolean isFirstUIActionOnProcess;
     private static boolean requiresToolkitLock;
 
@@ -122,7 +121,7 @@ public abstract class NativeWindowFactory {
     }
 
     static {
-        JVMUtil.initSingleton();
+        Platform.initSingleton();
         DEBUG = Debug.debug("NativeWindow");
         if(DEBUG) {
             Throwable td = new Throwable(Thread.currentThread().getName()+" - Info: NativeWindowFactory.<init>");
@@ -227,7 +226,7 @@ public abstract class NativeWindowFactory {
                 // X11 initialization after possible AWT initialization
                 initNativeImpl(false, cl);
             }
-            registeredFactories = Collections.synchronizedMap(new HashMap());
+            registeredFactories = Collections.synchronizedMap(new HashMap<Class<?>, NativeWindowFactory>());
 
             // register our default factory -> NativeWindow
             NativeWindowFactory factory = new NativeWindowFactoryImpl();
@@ -412,13 +411,13 @@ public abstract class NativeWindowFactory {
         already assumed the responsibility of creating a compatible
         NativeWindow implementation, or it might be that of a toolkit
         class like {@link java.awt.Component Component}. */
-    public static NativeWindowFactory getFactory(Class windowClass) throws IllegalArgumentException {
+    public static NativeWindowFactory getFactory(Class<?> windowClass) throws IllegalArgumentException {
         if (nativeWindowClass.isAssignableFrom(windowClass)) {
-            return (NativeWindowFactory) registeredFactories.get(nativeWindowClass);
+            return registeredFactories.get(nativeWindowClass);
         }
-        Class clazz = windowClass;
+        Class<?> clazz = windowClass;
         while (clazz != null) {
-            NativeWindowFactory factory = (NativeWindowFactory) registeredFactories.get(clazz);
+            NativeWindowFactory factory = registeredFactories.get(clazz);
             if (factory != null) {
                 return factory;
             }
@@ -430,7 +429,7 @@ public abstract class NativeWindowFactory {
     /** Registers a NativeWindowFactory handling window objects of the
         given class. This does not need to be called by end users,
         only implementors of new NativeWindowFactory subclasses. */
-    protected static void registerFactory(Class windowClass, NativeWindowFactory factory) {
+    protected static void registerFactory(Class<?> windowClass, NativeWindowFactory factory) {
         if(DEBUG) {
             System.err.println("NativeWindowFactory.registerFactory() "+windowClass+" -> "+factory);
         }

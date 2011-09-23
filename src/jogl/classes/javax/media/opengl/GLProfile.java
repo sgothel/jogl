@@ -43,9 +43,13 @@ import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
 
 import com.jogamp.common.GlueGenVersion;
-import com.jogamp.common.jvm.JVMUtil;
+import com.jogamp.common.jvm.JNILibLoaderBase;
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionUtil;
+import com.jogamp.common.util.cache.TempJarCache;
 import com.jogamp.nativewindow.NativeWindowVersion;
 import com.jogamp.opengl.JoglVersion;
 
@@ -53,6 +57,7 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 
+import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
@@ -107,8 +112,34 @@ public class GLProfile {
             initialized = true;
             // run the whole static initialization privileged to speed up,
             // since this skips checking further access
-            AccessController.doPrivileged(new PrivilegedAction() {
+            AccessController.doPrivileged(new PrivilegedAction<Object>() {
                 public Object run() {
+                    if(TempJarCache.isInitialized()) {
+                        final Class<?> c = GLProfile.class;
+                        final ClassLoader cl = c.getClassLoader();
+                        try {
+                            final String jarName = JarUtil.getJarName(c.getName(), cl);
+                            if(DEBUG) {
+                                System.err.println("GLProfile classURL: "+IOUtil.getClassURL(c.getName(), cl));
+                                System.err.println("GLProfile jarName: "+jarName);
+                            }
+                            if(jarName!=null) {
+                                if( jarName.startsWith("jogl.all") ) {
+                                    // all-in-one variant
+                                    JNILibLoaderBase.addNativeJarLibs(c, "jogl-all");
+                                } else {
+                                    // atomic variant
+                                    JNILibLoaderBase.addNativeJarLibs(c, "nativewindow");
+                                    JNILibLoaderBase.addNativeJarLibs(c, "jogl");
+                                    if( ReflectionUtil.isClassAvailable("com.jogamp.newt.NewtFactory", cl) ) {
+                                        JNILibLoaderBase.addNativeJarLibs(c, "newt");
+                                    }
+                                }
+                            }
+                        } catch (IOException ioe) {
+                            ioe.printStackTrace();
+                        }
+                    }
                     initProfilesForDefaultDevices(firstUIActionOnProcess);
                     return null;
                 }
@@ -1142,7 +1173,7 @@ public class GLProfile {
     }
 
     static {
-        JVMUtil.initSingleton();
+        Platform.initSingleton();
     }
 
     private static /*final*/ boolean isAWTAvailable;

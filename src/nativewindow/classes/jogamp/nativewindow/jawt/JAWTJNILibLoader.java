@@ -48,7 +48,7 @@ import java.security.PrivilegedAction;
 
 public class JAWTJNILibLoader extends NWJNILibLoader {
   public static void loadAWTImpl() {
-    AccessController.doPrivileged(new PrivilegedAction() {
+    AccessController.doPrivileged(new PrivilegedAction<Object>() {
       public Object run() {
         // Make sure that awt.dll is loaded before loading jawt.dll. Otherwise
         // a Dialog with "awt.dll not found" might pop up.

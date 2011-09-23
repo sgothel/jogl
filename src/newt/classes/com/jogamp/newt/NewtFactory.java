@@ -35,7 +35,9 @@
 package com.jogamp.newt;
 
 import javax.media.nativewindow.*;
-import com.jogamp.common.jvm.JVMUtil;
+
+import com.jogamp.common.os.Platform;
+
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.ScreenImpl;
 import jogamp.newt.WindowImpl;
@@ -47,7 +49,7 @@ public class NewtFactory {
     // Work-around for initialization order problems on Mac OS X
     // between native Newt and (apparently) Fmod
     static {
-        JVMUtil.initSingleton();
+        Platform.initSingleton();
         NativeWindowFactory.initSingleton(false); // last resort ..
         WindowImpl.init(NativeWindowFactory.getNativeWindowType(true));
     }
