@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>JOGL Graph Text Demo 01 (NApplet)</title>
+</head>
+<body  BGCOLOR="#ffffff">
+
+<P>
+JOGL Graph Text Demo 01
+</P>
+
+<P>
+<object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"
+      width="800" height="400">
+   <param name="code" value="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run">
+   <param name="archive" value="jar/gluegen-rt.jar,
+                                jar/jogl.all.jar,
+                                jar/junit.jar,
+                                jar/jogl.test.jar">
+   <param name="java_arguments" value="-Dsun.java2d.noddraw=true">
+   <param name="gl_event_listener_class" value="com.jogamp.opengl.test.junit.graph.demos.GPUTextGLListener0A">
+   <param name="gl_profile" value="GL2ES2">
+   <param name="gl_swap_interval" value="1">
+   <param name="gl_alpha" value="4">
+   <param name="gl_multisamplebuffer" value="4">
+   <param name="gl_nodefaultkeyListener" value="true">
+   <param name="gl_debug" value="false">
+   <param name="gl_trace" value="false">
+   <comment>
+     <embed code="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run"
+          width="800" height="400"
+          type="application/x-java-applet;version=1.6"
+          pluginspage="http://java.sun.com/javase/downloads/ea.jsp"
+          archive="jar/gluegen-rt.jar,
+                   jar/jogl.all.jar,
+                   jar/junit.jar,
+                   jar/jogl.test.jar"
+          java_arguments="-Dsun.java2d.noddraw=true"
+          gl_event_listener_class="com.jogamp.opengl.test.junit.graph.demos.GPUTextGLListener0A"
+          gl_profile="GL2ES2"
+          gl_swap_interval="1"
+          gl_alpha="4"
+          gl_multisamplebuffer="4"
+          gl_nodefaultkeyListener="true"
+          gl_debug="false"
+          gl_trace="false">
+        <noembed>Sorry, no Java support detected.</noembed>
+     </embed>
+   </comment>
+</object>
+</P>
+
+<P>
+Graph Text Demo Keys:<br>
+<ul>
+    <li> 1/2     - zoom in/out red-text </li>
+    <li> 6/7     - edit texture size if using VBAA (nope) </li>
+    <li> 0/9     - rotate the red-text </li>
+    <li> v       - toggle vsync </li>
+    <li> i       - live text input (CR ends it, backspace supported)</li>
+    <li> f       - toggle fps </li>
+    <li> h       - change text</li>
+    <li> space   - change font</li>
+</ul>
+</P>
+
+</body>
+</html>
