@@ -39,7 +39,10 @@ import javax.media.nativewindow.*;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 import com.jogamp.newt.event.*;
+
+import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.newt.*;
+
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
@@ -179,6 +182,9 @@ public class MacWindow extends WindowImpl {
 
     @Override
     protected int lockSurfaceImpl() {
+        if(NativeWindowFactory.isAWTAvailable()) {
+            JAWTUtil.lockToolkit();
+        }
         nsViewLock.lock();
         return LOCK_SUCCESS;
     }
@@ -186,6 +192,9 @@ public class MacWindow extends WindowImpl {
     @Override
     protected void unlockSurfaceImpl() {
         nsViewLock.unlock();
+        if(NativeWindowFactory.isAWTAvailable()) {
+            JAWTUtil.unlockToolkit();
+        }
     }
 
     @Override
@@ -220,9 +229,6 @@ public class MacWindow extends WindowImpl {
             if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
                 if (0 != ( FLAG_IS_VISIBLE & flags)) {
                     createWindow(false, x, y, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
-                    if (getWindowHandle() != 0) {
-                        makeKeyAndOrderFront0(getWindowHandle());
-                    }
                 } else {
                     if (getWindowHandle() != 0) {
                         orderOut0(getWindowHandle());
@@ -234,9 +240,6 @@ public class MacWindow extends WindowImpl {
                     0 != ( FLAG_CHANGE_PARENTING & flags) ||
                     0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
                     createWindow(true, x, y, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
-                    if (getWindowHandle() != 0) {
-                        makeKeyAndOrderFront0(getWindowHandle());
-                    }
                 } else {
                     if(x>=0 || y>=0) {
                         setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), x, y);
@@ -391,16 +394,17 @@ public class MacWindow extends WindowImpl {
                     }
                     surfaceHandle = contentView0(getWindowHandle());
                     setTitle0(getWindowHandle(), getTitle());
-                    // don't make the window visible on window creation
-                    // makeKeyAndOrderFront0(windowHandle);
+                    makeKeyAndOrderFront0(getWindowHandle());
              //   } } );
         } catch (Exception ie) {
             ie.printStackTrace();
         }
 
-        enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_MOVED);
-        enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_RESIZED);
-        enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+        if(recreate) {
+            enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_MOVED);
+            enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_RESIZED);
+            enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+        }
     }
     
     protected static native boolean initIDs0();
