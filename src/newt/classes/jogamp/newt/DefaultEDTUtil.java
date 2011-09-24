@@ -65,10 +65,8 @@ public class DefaultEDTUtil implements EDTUtil {
             waitUntilStopped();
             if(DEBUG) {
                 if(edt.tasks.size()>0) {
-                    String msg = Thread.currentThread()+": EDT reset, remaining tasks: "+edt.tasks.size()+" - "+edt;
-                    System.err.println(msg);
-                    // Throwable t = new Throwable(msg);
-                    // t.printStackTrace();
+                    System.err.println(Thread.currentThread()+": EDT reset, remaining tasks: "+edt.tasks.size()+" - "+edt);
+                    // Thread.dumpStack();
                 }
                 System.err.println(Thread.currentThread()+": EDT reset - edt: "+edt);
             }
@@ -87,10 +85,8 @@ public class DefaultEDTUtil implements EDTUtil {
                 edt.setName(name+start_iter);
                 edt.shouldStop = false;
                 if(DEBUG) {
-                    String msg = Thread.currentThread()+": EDT START - edt: "+edt;
-                    System.err.println(msg);
-                    // Throwable t = new Throwable(msg);
-                    // t.printStackTrace();
+                    System.err.println(Thread.currentThread()+": EDT START - edt: "+edt);
+                    // Thread.dumpStack();
                 }
                 edt.start();
             }
@@ -125,32 +121,27 @@ public class DefaultEDTUtil implements EDTUtil {
                 if( edt.shouldStop ) {
                     // drop task ..
                     if(DEBUG) {
-                        Throwable t = new Throwable("Warning: EDT about (1) to stop, won't enqueue new task: "+edt);
-                        t.printStackTrace();
+                        System.err.println("Warning: EDT about (1) to stop, won't enqueue new task: "+edt);
+                        Thread.dumpStack();
                     }
                     return; 
                 }
-                // Exception ee = new Exception("XXX stop: "+stop+", tasks: "+edt.tasks.size()+", task: "+task);
-                // ee.printStackTrace();
+                // System.err.println(Thread.currentThread()+" XXX stop: "+stop+", tasks: "+edt.tasks.size()+", task: "+task);
+                // Thread.dumpStack();
                 if(stop) {
                     edt.shouldStop = true;
                     if(DEBUG) {
-                        String msg = Thread.currentThread()+": EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - tasks: "+edt.tasks.size()+" - "+edt;
-                        System.err.println(msg);
-                        // Throwable t = new Throwable(msg);
-                        // t.printStackTrace();
+                        System.err.println(Thread.currentThread()+": EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - tasks: "+edt.tasks.size()+" - "+edt);
+                        // Thread.dumpStack();
                     }
                 }
                 if( isCurrentThreadEDT() ) {
                     task.run();
                     wait = false; // running in same thread (EDT) -> no wait
                     if(stop && edt.tasks.size()>0) {
-                        String msg = "Warning: EDT about (2) to stop, having remaining tasks: "+edt.tasks.size()+" - "+edt;
+                        System.err.println("Warning: EDT about (2) to stop, having remaining tasks: "+edt.tasks.size()+" - "+edt);
                         if(DEBUG) {
-                            Throwable t = new Throwable(msg);
-                            t.printStackTrace();
-                        } else {
-                            System.err.println(msg);
+                            Thread.dumpStack();
                         }
                     }
                 } else {
@@ -228,7 +219,7 @@ public class DefaultEDTUtil implements EDTUtil {
     class EventDispatchThread extends Thread {
         volatile boolean shouldStop = false;
         volatile boolean isRunning = false;
-        ArrayList tasks = new ArrayList(); // one shot tasks
+        ArrayList<RunnableTask> tasks = new ArrayList<RunnableTask>(); // one shot tasks
 
         public EventDispatchThread(ThreadGroup tg, String name) {
             super(tg, name);
@@ -273,7 +264,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         }
                         // execute one task, if available
                         if(tasks.size()>0) {
-                            task = (RunnableTask) tasks.remove(0);
+                            task = tasks.remove(0);
                             tasks.notifyAll();
                         }
                     }
@@ -292,7 +283,7 @@ public class DefaultEDTUtil implements EDTUtil {
                 }
             } finally {
                 if(DEBUG) {
-                    RunnableTask rt = ( tasks.size() > 0 ) ? (RunnableTask) tasks.get(0) : null ;
+                    RunnableTask rt = ( tasks.size() > 0 ) ? tasks.get(0) : null ;
                     System.err.println(getName()+": EDT run() END "+ getName()+", tasks: "+tasks.size()+", "+rt+", "+error); 
                 }
                 synchronized(edtLock) {
@@ -302,18 +293,17 @@ public class DefaultEDTUtil implements EDTUtil {
                             // while having tasks and no previous-task, or previous-task is non final
                             RunnableTask task = null;
                             while ( ( null == task || task.getAttachment() == null ) && tasks.size() > 0 ) {
-                                task = ( RunnableTask ) tasks.remove(0);
+                                task = tasks.remove(0);
                                 task.run();
                                 tasks.notifyAll();
                             }
                             if(DEBUG) {
                                 if(null!=task && task.getAttachment()==null) {
-                                    Throwable t = new Throwable("Warning: EDT exit: Last task Not Final: "+tasks.size()+", "+task+" - "+edt);
-                                    t.printStackTrace();
+                                    System.err.println(getName()+" Warning: EDT exit: Last task Not Final: "+tasks.size()+", "+task+" - "+edt);
                                 } else if(tasks.size()>0) {
-                                    Throwable t = new Throwable("Warning: EDT exit: Remaining tasks Post Final: "+tasks.size());
-                                    t.printStackTrace();
+                                    System.err.println(getName()+" Warning: EDT exit: Remaining tasks Post Final: "+tasks.size());
                                 }
+                                Thread.dumpStack();
                             }
                         }
                     }
@@ -328,8 +318,8 @@ public class DefaultEDTUtil implements EDTUtil {
                 if(null!=error) {
                     throw error;
                 }
-            }
-        }
-    }
+            } // finally
+        } // run()
+    } // EventDispatchThread
 }
 
