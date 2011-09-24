@@ -35,6 +35,7 @@
 package jogamp.newt.driver.macosx;
 
 import javax.media.nativewindow.*;
+
 import com.jogamp.common.util.locks.RecursiveLock;
 
 import com.jogamp.newt.event.*;
@@ -144,6 +145,10 @@ public class MacWindow extends WindowImpl {
                 capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
+        }
+        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_VISIBILITY, true));        
+        if (0 == getWindowHandle()) {
+            throw new NativeWindowException("Error creating window");
         }
     }
 

@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
 
 import com.jogamp.common.util.ReflectionUtil;
@@ -92,26 +93,26 @@ import jogamp.newt.driver.awt.AWTEDTUtil;
  */
 public class MainThread implements EDTUtil {
     private static final AccessControlContext localACC = AccessController.getContext();
-    public static final boolean  MAIN_THREAD_CRITERIA = ( !NativeWindowFactory.isAWTAvailable() &&
-                                                           NativeWindowFactory.TYPE_MACOSX.equals(NativeWindowFactory.getNativeWindowType(false)) 
-                                                        ) || Debug.getBooleanProperty("newt.MainThread.force", true, localACC);
-
+    
+    /** if true, use the main thread EDT, otherwise AWT's EDT */
+    public static final boolean  HINT_USE_MAIN_THREAD = !NativeWindowFactory.isAWTAvailable() || 
+                                                         Debug.getBooleanProperty("newt.MainThread.force", true, localACC);
+    public static boolean useMainThread = false;
+    
     protected static final boolean DEBUG = Debug.debug("MainThread");
 
     private static final MainThread singletonMainThread = new MainThread(); // one singleton MainThread
 
     private static boolean isExit=false;
     private static volatile boolean isRunning=false;
-    private static final Object taskWorkerLock=new Object();
+    private static final Object edtLock=new Object();
     private static boolean shouldStop;
-    private static ArrayList tasks;
+    private static ArrayList<RunnableTask> tasks;
     private static Thread mainThread;
 
     private static Timer pumpMessagesTimer=null;
     private static TimerTask pumpMessagesTimerTask=null;
-    private static final Map/*<Display, Runnable>*/ pumpMessageDisplayMap = new HashMap();
-
-    private static boolean useMainThread = false;
+    private static final Map<Display, Runnable> pumpMessageDisplayMap = new HashMap<Display, Runnable>();
 
     static class MainAction extends Thread {
         private String mainClassName;
@@ -133,7 +134,7 @@ public class MainThread implements EDTUtil {
 
             // start user app ..
             try {
-                Class mainClass = ReflectionUtil.getClass(mainClassName, true, getClass().getClassLoader());
+                Class<?> mainClass = ReflectionUtil.getClass(mainClassName, true, getClass().getClassLoader());
                 if(null==mainClass) {
                     throw new RuntimeException(new ClassNotFoundException("MainThread couldn't find main class "+mainClassName));
                 }
@@ -167,10 +168,19 @@ public class MainThread implements EDTUtil {
 
     /** Your new java application main entry, which pipelines your application */
     public static void main(String[] args) {
-        useMainThread = MAIN_THREAD_CRITERIA;
+        useMainThread = HINT_USE_MAIN_THREAD;
 
-        if(DEBUG) System.err.println("MainThread.main(): "+Thread.currentThread().getName()+" useMainThread "+ useMainThread );
+        if(DEBUG) {
+            System.err.println("MainThread.main(): "+Thread.currentThread().getName()+
+                ", useMainThread "+ useMainThread +
+                ", HINT_USE_MAIN_THREAD "+ HINT_USE_MAIN_THREAD +
+                ", isAWTAvailable " + NativeWindowFactory.isAWTAvailable());
+        }
 
+        if(!useMainThread && !NativeWindowFactory.isAWTAvailable()) {
+            throw new RuntimeException("!USE_MAIN_THREAD and no AWT available");
+        }
+        
         if(args.length==0) {
             return;
         }
@@ -192,7 +202,7 @@ public class MainThread implements EDTUtil {
 
         if ( useMainThread ) {
             shouldStop = false;
-            tasks = new ArrayList();
+            tasks = new ArrayList<RunnableTask>();
             mainThread = Thread.currentThread();
 
             // dispatch user's main thread ..
@@ -212,22 +222,29 @@ public class MainThread implements EDTUtil {
 
     public static Runnable removePumpMessage(Display dpy) {
         synchronized(pumpMessageDisplayMap) {
-            return (Runnable) pumpMessageDisplayMap.remove(dpy);
+            return pumpMessageDisplayMap.remove(dpy);
         }
     }
 
     public static void addPumpMessage(Display dpy, Runnable pumpMessage) {
-        if ( useMainThread ) {
-            return; // error ?
+        if(DEBUG) {
+            System.err.println("MainThread.addPumpMessage(): "+Thread.currentThread().getName()+
+                               " - dpy "+dpy+", USE_MAIN_THREAD " + useMainThread +
+                               " - hasAWT " + NativeWindowFactory.isAWTAvailable() );
         }
+        if(!useMainThread && !NativeWindowFactory.isAWTAvailable()) {
+            throw new RuntimeException("!USE_MAIN_THREAD and no AWT available");
+        }
+        
         synchronized (pumpMessageDisplayMap) {
-            if(null == pumpMessagesTimer) {
+            if(!useMainThread && null == pumpMessagesTimer) {
+                // AWT pump messages .. MAIN_THREAD uses main thread
                 pumpMessagesTimer = new Timer();
                 pumpMessagesTimerTask = new TimerTask() {
                     public void run() {
                         synchronized(pumpMessageDisplayMap) {
-                            for(Iterator i = pumpMessageDisplayMap.values().iterator(); i.hasNext(); ) {
-                                ((Runnable) i.next()).run();
+                            for(Iterator<Runnable> i = pumpMessageDisplayMap.values().iterator(); i.hasNext(); ) {
+                                i.next().run();
                             }
                         }
                     }
@@ -261,23 +278,9 @@ public class MainThread implements EDTUtil {
 
     final public boolean isRunning() {
         if( useMainThread ) {
-            synchronized(taskWorkerLock) { 
-                return isRunning;
-            }
+            return isRunning;
         }
         return true; // AWT is always running
-    }
-
-    private void invokeLater(Runnable task) {
-        synchronized(taskWorkerLock) {
-            if(isRunning() && mainThread != Thread.currentThread()) {
-                tasks.add(task);
-                taskWorkerLock.notifyAll();
-            } else {
-                // if !running or isEDTThread, do it right away
-                task.run();
-            }
-        }
     }
 
     final public void invokeStop(Runnable r) {
@@ -288,13 +291,13 @@ public class MainThread implements EDTUtil {
         invokeImpl(wait, r, false);
     }
 
-    private void invokeImpl(boolean wait, Runnable r, boolean stop) {
-        if(r == null) {
+    private void invokeImpl(boolean wait, Runnable task, boolean stop) {
+        if(task == null) {
             return;
         }
 
         if(NativeWindowFactory.isAWTAvailable()) {
-            AWTEDTUtil.getSingleton().invokeImpl(wait, r, stop);
+            AWTEDTUtil.getSingleton().invokeImpl(wait, task, stop);
             return;
         }
 
@@ -302,37 +305,73 @@ public class MainThread implements EDTUtil {
         // if this is already the main thread .. just execute.
         // FIXME: start if not started .. sync logic with DefaultEDTUtil!!!
         if( !isRunning() || mainThread == Thread.currentThread() ) {
-            r.run();
+            task.run();
             return;
         }
 
-        boolean doWait = wait && isRunning() && mainThread != Thread.currentThread();
-        Object lock = new Object();
-        RunnableTask rTask = new RunnableTask(r, doWait?lock:null, true);
         Throwable throwable = null;
-        synchronized(lock) {
-            invokeLater(rTask);
-            // FIXME ..
-            synchronized(taskWorkerLock) { 
-                if(isRunning) {
+        RunnableTask rTask = null;
+        Object rTaskLock = new Object();
+        synchronized(rTaskLock) {
+            synchronized(edtLock) { 
+                if( shouldStop ) {
+                    // drop task ..
+                    if(DEBUG) {
+                        System.err.println("Warning: EDT about (1) to stop, won't enqueue new task: "+this);
+                        Thread.dumpStack();
+                    }
+                    return; 
+                }
+                // System.err.println(Thread.currentThread()+" XXX stop: "+stop+", tasks: "+tasks.size()+", task: "+task);
+                // Thread.dumpStack();
+                if(stop) {
                     shouldStop = true;
                     if(DEBUG) System.err.println("MainThread.stop(): "+Thread.currentThread().getName()+" start");
                 }
-                taskWorkerLock.notifyAll();
+                if( isCurrentThreadEDT() ) {
+                    task.run();
+                    wait = false; // running in same thread (EDT) -> no wait
+                    if(stop && tasks.size()>0) {
+                        System.err.println("Warning: EDT about (2) to stop, having remaining tasks: "+tasks.size()+" - "+this);
+                        if(DEBUG) {
+                            Thread.dumpStack();
+                        }
+                    }
+                } else {
+                    synchronized(tasks) {
+                        start(); // start if not started yet and !shouldStop
+                        wait = wait && isRunning();
+                        rTask = new RunnableTask(task,
+                                                 wait ? rTaskLock : null,
+                                                 true /* always catch and report Exceptions, don't disturb EDT */);
+                        if(stop) {
+                            rTask.setAttachment(new Boolean(true)); // mark final task
+                        }
+                        // append task ..
+                        tasks.add(rTask);
+                        tasks.notifyAll();
+                    }
+                }
             }
-            if( doWait ) {
+            if( wait ) {
                 try {
-                    lock.wait();
+                    rTaskLock.wait(); // free lock, allow execution of rTask
                 } catch (InterruptedException ie) {
                     throwable = ie;
                 }
+                if(null==throwable) {
+                    throwable = rTask.getThrowable();
+                }
+                if(null!=throwable) {
+                    if(throwable instanceof NativeWindowException) {
+                        throw (NativeWindowException)throwable;
+                    }
+                    throw new RuntimeException(throwable);
+                }
             }
         }
-        if(null==throwable) {
-            throwable = rTask.getThrowable();
-        }
-        if(null!=throwable) {
-            throw new RuntimeException(throwable);
+        if(DEBUG && stop) {
+            System.err.println(Thread.currentThread()+": EDT signal STOP X edt: "+this);
         }
     }
 
@@ -349,12 +388,12 @@ public class MainThread implements EDTUtil {
     }
 
     private void waitUntilRunning() {
-        synchronized(taskWorkerLock) {
+        synchronized(edtLock) {
             if(isExit) return;
 
             while(!isRunning) {
                 try {
-                    taskWorkerLock.wait();
+                    edtLock.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -364,41 +403,96 @@ public class MainThread implements EDTUtil {
 
     public void run() {
         if(DEBUG) System.err.println("MainThread.run(): "+Thread.currentThread().getName());
-        synchronized(taskWorkerLock) {
+        synchronized(edtLock) {
             isRunning = true;
-            taskWorkerLock.notifyAll();
+            edtLock.notifyAll();
         }
-        while(!shouldStop) {
-            try {
+        
+        RuntimeException error = null;
+        try {
+            do {
+                // event dispatch
+                if(!shouldStop) {
+                    synchronized(pumpMessageDisplayMap) {
+                        for(Iterator<Runnable> i = pumpMessageDisplayMap.values().iterator(); i.hasNext(); ) {
+                            i.next().run();
+                        }
+                    }
+                }
                 // wait for something todo ..
-                synchronized(taskWorkerLock) {
-                    while(!shouldStop && tasks.size()==0) {
+                Runnable task = null;
+                synchronized(tasks) {
+                    // wait for tasks
+                    if(!shouldStop && tasks.size()==0) {
                         try {
-                            taskWorkerLock.wait();
+                            tasks.wait(defaultEDTPollGranularity);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
-
-                    // take over the tasks ..
-                    if(!shouldStop && tasks.size()>0) {
-                        Runnable task = (Runnable) tasks.remove(0);
-                        task.run(); // FIXME: could be run outside of lock
+                    // execute one task, if available
+                    if(tasks.size()>0) {
+                        task = tasks.remove(0);
+                        tasks.notifyAll();
                     }
-                    taskWorkerLock.notifyAll();
                 }
-            } catch (Throwable t) {
-                // handle errors ..
-                t.printStackTrace();
-            } finally {
-                // epilog - unlock locked stuff
+                if(null!=task) {
+                    // Exceptions are always catched, see Runnable creation above
+                    task.run();
+                }
+            } while(!shouldStop) ;
+        } catch (Throwable t) {
+            // handle errors ..
+            shouldStop = true;
+            if(t instanceof RuntimeException) {
+                error = (RuntimeException) t;
+            } else {
+                error = new RuntimeException("Within EDT", t);
             }
-        }
+        } finally {
+            if(DEBUG) {
+                RunnableTask rt = ( tasks.size() > 0 ) ? tasks.get(0) : null ;
+                System.err.println(/* getName()+*/"EDT run() END, tasks: "+tasks.size()+", "+rt+", "+error); 
+            }
+            synchronized(edtLock) {
+                if(null==error) {
+                    synchronized(tasks) {
+                        // drain remaining tasks (stop not on EDT), 
+                        // while having tasks and no previous-task, or previous-task is non final
+                        RunnableTask task = null;
+                        while ( ( null == task || task.getAttachment() == null ) && tasks.size() > 0 ) {
+                            task = tasks.remove(0);
+                            task.run();
+                            tasks.notifyAll();
+                        }
+                        if(DEBUG) {
+                            if(null!=task && task.getAttachment()==null) {
+                                System.err.println("Warning: EDT exit: Last task Not Final: "+tasks.size()+", "+task);
+                            } else if(tasks.size()>0) {
+                                System.err.println("Warning: EDT exit: Remaining tasks Post Final: "+tasks.size());
+                            }
+                            Thread.dumpStack();
+                        }
+                    }
+                }
+                isRunning = !shouldStop;
+                if(!isRunning) {
+                    edtLock.notifyAll();
+                }
+            }
+            if(DEBUG) {
+                System.err.println("EDT run() EXIT "+ error);
+            }
+            if(null!=error) {
+                throw error;
+            }
+        } // finally
+        
         if(DEBUG) System.err.println("MainThread.run(): "+Thread.currentThread().getName()+" fin");
-        synchronized(taskWorkerLock) {
+        synchronized(edtLock) {
             isRunning = false;
             isExit = true;
-            taskWorkerLock.notifyAll();
+            edtLock.notifyAll();
         }
     }
 }
