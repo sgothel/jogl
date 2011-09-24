@@ -41,14 +41,20 @@ package jogamp.newt;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+
 import com.jogamp.common.jvm.JNILibLoaderBase;
+import com.jogamp.common.util.cache.TempJarCache;
 
 public class NEWTJNILibLoader extends JNILibLoaderBase {
   
   public static void loadNEWT() {
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
       public Object run() {
-        loadLibrary("newt", false);
+        final String libName = "newt";
+        if(TempJarCache.isInitialized() && null == TempJarCache.findLibrary(libName)) {
+            addNativeJarLibs(NEWTJNILibLoader.class, "jogl.all", "jogl-all", new String[] { "nativewindow", "newt" } );
+        }
+        loadLibrary(libName, false);
         return null;
       }
     });

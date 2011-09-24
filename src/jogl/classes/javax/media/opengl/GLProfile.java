@@ -115,30 +115,11 @@ public class GLProfile {
             AccessController.doPrivileged(new PrivilegedAction<Object>() {
                 public Object run() {
                     if(TempJarCache.isInitialized()) {
-                        final Class<?> c = GLProfile.class;
-                        final ClassLoader cl = c.getClassLoader();
-                        try {
-                            final String jarName = JarUtil.getJarName(c.getName(), cl);
-                            if(DEBUG) {
-                                System.err.println("GLProfile classURL: "+IOUtil.getClassURL(c.getName(), cl));
-                                System.err.println("GLProfile jarName: "+jarName);
-                            }
-                            if(jarName!=null) {
-                                if( jarName.startsWith("jogl.all") ) {
-                                    // all-in-one variant
-                                    JNILibLoaderBase.addNativeJarLibs(c, "jogl-all");
-                                } else {
-                                    // atomic variant
-                                    JNILibLoaderBase.addNativeJarLibs(c, "nativewindow");
-                                    JNILibLoaderBase.addNativeJarLibs(c, "jogl");
-                                    if( ReflectionUtil.isClassAvailable("com.jogamp.newt.NewtFactory", cl) ) {
-                                        JNILibLoaderBase.addNativeJarLibs(c, "newt");
-                                    }
-                                }
-                            }
-                        } catch (IOException ioe) {
-                            ioe.printStackTrace();
-                        }
+                       String[] atomicNativeJarBaseNames = new String[] { "nativewindow", "jogl", null };
+                       if( ReflectionUtil.isClassAvailable("com.jogamp.newt.NewtFactory", GLProfile.class.getClassLoader()) ) {
+                           atomicNativeJarBaseNames[2] = "newt";
+                       }
+                       JNILibLoaderBase.addNativeJarLibs(GLProfile.class, "jogl.all", "jogl-all", atomicNativeJarBaseNames);
                     }
                     initProfilesForDefaultDevices(firstUIActionOnProcess);
                     return null;
