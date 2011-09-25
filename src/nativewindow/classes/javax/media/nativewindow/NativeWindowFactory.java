@@ -82,6 +82,7 @@ public abstract class NativeWindowFactory {
     public static final String AWTComponentClassName = "java.awt.Component" ;
     public static final String JAWTUtilClassName = "jogamp.nativewindow.jawt.JAWTUtil" ;
     public static final String X11UtilClassName = "jogamp.nativewindow.x11.X11Util";
+    public static final String OSXUtilClassName = "jogamp.nativewindow.macosx.OSXUtil";
     public static final String GDIClassName = "jogamp.nativewindow.windows.GDI";
     public static final String X11JAWTToolkitLockClassName = "jogamp.nativewindow.jawt.x11.X11JAWTToolkitLock" ;
     public static final String X11ToolkitLockClassName = "jogamp.nativewindow.x11.X11ToolkitLock" ;
@@ -139,6 +140,8 @@ public abstract class NativeWindowFactory {
             clazzName = X11UtilClassName;
         } else if( TYPE_WINDOWS.equals(nativeWindowingTypePure) ) {
             clazzName = GDIClassName;
+        } else if( TYPE_MACOSX.equals(nativeWindowingTypePure) ) {
+            clazzName = OSXUtilClassName;
         }
         if( null != clazzName ) {
             ReflectionUtil.callStaticMethod(clazzName, "initSingleton",

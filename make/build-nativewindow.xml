@@ -70,7 +70,7 @@
                   value="jogamp/nativewindow/swt/**"/>
 
         <property name="java.part.core"
-                  value="javax/media/nativewindow/* javax/media/nativewindow/util/* javax/media/nativewindow/egl/* javax/media/nativewindow/macosx/* javax/media/nativewindow/windows/* com/jogamp/nativewindow/* jogamp/nativewindow/* jogamp/nativewindow/jvm/* ${java.part.swt}"/>
+                  value="javax/media/nativewindow/* javax/media/nativewindow/util/* javax/media/nativewindow/egl/* com/jogamp/nativewindow/* jogamp/nativewindow/* jogamp/nativewindow/jvm/* ${java.part.swt}"/>
 
         <property name="java.part.awt"
                   value="javax/media/nativewindow/awt/* jogamp/nativewindow/jawt/** jogamp/nativewindow/**/awt/**"/>
@@ -80,6 +80,9 @@
 
         <property name="java.part.windows"
                   value="jogamp/nativewindow/windows/** javax/media/nativewindow/windows/*" />
+
+        <property name="java.part.macosx"
+                  value="jogamp/nativewindow/macosx/** javax/media/nativewindow/macosx/*" />
 
         <!-- condition excludes -->
 
@@ -582,6 +585,11 @@
           <include name="${rootrel.src.c}/NativewindowCommon.c"/>
         </patternset>
 
+        <patternset id="c.src.files.macosx">
+          <include name="${rootrel.src.c}/macosx/OSXmisc.c"/>
+          <include name="${rootrel.src.c}/NativewindowCommon.c"/>
+        </patternset>
+
         <echo message="Compiling @{output.lib.name}" />
 
         <!-- have to wrap cc task with outofdate, because otherwise cc links a new library
@@ -694,7 +702,17 @@
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.oswin}"/>
     </target>
-    <target name="c.build.nativewindow.windowlib" depends="c.build.nativewindow.windowlib.x11, c.build.nativewindow.windowlib.windows"/>
+
+    <target name="c.build.nativewindow.windowlib.macosx" if="isOSX">
+      <javah destdir="${src.generated.c}/MacOSX" classpath="${javah.classpath}" class="jogamp.nativewindow.macosx.OSXUtil" />
+
+      <c.build c.compiler.src.files="c.src.files.macosx"
+               output.lib.name="nativewindow_macosx"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.oswin}"/>
+    </target>
+
+    <target name="c.build.nativewindow.windowlib" depends="c.build.nativewindow.windowlib.x11, c.build.nativewindow.windowlib.windows, c.build.nativewindow.windowlib.macosx"/>
 
     <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
@@ -749,7 +767,14 @@
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-windows">
+    <target name="build-jars-macosx" depends="setup-manifestfile">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.os.macosx.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.macosx}" />
+        </jar>
+    </target>
+
+    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-windows,build-jars-macosx">
         <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"

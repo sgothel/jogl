@@ -40,6 +40,7 @@
 
 package jogamp.nativewindow.jawt.macosx;
 
+import java.awt.Component;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
@@ -53,6 +54,7 @@ import jogamp.nativewindow.jawt.JAWTFactory;
 import jogamp.nativewindow.jawt.JAWTWindow;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurface;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo;
+import jogamp.nativewindow.macosx.OSXUtil;
 
 public class MacOSXJAWTWindow extends JAWTWindow {
 
@@ -86,7 +88,7 @@ public class MacOSXJAWTWindow extends JAWTWindow {
       ret = NativeWindow.LOCK_SURFACE_CHANGED;
     }
     if (firstLock) {
-      AccessController.doPrivileged(new PrivilegedAction() {
+      AccessController.doPrivileged(new PrivilegedAction<Object>() {
           public Object run() {
             dsi = ds.GetDrawingSurfaceInfo();
             return null;
@@ -132,7 +134,14 @@ public class MacOSXJAWTWindow extends JAWTWindow {
   }
 
   protected Point getLocationOnScreenImpl(int x, int y) {
-    return null; // FIXME
+      Component c = component;
+      while(null != c) {
+          x += c.getX();
+          y += c.getY();
+          c = c.getParent();
+      }
+      // return OSXUtil.GetLocationOnScreen(getWindowHandle(), x, y);
+      return new Point(x, y);
   }
 
   // Variables for lockSurface/unlockSurface

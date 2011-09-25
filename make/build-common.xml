@@ -245,16 +245,20 @@
         <property name="nativewindow.awt.jar"          value="${build.nativewindow}/nativewindow.awt.jar"  />
         <property name="nativewindow.os.x11.jar"       value="${build.nativewindow}/nativewindow.os.x11.jar"  />
         <property name="nativewindow.os.win.jar"       value="${build.nativewindow}/nativewindow.os.win.jar"  />
+        <property name="nativewindow.os.macosx.jar"    value="${build.nativewindow}/nativewindow.os.macosx.jar"  />
+
         <path id="nativewindow_all_atoms.classpath">
             <pathelement location="${nativewindow.core.jar}" />
             <pathelement location="${nativewindow.awt.jar}" />
             <pathelement location="${nativewindow.os.x11.jar}" />
             <pathelement location="${nativewindow.os.win.jar}" />
+            <pathelement location="${nativewindow.os.macosx.jar}" />
         </path>
         <path id="nativewindow_all-noawt_atoms.classpath">
             <pathelement location="${nativewindow.core.jar}" />
             <pathelement location="${nativewindow.os.x11.jar}" />
             <pathelement location="${nativewindow.os.win.jar}" />
+            <pathelement location="${nativewindow.os.macosx.jar}" />
         </path>
         <path id="nativewindow_core_atoms.classpath">
             <pathelement location="${nativewindow.core.jar}" />
