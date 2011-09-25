@@ -478,6 +478,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         sb.append(0 != ( FLAG_IS_UNDECORATED & flags));
         sb.append(", ");
         
+        if( 0 != ( FLAG_CHANGE_ALWAYSONTOP & flags) ) {
+            sb.append("*");
+        }
+        sb.append("ALWAYSONTOP_");
+        sb.append(0 != ( FLAG_IS_ALWAYSONTOP & flags));
+        sb.append(", ");
+        
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             sb.append("*");
         }

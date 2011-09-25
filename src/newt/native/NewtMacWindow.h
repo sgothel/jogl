@@ -34,22 +34,40 @@
 #import <AppKit/AppKit.h>
 #import "jni.h"
 
+#include "NewtCommon.h"
+
+// #define VERBOSE_ON 1
+
+#ifdef VERBOSE_ON
+    #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
+#else
+    #define DBG_PRINT(...)
+#endif
+
 @interface NewtView : NSView
 {
     jobject javaWindowObject;
 
     // This is set while messages are being dispatched and cleared afterward
-    JNIEnv* env;
+    JavaVM *jvmHandle;
+    int jvmVersion;
+
+    BOOL destroyNotifySent;
 }
 
 /* Set during event dispatching cycle */
-- (void) setJNIEnv: (JNIEnv*) env;
-- (JNIEnv*) getJNIEnv;
+- (void) setJVMHandle: (JavaVM*) vm;
+- (JavaVM*) getJVMHandle;
+- (void) setJVMVersion: (int) ver;
+- (int) getJVMVersion;
 
 /* Register or deregister (NULL) the java Window object, 
    ie, if NULL, no events are send */
 - (void) setJavaWindowObject: (jobject) javaWindowObj;
 - (jobject) getJavaWindowObject;
+
+- (void) setDestroyNotifySent: (BOOL) v;
+- (BOOL) getDestroyNotifySent;
 
 - (void) rightMouseDown: (NSEvent*) theEvent;
 

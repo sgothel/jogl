@@ -37,6 +37,8 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.macosx.*;
 import com.jogamp.newt.*;
 import jogamp.newt.*;
+import jogamp.newt.driver.awt.AWTEDTUtil;
+
 import com.jogamp.newt.util.MainThread;
 
 public class MacDisplay extends DisplayImpl {
@@ -62,7 +64,7 @@ public class MacDisplay extends DisplayImpl {
     }
 
     protected void dispatchMessagesNative() {
-        dispatchMessages0();
+        // nop
     }
     
     protected void createNativeImpl() {
@@ -71,20 +73,26 @@ public class MacDisplay extends DisplayImpl {
 
     protected void closeNativeImpl() { }
 
+    /**
     @Override
     protected void createEDTUtil() {
-        if(NewtFactory.useEDT()) {
+        if(NewtFactory.useEDT()) {            
             final Display f_dpy = this;
-            MainThread.addPumpMessage(this, 
-                                  new Runnable() {
-                                      public void run() {
-                                          if(null!=f_dpy.getGraphicsDevice()) {
-                                              f_dpy.dispatchMessages();
-                                          } } } );
-            edtUtil = MainThread.getSingleton();
-            edtUtil.start();
+            final Runnable dispatchRunner = new Runnable() {
+                  public void run() {
+                      if(null!=f_dpy.getGraphicsDevice()) {
+                          f_dpy.dispatchMessages();
+                      } } };
+                    
+            if(NativeWindowFactory.isAWTAvailable()) {
+                AWTEDTUtil.addPumpMessage(this, dispatchRunner); 
+                edtUtil = AWTEDTUtil.getSingleton();
+            } else {
+                MainThread.addPumpMessage(this, dispatchRunner); 
+                edtUtil = MainThread.getSingleton();                
+            }
         }
-    }
+    } */
 
     protected void releaseEDTUtil() {
         if(null!=edtUtil) { 
@@ -93,8 +101,12 @@ public class MacDisplay extends DisplayImpl {
             edtUtil=null;
         }
     }
+    
+    public static void runNSApplication() {
+        runNSApplication0();
+    }
 
     private static native boolean initNSApplication0();
-    protected native void dispatchMessages0();
+    private static native void runNSApplication0();
 }
 

@@ -75,6 +75,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         GLProfile glp = capsRequested.getGLProfile();
         long cfg = EGLConfigId2EGLConfig(glp, dpy, cfgID);
         EGLGLCapabilities caps = EGLConfig2Capabilities(glp, dpy, cfg, false, capsRequested.isOnscreen(), capsRequested.isPBuffer());
+        caps = (EGLGLCapabilities) GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(caps, capsRequested.isBackgroundOpaque()); // FIXME: valid to override EGL transparency ?
         return new EGLGraphicsConfiguration(absScreen, caps, capsRequested, new DefaultGLCapabilitiesChooser());
     }
 

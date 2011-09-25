@@ -208,32 +208,22 @@ static int displayDispatchErrorHandler(Display *dpy, XErrorEvent *e)
     } else if (e->error_code == BadWindow) {
         fprintf(stderr, "         BadWindow (%p): Window probably already removed\n", (void*)e->resourceid);
     } else {
-        JNIEnv *curEnv = NULL;
-        JNIEnv *newEnv = NULL;
-        int envRes ;
+        int shallBeDetached = 0;
+        JNIEnv *jniEnv = NULL;
         const char * errStr = strerror(errno);
 
         fprintf(stderr, "Info: NEWT X11 Error: Display %p, Code 0x%X, errno %s\n", dpy, e->error_code, errStr);
 
-        // retrieve this thread's JNIEnv curEnv - or detect it's detached
-        envRes = (*jvmHandle)->GetEnv(jvmHandle, (void **) &curEnv, jvmVersion) ;
-        if( JNI_EDETACHED == envRes ) {
-            // detached thread - attach to JVM
-            if( JNI_OK != ( envRes = (*jvmHandle)->AttachCurrentThread(jvmHandle, (void**) &newEnv, NULL) ) ) {
-                fprintf(stderr, "NEWT X11 Error: can't attach thread: %d\n", envRes);
-                return;
-            }
-            curEnv = newEnv;
-        } else if( JNI_OK != envRes ) {
-            // oops ..
-            fprintf(stderr, "NEWT X11 Error: can't GetEnv: %d\n", envRes);
+        jniEnv = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
+        if(NULL==jniEnv) {
+            fprintf(stderr, "NEWT X11 Error: null JNIEnv");
             return;
         }
-        NewtCommon_throwNewRuntimeException(curEnv, "Info: NEWT X11 Error: Display %p, Code 0x%X, errno %s", 
+
+        NewtCommon_throwNewRuntimeException(jniEnv, "Info: NEWT X11 Error: Display %p, Code 0x%X, errno %s", 
                                             dpy, e->error_code, errStr);
 
-        if( NULL != newEnv ) {
-            // detached attached thread
+        if (shallBeDetached) {
             (*jvmHandle)->DetachCurrentThread(jvmHandle);
         }
     }

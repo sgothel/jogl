@@ -24,6 +24,7 @@ void *getNSView(void* nsContext);
 void* createContext(void* shareContext,
                     void* nsView,
                     void* pixelFormat,
+                    Bool opaque,
                     int* viewNotReady);
 void *getCGLContext(void* nsContext);
 Bool  makeCurrentContext(void* nsContext);

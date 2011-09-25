@@ -29,13 +29,25 @@
 package jogamp.newt.driver.awt;
 
 import java.awt.EventQueue;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javax.media.nativewindow.NativeWindowException;
+
+import com.jogamp.newt.Display;
 import com.jogamp.newt.util.EDTUtil;
 import jogamp.newt.Debug;
 
 public class AWTEDTUtil implements EDTUtil {
     public static final boolean DEBUG = Debug.debug("EDT");
 
+    private static Timer pumpMessagesTimer=null;
+    private static TimerTask pumpMessagesTimerTask=null;
+    private static final Map<Display, Runnable> pumpMessageDisplayMap = new HashMap<Display, Runnable>();
     private static AWTEDTUtil singletonMainThread = new AWTEDTUtil(); // one singleton MainThread
 
     public static AWTEDTUtil getSingleton() {
@@ -47,11 +59,11 @@ public class AWTEDTUtil implements EDTUtil {
     }
 
     final public void reset() {
-        // nop
+        // nop AWT is always running
     }
 
     final public void start() {
-        // nop
+        // nop AWT is always running
     }
 
     final public boolean isCurrentThreadEDT() {
@@ -63,20 +75,10 @@ public class AWTEDTUtil implements EDTUtil {
     }
 
     final public void invokeStop(Runnable r) {
-        invokeImpl(true, r, true);
+        invoke(true, r); // AWT is always running
     }
 
     final public void invoke(boolean wait, Runnable r) {
-        invokeImpl(wait, r, false);
-    }
-
-    /**
-     * Public access to provide simple dispatching from other EDTUtil implementations
-     * @param wait true if invokeLater
-     * @param r the Runnable action
-     * @param stop true if EDT shall stop (ignored with AWT)
-     */
-    final public void invokeImpl(boolean wait, Runnable r, boolean stop) {
         if(r == null) {
             return;
         }
@@ -98,9 +100,42 @@ public class AWTEDTUtil implements EDTUtil {
     }
 
     final public void waitUntilIdle() {
+        // wait until previous events are processed, at least ..
+        try {
+            EventQueue.invokeAndWait( new Runnable() {
+                public void run() { }
+            });
+        } catch (Exception e) { }
     }
 
     final public void waitUntilStopped() {
+        // nop: AWT is always running
+    }
+
+    public static void addPumpMessage(Display dpy, Runnable pumpMessage) {
+        if(DEBUG) {
+            System.err.println("AWTEDTUtil.addPumpMessage(): "+Thread.currentThread().getName()+" - dpy "+dpy);
+        }
+        
+        synchronized (pumpMessageDisplayMap) {
+            if(null == pumpMessagesTimer) {
+                // AWT pump messages .. MAIN_THREAD uses main thread
+                pumpMessagesTimer = new Timer();
+                pumpMessagesTimerTask = new TimerTask() {
+                    public void run() {
+                        synchronized(pumpMessageDisplayMap) {
+                            for(Iterator<Runnable> i = pumpMessageDisplayMap.values().iterator(); i.hasNext(); ) {
+                                AWTEDTUtil.getSingleton().invoke(true, i.next());
+                                // AWTEDTUtil.getSingleton().invoke(false, i.next());
+                                // i.next().run();
+                            }
+                        }
+                    }
+                };
+                pumpMessagesTimer.scheduleAtFixedRate(pumpMessagesTimerTask, 0, defaultEDTPollGranularity);
+            }
+            pumpMessageDisplayMap.put(dpy, pumpMessage);
+        }
     }
 
 }

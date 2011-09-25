@@ -82,13 +82,24 @@ static jmethodID focusChangedID    = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 
 @implementation NewtView
-- (void) setJNIEnv: (JNIEnv*) theEnv
+
+- (void) setJVMHandle: (JavaVM*) vm
 {
-    env = theEnv;
+    jvmHandle = vm;
 }
-- (JNIEnv*) getJNIEnv
+- (JavaVM*) getJVMHandle
 {
-    return env;
+    return jvmHandle;
+}
+
+- (void) setJVMVersion: (int) ver
+{
+    jvmVersion = ver;
+}
+
+- (int) getJVMVersion
+{
+    return jvmVersion;
 }
 
 - (void) setJavaWindowObject: (jobject) javaWindowObj
@@ -101,6 +112,16 @@ static jmethodID windowDestroyNotifyID = NULL;
     return javaWindowObject;
 }
 
+- (void) setDestroyNotifySent: (BOOL) v
+{
+    destroyNotifySent = v;
+}
+
+- (BOOL) getDestroyNotifySent
+{
+    return destroyNotifySent;
+}
+
 - (void) rightMouseDown: (NSEvent*) theEvent
 {
     NSResponder* next = [self nextResponder];
@@ -111,19 +132,43 @@ static jmethodID windowDestroyNotifyID = NULL;
 
 - (void)viewWillDraw
 {
-    fprintf(stderr, "*************** viewWillDraw: 0x%p", javaWindowObject); fflush(stderr);
+    DBG_PRINT("*************** viewWillDraw: 0x%p\n", javaWindowObject);
     [super viewWillDraw];
 }
 
 - (void)viewDidHide
 {
+    int shallBeDetached = 0;
+    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
+    if(NULL==env) {
+        NSLog(@"viewDidHide: null JNIEnv");
+        return;
+    }
+
     (*env)->CallVoidMethod(env, javaWindowObject, visibleChangedID, JNI_FALSE);
+
+    if (shallBeDetached) {
+        (*jvmHandle)->DetachCurrentThread(jvmHandle);
+    }
+
     [super viewDidHide];
 }
 
 - (void)viewDidUnhide
 {
+    int shallBeDetached = 0;
+    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
+    if(NULL==env) {
+        NSLog(@"viewDidHide: null JNIEnv");
+        return;
+    }
+
     (*env)->CallVoidMethod(env, javaWindowObject, visibleChangedID, JNI_TRUE);
+
+    if (shallBeDetached) {
+        (*jvmHandle)->DetachCurrentThread(jvmHandle);
+    }
+
     [super viewDidUnhide];
 }
 
@@ -171,6 +216,8 @@ static jmethodID windowDestroyNotifyID = NULL;
     jint left = (jint)l;
     jint bottom = (jint)(contentRect.origin.y - frameRect.origin.y);
     jint right = (jint)(frameRect.size.width - (contentRect.size.width + l));
+
+    DBG_PRINT( "updateInsets: [ l %d, r %d, t %d, b %d ]\n", (int)left, (int)right, (int)top, (int)bottom);
 
     (*env)->CallVoidMethod(env, javaWindowObject, insetsChangedID,
                            left, right, top, bottom);
@@ -225,8 +272,15 @@ static jint mods2JavaMods(NSUInteger mods)
     }
     NewtView* view = (NewtView *) nsview;
     jobject javaWindowObject = [view getJavaWindowObject];
-    JNIEnv* env = [view getJNIEnv];
-    if (env==NULL || javaWindowObject == NULL) {
+    if (javaWindowObject == NULL) {
+        NSLog(@"sendKeyEvent: null javaWindowObject");
+        return;
+    }
+    int shallBeDetached = 0;
+    JavaVM *jvmHandle = [view getJVMHandle];
+    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
+    if(NULL==env) {
+        NSLog(@"sendKeyEvent: null JNIEnv");
         return;
     }
 
@@ -242,6 +296,10 @@ static jint mods2JavaMods(NSUInteger mods)
 
         (*env)->CallVoidMethod(env, javaWindowObject, sendKeyEventID,
                                evType, javaMods, keyCode, keyChar);
+    }
+
+    if (shallBeDetached) {
+        (*jvmHandle)->DetachCurrentThread(jvmHandle);
     }
 }
 
@@ -264,8 +322,15 @@ static jint mods2JavaMods(NSUInteger mods)
     }
     NewtView* view = (NewtView *) nsview;
     jobject javaWindowObject = [view getJavaWindowObject];
-    JNIEnv* env = [view getJNIEnv];
-    if (env==NULL || javaWindowObject == NULL) {
+    if (javaWindowObject == NULL) {
+        NSLog(@"sendMouseEvent: null javaWindowObject");
+        return;
+    }
+    int shallBeDetached = 0;
+    JavaVM *jvmHandle = [view getJVMHandle];
+    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
+    if(NULL==env) {
+        NSLog(@"sendMouseEvent: null JNIEnv");
         return;
     }
 
@@ -318,6 +383,10 @@ static jint mods2JavaMods(NSUInteger mods)
                            (jint) location.x,
                            (jint) (contentRect.size.height - location.y),
                            javaButtonNum, scrollDeltaY);
+
+    if (shallBeDetached) {
+        (*jvmHandle)->DetachCurrentThread(jvmHandle);
+    }
 }
 
 - (void) mouseEntered: (NSEvent*) theEvent
@@ -396,8 +465,15 @@ static jint mods2JavaMods(NSUInteger mods)
     }
     NewtView* view = (NewtView *) nsview;
     jobject javaWindowObject = [view getJavaWindowObject];
-    JNIEnv* env = [view getJNIEnv];
-    if (env==NULL || javaWindowObject == NULL) {
+    if (javaWindowObject == NULL) {
+        NSLog(@"windowDidResize: null javaWindowObject");
+        return;
+    }
+    int shallBeDetached = 0;
+    JavaVM *jvmHandle = [view getJVMHandle];
+    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
+    if(NULL==env) {
+        NSLog(@"windowDidResize: null JNIEnv");
         return;
     }
 
@@ -410,6 +486,10 @@ static jint mods2JavaMods(NSUInteger mods)
     (*env)->CallVoidMethod(env, javaWindowObject, sizeChangedID,
                            (jint) contentRect.size.width,
                            (jint) contentRect.size.height, JNI_FALSE);
+
+    if (shallBeDetached) {
+        (*jvmHandle)->DetachCurrentThread(jvmHandle);
+    }
 }
 
 - (void)windowDidMove: (NSNotification*) notification
@@ -420,8 +500,15 @@ static jint mods2JavaMods(NSUInteger mods)
     }
     NewtView* view = (NewtView *) nsview;
     jobject javaWindowObject = [view getJavaWindowObject];
-    JNIEnv* env = [view getJNIEnv];
-    if (env==NULL || javaWindowObject == NULL) {
+    if (javaWindowObject == NULL) {
+        NSLog(@"windowDidMove: null javaWindowObject");
+        return;
+    }
+    int shallBeDetached = 0;
+    JavaVM *jvmHandle = [view getJVMHandle];
+    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
+    if(NULL==env) {
+        NSLog(@"windowDidMove: null JNIEnv");
         return;
     }
 
@@ -437,27 +524,53 @@ static jint mods2JavaMods(NSUInteger mods)
 
     (*env)->CallVoidMethod(env, javaWindowObject, positionChangedID,
                            (jint) pt.x, (jint) pt.y);
+
+    if (shallBeDetached) {
+        (*jvmHandle)->DetachCurrentThread(jvmHandle);
+    }
 }
 
 - (void)windowWillClose: (NSNotification*) notification
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
     NSView* nsview = [self contentView];
     if( ! [nsview isMemberOfClass:[NewtView class]] ) {
         return;
     }
     NewtView* view = (NewtView *) nsview;
-    jobject javaWindowObject = [view getJavaWindowObject];
-    JNIEnv* env = [view getJNIEnv];
-    if (env==NULL || javaWindowObject == NULL) {
-        return;
+
+    if( false == [view getDestroyNotifySent] ) {
+        jobject javaWindowObject = [view getJavaWindowObject];
+        DBG_PRINT( "*************** windowWillClose.0: 0x%p\n", (void *)(intptr_t)javaWindowObject);
+        if (javaWindowObject == NULL) {
+            NSLog(@"windowWillClose: null javaWindowObject");
+            return;
+        }
+        int shallBeDetached = 0;
+        JavaVM *jvmHandle = [view getJVMHandle];
+        JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
+        if(NULL==env) {
+            NSLog(@"windowWillClose: null JNIEnv");
+            return;
+        }
+
+        [view setDestroyNotifySent: true];
+        (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyNotifyID);
+        // Can't issue call here - locked window state, done from Java method
+
+        // EOL ..
+        (*env)->DeleteGlobalRef(env, javaWindowObject);
+        [view setJavaWindowObject: NULL];
+
+        if (shallBeDetached) {
+            (*jvmHandle)->DetachCurrentThread(jvmHandle);
+        }
+        DBG_PRINT( "*************** windowWillClose.X: 0x%p\n", (void *)(intptr_t)javaWindowObject);
+    } else {
+        DBG_PRINT( "*************** windowWillClose (skip)\n");
     }
-
-    (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyNotifyID);
-    // Can't issue call here - locked window state, done from Java method
-
-    // EOL ..
-    (*env)->DeleteGlobalRef(env, javaWindowObject);
-    [view setJavaWindowObject: NULL];
+    [pool release];
 }
 
 - (void) windowDidBecomeKey: (NSNotification *) notification
@@ -468,12 +581,23 @@ static jint mods2JavaMods(NSUInteger mods)
     }
     NewtView* view = (NewtView *) nsview;
     jobject javaWindowObject = [view getJavaWindowObject];
-    JNIEnv* env = [view getJNIEnv];
-    if (env==NULL || javaWindowObject == NULL) {
+    if (javaWindowObject == NULL) {
+        NSLog(@"windowDidBecomeKey: null javaWindowObject");
+        return;
+    }
+    int shallBeDetached = 0;
+    JavaVM *jvmHandle = [view getJVMHandle];
+    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
+    if(NULL==env) {
+        NSLog(@"windowDidBecomeKey: null JNIEnv");
         return;
     }
 
     (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_TRUE);
+
+    if (shallBeDetached) {
+        (*jvmHandle)->DetachCurrentThread(jvmHandle);
+    }
 }
 
 - (void) windowDidResignKey: (NSNotification *) notification
@@ -484,12 +608,23 @@ static jint mods2JavaMods(NSUInteger mods)
     }
     NewtView* view = (NewtView *) nsview;
     jobject javaWindowObject = [view getJavaWindowObject];
-    JNIEnv* env = [view getJNIEnv];
-    if (env==NULL || javaWindowObject == NULL) {
+    if (javaWindowObject == NULL) {
+        NSLog(@"windowDidResignKey: null javaWindowObject");
+        return;
+    }
+    int shallBeDetached = 0;
+    JavaVM *jvmHandle = [view getJVMHandle];
+    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
+    if(NULL==env) {
+        NSLog(@"windowDidResignKey: null JNIEnv");
         return;
     }
 
     (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_FALSE);
+
+    if (shallBeDetached) {
+        (*jvmHandle)->DetachCurrentThread(jvmHandle);
+    }
 }
 
 @end

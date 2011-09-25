@@ -143,6 +143,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       contextHandle = CGL.createContext(share,
                                     drawable.getHandle(),
                                     pixelFormat,
+                                    capabilities.isBackgroundOpaque(),
                                     viewNotReady, 0);
       if (contextHandle == 0) {
         if (viewNotReady[0] == 1) {
@@ -161,6 +162,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       }
 
       GLCapabilitiesImmutable caps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(glProfile, pixelFormat);
+      caps = GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(caps, capabilities.isBackgroundOpaque());
       config.setChosenCapabilities(caps);
     } finally {
       CGL.deletePixelFormat(pixelFormat);

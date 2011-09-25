@@ -53,3 +53,30 @@ jchar* NewtCommon_GetNullTerminatedStringChars(JNIEnv* env, jstring str)
     return strChars;
 }
 
+JNIEnv* NewtCommon_GetJNIEnv(JavaVM * jvmHandle, int jvmVersion, int * shallBeDetached) {
+    JNIEnv* curEnv = NULL;
+    JNIEnv* newEnv = NULL;
+    int envRes;
+
+    // retrieve this thread's JNIEnv curEnv - or detect it's detached
+    envRes = (*jvmHandle)->GetEnv(jvmHandle, (void **) &curEnv, jvmVersion) ;
+    if( JNI_EDETACHED == envRes ) {
+        // detached thread - attach to JVM
+        if( JNI_OK != ( envRes = (*jvmHandle)->AttachCurrentThread(jvmHandle, (void**) &newEnv, NULL) ) ) {
+            fprintf(stderr, "JNIEnv: can't attach thread: %d\n", envRes);
+            return NULL;
+        }
+        curEnv = newEnv;
+    } else if( JNI_OK != envRes ) {
+        // oops ..
+        fprintf(stderr, "can't GetEnv: %d\n", envRes);
+        return NULL;
+    }
+    if (curEnv==NULL) {
+        fprintf(stderr, "env is NULL\n");
+        return NULL;
+    }
+    *shallBeDetached = NULL != newEnv;
+    return curEnv;
+}
+

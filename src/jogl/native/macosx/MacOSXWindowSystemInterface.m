@@ -470,6 +470,7 @@ void deletePixelFormat(void* pixelFormat) {
 void* createContext(void* shareContext,
                     void* view,
                     void* pixelFormat,
+                    Bool opaque,
                     int* viewNotReady)
 {
     getRendererInfo();
@@ -520,6 +521,10 @@ void* createContext(void* shareContext,
         
         if (nsContext != nil) {
           if (nsView != nil) {
+            if(!opaque) {
+                long zeroOpacity = 0;
+                [nsContext setValues:&zeroOpacity forParameter:NSOpenGLCPSurfaceOpacity];
+            }
             [nsContext setView:nsView];
             [nsView unlockFocus];        
           }
