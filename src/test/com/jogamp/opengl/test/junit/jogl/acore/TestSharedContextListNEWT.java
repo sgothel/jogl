@@ -28,10 +28,11 @@
  
 package com.jogamp.opengl.test.junit.jogl.acore;
 
+import java.io.IOException;
+
 import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.nativewindow.util.InsetsImmutable;
-import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLPbuffer;
@@ -133,7 +134,7 @@ public class TestSharedContextListNEWT extends UITestCase {
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -142,6 +143,10 @@ public class TestSharedContextListNEWT extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             }
         }
+        /**
+        BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+        System.err.println("Press enter to continue");
+        System.err.println(stdin.readLine()); */         
         org.junit.runner.JUnitCore.main(TestSharedContextListNEWT.class.getName());
     }
 }
