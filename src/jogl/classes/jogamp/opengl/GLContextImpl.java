@@ -47,6 +47,7 @@ import java.util.Map;
 
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.gluegen.runtime.FunctionAddressResolver;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
@@ -71,7 +72,7 @@ public abstract class GLContextImpl extends GLContext {
   public static final boolean DEBUG = Debug.debug("GLContext");
     
   // RecursiveLock maintains a queue of waiting Threads, ensuring the longest waiting thread will be notified at unlock.  
-  protected RecursiveLock lock = new RecursiveLock();
+  protected RecursiveLock lock = LockFactory.createRecursiveLock();
 
   /**
    * Context full qualified name: display_type + display_connection + major + minor + ctp.
@@ -431,10 +432,10 @@ public abstract class GLContextImpl extends GLContext {
 
   // Note: the surface is locked within [makeCurrent .. swap .. release]
   protected final int makeCurrentLocking() throws GLException {
-    boolean exceptionOccurred = false;
+    boolean shallUnlockSurface = false;
     int lockRes = drawable.lockSurface();
     try {
-      if (NativeSurface.LOCK_SURFACE_NOT_READY == lockRes) {
+      if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
         return CONTEXT_NOT_CURRENT;
       }
       try {
@@ -457,6 +458,7 @@ public abstract class GLContextImpl extends GLContext {
                 }
             }
             if(!newCreated) {
+                shallUnlockSurface = true;
                 return CONTEXT_NOT_CURRENT;
             }
             GLContextShareSet.contextCreated(this);
@@ -464,11 +466,11 @@ public abstract class GLContextImpl extends GLContext {
           makeCurrentImpl(newCreated);
           return newCreated ? CONTEXT_CURRENT_NEW : CONTEXT_CURRENT ;
       } catch (RuntimeException e) {
-        exceptionOccurred = true;
+        shallUnlockSurface = true;
         throw e;
       }
     } finally {
-      if (exceptionOccurred) {
+      if (shallUnlockSurface) {
         drawable.unlockSurface();
       }
     }
@@ -757,7 +759,7 @@ public abstract class GLContextImpl extends GLContext {
   // Helpers for various context implementations
   //
 
-  private Object createInstance(GLProfile glp, String suffix, Class[] cstrArgTypes, Object[] cstrArgs) {
+  private Object createInstance(GLProfile glp, String suffix, Class<?>[] cstrArgTypes, Object[] cstrArgs) {
     return ReflectionUtil.createInstance(glp.getGLImplBaseClassName()+suffix, cstrArgTypes, cstrArgs, getClass().getClassLoader());
   }
 
@@ -1083,7 +1085,7 @@ public abstract class GLContextImpl extends GLContext {
   //
 
   public boolean hasWaiters() {
-    return lock.getWaitingThreadQueueSize()>0;
+    return lock.getQueueLength()>0;
   }
   
   //---------------------------------------------------------------------------
