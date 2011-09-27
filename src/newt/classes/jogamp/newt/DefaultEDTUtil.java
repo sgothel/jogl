@@ -39,7 +39,11 @@ package jogamp.newt;
 
 import java.util.ArrayList;
 import javax.media.nativewindow.NativeWindowException;
+
+import jogamp.common.util.locks.LockDebugUtil;
+
 import com.jogamp.common.util.RunnableTask;
+import com.jogamp.common.util.locks.Lock;
 import com.jogamp.newt.util.EDTUtil;
 
 public class DefaultEDTUtil implements EDTUtil {
@@ -235,6 +239,15 @@ public class DefaultEDTUtil implements EDTUtil {
             super.start();
         }
 
+        private final void validateNoRecursiveLocksHold() {
+            if(Lock.DEBUG) {
+                if(LockDebugUtil.getRecursiveLockTrace().size()>0) {
+                    LockDebugUtil.dumpRecursiveLockTrace(System.err);
+                    throw new InternalError("XXX");
+                }
+            }
+        }
+        
         /** 
          * Utilizing locking only on tasks and its execution,
          * not for event dispatching.
@@ -244,6 +257,7 @@ public class DefaultEDTUtil implements EDTUtil {
             if(DEBUG) {
                 System.err.println(getName()+": EDT run() START "+ getName());
             }
+            validateNoRecursiveLocksHold();
             RuntimeException error = null;
             try {
                 do {
@@ -269,8 +283,12 @@ public class DefaultEDTUtil implements EDTUtil {
                         }
                     }
                     if(null!=task) {
-                        // Exceptions are always catched, see RunnableTask creation above
                         task.run();
+                        validateNoRecursiveLocksHold();
+                        if(!task.hasWaiter() && null != task.getThrowable()) {
+                            // at least dump stack-trace in case nobody waits for result
+                            task.getThrowable().printStackTrace();
+                        }
                     }
                 } while(!shouldStop) ;
             } catch (Throwable t) {

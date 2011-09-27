@@ -35,11 +35,7 @@ package jogamp.newt.driver.macosx;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.macosx.*;
-import com.jogamp.newt.*;
 import jogamp.newt.*;
-import jogamp.newt.driver.awt.AWTEDTUtil;
-
-import com.jogamp.newt.util.MainThread;
 
 public class MacDisplay extends DisplayImpl {
     static {
@@ -73,35 +69,6 @@ public class MacDisplay extends DisplayImpl {
 
     protected void closeNativeImpl() { }
 
-    /**
-    @Override
-    protected void createEDTUtil() {
-        if(NewtFactory.useEDT()) {            
-            final Display f_dpy = this;
-            final Runnable dispatchRunner = new Runnable() {
-                  public void run() {
-                      if(null!=f_dpy.getGraphicsDevice()) {
-                          f_dpy.dispatchMessages();
-                      } } };
-                    
-            if(NativeWindowFactory.isAWTAvailable()) {
-                AWTEDTUtil.addPumpMessage(this, dispatchRunner); 
-                edtUtil = AWTEDTUtil.getSingleton();
-            } else {
-                MainThread.addPumpMessage(this, dispatchRunner); 
-                edtUtil = MainThread.getSingleton();                
-            }
-        }
-    } */
-
-    protected void releaseEDTUtil() {
-        if(null!=edtUtil) { 
-            MainThread.removePumpMessage(this);
-            edtUtil.waitUntilStopped();
-            edtUtil=null;
-        }
-    }
-    
     public static void runNSApplication() {
         runNSApplication0();
     }

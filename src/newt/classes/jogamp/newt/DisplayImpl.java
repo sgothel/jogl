@@ -39,18 +39,14 @@ import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.event.NEWTEvent;
 import com.jogamp.newt.event.NEWTEventConsumer;
 
-import jogamp.newt.driver.awt.AWTEDTUtil;
 import jogamp.newt.event.NEWTEventTask;
 import com.jogamp.newt.util.EDTUtil;
-import com.jogamp.newt.util.MainThread;
 import java.util.ArrayList;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
 
 public abstract class DisplayImpl extends Display {
-    public static final boolean DEBUG_TEST_EDT_MAINTHREAD = Debug.isPropertyDefined("newt.test.EDTMainThread", true); // JAU EDT Test ..
-
     private static int serialno = 1;
 
     private static Class<?> getDisplayClass(String type) 
@@ -171,27 +167,7 @@ public abstract class DisplayImpl extends Display {
 
     protected void createEDTUtil() {
         if(NewtFactory.useEDT()) {
-            if ( ! DEBUG_TEST_EDT_MAINTHREAD ) {
-                final Thread current = Thread.currentThread();
-                edtUtil = new DefaultEDTUtil(current.getThreadGroup(), "Display-"+getFQName(), dispatchMessagesRunnable);
-            } else {
-                // Begin JAU EDT Test ..
-                final Display f_dpy = this;                
-                final Runnable dispatchRunner = new Runnable() {
-                      public void run() {
-                          if(null!=f_dpy.getGraphicsDevice()) {
-                              f_dpy.dispatchMessages();
-                          } } };
-                        
-                if(NativeWindowFactory.isAWTAvailable()) {
-                    AWTEDTUtil.addPumpMessage(this, dispatchRunner); 
-                    edtUtil = AWTEDTUtil.getSingleton();
-                } else {
-                    MainThread.addPumpMessage(this, dispatchRunner); 
-                    edtUtil = MainThread.getSingleton();                
-                }
-                // End JAU EDT Test ..
-            }
+            edtUtil = new DefaultEDTUtil(Thread.currentThread().getThreadGroup(), "Display-"+getFQName(), dispatchMessagesRunnable);            
             if(DEBUG) {
                 System.err.println("Display.createNative("+getFQName()+") Create EDTUtil: "+edtUtil.getClass().getName());
             }
@@ -255,9 +231,6 @@ public abstract class DisplayImpl extends Display {
             }
         } );
         if(null!=edtUtil) {
-            if ( DEBUG_TEST_EDT_MAINTHREAD ) {
-                MainThread.removePumpMessage(this); // JAU EDT Test ..
-            }
             edtUtil.waitUntilStopped();
             edtUtil.reset();
         }

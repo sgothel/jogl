@@ -41,23 +41,26 @@ import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 import java.security.AccessControlContext;
 import java.security.AccessController;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 import javax.media.nativewindow.NativeWindowFactory;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.newt.Display;
 
 import jogamp.newt.Debug;
-import jogamp.newt.DefaultEDTUtil;
 import jogamp.newt.NEWTJNILibLoader;
 
 /**
  * NEWT Utility class MainThread<P>
  *
+ * <p>
+ * FIXME: Update this documentation! 
+ * This class just provides a main-thread utility, forking of a main java class
+ * on another thread while being able to continue doing platform specific things
+ * on the main-thread. The latter is essential for eg. MacOSX, where we continue
+ * to run NSApp.run().
+ * </p>
+ * 
  * This class provides a startup singleton <i>main thread</i>,
  * from which a new thread with the users main class is launched.<br>
  *
@@ -88,7 +91,7 @@ import jogamp.newt.NEWTJNILibLoader;
  </PRE>
  * Which starts 4 threads, each with a window and OpenGL rendering.<br>
  */
-public class MainThread implements EDTUtil {
+public class MainThread {
     private static final String MACOSXDisplayClassName = "jogamp.newt.driver.macosx.MacDisplay";
     
     /** if true, use the main thread EDT, otherwise AWT's EDT */
@@ -108,8 +111,6 @@ public class MainThread implements EDTUtil {
     protected static final boolean DEBUG = Debug.debug("MainThread");
 
     private static final MainThread singletonMainThread = new MainThread(); // one singleton MainThread
-
-    private static final Map<Display, Runnable> pumpMessageDisplayMap = new HashMap<Display, Runnable>();
 
     static class MainAction extends Thread {
         private String mainClassName;
@@ -148,10 +149,6 @@ public class MainThread implements EDTUtil {
             if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" user app fin");
 
             if ( useMainThread ) {
-                singletonMainThread.invokeStop(new Runnable() {
-                    public void run() {
-                        // nop
-                    }});
                 if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" MainThread fin - stop");
                 System.exit(0);
             }
@@ -159,8 +156,6 @@ public class MainThread implements EDTUtil {
     }
     private static MainAction mainAction;
 
-    private static EDTUtil internalEDT;
-    
     /** Your new java application main entry, which pipelines your application */
     public static void main(String[] args) {
         useMainThread = HINT_USE_MAIN_THREAD;
@@ -197,26 +192,21 @@ public class MainThread implements EDTUtil {
         }
 
         if ( useMainThread ) {
-            final Thread current = Thread.currentThread();
-            internalEDT = new DefaultEDTUtil(current.getThreadGroup(), "MainThread", new Runnable() {
-                                    public void run() { dispatchMessages(); } });             
-
-            if(DEBUG) System.err.println("MainThread - run: "+internalEDT.toString());
-            internalEDT.start(); // forever !
-            
             // dispatch user's main thread ..
             mainAction.start();
             
             if(isMacOSX) {
                 try {
-                    if(DEBUG) System.err.println("MainThread - runNSApp");
+                    if(DEBUG) {
+                        System.err.println("MainThread.main(): "+Thread.currentThread().getName()+"- runNSApp"); 
+                    }
                     ReflectionUtil.callStaticMethod(MACOSXDisplayClassName, "runNSApplication", 
                         null, null, MainThread.class.getClassLoader());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }   
-            if(DEBUG) System.err.println("MainThread - wait until last non daemon thread ends ...");            
+            if(DEBUG) { System.err.println("MainThread - wait until last non daemon thread ends ..."); }            
         } else {
             // run user's main in this thread 
             mainAction.run();
@@ -227,57 +217,6 @@ public class MainThread implements EDTUtil {
         return singletonMainThread;
     }
 
-    public static Runnable removePumpMessage(Display dpy) {
-        synchronized(pumpMessageDisplayMap) {
-            return pumpMessageDisplayMap.remove(dpy);
-        }
-    }
-
-    public static void addPumpMessage(Display dpy, Runnable pumpMessage) {
-        synchronized (pumpMessageDisplayMap) {
-            pumpMessageDisplayMap.put(dpy, pumpMessage);
-        }
-    }
-
-    private static void dispatchMessages() {
-        synchronized(pumpMessageDisplayMap) {
-            for(Iterator<Runnable> i = pumpMessageDisplayMap.values().iterator(); i.hasNext(); ) {
-                i.next().run();
-            }
-        }
-    }
-    
-    final public void reset() {
-        // nop: ALWAYS RUNNING
-    }
-
-    final public void start() {
-        // nop: ALWAYS RUNNING
-    }
-
-    final public boolean isCurrentThreadEDT() {
-        return internalEDT.isCurrentThreadEDT();
-    }
-
-    final public boolean isRunning() {
-        return true; // ALWAYS RUNNING
-    }
-
-    final public void invokeStop(Runnable r) {
-        internalEDT.invoke(true, r); // ALWAYS RUNNING
-    }
-
-    final public void invoke(boolean wait, Runnable r) {
-        internalEDT.invoke(wait, r);
-    }
-
-    final public void waitUntilIdle() {
-        internalEDT.waitUntilIdle();
-    }
-
-    final public void waitUntilStopped() {
-        // nop: ALWAYS RUNNING
-    }
 }
 
 
