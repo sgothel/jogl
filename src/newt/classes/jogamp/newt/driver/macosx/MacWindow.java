@@ -200,8 +200,10 @@ public class MacWindow extends WindowImpl {
             }
         }
         {
+            // On MacOSX the absolute position is required to position 
+            // a window - even for a child window!
             final NativeWindow parent = getParent();
-            if(null != parent) {
+            if( null != parent && 0 != parent.getWindowHandle() ) {
                 final Point p = parent.getLocationOnScreen(null);
                 _x += p.getX();
                 _y += p.getY();
@@ -218,7 +220,9 @@ public class MacWindow extends WindowImpl {
         
         if( getWindowHandle() == 0 ) {
             if( 0 != ( FLAG_IS_VISIBLE & flags) ) {
-                createWindow(false, _x, _y, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
+                // FIXME: for some reason we do not need (or can use) 
+                // the absolute position at creation time .. need to determine the reason/mechanics.
+                createWindow(false, x, y, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
                 this.x = x;
                 this.y = y;
                 visibleChanged(false, true); // no native event ..
@@ -237,6 +241,8 @@ public class MacWindow extends WindowImpl {
             } else if( 0 != ( FLAG_CHANGE_DECORATION & flags) ||
                        0 != ( FLAG_CHANGE_PARENTING & flags) ||
                        0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
+                // FIXME: for some reason we do not need (or can use) 
+                // the absolute position at creation time .. need to determine the reason/mechanics.
                 createWindow(true, x, y, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
             }
             if(x>=0 && y>=0) {

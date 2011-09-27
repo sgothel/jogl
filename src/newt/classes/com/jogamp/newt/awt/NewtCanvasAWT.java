@@ -55,6 +55,7 @@ import jogamp.newt.awt.event.NewtFactoryAWT;
 
 import javax.swing.MenuSelectionManager;
 
+@SuppressWarnings("serial")
 public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProtocol {
     public static final boolean DEBUG = Debug.debug("Window");
 

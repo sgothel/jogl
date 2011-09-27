@@ -350,8 +350,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_makeKeyAndOrderF
 
     DBG_PRINT( "makeKeyAndOrderFront0 - window: %p (START)\n", win);
 
-    [win performSelectorOnMainThread:@selector(makeKeyAndOrderFront:) withObject:win waitUntilDone:NO];
-    // [win makeKeyAndOrderFront: win];
+    // [win performSelectorOnMainThread:@selector(makeKeyAndOrderFront:) withObject:win waitUntilDone:NO];
+    [win makeKeyAndOrderFront: win];
 
     DBG_PRINT( "makeKeyAndOrderFront0 - window: %p (END)\n", win);
 
@@ -371,8 +371,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_makeKey0
 
     DBG_PRINT( "makeKey0 - window: %p (START)\n", win);
 
-    [win performSelectorOnMainThread:@selector(makeKeyWindow:) withObject:nil waitUntilDone:NO];
-    // [win makeKeyWindow];
+    // [win performSelectorOnMainThread:@selector(makeKeyWindow:) withObject:nil waitUntilDone:NO];
+    [win makeKeyWindow];
 
     DBG_PRINT( "makeKey0 - window: %p (END)\n", win);
 
@@ -392,8 +392,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_orderOut0
 
     DBG_PRINT( "orderOut0 - window: %p (START)\n", win);
 
-    [win performSelectorOnMainThread:@selector(orderOut:) withObject:win waitUntilDone:NO];
-    // [win orderOut: win];
+    // [win performSelectorOnMainThread:@selector(orderOut:) withObject:win waitUntilDone:NO];
+    [win orderOut: win];
 
     DBG_PRINT( "orderOut0 - window: %p (END)\n", win);
 

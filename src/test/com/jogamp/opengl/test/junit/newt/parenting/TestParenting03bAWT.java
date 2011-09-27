@@ -98,23 +98,28 @@ public class TestParenting03bAWT extends UITestCase {
         Container cont1 = new Container();
         cont1.setLayout(new BorderLayout());
         cont1.add(newtCanvasAWT1, BorderLayout.CENTER);
+        System.err.println("******* Cont1 setVisible");
         cont1.setVisible(true);
 
         Container cont2 = new Container();
         cont2.setLayout(new BorderLayout());
         cont2.add(newtCanvasAWT2, BorderLayout.CENTER);
+        System.err.println("******* Cont2 setVisible");
         cont2.setVisible(true);
         final Container f_cont2 = cont2;
 
         frame1.setLayout(new BorderLayout());
+        frame1.add(new Label("NORTH"), BorderLayout.NORTH);
+        frame1.add(new Label("CENTER"), BorderLayout.CENTER);
+        frame1.add(new Label("SOUTH"), BorderLayout.SOUTH);
         frame1.add(cont1, BorderLayout.EAST);
-        frame1.add(new Label("center"), BorderLayout.CENTER);
         frame1.setLocation(0, 0);
         frame1.setSize((int)size.getWidth()*2, (int)size.getHeight()*2);
         final Frame f_frame1 = frame1;
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 f_frame1.pack();
+                System.err.println("******* Frame setVisible");
                 f_frame1.setVisible(true);
             }});
 

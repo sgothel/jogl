@@ -82,6 +82,14 @@ class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                 glWindow.setPosition(frame.getX()+frame.getWidth()+dx, frame.getY()+dy);
             }
             glWindow.requestFocus();
+        } else if(e.getKeyChar()=='s') {
+            if(glWindow.getParent()==null) {
+                System.err.println("XXX glWin to 100/100");
+                glWindow.setPosition(100, 100);
+            } else {
+                System.err.println("XXX glWin to 0/0");
+                glWindow.setPosition(0, 0);                
+            }
         }
     }
 }
