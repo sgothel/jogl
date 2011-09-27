@@ -30,6 +30,7 @@ package jogamp.newt;
 
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.IntIntHashMap;
+import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.ScreenMode;
@@ -41,7 +42,7 @@ import java.util.HashMap;
 public class ScreenModeStatus {
     private static boolean DEBUG = Screen.DEBUG;
 
-    private RecursiveLock lock = new RecursiveLock();
+    private RecursiveLock lock = LockFactory.createRecursiveLock();
     private ArrayHashSet<ScreenMode> screenModes;
     private IntIntHashMap screenModesIdx2NativeIdx;
     private ScreenMode currentScreenMode;
@@ -49,7 +50,7 @@ public class ScreenModeStatus {
     private ArrayList<ScreenModeListener> listener = new ArrayList<ScreenModeListener>();
 
     private static HashMap<String, ScreenModeStatus> screenFQN2ScreenModeStatus = new HashMap<String, ScreenModeStatus>();
-    private static RecursiveLock screen2ScreenModeStatusLock = new RecursiveLock();
+    private static RecursiveLock screen2ScreenModeStatusLock = LockFactory.createRecursiveLock();
 
     protected static void mapScreenModeStatus(String screenFQN, ScreenModeStatus sms) {
         screen2ScreenModeStatusLock.lock();

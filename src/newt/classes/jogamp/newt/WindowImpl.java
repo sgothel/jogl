@@ -42,6 +42,7 @@ import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
+import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.event.KeyEvent;
@@ -76,8 +77,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     
     private volatile long windowHandle = 0; // lifecycle critical
     private volatile boolean visible = false; // lifecycle critical
-    private RecursiveLock windowLock = new RecursiveLock();  // Window instance wide lock
-    private RecursiveLock surfaceLock = new RecursiveLock(); // Surface only lock
+    private RecursiveLock windowLock = LockFactory.createRecursiveLock();  // Window instance wide lock
+    private RecursiveLock surfaceLock = LockFactory.createRecursiveLock(); // Surface only lock
     
     private ScreenImpl screen; // never null after create - may change reference though (reparent)
     private boolean screenReferenceAdded = false;
@@ -395,10 +396,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * to notify this Java object of state changes.</p>
      * 
      * @see #windowDestroyNotify()
-     * @see #focusChanged(boolean)
-     * @see #visibleChanged(boolean)
+     * @see #focusChanged(boolean, boolean)
+     * @see #visibleChanged(boolean, boolean)
      * @see #sizeChanged(int,int)
-     * @see #positionChanged(int,int)
+     * @see #positionChanged(boolean,int, int)
      * @see #windowDestroyNotify()
      */
     protected abstract void createNativeImpl();
@@ -406,11 +407,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected abstract void closeNativeImpl();
 
     /** 
-     * The native implementation must invoke {@link #focusChanged(boolean)}
+     * The native implementation must invoke {@link #focusChanged(boolean, boolean)}
      * to change the focus state, if <code>force == false</code>. 
      * This may happen asynchronous within {@link #TIMEOUT_NATIVEWINDOW}.
      * 
-     * @param force if true, bypass {@link #focusChanged(boolean)} and force focus request
+     * @param force if true, bypass {@link #focusChanged(boolean, boolean)} and force focus request
      */
     protected abstract void requestFocusImpl(boolean force);
 
@@ -442,7 +443,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param flags bitfield of change and status flags
      *
      * @see #sizeChanged(int,int)
-     * @see #positionChanged(int,int)
+     * @see #positionChanged(boolean,int, int)
      */
     protected abstract boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags);
 
@@ -508,10 +509,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     
     /** Triggered by user via {@link #getInsets()}.<br>
      * Implementations may implement this hook to update the insets.<br> 
-     * However, they may prefer the event driven path via {@link #insetsChanged(int, int, int, int)}.
+     * However, they may prefer the event driven path via {@link #insetsChanged(boolean, int, int, int, int)}.
      * 
      * @see #getInsets()
-     * @see #insetsChanged(int, int, int, int)
+     * @see #insetsChanged(boolean, int, int, int, int)
      */
     protected abstract void updateInsetsImpl(Insets insets);
 
@@ -522,7 +523,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public final int lockSurface() {
         windowLock.lock();
         surfaceLock.lock();
-        int res = surfaceLock.getRecursionCount() == 0 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS;
+        int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
 
         if ( LOCK_SURFACE_NOT_READY == res ) {
             try {
@@ -551,7 +552,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         surfaceLock.validateLocked();
         windowLock.validateLocked();
 
-        if (surfaceLock.getRecursionCount() == 0) {
+        if (surfaceLock.getHoldCount() == 1) {
             final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
             try {
                 unlockSurfaceImpl();
@@ -741,8 +742,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
 
         if(DEBUG_IMPLEMENTATION) {
-            String msg = "Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow);
-            System.err.println(msg);
+            System.err.println("Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
             Thread.dumpStack();
         }
         runOnEDTIfAvail(true, new VisibleAction(visible));
@@ -1727,8 +1727,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         repaintQueued=true;
                         if(DEBUG_IMPLEMENTATION) {
                             System.err.println("Window.consumeEvent: queued "+e);
-                            // Exception ee = new Exception("Window.windowRepaint: "+e);
-                            // ee.printStackTrace();
+                            // Thread.dumpStack();
                         }
                         return false;
                     }
@@ -1742,9 +1741,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // queue event in case window is locked, ie in operation
                 if( isWindowLocked() ) {
                     if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window.consumeEvent: queued "+e);
-                        // Exception ee = new Exception("Window.windowRepaint: "+e);
-                        // ee.printStackTrace();
+                        // System.err.println("Window.consumeEvent: queued "+e);
+                        // Thread.dumpStack(); // JAU
                     }
                     return false;
                 }
@@ -2137,23 +2135,24 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    /** Triggered by implementation's WM events to update the focus state. */ 
-    protected void focusChanged(boolean focusGained) {
+    /** Triggered by implementation's WM events to update the focus state. */
+    protected void focusChanged(boolean defer, boolean focusGained) {
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.focusChanged: ("+getThreadName()+"): "+this.hasFocus+" -> "+focusGained+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+            System.err.println("Window.focusChanged: ("+getThreadName()+"): (defer: "+defer+") "+this.hasFocus+" -> "+focusGained+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
         }
         hasFocus = focusGained;
-        if (focusGained) {
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+        final int evt = focusGained ? WindowEvent.EVENT_WINDOW_GAINED_FOCUS : WindowEvent.EVENT_WINDOW_LOST_FOCUS ; 
+        if(!defer) {
+            sendWindowEvent(evt);
         } else {
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_LOST_FOCUS);
+            enqueueWindowEvent(false, evt);
         }
     }
 
-    /** Triggered by implementation's WM events to update the visibility state. */ 
-    protected void visibleChanged(boolean visible) {
+    /** Triggered by implementation's WM events to update the visibility state. */
+    protected void visibleChanged(boolean defer, boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.visibleChanged ("+getThreadName()+"): "+this.visible+" -> "+visible+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+            System.err.println("Window.visibleChanged ("+getThreadName()+"): (defer: "+defer+") "+this.visible+" -> "+visible+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
         }
         this.visible = visible ;
     }
@@ -2180,10 +2179,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     /** Triggered by implementation's WM events to update the client-area size w/o insets/decorations. */ 
-    protected void sizeChanged(int newWidth, int newHeight, boolean force) {
+    protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
         if(force || width != newWidth || height != newHeight) {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.sizeChanged: ("+getThreadName()+"): force "+force+", "+width+"x"+height+" -> "+newWidth+"x"+newHeight+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.sizeChanged: ("+getThreadName()+"): (defer: "+defer+") force "+force+", "+width+"x"+height+" -> "+newWidth+"x"+newHeight+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
             if(0>newWidth || 0>newHeight) {
                 throw new NativeWindowException("Illegal width or height "+newWidth+"x"+newHeight+" (must be >= 0)");
@@ -2191,7 +2190,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             width = newWidth;
             height = newHeight;
             if(isNativeValid()) {
-                sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
+                if(!defer) {
+                    sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
+                } else {
+                    enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_RESIZED);
+                }
             }
         }
     }
@@ -2221,14 +2224,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     
     /** Triggered by implementation's WM events to update the position. */ 
-    protected void positionChanged(int newX, int newY) {
+    protected void positionChanged(boolean defer, int newX, int newY) {
         if ( x != newX || y != newY ) {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.positionChanged: ("+getThreadName()+"): "+x+"/"+y+" -> "+newX+"/"+newY+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.positionChanged: ("+getThreadName()+"): (defer: "+defer+") "+x+"/"+y+" -> "+newX+"/"+newY+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
             x = newX;
             y = newY;
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
+            if(!defer) {
+                sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
+            } else {
+                enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_MOVED);
+            }
         }
     }
 
@@ -2238,7 +2245,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @see #getInsets()
      * @see #updateInsetsImpl(Insets)
      */
-    protected void insetsChanged(int left, int right, int top, int bottom) {
+    protected void insetsChanged(boolean defer, int left, int right, int top, int bottom) {
         if ( left >= 0 && right >= 0 && top >= 0 && bottom >= 0 ) {
             if(isUndecorated()) {
                 if(DEBUG_IMPLEMENTATION) {
@@ -2252,7 +2259,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 insets.setTopHeight(top);
                 insets.setBottomHeight(bottom);            
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.insetsChanged: "+insets);
+                    System.err.println("Window.insetsChanged: (defer: "+defer+") "+insets);
                 }
             }
         }
@@ -2276,18 +2283,25 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void windowRepaint(int x, int y, int width, int height) {
+        windowRepaint(false, x, y, width, height); 
+    }
+    
+    /**
+     * Triggered by implementation's WM events to update the content
+     */ 
+    protected void windowRepaint(boolean defer, int x, int y, int width, int height) {
         x = ( 0 > x ) ? this.x : x;
         y = ( 0 > y ) ? this.y : y;
         width = ( 0 >= width ) ? this.width : width;
         height = ( 0 >= height ) ? this.height : height;
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.windowRepaint "+getThreadName()+" - "+x+"/"+y+" "+width+"x"+height);
+            System.err.println("Window.windowRepaint "+getThreadName()+" (defer: "+defer+") "+x+"/"+y+" "+width+"x"+height);
         }
 
         if(isNativeValid()) {
             NEWTEvent e = new WindowUpdateEvent(WindowEvent.EVENT_WINDOW_REPAINT, this, System.currentTimeMillis(),
                                                 new Rectangle(x, y, width, height));
-            doEvent(false, false, e);
+            doEvent(defer, false, e);
         }
     }
 

@@ -72,8 +72,10 @@ jint GetDeltaY(NSEvent *event, jint javaMods) {
     return 0;
 }
 
-static jmethodID sendMouseEventID  = NULL;
-static jmethodID sendKeyEventID    = NULL;
+static jmethodID enqueueMouseEventID = NULL;
+static jmethodID enqueueKeyEventID = NULL;
+static jmethodID enqueueRequestFocusID = NULL;
+
 static jmethodID insetsChangedID   = NULL;
 static jmethodID sizeChangedID     = NULL;
 static jmethodID visibleChangedID = NULL;
@@ -145,7 +147,7 @@ static jmethodID windowDestroyNotifyID = NULL;
         return;
     }
 
-    (*env)->CallVoidMethod(env, javaWindowObject, visibleChangedID, JNI_FALSE);
+    (*env)->CallVoidMethod(env, javaWindowObject, visibleChangedID, JNI_TRUE, JNI_FALSE);
 
     if (shallBeDetached) {
         (*jvmHandle)->DetachCurrentThread(jvmHandle);
@@ -163,7 +165,7 @@ static jmethodID windowDestroyNotifyID = NULL;
         return;
     }
 
-    (*env)->CallVoidMethod(env, javaWindowObject, visibleChangedID, JNI_TRUE);
+    (*env)->CallVoidMethod(env, javaWindowObject, visibleChangedID, JNI_TRUE, JNI_TRUE);
 
     if (shallBeDetached) {
         (*jvmHandle)->DetachCurrentThread(jvmHandle);
@@ -178,16 +180,17 @@ static jmethodID windowDestroyNotifyID = NULL;
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jclass) clazz
 {
-    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
-    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
-    sizeChangedID     = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(IIZ)V");
-    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
-    insetsChangedID     = (*env)->GetMethodID(env, clazz, "insetsChanged", "(IIII)V");
-    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
-    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(Z)V");
+    enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIII)V");
+    enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZIIIC)V");
+    sizeChangedID     = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(ZIIZ)V");
+    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
+    insetsChangedID     = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
+    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZII)V");
+    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
     windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
-    if (sendMouseEventID && sendKeyEventID && sizeChangedID && visibleChangedID && insetsChangedID &&
-        positionChangedID && focusChangedID && windowDestroyNotifyID)
+    enqueueRequestFocusID = (*env)->GetMethodID(env, clazz, "enqueueRequestFocus", "(Z)V");
+    if (enqueueMouseEventID && enqueueKeyEventID && sizeChangedID && visibleChangedID && insetsChangedID &&
+        positionChangedID && focusChangedID && windowDestroyNotifyID && enqueueRequestFocusID)
     {
         return YES;
     }
@@ -219,8 +222,7 @@ static jmethodID windowDestroyNotifyID = NULL;
 
     DBG_PRINT( "updateInsets: [ l %d, r %d, t %d, b %d ]\n", (int)left, (int)right, (int)top, (int)bottom);
 
-    (*env)->CallVoidMethod(env, javaWindowObject, insetsChangedID,
-                           left, right, top, bottom);
+    (*env)->CallVoidMethod(env, javaWindowObject, insetsChangedID, JNI_TRUE, left, right, top, bottom);
 }
 
 - (id) initWithContentRect: (NSRect) contentRect
@@ -294,7 +296,7 @@ static jint mods2JavaMods(NSUInteger mods)
         // Note: the key code in the NSEvent does not map to anything we can use
         jchar keyChar = (jchar) [chars characterAtIndex: i];
 
-        (*env)->CallVoidMethod(env, javaWindowObject, sendKeyEventID,
+        (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
                                evType, javaMods, keyCode, keyChar);
     }
 
@@ -378,7 +380,10 @@ static jint mods2JavaMods(NSUInteger mods)
         // ignore 0 increment wheel scroll events
         return;
     }
-    (*env)->CallVoidMethod(env, javaWindowObject, sendMouseEventID,
+    if (evType == EVENT_MOUSE_PRESSED) {
+        (*env)->CallVoidMethod(env, javaWindowObject, enqueueRequestFocusID, JNI_FALSE);
+    }
+    (*env)->CallVoidMethod(env, javaWindowObject, enqueueMouseEventID, JNI_FALSE,
                            evType, javaMods,
                            (jint) location.x,
                            (jint) (contentRect.size.height - location.y),
@@ -483,7 +488,7 @@ static jint mods2JavaMods(NSUInteger mods)
     NSRect frameRect = [self frame];
     NSRect contentRect = [self contentRectForFrameRect: frameRect];
 
-    (*env)->CallVoidMethod(env, javaWindowObject, sizeChangedID,
+    (*env)->CallVoidMethod(env, javaWindowObject, sizeChangedID, JNI_TRUE,
                            (jint) contentRect.size.width,
                            (jint) contentRect.size.height, JNI_FALSE);
 
@@ -522,8 +527,7 @@ static jint mods2JavaMods(NSUInteger mods)
     screenRect = [screen frame];
     pt = NSMakePoint(rect.origin.x, screenRect.origin.y + screenRect.size.height - rect.origin.y - rect.size.height);
 
-    (*env)->CallVoidMethod(env, javaWindowObject, positionChangedID,
-                           (jint) pt.x, (jint) pt.y);
+    (*env)->CallVoidMethod(env, javaWindowObject, positionChangedID, JNI_TRUE, (jint) pt.x, (jint) pt.y);
 
     if (shallBeDetached) {
         (*jvmHandle)->DetachCurrentThread(jvmHandle);
@@ -593,7 +597,7 @@ static jint mods2JavaMods(NSUInteger mods)
         return;
     }
 
-    (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_TRUE);
+    (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_TRUE, JNI_TRUE);
 
     if (shallBeDetached) {
         (*jvmHandle)->DetachCurrentThread(jvmHandle);
@@ -620,7 +624,7 @@ static jint mods2JavaMods(NSUInteger mods)
         return;
     }
 
-    (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_FALSE);
+    (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_TRUE, JNI_FALSE);
 
     if (shallBeDetached) {
         (*jvmHandle)->DetachCurrentThread(jvmHandle);

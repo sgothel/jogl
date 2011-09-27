@@ -91,7 +91,7 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
     @Override
     public void setSize(int width, int height) {
         if(!isVisible()) {
-            sizeChanged(width, height, false);
+            sizeChanged(false, width, height, false);
         }
     }
     @Override
@@ -106,8 +106,8 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
     
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            sizeChanged(width, height, false);
-            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));            
+            sizeChanged(false, width, height, false);
+            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));            
         } else {
             shouldNotCallThis();
         }

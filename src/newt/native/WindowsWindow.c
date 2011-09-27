@@ -666,7 +666,7 @@ static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd)
         (int)m_insets.left, (int)m_insets.top, (int)m_insets.right, (int)m_insets.bottom,
         (int)(m_insets.right-m_insets.left), (int)(m_insets.top-m_insets.bottom));
 
-    (*env)->CallVoidMethod(env, window, insetsChangedID,
+    (*env)->CallVoidMethod(env, window, insetsChangedID, JNI_FALSE,
                            m_insets.left, m_insets.right,
                            m_insets.top, m_insets.bottom);
     return &m_insets;
@@ -732,7 +732,7 @@ static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd)
         (void*)hwnd, (int)m_insets.left, (int)m_insets.right, (int)m_insets.top, (int)m_insets.bottom,
         (int) ( m_insets.left + m_insets.right ), (int) (m_insets.top + m_insets.bottom));
 
-    (*env)->CallVoidMethod(env, window, insetsChangedID, 
+    (*env)->CallVoidMethod(env, window, insetsChangedID, JNI_FALSE,
                            (int)m_insets.left, (int)m_insets.right, (int)m_insets.top, (int)m_insets.bottom);
     return &m_insets;
 }
@@ -761,7 +761,7 @@ static void WmSize(JNIEnv *env, jobject window, HWND wnd, UINT type)
 
     DBG_PRINT("*** WindowsWindow: WmSize window %p, %dx%d, visible %d\n", (void*)wnd, w, h, isVisible);
 
-    (*env)->CallVoidMethod(env, window, sizeChangedID, w, h, JNI_FALSE);
+    (*env)->CallVoidMethod(env, window, sizeChangedID, JNI_FALSE, w, h, JNI_FALSE);
 }
 
 static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
@@ -944,22 +944,22 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     }
 
     case WM_SETFOCUS:
-        (*env)->CallVoidMethod(env, window, focusChangedID, JNI_TRUE);
+        (*env)->CallVoidMethod(env, window, focusChangedID, JNI_FALSE, JNI_TRUE);
         useDefWindowProc = 1;
         break;
 
     case WM_KILLFOCUS:
-        (*env)->CallVoidMethod(env, window, focusChangedID, JNI_FALSE);
+        (*env)->CallVoidMethod(env, window, focusChangedID, JNI_FALSE, JNI_FALSE);
         useDefWindowProc = 1;
         break;
 
     case WM_SHOWWINDOW:
-        (*env)->CallVoidMethod(env, window, visibleChangedID, wParam==TRUE?JNI_TRUE:JNI_FALSE);
+        (*env)->CallVoidMethod(env, window, visibleChangedID, JNI_FALSE, wParam==TRUE?JNI_TRUE:JNI_FALSE);
         break;
 
     case WM_MOVE:
         DBG_PRINT("*** WindowsWindow: WM_MOVE window %p, %d/%d\n", wnd, (int)LOWORD(lParam), (int)HIWORD(lParam));
-        (*env)->CallVoidMethod(env, window, positionChangedID, (jint)LOWORD(lParam), (jint)HIWORD(lParam));
+        (*env)->CallVoidMethod(env, window, positionChangedID, JNI_FALSE, (jint)LOWORD(lParam), (jint)HIWORD(lParam));
         useDefWindowProc = 1;
         break;
 
@@ -971,7 +971,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
             jint width = r.right-r.left;
             jint height = r.bottom-r.top;
             if (width > 0 && height > 0) {
-                (*env)->CallVoidMethod(env, window, windowRepaintID, r.left, r.top, width, height);
+                (*env)->CallVoidMethod(env, window, windowRepaintID, JNI_FALSE, r.left, r.top, width, height);
             }
             ValidateRect(wnd, &r);
             */
@@ -980,7 +980,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     }
     case WM_ERASEBKGND:
         // ignore erase background
-        (*env)->CallVoidMethod(env, window, windowRepaintID, 0, 0, -1, -1);
+        (*env)->CallVoidMethod(env, window, windowRepaintID, JNI_FALSE, 0, 0, -1, -1);
         useDefWindowProc = 0;
         res = 1; // OpenGL, etc .. erases the background, hence we claim to have just done this
         break;
@@ -1240,13 +1240,13 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_initIDs
 {
     NewtCommon_init(env);
 
-    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(IIII)V");
-    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(IIZ)V");
-    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
-    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(Z)V");
-    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
+    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
+    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
+    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZII)V");
+    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
+    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
-    windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(IIII)V");
+    windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZIIIC)V");
@@ -1396,7 +1396,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
 
             // send insets before visibility, allowing java code a proper sync point!
             insets = UpdateInsets(env, wud->jinstance, window);
-            (*env)->CallVoidMethod(env, wud->jinstance, visibleChangedID, JNI_TRUE);
+            (*env)->CallVoidMethod(env, wud->jinstance, visibleChangedID, JNI_FALSE, JNI_TRUE);
 
             if(!userPos) {
                 GetWindowRect(window, &rc);

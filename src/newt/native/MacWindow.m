@@ -249,7 +249,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtView* myView = (NewtView*) (intptr_t) jview ;
 
-    DBG_PRINT( "createWindow0 - %p (this), %p (parent), %d/%d %dx%d, opaque %d, fs %d, style %X, buffType %X, screenidx %d, view %p\n",
+    DBG_PRINT( "createWindow0 - %p (this), %p (parent), %d/%d %dx%d, opaque %d, fs %d, style %X, buffType %X, screenidx %d, view %p (START)\n",
         (void*)(intptr_t)jthis, (void*)(intptr_t)parent, (int)x, (int)y, (int)w, (int)h, (int) opaque, (int)fullscreen, 
         (int)styleMask, (int)bufferingType, (int)screen_idx, myView);
 
@@ -302,18 +302,6 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
         [myWindow setBackgroundColor: [NSColor clearColor]];
     }
 
-    /**
-    if (fullscreen) {
-        [myWindow setOpaque: YES];
-    } else {
-        // If the window is undecorated, assume we want the possibility of
-        // a shaped window, so make it non-opaque and the background color clear
-        if ((styleMask & NSTitledWindowMask) == 0) {
-            [myWindow setOpaque: NO];
-            [myWindow setBackgroundColor: [NSColor clearColor]];
-        }
-    } */
-
     // specify we want mouse-moved events
     [myWindow setAcceptsMouseMovedEvents:YES];
 
@@ -341,6 +329,9 @@ NS_ENDHANDLER
     // right mouse button down events
     [myView setNextResponder: myWindow];
 
+    DBG_PRINT( "createWindow0 - %p (this), %p (parent): new window: %p (END)\n",
+        (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow);
+
     [pool release];
 
     return (jlong) ((intptr_t) myWindow);
@@ -356,8 +347,14 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_makeKeyAndOrderF
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
+
+    DBG_PRINT( "makeKeyAndOrderFront0 - window: %p (START)\n", win);
+
     [win performSelectorOnMainThread:@selector(makeKeyAndOrderFront:) withObject:win waitUntilDone:NO];
     // [win makeKeyAndOrderFront: win];
+
+    DBG_PRINT( "makeKeyAndOrderFront0 - window: %p (END)\n", win);
+
     [pool release];
 }
 
@@ -371,8 +368,14 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_makeKey0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
+
+    DBG_PRINT( "makeKey0 - window: %p (START)\n", win);
+
     [win performSelectorOnMainThread:@selector(makeKeyWindow:) withObject:nil waitUntilDone:NO];
     // [win makeKeyWindow];
+
+    DBG_PRINT( "makeKey0 - window: %p (END)\n", win);
+
     [pool release];
 }
 
@@ -386,8 +389,14 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_orderOut0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
+
+    DBG_PRINT( "orderOut0 - window: %p (START)\n", win);
+
     [win performSelectorOnMainThread:@selector(orderOut:) withObject:win waitUntilDone:NO];
     // [win orderOut: win];
+
+    DBG_PRINT( "orderOut0 - window: %p (END)\n", win);
+
     [pool release];
 }
 
@@ -431,10 +440,16 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setTitle0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
+
+    DBG_PRINT( "setTitle0 - window: %p (START)\n", win);
+
     NSString* str = jstringToNSString(env, title);
     [str autorelease];
     [win performSelectorOnMainThread:@selector(setTitle:) withObject:str waitUntilDone:NO];
     // [win setTitle: str];
+
+    DBG_PRINT( "setTitle0 - window: %p (END)\n", win);
+
     [pool release];
 }
 
@@ -448,7 +463,13 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_contentView0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
+
+    DBG_PRINT( "contentView0 - window: %p (START)\n", win);
+
     jlong res = (jlong) ((intptr_t) [win contentView]);
+
+    DBG_PRINT( "contentView0 - window: %p (END)\n", win);
+
     [pool release];
     return res;
 }
@@ -463,6 +484,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_changeContentVi
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
+    NSWindow* win = (NewtMacWindow*) ((intptr_t) window);
+    NewtView* newView = (NewtView *) ((intptr_t) jview);
+
+    DBG_PRINT( "changeContentView0 - window: %p (START)\n", win);
+
     NSObject *nsParentObj = (NSObject*) ((intptr_t) parentWindowOrView);
     NSWindow* pWin = NULL;
     NSView* pView = NULL;
@@ -476,10 +502,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_changeContentVi
         }
     }
 
-    NSWindow* win = (NewtMacWindow*) ((intptr_t) window);
-    NewtView* newView = (NewtView *) ((intptr_t) jview);
-
     NewtView* oldView = changeContentView(env, jthis, pWin, pView, win, newView);
+
+    DBG_PRINT( "changeContentView0 - window: %p (END)\n", win);
 
     [pool release];
 
@@ -496,8 +521,14 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setContentSize0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
+
+    DBG_PRINT( "setContentSize0 - window: %p (START)\n", win);
+
     NSSize sz = NSMakeSize(w, h);
     [win setContentSize: sz];
+
+    DBG_PRINT( "setContentSize0 - window: %p (END)\n", win);
+
     [pool release];
 }
 
@@ -512,7 +543,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setFrameTopLeftP
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* pwin = (NSWindow*) ((intptr_t) parent);
     NSWindow* win = (NSWindow*) ((intptr_t) window);
+
+    DBG_PRINT( "setFrameTopLeftPoint0 - window: %p (START)\n", win);
+
     setFrameTopLeftPoint(pwin, win, x, y);
+
+    DBG_PRINT( "setFrameTopLeftPoint0 - window: %p (END)\n", win);
+
     [pool release];
 }
 
@@ -526,12 +563,17 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setAlwaysOnTop0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
+
+    DBG_PRINT( "setAlwaysOnTop0 - window: %p (START)\n", win);
+
     if(atop) {
         [win setLevel:NSFloatingWindowLevel];
     } else {
         [win setLevel:NSNormalWindowLevel];
     }
+
+    DBG_PRINT( "setAlwaysOnTop0 - window: %p (END)\n", win);
+
     [pool release];
 }
-
 

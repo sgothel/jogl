@@ -174,7 +174,7 @@ public class WindowsWindow extends WindowImpl {
         reconfigureWindow0( getParentWindowHandle(), getWindowHandle(), x, y, width, height, flags);
         
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));            
+            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));            
         }
         return true;
     }

@@ -88,7 +88,7 @@ public class KDWindow extends WindowImpl {
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             setVisible0(eglWindowHandle, 0 != ( FLAG_IS_VISIBLE & flags));
-            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));
+            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
         }
         
         if(0!=eglWindowHandle) {
@@ -112,7 +112,7 @@ public class KDWindow extends WindowImpl {
         }
         
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));
+            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
         }
         
         return true;
@@ -143,11 +143,11 @@ public class KDWindow extends WindowImpl {
     }
 
     @Override
-    protected void sizeChanged(int newWidth, int newHeight, boolean force) {
+    protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
         if(fullscreen) {
             ((KDScreen)getScreen()).setScreenSize(width, height);
         }
-        super.sizeChanged(newWidth, newHeight, force);
+        super.sizeChanged(defer, newWidth, newHeight, force);
     }
 
     private long   eglWindowHandle;

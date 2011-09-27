@@ -109,7 +109,7 @@ public class Window extends jogamp.newt.WindowImpl {
             if(0 != ( FLAG_IS_VISIBLE & flags)) {
                 ((Display)getScreen().getDisplay()).setFocus(this);
             }
-            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));
+            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
         }
         
         return true;

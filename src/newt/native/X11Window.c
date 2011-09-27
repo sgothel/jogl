@@ -504,13 +504,13 @@ static Status NewtWindows_updateInsets(JNIEnv *env, jobject jwindow, Display *dp
     if(0 != NewtWindows_getFrameExtends(dpy, window, left, right, top, bottom)) {
         DBG_PRINT( "NewtWindows_updateInsets: insets by _NET_FRAME_EXTENTS [ l %d, r %d, t %d, b %d ]\n",
             *left, *right, *top, *bottom);
-        (*env)->CallVoidMethod(env, jwindow, insetsChangedID, *left, *right, *top, *bottom);
+        (*env)->CallVoidMethod(env, jwindow, insetsChangedID, JNI_FALSE, *left, *right, *top, *bottom);
         return 1; // OK
     } else if(0 != NewtWindows_getParentPosition (dpy, window, left, top)) {
         *right = *left; *bottom = *left;
         DBG_PRINT( "NewtWindows_updateInsets: insets by parent position [ l %d, r %d, t %d, b %d ]\n",
             *left, *right, *top, *bottom);
-        (*env)->CallVoidMethod(env, jwindow, insetsChangedID, *left, *right, *top, *bottom);
+        (*env)->CallVoidMethod(env, jwindow, insetsChangedID, JNI_FALSE, *left, *right, *top, *bottom);
         return 1; // OK
     }
     return 0; // Error
@@ -886,9 +886,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
                         int left, right, top, bottom;
                         NewtWindows_updateInsets(env, jwindow, dpy, evt.xany.window, &left, &right, &top, &bottom);
                     }
-                    (*env)->CallVoidMethod(env, jwindow, sizeChangedID, 
+                    (*env)->CallVoidMethod(env, jwindow, sizeChangedID, JNI_FALSE,
                                             (jint) evt.xconfigure.width, (jint) evt.xconfigure.height, JNI_FALSE);
-                    (*env)->CallVoidMethod(env, jwindow, positionChangedID, 
+                    (*env)->CallVoidMethod(env, jwindow, positionChangedID, JNI_FALSE,
                                             (jint) evt.xconfigure.x, (jint) evt.xconfigure.y);
                 }
                 break;
@@ -904,12 +904,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
 
             case FocusIn:
                 DBG_PRINT( "X11: event . FocusIn call %p\n", (void*)evt.xvisibility.window);
-                (*env)->CallVoidMethod(env, jwindow, focusChangedID, JNI_TRUE);
+                (*env)->CallVoidMethod(env, jwindow, focusChangedID, JNI_FALSE, JNI_TRUE);
                 break;
 
             case FocusOut:
                 DBG_PRINT( "X11: event . FocusOut call %p\n", (void*)evt.xvisibility.window);
-                (*env)->CallVoidMethod(env, jwindow, focusChangedID, JNI_FALSE);
+                (*env)->CallVoidMethod(env, jwindow, focusChangedID, JNI_FALSE, JNI_FALSE);
                 break;
 
             case Expose:
@@ -917,7 +917,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
                     evt.xexpose.x, evt.xexpose.y, evt.xexpose.width, evt.xexpose.height, evt.xexpose.count);
 
                 if (evt.xexpose.count == 0 && evt.xexpose.width > 0 && evt.xexpose.height > 0) {
-                    (*env)->CallVoidMethod(env, jwindow, windowRepaintID, 
+                    (*env)->CallVoidMethod(env, jwindow, windowRepaintID, JNI_FALSE,
                         evt.xexpose.x, evt.xexpose.y, evt.xexpose.width, evt.xexpose.height);
                 }
                 break;
@@ -933,7 +933,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
                         int left, right, top, bottom;
                         NewtWindows_updateInsets(env, jwindow, dpy, evt.xany.window, &left, &right, &top, &bottom);
                     }
-                    (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_TRUE);
+                    (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_FALSE, JNI_TRUE);
                 }
                 break;
 
@@ -943,7 +943,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
                     evt.xunmap.event!=evt.xunmap.window);
                 if( evt.xunmap.event == evt.xunmap.window ) {
                     // ignore child window notification
-                    (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_FALSE);
+                    (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_FALSE, JNI_FALSE);
                 }
                 break;
 
@@ -1437,14 +1437,14 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Screen_setCurrentScree
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_initIDs0
   (JNIEnv *env, jclass clazz)
 {
-    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(IIII)V");
-    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(IIZ)V");
-    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
-    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(Z)V");
-    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
+    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
+    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
+    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZII)V");
+    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
+    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     reparentNotifyID = (*env)->GetMethodID(env, clazz, "reparentNotify", "(J)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
-    windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(IIII)V");
+    windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZIIIC)V");
@@ -1638,7 +1638,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
 
         // send insets before visibility, allowing java code a proper sync point!
         NewtWindows_updateInsets(env, jwindow, dpy, window, &left, &right, &top, &bottom);
-        (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_TRUE);
+        (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_FALSE, JNI_TRUE);
 
         if(!userPos) {
             // get position from WM

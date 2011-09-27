@@ -172,7 +172,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
             return false;
         }
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));            
+            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));            
         }
         return true;
     }
@@ -219,7 +219,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         Log.d(MD.TAG, "surfaceCreated - 0 - isValid: "+surface.isValid()+
                     ", surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
                     ", "+nsv.getWidth()+"x"+nsv.getHeight());
-        sizeChanged(width, height, false);
+        sizeChanged(false, width, height, false);
         windowRepaint(0, 0, nsv.getWidth(), nsv.getHeight());
     }
 
@@ -227,7 +227,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
             int height) {
         Log.d(MD.TAG, "surfaceChanged: f "+Integer.toString(format)+", "+width+"x"+height);
         getScreen().getCurrentScreenMode(); // if ScreenMode changed .. trigger ScreenMode event
-        sizeChanged(width, height, false);
+        sizeChanged(false, width, height, false);
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {

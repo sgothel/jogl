@@ -209,7 +209,7 @@ public class AWTWindow extends WindowImpl {
                     }
                 }
             }
-            visibleChanged(0 != ( FLAG_IS_VISIBLE & flags));
+            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
         }
         
         return true;
