@@ -28,10 +28,11 @@
 
 package javax.media.nativewindow;
 
+import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 public abstract class ProxySurface implements NativeSurface {
-    protected RecursiveLock surfaceLock = new RecursiveLock();
+    protected RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
     protected AbstractGraphicsConfiguration config;
     protected long displayHandle;
     protected int height;
@@ -86,7 +87,7 @@ public abstract class ProxySurface implements NativeSurface {
 
     public int lockSurface() throws NativeWindowException {
         surfaceLock.lock();
-        int res = surfaceLock.getRecursionCount() == 0 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS;
+        int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
 
         if ( LOCK_SURFACE_NOT_READY == res ) {
             try {
@@ -111,7 +112,7 @@ public abstract class ProxySurface implements NativeSurface {
     public final void unlockSurface() {
         surfaceLock.validateLocked();
 
-        if (surfaceLock.getRecursionCount() == 0) {
+        if (surfaceLock.getHoldCount() == 1) {
             final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
             try {
                 unlockSurfaceImpl();
@@ -140,10 +141,6 @@ public abstract class ProxySurface implements NativeSurface {
 
     public final Thread getSurfaceLockOwner() {
         return surfaceLock.getOwner();
-    }
-
-    public final int getSurfaceRecursionCount() {
-        return surfaceLock.getRecursionCount();
     }
 
     public abstract String toString();

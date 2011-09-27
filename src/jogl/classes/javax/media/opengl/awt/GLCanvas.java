@@ -90,6 +90,7 @@ import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.opengl.JoglVersion;
 
+import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
@@ -134,6 +135,7 @@ import jogamp.opengl.ThreadingImpl;
  * </ul>
  */
 
+@SuppressWarnings("serial")
 public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosingProtocol {
 
   private static final boolean DEBUG;
@@ -498,7 +500,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
   }
 
-  RecursiveLock drawableSync = new RecursiveLock();
+  RecursiveLock drawableSync = LockFactory.createRecursiveLock();
 
   /** Overridden to track when this component is added to a container.
       Subclasses which override this method must call
@@ -507,6 +509,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
       <B>Overrides:</B>
       <DL><DD><CODE>addNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
+    @SuppressWarnings("deprecation")
     @Override
   public void addNotify() {
     if(DEBUG) {
@@ -593,6 +596,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       about this.</p>
       <B>Overrides:</B>
       <DL><DD><CODE>removeNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
+    @SuppressWarnings("deprecation")
     @Override
   public void removeNotify() {
     if(DEBUG) {
@@ -628,6 +632,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
       <B>Overrides:</B>
       <DL><DD><CODE>reshape</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
+    @SuppressWarnings("deprecation")
     @Override
   public void reshape(int x, int y, int width, int height) {
     super.reshape(x, y, width, height);
@@ -935,10 +940,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private void disableBackgroundErase() {
     if (!disableBackgroundEraseInitialized) {
       try {
-        AccessController.doPrivileged(new PrivilegedAction() {
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
               try {
-                Class clazz = getToolkit().getClass();
+                Class<?> clazz = getToolkit().getClass();
                 while (clazz != null && disableBackgroundEraseMethod == null) {
                   try {
                     disableBackgroundEraseMethod =
@@ -1006,7 +1011,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                                                                                                              chooser, aScreen);
     } else {
         try {
-            final ArrayList bucket = new ArrayList(1);
+            final ArrayList<AWTGraphicsConfiguration> bucket = new ArrayList<AWTGraphicsConfiguration>(1);
             EventQueue.invokeAndWait(new Runnable() {
                 public void run() {
                     AWTGraphicsConfiguration c = (AWTGraphicsConfiguration)
@@ -1016,7 +1021,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                     bucket.add(c);
                 }
             });
-            config = ( bucket.size() > 0 ) ? (AWTGraphicsConfiguration)bucket.get(0) : null ;
+            config = ( bucket.size() > 0 ) ? bucket.get(0) : null ;
         } catch (InvocationTargetException e) {
             throw new GLException(e.getTargetException());
         } catch (InterruptedException e) {
@@ -1042,7 +1047,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
     GLProfile.initSingleton(false);
     GLDrawableFactory factory = GLDrawableFactory.getDesktopFactory();
-    List/*<GLCapabilitiesImmutable>*/ availCaps = factory.getAvailableCapabilities(null);
+    List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(null);
     for(int i=0; i<availCaps.size(); i++) {
         System.err.println(availCaps.get(i));
     }

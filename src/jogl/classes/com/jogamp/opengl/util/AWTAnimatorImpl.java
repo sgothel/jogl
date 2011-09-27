@@ -54,21 +54,21 @@ import javax.media.opengl.GLAutoDrawable;
 class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
     // For efficient rendering of Swing components, in particular when
     // they overlap one another
-    private List lightweights    = new ArrayList();
-    private Map  repaintManagers = new IdentityHashMap();
-    private Map  dirtyRegions    = new IdentityHashMap();
+    private List<JComponent> lightweights    = new ArrayList<JComponent>();
+    private Map<RepaintManager,RepaintManager> repaintManagers = new IdentityHashMap<RepaintManager,RepaintManager>();
+    private Map<JComponent,Rectangle>  dirtyRegions    = new IdentityHashMap<JComponent,Rectangle>();
 
-    public void display(ArrayList drawables,
+    public void display(ArrayList<GLAutoDrawable> drawables,
                         boolean ignoreExceptions,
                         boolean printExceptions) {
         for (int i=0; i<drawables.size(); i++) {
-            GLAutoDrawable drawable = (GLAutoDrawable) drawables.get(i);
+            GLAutoDrawable drawable = drawables.get(i);
             if (drawable instanceof JComponent) {
                 // Lightweight components need a more efficient drawing
                 // scheme than simply forcing repainting of each one in
                 // turn since drawing one can force another one to be
                 // drawn in turn
-                lightweights.add(drawable);
+                lightweights.add((JComponent)drawable);
             } else {
                 try {
                     drawable.display();
@@ -98,8 +98,8 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
     // the Swing widgets we're animating
     private Runnable drawWithRepaintManagerRunnable = new Runnable() {
             public void run() {
-                for (Iterator iter = lightweights.iterator(); iter.hasNext(); ) {
-                    JComponent comp = (JComponent) iter.next();
+                for (Iterator<JComponent> iter = lightweights.iterator(); iter.hasNext(); ) {
+                    JComponent comp = iter.next();
                     RepaintManager rm = RepaintManager.currentManager(comp);
                     rm.markCompletelyDirty(comp);
                     repaintManagers.put(rm, rm);
@@ -148,16 +148,16 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
                 }
 
                 // Dirty any needed regions on non-optimizable components
-                for (Iterator iter = dirtyRegions.keySet().iterator(); iter.hasNext(); ) {
-                    JComponent comp = (JComponent) iter.next();
-                    Rectangle  rect = (Rectangle) dirtyRegions.get(comp);
+                for (Iterator<JComponent> iter = dirtyRegions.keySet().iterator(); iter.hasNext(); ) {
+                    JComponent comp = iter.next();
+                    Rectangle  rect = dirtyRegions.get(comp);
                     RepaintManager rm = RepaintManager.currentManager(comp);
                     rm.addDirtyRegion(comp, rect.x, rect.y, rect.width, rect.height);
                 }
 
                 // Draw all dirty regions
-                for (Iterator iter = repaintManagers.keySet().iterator(); iter.hasNext(); ) {
-                    ((RepaintManager) iter.next()).paintDirtyRegions();
+                for (Iterator<RepaintManager> iter = repaintManagers.keySet().iterator(); iter.hasNext(); ) {
+                    iter.next().paintDirtyRegions();
                 }
                 dirtyRegions.clear();
                 repaintManagers.clear();

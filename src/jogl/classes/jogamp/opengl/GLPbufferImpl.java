@@ -40,6 +40,7 @@
 
 package jogamp.opengl;
 
+import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GL;
@@ -255,7 +256,7 @@ public class GLPbufferImpl implements GLPbuffer {
     return pbufferDrawable.getGLProfile();
   }
 
-  private RecursiveLock recurLock = new RecursiveLock();
+  private RecursiveLock recurLock = LockFactory.createRecursiveLock();
 
   public int lockSurface() throws GLException {
     recurLock.lock();
@@ -268,10 +269,6 @@ public class GLPbufferImpl implements GLPbuffer {
 
   public boolean isSurfaceLocked() {
     return recurLock.isLocked();
-  }
-
-  public Throwable getLockedStack() {
-    return recurLock.getLockedStack();
   }
 
   public int getFloatingPointMode() {

@@ -41,11 +41,11 @@ import javax.media.opengl.GLAutoDrawable;
     up this behavior if desired. */
 
 class DefaultAnimatorImpl implements AnimatorBase.AnimatorImpl {
-    public void display(ArrayList drawables,
+    public void display(ArrayList<GLAutoDrawable> drawables,
                         boolean ignoreExceptions,
                         boolean printExceptions) {
         for (int i=0; i<drawables.size(); i++) {
-            GLAutoDrawable drawable = (GLAutoDrawable) drawables.get(i);
+            GLAutoDrawable drawable = drawables.get(i);
             try {
                 drawable.display();
             } catch (RuntimeException e) {

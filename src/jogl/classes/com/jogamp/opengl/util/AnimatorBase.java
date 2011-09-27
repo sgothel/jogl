@@ -28,6 +28,7 @@
 
 package com.jogamp.opengl.util;
 
+import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import jogamp.opengl.Debug;
 import jogamp.opengl.FPSCounterImpl;
@@ -35,7 +36,6 @@ import jogamp.opengl.FPSCounterImpl;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
-import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLProfile;
@@ -55,11 +55,11 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     private static int animatorCount = 0;
 
     public interface AnimatorImpl {
-        void display(ArrayList drawables, boolean ignoreExceptions, boolean printExceptions);
+        void display(ArrayList<GLAutoDrawable> drawables, boolean ignoreExceptions, boolean printExceptions);
         boolean skipWaitForCompletion(Thread thread);
     }
 
-    protected ArrayList/*<GLAutoDrawable>*/ drawables = new ArrayList();
+    protected ArrayList<GLAutoDrawable> drawables = new ArrayList<GLAutoDrawable>();
     protected boolean drawablesEmpty;
     protected AnimatorImpl impl;
     protected String baseName;
@@ -67,7 +67,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     protected boolean ignoreExceptions;
     protected boolean printExceptions;
     protected FPSCounterImpl fpsCounter = new FPSCounterImpl();    
-    protected RecursiveLock stateSync = new RecursiveLock();
+    protected RecursiveLock stateSync = LockFactory.createRecursiveLock();
 
     /** Creates a new, empty Animator. */
     public AnimatorBase() {

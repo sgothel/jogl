@@ -37,6 +37,7 @@
 
 package jogamp.nativewindow.jawt;
 
+import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 import java.awt.Component;
@@ -112,13 +113,13 @@ public abstract class JAWTWindow implements NativeWindow {
   // NativeSurface
   //
 
-  private RecursiveLock surfaceLock = new RecursiveLock();
+  private RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
 
   protected abstract int lockSurfaceImpl() throws NativeWindowException;
 
   public final int lockSurface() throws NativeWindowException {
     surfaceLock.lock();
-    int res = surfaceLock.getRecursionCount() == 0 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS;
+    int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
 
     if ( LOCK_SURFACE_NOT_READY == res ) {
         try {
@@ -145,7 +146,7 @@ public abstract class JAWTWindow implements NativeWindow {
   public final void unlockSurface() {
     surfaceLock.validateLocked();
 
-    if (surfaceLock.getRecursionCount() == 0) {
+    if (surfaceLock.getHoldCount() == 1) {
         final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
         try {
             unlockSurfaceImpl();
