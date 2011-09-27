@@ -179,8 +179,7 @@
         </junit>
     </target>
 
-    <!-- NEWT is currently not supported on OSX -->
-    <target name="junit.run.newt.headless" depends="test.compile" unless="isOSX">
+    <target name="junit.run.newt.headless" depends="test.compile">
         <!-- Test*NEWT* 
 
              Emulation of junit task,
@@ -246,7 +245,7 @@
          if run in parallel.
          NEWT is currently not supported on OSX 
       -->
-    <target name="junit.run.newt" depends="test.compile" unless="isOSX">
+    <target name="junit.run.newt" depends="test.compile">
         <!-- Test*NEWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
@@ -437,7 +436,7 @@
     </target>
 
     <!-- NEWT is currently not supported on OSX -->
-    <target name="junit.run.newt.awt" depends="test.compile" unless="isOSX">
+    <target name="junit.run.newt.awt" depends="test.compile">
         <!-- Test*AWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
