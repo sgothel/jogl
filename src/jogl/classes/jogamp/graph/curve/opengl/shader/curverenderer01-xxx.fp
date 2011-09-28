@@ -27,7 +27,7 @@ void main (void)
         //    size = 1.0/textureSize(gcu_TextureUnit,0);
         //#endif
         rtex -= 5.0;
-        vec4 t = texture2D(gcu_TextureUnit, rtex)* 0.18;
+        GRAPHP vec4 t = texture2D(gcu_TextureUnit, rtex)* 0.18;
 
         t += texture2D(gcu_TextureUnit, rtex + size*(vec2(1, 0)))*tex_weights.x;
         t += texture2D(gcu_TextureUnit, rtex - size*(vec2(1, 0)))*tex_weights.x;

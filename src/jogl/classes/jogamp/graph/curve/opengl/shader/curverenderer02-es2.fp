@@ -3,7 +3,8 @@
 #version 100
 
 // we require dFdx/dFdy
-#extension OES_standard_derivatives : require
+// #extension OES_standard_derivatives : require
+#extension GL_OES_standard_derivatives : enable
 
 #include curverenderer02-xxx.fp
 

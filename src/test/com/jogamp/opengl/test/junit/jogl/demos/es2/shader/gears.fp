@@ -33,14 +33,14 @@ void main()
     MEDIUMP vec4 diffuse = color * lambertTerm *  attenuation * matDiffuse;
     MEDIUMP vec4 specular = vec4(0.0);
     if (lambertTerm > 0.0) {
-        float NdotHV;
+        MEDIUMP float NdotHV;
         /*
         MEDIUMP vec3 halfDir;        
         halfDir  = normalize (lightDir + cameraDir); 
         NdotHV   = max(0.0, dot(normal, halfDir));
         */      
-        vec3 E = normalize(-position.xyz);  
-        vec3 R = reflect(-lightDir, normal);
+        MEDIUMP vec3 E = normalize(-position.xyz);  
+        MEDIUMP vec3 R = reflect(-lightDir, normal);
         NdotHV   = max(0.0, dot(R, E));
         
         specular += color * pow(NdotHV, matShininess) * attenuation * matSpecular;
