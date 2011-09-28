@@ -45,8 +45,6 @@ import jogamp.opengl.DesktopGLDynamicLookupHelper;
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.IOUtil;
-import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.cache.TempJarCache;
@@ -57,7 +55,6 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 
-import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
@@ -990,6 +987,7 @@ public class GLProfile {
                     }
                     return false;
             }
+            /** unable to validate .. could be any valid type/component combination
             switch(comps) {
                 case 0:
                 case 1:
@@ -999,10 +997,10 @@ public class GLProfile {
                     break;
                 default: 
                     if(throwException) {
-                        throw new GLException("Illegal component number for "+arrayName+" on profile GLES1: "+comps);
+                        throw new GLException("Illegal component number for "+arrayName+" on profile GLES2: "+comps);
                     }
                     return false;
-            }
+            } */
         } else if( isGL2ES2() ) {
             if(isVertexAttribPointer) {
                 switch(type) {
