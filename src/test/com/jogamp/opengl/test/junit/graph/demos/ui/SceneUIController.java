@@ -80,9 +80,11 @@ public class SceneUIController implements GLEventListener{
     }
     
     public void init(GLAutoDrawable drawable) {
+        System.err.println("SceneUIController: init");
         cDrawable = drawable;
     }
     public void display(GLAutoDrawable drawable) {
+        // System.err.println("SceneUIController: display");
         final int width = drawable.getWidth();
         final int height = drawable.getHeight();
         GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -91,11 +93,13 @@ public class SceneUIController implements GLEventListener{
     }
    
     public void dispose(GLAutoDrawable drawable) {
-        
+        System.err.println("SceneUIController: dispose");
+        cDrawable = null;
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width,
             int height) {
+        System.err.println("SceneUIController: reshape");
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         renderer.reshapePerspective(gl, 45.0f, width, height, 5f, 70.0f);        
     }
@@ -206,6 +210,9 @@ public class SceneUIController implements GLEventListener{
         }
 
         public void mousePressed(MouseEvent e) {
+            if(null==cDrawable) {
+                return;
+            }
             mouseX = e.getX();
             mouseY = e.getY();
             

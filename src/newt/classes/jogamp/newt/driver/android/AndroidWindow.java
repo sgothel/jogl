@@ -46,6 +46,7 @@ import jogamp.opengl.egl.EGLGraphicsConfiguration;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback2;
@@ -80,16 +81,29 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         return PixelFormat.RGBA_8888;                       
     }
     
+    class AndroidEvents implements /* View.OnKeyListener, */ View.OnTouchListener {
+
+        public boolean onTouch(View v, MotionEvent event) {
+            MouseEvent[] newtEvents = AndroidNewtEventFactory.createMouseEvents(AndroidWindow.this, event);
+            if(null != newtEvents) {
+                for(int i=0; i<newtEvents.length; i++) {
+                    AndroidWindow.this.enqueueEvent(false, newtEvents[i]);
+                }
+            }
+            return true;
+        }
+
+        /** TODO
+        public boolean onKey(View v, int keyCode, KeyEvent event) {
+            return false;
+        } */
+    }
     public AndroidWindow() {
         nsv = new MSurfaceView(jogamp.common.os.android.StaticContext.getContext());
-        nsv.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, android.view.MotionEvent aEvent) {
-                MouseEvent newtEvent = AndroidNewtEventFactory.createMouseEvent(aEvent, AndroidWindow.this);
-                AndroidWindow.this.enqueueEvent(false, newtEvent);
-                return true;
-            }
-            
-        });
+        AndroidEvents ae = new AndroidEvents();
+        nsv.setOnTouchListener(ae);
+        nsv.setClickable(false);
+        // nsv.setOnKeyListener(ae);
         SurfaceHolder sh = nsv.getHolder();
         sh.setFormat(getPixelFormat());
         sh.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
@@ -105,6 +119,8 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     }
 
     protected void createNativeImpl() {
+        Log.d(MD.TAG, "createNativeImpl 0 - surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
+                    ", "+x+"/"+y+" "+width+"x"+height);
         if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("Window parenting not supported (yet)");
         }
@@ -136,6 +152,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         // propagate data ..
         config = eglConfig;
         setWindowHandle(surfaceHandle);
+        Log.d(MD.TAG, "createNativeImpl X");
     }
 
     @Override
@@ -219,8 +236,16 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         Log.d(MD.TAG, "surfaceCreated - 0 - isValid: "+surface.isValid()+
                     ", surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
                     ", "+nsv.getWidth()+"x"+nsv.getHeight());
-        sizeChanged(false, width, height, false);
+        
+        positionChanged(false, 0, 0);
+        sizeChanged(false, nsv.getWidth(), nsv.getHeight(), false);                
         windowRepaint(0, 0, nsv.getWidth(), nsv.getHeight());
+
+        if(isVisible()) {
+           setVisible(true); 
+        }
+        
+        Log.d(MD.TAG, "surfaceCreated - X");    
     }
 
     public void surfaceChanged(SurfaceHolder holder, int format, int width,

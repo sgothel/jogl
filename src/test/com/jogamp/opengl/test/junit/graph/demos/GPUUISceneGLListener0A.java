@@ -178,8 +178,11 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
     public void init(GLAutoDrawable drawable) {
         if(drawable instanceof GLWindow) {
+            System.err.println("GPUUISceneGLListener0A: init (1)");
             final GLWindow glw = (GLWindow) drawable;
             attachInputListenerTo(glw);
+        } else {
+            System.err.println("GPUUISceneGLListener0A: init (0)");            
         }
         final int width = drawable.getWidth();
         final int height = drawable.getHeight();
@@ -225,8 +228,11 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
     public void dispose(GLAutoDrawable drawable) {
         if(drawable instanceof GLWindow) {
+            System.err.println("GPUUISceneGLListener0A: dispose (1)");
             final GLWindow glw = (GLWindow) drawable;
             detachInputListenerFrom(glw);
+        } else {
+            System.err.println("GPUUISceneGLListener0A: dispose (0)");            
         }
         
         GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -235,6 +241,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     }
 
     public void display(GLAutoDrawable drawable) {
+        // System.err.println("GPUUISceneGLListener0A: display");
         final int width = drawable.getWidth();
         final int height = drawable.getHeight();
         GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -308,6 +315,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     }
     
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+        System.err.println("GPUUISceneGLListener0A: reshape");
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         
         gl.glViewport(x, y, width, height);        
@@ -333,8 +341,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     }
     
     private class MultiTouchListener extends MouseAdapter {
-        int lx = 0;
-        int ly = 0;
+        int lv = 0;
         
         boolean first = false;
         
@@ -350,22 +357,33 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            if(first) {
-                lx = e.getX();
-                ly = e.getY();
-                first=false;
-                return;
-            }
-            int dx = lx - e.getX();
-            int dy = e.getY() - ly;
-            if(Math.abs(dx) < Math.abs(dy)) {
-                zoom += Math.signum(dy);
+            System.err.println("demo:mousedragged "+e);
+            if(e.getPointerCount()==2) {
+                // 2 finger zoom ..
+                if(first) {
+                    lv = Math.abs(e.getY(0)-e.getY(1));
+                    first=false;
+                    return;
+                }
+                int nv = Math.abs(e.getY(0)-e.getY(1));
+                int dy = nv - lv;
+                
+                zoom += 2 * Math.signum(dy);
+                
+                lv = nv;
             } else {
+                // 1 finger drag
+                if(first) {
+                    lv = e.getX();
+                    first=false;
+                    return;
+                }
+                int nv = e.getX();
+                int dx = nv - lv;                
                 xTran += Math.signum(dx);
+                
+                lv = nv;
             }
-            
-            lx = e.getX();
-            ly = e.getY();
         }
     }
 }      

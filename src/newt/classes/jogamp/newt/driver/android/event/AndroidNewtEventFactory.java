@@ -29,11 +29,15 @@
 package jogamp.newt.driver.android.event;
 
 import com.jogamp.common.util.IntIntHashMap;
+import com.jogamp.newt.Window;
 
 public class AndroidNewtEventFactory {
 
     protected static final IntIntHashMap eventTypeANDROID2NEWT;
 
+    private static final String names[] = { "DOWN" , "UP" , "MOVE" , "CANCEL" , "OUTSIDE" ,
+                                            "POINTER_DOWN" , "POINTER_UP" , "7?" , "8?" , "9?" };
+    
     static {
         IntIntHashMap map = new IntIntHashMap();
         map.setKeyNotFoundValue(0xFFFFFFFF);
@@ -128,7 +132,10 @@ public class AndroidNewtEventFactory {
         return null;
     }
 
-    public static final com.jogamp.newt.event.MouseEvent createMouseEvent(android.view.MotionEvent event, com.jogamp.newt.Window newtSource) {
+    public static final com.jogamp.newt.event.MouseEvent[] createMouseEvents(com.jogamp.newt.Window newtSource, android.view.MotionEvent event) {
+        if(Window.DEBUG_MOUSE_EVENT) {
+            System.err.println("createMouseEvent: "+toString(event));
+        }
         int type = eventTypeANDROID2NEWT.get(event.getAction());
         if(0xFFFFFFFF != type) {
             int rotation = 0;
@@ -148,13 +155,59 @@ public class AndroidNewtEventFactory {
                 index++;
             }
 
-            return new com.jogamp.newt.event.MouseEvent(
-                           type, (null==newtSource)?null:(Object)newtSource, event.getEventTime(),
+            com.jogamp.newt.event.MouseEvent res[];
+
+            com.jogamp.newt.event.MouseEvent me1 = 
+                    new com.jogamp.newt.event.MouseEvent(
+                           type, 
+                           (null==newtSource)?null:(Object)newtSource, event.getEventTime(),
                                    modifiers , 
                            x, y, pressure, pointers, clickCount, 
                            0, rotation);
+            
+            if(type == com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED) {
+                com.jogamp.newt.event.MouseEvent me2 =
+                    new com.jogamp.newt.event.MouseEvent(
+                           com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_CLICKED, 
+                           (null==newtSource)?null:(Object)newtSource, event.getEventTime(),
+                                   modifiers , 
+                           x, y, pressure, pointers, clickCount, 
+                           0, rotation);
+                res = new com.jogamp.newt.event.MouseEvent[2];
+                res[0] = me1;
+                res[1] = me2;
+            } else {
+                res = new com.jogamp.newt.event.MouseEvent[1];
+                res[0] = me1;                
+            }
+            return res;
         } 
         return null; // no mapping ..
     }
+    
+    
+    public static String toString(android.view.MotionEvent event) {
+        StringBuilder sb = new StringBuilder();
+        int action = event.getAction();
+        int actionCode = action & android.view.MotionEvent.ACTION_MASK;
+        sb.append("ACTION_" ).append(names[actionCode]);
+        if (actionCode == android.view.MotionEvent.ACTION_POINTER_DOWN
+                || actionCode == android.view.MotionEvent.ACTION_POINTER_UP) {
+            sb.append("(pid " ).append(
+                    action >> android.view.MotionEvent.ACTION_POINTER_ID_SHIFT);
+            sb.append(")" );
+        }
+        sb.append("[" );
+        for (int i = 0; i < event.getPointerCount(); i++) {
+            sb.append("#" ).append(i);
+            sb.append("(pid " ).append(event.getPointerId(i));
+            sb.append(")=" ).append((int) event.getX(i));
+            sb.append("," ).append((int) event.getY(i));
+            if (i + 1 < event.getPointerCount())
+                sb.append(";" );
+        }
+        sb.append("]" );
+        return sb.toString();
+    }    
 }
 

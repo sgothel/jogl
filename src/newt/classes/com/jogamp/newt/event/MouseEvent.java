@@ -69,6 +69,11 @@ public class MouseEvent extends InputEvent
         super(eventType, source, when, modifiers); 
         this.x = x;
         this.y = y;
+        if(pointerids.length != pressure.length ||
+           pointerids.length != x.length ||
+           pointerids.length != y.length) {
+            throw new IllegalArgumentException("All multiple pointer arrays must be of same size");
+        }
         this.pressure = pressure;
         this.pointerids = pointerids;
         this.clickCount=clickCount;
@@ -138,10 +143,25 @@ public class MouseEvent extends InputEvent
     }
 
     public String toString() {
-        return "MouseEvent["+getEventTypeString(getEventType())+
-        ", "+x+"/"+y+", button "+button+", count "+clickCount+
-        ", wheel rotation "+wheelRotation+
-        ", "+super.toString()+"]";
+        StringBuffer sb = new StringBuffer();
+        sb.append("MouseEvent[").append(getEventTypeString(getEventType()))
+        .append(", ").append(x).append("/").append(y)
+        .append(", button ").append(button).append(", count ")
+        .append(clickCount).append(", wheel rotation ").append(wheelRotation);
+        if(pointerids.length>0) {
+            sb.append(", pointer<").append(pointerids.length).append(">[");
+            for(int i=0; i<pointerids.length; i++) {
+                if(i>0) {
+                    sb.append(", ");
+                }
+                sb.append(pointerids[i]).append(": ")
+                .append(x[i]).append(" / ").append(y[i]).append(" ")
+                .append(pressure[i]).append("p");
+            }
+            sb.append("]");
+        }        
+        sb.append(", ").append(super.toString()).append("]");
+        return sb.toString();
     }
 
     public static String getEventTypeString(int type) {
