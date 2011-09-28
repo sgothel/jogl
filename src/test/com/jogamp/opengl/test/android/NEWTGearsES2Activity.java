@@ -25,92 +25,79 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.android.launcher;
+package com.jogamp.opengl.test.android;
 
-import java.lang.reflect.Method;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLProfile;
 
-import dalvik.system.DexClassLoader;
-import dalvik.system.PathClassLoader;
+import jogamp.newt.driver.android.NewtBaseActivity;
 
-import android.app.Activity;
-import android.content.pm.PackageManager;
+import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.event.ScreenModeListener;
+import com.jogamp.newt.opengl.GLWindow;
+
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.util.Animator;
+
 import android.os.Bundle;
-import android.widget.TextView;
 import android.util.Log;
+import android.widget.TextView;
 
-public class NEWTLauncherVersionActivity extends Activity {
-   static final String TAG = "JoglLauncherActivity";
+public class NEWTGearsES2Activity extends NewtBaseActivity {
+   GLWindow glWindow = null;
+   Animator animator = null;
    TextView tv = null;
+   static String TAG = "NEWTGearsES2Activity";
    
    @Override
    public void onCreate(Bundle savedInstanceState) {
-       Log.d(TAG, "onCreate - S");
+       Log.d(TAG, "onCreate - 0");
        super.onCreate(savedInstanceState);
        
-       String clazzMDName= "jogamp.newt.driver.android.MD";
-       String mdInfo = null;
+       // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
+       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
+       Log.d(TAG, "req caps: "+caps);
+       glWindow = GLWindow.create(caps);
+       setContentView(glWindow);
        
-       ClassLoader cl = ClassLoaderUtil.createJogampClassLoaderSingleton(this, true);
-       if(null != cl) {
-           try {
-               Class clazzMD= Class.forName(clazzMDName, true, cl);
-               Log.d(TAG, "MD: "+clazzMD);
-               Method mdGetInfo = clazzMD.getMethod("getInfo");
-               mdInfo = (String) mdGetInfo.invoke(null);
-           } catch (Exception e) {
-               Log.d(TAG, "error: "+e, e);
-           }
-       }
-
-       tv = new TextView(this);
-       if(null != mdInfo) {
-           tv.setText(mdInfo);
-       } else {
-           tv.setText("mdInfo n/a");
-       }
-       setContentView(tv);
+       glWindow.addGLEventListener(new GearsES2(1));
+       glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {
+        public void screenModeChangeNotify(ScreenMode sm) { }
+        public void screenModeChanged(ScreenMode sm, boolean success) {
+            System.err.println("ScreenMode Changed: "+sm);
+        }
+       });
+       glWindow.setVisible(true);
+       animator = new Animator(glWindow);
+       animator.setUpdateFPSFrames(60, System.err);
+       
        Log.d(TAG, "onCreate - X");
    }
    
    @Override
-   public void onStart() {
-     Log.d(TAG, "onStart - S");
-     super.onStart();
-     Log.d(TAG, "onStart - X");
-   }
-     
-   @Override
-   public void onRestart() {
-     Log.d(TAG, "onRestart - S");
-     super.onRestart();
-     Log.d(TAG, "onRestart - X");
-   }
-
-   @Override
    public void onResume() {
-     Log.d(TAG, "onResume - S");
      super.onResume();
-     Log.d(TAG, "onResume - X");
+     if(null != animator) {
+         animator.start();
+     }
    }
 
    @Override
    public void onPause() {
-     Log.d(TAG, "onPause - S");
      super.onPause();
-     Log.d(TAG, "onPause - X");
-   }
-
-   @Override
-   public void onStop() {
-     Log.d(TAG, "onStop - S");
-     super.onStop();  
-     Log.d(TAG, "onStop - X");
+     if(null != animator) {
+         animator.pause();
+     }
    }
 
    @Override
    public void onDestroy() {
-     Log.d(TAG, "onDestroy - S");
-     super.onDestroy();  
-     Log.d(TAG, "onDestroy - X");
+     super.onDestroy(); 
+     if(null != animator) {
+         animator.stop();
+     }
+     if(null != glWindow) {
+         glWindow.destroy();
+     }
    }   
 }

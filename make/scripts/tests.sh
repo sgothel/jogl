@@ -57,10 +57,6 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.X11Util.TraceDisplayLifecycle=true -Dnativewindow.debug.X11Util"
     #D_ARGS="-Dnativewindow.debug.X11Util -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug.X11Util"
-    #D_ARGS="-Dnativewindow.x11.mt-bug=true"
-    #D_ARGS="-Dnativewindow.x11.mt-bug=true -Djogl.debug.DebugGL"
-    #D_ARGS="-Dnativewindow.x11.mt-bug=true -Djogl.debug=all"
-    #D_ARGS="-Dnativewindow.x11.mt-bug=true -Dnativewindow.debug.NativeWindow -Dnativewindow.debug.X11Util -Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.X11Util.TraceDisplayLifecycle=true"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=1000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
     #D_ARGS="-Dnewt.debug.EDT -Djogamp.common.utils.locks.Lock.timeout=600000 -Djogl.debug.Animator -Dnewt.debug.Display -Dnewt.debug.Screen"
@@ -73,10 +69,10 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
-    #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
+    D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
-    D_ARGS="-Dnewt.debug.Window"
+    #D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Xprof"
     #D_ARGS="-Djogl.debug.Animator"
     #D_ARGS="-Dnativewindow.debug=all"
@@ -224,7 +220,7 @@ function testawtmt() {
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
-testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03bAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03bAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleNEWT $*
@@ -250,7 +246,7 @@ testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03bAWT $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo02 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo02 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo01 $*
+testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo01 $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT $*

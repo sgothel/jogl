@@ -6,30 +6,43 @@
     <uses-sdk android:minSdkVersion="9" />
     <uses-library android:name="com.jogamp.common" android:required="true" />
     <uses-library android:name="javax.media.opengl" android:required="true" />
+    <uses-library android:name="com.jogamp.opengl.test" android:required="true" />
 
     <application android:icon="@drawable/icon" 
                  android:label="@string/app_name"
                  android:description="@string/app_descr"
                  android:persistent="false"
                  >
-        <activity android:name="com.jogamp.android.launcher.NEWTLauncherVersionActivity"
+        <activity android:name="com.jogamp.android.launcher.NEWTLauncherGearsES1Activity"
                   android:finishOnTaskLaunch="true"
                   android:launchMode="singleTop"
                   android:configChanges="keyboardHidden|orientation"
-                  android:label="@string/activity_v_name"
-                  android:description="@string/activity_v_descr"
+                  android:label="@string/activity_gearses1_name"
+                  android:description="@string/activity_gearses1_descr"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.jogamp.android.launcher.NEWTLauncherGearsActivity"
+        <activity android:name="com.jogamp.android.launcher.NEWTLauncherGearsES2Activity"
                   android:finishOnTaskLaunch="true"
                   android:launchMode="singleTop"
                   android:configChanges="keyboardHidden|orientation"
-                  android:label="@string/activity_gears1_name"
-                  android:description="@string/activity_gears1_descr"
+                  android:label="@string/activity_gearses2_name"
+                  android:description="@string/activity_gearses2_descr"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.android.launcher.NEWTLauncherGraphUIActivity"
+                  android:finishOnTaskLaunch="true"
+                  android:launchMode="singleTop"
+                  android:configChanges="keyboardHidden|orientation"
+                  android:label="@string/activity_graphui_name"
+                  android:description="@string/activity_graphui_descr"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -40,34 +40,31 @@ public class ClassLoaderUtil {
    
    public static final String packageGlueGen = "com.jogamp.common";       
    public static final String packageJogl = "javax.media.opengl";
+   public static final String packageJoglTest = "com.jogamp.opengl.test";
    
    public static final String dexPathName= "jogampDex";
    public static final String libPathName = "/data/data/com.jogamp.common/lib/:/data/data/javax.media.opengl/lib/";
    
-   public static synchronized ClassLoader createJogampClassLoaderSingleton(Context ctx, boolean debugOn) {
+   public static synchronized ClassLoader createJogampClassLoaderSingleton(Context ctx) {
        Log.d(TAG, "S");
-       
-       if(debugOn) {
-           System.setProperty("jogl.debug", "all");
-           System.setProperty("jogamp.debug.JNILibLoader", "true");
-           System.setProperty("jogamp.debug.NativeLibrary", "true");
-       }
        
        String apkGlueGen = null;
        String apkJogl = null;
+       String apkJoglTest = null;
        
        try {
            apkGlueGen = ctx.getPackageManager().getApplicationInfo(packageGlueGen,0).sourceDir;
            apkJogl = ctx.getPackageManager().getApplicationInfo(packageJogl,0).sourceDir;
+           apkJoglTest = ctx.getPackageManager().getApplicationInfo(packageJoglTest,0).sourceDir;
        } catch (PackageManager.NameNotFoundException e) {
            Log.d(TAG, "error: "+e, e);
        }
-       if(null == apkGlueGen || null == apkJogl) {
-           Log.d(TAG, "not found: gluegen <"+apkGlueGen+">, jogl <"+apkJogl+">");
+       if(null == apkGlueGen || null == apkJogl || null == apkJoglTest) {
+           Log.d(TAG, "not found: gluegen <"+apkGlueGen+">, jogl <"+apkJogl+">, jogl-test <"+apkJoglTest+">");
            return null;
        }
        
-       final String cp = apkGlueGen + ":" + apkJogl ;
+       final String cp = apkGlueGen + ":" + apkJogl + ":" + apkJoglTest ;
        Log.d(TAG, "cp: " + cp);
        
        final File dexPath = ctx.getDir(dexPathName, Context.MODE_WORLD_READABLE);
