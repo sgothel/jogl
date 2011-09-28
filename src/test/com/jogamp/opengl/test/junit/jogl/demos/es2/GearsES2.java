@@ -37,12 +37,9 @@ import java.nio.FloatBuffer;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLUniformData;
-
-import junit.framework.Assert;
 
 /**
  * GearsES2.java <BR>
@@ -95,7 +92,6 @@ public class GearsES2 implements GLEventListener {
 
     public void init(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" GearsES2.init ...");
-        Assert.assertEquals("already init", false, initialized);
         initialized = true;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -182,7 +178,6 @@ public class GearsES2 implements GLEventListener {
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         System.err.println(Thread.currentThread()+" GearsES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
-        Assert.assertEquals("not init or already disposed", true, initialized);
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         float h = (float)height / (float)width;
@@ -202,7 +197,6 @@ public class GearsES2 implements GLEventListener {
 
     public void dispose(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" GearsES2.dispose ... ");
-        Assert.assertEquals("not init or already disposed", true, initialized);
         initialized = false;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         st.useProgram(gl, false);
@@ -220,7 +214,6 @@ public class GearsES2 implements GLEventListener {
     }
 
     public void display(GLAutoDrawable drawable) {
-        Assert.assertEquals("not init or already disposed", true, initialized);
         // Turn the gears' teeth
         angle += 2.0f;
 

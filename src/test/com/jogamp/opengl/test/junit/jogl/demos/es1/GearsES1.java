@@ -27,8 +27,6 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
-import org.junit.Assert;
-
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -84,7 +82,6 @@ public class GearsES1 implements GLEventListener {
   
   public void init(GLAutoDrawable drawable) {
     System.err.println(Thread.currentThread()+" GearsES1.init ...");
-    Assert.assertEquals("already init", false, initialized);
     initialized = true;
     
     // Use debug pipeline
@@ -148,7 +145,6 @@ public class GearsES1 implements GLEventListener {
     
   public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     System.err.println(Thread.currentThread()+" GearsES1.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
-    Assert.assertEquals("not init or already disposed", true, initialized);
     GL2ES1 gl = drawable.getGL().getGL2ES1();
 
     gl.setSwapInterval(swapInterval);
@@ -167,7 +163,6 @@ public class GearsES1 implements GLEventListener {
 
   public void dispose(GLAutoDrawable drawable) {
     System.err.println(Thread.currentThread()+" GearsES1.dispose ... ");
-    Assert.assertEquals("not init or already disposed", true, initialized);
     initialized = false;
     GL gl = drawable.getGL();
     gear1.destroy(gl);
@@ -179,9 +174,7 @@ public class GearsES1 implements GLEventListener {
     System.err.println(Thread.currentThread()+" GearsES1.dispose FIN");
   }
 
-  public void display(GLAutoDrawable drawable) {
-    Assert.assertEquals("not init or already disposed", true, initialized);
-    
+  public void display(GLAutoDrawable drawable) {    
     // Turn the gears' teeth
     angle += 2.0f;
 
