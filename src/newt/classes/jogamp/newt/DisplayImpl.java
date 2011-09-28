@@ -353,6 +353,12 @@ public abstract class DisplayImpl extends Display {
 
     final void dispatchMessage(final NEWTEventTask eventTask) {
         NEWTEvent event = eventTask.get();
+        if(null == event) {
+            // Ooops ?
+            System.err.println("Warning: event of eventTask is NULL");
+            Thread.dumpStack();
+            return;
+        }
         Object source = event.getSource();
         if(source instanceof NEWTEventConsumer) {
             NEWTEventConsumer consumer = (NEWTEventConsumer) source ;
