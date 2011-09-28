@@ -25,116 +25,79 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.android.launcher;
+package com.jogamp.opengl.test.android;
 
-import java.lang.reflect.Method;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLProfile;
 
-import dalvik.system.PathClassLoader;
+import jogamp.newt.driver.android.NewtBaseActivity;
 
-import android.app.Activity;
-import android.content.pm.PackageManager;
+import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.event.ScreenModeListener;
+import com.jogamp.newt.opengl.GLWindow;
+
+import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
+import com.jogamp.opengl.util.Animator;
+
 import android.os.Bundle;
-import android.widget.TextView;
 import android.util.Log;
+import android.widget.TextView;
 
-public class NEWTLauncherGearsActivity extends Activity {
-   static final String TAG = "JoglLauncherActivity";
+public class NEWTGearsES1Activity extends NewtBaseActivity {
+   GLWindow glWindow = null;
+   Animator animator = null;
    TextView tv = null;
+   static String TAG = "NEWTGearsES1Activity";
    
    @Override
    public void onCreate(Bundle savedInstanceState) {
-       Log.d(TAG, "onCreate - S");
+       Log.d(TAG, "onCreate - 0");
        super.onCreate(savedInstanceState);
        
-       String packageGlueGen = "com.jogamp.common";       
-       String apkGlueGen = null;
-       String packageJogl = "javax.media.opengl";
-       String apkJogl = null;
+       // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
+       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES1));
+       Log.d(TAG, "req caps: "+caps);
+       glWindow = GLWindow.create(caps);
+       setContentView(glWindow);
        
-       String clazzMDName= "jogamp.newt.driver.android.MD";
-       Method mdGetInfo = null;
-
-       try {
-           apkGlueGen = getPackageManager().getApplicationInfo(packageGlueGen,0).sourceDir;
-           apkJogl = getPackageManager().getApplicationInfo(packageJogl,0).sourceDir;
-       } catch (PackageManager.NameNotFoundException e) {
-           Log.d(TAG, "error: "+e, e);
-       }
-       if(null == apkGlueGen || null == apkJogl) {
-           Log.d(TAG, "not found: gluegen <"+apkGlueGen+">, jogl <"+apkJogl+">");
-       } else {
-           String cp = apkGlueGen + ":" + apkJogl ;
-           Log.d(TAG, "cp: " + cp);
-            
-           // add path to apk that contains classes you wish to load
-           PathClassLoader pathClassLoader = new dalvik.system.PathClassLoader(
-                    cp,
-                    ClassLoader.getSystemClassLoader());
-        
-           try {
-               Class clazzMD= Class.forName(clazzMDName, true, pathClassLoader);
-               Log.d(TAG, "MD: "+clazzMD);
-               mdGetInfo = clazzMD.getMethod("getInfo");
-           } catch (Exception e) {
-               Log.d(TAG, "error: "+e, e);
-           }
-       }
-
-       String mdInfo = null;
-       try {
-           mdInfo = (String) mdGetInfo.invoke(null);
-       } catch (Exception e) {
-           Log.d(TAG, "error: "+e, e);
-       }
-       tv = new TextView(this);
-       if(null != mdInfo) {
-           tv.setText(mdInfo);
-       } else {
-           tv.setText("mdInfo n/a");
-       }
-       setContentView(tv);
+       glWindow.addGLEventListener(new GearsES1(1));
+       glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {
+        public void screenModeChangeNotify(ScreenMode sm) { }
+        public void screenModeChanged(ScreenMode sm, boolean success) {
+            System.err.println("ScreenMode Changed: "+sm);
+        }
+       });
+       glWindow.setVisible(true);
+       animator = new Animator(glWindow);
+       // animator.setUpdateFPSFrames(60, System.err);
+       
        Log.d(TAG, "onCreate - X");
    }
    
    @Override
-   public void onStart() {
-     Log.d(TAG, "onStart - S");
-     super.onStart();
-     Log.d(TAG, "onStart - X");
-   }
-     
-   @Override
-   public void onRestart() {
-     Log.d(TAG, "onRestart - S");
-     super.onRestart();
-     Log.d(TAG, "onRestart - X");
-   }
-
-   @Override
    public void onResume() {
-     Log.d(TAG, "onResume - S");
      super.onResume();
-     Log.d(TAG, "onResume - X");
+     if(null != animator) {
+         animator.start();
+     }
    }
 
    @Override
    public void onPause() {
-     Log.d(TAG, "onPause - S");
+     if(null != animator) {
+         animator.pause();
+     }
      super.onPause();
-     Log.d(TAG, "onPause - X");
-   }
-
-   @Override
-   public void onStop() {
-     Log.d(TAG, "onStop - S");
-     super.onStop();  
-     Log.d(TAG, "onStop - X");
    }
 
    @Override
    public void onDestroy() {
-     Log.d(TAG, "onDestroy - S");
-     super.onDestroy();  
-     Log.d(TAG, "onDestroy - X");
+     if(null != animator) {
+         animator.stop();
+     }
+     if(null != glWindow) {
+         glWindow.destroy();
+     }
+     super.onDestroy(); 
    }   
 }

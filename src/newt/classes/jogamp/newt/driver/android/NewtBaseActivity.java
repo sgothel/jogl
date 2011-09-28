@@ -35,16 +35,32 @@ import com.jogamp.newt.opengl.GLWindow;
 import jogamp.newt.driver.android.AndroidWindow;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
 public class NewtBaseActivity extends Activity {
+   boolean isInvokedByExternalActivity = false;
+   Activity extActivity = this;
+   
+   public void setIsInvokedByExternalActivity(Activity extActivity) {
+       this.extActivity = extActivity;
+       this.isInvokedByExternalActivity = null != extActivity;
+   }
+   public boolean getIsInvokedByExternalActivity() {
+       return null != extActivity;
+   }
+   
    public void setContentView(Window window) {
        if(window instanceof GLWindow) {
            window = ((GLWindow)window).getWindow();
        }
        if(window instanceof AndroidWindow) {
-           super.setContentView(((AndroidWindow)window).getView());
+           if(isInvokedByExternalActivity) {
+               extActivity.setContentView(((AndroidWindow)window).getView());
+           } else {
+               super.setContentView(((AndroidWindow)window).getView());               
+           }
        } else {
            throw new IllegalArgumentException("Given NEWT Window is not an Android Window: "+window.getClass()); 
        }
@@ -53,10 +69,13 @@ public class NewtBaseActivity extends Activity {
    @Override
    public void onCreate(Bundle savedInstanceState) {
        Log.d(MD.TAG, "onCreate");
-       super.onCreate(savedInstanceState);
-              
-       // register application context 
-       jogamp.common.os.android.StaticContext.setContext(getApplicationContext());
+       if(!isInvokedByExternalActivity) {
+           super.onCreate(savedInstanceState);
+           // register application context 
+           jogamp.common.os.android.StaticContext.setContext(getApplicationContext());
+       } else {
+           jogamp.common.os.android.StaticContext.setContext(extActivity.getApplicationContext());
+       }              
 
        // init GLProfile
        GLProfile.initSingleton(true);       
@@ -65,36 +84,48 @@ public class NewtBaseActivity extends Activity {
    @Override
    public void onStart() {
      Log.d(MD.TAG, "onStart");
-     super.onStart();
+     if(!isInvokedByExternalActivity) {
+         super.onStart();
+     }
    }
      
    @Override
    public void onRestart() {
      Log.d(MD.TAG, "onRestart");
-     super.onRestart();
+     if(!isInvokedByExternalActivity) {
+         super.onRestart();
+     }
    }
 
    @Override
    public void onResume() {
      Log.d(MD.TAG, "onResume");
-     super.onResume();
+     if(!isInvokedByExternalActivity) {
+         super.onResume();
+     }
    }
 
    @Override
    public void onPause() {
      Log.d(MD.TAG, "onPause");
-     super.onPause();
+     if(!isInvokedByExternalActivity) {
+         super.onPause();
+     }
    }
 
    @Override
    public void onStop() {
      Log.d(MD.TAG, "onStop");
-     super.onStop();  
+     if(!isInvokedByExternalActivity) {
+         super.onStop();  
+     }
    }
 
    @Override
    public void onDestroy() {
      Log.d(MD.TAG, "onDestroy");
-     super.onDestroy(); 
+     if(!isInvokedByExternalActivity) {
+         super.onDestroy(); 
+     }
    }   
 }
