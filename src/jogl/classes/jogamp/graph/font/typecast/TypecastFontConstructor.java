@@ -38,10 +38,8 @@ import javax.media.opengl.GLException;
 import jogamp.graph.font.FontConstructor;
 import jogamp.graph.font.typecast.ot.OTFontCollection;
 
-
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.font.Font;
-
 
 public class TypecastFontConstructor implements FontConstructor  {
 
@@ -66,8 +64,8 @@ public class TypecastFontConstructor implements FontConstructor  {
                 File tf = null;
                 int len=0;
                 Font f = null;
-                try {
-                    tf = File.createTempFile( "joglfont", ".ttf");
+                try {         
+                    tf = IOUtil.createTempFile( "joglfont", ".ttf");
                     len = IOUtil.copyURL2File(furl, tf);
                     if(len==0) {
                         tf.delete();
