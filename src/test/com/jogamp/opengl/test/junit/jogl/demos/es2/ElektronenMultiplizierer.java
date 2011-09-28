@@ -225,9 +225,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
     public void init(GLAutoDrawable drawable) {
         if(drawable instanceof GLWindow) {
             final GLWindow glw = (GLWindow) drawable;
-            if ( glw.getKeyListener(0) != timeShiftKeys ) {
-                glw.addKeyListener(0, timeShiftKeys);
-            }
+            glw.addKeyListener(0, timeShiftKeys);
         }
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         gl.setSwapInterval(1);
@@ -490,11 +488,15 @@ public class ElektronenMultiplizierer implements GLEventListener {
         gl.glViewport(0, 0, width, height);                
     }
 
-    public void dispose(GLAutoDrawable inDrawable) {
-        GL2ES2 gl = inDrawable.getGL().getGL2ES2();
+    public void dispose(GLAutoDrawable drawable) {
+        GL2ES2 gl = drawable.getGL().getGL2ES2();
         gl.glDeleteFramebuffers(1, new int[] { mFrameBufferObjectID }, 0);
         gl.glDeleteTextures(1, new int[] { mFrameBufferTextureID }, 0);
         st.destroy(gl);
+        if(drawable instanceof GLWindow) {
+            final GLWindow glw = (GLWindow) drawable;
+            glw.removeKeyListener(timeShiftKeys);
+        }      
     }
 
 //    public BaseMusic getBaseMusic() {

@@ -9,4 +9,6 @@
     <string name="activity_gearses2_descr">GearsES2</string>
     <string name="activity_graphui_name">GraphUI</string>
     <string name="activity_graphui_descr">GraphUI</string>
+    <string name="activity_elektro_name">Elektro</string>
+    <string name="activity_elektro_descr">Elektro</string>
 </resources>

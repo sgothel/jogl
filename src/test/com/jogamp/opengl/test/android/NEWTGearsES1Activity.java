@@ -69,7 +69,7 @@ public class NEWTGearsES1Activity extends NewtBaseActivity {
        });
        glWindow.setVisible(true);
        animator = new Animator(glWindow);
-       // animator.setUpdateFPSFrames(60, System.err);
+       animator.setUpdateFPSFrames(60, System.err);
        
        Log.d(TAG, "onCreate - X");
    }

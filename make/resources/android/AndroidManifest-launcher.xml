@@ -49,6 +49,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="com.jogamp.android.launcher.NEWTLauncherElektronActivity"
+                  android:finishOnTaskLaunch="true"
+                  android:launchMode="singleTop"
+                  android:configChanges="keyboardHidden|orientation"
+                  android:label="@string/activity_elektro_name"
+                  android:description="@string/activity_elektro_descr"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

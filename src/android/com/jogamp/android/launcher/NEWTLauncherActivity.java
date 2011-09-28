@@ -61,7 +61,8 @@ public abstract class NEWTLauncherActivity extends Activity {
        // System.setProperty("jogamp.debug.JNILibLoader", "true");
        // System.setProperty("jogamp.debug.NativeLibrary", "true");
        // System.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
-       
+       System.setProperty("jogl.debug.GLSLCode", "true");
+              
        ClassLoader cl = ClassLoaderUtil.createJogampClassLoaderSingleton(this);
        if(null != cl) {
            try {

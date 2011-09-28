@@ -65,7 +65,7 @@ MEDIUMP vec3 distancefunction(MEDIUMP vec3 w) {
     MEDIUMP float d, t;
     MEDIUMP float md = 1000.0, cd = 0.0;
 //!P iterations (8) ... 2x see below
-    for (MEDIUMP int i = 0; i < 8; i++) {
+    for (int i = 0; i < 8; i++) {
         w *= fractalplanerotationx;
         w = abs(w);        
         t = w.x * phi3.z + w.y * phi3.y - w.z * phi3.x;
@@ -90,7 +90,7 @@ MEDIUMP vec3 distancefunction(MEDIUMP vec3 w) {
         }
     }
 //!P max iterations (8)        
-    return MEDIUMP vec3((length(w) - 2.0) * pow(scale, -8.0), md, cd);
+    return vec3((length(w) - 2.0) * pow(scale, -8.0), md, cd);
 }
 
 //calculate ray direction fragment coordinates
@@ -116,7 +116,7 @@ MEDIUMP float ambientocclusion(MEDIUMP vec3 p, MEDIUMP vec3 n, MEDIUMP float eps
     //add little start distance to the surface
     MEDIUMP float d = 2.0 * eps;
 //!P ao iterations (5) ...    
-    for (MEDIUMP int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 5; ++i) {
         o -= (d - distancefunction(p + n * d).x) * k;
         d += eps;
         //fade ao when distance to the surface increases
@@ -125,7 +125,7 @@ MEDIUMP float ambientocclusion(MEDIUMP vec3 p, MEDIUMP vec3 n, MEDIUMP float eps
     return clamp(o, 0.0, 1.0);
 }
 
-MEDIUMP vec4 render(vec2 pixel) {
+MEDIUMP vec4 render(MEDIUMP vec2 pixel) {
     MEDIUMP vec3  ray_direction = raydirection(pixel);
 //!P minimum ray length (6e-5)    
     MEDIUMP float ray_length = 6e-5;
@@ -146,7 +146,7 @@ MEDIUMP vec4 render(vec2 pixel) {
     ray_length = minmarch;
     ray = camerapositiondode + ray_length * ray_direction;
 //!P max number of raymarching steps (90);
-    for (MEDIUMP int i = 0; i < 90; i++) {
+    for (int i = 0; i < 90; i++) {
         steps = i;
         dist = distancefunction(ray);
 //!P X-) questionable surface smoothing (0.53)            
@@ -197,7 +197,7 @@ MEDIUMP vec4 render(vec2 pixel) {
 }
 
 MEDIUMP mat3 xmatrixrotation(MEDIUMP float angle) {
-    return MEDIUMP mat3(
+    return mat3(
         vec3(1.0,         0.0,        0.0),
         vec3(0.0,  cos(angle), sin(angle)),
         vec3(0.0, -sin(angle), cos(angle))
@@ -205,7 +205,7 @@ MEDIUMP mat3 xmatrixrotation(MEDIUMP float angle) {
 }
 
 MEDIUMP mat3 ymatrixrotation(MEDIUMP float angle) {
-    return MEDIUMP mat3(
+    return mat3(
         vec3(cos(angle), 0.0, -sin(angle)),
         vec3(       0.0, 1.0,         0.0),
         vec3(sin(angle), 0.0,  cos(angle))
@@ -221,7 +221,7 @@ MEDIUMP vec4 raymarch_orbittrap_image(MEDIUMP vec2 fragcoord) {
     MEDIUMP mat3  identitymatrix = mat3(1,0,0,0,1,0,0,0,1);    
     MEDIUMP float sin_phi = sin(0.1*tm);
     MEDIUMP float cos_phi = cos(0.1*tm);
-    MEDIUMP mat3 zrot = MEDIUMP mat3(
+    MEDIUMP mat3 zrot = mat3(
         vec3( cos_phi, sin_phi, 0.0),
         vec3(-sin_phi, cos_phi, 0.0),
         vec3(     0.0,     0.0, 1.0)
@@ -276,8 +276,8 @@ MEDIUMP vec4 orbitmapping(MEDIUMP vec4 c, MEDIUMP vec2 w) {
         //mandlebrot ...
         orbittrapscale = 0.325;
     }
-    vec2 sp = 0.5 + (w / orbittrapscale - orbittrapoffset);    
-    vec4 s = texture2D(fb, sp);
+    MEDIUMP vec2 sp = 0.5 + (w / orbittrapscale - orbittrapoffset);    
+    MEDIUMP vec4 s = texture2D(fb, sp);
     if (s.a > 0.0) {
         c = mix(c, s, s.a);
     }
@@ -301,8 +301,8 @@ MEDIUMP vec4 orbittrap(MEDIUMP vec2 z) {
 //!P max iterations for julia (128) ... 2x parameter - see below!     
     for (int i = 0; i<128; i++) {
         n += 1.0;        
-        float r = pow(length(z), powerjulia);
-        float a = powerjulia * atan(z.y, z.x);
+        MEDIUMP float r = pow(length(z), powerjulia);
+        MEDIUMP float a = powerjulia * atan(z.y, z.x);
         z = vec2(cos(a) * r, sin(a) * r) +c;
 //!P min iterations for julia (1.0) ...         
         if (n >= 1.0) {
@@ -349,9 +349,9 @@ void main() {
     } else {
         //do normal rendering ...    
         //analog-tv distortion ...
-        vec2 position = oglFragCoord.xy / sizejulia.xy;
+        MEDIUMP vec2 position = oglFragCoord.xy / sizejulia.xy;
         position.y *=-1.0;
-        vec3 color_tv = color.rgb;
+        MEDIUMP vec3 color_tv = color.rgb;
         //contrast
         color_tv = clamp(color_tv*0.5+0.5*color_tv*color_tv*1.2,0.0,1.0);
         //circular vignette fade
