@@ -2,15 +2,9 @@
 #define precision_glsl
 
 #ifdef GL_ES
-  #define MEDIUMP mediump
-  #define HIGHP highp
-  #define LOWP  lowp
-  #define GRAPHP mediump
-#else
-  #define MEDIUMP
-  #define HIGHP
-  #define LOWP
-  #define GRAPHP
+  precision mediump float;
+  precision mediump int;
+  precision mediump sampler2D;
 #endif
 
 #endif // precision_glsl

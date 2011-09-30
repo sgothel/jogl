@@ -6,8 +6,8 @@
 
 #include consts.glsl
 
-//varying GRAPHP vec4    gcv_FrontColor;
-varying GRAPHP vec2    gcv_TexCoord;
+//varying vec4    gcv_FrontColor;
+varying vec2    gcv_TexCoord;
 
 #endif // varyings_glsl
 

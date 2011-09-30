@@ -3,31 +3,31 @@
 #include uniforms.glsl
 #include varyings.glsl
 
-const GRAPHP vec3 b_color = vec3(1.0, 1.0, 1.0);
-const GRAPHP vec4 tex_weights = vec4(0.075, 0.06, 0.045, 0.025);
+const vec3 b_color = vec3(1.0, 1.0, 1.0);
+const vec4 tex_weights = vec4(0.075, 0.06, 0.045, 0.025);
 
 void main (void)
 {
-    GRAPHP vec2 rtex = vec2(abs(gcv_TexCoord.x),abs(gcv_TexCoord.y));
-    GRAPHP vec3 c = gcu_ColorStatic.rgb;
+    vec2 rtex = vec2(abs(gcv_TexCoord.x),abs(gcv_TexCoord.y));
+    vec3 c = gcu_ColorStatic.rgb;
     
-    GRAPHP float alpha = 0.0;
+    float alpha = 0.0;
     
     if((gcv_TexCoord.x == 0.0) && (gcv_TexCoord.y == 0.0)) {
          alpha = gcu_Alpha;
     }
     else if((gcv_TexCoord.x >= 5.0)) {
-        GRAPHP vec2 dfx = dFdx(gcv_TexCoord);
-        GRAPHP vec2 dfy = dFdy(gcv_TexCoord);
+        vec2 dfx = dFdx(gcv_TexCoord);
+        vec2 dfy = dFdy(gcv_TexCoord);
         
-        GRAPHP vec2 size;
+        vec2 size;
         //#if __VERSION__ < 130
             size = 1.0/gcu_TextureSize;
         //#else
         //    size = 1.0/textureSize(gcu_TextureUnit,0);
         //#endif
         rtex -= 5.0;
-        GRAPHP vec4 t = texture2D(gcu_TextureUnit, rtex)* 0.18;
+        vec4 t = texture2D(gcu_TextureUnit, rtex)* 0.18;
 
         t += texture2D(gcu_TextureUnit, rtex + size*(vec2(1, 0)))*tex_weights.x;
         t += texture2D(gcu_TextureUnit, rtex - size*(vec2(1, 0)))*tex_weights.x;
@@ -58,8 +58,8 @@ void main (void)
     }
     ///////////////////////////////////////////////////////////
     else if ((gcv_TexCoord.x > 0.0) && (rtex.y > 0.0 || rtex.x == 1.0)) {
-        GRAPHP vec2 dtx = dFdx(rtex);
-        GRAPHP vec2 dty = dFdy(rtex);
+        vec2 dtx = dFdx(rtex);
+        vec2 dty = dFdy(rtex);
           
         rtex.y -= 0.1;
           
@@ -71,11 +71,11 @@ void main (void)
             }
         }
           
-        GRAPHP vec2 f = vec2((dtx.y - dtx.x + 2.0*rtex.x*dtx.x), (dty.y - dty.x + 2.0*rtex.x*dty.x));
-        GRAPHP float position = rtex.y - (rtex.x * (1.0 - rtex.x));
-        GRAPHP float d = position/(length(f));
+        vec2 f = vec2((dtx.y - dtx.x + 2.0*rtex.x*dtx.x), (dty.y - dty.x + 2.0*rtex.x*dty.x));
+        float position = rtex.y - (rtex.x * (1.0 - rtex.x));
+        float d = position/(length(f));
 
-        GRAPHP float a = (0.5 - d * sign(gcv_TexCoord.y));  
+        float a = (0.5 - d * sign(gcv_TexCoord.y));  
         
         if (a >= 1.0)  { 
             alpha = gcu_Alpha;

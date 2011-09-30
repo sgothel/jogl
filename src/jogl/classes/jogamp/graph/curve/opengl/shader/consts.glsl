@@ -4,7 +4,7 @@
 
 #include precision.glsl
 
-const   LOWP int     MAX_TEXTURE_UNITS = 8; // <= gl_MaxTextureImageUnits 
-// const   LOWP int     MAX_LIGHTS = 8; 
+const   int     MAX_TEXTURE_UNITS = 8; // <= gl_MaxTextureImageUnits 
+// const   int     MAX_LIGHTS = 8; 
 
 #endif // consts_glsl
