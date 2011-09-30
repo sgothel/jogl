@@ -31,17 +31,14 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2.shader;
 public class RedSquareShader {
     public static String VERTEX_SHADER_TEXT =
                 " #ifdef GL_ES\n" +
-                "  #define MEDIUMP mediump\n" +
-                "  #define HIGHP highp\n" +
-                "#else\n" +
-                "  #define MEDIUMP\n" +
-                "  #define HIGHP\n" +
+                "  precision mediump float;\n" +
+                "  precision mediump int;\n" +
                 "#endif\n" +
                 "\n" +
-                "uniform MEDIUMP mat4    mgl_PMVMatrix[2];\n" +
-                "attribute HIGHP vec4    mgl_Vertex;\n" +
-                "attribute HIGHP vec4    mgl_Color;\n" +
-                "varying   HIGHP vec4    frontColor;\n" +
+                "uniform mat4    mgl_PMVMatrix[2];\n" +
+                "attribute vec4    mgl_Vertex;\n" +
+                "attribute vec4    mgl_Color;\n" +
+                "varying vec4    frontColor;\n" +
                 "\n" +
                 "void main(void)\n" +
                 "{\n" +
@@ -50,19 +47,15 @@ public class RedSquareShader {
                 "}\n" ;
 
     public static String FRAGMENT_SHADER_TEXT =
-                "#ifdef GL_ES\n" +
-                "  #define MEDIUMP mediump\n" +
-                "  #define HIGHP highp\n" +
-                "#else\n" +
-                "  #define MEDIUMP\n" +
-                "  #define HIGHP\n" +
+                " #ifdef GL_ES\n" +
+                "  precision mediump float;\n" +
+                "  precision mediump int;\n" +
                 "#endif\n" +
                 "\n" +
-                "varying   HIGHP vec4    frontColor;\n" +
+                "varying   vec4    frontColor;\n" +
                 "\n" +
                 "void main (void)\n" +
                 "{\n" +
                 "    gl_FragColor = frontColor;\n" +
                 "}\n" ;
-
 }

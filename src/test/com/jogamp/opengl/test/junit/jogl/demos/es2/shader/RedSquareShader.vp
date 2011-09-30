@@ -10,17 +10,14 @@
  */
 
 #ifdef GL_ES
-  #define MEDIUMP mediump
-  #define HIGHP highp
-#else
-  #define MEDIUMP
-  #define HIGHP
+  precision mediump float;
+  precision mediump int;
 #endif
 
-uniform MEDIUMP mat4    mgl_PMVMatrix[2];
-attribute HIGHP vec4    mgl_Vertex;
-attribute HIGHP vec4    mgl_Color;
-varying   HIGHP vec4    frontColor;
+uniform mat4    mgl_PMVMatrix[2];
+attribute vec4    mgl_Vertex;
+attribute vec4    mgl_Color;
+varying vec4    frontColor;
 
 void main(void)
 {
