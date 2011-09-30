@@ -39,6 +39,8 @@ package javax.media.opengl;
 import java.lang.reflect.*;
 import java.util.StringTokenizer;
 
+import com.jogamp.common.util.ReflectionUtil;
+
 import jogamp.opengl.*;
 
 /**
@@ -70,10 +72,10 @@ public class GLPipelineFactory {
      * @param downstream is always the 1st argument for the upstream constructor
      * @param additionalArgs additional arguments for the upstream constructor
      */
-    public static final GL create(String pipelineClazzBaseName, Class reqInterface, GL downstream, Object[] additionalArgs) {
-        Class downstreamClazz = downstream.getClass();
-        Class upstreamClazz = null;
-        Class interfaceClazz = null;
+    public static final GL create(String pipelineClazzBaseName, Class<?> reqInterface, GL downstream, Object[] additionalArgs) {
+        Class<?> downstreamClazz = downstream.getClass();
+        Class<?> upstreamClazz = null;
+        Class<?> interfaceClazz = null;
 
         if(DEBUG) {
             System.out.println("GLPipelineFactory: Start "+downstreamClazz.getName()+", req. Interface: "+reqInterface+" -> "+pipelineClazzBaseName);
@@ -83,7 +85,7 @@ public class GLPipelineFactory {
         do {
             // For all interfaces: right -> left == child -> parent
             //   It is important that this matches with the gluegen cfg file's 'Implements' clause !
-            Class[] clazzes = downstreamClazz.getInterfaces();
+            Class<?>[] clazzes = downstreamClazz.getInterfaces();
             for(int i=clazzes.length-1; null==upstreamClazz && i>=0; i--) {
                 if(DEBUG) {
                     System.out.println("GLPipelineFactory: Try "+downstreamClazz.getName()+" Interface["+i+"]: "+clazzes[i].getName());
@@ -124,7 +126,7 @@ public class GLPipelineFactory {
             System.out.println("GLPipelineFactory: Got : "+ upstreamClazz.getName()+", base interface: "+interfaceClazz.getName());
         }
 
-        Class[] cstrArgTypes = new Class[ 1 + ( ( null==additionalArgs ) ? 0 : additionalArgs.length ) ] ;
+        Class<?>[] cstrArgTypes = new Class<?>[ 1 + ( ( null==additionalArgs ) ? 0 : additionalArgs.length ) ] ;
         {
             int i = 0;
             cstrArgTypes[i++] = interfaceClazz;
@@ -132,13 +134,8 @@ public class GLPipelineFactory {
                 cstrArgTypes[i++] = additionalArgs[j].getClass();
             }
         }
-        Constructor cstr = null;
-        try {
-            cstr = upstreamClazz.getDeclaredConstructor( cstrArgTypes );
-        } catch(NoSuchMethodException nsme) {
-          throw new GLException("Couldn't find pipeline constructor: " + upstreamClazz.getName() + 
-                                " ( "+getArgsClassNameList(downstreamClazz, additionalArgs) +" )");
-        }
+        // throws exception if cstr not found!
+        Constructor<?> cstr = ReflectionUtil.getConstructor(upstreamClazz, cstrArgTypes);
         Object instance = null;
         try { 
             Object[] cstrArgs = new Object[ 1 + ( ( null==additionalArgs ) ? 0 : additionalArgs.length ) ] ;
@@ -161,7 +158,7 @@ public class GLPipelineFactory {
         return (GL) instance;
     }
 
-    private static final String getArgsClassNameList(Class arg0, Object[] args) {
+    private static final String getArgsClassNameList(Class<?> arg0, Object[] args) {
         StringBuffer sb = new StringBuffer();
         sb.append(arg0.getName());
         if(args!=null) {
@@ -173,7 +170,7 @@ public class GLPipelineFactory {
         return sb.toString();
     }
 
-    private static final Class getUpstreamClazz(Class downstreamClazz, String pipelineClazzBaseName) {
+    private static final Class<?> getUpstreamClazz(Class<?> downstreamClazz, String pipelineClazzBaseName) {
         String downstreamClazzName = downstreamClazz.getName();
 
         StringTokenizer st = new StringTokenizer(downstreamClazzName, ".");
@@ -183,7 +180,7 @@ public class GLPipelineFactory {
         }
         String upstreamClazzName = pipelineClazzBaseName+downstreamClazzBaseName;
 
-        Class upstreamClazz = null;
+        Class<?> upstreamClazz = null;
         try {
             upstreamClazz = Class.forName(upstreamClazzName, true, GLPipelineFactory.class.getClassLoader());
         } catch (Throwable e) { e.printStackTrace(); }
