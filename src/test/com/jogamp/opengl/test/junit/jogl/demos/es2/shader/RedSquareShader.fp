@@ -10,14 +10,11 @@
  */
 
 #ifdef GL_ES
-  #define MEDIUMP mediump
-  #define HIGHP highp
-#else
-  #define MEDIUMP
-  #define HIGHP
+  precision mediump float;
+  precision mediump int;
 #endif
 
-varying   HIGHP vec4    frontColor;
+varying   vec4    frontColor;
 
 void main (void)
 {
