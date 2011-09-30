@@ -44,20 +44,22 @@ public class EGLES1DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo 
         {
             final List<String> libsGL = new ArrayList<String>();
             
-            // try default generic names first 
+            // GLESv2
+            libsGL.add("GLESv1_CM");
+            libsGL.add("libGLESv1_CM.so");
+            // this is the default lib name, according to the spec 
+            libsGL.add("libGLESv1_CM.so.2");
+
+            // alternative names
             libsGL.add("GLES_CM");
             libsGL.add("GLES_CL");
-            libsGL.add("GLESv1_CM");
             
             // for windows distributions using the 'unlike' lib prefix, 
             // where our tool does not add it.
+            libsGL.add("libGLESv1_CM");
             libsGL.add("libGLES_CM");
             libsGL.add("libGLES_CL");
-            libsGL.add("libGLESv1_CM");
             
-            // this is the default lib name, according to the spec 
-            libsGL.add("libGLESv1_CM.so.1");
-    
             libsList.add(libsGL);
         }
         libsList.add(getEGLLibNamesList());
