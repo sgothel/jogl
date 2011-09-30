@@ -2,28 +2,24 @@
 // Details see GearsES2.java
 
 #ifdef GL_ES
-  #define MEDIUMP mediump
-  #define HIGHP highp
-#else
-  #define MEDIUMP
-  #define HIGHP
+  precision mediump float;
+  precision mediump int;
 #endif
+uniform mat4 pmvMatrix[4]; // P, Mv, Mvi and Mvit
+uniform vec3 lightPos;
 
-uniform MEDIUMP mat4 pmvMatrix[4]; // P, Mv, Mvi and Mvit
-uniform MEDIUMP vec3 lightPos;
+attribute vec4 vertices;
+attribute vec4 normals;
 
-attribute MEDIUMP vec4 vertices;
-attribute MEDIUMP vec4 normals;
+varying vec3 normal;
+varying vec4 position;
+varying vec3 lightDir;
+varying float attenuation;
+varying vec3 cameraDir;
 
-varying MEDIUMP vec3 normal;
-varying MEDIUMP vec4 position;
-varying MEDIUMP vec3 lightDir;
-varying MEDIUMP float attenuation;
-varying MEDIUMP vec3 cameraDir;
-
-const MEDIUMP float constantAttenuation = 0.5; // 1.0;
-const MEDIUMP float linearAttenuation   = 0.001; // 0.0;
-const MEDIUMP float quadraticAttenuation= 0.0002; // 0.0;
+const float constantAttenuation = 0.5; // 1.0;
+const float linearAttenuation   = 0.001; // 0.0;
+const float quadraticAttenuation= 0.0002; // 0.0;
 
 void main(void)
 {
@@ -38,7 +34,7 @@ void main(void)
     
     // Calculating The Vector From The Vertex Position To The Light Position
     lightDir = lightPos - position.xyz;
-    MEDIUMP float d = length(lightDir);
+    float d = length(lightDir);
     attenuation = 1.0 / ( 
                        constantAttenuation + 
                        linearAttenuation    * d +   
