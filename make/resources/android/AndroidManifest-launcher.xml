@@ -15,10 +15,11 @@
                  >
         <activity android:name="com.jogamp.android.launcher.NEWTLauncherGearsES1Activity"
                   android:finishOnTaskLaunch="true"
-                  android:launchMode="singleTop"
+                  android:launchMode="standard"
                   android:configChanges="keyboardHidden|orientation"
                   android:label="@string/activity_gearses1_name"
                   android:description="@string/activity_gearses1_descr"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,10 +28,11 @@
         </activity>
         <activity android:name="com.jogamp.android.launcher.NEWTLauncherGearsES2Activity"
                   android:finishOnTaskLaunch="true"
-                  android:launchMode="singleTop"
+                  android:launchMode="standard"
                   android:configChanges="keyboardHidden|orientation"
                   android:label="@string/activity_gearses2_name"
                   android:description="@string/activity_gearses2_descr"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -39,10 +41,11 @@
         </activity>
         <activity android:name="com.jogamp.android.launcher.NEWTLauncherGraphUIActivity"
                   android:finishOnTaskLaunch="true"
-                  android:launchMode="singleTop"
+                  android:launchMode="standard"
                   android:configChanges="keyboardHidden|orientation"
                   android:label="@string/activity_graphui_name"
                   android:description="@string/activity_graphui_descr"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -51,10 +54,11 @@
         </activity>
         <activity android:name="com.jogamp.android.launcher.NEWTLauncherElektronActivity"
                   android:finishOnTaskLaunch="true"
-                  android:launchMode="singleTop"
+                  android:launchMode="standard"
                   android:configChanges="keyboardHidden|orientation"
                   android:label="@string/activity_elektro_name"
                   android:description="@string/activity_elektro_descr"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
