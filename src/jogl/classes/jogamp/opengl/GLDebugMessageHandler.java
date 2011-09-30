@@ -99,9 +99,14 @@ public class GLDebugMessageHandler {
     }
     
     public void init(boolean enable) {
+        if(DEBUG) {
+            System.err.println("GLDebugMessageHandler.init("+enable+")");
+        }
         init();
         if(isAvailable()) {
             enableImpl(enable);
+        } else if(DEBUG) {
+            System.err.println("GLDebugMessageHandler.init("+enable+") .. n/a");
         }
     }
     
@@ -109,6 +114,13 @@ public class GLDebugMessageHandler {
         ctx.validateCurrent();
         if( isAvailable()) {
             return;
+        }
+        
+        if( !ctx.isGLDebugEnabled() ) {
+            if(DEBUG) {
+                System.err.println("GLDebugMessageHandler: GL DEBUG not set in ARB ctx options: "+ctx.getGLVersion());
+            }
+            return;            
         }
         
         if( ctx.isExtensionAvailable(GL_ARB_debug_output) ) {
@@ -124,7 +136,7 @@ public class GLDebugMessageHandler {
         
         if(0 == extType) {
             if(DEBUG) {
-                System.err.println("GLDebugMessageHandler: No extension available!");
+                System.err.println("GLDebugMessageHandler: No extension available! "+ctx.getGLVersion());
             }
             return;
         }
