@@ -5,7 +5,6 @@ import java.nio.*;
 import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
-import javax.media.opengl.glu.*;
 
 import com.jogamp.opengl.util.glsl.fixedfunc.*;
 
@@ -20,8 +19,6 @@ public class RedSquareES1 implements GLEventListener {
 
     long startTime = 0;
     long curTime = 0;
-
-    GLU glu = null;
 
     public RedSquareES1(int swapInterval) {
         this.swapInterval = swapInterval;
@@ -74,12 +71,9 @@ public class RedSquareES1 implements GLEventListener {
             } catch (Exception e) {e.printStackTrace();}
         }
 
-        glu = GLU.createGLU(gl);
-
         System.err.println(Thread.currentThread()+" GL Profile: "+gl.getGLProfile());
         System.err.println(Thread.currentThread()+" GL:" + gl);
         System.err.println(Thread.currentThread()+" GL_VERSION=" + gl.glGetString(GL.GL_VERSION));
-        System.err.println(Thread.currentThread()+" GLU: " + glu);
 
         // Allocate vertex arrays
         colors   = Buffers.newDirectFloatBuffer(16);
@@ -114,10 +108,17 @@ public class RedSquareES1 implements GLEventListener {
         // Set location in front of camera
         gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         gl.glLoadIdentity();
-        glu.gluPerspective(45.0f, (float)width / (float)height, 1.0f, 100.0f);
-        //gl.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
-        //glu.gluLookAt(0, 0, -20, 0, 0, 0, 0, 1, 0);
+        gluPerspective(gl, 45.0f, (float)width / (float)height, 1.0f, 100.0f);
+        // gl.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
         System.err.println(Thread.currentThread()+" RedSquareES1.reshape FIN");
+    }
+    
+    void gluPerspective(GL2ES1 gl, final float fovy, final float aspect, final float zNear, final float zFar) {
+      float top=(float)Math.tan(fovy*((float)Math.PI)/360.0f)*zNear;
+      float bottom=-1.0f*top;
+      float left=aspect*bottom;
+      float right=aspect*top;
+      gl.glFrustumf(left, right, bottom, top, zNear, zFar);        
     }
 
     public void display(GLAutoDrawable drawable) {
@@ -146,8 +147,6 @@ public class RedSquareES1 implements GLEventListener {
         GL2ES1 gl = drawable.getGL().getGL2ES1();
         gl.glDisableClientState(GLPointerFunc.GL_VERTEX_ARRAY);
         gl.glDisableClientState(GLPointerFunc.GL_COLOR_ARRAY);
-        glu.destroy();
-        glu = null;
         colors.clear();
         colors   = null;
         vertices.clear();
