@@ -23,42 +23,56 @@
 #endif
 
 
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_android_AndroidWindow_getSurfaceHandle
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_android_AndroidWindow_getSurfaceHandle0
     (JNIEnv *env, jclass clazz, jobject surface)
 {
     ANativeWindow * anw = ANativeWindow_fromSurface(env, surface);
     return (jlong) (intptr_t) anw;
 }
 
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_android_AndroidWindow_getSurfaceVisualID
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_android_AndroidWindow_getSurfaceVisualID0
     (JNIEnv *env, jclass clazz, jlong surfaceHandle)
 {
     ANativeWindow * anw = (ANativeWindow *) (intptr_t) surfaceHandle;
     return (jint) ANativeWindow_getFormat(anw);
 }
 
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_android_AndroidWindow_setSurfaceVisualID
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_android_AndroidWindow_setSurfaceVisualID0
     (JNIEnv *env, jclass clazz, jlong surfaceHandle, jint nativeVisualID)
 {
     ANativeWindow * anw = (ANativeWindow *) (intptr_t) surfaceHandle;
     ANativeWindow_setBuffersGeometry(anw, 0, 0, nativeVisualID);
 }
 
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_android_AndroidWindow_acquire
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_android_AndroidWindow_getWidth0
+    (JNIEnv *env, jclass clazz, jlong surfaceHandle)
+{
+    ANativeWindow * anw = (ANativeWindow *) (intptr_t) surfaceHandle;
+    return (jint) ANativeWindow_getWidth(anw);
+}
+
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_android_AndroidWindow_getHeight0
+    (JNIEnv *env, jclass clazz, jlong surfaceHandle)
+{
+    ANativeWindow * anw = (ANativeWindow *) (intptr_t) surfaceHandle;
+    return (jint) ANativeWindow_getHeight(anw);
+}
+
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_android_AndroidWindow_acquire0
     (JNIEnv *env, jclass clazz, jlong surfaceHandle)
 {
     ANativeWindow * anw = (ANativeWindow *) (intptr_t) surfaceHandle;
     ANativeWindow_acquire(anw);
 }
 
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_android_AndroidWindow_release
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_android_AndroidWindow_release0
     (JNIEnv *env, jclass clazz, jlong surfaceHandle)
 {
     ANativeWindow * anw = (ANativeWindow *) (intptr_t) surfaceHandle;
     ANativeWindow_release(anw);
 }
 
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_android_AndroidWindow_initIDs
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_android_AndroidWindow_initIDs0
   (JNIEnv *env, jclass clazz)
 {
     DBG_PRINT( "initIDs ok\n" );

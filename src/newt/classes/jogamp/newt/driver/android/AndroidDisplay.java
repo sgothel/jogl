@@ -39,7 +39,7 @@ public class AndroidDisplay extends jogamp.newt.DisplayImpl {
     static {
         NEWTJNILibLoader.loadNEWT();
 
-        if (!AndroidWindow.initIDs()) {
+        if (!AndroidWindow.initIDs0()) {
             throw new NativeWindowException("Failed to initialize Android NEWT Windowing library");
         }
     }

@@ -34,7 +34,6 @@ import jogamp.newt.driver.android.event.AndroidNewtEventFactory;
 
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.egl.EGLGraphicsDevice;
 import javax.media.nativewindow.util.Insets;
@@ -124,13 +123,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
            rCaps.getGreenBits()<=5 &&
            rCaps.getBlueBits()<=5 &&
            rCaps.getAlphaBits()==1) {
-            fmt = PixelFormat.RGBA_5551;            
-        } else
-        if(rCaps.getRedBits()<=8 &&
-           rCaps.getGreenBits()<=8 &&
-           rCaps.getBlueBits()<=8 &&
-           rCaps.getAlphaBits()==0) {
-            fmt = PixelFormat.RGBX_8888;            
+            fmt = PixelFormat.RGBA_5551; // FIXME: Supported ?             
         } else {        
             fmt = PixelFormat.RGBA_8888;
         }
@@ -234,7 +227,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
 
     @Override
     protected void closeNativeImpl() {
-        release(surfaceHandle);
+        release0(surfaceHandle);
         surface = null;
         surfaceHandle = 0;
         eglSurface = 0;        
@@ -308,7 +301,9 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     //
     
     public void surfaceCreated(SurfaceHolder holder) {    
-        Log.d(MD.TAG, "surfaceCreated");    
+        Log.d(MD.TAG, "surfaceCreated: "+x+"/"+y+" "+width+"x"+height);
+        surfaceRealized(holder);
+        Log.d(MD.TAG, "surfaceCreated: X");
     }
 
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
@@ -326,23 +321,43 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         getScreen().getCurrentScreenMode(); // if ScreenMode changed .. trigger ScreenMode event
 
         if(0 == surfaceHandle) {
-            this.format = format;
-            capsByFormat = (GLCapabilitiesImmutable) fixCaps(format, getRequestedCapabilities());
-            // capsByFormat = (GLCapabilitiesImmutable) fixCapsAlpha(getRequestedCapabilities());
-            // capsByFormat = (GLCapabilitiesImmutable) getRequestedCapabilities();
-            surface = holder.getSurface();
-            surfaceHandle = getSurfaceHandle(surface);
-            acquire(surfaceHandle);
-            int surfaceVisualID = getSurfaceVisualID(surfaceHandle);
-            Log.d(MD.TAG, "surfaceChanged (create): isValid: "+surface.isValid()+
-                          ", new surfaceHandle 0x"+Long.toHexString(surfaceHandle)+", surfaceVisualID: "+surfaceVisualID);
-            positionChanged(false, 0, 0);
-            sizeChanged(false, width, height, false);                
-            if(isVisible()) {
-               setVisible(true); 
+            surfaceRealized(holder);
+        } else {
+            if(0>x || 0>y) {
+                x = 0;
+                y = 0;
+                positionChanged(false, 0, 0);
             }
+            sizeChanged(false, width, height, false);                
         }
         windowRepaint(0, 0, width, height);
+        Log.d(MD.TAG, "surfaceChanged: X");
+    }
+    
+    private void surfaceRealized(SurfaceHolder holder) {
+        surface = holder.getSurface();
+        surfaceHandle = getSurfaceHandle0(surface);
+        acquire0(surfaceHandle);
+        format = getSurfaceVisualID0(surfaceHandle);
+        if(0>x || 0>y) {
+            x = 0;
+            y = 0;
+            positionChanged(false, 0, 0);
+        }
+        sizeChanged(false, getWidth0(surfaceHandle), getHeight0(surfaceHandle), false);
+
+        Log.d(MD.TAG, "surfaceRealized: isValid: "+surface.isValid()+
+                      ", new surfaceHandle 0x"+Long.toHexString(surfaceHandle)+", format: "+format+
+                      ", "+x+"/"+y+" "+width+"x"+height);
+
+        capsByFormat = (GLCapabilitiesImmutable) fixCaps(format, getRequestedCapabilities());
+        // capsByFormat = (GLCapabilitiesImmutable) fixCapsAlpha(getRequestedCapabilities());
+        // capsByFormat = (GLCapabilitiesImmutable) getRequestedCapabilities();
+
+        if(isVisible()) {
+           setVisible(true); 
+        }
+        Log.d(MD.TAG, "surfaceRealized: X");
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
@@ -372,11 +387,13 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     //----------------------------------------------------------------------
     // Internals only
     //
-    protected static native boolean initIDs();
-    protected static native long getSurfaceHandle(Surface surface);
-    protected static native int getSurfaceVisualID(long surfaceHandle);
-    protected static native void setSurfaceVisualID(long surfaceHandle, int nativeVisualID);
-    protected static native void acquire(long surfaceHandle);
-    protected static native void release(long surfaceHandle);
+    protected static native boolean initIDs0();
+    protected static native long getSurfaceHandle0(Surface surface);
+    protected static native int getSurfaceVisualID0(long surfaceHandle);
+    protected static native void setSurfaceVisualID0(long surfaceHandle, int nativeVisualID);
+    protected static native int getWidth0(long surfaceHandle);
+    protected static native int getHeight0(long surfaceHandle);
+    protected static native void acquire0(long surfaceHandle);
+    protected static native void release0(long surfaceHandle);
 
 }
