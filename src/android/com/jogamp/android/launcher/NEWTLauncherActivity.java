@@ -54,21 +54,26 @@ public abstract class NEWTLauncherActivity extends Activity {
        Log.d(TAG, "onCreate - S");
        super.onCreate(savedInstanceState);
        
+       System.setProperty("jogamp.debug.JNILibLoader", "true");
+       System.setProperty("jogamp.debug.NativeLibrary", "true");
+       // System.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
+       // System.setProperty("jogamp.debug.IOUtil", "true");       
+
        // System.setProperty("nativewindow.debug", "all");
+       // System.setProperty("nativewindow.debug.GraphicsConfiguration", "true");
+
        // System.setProperty("jogl.debug", "all");
-       System.setProperty("jogl.debug.GLProfile", "true");
+       // System.setProperty("jogl.debug.GLProfile", "true");
        System.setProperty("jogl.debug.GLDrawable", "true");
+       System.setProperty("jogl.debug.GLSLCode", "true");
+       System.setProperty("jogl.debug.DebugGL", "true");
+       System.setProperty("jogl.debug.TraceGL", "true");
+
        // System.setProperty("newt.debug", "all");
        System.setProperty("newt.debug.Window", "true");
        // System.setProperty("newt.debug.Window.MouseEvent", "true");
        // System.setProperty("newt.debug.Window.KeyEvent", "true");
-       // System.setProperty("jogamp.debug.IOUtil", "true");       
-       System.setProperty("jogamp.debug.JNILibLoader", "true");
-       System.setProperty("jogamp.debug.NativeLibrary", "true");
-       // System.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
-       System.setProperty("jogl.debug.GLSLCode", "true");
-       System.setProperty("nativewindow.debug.GraphicsConfiguration", "true");
-              
+
        ClassLoader cl = ClassLoaderUtil.createJogampClassLoaderSingleton(this, getUserPackageName());
        if(null != cl) {
            try {

@@ -380,7 +380,10 @@ public abstract class GLContextImpl extends GLContext {
         if (null == getGLDrawable().getChosenGLCapabilities()) {
             throw new GLException("drawable has no chosen GLCapabilities: "+getGLDrawable());
         }
-        additionalCtxCreationFlags |= DEBUG_GL ? GLContext.CTX_OPTION_DEBUG : 0 ;        
+        if(DEBUG_GL) {
+            // only impacts w/ createContextARB(..)
+            additionalCtxCreationFlags |= GLContext.CTX_OPTION_DEBUG ;
+        }
     }
 
     lockConsiderFailFast();
@@ -408,14 +411,17 @@ public abstract class GLContextImpl extends GLContext {
         // throws an GLException if not 
         getGLDrawable().getGLProfile().verifyEquality(gl.getGLProfile());
         
+        glDebugHandler.init( isGL2GL3() && isGLDebugEnabled() );
+
         if(DEBUG_GL) {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, gl, null) );
-            glDebugHandler.addListener(new GLDebugMessageHandler.StdErrGLDebugListener(true));
+            if(glDebugHandler.isEnabled()) {
+                glDebugHandler.addListener(new GLDebugMessageHandler.StdErrGLDebugListener(true));
+            }
         }
         if(TRACE_GL) {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) );
         }               
-        glDebugHandler.init(0 != (additionalCtxCreationFlags & GLContext.CTX_OPTION_DEBUG));        
       }
 
       /* FIXME: refactor dependence on Java 2D / JOGL bridge
