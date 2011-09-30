@@ -36,9 +36,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLException;
 import javax.media.opengl.GLUniformData;
-import org.junit.Assert;
 
 public class RedSquareES2 implements GLEventListener {
     ShaderState st;
@@ -59,7 +57,6 @@ public class RedSquareES2 implements GLEventListener {
         
     public void init(GLAutoDrawable glad) {
         System.err.println(Thread.currentThread()+" RedSquareES2.init ...");
-        Assert.assertNull("ShaderState object is not null -> already init", st);
         GL2ES2 gl = glad.getGL().getGL2ES2();
         
         System.err.println(Thread.currentThread()+" GL Profile: "+gl.getGLProfile());
@@ -77,7 +74,6 @@ public class RedSquareES2 implements GLEventListener {
         sp0.add(gl, fp0, System.err);
         st.attachShaderProgram(gl, sp0);
         st.useProgram(gl, true);        
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
         // setup mgl_PMVMatrix
         pmvMatrix = new PMVMatrix();
@@ -88,7 +84,6 @@ public class RedSquareES2 implements GLEventListener {
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);        
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
         // Allocate Vertex Array
         vertices = GLArrayDataServer.createGLSL("mgl_Vertex", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
@@ -99,7 +94,6 @@ public class RedSquareES2 implements GLEventListener {
         vertices.seal(gl, true);
         st.ownAttribute(vertices, true);
         vertices.enableBuffer(gl, false);
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
         // Allocate Color Array
         colors= GLArrayDataServer.createGLSL("mgl_Color", 4, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
@@ -110,13 +104,11 @@ public class RedSquareES2 implements GLEventListener {
         colors.seal(gl, true);          
         st.ownAttribute(colors, true);
         colors.enableBuffer(gl, false);
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
         // OpenGL Render Settings
         gl.glClearColor(0, 0, 0, 1);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         st.useProgram(gl, false);        
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
         t0 = System.currentTimeMillis();
         System.err.println(Thread.currentThread()+" RedSquareES2.init FIN");
@@ -124,33 +116,26 @@ public class RedSquareES2 implements GLEventListener {
 
     public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
         System.err.println(Thread.currentThread()+" RedSquareES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);        
-        Assert.assertNotNull("ShaderState object is null -> not init or already disposed", st);
         GL2ES2 gl = glad.getGL().getGL2ES2();
         gl.setSwapInterval(swapInterval);
         
         st.useProgram(gl, true);
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         // Set location in front of camera
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.gluPerspective(45.0F, (float) width / (float) height, 1.0F, 100.0F);
         //pmvMatrix.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
         gl.glUniform(pmvMatrixUniform);
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         st.useProgram(gl, false);
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         System.err.println(Thread.currentThread()+" RedSquareES2.reshape FIN");
     }
 
     public void display(GLAutoDrawable glad) {
-        Assert.assertNotNull("ShaderState object is null -> not init or already disposed", st);
         long t1 = System.currentTimeMillis();
 
         GL2ES2 gl = glad.getGL().getGL2ES2();
         st.useProgram(gl, true);
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         // One rotation every four seconds
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
@@ -159,24 +144,19 @@ public class RedSquareES2 implements GLEventListener {
         pmvMatrix.glRotatef(ang, 0, 0, 1);
         pmvMatrix.glRotatef(ang, 0, 1, 0);
         gl.glUniform(pmvMatrixUniform);
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         // Draw a square
         vertices.enableBuffer(gl, true);
         colors.enableBuffer(gl, true);
         gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
         vertices.enableBuffer(gl, false);
         colors.enableBuffer(gl, false);
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         st.useProgram(gl, false);
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
     }
 
     public void dispose(GLAutoDrawable glad) {
         System.err.println(Thread.currentThread()+" RedSquareES2.dispose ... ");
-        Assert.assertNotNull("ShaderState object is null -> not init or already disposed", st);
         GL2ES2 gl = glad.getGL().getGL2ES2();
         st.destroy(gl);
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         st = null;
         pmvMatrix.destroy();
         pmvMatrix = null;

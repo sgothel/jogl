@@ -41,12 +41,8 @@ import com.jogamp.opengl.util.Animator;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.TextView;
 
 public class NEWTGearsES2Activity extends NewtBaseActivity {
-   GLWindow glWindow = null;
-   Animator animator = null;
-   TextView tv = null;
    static String TAG = "NEWTGearsES2Activity";
    
    @Override
@@ -57,7 +53,7 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
        Log.d(TAG, "req caps: "+caps);
-       glWindow = GLWindow.create(caps);
+       GLWindow glWindow = GLWindow.create(caps);
        setContentView(glWindow);
        
        glWindow.addGLEventListener(new GearsES2(1));
@@ -68,36 +64,10 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
         }
        });
        glWindow.setVisible(true);
-       animator = new Animator(glWindow);
+       Animator animator = new Animator(glWindow);
        animator.setUpdateFPSFrames(60, System.err);
+       setAnimator(animator);
        
        Log.d(TAG, "onCreate - X");
-   }
-   
-   @Override
-   public void onResume() {
-     super.onResume();
-     if(null != animator) {
-         animator.start();
-     }
-   }
-
-   @Override
-   public void onPause() {
-     super.onPause();
-     if(null != animator) {
-         animator.pause();
-     }
-   }
-
-   @Override
-   public void onDestroy() {
-     super.onDestroy(); 
-     if(null != animator) {
-         animator.stop();
-     }
-     if(null != glWindow) {
-         glWindow.destroy();
-     }
    }   
 }

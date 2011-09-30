@@ -7,8 +7,6 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 import javax.media.opengl.glu.*;
 
-import org.junit.Assert;
-
 import com.jogamp.opengl.util.glsl.fixedfunc.*;
 
 public class RedSquareES1 implements GLEventListener {
@@ -45,7 +43,6 @@ public class RedSquareES1 implements GLEventListener {
 
     public void init(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" RedSquareES1.init ...");
-        Assert.assertNull("GLU object is not null -> already init", glu);        
         GL _gl = drawable.getGL();
 
         if(glDebugEmu) {
@@ -111,7 +108,6 @@ public class RedSquareES1 implements GLEventListener {
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         System.err.println(Thread.currentThread()+" RedSquareES1.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
-        Assert.assertNotNull("GLU object is null -> not init or already disposed", glu);        
         GL2ES1 gl = drawable.getGL().getGL2ES1();
         gl.setSwapInterval(swapInterval);
         
@@ -125,7 +121,6 @@ public class RedSquareES1 implements GLEventListener {
     }
 
     public void display(GLAutoDrawable drawable) {
-        Assert.assertNotNull("GLU object is null -> not init or already disposed", glu);        
         curTime = System.currentTimeMillis();
         GL2ES1 gl = drawable.getGL().getGL2ES1();
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -148,7 +143,6 @@ public class RedSquareES1 implements GLEventListener {
 
     public void dispose(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" RedSquareES1.dispose ... ");
-        Assert.assertNotNull("GLU object is null -> not init or already disposed", glu);        
         GL2ES1 gl = drawable.getGL().getGL2ES1();
         gl.glDisableClientState(GLPointerFunc.GL_VERTEX_ARRAY);
         gl.glDisableClientState(GLPointerFunc.GL_COLOR_ARRAY);

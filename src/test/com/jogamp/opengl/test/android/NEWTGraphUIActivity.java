@@ -41,12 +41,8 @@ import com.jogamp.opengl.util.Animator;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.TextView;
 
 public class NEWTGraphUIActivity extends NewtBaseActivity {
-   GLWindow glWindow = null;
-   Animator animator = null;
-   TextView tv = null;
    static String TAG = "NEWTGraphUIActivity";
    
    @Override
@@ -60,7 +56,7 @@ public class NEWTGraphUIActivity extends NewtBaseActivity {
        caps.setNumSamples(4);
        caps.setSampleBuffers(true);
        Log.d(TAG, "req caps: "+caps);
-       glWindow = GLWindow.create(caps);
+       GLWindow glWindow = GLWindow.create(caps);
        setContentView(glWindow);
        
        glWindow.addGLEventListener(new GPUUISceneGLListener0A());
@@ -71,36 +67,10 @@ public class NEWTGraphUIActivity extends NewtBaseActivity {
         }
        });
        glWindow.setVisible(true);
-       animator = new Animator(glWindow);
+       Animator animator = new Animator(glWindow);
        animator.setUpdateFPSFrames(60, System.err);
+       setAnimator(animator);
        
        Log.d(TAG, "onCreate - X");
-   }
-   
-   @Override
-   public void onResume() {
-     super.onResume();
-     if(null != animator) {
-         animator.start();
-     }
-   }
-
-   @Override
-   public void onPause() {
-     super.onPause();
-     if(null != animator) {
-         animator.pause();
-     }
-   }
-
-   @Override
-   public void onDestroy() {
-     super.onDestroy(); 
-     if(null != animator) {
-         animator.stop();
-     }
-     if(null != glWindow) {
-         glWindow.destroy();
-     }
    }   
 }
