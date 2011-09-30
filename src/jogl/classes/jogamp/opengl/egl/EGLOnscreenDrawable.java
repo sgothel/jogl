@@ -57,7 +57,12 @@ public class EGLOnscreenDrawable extends EGLDrawable {
     }
 
     protected void swapBuffersImpl() {
-        EGL.eglSwapBuffers(eglDisplay, eglSurface);
+        if(!EGL.eglSwapBuffers(eglDisplay, eglSurface)) {
+            if(DEBUG) {
+                System.err.println("eglSwapBuffers failed:");
+                Thread.dumpStack();
+            }
+        }
     }
 
 }
