@@ -111,6 +111,35 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         return res;
     }
     
+    public static int getFormat(CapabilitiesImmutable rCaps) {
+        int fmt = PixelFormat.UNKNOWN;
+        
+        if(rCaps.getRedBits()<=5 &&
+           rCaps.getGreenBits()<=6 &&
+           rCaps.getBlueBits()<=5 &&
+           rCaps.getAlphaBits()==0) {
+            fmt = PixelFormat.RGB_565;            
+        } else
+        if(rCaps.getRedBits()<=5 &&
+           rCaps.getGreenBits()<=5 &&
+           rCaps.getBlueBits()<=5 &&
+           rCaps.getAlphaBits()==1) {
+            fmt = PixelFormat.RGBA_5551;            
+        } else
+        if(rCaps.getRedBits()<=8 &&
+           rCaps.getGreenBits()<=8 &&
+           rCaps.getBlueBits()<=8 &&
+           rCaps.getAlphaBits()==0) {
+            fmt = PixelFormat.RGBX_8888;            
+        } else {        
+            fmt = PixelFormat.RGBA_8888;
+        }
+        Log.d(MD.TAG, "getFormat: requested: "+rCaps);
+        Log.d(MD.TAG, "getFormat:  returned: "+fmt);
+        
+        return fmt;
+    }
+    
     class AndroidEvents implements /* View.OnKeyListener, */ View.OnTouchListener {
 
         public boolean onTouch(View v, MotionEvent event) {
@@ -128,7 +157,9 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
             return false;
         } */
     }
-    public AndroidWindow() {
+
+    @Override
+    protected void instantiationFinished() {
         nsv = new MSurfaceView(jogamp.common.os.android.StaticContext.getContext());
         AndroidEvents ae = new AndroidEvents();
         nsv.setOnTouchListener(ae);
@@ -138,24 +169,28 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         sh.addCallback(this); 
         // setFormat is done by SurfaceView in SDK 2.3 and newer. Uncomment
         // this statement if back-porting to 2.2 or older:
-        sh.setFormat(PixelFormat.RGB_565);
+        // sh.setFormat(PixelFormat.RGB_565);
         // sh.setFormat(getPixelFormat(requestedCaps)); // n/a at this moment
         // sh.setFormat(PixelFormat.RGBA_5551);
         // sh.setFormat(PixelFormat.RGBA_8888);
         // setType is not needed for SDK 2.0 or newer. Uncomment this
         // statement if back-porting this code to older SDKs.
-        sh.setType(SurfaceHolder.SURFACE_TYPE_GPU);        
+        sh.setFormat(getFormat(getRequestedCapabilities()));
+        // sh.setType(SurfaceHolder.SURFACE_TYPE_GPU);
         // sh.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
     }
 
+    
     public SurfaceView getView() { return nsv; }
     
+    @Override
     protected boolean canCreateNativeImpl() {
         final boolean b = 0 != surfaceHandle;
         Log.d(MD.TAG, "canCreateNativeImpl: "+b);
         return b;
     }
 
+    @Override
     protected void createNativeImpl() {
         Log.d(MD.TAG, "createNativeImpl 0 - surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
                     ", "+x+"/"+y+" "+width+"x"+height);

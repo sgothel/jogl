@@ -180,13 +180,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             window.screen = (ScreenImpl) screen;
             window.capsRequested = (CapabilitiesImmutable) caps.cloneMutable();
             window.setUndecorated(0!=parentWindowHandle);
+            window.instantiationFinished();
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
             throw new NativeWindowException(t);
         }
     }
-
+    
     public static WindowImpl create(Object[] cstrArguments, Screen screen, CapabilitiesImmutable caps) {
         try {
             Class<?> windowClass = getWindowClass(screen.getDisplay().getType());
@@ -379,6 +380,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Window: Native implementation
     //
 
+    /**
+     * Notifies the driver impl. that the instantiation is finished,
+     * ie. instance created and all fields set. 
+     */
+    protected void instantiationFinished() {
+        // nop
+    }
+    
     protected boolean canCreateNativeImpl() {
         return true; // default: always able to be created
     }
