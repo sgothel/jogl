@@ -63,11 +63,12 @@ public abstract class NEWTLauncherActivity extends Activity {
        // System.setProperty("nativewindow.debug.GraphicsConfiguration", "true");
 
        // System.setProperty("jogl.debug", "all");
-       // System.setProperty("jogl.debug.GLProfile", "true");
+       System.setProperty("jogl.debug.GLProfile", "true");
        System.setProperty("jogl.debug.GLDrawable", "true");
        System.setProperty("jogl.debug.GLSLCode", "true");
+       System.setProperty("jogl.debug.GLSLState", "true");
        System.setProperty("jogl.debug.DebugGL", "true");
-       System.setProperty("jogl.debug.TraceGL", "true");
+       // System.setProperty("jogl.debug.TraceGL", "true");
 
        // System.setProperty("newt.debug", "all");
        System.setProperty("newt.debug.Window", "true");
