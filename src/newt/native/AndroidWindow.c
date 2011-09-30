@@ -30,11 +30,32 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_android_AndroidWindow_getSurface
     return (jlong) (intptr_t) anw;
 }
 
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_android_AndroidWindow_getSurfaceVisualID
+    (JNIEnv *env, jclass clazz, jlong surfaceHandle)
+{
+    ANativeWindow * anw = (ANativeWindow *) (intptr_t) surfaceHandle;
+    return (jint) ANativeWindow_getFormat(anw);
+}
+
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_android_AndroidWindow_setSurfaceVisualID
     (JNIEnv *env, jclass clazz, jlong surfaceHandle, jint nativeVisualID)
 {
     ANativeWindow * anw = (ANativeWindow *) (intptr_t) surfaceHandle;
     ANativeWindow_setBuffersGeometry(anw, 0, 0, nativeVisualID);
+}
+
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_android_AndroidWindow_acquire
+    (JNIEnv *env, jclass clazz, jlong surfaceHandle)
+{
+    ANativeWindow * anw = (ANativeWindow *) (intptr_t) surfaceHandle;
+    ANativeWindow_acquire(anw);
+}
+
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_android_AndroidWindow_release
+    (JNIEnv *env, jclass clazz, jlong surfaceHandle)
+{
+    ANativeWindow * anw = (ANativeWindow *) (intptr_t) surfaceHandle;
+    ANativeWindow_release(anw);
 }
 
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_android_AndroidWindow_initIDs

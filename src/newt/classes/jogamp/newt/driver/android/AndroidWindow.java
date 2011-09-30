@@ -31,17 +31,23 @@ package jogamp.newt.driver.android;
 import java.nio.IntBuffer;
 
 import jogamp.newt.driver.android.event.AndroidNewtEventFactory;
+
+import javax.media.nativewindow.Capabilities;
+import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.egl.EGLGraphicsDevice;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLCapabilitiesImmutable;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.newt.event.MouseEvent;
 
 import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLGraphicsConfiguration;
+import jogamp.opengl.egl.EGLGraphicsConfigurationFactory;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
@@ -58,27 +64,51 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         AndroidDisplay.initSingleton();
     }
 
-    int getPixelFormat() {
-        /**
-        int bpp = capsRequested.getRedBits()+
-                  capsRequested.getGreenBits()+
-                  capsRequested.getBlueBits();
-        int alpha = capsRequested.getAlphaBits();
-        
-        if(bpp <= 16) {
-            
+    public static CapabilitiesImmutable fixCapsAlpha(CapabilitiesImmutable rCaps) {
+        if(rCaps.getAlphaBits()==0) {
+            Capabilities nCaps = (Capabilities) rCaps.cloneMutable();
+            nCaps.setAlphaBits(1);
+            return nCaps;
         }
-        switch(aDisplay.getPixelFormat()) {
-            case PixelFormat.RGBA_8888: bpp=32; break;
-            case PixelFormat.RGBX_8888: bpp=32; break;
-            case PixelFormat.RGB_888:   bpp=24; break;
-            case PixelFormat.RGB_565:   bpp=16; break;
-            case PixelFormat.RGBA_5551: bpp=16; break;
-            case PixelFormat.RGBA_4444: bpp=16; break;
-            case PixelFormat.RGB_332:   bpp= 8; break;
-            default: bpp=32;   
-        } */
-        return PixelFormat.RGBA_8888;                       
+        return rCaps;
+    }
+    
+    public static CapabilitiesImmutable fixCaps(int format, CapabilitiesImmutable rCaps) {
+        PixelFormat pf = new PixelFormat(); 
+        PixelFormat.getPixelFormatInfo(format, pf);
+        final CapabilitiesImmutable res;        
+        int r, g, b, a;
+        
+        switch(format) {
+            case PixelFormat.RGBA_8888: r=8; g=8; b=8; a=8; break;
+            case PixelFormat.RGBX_8888: r=8; g=8; b=8; a=0; break;
+            case PixelFormat.RGB_888:   r=8; g=8; b=8; a=0; break;
+            case PixelFormat.RGB_565:   r=5; g=6; b=5; a=0; break;
+            case PixelFormat.RGBA_5551: r=5; g=5; b=5; a=1; break;
+            case PixelFormat.RGBA_4444: r=4; g=4; b=4; a=4; break;
+            case PixelFormat.RGB_332:   r=3; g=3; b=2; a=0; break;
+            default: throw new InternalError("Unhandled pixelformat: "+format);
+        }
+        final boolean fits = rCaps.getRedBits()   <= r &&
+                             rCaps.getGreenBits() <= g &&
+                             rCaps.getBlueBits()  <= b &&
+                             rCaps.getAlphaBits() <= a ;
+        
+        if(!fits) {
+            Capabilities nCaps = (Capabilities) rCaps.cloneMutable();
+            nCaps.setRedBits(r);
+            nCaps.setGreenBits(g);
+            nCaps.setBlueBits(b);
+            nCaps.setAlphaBits(a);
+            res = nCaps;            
+        } else {
+            res = rCaps;
+        }
+        Log.d(MD.TAG, "fixCaps:    format: "+format);
+        Log.d(MD.TAG, "fixCaps: requested: "+rCaps);
+        Log.d(MD.TAG, "fixCaps:    chosen: "+res);
+        
+        return res;
     }
     
     class AndroidEvents implements /* View.OnKeyListener, */ View.OnTouchListener {
@@ -105,9 +135,17 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         nsv.setClickable(false);
         // nsv.setOnKeyListener(ae);
         SurfaceHolder sh = nsv.getHolder();
-        sh.setFormat(getPixelFormat());
-        sh.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
         sh.addCallback(this); 
+        // setFormat is done by SurfaceView in SDK 2.3 and newer. Uncomment
+        // this statement if back-porting to 2.2 or older:
+        sh.setFormat(PixelFormat.RGB_565);
+        // sh.setFormat(getPixelFormat(requestedCaps)); // n/a at this moment
+        // sh.setFormat(PixelFormat.RGBA_5551);
+        // sh.setFormat(PixelFormat.RGBA_8888);
+        // setType is not needed for SDK 2.0 or newer. Uncomment this
+        // statement if back-porting this code to older SDKs.
+        sh.setType(SurfaceHolder.SURFACE_TYPE_GPU);        
+        // sh.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
     }
 
     public SurfaceView getView() { return nsv; }
@@ -129,8 +167,12 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         }
        
         final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getScreen().getDisplay().getGraphicsDevice();
-        final EGLGraphicsConfiguration eglConfig = (EGLGraphicsConfiguration) GraphicsConfigurationFactory.getFactory(eglDevice)
-                .chooseGraphicsConfiguration(capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen());
+        // final EGLGraphicsConfiguration eglConfig = (EGLGraphicsConfiguration) GraphicsConfigurationFactory.getFactory(eglDevice)
+        //        .chooseGraphicsConfiguration(capsByFormat, getRequestedCapabilities(), capabilitiesChooser, getScreen().getGraphicsScreen());
+        final EGLGraphicsConfiguration eglConfig = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
+                capsByFormat, (GLCapabilitiesImmutable) getRequestedCapabilities(), 
+                (GLCapabilitiesChooser)capabilitiesChooser, getScreen().getGraphicsScreen(),
+                format); // JAU FIXME: filter out by android visualID ??
         if (eglConfig == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
@@ -142,7 +184,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
                                   ", error 0x"+Integer.toHexString(EGL.eglGetError()));
         }        
         Log.d(MD.TAG, "nativeVisualID 0x"+Integer.toHexString(nativeVisualID.get(0)));
-        setSurfaceVisualID(surfaceHandle, nativeVisualID.get(0));
+        // JAU FIXME setSurfaceVisualID(surfaceHandle, nativeVisualID.get(0));
         
         eglSurface = EGL.eglCreateWindowSurface(eglDevice.getHandle(), eglConfig.getNativeConfig(), surfaceHandle, null);
         if (EGL.EGL_NO_SURFACE==eglSurface) {
@@ -157,6 +199,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
 
     @Override
     protected void closeNativeImpl() {
+        release(surfaceHandle);
         surface = null;
         surfaceHandle = 0;
         eglSurface = 0;        
@@ -230,29 +273,41 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     //
     
     public void surfaceCreated(SurfaceHolder holder) {    
-        surface = holder.getSurface();
-        surfaceHandle = getSurfaceHandle(surface);
-
-        Log.d(MD.TAG, "surfaceCreated - 0 - isValid: "+surface.isValid()+
-                    ", surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
-                    ", "+nsv.getWidth()+"x"+nsv.getHeight());
-        
-        positionChanged(false, 0, 0);
-        sizeChanged(false, nsv.getWidth(), nsv.getHeight(), false);                
-        windowRepaint(0, 0, nsv.getWidth(), nsv.getHeight());
-
-        if(isVisible()) {
-           setVisible(true); 
-        }
-        
-        Log.d(MD.TAG, "surfaceCreated - X");    
+        Log.d(MD.TAG, "surfaceCreated");    
     }
 
-    public void surfaceChanged(SurfaceHolder holder, int format, int width,
-            int height) {
-        Log.d(MD.TAG, "surfaceChanged: f "+Integer.toString(format)+", "+width+"x"+height);
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        Log.d(MD.TAG, "surfaceChanged: f "+this.format+" -> "+format+", "+width+"x"+height+", current surfaceHandle: 0x"+Long.toHexString(surfaceHandle));
+        if(0!=surfaceHandle && this.format != format) {
+            // re-create
+            Log.d(MD.TAG, "surfaceChanged (destroy old)");
+            windowDestroyNotify();
+            if(isNativeValid()) {
+                destroy();
+            }
+            surfaceHandle = 0;
+            surface=null;
+        }
         getScreen().getCurrentScreenMode(); // if ScreenMode changed .. trigger ScreenMode event
-        sizeChanged(false, width, height, false);
+
+        if(0 == surfaceHandle) {
+            this.format = format;
+            capsByFormat = (GLCapabilitiesImmutable) fixCaps(format, getRequestedCapabilities());
+            // capsByFormat = (GLCapabilitiesImmutable) fixCapsAlpha(getRequestedCapabilities());
+            // capsByFormat = (GLCapabilitiesImmutable) getRequestedCapabilities();
+            surface = holder.getSurface();
+            surfaceHandle = getSurfaceHandle(surface);
+            acquire(surfaceHandle);
+            int surfaceVisualID = getSurfaceVisualID(surfaceHandle);
+            Log.d(MD.TAG, "surfaceChanged (create): isValid: "+surface.isValid()+
+                          ", new surfaceHandle 0x"+Long.toHexString(surfaceHandle)+", surfaceVisualID: "+surfaceVisualID);
+            positionChanged(false, 0, 0);
+            sizeChanged(false, width, height, false);                
+            if(isVisible()) {
+               setVisible(true); 
+            }
+        }
+        windowRepaint(0, 0, width, height);
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
@@ -266,10 +321,12 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     }
     
     
-    MSurfaceView nsv;
-    Surface surface = null;
-    volatile long surfaceHandle = 0;
-    long eglSurface = 0;
+    private MSurfaceView nsv;
+    private int format; // stored current PixelFormat
+    private GLCapabilitiesImmutable capsByFormat; // fixed requestedCaps by PixelFormat
+    private Surface surface = null;
+    private volatile long surfaceHandle = 0;
+    private long eglSurface = 0;
     
     static class MSurfaceView extends SurfaceView {
         public MSurfaceView (Context ctx) {
@@ -282,6 +339,9 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     //
     protected static native boolean initIDs();
     protected static native long getSurfaceHandle(Surface surface);
+    protected static native int getSurfaceVisualID(long surfaceHandle);
     protected static native void setSurfaceVisualID(long surfaceHandle, int nativeVisualID);
+    protected static native void acquire(long surfaceHandle);
+    protected static native void release(long surfaceHandle);
 
 }
