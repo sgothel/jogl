@@ -33,6 +33,8 @@ import java.lang.reflect.Method;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.util.Log;
 
@@ -44,7 +46,8 @@ public abstract class NEWTLauncherActivity extends Activity {
    Class<?> activityClazz = null;
    Object activityObject  = null;
    
-   public abstract String getDownstreamActivityName();
+   public abstract String getUserActivityName();
+   public abstract String getUserPackageName();
    
    @Override
    public void onCreate(Bundle savedInstanceState) {
@@ -53,20 +56,23 @@ public abstract class NEWTLauncherActivity extends Activity {
        
        // System.setProperty("nativewindow.debug", "all");
        // System.setProperty("jogl.debug", "all");
+       System.setProperty("jogl.debug.GLProfile", "true");
+       System.setProperty("jogl.debug.GLDrawable", "true");
        // System.setProperty("newt.debug", "all");
        System.setProperty("newt.debug.Window", "true");
        // System.setProperty("newt.debug.Window.MouseEvent", "true");
        // System.setProperty("newt.debug.Window.KeyEvent", "true");
        // System.setProperty("jogamp.debug.IOUtil", "true");       
-       // System.setProperty("jogamp.debug.JNILibLoader", "true");
-       // System.setProperty("jogamp.debug.NativeLibrary", "true");
+       System.setProperty("jogamp.debug.JNILibLoader", "true");
+       System.setProperty("jogamp.debug.NativeLibrary", "true");
        // System.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
        System.setProperty("jogl.debug.GLSLCode", "true");
+       System.setProperty("nativewindow.debug.GraphicsConfiguration", "true");
               
-       ClassLoader cl = ClassLoaderUtil.createJogampClassLoaderSingleton(this);
+       ClassLoader cl = ClassLoaderUtil.createJogampClassLoaderSingleton(this, getUserPackageName());
        if(null != cl) {
            try {
-               activityClazz = Class.forName(getDownstreamActivityName(), true, cl);
+               activityClazz = Class.forName(getUserActivityName(), true, cl);
                Log.d(TAG, "Activity Clazz "+activityClazz);
                activityObject = createInstance(activityClazz, null);
                Log.d(TAG, "Activity Object "+activityObject);
@@ -91,6 +97,12 @@ public abstract class NEWTLauncherActivity extends Activity {
            Log.d(TAG, "error: "+e, e);
            throw e;
        }
+       
+       // Make window fullscreen
+       requestWindowFeature(Window.FEATURE_NO_TITLE);
+       getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                            WindowManager.LayoutParams.FLAG_FULLSCREEN);
+       
        callMethod(activityObject, mSetIsInvokedByExternalActivity, this);
        
        callMethod(activityObject, mOnCreate, savedInstanceState);
@@ -142,7 +154,15 @@ public abstract class NEWTLauncherActivity extends Activity {
      Log.d(TAG, "onDestroy - S");
      callMethod(activityObject, mOnDestroy);
      super.onDestroy();  
+     finish();
      Log.d(TAG, "onDestroy - X");
+   }   
+
+   @Override
+   public void finish() {
+     Log.d(TAG, "finish - S");
+     super.finish();  
+     Log.d(TAG, "finish - X");
    }   
 
   /**
