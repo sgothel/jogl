@@ -3,6 +3,10 @@
     <string name="hello">Jogl Launcher</string>
     <string name="app_name">JogAmp\'s Jogl Launcher</string>
     <string name="app_descr">Launches Jogl Applications.</string>
+    <string name="activity_redsquarees1_name">RedSquareES1</string>
+    <string name="activity_redsquarees1_descr">RedSquareES1</string>
+    <string name="activity_redsquarees2_name">RedSquareES2</string>
+    <string name="activity_redsquarees2_descr">RedSquareES2</string>
     <string name="activity_gearses1_name">GearsES1</string>
     <string name="activity_gearses1_descr">GearsES1</string>
     <string name="activity_gearses2_name">GearsES2</string>

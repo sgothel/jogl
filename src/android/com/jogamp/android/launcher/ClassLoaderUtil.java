@@ -43,54 +43,75 @@ public class ClassLoaderUtil {
    
    public static final String dexPathName= "jogampDex";
    
-   // private static LauncherTempFileCache tmpFileCache;
-
+   private static LauncherTempFileCache tmpFileCache = null;
+   private static ClassLoader jogAmpClassLoader = null;
+   
    public static synchronized ClassLoader createJogampClassLoaderSingleton(Context ctx, String userPackageName) {
-       LauncherTempFileCache tmpFileCache = null; // hack .. for each launch, instead for each ClassLoader
-       if(null==tmpFileCache) {
-            if(!LauncherTempFileCache.initSingleton(ctx)) {
-                throw new InternalError("TempFileCache initialization error");
-            }
+       if(null==jogAmpClassLoader) {
+           if(null!=tmpFileCache) {
+               throw new InternalError("XXX0");
+           }
+           if(!LauncherTempFileCache.initSingleton(ctx)) {
+               throw new InternalError("TempFileCache initialization error");
+           }
            tmpFileCache = new LauncherTempFileCache();
            if(!tmpFileCache.isValid()) {
                throw new InternalError("TempFileCache instantiation error");                
            }
+           final ApplicationInfo ai = ctx.getApplicationInfo();
+           Log.d(TAG, "S: userPackageName: "+userPackageName+", dataDir: "+ai.dataDir+", nativeLibraryDir: "+ai.nativeLibraryDir);
+    
+           final String appDir = new File(ai.dataDir).getParent();
+           final String libSub = ai.nativeLibraryDir.substring(ai.nativeLibraryDir.lastIndexOf('/')+1);
+           Log.d(TAG, "S: appDir: "+appDir+", libSub: "+libSub);
+           
+           final String libPathName = appDir + "/" + packageGlueGen + "/" + libSub + "/:" +
+                                      appDir + "/" + packageJogl + "/" + libSub + "/" ;
+           Log.d(TAG, "S: libPath: "+libPathName);
+                   
+           String apkGlueGen = null;
+           String apkJogl = null;
+       
+           try {
+               apkGlueGen = ctx.getPackageManager().getApplicationInfo(packageGlueGen,0).sourceDir;
+               apkJogl = ctx.getPackageManager().getApplicationInfo(packageJogl,0).sourceDir;
+           } catch (PackageManager.NameNotFoundException e) {
+               Log.d(TAG, "error: "+e, e);
+           }
+           if(null == apkGlueGen || null == apkJogl) {
+               Log.d(TAG, "not found: gluegen <"+apkGlueGen+">, jogl <"+apkJogl+">");
+               return null;
+           }
+           
+           final String cp = apkGlueGen + ":" + apkJogl ;
+           Log.d(TAG, "jogamp cp: " + cp);
+       
+           final File dexPath = new File(tmpFileCache.getTempDir(), dexPathName);
+           Log.d(TAG, "jogamp dexPath: " + dexPath.getAbsolutePath());
+           dexPath.mkdir();
+           jogAmpClassLoader = new DexClassLoader(cp, dexPath.getAbsolutePath(), libPathName, ctx.getClassLoader());
+       } else {
+           if(null==tmpFileCache) {
+               throw new InternalError("XXX1");
+           }           
        }
-       final ApplicationInfo ai = ctx.getApplicationInfo();
-       Log.d(TAG, "S: userPackageName: "+userPackageName+", dataDir: "+ai.dataDir+", nativeLibraryDir: "+ai.nativeLibraryDir);
-
-       final String appDir = new File(ai.dataDir).getParent();
-       final String libSub = ai.nativeLibraryDir.substring(ai.nativeLibraryDir.lastIndexOf('/')+1);
-       Log.d(TAG, "S: appDir: "+appDir+", libSub: "+libSub);
        
-       final String libPathName = appDir + "/" + packageGlueGen + "/" + libSub + "/:" +
-                                  appDir + "/" + packageJogl + "/" + libSub + "/" ;
-       Log.d(TAG, "S: libPath: "+libPathName);
-               
-       String apkGlueGen = null;
-       String apkJogl = null;
-       String apkJoglTest = null;
-       
+       String apkUser = null;
        try {
-           apkGlueGen = ctx.getPackageManager().getApplicationInfo(packageGlueGen,0).sourceDir;
-           apkJogl = ctx.getPackageManager().getApplicationInfo(packageJogl,0).sourceDir;
-           apkJoglTest = ctx.getPackageManager().getApplicationInfo(userPackageName,0).sourceDir;
+           apkUser = ctx.getPackageManager().getApplicationInfo(userPackageName,0).sourceDir;
        } catch (PackageManager.NameNotFoundException e) {
            Log.d(TAG, "error: "+e, e);
        }
-       if(null == apkGlueGen || null == apkJogl || null == apkJoglTest) {
-           Log.d(TAG, "not found: gluegen <"+apkGlueGen+">, jogl <"+apkJogl+">, jogl-test <"+apkJoglTest+">");
+       if(null == apkUser) {
+           Log.d(TAG, "not found: user apk <"+apkUser+">");
            return null;
        }
        
-       final String cp = apkGlueGen + ":" + apkJogl + ":" + apkJoglTest ;
-       Log.d(TAG, "cp: " + cp);
-   
-       final File dexPath = new File(tmpFileCache.getTempDir(), dexPathName);
-       Log.d(TAG, "dexPath: " + dexPath.getAbsolutePath());
+       Log.d(TAG, "user cp: " + apkUser);
+       final File dexPath = new File(tmpFileCache.getTempDir(), userPackageName);
+       Log.d(TAG, "user dexPath: " + dexPath.getAbsolutePath());
        dexPath.mkdir();
-       
-       ClassLoader cl = new DexClassLoader(cp, dexPath.getAbsolutePath(), libPathName, ctx.getClassLoader());
+       ClassLoader cl = new DexClassLoader(apkUser, dexPath.getAbsolutePath(), null, jogAmpClassLoader);
        Log.d(TAG, "cl: " + cl);
        // setAPKClassLoader(dexLoader);
        

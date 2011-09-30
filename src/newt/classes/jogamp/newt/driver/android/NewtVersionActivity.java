@@ -30,17 +30,13 @@ package jogamp.newt.driver.android;
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
-import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.util.Animator;
 
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
 public class NewtVersionActivity extends NewtBaseActivity {
-   GLWindow glWindow = null;
-   Animator animator = null;
    TextView tv = null;
    
    @Override
@@ -57,50 +53,7 @@ public class NewtVersionActivity extends NewtBaseActivity {
        tv = new TextView(this);
        tv.setText(VersionUtil.getPlatformInfo()+Platform.NEWLINE+GlueGenVersion.getInstance()+Platform.NEWLINE+JoglVersion.getInstance()+Platform.NEWLINE);               
        setContentView(tv);
-       /**
-       // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
-       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES1));
-       glWindow = GLWindow.create(caps);
-       setContentView(glWindow);
-       
-       glWindow.addGLEventListener(new GearsES1(1));
-       glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {
-        public void screenModeChangeNotify(ScreenMode sm) { }
-        public void screenModeChanged(ScreenMode sm, boolean success) {
-            System.err.println("ScreenMode Changed: "+sm);
-        }
-       });
-       glWindow.setVisible(true);
-       animator = new Animator(glWindow);
-       animator.setUpdateFPSFrames(60, System.err); */
-       
+
        Log.d(MD.TAG, "onCreate - X");
-   }
-   
-   @Override
-   public void onResume() {
-     super.onResume();
-     if(null != animator) {
-         animator.start();
-     }
-   }
-
-   @Override
-   public void onPause() {
-     super.onPause();
-     if(null != animator) {
-         animator.pause();
-     }
-   }
-
-   @Override
-   public void onDestroy() {
-     super.onDestroy(); 
-     if(null != animator) {
-         animator.stop();
-     }
-     if(null != glWindow) {
-         glWindow.destroy();
-     }
    }   
 }

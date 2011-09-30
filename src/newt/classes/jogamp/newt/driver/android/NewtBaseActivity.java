@@ -31,15 +31,18 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.util.Animator;
 
 import jogamp.newt.driver.android.AndroidWindow;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
 public class NewtBaseActivity extends Activity {
+   AndroidWindow window = null;
+   Animator animator = null;
+    
    boolean isInvokedByExternalActivity = false;
    Activity extActivity = this;
    
@@ -56,14 +59,19 @@ public class NewtBaseActivity extends Activity {
            window = ((GLWindow)window).getWindow();
        }
        if(window instanceof AndroidWindow) {
+           this.window = (AndroidWindow)window;
            if(isInvokedByExternalActivity) {
-               extActivity.setContentView(((AndroidWindow)window).getView());
+               extActivity.setContentView(this.window.getView());
            } else {
-               super.setContentView(((AndroidWindow)window).getView());               
+               super.setContentView(this.window.getView());               
            }
        } else {
            throw new IllegalArgumentException("Given NEWT Window is not an Android Window: "+window.getClass()); 
        }
+   }
+   
+   public void setAnimator(Animator animator) {
+       this.animator = animator;
    }
    
    @Override
@@ -103,11 +111,17 @@ public class NewtBaseActivity extends Activity {
      if(!isInvokedByExternalActivity) {
          super.onResume();
      }
+     if(null != animator) {
+         animator.start();
+     }
    }
 
    @Override
    public void onPause() {
      Log.d(MD.TAG, "onPause");
+     if(null != animator) {
+         animator.pause();
+     }
      if(!isInvokedByExternalActivity) {
          super.onPause();
      }
@@ -124,6 +138,14 @@ public class NewtBaseActivity extends Activity {
    @Override
    public void onDestroy() {
      Log.d(MD.TAG, "onDestroy");
+     if(null != animator) {
+         animator.stop();
+         animator = null;
+     }
+     if(null != window) {
+         window.destroy();
+         window = null;
+     }
      if(!isInvokedByExternalActivity) {
          super.onDestroy(); 
      }

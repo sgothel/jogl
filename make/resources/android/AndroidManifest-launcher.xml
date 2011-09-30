@@ -13,6 +13,30 @@
                  android:description="@string/app_descr"
                  android:persistent="false"
                  >
+        <activity android:name="com.jogamp.android.launcher.NEWTLauncherRedSquareES1Activity"
+                  android:finishOnTaskLaunch="true"
+                  android:launchMode="standard"
+                  android:configChanges="keyboardHidden|orientation"
+                  android:label="@string/activity_redsquarees1_name"
+                  android:description="@string/activity_redsquarees1_descr"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.android.launcher.NEWTLauncherRedSquareES2Activity"
+                  android:finishOnTaskLaunch="true"
+                  android:launchMode="standard"
+                  android:configChanges="keyboardHidden|orientation"
+                  android:label="@string/activity_redsquarees2_name"
+                  android:description="@string/activity_redsquarees2_descr"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity android:name="com.jogamp.android.launcher.NEWTLauncherGearsES1Activity"
                   android:finishOnTaskLaunch="true"
                   android:launchMode="standard"
