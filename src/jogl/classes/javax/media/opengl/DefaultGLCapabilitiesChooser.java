@@ -42,6 +42,8 @@ package javax.media.opengl;
 
 import javax.media.nativewindow.NativeWindowException;
 import jogamp.opengl.Debug;
+
+import java.security.AccessController;
 import java.util.List;
 import javax.media.nativewindow.CapabilitiesImmutable;
 
@@ -84,7 +86,7 @@ import javax.media.nativewindow.CapabilitiesImmutable;
 */
 
 public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
-  private static final boolean DEBUG = Debug.debug("CapabilitiesChooser");
+  private static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.CapabilitiesChooser", true, AccessController.getContext());
 
   public int chooseCapabilities(final CapabilitiesImmutable desired,
                                 final List /*<CapabilitiesImmutable>*/ available,
@@ -124,6 +126,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     final int DOUBLE_BUFFER_MISMATCH_PENALTY = 1000;
     final int OPAQUE_MISMATCH_PENALTY = 750;
     final int STENCIL_MISMATCH_PENALTY = 500;
+    final int MULTISAMPLE_MISMATCH_PENALTY = 500;
     // Pseudo attempt to keep equal rank penalties scale-equivalent
     // (e.g., stencil mismatch is 3 * accum because there are 3 accum
     // components)
@@ -131,10 +134,13 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     final int DEPTH_MISMATCH_PENALTY_SCALE     = 6;
     final int ACCUM_MISMATCH_PENALTY_SCALE     = 1;
     final int STENCIL_MISMATCH_PENALTY_SCALE   = 3;
+    final int MULTISAMPLE_MISMATCH_PENALTY_SCALE   = 3;
     
     for (int i = 0; i < scores.length; i++) {
       scores[i] = NO_SCORE;
     }
+    final int gldes_samples = gldes.getSampleBuffers() ? gldes.getNumSamples() : 0;
+    
     // Compute score for each
     for (int i = 0; i < availnum; i++) {
       GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
@@ -150,7 +156,10 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       if (gldes.getStereo() != cur.getStereo()) {
         continue;
       }
+      final int cur_samples = 
+              cur.getSampleBuffers() ? cur.getNumSamples() : 0;
       int score = 0;
+              
       // Compute difference in color depth
       // (Note that this decides the direction of all other penalties)
       score += (COLOR_MISMATCH_PENALTY_SCALE *
@@ -165,14 +174,21 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
                          (gldes.getAccumRedBits() + gldes.getAccumGreenBits() + gldes.getAccumBlueBits() + gldes.getAccumAlphaBits())));
       // Compute difference in stencil bits
       score += STENCIL_MISMATCH_PENALTY_SCALE * sign(score) * (cur.getStencilBits() - gldes.getStencilBits());
+      // Compute difference in multisampling bits
+      score += MULTISAMPLE_MISMATCH_PENALTY_SCALE * sign(score) * (cur_samples - gldes_samples);
+      // double buffer
       if (cur.getDoubleBuffered() != gldes.getDoubleBuffered()) {
         score += sign(score) * DOUBLE_BUFFER_MISMATCH_PENALTY;
       }
+      // opaque
       if (cur.isBackgroundOpaque() != gldes.isBackgroundOpaque()) {
         score += sign(score) * OPAQUE_MISMATCH_PENALTY;
       }
       if ((gldes.getStencilBits() > 0) && (cur.getStencilBits() == 0)) {
         score += sign(score) * STENCIL_MISMATCH_PENALTY;
+      }
+      if ((gldes_samples > 0) && (cur_samples == 0)) {
+        score += sign(score) * MULTISAMPLE_MISMATCH_PENALTY;
       }
       scores[i] = score;
     }
