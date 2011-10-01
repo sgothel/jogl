@@ -113,6 +113,12 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     public static int getFormat(CapabilitiesImmutable rCaps) {
         int fmt = PixelFormat.UNKNOWN;
         
+        /*
+        if(rCaps.getAlphaBits()==0) {
+            fmt = PixelFormat.RGB_565;
+        } else {
+            fmt = PixelFormat.RGBA_5551;
+        } */
         if(rCaps.getRedBits()<=5 &&
            rCaps.getGreenBits()<=6 &&
            rCaps.getBlueBits()<=5 &&
@@ -186,7 +192,8 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     @Override
     protected void createNativeImpl() {
         Log.d(MD.TAG, "createNativeImpl 0 - surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
-                    ", "+x+"/"+y+" "+width+"x"+height);
+                    ", "+x+"/"+y+" "+width+"x"+height+" - "+Thread.currentThread().getName());
+        Thread.dumpStack();
         if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("Window parenting not supported (yet)");
         }
@@ -212,7 +219,8 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
                                   ", error 0x"+Integer.toHexString(EGL.eglGetError()));
         }        
         Log.d(MD.TAG, "nativeVisualID 0x"+Integer.toHexString(nativeVisualID.get(0)));
-        // JAU FIXME setSurfaceVisualID(surfaceHandle, nativeVisualID.get(0));
+        // JAU FIXME 
+        setSurfaceVisualID0(surfaceHandle, nativeVisualID.get(0));
         
         eglSurface = EGL.eglCreateWindowSurface(eglDevice.getHandle(), eglConfig.getNativeConfig(), surfaceHandle, null);
         if (EGL.EGL_NO_SURFACE==eglSurface) {

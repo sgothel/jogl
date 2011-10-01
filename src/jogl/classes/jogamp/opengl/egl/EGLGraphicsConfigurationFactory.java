@@ -295,6 +295,9 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         
         if(DEBUG) {
             System.err.println("EGLGraphicsConfiguration.eglChooseConfig: got configs: "+availableCaps.size());
+            for(int i=0; i<availableCaps.size(); i++) {
+                System.err.println(i+": "+availableCaps.get(i));
+            }
         }
 
         if(0<=nativeVisualID) {
