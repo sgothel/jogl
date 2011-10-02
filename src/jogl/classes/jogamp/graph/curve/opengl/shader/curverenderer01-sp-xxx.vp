@@ -1,4 +1,5 @@
 //Copyright 2010 JogAmp Community. All rights reserved.
+
 #ifdef GL_ES
   precision lowp float;
   precision lowp int;
