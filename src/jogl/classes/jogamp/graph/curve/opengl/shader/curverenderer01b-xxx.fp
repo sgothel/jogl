@@ -42,10 +42,9 @@ void main (void)
     t += texture2D(gcu_TextureUnit, rtex + 4.0*size*(vec2(0, 1)))*tex_weights.w;
     t += texture2D(gcu_TextureUnit, rtex - 4.0*size*(vec2(0, 1)))*tex_weights.w;
     
-    /** discard freezes NV tegra2 compiler (TODO: dbl check)
     if(t.w == 0.0){
         discard;
-    } */
+    }
     
     c = t.xyz;
     alpha = gcu_Alpha * t.w;

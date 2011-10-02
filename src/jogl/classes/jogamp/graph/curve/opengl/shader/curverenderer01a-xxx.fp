@@ -23,13 +23,11 @@ void main (void)
         rtex.y -= 0.1;
           
         if(rtex.y < 0.0) {
-            /** discard freezes NV tegra2 compiler (TODO: dbl check)
             if(gcv_TexCoord.y < 0.0) {
                 discard;
             } else {
                 rtex.y = 0.0;
-            }*/
-            rtex.y = 0.0;
+            }
         }
           
         vec2 f = vec2((dtx.y - dtx.x + 2.0*rtex.x*dtx.x), (dty.y - dty.x + 2.0*rtex.x*dty.x));
@@ -41,8 +39,7 @@ void main (void)
         if (a >= 1.0)  { 
             alpha = gcu_Alpha;
         } else if (a <= 0.0) {
-            // discard; // freezes NV tegra2 compiler (TODO: dbl check)
-            alpha = 0.0;
+            discard;
         } else {           
             alpha = gcu_Alpha * a;
             // ?? mix(b_color,gcu_ColorStatic.rgb, a);
