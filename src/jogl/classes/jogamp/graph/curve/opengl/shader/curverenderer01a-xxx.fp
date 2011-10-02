@@ -12,6 +12,7 @@ void main (void)
     vec3 c = gcu_ColorStatic.rgb;
     
     float alpha = 0.0;
+    float enable = 1.0;
     
     if((gcv_TexCoord.x == 0.0) && (gcv_TexCoord.y == 0.0)) {
          alpha = gcu_Alpha;
@@ -23,13 +24,12 @@ void main (void)
         rtex.y -= 0.1;
           
         if(rtex.y < 0.0) {
-            /** discard freezes NV tegra2 compiler (TODO: dbl check)
             if(gcv_TexCoord.y < 0.0) {
-                discard;
+                // discard; // freezes NV tegra2 compiler (TODO: dbl check)
+                enable = 0.0;
             } else {
                 rtex.y = 0.0;
-            }*/
-            rtex.y = 0.0;
+            }
         }
           
         vec2 f = vec2((dtx.y - dtx.x + 2.0*rtex.x*dtx.x), (dty.y - dty.x + 2.0*rtex.x*dty.x));
@@ -39,12 +39,12 @@ void main (void)
         float a = (0.5 - d * sign(gcv_TexCoord.y));  
         
         if (a >= 1.0)  { 
-            alpha = gcu_Alpha;
+            alpha = gcu_Alpha * enable;
         } else if (a <= 0.0) {
             // discard; // freezes NV tegra2 compiler (TODO: dbl check)
             alpha = 0.0;
         } else {           
-            alpha = gcu_Alpha * a;
+            alpha = gcu_Alpha * a * enable;
             // ?? mix(b_color,gcu_ColorStatic.rgb, a);
         }
     }
