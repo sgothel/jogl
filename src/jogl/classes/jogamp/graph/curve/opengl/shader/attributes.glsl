@@ -2,8 +2,6 @@
 #ifndef attributes_glsl
 #define attributes_glsl
 
-#include precision.glsl
-
 // attribute vec3    gca_Vertices;
 attribute vec4    gca_Vertices;
 attribute vec2    gca_TexCoords;

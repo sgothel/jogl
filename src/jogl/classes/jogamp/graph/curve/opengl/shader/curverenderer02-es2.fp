@@ -6,5 +6,9 @@
 // #extension OES_standard_derivatives : require
 #extension GL_OES_standard_derivatives : enable
 
+precision mediump float;
+precision mediump int;
+precision mediump sampler2D;
+
 #include curverenderer02-xxx.fp
 

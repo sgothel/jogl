@@ -1,5 +1,6 @@
 //Copyright 2010 JogAmp Community. All rights reserved.
 
+#include consts.glsl
 #include uniforms.glsl
 #include attributes.glsl
 #include varyings.glsl

@@ -1,5 +1,6 @@
 //Copyright 2010 JogAmp Community. All rights reserved.
  
+#include consts.glsl
 #include uniforms.glsl
 #include varyings.glsl
 
@@ -49,9 +50,10 @@ void main (void)
         t += texture2D(gcu_TextureUnit, rtex + 4.0*size*(vec2(0, 1)))*tex_weights.w;
         t += texture2D(gcu_TextureUnit, rtex - 4.0*size*(vec2(0, 1)))*tex_weights.w;
         
+        /** freezes NV tegra2 compiler (TODO: dbl check).
         if(t.w == 0.0) {
             discard;
-        }
+        } */
         
         c = t.xyz;
         alpha = gcu_Alpha * t.w;
@@ -59,16 +61,19 @@ void main (void)
     ///////////////////////////////////////////////////////////
     else if ((gcv_TexCoord.x > 0.0) && (rtex.y > 0.0 || rtex.x == 1.0)) {
         rtex.y -= 0.1;
+
+        float enable = 1.0;
         
         if(rtex.y < 0.0) {
             if(gcv_TexCoord.y < 0.0) {
-                discard;
+                // discard; // freezes NV tegra2 compiler (TODO: dbl check).
+                enable = 0.0;
             } else {
                 rtex.y = 0.0;
             }
         }
-        vec2 dtx = dFdx(rtex);
-        vec2 dty = dFdy(rtex);
+        vec2 dtx = enable * dFdx(rtex);
+        vec2 dty = enable * dFdy(rtex);
           
         float w = gcu_Weight;
         float pd = ((2.0 - (2.0*w))*rtex.x*rtex.x) + 2.0*(w-1.0)*rtex.x + 1.0;
@@ -78,13 +83,15 @@ void main (void)
         
         float gd = (aph*rtex.x*rtex.x + 2.0*rtex.x + 1.0)*(aph*rtex.x*rtex.x + 2.0*rtex.x + 1.0);
         vec2 f = vec2((dtx.y - (w*dtx.x*(1.0 - 2.0*rtex.x))/gd), (dty.y - (w*dty.x*(1.0 - 2.0*rtex.x))/gd));
-
         float d = position/(length(f));
-        float a = (0.5 - d * sign(gcv_TexCoord.y));  
+
+        float a = enable * ( 0.5 - d * sign(gcv_TexCoord.y) );
+
         if (a >= 1.0) {
             alpha = gcu_Alpha;
         }  else if (a <= 0.0) {
-            discard;
+            // discard; // freezes NV tegra2 compiler (TODO: dbl check).
+            alpha = 0.0;
         } else {           
             alpha = gcu_Alpha*a;
         }
