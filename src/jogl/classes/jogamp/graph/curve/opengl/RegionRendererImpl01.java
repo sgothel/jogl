@@ -46,12 +46,16 @@ public class RegionRendererImpl01 extends RegionRenderer {
         
     }
     
+    /**
+     * FIXME: 2nd pass shader !
+     */
     @Override
     protected String getFragmentShaderName(GL2ES2 gl) {
         if(Region.isNonUniformWeight(renderModes)){
+            // FIXME: split shader !
             return "curverenderer02" + getShaderGLVersionSuffix(gl);
         }
-        return "curverenderer01" + getShaderGLVersionSuffix(gl);
+        return "curverenderer01a" + getShaderGLVersionSuffix(gl);
     }
     
     protected boolean initShaderProgram(GL2ES2 gl) {
