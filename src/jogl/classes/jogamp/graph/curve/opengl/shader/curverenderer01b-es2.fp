@@ -10,5 +10,5 @@ precision mediump float;
 precision mediump int;
 precision mediump sampler2D;
 
-#include curverenderer01-xxx.fp
+#include curverenderer01b-xxx.fp
 
