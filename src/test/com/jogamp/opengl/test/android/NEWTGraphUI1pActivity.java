@@ -42,7 +42,7 @@ import com.jogamp.opengl.util.Animator;
 import android.os.Bundle;
 import android.util.Log;
 
-public class NEWTGraphUIActivity extends NewtBaseActivity {
+public class NEWTGraphUI1pActivity extends NewtBaseActivity {
    static String TAG = "NEWTGraphUIActivity";
    
    @Override
@@ -59,7 +59,7 @@ public class NEWTGraphUIActivity extends NewtBaseActivity {
        GLWindow glWindow = GLWindow.create(caps);
        setContentView(glWindow);
        
-       glWindow.addGLEventListener(new GPUUISceneGLListener0A());
+       glWindow.addGLEventListener(new GPUUISceneGLListener0A(0));
        glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {
         public void screenModeChangeNotify(ScreenMode sm) { }
         public void screenModeChanged(ScreenMode sm, boolean success) {

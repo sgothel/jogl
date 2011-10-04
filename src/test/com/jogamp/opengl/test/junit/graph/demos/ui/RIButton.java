@@ -108,7 +108,6 @@ public abstract class RIButton extends UIShape {
         float th = (2f*spacing) + lbox.getHeight();
         float tw = (2f*spacing) + lbox.getWidth();
         
-        float[] pos = getPosition();
         float minX = lbox.getMinX()-spacing;
         float minY = lbox.getMinY()-spacing;
         float minZ = labelZOffset;
@@ -127,7 +126,6 @@ public abstract class RIButton extends UIShape {
         float cw = 0.5f*corner*Math.min(tw, th);
         float ch = 0.5f*corner*Math.min(tw, th);
         
-        float[] pos = getPosition();
         float minX = lbox.getMinX()-spacing;
         float minY = lbox.getMinY()-spacing;
         float minZ = labelZOffset;
@@ -201,8 +199,7 @@ public abstract class RIButton extends UIShape {
     private boolean toggle =false;
     private boolean toggleable = false;
 
-
-    public void render(GL2ES2 gl, RenderState rs, RegionRenderer renderer, boolean selection) {
+    public void render(GL2ES2 gl, RenderState rs, RegionRenderer renderer, int renderModes, int texSize, boolean selection) {
         if(null == buttonRegion) {
             buttonRegion = new UIRegion(this);
             labelRegion = new UIRegion(getLabel());
@@ -218,7 +215,7 @@ public abstract class RIButton extends UIShape {
         if(!selection){
             renderer.setColorStatic(gl, bColor[0], bColor[1], bColor[2]);
         }
-        renderer.draw(gl, buttonRegion.getRegion(gl, rs, 0), getPosition(), 0);
+        renderer.draw(gl, buttonRegion.getRegion(gl, rs, renderModes), getPosition(), texSize);
         gl.glDisable(GL2ES2.GL_POLYGON_OFFSET_FILL);
         
         float[] lColor = labelColor;
@@ -228,7 +225,7 @@ public abstract class RIButton extends UIShape {
         if(!selection){
             renderer.setColorStatic(gl, lColor[0], lColor[1], lColor[2]);
         }
-        renderer.draw(gl, labelRegion.getRegion(gl, rs, 0), getPosition(), 0);
+        renderer.draw(gl, labelRegion.getRegion(gl, rs, renderModes), getPosition(), texSize);
     }
     public void setPressed(boolean b) {
         super.setPressed(b);

@@ -3,6 +3,7 @@ package com.jogamp.opengl.test.junit.graph.demos;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.event.WindowAdapter;
@@ -11,7 +12,7 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class GPUUISceneNewtDemo01 {
+public class GPUUISceneNewtDemo02 {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
     
@@ -29,12 +30,12 @@ public class GPUUISceneNewtDemo01 {
         window.setTitle("GraphUI Newt Demo");
         
         final RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        GPUUISceneGLListener0A textGLListener = new GPUUISceneGLListener0A(rs, 0, DEBUG, TRACE);
+        GPUUISceneGLListener0A textGLListener = new GPUUISceneGLListener0A(rs, Region.VBAA_RENDERING_BIT, DEBUG, TRACE);
         window.addGLEventListener(textGLListener);
         textGLListener.attachInputListenerTo(window);
         
         final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(60, System.err);        
+        animator.setUpdateFPSFrames(60, System.err);
         animator.add(window);
         
         window.addWindowListener(new WindowAdapter() {

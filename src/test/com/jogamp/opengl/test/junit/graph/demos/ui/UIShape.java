@@ -55,7 +55,7 @@ public abstract class UIShape {
         shape.clear();
     }
     
-    public abstract void render(GL2ES2 gl, RenderState rs, RegionRenderer renderer, boolean selection);
+    public abstract void render(GL2ES2 gl, RenderState rs, RegionRenderer renderer, int renderModes, int texSize, boolean selection);
     
     protected boolean positionDirty = false;
     

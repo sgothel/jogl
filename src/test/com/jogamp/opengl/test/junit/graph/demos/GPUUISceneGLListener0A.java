@@ -8,6 +8,7 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLRunnable;
 
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
@@ -27,6 +28,10 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private boolean debug = false;
     private boolean trace = false; 
     
+    private final int renderModes;
+    private final int texSize; 
+    private final int renderModes2;
+    private final int texSize2; 
     private RegionRenderer regionRenderer;
     private RenderState rs;
     
@@ -60,16 +65,25 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private float angText = 0;
     
     public GPUUISceneGLListener0A() {
-      this(RenderState.createRenderState(new ShaderState(), SVertex.factory()), false, false);    
+      this(0);
     }
     
-    public GPUUISceneGLListener0A(RenderState rs, boolean debug, boolean trace) {
+    public GPUUISceneGLListener0A(int renderModes) {
+      this(RenderState.createRenderState(new ShaderState(), SVertex.factory()), renderModes, false, false);
+    }
+    
+    public GPUUISceneGLListener0A(RenderState rs, int renderModes, boolean debug, boolean trace) {
         this.rs = rs;
+        this.renderModes = renderModes;
+        this.texSize = Region.isVBAA(renderModes) ? 400 : 0;
+        this.renderModes2 = 0;
+        this.texSize2 = 0;
         
         this.debug = debug;
         this.trace = trace;
         font = FontFactory.get(FontFactory.UBUNTU).getDefault();
         labelRegions = new UIRegion[3];
+        sceneUIController = new SceneUIController();
     }
     
     private void initButtons(int width, int height) {
@@ -93,6 +107,10 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         
         buttons[1] = new RIButton(SVertex.factory(), font, "Show FPS", xSize, ySize){
             public void onClick() {
+                final GLAnimatorControl a = cDrawable.getAnimator();
+                if( null != a ) {
+                    a.resetFPSCounter();
+                }
                 showFPS = !showFPS;
             }
             public void onPressed() { }
@@ -106,9 +124,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                 cDrawable.invoke(false, new GLRunnable() {
                     public boolean run(GLAutoDrawable drawable) {
                         GL gl = drawable.getGL();
-                        int i = gl.getSwapInterval();      
-                        i = i==0 ? 1 : 0;
-                        gl.setSwapInterval(i);
+                        gl.setSwapInterval(gl.getSwapInterval()<=0?1:0);
                         final GLAnimatorControl a = drawable.getAnimator();
                         if( null != a ) {
                             a.resetFPSCounter();
@@ -196,9 +212,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         }
         
         this.font = FontFactory.get(fontSet).getDefault();
-        regionRenderer = RegionRenderer.create(rs, 0); 
+        regionRenderer = RegionRenderer.create(rs, renderModes); 
         
-        gl.setSwapInterval(1);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         gl.glEnable(GL2ES2.GL_BLEND);
         
@@ -209,14 +224,15 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         initTexts();
         initButtons(width, height);
         
-        sceneUIController.setRenderer(regionRenderer, rs);
+        sceneUIController.setRenderer(regionRenderer, rs, renderModes, texSize);
         sceneUIController.addShape(buttons[0]);
         sceneUIController.addShape(buttons[1]);
         sceneUIController.addShape(buttons[2]);
         sceneUIController.addShape(buttons[3]);
         sceneUIController.addShape(buttons[4]);
         sceneUIController.addShape(buttons[5]);
-        
+        drawable.addGLEventListener(sceneUIController);
+                
         Label jlabel = new Label(SVertex.factory(), font, fontSizeFixed, jogamp){
             public void onClick() { }
             public void onPressed() { }
@@ -224,6 +240,10 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         };
         
         jogampRegion = new UIRegion(jlabel);
+        final GLAnimatorControl a = drawable.getAnimator();
+        if( null != a ) {
+            a.resetFPSCounter();
+        }        
     }
 
     public void dispose(GLAutoDrawable drawable) {
@@ -235,8 +255,10 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             System.err.println("GPUUISceneGLListener0A: dispose (0)");            
         }
         
+        drawable.removeGLEventListener(sceneUIController);
+        sceneUIController.dispose(drawable);
+        
         GL2ES2 gl = drawable.getGL().getGL2ES2();
-        sceneUIController = null;
         regionRenderer.destroy(gl);
     }
 
@@ -287,7 +309,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         regionRenderer.rotate(gl, zoomText, 0, 1, 0);
         
         regionRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
-        regionRenderer.draw(gl, labelRegions[currentText].getRegion(gl, rs, 0), new float[]{0,0,0}, 0);
+        regionRenderer.draw(gl, labelRegions[currentText].getRegion(gl, rs, renderModes2), new float[]{0,0,0}, texSize2);
         
         final GLAnimatorControl animator = drawable.getAnimator();
         final boolean _drawFPS = showFPS && null != animator;
@@ -326,8 +348,6 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         if ( null == multiTouchListener ) {
             multiTouchListener = new MultiTouchListener();
             window.addMouseListener(multiTouchListener);
-            sceneUIController = new SceneUIController();
-            window.addGLEventListener(sceneUIController);
             sceneUIController.attachInputListenerTo(window);
         }
     }
@@ -335,7 +355,6 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     public void detachInputListenerFrom(GLWindow window) {
         if ( null != multiTouchListener ) {
             window.removeMouseListener(multiTouchListener);
-            window.removeGLEventListener(sceneUIController);
             sceneUIController.detachInputListenerFrom(window);
         }
     }

@@ -1,7 +1,7 @@
 package com.jogamp.android.launcher;
 
-public class NEWTLauncherGraphUIActivity extends NEWTLauncherActivity {
-    static String demo = "com.jogamp.opengl.test.android.NEWTGraphUIActivity";
+public class NEWTLauncherGraphUI2pActivity extends NEWTLauncherActivity {
+    static String demo = "com.jogamp.opengl.test.android.NEWTGraphUI2pActivity";
     static String pkg = "com.jogamp.opengl.test";
 
     @Override

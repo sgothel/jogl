@@ -3,16 +3,18 @@
     <string name="hello">Jogl Launcher</string>
     <string name="app_name">JogAmp\'s Jogl Launcher</string>
     <string name="app_descr">Launches Jogl Applications.</string>
-    <string name="activity_redsquarees1_name">RedSquareES1</string>
+    <string name="activity_redsquarees1_name">RedSqrES1</string>
     <string name="activity_redsquarees1_descr">RedSquareES1</string>
-    <string name="activity_redsquarees2_name">RedSquareES2</string>
+    <string name="activity_redsquarees2_name">RedSqrES2</string>
     <string name="activity_redsquarees2_descr">RedSquareES2</string>
     <string name="activity_gearses1_name">GearsES1</string>
     <string name="activity_gearses1_descr">GearsES1</string>
     <string name="activity_gearses2_name">GearsES2</string>
     <string name="activity_gearses2_descr">GearsES2</string>
-    <string name="activity_graphui_name">GraphUI</string>
-    <string name="activity_graphui_descr">GraphUI</string>
+    <string name="activity_graphui1p_name">GraphUI1p</string>
+    <string name="activity_graphui1p_descr">GraphUI 1-pass</string>
+    <string name="activity_graphui2p_name">GraphUI2p</string>
+    <string name="activity_graphui2p_descr">GraphUI 2-pass</string>
     <string name="activity_elektro_name">Elektro</string>
     <string name="activity_elektro_descr">Elektro</string>
 </resources>

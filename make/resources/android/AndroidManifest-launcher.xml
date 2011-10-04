@@ -69,12 +69,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.jogamp.android.launcher.NEWTLauncherGraphUIActivity"
+        <activity android:name="com.jogamp.android.launcher.NEWTLauncherGraphUI1pActivity"
                   android:finishOnTaskLaunch="true"
                   android:launchMode="standard"
                   android:configChanges="keyboardHidden|orientation"
-                  android:label="@string/activity_graphui_name"
-                  android:description="@string/activity_graphui_descr"
+                  android:label="@string/activity_graphui1p_name"
+                  android:description="@string/activity_graphui1p_descr"
+                  android:exported="true"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.android.launcher.NEWTLauncherGraphUI2pActivity"
+                  android:finishOnTaskLaunch="true"
+                  android:launchMode="standard"
+                  android:configChanges="keyboardHidden|orientation"
+                  android:label="@string/activity_graphui2p_name"
+                  android:description="@string/activity_graphui2p_descr"
                   android:exported="true"
                   >
             <intent-filter>

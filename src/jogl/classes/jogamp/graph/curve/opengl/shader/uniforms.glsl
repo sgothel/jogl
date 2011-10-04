@@ -12,6 +12,8 @@ uniform sampler2D      gcu_TextureUnit;
 uniform vec2    gcu_TextureSize;
 // #endif
 
+// const   int     MAX_TEXTURE_UNITS = 8; // <= gl_MaxTextureImageUnits 
+// const   int     MAX_LIGHTS = 8; 
 // uniform mat3   gcu_NormalMatrix; // transpose(inverse(ModelView)).3x3
 // uniform int     gcu_ColorEnabled;
 // uniform int     gcu_TexCoordEnabled[MAX_TEXTURE_UNITS];

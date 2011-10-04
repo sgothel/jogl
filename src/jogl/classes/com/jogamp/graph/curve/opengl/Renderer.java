@@ -265,11 +265,10 @@ public abstract class Renderer {
         return "curverenderer01" + getShaderGLVersionSuffix(gl);
     }
     
-    /**
-     * FIXME: 2nd pass shader !
-     */
     protected String getFragmentShaderName(GL2ES2 gl) {
-        return "curverenderer01a" + getShaderGLVersionSuffix(gl);
+        final String type = "01" ; // Region.isNonUniformWeight(renderModes) ? "02" : "01" ;
+        final String pass = Region.isVBAA(renderModes) ? "b" : "a" ;
+        return "curverenderer" + type + pass + getShaderGLVersionSuffix(gl);
     }
         
     protected String getShaderGLVersionSuffix(GL2ES2 gl) {
