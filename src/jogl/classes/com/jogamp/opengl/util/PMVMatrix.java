@@ -54,24 +54,25 @@ public class PMVMatrix implements GLMatrixFunc {
           // Mv   ModelView
           // Mvi  Modelview-Inverse
           // Mvit Modelview-Inverse-Transpose
-          matrixITPMvMvitL = Buffers.newDirectFloatBuffer(12*16); // I + T + P  + Mv + Mvi + Mvit + Local
-          matrixIdent   = slice(matrixITPMvMvitL,  0*16, 1*16);  //  I
-          matrixTex     = slice(matrixITPMvMvitL,  1*16, 1*16);  //      T
-          matrixPMvMvit = slice(matrixITPMvMvitL,  2*16, 4*16);  //          P  + Mv + Mvi + Mvit
-          matrixPMvMvi  = slice(matrixITPMvMvitL,  2*16, 3*16);  //          P  + Mv + Mvi
-          matrixPMv     = slice(matrixITPMvMvitL,  2*16, 2*16);  //          P  + Mv
-          matrixP       = slice(matrixITPMvMvitL,  2*16, 1*16);  //          P
-          matrixMv      = slice(matrixITPMvMvitL,  3*16, 1*16);  //               Mv
-          matrixMvi     = slice(matrixITPMvMvitL,  4*16, 1*16);  //                    Mvi
-          matrixMvit    = slice(matrixITPMvMvitL,  5*16, 1*16);  //                          Mvit
-          matrixMult    = slice(matrixITPMvMvitL,  6*16, 1*16);
-          matrixTrans   = slice(matrixITPMvMvitL,  7*16, 1*16);
-          matrixRot     = slice(matrixITPMvMvitL,  8*16, 1*16);
-          matrixScale   = slice(matrixITPMvMvitL,  9*16, 1*16);
-          matrixOrtho   = slice(matrixITPMvMvitL, 10*16, 1*16);
-          matrixFrustum = slice(matrixITPMvMvitL, 11*16, 1*16);
-          matrixITPMvMvitL.rewind();
-
+          matrixBuffer = Buffers.newDirectByteBuffer(12*16 * Buffers.SIZEOF_FLOAT);
+                                                                   //  I + T + P  + Mv + Mvi + Mvit + Local
+          matrixIdent   = slice2Float(matrixBuffer,  0*16, 1*16);  //  I
+          matrixTex     = slice2Float(matrixBuffer,  1*16, 1*16);  //      T
+          matrixPMvMvit = slice2Float(matrixBuffer,  2*16, 4*16);  //          P  + Mv + Mvi + Mvit
+          matrixPMvMvi  = slice2Float(matrixBuffer,  2*16, 3*16);  //          P  + Mv + Mvi
+          matrixPMv     = slice2Float(matrixBuffer,  2*16, 2*16);  //          P  + Mv
+          matrixP       = slice2Float(matrixBuffer,  2*16, 1*16);  //          P
+          matrixMv      = slice2Float(matrixBuffer,  3*16, 1*16);  //               Mv
+          matrixMvi     = slice2Float(matrixBuffer,  4*16, 1*16);  //                    Mvi
+          matrixMvit    = slice2Float(matrixBuffer,  5*16, 1*16);  //                          Mvit
+          matrixMult    = slice2Float(matrixBuffer,  6*16, 1*16);
+          matrixTrans   = slice2Float(matrixBuffer,  7*16, 1*16);
+          matrixRot     = slice2Float(matrixBuffer,  8*16, 1*16);
+          matrixScale   = slice2Float(matrixBuffer,  9*16, 1*16);
+          matrixOrtho   = slice2Float(matrixBuffer, 10*16, 1*16);
+          matrixFrustum = slice2Float(matrixBuffer, 11*16, 1*16);
+          matrixBuffer.rewind();
+          
           ProjectFloat.gluMakeIdentityf(matrixIdent);
           ProjectFloat.gluMakeIdentityf(matrixTrans);
           ProjectFloat.gluMakeIdentityf(matrixRot);
@@ -81,8 +82,8 @@ public class PMVMatrix implements GLMatrixFunc {
 
           vec3f=new float[3];
 
-          matrixPStack = new ArrayList();
-          matrixMvStack= new ArrayList();
+          matrixPStack = new ArrayList<float[]>();
+          matrixMvStack= new ArrayList<float[]>();
 
           // default values and mode
           glMatrixMode(GL_PROJECTION);
@@ -100,8 +101,8 @@ public class PMVMatrix implements GLMatrixFunc {
             projectFloat.destroy(); projectFloat=null;
         }
 
-        if(null!=matrixITPMvMvitL) {
-            matrixITPMvMvitL.clear(); matrixITPMvMvitL=null;
+        if(null!=matrixBuffer) {
+            matrixBuffer.clear(); matrixBuffer=null;
         }
 
         if(null!=matrixPStack) {
@@ -118,15 +119,28 @@ public class PMVMatrix implements GLMatrixFunc {
             matrixTStack.clear(); matrixTStack=null;
         }
 
-        matrixITPMvMvitL=null; matrixPMvMvit=null; matrixPMvMvi=null; matrixPMv=null; 
+        matrixBuffer=null; matrixPMvMvit=null; matrixPMvMvi=null; matrixPMv=null; 
         matrixP=null; matrixTex=null; matrixMv=null; matrixMvi=null; matrixMvit=null;
         matrixMult=null; matrixTrans=null; matrixRot=null; matrixScale=null; matrixOrtho=null; matrixFrustum=null;
     }
 
-    private static FloatBuffer slice(FloatBuffer buf, int pos, int len) {
-        buf.position(pos);
-        buf.limit(pos + len);
-        return buf.slice();
+
+    /**
+     * Slices a ByteBuffer to a FloatBuffer at the given position with the given size
+     * in float-space. Using a ByteBuffer as the source guarantees 
+     * keeping the source native order programmatically.  
+     * This works around <a href="http://code.google.com/p/android/issues/detail?id=16434">Honeycomb / Android 3.0 Issue 16434</a>. 
+     * This bug is resolved at least in Android 3.2.
+     * 
+     * @param buf source ByteBuffer
+     * @param posFloat {@link Buffers#SIZEOF_FLOAT} position
+     * @param lenFloat {@link Buffers#SIZEOF_FLOAT} size 
+     * @return FloatBuffer w/ native byte order as given ByteBuffer
+     */
+    private static FloatBuffer slice2Float(ByteBuffer buf, int posFloat, int lenFloat) {
+        buf.position( posFloat * Buffers.SIZEOF_FLOAT );
+        buf.limit( (posFloat + lenFloat) * Buffers.SIZEOF_FLOAT );
+        return buf.slice().order(buf.order()).asFloatBuffer(); // slice and duplicate may change byte order        
     }
 
     public static final boolean isMatrixModeName(final int matrixModeName) {
@@ -404,11 +418,11 @@ public class PMVMatrix implements GLMatrixFunc {
     public final void glPopMatrix() {
         float[] stackEntry=null;
         if(matrixMode==GL_MODELVIEW) {
-            stackEntry = (float[])matrixMvStack.remove(0);
+            stackEntry = matrixMvStack.remove(0);
         } else if(matrixMode==GL_PROJECTION) {
-            stackEntry = (float[])matrixPStack.remove(0);
+            stackEntry = matrixPStack.remove(0);
         } else if(matrixMode==GL.GL_TEXTURE) {
-            stackEntry = (float[])matrixTStack.remove(0);
+            stackEntry = matrixTStack.remove(0);
         } 
         glLoadMatrixf(stackEntry, 0);
     }
@@ -633,11 +647,11 @@ public class PMVMatrix implements GLMatrixFunc {
         }
     }
 
-    protected FloatBuffer matrixITPMvMvitL;
+    protected ByteBuffer matrixBuffer;
     protected FloatBuffer matrixIdent, matrixPMvMvit, matrixPMvMvi, matrixPMv, matrixP, matrixTex, matrixMv, matrixMvi, matrixMvit;
     protected FloatBuffer matrixMult, matrixTrans, matrixRot, matrixScale, matrixOrtho, matrixFrustum;
     protected float[] vec3f;
-    protected List/*FloatBuffer*/ matrixTStack, matrixPStack, matrixMvStack;
+    protected List<float[]> matrixTStack, matrixPStack, matrixMvStack;
     protected int matrixMode = GL_MODELVIEW;
     protected int modified = 0;
     protected ProjectFloat projectFloat;
