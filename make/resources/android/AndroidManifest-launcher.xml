@@ -70,6 +70,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="com.jogamp.android.launcher.NEWTLauncherGearsES2TransActivity"
+                  android:finishOnTaskLaunch="true"
+                  android:launchMode="standard"
+                  android:configChanges="keyboardHidden|orientation"
+                  android:label="@string/activity_gearses2t_name"
+                  android:description="@string/activity_gearses2t_descr"
+                  android:exported="true"
+                  android:theme="@style/Theme.Transparent"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity android:name="com.jogamp.android.launcher.NEWTLauncherGraphUI1pActivity"
                   android:finishOnTaskLaunch="true"
                   android:launchMode="standard"

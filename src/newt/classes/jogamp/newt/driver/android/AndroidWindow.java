@@ -115,7 +115,9 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     public static int getFormat(CapabilitiesImmutable rCaps) {
         int fmt = PixelFormat.UNKNOWN;
         
-        if(rCaps.getRedBits()<=5 &&
+        if(!rCaps.isBackgroundOpaque()) {
+            fmt = PixelFormat.TRANSLUCENT;
+        } else if(rCaps.getRedBits()<=5 &&
            rCaps.getGreenBits()<=6 &&
            rCaps.getBlueBits()<=5 &&
            rCaps.getAlphaBits()==0) {
@@ -313,7 +315,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     
     public void surfaceCreated(SurfaceHolder holder) {    
         Log.d(MD.TAG, "surfaceCreated: "+x+"/"+y+" "+width+"x"+height);
-        surfaceRealized(holder);
+        // surfaceRealized(holder);
         Log.d(MD.TAG, "surfaceCreated: X");
     }
 
@@ -389,7 +391,8 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     
     class MSurfaceView extends SurfaceView {
         public MSurfaceView (Context ctx) {
-            super(ctx);            
+            super(ctx);
+            setBackgroundDrawable(null);
         }
     }
     //----------------------------------------------------------------------

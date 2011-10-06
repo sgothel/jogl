@@ -42,8 +42,8 @@ import com.jogamp.opengl.util.Animator;
 import android.os.Bundle;
 import android.util.Log;
 
-public class NEWTGearsES2Activity extends NewtBaseActivity {
-   static String TAG = "NEWTGearsES2Activity";
+public class NEWTGearsES2TransActivity extends NewtBaseActivity {
+   static String TAG = "NEWTGearsES2TransActivity";
    
    @Override
    public void onCreate(Bundle savedInstanceState) {
@@ -52,9 +52,10 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
        
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
+       caps.setBackgroundOpaque(false);
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
-       glWindow.setFullscreen(true);
+       glWindow.setFullscreen(true);       
        setContentView(getWindow(), glWindow);
        
        glWindow.addGLEventListener(new GearsES2(1));
