@@ -407,7 +407,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                     xTran += Math.signum(dx);
                 }
                 else {
-                    yTran += Math.signum(dy);
+                    yTran -= Math.signum(dy);
                 }
                 lx = nx;
                 ly = ny;
