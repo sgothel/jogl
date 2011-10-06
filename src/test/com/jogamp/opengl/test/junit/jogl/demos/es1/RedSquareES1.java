@@ -71,6 +71,12 @@ public class RedSquareES1 implements GLEventListener {
             } catch (Exception e) {e.printStackTrace();}
         }
 
+        System.err.println(Thread.currentThread()+"Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
+        System.err.println(Thread.currentThread()+"INIT GL IS: " + gl.getClass().getName());
+        System.err.println(Thread.currentThread()+"GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
+        System.err.println(Thread.currentThread()+"GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
+        System.err.println(Thread.currentThread()+"GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
+        
         System.err.println(Thread.currentThread()+" GL Profile: "+gl.getGLProfile());
         System.err.println(Thread.currentThread()+" GL:" + gl);
         System.err.println(Thread.currentThread()+" GL_VERSION=" + gl.glGetString(GL.GL_VERSION));

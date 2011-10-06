@@ -103,7 +103,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
 
         glWindow.setSize(width, height);
         glWindow.setVisible(true);
-        animator.setUpdateFPSFrames(1, null);
+        animator.setUpdateFPSFrames(60, System.err);
         animator.start();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {

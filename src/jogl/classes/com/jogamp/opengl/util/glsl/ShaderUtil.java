@@ -39,6 +39,8 @@ import java.util.*;
 
 import javax.media.opengl.*;
 
+import com.jogamp.common.nio.Buffers;
+
 public class ShaderUtil {
     static abstract class Impl {
         public abstract String getShaderInfoLog(GL gl, int shaderObj);
@@ -237,11 +239,11 @@ public class ShaderUtil {
                 throw new GLException("No sources specified");
             }
 
-            int[] lengths = new int[count];
+            IntBuffer lengths = Buffers.newDirectIntBuffer(count);
             for(int i=0; i<count; i++) {
-                lengths[i] = source[i].length();
+                lengths.put(i, source[i].length());
             }
-            gl.glShaderSource(shader, count, source, lengths, 0);
+            gl.glShaderSource(shader, count, source, lengths);
         }
 
         public void shaderSource(GL _gl, IntBuffer shaders, java.lang.String[][] sources)

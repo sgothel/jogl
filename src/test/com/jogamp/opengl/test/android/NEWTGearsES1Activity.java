@@ -54,7 +54,7 @@ public class NEWTGearsES1Activity extends NewtBaseActivity {
        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES1));
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
-       setContentView(glWindow);
+       setContentView(getWindow(), glWindow);
        
        glWindow.addGLEventListener(new GearsES1(1));
        glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {

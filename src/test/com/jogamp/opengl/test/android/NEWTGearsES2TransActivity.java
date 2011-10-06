@@ -32,19 +32,18 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.newt.driver.android.NewtBaseActivity;
 
-import com.jogamp.graph.curve.Region;
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.event.ScreenModeListener;
 import com.jogamp.newt.opengl.GLWindow;
 
-import com.jogamp.opengl.test.junit.graph.demos.GPUUISceneGLListener0A;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.util.Animator;
 
 import android.os.Bundle;
 import android.util.Log;
 
-public class NEWTGraphUI2pActivity extends NewtBaseActivity {
-   static String TAG = "NEWTGraphUIActivity";
+public class NEWTGearsES2TransActivity extends NewtBaseActivity {
+   static String TAG = "NEWTGearsES2TransActivity";
    
    @Override
    public void onCreate(Bundle savedInstanceState) {
@@ -53,15 +52,15 @@ public class NEWTGraphUI2pActivity extends NewtBaseActivity {
        
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
-       caps.setAlphaBits(4);
-       caps.setNumSamples(4);
-       caps.setSampleBuffers(true);
+       caps.setBackgroundOpaque(false);
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
-       glWindow.setFullscreen(true);
+       glWindow.setSize(300, 300);
+       // glWindow.setFullscreen(true);
+       glWindow.setUndecorated(true);
        setContentView(getWindow(), glWindow);
        
-       glWindow.addGLEventListener(new GPUUISceneGLListener0A(Region.VBAA_RENDERING_BIT));
+       glWindow.addGLEventListener(new GearsES2(1));
        glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {
         public void screenModeChangeNotify(ScreenMode sm) { }
         public void screenModeChanged(ScreenMode sm, boolean success) {

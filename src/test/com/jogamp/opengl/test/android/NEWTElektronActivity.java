@@ -57,7 +57,8 @@ public class NEWTElektronActivity extends NewtBaseActivity {
        // caps.setSampleBuffers(true);
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
-       setContentView(glWindow);
+       glWindow.setFullscreen(true);
+       setContentView(getWindow(), glWindow);
        
        glWindow.addGLEventListener(new ElektronenMultiplizierer());
        glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {

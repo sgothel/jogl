@@ -288,9 +288,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         }
                     }
                 }
-                // always flag visible, 
-                // allowing to retry if visible && !isNativeValid()
-                visible = true;
             }
         } finally {
             if(null!=parentWindow) {
@@ -699,6 +696,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     nativeWindowCreated = createNative();
                     madeVisible = nativeWindowCreated;
                 }
+                // always flag visible, allowing a retry ..
+                WindowImpl.this.visible = true;                
             } else if(WindowImpl.this.visible != visible) {
                 if(isNativeValid()) {
                     setVisibleImpl(visible, x, y, width, height);
@@ -745,11 +744,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void setVisible(boolean visible) {
-        if( !isNativeValid() && visible && 0>=width*height ) {
-            // fast-path: not realized yet, make visible, but zero size
-            return;
-        }
-
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
             Thread.dumpStack();

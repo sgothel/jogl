@@ -64,8 +64,8 @@ public abstract class NEWTLauncherActivity extends Activity {
 
        // System.setProperty("jogl.debug", "all");
        // System.setProperty("jogl.debug.GLProfile", "true");
-       // System.setProperty("jogl.debug.GLDrawable", "true");
-       // System.setProperty("jogl.debug.GLContext", "true");
+       System.setProperty("jogl.debug.GLDrawable", "true");
+       System.setProperty("jogl.debug.GLContext", "true");
        System.setProperty("jogl.debug.GLSLCode", "true");
        System.setProperty("jogl.debug.CapabilitiesChooser", "true");
        
@@ -106,11 +106,6 @@ public abstract class NEWTLauncherActivity extends Activity {
            Log.d(TAG, "error: "+e, e);
            throw e;
        }
-       
-       // Make window fullscreen
-       requestWindowFeature(Window.FEATURE_NO_TITLE);
-       getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                            WindowManager.LayoutParams.FLAG_FULLSCREEN);
        
        callMethod(activityObject, mSetIsInvokedByExternalActivity, this);
        

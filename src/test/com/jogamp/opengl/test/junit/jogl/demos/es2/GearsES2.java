@@ -56,7 +56,9 @@ public class GearsES2 implements GLEventListener {
     private GearsObjectES2 gear1=null, gear2=null, gear3=null;
     private float angle = 0.0f;
     private int swapInterval = 0;
-    private boolean initialized = false;
+    // private MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
+    private MouseListener gearsMouse = new GearsMouseAdapter();    
+    private KeyListener gearsKeys = new GearsKeyAdapter();
 
     private int prevMouseX, prevMouseY;
 
@@ -92,7 +94,6 @@ public class GearsES2 implements GLEventListener {
 
     public void init(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" GearsES2.init ...");
-        initialized = true;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
@@ -156,10 +157,6 @@ public class GearsES2 implements GLEventListener {
             System.err.println("gear3 reused: "+gear3);
         }                
         
-        // MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
-        MouseListener gearsMouse = new GearsMouseAdapter();    
-        KeyListener gearsKeys = new GearsKeyAdapter();
-
         if (drawable instanceof Window) {
             Window window = (Window) drawable;
             window.addMouseListener(gearsMouse);
@@ -197,7 +194,11 @@ public class GearsES2 implements GLEventListener {
 
     public void dispose(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" GearsES2.dispose ... ");
-        initialized = false;
+        if (drawable instanceof Window) {
+            Window window = (Window) drawable;
+            window.removeMouseListener(gearsMouse);
+            window.removeKeyListener(gearsKeys);
+        }
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         st.useProgram(gl, false);
         gear1.destroy(gl);
