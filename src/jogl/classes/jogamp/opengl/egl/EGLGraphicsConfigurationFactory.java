@@ -301,15 +301,21 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         }
 
         if(0<=nativeVisualID) {
+            List/*<EGLGLCapabilities>*/ removedCaps = new ArrayList();
             for(int i=0; i<availableCaps.size(); ) {
                 EGLGLCapabilities ecap = (EGLGLCapabilities) availableCaps.get(i);
                 if(ecap.getNativeVisualID()!=nativeVisualID) {
-                    availableCaps.remove(i);
+                    removedCaps.add(availableCaps.remove(i));
                 } else {
                     i++;
                 }
             }
-            if(DEBUG) {
+            if(0==availableCaps.size()) {
+                availableCaps = removedCaps;
+                if(DEBUG) {
+                    System.err.println("EGLGraphicsConfiguration.eglChooseConfig: post filter nativeVisualID ("+nativeVisualID+") no config found, revert to all");
+                }
+            } else if(DEBUG) {
                 System.err.println("EGLGraphicsConfiguration.eglChooseConfig: post filter nativeVisualID ("+nativeVisualID+") got configs: "+availableCaps.size());
             }
         }
