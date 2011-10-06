@@ -55,7 +55,9 @@ public class NEWTGearsES2TransActivity extends NewtBaseActivity {
        caps.setBackgroundOpaque(false);
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
-       glWindow.setFullscreen(true);       
+       glWindow.setSize(300, 300);
+       // glWindow.setFullscreen(true);
+       glWindow.setUndecorated(true);
        setContentView(getWindow(), glWindow);
        
        glWindow.addGLEventListener(new GearsES2(1));
