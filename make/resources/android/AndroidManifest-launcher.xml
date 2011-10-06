@@ -3,6 +3,7 @@
       sharedUserId="com.jogamp.Community" 
       package="com.jogamp.android.launcher">
 
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- required for NV's perfhud -->
     <uses-sdk android:minSdkVersion="9" />
     <uses-library android:name="com.jogamp.common" android:required="true" />
     <uses-library android:name="javax.media.opengl" android:required="true" />
