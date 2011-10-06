@@ -28,6 +28,8 @@
  
 package jogamp.newt.driver.android.event;
 
+import java.awt.event.MouseEvent;
+
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.newt.Window;
 
@@ -163,7 +165,7 @@ public class AndroidNewtEventFactory {
                            (null==newtSource)?null:(Object)newtSource, event.getEventTime(),
                                    modifiers , 
                            x, y, pressure, pointers, clickCount, 
-                           0, rotation);
+                           pointers.length==1 ? MouseEvent.BUTTON1 : 0, rotation);
             
             if(type == com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED) {
                 com.jogamp.newt.event.MouseEvent me2 =
@@ -172,7 +174,7 @@ public class AndroidNewtEventFactory {
                            (null==newtSource)?null:(Object)newtSource, event.getEventTime(),
                                    modifiers , 
                            x, y, pressure, pointers, clickCount, 
-                           0, rotation);
+                           pointers.length==1 ? MouseEvent.BUTTON1 : 0, rotation);
                 res = new com.jogamp.newt.event.MouseEvent[2];
                 res[0] = me1;
                 res[1] = me2;
