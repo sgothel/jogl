@@ -40,7 +40,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 public class NewtBaseActivity extends Activity {
-   AndroidWindow window = null;
+   AndroidWindow newtWindow = null;
    Animator animator = null;
     
    boolean isInvokedByExternalActivity = false;
@@ -54,24 +54,38 @@ public class NewtBaseActivity extends Activity {
        return null != extActivity;
    }
    
-   public void setContentView(Window window) {
-       if(window instanceof GLWindow) {
-           window = ((GLWindow)window).getWindow();
+   public Activity getActivity() {
+       if(isInvokedByExternalActivity) {
+           return extActivity;
+       } else {
+           return this;               
        }
-       if(window instanceof AndroidWindow) {
-           this.window = (AndroidWindow)window;
+   }     
+   
+   public void setContentView(android.view.Window androidWindow, Window newtWindow) {
+       if(newtWindow instanceof GLWindow) {
+           newtWindow = ((GLWindow)newtWindow).getWindow();
+       }
+       if(newtWindow instanceof AndroidWindow) {
+           this.newtWindow = (AndroidWindow)newtWindow;
+           this.newtWindow.setAndroidWindow(androidWindow);
            if(isInvokedByExternalActivity) {
-               extActivity.setContentView(this.window.getView());
+               extActivity.setContentView(this.newtWindow.getAndroidView());
            } else {
-               super.setContentView(this.window.getView());               
+               super.setContentView(this.newtWindow.getAndroidView());               
            }
        } else {
-           throw new IllegalArgumentException("Given NEWT Window is not an Android Window: "+window.getClass()); 
+           throw new IllegalArgumentException("Given NEWT Window is not an Android Window: "+newtWindow.getClass()); 
        }
    }
    
    public void setAnimator(Animator animator) {
        this.animator = animator;
+   }
+      
+   @Override
+   public android.view.Window getWindow() {
+       return getActivity().getWindow();
    }
    
    @Override
@@ -83,7 +97,8 @@ public class NewtBaseActivity extends Activity {
            jogamp.common.os.android.StaticContext.setContext(getApplicationContext());
        } else {
            jogamp.common.os.android.StaticContext.setContext(extActivity.getApplicationContext());
-       }              
+       }
+       extActivity.getWindow();
 
        // init GLProfile
        GLProfile.initSingleton(true);       
@@ -142,9 +157,9 @@ public class NewtBaseActivity extends Activity {
          animator.stop();
          animator = null;
      }
-     if(null != window) {
-         window.destroy();
-         window = null;
+     if(null != newtWindow) {
+         newtWindow.destroy();
+         newtWindow = null;
      }
      if(!isInvokedByExternalActivity) {
          super.onDestroy(); 

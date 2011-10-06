@@ -57,7 +57,8 @@ public class NEWTGraphUI1pActivity extends NewtBaseActivity {
        caps.setSampleBuffers(true);
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
-       setContentView(glWindow);
+       glWindow.setFullscreen(true);
+       setContentView(getWindow(), glWindow);
        
        glWindow.addGLEventListener(new GPUUISceneGLListener0A(0));
        glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {
