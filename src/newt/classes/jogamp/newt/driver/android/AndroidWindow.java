@@ -205,7 +205,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     @Override
     protected void createNativeImpl() {
         Log.d(MD.TAG, "createNativeImpl 0 - surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
-                    ", "+x+"/"+y+" "+width+"x"+height+" - "+Thread.currentThread().getName());
+                    ", format "+format+", "+x+"/"+y+" "+width+"x"+height+" - "+Thread.currentThread().getName());
         Thread.dumpStack();
         if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("Window parenting not supported (yet)");
@@ -331,9 +331,9 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         Log.d(MD.TAG, "surfaceCreated: "+x+"/"+y+" "+width+"x"+height);
     }
 
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        Log.d(MD.TAG, "surfaceChanged: f "+this.format+" -> "+format+", "+width+"x"+height+", current surfaceHandle: 0x"+Long.toHexString(surfaceHandle));
-        if(0!=surfaceHandle && this.format != format) {
+    public void surfaceChanged(SurfaceHolder aHolder, int aFormat, int aWidth, int aHeight) {
+        Log.d(MD.TAG, "surfaceChanged: f "+format+" -> "+aFormat+", "+aWidth+"x"+aHeight+", current surfaceHandle: 0x"+Long.toHexString(surfaceHandle));
+        if(0!=surfaceHandle && format != aFormat) {
             // re-create
             Log.d(MD.TAG, "surfaceChanged (destroy old)");
             windowDestroyNotify();
@@ -352,24 +352,26 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         }
         
         if(0 == surfaceHandle) {
-            surface = holder.getSurface();
+            surface = aHolder.getSurface();
             surfaceHandle = getSurfaceHandle0(surface);
             acquire0(surfaceHandle);
             format = getSurfaceVisualID0(surfaceHandle);
+            final int nWidth = getWidth0(surfaceHandle);
+            final int nHeight = getHeight0(surfaceHandle);
             capsByFormat = (GLCapabilitiesImmutable) fixCaps(format, getRequestedCapabilities());
-            sizeChanged(false, getWidth0(surfaceHandle), getHeight0(surfaceHandle), false);
+            sizeChanged(false, nWidth, nHeight, false);
     
             Log.d(MD.TAG, "surfaceRealized: isValid: "+surface.isValid()+
                           ", new surfaceHandle 0x"+Long.toHexString(surfaceHandle)+", format: "+format+
-                          ", "+x+"/"+y+" "+width+"x"+height+", visible: "+isVisible());
+                          ", "+x+"/"+y+" "+nWidth+"x"+nHeight+", visible: "+isVisible());
     
             if(isVisible()) {
                setVisible(true); 
             }
         } else {
-            sizeChanged(false, width, height, false);                
+            sizeChanged(false, aWidth, aHeight, false);
         }
-        windowRepaint(0, 0, width, height);
+        windowRepaint(0, 0, aWidth, aHeight);
         Log.d(MD.TAG, "surfaceChanged: X");
     }
     
@@ -382,8 +384,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         Log.d(MD.TAG, "surfaceRedrawNeeded");
         windowRepaint(0, 0, getWidth(), getHeight());
     }
-    
-    
+        
     private MSurfaceView androidView;
     private android.view.Window androidWindow;
     private int format; // stored current PixelFormat
