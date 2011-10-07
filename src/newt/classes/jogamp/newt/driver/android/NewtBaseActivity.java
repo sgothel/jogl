@@ -81,6 +81,10 @@ public class NewtBaseActivity extends Activity {
    
    public void setAnimator(Animator animator) {
        this.animator = animator;
+       if(!animator.isStarted()) {
+           animator.start();
+       }
+       animator.pause();
    }
       
    @Override
@@ -127,7 +131,7 @@ public class NewtBaseActivity extends Activity {
          super.onResume();
      }
      if(null != animator) {
-         animator.start();
+         animator.resume();
      }
    }
 

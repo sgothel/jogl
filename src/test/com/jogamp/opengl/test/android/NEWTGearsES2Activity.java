@@ -71,11 +71,13 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
             System.err.println("ScreenMode Changed: "+sm);
         }
        });
-       glWindow.setVisible(true);
        Animator animator = new Animator(glWindow);
        animator.setUpdateFPSFrames(60, System.err);
        // animator.setRunAsFastAsPossible(true);
        setAnimator(animator);
+       // glWindow.setSkipContextReleaseThread(animator.getThread());
+       
+       glWindow.setVisible(true);
        
        Log.d(TAG, "onCreate - X");
    }   

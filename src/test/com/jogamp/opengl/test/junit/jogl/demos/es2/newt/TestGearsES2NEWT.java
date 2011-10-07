@@ -152,14 +152,15 @@ public class TestGearsES2NEWT extends UITestCase {
             }
         });
 
+        animator.setUpdateFPSFrames(60, System.err);
+        animator.start();
+        // glWindow.setSkipContextReleaseThread(animator.getThread());
+
         glWindow.setVisible(true);
         
         System.err.println("size/pos: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", "+f_glWindow.getInsets());
         System.err.println("chosen: "+glWindow.getChosenCapabilities());
         
-        animator.setUpdateFPSFrames(60, System.err);
-        animator.start();
-
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }

@@ -249,7 +249,7 @@ public interface GLAutoDrawable extends GLDrawable {
       front and back buffers are swapped, displaying the results of
       the render. When disabled, the user is responsible for calling
       {@link #swapBuffers(..)} manually. */
-  public void setAutoSwapBufferMode(boolean onOrOff);
+  public void setAutoSwapBufferMode(boolean enable);
 
   /** Indicates whether automatic buffer swapping is enabled for this
       drawable. See {@link #setAutoSwapBufferMode}. */

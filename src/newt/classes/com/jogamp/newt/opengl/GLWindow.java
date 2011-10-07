@@ -51,6 +51,7 @@ import javax.media.opengl.*;
 import jogamp.opengl.FPSCounterImpl;
 import jogamp.opengl.GLDrawableHelper;
 import com.jogamp.opengl.JoglVersion;
+import com.jogamp.opengl.util.Animator;
 
 /**
  * An implementation of {@link javax.media.opengl.GLAutoDrawable} interface,
@@ -539,19 +540,39 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         }
     }
     
-    /** This implementation uses a static value */
-    public void setAutoSwapBufferMode(boolean onOrOff) {
+    public void setAutoSwapBufferMode(boolean enable) {
         if(null!=helper) {
-            helper.setAutoSwapBufferMode(onOrOff);
+            helper.setAutoSwapBufferMode(enable);
         }
     }
 
-    /** This implementation uses a static value */
     public boolean getAutoSwapBufferMode() {
         if(null!=helper) {
             return helper.getAutoSwapBufferMode();
         }
         return false;
+    }
+    
+    /**
+     * @param t the thread for which context release shall be skipped, usually the animation thread,
+     *          ie. {@link Animator#getThread()}.
+     * @deprecated this is an experimental feature, 
+     *             intended for measuring performance in regards to GL context switch
+     */
+    public void setSkipContextReleaseThread(Thread t) {
+        if(null!=helper) {
+            helper.setSkipContextReleaseThread(t);
+        }
+    }
+
+    /**
+     * @deprecated see {@link #setSkipContextReleaseThread(Thread)} 
+     */
+    public Thread getSkipContextReleaseThread() {
+        if(null!=helper) {
+            return helper.getSkipContextReleaseThread();
+        }
+        return null;
     }
     
     public void swapBuffers() {

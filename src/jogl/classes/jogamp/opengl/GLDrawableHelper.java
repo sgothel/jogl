@@ -43,16 +43,18 @@ package jogamp.opengl;
 import java.util.*;
 import javax.media.opengl.*;
 
+import com.jogamp.opengl.util.Animator;
+
 /** Encapsulates the implementation of most of the GLAutoDrawable's
     methods to be able to share it between GLCanvas and GLJPanel. */
 
 public class GLDrawableHelper {
   protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
-  private static final boolean VERBOSE = Debug.verbose();
   private Object listenersLock = new Object();
   private ArrayList<GLEventListener> listeners;
   private HashSet<GLEventListener> listenersToBeInit;
   private boolean autoSwapBufferMode;
+  private Thread skipContextReleaseThread;
   private Object glRunnablesLock = new Object();
   private ArrayList<GLRunnable> glRunnables;
   private GLAnimatorControl animatorCtrl;
@@ -67,6 +69,7 @@ public class GLDrawableHelper {
         listenersToBeInit = new HashSet<GLEventListener>();
     }
     autoSwapBufferMode = true;
+    skipContextReleaseThread = null;
     synchronized(glRunnablesLock) {
         glRunnables = new ArrayList<GLRunnable>();
     }
@@ -270,12 +273,29 @@ public class GLDrawableHelper {
     }
   }
 
-  public final void setAutoSwapBufferMode(boolean onOrOff) {
-    autoSwapBufferMode = onOrOff;
+  public final void setAutoSwapBufferMode(boolean enable) {
+    autoSwapBufferMode = enable;
   }
 
   public final boolean getAutoSwapBufferMode() {
     return autoSwapBufferMode;
+  }
+
+  /**
+   * @param t the thread for which context release shall be skipped, usually the animation thread,
+   *          ie. {@link Animator#getThread()}.
+   * @deprecated this is an experimental feature, 
+   *             intended for measuring performance in regards to GL context switch
+   */
+  public final void setSkipContextReleaseThread(Thread t) {
+    skipContextReleaseThread = t;
+  }
+
+  /**
+   * @deprecated see {@link #setSkipContextReleaseThread(Thread)} 
+   */
+  public final Thread getSkipContextReleaseThread() {
+    return skipContextReleaseThread;
   }
 
   private static final ThreadLocal<Runnable> perThreadInitAction = new ThreadLocal<Runnable>();
@@ -316,16 +336,31 @@ public class GLDrawableHelper {
 
     // Support for recursive makeCurrent() calls as well as calling
     // other drawables' display() methods from within another one's
-    // FIXME: re-evaluate due to possible expensive TLS access ? 
-    GLContext lastContext    = GLContext.getCurrent();
-    Runnable  lastInitAction = perThreadInitAction.get();
+    int res = GLContext.CONTEXT_NOT_CURRENT;
+    GLContext lastContext = GLContext.getCurrent();
+    Runnable  lastInitAction = null;
     if (lastContext != null) {
-      lastContext.release();
+        if (lastContext == context) {
+            res = GLContext.CONTEXT_CURRENT;
+            lastContext = null;
+        } else {
+            lastInitAction = perThreadInitAction.get();
+            lastContext.release();
+        }
     }
   
-    int res = 0;
+    /**
+    long t0 = System.currentTimeMillis();
+    long td1 = 0; // makeCurrent
+    long tdR = 0; // render time
+    long td2 = 0; // swapBuffers
+    long td3 = 0; // release
+    boolean scr = true; */
+    
     try {
-      res = context.makeCurrent();
+      if (res == GLContext.CONTEXT_NOT_CURRENT) {
+          res = context.makeCurrent();
+      }
       if (res != GLContext.CONTEXT_NOT_CURRENT) {
         if(null!=initAction) {
             perThreadInitAction.set(initAction);
@@ -336,32 +371,43 @@ public class GLDrawableHelper {
               initAction.run();
             }
         }
+        // tdR = System.currentTimeMillis();        
+        // td1 = tdR - t0; // makeCurrent
         if(null!=runnable) {
-            if (DEBUG && VERBOSE) {
+            if (DEBUG) {
               System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running runnable");
             }
             runnable.run();
+            // td2 = System.currentTimeMillis();
+            // tdR = td2 - tdR; // render time
             if (autoSwapBufferMode && null != initAction) {
               if (drawable != null) {
                 drawable.swapBuffers();
+                // td3 = System.currentTimeMillis();
+                // td2 = td3 - td2; // swapBuffers
               }
             }
         }
       }
     } finally {
-      try {
-        if (res != GLContext.CONTEXT_NOT_CURRENT) {
-          context.release();
-        }
-      } catch (Exception e) {
+      if(res != GLContext.CONTEXT_NOT_CURRENT &&
+         (null == skipContextReleaseThread || Thread.currentThread()!=skipContextReleaseThread) ) {
+          try {
+              context.release();
+              // scr = false;
+          } catch (Exception e) {
+          }
       }
+      // td3 = System.currentTimeMillis() - td3; // release
       if (lastContext != null) {
         int res2 = lastContext.makeCurrent();
-        if (res2 == GLContext.CONTEXT_CURRENT_NEW) {
+        if (null != lastInitAction && res2 == GLContext.CONTEXT_CURRENT_NEW) {
           lastInitAction.run();
         }
       }
     }
+    // long td0 = System.currentTimeMillis() - t0;
+    // System.err.println("td0 "+td0+"ms, fps "+(1.0/(td0/1000.0))+", td-makeCurrent: "+td1+"ms, td-render "+tdR+"ms, td-swap "+td2+"ms, td-release "+td3+"ms, skip ctx release: "+scr);
   }
 
 }

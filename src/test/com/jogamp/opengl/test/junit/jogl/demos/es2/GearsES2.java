@@ -111,7 +111,7 @@ public class GearsES2 implements GLEventListener {
         gl.glEnable(GL.GL_DEPTH_TEST);
         
         st = new ShaderState();
-        st.setVerbose(true);
+        // st.setVerbose(true);
         final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, this.getClass(),
                 "shader", "shader/bin", "gears");
         final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, this.getClass(),
