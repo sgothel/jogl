@@ -96,7 +96,7 @@ public interface GLArrayDataEditable extends GLArrayData {
     public void seal(boolean seal);
 
     public void rewind();
-    public void padding(int done);
+    public void padding(int doneInByteSize);
     public void put(Buffer v);
     public void putb(byte v);
     public void puts(short v);

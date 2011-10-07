@@ -217,11 +217,11 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     }
   }
 
-  public void padding(int done) {
+  public void padding(int doneInByteSize) {
     if ( buffer==null || sealed ) return;
-    while(done<strideL) {
+    while(doneInByteSize<strideB) {
         Buffers.putb(buffer, (byte)0);
-        done++;
+        doneInByteSize++;
     }
   }
 
@@ -233,9 +233,10 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    */
   public void put(Buffer v) {
     if ( sealed ) return;
+    /** FIXME: isn't true for interleaved arrays !
     if(0!=(v.remaining() % strideL)) {
         throw new GLException("Buffer length ("+v.remaining()+") is not a multiple of component-stride:\n\t"+this);
-    }
+    } */
     growBufferIfNecessary(v.remaining());
     Buffers.put(buffer, v);
   }
