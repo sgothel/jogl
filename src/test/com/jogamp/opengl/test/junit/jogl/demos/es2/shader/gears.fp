@@ -32,8 +32,7 @@ void main()
     if (lambertTerm > 0.0) {
         float NdotHV;
         /*
-        vec3 halfDir;        
-        halfDir  = normalize (lightDir + cameraDir); 
+        vec3 halfDir = normalize (lightDir + cameraDir); 
         NdotHV   = max(0.0, dot(normal, halfDir));
         */      
         vec3 E = normalize(-position.xyz);  

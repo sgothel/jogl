@@ -374,9 +374,6 @@ public class GLDrawableHelper {
         // tdR = System.currentTimeMillis();        
         // td1 = tdR - t0; // makeCurrent
         if(null!=runnable) {
-            if (DEBUG) {
-              System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running runnable");
-            }
             runnable.run();
             // td2 = System.currentTimeMillis();
             // tdR = td2 - tdR; // render time
