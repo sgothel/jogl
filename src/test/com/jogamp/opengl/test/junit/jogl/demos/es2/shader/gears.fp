@@ -23,12 +23,12 @@ const vec4 matSpecular = vec4(0.8, 0.8, 0.8, 1.0);
 const float matShininess = 0.5;
 
 void main()
-{ 
-    float lambertTerm = dot(normal, lightDir);       
- 
+{  
     vec4 ambient = color * matAmbient;
-    vec4 diffuse = color * lambertTerm *  attenuation * matDiffuse;
     vec4 specular = vec4(0.0);
+    
+    float lambertTerm = dot(normal, lightDir);       
+    vec4 diffuse = color * lambertTerm *  attenuation * matDiffuse;
     if (lambertTerm > 0.0) {
         float NdotHV;
         /*

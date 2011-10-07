@@ -52,12 +52,19 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
        
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
+       /*
+       caps.setRedBits(5);
+       caps.setGreenBits(6);
+       caps.setBlueBits(5);
+       caps.setAlphaBits(0); */
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
        glWindow.setFullscreen(true);
        setContentView(getWindow(), glWindow);
        
-       glWindow.addGLEventListener(new GearsES2(1));
+       GearsES2 demo = new GearsES2(0);
+       // demo.enableAndroidTrace(true);
+       glWindow.addGLEventListener(demo);
        glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {
         public void screenModeChangeNotify(ScreenMode sm) { }
         public void screenModeChanged(ScreenMode sm, boolean success) {
@@ -67,6 +74,7 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
        glWindow.setVisible(true);
        Animator animator = new Animator(glWindow);
        animator.setUpdateFPSFrames(60, System.err);
+       // animator.setRunAsFastAsPossible(true);
        setAnimator(animator);
        
        Log.d(TAG, "onCreate - X");

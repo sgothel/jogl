@@ -178,6 +178,10 @@ public class GearsES2 implements GLEventListener {
         System.err.println(Thread.currentThread()+" GearsES2.init FIN");
     }
 
+    public void enableAndroidTrace(boolean v) {
+        useAndroidDebug = v;
+    }
+    
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         System.err.println(Thread.currentThread()+" GearsES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
         GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -194,11 +198,13 @@ public class GearsES2 implements GLEventListener {
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
         
-        try {
-            android.os.Debug.startMethodTracing("GearsES2.trace");
-            android.os.Debug.startAllocCounting();
-            useAndroidDebug = true;
-        } catch (NoClassDefFoundError e) {}
+        if(useAndroidDebug) {
+            try {
+                android.os.Debug.startMethodTracing("GearsES2.trace");
+                // android.os.Debug.startAllocCounting();
+                useAndroidDebug = true;
+            } catch (NoClassDefFoundError e) { useAndroidDebug=false; }
+        }
         
         System.err.println(Thread.currentThread()+" GearsES2.reshape FIN");
     }
@@ -206,7 +212,7 @@ public class GearsES2 implements GLEventListener {
 
     public void dispose(GLAutoDrawable drawable) {
         if(useAndroidDebug) {
-            android.os.Debug.stopAllocCounting();
+            // android.os.Debug.stopAllocCounting();
             android.os.Debug.stopMethodTracing();
         }
         

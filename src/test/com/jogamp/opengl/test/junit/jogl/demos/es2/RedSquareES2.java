@@ -131,21 +131,6 @@ public class RedSquareES2 implements GLEventListener {
         System.err.println(Thread.currentThread()+" RedSquareES2.init FIN");
     }
 
-    public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
-        System.err.println(Thread.currentThread()+" RedSquareES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);        
-        GL2ES2 gl = glad.getGL().getGL2ES2();
-        
-        st.useProgram(gl, true);
-        // Set location in front of camera
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
-        pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0F, (float) width / (float) height, 1.0F, 100.0F);
-        //pmvMatrix.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
-        st.uniform(gl, pmvMatrixUniform);
-        st.useProgram(gl, false);
-        System.err.println(Thread.currentThread()+" RedSquareES2.reshape FIN");
-    }
-
     public void display(GLAutoDrawable glad) {
         long t1 = System.currentTimeMillis();
 
@@ -170,7 +155,40 @@ public class RedSquareES2 implements GLEventListener {
         st.useProgram(gl, false);
     }
 
+    public void enableAndroidTrace(boolean v) {
+        useAndroidDebug = v;
+    }
+    
+    public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
+        System.err.println(Thread.currentThread()+" RedSquareES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);        
+        GL2ES2 gl = glad.getGL().getGL2ES2();
+        
+        st.useProgram(gl, true);
+        // Set location in front of camera
+        pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        pmvMatrix.glLoadIdentity();
+        pmvMatrix.gluPerspective(45.0F, (float) width / (float) height, 1.0F, 100.0F);
+        //pmvMatrix.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
+        st.uniform(gl, pmvMatrixUniform);
+        st.useProgram(gl, false);
+        
+        if(useAndroidDebug) {
+            try {
+                android.os.Debug.startMethodTracing("RedSquareES2.trace");
+                // android.os.Debug.startAllocCounting();
+                useAndroidDebug = true;
+            } catch (NoClassDefFoundError e) { useAndroidDebug=false; }
+        }
+        
+        System.err.println(Thread.currentThread()+" RedSquareES2.reshape FIN");
+    }
+    private boolean useAndroidDebug = false;
+
     public void dispose(GLAutoDrawable glad) {
+        if(useAndroidDebug) {
+            // android.os.Debug.stopAllocCounting();
+            android.os.Debug.stopMethodTracing();
+        }
         System.err.println(Thread.currentThread()+" RedSquareES2.dispose ... ");
         if (null != glWindow) {
             glWindow.removeMouseListener(myMouse);
