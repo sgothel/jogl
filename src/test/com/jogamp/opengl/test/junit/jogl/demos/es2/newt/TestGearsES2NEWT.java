@@ -28,6 +28,10 @@
  
 package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -38,7 +42,10 @@ import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+import javax.media.opengl.GLAnimatorControl;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
@@ -78,7 +85,29 @@ public class TestGearsES2NEWT extends UITestCase {
         glWindow.setUndecorated(undecorated);
         glWindow.setAlwaysOnTop(alwaysOnTop);
         glWindow.setFullscreen(fullscreen);
-        glWindow.addGLEventListener(new GearsES2());
+        GearsES2 demo = new GearsES2(vsync ? 1 : 0);
+        demo.setPMVUseBackingArray(pmvUseBackingArray);
+        glWindow.addGLEventListener(demo);
+        if(waitForKey) {
+            glWindow.addGLEventListener(new GLEventListener() {
+                public void init(GLAutoDrawable drawable) { }
+                public void dispose(GLAutoDrawable drawable) { }
+                public void display(GLAutoDrawable drawable) {
+                    GLAnimatorControl  actrl = drawable.getAnimator();
+                    if(waitForKey && actrl.getTotalFPSFrames() == 60*3) {
+                        BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+                        System.err.println("Press enter to continue");
+                        try {
+                            System.err.println(stdin.readLine());
+                        } catch (IOException e) { }
+                        actrl.resetFPSCounter();
+                        waitForKey = false;
+                    }
+                }
+                public void reshape(GLAutoDrawable drawable, int x, int y,
+                        int width, int height) { }
+            });
+        }
 
         Animator animator = new Animator(glWindow);
         QuitAdapter quitAdapter = new QuitAdapter();
@@ -128,7 +157,7 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("size/pos: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", "+f_glWindow.getInsets());
         System.err.println("chosen: "+glWindow.getChosenCapabilities());
         
-        animator.setUpdateFPSFrames(1, null);
+        animator.setUpdateFPSFrames(60, System.err);
         animator.start();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
@@ -151,8 +180,12 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean undecorated = false;
     static boolean alwaysOnTop = false;
     static boolean fullscreen = false;
+    static boolean pmvUseBackingArray = true;
+    static boolean vsync = false;
+    static boolean waitForKey = false;
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException {
+        
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -167,7 +200,27 @@ public class TestGearsES2NEWT extends UITestCase {
                 alwaysOnTop = true;
             } else if(args[i].equals("-fullscreen")) {
                 fullscreen = true;
+            } else if(args[i].equals("-pmvDirect")) {
+                pmvUseBackingArray = false;
+            } else if(args[i].equals("-vsync")) {
+                vsync = true;
+            } else if(args[i].equals("-wait")) {
+                waitForKey = true;
             }
+        }
+        System.err.println("translucent "+(!opaque));
+        System.err.println("undecorated "+undecorated);
+        System.err.println("atop "+alwaysOnTop);
+        System.err.println("fullscreen "+fullscreen);
+        System.err.println("pmvDirect "+(!pmvUseBackingArray));
+        System.err.println("vsync "+vsync);
+
+        if(waitForKey) {
+            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            System.err.println("Press enter to continue");
+            try {
+                System.err.println(stdin.readLine());
+            } catch (IOException e) { }
         }
         org.junit.runner.JUnitCore.main(TestGearsES2NEWT.class.getName());
     }

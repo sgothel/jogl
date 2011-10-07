@@ -235,9 +235,18 @@ public class ProjectFloat {
   /**
    * Make matrix an identity matrix
    */
-  public static void gluMakeIdentityf(float[] m) {
+  public static void gluMakeIdentityf(float[] m, int offset) {
     for (int i = 0; i < 16; i++) {
-      m[i] = IDENTITY_MATRIX[i];
+      m[i+offset] = IDENTITY_MATRIX[i];
+    }
+  }
+
+  /**
+   * Make matrix an zero matrix
+   */
+  public static void gluMakeZero(float[] m, int offset) {
+    for (int i = 0; i < 16; i++) {
+      m[i+offset] = 0;
     }
   }
 
@@ -280,21 +289,22 @@ public class ProjectFloat {
 
   /**
    * @param src
+   * @param srcOffset
    * @param inverse
-   * 
+   * @param inverseOffset
    * @return
    */
-  public boolean gluInvertMatrixf(float[] src, float[] inverse) {
+  public boolean gluInvertMatrixf(float[] src, int srcOffset, float[] inverse, int inverseOffset) {
     int i, j, k, swap;
     float t;
     float[][] temp = tempInvertMatrix;
 
     for (i = 0; i < 4; i++) {
       for (j = 0; j < 4; j++) {
-        temp[i][j] = src[i*4+j];
+        temp[i][j] = src[i*4+j+srcOffset];
       }
     }
-    gluMakeIdentityf(inverse);
+    gluMakeIdentityf(inverse, inverseOffset);
 
     for (i = 0; i < 4; i++) {
       //
@@ -316,9 +326,9 @@ public class ProjectFloat {
           temp[i][k] = temp[swap][k];
           temp[swap][k] = t;
 
-          t = inverse[i*4+k];
-          inverse[i*4+k] = inverse[swap*4+k];
-          inverse[swap*4+k] = t;
+          t = inverse[i*4+k+inverseOffset];
+          inverse[i*4+k+inverseOffset] = inverse[swap*4+k+inverseOffset];
+          inverse[swap*4+k+inverseOffset] = t;
         }
       }
 
@@ -333,14 +343,14 @@ public class ProjectFloat {
       t = temp[i][i];
       for (k = 0; k < 4; k++) {
         temp[i][k] /= t;
-        inverse[i*4+k] /= t;
+        inverse[i*4+k+inverseOffset] /= t;
       }
       for (j = 0; j < 4; j++) {
         if (j != i) {
           t = temp[j][i];
           for (k = 0; k < 4; k++) {
             temp[j][k] -= temp[i][k] * t;
-            inverse[j*4+k] -= inverse[i*4+k]*t;
+            inverse[j*4+k+inverseOffset] -= inverse[i*4+k+inverseOffset]*t;
           }
         }
       }
@@ -781,7 +791,7 @@ public class ProjectFloat {
 
     gluMultMatricesf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix);
 
-    if (!gluInvertMatrixf(matrix, matrix))
+    if (!gluInvertMatrixf(matrix, 0, matrix, 0))
       return false;
 
     in[0] = winx;
@@ -907,7 +917,7 @@ public class ProjectFloat {
 
     gluMultMatricesf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix);
 
-    if (!gluInvertMatrixf(matrix, matrix))
+    if (!gluInvertMatrixf(matrix, 0, matrix, 0))
       return false;
 
     in[0] = winx;

@@ -56,6 +56,7 @@ public class GearsES2 implements GLEventListener {
     private GearsObjectES2 gear1=null, gear2=null, gear3=null;
     private float angle = 0.0f;
     private int swapInterval = 0;
+    private boolean pmvUseBackingArray = true; // the default for PMVMatrix now, since it's faster
     // private MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
     private MouseListener gearsMouse = new GearsMouseAdapter();    
     private KeyListener gearsKeys = new GearsKeyAdapter();
@@ -70,6 +71,10 @@ public class GearsES2 implements GLEventListener {
         this.swapInterval = 1;
     }
 
+    public void setPMVUseBackingArray(boolean pmvUseBackingArray) {
+        this.pmvUseBackingArray = pmvUseBackingArray;
+    }
+    
     public void setGears(GearsObjectES2 g1, GearsObjectES2 g2, GearsObjectES2 g3) {
         gear1 = g1;
         gear2 = g2;
@@ -119,7 +124,7 @@ public class GearsES2 implements GLEventListener {
         // Use debug pipeline
         // drawable.setGL(new DebugGL(drawable.getGL()));
 
-        pmvMatrix = new PMVMatrix();
+        pmvMatrix = new PMVMatrix(pmvUseBackingArray);
         st.attachObject("pmvMatrix", pmvMatrix);
         pmvMatrixUniform = new GLUniformData("pmvMatrix", 4, 4, pmvMatrix.glGetPMvMvitMatrixf()); // P, Mv, Mvi and Mvit
         st.ownUniform(pmvMatrixUniform);
@@ -189,10 +194,22 @@ public class GearsES2 implements GLEventListener {
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
         
+        try {
+            android.os.Debug.startMethodTracing("GearsES2.trace");
+            android.os.Debug.startAllocCounting();
+            useAndroidDebug = true;
+        } catch (NoClassDefFoundError e) {}
+        
         System.err.println(Thread.currentThread()+" GearsES2.reshape FIN");
     }
+    private boolean useAndroidDebug = false;
 
     public void dispose(GLAutoDrawable drawable) {
+        if(useAndroidDebug) {
+            android.os.Debug.stopAllocCounting();
+            android.os.Debug.stopMethodTracing();
+        }
+        
         System.err.println(Thread.currentThread()+" GearsES2.dispose ... ");
         if (drawable instanceof Window) {
             Window window = (Window) drawable;
@@ -244,7 +261,7 @@ public class GearsES2 implements GLEventListener {
         gear2.draw(gl,  3.1f, -2.0f, -2f * angle -  9.0f, GearsObject.green);
         gear3.draw(gl, -3.1f,  4.2f, -2f * angle - 25.0f, GearsObject.blue);    
         pmvMatrix.glPopMatrix();
-        st.useProgram(gl, false);
+        st.useProgram(gl, false);        
     }
 
     class GearsKeyAdapter extends KeyAdapter {      
