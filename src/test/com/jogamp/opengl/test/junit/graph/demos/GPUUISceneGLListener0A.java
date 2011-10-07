@@ -360,7 +360,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     }
     
     private class MultiTouchListener extends MouseAdapter {
-        int lv = 0;
+        int lx = 0;
+        int ly = 0;
         
         boolean first = false;
         
@@ -378,30 +379,38 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         public void mouseDragged(MouseEvent e) {
             System.err.println("demo:mousedragged "+e);
             if(e.getPointerCount()==2) {
-                // 2 finger zoom ..
+                // 2 pointers zoom ..
                 if(first) {
-                    lv = Math.abs(e.getY(0)-e.getY(1));
+                    lx = Math.abs(e.getY(0)-e.getY(1));
                     first=false;
                     return;
                 }
                 int nv = Math.abs(e.getY(0)-e.getY(1));
-                int dy = nv - lv;
+                int dy = nv - lx;
                 
                 zoom += 2 * Math.signum(dy);
                 
-                lv = nv;
+                lx = nv;
             } else {
-                // 1 finger drag
+                // 1 pointer drag
                 if(first) {
-                    lv = e.getX();
+                    lx = e.getX();
+                    ly = e.getY();
                     first=false;
                     return;
                 }
-                int nv = e.getX();
-                int dx = nv - lv;                
-                xTran += Math.signum(dx);
-                
-                lv = nv;
+                int nx = e.getX();
+                int ny = e.getY();
+                int dx = nx - lx;       
+                int dy = ny - ly;
+                if(Math.abs(dx) > Math.abs(dy)){
+                    xTran += Math.signum(dx);
+                }
+                else {
+                    yTran -= Math.signum(dy);
+                }
+                lx = nx;
+                ly = ny;
             }
         }
     }
