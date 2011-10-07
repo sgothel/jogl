@@ -52,6 +52,11 @@ public class NEWTGearsES1Activity extends NewtBaseActivity {
        
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES1));
+       /*
+       caps.setRedBits(5);
+       caps.setGreenBits(6);
+       caps.setBlueBits(5);
+       caps.setAlphaBits(0); */
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
        setContentView(getWindow(), glWindow);

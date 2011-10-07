@@ -52,9 +52,10 @@ public class NEWTElektronActivity extends NewtBaseActivity {
        
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
-       // caps.setAlphaBits(4);
-       // caps.setNumSamples(4);
-       // caps.setSampleBuffers(true);
+       caps.setRedBits(5);
+       caps.setGreenBits(6);
+       caps.setBlueBits(5);
+       caps.setAlphaBits(0);
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
        glWindow.setFullscreen(true);
