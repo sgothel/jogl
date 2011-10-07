@@ -29,27 +29,27 @@
 package jogamp.opengl.util;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GLArrayData;
 import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 
+import com.jogamp.opengl.util.GLArrayDataWrapper;
 
 /**
  * Used for interleaved fixed function arrays, i.e. where the buffer data itself is handled 
  * separately and interleaves many arrays.
  */
-public class GLFixedArrayHandlerFlat implements GLArrayHandler {
-  private GLArrayData ad;
+public class GLFixedArrayHandlerFlat implements GLArrayHandlerFlat {
+  private GLArrayDataWrapper ad;
 
-  public GLFixedArrayHandlerFlat(GLArrayData ad) {
+  public GLFixedArrayHandlerFlat(GLArrayDataWrapper ad) {
     this.ad = ad;
   }
 
-  public final void addSubHandler(GLArrayHandler handler) {
-      throw new UnsupportedOperationException();
+  public GLArrayDataWrapper getData() {
+      return ad;
   }
   
-  public final void syncData(GL gl, boolean enable, Object ext) {
+  public final void syncData(GL gl, boolean enable, boolean force, Object ext) {
     if(enable) {
         final GLPointerFunc glp = gl.getGL2ES1();
         switch(ad.getIndex()) {

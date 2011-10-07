@@ -26,57 +26,77 @@
  * or implied, of JogAmp Community.
  */
 
-package jogamp.opengl.util;
+package jogamp.opengl.util.glsl;
 
-import javax.media.opengl.*;
+import java.nio.Buffer;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.jogamp.opengl.util.*;
+import javax.media.opengl.GL;
 
-import java.nio.*;
+import jogamp.opengl.util.GLArrayHandler;
+import jogamp.opengl.util.GLArrayHandlerFlat;
+
+import com.jogamp.opengl.util.GLArrayDataEditable;
 
 /**
- * Used for pure VBO data arrays, i.e. where the buffer data 
- * does not represents a specific array name. 
+ * Interleaved fixed function arrays, i.e. where this buffer data 
+ * represents many arrays. 
  */
-public class GLDataArrayHandler implements GLArrayHandler {
+public class GLSLArrayHandlerInterleaved implements GLArrayHandler {
   private GLArrayDataEditable ad;
+  private List<GLArrayHandlerFlat> subArrays = new ArrayList<GLArrayHandlerFlat>();
 
-  public GLDataArrayHandler(GLArrayDataEditable ad) {
+  public GLSLArrayHandlerInterleaved(GLArrayDataEditable ad) {
     this.ad = ad;
   }
-
+  
   public final void setSubArrayVBOName(int vboName) {
-      throw new UnsupportedOperationException();
+      for(int i=0; i<subArrays.size(); i++) {
+          subArrays.get(i).getData().setVBOName(vboName);
+      }      
   }
   
   public final void addSubHandler(GLArrayHandlerFlat handler) {
-      throw new UnsupportedOperationException();
+      subArrays.add(handler);
   }
-  
-  public final void syncData(GL gl, boolean enable, Object ext) {
-    if(!ad.isVBO()) {
-        // makes no sense otherwise
-        throw new GLException("GLDataArrayHandler can only handle VBOs.");
-    }
-    if(enable) {
-        Buffer buffer = ad.getBuffer();
 
+  private final void syncSubData(GL gl, boolean enable, boolean force, Object ext) {
+      for(int i=0; i<subArrays.size(); i++) {
+          subArrays.get(i).syncData(gl, enable, force, ext);
+      }      
+  }  
+  
+  public final void syncData(GL gl, boolean enable, Object ext) {    
+    if(!ad.isVBO()) {
+        throw new InternalError("Interleaved handle is not VBO: "+ad);
+    }
+    
+    if(enable) {
+        final Buffer buffer = ad.getBuffer();
+        final boolean vboWritten = ad.isVBOWritten();
+        
         // always bind and refresh the VBO mgr, 
         // in case more than one gl*Pointer objects are in use
         gl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
-        if(!ad.isVBOWritten()) {
+        if(!vboWritten) {
             if(null!=buffer) {
                 gl.glBufferData(ad.getVBOTarget(), buffer.limit() * ad.getComponentSizeInBytes(), buffer, ad.getVBOUsage());
             }
             ad.setVBOWritten(true);
         }
+        // sub data will decide weather to update the vertex attrib pointer
+        syncSubData(gl, true, !vboWritten, ext);
     } else {
+        // NOP on GLSL: syncSubData(gl, false, ext);
         gl.glBindBuffer(ad.getVBOTarget(), 0);
-    }      
+    }
   }
   
-  public final void enableState(GL gl, boolean enable, Object ext) { 
-      // no array association
+  public final void enableState(GL gl, boolean enable, Object ext) {
+    for(int i=0; i<subArrays.size(); i++) {
+        subArrays.get(i).enableState(gl, enable, ext);
+    }      
   }
 }
 

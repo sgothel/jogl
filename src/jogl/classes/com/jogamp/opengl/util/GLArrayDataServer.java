@@ -16,6 +16,7 @@ import jogamp.opengl.util.GLFixedArrayHandler;
 import jogamp.opengl.util.GLFixedArrayHandlerFlat;
 import jogamp.opengl.util.glsl.GLSLArrayHandler;
 import jogamp.opengl.util.glsl.GLSLArrayHandlerFlat;
+import jogamp.opengl.util.glsl.GLSLArrayHandlerInterleaved;
 
 
 public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataEditable {
@@ -224,15 +225,14 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
       if(usesGLSL) {
           throw new GLException("buffer uses GLSL");          
       }
-      GLArrayDataWrapper ad = GLArrayDataWrapper.createFixed(
+      final GLArrayDataWrapper ad = GLArrayDataWrapper.createFixed(
               index, comps, getComponentType(), 
               getNormalized(), getStride(), getBuffer(), 
               getVBOName(), interleavedOffset, getVBOUsage(), vboTarget);
       ad.setVBOEnabled(isVBO());
       interleavedOffset += comps * getComponentSizeInBytes();
       if(GL.GL_ARRAY_BUFFER == vboTarget) { 
-          GLArrayHandler handler = new GLFixedArrayHandlerFlat(ad);
-          glArrayHandler.addSubHandler(handler);
+          glArrayHandler.addSubHandler(new GLFixedArrayHandlerFlat(ad));
       }
       return ad;
   }
@@ -253,7 +253,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
     throws GLException
   {
     GLArrayDataServer ads = new GLArrayDataServer();
-    GLArrayHandler glArrayHandler = new GLArrayHandlerInterleaved(ads);
+    GLArrayHandler glArrayHandler = new GLSLArrayHandlerInterleaved(ads);
     ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, comps, dataType, false, 0, null, initialSize, false, glArrayHandler,
              0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
     return ads;
@@ -280,15 +280,14 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
       if(!usesGLSL) {
           throw new GLException("buffer uses fixed function");          
       }
-      GLArrayDataWrapper ad = GLArrayDataWrapper.createGLSL(
+      final GLArrayDataWrapper ad = GLArrayDataWrapper.createGLSL(
               name, comps, getComponentType(), 
               getNormalized(), getStride(), getBuffer(), 
               getVBOName(), interleavedOffset, getVBOUsage(), vboTarget);     
       ad.setVBOEnabled(isVBO());
       interleavedOffset += comps * getComponentSizeInBytes();
       if(GL.GL_ARRAY_BUFFER == vboTarget) { 
-          GLArrayHandler handler = new GLSLArrayHandlerFlat(ad);
-          glArrayHandler.addSubHandler(handler);
+          glArrayHandler.addSubHandler(new GLSLArrayHandlerFlat(ad));
       }
       return ad;
   }
@@ -371,6 +370,9 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
         int[] tmp = new int[1];
         gl.glGenBuffers(1, tmp, 0);
         vboName = tmp[0];
+        if(0 < interleavedOffset) {
+            glArrayHandler.setSubArrayVBOName(vboName);
+        }
     }
   }
   

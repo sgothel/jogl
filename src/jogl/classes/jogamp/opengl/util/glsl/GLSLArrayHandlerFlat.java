@@ -30,31 +30,48 @@ package jogamp.opengl.util.glsl;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLArrayData;
 
-import jogamp.opengl.util.GLArrayHandler;
+import jogamp.opengl.util.GLArrayHandlerFlat;
 
+import com.jogamp.opengl.util.GLArrayDataWrapper;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 /**
  * Used for interleaved GLSL arrays, i.e. where the buffer data itself is handled 
  * separately and interleaves many arrays.
  */
-public class GLSLArrayHandlerFlat implements GLArrayHandler {
-  private GLArrayData ad;
+public class GLSLArrayHandlerFlat implements GLArrayHandlerFlat {
+  private GLArrayDataWrapper ad;
 
-  public GLSLArrayHandlerFlat(GLArrayData ad) {
+  public GLSLArrayHandlerFlat(GLArrayDataWrapper ad) {
     this.ad = ad;
   }
 
-  public final void addSubHandler(GLArrayHandler handler) {
-      throw new UnsupportedOperationException();
+  public GLArrayDataWrapper getData() {
+      return ad;
   }
-  
-  public final void syncData(GL gl, boolean enable, Object ext) {
-    final ShaderState st = (ShaderState) ext;
+    
+  public final void syncData(GL gl, boolean enable, boolean force, Object ext) {
     if(enable) {
-        st.vertexAttribPointer(gl.getGL2ES2(), ad);
+        final GL2ES2 glsl = gl.getGL2ES2();
+        final ShaderState st = (ShaderState) ext;
+
+        st.vertexAttribPointer(glsl, ad);
+        /**
+         * Due to probable application VBO switching, this might not make any sense ..
+         * 
+        if(force) {
+            st.vertexAttribPointer(glsl, ad);
+        } else if(st.getAttribLocation(glsl, ad) >= 0) {
+            final int[] qi = new int[1];
+            glsl.glGetVertexAttribiv(ad.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
+            if(ad.getVBOName() != qi[0]) {
+                System.err.println("XXX1: "+ad.getName()+", vbo ad "+ad.getVBOName()+", gl "+qi[0]+", "+ad);
+                st.vertexAttribPointer(glsl, ad);
+            } else {
+                System.err.println("XXX0: "+ad.getName()+", vbo ad "+ad.getVBOName()+", gl "+qi[0]+", "+ad);
+            }
+        }*/
     }
   }
 

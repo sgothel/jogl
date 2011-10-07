@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2011 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -30,22 +30,22 @@ package jogamp.opengl.util;
 
 import javax.media.opengl.*;
 
+import com.jogamp.opengl.util.GLArrayDataWrapper;
+
 /**
- * Handles consistency of buffer data and array state.
- * Implementations shall consider buffer types (VBO, ..), interleaved, etc.
- * They also need to consider array state types, i.e. fixed function or GLSL.
+ * Handles consistency of interleaved array state.
  */
-public interface GLArrayHandler {
+public interface GLArrayHandlerFlat {
 
   /**
    * Implementation shall associate the data with the array
-   * and synchronize the data with the GPU.
    * 
    * @param gl current GL object
    * @param enable true if array data shall be valid, otherwise false.
+   * @param force true force data association, bypassing optimization
    * @param ext extension object allowing passing of an implementation detail 
    */
-  public void syncData(GL gl, boolean enable, Object ext);
+  public void syncData(GL gl, boolean enable, boolean force, Object ext);
   
   /**
    * Implementation shall enable or disable the array state.
@@ -54,18 +54,8 @@ public interface GLArrayHandler {
    * @param enable true if array shall be enabled, otherwise false.
    * @param ext extension object allowing passing of an implementation detail 
    */
-  public void enableState(GL gl, boolean enable, Object ext);
+  public void enableState(GL gl, boolean enable, Object ext);  
   
-  /**
-   * Supporting interleaved arrays, where sub handlers may handle 
-   * the array state and the <i>master</i> handler the buffer consistency.
-   *   
-   * @param handler the sub handler
-   * @throws UnsupportedOperationException if this array handler does not support interleaved arrays
-   */
-  public void addSubHandler(GLArrayHandlerFlat handler) throws UnsupportedOperationException;
-
-  public void setSubArrayVBOName(int vboName);
-  
+  public GLArrayDataWrapper getData();
 }
 

@@ -43,19 +43,25 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
  */
 public class GLArrayHandlerInterleaved implements GLArrayHandler {
   private GLArrayDataEditable ad;
-  private List<GLArrayHandler> subArrays = new ArrayList<GLArrayHandler>();
+  private List<GLArrayHandlerFlat> subArrays = new ArrayList<GLArrayHandlerFlat>();
 
   public GLArrayHandlerInterleaved(GLArrayDataEditable ad) {
     this.ad = ad;
   }
   
-  public final void addSubHandler(GLArrayHandler handler) {
+  public final void setSubArrayVBOName(int vboName) {
+      for(int i=0; i<subArrays.size(); i++) {
+          subArrays.get(i).getData().setVBOName(vboName);
+      }      
+  }
+  
+  public final void addSubHandler(GLArrayHandlerFlat handler) {
       subArrays.add(handler);
   }
 
-  private final void syncSubData(GL gl, boolean enable, Object ext) {
+  private final void syncSubData(GL gl, boolean enable, boolean force, Object ext) {
       for(int i=0; i<subArrays.size(); i++) {
-          subArrays.get(i).syncData(gl, enable, ext);
+          subArrays.get(i).syncData(gl, enable, force, ext);
       }      
   }  
   
@@ -74,9 +80,9 @@ public class GLArrayHandlerInterleaved implements GLArrayHandler {
                 ad.setVBOWritten(true);
             }
         }
-        syncSubData(gl, true, ext);
+        syncSubData(gl, true, true, ext);
     } else {
-        syncSubData(gl, false, ext);
+        syncSubData(gl, false, true, ext);
         if(ad.isVBO()) {
             gl.glBindBuffer(ad.getVBOTarget(), 0);
         }

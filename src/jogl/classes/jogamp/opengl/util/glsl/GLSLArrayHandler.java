@@ -34,6 +34,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 
 import jogamp.opengl.util.GLArrayHandler;
+import jogamp.opengl.util.GLArrayHandlerFlat;
 
 import com.jogamp.opengl.util.GLArrayDataEditable;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -48,8 +49,12 @@ public class GLSLArrayHandler implements GLArrayHandler {
   public GLSLArrayHandler(GLArrayDataEditable ad) {
     this.ad = ad;
   }
-
-  public final void addSubHandler(GLArrayHandler handler) {
+  
+  public final void setSubArrayVBOName(int vboName) {
+      throw new UnsupportedOperationException();
+  }
+  
+  public final void addSubHandler(GLArrayHandlerFlat handler) {
       throw new UnsupportedOperationException();
   }
   

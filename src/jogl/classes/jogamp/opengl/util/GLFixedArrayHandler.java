@@ -45,8 +45,12 @@ public class GLFixedArrayHandler implements GLArrayHandler {
   public GLFixedArrayHandler(GLArrayDataEditable ad) {
     this.ad = ad;
   }
-
-  public final void addSubHandler(GLArrayHandler handler) {
+  
+  public final void setSubArrayVBOName(int vboName) {
+      throw new UnsupportedOperationException();
+  }
+  
+  public final void addSubHandler(GLArrayHandlerFlat handler) {
       throw new UnsupportedOperationException();
   }
   
