@@ -127,6 +127,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     final int OPAQUE_MISMATCH_PENALTY = 750;
     final int STENCIL_MISMATCH_PENALTY = 500;
     final int MULTISAMPLE_MISMATCH_PENALTY = 500;
+    final int MULTISAMPLE_EXTENSION_MISMATCH_PENALTY = 250; // just a little drop, no scale
     // Pseudo attempt to keep equal rank penalties scale-equivalent
     // (e.g., stencil mismatch is 3 * accum because there are 3 accum
     // components)
@@ -140,6 +141,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       scores[i] = NO_SCORE;
     }
     final int gldes_samples = gldes.getSampleBuffers() ? gldes.getNumSamples() : 0;
+    final boolean gldes_defaultSampleExt = gldes.getSampleExtension().equals(GLCapabilitiesImmutable.DEFAULT_SAMPLE_EXTENSION);
     
     // Compute score for each
     for (int i = 0; i < availnum; i++) {
@@ -187,8 +189,13 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       if ((gldes.getStencilBits() > 0) && (cur.getStencilBits() == 0)) {
         score += sign(score) * STENCIL_MISMATCH_PENALTY;
       }
-      if ((gldes_samples > 0) && (cur_samples == 0)) {
-        score += sign(score) * MULTISAMPLE_MISMATCH_PENALTY;
+      if (gldes_samples > 0) {
+          if (cur_samples == 0) {
+            score += sign(score) * MULTISAMPLE_MISMATCH_PENALTY;
+          }
+          if (!gldes_defaultSampleExt && !gldes.getSampleExtension().equals(cur.getSampleExtension())) {
+            score += sign(score) * MULTISAMPLE_EXTENSION_MISMATCH_PENALTY;
+          }
       }
       scores[i] = score;
     }

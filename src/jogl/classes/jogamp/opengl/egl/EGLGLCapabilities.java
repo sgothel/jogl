@@ -38,25 +38,13 @@ public class EGLGLCapabilities extends GLCapabilities {
   final int  eglcfgid;
   final int renderableType;  
   int nativeVisualID;
-  boolean useNV_coverage_sample;
   
   /** Comparing EGLConfig ID only */
-  public static class EglCfgIDComparator implements Comparator {
+  public static class EglCfgIDComparator implements Comparator<EGLGLCapabilities> {
 
-      public int compare(Object o1, Object o2) {
-        if ( ! ( o1 instanceof EGLGLCapabilities ) ) {
-            Class c = (null != o1) ? o1.getClass() : null ;
-            throw new ClassCastException("arg1 not a EGLGLCapabilities object: " + c);
-        }
-        if ( ! ( o2 instanceof EGLGLCapabilities ) ) {
-            Class c = (null != o2) ? o2.getClass() : null ;
-            throw new ClassCastException("arg2 not a EGLGLCapabilities object: " + c);
-        }
-
-        final EGLGLCapabilities caps1 = (EGLGLCapabilities) o1;
+      public int compare(EGLGLCapabilities caps1, EGLGLCapabilities caps2) {
         final long id1 = caps1.getEGLConfigID();
 
-        final EGLGLCapabilities caps2 = (EGLGLCapabilities) o2;
         final long id2 = caps2.getEGLConfigID();
 
         if(id1 > id2) {
@@ -86,7 +74,6 @@ public class EGLGLCapabilities extends GLCapabilities {
                                 " with EGL-RenderableType["+renderableTypeToString(null, renderableType)+"]");
       }
       this.renderableType = renderableType;
-      this.useNV_coverage_sample = false;
   }
 
   public Object cloneMutable() {
@@ -106,8 +93,6 @@ public class EGLGLCapabilities extends GLCapabilities {
   final public int getRenderableType() { return renderableType; }
   final public void setNativeVisualID(int vid) { nativeVisualID=vid; }
   final public int getNativeVisualID() { return nativeVisualID; }
-  final public boolean getUseNV_coverage_sample() { return useNV_coverage_sample; }
-  final public void setUseNV_coverage_sample(boolean v) { useNV_coverage_sample=v; }
   
   public static boolean isCompatible(GLProfile glp, int renderableType) {
     if(null == glp) {
@@ -165,7 +150,6 @@ public class EGLGLCapabilities extends GLCapabilities {
     sink.append("0x").append(Long.toHexString(eglcfgid)).append(": ");
     sink.append("vid 0x").append(Integer.toHexString(nativeVisualID)).append(", ");
     super.toString(sink);
-    sink.append(", nv-covrg ").append(getUseNV_coverage_sample());
     sink.append(", [");
     renderableTypeToString(sink, renderableType);
     return sink.append("]");

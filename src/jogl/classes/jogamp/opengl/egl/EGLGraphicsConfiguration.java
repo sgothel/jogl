@@ -222,7 +222,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
             if(EGL.eglGetConfigAttrib(display, config, EGLExt.EGL_COVERAGE_BUFFERS_NV, val)) {
                 if(val.get(0)>0 &&
                    EGL.eglGetConfigAttrib(display, config, EGLExt.EGL_COVERAGE_SAMPLES_NV, val)) {
-                    caps.setUseNV_coverage_sample(true);                    
+                    caps.setSampleExtension(GLGraphicsConfigurationUtil.NV_coverage_sample); 
                     caps.setSampleBuffers(true);
                     caps.setNumSamples(val.get(0));
                 }
@@ -274,13 +274,25 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         attrs[idx++] = EGL.EGL_DEPTH_SIZE;
         attrs[idx++] = caps.getDepthBits();
 
-        attrs[idx++] = EGL.EGL_SAMPLES;
-        attrs[idx++] = caps.getSampleBuffers() ? caps.getNumSamples() : 1;
+        if(caps.getSampleBuffers()) {
+            if(caps.getSampleExtension().equals(GLGraphicsConfigurationUtil.NV_coverage_sample)) {
+                attrs[idx++] = EGLExt.EGL_COVERAGE_BUFFERS_NV;
+                attrs[idx++] = 1;
+                attrs[idx++] = EGLExt.EGL_COVERAGE_SAMPLES_NV;
+                attrs[idx++] = caps.getNumSamples();
+            } else {
+                // try default ..
+                attrs[idx++] = EGL.EGL_SAMPLE_BUFFERS;
+                attrs[idx++] = 1;
+                attrs[idx++] = EGL.EGL_SAMPLES;
+                attrs[idx++] = caps.getNumSamples();
+            }
+        }
 
         attrs[idx++] = EGL.EGL_TRANSPARENT_TYPE;
         attrs[idx++] = caps.isBackgroundOpaque() ? EGL.EGL_NONE : EGL.EGL_TRANSPARENT_TYPE;
 
-        // 20
+        // 22
 
         if(!caps.isBackgroundOpaque()) {
             attrs[idx++] = EGL.EGL_TRANSPARENT_RED_VALUE;
@@ -297,7 +309,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
             attrs[idx++] = caps.getTransparentAlphaValue()>=0?caps.getTransparentAlphaValue():EGL.EGL_DONT_CARE; */
         }
 
-        // 26 
+        // 28 
         attrs[idx++] = EGL.EGL_RENDERABLE_TYPE;
         if(caps.getGLProfile().usesNativeGLES1()) {
             attrs[idx++] = EGL.EGL_OPENGL_ES_BIT;
@@ -307,7 +319,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
             attrs[idx++] = EGL.EGL_OPENGL_BIT;
         }
 
-        // 28
+        // 30
 
         attrs[idx++] = EGL.EGL_NONE;
 

@@ -33,6 +33,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class GLGraphicsConfigurationUtil {
+    public static final String NV_coverage_sample = "NV_coverage_sample";
     public static final int WINDOW_BIT  = 1 << 0;
     public static final int BITMAP_BIT  = 1 << 1;
     public static final int PBUFFER_BIT = 1 << 2;
