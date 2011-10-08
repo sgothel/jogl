@@ -217,6 +217,17 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
             caps.setSampleBuffers(val.get(0)>0?true:false);
             caps.setNumSamples(val.get(0));
         }
+        if(!caps.getSampleBuffers()) {
+            // try NV_coverage_sample extension 
+            if(EGL.eglGetConfigAttrib(display, config, EGLExt.EGL_COVERAGE_BUFFERS_NV, val)) {
+                if(val.get(0)>0 &&
+                   EGL.eglGetConfigAttrib(display, config, EGLExt.EGL_COVERAGE_SAMPLES_NV, val)) {
+                    caps.setUseNV_coverage_sample(true);                    
+                    caps.setSampleBuffers(true);
+                    caps.setNumSamples(val.get(0));
+                }
+            }
+        }
         if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_TRANSPARENT_TYPE, val)) {
             caps.setBackgroundOpaque(val.get(0) != EGL.EGL_TRANSPARENT_RGB);
         }
