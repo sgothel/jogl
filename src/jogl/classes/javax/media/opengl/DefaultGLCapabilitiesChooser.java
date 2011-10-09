@@ -141,7 +141,6 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       scores[i] = NO_SCORE;
     }
     final int gldes_samples = gldes.getSampleBuffers() ? gldes.getNumSamples() : 0;
-    final boolean gldes_defaultSampleExt = gldes.getSampleExtension().equals(GLCapabilitiesImmutable.DEFAULT_SAMPLE_EXTENSION);
     
     // Compute score for each
     for (int i = 0; i < availnum; i++) {
@@ -193,7 +192,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
           if (cur_samples == 0) {
             score += sign(score) * MULTISAMPLE_MISMATCH_PENALTY;
           }
-          if (!gldes_defaultSampleExt && !gldes.getSampleExtension().equals(cur.getSampleExtension())) {
+          if (!gldes.getSampleExtension().equals(cur.getSampleExtension())) {
             score += sign(score) * MULTISAMPLE_EXTENSION_MISMATCH_PENALTY;
           }
       }
