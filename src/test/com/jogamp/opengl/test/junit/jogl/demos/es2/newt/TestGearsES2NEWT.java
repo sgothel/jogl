@@ -169,7 +169,6 @@ public class TestGearsES2NEWT extends UITestCase {
                         public void run() {
                             System.err.println("[set mouse pos pre]");
                             glWindow.warpPointer(glWindow.getWidth()/2, glWindow.getHeight()/2);
-                            glWindow.confinePointer(!glWindow.isPointerConfined());
                             System.err.println("[set mouse pos post]");
                     } }.start();
                 }

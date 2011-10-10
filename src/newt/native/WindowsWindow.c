@@ -1574,4 +1574,80 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_requestFocu
     NewtWindows_requestFocus ( env, obj, (HWND) (intptr_t) window, force) ;
 }
 
+/*
+ * Class:     Java_jogamp_newt_driver_windows_WindowsWindow
+ * Method:    setPointerVisible0
+ * Signature: (JJZ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_setPointerVisible0
+  (JNIEnv *env, jclass clazz, jlong window, jboolean mouseVisible)
+{
+    HWND hwnd = (HWND) (intptr_t) window;
+    int res, resOld, i;
+    jboolean b;
+
+    if(JNI_TRUE == mouseVisible) {
+        res = ShowCursor(TRUE);
+        if(res < 0) {
+            i=0;
+            do {
+                resOld = res;
+                res = ShowCursor(TRUE);
+            } while(res!=resOld && res<0 && ++i<10);
+        }
+        b = res>=0 ? JNI_TRUE : JNI_FALSE;
+    } else {
+        res = ShowCursor(FALSE);
+        if(res >= 0) {
+            i=0;
+            do {
+                resOld = res;
+                res = ShowCursor(FALSE);
+            } while(res!=resOld && res>=0 && ++i<10);
+        }
+        b = res<0 ? JNI_TRUE : JNI_FALSE;
+    }
+
+    DBG_PRINT( "*** WindowsWindow: setPointerVisible0: %d, res %d/%d\n", mouseVisible, res, b);
+
+    return b;
+}
+
+/*
+ * Class:     Java_jogamp_newt_driver_windows_WindowsWindow
+ * Method:    confinePointer0
+ * Signature: (JJZIIII)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_confinePointer0
+  (JNIEnv *env, jclass clazz, jlong window, jboolean confine, jint l, jint t, jint r, jint b)
+{
+    HWND hwnd = (HWND) (intptr_t) window;
+    jboolean res;
+
+    if(JNI_TRUE == confine) {
+        // SetCapture(hwnd);
+        // res = ( GetCapture() == hwnd ) ? JNI_TRUE : JNI_FALSE;
+        RECT rect = { l, t, r, b };
+        res = ClipCursor(&rect) ? JNI_TRUE : JNI_FALSE;
+    } else {
+        // res = ReleaseCapture() ? JNI_TRUE : JNI_FALSE;
+        res = ClipCursor(NULL) ? JNI_TRUE : JNI_FALSE;
+    }
+    DBG_PRINT( "*** WindowsWindow: confinePointer0: %d, [ l %d t %d r %d b %d ], res %d\n", 
+        confine, l, t, r, b, res);
+
+    return res;
+}
+
+/*
+ * Class:     Java_jogamp_newt_driver_windows_WindowsWindow
+ * Method:    warpPointer0
+ * Signature: (JJII)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_warpPointer0
+  (JNIEnv *env, jclass clazz, jlong window, jint x, jint y)
+{
+    DBG_PRINT( "*** WindowsWindow: warpPointer0: %d/%d\n", x, y);
+    SetCursorPos(x, y);
+}
 

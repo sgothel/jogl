@@ -157,9 +157,10 @@ public class X11Window extends WindowImpl {
     
     @Override
     protected void warpPointerImpl(final int x, final int y) {
-        runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
-            public Boolean run(long dpy) {
-                return Boolean.valueOf(warpPointer0(getDisplayEDTHandle(), getWindowHandle(), x, y));
+        runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Object>() {
+            public Object run(long dpy) {
+                warpPointer0(getDisplayEDTHandle(), getWindowHandle(), x, y);
+                return null;
             }
         });
     }
@@ -186,18 +187,20 @@ public class X11Window extends WindowImpl {
     }
 
     protected static native boolean initIDs0();
+    
     private native long CreateWindow0(long parentWindowHandle, long display, int screen_index, 
                                             long visualID, long javaObjectAtom, long windowDeleteAtom, 
                                             int x, int y, int width, int height, int flags); 
     private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom);
     private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long windowHandle,
                                            int x, int y, int width, int height, int flags);    
-    private native void setTitle0(long display, long windowHandle, String title);
     private native void requestFocus0(long display, long windowHandle, boolean force);
-    private native long getParentWindow0(long display, long windowHandle);
-    private native boolean setPointerVisible0(long display, long windowHandle, boolean visible);
-    private native boolean confinePointer0(long display, long windowHandle, boolean grab);
-    private native boolean warpPointer0(long display, long windowHandle, int x, int y);
+    
+    private static native void setTitle0(long display, long windowHandle, String title);
+    private static native long getParentWindow0(long display, long windowHandle);
+    private static native boolean setPointerVisible0(long display, long windowHandle, boolean visible);
+    private static native boolean confinePointer0(long display, long windowHandle, boolean grab);
+    private static native void warpPointer0(long display, long windowHandle, int x, int y);
     
     private long   windowHandleClose;
 }

@@ -1847,7 +1847,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_requestFocus0
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_getParentWindow0
-  (JNIEnv *env, jobject obj, jlong display, jlong window)
+  (JNIEnv *env, jclass clazz, jlong display, jlong window)
 {
     return (jlong) NewtWindows_getParent ((Display *) (intptr_t) display, (Window)window);
 }
@@ -1947,7 +1947,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_confinePointer0
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
-    int res;
 
     DBG_PRINT( "X11: confinePointer0: %d\n", confine);
 
@@ -1964,18 +1963,16 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_confinePointer0
 /*
  * Class:     Java_jogamp_newt_driver_x11_X11Window
  * Method:    warpPointer0
- * Signature: (JJII)Z
+ * Signature: (JJII)V
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_warpPointer0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_warpPointer0
   (JNIEnv *env, jclass clazz, jlong display, jlong window, jint x, jint y)
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
-    int res;
 
     DBG_PRINT( "X11: warpPointer0: %d/%d\n", x, y);
 
     XWarpPointer(dpy, None, w, 0, 0, 0, 0, x, y);
-    return JNI_TRUE;
 }
 

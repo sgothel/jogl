@@ -241,6 +241,10 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     /**
      * Confine the pointer to this window, ie. pointer jail.
      * <p>
+     * Before jailing the mouse pointer, 
+     * the window request the focus and the pointer is centered in the window.
+     * </p>
+     * <p>
      * In combination w/ {@link #warpPointer(int, int)} 
      * and maybe {@link #setPointerVisible(boolean)} a simple mouse
      * navigation can be realized.</p>

@@ -188,6 +188,43 @@ public class WindowsWindow extends WindowImpl {
         setTitle0(getWindowHandle(), title);
     }
 
+    @Override
+    protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
+        final Boolean[] res = new Boolean[] { Boolean.FALSE };
+        
+        this.runOnEDTIfAvail(true, new Runnable() {
+            public void run() {
+                res[0] = Boolean.valueOf(setPointerVisible0(getWindowHandle(), pointerVisible));
+            }
+        });
+        return res[0].booleanValue();
+    }
+
+    @Override
+    protected boolean confinePointerImpl(final boolean confine) {
+        final Boolean[] res = new Boolean[] { Boolean.FALSE };
+        
+        this.runOnEDTIfAvail(true, new Runnable() {
+            public void run() {
+                final Point p0 = getLocationOnScreenImpl(0, 0);
+                res[0] = Boolean.valueOf(confinePointer0(getWindowHandle(), confine, 
+                        p0.getX(), p0.getY(), p0.getX()+width, p0.getY()+height));
+            }
+        });
+        return res[0].booleanValue();
+    }
+    
+    @Override
+    protected void warpPointerImpl(final int x, final int y) {        
+        this.runOnEDTIfAvail(true, new Runnable() {
+            public void run() {
+                final Point sPos = getLocationOnScreenImpl(x, y);
+                warpPointer0(getWindowHandle(), sPos.getX(), sPos.getY());
+            }
+        });
+        return;
+    }
+        
     protected Point getLocationOnScreenImpl(int x, int y) {
         return GDI.GetRelativeLocation( getWindowHandle(), 0 /*root win*/, x, y);
     }
@@ -211,4 +248,7 @@ public class WindowsWindow extends WindowImpl {
     private static native void setTitle0(long windowHandle, String title);
     private native void requestFocus0(long windowHandle, boolean force);
 
+    private static native boolean setPointerVisible0(long windowHandle, boolean visible);
+    private static native boolean confinePointer0(long windowHandle, boolean grab, int l, int t, int r, int b);
+    private static native void warpPointer0(long windowHandle, int x, int y);    
 }
