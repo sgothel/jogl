@@ -215,10 +215,29 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         return window.getTitle();
     }
 
+    public final boolean isPointerVisible() {
+        return window.isPointerVisible();
+    }
+    
+    public final void setPointerVisible(boolean mouseVisible) {
+        window.setPointerVisible(mouseVisible);        
+    }
+    
+    public final boolean isPointerConfined() {
+        return window.isPointerConfined();
+    }
+    
+    public final void confinePointer(boolean grab) {
+        window.confinePointer(grab);
+    }
+    
     public final void setUndecorated(boolean value) {
         window.setUndecorated(value);
     }
 
+    public final void warpPointer(int x, int y) {
+        window.warpPointer(x, y);
+    }
     public final boolean isUndecorated() {
         return window.isUndecorated();
     }

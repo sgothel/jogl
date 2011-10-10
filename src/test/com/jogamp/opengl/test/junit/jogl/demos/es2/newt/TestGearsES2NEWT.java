@@ -78,13 +78,16 @@ public class TestGearsES2NEWT extends UITestCase {
 
     protected void runTestGL(GLCapabilities caps, boolean undecorated) throws InterruptedException {
         System.err.println("requested: "+caps);
-        GLWindow glWindow = GLWindow.create(caps);
+        final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test (translucent "+!caps.isBackgroundOpaque()+")");
         glWindow.setSize(width, height);
         glWindow.setUndecorated(undecorated);
         glWindow.setAlwaysOnTop(alwaysOnTop);
         glWindow.setFullscreen(fullscreen);
+        glWindow.setPointerVisible(mouseVisible);
+        glWindow.confinePointer(mouseConfined);
+
         GearsES2 demo = new GearsES2(vsync ? 1 : 0);
         demo.setPMVUseBackingArray(pmvUseBackingArray);
         glWindow.addGLEventListener(demo);
@@ -117,36 +120,57 @@ public class TestGearsES2NEWT extends UITestCase {
         glWindow.addKeyListener(quitAdapter);
         glWindow.addWindowListener(quitAdapter);
 
-        final GLWindow f_glWindow = glWindow;
         glWindow.addKeyListener(new KeyAdapter() {
             public void keyTyped(KeyEvent e) {
                 if(e.getKeyChar()=='f') {
                     new Thread() {
                         public void run() {
-                            System.err.println("[set fullscreen  pre]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", f "+f_glWindow.isFullscreen()+", "+f_glWindow.getInsets());
-                            f_glWindow.setFullscreen(!f_glWindow.isFullscreen());
-                            System.err.println("[set fullscreen post]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", f "+f_glWindow.isFullscreen()+", "+f_glWindow.getInsets());
+                            System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", "+glWindow.getInsets());
+                            glWindow.setFullscreen(!glWindow.isFullscreen());
+                            System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", "+glWindow.getInsets());
                     } }.start();
                 } else if(e.getKeyChar()=='a') {
                     new Thread() {
                         public void run() {
-                            System.err.println("[set alwaysontop pre]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", a "+f_glWindow.isAlwaysOnTop()+", "+f_glWindow.getInsets());
-                            f_glWindow.setAlwaysOnTop(!f_glWindow.isAlwaysOnTop());
-                            System.err.println("[set alwaysontop post]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", a "+f_glWindow.isAlwaysOnTop()+", "+f_glWindow.getInsets());
+                            System.err.println("[set alwaysontop pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                            glWindow.setAlwaysOnTop(!glWindow.isAlwaysOnTop());
+                            System.err.println("[set alwaysontop post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                     } }.start();
                 } else if(e.getKeyChar()=='d') {
                     new Thread() {
                         public void run() {
-                            System.err.println("[set undecorated  pre]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", d "+f_glWindow.isUndecorated()+", "+f_glWindow.getInsets());
-                            f_glWindow.setUndecorated(!f_glWindow.isUndecorated());
-                            System.err.println("[set undecorated post]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", d "+f_glWindow.isUndecorated()+", "+f_glWindow.getInsets());
+                            System.err.println("[set undecorated  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", d "+glWindow.isUndecorated()+", "+glWindow.getInsets());
+                            glWindow.setUndecorated(!glWindow.isUndecorated());
+                            System.err.println("[set undecorated post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", d "+glWindow.isUndecorated()+", "+glWindow.getInsets());
                     } }.start();
                 } else if(e.getKeyChar()=='s') {
                     new Thread() {
                         public void run() {
-                            System.err.println("[set position  pre]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", "+f_glWindow.getInsets());
-                            f_glWindow.setPosition(100, 100);
-                            System.err.println("[set position post]: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", "+f_glWindow.getInsets());
+                            System.err.println("[set position  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+                            glWindow.setPosition(100, 100);
+                            System.err.println("[set position post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+                    } }.start();
+                } else if(e.getKeyChar()=='i') {
+                    new Thread() {
+                        public void run() {
+                            System.err.println("[set mouse visible pre]: "+glWindow.isPointerVisible());
+                            glWindow.setPointerVisible(!glWindow.isPointerVisible());
+                            System.err.println("[set mouse visible post]: "+glWindow.isPointerVisible());
+                    } }.start();
+                } else if(e.getKeyChar()=='j') {
+                    new Thread() {
+                        public void run() {
+                            System.err.println("[set mouse confined pre]: "+glWindow.isPointerConfined());
+                            glWindow.confinePointer(!glWindow.isPointerConfined());
+                            System.err.println("[set mouse confined post]: "+glWindow.isPointerConfined());
+                    } }.start();
+                } else if(e.getKeyChar()=='w') {
+                    new Thread() {
+                        public void run() {
+                            System.err.println("[set mouse pos pre]");
+                            glWindow.warpPointer(glWindow.getWidth()/2, glWindow.getHeight()/2);
+                            glWindow.confinePointer(!glWindow.isPointerConfined());
+                            System.err.println("[set mouse pos post]");
                     } }.start();
                 }
             }
@@ -158,7 +182,7 @@ public class TestGearsES2NEWT extends UITestCase {
 
         glWindow.setVisible(true);
         
-        System.err.println("size/pos: "+f_glWindow.getX()+"/"+f_glWindow.getY()+" "+f_glWindow.getWidth()+"x"+f_glWindow.getHeight()+", "+f_glWindow.getInsets());
+        System.err.println("size/pos: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
         System.err.println("chosen: "+glWindow.getChosenCapabilities());
         
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
@@ -184,6 +208,8 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean pmvUseBackingArray = true;
     static boolean vsync = false;
     static boolean waitForKey = false;
+    static boolean mouseVisible = true;
+    static boolean mouseConfined = false;
 
     public static void main(String args[]) throws IOException {
         
@@ -207,6 +233,10 @@ public class TestGearsES2NEWT extends UITestCase {
                 vsync = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
+            } else if(args[i].equals("-mouseInvisible")) {
+                mouseVisible = false;
+            } else if(args[i].equals("-mouseConfine")) {
+                mouseConfined = true;
             }
         }
         System.err.println("translucent "+(!opaque));
@@ -215,6 +245,8 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("fullscreen "+fullscreen);
         System.err.println("pmvDirect "+(!pmvUseBackingArray));
         System.err.println("vsync "+vsync);
+        System.err.println("mouseVisible "+mouseVisible);
+        System.err.println("mouseConfined "+mouseConfined);
 
         if(waitForKey) {
             BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));

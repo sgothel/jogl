@@ -96,6 +96,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected String title = "Newt Window";
     protected boolean undecorated = false;
     protected boolean alwaysOnTop = false;
+    private boolean pointerVisible = true;
+    private boolean pointerConfined = false;
     private LifecycleHook lifecycleHook = null;
 
     private DestroyAction destroyAction = new DestroyAction();
@@ -280,6 +282,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     createNativeImpl();
                     screen.addScreenModeListener(screenModeListenerImpl);
                     setTitleImpl(title);
+                    setPointerVisibleImpl(pointerVisible);
+                    confinePointerImpl(pointerConfined);
                     if(waitForVisible(true, false)) {
                         if(isFullscreen()) {
                             fullscreen = false;
@@ -522,6 +526,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     protected abstract void updateInsetsImpl(Insets insets);
 
+    protected boolean setPointerVisibleImpl(boolean pointerVisible) { return false; }
+    protected boolean confinePointerImpl(boolean confine) { return false; }
+    protected void warpPointerImpl(int x, int y) { }
+    
     //----------------------------------------------------------------------
     // NativeSurface
     //
@@ -1216,20 +1224,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return capsRequested;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        if (title == null) {
-            title = "";
-        }
-        this.title = title;
-        if(0 != getWindowHandle()) {
-            setTitleImpl(title);
-        }
-    }
-
     private class DecorationActionImpl implements Runnable {
         boolean undecorated;
 
@@ -1328,6 +1322,55 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return alwaysOnTop || fullscreen ;
     }
         
+    public String getTitle() {
+        return title;
+    }
+    public void setTitle(String title) {
+        if (title == null) {
+            title = "";
+        }
+        this.title = title;
+        if(0 != getWindowHandle()) {
+            setTitleImpl(title);
+        }
+    }
+
+    public boolean isPointerVisible() {
+        return pointerVisible;
+    }
+    public void setPointerVisible(boolean pointerVisible) {
+        if(this.pointerVisible != pointerVisible) {
+            boolean setVal = 0 == getWindowHandle();
+            if(!setVal) {
+                setVal = setPointerVisibleImpl(pointerVisible);
+            }
+            if(setVal) {
+                this.pointerVisible = pointerVisible;                
+            }
+        }
+    }
+    public boolean isPointerConfined() {
+        return pointerConfined;
+    }
+    
+    public void confinePointer(boolean confine) {
+        if(this.pointerConfined != confine) {
+            boolean setVal = 0 == getWindowHandle();
+            if(!setVal) {
+                setVal = confinePointerImpl(confine);
+            }
+            if(setVal) {
+                this.pointerConfined = confine;                
+            }
+        }        
+    }
+    
+    public void warpPointer(int x, int y) {
+        if(0 != getWindowHandle()) {
+            warpPointerImpl(x, y);
+        }
+    }
+    
     public void requestFocus() {
         enqueueRequestFocus(true);
     }
@@ -1367,7 +1410,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public final boolean isFullscreen() {
         return fullscreen;
     }
-
 
     //----------------------------------------------------------------------
     // Window

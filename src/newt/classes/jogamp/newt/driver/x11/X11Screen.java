@@ -53,8 +53,8 @@ public class X11Screen extends ScreenImpl {
 
     protected void createNativeImpl() {
         // validate screen index
-        Long handle = (Long) display.runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable() {
-            public Object run(long dpy) {        
+        Long handle = display.runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Long>() {
+            public Long run(long dpy) {        
                 long handle = GetScreen0(dpy, screen_idx);
                 if(0 != handle) {
                     setScreenSize(getWidth0(dpy, screen_idx), getHeight0(dpy, screen_idx));
@@ -79,8 +79,8 @@ public class X11Screen extends ScreenImpl {
     private int nmode_number;
 
     protected int[] getScreenModeFirstImpl() {
-        return (int[]) runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable() {
-            public Object run(long dpy) {
+        return runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<int[]>() {
+            public int[] run(long dpy) {
                 // initialize iterators and static data
                 nrotations = getAvailableScreenModeRotations0(dpy, screen_idx);
                 if(null==nrotations || 0==nrotations.length) {
@@ -108,8 +108,8 @@ public class X11Screen extends ScreenImpl {
 
     protected int[] getScreenModeNextImpl() {
         // assemble: w x h x bpp x f x r        
-        return (int[]) runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable() {
-            public Object run(long dpy) {
+        return runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<int[]>() {
+            public int[] run(long dpy) {
                 /**
                 System.err.println("******** mode: "+nmode_number);
                 System.err.println("rot  "+nrotation_index);
@@ -172,8 +172,8 @@ public class X11Screen extends ScreenImpl {
     }
 
     protected ScreenMode getCurrentScreenModeImpl() {
-        return (ScreenMode) runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable() {
-            public Object run(long dpy) {
+        return runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<ScreenMode>() {
+            public ScreenMode run(long dpy) {
                 int resNumber = getNumScreenModeResolutions0(dpy, screen_idx);
                 if(0==resNumber) {
                     return null;
@@ -222,8 +222,8 @@ public class X11Screen extends ScreenImpl {
             throw new RuntimeException("ScreenMode not element of ScreenMode list: "+screenMode);
         }
         final long t0 = System.currentTimeMillis();
-        Boolean done = (Boolean) runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable() {
-            public Object run(long dpy) {
+        boolean done = runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
+            public Boolean run(long dpy) {
                 boolean done = false;
                 int resNumber = getNumScreenModeResolutions0(dpy, screen_idx);
                 int resIdx = getScreenModesIdx2NativeIdx().get(screenModeIdx);
@@ -243,19 +243,19 @@ public class X11Screen extends ScreenImpl {
                 }
                 return Boolean.valueOf(done);
             }            
-        });
+        }).booleanValue();
         
-        if(!done.booleanValue()) {
+        if(done) {
             System.err.println("X11Screen.setCurrentScreenModeImpl: TO ("+SCREEN_MODE_CHANGE_TIMEOUT+") reached: "+
                                (System.currentTimeMillis()-t0)+"ms");
         }
-        return done.booleanValue();
+        return done;
     }
 
     //----------------------------------------------------------------------
     // Internals only
     //    
-    private final Object runWithLockedDisplayHandle(DisplayRunnable action) {
+    private final <T> T runWithLockedDisplayHandle(DisplayRunnable<T> action) {
         return display.runWithLockedDisplayHandle(action);
         // return runWithTempDisplayHandle(action);
     }

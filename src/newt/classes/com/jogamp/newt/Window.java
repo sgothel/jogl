@@ -225,6 +225,40 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
 
     String getTitle();
 
+    boolean isPointerVisible();
+    
+    /**
+     * Makes the pointer visible or invisible.
+     * 
+     * @param pointerVisible defaults to <code>true</code> for platforms w/ visible pointer,
+     *                       otherwise defaults to <code>true</code>, eg. Android.
+     * @see #confinePointer(boolean)
+     */
+    void setPointerVisible(boolean pointerVisible);
+
+    boolean isPointerConfined();
+    
+    /**
+     * Confine the pointer to this window, ie. pointer jail.
+     * <p>
+     * In combination w/ {@link #warpPointer(int, int)} 
+     * and maybe {@link #setPointerVisible(boolean)} a simple mouse
+     * navigation can be realized.</p>
+     *  
+     * @param confine defaults to <code>false</code>.
+     */
+    void confinePointer(boolean confine);
+    
+    /**
+     * Moves the pointer to x/y relative to this window's origin.
+     * 
+     * @param x relative pointer x position within this window
+     * @param y relative pointer y position within this window
+     * 
+     * @see #confinePointer(boolean)
+     */
+    void warpPointer(int x, int y);
+    
     /** Defining ids for the reparenting strategy */
     public interface ReparentAction {
         /** No native reparenting valid */

@@ -438,15 +438,15 @@ public abstract class DisplayImpl extends Display {
         }
     }
 
-    public interface DisplayRunnable {
-        Object run(long dpy);
+    public interface DisplayRunnable<T> {
+        T run(long dpy);
     }    
-    public final Object runWithLockedDisplayHandle(DisplayRunnable action) {
+    public final <T> T runWithLockedDisplayHandle(DisplayRunnable<T> action) {
         final AbstractGraphicsDevice aDevice = getGraphicsDevice();
         if(null == aDevice) {
             throw new RuntimeException("null device - not initialized: "+this);
         }
-        Object res;
+        T res;
         aDevice.lock();
         try {
             res = action.run(aDevice.getHandle());

@@ -1903,3 +1903,79 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_setTitle0
 #endif
 }
 
+/*
+ * Class:     Java_jogamp_newt_driver_x11_X11Window
+ * Method:    setPointerVisible0
+ * Signature: (JJZ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_setPointerVisible0
+  (JNIEnv *env, jclass clazz, jlong display, jlong window, jboolean mouseVisible)
+{
+    static char noData[] = { 0,0,0,0,0,0,0,0 };
+    static XColor black = { 0 };
+
+    Display * dpy = (Display *) (intptr_t) display;
+    Window w = (Window)window;
+
+    DBG_PRINT( "X11: setPointerVisible0: %d\n", mouseVisible);
+
+    if(JNI_TRUE == mouseVisible) {
+        XUndefineCursor(dpy, w);
+    } else {
+        Pixmap bitmapNoData;
+        Cursor invisibleCursor;
+
+        bitmapNoData = XCreateBitmapFromData(dpy, w, noData, 8, 8);
+        if(None == bitmapNoData) {
+            return JNI_FALSE;
+        }
+        invisibleCursor = XCreatePixmapCursor(dpy, bitmapNoData, bitmapNoData, &black, &black, 0, 0);
+        XDefineCursor(dpy, w, invisibleCursor);
+        XFreeCursor(dpy, invisibleCursor);
+        XFreePixmap(dpy, bitmapNoData);
+    }
+    return JNI_TRUE;
+}
+
+/*
+ * Class:     Java_jogamp_newt_driver_x11_X11Window
+ * Method:    confinePointer0
+ * Signature: (JJZ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_confinePointer0
+  (JNIEnv *env, jclass clazz, jlong display, jlong window, jboolean confine)
+{
+    Display * dpy = (Display *) (intptr_t) display;
+    Window w = (Window)window;
+    int res;
+
+    DBG_PRINT( "X11: confinePointer0: %d\n", confine);
+
+    if(JNI_TRUE == confine) {
+        return GrabSuccess == XGrabPointer(dpy, w, True, 
+                                           ButtonPressMask | ButtonReleaseMask | PointerMotionMask,
+                                           GrabModeAsync, GrabModeAsync, w, None, CurrentTime)
+               ? JNI_TRUE : JNI_FALSE ;
+    }
+    XUngrabPointer(dpy, CurrentTime);
+    return JNI_TRUE;
+}
+
+/*
+ * Class:     Java_jogamp_newt_driver_x11_X11Window
+ * Method:    warpPointer0
+ * Signature: (JJII)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_warpPointer0
+  (JNIEnv *env, jclass clazz, jlong display, jlong window, jint x, jint y)
+{
+    Display * dpy = (Display *) (intptr_t) display;
+    Window w = (Window)window;
+    int res;
+
+    DBG_PRINT( "X11: warpPointer0: %d/%d\n", x, y);
+
+    XWarpPointer(dpy, None, w, 0, 0, 0, 0, x, y);
+    return JNI_TRUE;
+}
+

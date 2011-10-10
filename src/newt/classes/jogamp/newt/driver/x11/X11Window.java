@@ -129,14 +129,41 @@ public class X11Window extends WindowImpl {
 
     @Override
     protected void setTitleImpl(final String title) {
-        runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable() {
+        runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Object>() {
             public Object run(long dpy) {
                 setTitle0(dpy, getWindowHandle(), title);
                 return null;
             }
         });
     }
+    
+    @Override
+    protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
+        return runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
+            public Boolean run(long dpy) {
+                return Boolean.valueOf(setPointerVisible0(getDisplayEDTHandle(), getWindowHandle(), pointerVisible));
+            }
+        }).booleanValue();
+    }
 
+    @Override
+    protected boolean confinePointerImpl(final boolean confine) {
+        return runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
+            public Boolean run(long dpy) {
+                return Boolean.valueOf(confinePointer0(getDisplayEDTHandle(), getWindowHandle(), confine));
+            }
+        }).booleanValue();
+    }
+    
+    @Override
+    protected void warpPointerImpl(final int x, final int y) {
+        runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
+            public Boolean run(long dpy) {
+                return Boolean.valueOf(warpPointer0(getDisplayEDTHandle(), getWindowHandle(), x, y));
+            }
+        });
+    }
+    
     protected Point getLocationOnScreenImpl(final int x, final int y) {
         // X11Util.GetRelativeLocation: locks display already !
         return X11Util.GetRelativeLocation( getScreen().getDisplay().getHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
@@ -153,7 +180,7 @@ public class X11Window extends WindowImpl {
     private final long getDisplayEDTHandle() {
         return ((X11Display) getScreen().getDisplay()).getEDTHandle();
     }
-    private final Object runWithLockedDisplayHandle(DisplayRunnable action) {
+    private final <T> T runWithLockedDisplayHandle(DisplayRunnable<T> action) {
         return ((DisplayImpl) getScreen().getDisplay()).runWithLockedDisplayHandle(action);
         // return runWithTempDisplayHandle(action);
     }
@@ -168,6 +195,9 @@ public class X11Window extends WindowImpl {
     private native void setTitle0(long display, long windowHandle, String title);
     private native void requestFocus0(long display, long windowHandle, boolean force);
     private native long getParentWindow0(long display, long windowHandle);
-
+    private native boolean setPointerVisible0(long display, long windowHandle, boolean visible);
+    private native boolean confinePointer0(long display, long windowHandle, boolean grab);
+    private native boolean warpPointer0(long display, long windowHandle, int x, int y);
+    
     private long   windowHandleClose;
 }
