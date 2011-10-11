@@ -51,20 +51,32 @@ static NSString* jstringToNSString(JNIEnv* env, jstring jstr)
     return str;
 }
 
-static void setFrameTopLeftPoint(NSWindow* pWin, NSWindow* mWin, jint x, jint y) {
+static void setFrameTopLeftPoint(NSWindow* pWin, NSWindow* mWin, jint x, jint y, jint w, jint h) {
+
     NSScreen* screen = [NSScreen mainScreen];
     NSRect screenRect = [screen frame];
+    NSPoint pS = NSMakePoint(screenRect.origin.x + x, screenRect.origin.y + screenRect.size.height - y - h);
 
-    DBG_PRINT( "setFrameTopLeftPoint screen %lf/%lf %lfx%lf\n", 
-        screenRect.origin.x,
-        screenRect.origin.y,
-        screenRect.size.width,
-        screenRect.size.height);
+    DBG_PRINT( "setFrameTopLeftPoint screen %lf/%lf %lfx%lf, top-left %d/%d -> bottom-left %lf/%lf\n", 
+        screenRect.origin.x, screenRect.origin.y, screenRect.size.width, screenRect.size.height,
+        (int)x, (int)y, pS.x, pS.y);
 
-    NSPoint pt = NSMakePoint(screenRect.origin.x + x, screenRect.origin.y + screenRect.size.height - y);
+#ifdef VERBOSE_ON
+    if(NULL != pWin) {
+        NSView* pView = [pWin contentView];
+        NSRect pViewFrame = [pView frame]; 
+        DBG_PRINT( "setFrameTopLeftPoint pViewFrame %lf/%lf %lfx%lf\n", 
+            pViewFrame.origin.x, pViewFrame.origin.y, pViewFrame.size.width, pViewFrame.size.height);
 
-    DBG_PRINT( "setFrameTopLeftPoint -> %lf/%lf\n", pt.x, pt.y);
-    [mWin setFrameTopLeftPoint: pt];
+        NSPoint pS0;
+        pS0.x = 0; pS0.y = 0;
+        // pS = [win convertRectToScreen: r]; // 10.7
+        pS0 = [pWin convertBaseToScreen: pS0];
+        DBG_PRINT( "setFrameTopLeftPoint (parent) base 0/0 -> screen: %lf/%lf\n", pS0.x, pS0.y);
+    }
+#endif
+
+    [mWin setFrameOrigin: pS];
 }
 
 static NewtView * changeContentView(JNIEnv *env, jobject javaWindowObject, NSWindow *pwin, NSView *pview, NSWindow *win, NewtView *newView) {
@@ -274,7 +286,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
     NSWindow* myWindow = [[[NewtMacWindow alloc] initWithContentRect: rect
                                                styleMask: (NSUInteger) styleMask
                                                backing: (NSBackingStoreType) bufferingType
-                                               screen: myScreen] retain];
+                                               defer: NO screen: myScreen] retain];
 
     NSObject *nsParentObj = (NSObject*) ((intptr_t) parent);
     NSWindow* parentWindow = NULL;
@@ -315,7 +327,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
     (void) changeContentView(env, jthis, parentWindow, parentView, myWindow, myView);
 
     // Immediately re-position the window based on an upper-left coordinate system
-    setFrameTopLeftPoint(parentWindow, myWindow, x, y);
+    setFrameTopLeftPoint(parentWindow, myWindow, x, y, w, h);
 
 NS_DURING
     // Available >= 10.5 - Makes the menubar disapear
@@ -388,14 +400,19 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_orderOut0
   (JNIEnv *env, jobject unused, jlong window)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSWindow* win = (NSWindow*) ((intptr_t) window);
+    NSWindow* mWin = (NSWindow*) ((intptr_t) window);
+    NSWindow* pWin = [mWin parentWindow];
 
-    DBG_PRINT( "orderOut0 - window: %p (START)\n", win);
+    DBG_PRINT( "orderOut0 - window: (parent %p) %p (START)\n", pWin, mWin);
 
-    // [win performSelectorOnMainThread:@selector(orderOut:) withObject:win waitUntilDone:NO];
-    [win orderOut: win];
+    // [mWin performSelectorOnMainThread:@selector(orderOut:) withObject:mWin waitUntilDone:NO];
+    if(NULL == pWin) {
+        [mWin orderOut: mWin];
+    } else {
+        [mWin orderBack: mWin];
+    }
 
-    DBG_PRINT( "orderOut0 - window: %p (END)\n", win);
+    DBG_PRINT( "orderOut0 - window: (parent %p) %p (END)\n", pWin, mWin);
 
     [pool release];
 }
@@ -409,24 +426,29 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_close0
   (JNIEnv *env, jobject unused, jlong window)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSWindow* win = (NSWindow*) ((intptr_t) window);
-    NSView* view = [win contentView];
-    DBG_PRINT( "*************** windowClose.0: 0x%p\n", (void *)win);
+    NSWindow* mWin = (NSWindow*) ((intptr_t) window);
+    NSView* mView = [mWin contentView];
+    NSWindow* pWin = [mWin parentWindow];
+    DBG_PRINT( "*************** windowClose.0: %p (parent %p)\n", mWin, pWin);
 NS_DURING
-    if(NULL!=view) {
+    if(NULL!=mView) {
         // Available >= 10.5 - Makes the menubar disapear
-        if([view isInFullScreenMode]) {
-            [view exitFullScreenModeWithOptions: NULL];
+        if([mView isInFullScreenMode]) {
+            [mView exitFullScreenModeWithOptions: NULL];
         }
     }
 NS_HANDLER
 NS_ENDHANDLER
-    DBG_PRINT( "*************** windowClose.2: 0x%p\n", (void *)win);
 
-    [win performSelectorOnMainThread:@selector(close:) withObject:nil waitUntilDone:NO];
-    // [win close]
+    if(NULL!=pWin) {
+        [mWin setParentWindow: nil];
+        [pWin removeChildWindow: mWin];
+    }
+    [mWin orderOut: mWin];
+    [mWin performSelectorOnMainThread:@selector(close:) withObject:nil waitUntilDone:NO];
+    // [mWin close]
 
-    DBG_PRINT( "*************** windowClose.X: 0x%p\n", (void *)win);
+    DBG_PRINT( "*************** windowClose.X: %p (parent %p)\n", mWin, pWin);
     [pool release];
 }
 
@@ -538,17 +560,25 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setContentSize0
  * Signature: (JJII)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setFrameTopLeftPoint0
-  (JNIEnv *env, jobject unused, jlong parent, jlong window, jint x, jint y)
+  (JNIEnv *env, jobject unused, jlong parent, jlong window, jint x, jint y, jint w, jint h)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSWindow* pwin = (NSWindow*) ((intptr_t) parent);
-    NSWindow* win = (NSWindow*) ((intptr_t) window);
+    NSWindow* mWin = (NSWindow*) ((intptr_t) window);
 
-    DBG_PRINT( "setFrameTopLeftPoint0 - window: %p (START)\n", win);
+    NSObject *nsParentObj = (NSObject*) ((intptr_t) parent);
+    NSWindow* pWin = NULL;
+    if( nsParentObj != NULL && [nsParentObj isKindOfClass:[NSWindow class]] ) {
+        pWin = (NSWindow*) nsParentObj;
+    } else if( nsParentObj != NULL && [nsParentObj isKindOfClass:[NSView class]] ) {
+        NSView* pView = (NSView*) nsParentObj;
+        pWin = [pView window];
+    }
 
-    setFrameTopLeftPoint(pwin, win, x, y);
+    DBG_PRINT( "setFrameTopLeftPoint0 - window: %p, parent %p (START)\n", mWin, pWin);
 
-    DBG_PRINT( "setFrameTopLeftPoint0 - window: %p (END)\n", win);
+    setFrameTopLeftPoint(pWin, mWin, x, y, w, h);
+
+    DBG_PRINT( "setFrameTopLeftPoint0 - window: %p, parent %p (END)\n", mWin, pWin);
 
     [pool release];
 }

@@ -182,7 +182,7 @@ public class MacWindow extends WindowImpl {
     }
 
     protected void requestFocusImpl(boolean reparented) {
-        makeKeyAndOrderFront0(getWindowHandle());            
+        makeKeyAndOrderFront0(getWindowHandle());
     }
     
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
@@ -193,22 +193,23 @@ public class MacWindow extends WindowImpl {
             // client position -> top-level window position
             _x -= i.getLeftWidth() ;
             _y -= i.getTopHeight() ;
-            if( 0 > _x ) { _x = 0; }
-            if( 0 > _y ) { _y = 0; }
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("MacWindow reconfig (insets: "+i+"): "+x+"/"+y+" -> "+_x+"/"+_y);
             }
         }
+        // min val is 0
+        _x=Math.max(_x,  0);
+        _y=Math.max(_y,  0);
         {
             // On MacOSX the absolute position is required to position 
-            // a window - even for a child window!
+            // a window - even a child window!
             final NativeWindow parent = getParent();
             if( null != parent && 0 != parent.getWindowHandle() ) {
                 final Point p = parent.getLocationOnScreen(null);
                 _x += p.getX();
                 _y += p.getY();
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("MacWindow reconfig (parent abs pos: "+p+"): "+x+"/"+y+" -> "+_x+"/"+_y);
+                    System.err.println("MacWindow reconfig (parent: "+p+"): "+x+"/"+y+" -> "+_x+"/"+_y);
                 }
             }
         }
@@ -220,33 +221,26 @@ public class MacWindow extends WindowImpl {
         
         if( getWindowHandle() == 0 ) {
             if( 0 != ( FLAG_IS_VISIBLE & flags) ) {
-                // FIXME: for some reason we do not need (or can use) 
-                // the absolute position at creation time .. need to determine the reason/mechanics.
-                createWindow(false, x, y, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
+                createWindow(false, _x, _y, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
                 this.x = x;
                 this.y = y;
+                makeKeyAndOrderFront0(getWindowHandle());
                 visibleChanged(false, true); // no native event ..
             } /* else { ?? } */
         } else {
-            if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-                if( 0 != ( FLAG_IS_VISIBLE & flags) ) {
-                    makeKeyAndOrderFront0(getWindowHandle());
-                    visibleChanged(false, true); // no native event ..
-                    enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
-                } else {
-                    orderOut0(getWindowHandle());
-                    visibleChanged(false, false); // no native event ..
-                    enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_LOST_FOCUS);
-                }
-            } else if( 0 != ( FLAG_CHANGE_DECORATION & flags) ||
-                       0 != ( FLAG_CHANGE_PARENTING & flags) ||
-                       0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
-                // FIXME: for some reason we do not need (or can use) 
-                // the absolute position at creation time .. need to determine the reason/mechanics.
-                createWindow(true, x, y, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
+            if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 == ( FLAG_IS_VISIBLE & flags) ) {
+                orderOut0(getWindowHandle());
+                visibleChanged(false, false); // no native event ..
+                enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_LOST_FOCUS);
+            } 
+            if( 0 != ( FLAG_CHANGE_DECORATION & flags) ||
+                0 != ( FLAG_CHANGE_PARENTING & flags) ||
+                0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
+                createWindow(true, _x, _y, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
+                if(isVisible()) { flags |= FLAG_CHANGE_VISIBILITY; } 
             }
             if(x>=0 && y>=0) {
-                setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), _x, _y);
+                setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), _x, _y, width, height);
                 this.x = x;
                 this.y = y;
                 enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_MOVED);
@@ -257,6 +251,11 @@ public class MacWindow extends WindowImpl {
                 this.height = height;
                 enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_RESIZED);
             }
+            if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 != ( FLAG_IS_VISIBLE & flags) ) {
+                makeKeyAndOrderFront0(getWindowHandle());
+                visibleChanged(false, true); // no native event ..
+                enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+            } 
             setAlwaysOnTop0(getWindowHandle(), 0 != ( FLAG_IS_ALWAYSONTOP & flags));
         }
         return true;
@@ -370,18 +369,6 @@ public class MacWindow extends WindowImpl {
             return;
         }
 
-        x=(x>=0)?x:this.x;
-        y=(x>=0)?y:this.y;
-        width=(width>0)?width:this.width;
-        height=(height>0)?height:this.height;
-        
-        final NativeWindow parent = getParent();
-        if(null != parent) {
-            final Point p = parent.getLocationOnScreen(null);
-            x += p.getX();
-            y += p.getY();
-        }
-        
         try {
             if(0!=getWindowHandle()) {
                 // save the view .. close the window
@@ -409,7 +396,6 @@ public class MacWindow extends WindowImpl {
             }
             surfaceHandle = contentView0(getWindowHandle());
             setTitle0(getWindowHandle(), getTitle());
-            makeKeyAndOrderFront0(getWindowHandle());
         } catch (Exception ie) {
             ie.printStackTrace();
         }
@@ -433,12 +419,13 @@ public class MacWindow extends WindowImpl {
                                      int screen_idx, long view);
     private native void makeKeyAndOrderFront0(long window);
     private native void makeKey0(long window);
+    /** in case of a child window, it actually only issues orderBack(..) */
     private native void orderOut0(long window);
     private native void close0(long window);
     private native void setTitle0(long window, String title);
     private native long contentView0(long window);
     private native long changeContentView0(long parentWindowOrViewHandle, long window, long view);
     private native void setContentSize0(long window, int w, int h);
-    private native void setFrameTopLeftPoint0(long parentWindowHandle, long window, int x, int y);
+    private native void setFrameTopLeftPoint0(long parentWindowHandle, long window, int x, int y, int w, int h);
     private native void setAlwaysOnTop0(long window, boolean atop);
 }
