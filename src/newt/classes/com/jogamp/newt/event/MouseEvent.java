@@ -34,6 +34,7 @@
 
 package com.jogamp.newt.event;
 
+@SuppressWarnings("serial")
 public class MouseEvent extends InputEvent
 {
     public static final int BUTTON1 = 1;

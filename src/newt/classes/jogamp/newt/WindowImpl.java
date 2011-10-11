@@ -45,6 +45,7 @@ import com.jogamp.newt.Window;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseEvent;
@@ -1897,6 +1898,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         MouseEvent eClicked = null;
         MouseEvent e = null;
 
+        if(isPointerConfined()) {
+            modifiers |= InputEvent.CONFINED_MASK;
+        }
+        if(!isPointerVisible()) {
+            modifiers |= InputEvent.INVISIBLE_MASK;
+        }
+        
         if(MouseEvent.EVENT_MOUSE_PRESSED==eventType) {
             if(when-lastMousePressed<MouseEvent.getClickTimeout()) {
                 lastMouseClickCount++;

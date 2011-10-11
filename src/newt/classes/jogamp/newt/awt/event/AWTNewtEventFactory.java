@@ -29,6 +29,7 @@
 package jogamp.newt.awt.event;
 
 import com.jogamp.common.util.IntIntHashMap;
+import com.jogamp.newt.event.InputEvent;
 
 public class AWTNewtEventFactory {
 
@@ -122,10 +123,19 @@ public class AWTNewtEventFactory {
                 rotation = ((java.awt.event.MouseWheelEvent)event).getWheelRotation();
             }
 
+            int mods = awtModifiers2Newt(event.getModifiers(), true);
+            if(null!=newtSource) {
+                if(newtSource.isPointerConfined()) {
+                    mods |= InputEvent.CONFINED_MASK;
+                }
+                if(!newtSource.isPointerVisible()) {
+                    mods |= InputEvent.INVISIBLE_MASK;
+                }
+            }
+                    
             return new com.jogamp.newt.event.MouseEvent(
                            type, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, event.getWhen(),
-                           awtModifiers2Newt(event.getModifiers(), true), 
-                           event.getX(), event.getY(), event.getClickCount(), 
+                           mods, event.getX(), event.getY(), event.getClickCount(), 
                            awtButton2Newt(event.getButton()), rotation);
         }
         return null; // no mapping ..

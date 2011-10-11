@@ -88,7 +88,7 @@ public class TestGearsES2NEWT extends UITestCase {
         glWindow.setPointerVisible(mouseVisible);
         glWindow.confinePointer(mouseConfined);
 
-        GearsES2 demo = new GearsES2(vsync ? 1 : 0);
+        final GearsES2 demo = new GearsES2(vsync ? 1 : 0);
         demo.setPMVUseBackingArray(pmvUseBackingArray);
         glWindow.addGLEventListener(demo);
         if(waitForKey) {

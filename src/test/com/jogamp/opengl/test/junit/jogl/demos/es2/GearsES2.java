@@ -269,7 +269,7 @@ public class GearsES2 implements GLEventListener {
         pmvMatrix.glPopMatrix();
         st.useProgram(gl, false);        
     }
-
+    
     class GearsKeyAdapter extends KeyAdapter {      
         public void keyPressed(KeyEvent e) {
             int kc = e.getKeyCode();
@@ -294,30 +294,48 @@ public class GearsES2 implements GLEventListener {
         public void mouseReleased(MouseEvent e) {
         }
 
+        public void mouseMoved(MouseEvent e) {
+            if(e.isConfined()) {
+                navigate(e);                                    
+            }
+        }
+        
         public void mouseDragged(MouseEvent e) {
+            navigate(e);
+        }
+        
+        private void navigate(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
-            int width=0, height=0;
-            Object source = e.getSource();
-            if(source instanceof Window) {
-                Window window = (Window) source;
-                width=window.getWidth();
-                height=window.getHeight();
-            } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
-                java.awt.Component comp = (java.awt.Component) source;
-                width=comp.getWidth();
-                height=comp.getHeight();
-            } else {
-                throw new RuntimeException("Event source neither Window nor Component: "+source);
-            }
-            float thetaY = 360.0f * ( (float)(x-prevMouseX)/(float)width);
-            float thetaX = 360.0f * ( (float)(prevMouseY-y)/(float)height);
-
+            
+            // skip 'jumps' due to confined mode ..
+            if(Math.abs(prevMouseX-x)<10 && Math.abs(prevMouseX-x)<10) {
+                int width, height;
+                Object source = e.getSource();
+                Window window = null;
+                if(source instanceof Window) {
+                    window = (Window) source;
+                    width=window.getWidth();
+                    height=window.getHeight();
+                } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
+                    java.awt.Component comp = (java.awt.Component) source;
+                    width=comp.getWidth();
+                    height=comp.getHeight();
+                } else {
+                    throw new RuntimeException("Event source neither Window nor Component: "+source);
+                }
+                final float thetaY = 360.0f * ( (float)(x-prevMouseX)/(float)width);
+                final float thetaX = 360.0f * ( (float)(prevMouseY-y)/(float)height);
+                view_rotx += thetaX;
+                view_roty += thetaY;
+                if(e.isConfined() && null!=window) {
+                    x=window.getWidth()/2;
+                    y=window.getHeight()/2;
+                    window.warpPointer(x, y);
+                }
+            }            
             prevMouseX = x;
             prevMouseY = y;
-
-            view_rotx += thetaX;
-            view_roty += thetaY;
         }
     }
 }

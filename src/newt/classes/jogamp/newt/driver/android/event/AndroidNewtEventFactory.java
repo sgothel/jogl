@@ -32,6 +32,7 @@ import java.awt.event.MouseEvent;
 
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.newt.Window;
+import com.jogamp.newt.event.InputEvent;
 
 public class AndroidNewtEventFactory {
 
@@ -157,14 +158,22 @@ public class AndroidNewtEventFactory {
                 index++;
             }
 
+            if(null!=newtSource) {
+                if(newtSource.isPointerConfined()) {
+                    modifiers |= InputEvent.CONFINED_MASK;
+                }
+                if(!newtSource.isPointerVisible()) {
+                    modifiers |= InputEvent.INVISIBLE_MASK;
+                }
+            }
+                                
             com.jogamp.newt.event.MouseEvent res[];
 
             com.jogamp.newt.event.MouseEvent me1 = 
                     new com.jogamp.newt.event.MouseEvent(
                            type, 
                            (null==newtSource)?null:(Object)newtSource, event.getEventTime(),
-                                   modifiers , 
-                           x, y, pressure, pointers, clickCount, 
+                           modifiers, x, y, pressure, pointers, clickCount, 
                            pointers.length==1 ? MouseEvent.BUTTON1 : 0, rotation);
             
             if(type == com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED) {
@@ -172,8 +181,7 @@ public class AndroidNewtEventFactory {
                     new com.jogamp.newt.event.MouseEvent(
                            com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_CLICKED, 
                            (null==newtSource)?null:(Object)newtSource, event.getEventTime(),
-                                   modifiers , 
-                           x, y, pressure, pointers, clickCount, 
+                           modifiers, x, y, pressure, pointers, clickCount, 
                            pointers.length==1 ? MouseEvent.BUTTON1 : 0, rotation);
                 res = new com.jogamp.newt.event.MouseEvent[2];
                 res[0] = me1;
