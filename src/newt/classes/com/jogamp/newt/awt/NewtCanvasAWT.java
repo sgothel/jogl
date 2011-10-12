@@ -36,6 +36,7 @@ import java.security.*;
 import java.awt.Canvas;
 import java.awt.EventQueue;
 import java.awt.Graphics;
+import java.awt.GraphicsConfiguration;
 import java.awt.KeyboardFocusManager;
 
 import javax.media.nativewindow.NativeWindow;
@@ -79,6 +80,13 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     }
 
     /**
+     * Instantiates a NewtCanvas without a NEWT child.<br>
+     */
+    public NewtCanvasAWT(GraphicsConfiguration gc) {
+        super(gc);
+    }
+
+    /**
      * Instantiates a NewtCanvas with a NEWT child.
      */
     public NewtCanvasAWT(Window child) {
@@ -86,6 +94,14 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         setNEWTChild(child);
     }
 
+    /**
+     * Instantiates a NewtCanvas with a NEWT child.
+     */
+    public NewtCanvasAWT(GraphicsConfiguration gc, Window child) {
+        super(gc);
+        setNEWTChild(child);
+    }
+    
     class FocusAction implements Window.FocusRunnable {
         public boolean run() {
             if ( EventQueue.isDispatchThread() ) {
