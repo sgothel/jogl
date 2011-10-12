@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.jogl.glsl;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.util.FBObject;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -44,6 +45,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLUniformData;
 
@@ -61,10 +63,15 @@ public class TestFBOMRTNEWT01 extends UITestCase {
     
     @Test
     public void test01() throws InterruptedException {
+        if(Platform.getOSType() == Platform.OSType.MACOS) {
+            throw new RuntimeException("On OSX: Triggers Bus Error (Illegal Memory Access) @ glDrawArrays(..)");
+        }
         // preset ..
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(GLProfile.getGL2ES2(), 640, 480, true);
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(GLProfile.getGL2ES2(), 640, 480, true);        
         final GLDrawable drawable = winctx.context.getGLDrawable();
-        final GL _gl = winctx.context.getGL();
+        GL _gl = winctx.context.getGL();
+        Assert.assertTrue(_gl.isGL2GL3());
+        _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, _gl, null) );
         Assert.assertTrue(_gl.isGL2GL3());
         final GL2GL3 gl = _gl.getGL2GL3();
         System.err.println(winctx.context);
