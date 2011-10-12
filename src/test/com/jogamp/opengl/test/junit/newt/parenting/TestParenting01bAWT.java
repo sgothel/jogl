@@ -46,6 +46,7 @@ import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
@@ -64,16 +65,16 @@ public class TestParenting01bAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting05ReparentAWTWinHopFrame2FrameFPS25Animator() throws InterruptedException {
+    public void testWindowParenting05ReparentAWTWinHopFrame2FrameFPS25Animator() throws InterruptedException, InvocationTargetException {
         testWindowParenting05ReparentAWTWinHopFrame2FrameImpl(25);
     }
 
     @Test
-    public void testWindowParenting05ReparentAWTWinHopFrame2FrameStdAnimator() throws InterruptedException {
+    public void testWindowParenting05ReparentAWTWinHopFrame2FrameStdAnimator() throws InterruptedException, InvocationTargetException {
         testWindowParenting05ReparentAWTWinHopFrame2FrameImpl(0);
     }
 
-    public void testWindowParenting05ReparentAWTWinHopFrame2FrameImpl(int fps) throws InterruptedException {
+    public void testWindowParenting05ReparentAWTWinHopFrame2FrameImpl(int fps) throws InterruptedException, InvocationTargetException {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUndecorated(true);
         GLEventListener demo1 = new RedSquareES2();
@@ -81,7 +82,7 @@ public class TestParenting01bAWT extends UITestCase {
         glWindow1.addGLEventListener(demo1);
 
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
-
+        
         final Frame frame1 = new Frame("AWT Parent Frame");
         frame1.setLayout(new BorderLayout());
         frame1.add(new Button("North"), BorderLayout.NORTH);
@@ -90,7 +91,11 @@ public class TestParenting01bAWT extends UITestCase {
         frame1.add(new Button("West"), BorderLayout.WEST);
         frame1.setSize(width, height);
         frame1.setLocation(0, 0);
-        frame1.setVisible(true);
+        SwingUtilities.invokeLater(new Runnable() {
+           public void run() {
+               frame1.setVisible(true);               
+           }
+        });
 
         final Frame frame2 = new Frame("AWT Parent Frame");
         frame2.setLayout(new BorderLayout());
@@ -100,9 +105,18 @@ public class TestParenting01bAWT extends UITestCase {
         frame2.add(new Button("West"), BorderLayout.WEST);
         frame2.setSize(width, height);
         frame2.setLocation(640, 480);
-        frame2.setVisible(true);
+        SwingUtilities.invokeLater(new Runnable() {
+           public void run() {
+               frame2.setVisible(true);               
+           }
+        });
 
-        frame1.add(newtCanvasAWT, BorderLayout.CENTER);
+        SwingUtilities.invokeLater(new Runnable() {
+           public void run() {
+               frame1.add(newtCanvasAWT, BorderLayout.CENTER);
+               frame1.validate();
+           }
+        });
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         GLAnimatorControl animator1;

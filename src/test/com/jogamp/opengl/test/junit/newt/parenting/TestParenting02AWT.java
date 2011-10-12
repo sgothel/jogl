@@ -221,6 +221,7 @@ public class TestParenting02AWT extends UITestCase {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     frame.remove(newtCanvasAWT);
+                    frame.validate();
                 }});
         }
         frame.dispose();

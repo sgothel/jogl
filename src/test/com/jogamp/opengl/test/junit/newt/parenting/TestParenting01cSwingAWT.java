@@ -129,7 +129,13 @@ public class TestParenting01cSwingAWT extends UITestCase {
         jFrame1.setContentPane(jPanel1);
         jFrame1.setSize(width, height);
         System.out.println("Demos: 1 - Visible");
-        jFrame1.setVisible(true); // from here on, we need to run modifications on EDT
+        SwingUtilities.invokeLater(new Runnable() {
+           public void run() {
+               jFrame1.setVisible(true);
+           }
+        });
+        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glWindow1, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true));
 
         // visible test
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
@@ -143,25 +149,24 @@ public class TestParenting01cSwingAWT extends UITestCase {
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-            System.out.println("Demos: 3 - !Visible");
+                    System.out.println("Demos: 3 - !Visible");
                     jFrame1.setVisible(false);
                 } });
-        Assert.assertEquals(true, glWindow1.isNativeValid());
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, false));
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-            System.out.println("Demos: 4 - Visible");
+                    System.out.println("Demos: 4 - Visible");
                     jFrame1.setVisible(true);
                 } });
-        Assert.assertEquals(true, glWindow1.isNativeValid());
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true));
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-            System.out.println("Demos: 5 - X Container");
+                    System.out.println("Demos: 5 - X Container");
                     jPanel1.remove(container1);
                     jFrame1.validate();
                 } });
-        // Assert.assertNull(glWindow1.getParent());
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
@@ -236,7 +241,11 @@ public class TestParenting01cSwingAWT extends UITestCase {
         jFrame1.setContentPane(jPanel1);
         jFrame1.setLocation(0, 0);
         jFrame1.setSize(width, height);
-        jFrame1.setVisible(true); // from here on, we need to run modifications on EDT
+        SwingUtilities.invokeLater(new Runnable() {
+           public void run() {
+               jFrame1.setVisible(true);
+           }
+        });
 
         final JPanel jPanel2 = new JPanel();
         jPanel2.setLayout(new BorderLayout());
@@ -251,7 +260,11 @@ public class TestParenting01cSwingAWT extends UITestCase {
         jFrame2.setContentPane(jPanel2);
         jFrame2.setLocation(640, 480);
         jFrame2.setSize(width, height);
-        jFrame2.setVisible(true); // from here on, we need to run modifications on EDT
+        SwingUtilities.invokeLater(new Runnable() {
+           public void run() {
+               jFrame2.setVisible(true);
+           }
+        });
 
         // visible test
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());

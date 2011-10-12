@@ -38,6 +38,7 @@ import java.awt.Container;
 import java.awt.Frame;
 
 import javax.media.opengl.*;
+import javax.swing.SwingUtilities;
 
 import com.jogamp.newt.*;
 import com.jogamp.newt.opengl.*;
@@ -74,13 +75,13 @@ public class TestParenting01cAWT extends UITestCase {
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
-        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
+        final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         Assert.assertNotNull(newtCanvasAWT);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParent());
 
-        Frame frame1 = new Frame("AWT Parent Frame");
+        final Frame frame1 = new Frame("AWT Parent Frame");
         frame1.setLayout(new BorderLayout());
         frame1.add(new Button("North"), BorderLayout.NORTH);
         frame1.add(new Button("South"), BorderLayout.SOUTH);
@@ -99,20 +100,36 @@ public class TestParenting01cAWT extends UITestCase {
         frame1.setSize(width, height);
 
         // visible test
-        frame1.setVisible(true);
+        SwingUtilities.invokeLater(new Runnable() {
+           public void run() {
+               frame1.setVisible(true);
+           }
+        });
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         for(i=0; i*100<durationPerTest; i++) {
             Thread.sleep(100);
         }
 
-        frame1.setVisible(false);
+        SwingUtilities.invokeLater(new Runnable() {
+           public void run() {
+               frame1.setVisible(false);
+           }
+        });
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
-        frame1.setVisible(true);
+        SwingUtilities.invokeLater(new Runnable() {
+           public void run() {
+               frame1.setVisible(true);
+           }
+        });
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
-        frame1.remove(newtCanvasAWT);
+        SwingUtilities.invokeLater(new Runnable() {
+           public void run() {
+               frame1.remove(newtCanvasAWT);
+           }
+        });
         // Assert.assertNull(glWindow1.getParent());
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
@@ -131,9 +148,9 @@ public class TestParenting01cAWT extends UITestCase {
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
-        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
+        final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
 
-        Frame frame1 = new Frame("AWT Parent Frame");
+        final Frame frame1 = new Frame("AWT Parent Frame");
         frame1.setLayout(new BorderLayout());
         frame1.add(new Button("North"), BorderLayout.NORTH);
         frame1.add(new Button("South"), BorderLayout.SOUTH);
@@ -141,9 +158,13 @@ public class TestParenting01cAWT extends UITestCase {
         frame1.add(new Button("West"), BorderLayout.WEST);
         frame1.setSize(width, height);
         frame1.setLocation(0, 0);
-        frame1.setVisible(true);
+        SwingUtilities.invokeLater(new Runnable() {
+           public void run() {
+               frame1.setVisible(true);
+           }
+        });
 
-        Frame frame2 = new Frame("AWT Parent Frame");
+        final Frame frame2 = new Frame("AWT Parent Frame");
         frame2.setLayout(new BorderLayout());
         frame2.add(new Button("North"), BorderLayout.NORTH);
         frame2.add(new Button("South"), BorderLayout.SOUTH);
@@ -151,9 +172,18 @@ public class TestParenting01cAWT extends UITestCase {
         frame2.add(new Button("West"), BorderLayout.WEST);
         frame2.setSize(width, height);
         frame2.setLocation(640, 480);
-        frame2.setVisible(true);
+        SwingUtilities.invokeLater(new Runnable() {
+           public void run() {
+               frame2.setVisible(true);
+           }
+        });
 
-        frame1.add(newtCanvasAWT, BorderLayout.CENTER);
+        SwingUtilities.invokeLater(new Runnable() {
+           public void run() {
+               frame1.add(newtCanvasAWT, BorderLayout.CENTER);
+               frame1.validate();
+           }
+        });
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         int state;
@@ -161,12 +191,24 @@ public class TestParenting01cAWT extends UITestCase {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
-                    frame1.remove(newtCanvasAWT);
-                    frame2.add(newtCanvasAWT, BorderLayout.CENTER);
+                    SwingUtilities.invokeLater(new Runnable() {
+                       public void run() {
+                           frame1.remove(newtCanvasAWT);
+                           frame2.add(newtCanvasAWT, BorderLayout.CENTER);
+                           frame1.validate();
+                           frame2.validate();
+                       }
+                    });
                     break;
                 case 1:
-                    frame2.remove(newtCanvasAWT);
-                    frame1.add(newtCanvasAWT, BorderLayout.CENTER);
+                    SwingUtilities.invokeLater(new Runnable() {
+                       public void run() {
+                           frame2.remove(newtCanvasAWT);
+                           frame1.add(newtCanvasAWT, BorderLayout.CENTER);
+                           frame1.validate();
+                           frame2.validate();
+                       }
+                    });
                     break;
             }
         }
