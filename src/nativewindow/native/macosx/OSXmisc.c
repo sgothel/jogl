@@ -76,30 +76,41 @@ Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0(JNIEnv *env, jclass _unused) {
 JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnScreen0
   (JNIEnv *env, jclass unused, jlong winOrView, jint src_x, jint src_y)
 {
+    /**
+     * return location in 0/0 top-left space,
+     * OSX is 0/0 bottom-left space naturally
+     */
+    NSScreen* screen = [NSScreen mainScreen];
+    NSRect screenRect = [screen frame];
+
     NSRect r;
     int dest_x=-1;
     int dest_y=-1;
 
     NSObject *nsObj = (NSObject*) ((intptr_t) winOrView);
     NSWindow* win = NULL;
+    NSView* view = NULL;
 
     if( [nsObj isKindOfClass:[NSWindow class]] ) {
         win = (NSWindow*) nsObj;
+        view = [win contentView];
     } else if( nsObj != NULL && [nsObj isKindOfClass:[NSView class]] ) {
-        NSView* view = (NSView*) nsObj;
+        view = (NSView*) nsObj;
         win = [view window];
     } else {
         NativewindowCommon_throwNewRuntimeException(env, "neither win not view %p\n", nsObj);
     }
 
+    NSRect viewFrame = [view frame];
+
     r.origin.x = src_x;
-    r.origin.y = src_x;
+    r.origin.y = viewFrame.size.height - src_y; // y-flip for 0/0 top-left
     r.size.width = 0;
     r.size.height = 0;
     // NSRect rS = [win convertRectToScreen: r]; // 10.7
     NSPoint oS = [win convertBaseToScreen: r.origin];
     dest_x = (int) oS.x;
-    dest_y = (int) oS.y;
+    dest_y = (int) screenRect.origin.y + screenRect.size.height - oS.y;
 
     return (*env)->NewObject(env, pointClz, pointCstr, (jint)dest_x, (jint)dest_y);
 }

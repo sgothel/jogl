@@ -57,7 +57,7 @@ static void setFrameTopLeftPoint(NSWindow* pWin, NSWindow* mWin, jint x, jint y,
     NSRect screenRect = [screen frame];
     NSPoint pS = NSMakePoint(screenRect.origin.x + x, screenRect.origin.y + screenRect.size.height - y - h);
 
-    DBG_PRINT( "setFrameTopLeftPoint screen %lf/%lf %lfx%lf, top-left %d/%d -> bottom-left %lf/%lf\n", 
+    DBG_PRINT( "setFrameTopLeftPoint screen %lf/%lf %lfx%lf, win top-left %d/%d -> scrn bottom-left %lf/%lf\n", 
         screenRect.origin.x, screenRect.origin.y, screenRect.size.width, screenRect.size.height,
         (int)x, (int)y, pS.x, pS.y);
 
