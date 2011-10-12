@@ -105,14 +105,15 @@ public class NEWTGLContext {
         Assert.assertNotNull(window);
         window.setSize(width, height);
         window.setVisible(true);
-        AWTRobotUtil.waitForVisible(window, true);
-        AWTRobotUtil.waitForRealized(window, true);
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(window, true));
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, true));
             
         GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
         GLDrawable drawable = factory.createGLDrawable(window);
         Assert.assertNotNull(drawable);
         
         drawable.setRealized(true);
+        Assert.assertTrue(drawable.isRealized());
         
         GLContext context = drawable.createContext(null);
         Assert.assertNotNull(context);
