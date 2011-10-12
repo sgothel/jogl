@@ -59,7 +59,7 @@ static NSString* jstringToNSString(JNIEnv* env, jstring jstr)
 
 static void setFrameTopLeftPoint(NSWindow* pWin, NSWindow* mWin, jint x, jint y, jint totalHeight) {
 
-    NSScreen* screen = [NSScreen mainScreen];
+    NSScreen* screen = [mWin screen];
     NSRect screenTotal = [screen frame];
 
     NSPoint pS = NSMakePoint(screenTotal.origin.x + x, screenTotal.origin.y + screenTotal.size.height - y - totalHeight);
