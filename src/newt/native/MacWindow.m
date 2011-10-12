@@ -43,6 +43,12 @@
 
 #import <stdio.h>
 
+static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
+static const char * const ClazzAnyCstrName = "<init>";
+static const char * const ClazzNamePointCstrSignature = "(II)V";
+static jclass pointClz = NULL;
+static jmethodID pointCstr = NULL;
+
 static NSString* jstringToNSString(JNIEnv* env, jstring jstr)
 {
     const jchar* jstrChars = (*env)->GetStringChars(env, jstr, NULL);
@@ -51,17 +57,21 @@ static NSString* jstringToNSString(JNIEnv* env, jstring jstr)
     return str;
 }
 
-static void setFrameTopLeftPoint(NSWindow* pWin, NSWindow* mWin, jint x, jint y, jint w, jint h) {
+static void setFrameTopLeftPoint(NSWindow* pWin, NSWindow* mWin, jint x, jint y, jint totalHeight) {
 
     NSScreen* screen = [NSScreen mainScreen];
-    NSRect screenRect = [screen frame];
-    NSPoint pS = NSMakePoint(screenRect.origin.x + x, screenRect.origin.y + screenRect.size.height - y - h);
+    NSRect screenTotal = [screen frame];
 
-    DBG_PRINT( "setFrameTopLeftPoint screen %lf/%lf %lfx%lf, win top-left %d/%d -> scrn bottom-left %lf/%lf\n", 
-        screenRect.origin.x, screenRect.origin.y, screenRect.size.width, screenRect.size.height,
-        (int)x, (int)y, pS.x, pS.y);
+    NSPoint pS = NSMakePoint(screenTotal.origin.x + x, screenTotal.origin.y + screenTotal.size.height - y - totalHeight);
 
 #ifdef VERBOSE_ON
+    NSMenu * menu = [NSApp mainMenu];
+    int menuHeight = [NSMenu menuBarVisible] ? (int) [menu menuBarHeight] : 0;
+
+    DBG_PRINT( "setFrameTopLeftPoint screen %lf/%lf %lfx%lf, menuHeight %d, win top-left %d/%d totalHeight %d -> scrn bottom-left %lf/%lf\n", 
+        screenTotal.origin.x, screenTotal.origin.y, screenTotal.size.width, screenTotal.size.height, menuHeight,
+        (int)x, (int)y, (int)totalHeight, pS.x, pS.y);
+
     if(NULL != pWin) {
         NSView* pView = [pWin contentView];
         NSRect pViewFrame = [pView frame]; 
@@ -241,6 +251,22 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_initIDs0
     if(initialized) return JNI_TRUE;
     initialized = 1;
 
+    jclass c;
+    c = (*env)->FindClass(env, ClazzNamePoint);
+    if(NULL==c) {
+        NewtCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't find %s", ClazzNamePoint);
+    }
+    pointClz = (jclass)(*env)->NewGlobalRef(env, c);
+    (*env)->DeleteLocalRef(env, c);
+    if(NULL==pointClz) {
+        NewtCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't use %s", ClazzNamePoint);
+    }
+    pointCstr = (*env)->GetMethodID(env, pointClz, ClazzAnyCstrName, ClazzNamePointCstrSignature);
+    if(NULL==pointCstr) {
+        NewtCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't fetch %s.%s %s",
+            ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
+    }
+
     // Need this when debugging, as it is necessary to attach gdb to
     // the running java process -- "gdb java" doesn't work
     //    printf("Going to sleep for 10 seconds\n");
@@ -283,10 +309,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
     }
 
     // Allocate the window
-    NSWindow* myWindow = [[[NewtMacWindow alloc] initWithContentRect: rect
+    NewtMacWindow* myWindow = [[NewtMacWindow alloc] initWithContentRect: rect
                                                styleMask: (NSUInteger) styleMask
                                                backing: (NSBackingStoreType) bufferingType
-                                               defer: NO screen: myScreen] retain];
+                                               defer: NO
+                                               screen: myScreen];
+    [myWindow setReleasedWhenClosed: YES]; // default
 
     NSObject *nsParentObj = (NSObject*) ((intptr_t) parent);
     NSWindow* parentWindow = NULL;
@@ -327,7 +355,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
     (void) changeContentView(env, jthis, parentWindow, parentView, myWindow, myView);
 
     // Immediately re-position the window based on an upper-left coordinate system
-    setFrameTopLeftPoint(parentWindow, myWindow, x, y, w, h);
+    setFrameTopLeftPoint(parentWindow, myWindow, x, y, h+myWindow->cachedInsets[2]+myWindow->cachedInsets[3]); // h+insets[top+bottom]
 
 NS_DURING
     // Available >= 10.5 - Makes the menubar disapear
@@ -429,13 +457,15 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_close0
     NSWindow* mWin = (NSWindow*) ((intptr_t) window);
     NSView* mView = [mWin contentView];
     NSWindow* pWin = [mWin parentWindow];
-    DBG_PRINT( "*************** windowClose.0: %p (parent %p)\n", mWin, pWin);
+    DBG_PRINT( "*************** windowClose.0: %p (view %p, parent %p)\n", mWin, mView, pWin);
 NS_DURING
     if(NULL!=mView) {
         // Available >= 10.5 - Makes the menubar disapear
         if([mView isInFullScreenMode]) {
             [mView exitFullScreenModeWithOptions: NULL];
         }
+        [mWin setContentView: nil];
+        [mView release];
     }
 NS_HANDLER
 NS_ENDHANDLER
@@ -445,10 +475,12 @@ NS_ENDHANDLER
         [pWin removeChildWindow: mWin];
     }
     [mWin orderOut: mWin];
-    [mWin performSelectorOnMainThread:@selector(close:) withObject:nil waitUntilDone:NO];
-    // [mWin close]
+
+    // [mWin performSelectorOnMainThread:@selector(close:) withObject:nil waitUntilDone:NO];
+    [mWin close]; // performs release!
 
     DBG_PRINT( "*************** windowClose.X: %p (parent %p)\n", mWin, pWin);
+
     [pool release];
 }
 
@@ -560,7 +592,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setContentSize0
  * Signature: (JJII)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setFrameTopLeftPoint0
-  (JNIEnv *env, jobject unused, jlong parent, jlong window, jint x, jint y, jint w, jint h)
+  (JNIEnv *env, jobject unused, jlong parent, jlong window, jint x, jint y, jint totalHeight)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* mWin = (NSWindow*) ((intptr_t) window);
@@ -576,7 +608,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setFrameTopLeftP
 
     DBG_PRINT( "setFrameTopLeftPoint0 - window: %p, parent %p (START)\n", mWin, pWin);
 
-    setFrameTopLeftPoint(pWin, mWin, x, y, w, h);
+    setFrameTopLeftPoint(pWin, mWin, x, y, totalHeight);
 
     DBG_PRINT( "setFrameTopLeftPoint0 - window: %p, parent %p (END)\n", mWin, pWin);
 
@@ -605,5 +637,27 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setAlwaysOnTop0
     DBG_PRINT( "setAlwaysOnTop0 - window: %p (END)\n", win);
 
     [pool release];
+}
+
+/*
+ * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Method:    getLocationOnScreen0
+ * Signature: (JII)Ljavax/media/nativewindow/util/Point;
+ */
+JNIEXPORT jobject JNICALL Java_jogamp_newt_driver_macosx_MacWindow_getLocationOnScreen0
+  (JNIEnv *env, jclass unused, jlong win, jint src_x, jint src_y)
+{
+    NSObject *nsObj = (NSObject*) ((intptr_t) win);
+    NewtMacWindow * mWin = NULL;
+
+    if( [nsObj isKindOfClass:[NewtMacWindow class]] ) {
+        mWin = (NewtMacWindow*) nsObj;
+    } else {
+        NewtCommon_throwNewRuntimeException(env, "not NewtMacWindow %p\n", nsObj);
+    }
+
+    NSPoint p0 = { src_x, src_y };
+    p0 = [mWin getLocationOnScreen: p0];
+    return (*env)->NewObject(env, pointClz, pointCstr, (jint)p0.x, (jint)p0.y);
 }
 

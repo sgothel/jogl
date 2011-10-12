@@ -38,7 +38,6 @@ import javax.media.nativewindow.*;
 
 import com.jogamp.newt.event.*;
 
-import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.newt.*;
 
 import javax.media.nativewindow.util.Insets;
@@ -187,14 +186,13 @@ public class MacWindow extends WindowImpl {
     
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         int _x = x, _y = y;
-        if(0 == ( FLAG_IS_UNDECORATED & flags) && 0<=_x && 0<=_y) {
-            final InsetsImmutable i = getInsets();         
-            
+        final InsetsImmutable insets = getInsets(); // zero if undecorated
+        if(0<=_x && 0<=_y) {
             // client position -> top-level window position
-            _x -= i.getLeftWidth() ;
-            _y -= i.getTopHeight() ;
+            _x -= insets.getLeftWidth() ;
+            _y -= insets.getTopHeight() ;
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("MacWindow reconfig (insets: "+i+"): "+x+"/"+y+" -> "+_x+"/"+_y);
+                System.err.println("MacWindow reconfig (insets: "+insets+"): "+x+"/"+y+" -> "+_x+"/"+_y);
             }
         }
         // min val is 0
@@ -222,8 +220,6 @@ public class MacWindow extends WindowImpl {
         if( getWindowHandle() == 0 ) {
             if( 0 != ( FLAG_IS_VISIBLE & flags) ) {
                 createWindow(false, _x, _y, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
-                this.x = x;
-                this.y = y;
                 makeKeyAndOrderFront0(getWindowHandle());
                 visibleChanged(false, true); // no native event ..
             } /* else { ?? } */
@@ -240,16 +236,10 @@ public class MacWindow extends WindowImpl {
                 if(isVisible()) { flags |= FLAG_CHANGE_VISIBILITY; } 
             }
             if(x>=0 && y>=0) {
-                setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), _x, _y, width, height);
-                this.x = x;
-                this.y = y;
-                enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_MOVED);
+                setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), _x, _y, height+insets.getTotalHeight());
             }
             if(width>0 && height>0) {
                 setContentSize0(getWindowHandle(), width, height);
-                this.width = width;
-                this.height = height;
-                enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_RESIZED);
             }
             if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 != ( FLAG_IS_VISIBLE & flags) ) {
                 makeKeyAndOrderFront0(getWindowHandle());
@@ -262,7 +252,7 @@ public class MacWindow extends WindowImpl {
     }
 
     protected Point getLocationOnScreenImpl(int x, int y) {
-        return OSXUtil.GetLocationOnScreen(getWindowHandle(), x, y);
+        return (Point) getLocationOnScreen0(getWindowHandle(), x, y);
     }
     
     protected void updateInsetsImpl(Insets insets) {
@@ -426,6 +416,7 @@ public class MacWindow extends WindowImpl {
     private native long contentView0(long window);
     private native long changeContentView0(long parentWindowOrViewHandle, long window, long view);
     private native void setContentSize0(long window, int w, int h);
-    private native void setFrameTopLeftPoint0(long parentWindowHandle, long window, int x, int y, int w, int h);
+    private native void setFrameTopLeftPoint0(long parentWindowHandle, long window, int x, int y, int totalHeight);
     private native void setAlwaysOnTop0(long window, boolean atop);
+    private static native Object getLocationOnScreen0(long windowHandle, int src_x, int src_y);
 }

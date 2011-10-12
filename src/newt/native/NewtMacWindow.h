@@ -79,15 +79,20 @@
 @interface NewtMacWindow : NSWindow 
 #endif
 {
+@public
+    int cachedInsets[4]; // l, r, t, b
 }
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jobject) clazz;
+
+- (NSPoint) getLocationOnScreen: (NSPoint) p;
 
 - (void) updateInsets: (JNIEnv*) env;
 
 - (id) initWithContentRect: (NSRect) contentRect
        styleMask: (NSUInteger) windowStyle
        backing: (NSBackingStoreType) bufferingType
+       defer: (BOOL) deferCreation
        screen:(NSScreen *)screen;
 
 @end

@@ -197,6 +197,29 @@ static jmethodID windowDestroyNotifyID = NULL;
     return NO;
 }
 
+- (NSPoint) getLocationOnScreen: (NSPoint) p
+{
+    /**
+     * return location in 0/0 top-left space,
+     * OSX is 0/0 bottom-left space naturally
+     */
+    NSScreen* screen = [self screen];
+    NSRect screenRect = [screen frame];
+
+    NSView* view = [self contentView];
+    NSRect viewFrame = [view frame];
+
+    NSRect r;
+    r.origin.x = p.x;
+    r.origin.y = viewFrame.size.height - p.y; // y-flip for 0/0 top-left
+    r.size.width = 0;
+    r.size.height = 0;
+    // NSRect rS = [win convertRectToScreen: r]; // 10.7
+    NSPoint oS = [self convertBaseToScreen: r.origin];
+    oS.y = screenRect.origin.y + screenRect.size.height - oS.y;
+    return oS;
+}
+
 - (void) updateInsets: (JNIEnv*) env
 {
     NSView* nsview = [self contentView];
@@ -215,29 +238,34 @@ static jmethodID windowDestroyNotifyID = NULL;
     // note: this is a simplistic implementation which doesn't take
     // into account DPI and scaling factor
     CGFloat l = contentRect.origin.x - frameRect.origin.x;
-    jint top = (jint)(frameRect.size.height - contentRect.size.height);
-    jint left = (jint)l;
-    jint bottom = (jint)(contentRect.origin.y - frameRect.origin.y);
-    jint right = (jint)(frameRect.size.width - (contentRect.size.width + l));
+    cachedInsets[0] = (int)l;                                                     // l
+    cachedInsets[1] = (int)(frameRect.size.width - (contentRect.size.width + l)); // r
+    cachedInsets[2] = (jint)(frameRect.size.height - contentRect.size.height);    // t
+    cachedInsets[3] = (jint)(contentRect.origin.y - frameRect.origin.y);          // b
 
-    DBG_PRINT( "updateInsets: [ l %d, r %d, t %d, b %d ]\n", (int)left, (int)right, (int)top, (int)bottom);
+    DBG_PRINT( "updateInsets: [ l %d, r %d, t %d, b %d ]\n", cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
 
-    (*env)->CallVoidMethod(env, javaWindowObject, insetsChangedID, JNI_TRUE, left, right, top, bottom);
+    (*env)->CallVoidMethod(env, javaWindowObject, insetsChangedID, JNI_TRUE, cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
 }
 
 - (id) initWithContentRect: (NSRect) contentRect
        styleMask: (NSUInteger) windowStyle
        backing: (NSBackingStoreType) bufferingType
+       defer: (BOOL) deferCreation
        screen:(NSScreen *)screen
 {
     id res = [super initWithContentRect: contentRect
                     styleMask: windowStyle
                     backing: bufferingType
-                    defer: YES
+                    defer: deferCreation
                     screen: screen];
     // Why is this necessary? Without it we don't get any of the
     // delegate methods like resizing and window movement.
     [self setDelegate: self];
+    cachedInsets[0] = 0; // l
+    cachedInsets[1] = 0; // r
+    cachedInsets[2] = 0; // t
+    cachedInsets[3] = 0; // b
     return res;
 }
 
@@ -517,17 +545,9 @@ static jint mods2JavaMods(NSUInteger mods)
         return;
     }
 
-    NSRect rect = [self frame];
-    NSScreen* screen = NULL;
-    NSRect screenRect;
-    NSPoint pt;
-
-    screen = [self screen];
-    // this allows for better compatibility with awt behavior
-    screenRect = [screen frame];
-    pt = NSMakePoint(rect.origin.x, screenRect.origin.y + screenRect.size.height - rect.origin.y - rect.size.height);
-
-    (*env)->CallVoidMethod(env, javaWindowObject, positionChangedID, JNI_TRUE, (jint) pt.x, (jint) pt.y);
+    NSPoint p0 = { 0, 0 };
+    p0 = [self getLocationOnScreen: p0];
+    (*env)->CallVoidMethod(env, javaWindowObject, positionChangedID, JNI_TRUE, (jint) p0.x, (jint) p0.y);
 
     if (shallBeDetached) {
         (*jvmHandle)->DetachCurrentThread(jvmHandle);
