@@ -40,7 +40,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 
 import java.awt.Frame;
-import javax.swing.SwingUtilities;
+import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
 import org.junit.Assume;
@@ -78,12 +78,18 @@ public class TestSharedContextListAWT extends UITestCase {
         Assert.assertNotNull(sharedDrawable);
         sharedDrawable.destroy();
     }
-    protected Frame createFrame(int x, int y, boolean useShared) {
-        return new Frame("Shared Gears AWT Test: "+x+"/"+y+" shared "+useShared);
+    
+    protected void setFrameTitle(final Frame f, final boolean useShared) 
+            throws InterruptedException, InvocationTargetException {
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                f.setTitle("Shared Gears AWT Test: "+f.getX()+"/"+f.getY()+" shared "+useShared);
+            }
+        });
     }
 
     protected GLCanvas runTestGL(final Frame frame, final Animator animator, final int x, final int y, final boolean useShared, final boolean vsync)
-            throws InterruptedException
+            throws InterruptedException, InvocationTargetException
     {
         final GLCanvas glCanvas = new GLCanvas(caps, useShared ? sharedDrawable.getContext() : null);        
         Assert.assertNotNull(glCanvas);
@@ -99,26 +105,41 @@ public class TestSharedContextListAWT extends UITestCase {
 
         animator.add(glCanvas);
 
-        frame.setVisible(true);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.setVisible(true);
+            } } );
         Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glCanvas, true));
 
         return glCanvas;
     }
 
     @Test
-    public void test01() throws InterruptedException {
+    public void test01() throws InterruptedException, InvocationTargetException {
         initShared();
-
-        final Frame f1 = createFrame(0, 0, true);
-        final Frame f2 = createFrame(width, 0, true);
-        final Frame f3 = createFrame(0, height, false);
-
+        final Frame f1 = new Frame();
+        final Frame f2 = new Frame();
+        final Frame f3 = new Frame();
         Animator animator = new Animator();
 
         final GLCanvas glc1 = runTestGL(f1, animator, 0,     0,      true, false);
-        final GLCanvas glc2 = runTestGL(f2, animator, width, 0,      true, false);
-        final GLCanvas glc3 = runTestGL(f3, animator, 0,     height, false, true);
+        int x0 = f1.getX();
+        int y0 = f1.getY();
+        
+        final GLCanvas glc2 = runTestGL(f2, animator, 
+                                        x0+width,
+                                        y0+0,      
+                                        true, false);
+        
+        final GLCanvas glc3 = runTestGL(f3, animator, 
+                                        x0+0,     
+                                        y0+height, 
+                                        false, true);
 
+        setFrameTitle(f1, true);
+        setFrameTitle(f2, true);
+        setFrameTitle(f3, false);
+        
         animator.setUpdateFPSFrames(1, null);        
         animator.start();
         while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {

@@ -39,6 +39,7 @@ import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 import com.jogamp.opengl.util.Animator;
 
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 
@@ -77,9 +78,10 @@ public class TestSharedContextListNEWT extends UITestCase {
     private void releaseShared() {
         Assert.assertNotNull(sharedDrawable);
         sharedDrawable.destroy();
+        sharedDrawable = null;
     }
 
-    protected GLWindow runTestGL(Animator animator, int x, int y, boolean useShared, boolean vsync) {
+    protected GLWindow runTestGL(Animator animator, int x, int y, boolean useShared, boolean vsync) throws InterruptedException {
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Shared Gears NEWT Test: "+x+"/"+y+" shared "+useShared);
@@ -98,9 +100,9 @@ public class TestSharedContextListNEWT extends UITestCase {
         animator.add(glWindow);
 
         glWindow.setVisible(true);
-
-        /** insets (if supported) are available only if window is set visible and hence is created */
-        glWindow.setTopLevelPosition(x, y);
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow, true));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow, true));
+        glWindow.setPosition(x, y);
 
         return glWindow;
     }
@@ -111,8 +113,10 @@ public class TestSharedContextListNEWT extends UITestCase {
         Animator animator = new Animator();
         GLWindow f1 = runTestGL(animator, 0, 0, true, false);
         InsetsImmutable insets = f1.getInsets();
-        GLWindow f2 = runTestGL(animator, width+insets.getTotalWidth(), 0, true, false);
-        GLWindow f3 = runTestGL(animator, 0, height+insets.getTotalHeight(), false, true);
+        GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(), 
+                                          f1.getY()+0, true, false);
+        GLWindow f3 = runTestGL(animator, f1.getX()+0, 
+                                          f1.getY()+height+insets.getTotalHeight(), false, true);
         animator.setUpdateFPSFrames(1, null);        
         animator.start();
         while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
@@ -121,7 +125,7 @@ public class TestSharedContextListNEWT extends UITestCase {
         animator.stop();
 
         // here we go again: On AMD/X11 the create/destroy sequence must be the same
-        // even though this is agains the chicken/egg logic here ..
+        // even though this is against the chicken/egg logic here ..
         releaseShared();
 
         f1.destroy();

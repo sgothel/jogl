@@ -37,6 +37,7 @@ import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 import com.jogamp.opengl.util.Animator;
 
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
 
@@ -77,7 +78,7 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
         sharedDrawable.destroy();
     }
 
-    protected GLWindow runTestGL(Animator animator, int x, int y, boolean useShared, boolean vsync) {
+    protected GLWindow runTestGL(Animator animator, int x, int y, boolean useShared, boolean vsync) throws InterruptedException {
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Shared Gears NEWT Test: "+x+"/"+y+" shared "+useShared);
@@ -96,9 +97,10 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
         animator.add(glWindow);
 
         glWindow.setVisible(true);
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow, true));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow, true));
 
-        /** insets (if supported) are available only if window is set visible and hence is created */
-        glWindow.setTopLevelPosition(x, y);
+        glWindow.setPosition(x, y);
         
         return glWindow;
     }
@@ -109,8 +111,10 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
         Animator animator = new Animator();
         GLWindow f1 = runTestGL(animator, 0, 0, true, false);
         InsetsImmutable insets = f1.getInsets();
-        GLWindow f2 = runTestGL(animator, width+insets.getTotalWidth(), 0, true, false);
-        GLWindow f3 = runTestGL(animator, 0, height+insets.getTotalHeight(), false, true);
+        GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(), 
+                                          f1.getY()+0, true, false);
+        GLWindow f3 = runTestGL(animator, f1.getX()+0, 
+                                          f1.getY()+height+insets.getTotalHeight(), false, true);        
         animator.setUpdateFPSFrames(1, null);        
         animator.start();
         while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
