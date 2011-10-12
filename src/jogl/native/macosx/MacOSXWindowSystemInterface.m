@@ -590,7 +590,7 @@ Bool deleteContext(void* nsJContext) {
     
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
   [nsContext clearDrawable];
-  [nsContext release];
+  [nsContext release]; // freezes for a few seconds if ctx is shared
   [pool release];
   return true;
 }
@@ -656,15 +656,9 @@ void* createPBuffer(int renderTarget, int internalFormat, int width, int height)
 }
 
 Bool destroyPBuffer(void* buffer) {
-  /* FIXME: not clear whether we need to perform the clearDrawable below */
   NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
     
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-  /*
-  if (nsContext != NULL) {
-    [nsContext clearDrawable];
-  }
-  */
   [pBuffer release];
   [pool release];
     

@@ -69,7 +69,7 @@ Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0(JNIEnv *env, jclass _unused) {
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    getLocationOnScreenImpl0
  * Signature: (JII)Ljavax/media/nativewindow/util/Point;
  */

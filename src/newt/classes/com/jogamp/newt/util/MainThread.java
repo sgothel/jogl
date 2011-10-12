@@ -112,19 +112,21 @@ public class MainThread {
 
     private static final MainThread singletonMainThread = new MainThread(); // one singleton MainThread
 
-    static class MainAction extends Thread {
+    static class UserApp extends Thread {
         private String mainClassName;
         private String[] mainClassArgs;
 
         private Method mainClassMain;
 
-        public MainAction(String mainClassName, String[] mainClassArgs) {
+        public UserApp(String mainClassName, String[] mainClassArgs) {
             this.mainClassName=mainClassName;
             this.mainClassArgs=mainClassArgs;
         }
 
         @Override
         public void run() {
+            setName(getName()+"-UserApp");
+            
             if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" start");
             // start user app ..
             try {
@@ -154,17 +156,19 @@ public class MainThread {
             }
         }
     }
-    private static MainAction mainAction;
+    private static UserApp mainAction;
 
     /** Your new java application main entry, which pipelines your application */
     public static void main(String[] args) {
+        final Thread cur = Thread.currentThread();
+        
         useMainThread = HINT_USE_MAIN_THREAD;
 
         final Platform.OSType osType = Platform.getOSType();
         final boolean isMacOSX = osType == Platform.OSType.MACOS;
         
         if(DEBUG) {
-            System.err.println("MainThread.main(): "+Thread.currentThread().getName()+
+            System.err.println("MainThread.main(): "+cur.getName()+
                 ", useMainThread "+ useMainThread +
                 ", HINT_USE_MAIN_THREAD "+ HINT_USE_MAIN_THREAD +
                 ", isAWTAvailable " + NativeWindowFactory.isAWTAvailable() + ", ostype "+osType+", isMacOSX "+isMacOSX);
@@ -184,7 +188,7 @@ public class MainThread {
             System.arraycopy(args, 1, mainClassArgs, 0, args.length-1);
         }
 
-        mainAction = new MainAction(mainClassName, mainClassArgs);
+        mainAction = new UserApp(mainClassName, mainClassArgs);
 
         if(isMacOSX) {
             ReflectionUtil.callStaticMethod(MACOSXDisplayClassName, "initSingleton", 
@@ -192,13 +196,17 @@ public class MainThread {
         }
 
         if ( useMainThread ) {
+            try {
+                cur.setName(cur.getName()+"-MainThread");
+            } catch (Exception e) {}
+            
             // dispatch user's main thread ..
             mainAction.start();
             
             if(isMacOSX) {
                 try {
                     if(DEBUG) {
-                        System.err.println("MainThread.main(): "+Thread.currentThread().getName()+"- runNSApp"); 
+                        System.err.println("MainThread.main(): "+cur.getName()+"- runNSApp"); 
                     }
                     ReflectionUtil.callStaticMethod(MACOSXDisplayClassName, "runNSApplication", 
                         null, null, MainThread.class.getClassLoader());
