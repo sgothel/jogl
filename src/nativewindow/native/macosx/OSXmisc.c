@@ -80,9 +80,6 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnS
      * return location in 0/0 top-left space,
      * OSX is 0/0 bottom-left space naturally
      */
-    NSScreen* screen = [NSScreen mainScreen];
-    NSRect screenRect = [screen frame];
-
     NSRect r;
     int dest_x=-1;
     int dest_y=-1;
@@ -100,6 +97,8 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnS
     } else {
         NativewindowCommon_throwNewRuntimeException(env, "neither win not view %p\n", nsObj);
     }
+    NSScreen* screen = [win screen];
+    NSRect screenRect = [screen frame];
 
     NSRect viewFrame = [view frame];
 
