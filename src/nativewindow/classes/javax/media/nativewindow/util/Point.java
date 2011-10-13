@@ -97,4 +97,10 @@ public class Point implements Cloneable, PointImmutable {
         return this;
     }
 
+    public Point scale(int sx, int sy) {
+        x *= sx ;
+        y *= sy ;
+        return this;
+    }
+    
 }

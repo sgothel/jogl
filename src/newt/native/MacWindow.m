@@ -57,10 +57,14 @@ static NSString* jstringToNSString(JNIEnv* env, jstring jstr)
     return str;
 }
 
-static void setFrameTopLeftPoint(NSWindow* pWin, NSWindow* mWin, jint x, jint y, jint totalHeight) {
+static void setFrameTopLeftPoint(NSWindow* pWin, NewtMacWindow* mWin, jint x, jint y) {
 
     NSScreen* screen = [mWin screen];
     NSRect screenTotal = [screen frame];
+
+    NSView* mView = [mWin contentView];
+    NSRect mViewFrame = [mView frame]; 
+    int totalHeight = mViewFrame.size.height + mWin->cachedInsets[2] + mWin->cachedInsets[3]; // height + insets[top+bottom]
 
     NSPoint pS = NSMakePoint(screenTotal.origin.x + x, screenTotal.origin.y + screenTotal.size.height - y - totalHeight);
 
@@ -315,6 +319,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
                                                defer: NO
                                                screen: myScreen];
     [myWindow setReleasedWhenClosed: YES]; // default
+    [myWindow setPreservesContentDuringLiveResize: NO];
 
     NSObject *nsParentObj = (NSObject*) ((intptr_t) parent);
     NSWindow* parentWindow = NULL;
@@ -337,6 +342,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
 
     if(opaque) {
         [myWindow setOpaque: YES];
+        if (!fullscreen) {
+            [myWindow setShowsResizeIndicator: YES];
+        }
     } else {
         [myWindow setOpaque: NO];
         [myWindow setBackgroundColor: [NSColor clearColor]];
@@ -355,7 +363,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
     (void) changeContentView(env, jthis, parentWindow, parentView, myWindow, myView);
 
     // Immediately re-position the window based on an upper-left coordinate system
-    setFrameTopLeftPoint(parentWindow, myWindow, x, y, h+myWindow->cachedInsets[2]+myWindow->cachedInsets[3]); // h+insets[top+bottom]
+    setFrameTopLeftPoint(parentWindow, myWindow, x, y);
 
 NS_DURING
     // Available >= 10.5 - Makes the menubar disapear
@@ -390,7 +398,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_makeKeyAndOrderF
 
     DBG_PRINT( "makeKeyAndOrderFront0 - window: %p (START)\n", win);
 
-    // [win performSelectorOnMainThread:@selector(makeKeyAndOrderFront:) withObject:win waitUntilDone:NO];
+    // [win performSelectorOnMainThread:@selector(makeKeyAndOrderFront:) withObject:win waitUntilDone:YES];
     [win makeKeyAndOrderFront: win];
 
     DBG_PRINT( "makeKeyAndOrderFront0 - window: %p (END)\n", win);
@@ -411,7 +419,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_makeKey0
 
     DBG_PRINT( "makeKey0 - window: %p (START)\n", win);
 
-    // [win performSelectorOnMainThread:@selector(makeKeyWindow:) withObject:nil waitUntilDone:NO];
+    // [win performSelectorOnMainThread:@selector(makeKeyWindow:) withObject:nil waitUntilDone:YES];
     [win makeKeyWindow];
 
     DBG_PRINT( "makeKey0 - window: %p (END)\n", win);
@@ -499,8 +507,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setTitle0
 
     NSString* str = jstringToNSString(env, title);
     [str autorelease];
-    [win performSelectorOnMainThread:@selector(setTitle:) withObject:str waitUntilDone:NO];
-    // [win setTitle: str];
+    // [win performSelectorOnMainThread:@selector(setTitle:) withObject:str waitUntilDone:NO];
+    [win setTitle: str];
 
     DBG_PRINT( "setTitle0 - window: %p (END)\n", win);
 
@@ -592,10 +600,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setContentSize0
  * Signature: (JJII)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setFrameTopLeftPoint0
-  (JNIEnv *env, jobject unused, jlong parent, jlong window, jint x, jint y, jint totalHeight)
+  (JNIEnv *env, jobject unused, jlong parent, jlong window, jint x, jint y)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSWindow* mWin = (NSWindow*) ((intptr_t) window);
+    NewtMacWindow* mWin = (NewtMacWindow*) ((intptr_t) window);
 
     NSObject *nsParentObj = (NSObject*) ((intptr_t) parent);
     NSWindow* pWin = NULL;
@@ -608,7 +616,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setFrameTopLeftP
 
     DBG_PRINT( "setFrameTopLeftPoint0 - window: %p, parent %p (START)\n", mWin, pWin);
 
-    setFrameTopLeftPoint(pWin, mWin, x, y, totalHeight);
+    setFrameTopLeftPoint(pWin, mWin, x, y);
 
     DBG_PRINT( "setFrameTopLeftPoint0 - window: %p, parent %p (END)\n", mWin, pWin);
 

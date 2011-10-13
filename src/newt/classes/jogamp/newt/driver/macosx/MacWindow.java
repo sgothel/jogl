@@ -43,6 +43,7 @@ import jogamp.newt.*;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.PointImmutable;
 
 public class MacWindow extends WindowImpl {
     
@@ -185,66 +186,49 @@ public class MacWindow extends WindowImpl {
     }
     
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
-        int _x = x, _y = y;
-        final InsetsImmutable insets = getInsets(); // zero if undecorated
-        if(0<=_x && 0<=_y) {
-            // client position -> top-level window position
-            _x -= insets.getLeftWidth() ;
-            _y -= insets.getTopHeight() ;
-            if(DEBUG_IMPLEMENTATION) {
-                System.err.println("MacWindow reconfig (insets: "+insets+"): "+x+"/"+y+" -> "+_x+"/"+_y);
-            }
-        }
-        // min val is 0
-        _x=Math.max(_x,  0);
-        _y=Math.max(_y,  0);
-        {
-            // On MacOSX the absolute position is required to position 
-            // a window - even a child window!
-            final NativeWindow parent = getParent();
-            if( null != parent && 0 != parent.getWindowHandle() ) {
-                final Point p = parent.getLocationOnScreen(null);
-                _x += p.getX();
-                _y += p.getY();
-                if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("MacWindow reconfig (parent: "+p+"): "+x+"/"+y+" -> "+_x+"/"+_y);
-                }
-            }
-        }
+        final PointImmutable pS = position2TopLevel(new Point(x, y));
         
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("MacWindow reconfig: "+x+"/"+y+" -> "+_x+"/"+_y+" - "+width+"x"+height+", "+
+            System.err.println("MacWindow reconfig: "+x+"/"+y+" -> "+pS+" - "+width+"x"+height+", "+
                                getReconfigureFlagsAsString(null, flags));
         }
         
         if( getWindowHandle() == 0 ) {
             if( 0 != ( FLAG_IS_VISIBLE & flags) ) {
-                createWindow(false, _x, _y, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
+                createWindow(false, pS, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
                 makeKeyAndOrderFront0(getWindowHandle());
-                visibleChanged(false, true); // no native event ..
+                // no native event ..
+                visibleChanged(true, true); 
+                focusChanged(true, true);
             } /* else { ?? } */
         } else {
             if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 == ( FLAG_IS_VISIBLE & flags) ) {
                 orderOut0(getWindowHandle());
-                visibleChanged(false, false); // no native event ..
-                enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_LOST_FOCUS);
+                // no native event ..
+                visibleChanged(true, false); 
+                focusChanged(true, false);
             } 
             if( 0 != ( FLAG_CHANGE_DECORATION & flags) ||
                 0 != ( FLAG_CHANGE_PARENTING & flags) ||
                 0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
-                createWindow(true, _x, _y, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
+                createWindow(true, pS, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
                 if(isVisible()) { flags |= FLAG_CHANGE_VISIBILITY; } 
             }
             if(x>=0 && y>=0) {
-                setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), _x, _y, height+insets.getTotalHeight());
+                setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), pS.getX(), pS.getY());               
+                // no native event (fullscreen, some reparenting)
+                positionChanged(true, getLocationOnScreenImpl(0, 0)); // incl. validation
             }
             if(width>0 && height>0) {
                 setContentSize0(getWindowHandle(), width, height);
+                // no native event (fullscreen, some reparenting)
+                sizeChanged(true, width, height, false); // incl. validation (incl. repositioning)
             }
             if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 != ( FLAG_IS_VISIBLE & flags) ) {
                 makeKeyAndOrderFront0(getWindowHandle());
-                visibleChanged(false, true); // no native event ..
-                enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+                // no native event ..
+                visibleChanged(true, true); 
+                focusChanged(true, true);
             } 
             setAlwaysOnTop0(getWindowHandle(), 0 != ( FLAG_IS_ALWAYSONTOP & flags));
         }
@@ -352,7 +336,7 @@ public class MacWindow extends WindowImpl {
     }
 
     private void createWindow(final boolean recreate, 
-                              int x, int y, int width, int height, 
+                              PointImmutable pS, int width, int height, 
                               final boolean fullscreen) {
 
         if(0!=getWindowHandle() && !recreate) {
@@ -373,7 +357,7 @@ public class MacWindow extends WindowImpl {
                 surfaceHandle = 0;
             }
             setWindowHandle(createWindow0(getParentWindowHandle(),
-                                         x, y, width, height,
+                                         pS.getX(), pS.getY(), width, height,
                                          config.getChosenCapabilities().isBackgroundOpaque(),
                                          fullscreen,
                                          (isUndecorated() ?
@@ -386,20 +370,57 @@ public class MacWindow extends WindowImpl {
             }
             surfaceHandle = contentView0(getWindowHandle());
             setTitle0(getWindowHandle(), getTitle());
+            // need to revalidate real position
+            positionChanged(true, getLocationOnScreenImpl(0, 0)); // incl. validation
         } catch (Exception ie) {
             ie.printStackTrace();
         }
     }
     
     @Override
+    protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
+        if(width != newWidth || height != newHeight) {
+            final Point p0S = position2TopLevel(new Point(x, y));            
+            setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), p0S.getX(), p0S.getY());               
+        }
+        super.sizeChanged(defer, newWidth, newHeight, force);
+    }
+    
+    @Override
     protected void positionChanged(boolean defer, int newX, int newY) {
+        positionChanged(defer, new Point(newX, newY));
+    }
+    
+    protected void positionChanged(boolean defer, Point absPos) {
+        position2ClientSpace(absPos);
+        super.positionChanged(defer, absPos.getX(), absPos.getY());        
+    }
+    
+    protected Point position2ClientSpace(Point absPos) {
         final NativeWindow parent = getParent();
         if(null != parent) {
-            final Point p = parent.getLocationOnScreen(null);
-            newX -= p.getX();
-            newY -= p.getY();
+            return absPos.translate( parent.getLocationOnScreen(null).scale(-1, -1) );
         }
-        super.positionChanged(defer, newX, newY);
+        return absPos;
+    }
+    
+    protected Point position2TopLevel(Point clientPos) {        
+        if(0<=clientPos.getX() && 0<=clientPos.getY()) {
+            final InsetsImmutable _insets = getInsets(); // zero if undecorated
+            // client position -> top-level window position
+            clientPos.setX(clientPos.getX() - _insets.getLeftWidth()) ;
+            clientPos.setY(clientPos.getY() - _insets.getTopHeight()) ;
+        }
+        // min val is 0
+        clientPos.setX(Math.max(clientPos.getX(),  0));
+        clientPos.setY(Math.max(clientPos.getY(),  0));
+        // On MacOSX the absolute position is required to position 
+        // a window - even a child window!
+        final NativeWindow parent = getParent();
+        if( null != parent && 0 != parent.getWindowHandle() ) {
+            clientPos.translate(parent.getLocationOnScreen(null));
+        }
+        return clientPos;
     }
     
     protected static native boolean initIDs0();
@@ -416,7 +437,7 @@ public class MacWindow extends WindowImpl {
     private native long contentView0(long window);
     private native long changeContentView0(long parentWindowOrViewHandle, long window, long view);
     private native void setContentSize0(long window, int w, int h);
-    private native void setFrameTopLeftPoint0(long parentWindowHandle, long window, int x, int y, int totalHeight);
+    private native void setFrameTopLeftPoint0(long parentWindowHandle, long window, int x, int y);
     private native void setAlwaysOnTop0(long window, boolean atop);
     private static native Object getLocationOnScreen0(long windowHandle, int src_x, int src_y);
 }
