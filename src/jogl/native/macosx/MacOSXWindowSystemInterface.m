@@ -590,7 +590,7 @@ Bool deleteContext(void* nsJContext, Bool releaseOnMainThread) {
     
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
   [nsContext clearDrawable];
-  if(releaseOnMainThread) {
+  if(releaseOnMainThread && NO == [NSThread isMainThread]) {
       [nsContext performSelectorOnMainThread:@selector(release:) withObject:nil waitUntilDone:YES];
   } else {
       // would hangs for ~10s for 1 of the shared context, set releaseOnMainThread=true !

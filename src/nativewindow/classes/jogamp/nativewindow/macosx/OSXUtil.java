@@ -35,7 +35,11 @@ public class OSXUtil {
     }
     
     public static void RunOnMainThread(boolean waitUntilDone, Runnable runnable) {
-        RunOnMainThread0(waitUntilDone, runnable);
+        if(IsMainThread0()) {
+            runnable.run(); // don't leave the JVM
+        } else {
+            RunOnMainThread0(waitUntilDone, runnable);
+        }
     }
     
     public static boolean IsMainThread() {
