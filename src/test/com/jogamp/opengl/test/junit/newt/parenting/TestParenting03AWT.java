@@ -83,17 +83,23 @@ public class TestParenting03AWT extends UITestCase {
         GLAnimatorControl animator1 = new Animator(glWindow1);
         animator1.start();
 
-        GLWindow glWindow2 = GLWindow.create(glCaps);
-        glWindow2.setUpdateFPSFrames(1, null);
-        NewtCanvasAWT newtCanvasAWT2 = new NewtCanvasAWT(glWindow2);
-        newtCanvasAWT2.setPreferredSize(size);
-
-        GLEventListener demo2 = new GearsES2(1);
-        setDemoFields(demo2, glWindow2, false);
-        glWindow2.addGLEventListener(demo2);
-        glWindow2.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT2, glWindow2));
-        GLAnimatorControl animator2 = new Animator(glWindow2);
-        animator2.start();
+        final boolean use2nd = true;
+        GLWindow glWindow2 = null;
+        NewtCanvasAWT newtCanvasAWT2 = null;
+        GLAnimatorControl animator2 = null;
+        if(use2nd) {
+            glWindow2 = GLWindow.create(glCaps);
+            glWindow2.setUpdateFPSFrames(1, null);
+            newtCanvasAWT2 = new NewtCanvasAWT(glWindow2);
+            newtCanvasAWT2.setPreferredSize(size);
+    
+            GLEventListener demo2 = new GearsES2(1);
+            setDemoFields(demo2, glWindow2, false);
+            glWindow2.addGLEventListener(demo2);
+            glWindow2.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT2, glWindow2));
+            animator2 = new Animator(glWindow2);
+            animator2.start();
+        }
 
         final Container cont1 = new Container();
         cont1.setLayout(new BorderLayout());
@@ -103,7 +109,9 @@ public class TestParenting03AWT extends UITestCase {
 
         final Container cont2 = new Container();
         cont2.setLayout(new BorderLayout());
-        cont2.add(newtCanvasAWT2, BorderLayout.CENTER);
+        if(use2nd) {
+            cont2.add(newtCanvasAWT2, BorderLayout.CENTER);
+        }
         System.err.println("******* Cont2 setVisible");
         cont2.setVisible(true);
 
@@ -121,15 +129,20 @@ public class TestParenting03AWT extends UITestCase {
             }});
 
         Assert.assertEquals(newtCanvasAWT1.getNativeWindow(),glWindow1.getParent());
-        Assert.assertEquals(newtCanvasAWT2.getNativeWindow(),glWindow2.getParent());
+        
+        if(use2nd) {
+            Assert.assertEquals(newtCanvasAWT2.getNativeWindow(),glWindow2.getParent());
+        }
 
         Assert.assertEquals(true, animator1.isAnimating());
         Assert.assertEquals(false, animator1.isPaused());
         Assert.assertNotNull(animator1.getThread());
 
-        Assert.assertEquals(true, animator2.isAnimating());
-        Assert.assertEquals(false, animator2.isPaused());
-        Assert.assertNotNull(animator2.getThread());
+        if(use2nd) {
+            Assert.assertEquals(true, animator2.isAnimating());
+            Assert.assertEquals(false, animator2.isPaused());
+            Assert.assertNotNull(animator2.getThread());
+        }
 
         Thread.sleep(waitAdd2nd);
 
@@ -146,14 +159,18 @@ public class TestParenting03AWT extends UITestCase {
         Assert.assertEquals(false, animator1.isPaused());
         Assert.assertEquals(null, animator1.getThread());
 
-        animator2.stop();
-        Assert.assertEquals(false, animator2.isAnimating());
-        Assert.assertEquals(false, animator2.isPaused());
-        Assert.assertEquals(null, animator2.getThread());
+        if(use2nd) {
+            animator2.stop();
+            Assert.assertEquals(false, animator2.isAnimating());
+            Assert.assertEquals(false, animator2.isPaused());
+            Assert.assertEquals(null, animator2.getThread());
+        }
 
         frame1.dispose();
         glWindow1.destroy();
-        glWindow2.destroy();
+        if(use2nd) {
+            glWindow2.destroy();
+        }
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
