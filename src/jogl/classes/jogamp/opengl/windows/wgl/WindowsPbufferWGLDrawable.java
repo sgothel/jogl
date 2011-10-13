@@ -46,10 +46,12 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLPbuffer;
+// import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.windows.GDI;
+import jogamp.opengl.GLDrawableImpl;
+
 import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
@@ -152,11 +154,12 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     boolean rtt      = chosenCaps.getPbufferRenderToTexture();
     boolean rect     = chosenCaps.getPbufferRenderToTextureRectangle();
     boolean useFloat = chosenCaps.getPbufferFloatingPointBuffers();
-    boolean ati      = false;
+    // boolean ati      = false;
 
+    /**
     if (useFloat) {
       ati = (floatMode == GLPbuffer.ATI_FLOAT);
-    }
+    } */
 
     int[] pformats = new int[WindowsWGLGraphicsConfiguration.MAX_PFORMATS];
     int   nformats;
@@ -243,7 +246,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     {
       WGLGLCapabilities newCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, parentHdc, pfdid, glProfile, false, true);
       if(null == newCaps) {
-        throw new GLException("pbuffer creation error: unable to re-query chosen PFD ID: " + pfdid + ", hdc " + this.toHexString(tmpHdc));
+        throw new GLException("pbuffer creation error: unable to re-query chosen PFD ID: " + pfdid + ", hdc " + GLDrawableImpl.toHexString(tmpHdc));
       }
       if(newCaps.isOnscreen() || !newCaps.isPBuffer()) {
         throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps);

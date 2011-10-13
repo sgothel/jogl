@@ -343,9 +343,6 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       if (CGL.CGLDestroyContext(ctx) != CGL.kCGLNoError) {
         throw new GLException("Unable to delete OpenGL context (cgl)");
       }
-      if (DEBUG) {
-        System.err.println("!!! Destroyed OpenGL context (cgl)" + contextHandle);
-      }
     }
 
     public boolean makeCurrent(long ctx) {

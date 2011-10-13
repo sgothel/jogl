@@ -45,7 +45,6 @@ import java.awt.Graphics;
 import javax.media.opengl.*;
 import jogamp.opengl.*;
 import jogamp.opengl.awt.*;
-import jogamp.opengl.macosx.cgl.*;
 
 /** MacOSXCGLContext implementation supporting the Java2D/JOGL bridge
  * on Mac OS X. The external GLDrawable mechanism does not work on Mac
@@ -119,9 +118,6 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
 
   protected void destroyImpl() throws GLException {
       Java2D.destroyOGLContext(contextHandle);
-      if (DEBUG) {
-        System.err.println("!!! Destroyed OpenGL context " + contextHandle);
-      }
   }
 
   public void setOpenGLMode(int mode) {

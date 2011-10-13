@@ -449,17 +449,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected void destroyImpl() throws GLException {
-    long display = drawable.getNativeSurface().getDisplayHandle();
-    if (DEBUG) {
-      System.err.println("glXDestroyContext(dpy " +
-                         toHexString(display)+
-                         ", ctx " +
-                         toHexString(contextHandle) + ")");
-    }
-    GLX.glXDestroyContext(display, contextHandle);
-    if (DEBUG) {
-      System.err.println("!!! Destroyed OpenGL context " + contextHandle);
-    }
+    GLX.glXDestroyContext(drawable.getNativeSurface().getDisplayHandle(), contextHandle);
   }
 
   protected void copyImpl(GLContext source, int mask) throws GLException {

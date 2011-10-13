@@ -273,11 +273,11 @@ public abstract class GLContextImpl extends GLContext {
                 throw new GLException("Surface not ready to lock: "+drawable);
           }
           try {
-              destroyImpl();
               if (DEBUG) {
                   System.err.println("GLContextImpl.destroy: " + toHexString(contextHandle) +
                           ", isShared "+GLContextShareSet.isShared(this));
               }
+              destroyImpl();
               contextHandle = 0;
               glDebugHandler = null;
               // this maybe impl. in a platform specific way to release remaining shared ctx.

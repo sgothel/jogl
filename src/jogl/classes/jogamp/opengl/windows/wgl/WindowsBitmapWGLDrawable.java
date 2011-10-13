@@ -93,7 +93,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
                         capabilities.getGreenBits() +
                         capabilities.getBlueBits() +
                         capabilities.getAlphaBits());
-    header.setBiSize(header.size());
+    header.setBiSize(BITMAPINFOHEADER.size());
     header.setBiWidth(width);
     // NOTE: negating the height causes the DIB to be in top-down row
     // order rather than bottom-up; ends up being correct during pixel
@@ -118,7 +118,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
         System.err.println("WindowsBitmapWGLDrawable: " + width+"x"+height +
                             ", bpp " + bitsPerPixel +
                             ", bytes " + byteNum +
-                            ", header sz " + header.size() +
+                            ", header sz " + BITMAPINFOHEADER.size() +
                             ", DIB ptr num " + pb.capacity()+
                             ", "+capabilities+
                             ", werr "+werr);

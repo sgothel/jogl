@@ -205,16 +205,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       if (CGL.kCGLNoError != CGL.CGLDestroyContext(contextHandle)) {
         throw new GLException("Unable to delete OpenGL Context (CGL)");
       }
-      if (DEBUG) {
-        System.err.println("!!! Destroyed OpenGL Context (CGL) " + toHexString(contextHandle));
-      }
     } else {
-      final boolean isSharedContext = GLContextShareSet.isShared(this);      
-      if (!CGL.deleteContext(contextHandle, isSharedContext)) {
-        throw new GLException("Unable to delete OpenGL Context (NS) "+toHexString(contextHandle)+", isShared "+isSharedContext);
-      }
-      if (DEBUG) {
-        System.err.println("!!! Destroyed OpenGL Context (NS.s0) " + toHexString(contextHandle)+", isShared "+isSharedContext);
+      if (!CGL.deleteContext(contextHandle, true)) {
+        throw new GLException("Unable to delete OpenGL Context (NS) "+toHexString(contextHandle));
       }
     }
   }

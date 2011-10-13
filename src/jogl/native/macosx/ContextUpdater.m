@@ -13,43 +13,31 @@ static void printLockDebugInfo(char *message, char *func, int line)
     fflush(NULL);
 }
 
-+ (void) lock
+- (void) lock
 {
-    if (ctx != NULL)
-    {
-        pthread_mutex_lock(&resourceLock);
-    }
+    pthread_mutex_lock(&resourceLock);
 }
 
-+ (void) lockInFunction:(char *)func atLine:(int)line
+- (void) lockInFunction:(char *)func atLine:(int)line
 {
-    if (ctx != NULL)
-    {
-        printLockDebugInfo("locked  ", func, line);
-        [self lock];
-    }
+    printLockDebugInfo("locked  ", func, line);
+    [self lock];
 }
 
-+ (void) unlock
+- (void) unlock
 {
-    if (ctx != NULL)
-    {
-        pthread_mutex_unlock(&resourceLock);
-    }
+    pthread_mutex_unlock(&resourceLock);
 }
 
-+ (void) unlockInFunction:(char *)func atLine:(int)line
+- (void) unlockInFunction:(char *)func atLine:(int)line
 {
-    if (ctx != NULL)
-    {
-        printLockDebugInfo("unlocked", func, line);
-        [self unlock];
-    }
+    printLockDebugInfo("unlocked", func, line);
+    [self unlock];
 }
 
 - (void) update:(NSNotification *)notification
 {
-    [ContextUpdater lock];
+    [self lock];
     
     NSRect r = [view frame];
     if(viewRect.origin.x != r.origin.x || 
@@ -60,18 +48,18 @@ static void printLockDebugInfo(char *message, char *func, int line)
         viewRect = r;
     }
     
-    [ContextUpdater unlock];
+    [self unlock];
 }
 
 - (BOOL) needsUpdate
 {
     BOOL r;
-    [ContextUpdater lock];
+    [self lock];
     
     r = viewUpdated;
     viewUpdated = FALSE;
     
-    [ContextUpdater unlock];
+    [self unlock];
 
     return r;
 }

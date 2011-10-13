@@ -49,8 +49,8 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   private static final boolean DEBUG = Debug.debug("MacOSXPbufferCGLDrawable");
   
   // State for render-to-texture and render-to-texture-rectangle support
-  private int textureTarget; // e.g. GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_NV
-  private int texture;       // actual texture object
+  // private int textureTarget; // e.g. GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_NV
+  // private int texture;       // actual texture object
 
   // NSOpenGLPbuffer (for normal mode)
   // CGLPbufferObj (for CGL_MODE situation, i.e., when Java2D/JOGL bridge is active)
@@ -91,9 +91,6 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
       impl.destroy(pBuffer);
       this.pBuffer = 0;
       ((SurfaceChangeable)ns).setSurfaceHandle(0);
-      if (DEBUG) {
-        System.err.println("Destroyed pbuffer: " + pBuffer);
-      }
     }
   }
 

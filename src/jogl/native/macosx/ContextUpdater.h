@@ -31,10 +31,10 @@ This notification is sent whenever an NSView that has an attached NSSurface chan
     BOOL viewUpdated;
 }
 
-+ (void) lock;
-+ (void) lockInFunction:(char *)func atLine:(int)line;
-+ (void) unlock;
-+ (void) unlockInFunction:(char *)func atLine:(int)line;
+- (void) lock;
+- (void) lockInFunction:(char *)func atLine:(int)line;
+- (void) unlock;
+- (void) unlockInFunction:(char *)func atLine:(int)line;
 
 - (id) initWithContext:(NSOpenGLContext *)context view: (NSView *)nsView;
 
