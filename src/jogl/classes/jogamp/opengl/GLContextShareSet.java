@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2011 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,39 +40,36 @@
 
 package jogamp.opengl;
 
-// FIXME: refactor Java SE dependencies
-// import java.awt.GraphicsConfiguration;
-// import java.awt.GraphicsDevice;
-// import java.awt.GraphicsEnvironment;
-import java.lang.ref.*;
-import java.util.*;
-import javax.media.opengl.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
-/** Provides a mechanism by which OpenGL contexts can share textures
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLException;
+
+
+/** Provides a deterministic mechanism by which OpenGL contexts can share textures
     and display lists in the face of multithreading and asynchronous
-    context creation as is inherent in the AWT and Swing. */
+    context creation. */
 
 public class GLContextShareSet {
-  // FIXME: refactor Java SE dependencies
-  //  private static boolean forceTracking = Debug.isPropertyDefined("jogl.glcontext.forcetracking");
-  private static final boolean DEBUG = Debug.debug("GLContext");
+  private static final boolean DEBUG = GLContextImpl.DEBUG;
+  
+  // This class is implemented using a HashMap which maps from all shared contexts
+  // to a share set, containing all shared contexts itself.
 
-  // This class is implemented with a WeakHashMap that goes from the
-  // contexts as keys to a complex data structure as value that tracks
-  // context creation and deletion.
-
-  private static Map/*<GLContext, ShareSet>*/ shareMap = new WeakHashMap();
-  private static Object dummyValue = new Object();
+  private static final Map<GLContext, ShareSet> shareMap = new HashMap<GLContext, ShareSet>();
+  private static final Object dummyValue = new Object();
 
   private static class ShareSet {
-    private Map allShares       = new WeakHashMap();
-    private Map createdShares   = new WeakHashMap();
-    private Map destroyedShares = new WeakHashMap();
+    private Map<GLContext, Object> allShares       = new HashMap<GLContext, Object>();
+    private Map<GLContext, Object> createdShares   = new HashMap<GLContext, Object>();
+    private Map<GLContext, Object> destroyedShares = new HashMap<GLContext, Object>();
 
     public void add(GLContext ctx) {
       if (allShares.put(ctx, dummyValue) == null) {
-        // FIXME: downcast to GLContextImpl undesirable
-        if (((GLContextImpl) ctx).isCreated()) {
+        if (ctx.isCreated()) {
           createdShares.put(ctx, dummyValue);
         } else {
           destroyedShares.put(ctx, dummyValue);
@@ -79,9 +77,17 @@ public class GLContextShareSet {
       }      
     }
 
+    public Set<GLContext> getCreatedShares() {
+        return createdShares.keySet();
+    }
+    
+    public Set<GLContext> getDestroyedShares() {
+        return destroyedShares.keySet();
+    }
+    
     public GLContext getCreatedShare(GLContext ignore) {
-      for (Iterator iter = createdShares.keySet().iterator(); iter.hasNext(); ) {
-        GLContext ctx = (GLContext) iter.next();
+      for (Iterator<GLContext> iter = createdShares.keySet().iterator(); iter.hasNext(); ) {
+        GLContext ctx = iter.next();
         if (ctx != ignore) {
           return ctx;
         }
@@ -126,8 +132,84 @@ public class GLContextShareSet {
     share.add(share2);
     addEntry(share1, share);
     addEntry(share2, share);
+    if (DEBUG) {
+      System.err.println("GLContextShareSet: registereSharing: 1: " + 
+              toHexString(share1.getHandle()) + ", 2: " + toHexString(share2.getHandle()));
+    }                  
   }
 
+  public static synchronized void unregisterSharing(GLContext lastContext) {
+    if (lastContext == null) {
+      throw new IllegalArgumentException("Last context is null");
+    }
+    ShareSet share = entryFor(lastContext);
+    if (share == null) {
+      throw new GLException("Last context is unknown: "+lastContext);
+    }
+    Set<GLContext> s = share.getCreatedShares();
+    if(s.size()>0) {
+        throw new GLException("Last context's share set contains "+s.size()+" non destroyed context");
+    }
+    s = share.getDestroyedShares();
+    if(s.size()==0) {
+        throw new GLException("Last context's share set contains no destroyed context");
+    }
+    if (DEBUG) {
+      System.err.println("GLContextShareSet: unregisterSharing: " + 
+              toHexString(lastContext.getHandle())+", entries: "+s.size());
+    }                  
+    for(Iterator<GLContext> iter = s.iterator() ; iter.hasNext() ; ) {
+        GLContext ctx = iter.next();
+        if(null == removeEntry(ctx)) {
+            throw new GLException("Removal of shareSet for context failed");
+        }
+    }
+  }
+  
+  private static synchronized Set<GLContext> getCreatedSharedImpl(GLContext context) {
+    if (context == null) {
+      throw new IllegalArgumentException("context is null");
+    }
+    final ShareSet share = entryFor(context);
+    if (share != null) {
+        return share.getCreatedShares();
+    }
+    return null;    
+  }
+  
+  public static synchronized boolean isShared(GLContext context) {
+    if (context == null) {
+      throw new IllegalArgumentException("context is null");
+    }
+    final ShareSet share = entryFor(context);
+    return share != null;
+  }
+  
+  public static synchronized boolean hasCreatedSharedLeft(GLContext context) {
+      final Set<GLContext> s = getCreatedSharedImpl(context);
+      return null != s && s.size()>0 ;
+  }
+  
+  /** currently not used ..
+  public static synchronized Set<GLContext> getCreatedShared(GLContext context) {
+    final Set<GLContext> s = getCreatedSharedImpl(context);
+    if (s == null) {
+      throw new GLException("context is unknown: "+context);
+    }
+    return s;
+  }
+    
+  public static synchronized Set<GLContext> getDestroyedShared(GLContext context) {
+    if (context == null) {
+      throw new IllegalArgumentException("context is null");
+    }
+    ShareSet share = entryFor(context);
+    if (share == null) {
+      throw new GLException("context is unknown: "+context);
+    }
+    return share.getDestroyedShares();
+  } */
+    
   public static synchronized GLContext getShareContext(GLContext contextToCreate) {
     ShareSet share = entryFor(contextToCreate);
     if (share == null) {
@@ -136,18 +218,22 @@ public class GLContextShareSet {
     return share.getCreatedShare(contextToCreate);
   }
 
-  public static synchronized void contextCreated(GLContext context) {
+  public static synchronized boolean contextCreated(GLContext context) {
     ShareSet share = entryFor(context);
     if (share != null) {
       share.contextCreated(context);
+      return true;
     }
+    return false;
   }
 
-  public static synchronized void contextDestroyed(GLContext context) {
+  public static synchronized boolean contextDestroyed(GLContext context) {
     ShareSet share = entryFor(context);
     if (share != null) {
       share.contextDestroyed(context);
+      return true;
     }
+    return false;
   }
 
   /** In order to avoid glGet calls for buffer object checks related
@@ -159,8 +245,7 @@ public class GLContextShareSet {
       currently only needed in a fairly esoteric case, when the
       Java2D/JOGL bridge is active, but the GLBufferSizeTracker
       mechanism is now always required.) */
-  public static void registerForBufferObjectSharing(GLContext olderContextOrNull, GLContext newContext) {
-    // FIXME: downcasts to GLContextImpl undesirable
+  public static void synchronizeBufferObjectSharing(GLContext olderContextOrNull, GLContext newContext) {
     GLContextImpl older = (GLContextImpl) olderContextOrNull;
     GLContextImpl newer = (GLContextImpl) newContext;
     GLBufferSizeTracker tracker = null;
@@ -175,98 +260,6 @@ public class GLContextShareSet {
     newer.setBufferSizeTracker(tracker);
   }
 
-  // FIXME: refactor Java SE dependencies
-  //  /** Indicates that the two supplied contexts (which must be able to
-  //      share textures and display lists) should be in the same
-  //      namespace for tracking of server-side object creation and
-  //      deletion. Because the sharing necessary behind the scenes is
-  //      different than that requested at the user level, the two notions
-  //      are different. This must be called immediately after the
-  //      creation of the new context (which is the second argument)
-  //      before any server-side OpenGL objects have been created in that
-  //      context. */
-  //  public static void registerForObjectTracking(GLContext olderContextOrNull,
-  //                                               GLContext newContext,
-  //                                               GLContext realShareContext) {
-  //    if (isObjectTrackingEnabled() || isObjectTrackingDebuggingEnabled()) {
-  //      GLContextImpl impl1 = null;      
-  //      GLContextImpl impl2 = null;      
-  //      GLObjectTracker tracker = null;
-  //
-  //      synchronized (GLContextShareSet.class) {
-  //        if (olderContextOrNull != null &&
-  //            newContext != null) {
-  //          if (entryFor(olderContextOrNull) != entryFor(newContext)) {
-  //            throw new IllegalArgumentException("old and new contexts must be able to share textures and display lists");
-  //          }
-  //        }
-  //
-  //        // FIXME: downcast to GLContextImpl undesirable
-  //        impl1 = (GLContextImpl) olderContextOrNull;
-  //        impl2 = (GLContextImpl) newContext;
-  //
-  //        GLObjectTracker deletedObjectTracker = null;
-  //        GLContextImpl shareImpl = (GLContextImpl) realShareContext;
-  //        // Before we zap the "user-level" object trackers, make sure
-  //        // that all contexts in the share set share the destroyed object
-  //        // tracker
-  //        if (shareImpl != null) {
-  //          deletedObjectTracker = shareImpl.getDeletedObjectTracker();
-  //        }
-  //        if (deletedObjectTracker == null) {
-  //          // Must create one and possibly set it up in the older context
-  //          deletedObjectTracker = new GLObjectTracker();
-  //          if (DEBUG) {
-  //            System.err.println("Created deletedObjectTracker " + deletedObjectTracker + " because " +
-  //                               ((shareImpl == null) ? "shareImpl was null" : "shareImpl's (" + shareImpl + ") deletedObjectTracker was null"));
-  //          }
-  //
-  //          if (shareImpl != null) {
-  //            // FIXME: think should really assert in this case
-  //            shareImpl.setDeletedObjectTracker(deletedObjectTracker);
-  //            if (DEBUG) {
-  //              System.err.println("Set deletedObjectTracker " + deletedObjectTracker + " in shareImpl context " + shareImpl);
-  //            }
-  //          }
-  //        }
-  //        impl2.setDeletedObjectTracker(deletedObjectTracker);
-  //        if (DEBUG) {
-  //          System.err.println("Set deletedObjectTracker " + deletedObjectTracker + " in impl2 context " + impl2);
-  //        }
-  //      }
-  //
-  //      // Must not hold lock around this operation
-  //      // Don't share object trackers with the primordial share context from Java2D
-  //      if (Java2D.isOGLPipelineActive()) {
-  //        // FIXME: probably need to do something different here
-  //        // Need to be able to figure out the GraphicsDevice for the
-  //        // older context if it's on-screen
-  //        GraphicsDevice device = GraphicsEnvironment.
-  //          getLocalGraphicsEnvironment().
-  //          getDefaultScreenDevice();
-  //        GLContext j2dShareContext = Java2D.getShareContext(device);
-  //        if (impl1 != null && impl1 == j2dShareContext) {
-  //          impl1 = null;
-  //        }
-  //      }
-  //
-  //      synchronized (GLContextShareSet.class) {
-  //        if (impl1 != null) {
-  //          tracker = impl1.getObjectTracker();
-  //          assert (tracker != null)
-  //            : "registerForObjectTracking was not called properly for the older context";
-  //        }
-  //        if (tracker == null) {
-  //          tracker = new GLObjectTracker();
-  //        }
-  //        // Note that we don't assert that the tracker is non-null for
-  //        // impl2 because the way we use this functionality we actually
-  //        // overwrite the initially-set object tracker in the new context
-  //        impl2.setObjectTracker(tracker);
-  //      }
-  //    }
-  //  }
-  
   //----------------------------------------------------------------------
   // Internals only below this point
   
@@ -280,14 +273,11 @@ public class GLContextShareSet {
       shareMap.put(context, share);
     }
   }
-
-  // FIXME: refactor Java SE dependencies
-  //  private static boolean isObjectTrackingEnabled() {
-  //    return ((Java2D.isOGLPipelineActive() && Java2D.isFBOEnabled()) ||
-  //            isObjectTrackingDebuggingEnabled());
-  //  }
-  //
-  //  private static boolean isObjectTrackingDebuggingEnabled() {
-  //    return forceTracking;
-  //  }
+  private static ShareSet removeEntry(GLContext context) {
+    return (ShareSet) shareMap.remove(context);
+  }
+  
+  protected static String toHexString(long hex) {
+    return "0x" + Long.toHexString(hex);
+  }  
 }

@@ -117,12 +117,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   }
 
   protected void destroyImpl() throws GLException {
-      if (!impl.destroy(contextHandle)) {
-        throw new GLException("Unable to delete OpenGL context");
-      }
-      if (DEBUG) {
-        System.err.println("!!! Destroyed OpenGL context " + contextHandle);
-      }
+      impl.destroy(contextHandle);
   }
 
   protected void setSwapIntervalImpl(int interval) {
@@ -212,7 +207,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   interface Impl {
     public boolean isNSContext();
     public long    create();
-    public boolean destroy(long ctx);
+    public void    destroy(long ctx);
     public boolean makeCurrent(long ctx);
     public boolean release(long ctx);
     public void    setSwapInterval(long ctx, int interval);
@@ -237,8 +232,8 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       return contextHandle;
     }
 
-    public boolean destroy(long ctx) {
-      return CGL.deleteContext(ctx);
+    public void destroy(long ctx) {
+      MacOSXPbufferCGLContext.super.destroyImpl();    
     }
 
     public boolean makeCurrent(long ctx) {
@@ -344,8 +339,13 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       return ctx.get(0);
     }
     
-    public boolean destroy(long ctx) {
-      return (CGL.CGLDestroyContext(ctx) == CGL.kCGLNoError);
+    public void destroy(long ctx) {
+      if (CGL.CGLDestroyContext(ctx) != CGL.kCGLNoError) {
+        throw new GLException("Unable to delete OpenGL context (cgl)");
+      }
+      if (DEBUG) {
+        System.err.println("!!! Destroyed OpenGL context (cgl)" + contextHandle);
+      }
     }
 
     public boolean makeCurrent(long ctx) {

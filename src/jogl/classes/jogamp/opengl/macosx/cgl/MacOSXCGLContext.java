@@ -42,9 +42,11 @@ package jogamp.opengl.macosx.cgl;
 
 import java.nio.*;
 import java.util.*;
+
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import jogamp.opengl.*;
+
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 
@@ -204,14 +206,15 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         throw new GLException("Unable to delete OpenGL Context (CGL)");
       }
       if (DEBUG) {
-        System.err.println("!!! Destroyed OpenGL Context (CGL) " + contextHandle);
+        System.err.println("!!! Destroyed OpenGL Context (CGL) " + toHexString(contextHandle));
       }
     } else {
-      if (!CGL.deleteContext(contextHandle)) {
-        throw new GLException("Unable to delete OpenGL Context (NS)");
+      final boolean isSharedContext = GLContextShareSet.isShared(this);      
+      if (!CGL.deleteContext(contextHandle, isSharedContext)) {
+        throw new GLException("Unable to delete OpenGL Context (NS) "+toHexString(contextHandle)+", isShared "+isSharedContext);
       }
       if (DEBUG) {
-        System.err.println("!!! Destroyed OpenGL Context (NS) " + contextHandle);
+        System.err.println("!!! Destroyed OpenGL Context (NS.s0) " + toHexString(contextHandle)+", isShared "+isSharedContext);
       }
     }
   }

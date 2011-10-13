@@ -119,7 +119,7 @@ public abstract class GLContextImpl extends GLContext {
     if (shareWith != null) {
       GLContextShareSet.registerSharing(this, shareWith);
     }
-    GLContextShareSet.registerForBufferObjectSharing(shareWith, this);
+    GLContextShareSet.synchronizeBufferObjectSharing(shareWith, this);
 
     this.drawable = drawable;
     this.drawableRead = drawable;
@@ -266,23 +266,6 @@ public abstract class GLContextImpl extends GLContext {
     // don't destroy the context out from under another thread rendering to it
     lockConsiderFailFast();
     try {
-      /* FIXME: refactor dependence on Java 2D / JOGL bridge
-      if (tracker != null) {
-        // Don't need to do anything for contexts that haven't been
-        // created yet
-        if (isCreated()) {
-          // If we are tracking creation and destruction of server-side
-          // OpenGL objects, we must decrement the reference count of the
-          // GLObjectTracker upon context destruction.
-          //
-          // Note that we can only eagerly delete these server-side
-          // objects if there is another context currrent right now
-          // which shares textures and display lists with this one.
-          tracker.unref(deletedObjectTracker);
-        }
-      }
-      */
-
       if (contextHandle != 0) {
           int lockRes = drawable.lockSurface();
           if (NativeSurface.LOCK_SURFACE_NOT_READY == lockRes) {
@@ -291,9 +274,16 @@ public abstract class GLContextImpl extends GLContext {
           }
           try {
               destroyImpl();
+              if (DEBUG) {
+                  System.err.println("GLContextImpl.destroy: " + toHexString(contextHandle) +
+                          ", isShared "+GLContextShareSet.isShared(this));
+              }
               contextHandle = 0;
               glDebugHandler = null;
-              GLContextShareSet.contextDestroyed(this);
+              // this maybe impl. in a platform specific way to release remaining shared ctx.
+              if(GLContextShareSet.contextDestroyed(this) && !GLContextShareSet.hasCreatedSharedLeft(this)) {
+                  GLContextShareSet.unregisterSharing(this);
+              }
           } finally {
               drawable.unlockSurface();
           }

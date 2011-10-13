@@ -29,7 +29,7 @@ void* createContext(void* shareContext,
 void *getCGLContext(void* nsContext);
 Bool  makeCurrentContext(void* nsContext);
 Bool  clearCurrentContext(void *nsContext);
-Bool  deleteContext(void* nsContext);
+Bool  deleteContext(void* nsContext, Bool releaseOnMainThread);
 Bool  flushBuffer(void* nsContext);
 void  setContextOpacity(void* nsContext, int opacity);
 void  updateContext(void* nsContext);

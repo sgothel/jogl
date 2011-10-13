@@ -39,8 +39,8 @@
 
 package jogamp.opengl.macosx.cgl;
 
-
-import javax.media.opengl.*;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLException;
 
 public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
 
@@ -82,7 +82,10 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
   @Override
   protected boolean createImpl() {
     boolean res = create(false, false);
-    if(res && isNSContext) {
+    if(!isNSContext) {
+        throw new InternalError("XXX0");
+    }
+    if(res) {
         if(0 != updateHandle) {
             throw new InternalError("XXX1");
         }
@@ -100,7 +103,7 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
         CGL.updateContextUnregister(updateHandle);
         updateHandle = 0;
     }
-    super.destroyImpl();
+    super.destroyImpl();    
   }
   
   @Override

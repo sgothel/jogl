@@ -44,50 +44,50 @@
 
 struct _RendererInfo
 {
-    long id;                // kCGLRPRendererID
-    long displayMask;        // kCGLRPDisplayMask
+    GLint id;                // kCGLRPRendererID
+    GLint displayMask;        // kCGLRPDisplayMask
     
-    long accelerated;        // kCGLRPAccelerated
+    GLint accelerated;        // kCGLRPAccelerated
     
-    long window;            // kCGLRPWindow
-    long fullscreen;        // kCGLRPFullScreen
-    long multiscreen;        // kCGLRPMultiScreen
-    long offscreen;            // kCGLRPOffScreen
-    long floatPixels;        // see kCGLRPColorModes
-    long stereo;            // kCGLRPBufferModes
+    GLint window;            // kCGLRPWindow
+    GLint fullscreen;        // kCGLRPFullScreen
+    GLint multiscreen;        // kCGLRPMultiScreen
+    GLint offscreen;            // kCGLRPOffScreen
+    GLint floatPixels;        // see kCGLRPColorModes
+    GLint stereo;            // kCGLRPBufferModes
     
-    long auxBuffers;        // kCGLRPMaxAuxBuffers
-    long sampleBuffers;        // kCGLRPMaxSampleBuffers
-    long samples;            // kCGLRPMaxSamples
-    long samplesModes;        // kCGLRPSampleModes
-    long multiSample;        // see kCGLRPSampleModes
-    long superSample;        // see kCGLRPSampleModes
-    long alphaSample;        // kCGLRPSampleAlpha
+    GLint auxBuffers;        // kCGLRPMaxAuxBuffers
+    GLint sampleBuffers;        // kCGLRPMaxSampleBuffers
+    GLint samples;            // kCGLRPMaxSamples
+    GLint samplesModes;        // kCGLRPSampleModes
+    GLint multiSample;        // see kCGLRPSampleModes
+    GLint superSample;        // see kCGLRPSampleModes
+    GLint alphaSample;        // kCGLRPSampleAlpha
     
-    long colorModes;        // kCGLRPColorModes
-    long colorRGBSizeMAX;
-    long colorASizeMAX;
-    long colorFloatRGBSizeMAX;
-    long colorFloatASizeMAX;
-    long colorFloatRGBSizeMIN;
-    long colorFloatASizeMIN;
-    long colorModesCount;
-    long colorFloatModesCount;
-    long depthModes;        // kCGLRPDepthModes
-    long depthSizeMAX;
-    long depthModesCount;
-    long stencilModes;        // kCGLRPStencilModes
-    long stencilSizeMAX;
-    long stencilModesCount;
-    long accumModes;        // kCGLRPAccumModes
-    long accumRGBSizeMAX;
-    long accumASizeMAX;
-    long accumModesCount;
+    GLint colorModes;        // kCGLRPColorModes
+    GLint colorRGBSizeMAX;
+    GLint colorASizeMAX;
+    GLint colorFloatRGBSizeMAX;
+    GLint colorFloatASizeMAX;
+    GLint colorFloatRGBSizeMIN;
+    GLint colorFloatASizeMIN;
+    GLint colorModesCount;
+    GLint colorFloatModesCount;
+    GLint depthModes;        // kCGLRPDepthModes
+    GLint depthSizeMAX;
+    GLint depthModesCount;
+    GLint stencilModes;        // kCGLRPStencilModes
+    GLint stencilSizeMAX;
+    GLint stencilModesCount;
+    GLint accumModes;        // kCGLRPAccumModes
+    GLint accumRGBSizeMAX;
+    GLint accumASizeMAX;
+    GLint accumModesCount;
 }
 typedef RendererInfo;
 
 RendererInfo *gRenderers = NULL;
-long gRenderersCount = 0;
+GLint gRenderersCount = 0;
 
 long depthModes[] = {
                     kCGL0Bit,
@@ -446,9 +446,9 @@ void* createPixelFormat(int* iattrs, int niattrs, int* ivalues) {
 void queryPixelFormat(void* pixelFormat, int* iattrs, int niattrs, int* ivalues) {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
   NSOpenGLPixelFormat* fmt = (NSOpenGLPixelFormat*) pixelFormat;
-  long tmp;
+  GLint tmp;
   // FIXME: think about how specifying this might affect the API
-  int virtualScreen = 0;
+  GLint virtualScreen = 0;
 
   int i;
   for (i = 0; i < niattrs && iattrs[i]>0; i++) {
@@ -522,7 +522,7 @@ void* createContext(void* shareContext,
         if (nsContext != nil) {
           if (nsView != nil) {
             if(!opaque) {
-                long zeroOpacity = 0;
+                GLint zeroOpacity = 0;
                 [nsContext setValues:&zeroOpacity forParameter:NSOpenGLCPSurfaceOpacity];
             }
             [nsContext setView:nsView];
@@ -585,13 +585,17 @@ Bool clearCurrentContext(void* nsJContext) {
   return true;
 }
 
-Bool deleteContext(void* nsJContext) {
+Bool deleteContext(void* nsJContext, Bool releaseOnMainThread) {
   NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
     
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
   [nsContext clearDrawable];
-  // [nsContext release]; // FIXME: JAU: freezes for a few seconds if ctx is shared
-  // [nsContext dealloc];
+  if(releaseOnMainThread) {
+      [nsContext performSelectorOnMainThread:@selector(release:) withObject:nil waitUntilDone:YES];
+  } else {
+      // would hangs for ~10s for 1 of the shared context, set releaseOnMainThread=true !
+      [nsContext release]; 
+  }
   [pool release];
   return true;
 }
@@ -736,7 +740,7 @@ void* getProcAddress(const char *procname) {
 
 void setSwapInterval(void* nsJContext, int interval) {
   NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
-  long swapInterval = interval;
+  GLint swapInterval = interval;
   [nsContext setValues: &swapInterval forParameter: NSOpenGLCPSwapInterval];
 }
 
