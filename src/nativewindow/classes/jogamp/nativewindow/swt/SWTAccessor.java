@@ -42,6 +42,8 @@ import javax.media.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.common.util.ReflectionUtil;
 import javax.media.nativewindow.macosx.MacOSXGraphicsDevice;
 
+import jogamp.nativewindow.macosx.OSXUtil;
+
 public class SWTAccessor {
     static final Field swt_control_handle;
     static final boolean swt_uses_long_handles;
@@ -60,7 +62,7 @@ public class SWTAccessor {
     static final String str_internal_dispose_GC = "internal_dispose_GC";
 
     static final String str_OS_gtk_class = "org.eclipse.swt.internal.gtk.OS";
-    static final Class OS_gtk_class;
+    static final Class<?> OS_gtk_class;
     static final Method OS_gtk_widget_realize;
     static final Method OS_gtk_widget_unrealize;
     static final Method OS_GTK_WIDGET_WINDOW;
@@ -113,9 +115,9 @@ public class SWTAccessor {
         }
         swt_control_internal_dispose_GC = m;
 
-        Class c=null;                
+        Class<?> c=null;                
         Method m1=null, m2=null, m3=null, m4=null, m5=null;
-        Class handleType = swt_uses_long_handles  ? long.class : int.class ;
+        Class<?> handleType = swt_uses_long_handles  ? long.class : int.class ;
         if( NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false) ) {
             try {
                 c = ReflectionUtil.getClass(str_OS_gtk_class, false, SWTAccessor.class.getClassLoader());
@@ -179,15 +181,19 @@ public class SWTAccessor {
         return h;
     }
 
-    public static void setRealized(Control swtControl, boolean realize) {
-        long handle = getHandle(swtControl);
+    public static void setRealized(final Control swtControl, final boolean realize) {
+        final long handle = getHandle(swtControl);
         
         if(null != OS_gtk_class) {
-            if(realize) {
-                callStaticMethodL2V(OS_gtk_widget_realize, handle);
-            } else {
-                callStaticMethodL2V(OS_gtk_widget_unrealize, handle);
-            }
+            invoke(true, new Runnable() {
+                public void run() {
+                    if(realize) {
+                        callStaticMethodL2V(OS_gtk_widget_realize, handle);
+                    } else {
+                        callStaticMethodL2V(OS_gtk_widget_unrealize, handle);
+                    }                    
+                }
+            });
         }
     }
     
@@ -220,21 +226,38 @@ public class SWTAccessor {
         throw new UnsupportedOperationException("n/a for this windowing system: "+NativeWindowFactory.getNativeWindowType(false));
     }
     
-    public static long newGC(Control swtControl, GCData gcData) {
-        Object o = ReflectionUtil.callMethod(swtControl, swt_control_internal_new_GC, new Object[] { gcData });
-        if(o instanceof Number) {
-            return ((Number)o).longValue();
+    public static long newGC(final Control swtControl, final GCData gcData) {
+        final Object[] o = new Object[1];
+        invoke(true, new Runnable() {
+            public void run() {
+                o[0] = ReflectionUtil.callMethod(swtControl, swt_control_internal_new_GC, new Object[] { gcData });
+            }
+        });
+        if(o[0] instanceof Number) {
+            return ((Number)o[0]).longValue();
         } else {
-            throw new InternalError("SWT internal_new_GC did not return int or long but "+o.getClass());
+            throw new InternalError("SWT internal_new_GC did not return int or long but "+o[0].getClass());
         }
     }
 
-    public static void disposeGC(Control swtControl, long gc, GCData gcData) {
-        if(swt_uses_long_handles) {
-            ReflectionUtil.callMethod(swtControl, swt_control_internal_dispose_GC, new Object[] { new Long(gc), gcData });
-        }  else {
-            ReflectionUtil.callMethod(swtControl, swt_control_internal_dispose_GC, new Object[] { new Integer((int)gc), gcData });
-        }
+    public static void disposeGC(final Control swtControl, final long gc, final GCData gcData) {
+        invoke(true, new Runnable() {
+            public void run() {
+                if(swt_uses_long_handles) {
+                    ReflectionUtil.callMethod(swtControl, swt_control_internal_dispose_GC, new Object[] { new Long(gc), gcData });
+                }  else {
+                    ReflectionUtil.callMethod(swtControl, swt_control_internal_dispose_GC, new Object[] { new Integer((int)gc), gcData });
+                }
+            }
+        });
+    }
+    
+    public static void invoke(boolean wait, Runnable runnable) {
+        if(Platform.OS_TYPE == Platform.OSType.MACOS) {
+            OSXUtil.RunOnMainThread(wait, runnable);
+        } else {
+            runnable.run();
+        }        
     }
     
 }

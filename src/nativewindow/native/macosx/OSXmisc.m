@@ -36,6 +36,9 @@
 #include "NativewindowCommon.h"
 #include "jogamp_nativewindow_macosx_OSXUtil.h"
 
+static const char * const ClazzNameRunnable = "java/lang/Runnable";
+static jmethodID runnableRunID = NULL;
+
 static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
 static const char * const ClazzAnyCstrName = "<init>";
 static const char * const ClazzNamePointCstrSignature = "(II)V";
@@ -63,6 +66,14 @@ Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0(JNIEnv *env, jclass _unused) {
                 ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
         }
 
+        c = (*env)->FindClass(env, ClazzNameRunnable);
+        if(NULL==c) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't find %s", ClazzNameRunnable);
+        }
+        runnableRunID = (*env)->GetMethodID(env, c, "run", "()V");
+        if(NULL==runnableRunID) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't fetch %s.run()V", ClazzNameRunnable);
+        }
         _initialized=1;
     }
     return JNI_TRUE;
@@ -76,6 +87,8 @@ Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0(JNIEnv *env, jclass _unused) {
 JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnScreen0
   (JNIEnv *env, jclass unused, jlong winOrView, jint src_x, jint src_y)
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
     /**
      * return location in 0/0 top-left space,
      * OSX is 0/0 bottom-left space naturally
@@ -111,6 +124,94 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnS
     dest_x = (int) oS.x;
     dest_y = (int) screenRect.origin.y + screenRect.size.height - oS.y;
 
-    return (*env)->NewObject(env, pointClz, pointCstr, (jint)dest_x, (jint)dest_y);
+    jobject res = (*env)->NewObject(env, pointClz, pointCstr, (jint)dest_x, (jint)dest_y);
+
+    [pool release];
+
+    return res;
 }
 
+@interface MainRunnable : NSObject
+
+{
+    JavaVM *jvmHandle;
+    int jvmVersion;
+    jobject runnableObj;
+}
+
+- (id) initWithRunnable: (jobject)runnable jvmHandle: (JavaVM*)jvm jvmVersion: (int)jvmVers;
+- (void) jRun;
+
+@end
+
+@implementation MainRunnable
+
+- (id) initWithRunnable: (jobject)runnable jvmHandle: (JavaVM*)jvm jvmVersion: (int)jvmVers
+{
+    jvmHandle = jvm;
+    jvmVersion = jvmVers;
+    runnableObj = runnable;
+    return [super init];
+}
+
+- (void) jRun
+{
+    int shallBeDetached = 0;
+    JNIEnv* env = NativewindowCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
+    if(NULL!=env) {
+        (*env)->CallVoidMethod(env, runnableObj, runnableRunID);
+
+        if (shallBeDetached) {
+            (*jvmHandle)->DetachCurrentThread(jvmHandle);
+        }
+    }
+}
+
+@end
+
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    RunOnMainThread0
+ * Signature: (ZLjava/lang/Runnable;)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunOnMainThread0
+  (JNIEnv *env, jclass unused, jboolean jwait, jobject runnable)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    if ( NO == [NSThread isMainThread] ) {
+        jobject runnableGlob = (*env)->NewGlobalRef(env, runnable);
+
+        BOOL wait = (JNI_TRUE == jwait) ? YES : NO;
+        JavaVM *jvmHandle = NULL;
+        int jvmVersion = 0;
+
+        if(0 != (*env)->GetJavaVM(env, &jvmHandle)) {
+            jvmHandle = NULL;
+        } else {
+            jvmVersion = (*env)->GetVersion(env);
+        }
+
+        MainRunnable * mr = [[MainRunnable alloc] initWithRunnable: runnableGlob jvmHandle: jvmHandle jvmVersion: jvmVersion];
+        [mr performSelectorOnMainThread:@selector(jRun) withObject:nil waitUntilDone:wait];
+        [mr release];
+
+        (*env)->DeleteGlobalRef(env, runnableGlob);
+    } else {
+        (*env)->CallVoidMethod(env, runnable, runnableRunID);
+    }
+
+    [pool release];
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    RunOnMainThread0
+ * Signature: (ZLjava/lang/Runnable;)V
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_IsMainThread0
+  (JNIEnv *env, jclass unused)
+{
+    return ( [NSThread isMainThread] == YES ) ? JNI_TRUE : JNI_FALSE ;
+}

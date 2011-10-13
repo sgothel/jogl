@@ -586,7 +586,7 @@
         </patternset>
 
         <patternset id="c.src.files.macosx">
-          <include name="${rootrel.src.c}/macosx/OSXmisc.c"/>
+          <include name="${rootrel.src.c}/macosx/OSXmisc.m"/>
           <include name="${rootrel.src.c}/NativewindowCommon.c"/>
         </patternset>
 

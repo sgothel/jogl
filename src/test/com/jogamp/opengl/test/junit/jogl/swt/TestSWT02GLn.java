@@ -38,6 +38,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.opengl.GLCanvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -83,14 +84,26 @@ public class TestSWT02GLn extends UITestCase {
 
     @Before
     public void init() {
-        display = new Display();
-        Assert.assertNotNull( display );
-        shell = new Shell( display );
+        final Display[] r = new Display[1];
+        final Shell[] s = new Shell[1];
+        SWTAccessor.invoke(true, new Runnable() {
+           public void run() {
+               r[0] = new Display();
+               s[0] = new Shell();
+           }
+        });
+        display = r[0];
+        shell = s[0];        
+        Assert.assertNotNull( display );        
         Assert.assertNotNull( shell );
-        shell.setLayout( new FillLayout() );
-        composite = new Composite( shell, SWT.NONE );
-        composite.setLayout( new FillLayout() );
-        Assert.assertNotNull( composite );
+        
+        SWTAccessor.invoke(true, new Runnable() {
+           public void run() {
+            shell.setLayout( new FillLayout() );
+            composite = new Composite( shell, SWT.NONE );
+            Assert.assertNotNull( composite );
+            composite.setLayout( new FillLayout() );
+           }});
     }
 
     @After
@@ -99,9 +112,12 @@ public class TestSWT02GLn extends UITestCase {
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite );
         try {
-            composite.dispose();
-            shell.dispose();
-            display.dispose();
+            SWTAccessor.invoke(true, new Runnable() {
+               public void run() {
+                composite.dispose();
+                shell.dispose();
+                display.dispose();
+               }});
         }
         catch( Throwable throwable ) {
             throwable.printStackTrace();
@@ -111,14 +127,25 @@ public class TestSWT02GLn extends UITestCase {
         shell = null;
         composite = null;
     }
-
+    
+    class CanvasCStr implements Runnable {
+           Canvas canvas;
+           
+           public void run() {
+               canvas = new Canvas( composite, SWT.NO_BACKGROUND);
+           }        
+    }
+    
     protected void runTestAGL( GLProfile glprofile ) throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glprofile);
         GLDrawableFactory factory = GLDrawableFactory.getFactory(glprofile);
         
         // need SWT.NO_BACKGROUND to prevent SWT from clearing the window
         // at the wrong times (we use glClear for this instead)
-        final Canvas canvas = new Canvas( composite, SWT.NO_BACKGROUND);
+        CanvasCStr canvasCstr = new CanvasCStr();
+        
+        SWTAccessor.invoke(true, canvasCstr);
+        final Canvas canvas = canvasCstr.canvas;        
         Assert.assertNotNull( canvas );
         
         SWTAccessor.setRealized(canvas, true);

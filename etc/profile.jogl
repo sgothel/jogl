@@ -93,6 +93,8 @@ if [ "$KERNEL" = "linux" ] ; then
     SWT_SUB="gtk"
 elif [ "$KERNEL" = "darwin" ] ; then
     SWT_SUB="cocoa"
+    KERNEL="macosx"
+    ARCH="x86_64"
 fi
 if [ -z "$SWT_CLASSPATH" ] ; then
     SWT_CLASSPATH_0=$JOGL_BUILD_DIR/../make/lib/swt/$SWT_SUB-$KERNEL-$ARCH/swt-debug.jar

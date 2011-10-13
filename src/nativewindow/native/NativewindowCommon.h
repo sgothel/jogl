@@ -12,4 +12,6 @@ jchar* NativewindowCommon_GetNullTerminatedStringChars(JNIEnv* env, jstring str)
 void NativewindowCommon_FatalError(JNIEnv *env, const char* msg, ...);
 void NativewindowCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...);
 
+JNIEnv* NativewindowCommon_GetJNIEnv (JavaVM * jvmHandle, int jvmVersion, int * shallBeDetached);
+
 #endif

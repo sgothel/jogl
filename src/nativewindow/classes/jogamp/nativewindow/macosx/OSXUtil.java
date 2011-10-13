@@ -34,6 +34,16 @@ public class OSXUtil {
       return (Point) GetLocationOnScreen0(windowOrView, src_x, src_y);
     }
     
+    public static void RunOnMainThread(boolean waitUntilDone, Runnable runnable) {
+        RunOnMainThread0(waitUntilDone, runnable);
+    }
+    
+    public static boolean IsMainThread() {
+        return IsMainThread0();
+    }
+    
     private static native boolean initIDs0();
     private static native Object GetLocationOnScreen0(long windowOrView, int src_x, int src_y);
+    private static native void RunOnMainThread0(boolean waitUntilDone, Runnable runnable);
+    private static native boolean IsMainThread0();
 }
