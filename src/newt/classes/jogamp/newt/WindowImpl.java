@@ -2192,24 +2192,28 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     /** Triggered by implementation's WM events to update the focus state. */
     protected void focusChanged(boolean defer, boolean focusGained) {
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.focusChanged: ("+getThreadName()+"): (defer: "+defer+") "+this.hasFocus+" -> "+focusGained+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
-        }
-        hasFocus = focusGained;
-        final int evt = focusGained ? WindowEvent.EVENT_WINDOW_GAINED_FOCUS : WindowEvent.EVENT_WINDOW_LOST_FOCUS ; 
-        if(!defer) {
-            sendWindowEvent(evt);
-        } else {
-            enqueueWindowEvent(false, evt);
+        if(hasFocus != focusGained) {
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("Window.focusChanged: ("+getThreadName()+"): (defer: "+defer+") "+this.hasFocus+" -> "+focusGained+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+            }
+            hasFocus = focusGained;
+            final int evt = focusGained ? WindowEvent.EVENT_WINDOW_GAINED_FOCUS : WindowEvent.EVENT_WINDOW_LOST_FOCUS ; 
+            if(!defer) {
+                sendWindowEvent(evt);
+            } else {
+                enqueueWindowEvent(false, evt);
+            }
         }
     }
 
     /** Triggered by implementation's WM events to update the visibility state. */
     protected void visibleChanged(boolean defer, boolean visible) {
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.visibleChanged ("+getThreadName()+"): (defer: "+defer+") "+this.visible+" -> "+visible+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+        if(this.visible != visible) {
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("Window.visibleChanged ("+getThreadName()+"): (defer: "+defer+") "+this.visible+" -> "+visible+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+            }
+            this.visible = visible ;
         }
-        this.visible = visible ;
     }
 
     private boolean waitForVisible(boolean visible, boolean failFast) {
