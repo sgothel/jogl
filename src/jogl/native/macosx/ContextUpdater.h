@@ -22,10 +22,13 @@ This notification is sent whenever an NSView that has an attached NSSurface chan
     #define UNLOCK_GL(func, line) [ContextUpdater unlock];
 #endif
 
-// gznote: OpenGL NOT thread safe - need to sync on update and paints
-
 @interface ContextUpdater : NSObject
 {
+@protected
+    NSView * view;
+    NSRect viewRect;
+    NSOpenGLContext *ctx;
+    BOOL viewUpdated;
 }
 
 + (void) lock;
@@ -33,8 +36,10 @@ This notification is sent whenever an NSView that has an attached NSSurface chan
 + (void) unlock;
 + (void) unlockInFunction:(char *)func atLine:(int)line;
 
-- (void) registerFor:(NSOpenGLContext *)context with: (NSView *)window;
+- (id) initWithContext:(NSOpenGLContext *)context view: (NSView *)nsView;
 
 - (void) update:(NSNotification *)notification;
+
+- (BOOL) needsUpdate;
 
 @end

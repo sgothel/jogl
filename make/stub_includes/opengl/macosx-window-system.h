@@ -36,6 +36,7 @@ void  updateContext(void* nsContext);
 void  copyContext(void* destContext, void* srcContext, int mask);
 
 void* updateContextRegister(void* nsContext, void* nsView);
+Bool updateContextNeedsUpdate(void* updater);
 void  updateContextUnregister(void* updater);
 
 void* createPBuffer(int renderTarget, int internalFormat, int width, int height);

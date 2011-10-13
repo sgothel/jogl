@@ -196,8 +196,18 @@ public abstract class GLContextImpl extends GLContext {
     return gl;
   }
 
-  // This is only needed for Mac OS X on-screen contexts
-  protected void update() throws GLException { }
+  /**
+   * Call this method to notify the OpenGL context
+   * that the drawable has changed (size or position).
+   * 
+   * <p>
+   * This is currently being used and overridden by Mac OSX, 
+   * which issues the {@link jogamp.opengl.macosx.cgl.CGL#updateContext(long) NSOpenGLContext update()} call.
+   * </p>
+   *  
+   * @throws GLException
+   */
+  protected void drawableUpdatedNotify() throws GLException { }
 
   boolean lockFailFast = true;
   Object lockFailFastSync = new Object();
@@ -362,7 +372,7 @@ public abstract class GLContextImpl extends GLContext {
       if (current == this) {
         // Assume we don't need to make this context current again
         // For Mac OS X, however, we need to update the context to track resizes
-        update();
+        drawableUpdatedNotify();
         return CONTEXT_CURRENT;
       } else {
         current.release();

@@ -49,41 +49,67 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
     super(drawable, shareWith);
   }
 
-    @Override
+  @Override
   protected void makeCurrentImpl(boolean newCreated) throws GLException {
       super.makeCurrentImpl(newCreated);
-      CGL.updateContext(contextHandle);
+      drawableUpdatedNotify();  
   }
     
-    @Override
+  @Override
   protected void releaseImpl() throws GLException {
     super.releaseImpl();
   }
 
-    @Override
+  @Override
   protected void swapBuffers() {
     if (!CGL.flushBuffer(contextHandle)) {
       throw new GLException("Error swapping buffers");
     }
   }
 
-    @Override
-  protected void update() throws GLException {
-    if (contextHandle == 0) {
-      throw new GLException("Context not created");
+  @Override
+  protected void drawableUpdatedNotify() throws GLException {
+    if(0==updateHandle || CGL.updateContextNeedsUpdate(updateHandle)) {
+        if (contextHandle == 0) {
+          throw new GLException("Context not created");
+        }
+        CGL.updateContext(contextHandle);
     }
-    CGL.updateContext(contextHandle);
   }
-
+  
+  protected long updateHandle = 0;
+  
+  @Override
   protected boolean createImpl() {
-    return create(false, false);
+    boolean res = create(false, false);
+    if(res && isNSContext) {
+        if(0 != updateHandle) {
+            throw new InternalError("XXX1");
+        }
+        updateHandle = CGL.updateContextRegister(contextHandle, drawable.getHandle());
+        if(0 == updateHandle) {
+            throw new InternalError("XXX2");
+        }
+    }
+    return res;
   }
 
+  @Override
+  protected void destroyImpl() throws GLException {
+    if ( 0 != updateHandle ) {
+        CGL.updateContextUnregister(updateHandle);
+        updateHandle = 0;
+    }
+    super.destroyImpl();
+  }
+  
+  @Override
   public void setOpenGLMode(int mode) {
     if (mode != MacOSXCGLDrawable.NSOPENGL_MODE)
       throw new GLException("OpenGL mode switching not supported for on-screen GLContexts");
   }
     
+  @Override
   public int  getOpenGLMode() {
     return MacOSXCGLDrawable.NSOPENGL_MODE;
   }

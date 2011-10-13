@@ -590,7 +590,8 @@ Bool deleteContext(void* nsJContext) {
     
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
   [nsContext clearDrawable];
-  [nsContext release]; // freezes for a few seconds if ctx is shared
+  // [nsContext release]; // FIXME: JAU: freezes for a few seconds if ctx is shared
+  // [nsContext dealloc];
   [pool release];
   return true;
 }
@@ -624,15 +625,25 @@ void copyContext(void* destContext, void* srcContext, int mask) {
   [dst copyAttributesFromContext: src withMask: mask];
 }
 
-void* updateContextRegister(void* nsJContext, void* view) {
+void* updateContextRegister(void* nsJContext, void* nsJView) {
   NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
-  NSView *nsView = (NSView*)view;
+  NSView *nsView = (NSView*)nsJView;
     
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-  ContextUpdater *contextUpdater = [[ContextUpdater alloc] init];
-  [contextUpdater registerFor:nsContext with:nsView];
+  ContextUpdater *contextUpdater = [[ContextUpdater alloc] initWithContext: nsContext view: nsView];
   [pool release];
-  return NULL;
+  return contextUpdater;
+}
+
+Bool updateContextNeedsUpdate(void* updater) {
+  ContextUpdater *contextUpdater = (ContextUpdater *)updater;
+  BOOL res;
+    
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  res = [contextUpdater needsUpdate];
+  [pool release];
+
+  return ( res == TRUE ) ? true : false;
 }
 
 void updateContextUnregister(void* updater) {
