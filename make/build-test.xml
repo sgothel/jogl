@@ -243,7 +243,6 @@
     <!-- junit.run.newt is covered by junit.run.newt.headless, disable it for now, but may be checked manually.
          This test target would also overwrite the test result XML files, we would also need a solution here for hudson,
          if run in parallel.
-         NEWT is currently not supported on OSX 
       -->
     <target name="junit.run.newt" depends="test.compile">
         <!-- Test*NEWT* -->
@@ -341,8 +340,7 @@
     <target name="junit.run.swt.headless" depends="test.compile" description="Runs all pure SWT tests.">
         <!-- Test*SWT* 
 
-             Emulation of junit task,
-             due to the fact that we have to place invoke our MainThread class first (-> MacOSX).
+             Emulation of junit task.
 
              Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
           --> 
@@ -380,7 +378,7 @@
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
                 -->
-                <arg line="com.jogamp.newt.util.MainThread"/>
+                <!-- arg line="com.jogamp.newt.util.MainThread"/-->
                 <arg line="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner"/>
                 <srcfile/>
                 <arg line="filtertrace=true"/>
@@ -401,7 +399,8 @@
         </for>
     </target>
 
-    <target name="junit.run.swt.awt" depends="test.compile" description="Runs all SWT_AWT tests.">
+    <!-- currently freezes OSX -->
+    <target name="junit.run.swt.awt" depends="test.compile" description="Runs all SWT_AWT tests." unless="isOSX">
       <!-- Test*SWT* -->
       <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
           <env key="${system.env.library.path}" path="${obj.all.paths}"/>
@@ -435,7 +434,6 @@
       </junit>
     </target>
 
-    <!-- NEWT is currently not supported on OSX -->
     <target name="junit.run.newt.awt" depends="test.compile">
         <!-- Test*AWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
