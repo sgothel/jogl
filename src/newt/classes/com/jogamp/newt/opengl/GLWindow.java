@@ -79,7 +79,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         window.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowRepaint(WindowUpdateEvent e) {
-                    if( !GLWindow.this.window.isWindowLockedByOtherThread() && !GLWindow.this.helper.isExternalAnimatorAnimating() ) {
+                    if( !GLWindow.this.window.isWindowLockedByOtherThread() && !GLWindow.this.helper.isAnimatorAnimating() ) {
                         display();
                     }
                 }
@@ -87,7 +87,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
                 @Override
                 public void windowResized(WindowEvent e) {
                     sendReshape = true;
-                    if( !GLWindow.this.window.isWindowLockedByOtherThread() && !GLWindow.this.helper.isExternalAnimatorAnimating() ) {
+                    if( !GLWindow.this.window.isWindowLockedByOtherThread() && !GLWindow.this.helper.isAnimatorAnimating() ) {
                         display();
                     }
                 }

@@ -495,7 +495,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                    (int) ((getHeight() + bounds.getHeight()) / 2));
       return;
     }
-    if( ! this.drawableHelper.isExternalAnimatorAnimating() ) {
+    if( ! this.drawableHelper.isAnimatorAnimating() ) {
         display();
     }
   }

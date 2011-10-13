@@ -232,8 +232,16 @@ public class GLDrawableHelper {
     return ( null != animatorCtrl ) ? animatorCtrl.isStarted() && animatorCtrl.getThread() != Thread.currentThread() : false ;
   }
 
+  public final boolean isAnimatorRunning() {
+    return ( null != animatorCtrl ) ? animatorCtrl.isStarted() : false ;
+  }
+
   public final boolean isExternalAnimatorAnimating() {
     return ( null != animatorCtrl ) ? animatorCtrl.isAnimating() && animatorCtrl.getThread() != Thread.currentThread() : false ;
+  }
+
+  public final boolean isAnimatorAnimating() {
+    return ( null != animatorCtrl ) ? animatorCtrl.isAnimating() : false ;
   }
 
   public final void invoke(GLAutoDrawable drawable, boolean wait, GLRunnable glRunnable) {
