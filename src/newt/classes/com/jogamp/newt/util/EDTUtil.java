@@ -49,8 +49,18 @@ package com.jogamp.newt.util;
  */
 public interface EDTUtil {
 
-    public static final long defaultEDTPollGranularity = 10; // 10ms, 1/100s
+    public static final long defaultEDTPollPeriod = 10; // 10ms, 1/100s
 
+    /**
+     * @return poll period in milliseconds
+     */
+    public long getPollPeriod();
+
+    /**
+     * @param ms poll period in milliseconds
+     */
+    public void setPollPeriod(long ms);
+    
     /**
      * Create a new EDT. One should invoke <code>reset()</code><br>
      * after <code>invokeStop(..)</code> in case another <code>start()</code> or <code>invoke(..)</code>

@@ -55,6 +55,7 @@ public class DefaultEDTUtil implements EDTUtil {
     private String name;
     int start_iter=0;
     private Runnable dispatchMessages;
+    private static long pollPeriod = EDTUtil.defaultEDTPollPeriod;
 
     public DefaultEDTUtil(ThreadGroup tg, String name, Runnable dispatchMessages) {
         this.threadGroup = tg;
@@ -64,6 +65,14 @@ public class DefaultEDTUtil implements EDTUtil {
         this.edt.setDaemon(true); // don't stop JVM from shutdown ..
     }
 
+    final public long getPollPeriod() {
+        return pollPeriod;
+    }
+
+    final public void setPollPeriod(long ms) {
+        pollPeriod = ms;
+    }
+    
     public final void reset() {
         synchronized(edtLock) { 
             waitUntilStopped();
@@ -271,7 +280,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         // wait for tasks
                         if(!shouldStop && tasks.size()==0) {
                             try {
-                                tasks.wait(defaultEDTPollGranularity);
+                                tasks.wait(pollPeriod);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }

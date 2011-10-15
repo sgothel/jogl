@@ -29,7 +29,6 @@
 package jogamp.newt.driver.awt;
 
 import java.awt.EventQueue;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -49,7 +48,8 @@ public class AWTEDTUtil implements EDTUtil {
     private static TimerTask pumpMessagesTimerTask=null;
     private static final Map<Display, Runnable> pumpMessageDisplayMap = new HashMap<Display, Runnable>();
     private static AWTEDTUtil singletonMainThread = new AWTEDTUtil(); // one singleton MainThread
-
+    private static long pollPeriod = EDTUtil.defaultEDTPollPeriod;
+    
     public static AWTEDTUtil getSingleton() {
         return singletonMainThread;
     }
@@ -58,6 +58,14 @@ public class AWTEDTUtil implements EDTUtil {
         // package private access ..
     }
 
+    final public long getPollPeriod() {
+        return pollPeriod;
+    }
+
+    final public void setPollPeriod(long ms) {
+        pollPeriod = ms;
+    }
+    
     final public void reset() {
         // nop AWT is always running
     }
@@ -132,7 +140,7 @@ public class AWTEDTUtil implements EDTUtil {
                         }
                     }
                 };
-                pumpMessagesTimer.scheduleAtFixedRate(pumpMessagesTimerTask, 0, defaultEDTPollGranularity);
+                pumpMessagesTimer.scheduleAtFixedRate(pumpMessagesTimerTask, 0, pollPeriod);
             }
             pumpMessageDisplayMap.put(dpy, pumpMessage);
         }
