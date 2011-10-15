@@ -42,6 +42,9 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.newt.event.MouseAdapter;
+import com.jogamp.newt.event.MouseEvent;
+
 public class WindowsWindow extends WindowImpl {
 
     private long hmon;
@@ -112,11 +115,19 @@ public class WindowsWindow extends WindowImpl {
             throw new NativeWindowException("Error creating window");
         }
         windowHandleClose = getWindowHandle();
+        addMouseListener(new MouseTracker());
+        
         if(DEBUG_IMPLEMENTATION) {
             Exception e = new Exception("Info: Window new window handle "+Thread.currentThread().getName()+
                                         " (Parent HWND "+toHexString(getParentWindowHandle())+
                                         ") : HWND "+toHexString(getWindowHandle())+", "+Thread.currentThread());
             e.printStackTrace();
+        }
+    }
+    
+    class MouseTracker extends MouseAdapter {
+        public void mouseEntered(MouseEvent e) {
+            WindowsWindow.trackPointerLeave0(WindowsWindow.this.getWindowHandle());
         }
     }
 
@@ -251,4 +262,5 @@ public class WindowsWindow extends WindowImpl {
     private static native boolean setPointerVisible0(long windowHandle, boolean visible);
     private static native boolean confinePointer0(long windowHandle, boolean grab, int l, int t, int r, int b);
     private static native void warpPointer0(long windowHandle, int x, int y);    
+    private static native void trackPointerLeave0(long windowHandle);    
 }

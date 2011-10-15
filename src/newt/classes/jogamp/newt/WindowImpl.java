@@ -119,6 +119,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private int  mouseButtonPressed = 0;  // current pressed mouse button number
     private long lastMousePressed = 0;    // last time when a mouse button was pressed
     private int  lastMouseClickCount = 0; // last mouse button click count
+    private boolean mouseInWindow = false;// mouse entered window - is inside the window (may be synthetic)
+    private Point lastMousePosition = new Point();
 
     private ArrayList<KeyListener> keyListeners = new ArrayList<KeyListener>();
 
@@ -1893,17 +1895,46 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     private void doMouseEvent(boolean enqueue, boolean wait, int eventType, int modifiers,
                               int x, int y, int button, int rotation) {
+        if(eventType == MouseEvent.EVENT_MOUSE_ENTERED ||            
+           eventType == MouseEvent.EVENT_MOUSE_EXITED) {
+            if(eventType == MouseEvent.EVENT_MOUSE_EXITED && x==-1 && y==-1) {
+                x = lastMousePosition.getX();
+                y = lastMousePosition.getY();
+            }
+            // clip coordinates to window dimension
+            x = Math.min(Math.max(x,  0), width-1);
+            y = Math.min(Math.max(y,  0), height-1);
+            mouseInWindow = eventType == MouseEvent.EVENT_MOUSE_ENTERED;
+        }
         if(x<0||y<0||x>=width||y>=height) {
             return; // .. invalid ..
         }
         if(DEBUG_MOUSE_EVENT) {
-            System.err.println("doMouseEvent: enqueue"+enqueue+", wait "+wait+", "+MouseEvent.getEventTypeString(eventType)+
-                               ", mod "+modifiers+", pos "+x+"/"+y+", button "+button);
+            System.err.println("doMouseEvent: enqueue "+enqueue+", wait "+wait+", "+MouseEvent.getEventTypeString(eventType)+
+                               ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+lastMousePosition);
+        }
+        long when = System.currentTimeMillis();
+        if(eventType == MouseEvent.EVENT_MOUSE_MOVED) {
+            if(!mouseInWindow) {
+                mouseInWindow = true;
+                MouseEvent e = new MouseEvent(MouseEvent.EVENT_MOUSE_ENTERED, this, when,
+                                              modifiers, x, y, lastMouseClickCount, button, 0);
+                if(DEBUG_MOUSE_EVENT) {
+                    System.err.println("doMouseEvent: synthesized MOUSE_ENTERED event: "+e);
+                }
+                doEvent(enqueue, wait, e);
+            } else if(lastMousePosition.getX() == x && lastMousePosition.getY()==y) { 
+                if(DEBUG_MOUSE_EVENT) {
+                    System.err.println("doMouseEvent: skip EVENT_MOUSE_MOVED w/ same position: "+lastMousePosition);
+                }
+                return; // skip same position
+            }
+            lastMousePosition.setX(x);
+            lastMousePosition.setY(y);
         }
         if(button<0||button>MouseEvent.BUTTON_NUMBER) {
             throw new NativeWindowException("Invalid mouse button number" + button);
         }
-        long when = System.currentTimeMillis();
         MouseEvent eClicked = null;
         MouseEvent e = null;
 
@@ -1951,7 +1982,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         doEvent(enqueue, wait, e);
         if(null!=eClicked) {
             if(DEBUG_MOUSE_EVENT) {
-                System.err.println("doMouseEvent: synthesized MOUSE_CLICKED event");
+                System.err.println("doMouseEvent: synthesized MOUSE_CLICKED event: "+eClicked);
             }
             doEvent(enqueue, wait, eClicked);
         }

@@ -161,6 +161,8 @@ static jint X11InputState2NewtModifiers(unsigned int xstate) {
     return modifiers;
 }
 
+#define X11_MOUSE_EVENT_MASK (ButtonPressMask | ButtonReleaseMask | PointerMotionMask | EnterWindowMask | LeaveWindowMask)
+
 static const char * const ClazzNameNewtWindow = "com/jogamp/newt/Window";
 
 static jclass    newtWindowClz=NULL;
@@ -835,6 +837,30 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
                 (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_MOVED, 
                                       modifiers,
                                       (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0, 0 /*rotation*/); 
+                #endif
+                break;
+            case EnterNotify:
+                DBG_PRINT( "X11: event . EnterNotify call %p %d/%d\n", (void*)evt.xcrossing.window, evt.xcrossing.x, evt.xcrossing.y);
+                #ifdef USE_SENDIO_DIRECT
+                (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_ENTERED, 
+                                      modifiers,
+                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jint) 0, 0 /*rotation*/); 
+                #else
+                (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_ENTERED, 
+                                      modifiers,
+                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jint) 0, 0 /*rotation*/); 
+                #endif
+                break;
+            case LeaveNotify:
+                DBG_PRINT( "X11: event . LeaveNotify call %p %d/%d\n", (void*)evt.xcrossing.window, evt.xcrossing.x, evt.xcrossing.y);
+                #ifdef USE_SENDIO_DIRECT
+                (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_EXITED, 
+                                      modifiers,
+                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jint) 0, 0 /*rotation*/); 
+                #else
+                (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_EXITED, 
+                                      modifiers,
+                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jint) 0, 0 /*rotation*/); 
                 #endif
                 break;
             case KeyPress:
@@ -1586,7 +1612,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
     xswa.backing_store=NotUseful;  /* NotUseful, WhenMapped, Always */
     xswa.backing_planes=0;         /* planes to be preserved if possible */
     xswa.backing_pixel=0;          /* value to use in restoring planes */
-    xswa.event_mask  = ButtonPressMask | ButtonReleaseMask | PointerMotionMask ;
+    xswa.event_mask  = X11_MOUSE_EVENT_MASK;
     xswa.event_mask |= KeyPressMask | KeyReleaseMask ;
     xswa.event_mask |= FocusChangeMask | SubstructureNotifyMask | StructureNotifyMask | ExposureMask ;
 
@@ -1952,7 +1978,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_confinePointer0
 
     if(JNI_TRUE == confine) {
         return GrabSuccess == XGrabPointer(dpy, w, True, 
-                                           ButtonPressMask | ButtonReleaseMask | PointerMotionMask,
+                                           X11_MOUSE_EVENT_MASK,
                                            GrabModeAsync, GrabModeAsync, w, None, CurrentTime)
                ? JNI_TRUE : JNI_FALSE ;
     }

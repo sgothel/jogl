@@ -617,6 +617,16 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, HWND hwnd, jb
     DBG_PRINT("*** WindowsWindow: requestFocus.XX\n");
 }
 
+static void NewtWindows_trackPointerLeave(HWND hwnd) {
+    TRACKMOUSEEVENT tme;
+    memset(&tme, 0, sizeof(TRACKMOUSEEVENT));
+    tme.cbSize = sizeof(TRACKMOUSEEVENT);
+    tme.dwFlags = TME_LEAVE;
+    tme.hwndTrack = hwnd;
+    tme.dwHoverTime = 0; // we don't use TME_HOVER
+    TrackMouseEvent(&tme);
+}
+
 #if 0
 
 static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd)
@@ -925,6 +935,15 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
                                (jint) 0,  (jint) 0);
         useDefWindowProc = 1;
         break;
+    case WM_MOUSELEAVE:
+        (*env)->CallVoidMethod(env, window, enqueueMouseEventID, JNI_FALSE,
+                               (jint) EVENT_MOUSE_EXITED,
+                               0,
+                               (jint) -1, (jint) -1, // fake
+                               (jint) 0,  (jint) 0);
+        useDefWindowProc = 1;
+        break;
+    // Java synthesizes EVENT_MOUSE_ENTERED
 
     case WM_MOUSEWHEEL: {
         // need to convert the coordinates to component-relative
@@ -986,7 +1005,6 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         break;
 
 
-    // FIXME: generate EVENT_MOUSE_ENTERED, EVENT_MOUSE_EXITED
     default:
         useDefWindowProc = 1;
     }
@@ -1649,5 +1667,18 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_warpPointer
 {
     DBG_PRINT( "*** WindowsWindow: warpPointer0: %d/%d\n", x, y);
     SetCursorPos(x, y);
+}
+
+/*
+ * Class:     Java_jogamp_newt_driver_windows_WindowsWindow
+ * Method:    trackPointerLeave0
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_trackPointerLeave0
+  (JNIEnv *env, jclass clazz, jlong window)
+{
+    HWND hwnd = (HWND) (intptr_t) window;
+    DBG_PRINT( "*** WindowsWindow: trackMouseLeave0\n");
+    NewtWindows_trackPointerLeave(hwnd);
 }
 
