@@ -46,7 +46,7 @@ public abstract class InputEvent extends NEWTEvent
  public static final int  BUTTON2_MASK   = 1 <<  7;
  public static final int  BUTTON3_MASK   = 1 <<  8;
  public static final int  CONFINED_MASK  = 1 << 16;
- public static final int  INVISIBLE_MASK = 1 << 16;
+ public static final int  INVISIBLE_MASK = 1 << 17;
 
  protected InputEvent(int eventType, Object source, long when, int modifiers) {
     super(eventType, source, when);
