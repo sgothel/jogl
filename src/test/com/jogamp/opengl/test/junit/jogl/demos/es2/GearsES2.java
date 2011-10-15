@@ -297,6 +297,11 @@ public class GearsES2 implements GLEventListener {
         public void mouseMoved(MouseEvent e) {
             if(e.isConfined()) {
                 navigate(e);                                    
+            } else {
+                // track prev. position so we don't have 'jumps'
+                // in case we move to confined navigation.
+                prevMouseX = e.getX();
+                prevMouseY = e.getY();
             }
         }
         
@@ -308,32 +313,29 @@ public class GearsES2 implements GLEventListener {
             int x = e.getX();
             int y = e.getY();
             
-            // skip 'jumps' due to confined mode ..
-            if(Math.abs(prevMouseX-x)<10 && Math.abs(prevMouseX-x)<10) {
-                int width, height;
-                Object source = e.getSource();
-                Window window = null;
-                if(source instanceof Window) {
-                    window = (Window) source;
-                    width=window.getWidth();
-                    height=window.getHeight();
-                } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
-                    java.awt.Component comp = (java.awt.Component) source;
-                    width=comp.getWidth();
-                    height=comp.getHeight();
-                } else {
-                    throw new RuntimeException("Event source neither Window nor Component: "+source);
-                }
-                final float thetaY = 360.0f * ( (float)(x-prevMouseX)/(float)width);
-                final float thetaX = 360.0f * ( (float)(prevMouseY-y)/(float)height);
-                view_rotx += thetaX;
-                view_roty += thetaY;
-                if(e.isConfined() && null!=window) {
-                    x=window.getWidth()/2;
-                    y=window.getHeight()/2;
-                    window.warpPointer(x, y);
-                }
-            }            
+            int width, height;
+            Object source = e.getSource();
+            Window window = null;
+            if(source instanceof Window) {
+                window = (Window) source;
+                width=window.getWidth();
+                height=window.getHeight();
+            } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
+                java.awt.Component comp = (java.awt.Component) source;
+                width=comp.getWidth();
+                height=comp.getHeight();
+            } else {
+                throw new RuntimeException("Event source neither Window nor Component: "+source);
+            }
+            final float thetaY = 360.0f * ( (float)(x-prevMouseX)/(float)width);
+            final float thetaX = 360.0f * ( (float)(prevMouseY-y)/(float)height);
+            view_rotx += thetaX;
+            view_roty += thetaY;
+            if(e.isConfined() && null!=window) {
+                x=window.getWidth()/2;
+                y=window.getHeight()/2;
+                window.warpPointer(x, y);
+            }
             prevMouseX = x;
             prevMouseY = y;
         }

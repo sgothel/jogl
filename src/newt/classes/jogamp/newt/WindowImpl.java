@@ -1358,12 +1358,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(this.pointerConfined != confine) {
             boolean setVal = 0 == getWindowHandle();
             if(!setVal) {
-                requestFocus();
-                warpPointer(width/2, height/2);
+                if(confine) {
+                    requestFocus();
+                    warpPointer(width/2, height/2);
+                }
                 setVal = confinePointerImpl(confine);
+                if(confine) {
+                    // give time to deliver mouse movements w/o confinement,
+                    // this allows user listener to sync previous position value to the new centered position
+                    try {
+                        Thread.sleep(3 * screen.getDisplay().getEDTUtil().getPollPeriod());
+                    } catch (InterruptedException e) { }
+                }
             }
             if(setVal) {
-                this.pointerConfined = confine;                
+                this.pointerConfined = confine;       
             }
         }        
     }
