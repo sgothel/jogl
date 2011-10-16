@@ -342,6 +342,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
 
     // Immediately re-position the window based on an upper-left coordinate system
     setFrameTopLeftPoint(parentWindow, myWindow, x, y);
+
+    // force surface creation
+    [myView lockFocus];
+    [myView unlockFocus];
+
+    // visible on front
     [myWindow orderFront: myWindow];
 
 NS_DURING
@@ -362,6 +368,34 @@ NS_ENDHANDLER
     [pool release];
 
     return (jlong) ((intptr_t) myWindow);
+}
+
+/*
+ * Class:     Java_jogamp_newt_driver_macosx_MacWindow
+ * Method:    lockSurface0
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_lockSurface0
+  (JNIEnv *env, jclass clazz, jlong window)
+{
+    NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
+    NSView * mView = [mWin contentView];
+    return [mView canDraw] == YES ? JNI_TRUE : JNI_FALSE;
+    // return [mView lockFocusIfCanDraw] == YES ? JNI_TRUE : JNI_FALSE;
+}
+
+/*
+ * Class:     Java_jogamp_newt_driver_macosx_MacWindow
+ * Method:    unlockSurface0
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_unlockSurface0
+  (JNIEnv *env, jclass clazz, jlong window)
+{
+    /** deadlocks, since we render independent of focus
+    NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
+    NSView * mView = [mWin contentView];
+    [mView unlockFocus]; */
 }
 
 /*

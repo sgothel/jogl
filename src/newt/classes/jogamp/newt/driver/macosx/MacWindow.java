@@ -34,16 +34,17 @@
 
 package jogamp.newt.driver.macosx;
 
-import javax.media.nativewindow.*;
-
-import com.jogamp.newt.event.*;
-
-import jogamp.newt.*;
-
+import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
+
+import jogamp.newt.WindowImpl;
+
+import com.jogamp.newt.event.KeyEvent;
 
 public class MacWindow extends WindowImpl {
     
@@ -169,6 +170,16 @@ public class MacWindow extends WindowImpl {
         } finally {
             setWindowHandle(0);
         }
+    }
+    
+    @Override
+    protected int lockSurfaceImpl() {
+        return lockSurface0(getWindowHandle()) ? LOCK_SUCCESS : LOCK_SURFACE_NOT_READY;
+    }
+
+    @Override
+    protected void unlockSurfaceImpl() {
+        unlockSurface0(getWindowHandle());
     }
     
     @Override
@@ -443,6 +454,8 @@ public class MacWindow extends WindowImpl {
                                      boolean opaque, boolean fullscreen, int windowStyle,
                                      int backingStoreType,
                                      int screen_idx, long view);
+    private native boolean lockSurface0(long window);
+    private native void unlockSurface0(long window);
     private native void requestFocus0(long window, boolean force);
     /** in case of a child window, it actually only issues orderBack(..) */
     private native void orderOut0(long window);
