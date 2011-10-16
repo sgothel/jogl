@@ -213,6 +213,11 @@ static jmethodID windowDestroyNotifyID = NULL;
     [super viewDidUnhide];
 }
 
+- (BOOL)acceptsFirstResponder 
+{
+    return YES;
+}
+
 @end
 
 @implementation NewtMacWindow
@@ -742,8 +747,33 @@ static jint mods2JavaMods(NSUInteger mods)
     [pool release];
 }
 
+- (BOOL) becomeFirstResponder
+{
+    DBG_PRINT( "*************** becomeFirstResponder\n");
+    return [super becomeFirstResponder];
+}
+
+- (BOOL) resignFirstResponder
+{
+    DBG_PRINT( "*************** resignFirstResponder\n");
+    return [super resignFirstResponder];
+}
+
+- (void) becomeKeyWindow
+{
+    DBG_PRINT( "*************** becomeKeyWindow\n");
+    [super becomeKeyWindow];
+}
+
 - (void) windowDidBecomeKey: (NSNotification *) notification
 {
+    DBG_PRINT( "*************** windowDidBecomeKey\n");
+    [self sendFocusGained];
+}
+
+- (void) sendFocusGained
+{
+    DBG_PRINT( "sendFocusGained\n");
     NSView* nsview = [self contentView];
     if( ! [nsview isMemberOfClass:[NewtView class]] ) {
         return;
@@ -769,8 +799,21 @@ static jint mods2JavaMods(NSUInteger mods)
     }
 }
 
+- (void) resignKeyWindow
+{
+    DBG_PRINT( "*************** becomeKeyWindow\n");
+    [super becomeKeyWindow];
+}
+
 - (void) windowDidResignKey: (NSNotification *) notification
 {
+    DBG_PRINT( "*************** windowDidResignKey\n");
+    [self sendFocusLost];
+}
+
+- (void) sendFocusLost
+{
+    DBG_PRINT( "sendFocusLost\n");
     NSView* nsview = [self contentView];
     if( ! [nsview isMemberOfClass:[NewtView class]] ) {
         return;

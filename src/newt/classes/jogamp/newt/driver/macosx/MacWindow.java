@@ -181,8 +181,8 @@ public class MacWindow extends WindowImpl {
         setTitle0(getWindowHandle(), title);
     }
 
-    protected void requestFocusImpl(boolean reparented) {
-        makeKeyAndOrderFront0(getWindowHandle());
+    protected void requestFocusImpl(boolean force) {
+        requestFocus0(getWindowHandle(), force);
     }
     
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
@@ -196,17 +196,14 @@ public class MacWindow extends WindowImpl {
         if( getWindowHandle() == 0 ) {
             if( 0 != ( FLAG_IS_VISIBLE & flags) ) {
                 createWindow(false, pS, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
-                makeKeyAndOrderFront0(getWindowHandle());
                 // no native event ..
                 visibleChanged(true, true); 
-                focusChanged(true, true);
             } /* else { ?? } */
         } else {
             if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 == ( FLAG_IS_VISIBLE & flags) ) {
                 orderOut0(getWindowHandle());
                 // no native event ..
                 visibleChanged(true, false); 
-                focusChanged(true, false);
             } 
             if( 0 != ( FLAG_CHANGE_DECORATION & flags) ||
                 0 != ( FLAG_CHANGE_PARENTING & flags) ||
@@ -225,10 +222,9 @@ public class MacWindow extends WindowImpl {
                 sizeChanged(true, width, height, false); // incl. validation (incl. repositioning)
             }
             if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 != ( FLAG_IS_VISIBLE & flags) ) {
-                makeKeyAndOrderFront0(getWindowHandle());
+                orderFront0(getWindowHandle());
                 // no native event ..
-                visibleChanged(true, true); 
-                focusChanged(true, true);
+                visibleChanged(true, true);
             } 
             setAlwaysOnTop0(getWindowHandle(), 0 != ( FLAG_IS_ALWAYSONTOP & flags));
         }
@@ -447,10 +443,10 @@ public class MacWindow extends WindowImpl {
                                      boolean opaque, boolean fullscreen, int windowStyle,
                                      int backingStoreType,
                                      int screen_idx, long view);
-    private native void makeKeyAndOrderFront0(long window);
-    private native void makeKey0(long window);
+    private native void requestFocus0(long window, boolean force);
     /** in case of a child window, it actually only issues orderBack(..) */
     private native void orderOut0(long window);
+    private native void orderFront0(long window);
     private native void close0(long window);
     private native void setTitle0(long window, String title);
     private native long contentView0(long window);

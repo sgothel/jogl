@@ -48,6 +48,7 @@ static const char * const ClazzAnyCstrName = "<init>";
 static const char * const ClazzNamePointCstrSignature = "(II)V";
 static jclass pointClz = NULL;
 static jmethodID pointCstr = NULL;
+static jmethodID focusActionID = NULL;
 
 static NSString* jstringToNSString(JNIEnv* env, jstring jstr)
 {
@@ -243,6 +244,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_initIDs0
             ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
     }
 
+    focusActionID = (*env)->GetMethodID(env, clazz, "focusAction", "()Z");
+    if(NULL==focusActionID) {
+        NewtCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't fetch method focusAction()Z");
+    }
+
     // Need this when debugging, as it is necessary to attach gdb to
     // the running java process -- "gdb java" doesn't work
     //    printf("Going to sleep for 10 seconds\n");
@@ -336,8 +342,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
 
     // Immediately re-position the window based on an upper-left coordinate system
     setFrameTopLeftPoint(parentWindow, myWindow, x, y);
-    // [myWindow makeKeyAndOrderFront: myWindow];
-    [myWindow performSelectorOnMainThread:@selector(makeKeyAndOrderFront:) withObject:myWindow waitUntilDone:YES];
+    [myWindow orderFront: myWindow];
 
 NS_DURING
     // Available >= 10.5 - Makes the menubar disapear
@@ -361,42 +366,50 @@ NS_ENDHANDLER
 
 /*
  * Class:     jogamp_newt_driver_macosx_MacWindow
- * Method:    makeKeyAndOrderFront
- * Signature: (J)V
+ * Method:    requestFocus0
+ * Signature: (JZ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_makeKeyAndOrderFront0
-  (JNIEnv *env, jobject unused, jlong window)
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_requestFocus0
+  (JNIEnv *env, jobject window, jlong w, jboolean force)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSWindow* win = (NSWindow*) ((intptr_t) window);
+    NSWindow* win = (NSWindow*) ((intptr_t) w);
+    BOOL hasFocus = [win isKeyWindow];
 
-    DBG_PRINT( "makeKeyAndOrderFront0 - window: %p (START)\n", win);
+    DBG_PRINT( "requestFocus - window: %p, force %d, hasFocus %d (START)\n", win, force, hasFocus);
 
-    [win performSelectorOnMainThread:@selector(makeKeyAndOrderFront:) withObject:win waitUntilDone:YES];
-    // [win makeKeyAndOrderFront: win];
+    if( JNI_TRUE==force || !hasFocus ) {
+        if( JNI_TRUE==force || JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
+            DBG_PRINT( "makeKeyWindow win %p\n", win);
+            // [win performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:YES];
+            // [win performSelectorOnMainThread:@selector(makeKeyWindow) withObject:nil waitUntilDone:YES];
+            [win orderFrontRegardless];
+            [win makeKeyWindow];
+            [win makeFirstResponder: nil];
+        }
+    }
 
-    DBG_PRINT( "makeKeyAndOrderFront0 - window: %p (END)\n", win);
+    DBG_PRINT( "requestFocus - window: %p, force %d (END)\n", win, force);
 
     [pool release];
 }
 
 /*
  * Class:     jogamp_newt_driver_macosx_MacWindow
- * Method:    makeKey
+ * Method:    orderFront0
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_makeKey0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_orderFront0
   (JNIEnv *env, jobject unused, jlong window)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
 
-    DBG_PRINT( "makeKey0 - window: %p (START)\n", win);
+    DBG_PRINT( "orderFront0 - window: %p (START)\n", win);
 
-    [win performSelectorOnMainThread:@selector(makeKeyWindow:) withObject:nil waitUntilDone:YES];
-    // [win makeKeyWindow];
+    [win orderFrontRegardless];
 
-    DBG_PRINT( "makeKey0 - window: %p (END)\n", win);
+    DBG_PRINT( "orderFront0 - window: %p (END)\n", win);
 
     [pool release];
 }
@@ -415,7 +428,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_orderOut0
 
     DBG_PRINT( "orderOut0 - window: (parent %p) %p (START)\n", pWin, mWin);
 
-    // [mWin performSelectorOnMainThread:@selector(orderOut:) withObject:mWin waitUntilDone:NO];
     if(NULL == pWin) {
         [mWin orderOut: mWin];
     } else {
@@ -458,7 +470,6 @@ NS_ENDHANDLER
     }
     [mWin orderOut: mWin];
 
-    // [mWin performSelectorOnMainThread:@selector(close:) withObject:nil waitUntilDone:NO];
     [mWin close]; // performs release!
 
     DBG_PRINT( "*************** windowClose.X: %p (parent %p)\n", mWin, pWin);
@@ -481,7 +492,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setTitle0
 
     NSString* str = jstringToNSString(env, title);
     [str autorelease];
-    // [win performSelectorOnMainThread:@selector(setTitle:) withObject:str waitUntilDone:NO];
     [win setTitle: str];
 
     DBG_PRINT( "setTitle0 - window: %p (END)\n", win);

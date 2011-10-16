@@ -80,6 +80,8 @@
 - (void) rightMouseDown: (NSEvent*) theEvent;
 - (void) resetCursorRects;
 
+- (BOOL) acceptsFirstResponder;
+
 @end
 
 #if defined(MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
@@ -100,10 +102,8 @@
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jobject) clazz;
 
 - (NSPoint) newtScreenWinPos2OSXScreenPos: (NSPoint) p;
-
 - (NSPoint) newtClientWinPos2OSXScreenPos: (NSPoint) p;
 - (NSPoint) getLocationOnScreen: (NSPoint) p;
-
 - (NSPoint) screenPos2NewtClientWinPos: (NSPoint) p;
 
 - (void) cursorHide:(BOOL)v;
@@ -112,6 +112,15 @@
 - (void) setMousePosition:(NSPoint)p;
 
 - (void) updateInsets: (JNIEnv*) env;
+
+- (BOOL) becomeFirstResponder;
+- (BOOL) resignFirstResponder;
+- (void) becomeKeyWindow;
+- (void) windowDidBecomeKey: (NSNotification *) notification;
+- (void) sendFocusGained;
+- (void) resignKeyWindow;
+- (void) windowDidResignKey: (NSNotification *) notification;
+- (void) sendFocusLost;
 
 - (id) initWithContentRect: (NSRect) contentRect
        styleMask: (NSUInteger) windowStyle
