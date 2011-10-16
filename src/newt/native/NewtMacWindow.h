@@ -53,7 +53,15 @@
     int jvmVersion;
 
     BOOL destroyNotifySent;
+
+    NSTrackingRectTag ptrTrackingTag;
+    NSRect ptrRect;
+    NSCursor * myCursor;
 }
+
+- (id)initWithFrame:(NSRect)frameRect;
+
+- (NSCursor *) cursor;
 
 /* Set during event dispatching cycle */
 - (void) setJVMHandle: (JavaVM*) vm;
@@ -70,6 +78,7 @@
 - (BOOL) getDestroyNotifySent;
 
 - (void) rightMouseDown: (NSEvent*) theEvent;
+- (void) resetCursorRects;
 
 @end
 
@@ -79,13 +88,28 @@
 @interface NewtMacWindow : NSWindow 
 #endif
 {
+    BOOL mouseConfined;
+    BOOL mouseVisible;
+    BOOL mouseInside;
+    BOOL cursorIsHidden;
+    NSPoint lastInsideMousePosition;
 @public
     int cachedInsets[4]; // l, r, t, b
 }
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jobject) clazz;
 
+- (NSPoint) newtScreenWinPos2OSXScreenPos: (NSPoint) p;
+
+- (NSPoint) newtClientWinPos2OSXScreenPos: (NSPoint) p;
 - (NSPoint) getLocationOnScreen: (NSPoint) p;
+
+- (NSPoint) screenPos2NewtClientWinPos: (NSPoint) p;
+
+- (void) cursorHide:(BOOL)v;
+- (void) setMouseVisible:(BOOL)v;
+- (void) setMouseConfined:(BOOL)v;
+- (void) setMousePosition:(NSPoint)p;
 
 - (void) updateInsets: (JNIEnv*) env;
 

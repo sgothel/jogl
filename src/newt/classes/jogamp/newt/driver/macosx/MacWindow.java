@@ -243,6 +243,48 @@ public class MacWindow extends WindowImpl {
         // nop - using event driven insetsChange(..)
     }
         
+    @Override
+    protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
+        if(width != newWidth || height != newHeight) {
+            final Point p0S = position2TopLevel(new Point(x, y));            
+            setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), p0S.getX(), p0S.getY());               
+        }
+        super.sizeChanged(defer, newWidth, newHeight, force);
+    }
+    
+    @Override
+    protected void positionChanged(boolean defer, int newX, int newY) {
+        positionChanged(defer, new Point(newX, newY));
+    }
+    
+    @Override
+    protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
+        return setPointerVisible0(getWindowHandle(), pointerVisible);
+    }
+
+    @Override
+    protected boolean confinePointerImpl(final boolean confine) {
+        return confinePointer0(getWindowHandle(), confine);
+    }
+    
+    @Override
+    protected void warpPointerImpl(final int x, final int y) {
+        warpPointer0(getWindowHandle(), x, y);
+    }
+    
+    @Override
+    public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
+        int key = convertKeyChar(keyChar);
+        if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.enqueueKeyEvent "+Thread.currentThread().getName());
+        // Note that we send the key char for the key code on this
+        // platform -- we do not get any useful key codes out of the system
+        super.enqueueKeyEvent(wait, eventType, modifiers, key, keyChar);
+    }
+
+    //----------------------------------------------------------------------
+    // Internals only
+    //    
+    
     private char convertKeyChar(char keyChar) {
         if (keyChar == '\r') {
             // Turn these into \n
@@ -326,15 +368,6 @@ public class MacWindow extends WindowImpl {
         return keyChar;
     }
 
-    @Override
-    public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
-        int key = convertKeyChar(keyChar);
-        if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.enqueueKeyEvent "+Thread.currentThread().getName());
-        // Note that we send the key char for the key code on this
-        // platform -- we do not get any useful key codes out of the system
-        super.enqueueKeyEvent(wait, eventType, modifiers, key, keyChar);
-    }
-
     private void createWindow(final boolean recreate, 
                               PointImmutable pS, int width, int height, 
                               final boolean fullscreen) {
@@ -377,26 +410,12 @@ public class MacWindow extends WindowImpl {
         }
     }
     
-    @Override
-    protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
-        if(width != newWidth || height != newHeight) {
-            final Point p0S = position2TopLevel(new Point(x, y));            
-            setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), p0S.getX(), p0S.getY());               
-        }
-        super.sizeChanged(defer, newWidth, newHeight, force);
-    }
-    
-    @Override
-    protected void positionChanged(boolean defer, int newX, int newY) {
-        positionChanged(defer, new Point(newX, newY));
-    }
-    
-    protected void positionChanged(boolean defer, Point absPos) {
+    private void positionChanged(boolean defer, Point absPos) {
         position2ClientSpace(absPos);
         super.positionChanged(defer, absPos.getX(), absPos.getY());        
     }
     
-    protected Point position2ClientSpace(Point absPos) {
+    private Point position2ClientSpace(Point absPos) {
         final NativeWindow parent = getParent();
         if(null != parent) {
             return absPos.translate( parent.getLocationOnScreen(null).scale(-1, -1) );
@@ -404,7 +423,7 @@ public class MacWindow extends WindowImpl {
         return absPos;
     }
     
-    protected Point position2TopLevel(Point clientPos) {        
+    private Point position2TopLevel(Point clientPos) {        
         if(0<=clientPos.getX() && 0<=clientPos.getY()) {
             final InsetsImmutable _insets = getInsets(); // zero if undecorated
             // client position -> top-level window position
@@ -440,4 +459,7 @@ public class MacWindow extends WindowImpl {
     private native void setFrameTopLeftPoint0(long parentWindowHandle, long window, int x, int y);
     private native void setAlwaysOnTop0(long window, boolean atop);
     private static native Object getLocationOnScreen0(long windowHandle, int src_x, int src_y);
+    private static native boolean setPointerVisible0(long windowHandle, boolean visible);
+    private static native boolean confinePointer0(long windowHandle, boolean confine);
+    private static native void warpPointer0(long windowHandle, int x, int y);
 }

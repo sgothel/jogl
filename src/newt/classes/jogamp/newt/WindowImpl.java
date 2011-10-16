@@ -119,8 +119,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private int  mouseButtonPressed = 0;  // current pressed mouse button number
     private long lastMousePressed = 0;    // last time when a mouse button was pressed
     private int  lastMouseClickCount = 0; // last mouse button click count
-    private boolean mouseInWindow = false;// mouse entered window - is inside the window (may be synthetic)
-    private Point lastMousePosition = new Point();
+    protected boolean mouseInWindow = false;// mouse entered window - is inside the window (may be synthetic)
+    protected Point lastMousePosition = new Point();
 
     private ArrayList<KeyListener> keyListeners = new ArrayList<KeyListener>();
 

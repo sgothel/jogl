@@ -85,6 +85,27 @@ static jmethodID windowDestroyNotifyID = NULL;
 
 @implementation NewtView
 
+- (id)initWithFrame:(NSRect)frameRect
+{
+    javaWindowObject = NULL;
+
+    jvmHandle = NULL;
+    jvmVersion = 0;
+    destroyNotifySent = NO;
+
+    ptrTrackingTag = 0;
+
+    /**
+    NSCursor crs = [NSCursor arrowCursor];
+    NSImage crsImg = [crs image];
+    NSPoint crsHot = [crs hotSpot];
+    myCursor = [[NSCursor alloc] initWithImage: crsImg hotSpot:crsHot];
+    */
+    myCursor = NULL;
+
+    return [super initWithFrame:frameRect];
+}
+
 - (void) setJVMHandle: (JavaVM*) vm
 {
     jvmHandle = vm;
@@ -130,6 +151,24 @@ static jmethodID windowDestroyNotifyID = NULL;
     if (next != nil) {
         [next rightMouseDown: theEvent];
     }
+}
+
+- (void) resetCursorRects
+{
+    [super resetCursorRects];
+
+    if(0 != ptrTrackingTag) {
+        // [self removeCursorRect: ptrRect cursor: myCursor];
+        [self removeTrackingRect: ptrTrackingTag];
+    }
+    ptrRect = [self bounds]; 
+    // [self addCursorRect: ptrRect cursor: myCursor];
+    ptrTrackingTag = [self addTrackingRect: ptrRect owner: self userData: nil assumeInside: NO];
+}
+
+- (NSCursor *) cursor
+{
+    return myCursor;
 }
 
 - (void)viewWillDraw
@@ -197,29 +236,6 @@ static jmethodID windowDestroyNotifyID = NULL;
     return NO;
 }
 
-- (NSPoint) getLocationOnScreen: (NSPoint) p
-{
-    /**
-     * return location in 0/0 top-left space,
-     * OSX is 0/0 bottom-left space naturally
-     */
-    NSScreen* screen = [self screen];
-    NSRect screenRect = [screen frame];
-
-    NSView* view = [self contentView];
-    NSRect viewFrame = [view frame];
-
-    NSRect r;
-    r.origin.x = p.x;
-    r.origin.y = viewFrame.size.height - p.y; // y-flip for 0/0 top-left
-    r.size.width = 0;
-    r.size.height = 0;
-    // NSRect rS = [win convertRectToScreen: r]; // 10.7
-    NSPoint oS = [self convertBaseToScreen: r.origin];
-    oS.y = screenRect.origin.y + screenRect.size.height - oS.y;
-    return oS;
-}
-
 - (void) updateInsets: (JNIEnv*) env
 {
     NSView* nsview = [self contentView];
@@ -266,7 +282,84 @@ static jmethodID windowDestroyNotifyID = NULL;
     cachedInsets[1] = 0; // r
     cachedInsets[2] = 0; // t
     cachedInsets[3] = 0; // b
+    mouseConfined = NO;
+    mouseVisible = YES;
+    mouseInside = NO;
+    cursorIsHidden = NO;
     return res;
+}
+
+/**
+ * p abs screen position w/ top-left origin
+ * returns: abs screen position w/ bottom-left origin
+ */
+- (NSPoint) newtScreenWinPos2OSXScreenPos: (NSPoint) p
+{
+    NSView* mView = [self contentView];
+    NSRect mViewFrame = [mView frame]; 
+    int totalHeight = mViewFrame.size.height + cachedInsets[2] + cachedInsets[3]; // height + insets[top+bottom]
+
+    NSScreen* screen = [self screen];
+    NSRect screenFrame = [screen frame];
+
+    return NSMakePoint(screenFrame.origin.x + p.x + cachedInsets[0],
+                       screenFrame.origin.y + screenFrame.size.height - p.y - totalHeight);
+}
+
+/**
+ * p rel client window position w/ top-left origin
+ * returns: abs screen position w/ bottom-left origin
+ */
+- (NSPoint) newtClientWinPos2OSXScreenPos: (NSPoint) p
+{
+    NSRect winFrame = [self frame];
+
+    NSView* mView = [self contentView];
+    NSRect mViewFrame = [mView frame]; 
+
+    return NSMakePoint(winFrame.origin.x + p.x,
+                       winFrame.origin.y + ( mViewFrame.size.height - p.y ) ); // y-flip in view
+}
+
+/**
+ * y-flips input / output
+ * p rel client window position w/ top-left origin
+ * returns: location in 0/0 top-left space.
+ */
+- (NSPoint) getLocationOnScreen: (NSPoint) p
+{
+    NSScreen* screen = [self screen];
+    NSRect screenRect = [screen frame];
+
+    NSView* view = [self contentView];
+    NSRect viewFrame = [view frame];
+
+    NSRect r;
+    r.origin.x = p.x;
+    r.origin.y = viewFrame.size.height - p.y; // y-flip
+    r.size.width = 0;
+    r.size.height = 0;
+    // NSRect rS = [win convertRectToScreen: r]; // 10.7
+    NSPoint oS = [self convertBaseToScreen: r.origin];
+    oS.y = screenRect.origin.y + screenRect.size.height - oS.y;
+    return oS;
+}
+
+- (NSPoint) screenPos2NewtClientWinPos: (NSPoint) p
+{
+    NSView* view = [self contentView];
+    NSRect viewFrame = [view frame];
+
+    NSRect r;
+    r.origin.x = p.x;
+    r.origin.y = p.y;
+    r.size.width = 0;
+    r.size.height = 0;
+    // NSRect rS = [win convertRectFromScreen: r]; // 10.7
+    NSPoint oS = [self convertScreenToBase: r.origin];
+    oS.y = viewFrame.size.height - oS.y; // y-flip
+
+    return oS;
 }
 
 - (BOOL) canBecomeKeyWindow
@@ -363,17 +456,7 @@ static jint mods2JavaMods(NSUInteger mods)
         NSLog(@"sendMouseEvent: null JNIEnv");
         return;
     }
-
     jint javaMods = mods2JavaMods([event modifierFlags]);
-    NSRect frameRect = [self frame];
-    NSRect contentRect = [self contentRectForFrameRect: frameRect];
-    // NSPoint location = [event locationInWindow];
-    // The following computation improves the behavior of mouse drag
-    // events when they also affect the location of the window, but it
-    // still isn't perfect
-    NSPoint curLocation = [NSEvent mouseLocation];
-    NSPoint location = NSMakePoint(curLocation.x - frameRect.origin.x,
-                                   curLocation.y - frameRect.origin.y);
 
     // convert to 1-based button number (or use zero if no button is involved)
     // TODO: detect mouse button when mouse wheel scrolled  
@@ -411,10 +494,12 @@ static jint mods2JavaMods(NSUInteger mods)
     if (evType == EVENT_MOUSE_PRESSED) {
         (*env)->CallVoidMethod(env, javaWindowObject, enqueueRequestFocusID, JNI_FALSE);
     }
+
+    NSPoint location = [self screenPos2NewtClientWinPos: [NSEvent mouseLocation]];
+
     (*env)->CallVoidMethod(env, javaWindowObject, enqueueMouseEventID, JNI_FALSE,
                            evType, javaMods,
-                           (jint) location.x,
-                           (jint) (contentRect.size.height - location.y),
+                           (jint) location.x, (jint) location.y,
                            javaButtonNum, scrollDeltaY);
 
     if (shallBeDetached) {
@@ -422,18 +507,73 @@ static jint mods2JavaMods(NSUInteger mods)
     }
 }
 
+- (void) setMouseVisible:(BOOL)v
+{
+    mouseVisible = v;
+    DBG_PRINT( "setMouseVisible: confined %d, visible %d\n", mouseConfined, mouseVisible);
+    if(YES == mouseInside) {
+        [self cursorHide: !mouseVisible];
+    }
+}
+
+- (void) cursorHide:(BOOL)v
+{
+    if(v) {
+        if(!cursorIsHidden) {
+            [NSCursor hide];
+            cursorIsHidden = YES;
+        }
+    } else {
+        if(cursorIsHidden) {
+            [NSCursor unhide];
+            cursorIsHidden = NO;
+        }
+    }
+}
+
+- (void) setMouseConfined:(BOOL)v
+{
+    mouseConfined = v;
+    DBG_PRINT( "setMouseConfined: confined %d, visible %d\n", mouseConfined, mouseVisible);
+}
+
+- (void) setMousePosition:(NSPoint)p
+{
+    NSScreen* screen = [self screen];
+    NSRect screenRect = [screen frame];
+
+    CGPoint pt = { p.x, screenRect.size.height - p.y }; // y-flip (CG is top-left origin)
+    CGEventRef ev = CGEventCreateMouseEvent (NULL, kCGEventMouseMoved, pt, kCGMouseButtonLeft);
+    CGEventPost (kCGHIDEventTap, ev);
+    NSPoint l0 = [NSEvent mouseLocation];
+    [self screenPos2NewtClientWinPos: l0];
+}
+
 - (void) mouseEntered: (NSEvent*) theEvent
 {
-    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_ENTERED];
+    DBG_PRINT( "mouseEntered: confined %d, visible %d\n", mouseConfined, mouseVisible);
+    mouseInside = YES;
+    [self setMouseVisible: mouseVisible];
+    if(NO == mouseConfined) {
+        [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_ENTERED];
+    }
 }
 
 - (void) mouseExited: (NSEvent*) theEvent
 {
-    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_EXITED];
+    DBG_PRINT( "mouseExited: confined %d, visible %d\n", mouseConfined, mouseVisible);
+    if(NO == mouseConfined) {
+        mouseInside = NO;
+        [self cursorHide: NO];
+        [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_EXITED];
+    } else {
+        [self setMousePosition: lastInsideMousePosition];
+    }
 }
 
 - (void) mouseMoved: (NSEvent*) theEvent
 {
+    lastInsideMousePosition = [NSEvent mouseLocation];
     [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
 }
 
@@ -449,6 +589,7 @@ static jint mods2JavaMods(NSUInteger mods)
 
 - (void) mouseDragged: (NSEvent*) theEvent
 {
+    lastInsideMousePosition = [NSEvent mouseLocation];
     // Note use of MOUSE_MOVED event type because mouse dragged events are synthesized by Java
     [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
 }
@@ -465,6 +606,7 @@ static jint mods2JavaMods(NSUInteger mods)
 
 - (void) rightMouseDragged: (NSEvent*) theEvent
 {
+    lastInsideMousePosition = [NSEvent mouseLocation];
     // Note use of MOUSE_MOVED event type because mouse dragged events are synthesized by Java
     [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
 }
@@ -481,6 +623,7 @@ static jint mods2JavaMods(NSUInteger mods)
 
 - (void) otherMouseDragged: (NSEvent*) theEvent
 {
+    lastInsideMousePosition = [NSEvent mouseLocation];
     // Note use of MOUSE_MOVED event type because mouse dragged events are synthesized by Java
     [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
 }
@@ -557,6 +700,8 @@ static jint mods2JavaMods(NSUInteger mods)
 - (void)windowWillClose: (NSNotification*) notification
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    [self cursorHide: NO];
 
     NSView* nsview = [self contentView];
     if( ! [nsview isMemberOfClass:[NewtView class]] ) {

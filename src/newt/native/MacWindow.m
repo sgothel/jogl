@@ -58,39 +58,11 @@ static NSString* jstringToNSString(JNIEnv* env, jstring jstr)
 }
 
 static void setFrameTopLeftPoint(NSWindow* pWin, NewtMacWindow* mWin, jint x, jint y) {
-
-    NSScreen* screen = [mWin screen];
-    NSRect screenTotal = [screen frame];
+    NSPoint pS = [mWin newtScreenWinPos2OSXScreenPos: NSMakePoint(x, y)];
+    [mWin setFrameOrigin: pS];
 
     NSView* mView = [mWin contentView];
-    NSRect mViewFrame = [mView frame]; 
-    int totalHeight = mViewFrame.size.height + mWin->cachedInsets[2] + mWin->cachedInsets[3]; // height + insets[top+bottom]
-
-    NSPoint pS = NSMakePoint(screenTotal.origin.x + x, screenTotal.origin.y + screenTotal.size.height - y - totalHeight);
-
-#ifdef VERBOSE_ON
-    NSMenu * menu = [NSApp mainMenu];
-    int menuHeight = [NSMenu menuBarVisible] ? (int) [menu menuBarHeight] : 0;
-
-    DBG_PRINT( "setFrameTopLeftPoint screen %lf/%lf %lfx%lf, menuHeight %d, win top-left %d/%d totalHeight %d -> scrn bottom-left %lf/%lf\n", 
-        screenTotal.origin.x, screenTotal.origin.y, screenTotal.size.width, screenTotal.size.height, menuHeight,
-        (int)x, (int)y, (int)totalHeight, pS.x, pS.y);
-
-    if(NULL != pWin) {
-        NSView* pView = [pWin contentView];
-        NSRect pViewFrame = [pView frame]; 
-        DBG_PRINT( "setFrameTopLeftPoint pViewFrame %lf/%lf %lfx%lf\n", 
-            pViewFrame.origin.x, pViewFrame.origin.y, pViewFrame.size.width, pViewFrame.size.height);
-
-        NSPoint pS0;
-        pS0.x = 0; pS0.y = 0;
-        // pS = [win convertRectToScreen: r]; // 10.7
-        pS0 = [pWin convertBaseToScreen: pS0];
-        DBG_PRINT( "setFrameTopLeftPoint (parent) base 0/0 -> screen: %lf/%lf\n", pS0.x, pS0.y);
-    }
-#endif
-
-    [mWin setFrameOrigin: pS];
+    [mWin invalidateCursorRectsForView: mView];
 }
 
 static NewtView * changeContentView(JNIEnv *env, jobject javaWindowObject, NSWindow *pwin, NSView *pview, NSWindow *win, NewtView *newView) {
@@ -364,6 +336,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
 
     // Immediately re-position the window based on an upper-left coordinate system
     setFrameTopLeftPoint(parentWindow, myWindow, x, y);
+    [myWindow makeKeyAndOrderFront: myWindow];
 
 NS_DURING
     // Available >= 10.5 - Makes the menubar disapear
@@ -664,8 +637,45 @@ JNIEXPORT jobject JNICALL Java_jogamp_newt_driver_macosx_MacWindow_getLocationOn
         NewtCommon_throwNewRuntimeException(env, "not NewtMacWindow %p\n", nsObj);
     }
 
-    NSPoint p0 = { src_x, src_y };
-    p0 = [mWin getLocationOnScreen: p0];
+    NSPoint p0 = [mWin getLocationOnScreen: NSMakePoint(src_x, src_y)];
     return (*env)->NewObject(env, pointClz, pointCstr, (jint)p0.x, (jint)p0.y);
+}
+
+/*
+ * Class:     Java_jogamp_newt_driver_macosx_MacWindow
+ * Method:    setPointerVisible0
+ * Signature: (JZ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setPointerVisible0
+  (JNIEnv *env, jclass clazz, jlong window, jboolean mouseVisible)
+{
+    NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
+    [mWin setMouseVisible: ( JNI_TRUE == mouseVisible ) ? YES : NO];
+    return JNI_TRUE;
+}
+
+/*
+ * Class:     Java_jogamp_newt_driver_macosx_MacWindow
+ * Method:    confinePointer0
+ * Signature: (JZ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_confinePointer0
+  (JNIEnv *env, jclass clazz, jlong window, jboolean confine)
+{
+    NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
+    [mWin setMouseConfined: ( JNI_TRUE == confine ) ? YES : NO];
+    return JNI_TRUE;
+}
+
+/*
+ * Class:     Java_jogamp_newt_driver_macosx_MacWindow
+ * Method:    warpPointer0
+ * Signature: (JJII)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_warpPointer0
+  (JNIEnv *env, jclass clazz, jlong window, jint x, jint y)
+{
+    NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
+    [mWin setMousePosition: [mWin newtClientWinPos2OSXScreenPos: NSMakePoint(x, y)]];
 }
 
