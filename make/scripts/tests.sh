@@ -215,7 +215,7 @@ function testawtmt() {
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper
 #testawt com.jogamp.opengl.test.junit.newt.TestEventSourceNotAWTBug
-#testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
+testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
@@ -262,7 +262,7 @@ function testawtmt() {
 # regressions
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
-testnoawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot
