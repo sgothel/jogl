@@ -270,6 +270,12 @@ public class GearsES2 implements GLEventListener {
         st.useProgram(gl, false);        
     }
     
+    boolean confinedFixedCenter = false;
+    
+    public void setConfinedFixedCenter(boolean v) {
+        confinedFixedCenter = v;
+    }
+    
     class GearsKeyAdapter extends KeyAdapter {      
         public void keyPressed(KeyEvent e) {
             int kc = e.getKeyCode();
@@ -294,7 +300,7 @@ public class GearsES2 implements GLEventListener {
         public void mouseReleased(MouseEvent e) {
         }
 
-        public void mouseMoved(MouseEvent e) {
+        public void mouseMoved(MouseEvent e) {          
             if(e.isConfined()) {
                 navigate(e);                                    
             } else {
@@ -326,12 +332,12 @@ public class GearsES2 implements GLEventListener {
                 height=comp.getHeight();
             } else {
                 throw new RuntimeException("Event source neither Window nor Component: "+source);
-            }
+            }           
             final float thetaY = 360.0f * ( (float)(x-prevMouseX)/(float)width);
             final float thetaX = 360.0f * ( (float)(prevMouseY-y)/(float)height);
             view_rotx += thetaX;
             view_roty += thetaY;
-            if(e.isConfined() && null!=window) {
+            if(e.isConfined() && confinedFixedCenter && null!=window) {                
                 x=window.getWidth()/2;
                 y=window.getHeight()/2;
                 window.warpPointer(x, y);

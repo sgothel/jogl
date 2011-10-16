@@ -68,8 +68,10 @@ public class TestGearsES2NEWT extends UITestCase {
             glp = GLProfile.getGL2ES2(); 
         }
         Assert.assertNotNull(glp);
-        width  = 512;
-        height = 512;
+        // width  = 512;
+        // height = 512;
+        width  = 200;
+        height = 200;
     }
 
     @AfterClass
@@ -82,6 +84,7 @@ public class TestGearsES2NEWT extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test (translucent "+!caps.isBackgroundOpaque()+")");
         glWindow.setSize(width, height);
+        glWindow.setPosition(100, 100);
         glWindow.setUndecorated(undecorated);
         glWindow.setAlwaysOnTop(alwaysOnTop);
         glWindow.setFullscreen(fullscreen);
@@ -163,6 +166,17 @@ public class TestGearsES2NEWT extends UITestCase {
                             System.err.println("[set mouse confined pre]: "+glWindow.isPointerConfined());
                             glWindow.confinePointer(!glWindow.isPointerConfined());
                             System.err.println("[set mouse confined post]: "+glWindow.isPointerConfined());
+                            if(!glWindow.isPointerConfined()) {
+                                demo.setConfinedFixedCenter(false);
+                            }
+                    } }.start();
+                } else if(e.getKeyChar()=='J') {
+                    new Thread() {
+                        public void run() {
+                            System.err.println("[set mouse confined pre]: "+glWindow.isPointerConfined());
+                            glWindow.confinePointer(!glWindow.isPointerConfined());
+                            System.err.println("[set mouse confined post]: "+glWindow.isPointerConfined());
+                            demo.setConfinedFixedCenter(glWindow.isPointerConfined());
                     } }.start();
                 } else if(e.getKeyChar()=='w') {
                     new Thread() {
