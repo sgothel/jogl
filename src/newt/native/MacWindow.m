@@ -336,7 +336,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
 
     // Immediately re-position the window based on an upper-left coordinate system
     setFrameTopLeftPoint(parentWindow, myWindow, x, y);
-    [myWindow makeKeyAndOrderFront: myWindow];
+    // [myWindow makeKeyAndOrderFront: myWindow];
+    [myWindow performSelectorOnMainThread:@selector(makeKeyAndOrderFront:) withObject:myWindow waitUntilDone:YES];
 
 NS_DURING
     // Available >= 10.5 - Makes the menubar disapear
@@ -371,8 +372,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_makeKeyAndOrderF
 
     DBG_PRINT( "makeKeyAndOrderFront0 - window: %p (START)\n", win);
 
-    // [win performSelectorOnMainThread:@selector(makeKeyAndOrderFront:) withObject:win waitUntilDone:YES];
-    [win makeKeyAndOrderFront: win];
+    [win performSelectorOnMainThread:@selector(makeKeyAndOrderFront:) withObject:win waitUntilDone:YES];
+    // [win makeKeyAndOrderFront: win];
 
     DBG_PRINT( "makeKeyAndOrderFront0 - window: %p (END)\n", win);
 
@@ -392,8 +393,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_makeKey0
 
     DBG_PRINT( "makeKey0 - window: %p (START)\n", win);
 
-    // [win performSelectorOnMainThread:@selector(makeKeyWindow:) withObject:nil waitUntilDone:YES];
-    [win makeKeyWindow];
+    [win performSelectorOnMainThread:@selector(makeKeyWindow:) withObject:nil waitUntilDone:YES];
+    // [win makeKeyWindow];
 
     DBG_PRINT( "makeKey0 - window: %p (END)\n", win);
 
