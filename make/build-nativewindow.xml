@@ -342,6 +342,18 @@
         <compilerarg value="/usr/include" />
       </compiler>
 
+      <compiler id="compiler.cfg.solaris.nativewindow.x11" extends="compiler.cfg.solaris">
+        <compilerarg value="-I/usr/X11R6/include" />
+      </compiler>
+
+      <compiler id="compiler.cfg.solaris.nativewindow.x11.sparcv9" extends="compiler.cfg.solaris.sparcv9">
+        <compilerarg value="-I/usr/X11R6/include" />
+      </compiler>
+
+      <compiler id="compiler.cfg.solaris.nativewindow.x11.amd64" extends="compiler.cfg.solaris.amd64">
+        <compilerarg value="-I/usr/X11R6/include" />
+      </compiler>
+
       <!-- linker configuration -->
 
       <linker id="linker.cfg.freebsd.nativewindow.x11" extends="linker.cfg.freebsd">
@@ -387,15 +399,32 @@
       </linker>
 
       <linker id="linker.cfg.solaris.nativewindow.x11" extends="linker.cfg.solaris">
+        <linkerarg value="-L/usr/sfw/lib"/>
+        <syslibset libs="X11"/>
+        <syslibset libs="Xxf86vm" />
+        <syslibset libs="Xinerama"/>
+        <syslibset libs="Xrender"/>
         <syslibset libs="X11"/>
       </linker>
 
       <linker id="linker.cfg.solaris.sparcv9.nativewindow.x11" extends="linker.cfg.solaris.sparcv9">
-        <syslibset dir="/usr/lib/sparcv9" libs="X11"/>
+        <linkerarg value="-L/usr/lib/sparcv9"/>
+        <linkerarg value="-L/usr/sfw/lib/sparcv9"/>
+        <syslibset libs="X11"/>
+        <syslibset libs="Xxf86vm" />
+        <syslibset libs="Xinerama"/>
+        <syslibset libs="Xrender"/>
+        <syslibset libs="X11"/>
       </linker>
 
       <linker id="linker.cfg.solaris.amd64.nativewindow.x11" extends="linker.cfg.solaris.amd64">
-        <syslibset dir="/usr/lib/amd64" libs="X11"/>
+        <linkerarg value="-L/usr/lib/amd64"/>
+        <linkerarg value="-L/usr/sfw/lib/amd64"/>
+        <syslibset libs="X11"/>
+        <syslibset libs="Xxf86vm" />
+        <syslibset libs="Xinerama"/>
+        <syslibset libs="Xrender"/>
+        <syslibset libs="X11"/>
       </linker>
 
       <linker id="linker.cfg.win32.mingw.nativewindow" extends="linker.cfg.win32.mingw">
@@ -475,21 +504,21 @@
     
     <target name="c.configure.solaris32" depends="c.configure.x11" if="isSolaris32Bit">
       <echo message="Solaris" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.nativewindow.x11" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.nativewindow.x11" />
     </target>
   
  
     <target name="c.configure.solaris.sparcv9" depends="c.configure.x11" if="isSolarisSparcv9">
       <echo message="SolarisSparcv9" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.nativewindow.x11.sparcv9" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.sparcv9.nativewindow.x11" />
     </target>
    
 
     <target name="c.configure.solaris.amd64" depends="c.configure.x11" if="isSolarisAMD64">
       <echo message="SolarisAMD64" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.nativewindow.x11.amd64" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.amd64.nativewindow.x11" />
     </target>
    

@@ -239,15 +239,15 @@
       <!-- linker configuration -->
 
       <linker id="linker.cfg.freebsd.newt.x11" extends="linker.cfg.freebsd">
-        <syslibset dir="/usr/local/lib" libs="X11"/>
+        <linkerarg value="-L/usr/local/lib"/>
+        <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
-        <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.freebsd.amd64.newt.x11" extends="linker.cfg.freebsd.amd64">
-        <syslibset dir="/usr/local/lib" libs="X11"/>
+        <linkerarg value="-L/usr/local/lib"/>
+        <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
-        <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.newt.broadcom_egl" extends="linker.cfg.linux">
@@ -258,25 +258,21 @@
       <linker id="linker.cfg.linux.newt.x11" extends="linker.cfg.linux">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
-        <syslibset libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.x86.newt.x11" extends="linker.cfg.linux.x86">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
-        <syslibset libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.amd64.newt.x11" extends="linker.cfg.linux.amd64">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
-        <syslibset libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.armv7.newt.x11" extends="linker.cfg.linux.armv7">
         <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="X11" />
         <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xrandr" />
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.android.newt" extends="linker.cfg.android">
@@ -285,14 +281,19 @@
 
       <linker id="linker.cfg.solaris.newt.x11" extends="linker.cfg.solaris">
         <syslibset libs="X11"/>
+        <syslibset libs="Xrandr"/>
       </linker>
 
       <linker id="linker.cfg.solaris.sparcv9.newt.x11" extends="linker.cfg.solaris.sparcv9">
-        <syslibset dir="/usr/lib/sparcv9" libs="X11"/>
+        <linkerarg value="-L/usr/lib/sparcv9"/>
+        <syslibset libs="X11"/>
+        <syslibset libs="Xrandr"/>
       </linker>
 
       <linker id="linker.cfg.solaris.amd64.newt.x11" extends="linker.cfg.solaris.amd64">
-        <syslibset dir="/usr/lib/amd64" libs="X11"/>
+        <linkerarg value="-L/usr/lib/amd64"/>
+        <syslibset libs="X11"/>
+        <syslibset libs="Xrandr"/>
       </linker>
 
       <linker id="linker.cfg.win32.mingw.newt" extends="linker.cfg.win32.mingw">

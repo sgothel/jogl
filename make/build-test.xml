@@ -31,6 +31,8 @@
         <condition property="jvmarg.mainthrd" value="-Ddummy"><not><isset property="isOSX"/></not></condition>
         <condition property="jvmarg.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
         <condition property="jvmarg.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
+        <condition property="jvmarg.arch"     value="-d64"><isset property="is64Bit"/></condition>
+        <condition property="jvmarg.arch"     value="-d32"><not><isset property="is64Bit"/></not></condition>
 
         <property name="batchtest.timeout"    value="1800000"/> <!-- 30 min -->
     </target>
@@ -151,6 +153,7 @@
         <!-- Test*NOUI* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="${jvmarg.arch}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
 
             <!--
@@ -214,6 +217,7 @@
                  failonerror="false">
                 <env key="${system.env.library.path}" path="${obj.all.paths}"/>
                 <env key="CLASSPATH" value="${junit_jogl_noawt.run.jars}"/>
+                <arg line="${jvmarg.arch}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <arg line="${jvmarg.headless}"/>
                 <!--
@@ -248,6 +252,7 @@
         <!-- Test*NEWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="${jvmarg.arch}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
 
             <!--
@@ -282,6 +287,7 @@
         <!-- Test*AWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="${jvmarg.arch}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
 
             <!--
@@ -316,6 +322,7 @@
         <!-- Test*AWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="${jvmarg.arch}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
 
             <!--
@@ -373,6 +380,7 @@
                  failonerror="false">
                 <env key="${system.env.library.path}" path="${obj.all.paths}"/>
                 <env key="CLASSPATH" value="${junit_jogl_swt.run.jars}"/>
+                <arg line="${jvmarg.arch}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <arg line="${jvmarg.headless}"/>
                 <!--
@@ -404,6 +412,7 @@
       <!-- Test*SWT* -->
       <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
           <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+          <jvmarg value="${jvmarg.arch}"/>
           <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
           <jvmarg value="${jvmarg.mainthrd}"/>
 
@@ -437,6 +446,7 @@
     <target name="junit.run.newt.awt" depends="test.compile">
         <!-- Test*AWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+            <jvmarg value="${jvmarg.arch}"/>
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
 

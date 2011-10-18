@@ -1069,32 +1069,26 @@
  
       <linker id="linker.cfg.freebsd.jogl.x11" extends="linker.cfg.freebsd">
         <syslibset dir="/usr/local/lib" libs="X11"/>
-        <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.freebsd.amd64.jogl.x11" extends="linker.cfg.freebsd.amd64">
         <syslibset dir="/usr/local/lib" libs="X11"/>
-        <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.jogl.x11" extends="linker.cfg.linux">
         <syslibset libs="X11"/>
-        <syslibset libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.x86.jogl.x11" extends="linker.cfg.linux.x86">
         <syslibset libs="X11"/>
-        <syslibset libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.amd64.jogl.x11" extends="linker.cfg.linux.amd64">
         <syslibset libs="X11"/>
-        <syslibset libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.armv7.jogl.x11" extends="linker.cfg.linux.armv7">
         <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="X11"/>
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.android.jogl" extends="linker.cfg.android">
@@ -1105,13 +1099,13 @@
       </linker>
 
       <linker id="linker.cfg.solaris.sparcv9.jogl.x11" extends="linker.cfg.solaris.sparcv9">
-        <linkerarg value="-xarch=v9a" />
-        <syslibset dir="/usr/lib/sparcv9" libs="X11"/>
+        <linkerarg value="-L/usr/lib/sparcv9"/>
+        <syslibset libs="X11"/>
       </linker>
 
       <linker id="linker.cfg.solaris.amd64.jogl.x11" extends="linker.cfg.solaris.amd64">
-        <linkerarg value="-xarch=amd64" />
-        <syslibset dir="/usr/lib/amd64" libs="X11"/>
+        <linkerarg value="-L/usr/lib/amd64"/>
+        <syslibset libs="X11"/>
       </linker>
 
       <linker id="linker.cfg.win32.mingw.jogl" extends="linker.cfg.win32.mingw">

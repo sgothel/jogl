@@ -39,7 +39,7 @@
 #include <X11/Xlib.h>
 #include <stdio.h>
 
-#ifdef __sun
+#ifdef __sun_obsolete
 
 typedef Status XineramaGetInfoFunc(Display* display, int screen_number,
          XRectangle* framebuffer_rects, unsigned char* framebuffer_hints,
@@ -57,7 +57,7 @@ XineramaGetCenterHintFunc* XineramaSolarisCenterFunc = NULL;
 #endif
 
 Bool XineramaEnabled(Display* display) {
-#ifdef __sun
+#ifdef __sun_obsolete
 
 #define MAXFRAMEBUFFERS 16
   char* XinExtName = "XINERAMA";

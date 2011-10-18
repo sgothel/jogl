@@ -43,7 +43,7 @@
 /* Current versions of Solaris don't expose the XF86 extensions,
    although with the recent transition to Xorg this will probably
    happen in an upcoming release */
-#if !defined(__sun) && !defined(_HPUX)
+#if !defined(__sun_obsolete) && !defined(_HPUX)
 #include <X11/extensions/xf86vmode.h>
 #else
 /* Need to provide stubs for these */
@@ -73,7 +73,7 @@ Bool XF86VidModeSetGammaRamp(
     unsigned short *blue_array) {
   return False;
 }
-#endif /* defined(__sun) || defined(_HPUX) */
+#endif /* defined(__sun_obsolete) || defined(_HPUX) */
 
 /* HP-UX doesn't define RTLD_DEFAULT. */
 #if defined(_HPUX) && !defined(RTLD_DEFAULT)
