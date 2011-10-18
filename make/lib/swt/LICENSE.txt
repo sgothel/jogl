@@ -12,5 +12,7 @@ Each subdirectory contains the proper license documents:
     cocoa-macosx-x86_64/about.html
     gtk-linux-x86/about.html
     gtk-linux-x86_64/about.html
+    gtk-solaris-x86/about.html
+    gtk-solaris-sparc/about.html
     win32-win32-x86/about.html
     win32-win32-x86_64/about.html
