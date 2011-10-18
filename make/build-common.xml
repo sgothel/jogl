@@ -164,15 +164,28 @@
           <istrue value="${isSolarisX86}" />
         </condition>
         <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-solaris-x86/swt-debug.jar">
-          <istrue value="${isSolarisAMD64}" />
+          <istrue value="${isSolarisAMD64}" /> <!-- FIXME JAU .. hack -->
         </condition>
         <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-solaris-sparc/swt-debug.jar">
           <istrue value="${isSolarisSparc}" />
         </condition>
 		<condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-solaris-sparc/swt-debug.jar">
-          <istrue value="${isSolarisSparcv9}" />
+          <istrue value="${isSolarisSparcv9}" /> <!-- FIXME JAU .. hack -->
         </condition>
         <echo message="swt.jar=${swt.jar}" />
+
+        <condition property="isSWTRuntimeAvailable">
+          <or>
+              <istrue value="${isWindowsAMD64}" />
+              <istrue value="${isWindowsX86}" />
+              <istrue value="${isLinuxAMD64}" />
+              <istrue value="${isLinuxX86}" />
+              <istrue value="${isOSX}" />
+              <istrue value="${isSolarisX86}" />
+              <istrue value="${isSolarisSparc}" />
+          </or>
+        </condition>
+        <echo message="isSWTRuntimeAvailable=${isSWTRuntimeAvailable}" />
 
         <property name="target.sourcelevel" value="1.5" />
         <property name="host.sourcelevel"   value="1.5" />

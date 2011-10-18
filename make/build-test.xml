@@ -342,7 +342,7 @@
         </junit>
     </target>
 
-    <target name="junit.run.swt.headless" depends="test.compile" description="Runs all pure SWT tests.">
+    <target name="junit.run.swt.headless" depends="test.compile" description="Runs all pure SWT tests." if="isSWTRuntimeAvailable">
         <!-- Test*SWT* 
 
              Emulation of junit task.
@@ -406,7 +406,7 @@
     </target>
 
     <!-- currently freezes OSX -->
-    <target name="junit.run.swt.awt" depends="test.compile" description="Runs all SWT_AWT tests." unless="isOSX">
+    <target name="junit.run.swt.awt" depends="test.compile" description="Runs all SWT_AWT tests." if="isSWTRuntimeAvailable" unless="isOSX">
       <!-- Test*SWT* -->
       <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
           <env key="${system.env.library.path}" path="${obj.all.paths}"/>
