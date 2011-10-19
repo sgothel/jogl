@@ -47,6 +47,7 @@ public class ScreenModeStatus {
     private IntIntHashMap screenModesIdx2NativeIdx;
     private ScreenMode currentScreenMode;
     private ScreenMode originalScreenMode;
+    private boolean screenModeChangedByOwner; 
     private ArrayList<ScreenModeListener> listener = new ArrayList<ScreenModeListener>();
 
     private static HashMap<String, ScreenModeStatus> screenFQN2ScreenModeStatus = new HashMap<String, ScreenModeStatus>();
@@ -111,6 +112,7 @@ public class ScreenModeStatus {
                             IntIntHashMap screenModesIdx2NativeIdx) {
         this.screenModes = screenModes;
         this.screenModesIdx2NativeIdx = screenModesIdx2NativeIdx;
+        this.screenModeChangedByOwner = false;
     }
 
     protected final void setOriginalScreenMode(ScreenMode originalScreenMode) {
@@ -131,18 +133,32 @@ public class ScreenModeStatus {
         }
     }
 
-    public final boolean isOriginalMode() {
+    /**
+     * We cannot guarantee that we won't interfere w/ another running
+     * application's screen mode change.
+     * <p>
+     * At least we only return <code>true</true> if the owner, ie. the Screen,
+     * has changed the screen mode and if the original screen mode 
+     * is not current the current one.
+     * </p>
+     * @return
+     */
+    public final boolean isOriginalModeChangedByOwner() {
         lock();
         try {
-            if(null != currentScreenMode && null != originalScreenMode) {
-                return currentScreenMode.hashCode() == originalScreenMode.hashCode();
-            }
-            return true;
+            return screenModeChangedByOwner && !isCurrentModeOriginalMode();
         } finally {
             unlock();
         }
     }
 
+    protected final boolean isCurrentModeOriginalMode() {
+        if(null != currentScreenMode && null != originalScreenMode) {
+            return currentScreenMode.hashCode() == originalScreenMode.hashCode();
+        }
+        return true;
+    }
+    
     protected final ArrayHashSet<ScreenMode> getScreenModes() {
         return screenModes;
     }
@@ -195,6 +211,7 @@ public class ScreenModeStatus {
         try {
             if(success) {
                 this.currentScreenMode = currentScreenMode;
+                this.screenModeChangedByOwner = !isCurrentModeOriginalMode();
             }
             for(int i=0; i<listener.size(); i++) {
                 listener.get(i).screenModeChanged(currentScreenMode, success);

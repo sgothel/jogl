@@ -68,7 +68,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     long t0; // creationTime
 
     static {
-        AccessController.doPrivileged(new PrivilegedAction() {
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
                 registerShutdownHook();
                 return null;
@@ -76,6 +76,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         });
     }
     
+    @SuppressWarnings("unchecked")
     private static Class<? extends Screen> getScreenClass(String type) throws ClassNotFoundException 
     {
         Class<?> screenClass = NewtFactory.getCustomClass(type, "Screen");
@@ -557,8 +558,14 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 sms.lock();
                 try {
                     if(0 == sms.removeListener(this)) {
-                        if(!sms.isOriginalMode()) {
-                            setCurrentScreenMode(sms.getOriginalScreenMode());
+                        if(sms.isOriginalModeChangedByOwner()) {
+                            System.err.println("Screen.destroy(): "+sms.getCurrentScreenMode()+" -> "+sms.getOriginalScreenMode());
+                            try {
+                                setCurrentScreenMode(sms.getOriginalScreenMode());
+                            } catch (Throwable t) {
+                                // be verbose but continue
+                                t.printStackTrace();
+                            }
                         }
                         ScreenModeStatus.unmapScreenModeStatus(getFQName());
                     }
@@ -574,8 +581,9 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     private final void shutdown() {
         ScreenModeStatus sms = ScreenModeStatus.getScreenModeStatusUnlocked(getFQName());
         if(null != sms) {
-            if(!sms.isOriginalMode()) {
+            if(sms.isOriginalModeChangedByOwner()) {
                 try {
+                    System.err.println("Screen.shutdown(): "+sms.getCurrentScreenMode()+" -> "+sms.getOriginalScreenMode());
                     setCurrentScreenModeImpl(sms.getOriginalScreenMode());
                 } catch (Throwable t) {
                     // be quiet .. shutdown
@@ -596,7 +604,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 ScreenImpl.shutdownAll();
             }
         });
-        AccessController.doPrivileged(new PrivilegedAction() {
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
                 Runtime.getRuntime().addShutdownHook(shutdownHook);
                 return null;
