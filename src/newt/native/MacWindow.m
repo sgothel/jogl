@@ -69,7 +69,9 @@ static void setFrameTopLeftPoint(NSWindow* pWin, NewtMacWindow* mWin, jint x, ji
 static NewtView * changeContentView(JNIEnv *env, jobject javaWindowObject, NSWindow *pwin, NSView *pview, NewtMacWindow *win, NewtView *newView) {
     NSView* oldNSView = [win contentView];
     NewtView* oldView = NULL;
+#ifdef VERBOSE_ON
     int dbgIdx = 1;
+#endif
 
     DBG_PRINT( "changeContentView.%d win %p, view %p, parent[win %p, view %p]\n", dbgIdx++, win, newView, pwin, pview);
 
@@ -325,7 +327,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
     }
     DBG_PRINT( "createWindow0 - is visible.1: %d\n", [myWindow isVisible]);
 
+#ifdef VERBOSE_ON
     int dbgIdx = 1;
+#endif
     if(opaque) {
         [myWindow setOpaque: YES];
         DBG_PRINT( "createWindow0.%d\n", dbgIdx++);
@@ -404,7 +408,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_close0
   (JNIEnv *env, jobject unused, jlong window)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSWindow* mWin = (NSWindow*) ((intptr_t) window);
+    NewtMacWindow* mWin = (NewtMacWindow*) ((intptr_t) window);
     NSView* mView = [mWin contentView];
     NSWindow* pWin = [mWin parentWindow];
     DBG_PRINT( "*************** windowClose.0: %p (view %p, parent %p)\n", mWin, mView, pWin);
