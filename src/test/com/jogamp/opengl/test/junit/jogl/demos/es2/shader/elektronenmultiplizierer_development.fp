@@ -40,7 +40,9 @@ vec2 oglFragCoord;
 
 //const pre-calc
 const float phi = 1.618;
-const float _IKVNORM_ = 1.0 / sqrt(pow(phi * (1.0 + phi), 2.0) + pow(phi * phi - 1.0, 2.0) + pow(1.0 + phi, 2.0));
+// Using math functions in initializers fails on MacOSX
+// const float _IKVNORM_ = 1.0 / sqrt(pow(phi * (1.0 + phi), 2.0) + pow(phi * phi - 1.0, 2.0) + pow(1.0 + phi, 2.0));
+const float _IKVNORM_ = 0.190989113930771;
 const float _C1_ = phi * (1.0 + phi) * _IKVNORM_;
 const float _C2_ = (phi * phi - 1.0) * _IKVNORM_;
 const float _1C_ = (1.0 + phi) * _IKVNORM_;
