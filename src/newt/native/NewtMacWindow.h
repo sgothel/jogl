@@ -80,6 +80,10 @@
 - (void) rightMouseDown: (NSEvent*) theEvent;
 - (void) resetCursorRects;
 
+- (void) viewWillDraw;
+- (void) drawRect:(NSRect)dirtyRect;
+- (void) viewDidHide;
+- (void) viewDidUnhide;
 - (BOOL) acceptsFirstResponder;
 
 @end
@@ -101,6 +105,16 @@
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jobject) clazz;
 
+- (id) initWithContentRect: (NSRect) contentRect
+       styleMask: (NSUInteger) windowStyle
+       backing: (NSBackingStoreType) bufferingType
+       defer: (BOOL) deferCreation
+       screen:(NSScreen *)screen;
+
+- (void) updateInsets: (JNIEnv*) env;
+- (void) attachToParent: (NSWindow*) parent;
+- (void) detachFromParent: (NSWindow*) parent;
+
 - (NSPoint) newtScreenWinPos2OSXScreenPos: (NSPoint) p;
 - (NSPoint) newtClientWinPos2OSXScreenPos: (NSPoint) p;
 - (NSPoint) getLocationOnScreen: (NSPoint) p;
@@ -111,8 +125,6 @@
 - (void) setMouseConfined:(BOOL)v;
 - (void) setMousePosition:(NSPoint)p;
 
-- (void) updateInsets: (JNIEnv*) env;
-
 - (BOOL) becomeFirstResponder;
 - (BOOL) resignFirstResponder;
 - (void) becomeKeyWindow;
@@ -121,11 +133,5 @@
 - (void) resignKeyWindow;
 - (void) windowDidResignKey: (NSNotification *) notification;
 - (void) sendFocusLost;
-
-- (id) initWithContentRect: (NSRect) contentRect
-       styleMask: (NSUInteger) windowStyle
-       backing: (NSBackingStoreType) bufferingType
-       defer: (BOOL) deferCreation
-       screen:(NSScreen *)screen;
 
 @end

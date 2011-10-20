@@ -84,6 +84,7 @@ static jmethodID visibleChangedID = NULL;
 static jmethodID positionChangedID = NULL;
 static jmethodID focusChangedID    = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
+static jmethodID windowRepaintID = NULL;
 
 #define USE_SENDIO_DIRECT 1
 
@@ -175,13 +176,36 @@ static jmethodID windowDestroyNotifyID = NULL;
     return myCursor;
 }
 
-- (void)viewWillDraw
+- (void) viewWillDraw
 {
     DBG_PRINT("*************** viewWillDraw: 0x%p\n", javaWindowObject);
     [super viewWillDraw];
 }
 
-- (void)viewDidHide
+- (void) drawRect:(NSRect)dirtyRect
+{
+    DBG_PRINT("*************** dirtyRect: 0x%p %lf/%lf %lfx%lf\n", 
+        javaWindowObject, dirtyRect.origin.x, dirtyRect.origin.y, dirtyRect.size.width, dirtyRect.size.height);
+
+    int shallBeDetached = 0;
+    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
+    if(NULL==env) {
+        NSLog(@"viewDidHide: null JNIEnv");
+        return;
+    }
+
+    NSRect viewFrame = [self frame];
+
+    (*env)->CallVoidMethod(env, javaWindowObject, windowRepaintID, JNI_FALSE,
+        dirtyRect.origin.x, viewFrame.size.height - dirtyRect.origin.y, 
+        dirtyRect.size.width, dirtyRect.size.height);
+
+    if (shallBeDetached) {
+        (*jvmHandle)->DetachCurrentThread(jvmHandle);
+    }
+}
+
+- (void) viewDidHide
 {
     int shallBeDetached = 0;
     JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
@@ -199,7 +223,7 @@ static jmethodID windowDestroyNotifyID = NULL;
     [super viewDidHide];
 }
 
-- (void)viewDidUnhide
+- (void) viewDidUnhide
 {
     int shallBeDetached = 0;
     JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
@@ -217,7 +241,7 @@ static jmethodID windowDestroyNotifyID = NULL;
     [super viewDidUnhide];
 }
 
-- (BOOL)acceptsFirstResponder 
+- (BOOL) acceptsFirstResponder 
 {
     return YES;
 }
@@ -238,13 +262,39 @@ static jmethodID windowDestroyNotifyID = NULL;
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZII)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
     windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
+    windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     enqueueRequestFocusID = (*env)->GetMethodID(env, clazz, "enqueueRequestFocus", "(Z)V");
     if (enqueueMouseEventID && sendMouseEventID && enqueueKeyEventID && sendKeyEventID && sizeChangedID && visibleChangedID && insetsChangedID &&
-        positionChangedID && focusChangedID && windowDestroyNotifyID && enqueueRequestFocusID)
+        positionChangedID && focusChangedID && windowDestroyNotifyID && enqueueRequestFocusID && windowRepaintID)
     {
         return YES;
     }
     return NO;
+}
+
+- (id) initWithContentRect: (NSRect) contentRect
+       styleMask: (NSUInteger) windowStyle
+       backing: (NSBackingStoreType) bufferingType
+       defer: (BOOL) deferCreation
+       screen:(NSScreen *)screen
+{
+    id res = [super initWithContentRect: contentRect
+                    styleMask: windowStyle
+                    backing: bufferingType
+                    defer: deferCreation
+                    screen: screen];
+    // Why is this necessary? Without it we don't get any of the
+    // delegate methods like resizing and window movement.
+    [self setDelegate: self];
+    cachedInsets[0] = 0; // l
+    cachedInsets[1] = 0; // r
+    cachedInsets[2] = 0; // t
+    cachedInsets[3] = 0; // b
+    mouseConfined = NO;
+    mouseVisible = YES;
+    mouseInside = NO;
+    cursorIsHidden = NO;
+    return res;
 }
 
 - (void) updateInsets: (JNIEnv*) env
@@ -275,29 +325,22 @@ static jmethodID windowDestroyNotifyID = NULL;
     (*env)->CallVoidMethod(env, javaWindowObject, insetsChangedID, JNI_FALSE, cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
 }
 
-- (id) initWithContentRect: (NSRect) contentRect
-       styleMask: (NSUInteger) windowStyle
-       backing: (NSBackingStoreType) bufferingType
-       defer: (BOOL) deferCreation
-       screen:(NSScreen *)screen
+- (void) attachToParent: (NSWindow*) parent
 {
-    id res = [super initWithContentRect: contentRect
-                    styleMask: windowStyle
-                    backing: bufferingType
-                    defer: deferCreation
-                    screen: screen];
-    // Why is this necessary? Without it we don't get any of the
-    // delegate methods like resizing and window movement.
-    [self setDelegate: self];
-    cachedInsets[0] = 0; // l
-    cachedInsets[1] = 0; // r
-    cachedInsets[2] = 0; // t
-    cachedInsets[3] = 0; // b
-    mouseConfined = NO;
-    mouseVisible = YES;
-    mouseInside = NO;
-    cursorIsHidden = NO;
-    return res;
+    DBG_PRINT( "attachToParent.1\n");
+    [parent addChildWindow: self ordered: NSWindowAbove];
+    DBG_PRINT( "attachToParent.2\n");
+    [self setParentWindow: parent];
+    DBG_PRINT( "attachToParent.X\n");
+}
+
+- (void) detachFromParent: (NSWindow*) parent
+{
+    DBG_PRINT( "detachFromParent.1\n");
+    [self setParentWindow: nil];
+    DBG_PRINT( "detachFromParent.2\n");
+    [parent removeChildWindow: self];
+    DBG_PRINT( "detachFromParent.X\n");
 }
 
 /**

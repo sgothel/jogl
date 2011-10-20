@@ -159,7 +159,6 @@ public class MacWindow extends WindowImpl {
         try {
             if(DEBUG_IMPLEMENTATION) { System.err.println("MacWindow.CloseAction "+Thread.currentThread().getName()); }
             if (getWindowHandle() != 0) {
-                orderOut0(getWindowHandle());
                 close0(getWindowHandle());
             }
         } catch (Throwable t) {
@@ -376,7 +375,7 @@ public class MacWindow extends WindowImpl {
     }
 
     private void createWindow(final boolean recreate, 
-                              PointImmutable pS, int width, int height, 
+                              final PointImmutable pS, final int width, final int height, 
                               final boolean fullscreen) {
 
         if(0!=getWindowHandle() && !recreate) {
@@ -397,14 +396,14 @@ public class MacWindow extends WindowImpl {
                 surfaceHandle = 0;
             }
             setWindowHandle(createWindow0(getParentWindowHandle(),
-                                         pS.getX(), pS.getY(), width, height,
-                                         config.getChosenCapabilities().isBackgroundOpaque(),
-                                         fullscreen,
-                                         (isUndecorated() ?
-                                         NSBorderlessWindowMask :
-                                         NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask),
-                                         NSBackingStoreBuffered, 
-                                         getScreen().getIndex(), surfaceHandle));
+                                 pS.getX(), pS.getY(), width, height,
+                                 config.getChosenCapabilities().isBackgroundOpaque(),
+                                 fullscreen,
+                                 (isUndecorated() ?
+                                 NSBorderlessWindowMask :
+                                 NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask),
+                                 NSBackingStoreBuffered, 
+                                 getScreen().getIndex(), surfaceHandle));
             if (getWindowHandle() == 0) {
                 throw new NativeWindowException("Could create native window "+Thread.currentThread().getName()+" "+this);
             }
@@ -418,8 +417,10 @@ public class MacWindow extends WindowImpl {
     }
     
     private void positionChanged(boolean defer, Point absPos) {
-        position2ClientSpace(absPos);
-        super.positionChanged(defer, absPos.getX(), absPos.getY());        
+        if(getWindowHandle()!=0) {
+            position2ClientSpace(absPos);
+            super.positionChanged(defer, absPos.getX(), absPos.getY());
+        }
     }
     
     private Point position2ClientSpace(Point absPos) {

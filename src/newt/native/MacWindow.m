@@ -66,9 +66,12 @@ static void setFrameTopLeftPoint(NSWindow* pWin, NewtMacWindow* mWin, jint x, ji
     [mWin invalidateCursorRectsForView: mView];
 }
 
-static NewtView * changeContentView(JNIEnv *env, jobject javaWindowObject, NSWindow *pwin, NSView *pview, NSWindow *win, NewtView *newView) {
+static NewtView * changeContentView(JNIEnv *env, jobject javaWindowObject, NSWindow *pwin, NSView *pview, NewtMacWindow *win, NewtView *newView) {
     NSView* oldNSView = [win contentView];
     NewtView* oldView = NULL;
+    int dbgIdx = 1;
+
+    DBG_PRINT( "changeContentView.%d win %p, view %p, parent[win %p, view %p]\n", dbgIdx++, win, newView, pwin, pview);
 
     if(NULL!=oldNSView) {
 NS_DURING
@@ -86,11 +89,13 @@ NS_ENDHANDLER
             [oldView setJavaWindowObject: NULL];
             [oldView setDestroyNotifySent: false];
         }
-        /** FIXME: Tried child window: auto clip or message reception ..
         if(NULL!=pwin) {
             [oldView removeFromSuperview];
-        } */
+        }
     }
+    DBG_PRINT( "changeContentView.%d isHidden %d, isHiddenOrHasHiddenAncestor: %d\n", dbgIdx++, 
+        [newView isHidden], [newView isHiddenOrHasHiddenAncestor]);
+
     if(NULL!=newView) {
         jobject globJavaWindowObject = (*env)->NewGlobalRef(env, javaWindowObject);
         [newView setJavaWindowObject: globJavaWindowObject];
@@ -108,16 +113,21 @@ NS_ENDHANDLER
             [newView setJVMVersion: jvmVersion];
         }
 
-        /** FIXME: Tried child window: auto clip or message reception ..
+        DBG_PRINT( "changeContentView.%d\n", dbgIdx++);
+
         if(NULL!=pwin) {
             [pview addSubview: newView positioned: NSWindowAbove relativeTo: nil];
-        } */
+        }
     }
+    DBG_PRINT( "changeContentView.%d isHidden %d, isHiddenOrHasHiddenAncestor: %d\n", dbgIdx++, 
+        [newView isHidden], [newView isHiddenOrHasHiddenAncestor]);
+
     [win setContentView: newView];
+    DBG_PRINT( "changeContentView.%d\n", dbgIdx++);
 
     // make sure the insets are updated in the java object
-    NewtMacWindow* newtw = (NewtMacWindow*)win;
-    [newtw updateInsets: env];
+    [win updateInsets: env];
+    DBG_PRINT( "changeContentView.%d\n", dbgIdx++);
 
     return oldView;
 }
@@ -313,16 +323,16 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
     } else {
         DBG_PRINT( "createWindow0 - Parent is neither NSWindow nor NSView : %p\n", nsParentObj);
     }
-    if(NULL!=parentWindow) {
-        [parentWindow addChildWindow: myWindow ordered: NSWindowAbove];
-        [myWindow setParentWindow: parentWindow];
-    }
+    DBG_PRINT( "createWindow0 - is visible.1: %d\n", [myWindow isVisible]);
 
+    int dbgIdx = 1;
     if(opaque) {
         [myWindow setOpaque: YES];
+        DBG_PRINT( "createWindow0.%d\n", dbgIdx++);
         if (!fullscreen) {
             [myWindow setShowsResizeIndicator: YES];
         }
+        DBG_PRINT( "createWindow0.%d\n", dbgIdx++);
     } else {
         [myWindow setOpaque: NO];
         [myWindow setBackgroundColor: [NSColor clearColor]];
@@ -330,22 +340,37 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
 
     // specify we want mouse-moved events
     [myWindow setAcceptsMouseMovedEvents:YES];
+    DBG_PRINT( "createWindow0.%d\n", dbgIdx++);
 
     // Use given NewtView or allocate an NewtView if NULL
     if(NULL == myView) {
         myView = [[NewtView alloc] initWithFrame: rect] ;
         DBG_PRINT( "createWindow0 - new own view: %p\n", myView);
+    } else {
+        DBG_PRINT( "createWindow0 - use given view: %p\n", myView);
     }
+
+    DBG_PRINT( "createWindow0 - is visible.%d: %d\n", dbgIdx++, [myWindow isVisible]);
 
     // Set the content view
     (void) changeContentView(env, jthis, parentWindow, parentView, myWindow, myView);
 
+    DBG_PRINT( "createWindow0.%d\n", dbgIdx++);
+
+    if(NULL!=parentWindow) {
+        [myWindow attachToParent: parentWindow];
+    }
+
     // Immediately re-position the window based on an upper-left coordinate system
     setFrameTopLeftPoint(parentWindow, myWindow, x, y);
 
-    // force surface creation
-    [myView lockFocus];
-    [myView unlockFocus];
+    // force surface creation (causes an AWT parent to fail .. some times)
+    // [myView lockFocus];
+    // [myView unlockFocus];
+
+    // concurrent view rendering
+    [myWindow setAllowsConcurrentViewDrawing: YES];
+    [myView setCanDrawConcurrently: YES];
 
     // visible on front
     [myWindow orderFront: myWindow];
@@ -368,6 +393,43 @@ NS_ENDHANDLER
     [pool release];
 
     return (jlong) ((intptr_t) myWindow);
+}
+
+/*
+ * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Method:    close0
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_close0
+  (JNIEnv *env, jobject unused, jlong window)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSWindow* mWin = (NSWindow*) ((intptr_t) window);
+    NSView* mView = [mWin contentView];
+    NSWindow* pWin = [mWin parentWindow];
+    DBG_PRINT( "*************** windowClose.0: %p (view %p, parent %p)\n", mWin, mView, pWin);
+NS_DURING
+    if(NULL!=mView) {
+        // Available >= 10.5 - Makes the menubar disapear
+        if([mView isInFullScreenMode]) {
+            [mView exitFullScreenModeWithOptions: NULL];
+        }
+        [mWin setContentView: nil];
+        [mView release];
+    }
+NS_HANDLER
+NS_ENDHANDLER
+
+    if(NULL!=pWin) {
+        [mWin detachFromParent: pWin];
+    }
+    [mWin orderOut: mWin];
+
+    [mWin close]; // performs release!
+
+    DBG_PRINT( "*************** windowClose.X: %p (parent %p)\n", mWin, pWin);
+
+    [pool release];
 }
 
 /*
@@ -475,44 +537,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_orderOut0
 
 /*
  * Class:     jogamp_newt_driver_macosx_MacWindow
- * Method:    close0
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_close0
-  (JNIEnv *env, jobject unused, jlong window)
-{
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSWindow* mWin = (NSWindow*) ((intptr_t) window);
-    NSView* mView = [mWin contentView];
-    NSWindow* pWin = [mWin parentWindow];
-    DBG_PRINT( "*************** windowClose.0: %p (view %p, parent %p)\n", mWin, mView, pWin);
-NS_DURING
-    if(NULL!=mView) {
-        // Available >= 10.5 - Makes the menubar disapear
-        if([mView isInFullScreenMode]) {
-            [mView exitFullScreenModeWithOptions: NULL];
-        }
-        [mWin setContentView: nil];
-        [mView release];
-    }
-NS_HANDLER
-NS_ENDHANDLER
-
-    if(NULL!=pWin) {
-        [mWin setParentWindow: nil];
-        [pWin removeChildWindow: mWin];
-    }
-    [mWin orderOut: mWin];
-
-    [mWin close]; // performs release!
-
-    DBG_PRINT( "*************** windowClose.X: %p (parent %p)\n", mWin, pWin);
-
-    [pool release];
-}
-
-/*
- * Class:     jogamp_newt_driver_macosx_MacWindow
  * Method:    setTitle0
  * Signature: (JLjava/lang/String;)V
  */
@@ -564,7 +588,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_changeContentVi
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    NSWindow* win = (NewtMacWindow*) ((intptr_t) window);
+    NewtMacWindow* win = (NewtMacWindow*) ((intptr_t) window);
     NewtView* newView = (NewtView *) ((intptr_t) jview);
 
     DBG_PRINT( "changeContentView0 - window: %p (START)\n", win);
