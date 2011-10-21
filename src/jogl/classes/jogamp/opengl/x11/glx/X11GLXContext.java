@@ -390,7 +390,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         if(glp.isGL3()) {
           glXMakeContextCurrent(display, 0, 0, 0);
           GLX.glXDestroyContext(display, temp_ctx);
-          throw new GLException("X11GLXContext.createContextImpl failed, but context > GL2 requested "+getGLVersion()+", ");
+          throw new GLException("X11GLXContext.createContextImpl failed, but context > GL2 requested - requested: "+glp+", current: "+getGLVersion()+", ");
         }
         if(DEBUG) {
           System.err.println("X11GLXContext.createContextImpl failed, fall back to !ARB context "+getGLVersion());
