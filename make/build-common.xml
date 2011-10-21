@@ -351,6 +351,7 @@
         <property name="newt.core.jar"                  value="${build.newt}/newt.core.jar" />
         <property name="newt.ogl.jar"                   value="${build.newt}/newt.ogl.jar" />
         <property name="newt.awt.jar"                   value="${build.newt}/newt.awt.jar" />
+        <property name="newt.event.jar"                 value="${build.newt}/newt.event.jar" />              <!-- using NEWT events w/o NEWT -->
         <property name="newt.driver.x11.jar"            value="${build.newt}/newt.driver.x11.jar" />
         <property name="newt.driver.win.jar"            value="${build.newt}/newt.driver.win.jar" />
         <property name="newt.driver.macosx.jar"         value="${build.newt}/newt.driver.macosx.jar" />
@@ -391,7 +392,6 @@
 
         <!-- JavaSE combinations . AWT -->
         <property name="jogl.all.jar"                   value="${jar}/jogl.all.jar" />
-        <property name="newt.event.jar"                 value="${jar}/newt.event.jar" />
 
         <!-- JavaSE combinations . NO.AWT -->
         <property name="jogl.all-noawt.jar"             value="${jar}/jogl.all-noawt.jar" />
