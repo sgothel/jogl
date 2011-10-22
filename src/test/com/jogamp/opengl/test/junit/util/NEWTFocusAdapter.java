@@ -35,29 +35,35 @@ import com.jogamp.newt.event.WindowUpdateEvent;
 public class NEWTFocusAdapter implements WindowListener, FocusEventCountAdapter {
 
     String prefix;
-    boolean focusGained;
+    int focusCount;
 
     public NEWTFocusAdapter(String prefix) {
         this.prefix = prefix;
         reset();
     }
 
-    public boolean hasFocus() {
-        return focusGained;
+    public boolean focusLost() {
+        return focusCount<0;        
+    }
+    
+    public boolean focusGained() {
+        return focusCount>0;
     }
     
     public void reset() {
-        focusGained = false;
+        focusCount = 0;
     }
 
     public void windowGainedFocus(WindowEvent e) {
-        focusGained = true;
-        System.err.println("FOCUS NEWT GAINED ["+focusGained+"]: "+prefix+", "+e);
+        if(focusCount<0) { focusCount=0; }
+        focusCount++;
+        System.err.println("FOCUS NEWT GAINED [fc "+focusCount+"]: "+prefix+", "+e);
     }
 
     public void windowLostFocus(WindowEvent e) {
-        focusGained = false;
-        System.err.println("FOCUS NEWT LOST   ["+focusGained+"]: "+prefix+", "+e);
+        if(focusCount>0) { focusCount=0; }
+        focusCount--;
+        System.err.println("FOCUS NEWT LOST   [fc "+focusCount+"]: "+prefix+", "+e);
     }
 
     public void windowResized(WindowEvent e) { }
@@ -66,6 +72,6 @@ public class NEWTFocusAdapter implements WindowListener, FocusEventCountAdapter 
     public void windowDestroyed(WindowEvent e) { }
     public void windowRepaint(WindowUpdateEvent e) { }
     
-    public String toString() { return prefix+"[gained "+focusGained+"]"; }        
+    public String toString() { return prefix+"[focusCount "+focusCount+"]"; }        
 }
 

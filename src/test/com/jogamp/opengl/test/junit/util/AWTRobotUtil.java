@@ -174,7 +174,7 @@ public class AWTRobotUtil {
         final Component comp;
         final com.jogamp.newt.Window win;
 
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+        // KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
         
         if(obj instanceof com.jogamp.newt.Window) {
             win = (com.jogamp.newt.Window) obj;
@@ -246,7 +246,7 @@ public class AWTRobotUtil {
         
         int wait;
         for (wait=0; wait<POLL_DIVIDER; wait++) {
-            if( ( null == lost || !lost.hasFocus() ) && gain.hasFocus() ) {
+            if( ( null == lost || lost.focusLost() ) && gain.focusGained() ) {
                 return true;
             }
             Thread.sleep(TIME_SLICE);
@@ -264,6 +264,12 @@ public class AWTRobotUtil {
         for(i=0; i < RETRY_NUMBER && !hasFocus; i++) {
             requestFocus(robot, requestFocus);
             hasFocus = waitForFocus(waitForFocus, gain, lost);
+        }
+        if(!hasFocus) {
+            System.err.println("requestFocus: "+requestFocus);
+            System.err.println("waitForFocus: "+waitForFocus);
+            System.err.println("gain: "+gain);
+            System.err.println("lost: "+lost);
         }
         Assert.assertTrue("Did not gain focus", hasFocus);
     }
@@ -402,7 +408,7 @@ public class AWTRobotUtil {
      */
     public static boolean waitForFocusCount(boolean desired, FocusEventCountAdapter eca) throws InterruptedException {
         for (int wait=0; wait<POLL_DIVIDER; wait++) {
-            if( eca.hasFocus() == desired ) {
+            if( desired && eca.focusGained() || !desired && eca.focusLost() ) {
                 return true;
             }
             Thread.sleep(TIME_SLICE);

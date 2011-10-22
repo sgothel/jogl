@@ -29,6 +29,7 @@
 package com.jogamp.opengl.test.junit.util;
 
 public interface FocusEventCountAdapter extends EventCountAdapter {
-    boolean hasFocus();
+    boolean focusLost();
+    boolean focusGained();
 }
 
