@@ -128,8 +128,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     System.err.println("FocusActionImpl.run() "+Display.getThreadName());
                 }
                 NewtCanvasAWT.this.requestFocusAWTParent();
-                KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-                kfm.clearGlobalFocusOwner();
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
             }
         }
         FocusActionImpl focusActionImpl = new FocusActionImpl();
@@ -307,10 +306,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     final void requestFocusNEWTChild() {
         if(null!=newtChild) {
             newtChild.setFocusAction(null);
-            // FIXME: Experimental 'steal AWT focus',
-            // since we have to disable the focus action due to recursion and AWT EDT blocking.
-            KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-            kfm.clearGlobalFocusOwner();            
+            KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();            
             newtChild.requestFocus();
             newtChild.setFocusAction(focusAction);
         }
