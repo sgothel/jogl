@@ -36,7 +36,7 @@
 
 #include "NewtCommon.h"
 
-// #define VERBOSE_ON 1
+#define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
     #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
@@ -128,10 +128,9 @@
 - (BOOL) becomeFirstResponder;
 - (BOOL) resignFirstResponder;
 - (void) becomeKeyWindow;
-- (void) windowDidBecomeKey: (NSNotification *) notification;
-- (void) sendFocusGained;
 - (void) resignKeyWindow;
+- (void) windowDidBecomeKey: (NSNotification *) notification;
 - (void) windowDidResignKey: (NSNotification *) notification;
-- (void) sendFocusLost;
+- (void) focusChanged: (BOOL) gained;
 
 @end

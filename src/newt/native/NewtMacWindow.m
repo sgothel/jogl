@@ -826,55 +826,27 @@ static jint mods2JavaMods(NSUInteger mods)
     [super becomeKeyWindow];
 }
 
+- (void) resignKeyWindow
+{
+    DBG_PRINT( "*************** resignKeyWindow\n");
+    [super resignKeyWindow];
+}
+
 - (void) windowDidBecomeKey: (NSNotification *) notification
 {
     DBG_PRINT( "*************** windowDidBecomeKey\n");
-    [self sendFocusGained];
-}
-
-- (void) sendFocusGained
-{
-    DBG_PRINT( "sendFocusGained\n");
-    NSView* nsview = [self contentView];
-    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
-        return;
-    }
-    NewtView* view = (NewtView *) nsview;
-    jobject javaWindowObject = [view getJavaWindowObject];
-    if (javaWindowObject == NULL) {
-        NSLog(@"windowDidBecomeKey: null javaWindowObject");
-        return;
-    }
-    int shallBeDetached = 0;
-    JavaVM *jvmHandle = [view getJVMHandle];
-    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
-    if(NULL==env) {
-        NSLog(@"windowDidBecomeKey: null JNIEnv");
-        return;
-    }
-
-    (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_FALSE, JNI_TRUE);
-
-    if (shallBeDetached) {
-        (*jvmHandle)->DetachCurrentThread(jvmHandle);
-    }
-}
-
-- (void) resignKeyWindow
-{
-    DBG_PRINT( "*************** becomeKeyWindow\n");
-    [super becomeKeyWindow];
+    [self focusChanged: YES];
 }
 
 - (void) windowDidResignKey: (NSNotification *) notification
 {
     DBG_PRINT( "*************** windowDidResignKey\n");
-    [self sendFocusLost];
+    [self focusChanged: NO];
 }
 
-- (void) sendFocusLost
+- (void) focusChanged: (BOOL) gained
 {
-    DBG_PRINT( "sendFocusLost\n");
+    DBG_PRINT( "focusChanged: gained %d\n", gained);
     NSView* nsview = [self contentView];
     if( ! [nsview isMemberOfClass:[NewtView class]] ) {
         return;
@@ -882,18 +854,18 @@ static jint mods2JavaMods(NSUInteger mods)
     NewtView* view = (NewtView *) nsview;
     jobject javaWindowObject = [view getJavaWindowObject];
     if (javaWindowObject == NULL) {
-        NSLog(@"windowDidResignKey: null javaWindowObject");
+        NSLog(@"focusChanged: null javaWindowObject");
         return;
     }
     int shallBeDetached = 0;
     JavaVM *jvmHandle = [view getJVMHandle];
     JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
     if(NULL==env) {
-        NSLog(@"windowDidResignKey: null JNIEnv");
+        NSLog(@"focusChanged: null JNIEnv");
         return;
     }
 
-    (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_FALSE, JNI_FALSE);
+    (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_FALSE, (gained == YES) ? JNI_TRUE : JNI_FALSE);
 
     if (shallBeDetached) {
         (*jvmHandle)->DetachCurrentThread(jvmHandle);
