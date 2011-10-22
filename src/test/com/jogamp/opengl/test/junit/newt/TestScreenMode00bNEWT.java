@@ -82,30 +82,25 @@ public class TestScreenMode00bNEWT extends UITestCase {
         Assert.assertEquals(true,display.isNativeValid());
         
         List<ScreenMode> screenModes = screen.getScreenModes();
-        if(null != screenModes) {
-            Assert.assertTrue(screenModes.size()>0);
-            int i=0;
-            for(Iterator<ScreenMode> iter=screenModes.iterator(); iter.hasNext(); i++) {
-                System.err.println(i+": "+iter.next());
-            }
-            ScreenMode sm_o = screen.getOriginalScreenMode();
-            
-            Assert.assertNotNull(sm_o);            
-            ScreenMode sm_c = screen.getCurrentScreenMode();
-            Assert.assertNotNull(sm_c);
-            System.err.println("orig: "+sm_o);
-            System.err.println("curr: "+sm_c);
-            
-            for(i=0; i<100; i++) {
-                sm_c = screen.getCurrentScreenMode();
-                Assert.assertNotNull(sm_c);
-                System.err.print(".");
-            }
-            System.err.println("!");
-        } else {
-            // no support ..
-            System.err.println("Your platform has no ScreenMode change support, sorry");
+        Assert.assertTrue(screenModes.size()>0);
+        int i=0;
+        for(Iterator<ScreenMode> iter=screenModes.iterator(); iter.hasNext(); i++) {
+            System.err.println(i+": "+iter.next());
         }
+        ScreenMode sm_o = screen.getOriginalScreenMode();
+        
+        Assert.assertNotNull(sm_o);            
+        ScreenMode sm_c = screen.getCurrentScreenMode();
+        Assert.assertNotNull(sm_c);
+        System.err.println("orig: "+sm_o);
+        System.err.println("curr: "+sm_c);
+        
+        for(i=0; i<100; i++) {
+            sm_c = screen.getCurrentScreenMode();
+            Assert.assertNotNull(sm_c);
+            System.err.print(".");
+        }
+        System.err.println("!");
         
         // screen.removeReference();
         anim.stop();

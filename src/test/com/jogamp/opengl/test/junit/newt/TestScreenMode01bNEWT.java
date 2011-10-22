@@ -110,7 +110,7 @@ public class TestScreenMode01bNEWT extends UITestCase {
         Assert.assertNotNull(window0);        
 
         List<ScreenMode> screenModes = screen.getScreenModes();
-        if(null==screenModes) {
+        if(screenModes.size()==1) {
             // no support ..
             System.err.println("Your platform has no ScreenMode change support, sorry");
             destroyWindow(window0);

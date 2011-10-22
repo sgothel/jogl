@@ -308,22 +308,23 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     public ScreenMode getCurrentScreenMode() {
         ScreenMode smU = null;
         ScreenModeStatus sms = ScreenModeStatus.getScreenModeStatus(this.getFQName());
-        if(null != sms) {
-            ScreenMode sm0 = ( DEBUG_TEST_SCREENMODE_DISABLED ) ? null : getCurrentScreenModeImpl();
-            if(null == sm0) {
-                return null;
-            }
-            sms.lock();
-            try {
-                smU = sms.getScreenModes().getOrAdd(sm0); // unified instance, maybe new
+        if(null == sms) {
+            throw new InternalError("ScreenModeStatus.getScreenModeStatus("+this.getFQName()+") == null");            
+        }
+        ScreenMode sm0 = getCurrentScreenModeImpl();
+        if(null == sm0) {
+            throw new InternalError("getCurrentScreenModeImpl() == null");
+        }
+        sms.lock();
+        try {
+            smU = sms.getScreenModes().getOrAdd(sm0); // unified instance, maybe new
 
-                // if mode has changed somehow, update it ..
-                if( sms.getCurrentScreenMode().hashCode() != smU.hashCode() ) {
-                    sms.fireScreenModeChanged(smU, true);
-                }
-            } finally {
-                sms.unlock();
+            // if mode has changed somehow, update it ..
+            if( sms.getCurrentScreenMode().hashCode() != smU.hashCode() ) {
+                sms.fireScreenModeChanged(smU, true);
             }
+        } finally {
+            sms.unlock();
         }
         return smU;
     }
@@ -338,46 +339,46 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             return true;
         }
         ScreenModeStatus sms = ScreenModeStatus.getScreenModeStatus(this.getFQName());
-        if(null!=sms) {
-            sms.lock();
-            try {
-                long t0=0, t1=0;
-                if(DEBUG) {
-                    System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): 0.0 "+screenMode);
-                    t0 = System.currentTimeMillis();
-                }                
-
-                sms.fireScreenModeChangeNotify(smU);
-
-                if(DEBUG) {
-                    System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): 0.1 "+screenMode);
-                    t1 = System.currentTimeMillis();
-                }
-
-                boolean success = setCurrentScreenModeImpl(smU);                    
-                if(success) {
-                    setScreenSize(screenMode.getRotatedWidth(), screenMode.getRotatedHeight());
-                }
-                
-                if(DEBUG) {
-                    t1 = System.currentTimeMillis() - t1;
-                    System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): X.0 "+screenMode+", success: "+success);
-                }
-
-                sms.fireScreenModeChanged(smU, success);
-                                
-                if(DEBUG) {
-                    t0 = System.currentTimeMillis() - t0;
-                    System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): X.X "+screenMode+", success: "+success+
-                                       " - dt0 "+t0+"ms, dt1 "+t1+"ms");
-                }
-
-                return success;
-            } finally {
-                sms.unlock();
-            }
+        if(null == sms) {
+            throw new InternalError("ScreenModeStatus.getScreenModeStatus("+this.getFQName()+") == null");            
         }
-        return false;
+        boolean success;
+        sms.lock();
+        try {
+            long t0=0, t1=0;
+            if(DEBUG) {
+                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): 0.0 "+screenMode);
+                t0 = System.currentTimeMillis();
+            }                
+
+            sms.fireScreenModeChangeNotify(smU);
+
+            if(DEBUG) {
+                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): 0.1 "+screenMode);
+                t1 = System.currentTimeMillis();
+            }
+
+            success = setCurrentScreenModeImpl(smU);                    
+            if(success) {
+                setScreenSize(screenMode.getRotatedWidth(), screenMode.getRotatedHeight());
+            }
+            
+            if(DEBUG) {
+                t1 = System.currentTimeMillis() - t1;
+                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): X.0 "+screenMode+", success: "+success);
+            }
+
+            sms.fireScreenModeChanged(smU, success);
+                            
+            if(DEBUG) {
+                t0 = System.currentTimeMillis() - t0;
+                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): X.X "+screenMode+", success: "+success+
+                                   " - dt0 "+t0+"ms, dt1 "+t1+"ms");
+            }
+        } finally {
+            sms.unlock();
+        }
+        return success;
     }
 
     public void screenModeChangeNotify(ScreenMode sm) {
@@ -452,9 +453,21 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     /**
      * To be implemented by the native specification.<br>
      * Is called within a thread safe environment.<br>
+     * Default dummy implementation only set the current screen size, other values are dummy defaults.<br>
      */
     protected ScreenMode getCurrentScreenModeImpl() {
-        return null;
+        int[] props = new int[ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL];
+        int i = 0;
+        props[i++] = 0; // set later for verification of iterator
+        props[i++] = getWidth();  // width
+        props[i++] = getHeight(); // height
+        props[i++] = 32;   // bpp
+        props[i++] = 519;  // widthmm
+        props[i++] = 324;  // heightmm
+        props[i++] = 60;   // rate
+        props[i++] = 0;    // rot
+        props[i - ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL] = i; // count
+        return ScreenModeUtil.streamIn(props, 0);
     }
 
     /**
@@ -472,30 +485,25 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             sms = ScreenModeStatus.getScreenModeStatus(this.getFQName());
             if(null==sms) {                
                 IntIntHashMap screenModesIdx2NativeIdx = new IntIntHashMap();
+                final ScreenMode currentSM = getCurrentScreenModeImpl();
+                if(null == currentSM) {
+                    throw new InternalError("getCurrentScreenModeImpl() == null");
+                }
 
                 ArrayHashSet<ScreenMode> screenModes = collectNativeScreenModes(screenModesIdx2NativeIdx);
                 if(screenModes.size()==0) {
-                    ScreenMode sm0 = ( DEBUG_TEST_SCREENMODE_DISABLED ) ? null : getCurrentScreenModeImpl();
-                    if(null != sm0) {
-                        if(DEBUG) {
-                            System.err.println("ScreenImpl.initScreenModeStatus: added current (last resort, collect failed): "+sm0);
-                        }
-                        screenModes.getOrAdd(sm0);
-                    } else if(DEBUG) {
-                        System.err.println("ScreenImpl.initScreenModeStatus: Warning: No screen modes added!");
+                    if(DEBUG) {
+                        System.err.println("ScreenImpl.initScreenModeStatus: added current (last resort, collect failed): "+currentSM);
                     }
+                    screenModes.getOrAdd(currentSM);
                 }
+                
                 sms = new ScreenModeStatus(screenModes, screenModesIdx2NativeIdx);
-                if(screenModes.size()>0) {
-                    ScreenMode originalScreenMode = ( DEBUG_TEST_SCREENMODE_DISABLED ) ? null : getCurrentScreenModeImpl();
-                    if(null != originalScreenMode) {
-                        ScreenMode originalScreenMode0 = screenModes.get(originalScreenMode); // unify via value hash
-                        if(null == originalScreenMode0) {
-                            throw new RuntimeException(originalScreenMode+" could not be hashed from ScreenMode list");
-                        }
-                        sms.setOriginalScreenMode(originalScreenMode0);
-                    }
+                ScreenMode originalScreenMode0 = screenModes.get(currentSM); // unify via value hash
+                if(null == originalScreenMode0) {
+                    throw new RuntimeException(currentSM+" could not be hashed from ScreenMode list");
                 }
+                sms.setOriginalScreenMode(originalScreenMode0);
                 ScreenModeStatus.mapScreenModeStatus(this.getFQName(), sms);
             }
         } finally {

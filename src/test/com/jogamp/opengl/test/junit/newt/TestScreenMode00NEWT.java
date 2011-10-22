@@ -103,26 +103,21 @@ public class TestScreenMode00NEWT extends UITestCase {
         Screen screen = window.getScreen();
 
         List<ScreenMode> screenModes = screen.getScreenModes();
-        if(null != screenModes) {
-            Assert.assertTrue(screenModes.size()>0);
-            int i=0;
-            for(Iterator<ScreenMode> iter=screenModes.iterator(); iter.hasNext(); i++) {
-                System.err.println(i+": "+iter.next());
-            }
-            ScreenMode sm_o = screen.getOriginalScreenMode();
-            Assert.assertNotNull(sm_o);            
-            ScreenMode sm_c = screen.getCurrentScreenMode();
-            Assert.assertNotNull(sm_c);
-            System.err.println("orig SM: "+sm_o);
-            System.err.println("curr SM: "+sm_c);
-            System.err.println("curr sz: "+screen.getWidth()+"x"+screen.getHeight());
-            Assert.assertEquals(sm_o, sm_c);
-            Assert.assertEquals(sm_c.getRotatedWidth(), screen.getWidth());
-            Assert.assertEquals(sm_c.getRotatedHeight(), screen.getHeight());
-        } else {
-            // no support ..
-            System.err.println("Your platform has no ScreenMode change support, sorry");
+        Assert.assertTrue(screenModes.size()>0);
+        int i=0;
+        for(Iterator<ScreenMode> iter=screenModes.iterator(); iter.hasNext(); i++) {
+            System.err.println(i+": "+iter.next());
         }
+        ScreenMode sm_o = screen.getOriginalScreenMode();
+        Assert.assertNotNull(sm_o);            
+        ScreenMode sm_c = screen.getCurrentScreenMode();
+        Assert.assertNotNull(sm_c);
+        System.err.println("orig SM: "+sm_o);
+        System.err.println("curr SM: "+sm_c);
+        System.err.println("curr sz: "+screen.getWidth()+"x"+screen.getHeight());
+        Assert.assertEquals(sm_o, sm_c);
+        Assert.assertEquals(sm_c.getRotatedWidth(), screen.getWidth());
+        Assert.assertEquals(sm_c.getRotatedHeight(), screen.getHeight());
 
         window.destroy();
 
