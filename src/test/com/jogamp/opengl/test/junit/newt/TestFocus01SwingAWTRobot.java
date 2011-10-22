@@ -57,7 +57,7 @@ import com.jogamp.opengl.test.junit.util.*;
 
 public class TestFocus01SwingAWTRobot extends UITestCase {
     static int width, height;
-    static long durationPerTest = 800;
+    static long durationPerTest = 10;
     static long awtWaitTimeout = 1000;
 
     static GLCapabilities glCaps;
@@ -130,6 +130,8 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         frame1.setVisible(true);
         Assert.assertTrue(AWTRobotUtil.toFront(robot, frame1));
 
+        Thread.sleep(durationPerTest); // manual testing
+        
         int wait=0;
         while(wait<awtWaitTimeout/100 && glWindow1.getTotalFPSFrames()<1) { Thread.sleep(awtWaitTimeout/10); wait++; }
         System.err.println("Frames for initial setVisible(true): "+glWindow1.getTotalFPSFrames());

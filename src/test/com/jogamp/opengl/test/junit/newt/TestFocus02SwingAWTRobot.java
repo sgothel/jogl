@@ -58,6 +58,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 public class TestFocus02SwingAWTRobot extends UITestCase {
     static int width, height;
+    static long durationPerTest = 10;
     static long awtWaitTimeout = 1000;
     static GLCapabilities glCaps;
 
@@ -165,6 +166,8 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         animator1.start();
         AWTRobotUtil.assertRequestFocusAndWait(robot, jFrame1, jFrame1, jFrame1FA, null);
 
+        Thread.sleep(durationPerTest); // manual testing
+        
         // Button Outer Focus
         Thread.sleep(100); // allow event sync
         System.err.println("FOCUS AWT  Button Outer request");
@@ -285,6 +288,11 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
     public static void main(String args[]) 
         throws IOException, AWTException, InterruptedException, InvocationTargetException 
     {
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-time")) {
+                durationPerTest = atoi(args[++i]);
+            }
+        }
         if(true) {
             String tstname = TestFocus02SwingAWTRobot.class.getName();
             org.junit.runner.JUnitCore.main(tstname);
