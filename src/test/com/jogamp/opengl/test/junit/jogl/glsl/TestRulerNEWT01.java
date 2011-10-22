@@ -28,6 +28,7 @@
 package com.jogamp.opengl.test.junit.jogl.glsl;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.util.MonitorMode;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -105,7 +106,13 @@ public class TestRulerNEWT01 extends UITestCase {
         st.uniform(gl, rulerColor);        
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
-        final MonitorMode mmode = winctx.window.getScreen().getCurrentScreenMode().getMonitorMode();
+        Assert.assertNotNull(winctx);
+        Assert.assertNotNull(winctx.window);
+        Assert.assertNotNull(winctx.window.getScreen());
+        ScreenMode sm = winctx.window.getScreen().getCurrentScreenMode();
+        Assert.assertNotNull(sm);
+        System.err.println(sm);
+        final MonitorMode mmode = sm.getMonitorMode();
         final DimensionImmutable sdim = mmode.getScreenSizeMM();
         final DimensionImmutable spix = mmode.getSurfaceSize().getResolution();   
         final GLUniformData rulerPixFreq = new GLUniformData("gcu_RulerPixFreq", 2, Buffers.newDirectFloatBuffer(2));
