@@ -21,6 +21,6 @@ typedef double          GLdouble;       /* double precision float */
 typedef double          GLclampd;       /* double precision float in [0,1] */
 
 #define CGDLL_API 
-#include <CG/cgGL.h>
+#include <Cg/cgGL.h>
 
 

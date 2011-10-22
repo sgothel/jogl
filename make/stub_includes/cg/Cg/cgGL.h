@@ -54,7 +54,7 @@
 
 
 
-#include <CG/cg.h>
+#include <Cg/cg.h>
 
 /* Set up for either Win32 import/export/lib. */
 #ifndef CGGLDLL_API

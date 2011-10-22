@@ -78,7 +78,7 @@
 
 #define CG_IN_PROFILES_INCLUDE
 
-#include <CG/cgGL_profiles.h>
+#include <Cg/cgGL_profiles.h>
 
 
 /*CG_PROFILE_MACRO(DX9Vertex11,vs_1_1,*/CG_PROFILE_VS_1_1=/*,"vs_1_1",*/6153,//1)
