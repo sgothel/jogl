@@ -478,15 +478,15 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_requestFocus0
 
     DBG_PRINT( "requestFocus - window: %p, force %d, hasFocus %d (START)\n", win, force, hasFocus);
 
-    if( JNI_TRUE==force || !hasFocus ) {
-        if( JNI_TRUE==force || JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
-            DBG_PRINT( "makeKeyWindow win %p\n", win);
-            // [win performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:YES];
-            // [win performSelectorOnMainThread:@selector(makeKeyWindow) withObject:nil waitUntilDone:YES];
-            [win orderFrontRegardless];
-            [win makeKeyWindow];
-            [win makeFirstResponder: nil];
-        }
+    // even if we already own the focus, we need the 'focusAction()' call
+    // and the other probably redundant NS calls don't harm.
+    if( JNI_TRUE==force || JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
+        DBG_PRINT( "makeKeyWindow win %p\n", win);
+        // [win performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:YES];
+        // [win performSelectorOnMainThread:@selector(makeKeyWindow) withObject:nil waitUntilDone:YES];
+        [win orderFrontRegardless];
+        [win makeKeyWindow];
+        [win makeFirstResponder: nil];
     }
 
     DBG_PRINT( "requestFocus - window: %p, force %d (END)\n", win, force);

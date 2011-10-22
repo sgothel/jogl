@@ -600,19 +600,20 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, HWND hwnd, jb
     current = GetFocus();
     DBG_PRINT("*** WindowsWindow: requestFocus.S parent %p, window %p, isCurrent %d\n", 
         (void*) pHwnd, (void*)hwnd, current==hwnd);
-    if( JNI_TRUE==force || current!=hwnd) {
-        if( JNI_TRUE==force || JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
-            UINT flags = SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE;
-            SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, flags);
-            SetForegroundWindow(hwnd);  // Slightly Higher Priority
-            SetFocus(hwnd);// Sets Keyboard Focus To Window
-            if(NULL!=pHwnd) {
-                SetActiveWindow(hwnd);
-            }
-            DBG_PRINT("*** WindowsWindow: requestFocus.X1\n");
-        } else {
-            DBG_PRINT("*** WindowsWindow: requestFocus.X0\n");
+
+    // even if we already own the focus, we need the 'focusAction()' call
+    // and the other probably redundant GDI calls don't harm.
+    if( JNI_TRUE==force || JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
+        UINT flags = SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE;
+        SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, flags);
+        SetForegroundWindow(hwnd);  // Slightly Higher Priority
+        SetFocus(hwnd);// Sets Keyboard Focus To Window
+        if(NULL!=pHwnd) {
+            SetActiveWindow(hwnd);
         }
+        DBG_PRINT("*** WindowsWindow: requestFocus.X1\n");
+    } else {
+        DBG_PRINT("*** WindowsWindow: requestFocus.X0\n");
     }
     DBG_PRINT("*** WindowsWindow: requestFocus.XX\n");
 }

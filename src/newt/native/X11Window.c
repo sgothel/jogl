@@ -531,20 +531,20 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, Display *dpy,
     Window focus_return;
     int revert_to_return;
 
-    DBG_PRINT( "X11: requestFocus dpy %p,win %p, force %d\n", dpy, (void*)w, force);
-
     XGetInputFocus(dpy, &focus_return, &revert_to_return);
-    if( JNI_TRUE==force || focus_return!=w) {
-        if( JNI_TRUE==force || JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
-            DBG_PRINT( "X11: XRaiseWindow dpy %p, win %p\n", dpy, (void*)w);
-            XRaiseWindow(dpy, w);
-            NewtWindows_setCWAbove(dpy, w);
-            // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
-            XGetWindowAttributes(dpy, w, &xwa);
-            if(xwa.map_state == IsViewable) {
-                DBG_PRINT( "X11: XSetInputFocus dpy %p,win %pd\n", dpy, (void*)w);
-                XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
-            }
+    DBG_PRINT( "X11: requestFocus dpy %p,win %p, force %d, hasFocus %d\n", dpy, (void*)w, force, focus_return==w);
+
+    // even if we already own the focus, we need the 'focusAction()' call
+    // and the other probably redundant X11 calls don't harm.
+    if( JNI_TRUE==force || JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
+        DBG_PRINT( "X11: XRaiseWindow dpy %p, win %p\n", dpy, (void*)w);
+        XRaiseWindow(dpy, w);
+        NewtWindows_setCWAbove(dpy, w);
+        // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
+        XGetWindowAttributes(dpy, w, &xwa);
+        if(xwa.map_state == IsViewable) {
+            DBG_PRINT( "X11: XSetInputFocus dpy %p,win %pd\n", dpy, (void*)w);
+            XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
         }
     }
     DBG_PRINT( "X11: requestFocus dpy %p,win %p, force %d - FIN\n", dpy, (void*)w, force);
