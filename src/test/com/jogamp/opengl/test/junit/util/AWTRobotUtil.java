@@ -47,7 +47,7 @@ public class AWTRobotUtil {
     
     public static final int RETRY_NUMBER  =   5;
     public static final int ROBOT_DELAY   = 100; // ms
-    public static final int TIME_OUT     = 1000; // 1s
+    public static final int TIME_OUT     = 2000; // 2s
     public static final int POLL_DIVIDER   = 20; // TO/20
     public static final int TIME_SLICE   = TIME_OUT / POLL_DIVIDER ;
     public static Integer AWT_CLICK_TO = null; 
