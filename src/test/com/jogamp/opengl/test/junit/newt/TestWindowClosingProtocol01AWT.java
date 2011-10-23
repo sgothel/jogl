@@ -57,7 +57,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         GLCapabilities caps = new GLCapabilities(glp);
         final GLCanvas glCanvas = new GLCanvas(caps);
         glCanvas.addGLEventListener(new GearsES2());
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.add(glCanvas);
                 frame.pack();
@@ -94,7 +94,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         Assert.assertEquals(true,  frame.isVisible());
         Assert.assertEquals(false, glCanvas.isRealized());
 
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.dispose();
             } });
@@ -112,7 +112,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         frame.pack();
         frame.setSize(512, 512);
         frame.validate();
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.setVisible(true);
             } });
@@ -132,7 +132,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         Assert.assertEquals(true,  glCanvas.isValid());
         Assert.assertEquals(true,  glCanvas.isDisplayable());
 
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.setVisible(true);
             } });

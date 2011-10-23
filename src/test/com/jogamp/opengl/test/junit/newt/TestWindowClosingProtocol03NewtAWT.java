@@ -62,7 +62,7 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
 
         final NewtCanvasAWT newtCanvas = new NewtCanvasAWT(glWindow);
 
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.getContentPane().add(newtCanvas);
                 frame.pack();
@@ -94,7 +94,7 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
         Assert.assertEquals(true,  windowClosingListener.isWindowClosing());
         windowClosingListener.reset();
 
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.setVisible(true);
             } });

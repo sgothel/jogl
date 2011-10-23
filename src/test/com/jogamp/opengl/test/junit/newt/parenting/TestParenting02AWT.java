@@ -224,7 +224,10 @@ public class TestParenting02AWT extends UITestCase {
                     frame.validate();
                 }});
         }
-        frame.dispose();
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.dispose();
+            } } );
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {

@@ -129,7 +129,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         jFrame1.setContentPane(jPanel1);
         jFrame1.setSize(width, height);
         System.out.println("Demos: 1 - Visible");
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                jFrame1.setVisible(true);
            }
@@ -241,7 +241,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         jFrame1.setContentPane(jPanel1);
         jFrame1.setLocation(0, 0);
         jFrame1.setSize(width, height);
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                jFrame1.setVisible(true);
            }
@@ -260,7 +260,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         jFrame2.setContentPane(jPanel2);
         jFrame2.setLocation(640, 480);
         jFrame2.setSize(width, height);
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                jFrame2.setVisible(true);
            }

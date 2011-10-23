@@ -166,7 +166,10 @@ public class TestParenting03AWT extends UITestCase {
             Assert.assertEquals(null, animator2.getThread());
         }
 
-        frame1.dispose();
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame1.dispose();
+            } } );
         glWindow1.destroy();
         if(use2nd) {
             glWindow2.destroy();

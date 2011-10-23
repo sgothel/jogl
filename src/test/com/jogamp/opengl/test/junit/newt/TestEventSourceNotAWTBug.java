@@ -32,6 +32,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
@@ -54,7 +55,7 @@ public class TestEventSourceNotAWTBug extends UITestCase {
     }
 
     @Test
-    public void testEventSourceNotNewtBug() throws InterruptedException {
+    public void testEventSourceNotNewtBug() throws InterruptedException, InvocationTargetException {
         JFrame jf = new JFrame();
 
         jf.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -69,7 +70,7 @@ public class TestEventSourceNotAWTBug extends UITestCase {
 
         final JFrame f_jf = jf;
 
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 f_jf.setSize(800, 600);
                 f_jf.setVisible(true);
@@ -78,7 +79,7 @@ public class TestEventSourceNotAWTBug extends UITestCase {
 
         Thread.sleep(500);
 
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 f_jf.dispose();
             }

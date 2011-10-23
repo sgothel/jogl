@@ -45,6 +45,7 @@ import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
@@ -64,8 +65,8 @@ public class TestParenting01aAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting01CreateVisibleDestroy1() throws InterruptedException {
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+    public void testWindowParenting01CreateVisibleDestroy1() throws InterruptedException, InvocationTargetException {
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
@@ -75,7 +76,7 @@ public class TestParenting01aAWT extends UITestCase {
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
-        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
+        final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         Assert.assertNotNull(newtCanvasAWT);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
@@ -88,7 +89,7 @@ public class TestParenting01aAWT extends UITestCase {
         frame1.add(new Button("East"), BorderLayout.EAST);
         frame1.add(new Button("West"), BorderLayout.WEST);
 
-        Container container1 = new Container();
+        final Container container1 = new Container();
         container1.setLayout(new BorderLayout());
         container1.add(new Button("north"), BorderLayout.NORTH);
         container1.add(new Button("south"), BorderLayout.SOUTH);
@@ -100,33 +101,48 @@ public class TestParenting01aAWT extends UITestCase {
         frame1.setSize(width, height);
 
         // visible test
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame1.setVisible(true);
            }
         });
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
-        Animator animator1 = new Animator(glWindow1);
+        final Animator animator1 = new Animator(glWindow1);
         animator1.setUpdateFPSFrames(1, null);        
         animator1.start();
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow1, true));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow1, true));
+        
         while(animator1.isAnimating() && animator1.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
 
-        frame1.setVisible(false);
+        SwingUtilities.invokeAndWait(new Runnable() {
+           public void run() {
+               frame1.setVisible(false);
+           } } );        
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
-        frame1.setVisible(true);
+        SwingUtilities.invokeAndWait(new Runnable() {
+           public void run() {
+               frame1.setVisible(true);
+           } } );        
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
-        frame1.remove(newtCanvasAWT);
+        SwingUtilities.invokeAndWait(new Runnable() {
+           public void run() {
+               frame1.remove(newtCanvasAWT);
+           } } );
         // Assert.assertNull(glWindow1.getParent());
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
-        frame1.dispose();
+        SwingUtilities.invokeAndWait(new Runnable() {
+           public void run() {
+               frame1.dispose();
+           } } );
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
         glWindow1.destroy();
@@ -134,8 +150,8 @@ public class TestParenting01aAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting02CreateVisibleDestroy2Defered() throws InterruptedException {
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+    public void testWindowParenting02CreateVisibleDestroy2Defered() throws InterruptedException, InvocationTargetException {
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
@@ -155,13 +171,13 @@ public class TestParenting01aAWT extends UITestCase {
         frame.setSize(width, height);
 
         // visible test
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame.setVisible(true);
            }
         });
 
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame.add(newtCanvasAWT);
                frame.validate();
@@ -178,12 +194,15 @@ public class TestParenting01aAWT extends UITestCase {
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
 
-        frame.dispose();
+        SwingUtilities.invokeAndWait(new Runnable() {
+           public void run() {
+               frame.dispose();
+           } } );
         glWindow1.destroy();
     }
 
     @Test
-    public void testWindowParenting02CreateVisibleDestroy3Odd() throws InterruptedException {
+    public void testWindowParenting02CreateVisibleDestroy3Odd() throws InterruptedException, InvocationTargetException {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
@@ -196,13 +215,13 @@ public class TestParenting01aAWT extends UITestCase {
         frame.setSize(width, height);
 
         // visible test
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame.setVisible(true);
            }
         });
 
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame.add(newtCanvasAWT);
                frame.validate();
@@ -220,12 +239,15 @@ public class TestParenting01aAWT extends UITestCase {
 
         Assert.assertEquals(true, animator1.isAnimating()); // !!!
 
-        frame.dispose();
+        SwingUtilities.invokeAndWait(new Runnable() {
+           public void run() {
+               frame.dispose();
+           } } );
         glWindow1.destroy();
     }
 
     @Test
-    public void testWindowParenting03ReparentNewtWin2Top() throws InterruptedException {
+    public void testWindowParenting03ReparentNewtWin2Top() throws InterruptedException, InvocationTargetException {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
@@ -236,13 +258,13 @@ public class TestParenting01aAWT extends UITestCase {
         final Frame frame = new Frame("AWT Parent Frame");
         frame.setSize(width, height);
         frame.setLocation(640, 480);
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame.setVisible(true);
            }
         });
 
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame.add(newtCanvasAWT);
                frame.validate();
@@ -276,12 +298,15 @@ public class TestParenting01aAWT extends UITestCase {
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
 
-        frame.dispose();
+        SwingUtilities.invokeAndWait(new Runnable() {
+           public void run() {
+               frame.dispose();
+           } } );
         glWindow1.destroy();
     }
 
     @Test
-    public void testWindowParenting04ReparentNewtWin2TopLayouted() throws InterruptedException {
+    public void testWindowParenting04ReparentNewtWin2TopLayouted() throws InterruptedException, InvocationTargetException {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
@@ -298,13 +323,13 @@ public class TestParenting01aAWT extends UITestCase {
         frame.setSize(width, height);
         frame.setLocation(640, 480);
         
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame.setVisible(true);
            }
         });
 
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame.add(newtCanvasAWT, BorderLayout.CENTER);
                frame.validate();
@@ -338,12 +363,15 @@ public class TestParenting01aAWT extends UITestCase {
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
 
-        frame.dispose();
+        SwingUtilities.invokeAndWait(new Runnable() {
+           public void run() {
+               frame.dispose();
+           } } );
         glWindow1.destroy();
     }
 
     @Test
-    public void testWindowParenting05ReparentAWTWinHopFrame2Frame() throws InterruptedException {
+    public void testWindowParenting05ReparentAWTWinHopFrame2Frame() throws InterruptedException, InvocationTargetException {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUndecorated(true);
         GLEventListener demo1 = new RedSquareES2();
@@ -360,7 +388,7 @@ public class TestParenting01aAWT extends UITestCase {
         frame1.add(new Button("West"), BorderLayout.WEST);
         frame1.setSize(width, height);
         frame1.setLocation(0, 0);
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame1.setVisible(true);
            }
@@ -374,13 +402,13 @@ public class TestParenting01aAWT extends UITestCase {
         frame2.add(new Button("West"), BorderLayout.WEST);
         frame2.setSize(width, height);
         frame2.setLocation(640, 480);
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame2.setVisible(true);
            }
         });
 
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame1.add(newtCanvasAWT, BorderLayout.CENTER);
                frame1.validate();
@@ -398,7 +426,7 @@ public class TestParenting01aAWT extends UITestCase {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
-                    SwingUtilities.invokeLater(new Runnable() {
+                    SwingUtilities.invokeAndWait(new Runnable() {
                         public void run() {
                             frame1.remove(newtCanvasAWT);
                             frame2.add(newtCanvasAWT, BorderLayout.CENTER);
@@ -408,7 +436,7 @@ public class TestParenting01aAWT extends UITestCase {
                     });                    
                     break;
                 case 1:
-                    SwingUtilities.invokeLater(new Runnable() {
+                    SwingUtilities.invokeAndWait(new Runnable() {
                         public void run() {
                             frame2.remove(newtCanvasAWT);
                             frame1.add(newtCanvasAWT, BorderLayout.CENTER);
@@ -424,8 +452,11 @@ public class TestParenting01aAWT extends UITestCase {
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
 
-        frame1.dispose();
-        frame2.dispose();
+        SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame1.dispose();
+                frame2.dispose();
+            } } );
         glWindow1.destroy();
     }
 

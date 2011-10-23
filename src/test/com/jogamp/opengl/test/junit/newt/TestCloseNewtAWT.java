@@ -97,7 +97,7 @@ public class TestCloseNewtAWT extends UITestCase {
         newtWindow = GLWindow.create(new GLCapabilities(GLProfile.getDefault()));
         newtCanvas = new MyCanvas(newtWindow);
 
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame = new JFrame("NEWT Close Test");
                 frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -107,7 +107,7 @@ public class TestCloseNewtAWT extends UITestCase {
                 frame.setVisible(true);
             }
         });
-        Thread.sleep(1000);
+        Thread.sleep(500);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true));
 
