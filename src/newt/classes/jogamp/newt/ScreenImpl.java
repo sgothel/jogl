@@ -311,7 +311,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         if(null == sms) {
             throw new InternalError("ScreenModeStatus.getScreenModeStatus("+this.getFQName()+") == null");            
         }
-        ScreenMode sm0 = getCurrentScreenModeImpl();
+        ScreenMode sm0 = getCurrentScreenModeIntern();
         if(null == sm0) {
             throw new InternalError("getCurrentScreenModeImpl() == null");
         }
@@ -453,21 +453,32 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     /**
      * To be implemented by the native specification.<br>
      * Is called within a thread safe environment.<br>
-     * Default dummy implementation only set the current screen size, other values are dummy defaults.<br>
      */
     protected ScreenMode getCurrentScreenModeImpl() {
-        int[] props = new int[ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL];
-        int i = 0;
-        props[i++] = 0; // set later for verification of iterator
-        props[i++] = getWidth();  // width
-        props[i++] = getHeight(); // height
-        props[i++] = 32;   // bpp
-        props[i++] = 519;  // widthmm
-        props[i++] = 324;  // heightmm
-        props[i++] = 60;   // rate
-        props[i++] = 0;    // rot
-        props[i - ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL] = i; // count
-        return ScreenModeUtil.streamIn(props, 0);
+        return null;
+    }
+    
+    /**
+     * Utilizes {@link #getCurrentScreenModeImpl()}, if the latter returns null it uses
+     * the current screen size and dummy values.
+     */
+    protected ScreenMode getCurrentScreenModeIntern() {
+        ScreenMode res = getCurrentScreenModeImpl();
+        if(null == res) {
+            int[] props = new int[ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL];
+            int i = 0;
+            props[i++] = 0; // set later for verification of iterator
+            props[i++] = getWidth();  // width
+            props[i++] = getHeight(); // height
+            props[i++] = 32;   // bpp
+            props[i++] = 519;  // widthmm
+            props[i++] = 324;  // heightmm
+            props[i++] = 60;   // rate
+            props[i++] = 0;    // rot
+            props[i - ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL] = i; // count
+            res = ScreenModeUtil.streamIn(props, 0);
+        }
+        return res;
     }
 
     /**
@@ -485,7 +496,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             sms = ScreenModeStatus.getScreenModeStatus(this.getFQName());
             if(null==sms) {                
                 IntIntHashMap screenModesIdx2NativeIdx = new IntIntHashMap();
-                final ScreenMode currentSM = getCurrentScreenModeImpl();
+                final ScreenMode currentSM = getCurrentScreenModeIntern();
                 if(null == currentSM) {
                     throw new InternalError("getCurrentScreenModeImpl() == null");
                 }

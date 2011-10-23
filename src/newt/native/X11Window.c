@@ -1159,6 +1159,8 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getNumScreenModeRes
     int num_sizes;   
     XRRScreenSize *xrrs = XRRSizes(dpy, (int)scrn_idx, &num_sizes); //get possible screen resolutions
     
+    DBG_PRINT("getNumScreenModeResolutions0: %d\n", num_sizes);
+
     return num_sizes;
 }
 
@@ -1272,6 +1274,8 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenRat
     //free
     XRRFreeScreenConfigInfo(conf);
     
+    DBG_PRINT("getCurrentScreenRate0: %d\n", (int)original_rate);
+
     return (jint) original_rate;
 }
 
@@ -1330,6 +1334,7 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenRes
    //free
    XRRFreeScreenConfigInfo(conf);
    
+   DBG_PRINT("getCurrentScreenResolutionIndex0: %d\n", (int)original_size_id);
    return (jint)original_size_id;   
 }
 
