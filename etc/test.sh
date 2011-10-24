@@ -24,6 +24,8 @@ echo
 echo CLASSPATH: $CLASSPATH
 echo
 
+# D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
+#
 # D_ARGS="-Djogamp.debug.TraceLock"
 # D_ARGS="-Dnewt.debug.EDT -Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.NativeWindow"
 # D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
