@@ -377,7 +377,7 @@ public abstract class GLContext {
    */
   public String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.append(getClass().getName());
+    sb.append(getClass().getSimpleName());
     sb.append(" [");
     this.append(sb);
     sb.append("] ");

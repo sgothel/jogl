@@ -195,7 +195,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   public String toString() {
-    return getClass().getName()+"[Realized "+isRealized()+
+    return getClass().getSimpleName()+"[Realized "+isRealized()+
                 ",\n\tFactory   "+getFactory()+
                 ",\n\thandle    "+toHexString(getHandle())+
                 ",\n\tWindow    "+getNativeSurface()+"]";

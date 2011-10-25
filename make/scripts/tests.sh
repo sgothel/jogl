@@ -45,6 +45,8 @@ echo MacOsX $MOSX
 function jrun() {
     awton=$1
     shift
+    swton=$1
+    shift
 
     #D_ARGS="-Djogl.debug.ExtensionAvailabilityCache -Djogl.debug=all -Dnativewindow.debug=all -Djogamp.debug.ProcAddressHelper=true -Djogamp.debug.NativeLibrary=true -Djogamp.debug.NativeLibrary.Lookup=true"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
@@ -113,7 +115,9 @@ function jrun() {
     fi
     if [ $MOSX_MT -eq 1 ] ; then
         X_ARGS="-XstartOnFirstThread $X_ARGS"
-        C_ARG="com.jogamp.newt.util.MainThread"
+        if [ $swton -eq 0 ] ; then
+            C_ARG="com.jogamp.newt.util.MainThread"
+        fi
     fi
     echo
     echo "Test Start: $*"
@@ -133,16 +137,16 @@ function jrun() {
 }
 
 function testnoawt() {
-    jrun 0 $* 2>&1 | tee -a java-run.log
+    jrun 0 0 $* 2>&1 | tee -a java-run.log
 }
 
 function testawt() {
     MOSX_MT=0
-    jrun 1 $* 2>&1 | tee -a java-run.log
+    jrun 1 0 $* 2>&1 | tee -a java-run.log
 }
 
-function testawtmt() {
-    jrun 1 $* 2>&1 | tee -a java-run.log
+function testswt() {
+    jrun 0 1 $* 2>&1 | tee -a java-run.log
 }
 
 #
@@ -185,9 +189,6 @@ function testawtmt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
 #testnoawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
-#testnoawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn $*
-
 
 #
 # awt (testawt)
@@ -208,6 +209,11 @@ function testawtmt() {
 #testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug463ScaleImageMemoryAWT $*
 
+#
+# swt (testswt)
+#
+#testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
+#testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn $*
 
 #
 # newt.awt (testawt)
@@ -242,7 +248,7 @@ function testawtmt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01 $*
+testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01 $*
 
 #testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
@@ -261,11 +267,7 @@ function testawtmt() {
 #
 # regressions
 #
-#testnoawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn $*
-#testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
-#testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
-testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
+#testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 
 
 $spath/count-edt-start.sh java-run.log

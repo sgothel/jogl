@@ -40,19 +40,28 @@
 
 package jogamp.opengl.macosx.cgl;
 
-import javax.media.opengl.*;
-import jogamp.opengl.*;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.DefaultGraphicsScreen;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
 
-import javax.media.nativewindow.*;
 import jogamp.nativewindow.WrappedSurface;
+import jogamp.opengl.GLContextShareSet;
+import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.GLBackendType;
+
 
 public class MacOSXExternalCGLContext extends MacOSXCGLContext {
   private GLContext lastContext;
 
   private MacOSXExternalCGLContext(Drawable drawable, boolean isNSContext, long handle) {
     super(drawable, null);
+    setOpenGLMode(isNSContext ? GLBackendType.NSOPENGL : GLBackendType.CGL );
     drawable.setExternalCGLContext(this);
-    this.isNSContext = isNSContext;
     this.contextHandle = handle;
     GLContextShareSet.contextCreated(this);
     setGLFunctionAvailability(false, true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
@@ -139,15 +148,6 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
   protected void destroyImpl() throws GLException {
   }
 
-  public void setOpenGLMode(int mode) {
-    if (mode != MacOSXCGLDrawable.CGL_MODE)
-      throw new GLException("OpenGL mode switching not supported for external GLContexts");
-  }
-    
-  public int  getOpenGLMode() {
-    return MacOSXCGLDrawable.CGL_MODE;
-  }
-
   // Need to provide the display connection to extension querying APIs
   static class Drawable extends MacOSXCGLDrawable {
     MacOSXExternalCGLContext extCtx;
@@ -180,15 +180,6 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
       if (extCtx != null) {
         extCtx.swapBuffers();
       }
-    }
-  
-    public void setOpenGLMode(int mode) {
-        if (mode != CGL_MODE)
-          throw new GLException("OpenGL mode switching not supported for external GLContext's drawables");
-    }
-
-    public int  getOpenGLMode() {
-        return CGL_MODE;
-    }
+    }  
   }
 }

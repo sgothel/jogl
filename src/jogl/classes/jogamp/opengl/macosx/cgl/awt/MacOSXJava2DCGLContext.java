@@ -39,12 +39,16 @@
 
 package jogamp.opengl.macosx.cgl.awt;
 
-import jogamp.opengl.macosx.cgl.*;
-
 import java.awt.Graphics;
-import javax.media.opengl.*;
-import jogamp.opengl.*;
-import jogamp.opengl.awt.*;
+
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLException;
+
+import jogamp.opengl.awt.Java2D;
+import jogamp.opengl.awt.Java2DGLContext;
+import jogamp.opengl.macosx.cgl.MacOSXCGLContext;
+import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.GLBackendType;
+
 
 /** MacOSXCGLContext implementation supporting the Java2D/JOGL bridge
  * on Mac OS X. The external GLDrawable mechanism does not work on Mac
@@ -76,37 +80,14 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
   }
 
   protected boolean createImpl() {
-    // Find and configure share context
-    MacOSXCGLContext other = (MacOSXCGLContext) GLContextShareSet.getShareContext(this);
-    long share = 0;
-    if (other != null) {
-      // Reconfigure pbuffer-based GLContexts
-      if (other instanceof MacOSXPbufferCGLContext) {
-        MacOSXPbufferCGLContext ctx = (MacOSXPbufferCGLContext) other;
-        ctx.setOpenGLMode(MacOSXCGLDrawable.CGL_MODE);
-      } else {
-        if (other.getOpenGLMode() != MacOSXCGLDrawable.CGL_MODE) {
-          throw new GLException("Can't share between NSOpenGLContexts and CGLContextObjs");
-        }
-      }
-      share = other.getHandle();
-      // Note we don't check for a 0 return value, since switching
-      // the context's mode causes it to be destroyed and not
-      // re-initialized until the next makeCurrent
-    }
-
-    if (DEBUG) {
-      System.err.println("!!! Share context is " + toHexString(share) + " for " + getClass().getName());
-    }
-
+    long share = createImplPreset();
+    
     long ctx = Java2D.createOGLContextOnSurface(graphics, share);
     if (ctx == 0) {
       return false;
     }
     setGLFunctionAvailability(true, true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY); // use GL_VERSION
-    // FIXME: think about GLContext sharing
     contextHandle = ctx;
-    isNSContext = true;
     return true;
   }
 
@@ -120,12 +101,10 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
       Java2D.destroyOGLContext(contextHandle);
   }
 
-  public void setOpenGLMode(int mode) {
-    if (mode != MacOSXCGLDrawable.CGL_MODE)
+  public void setOpenGLMode(GLBackendType mode) {
+    if (mode != GLBackendType.CGL) {
       throw new GLException("OpenGL mode switching not supported for Java2D GLContexts");
-  }
-
-  public int  getOpenGLMode() {
-    return MacOSXCGLDrawable.CGL_MODE;
+    }
+    super.setOpenGLMode(mode);
   }
 }

@@ -63,9 +63,6 @@ public class TestFBOMRTNEWT01 extends UITestCase {
     
     @Test
     public void test01() throws InterruptedException {
-        if(Platform.getOSType() == Platform.OSType.MACOS) {
-            throw new RuntimeException("On OSX: Triggers Bus Error (Illegal Memory Access) @ glDrawArrays(..)");
-        }
         // preset ..
         final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(GLProfile.getGL2ES2(), 640, 480, true);        
         final GLDrawable drawable = winctx.context.getGLDrawable();

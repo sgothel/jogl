@@ -642,7 +642,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   public String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.append(getClass().getName());
+    sb.append(getClass().getSimpleName());
     sb.append(" [");
     super.append(sb);
     sb.append(", direct ");

@@ -41,51 +41,43 @@
 package jogamp.opengl.macosx.cgl;
 
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
 
 public class MacOSXOnscreenCGLDrawable extends MacOSXCGLDrawable {
-  private List/*<WeakReference<GLContext>>*/ createdContexts =
-    new ArrayList();
+  private List<WeakReference<MacOSXCGLContext>> createdContexts = new ArrayList<WeakReference<MacOSXCGLContext>>();
 
   protected MacOSXOnscreenCGLDrawable(GLDrawableFactory factory, NativeSurface component) {
     super(factory, component, false);
   }
 
   public GLContext createContext(GLContext shareWith) {
-    MacOSXOnscreenCGLContext context =
-      new MacOSXOnscreenCGLContext(this, shareWith);
+    MacOSXOnscreenCGLContext ctx= new MacOSXOnscreenCGLContext(this, shareWith);
     // NOTE: we need to keep track of the created contexts in order to
     // implement swapBuffers() because of how Mac OS X implements its
     // OpenGL window interface
-    synchronized (this) {
-      List newContexts = new ArrayList();
-      newContexts.addAll(createdContexts);
-      newContexts.add(new WeakReference(context));
-      createdContexts = newContexts;
+    synchronized (createdContexts) {
+      createdContexts.add(new WeakReference<MacOSXCGLContext>(ctx));
     }
-    return context;
+    return ctx;
   }
 
   protected void swapBuffersImpl() {
-    for (Iterator iter = createdContexts.iterator(); iter.hasNext(); ) {
-      WeakReference ref = (WeakReference) iter.next();
-      MacOSXOnscreenCGLContext ctx = (MacOSXOnscreenCGLContext) ref.get();
-      // FIXME: clear out unreachable contexts
-      if (ctx != null) {
-        ctx.swapBuffers();
-      }
+    synchronized (createdContexts) {
+        for (Iterator<WeakReference<MacOSXCGLContext>> iter = createdContexts.iterator(); iter.hasNext(); ) {
+          WeakReference<MacOSXCGLContext> ref = iter.next();
+          MacOSXCGLContext ctx = ref.get();
+          if (ctx != null) {
+            ctx.swapBuffers();
+          } else {
+            iter.remove();
+          }
+        }
     }
-  }
-  
-  public void setOpenGLMode(int mode) {
-    if (mode != NSOPENGL_MODE)
-      throw new GLException("OpenGL mode switching not supported for on-screen GLDrawables");
-  }
-
-  public int  getOpenGLMode() {
-    return NSOPENGL_MODE;
-  }
+  }  
 }

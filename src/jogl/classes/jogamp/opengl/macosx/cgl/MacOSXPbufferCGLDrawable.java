@@ -40,20 +40,39 @@
 
 package jogamp.opengl.macosx.cgl;
 
+import javax.media.nativewindow.DefaultGraphicsConfiguration;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+
+import jogamp.opengl.Debug;
+
 import com.jogamp.common.nio.PointerBuffer;
-import javax.media.opengl.*;
-import javax.media.nativewindow.*;
-import jogamp.opengl.*;
+
 
 public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   private static final boolean DEBUG = Debug.debug("MacOSXPbufferCGLDrawable");
+  
+  // Abstract interface for implementation of this drawable (either
+  // NSOpenGL-based or CGL-based)
+  interface GLBackendImpl {
+    public long create(int renderTarget, int internalFormat, int width, int height);
+    public void destroy(long pbuffer);
+  }
+
+  // Implementation object (either NSOpenGL-based or CGL-based)
+  protected GLBackendImpl impl;
   
   // State for render-to-texture and render-to-texture-rectangle support
   // private int textureTarget; // e.g. GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_NV
   // private int texture;       // actual texture object
 
-  // NSOpenGLPbuffer (for normal mode)
-  // CGLPbufferObj (for CGL_MODE situation, i.e., when Java2D/JOGL bridge is active)
   // Note that we can not store this in the NativeSurface because the
   // semantic is that contains an NSView
   protected long pBuffer;
@@ -65,7 +84,6 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
         System.out.println("Pbuffer config: " + getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration());
     }
 
-    initOpenGLImpl();
     createPbuffer();
 
     if (DEBUG) {
@@ -163,62 +181,26 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     return (1<<power);
   }
 
-  //---------------------------------------------------------------------------
-  // OpenGL "mode switching" functionality
-  //
-  private boolean haveSetOpenGLMode = false;
-  // FIXME: should consider switching the default mode based on
-  // whether the Java2D/JOGL bridge is active -- need to ask ourselves
-  // whether it's more likely that we will share with a GLCanvas or a
-  // GLJPanel when the bridge is turned on
-  private int     openGLMode = NSOPENGL_MODE;
-  // Implementation object (either NSOpenGL-based or CGL-based)
-  protected Impl impl;
-
-  public void setOpenGLMode(int mode) {
-    if (mode == openGLMode) {
-      return;
-    }
-    if (haveSetOpenGLMode) {
-      throw new GLException("Can't switch between using NSOpenGLPixelBuffer and CGLPBufferObj more than once");
-    }
-    destroyImpl();
-    openGLMode = mode;
-    haveSetOpenGLMode = true;
-    if (DEBUG) {
-      System.err.println("Switching PBuffer drawable mode to " +
-                         ((mode == MacOSXCGLDrawable.NSOPENGL_MODE) ? "NSOPENGL_MODE" : "CGL_MODE"));
-    }
-    initOpenGLImpl();
-    createPbuffer();
+  public void setOpenGLMode(GLBackendType mode) {
+    super.setOpenGLMode(mode);
+    createPbuffer(); // recreate
   }
 
-  public int getOpenGLMode() {
-    return openGLMode;
-  }
-
-  private void initOpenGLImpl() {
-    switch (openGLMode) {
-      case NSOPENGL_MODE:
+  protected void initOpenGLImpl(GLBackendType backend) {
+    switch (backend) {
+      case NSOPENGL:
         impl = new NSOpenGLImpl();
         break;
-      case CGL_MODE:
+      case CGL:
         impl = new CGLImpl();
         break;
       default:
-        throw new InternalError("Illegal implementation mode " + openGLMode);
+        throw new InternalError("Illegal implementation mode " + backend);
     }
-  }
-
-  // Abstract interface for implementation of this drawable (either
-  // NSOpenGL-based or CGL-based)
-  interface Impl {
-    public long create(int renderTarget, int internalFormat, int width, int height);
-    public void destroy(long pbuffer);
-  }
-
+  }  
+  
   // NSOpenGLPixelBuffer implementation
-  class NSOpenGLImpl implements Impl {
+  class NSOpenGLImpl implements GLBackendImpl {
     public long create(int renderTarget, int internalFormat, int width, int height) {
       return CGL.createPBuffer(renderTarget, internalFormat, width, height);
     }
@@ -229,7 +211,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   // CGL implementation
-  class CGLImpl implements Impl {
+  class CGLImpl implements GLBackendImpl {
     public long create(int renderTarget, int internalFormat, int width, int height) {
       PointerBuffer pbuffer = PointerBuffer.allocateDirect(1);
       int res = CGL.CGLCreatePBuffer(width, height, renderTarget, internalFormat, 0, pbuffer);
@@ -245,5 +227,6 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
         throw new GLException("Error destroying CGL-based pbuffer: error code " + res);
       }
     }
-  }
+  }  
+  
 }

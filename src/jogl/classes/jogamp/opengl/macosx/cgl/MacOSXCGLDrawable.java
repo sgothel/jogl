@@ -40,9 +40,12 @@
 
 package jogamp.opengl.macosx.cgl;
 
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
-import jogamp.opengl.*;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+
+import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.GLDynamicLookupHelper;
 
 public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   // The Java2D/OpenGL pipeline on OS X uses low-level CGLContextObjs
@@ -74,12 +77,23 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   // lifetime of a given GLPbuffer. This is not a fully general
   // solution (for example, you can't share textures among a
   // GLPbuffer, a GLJPanel and a GLCanvas simultaneously) but should
-  // be enough to get things off the ground.
-  public static final int NSOPENGL_MODE = 1;
-  public static final int CGL_MODE      = 2;
+  // be enough to get things off the ground.  
+  public enum GLBackendType {
+    NSOPENGL(0), CGL(1); 
+    
+    public final int id;
 
+    GLBackendType(int id){
+        this.id = id;
+    }
+  }
+
+  private boolean haveSetOpenGLMode = false;
+  private GLBackendType openGLMode = GLBackendType.NSOPENGL;
+  
   public MacOSXCGLDrawable(GLDrawableFactory factory, NativeSurface comp, boolean realized) {
     super(factory, comp, realized);
+    initOpenGLImpl(getOpenGLMode());    
  }
 
   protected void setRealizedImpl() {
@@ -93,7 +107,25 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
     return Thread.currentThread().getName();
   }
 
-  // Support for "mode switching" as per above
-  public abstract void setOpenGLMode(int mode);
-  public abstract int  getOpenGLMode();
+  // Support for "mode switching" as described in MacOSXCGLDrawable
+  public void setOpenGLMode(GLBackendType mode) {
+      if (mode == openGLMode) {
+        return;
+      }
+      if (haveSetOpenGLMode) {
+        throw new GLException("Can't switch between using NSOpenGLPixelBuffer and CGLPBufferObj more than once");
+      }
+    
+      destroyImpl();
+      if (DEBUG) {
+        System.err.println("Switching context mode " + openGLMode + " -> " + mode);
+      }
+      initOpenGLImpl(mode);
+      openGLMode = mode;
+      haveSetOpenGLMode = true;      
+  }
+  public final GLBackendType getOpenGLMode() { return openGLMode; }
+
+  protected void initOpenGLImpl(GLBackendType backend) { /* nop */ }
+  
 }

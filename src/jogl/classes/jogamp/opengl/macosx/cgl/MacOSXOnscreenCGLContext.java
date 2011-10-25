@@ -56,18 +56,6 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
   }
     
   @Override
-  protected void releaseImpl() throws GLException {
-    super.releaseImpl();
-  }
-
-  @Override
-  protected void swapBuffers() {
-    if (!CGL.flushBuffer(contextHandle)) {
-      throw new GLException("Error swapping buffers");
-    }
-  }
-
-  @Override
   protected void drawableUpdatedNotify() throws GLException {
     if(0==updateHandle || CGL.updateContextNeedsUpdate(updateHandle)) {
         if (contextHandle == 0) {
@@ -81,11 +69,8 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
   
   @Override
   protected boolean createImpl() {
-    boolean res = create(false, false);
-    if(!isNSContext) {
-        throw new InternalError("XXX0");
-    }
-    if(res) {
+    boolean res = super.createImpl();
+    if(res && isNSContext()) {
         if(0 != updateHandle) {
             throw new InternalError("XXX1");
         }
@@ -104,16 +89,5 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
         updateHandle = 0;
     }
     super.destroyImpl();    
-  }
-  
-  @Override
-  public void setOpenGLMode(int mode) {
-    if (mode != MacOSXCGLDrawable.NSOPENGL_MODE)
-      throw new GLException("OpenGL mode switching not supported for on-screen GLContexts");
-  }
-    
-  @Override
-  public int  getOpenGLMode() {
-    return MacOSXCGLDrawable.NSOPENGL_MODE;
-  }
+  }  
 }
