@@ -552,7 +552,7 @@ public abstract class GLContextImpl extends GLContext {
     AbstractGraphicsDevice device = config.getScreen().getDevice();
     GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     GLProfile glp = glCaps.getGLProfile();
-    GLProfile glpImpl = GLProfile.get(glp.getImplName());
+    GLProfile glpImpl = glp.getImpl();
 
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! createContextARB: mappedVersionsAvailableSet("+device.getConnection()+"): "+

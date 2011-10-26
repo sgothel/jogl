@@ -416,31 +416,6 @@ public class GLProfile {
      */
     public static final String[] GL_PROFILE_LIST_MAX_PROGSHADER   = new String[] { GL4bc, GL4, GL3bc, GL3, GL2, GLES2 };
 
-    /**
-     * All GL2ES2 Profiles in the order of default detection.
-     *
-     * @see #GL_PROFILE_LIST_MAX_PROGSHADER
-     */
-    public static final String[] GL_PROFILE_LIST_GL2ES2 = GL_PROFILE_LIST_MAX_PROGSHADER;
-
-    /**
-     * All GL2ES1 Profiles in the order of default detection.
-     *
-     * @see #GL_PROFILE_LIST_MAX_FIXEDFUNC
-     */
-    public static final String[] GL_PROFILE_LIST_GL2ES1 = GL_PROFILE_LIST_MAX_FIXEDFUNC;
-
-    /**
-     * All GLES Profiles in the order of default detection.
-     *
-     * <ul>
-     *  <li> GLES2
-     *  <li> GLES1
-     * </ul>
-     *
-     */
-    public static final String[] GL_PROFILE_LIST_GLES = new String[] { GLES2, GLES1 };
-
     /** Returns a default GLProfile object, reflecting the best for the running platform.
      * It selects the first of the set {@link GLProfile#GL_PROFILE_LIST_ALL}
      * @throws GLException if no profile is available for the device.
@@ -551,56 +526,58 @@ public class GLProfile {
         return get(GL_PROFILE_LIST_MAX_PROGSHADER);
     }
 
-    /**
-     * Returns an available GL2ES1 compatible profile.
-     * It returns the first available of the set: {@link GLProfile#GL_PROFILE_LIST_GL2ES1}.
-     * 
-     * @throws GLException if no GL2ES1 compatible profile is available for the device.
-     * @see #GL_PROFILE_LIST_GL2ES1
+    /** 
+     * Returns the GL2ES1 profile implementation, hence compatible w/ GL2ES1.<br/>
+     * It returns:
+     * <pre>
+     *   GLProfile.get(device, GLProfile.GL2ES1).getImpl());
+     * </pre>
+     *
+     * @throws GLException if no GL2ES1 compatible profile is available for the default device.
+     * @see #get(AbstractGraphicsDevice, String)
+     * @see #getImpl()
      */
     public static GLProfile getGL2ES1(AbstractGraphicsDevice device)
         throws GLException
     {
-        return get(device, GL_PROFILE_LIST_GL2ES1);
+        return get(device, GL2ES1).getImpl();
     }
 
-    /**
-     * Returns an available GL2ES1 compatible profile.
-     * It returns the first available of the set: {@link GLProfile#GL_PROFILE_LIST_GL2ES1}.
-     * 
-     * @throws GLException if no GL2ES1 compatible profile is available for the default device.
-     * @see #GL_PROFILE_LIST_GL2ES1
+    /** 
+     * Calls {@link #getGL2ES1(AbstractGraphicsDevice)} using the default device. 
+     * @see #getGL2ES1(AbstractGraphicsDevice)
      */
     public static GLProfile getGL2ES1()
         throws GLException
     {
-        return get(GL_PROFILE_LIST_GL2ES1);
+        return get(defaultDevice, GL2ES1).getImpl();
     }
 
-    /**
-     * Returns an available GL2ES2 compatible profile.
-     * It returns the first available of the set: {@link GLProfile#GL_PROFILE_LIST_GL2ES2}.
+    /** 
+     * Returns the GL2ES2 profile implementation, hence compatible w/ GL2ES2.<br/>
+     * It returns:
+     * <pre>
+     *   GLProfile.get(device, GLProfile.GL2ES2).getImpl());
+     * </pre>
      *
-     * @throws GLException if no GL2ES2 compatible profile is available for the device.
-     * @see #GL_PROFILE_LIST_GL2ES2
+     * @throws GLException if no GL2ES2 compatible profile is available for the default device.
+     * @see #get(AbstractGraphicsDevice, String)
+     * @see #getImpl()
      */
     public static GLProfile getGL2ES2(AbstractGraphicsDevice device)
         throws GLException
     {
-        return get(device, GL_PROFILE_LIST_GL2ES2);
+        return get(device, GL2ES2).getImpl();
     }
 
     /** 
-     * Returns an available GL2ES2 compatible profile
-     * It returns the first available of the set: {@link GLProfile#GL_PROFILE_LIST_GL2ES2}.
-     *
-     * @throws GLException if no GL2ES2 compatible profile is available for the default device.
-     * @see #GL_PROFILE_LIST_GL2ES2
+     * Calls {@link #getGL2ES2(AbstractGraphicsDevice)} using the default device. 
+     * @see #getGL2ES2(AbstractGraphicsDevice)
      */
     public static GLProfile getGL2ES2()
         throws GLException
     {
-        return get(GL_PROFILE_LIST_GL2ES2);
+        return get(defaultDevice, GL2ES2).getImpl();
     }
 
     /** Returns a GLProfile object.
@@ -669,7 +646,7 @@ public class GLProfile {
     {
         return get(defaultDevice, profiles);
     }
-
+    
     /** Indicates whether the native OpenGL ES1 profile is in use. 
      * This requires an EGL interface.
      */
@@ -738,7 +715,7 @@ public class GLProfile {
     }
 
     public final String getGLImplBaseClassName() {
-        return getGLImplBaseClassName(profileImpl);
+        return getGLImplBaseClassName(getImplName());
     }
 
     /**
@@ -750,15 +727,15 @@ public class GLProfile {
         if(this==o) { return true; }
         if(o instanceof GLProfile) {
             GLProfile glp = (GLProfile)o;
-            return profile.equals(glp.getName()) && profileImpl.equals(glp.getImplName()) ;
+            return getName().equals(glp.getName()) && getImplName().equals(glp.getImplName()) ;
         }
         return false;
     }
 
     public int hashCode() {
         int hash = 5;
-        hash = 97 * hash + (this.profileImpl != null ? this.profileImpl.hashCode() : 0);
-        hash = 97 * hash + (this.profile != null ? this.profile.hashCode() : 0);
+        hash = 97 * hash + getImplName().hashCode();
+        hash = 97 * hash + getName().hashCode();
         return hash;
     }
  
@@ -772,12 +749,21 @@ public class GLProfile {
         }
     }
 
+    /** return this profiles name */
     public final String getName() {
         return profile;
     }
 
+    /** return this profiles implementation, eg. GL2ES2 -> GL2, or GL3 -> GL3 */
+    public final GLProfile getImpl() {
+        return null != profileImpl ? profileImpl : this;
+    }
+    
+    /** 
+     * return this profiles implementation name, eg. GL2ES2 -> GL2, or GL3 -> GL3 
+     */
     public final String getImplName() {
-        return profileImpl;
+        return null != profileImpl ? profileImpl.getName() : getName();
     }
 
     /** Indicates whether this profile is capable of GL4bc. */
@@ -837,12 +823,12 @@ public class GLProfile {
 
     /** Indicates whether this profile uses the native OpenGL ES1 implementations. */
     public final boolean usesNativeGLES1() {
-        return GLES1.equals(profileImpl);
+        return GLES1.equals(getImplName());
     }
 
     /** Indicates whether this profile uses the native OpenGL ES2 implementations. */
     public final boolean usesNativeGLES2() {
-        return GLES2.equals(profileImpl);
+        return GLES2.equals(getImplName());
     }
 
     /** Indicates whether this profile uses either of the native OpenGL ES implementations. */
@@ -1148,7 +1134,7 @@ public class GLProfile {
     }
 
     public String toString() {
-        return "GLProfile[" + profile + "/" + profileImpl + "]";
+        return "GLProfile[" + getName() + "/" + getImplName() + "]";
     }
 
     static {
@@ -1493,7 +1479,16 @@ public class GLProfile {
             String profile = GL_PROFILE_LIST_ALL[i];
             String profileImpl = computeProfileImpl(device, profile, desktopCtxUndef, esCtxUndef);
             if(null!=profileImpl) {
-                GLProfile glProfile = new GLProfile(profile, profileImpl);
+                final GLProfile glProfile;
+                if(profile.equals(profileImpl)) {
+                    glProfile = new GLProfile(profile, null);
+                } else {
+                    final GLProfile _mglp = _mappedProfiles.get(profileImpl);
+                    if(null == _mglp) {
+                        throw new InternalError("XXX0");
+                    }
+                    glProfile = new GLProfile(profile, _mglp);
+                }
                 _mappedProfiles.put(profile, glProfile);
                 if (DEBUG) {
                     System.err.println("GLProfile.init map "+glProfile+" on devide "+device.getConnection());
@@ -1521,6 +1516,10 @@ public class GLProfile {
      * Returns the profile implementation
      */
     private static String computeProfileImpl(AbstractGraphicsDevice device, String profile, boolean desktopCtxUndef, boolean esCtxUndef) {
+        // OSX GL3.. doesn't support GLSL<150, 
+        // hence GL2ES2 and GL2GL3 need to be mapped on GL2 on OSX for GLSL compatibility.
+        final boolean isOSX = Platform.OS_TYPE == Platform.OSType.MACOS;
+        
         if (GL2ES1.equals(profile)) {
             if(hasGL234Impl) {
                 if(GLContext.isGL4bcAvailable(device)) {
@@ -1536,13 +1535,13 @@ public class GLProfile {
             }
         } else if (GL2ES2.equals(profile)) {
             if(hasGL234Impl) {
-                if(GLContext.isGL4bcAvailable(device)) {
+                if(!isOSX && GLContext.isGL4bcAvailable(device)) {
                     return GL4bc;
-                } else if(GLContext.isGL4Available(device)) {
+                } else if(!isOSX && GLContext.isGL4Available(device)) {
                     return GL4;
-                } else if(GLContext.isGL3bcAvailable(device)) {
+                } else if(!isOSX && GLContext.isGL3bcAvailable(device)) {
                     return GL3bc;
-                } else if(GLContext.isGL3Available(device)) {
+                } else if(!isOSX && GLContext.isGL3Available(device)) {
                     return GL3;
                 } else if(desktopCtxUndef || GLContext.isGL2Available(device)) {
                     return GL2;
@@ -1553,13 +1552,13 @@ public class GLProfile {
             }
         } else if(GL2GL3.equals(profile)) {
             if(hasGL234Impl) {
-                if(GLContext.isGL4bcAvailable(device)) {
+                if(!isOSX && GLContext.isGL4bcAvailable(device)) {
                     return GL4bc;
-                } else if(GLContext.isGL4Available(device)) {
+                } else if(!isOSX && GLContext.isGL4Available(device)) {
                     return GL4;
-                } else if(GLContext.isGL3bcAvailable(device)) {
+                } else if(!isOSX && GLContext.isGL3bcAvailable(device)) {
                     return GL3bc;
-                } else if(GLContext.isGL3Available(device)) {
+                } else if(!isOSX && GLContext.isGL3Available(device)) {
                     return GL3;
                 } else if(desktopCtxUndef || GLContext.isGL2Available(device)) {
                     return GL2;
@@ -1637,11 +1636,11 @@ public class GLProfile {
         }
     }
 
-    private GLProfile(String profile, String profileImpl) {
+    private GLProfile(String profile, GLProfile profileImpl) {
         this.profile = profile;
         this.profileImpl = profileImpl;
     }
 
-    private String profileImpl = null;
+    private GLProfile profileImpl = null;
     private String profile = null;
 }
