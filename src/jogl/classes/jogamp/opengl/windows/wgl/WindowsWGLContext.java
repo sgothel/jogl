@@ -244,12 +244,8 @@ public class WindowsWGLContext extends GLContextImpl {
             WGL.wglMakeCurrent(0, 0);
             WGL.wglDeleteContext(ctx);
             ctx = 0;
-        } else {
-            if (DEBUG) {
-                System.err.println(getThreadName() + ": createContextARBImpl: OK "+getGLVersion(major, minor, ctp, "@creation")+", share "+share+", direct "+direct);
-            }
-            // the following is issued by the caller 'GLContextImpl.createContextARB()'
-            // setGLFunctionAvailability(true, major, minor, ctp);
+        } else if (DEBUG) {
+            System.err.println(getThreadName() + ": createContextARBImpl: OK "+getGLVersion(major, minor, ctp, "@creation")+", share "+share+", direct "+direct);
         }
     } else if (DEBUG) {
         System.err.println(getThreadName() + ": createContextARBImpl: NO "+getGLVersion(major, minor, ctp, "@creation"));

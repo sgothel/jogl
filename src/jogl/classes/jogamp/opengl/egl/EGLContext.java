@@ -36,6 +36,7 @@
 package jogamp.opengl.egl;
 
 import javax.media.opengl.*;
+
 import jogamp.opengl.*;
 
 import com.jogamp.gluegen.runtime.ProcAddressTable;
@@ -183,7 +184,6 @@ public abstract class EGLContext extends GLContextImpl {
             throw new GLException("Error creating OpenGL context: eglDisplay "+toHexString(eglDisplay)+
                                   ", eglConfig "+config+", "+glProfile+", shareWith "+toHexString(shareWith)+", error "+toHexString(EGL.eglGetError()));
         }
-        GLContextShareSet.contextCreated(this);
         if (DEBUG) {
             System.err.println(getThreadName() + ": !!! Created OpenGL context 0x" +
                                Long.toHexString(contextHandle) + 

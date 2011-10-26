@@ -264,12 +264,8 @@ public abstract class X11GLXContext extends GLContextImpl {
             glXMakeContextCurrent(display, 0, 0, 0);
             GLX.glXDestroyContext(display, ctx);
             ctx = 0;
-        } else {
-            if (DEBUG) {
-                System.err.println(getThreadName() + ": createContextARBImpl: OK "+getGLVersion(major, minor, ctp, "@creation")+", share "+share+", direct "+direct);
-            }
-            // the following is issued by the caller 'GLContextImpl.createContextARB()'
-            // setGLFunctionAvailability(true, major, minor, ctp);
+        } else if (DEBUG) {
+            System.err.println(getThreadName() + ": createContextARBImpl: OK "+getGLVersion(major, minor, ctp, "@creation")+", share "+share+", direct "+direct);
         }
     } else if (DEBUG) {
         System.err.println(getThreadName() + ": createContextARBImpl: NO "+getGLVersion(major, minor, ctp, "@creation"));

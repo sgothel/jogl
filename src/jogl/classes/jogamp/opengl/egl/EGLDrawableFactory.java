@@ -136,6 +136,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
       return true; // via mappings (X11/WGL/.. -> EGL) we shall be able to handle all types.
     }
 
+    /**
     private boolean isEGLContextAvailable(EGLGraphicsDevice sharedDevice, String profile) {
         boolean madeCurrent = false;
         final GLCapabilities caps = new GLCapabilities(GLProfile.get(profile));
@@ -163,9 +164,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             drawable.destroy();
         }
         return madeCurrent;
-    }
+    } */
     
-    private SharedResource getOrCreateShared(AbstractGraphicsDevice adevice) {
+    /* package */ SharedResource getOrCreateEGLSharedResource(AbstractGraphicsDevice adevice) {
         String connection = adevice.getConnection();
         SharedResource sr;
         synchronized(sharedMap) {
@@ -200,7 +201,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     public final boolean getWasSharedContextCreated(AbstractGraphicsDevice device) {
-        SharedResource sr = getOrCreateShared(device);
+        SharedResource sr = getOrCreateEGLSharedResource(device);
         if(null!=sr) {
             return sr.wasES1ContextAvailable() || sr.wasES2ContextAvailable();
         }
@@ -212,15 +213,11 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
     
     protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {
-        SharedResource sr = getOrCreateShared(device);
+        SharedResource sr = getOrCreateEGLSharedResource(device);
         if(null!=sr) {
             return sr.getDevice();
         }
         return null;
-    }
-
-    SharedResource getOrCreateSharedResource(AbstractGraphicsDevice device) {
-        return (SharedResource) getOrCreateShared(device);
     }
 
     public GLDynamicLookupHelper getGLDynamicLookupHelper(int esProfile) {

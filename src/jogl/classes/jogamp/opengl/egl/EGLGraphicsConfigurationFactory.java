@@ -101,7 +101,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
     }
 
     protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(EGLDrawableFactory factory, AbstractGraphicsDevice device) {
-        EGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResource(device);
+        EGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateEGLSharedResource(device);
         if(null == sharedResource) {
             throw new GLException("Shared resource for device n/a: "+device);
         }
