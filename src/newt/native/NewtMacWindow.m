@@ -86,7 +86,13 @@ static jmethodID focusChangedID    = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowRepaintID = NULL;
 
-#define USE_SENDIO_DIRECT 1
+// Can't use USE_SENDIO_DIRECT, ie w/o enqueueing to EDT,
+// since we may operate on AWT-AppKit (Main Thread)
+// and direct issuing 'requestFocus()' would deadlock:
+//     AWT-AppKit
+//     AWT-EventQueue-0
+//
+// #define USE_SENDIO_DIRECT 1
 
 @implementation NewtView
 
