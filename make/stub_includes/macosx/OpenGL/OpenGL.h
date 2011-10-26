@@ -45,9 +45,19 @@ typedef enum _CGLPixelFormatAttribute {
 	kCGLPFACompliant          =  83,	/* renderer is opengl compliant                 */
 	kCGLPFADisplayMask        =  84,	/* mask limiting supported displays             */
 	kCGLPFAPBuffer            =  90,	/* can be used to render to a pbuffer           */
-        kCGLPFARemotePBuffer	  =  91,    /* can be used to render offline to a pbuffer	*/
+    kCGLPFARemotePBuffer	  =  91,    /* can be used to render offline to a pbuffer	*/
+    kCGLPFAAcceleratedCompute =  97,    /* hardware accelerated                         */
+    kCGLPFAOpenGLProfile      =  99,    /* OpenGL Profile                               */
 	kCGLPFAVirtualScreenCount = 128 	/* number of virtual screens in this format     */
 } CGLPixelFormatAttribute;
+
+/**
+ * OpenGL Profiles Values
+ */
+typedef enum _CGLOpenGLProfile {
+    kCGLOGLPVersion_Legacy   = 0x1000,      /* Legacy/Pre-OpenGL 3.0 */
+    kCGLOGLPVersion_3_2_Core = 0x3200       /* OpenGL 3.2 Core */
+} CGLOpenGLProfile;
 
 /*
 ** Error return values from CGLGetError.

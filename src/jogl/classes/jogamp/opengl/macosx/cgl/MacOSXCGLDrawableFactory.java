@@ -40,19 +40,34 @@
 
 package jogamp.opengl.macosx.cgl;
 
-import java.nio.*;
+import java.nio.Buffer;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.DefaultGraphicsScreen;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.macosx.MacOSXGraphicsDevice;
-import javax.media.opengl.*;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+
+import jogamp.nativewindow.WrappedSurface;
+import jogamp.opengl.DesktopGLDynamicLookupHelper;
+import jogamp.opengl.GLDrawableFactoryImpl;
+import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.GLDynamicLookupHelper;
 
 import com.jogamp.common.JogampRuntimeException;
-import com.jogamp.common.util.*;
-import java.util.ArrayList;
-import jogamp.opengl.*;
-import jogamp.nativewindow.WrappedSurface;
+import com.jogamp.common.util.ReflectionUtil;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final DesktopGLDynamicLookupHelper macOSXCGLDynamicLookupHelper;
@@ -94,13 +109,20 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   static class SharedResource {
-      private MacOSXCGLDrawable drawable;
-      private MacOSXCGLContext context;
+      // private MacOSXCGLDrawable drawable;
+      // private MacOSXCGLContext context;
+      MacOSXGraphicsDevice device;
+      boolean wasContextCreated;
 
-      SharedResource(MacOSXCGLDrawable draw, MacOSXCGLContext ctx) {
-          drawable = draw;
-          context = ctx;
+      SharedResource(MacOSXGraphicsDevice device, boolean wasContextCreated
+                     /* MacOSXCGLDrawable draw, MacOSXCGLContext ctx */) {
+          // drawable = draw;
+          // context = ctx;
+          this.device = device;
+          this.wasContextCreated = wasContextCreated;
       }
+      final MacOSXGraphicsDevice getDevice() { return device; }
+      final boolean wasContextAvailable() { return wasContextCreated; }
   }
   HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
   MacOSXGraphicsDevice defaultDevice;
@@ -116,9 +138,66 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
       return false;
   }
 
+  private boolean isOSXContextAvailable(AbstractGraphicsDevice sharedDevice) {
+    boolean madeCurrent = false;
+    GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP);
+    if (null == glp) {
+        throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
+    }    
+    final GLCapabilities caps = new GLCapabilities(glp);
+    caps.setRedBits(5); caps.setGreenBits(5); caps.setBlueBits(5); caps.setAlphaBits(0);
+    caps.setDoubleBuffered(false);
+    caps.setOnscreen(false);
+    caps.setPBuffer(true);
+    final MacOSXCGLDrawable drawable = (MacOSXCGLDrawable) createGLDrawable( createOffscreenSurfaceImpl(sharedDevice, caps, caps, null, 64, 64) );        
+    if(null!=drawable) {
+        final GLContext context = drawable.createContext(null);
+        if (null != context) {
+            context.setSynchronized(true);
+            try {
+                context.makeCurrent(); // could cause exception
+                madeCurrent = context.isCurrent();
+            } catch (GLException gle) {
+                if (DEBUG) {
+                    System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: makeCurrent failed");
+                    gle.printStackTrace();
+                }
+            } finally {
+                context.destroy();
+            }
+        }
+        drawable.destroy();
+    }
+    return madeCurrent;
+  }
+  
+  /* package */ SharedResource getOrCreateOSXSharedResource(AbstractGraphicsDevice adevice) {
+    String connection = adevice.getConnection();
+    SharedResource sr;
+    synchronized(sharedMap) {
+        sr = (SharedResource) sharedMap.get(connection);
+    }
+    if(null==sr) {
+        final MacOSXGraphicsDevice sharedDevice = new MacOSXGraphicsDevice(adevice.getUnitID());
+        final boolean madeCurrent = isOSXContextAvailable(sharedDevice);
+        sr = new SharedResource(sharedDevice, madeCurrent);
+        synchronized(sharedMap) {
+            sharedMap.put(connection, sr);
+        }
+        if (DEBUG) {
+            System.err.println("MacOSXCGLDrawableFactory.createShared: device:  " + sharedDevice);
+            System.err.println("MacOSXCGLDrawableFactory.createShared: context: " + madeCurrent);
+        }                        
+    }
+    return sr;
+  }
+    
   public final boolean getWasSharedContextCreated(AbstractGraphicsDevice device) {
-      // FIXME: not implemented .. needs a dummy OSX surface
-      return false;
+    SharedResource sr = getOrCreateOSXSharedResource(device);
+    if(null!=sr) {
+        return sr.wasContextAvailable();
+    }
+    return false;        
   }
   
   protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
@@ -127,13 +206,17 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {
-      return device; // nothing to do, no native open device
+      SharedResource sr = getOrCreateOSXSharedResource(device);
+      if(null!=sr) {
+          return sr.getDevice();
+      }
+      return null;
   }
 
   protected final void shutdownInstance() {}
 
   protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
-      return new ArrayList<GLCapabilitiesImmutable>(0);
+      return MacOSXCGLGraphicsConfiguration.getAvailableCapabilities(this, device);
   }
 
   protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
@@ -185,7 +268,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }  
   
   protected GLContext createExternalGLContextImpl() {
-    return MacOSXExternalCGLContext.create(this, null);
+    return MacOSXExternalCGLContext.create(this);
   }
 
   public boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {

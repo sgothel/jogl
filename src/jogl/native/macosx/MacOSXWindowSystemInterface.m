@@ -18,6 +18,11 @@
 #import <OpenGL/gl.h>
 #import <OpenGL/CGLTypes.h>
 #import <jni.h>
+
+#ifndef CGL_VERSION_1_3
+    #warning this SDK doesn't support OpenGL profile
+#endif
+
 #import "ContextUpdater.h"
 
 #import "macosx-window-system.h"
@@ -409,6 +414,9 @@ void* createPixelFormat(int* iattrs, int niattrs, int* ivalues) {
         }
         break;
 
+#ifdef CGL_VERSION_1_3
+      case kCGLPFAOpenGLProfile:
+#endif
       case NSOpenGLPFAColorSize:
       case NSOpenGLPFAAlphaSize:
       case NSOpenGLPFADepthSize:

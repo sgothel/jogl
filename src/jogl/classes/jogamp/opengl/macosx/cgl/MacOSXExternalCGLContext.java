@@ -68,7 +68,7 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     getGLStateTracker().setEnabled(false); // external context usage can't track state in Java
   }
 
-  protected static MacOSXExternalCGLContext create(GLDrawableFactory factory, GLProfile glp) {
+  protected static MacOSXExternalCGLContext create(GLDrawableFactory factory) {
     long pixelFormat = 0;
     long currentDrawable = 0;
     long contextHandle = CGL.getCurrentContext(); // Check: MacOSX 10.3 ..
@@ -101,7 +101,7 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     if (0 == pixelFormat) {
       throw new GLException("Error: current pixelformat of current Context 0x"+Long.toHexString(contextHandle)+" is null");
     }
-    GLCapabilitiesImmutable caps = MacOSXCGLGraphicsConfiguration.CGLPixelFormat2GLCapabilities(glp, pixelFormat);
+    GLCapabilitiesImmutable caps = MacOSXCGLGraphicsConfiguration.CGLPixelFormat2GLCapabilities(pixelFormat);
     if(DEBUG) {
         System.err.println("MacOSXExternalCGLContext Create "+caps);
     }
