@@ -279,8 +279,17 @@ public class MacWindow extends WindowImpl {
     }
     
     @Override
+    public void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
+        final int key = convertKeyChar(keyChar);
+        if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.sendKeyEvent "+Thread.currentThread().getName());
+        // Note that we send the key char for the key code on this
+        // platform -- we do not get any useful key codes out of the system
+        super.sendKeyEvent(eventType, modifiers, key, keyChar);        
+    }
+    
+    @Override
     public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
-        int key = convertKeyChar(keyChar);
+        final int key = convertKeyChar(keyChar);
         if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.enqueueKeyEvent "+Thread.currentThread().getName());
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
