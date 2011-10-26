@@ -474,12 +474,15 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_requestFocus0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) w);
+#ifdef VERBOSE_ON
     BOOL hasFocus = [win isKeyWindow];
+#endif
 
     DBG_PRINT( "requestFocus - window: %p, force %d, hasFocus %d (START)\n", win, force, hasFocus);
 
-    // even if we already own the focus, we need the 'focusAction()' call
-    // and the other probably redundant NS calls don't harm.
+    // Even if we already own the focus, we need the 'focusAction()' call
+    // and the other probably redundant NS calls to force proper focus traversal 
+    // of the parent TK (AWT doesn't do it properly on OSX).
     if( JNI_TRUE==force || JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
         DBG_PRINT( "makeKeyWindow win %p\n", win);
         // [win performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:YES];
