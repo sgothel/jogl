@@ -103,6 +103,8 @@ static jmethodID windowRepaintID = NULL;
     jvmHandle = NULL;
     jvmVersion = 0;
     destroyNotifySent = NO;
+    softLocked = NO;
+    pthread_mutex_init(&softLockSync, NULL); // fast non-recursive
 
     ptrTrackingTag = 0;
 
@@ -115,6 +117,15 @@ static jmethodID windowRepaintID = NULL;
     myCursor = NULL;
 
     return [super initWithFrame:frameRect];
+}
+
+- (void) dealloc
+{
+    if(softLocked) {
+        fprintf(stderr, "*** Warning: softLock still hold @ dealloc!\n"); fflush(NULL);
+    }
+    pthread_mutex_destroy(&softLockSync);
+    [super dealloc];
 }
 
 - (void) setJVMHandle: (JavaVM*) vm
@@ -146,16 +157,6 @@ static jmethodID windowRepaintID = NULL;
     return javaWindowObject;
 }
 
-- (void) setDestroyNotifySent: (BOOL) v
-{
-    destroyNotifySent = v;
-}
-
-- (BOOL) getDestroyNotifySent
-{
-    return destroyNotifySent;
-}
-
 - (void) rightMouseDown: (NSEvent*) theEvent
 {
     NSResponder* next = [self nextResponder];
@@ -180,6 +181,61 @@ static jmethodID windowRepaintID = NULL;
 - (NSCursor *) cursor
 {
     return myCursor;
+}
+
+- (void) setDestroyNotifySent: (BOOL) v
+{
+    destroyNotifySent = v;
+}
+
+- (BOOL) getDestroyNotifySent
+{
+    return destroyNotifySent;
+}
+
+#define SOFT_LOCK_BLOCKING 1
+
+- (BOOL) softLock
+{
+    pthread_mutex_lock(&softLockSync);
+    softLocked = YES;
+#ifndef SOFT_LOCK_BLOCKING
+    pthread_mutex_unlock(&softLockSync);
+#endif
+    return softLocked;
+}
+
+- (void) softUnlock
+{
+#ifndef SOFT_LOCK_BLOCKING
+    pthread_mutex_lock(&softLockSync);
+#endif
+    softLocked = NO;
+    pthread_mutex_unlock(&softLockSync);
+}
+
+- (BOOL) needsDisplay
+{
+#ifndef SOFT_LOCK_BLOCKING
+    return NO == softLocked && NO == destroyNotifySent && [super needsDisplay];
+#else
+    return NO == destroyNotifySent && [super needsDisplay];
+#endif
+}
+
+- (void) displayIfNeeded
+{
+#ifndef SOFT_LOCK_BLOCKING
+    if( NO == softLocked && NO == destroyNotifySent ) {
+        [super displayIfNeeded];
+    }
+#else
+    [self softLock];
+    if( NO == destroyNotifySent ) {
+        [super displayIfNeeded];
+    }
+    [self softUnlock];
+#endif
 }
 
 - (void) viewWillDraw

@@ -32,6 +32,7 @@
  */
 
 #import <AppKit/AppKit.h>
+#import <pthread.h>
 #import "jni.h"
 
 #include "NewtCommon.h"
@@ -53,6 +54,8 @@
     int jvmVersion;
 
     BOOL destroyNotifySent;
+    BOOL softLocked;
+    pthread_mutex_t softLockSync;
 
     NSTrackingRectTag ptrTrackingTag;
     NSRect ptrRect;
@@ -60,8 +63,7 @@
 }
 
 - (id)initWithFrame:(NSRect)frameRect;
-
-- (NSCursor *) cursor;
+- (void) dealloc;
 
 /* Set during event dispatching cycle */
 - (void) setJVMHandle: (JavaVM*) vm;
@@ -74,12 +76,18 @@
 - (void) setJavaWindowObject: (jobject) javaWindowObj;
 - (jobject) getJavaWindowObject;
 
+- (void) rightMouseDown: (NSEvent*) theEvent;
+- (void) resetCursorRects;
+- (NSCursor *) cursor;
+
 - (void) setDestroyNotifySent: (BOOL) v;
 - (BOOL) getDestroyNotifySent;
 
-- (void) rightMouseDown: (NSEvent*) theEvent;
-- (void) resetCursorRects;
+- (BOOL) softLock;
+- (void) softUnlock;
 
+- (BOOL) needsDisplay;
+- (void) displayIfNeeded;
 - (void) viewWillDraw;
 - (void) drawRect:(NSRect)dirtyRect;
 - (void) viewDidHide;
