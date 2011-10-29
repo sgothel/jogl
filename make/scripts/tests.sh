@@ -49,6 +49,7 @@ function jrun() {
     shift
 
     #D_ARGS="-Djogl.debug.ExtensionAvailabilityCache -Djogl.debug=all -Dnativewindow.debug=all -Djogamp.debug.ProcAddressHelper=true -Djogamp.debug.NativeLibrary=true -Djogamp.debug.NativeLibrary.Lookup=true"
+    D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.ExtensionAvailabilityCache"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile -Djogl.debug.GLDrawable"
@@ -228,7 +229,7 @@ function testswt() {
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
+testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT $*
@@ -248,7 +249,7 @@ function testswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
-testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01 $*
 
 #testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
@@ -265,10 +266,13 @@ testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
 
 #
-# regressions
+# osx bugs
 #
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 
+#
+# regressions
+#
 
 $spath/count-edt-start.sh java-run.log
 

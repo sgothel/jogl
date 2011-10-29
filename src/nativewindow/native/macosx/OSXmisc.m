@@ -112,15 +112,19 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnS
     }
     NSScreen* screen = [win screen];
     NSRect screenRect = [screen frame];
-
-    NSRect viewFrame = [view frame];
+    NSRect winFrame = [win frame];
 
     r.origin.x = src_x;
-    r.origin.y = viewFrame.size.height - src_y; // y-flip for 0/0 top-left
+    r.origin.y = winFrame.size.height - src_y; // y-flip for 0/0 top-left
     r.size.width = 0;
     r.size.height = 0;
     // NSRect rS = [win convertRectToScreen: r]; // 10.7
     NSPoint oS = [win convertBaseToScreen: r.origin];
+    /**
+    NSLog(@"LOS.1: (bottom-left) %d/%d, screen-y[0: %d, h: %d], (top-left) %d/%d\n", 
+        (int)oS.x, (int)oS.y, (int)screenRect.origin.y, (int) screenRect.size.height,
+        (int)oS.x, (int)(screenRect.origin.y + screenRect.size.height - oS.y)); */
+
     dest_x = (int) oS.x;
     dest_y = (int) screenRect.origin.y + screenRect.size.height - oS.y;
 

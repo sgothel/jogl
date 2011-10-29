@@ -1,7 +1,9 @@
 package com.jogamp.newt.awt.applet;
 
 import java.applet.*;
+import java.awt.Component;
 import java.awt.Container;
+import java.awt.Label;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.KeyListener;
@@ -11,6 +13,8 @@ import javax.media.opengl.*;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import java.awt.BorderLayout;
+
+import jogamp.newt.Debug;
 
 /** 
  * Simple GLEventListener deployment as an applet using JOGL. This demo must be
@@ -58,6 +62,8 @@ import java.awt.BorderLayout;
  */
 @SuppressWarnings("serial")
 public class JOGLNewtApplet1Run extends Applet {
+    public static final boolean DEBUG = Debug.debug("Applet");
+    
     GLWindow glWindow;
     NewtCanvasAWT newtCanvasAWT;
     JOGLNewtAppletBase base;
@@ -69,7 +75,7 @@ public class JOGLNewtApplet1Run extends Applet {
         if(!(this instanceof Container)) {
             throw new RuntimeException("This Applet is not a AWT Container");
         }
-        Container container = (Container) this; // have to think about that, we may use a Container
+        Container container = (Container) this;
 
         String glEventListenerClazzName=null;
         String glProfileName=null;
@@ -105,6 +111,24 @@ public class JOGLNewtApplet1Run extends Applet {
             throw new RuntimeException("No applet parameter 'gl_event_listener_class'");
         }
         glStandalone = Integer.MAX_VALUE>glXd && Integer.MAX_VALUE>glYd && Integer.MAX_VALUE>glWidth && Integer.MAX_VALUE>glHeight;
+        if(DEBUG) {
+            System.err.println("JOGLNewtApplet1Run Configuration:");
+            System.err.println("glStandalone: "+glStandalone);
+            if(glStandalone) {
+                System.err.println("pos-size: "+glXd+"/"+glYd+" "+glWidth+"x"+glHeight);
+            }
+            System.err.println("glEventListenerClazzName: "+glEventListenerClazzName);
+            System.err.println("glProfileName: "+glProfileName);
+            System.err.println("glSwapInterval: "+glSwapInterval);
+            System.err.println("glDebug: "+glDebug);
+            System.err.println("glTrace: "+glTrace);
+            System.err.println("glUndecorated: "+glUndecorated);
+            System.err.println("glAlwaysOnTop: "+glAlwaysOnTop);
+            System.err.println("glOpaque: "+glOpaque);
+            System.err.println("glAlphaBits: "+glAlphaBits);
+            System.err.println("glNumMultisampleBuffer: "+glNumMultisampleBuffer);
+            System.err.println("glNoDefaultKeyListener: "+glNoDefaultKeyListener);
+        }
         
         base = new JOGLNewtAppletBase(glEventListenerClazzName, 
                                       glSwapInterval,
@@ -132,6 +156,12 @@ public class JOGLNewtApplet1Run extends Applet {
                 container.setLayout(new BorderLayout());
                 container.add(newtCanvasAWT, BorderLayout.CENTER);
             }
+            if(DEBUG) {
+                container.add(new Label("North"), BorderLayout.NORTH);
+                container.add(new Label("South"), BorderLayout.SOUTH);
+                container.add(new Label("East"), BorderLayout.EAST);
+                container.add(new Label("West"), BorderLayout.WEST);
+            }
             base.init(glWindow);
             if(base.isValid()) {
                 GLEventListener glEventListener = base.getGLEventListener();
@@ -152,10 +182,25 @@ public class JOGLNewtApplet1Run extends Applet {
     }
 
     public void start() {
+        this.validate();
+        this.setVisible(true);
+        
+        final java.awt.Point p0 = this.getLocationOnScreen();
         if(glStandalone) {
             glWindow.setSize(glWidth, glHeight);
-            final java.awt.Point p0 = this.getLocationOnScreen();
             glWindow.setPosition(p0.x+glXd, p0.y+glYd);
+        }
+        if(DEBUG) {
+            Component topC = this;
+            while (null != topC.getParent()) {
+                topC = topC.getParent();
+            }
+            System.err.println("TopComponent: "+topC.getLocation()+" rel, "+topC.getLocationOnScreen()+" screen, visible "+topC.isVisible()+", "+topC);
+            System.err.println("Applet Pos: "+this.getLocation()+" rel, "+p0+" screen, visible "+this.isVisible()+", "+this);
+            if(null != newtCanvasAWT) {
+                System.err.println("NewtCanvasAWT Pos: "+newtCanvasAWT.getLocation()+" rel, "+newtCanvasAWT.getLocationOnScreen()+" screen, visible "+newtCanvasAWT.isVisible()+", "+newtCanvasAWT);
+            }
+            System.err.println("GLWindow Pos: "+glWindow.getX()+"/"+glWindow.getY()+" rel, "+glWindow.getLocationOnScreen(null)+" screen");
         }
         base.start();
     }
