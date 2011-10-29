@@ -103,6 +103,10 @@ public class TestParenting03AWT extends UITestCase {
 
         final Container cont1 = new Container();
         cont1.setLayout(new BorderLayout());
+        cont1.add(new Label("iNORTH"), BorderLayout.NORTH);
+        cont1.add(new Label("iSOUTH"), BorderLayout.SOUTH);
+        cont1.add(new Label("iEAST"), BorderLayout.EAST);
+        cont1.add(new Label("iWEST"), BorderLayout.WEST);
         cont1.add(newtCanvasAWT1, BorderLayout.CENTER);
         System.err.println("******* Cont1 setVisible");
         cont1.setVisible(true);
@@ -110,6 +114,10 @@ public class TestParenting03AWT extends UITestCase {
         final Container cont2 = new Container();
         cont2.setLayout(new BorderLayout());
         if(use2nd) {
+            cont2.add(new Label("iNORTH"), BorderLayout.NORTH);
+            cont2.add(new Label("iSOUTH"), BorderLayout.SOUTH);
+            cont2.add(new Label("iEAST"), BorderLayout.EAST);
+            cont2.add(new Label("iWEST"), BorderLayout.WEST);
             cont2.add(newtCanvasAWT2, BorderLayout.CENTER);
         }
         System.err.println("******* Cont2 setVisible");
