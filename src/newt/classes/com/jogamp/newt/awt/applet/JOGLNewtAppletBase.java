@@ -7,6 +7,8 @@ import java.security.PrivilegedAction;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.opengl.*;
 
+import jogamp.newt.Debug;
+
 import com.jogamp.opengl.util.*;
 
 import com.jogamp.newt.event.*;
@@ -16,6 +18,8 @@ import com.jogamp.newt.opengl.GLWindow;
     referenced from a web page via an &lt;applet&gt; tag. */
 
 public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
+    public static final boolean DEBUG = Debug.debug("Applet");
+    
     String glEventListenerClazzName;
     int glSwapInterval;
     boolean noDefaultKeyListener;
