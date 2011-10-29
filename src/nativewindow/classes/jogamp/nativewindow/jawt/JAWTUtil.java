@@ -42,6 +42,8 @@ import java.awt.EventQueue;
 
 import javax.media.nativewindow.*;
 
+import com.jogamp.common.os.Platform;
+
 
 import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
@@ -75,14 +77,30 @@ public class JAWTUtil {
     boolean ok;
   }
   
+  public static void setJAWTVersionFlags(boolean useOffScreenLayerIfAvailable) {
+    if(useOffScreenLayerIfAvailable &&
+       Platform.OS_TYPE == Platform.OSType.MACOS &&
+       Platform.OS_VERSION_NUMBER.compareTo(JAWT.JAWT_MacOSXCALayerMinVersion) >= 0) {
+        JAWT.setJAWTVersionFlags(JAWTFactory.JAWT_VERSION_1_4 | JAWT.JAWT_MACOSX_USE_CALAYER);
+    } else {
+        JAWT.setJAWTVersionFlags(JAWTFactory.JAWT_VERSION_1_4);
+    }
+  }
+  
+  public static boolean isJAWTVersionUsingOffscreenLayer() {
+      return 0 != ( JAWT.getJAWT().getVersionCached() & JAWT.JAWT_MACOSX_USE_CALAYER );
+  }
+  
   static {
     JAWTJNILibLoader.loadAWTImpl();
     JAWTJNILibLoader.loadNativeWindow("awt");
 
     headlessMode = GraphicsEnvironment.isHeadless();
-
+    if(!headlessMode) {
+        JAWT.setJAWTVersionFlags(JAWTFactory.JAWT_VERSION_1_4);
+    }
     boolean ok = false;
-    Class jC = null;
+    Class<?> jC = null;
     Method m = null;
     if (!headlessMode) {
         try {
@@ -95,11 +113,11 @@ public class JAWTUtil {
     isQueueFlusherThread = m;
     j2dExist = ok;
 
-    PrivilegedDataBlob1 pdb1 = (PrivilegedDataBlob1) AccessController.doPrivileged(new PrivilegedAction() {        
+    PrivilegedDataBlob1 pdb1 = (PrivilegedDataBlob1) AccessController.doPrivileged(new PrivilegedAction<Object>() {        
         public Object run() {
             PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
             try {                
-                final Class sunToolkitClass = Class.forName("sun.awt.SunToolkit");
+                final Class<?> sunToolkitClass = Class.forName("sun.awt.SunToolkit");
                 d.sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
                 d.sunToolkitAWTLockMethod.setAccessible(true);
                 d.sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});

@@ -222,6 +222,14 @@ public abstract class JAWTWindow implements NativeWindow {
   public long getWindowHandle() {
     return drawable;
   }
+  
+  public boolean isSetWindowHandleSupported() {
+      return false;
+  }
+  public void setWindowHandle(long handle) {
+      throw new java.lang.UnsupportedOperationException();
+  }
+  
 
   public final int getX() {
       return component.getX();
