@@ -204,7 +204,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
           }
           
             if ( isVendorATI() ) {
-              final VersionNumber winVersion = new VersionNumber(Platform.getOSVersion(), ".");
+              final VersionNumber winVersion = Platform.getOSVersionNumber();
               final boolean isWinXPOrLess = winVersion.compareTo(winXPVersionNumber) <= 0;
               if(DEBUG) {
                   System.err.println("needsCurrenContext4ARBPFDQueries: "+winVersion+" <= "+winXPVersionNumber+" = "+isWinXPOrLess+" - "+Platform.getOSVersion());
