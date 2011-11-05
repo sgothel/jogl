@@ -7,55 +7,60 @@
    compilation then the build fails.
 */
 
+#include <AppKit/NSView.h>
+#include <AppKit/NSOpenGL.h>
+#include <AppKit/NSOpenGLLayer.h>
+// #include <AppKit/NSOpenGLView.h>
+#include <OpenGL/CGLDevice.h>
+#include <OpenGL/OpenGL.h>
+
 typedef int Bool;
 
 // CGL ..
-void CGLQueryPixelFormat(void* pixelFormat, int* iattrs, int niattrs, int* ivalues);
+void CGLQueryPixelFormat(CGLPixelFormatObj fmt, int* iattrs, int niattrs, int* ivalues);
 
 // NS ..
-void* createPixelFormat(int* iattrs, int niattrs, int* ivalues);
-void queryPixelFormat(void* pixelFormat, int* iattrs, int niattrs, int* ivalues);
-void deletePixelFormat(void* pixelFormat);
+NSOpenGLPixelFormat* createPixelFormat(int* iattrs, int niattrs, int* ivalues);
+void queryPixelFormat(NSOpenGLPixelFormat* fmt, int* iattrs, int niattrs, int* ivalues);
+void deletePixelFormat(NSOpenGLPixelFormat* fmt);
 
 // NS ..
-void *getCurrentContext(void);
-void *getNSView(void* nsContext);
+NSOpenGLContext* getCurrentContext(void);
+CGLContextObj getCGLContext(NSOpenGLContext* ctx);
+NSView* getNSView(NSOpenGLContext* ctx);
 
-void* createContext(void* shareContext,
-                    void* nsView,
-                    void* pixelFormat,
+NSOpenGLContext* createContext(NSOpenGLContext* shareContext,
+                    NSView* nsView,
+                    Bool isBackingLayerView,
+                    NSOpenGLPixelFormat* pixelFormat,
                     Bool opaque,
                     int* viewNotReady);
-void *getCGLContext(void* nsContext);
-Bool  makeCurrentContext(void* nsContext);
-Bool  clearCurrentContext(void *nsContext);
-Bool  deleteContext(void* nsContext, Bool releaseOnMainThread);
-Bool  flushBuffer(void* nsContext);
-void  setContextOpacity(void* nsContext, int opacity);
-void  updateContext(void* nsContext);
-void  copyContext(void* destContext, void* srcContext, int mask);
+Bool  makeCurrentContext(NSOpenGLContext* ctx);
+Bool  clearCurrentContext(NSOpenGLContext *ctx);
+Bool  deleteContext(NSOpenGLContext* ctx, Bool releaseOnMainThread);
+Bool  flushBuffer(NSOpenGLContext* ctx);
+void  setContextOpacity(NSOpenGLContext* ctx, int opacity);
+void  updateContext(NSOpenGLContext* ctx);
+void  copyContext(NSOpenGLContext* dest, NSOpenGLContext* src, int mask);
 
-void* updateContextRegister(void* nsContext, void* nsView);
+void* updateContextRegister(NSOpenGLContext* ctx, NSView* view);
 Bool updateContextNeedsUpdate(void* updater);
 void  updateContextUnregister(void* updater);
 
-void* createPBuffer(int renderTarget, int internalFormat, int width, int height);
-Bool destroyPBuffer(void* pBuffer);
-void setContextPBuffer(void* nsContext, void* pBuffer);
-void setContextTextureImageToPBuffer(void* nsContext, void* pBuffer, int colorBuffer);
+NSOpenGLPixelBuffer* createPBuffer(int renderTarget, int internalFormat, int width, int height);
+Bool destroyPBuffer(NSOpenGLPixelBuffer* pBuffer);
+void setContextPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer);
+void setContextTextureImageToPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer, int colorBuffer);
+
+NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSView* view, Bool opaque);
+void setNSOpenGLLayerNeedsDisplay(NSOpenGLLayer* glLayer);
+void releaseNSOpenGLLayer(NSOpenGLLayer *glLayer);
 
 void* getProcAddress(const char *procName);
 
-void setSwapInterval(void* nsContext, int interval);
+void setSwapInterval(NSOpenGLContext* ctx, int interval);
 
 /* Gamma-related functionality */
 Bool setGammaRamp(int tableSize, float* redRamp, float* greenRamp, float* blueRamp);
 void resetGammaRamp();
 
-/****************************************************************************************/
-/* Java2D/JOGL bridge support; need to be able to create pbuffers and
-   contexts using the CGL APIs to be able to share textures, etc. with
-   contexts created by Java2D/JOGL bridge, which are CGLContextObjs */
-
-/* Pick up copies of CGL signatures from Mac OS X stub_includes/window-system-build directory */
-#include <OpenGL/OpenGL.h>

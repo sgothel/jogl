@@ -2,10 +2,13 @@
    OpenGL.h to expose portions of the low-level CGL API to Java */
 
 /* Typedefs to get things working */
-typedef struct _cglObj* CGLContextObj;
-typedef struct _cglObj* CGLShareGroupObj;
-typedef struct _cglObj* CGLPBufferObj;
-typedef struct _cglObj* CGLPixelFormatObj;
+typedef struct _cglContextObj*     CGLContextObj;
+typedef struct _cglPBufferObj*     CGLPBufferObj;
+typedef struct _cglPixelFormatObj* CGLPixelFormatObj;
+
+typedef int             GLint;          /* 4-byte signed */
+typedef unsigned int    GLenum;
+typedef int             GLsizei;        /* 4-byte signed */
 
 /*
 ** Attribute names for CGLChoosePixelFormat and CGLDescribePixelFormat.
@@ -105,7 +108,7 @@ typedef enum _CGLContextParameter {
 /* Pixel format manipulation */
 CGLError CGLChoosePixelFormat(const CGLPixelFormatAttribute *attribs,
                               CGLPixelFormatObj *pix,
-                              long *npix);
+                              GLint *npix);
 CGLError CGLDestroyPixelFormat(CGLPixelFormatObj pix);
 CGLPixelFormatObj CGLGetPixelFormat ( CGLContextObj ctx );
 
@@ -123,16 +126,16 @@ CGLError CGLCopyContext ( CGLContextObj src, CGLContextObj dst, int mask );
 
 CGLShareGroupObj CGLGetShareGroup(CGLContextObj ctx);
 
-/* PBuffer manipulation */
-CGLError CGLCreatePBuffer(long width,
-                          long height,
-                          unsigned long target,
-                          unsigned long internalFormat,
-                          long max_level,
+/* PBuffer manipulation (deprecated in 10.7) */
+CGLError CGLCreatePBuffer(GLsizei width,
+                          GLsizei height,
+                          GLenum target,
+                          GLenum internalFormat,
+                          GLint max_level,
                           CGLPBufferObj* pbuffer);
 CGLError CGLDestroyPBuffer(CGLPBufferObj pbuffer);
 CGLError CGLSetPBuffer(CGLContextObj ctx,
                        CGLPBufferObj pbuffer,
-                       unsigned long face,
-                       long level,
-                       long screen);
+                       GLenum face,
+                       GLint level,
+                       GLint screen);

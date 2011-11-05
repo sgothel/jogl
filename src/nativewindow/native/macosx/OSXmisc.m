@@ -36,6 +36,9 @@
 #include "NativewindowCommon.h"
 #include "jogamp_nativewindow_macosx_OSXUtil.h"
 
+#include <jawt_md.h>
+#import <JavaNativeFoundation.h>
+
 static const char * const ClazzNameRunnable = "java/lang/Runnable";
 static jmethodID runnableRunID = NULL;
 
@@ -81,7 +84,7 @@ Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0(JNIEnv *env, jclass _unused) {
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
- * Method:    getLocationOnScreenImpl0
+ * Method:    getLocationOnScreen0
  * Signature: (JII)Ljavax/media/nativewindow/util/Point;
  */
 JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnScreen0
@@ -97,7 +100,7 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnS
     int dest_x=-1;
     int dest_y=-1;
 
-    NSObject *nsObj = (NSObject*) ((intptr_t) winOrView);
+    NSObject *nsObj = (NSObject*) (intptr_t) winOrView;
     NSWindow* win = NULL;
     NSView* view = NULL;
 
@@ -133,6 +136,61 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnS
     [pool release];
 
     return res;
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    CreateNSView0
+ * Signature: (IIIIZ)J
+ */
+JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateNSView0
+  (JNIEnv *env, jclass unused, jint x, jint y, jint width, jint height)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSRect rect = NSMakeRect(x, y, width, height);
+    NSView * view = [[NSView alloc] initWithFrame: rect] ;
+    [view setCanDrawConcurrently: YES];
+    [pool release];
+
+    return (jlong) (intptr_t) view;
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    DestroyNSView0
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyNSView0
+  (JNIEnv *env, jclass unused, jlong nsView)
+{
+    NSView* view = (NSView*) (intptr_t) nsView;
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    [view release];
+    [pool release];
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    attachJAWTSurfaceLayer
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AttachJAWTSurfaceLayer0
+  (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
+    if (NULL == dsi) {
+        NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
+        return JNI_FALSE;
+    }
+    CALayer* layer = (CALayer*) (intptr_t) caLayer;
+    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
+        id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
+        // FIXME: JAU: surfaceLayers.layer = [layer autorelease];
+        surfaceLayers.layer = layer;
+    }];
+    [pool release];
+    return JNI_TRUE;
 }
 
 @interface MainRunnable : NSObject
@@ -212,10 +270,11 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunOnMainThread0
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    RunOnMainThread0
- * Signature: (ZLjava/lang/Runnable;)V
+ * Signature: (V)V
  */
 JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_IsMainThread0
   (JNIEnv *env, jclass unused)
 {
     return ( [NSThread isMainThread] == YES ) ? JNI_TRUE : JNI_FALSE ;
 }
+

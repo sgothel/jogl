@@ -252,7 +252,7 @@ static jmethodID windowRepaintID = NULL;
     int shallBeDetached = 0;
     JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
     if(NULL==env) {
-        NSLog(@"viewDidHide: null JNIEnv");
+        DBG_PRINT("viewDidHide: null JNIEnv");
         return;
     }
 
@@ -272,7 +272,7 @@ static jmethodID windowRepaintID = NULL;
     int shallBeDetached = 0;
     JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
     if(NULL==env) {
-        NSLog(@"viewDidHide: null JNIEnv");
+        DBG_PRINT("viewDidHide: null JNIEnv");
         return;
     }
 
@@ -290,7 +290,7 @@ static jmethodID windowRepaintID = NULL;
     int shallBeDetached = 0;
     JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
     if(NULL==env) {
-        NSLog(@"viewDidHide: null JNIEnv");
+        DBG_PRINT("viewDidHide: null JNIEnv");
         return;
     }
 
@@ -512,14 +512,14 @@ static jint mods2JavaMods(NSUInteger mods)
     NewtView* view = (NewtView *) nsview;
     jobject javaWindowObject = [view getJavaWindowObject];
     if (javaWindowObject == NULL) {
-        NSLog(@"sendKeyEvent: null javaWindowObject");
+        DBG_PRINT("sendKeyEvent: null javaWindowObject");
         return;
     }
     int shallBeDetached = 0;
     JavaVM *jvmHandle = [view getJVMHandle];
     JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
     if(NULL==env) {
-        NSLog(@"sendKeyEvent: null JNIEnv");
+        DBG_PRINT("sendKeyEvent: null JNIEnv");
         return;
     }
 
@@ -567,14 +567,14 @@ static jint mods2JavaMods(NSUInteger mods)
     NewtView* view = (NewtView *) nsview;
     jobject javaWindowObject = [view getJavaWindowObject];
     if (javaWindowObject == NULL) {
-        NSLog(@"sendMouseEvent: null javaWindowObject");
+        DBG_PRINT("sendMouseEvent: null javaWindowObject");
         return;
     }
     int shallBeDetached = 0;
     JavaVM *jvmHandle = [view getJVMHandle];
     JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
     if(NULL==env) {
-        NSLog(@"sendMouseEvent: null JNIEnv");
+        DBG_PRINT("sendMouseEvent: null JNIEnv");
         return;
     }
     jint javaMods = mods2JavaMods([event modifierFlags]);
@@ -770,14 +770,14 @@ static jint mods2JavaMods(NSUInteger mods)
     NewtView* view = (NewtView *) nsview;
     jobject javaWindowObject = [view getJavaWindowObject];
     if (javaWindowObject == NULL) {
-        NSLog(@"windowDidResize: null javaWindowObject");
+        DBG_PRINT("windowDidResize: null javaWindowObject");
         return;
     }
     int shallBeDetached = 0;
     JavaVM *jvmHandle = [view getJVMHandle];
     JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
     if(NULL==env) {
-        NSLog(@"windowDidResize: null JNIEnv");
+        DBG_PRINT("windowDidResize: null JNIEnv");
         return;
     }
 
@@ -805,14 +805,14 @@ static jint mods2JavaMods(NSUInteger mods)
     NewtView* view = (NewtView *) nsview;
     jobject javaWindowObject = [view getJavaWindowObject];
     if (javaWindowObject == NULL) {
-        NSLog(@"windowDidMove: null javaWindowObject");
+        DBG_PRINT("windowDidMove: null javaWindowObject");
         return;
     }
     int shallBeDetached = 0;
     JavaVM *jvmHandle = [view getJVMHandle];
     JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
     if(NULL==env) {
-        NSLog(@"windowDidMove: null JNIEnv");
+        DBG_PRINT("windowDidMove: null JNIEnv");
         return;
     }
 
@@ -841,14 +841,14 @@ static jint mods2JavaMods(NSUInteger mods)
         jobject javaWindowObject = [view getJavaWindowObject];
         DBG_PRINT( "*************** windowWillClose.0: 0x%p\n", (void *)(intptr_t)javaWindowObject);
         if (javaWindowObject == NULL) {
-            NSLog(@"windowWillClose: null javaWindowObject");
+            DBG_PRINT("windowWillClose: null javaWindowObject");
             return;
         }
         int shallBeDetached = 0;
         JavaVM *jvmHandle = [view getJVMHandle];
         JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
         if(NULL==env) {
-            NSLog(@"windowWillClose: null JNIEnv");
+            DBG_PRINT("windowWillClose: null JNIEnv");
             return;
         }
 
@@ -916,14 +916,14 @@ static jint mods2JavaMods(NSUInteger mods)
     NewtView* view = (NewtView *) nsview;
     jobject javaWindowObject = [view getJavaWindowObject];
     if (javaWindowObject == NULL) {
-        NSLog(@"focusChanged: null javaWindowObject");
+        DBG_PRINT("focusChanged: null javaWindowObject");
         return;
     }
     int shallBeDetached = 0;
     JavaVM *jvmHandle = [view getJVMHandle];
     JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
     if(NULL==env) {
-        NSLog(@"focusChanged: null JNIEnv");
+        DBG_PRINT("focusChanged: null JNIEnv");
         return;
     }
 
