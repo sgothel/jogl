@@ -112,6 +112,13 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     }
   }
 
+  @Override
+  protected long getNSViewHandle() {
+      // pbuffer handle is NSOpenGLPixelBuffer
+      return 0;
+  }
+  
+  @Override
   public long getHandle() {
     return pBuffer;
   }

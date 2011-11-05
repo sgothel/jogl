@@ -44,6 +44,8 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 
+import jogamp.nativewindow.jawt.macosx.MacOSXJAWTWindow;
+import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
 
@@ -87,16 +89,78 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
         this.id = id;
     }
   }
+  public enum LayeredSurfaceType {
+    None(0), Direct(1), Parented(2); 
+    
+    public final int id;
+
+    LayeredSurfaceType(int id){
+        this.id = id;
+    }
+  }
 
   private boolean haveSetOpenGLMode = false;
   private GLBackendType openGLMode = GLBackendType.NSOPENGL;
+  protected LayeredSurfaceType layeredSurfaceType = LayeredSurfaceType.None;
   
   public MacOSXCGLDrawable(GLDrawableFactory factory, NativeSurface comp, boolean realized) {
     super(factory, comp, realized);
     initOpenGLImpl(getOpenGLMode());    
- }
+  }
+  
+  public final LayeredSurfaceType getLayeredSurfaceType() { return layeredSurfaceType; }
 
   protected void setRealizedImpl() {
+  }
+
+  protected long getNSViewHandle() {
+      return GLBackendType.NSOPENGL == openGLMode ? getHandle() : null;
+  }
+  
+  @Override
+  protected void destroyHandle() {
+    if(layeredSurfaceType == LayeredSurfaceType.Direct) {        
+        // direct surface host, eg. AWT GLCanvas
+        final MacOSXJAWTWindow lsh = MacOSXCGLDrawableFactory.getLayeredSurfaceHost(surface);
+        if (DEBUG) {
+          System.err.println("destroyHandle: layerType " + layeredSurfaceType + ", backingLayer "+toHexString(lsh.getSurfaceHandle()) + " ->  0");
+        }
+        OSXUtil.DestroyNSView(lsh.getSurfaceHandle());
+        lsh.setSurfaceHandle(0);
+    } else if (DEBUG) {
+        System.err.println("destroyHandle: layerType " + layeredSurfaceType);
+    }
+  }
+
+  @Override
+  protected void updateHandle() {
+    final MacOSXJAWTWindow lsh = MacOSXCGLDrawableFactory.getLayeredSurfaceHost(surface);
+    if (null != lsh) {
+      if(lsh == surface) {
+          // direct surface host, eg. AWT GLCanvas
+          layeredSurfaceType = LayeredSurfaceType.Direct;
+          final long oldNSBackingView = lsh.getSurfaceHandle();
+          if(0 != oldNSBackingView) {
+              OSXUtil.DestroyNSView(oldNSBackingView);
+          }
+          final long newNSBackingView = OSXUtil.CreateNSView(0, 0, getWidth(), getHeight());
+          lsh.setSurfaceHandle(newNSBackingView);
+          if (DEBUG) {
+              System.err.println("updateHandle: layerType " + layeredSurfaceType + ", backingLayer "+toHexString(newNSBackingView) + " -> "+toHexString(oldNSBackingView));
+          }
+      } else {
+          // parent surface host, eg. via native parenting w/ NewtCanvasAWT
+          layeredSurfaceType = LayeredSurfaceType.Parented;
+          if (DEBUG) {
+              System.err.println("updateHandle: layerType " + layeredSurfaceType + ", backingLayer "+toHexString(getHandle()));
+          }
+      }
+    } else {
+      layeredSurfaceType = LayeredSurfaceType.None;
+      if (DEBUG) {
+          System.err.println("updateHandle: layerType " + layeredSurfaceType);
+      }
+    }
   }
 
   public GLDynamicLookupHelper getGLDynamicLookupHelper() {

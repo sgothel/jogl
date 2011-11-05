@@ -49,9 +49,10 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 
+
 public class MacOSXOnscreenCGLDrawable extends MacOSXCGLDrawable {
   private List<WeakReference<MacOSXCGLContext>> createdContexts = new ArrayList<WeakReference<MacOSXCGLContext>>();
-
+  
   protected MacOSXOnscreenCGLDrawable(GLDrawableFactory factory, NativeSurface component) {
     super(factory, component, false);
   }

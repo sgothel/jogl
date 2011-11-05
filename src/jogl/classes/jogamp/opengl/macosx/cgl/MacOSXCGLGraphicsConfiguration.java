@@ -222,7 +222,7 @@ public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration
 
       // Use attribute array to select pixel format
       PointerBuffer fmt = PointerBuffer.allocateDirect(1);
-      long[] numScreens = new long[1];
+      int[] numScreens = new int[1];
       int res = CGL.CGLChoosePixelFormat(attrs, 0, fmt, numScreens, 0);
       if (res != CGL.kCGLNoError) {
         throw new GLException("Error code " + res + " while choosing pixel format");

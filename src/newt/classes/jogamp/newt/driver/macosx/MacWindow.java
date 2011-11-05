@@ -143,6 +143,7 @@ public class MacWindow extends WindowImpl {
     public MacWindow() {
     }
     
+    @Override
     protected void createNativeImpl() {
         config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(
                 capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen());
@@ -155,6 +156,7 @@ public class MacWindow extends WindowImpl {
         }
     }
 
+    @Override
     protected void closeNativeImpl() {
         try {
             if(DEBUG_IMPLEMENTATION) { System.err.println("MacWindow.CloseAction "+Thread.currentThread().getName()); }

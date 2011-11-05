@@ -49,6 +49,7 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.macosx.MacOSXGraphicsDevice;
@@ -61,6 +62,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.WrappedSurface;
+import jogamp.nativewindow.jawt.macosx.MacOSXJAWTWindow;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableImpl;
@@ -219,6 +221,25 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
       return MacOSXCGLGraphicsConfiguration.getAvailableCapabilities(this, device);
   }
 
+  protected static MacOSXJAWTWindow getLayeredSurfaceHost(NativeSurface surface) {
+      if(surface instanceof NativeWindow) {
+          final NativeWindow nwThis = (NativeWindow) surface;
+          if( nwThis instanceof MacOSXJAWTWindow) {
+              // direct surface host, eg. via AWT GLCanvas
+              final MacOSXJAWTWindow r = (MacOSXJAWTWindow) nwThis;
+              return r.isLayeredSurface() ? r : null;
+          } else {
+              // parent surface host, eg. via native parenting w/ NewtCanvasAWT
+              final NativeWindow nwParent = nwThis.getParent();
+              if(null != nwParent && nwParent instanceof MacOSXJAWTWindow) {
+                  final MacOSXJAWTWindow r = (MacOSXJAWTWindow) nwParent;
+                  return r.isLayeredSurface() ? r : null;
+              }
+          }
+      }
+      return null;      
+  }
+      
   protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");

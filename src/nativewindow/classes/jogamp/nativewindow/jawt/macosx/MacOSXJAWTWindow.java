@@ -45,37 +45,94 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.SurfaceChangeable;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Point;
 
 import jogamp.nativewindow.jawt.JAWT;
 import jogamp.nativewindow.jawt.JAWTFactory;
-import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.nativewindow.jawt.JAWTWindow;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurface;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo;
 import jogamp.nativewindow.jawt.JAWT_Rectangle;
 import jogamp.nativewindow.macosx.OSXUtil;
-// import jogamp.nativewindow.macosx.OSXUtil;
 
-public class MacOSXJAWTWindow extends JAWTWindow {
+public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
+  final boolean isLayeredSurface;
+  long surfaceHandle = 0;
 
   public MacOSXJAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
     super(comp, config);
+    isLayeredSurface = 0 != ( JAWT.getJAWT().getVersionCached() & JAWT.JAWT_MACOSX_USE_CALAYER );
+    dumpInfo();
   }
 
   protected void validateNative() throws NativeWindowException {
+  }  
+
+  protected void invalidateNative() {
   }
 
+  public final boolean isLayeredSurface() { 
+      return isLayeredSurface;
+  }
+  
+  public long getSurfaceHandle() {
+    return isLayeredSurface ? surfaceHandle : super.getSurfaceHandle() ;
+  }
+  
+  public void setSurfaceHandle(long surfaceHandle) {
+      if( !isLayeredSurface() ) {
+          throw new java.lang.UnsupportedOperationException("Not using CALAYER");
+      }
+      if(DEBUG) {
+        System.err.println("MacOSXJAWTWindow.setSurfaceHandle(): 0x"+Long.toHexString(surfaceHandle));
+      }
+      this.surfaceHandle = surfaceHandle;
+  }
+  
+  /*
+  public long getSurfaceLayer() {
+      if( !isLayeredSurface() ) {
+          throw new java.lang.UnsupportedOperationException("Not using CALAYER");
+      }
+      if( !dsLocked ) {
+          throw new NativeWindowException("Not locked");
+      }
+      // return macosxsl.getLayer();
+      return getSurfaceLayers().getLayer();
+  } */
+      
+  public void attachSurfaceLayer(long layerHandle) {
+      if( !isLayeredSurface() ) {
+          throw new java.lang.UnsupportedOperationException("Not using CALAYER");
+      }
+      if( !dsLocked || null == dsi ) {
+          throw new NativeWindowException("Locked: "+dsLocked+", dsi valid: "+(null!=dsi));
+      }      
+      if(DEBUG) {
+        System.err.println("MacOSXJAWTWindow.attachSurfaceLayer(): 0x"+Long.toHexString(layerHandle));
+      }
+      OSXUtil.AttachJAWTSurfaceLayer0(dsi, layerHandle);
+      /*
+      if( null == macosxsl) {
+          throw new NativeWindowException("Not locked and/or SurfaceLayers null");
+      }
+      macosxsl.setLayer(layerHandle); */
+      // getSurfaceLayers().setLayer(layerHandle);
+  }
+  
   protected int lockSurfaceImpl() throws NativeWindowException {
-    final JAWT jawt = JAWT.getJAWT();
     int ret = NativeWindow.LOCK_SURFACE_NOT_READY;
-    ds = jawt.GetDrawingSurface(component);
-    if (ds == null) {
-      // Widget not yet realized
-      unlockSurfaceImpl();
-      return NativeWindow.LOCK_SURFACE_NOT_READY;
+    if(null == ds) {
+        final JAWT jawt = JAWT.getJAWT();
+        ds = jawt.GetDrawingSurface(component);
+        if (ds == null) {
+          // Widget not yet realized
+          unlockSurfaceImpl();
+          return NativeWindow.LOCK_SURFACE_NOT_READY;
+        }
     }
     int res = ds.Lock();
     dsLocked = ( 0 == ( res & JAWTFactory.JAWT_LOCK_ERROR ) ) ;
@@ -91,25 +148,27 @@ public class MacOSXJAWTWindow extends JAWTWindow {
     if ((res & JAWTFactory.JAWT_LOCK_SURFACE_CHANGED) != 0) {
       ret = NativeWindow.LOCK_SURFACE_CHANGED;
     }
-    if (firstLock) {
-      AccessController.doPrivileged(new PrivilegedAction<Object>() {
-          public Object run() {
-            dsi = ds.GetDrawingSurfaceInfo();
-            return null;
+    if(null == dsi) {
+        if (firstLock) {
+          AccessController.doPrivileged(new PrivilegedAction<Object>() {
+              public Object run() {
+                dsi = ds.GetDrawingSurfaceInfo();
+                return null;
+              }
+            });
+          if(DEBUG) {
+            dumpInfo();
           }
-        });
-    } else {
-      dsi = ds.GetDrawingSurfaceInfo();
-    }
-    if (dsi == null) {
-      unlockSurfaceImpl();
-      return NativeWindow.LOCK_SURFACE_NOT_READY;
-    }
-    if(DEBUG && firstLock) {
-        dumpInfo();
+        } else {
+          dsi = ds.GetDrawingSurfaceInfo();
+        }
+        if (dsi == null) {
+          unlockSurfaceImpl();
+          return NativeWindow.LOCK_SURFACE_NOT_READY;
+        }
     }
     firstLock = false;
-    if( 0 == ( jawt.getVersionCached() & JAWT.JAWT_MACOSX_USE_CALAYER ) ) {
+    if( !isLayeredSurface ) {
         macosxdsi = (JAWT_MacOSXDrawingSurfaceInfo) dsi.platformInfo();
         if (macosxdsi == null) {
           unlockSurfaceImpl();
@@ -124,32 +183,21 @@ public class MacOSXJAWTWindow extends JAWTWindow {
           ret = NativeWindow.LOCK_SUCCESS;
         }
     } else {
+        /**
         macosxsl = (JAWT_SurfaceLayers) dsi.platformInfo();
-        if (macosxsl == null) {
+        if (null == macosxsl) {
           unlockSurfaceImpl();
           return NativeWindow.LOCK_SURFACE_NOT_READY;
-        }
+        } else {
+          ret = NativeWindow.LOCK_SUCCESS;
+        } */
+        ret = NativeWindow.LOCK_SUCCESS;
     }
     
     if(NativeWindow.LOCK_SURFACE_CHANGED <= ret) {
       updateBounds(dsi.getBounds());
     }
     return ret;
-  }
-    
-  public boolean isSetWindowHandleSupported() {
-      return 0 != ( JAWT.getJAWT().getVersionCached() & JAWT.JAWT_MACOSX_USE_CALAYER ) ;
-  }
-  
-  public void setWindowHandle(long handle) {
-      if( !isSetWindowHandleSupported() ) {
-          throw new java.lang.UnsupportedOperationException("Not using CALAYER");
-      }
-      if( null == macosxsl) {
-          throw new NativeWindowException("Not locked and/or SurfaceLayers null");
-      }
-      drawable = handle;
-      macosxsl.setLayer(drawable);
   }
   
   protected void unlockSurfaceImpl() throws NativeWindowException {
@@ -164,14 +212,32 @@ public class MacOSXJAWTWindow extends JAWTWindow {
     }
     ds = null;
     dsi = null;
-    macosxdsi = null;
+    // macosxsl = null;
   }
 
+  /**
+  protected JAWT_SurfaceLayers getSurfaceLayers() {
+      if( !dsLocked || null == dsi ) {
+          throw new NativeWindowException("Locked: "+dsLocked+", dsi valid: "+(null!=dsi));
+      }
+      final JAWT_SurfaceLayers macosxsl = (JAWT_SurfaceLayers) dsi.platformInfo();
+      if (null == macosxsl) {
+          throw new NativeWindowException("SurfaceLayer null");
+      }
+      return macosxsl;      
+  } */
+    
   private void dumpInfo() {
+      System.err.println("MaxOSXJAWTWindow: 0x"+Integer.toHexString(this.hashCode())+" - thread: "+Thread.currentThread().getName());
+      // System.err.println(this);
       System.err.println("JAWT version: 0x"+Integer.toHexString(JAWT.getJAWT().getVersionCached())+
-                         ", CA_LAYER: "+ (0!=(JAWT.getJAWT().getVersionCached() & JAWT.JAWT_MACOSX_USE_CALAYER)));
-      JAWT_Rectangle r = dsi.getBounds();
-      System.err.println("dsi bounds: "+r.getX()+"/"+r.getY()+" "+r.getWidth()+"x"+r.getHeight());      
+                         ", CA_LAYER: "+ (0!=(JAWT.getJAWT().getVersionCached() & JAWT.JAWT_MACOSX_USE_CALAYER))+
+                         ", isLayeredSurface "+isLayeredSurface());
+      if(null != dsi) {
+          JAWT_Rectangle r = dsi.getBounds();
+          System.err.println("dsi bounds: "+r.getX()+"/"+r.getY()+" "+r.getWidth()+"x"+r.getHeight());
+      }
+      // Thread.dumpStack();
   }
   
   protected Point getLocationOnScreenImpl(final int x0, final int y0) {
@@ -192,7 +258,7 @@ public class MacOSXJAWTWindow extends JAWTWindow {
   private JAWT_DrawingSurfaceInfo dsi;
   
   private JAWT_MacOSXDrawingSurfaceInfo macosxdsi;
-  private JAWT_SurfaceLayers macosxsl;
+  // private JAWT_SurfaceLayers macosxsl;
 
   // Workaround for instance of 4796548
   private boolean firstLock = true;

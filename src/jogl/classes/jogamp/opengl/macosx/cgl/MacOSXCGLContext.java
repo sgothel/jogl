@@ -46,16 +46,19 @@ import java.util.Map;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.DefaultGraphicsConfiguration;
+import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import jogamp.nativewindow.jawt.macosx.MacOSXJAWTWindow;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLContextShareSet;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.GLBackendType;
+import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.LayeredSurfaceType;
 
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.os.Platform;
@@ -403,31 +406,53 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   
   // NSOpenGLContext-based implementation
   class NSOpenGLImpl implements GLBackendImpl {
+    long nsOpenGLLayer = 0;
+    long nsOpenGLLayerPFmt = 0;
+    
     public boolean isNSContext() { return true; }
 
     public long create(long share, int ctp, int major, int minor) {
         long ctx = 0;
-        MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-        GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+        final MacOSXCGLDrawable drawable = (MacOSXCGLDrawable) MacOSXCGLContext.this.drawable;
+        final NativeSurface surface = drawable.getNativeSurface();
+        final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) surface.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        final boolean isBackingLayerView = LayeredSurfaceType.None != drawable.getLayeredSurfaceType();
+        /**
+        final GLCapabilitiesImmutable chosenCaps;
+        {
+            final GLCapabilitiesImmutable _chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+            if(isBackingLayerView) {
+              chosenCaps = GLGraphicsConfigurationUtil.fixSingleBufferGLCapabilities(_chosenCaps);
+            } else {
+              chosenCaps = _chosenCaps;  
+            }
+        } */
+        final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         long pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2NSPixelFormat(chosenCaps, ctp, major, minor);
         if (pixelFormat == 0) {
           throw new GLException("Unable to allocate pixel format with requested GLCapabilities");
         }
         config.setChosenPixelFormat(pixelFormat);
+        if(DEBUG) {
+            System.err.println("NS create OSX>=lion "+isLionOrLater);
+            System.err.println("NS create drawable layeredType: "+drawable.getLayeredSurfaceType()+", backingLayerView "+isBackingLayerView);
+            System.err.println("NS create share: "+share);
+            System.err.println("NS create chosenCaps: "+chosenCaps);
+            System.err.println("NS create pixelFormat: "+toHexString(pixelFormat));
+            System.err.println("NS create drawable native-handle: "+toHexString(drawable.getHandle()));
+            System.err.println("NS create drawable NSView-handle: "+toHexString(drawable.getNSViewHandle()));
+        }
         try {
           int[] viewNotReady = new int[1];
           // Try to allocate a context with this
           ctx = CGL.createContext(share,
-                                  drawable.getHandle(),
+                                  drawable.getNSViewHandle(), isBackingLayerView,
                                   pixelFormat,
                                   chosenCaps.isBackgroundOpaque(),
                                   viewNotReady, 0);
           if (0 == ctx) {
-            if (viewNotReady[0] == 1) {
-              if (DEBUG) {
-                System.err.println("!!! View not ready for " + getClass().getName());
-              }
-              // View not ready at the window system level
+            if(DEBUG) {
+                System.err.println("NS create failed: viewNotReady: "+ (1 == viewNotReady[0]));
             }
             return 0;
           }
@@ -439,22 +464,52 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
           if(DEBUG) {
               GLCapabilitiesImmutable caps0 = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(null, pixelFormat);
-              System.err.println("NS created(>=lion "+isLionOrLater+"): "+caps0);
+              System.err.println("NS create pixelformat2GLCaps: "+caps0);
           }
-          GLCapabilitiesImmutable caps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(chosenCaps.getGLProfile(), pixelFormat);
-          caps = GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(caps, chosenCaps.isBackgroundOpaque());
-          config.setChosenCapabilities(caps);          
-          if(caps.isPBuffer()) {
+          GLCapabilitiesImmutable fixedCaps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(chosenCaps.getGLProfile(), pixelFormat);
+          fixedCaps = GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(fixedCaps, chosenCaps.isBackgroundOpaque());
+          config.setChosenCapabilities(fixedCaps);          
+          if(DEBUG) {
+              System.err.println("NS create fixedCaps: "+fixedCaps);
+          }
+          if(fixedCaps.isPBuffer()) {
               // Must now associate the pbuffer with our newly-created context
               CGL.setContextPBuffer(ctx, drawable.getHandle());
-          }      
+          }
+          //
+          // handled layered surface (same path for direct and parented)
+          // 
+          if(isBackingLayerView) {
+              final MacOSXJAWTWindow lsh = MacOSXCGLDrawableFactory.getLayeredSurfaceHost(surface);
+              nsOpenGLLayerPFmt = pixelFormat;
+              pixelFormat = 0;
+              nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, drawable.getNSViewHandle(), fixedCaps.isBackgroundOpaque());
+              if (DEBUG) {
+                  System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer));
+              }
+              lsh.attachSurfaceLayer(nsOpenGLLayer);
+          }
         } finally {
-          CGL.deletePixelFormat(pixelFormat);
+          if(0!=pixelFormat) {
+              CGL.deletePixelFormat(pixelFormat);
+          }
         }
         return ctx;        
     }
     
     public boolean destroy(long ctx) {
+      if(0 != nsOpenGLLayer) {
+          final NativeSurface surface = drawable.getNativeSurface();
+          final MacOSXJAWTWindow lsh = MacOSXCGLDrawableFactory.getLayeredSurfaceHost(surface);
+          if (DEBUG) {
+              System.err.println("NS destroy nsOpenGLLayer "+toHexString(nsOpenGLLayer));
+          }
+          lsh.attachSurfaceLayer(0);
+          CGL.releaseNSOpenGLLayer(nsOpenGLLayer);
+          CGL.deletePixelFormat(nsOpenGLLayerPFmt);
+          nsOpenGLLayerPFmt = 0;
+          nsOpenGLLayer = 0;
+      }
       return CGL.deleteContext(ctx, true);
     }
 
@@ -476,10 +531,22 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       return true;
     }
     public boolean swapBuffers(boolean isOnscreen) {
-        if(isOnscreen) {
-            return CGL.flushBuffer(contextHandle);
-        }
-        return true;
+      /*
+      boolean res = true;
+      if(isOnscreen) {
+          res = CGL.flushBuffer(contextHandle);
+      }
+      if(res && 0 != nsOpenGLLayer) {
+          CGL.setNSOpenGLLayerNeedsDisplay(nsOpenGLLayer);
+      }
+      return res; */
+      
+      if(0 != nsOpenGLLayer) {
+          CGL.setNSOpenGLLayerNeedsDisplay(nsOpenGLLayer);
+      } else if(isOnscreen) {
+          return CGL.flushBuffer(contextHandle);
+      }
+      return true;      
     }
   }
 
