@@ -146,6 +146,17 @@ public class GLGraphicsConfigurationUtil {
         return capsRequested;
     }
 
+    public static GLCapabilitiesImmutable fixSingleBufferGLCapabilities(GLCapabilitiesImmutable capsRequested)
+    {
+        if( capsRequested.getDoubleBuffered() ) {
+            // fix caps ..
+            GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
+            caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
+            return caps2;
+        }
+        return capsRequested;
+    }
+
     public static GLCapabilitiesImmutable fixOpaqueGLCapabilities(GLCapabilitiesImmutable capsRequested, boolean isOpaque)
     {
         GLCapabilities caps2 = null;

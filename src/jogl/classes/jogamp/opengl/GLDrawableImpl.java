@@ -125,7 +125,10 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return surface;
   }
 
+  /** called with locked surface @ setRealized(false) */ 
   protected void destroyHandle() {}
+  
+  /** called with locked surface @ setRealized(true) or @ lockSurface(..) when surface changed */ 
   protected void updateHandle() {}
 
   public long getHandle() {

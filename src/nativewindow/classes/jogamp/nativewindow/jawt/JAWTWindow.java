@@ -42,6 +42,7 @@ import com.jogamp.common.util.locks.RecursiveLock;
 
 import java.awt.Component;
 import java.awt.Window;
+import java.applet.Applet;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
@@ -58,6 +59,7 @@ public abstract class JAWTWindow implements NativeWindow {
 
   // lifetime: forever
   protected Component component;
+  protected boolean isApplet;
   protected AbstractGraphicsConfiguration config;
 
   // lifetime: valid after lock, forever until invalidate
@@ -75,15 +77,27 @@ public abstract class JAWTWindow implements NativeWindow {
   private void init(Component windowObject) throws NativeWindowException {
     invalidate();
     this.component = windowObject;
+    this.isApplet = false;
+    while(!isApplet && null != windowObject) {
+        isApplet = windowObject instanceof Applet;
+        windowObject = windowObject.getParent();
+    }
+    if(isApplet) {
+        JAWTUtil.setJAWTVersionFlags(true); // useOffScreenLayerIfAvailable := true
+    } else {
+        // test
+        JAWTUtil.setJAWTVersionFlags(true); // useOffScreenLayerIfAvailable := true
+    }
     validateNative();
   }
   protected abstract void validateNative() throws NativeWindowException;
 
   protected synchronized void invalidate() {
-    component = null;
+    invalidateNative();
     drawable= 0;
     bounds = new Rectangle();
   }
+  protected abstract void invalidateNative();
 
   protected final void updateBounds(JAWT_Rectangle jawtBounds) {
     bounds.setX(jawtBounds.getX());
@@ -100,12 +114,16 @@ public abstract class JAWTWindow implements NativeWindow {
   public final Component getAWTComponent() {
     return component;
   }
+  
+  public final boolean isApplet() {
+      return isApplet;
+  }
 
   //
   // SurfaceUpdateListener
   //
 
-  public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+  public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
       // nop
   }
   
@@ -169,15 +187,14 @@ public abstract class JAWTWindow implements NativeWindow {
     return surfaceLock.getOwner();
   }
 
-  public final boolean surfaceSwap() {
+  public boolean surfaceSwap() {
     return false;
   }
 
-  public final void surfaceUpdated(Object updater, NativeWindow window, long when) { }
-
-  public final long getSurfaceHandle() {
+  public long getSurfaceHandle() {
     return drawable;
   }
+  
   public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
     return config;
   }
@@ -207,12 +224,13 @@ public abstract class JAWTWindow implements NativeWindow {
   //
 
   public synchronized void destroy() {
+    invalidate();
     if(null!=component) {
         if(component instanceof Window) {
             ((Window)component).dispose();
         }
+        component = null;
     }
-    invalidate();
   }
 
   public final NativeWindow getParent() {
@@ -223,14 +241,6 @@ public abstract class JAWTWindow implements NativeWindow {
     return drawable;
   }
   
-  public boolean isSetWindowHandleSupported() {
-      return false;
-  }
-  public void setWindowHandle(long handle) {
-      throw new java.lang.UnsupportedOperationException();
-  }
-  
-
   public final int getX() {
       return component.getX();
   }

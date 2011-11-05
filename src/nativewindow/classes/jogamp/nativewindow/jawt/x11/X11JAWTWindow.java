@@ -85,6 +85,8 @@ public class X11JAWTWindow extends JAWTWindow {
     }
     awtDevice.setSubType(NativeWindowFactory.TYPE_X11, displayHandle);
   }
+  
+  protected void invalidateNative() { }
 
   protected int lockSurfaceImpl() throws NativeWindowException {
     int ret = NativeWindow.LOCK_SUCCESS;

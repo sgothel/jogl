@@ -77,14 +77,17 @@ public class JAWTUtil {
     boolean ok;
   }
   
-  public static void setJAWTVersionFlags(boolean useOffScreenLayerIfAvailable) {
+  public static boolean setJAWTVersionFlags(boolean useOffScreenLayerIfAvailable) {
+    if(JAWT.isJAWTInstantiated()) { return false; } // already instantiated
+    
     if(useOffScreenLayerIfAvailable &&
        Platform.OS_TYPE == Platform.OSType.MACOS &&
        Platform.OS_VERSION_NUMBER.compareTo(JAWT.JAWT_MacOSXCALayerMinVersion) >= 0) {
         JAWT.setJAWTVersionFlags(JAWTFactory.JAWT_VERSION_1_4 | JAWT.JAWT_MACOSX_USE_CALAYER);
-    } else {
-        JAWT.setJAWTVersionFlags(JAWTFactory.JAWT_VERSION_1_4);
+       return true;
     }
+    JAWT.setJAWTVersionFlags(JAWTFactory.JAWT_VERSION_1_4);
+    return !useOffScreenLayerIfAvailable; // n/a
   }
   
   public static boolean isJAWTVersionUsingOffscreenLayer() {

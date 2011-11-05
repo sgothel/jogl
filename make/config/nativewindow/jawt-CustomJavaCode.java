@@ -20,6 +20,12 @@ public static void setJAWTVersionFlags(int versionFlags) {
     }
 }
 
+public static boolean isJAWTInstantiated() {
+    synchronized (JAWT.class) {
+      return jawt != null;
+    }      
+}
+
 /** Helper routine for all users to call to access the JAWT. */
 public static JAWT getJAWT() {
   if (jawt == null) {
