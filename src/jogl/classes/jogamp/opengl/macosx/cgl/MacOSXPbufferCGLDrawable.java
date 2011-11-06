@@ -136,13 +136,16 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
     GLProfile glProfile = capabilities.getGLProfile();
+    final int w, h;
     int renderTarget;
     if (glProfile.isGL2GL3() && capabilities.getPbufferRenderToTextureRectangle()) {
+      w = getWidth();
+      h = getHeight();
       renderTarget = GL2.GL_TEXTURE_RECTANGLE;
     } else {
-      int w = getNextPowerOf2(getWidth());
-      int h = getNextPowerOf2(getHeight());
-      ((SurfaceChangeable)ns).setSize(w, h);
+      w = getNextPowerOf2(getWidth());
+      h = getNextPowerOf2(getHeight());
+      // FIXME - JAU: ((SurfaceChangeable)ns).setSize(w, h); // can't do that, removed orig size
       renderTarget = GL.GL_TEXTURE_2D;
     }
 
@@ -168,7 +171,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
       }
     }
             
-    pBuffer = impl.create(renderTarget, internalFormat, getWidth(), getHeight());
+    pBuffer = impl.create(renderTarget, internalFormat, w, h);
     if (pBuffer == 0) {
       throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
     }

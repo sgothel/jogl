@@ -248,8 +248,12 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     final MacOSXJAWTWindow lsh = MacOSXCGLDrawableFactory.getLayeredSurfaceHost(target);
     if(null != lsh) {
         // layered surface -> PBuffer
-        final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) target.getGraphicsConfiguration().getNativeGraphicsConfiguration();        
-        final GLCapabilitiesImmutable chosenCaps = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities((GLCapabilitiesImmutable) config.getChosenCapabilities());
+        final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        final GLCapabilities chosenCaps = (GLCapabilities) config.getChosenCapabilities().cloneMutable();
+        // chosenCaps.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
+        chosenCaps.setOnscreen(false);
+        chosenCaps.setPBuffer(true);
+        // chosenCaps.setPbufferRenderToTextureRectangle(true);
         config.setChosenCapabilities(chosenCaps);
         return new MacOSXPbufferCGLDrawable(this, target, false);
     }

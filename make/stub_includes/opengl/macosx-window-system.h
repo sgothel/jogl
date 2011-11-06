@@ -9,8 +9,8 @@
 
 #include <AppKit/NSView.h>
 #include <AppKit/NSOpenGL.h>
+#include <AppKit/NSOpenGLView.h>
 #include <AppKit/NSOpenGLLayer.h>
-// #include <AppKit/NSOpenGLView.h>
 #include <OpenGL/CGLDevice.h>
 #include <OpenGL/OpenGL.h>
 
@@ -50,9 +50,10 @@ void  updateContextUnregister(void* updater);
 NSOpenGLPixelBuffer* createPBuffer(int renderTarget, int internalFormat, int width, int height);
 Bool destroyPBuffer(NSOpenGLPixelBuffer* pBuffer);
 void setContextPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer);
-void setContextTextureImageToPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer, int colorBuffer);
+void setContextTextureImageToPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer, GLenum colorBuffer);
 
-NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSView* view, Bool opaque);
+// NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSView* view, Bool opaque);
+NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSOpenGLPixelBuffer* pbuffer, Bool opaque, int width, int height);
 void setNSOpenGLLayerNeedsDisplay(NSOpenGLLayer* glLayer);
 void releaseNSOpenGLLayer(NSOpenGLLayer *glLayer);
 

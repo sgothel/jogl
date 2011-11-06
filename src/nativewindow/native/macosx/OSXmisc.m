@@ -177,7 +177,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyNSView0
 JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AttachJAWTSurfaceLayer0
   (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
 {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    JNF_COCOA_ENTER(env);
     JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
     if (NULL == dsi) {
         NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
@@ -186,10 +186,10 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AttachJAWTSur
     CALayer* layer = (CALayer*) (intptr_t) caLayer;
     [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
         id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
-        // FIXME: JAU: surfaceLayers.layer = [layer autorelease];
-        surfaceLayers.layer = layer;
+        surfaceLayers.layer = [layer autorelease];
+        // surfaceLayers.layer = layer; // FIXME: JAU
     }];
-    [pool release];
+    JNF_COCOA_EXIT(env);
     return JNI_TRUE;
 }
 

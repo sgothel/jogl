@@ -83,6 +83,8 @@ public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration
     static final int[] cglInternalAttributeToken = new int[] {
         CGL.kCGLPFAOpenGLProfile,
         CGL.kCGLPFAColorFloat,
+        CGL.NSOpenGLPFANoRecovery,
+        CGL.NSOpenGLPFAAccelerated,
         CGL.NSOpenGLPFAPixelBuffer,
         CGL.NSOpenGLPFADoubleBuffer,
         CGL.NSOpenGLPFAStereo,
@@ -114,6 +116,13 @@ public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration
                 ivalues[idx] = caps.getPbufferFloatingPointBuffers() ? 1 : 0;
                 break;
 
+              case CGL.NSOpenGLPFANoRecovery:
+                ivalues[idx] = caps.getHardwareAccelerated() ? 1 : 0; // FIXME: Jau ??
+                break;
+              case CGL.NSOpenGLPFAAccelerated:
+                ivalues[idx] = caps.getHardwareAccelerated() ? 1 : 0; // FIXME: Jau ??
+                break;
+                  
               case CGL.NSOpenGLPFAPixelBuffer:
                 ivalues[idx] = caps.isPBuffer() ? 1 : 0;
                 break;
@@ -285,6 +294,10 @@ public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration
                 caps.setPbufferFloatingPointBuffers(ivalues[i] != 0);
                 break;
 
+              case CGL.NSOpenGLPFAAccelerated:
+                caps.setHardwareAccelerated(ivalues[i] != 0);
+                break;
+                
               case CGL.NSOpenGLPFAPixelBuffer:
                 caps.setPBuffer(ivalues[i] != 0);
                 break;

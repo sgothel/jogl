@@ -14,27 +14,9 @@
 #endif
 */
 
-#import <Cocoa/Cocoa.h>
-#import <OpenGL/gl.h>
-#import <OpenGL/CGLTypes.h>
-#import <jni.h>
-
-#define VERBOSE_ON 1
-
-#ifdef VERBOSE_ON
-    // #define DBG_PRINT(...) NSLog(@ ## __VA_ARGS__)
-    #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr)
-#else
-    #define DBG_PRINT(...)
-#endif
-
-#ifndef CGL_VERSION_1_3
-    #warning this SDK doesn't support OpenGL profile
-#endif
+#import "MacOSXWindowSystemInterface.h"
 
 #import "ContextUpdater.h"
-
-#import "macosx-window-system.h"
 
 // see MacOSXPbufferGLContext.java createPbuffer
 #define USE_GL_TEXTURE_RECTANGLE_EXT
@@ -399,6 +381,18 @@ NSOpenGLPixelFormat* createPixelFormat(int* iattrs, int niattrs, int* ivalues) {
   for (i = 0; i < niattrs && iattrs[i]>0; i++) {
     int attr = iattrs[i];
     switch (attr) {
+      case NSOpenGLPFANoRecovery:
+        if (ivalues[i] != 0) {
+          attribs[idx++] = NSOpenGLPFANoRecovery;
+        }
+        break;
+
+      case NSOpenGLPFAAccelerated:
+        if (ivalues[i] != 0) {
+          attribs[idx++] = NSOpenGLPFAAccelerated;
+        }
+        break;
+
       case NSOpenGLPFAPixelBuffer:
         if (ivalues[i] != 0) {
           attribs[idx++] = NSOpenGLPFAPixelBuffer;
@@ -678,153 +672,9 @@ void setContextPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer) {
   [pool release];
 }
 
-void setContextTextureImageToPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer, int colorBuffer) {
+void setContextTextureImageToPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer, GLenum colorBuffer) {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-  [ctx setTextureImageToPixelBuffer: pBuffer
-             colorBuffer: (unsigned long) colorBuffer];
-  [pool release];
-}
-
-@interface MyNSOpenGLLayer: NSOpenGLLayer
-{
-@protected
-    NSOpenGLContext*     ctx;
-    NSView*              nsView;
-    NSOpenGLPixelFormat* fmt;
-@public
-    volatile BOOL        shallDraw;
-}
-
-- (id) initWithContext: (NSOpenGLContext*) ctx
-       pixelFormat: (NSOpenGLPixelFormat*) pfmt
-       view: (NSView*) v
-       opaque: (Bool) opaque;
-
-@end
-
-@implementation MyNSOpenGLLayer
-
-- (id) initWithContext: (NSOpenGLContext*) _ctx
-       pixelFormat: (NSOpenGLPixelFormat*) pfmt
-       view: (NSView*) view
-       opaque: (Bool) opaque
-{
-    self = [super init];
-    self->ctx = _ctx;
-    if(NULL != ctx) {
-        [ctx retain];
-    }
-    fmt = pfmt;
-    if(NULL != fmt) {
-        [fmt retain];
-    }
-    if(NULL != view) {
-        [view retain];
-        [self setView: view];
-        [view setWantsLayer: YES];
-    }
-    [self setAsynchronous: NO];
-    [self setNeedsDisplayOnBoundsChange: NO];
-    [self setOpaque: opaque ? YES : NO];
-    self->shallDraw=NO;
-    DBG_PRINT("MyNSOpenGLLayer::init %p, ctx %p, pfmt %p, view %p, opaque %d\n", self, ctx, fmt, nsView, opaque);
-    return self;
-}
-
-- (void)dealloc
-{
-    if(NULL != ctx) {
-        [ctx release];
-    }
-    if(NULL != fmt) {
-        [fmt release];
-    }
-    if(NULL != nsView) {
-        [nsView release];
-    }
-    DBG_PRINT("MyNSOpenGLLayer::dealloc %p\n", self);
-    [super dealloc];
-}
-
-- (void) setOpenGLContext: (NSOpenGLContext*) _ctx
-{
-    DBG_PRINT("MyNSOpenGLLayer::setOpenGLContext: %p %p -> %p (ignored)\n", self, ctx, _ctx);
-}
-
-- (NSOpenGLContext *) openGLContext
-{
-    return ctx;
-}
-
-- (void) setOpenGLPixelFormat: (NSOpenGLPixelFormat*) pfmt
-{
-    DBG_PRINT("MyNSOpenGLLayer::setOpenGLPixelFormat %p %p\n", self, pfmt);
-}
-
-- (NSOpenGLPixelFormat *) openGLPixelFormat
-{
-    return fmt;
-}
-
-- (void) setView: (NSView*) v
-{
-    DBG_PRINT("MyNSOpenGLLayer::setView %p %p\n", self, v);
-    nsView = v;
-    [super setView: nsView]; // propagate
-}
-
-- (NSView *) view
-{
-    return nsView;
-}
-
-- (NSOpenGLPixelFormat *)openGLPixelFormatForDisplayMask:(uint32_t)mask
-{
-    DBG_PRINT("MyNSOpenGLLayer::openGLPixelFormatForDisplayMask %p %d\n", self, mask);
-    return fmt;
-}
-
-- (NSOpenGLContext *)openGLContextForPixelFormat:(NSOpenGLPixelFormat *)pixelFormat
-{
-    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat %p %p\n", self, pixelFormat);
-    return ctx;
-}
-
-- (BOOL)canDrawInOpenGLContext:(NSOpenGLContext *)context pixelFormat:(NSOpenGLPixelFormat *)pixelFormat 
-        forLayerTime:(CFTimeInterval)timeInterval displayTime:(const CVTimeStamp *)timeStamp
-{
-    DBG_PRINT("MyNSOpenGLLayer::canDrawInOpenGLContext %p: %d\n", self, self->shallDraw);
-    return self->shallDraw;
-}
-
-- (void)drawInOpenGLContext:(NSOpenGLContext *)context pixelFormat:(NSOpenGLPixelFormat *)pixelFormat 
-        forLayerTime:(CFTimeInterval)timeInterval displayTime:(const CVTimeStamp *)timeStamp
-{
-    self->shallDraw = NO;
-    DBG_PRINT("MyNSOpenGLLayer::drawInOpenGLContext %p, ctx %p, pfmt %p\n", self, context, pixelFormat);
-    [super drawInOpenGLContext: context pixelFormat: pixelFormat forLayerTime: timeInterval displayTime: timeStamp];
-}
-
-@end
-
-NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSView* view, Bool opaque) {
-  return [[MyNSOpenGLLayer alloc] initWithContext:ctx pixelFormat: fmt view: view opaque: opaque];
-}
-
-void setNSOpenGLLayerNeedsDisplay(NSOpenGLLayer* glLayer) {
-  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-  MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) glLayer;
-  l->shallDraw = YES;
-  // [l setNeedsDisplay];
-  [l performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:nil waitUntilDone:YES];
-  DBG_PRINT("MyNSOpenGLLayer::setNSOpenGLLayerNeedsDisplay %p\n", l);
-  [pool release];
-}
-
-void releaseNSOpenGLLayer(NSOpenGLLayer* glLayer) {
-  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-  MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) glLayer;
-  [l release];
+  [ctx setTextureImageToPixelBuffer: pBuffer colorBuffer: colorBuffer];
   [pool release];
 }
 
