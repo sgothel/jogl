@@ -34,8 +34,12 @@
 
 package javax.media.nativewindow;
 
+/**
+ * Clients may add their SurfaceUpdateListener implementation to a {@link javax.media.nativewindow.NativeSurface}
+ * allowing to get notified after the surface has been updated, eg. after a swap buffer operation.
+ */
 public interface SurfaceUpdatedListener {
-    /** Notification of a surface update event. 
+    /** Notification of a surface update event, eg. after a swap buffer operation.
      *
      * @param updater is the caller object who updated the surface,
      *                e.g. a JOGL GLDrawable.

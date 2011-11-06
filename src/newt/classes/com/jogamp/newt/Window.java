@@ -35,7 +35,6 @@ import jogamp.newt.Debug;
 import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.WindowClosingProtocol;
 
 /**
@@ -325,38 +324,6 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event);
 
     void runOnEDTIfAvail(boolean wait, final Runnable task);
-
-
-    //
-    // SurfaceUpdateListener
-    //
-
-    /**
-     * Appends the given {@link com.jogamp.newt.event.SurfaceUpdatedListener} to the end of
-     * the list.
-     */
-    void addSurfaceUpdatedListener(SurfaceUpdatedListener l);
-
-    /**
-     *
-     * Inserts the given {@link com.jogamp.newt.event.SurfaceUpdatedListener} at the
-     * specified position in the list.<br>
-     *
-     * @param index Position where the listener will be inserted.
-     * Should be within (0 <= index && index <= size()).
-     * An index value of -1 is interpreted as the end of the list, size().
-     * @param l The listener object to be inserted
-     * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index <= size()), or -1
-     */
-    void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException;
-
-    void removeAllSurfaceUpdatedListener();
-
-    void removeSurfaceUpdatedListener(SurfaceUpdatedListener l);
-
-    SurfaceUpdatedListener getSurfaceUpdatedListener(int index);
-
-    SurfaceUpdatedListener[] getSurfaceUpdatedListeners();
 
 
     //

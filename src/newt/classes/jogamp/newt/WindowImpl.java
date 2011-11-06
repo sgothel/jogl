@@ -72,6 +72,8 @@ import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.Rectangle;
 
+import jogamp.nativewindow.SurfaceUpdatedHelper;
+
 public abstract class WindowImpl implements Window, NEWTEventConsumer
 {
     public static final boolean DEBUG_TEST_REPARENT_INCOMPATIBLE = Debug.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
@@ -109,9 +111,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private RequestFocusAction requestFocusAction = new RequestFocusAction();
     private FocusRunnable focusAction = null;
 
-    private Object surfaceUpdatedListenersLock = new Object();
-    private ArrayList<SurfaceUpdatedListener> surfaceUpdatedListeners = new ArrayList<SurfaceUpdatedListener>();
-
+    private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
+    
     private Object childWindowsLock = new Object();
     private ArrayList<NativeWindow> childWindows = new ArrayList<NativeWindow>();
 
@@ -1487,9 +1488,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     "\n, WrappedWindow "+getWrappedWindow()+
                     "\n, ChildWindows "+childWindows.size());
 
-        sb.append(", SurfaceUpdatedListeners num "+surfaceUpdatedListeners.size()+" [");
-        for (int i = 0; i < surfaceUpdatedListeners.size(); i++ ) {
-          sb.append(surfaceUpdatedListeners.get(i)+", ");
+        sb.append(", SurfaceUpdatedListeners num "+surfaceUpdatedHelper.size()+" [");
+        for (int i = 0; i < surfaceUpdatedHelper.size(); i++ ) {
+          sb.append(surfaceUpdatedHelper.get(i)+", ");
         }
         sb.append("], WindowListeners num "+windowListeners.size()+" [");
         for (int i = 0; i < windowListeners.size(); i++ ) {
@@ -1824,62 +1825,20 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
     // SurfaceUpdatedListener Support
     //
-
     public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
-        addSurfaceUpdatedListener(-1, l);
+        surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
     }
 
-    public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) 
-        throws IndexOutOfBoundsException
-    {
-        if(l == null) {
-            return;
-        }
-        synchronized(surfaceUpdatedListenersLock) {
-            if(0>index) { 
-                index = surfaceUpdatedListeners.size(); 
-            }
-            surfaceUpdatedListeners.add(index, l);
-        }
+    public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
+        surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
     }
 
     public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
-        if (l == null) {
-            return;
-        }
-        synchronized(surfaceUpdatedListenersLock) {
-            surfaceUpdatedListeners.remove(l);
-        }
-    }
-
-    public void removeAllSurfaceUpdatedListener() {
-        synchronized(surfaceUpdatedListenersLock) {
-            surfaceUpdatedListeners = new ArrayList<SurfaceUpdatedListener>();
-        }
-    }
-
-    public SurfaceUpdatedListener getSurfaceUpdatedListener(int index) {
-        synchronized(surfaceUpdatedListenersLock) {
-            if(0>index) { 
-                index = surfaceUpdatedListeners.size()-1; 
-            }
-            return surfaceUpdatedListeners.get(index);
-        }
-    }
-
-    public SurfaceUpdatedListener[] getSurfaceUpdatedListeners() {
-        synchronized(surfaceUpdatedListenersLock) {
-            return (SurfaceUpdatedListener[]) surfaceUpdatedListeners.toArray();
-        }
+        surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
     }
 
     public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
-        synchronized(surfaceUpdatedListenersLock) {
-          for(int i = 0; i < surfaceUpdatedListeners.size(); i++ ) {
-            SurfaceUpdatedListener l = surfaceUpdatedListeners.get(i);
-            l.surfaceUpdated(updater, ns, when);
-          }
-        }
+        surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
     }
 
     //

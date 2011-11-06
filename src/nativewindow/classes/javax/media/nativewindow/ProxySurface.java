@@ -28,6 +28,8 @@
 
 package javax.media.nativewindow;
 
+import jogamp.nativewindow.SurfaceUpdatedHelper;
+
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
@@ -38,6 +40,7 @@ public abstract class ProxySurface implements NativeSurface {
     protected int height;
     protected int scrnIndex;
     protected int width;
+    private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
 
     public ProxySurface(AbstractGraphicsConfiguration cfg) {
         invalidate();
@@ -82,9 +85,22 @@ public abstract class ProxySurface implements NativeSurface {
         return false;
     }
 
-    public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+    public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+        surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
     }
 
+    public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
+        surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
+    }
+
+    public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+        surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
+    }
+
+    public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+        surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
+    }    
+    
     public int lockSurface() throws NativeWindowException {
         surfaceLock.lock();
         int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
@@ -143,5 +159,5 @@ public abstract class ProxySurface implements NativeSurface {
         return surfaceLock.getOwner();
     }
 
-    public abstract String toString();
+    public abstract String toString();    
 }

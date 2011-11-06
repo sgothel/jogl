@@ -118,6 +118,24 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    */
   public boolean surfaceSwap();
 
+  /** Appends the given {@link SurfaceUpdatedListener} to the end of the list. */
+  public void addSurfaceUpdatedListener(SurfaceUpdatedListener l);
+
+  /**
+   * Inserts the given {@link SurfaceUpdatedListener} at the
+   * specified position in the list.<br>
+   *
+   * @param index Position where the listener will be inserted.
+   * Should be within (0 <= index && index <= size()).
+   * An index value of -1 is interpreted as the end of the list, size().
+   * @param l The listener object to be inserted
+   * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index <= size()), or -1
+   */
+  public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException;
+
+  /** Remove the specified {@link SurfaceUpdatedListener} from the list. */
+  public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l);
+  
   /**
    * Returns the handle to the surface for this NativeSurface. <P>
    * 

@@ -753,18 +753,6 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         window.runOnEDTIfAvail(wait, task);
     }
 
-    public final SurfaceUpdatedListener getSurfaceUpdatedListener(int index) {
-        return window.getSurfaceUpdatedListener(index);
-    }
-
-    public final SurfaceUpdatedListener[] getSurfaceUpdatedListeners() {
-        return window.getSurfaceUpdatedListeners();
-    }
-
-    public final void removeAllSurfaceUpdatedListener() {
-        window.removeAllSurfaceUpdatedListener();
-    }
-
     public final void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
         window.removeSurfaceUpdatedListener(l);
     }

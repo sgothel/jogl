@@ -48,11 +48,14 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
+
+import jogamp.nativewindow.SurfaceUpdatedHelper;
 
 public abstract class JAWTWindow implements NativeWindow {
   protected static final boolean DEBUG = JAWTUtil.DEBUG;
@@ -61,6 +64,7 @@ public abstract class JAWTWindow implements NativeWindow {
   protected Component component;
   protected boolean isApplet;
   protected AbstractGraphicsConfiguration config;
+  private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
 
   // lifetime: valid after lock, forever until invalidate
   protected long drawable;
@@ -123,9 +127,21 @@ public abstract class JAWTWindow implements NativeWindow {
   // SurfaceUpdateListener
   //
 
-  public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
-      // nop
+  public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+      surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
   }
+
+  public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
+      surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
+  }
+
+  public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+      surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
+  }
+
+  public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+      surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
+  }    
   
   //
   // NativeSurface
