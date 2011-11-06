@@ -140,10 +140,4 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     // Floating-point pbuffers currently require NVidia hardware on X11
     return GLPbuffer.NV_FLOAT;
   }
-
-  protected void swapBuffersImpl() {
-    if(DEBUG) {
-        System.err.println("unhandled swapBuffersImpl() called for: "+this);
-    }
-  }
 }

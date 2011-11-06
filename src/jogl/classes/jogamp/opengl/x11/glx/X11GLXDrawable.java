@@ -42,6 +42,7 @@ package jogamp.opengl.x11.glx;
 
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
+
 import jogamp.opengl.*;
 
 public abstract class X11GLXDrawable extends GLDrawableImpl {
@@ -64,9 +65,10 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
     }
   }
 
-    protected void swapBuffersImpl() {
-        GLX.glXSwapBuffers(getNativeSurface().getDisplayHandle(), getHandle());
-    }
+  protected final void swapBuffersImpl() {
+    // single-buffer is already filtered out @ GLDrawableImpl#swapBuffers()
+    GLX.glXSwapBuffers(getNativeSurface().getDisplayHandle(), getHandle());
+  }
 
   //---------------------------------------------------------------------------
   // Internals only below this point

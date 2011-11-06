@@ -169,11 +169,4 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
       ((SurfaceChangeable)ns).setSurfaceHandle(0);
     }
   }
-
-  protected void swapBuffersImpl() {
-    if(DEBUG) {
-        System.err.println("unhandled swapBuffersImpl() called for: "+this);
-    }
-  }
-
 }

@@ -106,7 +106,9 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   public GLContext createContext(GLContext shareWith) {
-    return new MacOSXPbufferCGLContext(this, shareWith);
+    final MacOSXPbufferCGLContext ctx = new MacOSXPbufferCGLContext(this, shareWith);
+    registerContext(ctx);
+    return ctx;
   }
 
   @Override
@@ -120,12 +122,6 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     return pBuffer;
   }
   
-  protected void swapBuffersImpl() {
-    if(DEBUG) {
-        System.err.println("unhandled swapBuffersImpl() called for: "+this);
-    }
-  }
-
   protected void destroyPbuffer() {
     if (this.pBuffer != 0) {
       NativeSurface ns = getNativeSurface();

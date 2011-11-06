@@ -124,12 +124,6 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     return floatMode;
   }
 
-  protected void swapBuffersImpl() {
-    if(DEBUG) {
-        System.err.println("unhandled swapBuffersImpl() called for: "+this);
-    }
-  }
-
   private void createPbuffer() {
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResource(config.getScreen().getDevice());

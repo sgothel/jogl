@@ -41,6 +41,7 @@
 package jogamp.opengl.windows.wgl;
 
 import java.security.AccessController;
+
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
@@ -74,7 +75,8 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
     }
   }
 
-  protected void swapBuffersImpl() {
+  protected final void swapBuffersImpl() {
+    // single-buffer is already filtered out @ GLDrawableImpl#swapBuffers()        
     long startTime = 0;
     if (PROFILING) {
       startTime = System.currentTimeMillis();

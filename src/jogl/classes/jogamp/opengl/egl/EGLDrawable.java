@@ -197,6 +197,16 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         }
     }
 
+    protected final void swapBuffersImpl() {
+        // single-buffer is already filtered out @ GLDrawableImpl#swapBuffers()
+        if(!EGL.eglSwapBuffers(eglDisplay, eglSurface)) {
+            if(DEBUG) {
+                System.err.println("eglSwapBuffers failed:");
+                Thread.dumpStack();
+            }
+        }
+    }
+
     public int getWidth() {
         int[] tmp = new int[1];
         if (!EGL.eglQuerySurface(eglDisplay, eglSurface, EGL.EGL_WIDTH, tmp, 0)) {

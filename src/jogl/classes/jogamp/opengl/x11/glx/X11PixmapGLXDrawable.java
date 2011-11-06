@@ -132,10 +132,4 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
     ((SurfaceChangeable)ns).setSurfaceHandle(0);
     display = 0;
   }
-
-  protected void swapBuffersImpl() {
-    if(DEBUG) {
-        System.err.println("unhandled swapBuffersImpl() called for: "+this);
-    }
-  }
 }

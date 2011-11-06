@@ -55,15 +55,5 @@ public class EGLOnscreenDrawable extends EGLDrawable {
     protected long createSurface(long eglDpy, long eglNativeCfg, long surfaceHandle) {
         return EGL.eglCreateWindowSurface(eglDpy, eglNativeCfg, surfaceHandle, null);
     }
-
-    protected void swapBuffersImpl() {
-        if(!EGL.eglSwapBuffers(eglDisplay, eglSurface)) {
-            if(DEBUG) {
-                System.err.println("eglSwapBuffers failed:");
-                Thread.dumpStack();
-            }
-        }
-    }
-
 }
 

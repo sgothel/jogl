@@ -442,7 +442,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     if(null==sr) {
         throw new IllegalArgumentException("No shared resource for "+device);
     }
-    final List returnList = new ArrayList();
+    final List<GLDrawableImpl> returnList = new ArrayList<GLDrawableImpl>();
     Runnable r = new Runnable() {
         public void run() {
           GLContext lastContext = GLContext.getCurrent();
@@ -451,7 +451,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
           }
           sr.context.makeCurrent();
           try {
-            GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(WindowsWGLDrawableFactory.this, target, sr);
+            GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(WindowsWGLDrawableFactory.this, target);
             returnList.add(pbufferDrawable);
           } finally {
             sr.context.release();
@@ -462,7 +462,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         }
       };
     maybeDoSingleThreadedWorkaround(r);
-    return (GLDrawableImpl) returnList.get(0);
+    return returnList.get(0);
   }
 
   /**

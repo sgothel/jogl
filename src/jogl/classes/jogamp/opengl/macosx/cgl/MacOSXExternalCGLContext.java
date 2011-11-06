@@ -48,7 +48,6 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.WrappedSurface;
 import jogamp.opengl.GLContextShareSet;
@@ -61,7 +60,7 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
   private MacOSXExternalCGLContext(Drawable drawable, boolean isNSContext, long handle) {
     super(drawable, null);
     setOpenGLMode(isNSContext ? GLBackendType.NSOPENGL : GLBackendType.CGL );
-    drawable.setExternalCGLContext(this);
+    drawable.registerContext(this);
     this.contextHandle = handle;
     GLContextShareSet.contextCreated(this);
     setGLFunctionAvailability(false, true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
@@ -150,14 +149,8 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
 
   // Need to provide the display connection to extension querying APIs
   static class Drawable extends MacOSXCGLDrawable {
-    MacOSXExternalCGLContext extCtx;
-
     Drawable(GLDrawableFactory factory, NativeSurface comp) {
       super(factory, comp, true);
-    }
-
-    void setExternalCGLContext(MacOSXExternalCGLContext externalContext) {
-      extCtx = externalContext;
     }
 
     public GLContext createContext(GLContext shareWith) {
@@ -175,11 +168,5 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     public void setSize(int width, int height) {
       throw new GLException("Should not call this");
     }
-
-    protected void swapBuffersImpl() {
-      if (extCtx != null) {
-        extCtx.swapBuffers();
-      }
-    }  
   }
 }

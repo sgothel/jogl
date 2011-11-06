@@ -40,45 +40,21 @@
 
 package jogamp.opengl.macosx.cgl;
 
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 
 
 public class MacOSXOnscreenCGLDrawable extends MacOSXCGLDrawable {
-  private List<WeakReference<MacOSXCGLContext>> createdContexts = new ArrayList<WeakReference<MacOSXCGLContext>>();
   
   protected MacOSXOnscreenCGLDrawable(GLDrawableFactory factory, NativeSurface component) {
     super(factory, component, false);
   }
 
   public GLContext createContext(GLContext shareWith) {
-    MacOSXOnscreenCGLContext ctx= new MacOSXOnscreenCGLContext(this, shareWith);
-    // NOTE: we need to keep track of the created contexts in order to
-    // implement swapBuffers() because of how Mac OS X implements its
-    // OpenGL window interface
-    synchronized (createdContexts) {
-      createdContexts.add(new WeakReference<MacOSXCGLContext>(ctx));
-    }
+    final MacOSXOnscreenCGLContext ctx= new MacOSXOnscreenCGLContext(this, shareWith);
+    registerContext(ctx);
     return ctx;
   }
 
-  protected void swapBuffersImpl() {
-    synchronized (createdContexts) {
-        for (Iterator<WeakReference<MacOSXCGLContext>> iter = createdContexts.iterator(); iter.hasNext(); ) {
-          WeakReference<MacOSXCGLContext> ref = iter.next();
-          MacOSXCGLContext ctx = ref.get();
-          if (ctx != null) {
-            ctx.swapBuffers();
-          } else {
-            iter.remove();
-          }
-        }
-    }
-  }  
 }

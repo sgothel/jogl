@@ -97,11 +97,5 @@ public class EGLPbufferDrawable extends EGLDrawable {
     public GLContext createContext(GLContext shareWith) {
         return new EGLPbufferContext(this, shareWith);
     }
-
-    protected void swapBuffersImpl() { 
-        if(DEBUG) {
-            System.err.println("unhandled swapBuffersImpl() called for: "+this);
-        }
-    }
 }
 
