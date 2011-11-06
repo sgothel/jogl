@@ -48,7 +48,7 @@ public class MacOSXOffscreenCGLDrawable extends MacOSXPbufferCGLDrawable {
 
   public MacOSXOffscreenCGLDrawable(GLDrawableFactory factory,
                                     NativeSurface target) {
-    super(factory, target);
+    super(factory, target, true);
   }
 
   public GLContext createContext(GLContext shareWith) {

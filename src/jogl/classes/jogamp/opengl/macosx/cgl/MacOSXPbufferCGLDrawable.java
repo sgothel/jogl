@@ -77,39 +77,36 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   // semantic is that contains an NSView
   protected long pBuffer;
 
-  public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, NativeSurface target) {
-    super(factory, target, true);
+  public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, NativeSurface target, boolean realizeNow) {
+    super(factory, target, false);
 
     if (DEBUG) {
         System.out.println("Pbuffer config: " + getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration());
     }
 
-    createPbuffer();
+    if(realizeNow) {
+        setRealized(true);
+    }
 
     if (DEBUG) {
         System.err.println("Created pbuffer " + this);
     }
   }
 
+  protected void destroyImpl() {
+    setRealized(false);  
+  }
+  
   protected void setRealizedImpl() {
     if(realized) {
         createPbuffer();
     } else {
-        destroyImpl();
+        destroyPbuffer();
     }
   }
 
   public GLContext createContext(GLContext shareWith) {
     return new MacOSXPbufferCGLContext(this, shareWith);
-  }
-
-  protected void destroyImpl() {
-    if (this.pBuffer != 0) {
-      NativeSurface ns = getNativeSurface();
-      impl.destroy(pBuffer);
-      this.pBuffer = 0;
-      ((SurfaceChangeable)ns).setSurfaceHandle(0);
-    }
   }
 
   @Override
@@ -126,6 +123,15 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   protected void swapBuffersImpl() {
     if(DEBUG) {
         System.err.println("unhandled swapBuffersImpl() called for: "+this);
+    }
+  }
+
+  protected void destroyPbuffer() {
+    if (this.pBuffer != 0) {
+      NativeSurface ns = getNativeSurface();
+      impl.destroy(pBuffer);
+      this.pBuffer = 0;
+      ((SurfaceChangeable)ns).setSurfaceHandle(0);
     }
   }
 

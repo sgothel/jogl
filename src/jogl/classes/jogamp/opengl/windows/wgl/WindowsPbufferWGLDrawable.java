@@ -51,6 +51,7 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.windows.wgl.WindowsWGLDrawableFactory.SharedResource;
 
 import javax.media.opengl.GLCapabilitiesImmutable;
 
@@ -60,27 +61,30 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   private long buffer; // pbuffer handle
 
   private int floatMode;
-
-  protected WindowsPbufferWGLDrawable(GLDrawableFactory factory, NativeSurface target,
-                                      WindowsWGLDrawableFactory.SharedResource sharedResource) {
-    super(factory, target, true);
-
+  
+  protected WindowsPbufferWGLDrawable(GLDrawableFactory factory, NativeSurface target) {
+    super(factory, target, false);
+    
     if (DEBUG) {
         System.out.println("Pbuffer config: " + getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration());
     }
 
-    createPbuffer(sharedResource);
+    setRealized(true);
 
     if (DEBUG) {
         System.err.println("Created pbuffer " + this);
     }
   }
 
+  protected void destroyImpl() {
+      setRealized(false);
+  }
+  
   protected void setRealizedImpl() {
     if(realized) {
-        throw new GLException("Recreation via setRealized not supported.");
+        createPbuffer();
     } else {
-        destroyImpl();
+        destroyPbuffer();
     }
   }
 
@@ -88,7 +92,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     return new WindowsPbufferWGLContext(this, shareWith);
   }
 
-  protected void destroyImpl() {
+  protected void destroyPbuffer() {
     NativeSurface ns = getNativeSurface();
     if(0!=buffer) {
         WGLExt wglExt = cachedWGLExt;
@@ -126,7 +130,9 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     }
   }
 
-  private void createPbuffer(WindowsWGLDrawableFactory.SharedResource sharedResource) {
+  private void createPbuffer() {
+    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResource(config.getScreen().getDevice());
     long parentHdc = sharedResource.getDrawable().getNativeSurface().getSurfaceHandle();
     WGLExt wglExt = sharedResource.getContext().getWGLExt();
     
@@ -136,7 +142,6 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     int     niattribs   = 0;
     int     width, height;
 
-    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
     GLProfile glProfile = chosenCaps.getGLProfile();
 

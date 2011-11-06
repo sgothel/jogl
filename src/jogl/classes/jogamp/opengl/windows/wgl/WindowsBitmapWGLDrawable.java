@@ -57,15 +57,19 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
   private long hbitmap;
 
   protected WindowsBitmapWGLDrawable(GLDrawableFactory factory, NativeSurface target) {
-    super(factory, target, true);
-    create();
+    super(factory, target, false);
+    setRealized(true);
   }
 
+  protected void destroyImpl() {
+      setRealized(false);
+  }
+  
   protected void setRealizedImpl() {
     if(realized) {
-        create();
+        createBitmap();
     } else {
-        destroyImpl();
+        destroyBitmap();
     }
   }
 
@@ -73,7 +77,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
     return new WindowsBitmapWGLContext(this, shareWith);
   }
 
-  private void create() {
+  private void createBitmap() {
     int werr;
     NativeSurface ns = getNativeSurface();
     if(DEBUG) {
@@ -153,7 +157,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
     config.updateGraphicsConfiguration(getFactory(), ns, null);
   }
   
-  protected void destroyImpl() {
+  protected void destroyBitmap() {
     NativeSurface ns = getNativeSurface();
     if (ns.getSurfaceHandle() != 0) {
       // Must destroy bitmap and device context

@@ -67,6 +67,7 @@ import jogamp.opengl.DesktopGLDynamicLookupHelper;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.ReflectionUtil;
@@ -244,6 +245,14 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
+    final MacOSXJAWTWindow lsh = MacOSXCGLDrawableFactory.getLayeredSurfaceHost(target);
+    if(null != lsh) {
+        // layered surface -> PBuffer
+        final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) target.getGraphicsConfiguration().getNativeGraphicsConfiguration();        
+        final GLCapabilitiesImmutable chosenCaps = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities((GLCapabilitiesImmutable) config.getChosenCapabilities());
+        config.setChosenCapabilities(chosenCaps);
+        return new MacOSXPbufferCGLDrawable(this, target, false);
+    }
     return new MacOSXOnscreenCGLDrawable(this, target);
   }
 
@@ -268,7 +277,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     maybeDoSingleThreadedWorkaround(r);
     return (GLDrawableImpl) returnList.get(0);
     */
-    return new MacOSXPbufferCGLDrawable(this, target);
+    return new MacOSXPbufferCGLDrawable(this, target, true);
   }
 
   public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {

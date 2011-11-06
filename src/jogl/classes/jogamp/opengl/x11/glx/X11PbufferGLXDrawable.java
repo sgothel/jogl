@@ -48,24 +48,28 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
                                   /* GLCapabilities caps, 
                                   GLCapabilitiesChooser chooser,
                                   int width, int height */
-    super(factory, target, true);
+    super(factory, target, false);
 
     if (DEBUG) {
         System.out.println("Pbuffer config: " + getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration());
     }
 
-    createPbuffer();
+    setRealized(true);
 
     if (DEBUG) {
         System.err.println("Created pbuffer " + this);
     }
   }
 
+  protected void destroyImpl() {
+    setRealized(false);
+  }
+  
   protected void setRealizedImpl() {
     if(realized) {
         createPbuffer();
     } else {
-        destroyImpl();
+        destroyPbuffer();
     }
   }
 
@@ -73,7 +77,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     return new X11PbufferGLXContext(this, shareWith);
   }
 
-  protected void destroyImpl() {
+  protected void destroyPbuffer() {
     NativeSurface ns = getNativeSurface();
     if (ns.getSurfaceHandle() != 0) {
       GLX.glXDestroyPbuffer(ns.getDisplayHandle(), ns.getSurfaceHandle());

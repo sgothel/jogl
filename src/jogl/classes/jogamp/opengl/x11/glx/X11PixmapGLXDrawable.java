@@ -48,15 +48,19 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
   private long pixmap;
 
   protected X11PixmapGLXDrawable(GLDrawableFactory factory, NativeSurface target) {
-    super(factory, target, true);
-    create();
+    super(factory, target, false);
+    setRealized(true);
   }
 
+  protected void destroyImpl() {
+    setRealized(false);
+  }
+  
   protected void setRealizedImpl() {
     if(realized) {
-        create();
+        createPixmap();
     } else {
-        destroyImpl();
+        destroyPixmap();
     }
   }
 
@@ -64,7 +68,7 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
     return new X11PixmapGLXContext(this, shareWith);
   }
   
-  private void create() {
+  private void createPixmap() {
     NativeSurface ns = getNativeSurface();
     X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     XVisualInfo vis = config.getXVisualInfo();
@@ -93,7 +97,7 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
     }
   }
 
-  protected void destroyImpl() {
+  protected void destroyPixmap() {
     if (pixmap == 0) return;
 
     NativeSurface ns = getNativeSurface();
