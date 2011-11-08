@@ -48,9 +48,6 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
     // This subclass of NativeWindowFactory handles the case of
     // NativeWindows being passed in
     protected NativeWindow getNativeWindowImpl(Object winObj, AbstractGraphicsConfiguration config) throws IllegalArgumentException {
-        if (null == winObj) {
-            throw new IllegalArgumentException("winObj is null");
-        }
         if (winObj instanceof NativeWindow) {
             // Use the NativeWindow directly
             return (NativeWindow) winObj;

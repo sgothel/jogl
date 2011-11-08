@@ -117,10 +117,10 @@ public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration
                 break;
 
               case CGL.NSOpenGLPFANoRecovery:
-                ivalues[idx] = caps.getHardwareAccelerated() ? 1 : 0; // FIXME: Jau ??
+                ivalues[idx] = caps.getHardwareAccelerated() ? 1 : 0;
                 break;
               case CGL.NSOpenGLPFAAccelerated:
-                ivalues[idx] = caps.getHardwareAccelerated() ? 1 : 0; // FIXME: Jau ??
+                ivalues[idx] = caps.getHardwareAccelerated() ? 1 : 0;
                 break;
                   
               case CGL.NSOpenGLPFAPixelBuffer:

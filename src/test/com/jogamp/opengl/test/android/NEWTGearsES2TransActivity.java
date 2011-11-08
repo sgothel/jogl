@@ -61,7 +61,7 @@ public class NEWTGearsES2TransActivity extends NewtBaseActivity {
        setContentView(getWindow(), glWindow);
        
        glWindow.addGLEventListener(new GearsES2(1));
-       glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {
+       glWindow.getScreen().addScreenModeListener(new ScreenModeListener() {
         public void screenModeChangeNotify(ScreenMode sm) { }
         public void screenModeChanged(ScreenMode sm, boolean success) {
             System.err.println("ScreenMode Changed: "+sm);

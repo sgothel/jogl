@@ -65,7 +65,7 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
        GearsES2 demo = new GearsES2(0);
        // demo.enableAndroidTrace(true);
        glWindow.addGLEventListener(demo);
-       glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {
+       glWindow.getScreen().addScreenModeListener(new ScreenModeListener() {
         public void screenModeChangeNotify(ScreenMode sm) { }
         public void screenModeChanged(ScreenMode sm, boolean success) {
             System.err.println("ScreenMode Changed: "+sm);

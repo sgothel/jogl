@@ -62,7 +62,7 @@ public class NEWTGraphUI2pActivity extends NewtBaseActivity {
        setContentView(getWindow(), glWindow);
        
        glWindow.addGLEventListener(new GPUUISceneGLListener0A(Region.VBAA_RENDERING_BIT));
-       glWindow.getWindow().getScreen().addScreenModeListener(new ScreenModeListener() {
+       glWindow.getScreen().addScreenModeListener(new ScreenModeListener() {
         public void screenModeChangeNotify(ScreenMode sm) { }
         public void screenModeChanged(ScreenMode sm, boolean success) {
             System.err.println("ScreenMode Changed: "+sm);

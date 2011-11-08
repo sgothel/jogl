@@ -72,7 +72,7 @@ public class TestGearsAWT extends UITestCase {
         frame.add(glCanvas);
         frame.setSize(512, 512);
 
-        glCanvas.addGLEventListener(new Gears());
+        glCanvas.addGLEventListener(new Gears(1));
 
         Animator animator = new Animator(glCanvas);
         QuitAdapter quitAdapter = new QuitAdapter();
@@ -81,7 +81,7 @@ public class TestGearsAWT extends UITestCase {
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
         frame.setVisible(true);
-        animator.setUpdateFPSFrames(1, null);        
+        animator.setUpdateFPSFrames(60, System.err);        
         animator.start();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
