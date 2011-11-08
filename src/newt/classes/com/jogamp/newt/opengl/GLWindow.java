@@ -195,6 +195,10 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         return window.getRequestedCapabilities();
     }
 
+    public NativeWindow getNativeWindow() {
+        return window;
+    }
+    
     public final Window getWindow() {
         return window;
     }
@@ -676,8 +680,18 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     // GLDrawable methods
     //
 
+
+    /**
+     * {@inheritDoc} 
+     * <p>
+     * Be aware that the returned NativeSurface may change.
+     * If this inner {@link GLDrawable} representation became realized (see {@link #isRealized()})
+     * this {@link GLDrawable}'s {@link NativeSurface} instance is being returned.
+     * Otherwise this {@link Window} {@link NativeSurface}'s is being returned.
+     * </p>
+     */
     public final NativeSurface getNativeSurface() {
-        return null!=drawable ? drawable.getNativeSurface() : null;
+        return null!=drawable ? drawable.getNativeSurface() : window.getNativeSurface();
     }
 
     public final long getHandle() {

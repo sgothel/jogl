@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright (c) 2011 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -26,50 +26,18 @@
  * or implied, of JogAmp Community.
  */
 
-package jogamp.nativewindow;
+package javax.media.nativewindow;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.SurfaceChangeable;
-
-
-public class WrappedSurface extends ProxySurface implements  SurfaceChangeable {
-  protected long surfaceHandle;
-
-  public WrappedSurface(AbstractGraphicsConfiguration cfg) {
-      this(cfg, 0);
-  }
-
-  public WrappedSurface(AbstractGraphicsConfiguration cfg, long handle) {
-    super(cfg);
-    surfaceHandle=handle;
-  }
-  
-  protected final void invalidateImpl() {
-    surfaceHandle = 0;
-  }
-
-  public NativeSurface getNativeSurface() {
-      return this;
-  }
-  
-  public long getSurfaceHandle() {
-    return surfaceHandle;
-  }
-
-  public void setSurfaceHandle(long surfaceHandle) {
-    this.surfaceHandle=surfaceHandle;
-  }
-
-  protected int lockSurfaceImpl() {
-      return LOCK_SUCCESS;
-  }
-
-  protected void unlockSurfaceImpl() {
-  }
-
-  public String toString() {
-    return "WrappedSurface[config " + config + ", displayHandle 0x" + Long.toHexString(getDisplayHandle()) + ", surfaceHandle 0x" + Long.toHexString(getSurfaceHandle()) + ", size " + getWidth() + "x" + getHeight() + "]";
-  }
+/**
+ * This interface allows access to it's implementation's NativeSurface reference.
+ */
+public interface NativeSurfaceHolder {
+    /**
+     * Returns the {@link NativeSurface} object.
+     * <p>
+     * The returned object might be this instance in case this Object is a NativeSurface,
+     * or a contained NativeSurface instance.
+     * </p>
+     */
+    public NativeSurface getNativeSurface();
 }

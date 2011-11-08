@@ -29,6 +29,7 @@
 package jogamp.nativewindow.windows;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowException;
 
 import javax.media.nativewindow.ProxySurface;
@@ -56,6 +57,10 @@ public class GDISurface extends ProxySurface {
     surfaceHandle=0;
   }
 
+  public NativeSurface getNativeSurface() {
+      return this;
+  }
+  
   protected int lockSurfaceImpl() {
     if (0 != surfaceHandle) {
         throw new InternalError("surface not released");

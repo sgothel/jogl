@@ -51,7 +51,7 @@ import javax.media.nativewindow.util.Point;
     implementation of {@link NativeWindowFactory NativeWindowFactory}
     which can create NativeWindow objects for its components. <P>
 */
-public interface NativeWindow extends NativeSurface {
+public interface NativeWindow extends NativeSurface, NativeWindowHolder {
  
   /** 
    * destroys the window and releases
