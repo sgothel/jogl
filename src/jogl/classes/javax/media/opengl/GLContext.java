@@ -45,6 +45,7 @@ import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.util.HashMap;
 import java.util.HashSet;
+
 import javax.media.nativewindow.AbstractGraphicsDevice;
 
 import com.jogamp.common.util.IntObjectHashMap;
@@ -767,12 +768,12 @@ public abstract class GLContext {
   /**
    * @see #getDeviceVersionAvailableKey(javax.media.nativewindow.AbstractGraphicsDevice, int, int) 
    */
-  protected static /*final*/ HashMap/*<DeviceVersionAvailableKey, Integer>*/ deviceVersionAvailable = new HashMap();
+  protected static /*final*/ HashMap<String, Integer> deviceVersionAvailable = new HashMap<String, Integer>();
 
   /**
    * @see #getUniqueDeviceString(javax.media.nativewindow.AbstractGraphicsDevice)
    */
-  private static /*final*/ HashSet/*<UniqueDeviceString>*/ deviceVersionsAvailableSet = new HashSet();
+  private static /*final*/ HashSet<String> deviceVersionsAvailableSet = new HashSet<String>();
 
   protected static String getDeviceVersionAvailableKey(AbstractGraphicsDevice device, int major, int profile) {
       return device.getUniqueID() + "-" + toHexString(compose8bit(major, profile, 0, 0));
@@ -824,7 +825,7 @@ public abstract class GLContext {
     String key = getDeviceVersionAvailableKey(device, reqMajor, profile);
     Integer val = new Integer(compose8bit(resMajor, resMinor, resCtp, 0));
     synchronized(deviceVersionAvailable) {
-        val = (Integer) deviceVersionAvailable.put( key, val );
+        val = deviceVersionAvailable.put( key, val );
     }
     return val;
   }
@@ -833,7 +834,7 @@ public abstract class GLContext {
     String key = getDeviceVersionAvailableKey(device, reqMajor, profile);
     Integer val;
     synchronized(deviceVersionAvailable) {
-        val = (Integer) deviceVersionAvailable.get( key );
+        val = deviceVersionAvailable.get( key );
     }
     return val;
   }
@@ -875,29 +876,29 @@ public abstract class GLContext {
       return null != getAvailableGLVersion(device, major, profile);
   }
 
-    public static boolean isGLES1Available(AbstractGraphicsDevice device) {
-        return isGLVersionAvailable(device, 1, GLContext.CTX_PROFILE_ES);
-    }
+  public static boolean isGLES1Available(AbstractGraphicsDevice device) {
+      return isGLVersionAvailable(device, 1, GLContext.CTX_PROFILE_ES);
+  }
 
-    public static boolean isGLES2Available(AbstractGraphicsDevice device) {
-        return isGLVersionAvailable(device, 2, GLContext.CTX_PROFILE_ES);
-    }
+  public static boolean isGLES2Available(AbstractGraphicsDevice device) {
+      return isGLVersionAvailable(device, 2, GLContext.CTX_PROFILE_ES);
+  }
 
-    public static boolean isGL4bcAvailable(AbstractGraphicsDevice device) {
-        return isGLVersionAvailable(device, 4, CTX_PROFILE_COMPAT);
-    }
+  public static boolean isGL4bcAvailable(AbstractGraphicsDevice device) {
+      return isGLVersionAvailable(device, 4, CTX_PROFILE_COMPAT);
+  }
 
-    public static boolean isGL4Available(AbstractGraphicsDevice device) {
-        return isGLVersionAvailable(device, 4, CTX_PROFILE_CORE);
-    }
+  public static boolean isGL4Available(AbstractGraphicsDevice device) {
+      return isGLVersionAvailable(device, 4, CTX_PROFILE_CORE);
+  }
 
-    public static boolean isGL3bcAvailable(AbstractGraphicsDevice device) {
-        return isGLVersionAvailable(device, 3, CTX_PROFILE_COMPAT);
-    }
+  public static boolean isGL3bcAvailable(AbstractGraphicsDevice device) {
+      return isGLVersionAvailable(device, 3, CTX_PROFILE_COMPAT);
+  }
 
-    public static boolean isGL3Available(AbstractGraphicsDevice device) {
-        return isGLVersionAvailable(device, 3, CTX_PROFILE_CORE);
-    }
+  public static boolean isGL3Available(AbstractGraphicsDevice device) {
+      return isGLVersionAvailable(device, 3, CTX_PROFILE_CORE);
+  }
 
   public static boolean isGL2Available(AbstractGraphicsDevice device) {
     return isGLVersionAvailable(device, 2, CTX_PROFILE_COMPAT);
@@ -941,6 +942,10 @@ public abstract class GLContext {
     return sb.toString();
   }
 
+  //
+  // internal string utils 
+  //
+  
   protected static String toString(int val, boolean hex) {
     if(hex) {
         return "0x" + Integer.toHexString(val);
