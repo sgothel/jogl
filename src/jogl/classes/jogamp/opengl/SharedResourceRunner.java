@@ -61,7 +61,7 @@ public class SharedResourceRunner implements Runnable {
     String initConnection = null;
     String releaseConnection = null;
 
-    HashSet devicesTried = new HashSet();
+    HashSet<String> devicesTried = new HashSet<String>();
 
     private boolean getDeviceTried(String connection) {
         synchronized (devicesTried) {
@@ -86,7 +86,7 @@ public class SharedResourceRunner implements Runnable {
     public SharedResourceRunner.Resource getOrCreateShared(AbstractGraphicsDevice device) {
         SharedResourceRunner.Resource sr = null;
         if(null != device) {
-            String connection = device.getConnection();
+            final String connection = device.getConnection();
             sr = impl.mapGet(connection);
             if (null == sr && !getDeviceTried(connection)) {
                 addDeviceTried(connection);

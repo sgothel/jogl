@@ -138,20 +138,9 @@ public class GLGraphicsConfigurationUtil {
         if( capsRequested.getDoubleBuffered() || capsRequested.isOnscreen() || !capsRequested.isPBuffer()) {
             // fix caps ..
             GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
-            caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
+            caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN - we don't need to be single buffered ..
             caps2.setOnscreen(false);
             caps2.setPBuffer(true);
-            return caps2;
-        }
-        return capsRequested;
-    }
-
-    public static GLCapabilitiesImmutable fixSingleBufferGLCapabilities(GLCapabilitiesImmutable capsRequested)
-    {
-        if( capsRequested.getDoubleBuffered() ) {
-            // fix caps ..
-            GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
-            caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
             return caps2;
         }
         return capsRequested;
