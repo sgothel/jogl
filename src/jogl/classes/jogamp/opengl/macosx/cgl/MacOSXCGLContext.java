@@ -45,9 +45,7 @@ import java.util.Map;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.DefaultGraphicsConfiguration;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
@@ -66,7 +64,6 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
-
 
 public abstract class MacOSXCGLContext extends GLContextImpl
 {    
@@ -285,12 +282,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     if(!impl.setSwapInterval(interval)) {
         throw new GLException("Error set swap-interval: "+this);        
     }
-    if ( isNSContext() ) {
-        CGL.setSwapInterval(contextHandle, interval);
-    } else {
-        int[] lval = new int[] { (int) interval } ;
-        CGL.CGLSetParameter(contextHandle, CGL.kCGLCPSwapInterval, lval, 0);
-    }
     currentSwapInterval = interval ;
   }
 
@@ -431,6 +422,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
             System.err.println("NS create pixelFormat: "+toHexString(pixelFormat));
             System.err.println("NS create drawable native-handle: "+toHexString(drawable.getHandle()));
             System.err.println("NS create drawable NSView-handle: "+toHexString(drawable.getNSViewHandle()));
+            Thread.dumpStack();
         }
         try {
           int[] viewNotReady = new int[1];
@@ -473,21 +465,24 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               final MacOSXJAWTWindow lsh = MacOSXCGLDrawableFactory.getLayeredSurfaceHost(surface);
               nsOpenGLLayerPFmt = pixelFormat;
               pixelFormat = 0;
-              // final long nsView = drawable.getNSViewHandle();
-              // nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, nsView, fixedCaps.isBackgroundOpaque());
-              nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, drawable.getHandle(), fixedCaps.isBackgroundOpaque(),
-                                                      drawable.getWidth(), drawable.getHeight());
+              /*
+                final long nsView = drawable.getNSViewHandle();
+                nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, nsView, fixedCaps.isBackgroundOpaque());
+               */
+              final int texWidth, texHeight;
+              if(drawable instanceof MacOSXPbufferCGLDrawable) {
+                  final MacOSXPbufferCGLDrawable osxPDrawable = (MacOSXPbufferCGLDrawable)drawable;
+                  texWidth = osxPDrawable.getTextureWidth();
+                  texHeight = osxPDrawable.getTextureHeight();
+              } else {
+                  texWidth = drawable.getWidth();
+                  texHeight = drawable.getHeight();                  
+              }
+              nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, drawable.getHandle(), fixedCaps.isBackgroundOpaque(), texWidth, texHeight);
               if (DEBUG) {
                   System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer));
               }
               lsh.attachSurfaceLayer(nsOpenGLLayer);
-              lsh.addSurfaceUpdatedListener(new SurfaceUpdatedListener() {
-                public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
-                  if(0 != nsOpenGLLayer) {
-                      CGL.setNSOpenGLLayerNeedsDisplay(nsOpenGLLayer);
-                  }
-                }                  
-              });
           }
         } finally {
           if(0!=pixelFormat) {
@@ -527,11 +522,26 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
 
     public boolean setSwapInterval(int interval) {
-      CGL.setSwapInterval(contextHandle, interval);      
+      if(0 != nsOpenGLLayer) {
+        CGL.setNSOpenGLLayerSwapInterval(nsOpenGLLayer, interval);
+      }
+      CGL.setSwapInterval(contextHandle, interval);
       return true;
     }
+    
     public boolean swapBuffers() {
-      return CGL.flushBuffer(contextHandle);
+      if(0 != nsOpenGLLayer) {
+        // sync w/ CALayer renderer - wait until next frame is required (v-sync)
+        CGL.waitUntilNSOpenGLLayerIsReady(nsOpenGLLayer, 16); // timeout 16ms -> 60Hz
+      }
+      if(CGL.flushBuffer(contextHandle)) {
+          if(0 != nsOpenGLLayer) {
+              // trigger CALayer to update
+              CGL.setNSOpenGLLayerNeedsDisplay(nsOpenGLLayer);
+          }
+          return true;
+      }
+      return false;
     }
   }
 

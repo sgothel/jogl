@@ -33,19 +33,14 @@
 
 package jogamp.opengl.macosx.cgl;
 
-import javax.media.nativewindow.DefaultGraphicsConfiguration;
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLPbuffer;
 
-
 public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
 
   // State for render-to-texture and render-to-texture-rectangle support
-  private int textureTarget; // e.g. GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_NV
   private int texture;       // actual texture object
 
   public MacOSXPbufferCGLContext(MacOSXPbufferCGLDrawable drawable,
@@ -55,7 +50,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
 
   public void bindPbufferToTexture() {
     GL gl = getGL();
-    gl.glBindTexture(textureTarget, texture);
+    gl.glBindTexture(((MacOSXPbufferCGLDrawable)drawable).getTextureTarget(), texture);
     // FIXME: not clear whether this is really necessary, but since
     // the API docs seem to imply it is and since it doesn't seem to
     // impact performance, leaving it in
@@ -70,18 +65,10 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     
     if (newCreated) {
       // Initialize render-to-texture support if requested
-      DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-      GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
-      GL gl = getGL();
-      boolean rect = gl.isGL2GL3() && capabilities.getPbufferRenderToTextureRectangle();
-      if (rect) {
-        if (!gl.isExtensionAvailable("GL_EXT_texture_rectangle")) {
-          System.err.println("MacOSXPbufferCGLContext: WARNING: GL_EXT_texture_rectangle extension not " +
-                             "supported; skipping requested render_to_texture_rectangle support for pbuffer");
-          rect = false;
-        }
-      }
-      textureTarget = (rect ? GL2.GL_TEXTURE_RECTANGLE : GL.GL_TEXTURE_2D);
+      final GL gl = getGL();
+      final MacOSXPbufferCGLDrawable osxPDrawable = (MacOSXPbufferCGLDrawable)drawable;
+      final int textureTarget = osxPDrawable.getTextureTarget();
+  
       int[] tmp = new int[1];
       gl.glGenTextures(1, tmp, 0);
       texture = tmp[0];
@@ -90,7 +77,9 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
       gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
       gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
-      gl.glCopyTexImage2D(textureTarget, 0, GL.GL_RGB, 0, 0, drawable.getWidth(), drawable.getHeight(), 0);
+      gl.glTexImage2D(textureTarget, 0, GL.GL_RGB, osxPDrawable.getTextureWidth(), osxPDrawable.getTextureHeight(), 
+                      0, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, null);
+      gl.glCopyTexSubImage2D(textureTarget, 0, 0, 0, 0, 0, drawable.getWidth(), drawable.getHeight());
     }
   }
 

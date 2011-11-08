@@ -53,7 +53,9 @@ void setContextPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer);
 void setContextTextureImageToPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer, GLenum colorBuffer);
 
 // NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSView* view, Bool opaque);
-NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSOpenGLPixelBuffer* pbuffer, Bool opaque, int width, int height);
+NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSOpenGLPixelBuffer* pbuffer, Bool opaque, int texWidth, int texHeight);
+void setNSOpenGLLayerSwapInterval(NSOpenGLLayer* layer, int interval);
+void waitUntilNSOpenGLLayerIsReady(NSOpenGLLayer* layer, long to_ms);
 void setNSOpenGLLayerNeedsDisplay(NSOpenGLLayer* glLayer);
 void releaseNSOpenGLLayer(NSOpenGLLayer *glLayer);
 
