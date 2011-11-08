@@ -35,6 +35,11 @@
       return _context.isExtensionAvailable(glExtensionName);
     }
 
+    public boolean isNPOTTextureAvailable() {
+      return isGL3() || isGLES2() || isExtensionAvailable(GL_ARB_texture_non_power_of_two);
+    }
+    private static final String GL_ARB_texture_non_power_of_two = "GL_ARB_texture_non_power_of_two";
+
     public Object getExtension(String extensionName) {
       // At this point we don't expose any extensions using this mechanism
       return null;

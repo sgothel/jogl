@@ -1055,9 +1055,7 @@ public class Texture {
 
     // Helper routines for disabling certain codepaths
     private static boolean haveNPOT(GL gl) {
-        return (!disableNPOT &&
-                ( gl.isGLES2() ||
-                  gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two") ) );
+        return !disableNPOT && gl.isNPOTTextureAvailable();
     }
 
     private static boolean haveTexRect(GL gl) {

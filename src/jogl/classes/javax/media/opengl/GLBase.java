@@ -294,6 +294,17 @@ public interface GLBase {
     */
    public boolean isExtensionAvailable(String glExtensionName);
 
+   /**
+    * Returns true if the GL context supports non power of two (NPOT) textures,
+    * otherwise false.
+    * <p>
+    * NPOT textures are supported in OpenGL >= 3, GLES2 or if the
+    * 'GL_ARB_texture_non_power_of_two' extension is available.
+    * </p>
+    * @return
+    */
+   public boolean isNPOTTextureAvailable();
+
    /** Provides a platform-independent way to specify the minimum swap
        interval for buffer swaps. An argument of 0 disables
        sync-to-vertical-refresh completely, while an argument of 1
