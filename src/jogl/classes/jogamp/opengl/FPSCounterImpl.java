@@ -28,6 +28,8 @@
 package jogamp.opengl;
 
 import java.io.PrintStream;
+import java.util.concurrent.TimeUnit;
+
 import javax.media.opengl.FPSCounter;
 
 /**
@@ -55,7 +57,7 @@ public class FPSCounterImpl implements FPSCounter {
     public final synchronized void tickFPS() {
         fpsTotalFrames++;
         if(fpsUpdateFramesInterval>0 && fpsTotalFrames%fpsUpdateFramesInterval == 0) {
-            final long now = System.currentTimeMillis();
+            final long now = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
             fpsLastPeriod = now - fpsLastUpdateTime;
             fpsLastPeriod = Math.max(fpsLastPeriod, 1); // div 0 
             fpsLast = ( (float)fpsUpdateFramesInterval * 1000f ) / ( (float) fpsLastPeriod ) ; 
@@ -96,7 +98,7 @@ public class FPSCounterImpl implements FPSCounter {
     }
     
     public final synchronized void resetFPSCounter() {
-        fpsStartTime = System.currentTimeMillis(); // overwrite startTime to real init one
+        fpsStartTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime()); // overwrite startTime to real init one
         fpsLastUpdateTime   = fpsStartTime;
         fpsLastPeriod = 0;
         fpsTotalFrames = 0;
