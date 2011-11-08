@@ -54,7 +54,7 @@ import javax.media.opengl.GLProfile;
 import jogamp.opengl.Debug;
 
 import com.jogamp.common.nio.PointerBuffer;
-
+import com.jogamp.opengl.util.GLBuffers;
 
 public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   private static final boolean DEBUG = Debug.debug("MacOSXPbufferCGLDrawable");
@@ -76,6 +76,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   // Note that we can not store this in the NativeSurface because the
   // semantic is that contains an NSView
   protected long pBuffer;
+  protected int pBufferTexTarget, pBufferTexWidth, pBufferTexHeight;
 
   public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, NativeSurface target, boolean realizeNow) {
     super(factory, target, false);
@@ -122,6 +123,10 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     return pBuffer;
   }
   
+  protected int getTextureTarget() { return pBufferTexTarget;  }
+  protected int getTextureWidth() { return pBufferTexWidth; }
+  protected int getTextureHeight() { return pBufferTexHeight; }
+    
   protected void destroyPbuffer() {
     if (this.pBuffer != 0) {
       NativeSurface ns = getNativeSurface();
@@ -132,65 +137,49 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   private void createPbuffer() {
-    NativeSurface ns = getNativeSurface();
-    DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
-    GLProfile glProfile = capabilities.getGLProfile();
-    final int w, h;
-    int renderTarget;
-    if (glProfile.isGL2GL3() && capabilities.getPbufferRenderToTextureRectangle()) {
-      w = getWidth();
-      h = getHeight();
-      renderTarget = GL2.GL_TEXTURE_RECTANGLE;
+    final NativeSurface ns = getNativeSurface();
+    final DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    final GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
+    final GLProfile glProfile = capabilities.getGLProfile();
+    MacOSXCGLDrawableFactory.SharedResource sr = ((MacOSXCGLDrawableFactory)factory).getOrCreateOSXSharedResource(config.getScreen().getDevice());
+    
+    if ( capabilities.getPbufferRenderToTextureRectangle() && null!=sr && sr.isRECTTextureAvailable() ) {
+      pBufferTexTarget = GL2.GL_TEXTURE_RECTANGLE;
     } else {
-      w = getNextPowerOf2(getWidth());
-      h = getNextPowerOf2(getHeight());
-      // FIXME - JAU: ((SurfaceChangeable)ns).setSize(w, h); // can't do that, removed orig size
-      renderTarget = GL.GL_TEXTURE_2D;
+      pBufferTexTarget = GL.GL_TEXTURE_2D;
+    }
+    if ( GL2.GL_TEXTURE_RECTANGLE == pBufferTexTarget || ( null!=sr && sr.isNPOTTextureAvailable() ) ) { 
+      pBufferTexWidth = getWidth();
+      pBufferTexHeight = getHeight();
+    } else {
+      pBufferTexWidth = GLBuffers.getNextPowerOf2(getWidth());
+      pBufferTexHeight = GLBuffers.getNextPowerOf2(getHeight());
     }
 
     int internalFormat = GL.GL_RGBA;
     if (capabilities.getPbufferFloatingPointBuffers()) {
-      // FIXME: want to check availability of GL_APPLE_float_pixels
-      // extension, but need valid OpenGL context in order to do so --
-      // in worst case would need to create dummy window / GLCanvas
-      // (undesirable) -- could maybe also do this with pbuffers
-      /*
-        if (!gl.isExtensionAvailable("GL_APPLE_float_pixels")) {
-        throw new GLException("Floating-point support (GL_APPLE_float_pixels) not available");
-        }
-      */
-      if(glProfile.isGL2GL3()) {
-        switch (capabilities.getRedBits()) {
+      if(!glProfile.isGL2GL3() || null==sr || sr.isAppletFloatPixelsAvailable()) {
+          throw new GLException("Floating-point support (GL_APPLE_float_pixels) not available");
+      }
+      switch (capabilities.getRedBits()) {
         case 16: internalFormat = GL2.GL_RGBA_FLOAT16_APPLE; break;
         case 32: internalFormat = GL2.GL_RGBA_FLOAT32_APPLE; break;
         default: throw new GLException("Invalid floating-point bit depth (only 16 and 32 supported)");
-        }
-      } else {
-        internalFormat = GL.GL_RGBA;
       }
     }
-            
-    pBuffer = impl.create(renderTarget, internalFormat, w, h);
+    
+    pBuffer = impl.create(pBufferTexTarget, internalFormat, getWidth(), getHeight());
+    if(DEBUG) {
+        System.err.println("MacOSXPbufferCGLDrawable tex: target "+toHexString(pBufferTexTarget)+
+                            ", size "+toHexString(pBufferTexWidth)+"x"+toHexString(pBufferTexHeight)+
+                            ", internal-fmt "+toHexString(internalFormat));
+        System.err.println("MacOSXPbufferCGLDrawable pBuffer: "+toHexString(pBuffer));
+    }
     if (pBuffer == 0) {
       throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
     }
 
     ((SurfaceChangeable)ns).setSurfaceHandle(pBuffer);
-
-  }
-
-  private int getNextPowerOf2(int number) {
-    if (((number-1) & number) == 0) {
-      //ex: 8 -> 0b1000; 8-1=7 -> 0b0111; 0b1000&0b0111 == 0
-      return number;
-    }
-    int power = 0;
-    while (number > 0) {
-      number = number>>1;
-      power++;
-    }
-    return (1<<power);
   }
 
   public void setOpenGLMode(GLBackendType mode) {

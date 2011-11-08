@@ -42,6 +42,7 @@ package jogamp.opengl.macosx.cgl;
 
 import java.nio.Buffer;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
@@ -51,8 +52,10 @@ import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.NativeWindowHolder;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.macosx.MacOSXGraphicsDevice;
+import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -67,7 +70,6 @@ import jogamp.opengl.DesktopGLDynamicLookupHelper;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
-import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.ReflectionUtil;
@@ -116,18 +118,28 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
       // private MacOSXCGLContext context;
       MacOSXGraphicsDevice device;
       boolean wasContextCreated;
+      boolean hasNPOTTextures;
+      boolean hasRECTTextures;
+      boolean hasAppletFloatPixels;
 
-      SharedResource(MacOSXGraphicsDevice device, boolean wasContextCreated
+      SharedResource(MacOSXGraphicsDevice device, boolean wasContextCreated, 
+                     boolean hasNPOTTextures, boolean hasRECTTextures, boolean hasAppletFloatPixels
                      /* MacOSXCGLDrawable draw, MacOSXCGLContext ctx */) {
           // drawable = draw;
           // context = ctx;
           this.device = device;
           this.wasContextCreated = wasContextCreated;
+          this.hasNPOTTextures = hasNPOTTextures;
+          this.hasRECTTextures = hasRECTTextures;
+          this.hasAppletFloatPixels = hasAppletFloatPixels;
       }
       final MacOSXGraphicsDevice getDevice() { return device; }
       final boolean wasContextAvailable() { return wasContextCreated; }
+      final boolean isNPOTTextureAvailable() { return hasNPOTTextures; }
+      final boolean isRECTTextureAvailable() { return hasRECTTextures; }
+      final boolean isAppletFloatPixelsAvailable() { return hasAppletFloatPixels; }
   }
-  HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
+  HashMap<String, SharedResource> sharedMap = new HashMap<String, SharedResource>();
   MacOSXGraphicsDevice defaultDevice;
 
   public final AbstractGraphicsDevice getDefaultDevice() {
@@ -141,52 +153,78 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
       return false;
   }
 
-  private boolean isOSXContextAvailable(AbstractGraphicsDevice sharedDevice) {
-    boolean madeCurrent = false;
-    GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP);
-    if (null == glp) {
-        throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
-    }    
-    final GLCapabilities caps = new GLCapabilities(glp);
-    caps.setRedBits(5); caps.setGreenBits(5); caps.setBlueBits(5); caps.setAlphaBits(0);
-    caps.setDoubleBuffered(false);
-    caps.setOnscreen(false);
-    caps.setPBuffer(true);
-    final MacOSXCGLDrawable drawable = (MacOSXCGLDrawable) createGLDrawable( createOffscreenSurfaceImpl(sharedDevice, caps, caps, null, 64, 64) );        
-    if(null!=drawable) {
-        final GLContext context = drawable.createContext(null);
-        if (null != context) {
-            context.setSynchronized(true);
-            try {
-                context.makeCurrent(); // could cause exception
-                madeCurrent = context.isCurrent();
-            } catch (GLException gle) {
-                if (DEBUG) {
-                    System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: makeCurrent failed");
-                    gle.printStackTrace();
-                }
-            } finally {
-                context.destroy();
-            }
-        }
-        drawable.destroy();
-    }
-    return madeCurrent;
+  private HashSet<String> devicesTried = new HashSet<String>();
+
+  private boolean getDeviceTried(String connection) {
+      synchronized (devicesTried) {
+          return devicesTried.contains(connection);
+      }
+  }
+  private void addDeviceTried(String connection) {
+      synchronized (devicesTried) {
+          devicesTried.add(connection);
+      }
+  }
+  private void removeDeviceTried(String connection) {
+      synchronized (devicesTried) {
+          devicesTried.remove(connection);
+      }
   }
   
   /* package */ SharedResource getOrCreateOSXSharedResource(AbstractGraphicsDevice adevice) {
-    String connection = adevice.getConnection();
+    final String connection = adevice.getConnection();
     SharedResource sr;
     synchronized(sharedMap) {
-        sr = (SharedResource) sharedMap.get(connection);
+        sr = sharedMap.get(connection);
     }
-    if(null==sr) {
+    if(null==sr && !getDeviceTried(connection)) {
+        addDeviceTried(connection);
         final MacOSXGraphicsDevice sharedDevice = new MacOSXGraphicsDevice(adevice.getUnitID());
-        final boolean madeCurrent = isOSXContextAvailable(sharedDevice);
-        sr = new SharedResource(sharedDevice, madeCurrent);
+        boolean madeCurrent = false;
+        boolean hasNPOTTextures = false;
+        boolean hasRECTTextures = false;
+        boolean hasAppletFloatPixels = false;
+        {
+            GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP);
+            if (null == glp) {
+                throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
+            }    
+            final GLCapabilities caps = new GLCapabilities(glp);
+            caps.setRedBits(5); caps.setGreenBits(5); caps.setBlueBits(5); caps.setAlphaBits(0);
+            caps.setDoubleBuffered(false);
+            caps.setOnscreen(false);
+            caps.setPBuffer(true);
+            final MacOSXCGLDrawable drawable = (MacOSXCGLDrawable) createGLDrawable( createOffscreenSurfaceImpl(sharedDevice, caps, caps, null, 64, 64) );        
+            if(null!=drawable) {
+                final GLContext context = drawable.createContext(null);
+                if (null != context) {
+                    context.setSynchronized(true);
+                    try {
+                        context.makeCurrent(); // could cause exception
+                        madeCurrent = context.isCurrent();
+                        if(madeCurrent) {
+                            GL gl = context.getGL();
+                            hasNPOTTextures = gl.isNPOTTextureAvailable();
+                            hasRECTTextures = gl.isExtensionAvailable("GL_EXT_texture_rectangle");
+                            hasAppletFloatPixels = gl.isExtensionAvailable("GL_APPLE_float_pixels");
+                        }
+                    } catch (GLException gle) {
+                        if (DEBUG) {
+                            System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: makeCurrent failed");
+                            gle.printStackTrace();
+                        }
+                    } finally {
+                        context.destroy();
+                    }
+                }
+                drawable.destroy();
+            }
+        }
+        sr = new SharedResource(sharedDevice, madeCurrent, hasNPOTTextures, hasRECTTextures, hasAppletFloatPixels);
         synchronized(sharedMap) {
             sharedMap.put(connection, sr);
         }
+        removeDeviceTried(connection);
         if (DEBUG) {
             System.err.println("MacOSXCGLDrawableFactory.createShared: device:  " + sharedDevice);
             System.err.println("MacOSXCGLDrawableFactory.createShared: context: " + madeCurrent);
@@ -231,7 +269,11 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
               return r.isLayeredSurface() ? r : null;
           } else {
               // parent surface host, eg. via native parenting w/ NewtCanvasAWT
-              final NativeWindow nwParent = nwThis.getParent();
+              NativeWindow nwParent = nwThis.getParent();
+              if(null != nwParent && nwParent instanceof NativeWindowHolder) {
+                  NativeWindowHolder nwh = (NativeWindowHolder) nwParent;
+                  nwParent = nwh.getNativeWindow();
+              }
               if(null != nwParent && nwParent instanceof MacOSXJAWTWindow) {
                   final MacOSXJAWTWindow r = (MacOSXJAWTWindow) nwParent;
                   return r.isLayeredSurface() ? r : null;
@@ -250,10 +292,8 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
         // layered surface -> PBuffer
         final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
         final GLCapabilities chosenCaps = (GLCapabilities) config.getChosenCapabilities().cloneMutable();
-        // chosenCaps.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
         chosenCaps.setOnscreen(false);
         chosenCaps.setPBuffer(true);
-        // chosenCaps.setPbufferRenderToTextureRectangle(true);
         config.setChosenCapabilities(chosenCaps);
         return new MacOSXPbufferCGLDrawable(this, target, false);
     }

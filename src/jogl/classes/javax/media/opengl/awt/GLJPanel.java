@@ -83,6 +83,8 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.Threading;
 import com.jogamp.opengl.util.FBObject;
+import com.jogamp.opengl.util.GLBuffers;
+
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
@@ -776,17 +778,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     if (number == 0) {
       return 2;
     }
-
-    if (((number-1) & number) == 0) {
-      //ex: 8 -> 0b1000; 8-1=7 -> 0b0111; 0b1000&0b0111 == 0
-      return number;
-    }
-    int power = 0;
-    while (number > 0) {
-      number = number>>1;
-      power++;
-    }
-    return (1<<power);
+    return GLBuffers.getNextPowerOf2(number);
   }
 
   private int getGLInteger(GL gl, int which) {
