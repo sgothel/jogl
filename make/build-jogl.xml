@@ -1130,6 +1130,8 @@
 
       <linker id="linker.cfg.macosx.jogl" extends="linker.cfg.macosx">
         <linkerarg value="-framework" />
+        <linkerarg value="QuartzCore" />
+        <linkerarg value="-framework" />
         <linkerarg value="Cocoa" />
         <linkerarg value="-framework" />
         <linkerarg value="OpenGL" />
@@ -1276,6 +1278,7 @@
         <patternset id="c.src.files.jogl.desktop">
           <include name="${rootrel.src.c}/JoglCommon.c"/>
           <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
+          <include name="${rootrel.src.c}/timespec.c" if="isOSX"/> <!-- currently only used for OSX -->
           <include name="${rootrel.src.c}/macosx/MacOSXCustomCGLCode.c" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface.m" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface-pbuffer.m" if="isOSX"/>
@@ -1350,6 +1353,7 @@
                 <includepath path="stub_includes/cg" if="setup.addNativeNVidiaCG"/>        
       
                 <!-- This is for the generated headers for handwritten C code -->
+                <includepath path="${src.c}"/>
                 <includepath path="${src.generated.c}" />
                 <includepath path="${src.generated.c}/X11" if="isX11"/>
                 <includepath path="${src.generated.c}/MacOSX" if="isOSX"/>
