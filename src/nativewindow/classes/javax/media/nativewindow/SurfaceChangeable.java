@@ -41,8 +41,14 @@ package javax.media.nativewindow;
 
 public interface SurfaceChangeable {
 
+  /** Sets the surface handle which is created outside of this implementation */
   public void setSurfaceHandle(long surfaceHandle);
-  public void setSize(int width, int height);
+  
+  /** 
+   * The surface's size has been determined or changed. 
+   * Implementation shall update the stored surface size with the given ones. 
+   */  
+  public void surfaceSizeChanged(int width, int height);
 
 }
 

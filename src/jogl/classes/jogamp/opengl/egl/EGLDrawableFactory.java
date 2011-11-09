@@ -268,7 +268,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     protected NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device, GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
         WrappedSurface ns = new WrappedSurface(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(device, capsChosen, capsRequested, chooser));
-        ns.setSize(width, height);
+        ns.surfaceSizeChanged(width, height);
         return ns;
     }
 

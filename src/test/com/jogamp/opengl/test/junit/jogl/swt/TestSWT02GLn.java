@@ -156,7 +156,7 @@ public class TestSWT02GLn extends UITestCase {
         
         ProxySurface proxySurface = factory.createProxySurface(device, nativeWindowHandle, caps, null);
         Assert.assertNotNull( proxySurface );        
-        proxySurface.setSize( 640, 480 );
+        proxySurface.surfaceSizeChanged( 640, 480 );
         System.err.println("*** ProxySurface: " + proxySurface);
         final GLDrawable drawable = factory.createGLDrawable(proxySurface);
         Assert.assertNotNull( drawable );

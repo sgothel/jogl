@@ -489,7 +489,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
     WrappedSurface ns = new WrappedSurface(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
                                      capsChosen, capsRequested, chooser, screen) );
-    ns.setSize(width, height);
+    ns.surfaceSizeChanged(width, height);
     return ns;
   }
  

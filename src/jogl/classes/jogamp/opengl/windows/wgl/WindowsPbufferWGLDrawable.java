@@ -255,7 +255,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     width = tmp[0];
     wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_HEIGHT_ARB, tmp, 0 );
     height = tmp[0];
-    ((SurfaceChangeable)ns).setSize(width, height);
+    ((SurfaceChangeable)ns).surfaceSizeChanged(width, height);
   }
 
   private static String wglGetLastError() {

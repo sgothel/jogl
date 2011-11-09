@@ -132,7 +132,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       int width = tmp[0];
       GLX.glXQueryDrawable(display, pbuffer, GLX.GLX_HEIGHT, tmp, 0);
       int height = tmp[0];
-      ((SurfaceChangeable)ns).setSize(width, height);
+      ((SurfaceChangeable)ns).surfaceSizeChanged(width, height);
   }
 
   public int getFloatingPointMode() {

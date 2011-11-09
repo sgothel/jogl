@@ -34,7 +34,7 @@ import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.SurfaceChangeable;
 
 
-public class WrappedSurface extends ProxySurface implements  SurfaceChangeable {
+public class WrappedSurface extends ProxySurface implements SurfaceChangeable {
   protected long surfaceHandle;
 
   public WrappedSurface(AbstractGraphicsConfiguration cfg) {

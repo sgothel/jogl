@@ -331,7 +331,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   protected NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device,GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
     AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_MACOSX);
     WrappedSurface ns = new WrappedSurface(MacOSXCGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen, true));
-    ns.setSize(width, height);
+    ns.surfaceSizeChanged(width, height);
     return ns;
   }
 

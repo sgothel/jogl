@@ -423,7 +423,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     WrappedSurface ns = new WrappedSurface(
                X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen) );
     if(ns != null) {
-        ns.setSize(width, height);
+        ns.surfaceSizeChanged(width, height);
     }
     return ns;
   }

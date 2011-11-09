@@ -47,7 +47,6 @@ import java.security.PrivilegedAction;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.SurfaceChangeable;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Point;
@@ -61,7 +60,7 @@ import jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo;
 import jogamp.nativewindow.jawt.JAWT_Rectangle;
 import jogamp.nativewindow.macosx.OSXUtil;
 
-public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
+public class MacOSXJAWTWindow extends JAWTWindow {
   public MacOSXJAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
     super(comp, config);
     isOffscreenLayerSurface = JAWTUtil.isCachedJAWTUsingOffscreenLayer();

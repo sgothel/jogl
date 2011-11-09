@@ -84,7 +84,7 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
     GLCapabilities caps = new GLCapabilities(glp);
     WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(caps, absScreen);
     GDISurface ns = new GDISurface(cfg, windowHandle);
-    ns.setSize(width, height);
+    ns.surfaceSizeChanged(width, height);
     return new WindowsDummyWGLDrawable(factory, ns, handleWindowLifecycle);
   }
 

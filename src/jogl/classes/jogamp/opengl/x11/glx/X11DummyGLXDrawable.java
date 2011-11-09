@@ -59,7 +59,7 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
 
     dummyWindow = X11Util.CreateDummyWindow(dpy, scrn, visualID, f_dim, f_dim);
     ns.setSurfaceHandle( dummyWindow );
-    ns.setSize(f_dim, f_dim);
+    ns.surfaceSizeChanged(f_dim, f_dim);
 
     updateHandle();
   }

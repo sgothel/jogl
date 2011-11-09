@@ -67,6 +67,10 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
         // nop
     }
 
+    public void surfaceSizeChanged(int width, int height) {
+         sizeChanged(false, width, height, false);
+    }
+    
     @Override
     public synchronized void destroy() {
         super.destroy();

@@ -85,7 +85,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
     }
     WrappedSurface ns = new WrappedSurface(cfg);
     ns.setSurfaceHandle(drawable);
-    ns.setSize(w, h);
+    ns.surfaceSizeChanged(w, h);
     return new X11ExternalGLXDrawable(factory, ns);
   }
 

@@ -235,10 +235,6 @@ public abstract class JAWTWindow implements NativeWindow {
     return config.getScreen().getIndex();
   }
 
-  public final void setSize(int width, int height) {
-    component.setSize(width, height);
-  }
-
   public final int getWidth() {
     return component.getWidth();
   }

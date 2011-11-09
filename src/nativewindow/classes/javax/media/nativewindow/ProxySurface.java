@@ -76,7 +76,7 @@ public abstract class ProxySurface implements NativeSurface {
         return height;
     }
 
-    public void setSize(int width, int height) {
+    public void surfaceSizeChanged(int width, int height) {
         this.width = width;
         this.height = height;
     }
