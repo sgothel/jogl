@@ -41,6 +41,7 @@
 package javax.media.nativewindow.awt;
 
 import javax.media.nativewindow.*;
+
 import java.awt.Component;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -98,12 +99,42 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
 
       if(null==capsChosen) {
           GraphicsConfiguration gc = awtGraphicsDevice.getDefaultConfiguration();
-          capsChosen = setupCapabilitiesRGBABits(capsChosen, gc);
+          capsChosen = setupCapabilitiesRGBABits(capsRequested, gc);
       }
       return new AWTGraphicsConfiguration(awtScreen, capsChosen, capsRequested, awtGfxConfig);
   }
 
-    @Override
+  public void updateGraphicsConfiguration(Component awtComp)
+  {
+      AWTGraphicsScreen awtScreen = null;
+      AWTGraphicsDevice awtDevice = null;
+      GraphicsDevice awtGraphicsDevice = null;
+      GraphicsConfiguration awtGfxConfig = awtComp.getGraphicsConfiguration();
+      if(null!=awtGfxConfig) {
+          awtGraphicsDevice = awtGfxConfig.getDevice();
+          if(null!=awtGraphicsDevice) {
+              // Create Device/Screen
+              awtDevice = new AWTGraphicsDevice(awtGraphicsDevice, AbstractGraphicsDevice.DEFAULT_UNIT);
+              awtScreen = new AWTGraphicsScreen(awtDevice);
+          }
+      }
+      if(null==awtScreen) {
+          throw new NativeWindowException("native peer n/a: "+awtComp);
+      }
+      config = awtGfxConfig;
+      setScreen(awtScreen);
+
+      CapabilitiesImmutable caps = ( null != getChosenCapabilities() ) ? getChosenCapabilities() : getRequestedCapabilities();
+      GraphicsConfiguration gc = awtGraphicsDevice.getDefaultConfiguration();
+      setChosenCapabilities(setupCapabilitiesRGBABits(caps, gc));
+  }
+  
+  // open access to superclass method
+  public void setChosenCapabilities(CapabilitiesImmutable capsChosen) {
+      super.setChosenCapabilities(capsChosen);
+  }
+  
+  @Override
   public Object clone() {
       return super.clone();
   }

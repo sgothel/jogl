@@ -422,7 +422,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
             System.err.println("NS create pixelFormat: "+toHexString(pixelFormat));
             System.err.println("NS create drawable native-handle: "+toHexString(drawable.getHandle()));
             System.err.println("NS create drawable NSView-handle: "+toHexString(drawable.getNSViewHandle()));
-            Thread.dumpStack();
+            // Thread.dumpStack();
         }
         try {
           int[] viewNotReady = new int[1];

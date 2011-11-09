@@ -122,14 +122,13 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
             displayLink = NULL;
         }
     }
-    /**
     if(NULL != displayLink) {
         cvres = CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(displayLink, [_ctx CGLContextObj], [_fmt CGLPixelFormatObj]);
         if(kCVReturnSuccess != cvres) {
             DBG_PRINT("MyNSOpenGLLayer::init %p, CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext failed: %d\n", self, cvres);
             displayLink = NULL;
         }
-    } */
+    }
     if(NULL != displayLink) {
         cvres = CVDisplayLinkSetOutputCallback(displayLink, renderMyNSOpenGLLayer, self);
         if(kCVReturnSuccess != cvres) {
@@ -150,8 +149,12 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
     textureID = 0;
     swapInterval = -1;
     shallDraw = NO;
-    DBG_PRINT("MyNSOpenGLLayer::init %p, ctx %p, pfmt %p, pbuffer %p, opaque %d, pbuffer %dx%d -> tex %dx%d\n", 
-        self, _ctx, _fmt, pbuffer, opaque, [pbuffer pixelsWide], [pbuffer pixelsHigh], texWidth, texHeight);
+
+    CGRect lRect = [self frame];
+
+    DBG_PRINT("MyNSOpenGLLayer::init %p, ctx %p, pfmt %p, pbuffer %p, opaque %d, pbuffer %dx%d -> tex %dx%d, frame: %lf/%lf %lfx%lf\n", 
+        self, _ctx, _fmt, pbuffer, opaque, [pbuffer pixelsWide], [pbuffer pixelsHigh], texWidth, texHeight,
+        lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
     return self;
 }
 
@@ -193,6 +196,7 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
         forLayerTime:(CFTimeInterval)timeInterval displayTime:(const CVTimeStamp *)timeStamp
 {
     [context makeCurrentContext];
+    // FIXME ?? [context update];
    
     /**
      * v-sync doesn't works w/ NSOpenGLLayer's context .. well :(
@@ -220,6 +224,17 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
         glGenTextures(1, &textureID);
         DBG_PRINT("MyNSOpenGLLayer::drawInOpenGLContext %p, ctx %p, pfmt %p tex %dx%d -> %fx%f 0x%X: creating texID 0x%X\n", 
             self, context, pixelFormat, texWidth, texHeight, tWidth, tHeight, textureTarget, textureID);
+
+        CGRect lRect = [self frame];
+        DBG_PRINT("MyNSOpenGLLayer::drawInOpenGLContext %p frame0: %lf/%lf %lfx%lf\n", 
+            self, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+        if(lRect.origin.x<0 || lRect.origin.y<0) {
+            lRect.origin.x = 0;
+            lRect.origin.y = 0;
+            [self setFrame: lRect];
+            DBG_PRINT("MyNSOpenGLLayer::drawInOpenGLContext %p frame*: %lf/%lf %lfx%lf\n", 
+                self, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+        }
     }
 
     glBindTexture(textureTarget, textureID);

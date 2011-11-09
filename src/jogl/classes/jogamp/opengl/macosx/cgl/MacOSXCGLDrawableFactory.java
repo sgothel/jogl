@@ -266,7 +266,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
           if( nwThis instanceof MacOSXJAWTWindow) {
               // direct surface host, eg. via AWT GLCanvas
               final MacOSXJAWTWindow r = (MacOSXJAWTWindow) nwThis;
-              return r.isLayeredSurface() ? r : null;
+              return r.isOffscreenLayerSurface() ? r : null;
           } else {
               // parent surface host, eg. via native parenting w/ NewtCanvasAWT
               NativeWindow nwParent = nwThis.getParent();
@@ -276,7 +276,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
               }
               if(null != nwParent && nwParent instanceof MacOSXJAWTWindow) {
                   final MacOSXJAWTWindow r = (MacOSXJAWTWindow) nwParent;
-                  return r.isLayeredSurface() ? r : null;
+                  return r.isOffscreenLayerSurface() ? r : null;
               }
           }
       }

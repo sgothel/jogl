@@ -308,6 +308,30 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return isNativeValid() ;
     }
 
+    private void recreate(boolean skipCreate) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("Window.recreate() START ("+getThreadName()+", "+this+")");
+        }        
+        if(!isNativeValid()) {
+            throw new InternalError("XXX");
+        }
+        ScreenImpl retainedScreen = screen;
+        retainedScreen.addReference();    // +1 - retain over destroy
+        destroy();
+        setScreen(retainedScreen);     
+        retainedScreen.removeReference(); // -1 - release
+        if(!skipCreate) {
+            setVisible(true); // native creation
+        }
+    }
+    
+    private void setScreen(ScreenImpl newScreen) { // never null !
+        removeScreenReference();
+        screen = newScreen;
+        screen.addReference();
+        screenReferenceAdded = false;
+    }
+    
     private void removeScreenReference() {
         if(screenReferenceAdded) {
             // be nice, probably already called recursive via
@@ -821,6 +845,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void setSize(int width, int height) {
+        /** FIXME: freezes due to many resize events by eg AWT 
+        if( isNativeValid() && !getGraphicsConfiguration().getChosenCapabilities().isOnscreen() ) {
+            recreate(true); // skip create, create is done here ..
+        }
+        */
         runOnEDTIfAvail(true, new SetSizeActionImpl(width, height));
     }
     
@@ -927,19 +956,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
         private ReparentActionImpl(NativeWindow newParentWindow, boolean forceDestroyCreate) {
             this.newParentWindow = newParentWindow;
-            this.forceDestroyCreate = forceDestroyCreate;
+            this.forceDestroyCreate = forceDestroyCreate | DEBUG_TEST_REPARENT_INCOMPATIBLE;
             this.reparentAction = -1; // ensure it's set
         }
 
         private int getStrategy() {
             return reparentAction;
-        }
-
-        private void setScreen(ScreenImpl newScreen) { // never null !
-            WindowImpl.this.removeScreenReference();
-            screen = newScreen;
-            screen.addReference();
-            screenReferenceAdded = false;
         }
 
         public final void run() {
@@ -973,7 +995,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 long newParentWindowHandle = 0 ;
 
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.reparent: START ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+", visible "+wasVisible+", old parentWindow: "+Display.hashCodeNullSafe(parentWindow)+", new parentWindow: "+Display.hashCodeNullSafe(newParentWindow)+", forceDestroyCreate "+forceDestroyCreate+", DEBUG_TEST_REPARENT_INCOMPATIBLE "+DEBUG_TEST_REPARENT_INCOMPATIBLE+" "+x+"/"+y+" "+width+"x"+height);
+                    System.err.println("Window.reparent: START ("+getThreadName()+") valid "+isNativeValid()+", windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+", visible "+wasVisible+", old parentWindow: "+Display.hashCodeNullSafe(parentWindow)+", new parentWindow: "+Display.hashCodeNullSafe(newParentWindow)+", forceDestroyCreate "+forceDestroyCreate+", "+x+"/"+y+" "+width+"x"+height);
                 }
 
                 if(null!=lifecycleHook) {
@@ -1024,8 +1046,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                             } else {
                                 reparentAction = ACTION_NATIVE_CREATION_PENDING;
                             }
-                        } else if ( DEBUG_TEST_REPARENT_INCOMPATIBLE || forceDestroyCreate ||
-                                    !NewtFactory.isScreenCompatible(newParentWindow, getScreen()) ) {
+                        } else if ( forceDestroyCreate || !NewtFactory.isScreenCompatible(newParentWindow, getScreen()) ) {
                             // Destroy this window, may create a new compatible Screen/Display,
                             // and mark it for creation.
                             destroy();
@@ -1056,7 +1077,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if( 0 == parentWindowHandle ) {
                         // Already Top Window
                         reparentAction = ACTION_UNCHANGED;
-                    } else if( !isNativeValid() || DEBUG_TEST_REPARENT_INCOMPATIBLE || forceDestroyCreate ) {
+                    } else if( !isNativeValid() || forceDestroyCreate ) {
                         // Destroy this window and mark it for [pending] creation.
                         destroy();
                         if( 0<width*height ) {
@@ -1219,6 +1240,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public int reparentWindow(NativeWindow newParent, boolean forceDestroyCreate) {
+        if(isNativeValid()) {            
+            // force recreation if offscreen, since it may become onscreen
+            forceDestroyCreate |= !getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
+        }
         ReparentActionImpl reparentAction = new ReparentActionImpl(newParent, forceDestroyCreate);
         runOnEDTIfAvail(true, reparentAction);
         return reparentAction.getStrategy();

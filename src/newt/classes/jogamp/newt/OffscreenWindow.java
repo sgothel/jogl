@@ -86,13 +86,6 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
     }
 
     @Override
-    public void setSize(int width, int height) {
-        if(!isNativeValid()) {
-            super.setSize(width, height);
-        }
-    }
-    
-    @Override
     public void setPosition(int x, int y) {
         // nop
     }

@@ -77,20 +77,36 @@ public class JAWTUtil {
     boolean ok;
   }
   
-  public static boolean setJAWTVersionFlags(boolean useOffScreenLayerIfAvailable) {
+  /**
+   * Returns true if this platform's JAWT implementation supports 
+   * or uses offscreen layer.
+   */
+  public static boolean isOffscreenLayerSupported() {
+       return Platform.OS_TYPE == Platform.OSType.MACOS &&
+              Platform.OS_VERSION_NUMBER.compareTo(JAWT.JAWT_MacOSXCALayerMinVersion) >= 0;      
+  }
+  
+  /**
+   * 
+   * FIXME: Need to get rid of the cached JAWT instance, 
+   *        in case we like to have dual usage of offscreenLayeredSurface and onscreen.
+   *        This would be done implicit by using NEWT .. hence low prio.
+   *        
+   * @param useOffscreenLayerIfAvailable
+   * @return
+   */
+  public static boolean setCachedJAWTVersionFlags(boolean useOffscreenLayerIfAvailable) {
     if(JAWT.isJAWTInstantiated()) { return false; } // already instantiated
     
-    if(useOffScreenLayerIfAvailable &&
-       Platform.OS_TYPE == Platform.OSType.MACOS &&
-       Platform.OS_VERSION_NUMBER.compareTo(JAWT.JAWT_MacOSXCALayerMinVersion) >= 0) {
+    if(useOffscreenLayerIfAvailable && isOffscreenLayerSupported()) {
         JAWT.setJAWTVersionFlags(JAWTFactory.JAWT_VERSION_1_4 | JAWT.JAWT_MACOSX_USE_CALAYER);
        return true;
     }
     JAWT.setJAWTVersionFlags(JAWTFactory.JAWT_VERSION_1_4);
-    return !useOffScreenLayerIfAvailable; // n/a
+    return !useOffscreenLayerIfAvailable; // n/a
   }
   
-  public static boolean isJAWTVersionUsingOffscreenLayer() {
+  public static boolean isCachedJAWTUsingOffscreenLayer() {
       return 0 != ( JAWT.getJAWT().getVersionCached() & JAWT.JAWT_MACOSX_USE_CALAYER );
   }
   

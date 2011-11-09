@@ -34,6 +34,8 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
 
 import com.jogamp.newt.NewtFactory;
+
+import jogamp.nativewindow.jawt.JAWTWindow;
 import jogamp.newt.Debug;
 
 public class NewtFactoryAWT extends NewtFactory {
@@ -62,12 +64,24 @@ public class NewtFactoryAWT extends NewtFactory {
   }
 
   public static NativeWindow getNativeWindow(java.awt.Component awtComp, CapabilitiesImmutable capsRequested) {
-      DefaultGraphicsConfiguration config = AWTGraphicsConfiguration.create(awtComp, capsRequested, capsRequested);
+      AWTGraphicsConfiguration config = AWTGraphicsConfiguration.create(awtComp, null, capsRequested);
       NativeWindow awtNative = NativeWindowFactory.getNativeWindow(awtComp, config); // a JAWTWindow
       if(DEBUG_IMPLEMENTATION) {
         System.err.println("NewtFactoryAWT.getNativeWindow: "+awtComp+" -> "+awtNative);
       }
       return awtNative;
   }
+  
+  public static void updateGraphicsConfiguration(NativeWindow nw, java.awt.Component awtComp) {
+      if(! ( nw instanceof JAWTWindow ) ) {
+          throw new NativeWindowException("Not an AWT NativeWindow: "+nw);
+      }
+      final AWTGraphicsConfiguration awtConfig = (AWTGraphicsConfiguration) nw.getGraphicsConfiguration();
+      awtConfig.updateGraphicsConfiguration(awtComp);
+      if(DEBUG_IMPLEMENTATION) {
+        System.err.println("NewtFactoryAWT.updateGraphicsConfiguration: "+awtComp+" -> "+nw);
+      }
+  }
+  
 }
 

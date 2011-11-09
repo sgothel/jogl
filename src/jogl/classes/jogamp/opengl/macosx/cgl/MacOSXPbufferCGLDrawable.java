@@ -51,14 +51,10 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-import jogamp.opengl.Debug;
-
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.opengl.util.GLBuffers;
 
-public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
-  private static final boolean DEBUG = Debug.debug("MacOSXPbufferCGLDrawable");
-  
+public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {  
   // Abstract interface for implementation of this drawable (either
   // NSOpenGL-based or CGL-based)
   interface GLBackendImpl {
@@ -171,9 +167,10 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     pBuffer = impl.create(pBufferTexTarget, internalFormat, getWidth(), getHeight());
     if(DEBUG) {
         System.err.println("MacOSXPbufferCGLDrawable tex: target "+toHexString(pBufferTexTarget)+
-                            ", size "+toHexString(pBufferTexWidth)+"x"+toHexString(pBufferTexHeight)+
+                            ", size "+pBufferTexWidth+"x"+pBufferTexHeight+
                             ", internal-fmt "+toHexString(internalFormat));
         System.err.println("MacOSXPbufferCGLDrawable pBuffer: "+toHexString(pBuffer));
+        // Thread.dumpStack();
     }
     if (pBuffer == 0) {
       throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");

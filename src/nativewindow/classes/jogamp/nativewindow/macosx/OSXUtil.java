@@ -51,7 +51,7 @@ public class OSXUtil {
         DestroyNSWindow0(nsWindow);
     }
     
-    public static boolean AttachJAWTSurfaceLayer0(JAWT_DrawingSurfaceInfo dsi, long caLayer) {
+    public static boolean AttachJAWTSurfaceLayer(JAWT_DrawingSurfaceInfo dsi, long caLayer) {
         return AttachJAWTSurfaceLayer0(dsi.getBuffer(), caLayer);
     }
     

@@ -98,10 +98,7 @@ public abstract class JAWTWindow implements NativeWindow {
         windowObject = windowObject.getParent();
     }
     if(isApplet) {
-        JAWTUtil.setJAWTVersionFlags(true); // useOffScreenLayerIfAvailable := true
-    } else {
-        // test
-        JAWTUtil.setJAWTVersionFlags(true); // useOffScreenLayerIfAvailable := true
+        JAWTUtil.setCachedJAWTVersionFlags(true); // useOffScreenLayerIfAvailable := true
     }
     validateNative();
   }

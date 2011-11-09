@@ -34,14 +34,19 @@
 
 package com.jogamp.newt;
 
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.CapabilitiesImmutable;
+import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeWindowFactory;
 
-import com.jogamp.common.os.Platform;
-
+import jogamp.newt.Debug;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.ScreenImpl;
 import jogamp.newt.WindowImpl;
-import jogamp.newt.Debug;
+
+import com.jogamp.common.os.Platform;
 
 public class NewtFactory {
     public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
@@ -141,35 +146,34 @@ public class NewtFactory {
      *
      * @param parentWindowObject either a NativeWindow instance
      */
-    public static Window createWindow(NativeWindow nParentWindow, CapabilitiesImmutable caps) {
+    public static Window createWindow(NativeWindow parentWindow, CapabilitiesImmutable caps) {
         final String type = NativeWindowFactory.getNativeWindowType(true);
-
         Screen screen  = null;
-        Window parentWindow = null;
+        Window newtParentWindow = null;
 
-        if ( nParentWindow instanceof Window ) {
+        if ( parentWindow instanceof Window ) {
             // use parent NEWT Windows Display/Screen
-            parentWindow = (Window) nParentWindow ;
-            screen = parentWindow.getScreen();
+            newtParentWindow = (Window) parentWindow ;
+            screen = newtParentWindow.getScreen();
         } else {
             // create a Display/Screen compatible to the NativeWindow
-            AbstractGraphicsConfiguration nParentConfig = nParentWindow.getGraphicsConfiguration();
-            if(null!=nParentConfig) {
-                AbstractGraphicsScreen nParentScreen = nParentConfig.getScreen();
-                AbstractGraphicsDevice nParentDevice = nParentScreen.getDevice();
-                Display display = NewtFactory.createDisplay(type, nParentDevice.getHandle(), true);
-                screen  = NewtFactory.createScreen(display, nParentScreen.getIndex());
+            AbstractGraphicsConfiguration parentConfig = parentWindow.getGraphicsConfiguration();
+            if(null!=parentConfig) {
+                AbstractGraphicsScreen parentScreen = parentConfig.getScreen();
+                AbstractGraphicsDevice parentDevice = parentScreen.getDevice();
+                Display display = NewtFactory.createDisplay(type, parentDevice.getHandle(), true);
+                screen  = NewtFactory.createScreen(display, parentScreen.getIndex());
             } else {
                 Display display = NewtFactory.createDisplay(type, null, true); // local display
                 screen  = NewtFactory.createScreen(display, 0); // screen 0
             }
         }
-        final Window win = createWindowImpl(nParentWindow, screen, caps);
+        final Window win = createWindowImpl(parentWindow, screen, caps);
 
-        win.setSize(nParentWindow.getWidth(), nParentWindow.getHeight());
-        if ( null != parentWindow ) {
-            parentWindow.addChild(win);
-            win.setVisible(parentWindow.isVisible());
+        win.setSize(parentWindow.getWidth(), parentWindow.getHeight());
+        if ( null != newtParentWindow ) {
+            newtParentWindow.addChild(win);
+            win.setVisible(newtParentWindow.isVisible());
         }
         return win;
     }
