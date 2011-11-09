@@ -308,30 +308,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return isNativeValid() ;
     }
 
-    private void recreate(boolean skipCreate) {
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.recreate() START ("+getThreadName()+", "+this+")");
-        }        
-        if(!isNativeValid()) {
-            throw new InternalError("XXX");
-        }
-        ScreenImpl retainedScreen = screen;
-        retainedScreen.addReference();    // +1 - retain over destroy
-        destroy();
-        setScreen(retainedScreen);     
-        retainedScreen.removeReference(); // -1 - release
-        if(!skipCreate) {
-            setVisible(true); // native creation
-        }
-    }
-    
-    private void setScreen(ScreenImpl newScreen) { // never null !
-        removeScreenReference();
-        screen = newScreen;
-        screen.addReference();
-        screenReferenceAdded = false;
-    }
-    
     private void removeScreenReference() {
         if(screenReferenceAdded) {
             // be nice, probably already called recursive via
@@ -847,7 +823,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public void setSize(int width, int height) {
         /** FIXME: freezes due to many resize events by eg AWT 
         if( isNativeValid() && !getGraphicsConfiguration().getChosenCapabilities().isOnscreen() ) {
-            recreate(true); // skip create, create is done here ..
+            destroy(); // skip create, create is done here ..
         }
         */
         runOnEDTIfAvail(true, new SetSizeActionImpl(width, height));
@@ -964,6 +940,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             return reparentAction;
         }
 
+        private void setScreen(ScreenImpl newScreen) { // never null !
+            removeScreenReference();
+            screen = newScreen;
+        }
+        
         public final void run() {
             boolean animatorPaused = false;
             if(null!=lifecycleHook) {
