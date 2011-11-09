@@ -65,15 +65,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   protected WindowsPbufferWGLDrawable(GLDrawableFactory factory, NativeSurface target) {
     super(factory, target, false);
     
-    if (DEBUG) {
-        System.out.println("Pbuffer config: " + getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration());
-    }
-
     setRealized(true);
-
-    if (DEBUG) {
-        System.err.println("Created pbuffer " + this);
-    }
   }
 
   protected void destroyImpl() {
@@ -130,6 +122,10 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     long parentHdc = sharedResource.getDrawable().getNativeSurface().getSurfaceHandle();
     WGLExt wglExt = sharedResource.getContext().getWGLExt();
     
+    if (DEBUG) {
+        System.out.println("Pbuffer config: " + config);
+    }
+
     int[]   iattributes = new int  [2*WindowsWGLGraphicsConfiguration.MAX_ATTRIBS];
     float[] fattributes = new float[1];
     int[]   floatModeTmp = new int[1];

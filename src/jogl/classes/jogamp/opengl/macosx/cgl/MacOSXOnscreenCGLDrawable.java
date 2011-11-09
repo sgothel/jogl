@@ -44,7 +44,6 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 
-
 public class MacOSXOnscreenCGLDrawable extends MacOSXCGLDrawable {
   
   protected MacOSXOnscreenCGLDrawable(GLDrawableFactory factory, NativeSurface component) {

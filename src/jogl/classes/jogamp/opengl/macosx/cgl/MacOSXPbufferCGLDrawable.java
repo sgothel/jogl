@@ -77,16 +77,8 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, NativeSurface target, boolean realizeNow) {
     super(factory, target, false);
 
-    if (DEBUG) {
-        System.out.println("Pbuffer config: " + getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration());
-    }
-
     if(realizeNow) {
         setRealized(true);
-    }
-
-    if (DEBUG) {
-        System.err.println("Created pbuffer " + this);
     }
   }
 
@@ -139,6 +131,10 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     final GLProfile glProfile = capabilities.getGLProfile();
     MacOSXCGLDrawableFactory.SharedResource sr = ((MacOSXCGLDrawableFactory)factory).getOrCreateOSXSharedResource(config.getScreen().getDevice());
     
+    if (DEBUG) {
+        System.out.println("Pbuffer config: " + config);
+    }
+
     if ( capabilities.getPbufferRenderToTextureRectangle() && null!=sr && sr.isRECTTextureAvailable() ) {
       pBufferTexTarget = GL2.GL_TEXTURE_RECTANGLE;
     } else {

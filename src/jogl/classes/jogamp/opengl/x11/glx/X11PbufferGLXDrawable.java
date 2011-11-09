@@ -50,10 +50,6 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
                                   int width, int height */
     super(factory, target, false);
 
-    if (DEBUG) {
-        System.out.println("Pbuffer config: " + getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration());
-    }
-
     setRealized(true);
 
     if (DEBUG) {
@@ -90,7 +86,10 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       AbstractGraphicsScreen aScreen = config.getScreen();
       AbstractGraphicsDevice aDevice = aScreen.getDevice();
       long display = aDevice.getHandle();
-      int screen = aScreen.getIndex();
+
+      if (DEBUG) {
+        System.out.println("Pbuffer config: " + config);
+      }
 
       if (display==0) {
         throw new GLException("Null display");

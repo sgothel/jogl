@@ -40,13 +40,12 @@
 
 package jogamp.opengl.egl;
 
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.SurfaceChangeable;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
-
-import jogamp.opengl.x11.glx.GLX;
 
 public class EGLPbufferDrawable extends EGLDrawable {
     private int texFormat;
@@ -54,27 +53,7 @@ public class EGLPbufferDrawable extends EGLDrawable {
 
     protected EGLPbufferDrawable(EGLDrawableFactory factory, NativeSurface target) {
         super(factory, target);
-
-        // get choosen ones ..
-        GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)
-                   getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
-
-        if(useTexture) {
-            this.texFormat = caps.getAlphaBits() > 0 ? EGL.EGL_TEXTURE_RGBA : EGL.EGL_TEXTURE_RGB ;
-        } else {
-            this.texFormat = EGL.EGL_NO_TEXTURE;
-        }
-
-        if (DEBUG) {
-          System.out.println("Pbuffer config: " + getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration());
-        }
-
         setRealized(true);
-
-        if (DEBUG) {
-          System.out.println("Created pbuffer: " + this);
-        }
-
     }
 
     protected void destroyImpl() {
@@ -82,6 +61,19 @@ public class EGLPbufferDrawable extends EGLDrawable {
     }
     
     protected long createSurface(long eglDpy, long eglNativeCfg, long surfaceHandle) {
+        final AbstractGraphicsConfiguration config = getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+
+        if(useTexture) {
+            texFormat = caps.getAlphaBits() > 0 ? EGL.EGL_TEXTURE_RGBA : EGL.EGL_TEXTURE_RGB ;
+        } else {
+            texFormat = EGL.EGL_NO_TEXTURE;
+        }
+
+        if (DEBUG) {
+          System.out.println("Pbuffer config: " + config);
+        }
+
         NativeSurface nw = getNativeSurface();
         int[] attrs = EGLGraphicsConfiguration.CreatePBufferSurfaceAttribList(nw.getWidth(), nw.getHeight(), texFormat);
         long surf = EGL.eglCreatePbufferSurface(eglDpy, eglNativeCfg, attrs, 0);
