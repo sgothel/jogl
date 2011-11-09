@@ -48,9 +48,6 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
     static long nextWindowHandle = 0x100; // start here - a marker
 
     protected void createNativeImpl() {
-        if(0!=getParentWindowHandle()) {
-            throw new NativeWindowException("OffscreenWindow does not support window parenting");
-        }
         if(capsRequested.isOnscreen()) {
             throw new NativeWindowException("Capabilities is onscreen");
         }
@@ -90,28 +87,36 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
 
     @Override
     public void setSize(int width, int height) {
-        if(!isVisible()) {
-            sizeChanged(false, width, height, false);
+        if(!isNativeValid()) {
+            super.setSize(width, height);
         }
     }
+    
     @Override
     public void setPosition(int x, int y) {
         // nop
     }
+    
     @Override
     public boolean setFullscreen(boolean fullscreen) {
         // nop
         return false;
     }
-    
+
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             sizeChanged(false, width, height, false);
-            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));            
+            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
         } else {
-            shouldNotCallThis();
+            /**
+             * silently ignore:
+                FLAG_CHANGE_PARENTING
+                FLAG_CHANGE_DECORATION
+                FLAG_CHANGE_FULLSCREEN
+                FLAG_CHANGE_ALWAYSONTOP
+             */
         }
-        return false;
+        return true;
     }
 
     @Override

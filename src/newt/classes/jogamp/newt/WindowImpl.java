@@ -538,6 +538,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // NativeSurface
     //
 
+    public NativeSurface getNativeSurface() {
+        return this;
+    }
+    
     public final int lockSurface() {
         windowLock.lock();
         surfaceLock.lock();
@@ -630,6 +634,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // NativeWindow
     //
 
+    public NativeWindow getNativeWindow() {
+        return this;
+    }
+    
     // public final void destroy() - see below
 
     public final NativeWindow getParent() {
@@ -930,6 +938,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         private void setScreen(ScreenImpl newScreen) { // never null !
             WindowImpl.this.removeScreenReference();
             screen = newScreen;
+            screen.addReference();
+            screenReferenceAdded = false;
         }
 
         public final void run() {
