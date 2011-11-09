@@ -321,7 +321,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
           newtChild.windowRepaint(0, 0, w, h);
       } else {
           configureNewtChild(false);
-          nativeWindow = null;
           newtChild.setVisible(false);
           newtChild.reparentWindow(null);
       }
