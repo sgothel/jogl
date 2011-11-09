@@ -45,6 +45,8 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.Capabilities;
+import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.SurfaceChangeable;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
@@ -52,6 +54,7 @@ import javax.media.nativewindow.util.Point;
 
 import jogamp.nativewindow.jawt.JAWT;
 import jogamp.nativewindow.jawt.JAWTFactory;
+import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.nativewindow.jawt.JAWTWindow;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurface;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo;
@@ -59,12 +62,9 @@ import jogamp.nativewindow.jawt.JAWT_Rectangle;
 import jogamp.nativewindow.macosx.OSXUtil;
 
 public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
-  final boolean isLayeredSurface;
-  long surfaceHandle = 0;
-
   public MacOSXJAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
     super(comp, config);
-    isLayeredSurface = 0 != ( JAWT.getJAWT().getVersionCached() & JAWT.JAWT_MACOSX_USE_CALAYER );
+    isOffscreenLayeredSurface = JAWTUtil.isJAWTVersionUsingOffscreenLayer();
     dumpInfo();
   }
 
@@ -72,14 +72,19 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
   }  
 
   protected void invalidateNative() {
+      surfaceHandle=0;
+      if(isOffscreenLayeredSurface && 0 == drawable) {
+          OSXUtil.DestroyNSWindow(drawable);
+          drawable = 0;
+      }
   }
 
   public final boolean isLayeredSurface() { 
-      return isLayeredSurface;
+      return isOffscreenLayeredSurface;
   }
   
   public long getSurfaceHandle() {
-    return isLayeredSurface ? surfaceHandle : super.getSurfaceHandle() ;
+    return isOffscreenLayeredSurface ? surfaceHandle : super.getSurfaceHandle() ;
   }
   
   public void setSurfaceHandle(long surfaceHandle) {
@@ -106,15 +111,20 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
       
   public void attachSurfaceLayer(long layerHandle) {
       if( !isLayeredSurface() ) {
-          throw new java.lang.UnsupportedOperationException("Not using CALAYER");
+          throw new NativeWindowException("Not using CALAYER");
       }
-      if( !dsLocked || null == dsi ) {
-          throw new NativeWindowException("Locked: "+dsLocked+", dsi valid: "+(null!=dsi));
-      }      
-      if(DEBUG) {
-        System.err.println("MacOSXJAWTWindow.attachSurfaceLayer(): 0x"+Long.toHexString(layerHandle));
+      int lockRes = lockSurface();
+      if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
+          throw new NativeWindowException("Could not lock layeredSurfaceHost: "+this);
       }
-      OSXUtil.AttachJAWTSurfaceLayer0(dsi, layerHandle);
+      try {
+          if(DEBUG) {
+            System.err.println("MacOSXJAWTWindow.attachSurfaceLayer(): 0x"+Long.toHexString(layerHandle));
+          }
+          OSXUtil.AttachJAWTSurfaceLayer0(dsi, layerHandle);
+      } finally {
+          unlockSurface();
+      }
       /*
       if( null == macosxsl) {
           throw new NativeWindowException("Not locked and/or SurfaceLayers null");
@@ -156,9 +166,6 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
                 return null;
               }
             });
-          if(DEBUG) {
-            dumpInfo();
-          }
         } else {
           dsi = ds.GetDrawingSurfaceInfo();
         }
@@ -167,8 +174,12 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
           return NativeWindow.LOCK_SURFACE_NOT_READY;
         }
     }
+    updateBounds(dsi.getBounds());
+    if (DEBUG && firstLock) {
+      dumpInfo();
+    }
     firstLock = false;
-    if( !isLayeredSurface ) {
+    if( !isOffscreenLayeredSurface ) {
         macosxdsi = (JAWT_MacOSXDrawingSurfaceInfo) dsi.platformInfo();
         if (macosxdsi == null) {
           unlockSurfaceImpl();
@@ -184,6 +195,24 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
         }
     } else {
         /**
+         * Only create a fake invisible NSWindow for the drawable handle
+         * to please frameworks requiring such (eg. NEWT).
+         * 
+         * The actual surface/ca-layer shall be created/attached 
+         * by the upper framework (JOGL) since they require more information. 
+         */
+        if(0 == drawable) {
+            drawable = OSXUtil.CreateNSWindow(0, 0, getBounds().getWidth(), getBounds().getHeight());
+            if(0 == drawable) {
+              unlockSurfaceImpl();
+              throw new NativeWindowException("Unable to created dummy NSWindow (layered case)");
+            }
+            // fix caps reflecting offscreen!
+            Capabilities caps = (Capabilities) config.getChosenCapabilities().cloneMutable();
+            caps.setOnscreen(false);
+            config.setChosenCapabilities(caps);
+        }
+        /**
         macosxsl = (JAWT_SurfaceLayers) dsi.platformInfo();
         if (null == macosxsl) {
           unlockSurfaceImpl();
@@ -194,9 +223,6 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
         ret = NativeWindow.LOCK_SUCCESS;
     }
     
-    if(NativeWindow.LOCK_SURFACE_CHANGED <= ret) {
-      updateBounds(dsi.getBounds());
-    }
     return ret;
   }
   
@@ -259,6 +285,9 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
   
   private JAWT_MacOSXDrawingSurfaceInfo macosxdsi;
   // private JAWT_SurfaceLayers macosxsl;
+  
+  final boolean isOffscreenLayeredSurface;
+  long surfaceHandle = 0;
 
   // Workaround for instance of 4796548
   private boolean firstLock = true;

@@ -49,6 +49,7 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.SurfaceUpdatedListener;
+import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
@@ -63,18 +64,28 @@ public abstract class JAWTWindow implements NativeWindow {
   // lifetime: forever
   protected Component component;
   protected boolean isApplet;
-  protected AbstractGraphicsConfiguration config;
+  protected AWTGraphicsConfiguration config;
   private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
 
   // lifetime: valid after lock, forever until invalidate
   protected long drawable;
   protected Rectangle bounds;
 
-  public JAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
+  /**
+   * Constructed by {@link jogamp.nativewindow.NativeWindowFactoryImpl#getNativeWindow(Object, AbstractGraphicsConfiguration)}
+   * via this platform's specialization (X11, OSX, Windows, ..).
+   * 
+   * @param comp
+   * @param config
+   */
+  protected JAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
     if (config == null) {
         throw new NativeWindowException("Error: AbstractGraphicsConfiguration is null");
     }
-    this.config = config;
+    if(! ( config instanceof AWTGraphicsConfiguration ) ) {
+        throw new NativeWindowException("Error: AbstractGraphicsConfiguration is not an AWTGraphicsConfiguration");
+    }
+    this.config = (AWTGraphicsConfiguration) config;
     init((Component)comp);
   }
 
@@ -147,6 +158,10 @@ public abstract class JAWTWindow implements NativeWindow {
   // NativeSurface
   //
 
+  public NativeSurface getNativeSurface() {
+      return this;
+  }
+  
   private RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
 
   protected abstract int lockSurfaceImpl() throws NativeWindowException;
@@ -239,6 +254,10 @@ public abstract class JAWTWindow implements NativeWindow {
   // NativeWindow
   //
 
+  public NativeWindow getNativeWindow() {
+      return this;
+  }
+  
   public synchronized void destroy() {
     invalidate();
     if(null!=component) {

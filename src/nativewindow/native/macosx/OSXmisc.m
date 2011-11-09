@@ -171,6 +171,59 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyNSView0
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    CreateNSWindow0
+ * Signature: (IIIIZ)J
+ */
+JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateNSWindow0
+  (JNIEnv *env, jclass unused, jint x, jint y, jint width, jint height)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSRect rect = NSMakeRect(x, y, width, height);
+
+    // Allocate the window
+    NSWindow* myWindow = [[NSWindow alloc] initWithContentRect: rect
+                                           styleMask: NSBorderlessWindowMask
+                                           backing: NSBackingStoreBuffered
+                                           defer: YES];
+    [myWindow setReleasedWhenClosed: YES]; // default
+    [myWindow setPreservesContentDuringLiveResize: YES];
+
+    // invisible ..
+    [myWindow setOpaque: NO];
+    [myWindow setBackgroundColor: [NSColor clearColor]];
+
+    // force surface creation
+    // [myView lockFocus];
+    // [myView unlockFocus];
+
+    [pool release];
+
+    return (jlong) ((intptr_t) myWindow);
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    DestroyNSWindow0
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyNSWindow0
+  (JNIEnv *env, jclass unused, jlong nsWindow)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSWindow* mWin = (NSWindow*) ((intptr_t) nsWindow);
+    NSView* mView = [mWin contentView];
+
+    if(NULL!=mView) {
+        [mWin setContentView: nil];
+        [mView release];
+    }
+    [mWin orderOut: mWin];
+    [mWin close]; // performs release!
+    [pool release];
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    attachJAWTSurfaceLayer
  * Signature: (JJ)Z
  */

@@ -44,6 +44,13 @@ public class OSXUtil {
         DestroyNSView0(nsView);
     }
 
+    public static long CreateNSWindow(int x, int y, int width, int height) {
+      return CreateNSWindow0(x, y, width, height);
+    }
+    public static void DestroyNSWindow(long nsWindow) {
+        DestroyNSWindow0(nsWindow);
+    }
+    
     public static boolean AttachJAWTSurfaceLayer0(JAWT_DrawingSurfaceInfo dsi, long caLayer) {
         return AttachJAWTSurfaceLayer0(dsi.getBuffer(), caLayer);
     }
@@ -64,6 +71,8 @@ public class OSXUtil {
     private static native Object GetLocationOnScreen0(long windowOrView, int src_x, int src_y);
     private static native long CreateNSView0(int x, int y, int width, int height);
     private static native void DestroyNSView0(long nsView);
+    private static native long CreateNSWindow0(int x, int y, int width, int height);
+    private static native void DestroyNSWindow0(long nsWindow);
     private static native boolean AttachJAWTSurfaceLayer0(Buffer jawtDrawingSurfaceInfoBuffer, long caLayer);
     private static native void RunOnMainThread0(boolean waitUntilDone, Runnable runnable);
     private static native boolean IsMainThread0();
