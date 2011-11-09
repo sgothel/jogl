@@ -79,7 +79,7 @@ public class GlyphString {
      * @param shape is not null, add all {@link GlyphShape}'s {@link Outline} to this instance.
      * @param vertexFactory vertex impl factory {@link Factory}
      * @param font the target {@link Font} 
-     * @param size font size
+     * @param fontSize font size
      * @param str string text
      * @return the created {@link GlyphString} instance
      */
