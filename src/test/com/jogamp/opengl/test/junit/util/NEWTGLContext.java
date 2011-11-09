@@ -78,6 +78,7 @@ public class NEWTGLContext {
         Assert.assertNotNull(drawable);
         
         drawable.setRealized(true);
+        Assert.assertTrue(drawable.isRealized());
         
         GLContext context = drawable.createContext(null);
         Assert.assertNotNull(context);
