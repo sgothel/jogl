@@ -35,10 +35,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.awt.BorderLayout;
+import java.awt.Button;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Frame;
-import java.awt.Label;
 
 import javax.media.opengl.*;
 
@@ -53,14 +53,15 @@ import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 public class TestParenting03AWT extends UITestCase {
-    static Dimension size;
+    static Dimension glSize, fSize;
     static long durationPerTest = 800;
     static long waitAdd2nd = 500;
     static GLCapabilities glCaps;
 
     @BeforeClass
     public static void initClass() {
-        size = new Dimension(400,200);
+        glSize = new Dimension(400,200);
+        fSize = new Dimension(3*400,2*200);
         glCaps = new GLCapabilities(null);
     }
 
@@ -74,7 +75,7 @@ public class TestParenting03AWT extends UITestCase {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUpdateFPSFrames(1, null);
         final NewtCanvasAWT newtCanvasAWT1 = new NewtCanvasAWT(glWindow1);
-        newtCanvasAWT1.setPreferredSize(size);
+        newtCanvasAWT1.setPreferredSize(glSize);
 
         GLEventListener demo1 = new GearsES2(1);
         setDemoFields(demo1, glWindow1, false);
@@ -91,7 +92,7 @@ public class TestParenting03AWT extends UITestCase {
             glWindow2 = GLWindow.create(glCaps);
             glWindow2.setUpdateFPSFrames(1, null);
             newtCanvasAWT2 = new NewtCanvasAWT(glWindow2);
-            newtCanvasAWT2.setPreferredSize(size);
+            newtCanvasAWT2.setPreferredSize(glSize);
     
             GLEventListener demo2 = new GearsES2(1);
             setDemoFields(demo2, glWindow2, false);
@@ -103,10 +104,10 @@ public class TestParenting03AWT extends UITestCase {
 
         final Container cont1 = new Container();
         cont1.setLayout(new BorderLayout());
-        cont1.add(new Label("iNORTH"), BorderLayout.NORTH);
-        cont1.add(new Label("iSOUTH"), BorderLayout.SOUTH);
-        cont1.add(new Label("iEAST"), BorderLayout.EAST);
-        cont1.add(new Label("iWEST"), BorderLayout.WEST);
+        cont1.add(new Button("NORTH"), BorderLayout.NORTH);
+        cont1.add(new Button("SOUTH"), BorderLayout.SOUTH);
+        cont1.add(new Button("EAST"), BorderLayout.EAST);
+        cont1.add(new Button("WEST"), BorderLayout.WEST);
         cont1.add(newtCanvasAWT1, BorderLayout.CENTER);
         System.err.println("******* Cont1 setVisible");
         cont1.setVisible(true);
@@ -114,34 +115,31 @@ public class TestParenting03AWT extends UITestCase {
         final Container cont2 = new Container();
         cont2.setLayout(new BorderLayout());
         if(use2nd) {
-            cont2.add(new Label("iNORTH"), BorderLayout.NORTH);
-            cont2.add(new Label("iSOUTH"), BorderLayout.SOUTH);
-            cont2.add(new Label("iEAST"), BorderLayout.EAST);
-            cont2.add(new Label("iWEST"), BorderLayout.WEST);
+            cont2.add(new Button("north"), BorderLayout.NORTH);
+            cont2.add(new Button("sourth"), BorderLayout.SOUTH);
+            cont2.add(new Button("east"), BorderLayout.EAST);
+            cont2.add(new Button("west"), BorderLayout.WEST);
             cont2.add(newtCanvasAWT2, BorderLayout.CENTER);
         }
         System.err.println("******* Cont2 setVisible");
         cont2.setVisible(true);
 
         frame1.setLayout(new BorderLayout());
-        frame1.add(new Label("NORTH"), BorderLayout.NORTH);
-        frame1.add(new Label("CENTER"), BorderLayout.CENTER);
-        frame1.add(new Label("SOUTH"), BorderLayout.SOUTH);
+        frame1.add(new Button("NORTH"), BorderLayout.NORTH);
+        frame1.add(new Button("CENTER"), BorderLayout.CENTER);
+        frame1.add(new Button("SOUTH"), BorderLayout.SOUTH);
         frame1.add(cont1, BorderLayout.EAST);
         frame1.setLocation(0, 0);
-        frame1.setSize((int)size.getWidth()*3, (int)size.getHeight()*2);
+        frame1.setSize(fSize);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 System.err.println("******* Frame setVisible");
+                frame1.validate();                
                 frame1.setVisible(true);
             }});
 
         Assert.assertEquals(newtCanvasAWT1.getNativeWindow(),glWindow1.getParent());
         
-        if(use2nd) {
-            Assert.assertEquals(newtCanvasAWT2.getNativeWindow(),glWindow2.getParent());
-        }
-
         Assert.assertEquals(true, animator1.isAnimating());
         Assert.assertEquals(false, animator1.isPaused());
         Assert.assertNotNull(animator1.getThread());
@@ -150,15 +148,17 @@ public class TestParenting03AWT extends UITestCase {
             Assert.assertEquals(true, animator2.isAnimating());
             Assert.assertEquals(false, animator2.isPaused());
             Assert.assertNotNull(animator2.getThread());
+
+            Thread.sleep(waitAdd2nd);
+    
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame1.add(cont2, BorderLayout.WEST);
+                    frame1.validate();
+                }});
+            Assert.assertEquals(newtCanvasAWT2.getNativeWindow(),glWindow2.getParent());
         }
 
-        Thread.sleep(waitAdd2nd);
-
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                frame1.add(cont2, BorderLayout.WEST);
-                frame1.validate();
-            }});
 
         Thread.sleep(durationPerTest);
 
