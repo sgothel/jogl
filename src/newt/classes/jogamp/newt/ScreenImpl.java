@@ -208,6 +208,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     public synchronized final int addReference() throws NativeWindowException {
         if(DEBUG) {
             System.err.println("Screen.addReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount+1));
+            // Thread.dumpStack();
         }
         if ( 0 == refCount ) {
             createNative();
@@ -220,10 +221,8 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
     public synchronized final int removeReference() {
         if(DEBUG) {
-            String msg = "Screen.removeReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount-1);
-            // Throwable t = new Throwable(msg);
-            // t.printStackTrace();
-            System.err.println(msg);
+            System.err.println("Screen.removeReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount-1));
+            // Thread.dumpStack();
         }
         refCount--; // could become < 0, in case of manual destruction without actual creation/addReference
         if(0>=refCount) {
