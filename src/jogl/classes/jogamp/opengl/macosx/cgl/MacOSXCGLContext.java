@@ -477,11 +477,11 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               } else {
                   texWidth = drawable.getWidth();
                   texHeight = drawable.getHeight();                  
-              }
+              }              
               nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, drawable.getHandle(), fixedCaps.isBackgroundOpaque(), texWidth, texHeight);
               if (DEBUG) {
                   System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer));
-              }
+              }              
               lsh.attachSurfaceLayer(nsOpenGLLayer);
           }
         } finally {
@@ -499,8 +499,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           if (DEBUG) {
               System.err.println("NS destroy nsOpenGLLayer "+toHexString(nsOpenGLLayer));
           }
-          lsh.attachSurfaceLayer(0);
           CGL.releaseNSOpenGLLayer(nsOpenGLLayer);
+          lsh.detachSurfaceLayer(nsOpenGLLayer);
           CGL.deletePixelFormat(nsOpenGLLayerPFmt);
           nsOpenGLLayerPFmt = 0;
           nsOpenGLLayer = 0;

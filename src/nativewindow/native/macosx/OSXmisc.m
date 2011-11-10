@@ -39,6 +39,15 @@
 #include <jawt_md.h>
 #import <JavaNativeFoundation.h>
 
+#define VERBOSE 1
+//
+#ifdef VERBOSE
+    // #define DBG_PRINT(...) NSLog(@ ## __VA_ARGS__)
+    #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr)
+#else
+    #define DBG_PRINT(...)
+#endif
+
 static const char * const ClazzNameRunnable = "java/lang/Runnable";
 static jmethodID runnableRunID = NULL;
 
@@ -224,6 +233,97 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyNSWindow0
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    CreateCALayer0
+ * Signature: (V)J
+ */
+JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
+  (JNIEnv *env, jclass unused)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    // CALayer* layer = [[CALayer alloc] init];
+    CALayer* layer = [CALayer layer];
+
+    // initial dummy size !
+    CGRect lRect = [layer frame];
+    lRect.origin.x = 0;
+    lRect.origin.y = 0;
+    lRect.size.width = 32;
+    lRect.size.height = 32;
+    [layer setFrame: lRect];
+    DBG_PRINT("CALayer::CreateCALayer0: %p %lf/%lf %lfx%lf\n", layer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+
+    [pool release];
+
+    return (jlong) ((intptr_t) layer);
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    AddCASublayer0
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
+  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer)
+{
+    JNF_COCOA_ENTER(env);
+    CALayer* rootLayer = (CALayer*) ((intptr_t) rootCALayer);
+    CALayer* subLayer = (CALayer*) ((intptr_t) subCALayer);
+
+    CGRect lRectRoot = [rootLayer frame];
+    // simple 1:1 layout !
+    [subLayer setFrame:lRectRoot];
+    DBG_PRINT("CALayer::AddCASublayer0.0: %p . %p %lf/%lf %lfx%lf (%lf/%lf %lfx%lf) (refcnt %d)\n", 
+        rootLayer, subLayer, lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height, (int)[subLayer retainCount]);
+    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
+        [rootLayer addSublayer:subLayer];
+    }];
+    DBG_PRINT("CALayer::AddCASublayer0.X: %p . %p (refcnt %d)\n", rootLayer, subLayer, (int)[subLayer retainCount]);
+    JNF_COCOA_EXIT(env);
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    RemoveCASublayer0
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RemoveCASublayer0
+  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer)
+{
+    JNF_COCOA_ENTER(env);
+    CALayer* rootLayer = (CALayer*) ((intptr_t) rootCALayer);
+    CALayer* subLayer = (CALayer*) ((intptr_t) subCALayer);
+
+    DBG_PRINT("CALayer::RemoveCASublayer0.0: %p . %p (refcnt %d)\n", rootLayer, subLayer, (int)[subLayer retainCount]);
+    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
+        [subLayer removeFromSuperlayer];
+        // [[rootLayer sublayers] makeObjectsPerformSelector:@selector(removeFromSuperlayer)];
+    }];
+    DBG_PRINT("CALayer::RemoveCASublayer0.X: %p . %p (refcnt %d)\n", rootLayer, subLayer, (int)[subLayer retainCount]);
+    JNF_COCOA_EXIT(env);
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    DestroyCALayer0
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyCALayer0
+  (JNIEnv *env, jclass unused, jlong caLayer)
+{
+    JNF_COCOA_ENTER(env);
+    CALayer* layer = (CALayer*) ((intptr_t) caLayer);
+
+    DBG_PRINT("CALayer::DestroyCALayer0.0: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
+    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
+        [layer release]; // performs release!
+    }];
+    DBG_PRINT("CALayer::DestroyCALayer0.X: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
+    JNF_COCOA_EXIT(env);
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    attachJAWTSurfaceLayer
  * Signature: (JJ)Z
  */
@@ -239,8 +339,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AttachJAWTSur
     CALayer* layer = (CALayer*) (intptr_t) caLayer;
     [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
         id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
+        DBG_PRINT("CALayer::attachJAWTSurfaceLayer: %p -> %p\n", surfaceLayers.layer, layer);
         surfaceLayers.layer = [layer autorelease];
-        // surfaceLayers.layer = layer; // FIXME: JAU
     }];
     JNF_COCOA_EXIT(env);
     return JNI_TRUE;

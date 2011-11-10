@@ -51,7 +51,31 @@ public class OSXUtil {
         DestroyNSWindow0(nsWindow);
     }
     
+    public static long CreateCALayer() {
+        return CreateCALayer0();
+    }
+    public static void AddCASublayer(long rootCALayer, long subCALayer) {
+        if(0==rootCALayer || 0==subCALayer) {
+            throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
+        }
+        AddCASublayer0(rootCALayer, subCALayer);
+    }
+    public static void RemoveCASublayer(long rootCALayer, long subCALayer) {
+        if(0==rootCALayer || 0==subCALayer) {
+            throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
+        }
+        RemoveCASublayer0(rootCALayer, subCALayer);
+    }
+    public static void DestroyCALayer(long caLayer) {
+        if(0==caLayer) {
+            throw new IllegalArgumentException("caLayer 0x"+Long.toHexString(caLayer));
+        }
+        DestroyCALayer0(caLayer);    
+    }    
     public static boolean AttachJAWTSurfaceLayer(JAWT_DrawingSurfaceInfo dsi, long caLayer) {
+        if(0==caLayer) {
+            throw new IllegalArgumentException("caLayer 0x"+Long.toHexString(caLayer));
+        }
         return AttachJAWTSurfaceLayer0(dsi.getBuffer(), caLayer);
     }
     
@@ -73,6 +97,10 @@ public class OSXUtil {
     private static native void DestroyNSView0(long nsView);
     private static native long CreateNSWindow0(int x, int y, int width, int height);
     private static native void DestroyNSWindow0(long nsWindow);
+    private static native long CreateCALayer0();
+    private static native void AddCASublayer0(long rootCALayer, long subCALayer);
+    private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
+    private static native void DestroyCALayer0(long caLayer);
     private static native boolean AttachJAWTSurfaceLayer0(Buffer jawtDrawingSurfaceInfoBuffer, long caLayer);
     private static native void RunOnMainThread0(boolean waitUntilDone, Runnable runnable);
     private static native boolean IsMainThread0();
