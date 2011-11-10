@@ -691,6 +691,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return screen;
     }
 
+    protected final void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
+        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_VISIBILITY, visible));           
+    }    
     final void setVisibleActionImpl(boolean visible) {
         boolean nativeWindowCreated = false;
         boolean madeVisible = false;
@@ -749,8 +752,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if( nativeWindowCreated || madeVisible ) {
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }        
-    }
-    
+    }    
     private class VisibleAction implements Runnable {
         boolean visible;
 
@@ -761,8 +763,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         public final void run() {
             setVisibleActionImpl(visible);
         }
-    }
-
+    }    
     public void setVisible(boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
@@ -771,64 +772,64 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         runOnEDTIfAvail(true, new VisibleAction(visible));
     }
     
-    protected final void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
-        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_VISIBILITY, visible));           
+    final void setSizeActionImpl(int width, int height) {
+        windowLock.lock();
+        screen.addReference(); // recreate case            
+        try {
+            int visibleAction = 0; // 1 invisible, 2 visible (create)
+            if ( !fullscreen && ( width != WindowImpl.this.width || WindowImpl.this.height != height ) ) {
+                final boolean recreate = isNativeValid() && !getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window setSize: START "+WindowImpl.this.width+"x"+WindowImpl.this.height+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible+", recreate "+recreate);
+                }
+                if(recreate) {
+                    // will trigger visibleAction:=2 -> create if wasVisible
+                    final boolean wasVisible = WindowImpl.this.visible;
+                    destroyAction.run();
+                    WindowImpl.this.visible = wasVisible;
+                }                
+                if ( isNativeValid() && 0>=width*height && visible ) {
+                    visibleAction=1; // invisible
+                    WindowImpl.this.width = 0;
+                    WindowImpl.this.height = 0;
+                } else if ( !isNativeValid() && 0<width*height && visible ) {
+                    visibleAction = 2; // visible (create)
+                    WindowImpl.this.width = width;
+                    WindowImpl.this.height = height;
+                } else if ( isNativeValid() ) {
+                    // this width/height will be set by windowChanged, called by the native implementation
+                    reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(0, isVisible()));
+                } else {
+                    WindowImpl.this.width = width;
+                    WindowImpl.this.height = height;
+                }
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window setSize: END "+WindowImpl.this.width+"x"+WindowImpl.this.height+", visibleAction "+visibleAction);
+                }                    
+                switch(visibleAction) {
+                    case 1: setVisibleActionImpl(false); break;
+                    case 2: setVisibleActionImpl(true); break;
+                }
+            }
+        } finally {
+            screen.removeReference(); // recreate case
+            windowLock.unlock();
+        }        
     }
-    
-    private class SetSizeActionImpl implements Runnable {
+    private class SetSizeAction implements Runnable {
         int width, height;
 
-        private SetSizeActionImpl(int w, int h) {
+        private SetSizeAction(int w, int h) {
             width = w;
             height = h;
         }
         public final void run() {
-            windowLock.lock();
-            try {
-                int visibleAction = 0; // 1 invisible, 2 visible (create)
-                if ( !fullscreen && ( width != WindowImpl.this.width || WindowImpl.this.height != height ) ) {
-                    if(DEBUG_IMPLEMENTATION) {
-                        String msg = "Window setSize: START "+WindowImpl.this.width+"x"+WindowImpl.this.height+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible;
-                        System.err.println(msg);
-                    }
-                    if ( isNativeValid() && 0>=width*height && visible ) {
-                        visibleAction=1; // invisible
-                        WindowImpl.this.width = 0;
-                        WindowImpl.this.height = 0;
-                    } else if ( !isNativeValid() && 0<width*height && visible ) {
-                        visibleAction = 2; // visible (create)
-                        WindowImpl.this.width = width;
-                        WindowImpl.this.height = height;
-                    } else if ( isNativeValid() ) {
-                        // this width/height will be set by windowChanged, called by the native implementation
-                        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(0, isVisible()));
-                    } else {
-                        WindowImpl.this.width = width;
-                        WindowImpl.this.height = height;
-                    }
-                    if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window setSize: END "+WindowImpl.this.width+"x"+WindowImpl.this.height+", visibleAction "+visibleAction);
-                    }                    
-                    switch(visibleAction) {
-                        case 1: setVisibleActionImpl(false); break;
-                        case 2: setVisibleActionImpl(true); break;
-                    }
-                }
-            } finally {
-                windowLock.unlock();
-            }
+            setSizeActionImpl(width, height);
         }
-    }
-
+    }    
     public void setSize(int width, int height) {
-        /** FIXME: freezes due to many resize events by eg AWT 
-        if( isNativeValid() && !getGraphicsConfiguration().getChosenCapabilities().isOnscreen() ) {
-            destroy(); // skip create, create is done here ..
-        }
-        */
-        runOnEDTIfAvail(true, new SetSizeActionImpl(width, height));
-    }
-    
+        runOnEDTIfAvail(true, new SetSizeAction(width, height));
+    }    
     public void setTopLevelSize(int width, int height) {
         setSize(width - getInsets().getTotalWidth(), height - getInsets().getTotalHeight());
     }
