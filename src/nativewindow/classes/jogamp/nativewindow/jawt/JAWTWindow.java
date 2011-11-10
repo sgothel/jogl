@@ -102,6 +102,16 @@ public abstract class JAWTWindow implements NativeWindow {
     }
     validateNative();
   }
+  
+  /**
+   * Implementors shall ensure that all native handles are valid, eg. the {@link javax.media.nativewindow.awt.AWTGraphicsDevice AWTGraphicsDevice}'s
+   * subtype via {@link javax.media.nativewindow.awt.AWTGraphicsDevice#setSubType(String, long) awtGraphicsDevice.setSubType(NativeWindowFactory.TYPE_X11, displayHandle)}.
+   * <p>
+   * This method may be called several times, 
+   * hence the implementation shall check for valid values 1st and bail out early if satisfied.
+   * </p>
+   * @throws NativeWindowException
+   */
   protected abstract void validateNative() throws NativeWindowException;
 
   protected synchronized void invalidate() {
@@ -164,6 +174,7 @@ public abstract class JAWTWindow implements NativeWindow {
   protected abstract int lockSurfaceImpl() throws NativeWindowException;
 
   public final int lockSurface() throws NativeWindowException {
+    validateNative();
     surfaceLock.lock();
     int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
 

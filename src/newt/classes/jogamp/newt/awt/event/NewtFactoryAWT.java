@@ -76,10 +76,19 @@ public class NewtFactoryAWT extends NewtFactory {
       if(! ( nw instanceof JAWTWindow ) ) {
           throw new NativeWindowException("Not an AWT NativeWindow: "+nw);
       }
+      if(DEBUG_IMPLEMENTATION) {
+        System.err.println("NewtFactoryAWT.updateGraphicsConfiguration: (pre) "+awtComp+" -> "+nw);
+      }
       final AWTGraphicsConfiguration awtConfig = (AWTGraphicsConfiguration) nw.getGraphicsConfiguration();
       awtConfig.updateGraphicsConfiguration(awtComp);
+      // lockSurface() re-issues JAWTWindow's native validation 
+      if( NativeSurface.LOCK_SURFACE_NOT_READY >= nw.lockSurface() ) {
+          throw new NativeWindowException("could not lock "+nw);
+      }
+      nw.unlockSurface();
+      
       if(DEBUG_IMPLEMENTATION) {
-        System.err.println("NewtFactoryAWT.updateGraphicsConfiguration: "+awtComp+" -> "+nw);
+        System.err.println("NewtFactoryAWT.updateGraphicsConfiguration: (post) "+awtComp+" -> "+nw);
       }
   }
   
