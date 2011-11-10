@@ -163,7 +163,8 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     pBuffer = impl.create(pBufferTexTarget, internalFormat, getWidth(), getHeight());
     if(DEBUG) {
         System.err.println("MacOSXPbufferCGLDrawable tex: target "+toHexString(pBufferTexTarget)+
-                            ", size "+pBufferTexWidth+"x"+pBufferTexHeight+
+                            ", pbufferSize "+getWidth()+"x"+getHeight()+
+                            ", texSize "+pBufferTexWidth+"x"+pBufferTexHeight+
                             ", internal-fmt "+toHexString(internalFormat));
         System.err.println("MacOSXPbufferCGLDrawable pBuffer: "+toHexString(pBuffer));
         // Thread.dumpStack();
