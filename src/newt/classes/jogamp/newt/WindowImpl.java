@@ -773,18 +773,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     
     final void setSizeActionImpl(int width, int height) {
+        boolean recreate = false;
         windowLock.lock();
-        screen.addReference(); // recreate case            
         try {
             int visibleAction = 0; // 1 invisible, 2 visible (create)
             if ( !fullscreen && ( width != WindowImpl.this.width || WindowImpl.this.height != height ) ) {
-                final boolean recreate = isNativeValid() && !getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
+                recreate = isNativeValid() && !getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window setSize: START "+WindowImpl.this.width+"x"+WindowImpl.this.height+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible+", recreate "+recreate);
                 }
                 if(recreate) {
                     // will trigger visibleAction:=2 -> create if wasVisible
                     final boolean wasVisible = WindowImpl.this.visible;
+                    screen.addReference(); // retain screen            
                     destroyAction.run();
                     WindowImpl.this.visible = wasVisible;
                 }                
@@ -812,7 +813,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
             }
         } finally {
-            screen.removeReference(); // recreate case
+            if(recreate) {
+                screen.removeReference(); // bring back ref-count
+            }
             windowLock.unlock();
         }        
     }
