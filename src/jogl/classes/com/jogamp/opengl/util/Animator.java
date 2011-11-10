@@ -59,7 +59,9 @@ import javax.media.opengl.GLAutoDrawable;
 */
 
 public class Animator extends AnimatorBase {
-
+    /** timeout in milliseconds, 20 frames @ 60Hz, limiting {@link #finishLifecycleAction(Condition)} */
+    private static long TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION = 20*16;
+    
     protected ThreadGroup threadGroup;
     private Runnable runnable;
     private boolean runAsFastAsPossible;
@@ -241,18 +243,21 @@ public class Animator extends AnimatorBase {
         // dependencies on the Animator's internal thread. Currently we
         // use a couple of heuristics to determine whether we should do
         // the blocking wait().
+        boolean to = false;
         boolean doWait = !impl.skipWaitForCompletion(animThread);
         if (doWait) {
-            while (condition.result()) {
+            while (!to && condition.result()) {
+                long td = System.currentTimeMillis();
                 try {
-                    wait();
+                    wait(TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION);
                 } catch (InterruptedException ie) {  }
+                to = (System.currentTimeMillis() - td) >= TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION;
             }
         }
         if(DEBUG) {
             System.err.println("finishLifecycleAction(" + condition.getClass().getName() + "): finished - waited " + doWait +
                     ", started: " + isStartedImpl() +", animating: " + isAnimatingImpl() +
-                    ", paused: " + isPausedImpl() + ", drawables " + drawables.size());
+                    ", paused: " + isPausedImpl() + ", drawables " + drawables.size() + ", timedout "+to);
         }
     }
 
