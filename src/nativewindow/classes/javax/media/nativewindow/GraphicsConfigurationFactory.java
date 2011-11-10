@@ -60,9 +60,9 @@ import java.util.Map;
 public abstract class GraphicsConfigurationFactory {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
 
-    private static Map/*<Class, NativeWindowFactory>*/ registeredFactories =
-        Collections.synchronizedMap(new HashMap());
-    private static Class abstractGraphicsDeviceClass;
+    private static Map<Class<?>, GraphicsConfigurationFactory> registeredFactories =
+        Collections.synchronizedMap(new HashMap<Class<?>, GraphicsConfigurationFactory>());
+    private static Class<?> abstractGraphicsDeviceClass;
 
     static {
         initialize();
@@ -122,7 +122,7 @@ public abstract class GraphicsConfigurationFactory {
      *
      * @throws IllegalArgumentException if the given class does not implement AbstractGraphicsDevice
      */
-    public static GraphicsConfigurationFactory getFactory(Class abstractGraphicsDeviceImplementor)
+    public static GraphicsConfigurationFactory getFactory(Class<?> abstractGraphicsDeviceImplementor)
         throws IllegalArgumentException, NativeWindowException
     {
         if (!(abstractGraphicsDeviceClass.isAssignableFrom(abstractGraphicsDeviceImplementor))) {
@@ -130,10 +130,9 @@ public abstract class GraphicsConfigurationFactory {
         }
 
         GraphicsConfigurationFactory factory = null;
-        Class clazz = abstractGraphicsDeviceImplementor;
+        Class<?> clazz = abstractGraphicsDeviceImplementor;
         while (clazz != null) {
-            factory =
-                (GraphicsConfigurationFactory) registeredFactories.get(clazz);
+            factory = registeredFactories.get(clazz);
             if (factory != null) {
                 if(DEBUG) {
                     System.err.println("GraphicsConfigurationFactory.getFactory() "+abstractGraphicsDeviceImplementor+" -> "+factory);
@@ -143,7 +142,7 @@ public abstract class GraphicsConfigurationFactory {
             clazz = clazz.getSuperclass();
         }
         // Return the default
-        factory = (GraphicsConfigurationFactory)registeredFactories.get(abstractGraphicsDeviceClass);
+        factory = registeredFactories.get(abstractGraphicsDeviceClass);
         if(DEBUG) {
             System.err.println("GraphicsConfigurationFactory.getFactory() DEFAULT "+abstractGraphicsDeviceClass+" -> "+factory);
         }
@@ -157,7 +156,7 @@ public abstract class GraphicsConfigurationFactory {
      *
      * @throws IllegalArgumentException if the given class does not implement AbstractGraphicsDevice
      */
-    protected static void registerFactory(Class abstractGraphicsDeviceImplementor, GraphicsConfigurationFactory factory)
+    protected static void registerFactory(Class<?> abstractGraphicsDeviceImplementor, GraphicsConfigurationFactory factory)
         throws IllegalArgumentException
     {
         if (!(abstractGraphicsDeviceClass.isAssignableFrom(abstractGraphicsDeviceImplementor))) {

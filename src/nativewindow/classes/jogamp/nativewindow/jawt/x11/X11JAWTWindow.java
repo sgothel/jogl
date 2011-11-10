@@ -60,7 +60,7 @@ public class X11JAWTWindow extends JAWTWindow {
   }
 
   protected void validateNative() throws NativeWindowException {
-    AWTGraphicsDevice awtDevice = (AWTGraphicsDevice) config.getScreen().getDevice();
+    final AWTGraphicsDevice awtDevice = (AWTGraphicsDevice) config.getScreen().getDevice();
 
     if(awtDevice.getHandle() != 0) {
         // subtype and handle set already, done

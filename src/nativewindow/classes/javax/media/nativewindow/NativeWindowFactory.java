@@ -33,15 +33,20 @@
 
 package javax.media.nativewindow;
 
-import java.security.*;
-import java.util.*;
-
-import com.jogamp.common.util.*;
-import com.jogamp.common.os.Platform;
-
-import jogamp.nativewindow.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import jogamp.nativewindow.Debug;
+import jogamp.nativewindow.NativeWindowFactoryImpl;
+
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.ReflectionUtil;
 
 /** Provides a pluggable mechanism for arbitrary window toolkits to
     adapt their components to the {@link NativeWindow} interface,

@@ -55,14 +55,14 @@ import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
     the purposes of correctly enumerating the available visuals. */
 
 public class X11SunJDKReflection {
-  private static Class   x11GraphicsDeviceClass;
-  private static Method  x11GraphicsDeviceGetDisplayMethod;
-  private static Class   x11GraphicsConfigClass;
-  private static Method  x11GraphicsConfigGetVisualMethod;
-  private static boolean initted;
+  private static Class<?> x11GraphicsDeviceClass;
+  private static Method   x11GraphicsDeviceGetDisplayMethod;
+  private static Class<?> x11GraphicsConfigClass;
+  private static Method   x11GraphicsConfigGetVisualMethod;
+  private static boolean initialized;
 
   static {
-    AccessController.doPrivileged(new PrivilegedAction() {
+    AccessController.doPrivileged(new PrivilegedAction<Object>() {
         public Object run() {
           try {
             x11GraphicsDeviceClass = Class.forName("sun.awt.X11GraphicsDevice");
@@ -72,7 +72,7 @@ public class X11SunJDKReflection {
             x11GraphicsConfigClass = Class.forName("sun.awt.X11GraphicsConfig");
             x11GraphicsConfigGetVisualMethod = x11GraphicsConfigClass.getDeclaredMethod("getVisual", new Class[] {});
             x11GraphicsConfigGetVisualMethod.setAccessible(true);
-            initted = true;
+            initialized = true;
           } catch (Exception e) {
             // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
           }
@@ -82,7 +82,7 @@ public class X11SunJDKReflection {
   }
 
   public static long graphicsDeviceGetDisplay(GraphicsDevice device) {
-    if (!initted) {
+    if (!initialized) {
       return 0;
     }
 
@@ -105,7 +105,7 @@ public class X11SunJDKReflection {
   }
 
   public static int graphicsConfigurationGetVisualID(GraphicsConfiguration config) {
-    if (!initted) {
+    if (!initialized) {
       return 0;
     }
 
