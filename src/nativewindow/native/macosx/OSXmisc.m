@@ -39,7 +39,7 @@
 #include <jawt_md.h>
 #import <JavaNativeFoundation.h>
 
-#define VERBOSE 1
+// #define VERBOSE 1
 //
 #ifdef VERBOSE
     // #define DBG_PRINT(...) NSLog(@ ## __VA_ARGS__)
@@ -294,10 +294,11 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RemoveCASublayer0
     CALayer* rootLayer = (CALayer*) ((intptr_t) rootCALayer);
     CALayer* subLayer = (CALayer*) ((intptr_t) subCALayer);
 
+    (void)rootLayer; // no warnings
+
     DBG_PRINT("CALayer::RemoveCASublayer0.0: %p . %p (refcnt %d)\n", rootLayer, subLayer, (int)[subLayer retainCount]);
     [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
         [subLayer removeFromSuperlayer];
-        // [[rootLayer sublayers] makeObjectsPerformSelector:@selector(removeFromSuperlayer)];
     }];
     DBG_PRINT("CALayer::RemoveCASublayer0.X: %p . %p (refcnt %d)\n", rootLayer, subLayer, (int)[subLayer retainCount]);
     JNF_COCOA_EXIT(env);

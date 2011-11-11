@@ -921,6 +921,22 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         runOnEDTIfAvail(true, destroyAction);
     }
 
+    /**
+     * @param cWin child window, must not be null
+     * @param pWin parent window, may be null
+     * @return true if at least one of both window's configurations is offscreen 
+     */
+    protected static boolean isOffscreenInstance(NativeWindow cWin, NativeWindow pWin) {
+        boolean ofs = false;
+        if( null != cWin.getGraphicsConfiguration() ) {
+            ofs = !cWin.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
+        }
+        if( null != pWin && null != pWin.getGraphicsConfiguration() ) {
+            ofs |= !pWin.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
+        }
+        return ofs;
+    }
+    
     private class ReparentActionImpl implements Runnable, ReparentAction {
         NativeWindow newParentWindow;
         boolean forceDestroyCreate;
@@ -962,6 +978,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
             windowLock.lock();
             try {
+                if(isNativeValid()) {
+                    // force recreation if offscreen, since it may become onscreen
+                    forceDestroyCreate |= isOffscreenInstance(WindowImpl.this, newParentWindow);
+                }
+                                
                 wasVisible = isVisible();
 
                 Window newParentWindowNEWT = null;
@@ -1217,11 +1238,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public int reparentWindow(NativeWindow newParent, boolean forceDestroyCreate) {
-        if(isNativeValid()) {            
-            // force recreation if offscreen, since it may become onscreen
-            forceDestroyCreate |= !getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
-        }
-        ReparentActionImpl reparentAction = new ReparentActionImpl(newParent, forceDestroyCreate);
+        final ReparentActionImpl reparentAction = new ReparentActionImpl(newParent, forceDestroyCreate);
         runOnEDTIfAvail(true, reparentAction);
         return reparentAction.getStrategy();
     }

@@ -32,11 +32,16 @@
 
 package jogamp.nativewindow;
 
-import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.*;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
 
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.ToolkitLock;
+
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.ReflectionUtil;
 
 public class NativeWindowFactoryImpl extends NativeWindowFactory {
     private static final ToolkitLock nullToolkitLock = new NullToolkitLock();
@@ -44,7 +49,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
     public static ToolkitLock getNullToolkitLock() {
             return nullToolkitLock;
     }
-
+    
     // This subclass of NativeWindowFactory handles the case of
     // NativeWindows being passed in
     protected NativeWindow getNativeWindowImpl(Object winObj, AbstractGraphicsConfiguration config) throws IllegalArgumentException {
@@ -66,7 +71,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
                                            "javax.media.nativewindow.NativeWindow or "+AWTComponentClassName);
     }
     
-    private Constructor nativeWindowConstructor = null;
+    private Constructor<?> nativeWindowConstructor = null;
 
     private NativeWindow getAWTNativeWindow(Object winObj, AbstractGraphicsConfiguration config) {
         if (nativeWindowConstructor == null) {

@@ -129,6 +129,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
       if(DEBUG) {
         System.err.println("MacOSXJAWTWindow.setSurfaceHandle(): 0x"+Long.toHexString(surfaceHandle));
       }
+      sscSet &= 0 != surfaceHandle; // reset ssc flag if NULL surfaceHandle, ie. back to JAWT
       this.surfaceHandle = surfaceHandle;
   }
 

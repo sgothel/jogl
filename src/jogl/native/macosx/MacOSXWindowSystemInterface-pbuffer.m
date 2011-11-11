@@ -406,13 +406,20 @@ void waitUntilNSOpenGLLayerIsReady(NSOpenGLLayer* layer, long to_ms) {
                 timespec_now(&to_abs);
                 timespec_addms(&to_abs, to_ms);
                 wr = pthread_cond_timedwait(&l->renderSignal, &l->renderLock, &to_abs);
+                #ifdef DBG_SYNC
+                    struct timespec t1, td;
+                    timespec_now(&t1);
+                    timespec_subtract(&td, &t1, &to_abs);
+                    long td_ms = timespec_milliseconds(&td);
+                    fprintf(stderr, "%ld ms", td_ms);
+                #endif
             } else {
                 pthread_cond_wait (&l->renderSignal, &l->renderLock);
             }
             ready = !l->shallDraw;
         }
     } while (NO == ready && 0 == wr) ;
-    SYNC_PRINT("%d}", ready);
+    SYNC_PRINT("-%d}", ready);
     pthread_mutex_unlock(&l->renderLock);
 }
 

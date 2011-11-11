@@ -37,6 +37,7 @@ package jogamp.newt.driver.macosx;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.SurfaceChangeable;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
@@ -46,7 +47,7 @@ import jogamp.newt.WindowImpl;
 
 import com.jogamp.newt.event.KeyEvent;
 
-public class MacWindow extends WindowImpl {
+public class MacWindow extends WindowImpl implements SurfaceChangeable {
     
     // Window styles
     private static final int NSBorderlessWindowMask     = 0;
@@ -135,6 +136,7 @@ public class MacWindow extends WindowImpl {
     private static final int NSModeSwitchFunctionKey     = 0xF747;
 
     private volatile long surfaceHandle;
+    private long sscSurfaceHandle;
 
     static {
         MacDisplay.initSingleton();
@@ -185,9 +187,28 @@ public class MacWindow extends WindowImpl {
     
     @Override
     public final long getSurfaceHandle() {
-        return surfaceHandle;
+        return 0 != sscSurfaceHandle ? sscSurfaceHandle : surfaceHandle;
     }
 
+    public void setSurfaceHandle(long surfaceHandle) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("MacWindow.setSurfaceHandle(): 0x"+Long.toHexString(surfaceHandle));
+        }
+        sscSurfaceHandle = surfaceHandle;
+        if (isNativeValid()) {
+            if (0 != sscSurfaceHandle) {
+                orderOut0( 0!=getParentWindowHandle() ? getParentWindowHandle() : getWindowHandle() );
+            } /** this is done by recreation! 
+              else if (isVisible()){
+                orderFront0( 0!=getParentWindowHandle() ? getParentWindowHandle() : getWindowHandle() );
+            } */
+        }        
+    }
+
+    public void surfaceSizeChanged(int width, int height) {
+        sizeChanged(false, width, height, false);
+    }
+    
     @Override
     protected void setTitleImpl(final String title) {
         setTitle0(getWindowHandle(), title);
@@ -199,28 +220,32 @@ public class MacWindow extends WindowImpl {
     
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         final PointImmutable pS = position2TopLevel(new Point(x, y));
+        final boolean offscreenInstance = 0 != sscSurfaceHandle || isOffscreenInstance(this, this.getParent());
         
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("MacWindow reconfig: "+x+"/"+y+" -> "+pS+" - "+width+"x"+height+", "+
-                               getReconfigureFlagsAsString(null, flags));
+            System.err.println("MacWindow reconfig: "+x+"/"+y+" -> "+pS+" - "+width+"x"+height+
+                               ", offscreenInstance "+offscreenInstance+
+                               ", "+getReconfigureFlagsAsString(null, flags));
         }
         
         if( getWindowHandle() == 0 ) {
             if( 0 != ( FLAG_IS_VISIBLE & flags) ) {
-                createWindow(false, pS, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
+                createWindow(offscreenInstance, false, pS, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
                 // no native event ..
                 visibleChanged(true, true); 
             } /* else { ?? } */
         } else {
             if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 == ( FLAG_IS_VISIBLE & flags) ) {
-                orderOut0(getWindowHandle());
+                if ( !offscreenInstance ) {
+                    orderOut0(getWindowHandle());
+                }
                 // no native event ..
                 visibleChanged(true, false); 
-            } 
+            }
             if( 0 != ( FLAG_CHANGE_DECORATION & flags) ||
                 0 != ( FLAG_CHANGE_PARENTING & flags) ||
                 0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
-                createWindow(true, pS, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
+                createWindow(offscreenInstance, true, pS, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
                 if(isVisible()) { flags |= FLAG_CHANGE_VISIBILITY; } 
             }
             if(x>=0 && y>=0) {
@@ -234,11 +259,15 @@ public class MacWindow extends WindowImpl {
                 sizeChanged(true, width, height, false); // incl. validation (incl. repositioning)
             }
             if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 != ( FLAG_IS_VISIBLE & flags) ) {
-                orderFront0(getWindowHandle());
+                if( !offscreenInstance ) {                
+                    orderFront0(getWindowHandle());
+                }
                 // no native event ..
                 visibleChanged(true, true);
             } 
-            setAlwaysOnTop0(getWindowHandle(), 0 != ( FLAG_IS_ALWAYSONTOP & flags));
+            if( !offscreenInstance ) {                
+                setAlwaysOnTop0(getWindowHandle(), 0 != ( FLAG_IS_ALWAYSONTOP & flags));
+            }
         }
         return true;
     }
@@ -385,7 +414,7 @@ public class MacWindow extends WindowImpl {
         return keyChar;
     }
 
-    private void createWindow(final boolean recreate, 
+    private void createWindow(final boolean offscreenInstance, final boolean recreate, 
                               final PointImmutable pS, final int width, final int height, 
                               final boolean fullscreen) {
 
@@ -408,20 +437,24 @@ public class MacWindow extends WindowImpl {
             }
             setWindowHandle(createWindow0(getParentWindowHandle(),
                                  pS.getX(), pS.getY(), width, height,
-                                 config.getChosenCapabilities().isBackgroundOpaque(),
+                                 (config.getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance),
                                  fullscreen,
-                                 (isUndecorated() ?
-                                 NSBorderlessWindowMask :
-                                 NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask),
+                                 ((isUndecorated() || offscreenInstance) ?
+                                   NSBorderlessWindowMask :
+                                   NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask),
                                  NSBackingStoreBuffered, 
                                  getScreen().getIndex(), surfaceHandle));
             if (getWindowHandle() == 0) {
                 throw new NativeWindowException("Could create native window "+Thread.currentThread().getName()+" "+this);
             }
             surfaceHandle = contentView0(getWindowHandle());
-            setTitle0(getWindowHandle(), getTitle());
-            // need to revalidate real position
-            positionChanged(true, getLocationOnScreenImpl(0, 0)); // incl. validation
+            if( offscreenInstance ) {
+                orderOut0(0!=getParentWindowHandle() ? getParentWindowHandle() : getWindowHandle());
+            } else {
+                setTitle0(getWindowHandle(), getTitle());
+                // need to revalidate real position
+                positionChanged(true, getLocationOnScreenImpl(0, 0)); // incl. validation
+            }
         } catch (Exception ie) {
             ie.printStackTrace();
         }

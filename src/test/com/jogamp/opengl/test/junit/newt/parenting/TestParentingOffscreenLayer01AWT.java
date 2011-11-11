@@ -132,6 +132,11 @@ public class TestParentingOffscreenLayer01AWT extends UITestCase {
         testOffscreenLayerPath1_Impl(true);
     }
     
+    @Test
+    public void testOffscreenLayerPath1_NewtOnscreen() throws InterruptedException, InvocationTargetException {
+        testOffscreenLayerPath1_Impl(false);
+    }
+    
     private void testOffscreenLayerPath1_Impl(boolean newtOffscreenClass) throws InterruptedException, InvocationTargetException {
         if( newtOffscreenClass && !JAWTUtil.isCachedJAWTUsingOffscreenLayer() ) {
             System.err.println("JAWT OffscreenLayer n/a on this platform.");
