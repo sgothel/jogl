@@ -40,11 +40,8 @@ import java.security.PrivilegedAction;
 
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeSurfaceHolder;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowHolder;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.awt.AWTWindowClosingProtocol;
 import javax.swing.MenuSelectionManager;
@@ -64,7 +61,7 @@ import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTMouseAdapter;
 
 @SuppressWarnings("serial")
-public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProtocol, NativeSurfaceHolder, NativeWindowHolder {
+public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProtocol {
     public static final boolean DEBUG = Debug.debug("Window");
 
     NativeWindow nativeWindow = null;
@@ -200,9 +197,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
      * or {@link #addNotify()} hasn't been called yet.*/
     public NativeWindow getNativeWindow() { return nativeWindow; }
     
-    /** See {@link #getNativeWindow()} */    
-    public NativeSurface getNativeSurface() { return nativeWindow; }
-
     public int getDefaultCloseOperation() {
         return awtWindowClosingProtocol.getDefaultCloseOperation();
     }

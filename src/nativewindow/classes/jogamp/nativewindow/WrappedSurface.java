@@ -29,7 +29,6 @@
 package jogamp.nativewindow;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.SurfaceChangeable;
 
@@ -50,10 +49,6 @@ public class WrappedSurface extends ProxySurface implements SurfaceChangeable {
     surfaceHandle = 0;
   }
 
-  public NativeSurface getNativeSurface() {
-      return this;
-  }
-  
   public long getSurfaceHandle() {
     return surfaceHandle;
   }

@@ -36,7 +36,7 @@ package javax.media.nativewindow;
     the component is alive and realized/visible, NativeSurface must be able
     provide information such as the surface handle while it is locked.<P>
 */
-public interface NativeSurface extends SurfaceUpdatedListener, NativeSurfaceHolder {
+public interface NativeSurface extends SurfaceUpdatedListener {
   /** Unlocked state */
   public static final int LOCK_SURFACE_UNLOCKED = 0;
 

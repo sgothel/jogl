@@ -165,10 +165,6 @@ public abstract class JAWTWindow implements NativeWindow {
   // NativeSurface
   //
 
-  public NativeSurface getNativeSurface() {
-      return this;
-  }
-  
   private RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
 
   protected abstract int lockSurfaceImpl() throws NativeWindowException;
@@ -258,10 +254,6 @@ public abstract class JAWTWindow implements NativeWindow {
   // NativeWindow
   //
 
-  public NativeWindow getNativeWindow() {
-      return this;
-  }
-  
   public synchronized void destroy() {
     invalidate();
     if(null!=component) {

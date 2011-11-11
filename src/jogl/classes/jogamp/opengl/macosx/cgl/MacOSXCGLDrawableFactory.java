@@ -52,7 +52,6 @@ import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.NativeWindowHolder;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.macosx.MacOSXGraphicsDevice;
 import javax.media.opengl.GL;
@@ -268,12 +267,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
               final MacOSXJAWTWindow r = (MacOSXJAWTWindow) nwThis;
               return r.isOffscreenLayerSurface() ? r : null;
           } else {
-              // parent surface host, eg. via native parenting w/ NewtCanvasAWT
               NativeWindow nwParent = nwThis.getParent();
-              if(null != nwParent && nwParent instanceof NativeWindowHolder) {
-                  NativeWindowHolder nwh = (NativeWindowHolder) nwParent;
-                  nwParent = nwh.getNativeWindow();
-              }
               if(null != nwParent && nwParent instanceof MacOSXJAWTWindow) {
                   final MacOSXJAWTWindow r = (MacOSXJAWTWindow) nwParent;
                   return r.isOffscreenLayerSurface() ? r : null;

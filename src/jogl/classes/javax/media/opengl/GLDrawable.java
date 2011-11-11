@@ -42,7 +42,6 @@ package javax.media.opengl;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeSurfaceHolder;
 
 
 /** An abstraction for an OpenGL rendering target. A GLDrawable's
@@ -51,7 +50,7 @@ import javax.media.nativewindow.NativeSurfaceHolder;
     create an OpenGL context, but all implementations of {@link
     GLAutoDrawable} do so upon creation. */
 
-public interface GLDrawable extends NativeSurfaceHolder {
+public interface GLDrawable {
   /**
    * Creates a new context for drawing to this drawable that will
    * optionally share display lists and other server-side OpenGL
@@ -158,6 +157,14 @@ public interface GLDrawable extends NativeSurfaceHolder {
       Returns the GLProfile object, no copy.
     */
   public GLProfile getGLProfile();
+
+  /**
+   * Returns the underlying native surface which surface handle 
+   * represents this OpenGL drawable's native resource.
+   * 
+   * @see #getHandle()
+   */
+  public NativeSurface getNativeSurface();
 
   /** 
    * This is the GL/Windowing drawable handle.<br>
