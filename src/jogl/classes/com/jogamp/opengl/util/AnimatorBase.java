@@ -56,7 +56,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
 
     public interface AnimatorImpl {
         void display(ArrayList<GLAutoDrawable> drawables, boolean ignoreExceptions, boolean printExceptions);
-        boolean skipWaitForCompletion(Thread thread);
+        boolean blockUntilDone(Thread thread);
     }
 
     protected ArrayList<GLAutoDrawable> drawables = new ArrayList<GLAutoDrawable>();
@@ -101,7 +101,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         if(paused) {
             resume();
         }
-        if(!impl.skipWaitForCompletion(animThread)) {
+        if(impl.blockUntilDone(animThread)) {
             while(isStarted() && !isPaused() && !isAnimating()) {
                 try {
                     wait();
@@ -123,7 +123,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         if(paused) {
             resume();
         }
-        if(!impl.skipWaitForCompletion(animThread)) {
+        if(impl.blockUntilDone(animThread)) {
             while(isStarted() && drawablesEmpty && isAnimating()) {
                 try {
                     wait();
