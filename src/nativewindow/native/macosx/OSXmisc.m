@@ -273,7 +273,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
     CGRect lRectRoot = [rootLayer frame];
     // simple 1:1 layout !
     [subLayer setFrame:lRectRoot];
-    DBG_PRINT("CALayer::AddCASublayer0.0: %p . %p %lf/%lf %lfx%lf (%lf/%lf %lfx%lf) (refcnt %d)\n", 
+    DBG_PRINT("CALayer::AddCASublayer0.0: %p . %p %lf/%lf %lfx%lf (refcnt %d)\n", 
         rootLayer, subLayer, lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height, (int)[subLayer retainCount]);
     [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
         [rootLayer addSublayer:subLayer];
