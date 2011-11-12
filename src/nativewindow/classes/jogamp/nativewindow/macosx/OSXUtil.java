@@ -7,7 +7,6 @@ import javax.media.nativewindow.util.Point;
 
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
-import jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo;
 
 public class OSXUtil {
     private static boolean isInit = false;  
@@ -72,7 +71,10 @@ public class OSXUtil {
         }
         DestroyCALayer0(caLayer);    
     }    
-    public static boolean AttachJAWTSurfaceLayer(JAWT_DrawingSurfaceInfo dsi, long caLayer) {
+    public static boolean AttachJAWTSurfaceLayer(Object jawtDrawingSurfaceInfo, long caLayer) {
+        final jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo dsi =
+                (jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo) jawtDrawingSurfaceInfo;
+                
         if(0==caLayer) {
             throw new IllegalArgumentException("caLayer 0x"+Long.toHexString(caLayer));
         }
