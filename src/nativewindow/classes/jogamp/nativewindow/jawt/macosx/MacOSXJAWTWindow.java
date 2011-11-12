@@ -63,8 +63,9 @@ import jogamp.nativewindow.macosx.OSXUtil;
 public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
   public MacOSXJAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
     super(comp, config);
-    isOffscreenLayerSurface = JAWTUtil.isCachedJAWTUsingOffscreenLayer();
-    dumpInfo();
+    if(DEBUG) {
+        dumpInfo();
+    }
   }
 
   protected void validateNative() throws NativeWindowException {
@@ -72,7 +73,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
 
   protected void invalidateNative() {
       surfaceHandle=0;
-      if(isOffscreenLayerSurface) {
+      if(isOffscreenLayerSurfaceEnabled()) {
           if(0 != drawable) {
               OSXUtil.DestroyNSWindow(drawable);
               drawable = 0;
@@ -80,50 +81,20 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
       }
   }
 
-  public final boolean isOffscreenLayerSurface() { 
-      return isOffscreenLayerSurface;
-  }  
-  public void attachSurfaceLayer(final long layerHandle) {
-      if( !isOffscreenLayerSurface() ) {
-          throw new NativeWindowException("Not using CALAYER");
-      }
-      int lockRes = lockSurface();
-      if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
-          throw new NativeWindowException("Could not lock layeredSurfaceHost: "+this);
-      }
-      try {
-          if(DEBUG) {
-            System.err.println("MacOSXJAWTWindow.attachSurfaceLayer(): 0x"+Long.toHexString(layerHandle));
-          }
-          OSXUtil.AddCASublayer(rootSurfaceLayerHandle, layerHandle);
-      } finally {
-          unlockSurface();
-      }
+  protected void attachSurfaceLayerImpl(final long layerHandle) {
+      OSXUtil.AddCASublayer(rootSurfaceLayerHandle, layerHandle);
   }
-  public void detachSurfaceLayer(final long layerHandle) {
-      if( !isOffscreenLayerSurface() ) {
-          throw new NativeWindowException("Not using CALAYER");
-      }
-      int lockRes = lockSurface();
-      if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
-          throw new NativeWindowException("Could not lock layeredSurfaceHost: "+this);
-      }
-      try {
-          if(DEBUG) {
-            System.err.println("MacOSXJAWTWindow.detachSurfaceLayer(): 0x"+Long.toHexString(layerHandle));
-          }
-          OSXUtil.RemoveCASublayer(rootSurfaceLayerHandle, layerHandle);
-      } finally {
-          unlockSurface();
-      }
+  
+  protected void detachSurfaceLayerImpl(final long layerHandle) {
+      OSXUtil.RemoveCASublayer(rootSurfaceLayerHandle, layerHandle);
   }
     
   public long getSurfaceHandle() {
-    return isOffscreenLayerSurface ? surfaceHandle : super.getSurfaceHandle() ;
+    return isOffscreenLayerSurfaceEnabled() ? surfaceHandle : super.getSurfaceHandle() ;
   }
   
   public void setSurfaceHandle(long surfaceHandle) {
-      if( !isOffscreenLayerSurface() ) {
+      if( !isOffscreenLayerSurfaceEnabled() ) {
           throw new java.lang.UnsupportedOperationException("Not using CALAYER");
       }
       if(DEBUG) {
@@ -147,11 +118,14 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
     return sscSet ? sscHeight: super.getHeight();
   }
 
+  protected JAWT fetchJAWTImpl() throws NativeWindowException {
+       // use offscreen if supported and [ applet or requested ]
+      return JAWTUtil.getJAWT(getShallUseOffscreenLayer() || isApplet());
+  }
   protected int lockSurfaceImpl() throws NativeWindowException {
     int ret = NativeWindow.LOCK_SURFACE_NOT_READY;
     if(null == ds) {
-        final JAWT jawt = JAWT.getJAWT();
-        ds = jawt.GetDrawingSurface(component);
+        ds = getJAWT().GetDrawingSurface(component);
         if (ds == null) {
           // Widget not yet realized
           unlockSurfaceImpl();
@@ -189,12 +163,12 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
         }
     }
     updateBounds(dsi.getBounds());
-    if (DEBUG && firstLock) {
+    if (DEBUG && firstLock ) {
       dumpInfo();
     }
     firstLock = false;
-    if( !isOffscreenLayerSurface ) {
-        macosxdsi = (JAWT_MacOSXDrawingSurfaceInfo) dsi.platformInfo();
+    if( !isOffscreenLayerSurfaceEnabled() ) {
+        macosxdsi = (JAWT_MacOSXDrawingSurfaceInfo) dsi.platformInfo(getJAWT());
         if (macosxdsi == null) {
           unlockSurfaceImpl();
           return NativeWindow.LOCK_SURFACE_NOT_READY;
@@ -257,7 +231,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
         if (dsLocked) {
             ds.Unlock();
         }
-        JAWT.getJAWT().FreeDrawingSurface(ds);
+        getJAWT().FreeDrawingSurface(ds);
     }
     ds = null;
     dsi = null;
@@ -265,10 +239,13 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
 
   private void dumpInfo() {
       System.err.println("MaxOSXJAWTWindow: 0x"+Integer.toHexString(this.hashCode())+" - thread: "+Thread.currentThread().getName());
-      // System.err.println(this);
-      System.err.println("JAWT version: 0x"+Integer.toHexString(JAWT.getJAWT().getVersionCached())+
-                         ", CA_LAYER: "+ (0!=(JAWT.getJAWT().getVersionCached() & JAWT.JAWT_MACOSX_USE_CALAYER))+
-                         ", isLayeredSurface "+isOffscreenLayerSurface()+", bounds "+bounds);
+      if(null != getJAWT()) {
+          System.err.println("JAWT version: 0x"+Integer.toHexString(getJAWT().getCachedVersion())+
+                             ", CA_LAYER: "+ JAWTUtil.isJAWTUsingOffscreenLayer(getJAWT())+
+                             ", isLayeredSurface "+isOffscreenLayerSurfaceEnabled()+", bounds "+bounds);
+      } else {
+          System.err.println("JAWT n/a, bounds "+bounds);          
+      }
       // Thread.dumpStack();
   }
   
@@ -291,7 +268,6 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
   
   private JAWT_MacOSXDrawingSurfaceInfo macosxdsi;
   
-  private final boolean isOffscreenLayerSurface;
   private long rootSurfaceLayerHandle = 0; // is autoreleased, once it is attached to the JAWT_SurfaceLayer
   
   private long surfaceHandle = 0;

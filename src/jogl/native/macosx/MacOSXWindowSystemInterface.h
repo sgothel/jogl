@@ -3,11 +3,11 @@
 #import <OpenGL/CGLTypes.h>
 #import <jni.h>
 
-// #define VERBOSE_ON 1
+#define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
-    // #define DBG_PRINT(...) NSLog(@ ## __VA_ARGS__)
-    #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr)
+    #define DBG_PRINT(...) NSLog(@ __VA_ARGS__)
+    // #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr)
 #else
     #define DBG_PRINT(...)
 #endif

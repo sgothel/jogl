@@ -74,6 +74,8 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
   @Override
   protected boolean createImpl() {
     boolean res = super.createImpl();
+    lastWidth = -1; 
+    lastHeight = -1;    
     if(res && isNSContext()) {
         if(0 != updateHandle) {
             throw new InternalError("XXX1");
@@ -83,9 +85,6 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
             throw new InternalError("XXX2");
         }
     }
-    updateHandle = 0;
-    lastWidth = -1; 
-    lastHeight = -1;    
     return res;
   }
 
@@ -98,6 +97,6 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
     super.destroyImpl();    
   }
   
-  private long updateHandle;
+  private long updateHandle = 0;
   private int lastWidth, lastHeight;
 }

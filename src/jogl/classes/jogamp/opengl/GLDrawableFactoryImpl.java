@@ -40,9 +40,26 @@
 
 package jogamp.opengl;
 
-import java.nio.*;
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
+import java.nio.Buffer;
+
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.OffscreenLayerSurface;
+import javax.media.nativewindow.ProxySurface;
+import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLPbuffer;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.Threading;
+
+import jogamp.nativewindow.MutableGraphicsConfiguration;
 
 import com.jogamp.common.util.VersionNumber;
 
@@ -103,23 +120,42 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+    final MutableGraphicsConfiguration config = (MutableGraphicsConfiguration) target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     AbstractGraphicsDevice adevice = config.getScreen().getDevice();
     GLDrawable result = null;
     adevice.lock();
     try {
-        if(caps.isOnscreen()) {
-            if(DEBUG) {
-                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target);
+        if(chosenCaps.isOnscreen()) {
+            // onscreen
+            final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(target, true);
+            if(null == ols) {
+                // traditional onscreen
+                if(DEBUG) {
+                    System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target);
+                }
+                result = createOnscreenDrawableImpl(target);
+            } else {            
+                // layered surface -> offscreen/PBuffer
+                final GLCapabilities chosenCapsMod = (GLCapabilities) chosenCaps.cloneMutable();
+                chosenCapsMod.setOnscreen(false);
+                chosenCapsMod.setPBuffer(canCreateGLPbuffer(adevice));
+                config.setChosenCapabilities(chosenCapsMod);
+                if(DEBUG) {
+                    System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable -> Offscreen-Layer: "+target);
+                }
+                if( ! ( target instanceof SurfaceChangeable ) ) {
+                    throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen layered surface: "+target);
+                }
+                result = createOffscreenDrawableImpl(target);
             }
-            result = createOnscreenDrawableImpl(target);
         } else {
+            // offscreen
+            if(DEBUG) {
+                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable (PBuffer: "+chosenCaps.isPBuffer()+"): "+target);
+            }
             if( ! ( target instanceof SurfaceChangeable ) ) {
                 throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen: "+target);
-            }
-            if(DEBUG) {
-                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable (PBuffer: "+caps.isPBuffer()+"): "+target);
             }
             result = createOffscreenDrawableImpl(target);
         }

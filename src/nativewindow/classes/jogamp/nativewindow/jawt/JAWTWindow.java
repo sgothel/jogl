@@ -48,6 +48,7 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
 import javax.media.nativewindow.util.Insets;
@@ -58,16 +59,21 @@ import javax.media.nativewindow.util.RectangleImmutable;
 
 import jogamp.nativewindow.SurfaceUpdatedHelper;
 
-public abstract class JAWTWindow implements NativeWindow {
+public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface {
   protected static final boolean DEBUG = JAWTUtil.DEBUG;
 
+  // user properties
+  protected boolean shallUseOffscreenLayer = false;
+  
   // lifetime: forever
   protected Component component;
-  protected boolean isApplet;
   protected AWTGraphicsConfiguration config;
   private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
 
-  // lifetime: valid after lock, forever until invalidate
+  // lifetime: valid after lock but may change with each 1st lock, purges after invalidate
+  private boolean isApplet;
+  private JAWT jawt;
+  private boolean isOffscreenLayerSurface;
   protected long drawable;
   protected Rectangle bounds;
 
@@ -93,14 +99,23 @@ public abstract class JAWTWindow implements NativeWindow {
     invalidate();
     this.component = windowObject;
     this.isApplet = false;
-    while(!isApplet && null != windowObject) {
-        isApplet = windowObject instanceof Applet;
-        windowObject = windowObject.getParent();
-    }
-    if(isApplet) {
-        JAWTUtil.setCachedJAWTVersionFlags(true); // useOffScreenLayerIfAvailable := true
-    }
     validateNative();
+  }
+  
+  /** 
+   * Request an JAWT offscreen layer if supported.
+   * Shall be called before {@link #lockSurface()}.
+   * 
+   * @see #getShallUseOffscreenLayer()
+   * @see #isOffscreenLayerSurfaceEnabled() 
+   */
+  public void setShallUseOffscreenLayer(boolean v) {
+      shallUseOffscreenLayer = v;
+  }
+  
+  /** Returns the property set by {@link #setShallUseOffscreenLayer(boolean)}. */
+  public final boolean getShallUseOffscreenLayer() {
+      return shallUseOffscreenLayer;
   }
   
   /**
@@ -116,6 +131,8 @@ public abstract class JAWTWindow implements NativeWindow {
 
   protected synchronized void invalidate() {
     invalidateNative();
+    jawt = null;
+    isOffscreenLayerSurface = false;
     drawable= 0;
     bounds = new Rectangle();
   }
@@ -137,10 +154,71 @@ public abstract class JAWTWindow implements NativeWindow {
     return component;
   }
   
+  /** 
+   * Returns true if the AWT component is parented to an {@link java.applet.Applet}, 
+   * otherwise false. This information is valid only after {@link #lockSurface()}. 
+   */
   public final boolean isApplet() {
       return isApplet;
   }
 
+  /** Returns the underlying JAWT instance created @ {@link #lockSurface()}. */
+  public final JAWT getJAWT() {
+      return jawt;
+  }
+
+  /** 
+   * {@inheritDoc}
+   * @see #setShallUseOffscreenLayer(boolean) 
+   */
+  public final boolean isOffscreenLayerSurfaceEnabled() { 
+      return isOffscreenLayerSurface;
+  }
+  
+  /** 
+   * {@inheritDoc}
+   */
+  public final void attachSurfaceLayer(final long layerHandle) throws NativeWindowException {  
+      if( !isOffscreenLayerSurfaceEnabled() ) {
+          throw new NativeWindowException("Not an offscreen layer surface");
+      }
+      int lockRes = lockSurface();
+      if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
+          throw new NativeWindowException("Could not lock (offscreen layer): "+this);
+      }
+      try {
+          if(DEBUG) {
+            System.err.println("JAWTWindow.attachSurfaceHandle(): 0x"+Long.toHexString(layerHandle));
+          }
+          attachSurfaceLayerImpl(layerHandle);
+      } finally {
+          unlockSurface();
+      }
+  }  
+  protected abstract void attachSurfaceLayerImpl(final long layerHandle);
+  
+  /** 
+   * {@inheritDoc}
+   */
+  public final void detachSurfaceLayer(final long layerHandle) throws NativeWindowException {  
+      if( !isOffscreenLayerSurfaceEnabled() ) {
+          throw new java.lang.UnsupportedOperationException("Not an offscreen layer surface");
+      }
+      int lockRes = lockSurface();
+      if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
+          throw new NativeWindowException("Could not lock (offscreen layer): "+this);
+      }
+      try {
+          if(DEBUG) {
+            System.err.println("JAWTWindow.detachSurfaceHandle(): 0x"+Long.toHexString(layerHandle));
+          }
+          detachSurfaceLayerImpl(layerHandle);
+      } finally {
+          unlockSurface();
+      }
+  }  
+  protected abstract void detachSurfaceLayerImpl(final long layerHandle);
+  
   //
   // SurfaceUpdateListener
   //
@@ -167,6 +245,24 @@ public abstract class JAWTWindow implements NativeWindow {
 
   private RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
 
+  private void determineIfApplet() {
+    Component c = component;
+    while(!isApplet && null != c) {
+        isApplet = c instanceof Applet;
+        c = c.getParent();
+    }
+  }
+  
+  /**
+   * If JAWT offscreen layer is supported, 
+   * implementation shall respect {@link #getShallUseOffscreenLayer()}
+   * and may respect {@link #isApplet()}.
+   * 
+   * @return The JAWT instance reflecting offscreen layer support, etc.
+   * 
+   * @throws NativeWindowException
+   */
+  protected abstract JAWT fetchJAWTImpl() throws NativeWindowException;
   protected abstract int lockSurfaceImpl() throws NativeWindowException;
 
   public final int lockSurface() throws NativeWindowException {
@@ -175,10 +271,13 @@ public abstract class JAWTWindow implements NativeWindow {
     int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
 
     if ( LOCK_SURFACE_NOT_READY == res ) {
+        determineIfApplet();
         try {
             final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
             adevice.lock();
             try {
+                jawt = fetchJAWTImpl();
+                isOffscreenLayerSurface = JAWTUtil.isJAWTUsingOffscreenLayer(jawt);
                 res = lockSurfaceImpl();
             } finally {
                 if (LOCK_SURFACE_NOT_READY >= res) {

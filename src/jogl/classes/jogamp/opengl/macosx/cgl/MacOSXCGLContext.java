@@ -46,18 +46,18 @@ import java.util.Map;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-import jogamp.nativewindow.jawt.macosx.MacOSXJAWTWindow;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLContextShareSet;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.GLBackendType;
-import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.LayeredSurfaceType;
 
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.os.Platform;
@@ -407,7 +407,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         final MacOSXCGLDrawable drawable = (MacOSXCGLDrawable) MacOSXCGLContext.this.drawable;
         final NativeSurface surface = drawable.getNativeSurface();
         final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) surface.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-        final boolean isBackingLayerView = LayeredSurfaceType.None != drawable.getLayeredSurfaceType();
+        final OffscreenLayerSurface backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(surface, true);        
         final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         long pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2NSPixelFormat(chosenCaps, ctp, major, minor);
         if (pixelFormat == 0) {
@@ -416,7 +416,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         config.setChosenPixelFormat(pixelFormat);
         if(DEBUG) {
             System.err.println("NS create OSX>=lion "+isLionOrLater);
-            System.err.println("NS create drawable layeredType: "+drawable.getLayeredSurfaceType()+", backingLayerView "+isBackingLayerView);
+            System.err.println("NS create backingLayerHost: "+backingLayerHost);
             System.err.println("NS create share: "+share);
             System.err.println("NS create chosenCaps: "+chosenCaps);
             System.err.println("NS create pixelFormat: "+toHexString(pixelFormat));
@@ -428,7 +428,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           int[] viewNotReady = new int[1];
           // Try to allocate a context with this
           ctx = CGL.createContext(share,
-                                  drawable.getNSViewHandle(), isBackingLayerView,
+                                  drawable.getNSViewHandle(), null!=backingLayerHost,
                                   pixelFormat,
                                   chosenCaps.isBackgroundOpaque(),
                                   viewNotReady, 0);
@@ -459,16 +459,11 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               CGL.setContextPBuffer(ctx, drawable.getHandle());
           }
           //
-          // handled layered surface (same path for direct and parented)
+          // handled layered surface
           // 
-          if(isBackingLayerView) {
-              final MacOSXJAWTWindow lsh = MacOSXCGLDrawableFactory.getLayeredSurfaceHost(surface);
+          if(null != backingLayerHost) {
               nsOpenGLLayerPFmt = pixelFormat;
               pixelFormat = 0;
-              /*
-                final long nsView = drawable.getNSViewHandle();
-                nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, nsView, fixedCaps.isBackgroundOpaque());
-               */
               final int texWidth, texHeight;
               if(drawable instanceof MacOSXPbufferCGLDrawable) {
                   final MacOSXPbufferCGLDrawable osxPDrawable = (MacOSXPbufferCGLDrawable)drawable;
@@ -482,7 +477,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               if (DEBUG) {
                   System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer));
               }              
-              lsh.attachSurfaceLayer(nsOpenGLLayer);
+              backingLayerHost.attachSurfaceLayer(nsOpenGLLayer);
           }
         } finally {
           if(0!=pixelFormat) {
@@ -495,12 +490,15 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     public boolean destroy(long ctx) {
       if(0 != nsOpenGLLayer) {
           final NativeSurface surface = drawable.getNativeSurface();
-          final MacOSXJAWTWindow lsh = MacOSXCGLDrawableFactory.getLayeredSurfaceHost(surface);
           if (DEBUG) {
               System.err.println("NS destroy nsOpenGLLayer "+toHexString(nsOpenGLLayer));
           }
+          final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
+          if(null == ols) {
+              throw new InternalError("XXX: "+ols);
+          }
           CGL.releaseNSOpenGLLayer(nsOpenGLLayer);
-          lsh.detachSurfaceLayer(nsOpenGLLayer);
+          ols.detachSurfaceLayer(nsOpenGLLayer);
           CGL.deletePixelFormat(nsOpenGLLayerPFmt);
           nsOpenGLLayerPFmt = 0;
           nsOpenGLLayer = 0;

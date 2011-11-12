@@ -63,8 +63,6 @@ public class TestParentingOffscreenLayer01AWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        // force offscreen layer JAWT, if available
-        JAWTUtil.setCachedJAWTVersionFlags(true); // useOffScreenLayerIfAvailable := true
         frameSize = new Dimension(500,300);
         preferredGLSize = new Dimension(400,200);
         minGLSize = new Dimension(200,100);
@@ -105,7 +103,7 @@ public class TestParentingOffscreenLayer01AWT extends UITestCase {
         }
     }
     
-    @Test
+    // @Test
     public void testOffscreenLayerPath0_GLCanvas() throws InterruptedException, InvocationTargetException {
         final Frame frame1 = new Frame("AWT Parent Frame");
         
@@ -128,20 +126,21 @@ public class TestParentingOffscreenLayer01AWT extends UITestCase {
     }
 
     @Test
+    public void testOnscreenLayer() throws InterruptedException, InvocationTargetException {
+        testOffscreenLayerPath1_Impl(false, false);
+    }
+    
+    @Test
     public void testOffscreenLayerPath1_NewtOffscreen() throws InterruptedException, InvocationTargetException {
-        testOffscreenLayerPath1_Impl(true);
+        testOffscreenLayerPath1_Impl(true, true);
     }
     
     @Test
     public void testOffscreenLayerPath1_NewtOnscreen() throws InterruptedException, InvocationTargetException {
-        testOffscreenLayerPath1_Impl(false);
+        testOffscreenLayerPath1_Impl(true, false);
     }
     
-    private void testOffscreenLayerPath1_Impl(boolean newtOffscreenClass) throws InterruptedException, InvocationTargetException {
-        if( newtOffscreenClass && !JAWTUtil.isCachedJAWTUsingOffscreenLayer() ) {
-            System.err.println("JAWT OffscreenLayer n/a on this platform.");
-            return;
-        }
+    private void testOffscreenLayerPath1_Impl(boolean offscreenLayer, boolean newtOffscreenClass) throws InterruptedException, InvocationTargetException {
         final Frame frame1 = new Frame("AWT Parent Frame");
         
         GLCapabilities glCaps = new GLCapabilities(null);
@@ -152,7 +151,8 @@ public class TestParentingOffscreenLayer01AWT extends UITestCase {
 
         GLWindow glWindow1 = GLWindow.create(glCaps);
         
-        final NewtCanvasAWT newtCanvasAWT1 = new NewtCanvasAWT(glWindow1);        
+        final NewtCanvasAWT newtCanvasAWT1 = new NewtCanvasAWT(glWindow1);
+        newtCanvasAWT1.setShallUseOffscreenLayer(offscreenLayer); // trigger offscreen layer - if supported
         newtCanvasAWT1.setPreferredSize(preferredGLSize);
         newtCanvasAWT1.setMinimumSize(minGLSize);
         

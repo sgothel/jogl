@@ -49,7 +49,6 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 
-import jogamp.nativewindow.jawt.macosx.MacOSXJAWTWindow;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
 
@@ -93,60 +92,21 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
         this.id = id;
     }
   }
-  public enum LayeredSurfaceType {
-    None(0), Direct(1), Parented(2); 
-    
-    public final int id;
-
-    LayeredSurfaceType(int id){
-        this.id = id;
-    }
-  }
-
   private List<WeakReference<MacOSXCGLContext>> createdContexts = new ArrayList<WeakReference<MacOSXCGLContext>>();
   
   private boolean haveSetOpenGLMode = false;
   private GLBackendType openGLMode = GLBackendType.NSOPENGL;
-  protected LayeredSurfaceType layeredSurfaceType = LayeredSurfaceType.None;
   
   public MacOSXCGLDrawable(GLDrawableFactory factory, NativeSurface comp, boolean realized) {
     super(factory, comp, realized);
     initOpenGLImpl(getOpenGLMode());
   }
   
-  public final LayeredSurfaceType getLayeredSurfaceType() { return layeredSurfaceType; }
-
   protected void setRealizedImpl() {
   }
 
   protected long getNSViewHandle() {
       return GLBackendType.NSOPENGL == openGLMode ? getHandle() : null;
-  }
-  
-  @Override
-  protected void updateHandle() {
-    final MacOSXJAWTWindow lsh = MacOSXCGLDrawableFactory.getLayeredSurfaceHost(surface);
-    if (null != lsh) {
-      if(lsh == surface) {
-          // direct surface host, eg. AWT GLCanvas
-          layeredSurfaceType = LayeredSurfaceType.Direct;
-          if (DEBUG) {
-              System.err.println("updateHandle: layerType " + layeredSurfaceType + ", backingLayer "+toHexString(lsh.getSurfaceHandle()));
-          }
-      } else {
-          // parent surface host, eg. via native parenting w/ NewtCanvasAWT
-          layeredSurfaceType = LayeredSurfaceType.Parented;
-          if (DEBUG) {
-              System.err.println("updateHandle: layerType " + layeredSurfaceType + ", backingLayer "+toHexString(getHandle()));
-          }
-      }
-    } else {
-      layeredSurfaceType = LayeredSurfaceType.None;
-      if (DEBUG) {
-          System.err.println("updateHandle: layerType " + layeredSurfaceType);
-      }
-    }
-    super.updateHandle();
   }
   
   protected void registerContext(MacOSXCGLContext ctx) {

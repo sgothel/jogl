@@ -47,6 +47,7 @@ import javax.media.nativewindow.awt.AWTWindowClosingProtocol;
 import javax.swing.MenuSelectionManager;
 
 import jogamp.nativewindow.awt.AWTMisc;
+import jogamp.nativewindow.jawt.JAWTWindow;
 import jogamp.newt.Debug;
 import jogamp.newt.awt.event.AWTParentWindowAdapter;
 import jogamp.newt.awt.event.NewtFactoryAWT;
@@ -64,7 +65,7 @@ import com.jogamp.newt.event.awt.AWTMouseAdapter;
 public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProtocol {
     public static final boolean DEBUG = Debug.debug("Window");
 
-    NativeWindow nativeWindow = null;
+    JAWTWindow jawtWindow = null;
     Window newtChild = null;
     boolean isNewtChildOnscreen = true;
     int newtChildCloseOp;
@@ -130,7 +131,38 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     }
     
     private final void createNativeWindow(CapabilitiesImmutable caps) {
-        nativeWindow = NewtFactoryAWT.getNativeWindow(this, caps);
+        jawtWindow = NewtFactoryAWT.getNativeWindow(this, caps);
+    }
+    
+    /** 
+     * Request an JAWT offscreen layer if supported it. 
+     * Shall be called before {@link #addNotify()} is issued, 
+     * ie. before adding the component to the AWT tree and make it visible.
+     * 
+     * @see #isOffscreenLayerSurface()
+     */
+    public void setShallUseOffscreenLayer(boolean v) {
+        jawtWindow.setShallUseOffscreenLayer(v);
+    }
+    
+    /** 
+     * Returns true if the underlying JAWT uses offscreen layering, 
+     * otherwise false. This information is valid only after {@link #addNotify()} is issued, 
+     * ie. before adding the component to the AWT tree and make it visible.
+     * 
+     * @see #setShallUseOffscreenLayer(boolean)
+     */
+    public boolean isOffscreenLayerSurface() {
+        return jawtWindow.isOffscreenLayerSurfaceEnabled();
+    }
+    
+    /** 
+     * Returns true if the AWT component is parented to an {@link java.applet.Applet}, 
+     * otherwise false. This information is valid only after {@link #addNotify()} is issued, 
+     * ie. before adding the component to the AWT tree and make it visible. 
+     */
+    public boolean isApplet() {
+        return jawtWindow.isApplet();
     }
     
     class FocusAction implements Window.FocusRunnable {
@@ -195,7 +227,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
 
     /** @return this AWT Canvas NativeWindow representation, may be null in case {@link #removeNotify()} has been called,
      * or {@link #addNotify()} hasn't been called yet.*/
-    public NativeWindow getNativeWindow() { return nativeWindow; }
+    public NativeWindow getNativeWindow() { return jawtWindow; }
     
     public int getDefaultCloseOperation() {
         return awtWindowClosingProtocol.getDefaultCloseOperation();
@@ -285,7 +317,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
 
       newtChild.setFocusAction(null); // no AWT focus traversal ..
       if(add) {
-          NewtFactoryAWT.updateGraphicsConfiguration(nativeWindow, this);
+          NewtFactoryAWT.updateGraphicsConfiguration(jawtWindow, this);
           if(DEBUG) {
             System.err.println("NewtCanvasAWT.reparentWindow: "+newtChild);
           }
@@ -308,7 +340,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
           }
           setSize(w, h);
           newtChild.setSize(w, h);
-          newtChild.reparentWindow(nativeWindow);
+          newtChild.reparentWindow(jawtWindow);
           newtChild.setVisible(true);
           configureNewtChild(true);
           newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
@@ -338,9 +370,9 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 System.err.println("NewtCanvasAWT.destroy(): "+newtChild+", from "+cont);
             }
             configureNewtChild(false);
-            if(null!=nativeWindow) {
-                nativeWindow.destroy();
-                nativeWindow=null;
+            if(null!=jawtWindow) {
+                jawtWindow.destroy();
+                jawtWindow=null;
             }
             newtChild.setVisible(false);
             newtChild.reparentWindow(null);

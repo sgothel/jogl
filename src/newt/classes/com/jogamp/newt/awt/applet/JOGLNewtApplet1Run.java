@@ -1,20 +1,50 @@
+/**
+ * Copyright 2011 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
 package com.jogamp.newt.awt.applet;
 
-import java.applet.*;
+import java.applet.Applet;
+import java.awt.BorderLayout;
+import java.awt.Button;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Label;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.event.KeyListener;
 
-import javax.media.opengl.*;
+import javax.media.opengl.FPSCounter;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLProfile;
+
+import jogamp.newt.Debug;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
-import java.awt.BorderLayout;
-
-import jogamp.newt.Debug;
 
 /** 
  * Simple GLEventListener deployment as an applet using JOGL. This demo must be
@@ -62,7 +92,7 @@ import jogamp.newt.Debug;
  */
 @SuppressWarnings("serial")
 public class JOGLNewtApplet1Run extends Applet {
-    public static final boolean DEBUG = Debug.debug("Applet");
+    public static final boolean DEBUG = JOGLNewtAppletBase.DEBUG;
     
     GLWindow glWindow;
     NewtCanvasAWT newtCanvasAWT;
@@ -72,6 +102,9 @@ public class JOGLNewtApplet1Run extends Applet {
     boolean glStandalone = false;
 
     public void init() {
+        if(DEBUG) {
+            System.err.println("JOGLNewtApplet1Run.init() START");
+        }
         if(!(this instanceof Container)) {
             throw new RuntimeException("This Applet is not a AWT Container");
         }
@@ -88,6 +121,7 @@ public class JOGLNewtApplet1Run extends Applet {
         int glAlphaBits=0;
         int glNumMultisampleBuffer=0;
         boolean glNoDefaultKeyListener = false;
+        boolean appletDebugTestBorder = false;
         try {
             glEventListenerClazzName = getParameter("gl_event_listener_class");
             glProfileName = getParameter("gl_profile");
@@ -104,6 +138,7 @@ public class JOGLNewtApplet1Run extends Applet {
             glWidth = JOGLNewtAppletBase.str2Int(getParameter("gl_width"), glWidth);
             glHeight = JOGLNewtAppletBase.str2Int(getParameter("gl_height"), glHeight);
             glNoDefaultKeyListener = JOGLNewtAppletBase.str2Bool(getParameter("gl_nodefaultkeyListener"), glNoDefaultKeyListener);
+            appletDebugTestBorder = JOGLNewtAppletBase.str2Bool(getParameter("appletDebugTestBorder"), appletDebugTestBorder);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -149,18 +184,19 @@ public class JOGLNewtApplet1Run extends Applet {
             glWindow.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
             glWindow.setUndecorated(glUndecorated);
             glWindow.setAlwaysOnTop(glAlwaysOnTop);
+            container.setLayout(new BorderLayout());
+            if(appletDebugTestBorder) {
+                container.add(new Button("North"), BorderLayout.NORTH);
+                container.add(new Button("South"), BorderLayout.SOUTH);
+                container.add(new Button("East"), BorderLayout.EAST);
+                container.add(new Button("West"), BorderLayout.WEST);
+            }
             if(glStandalone) {
                 newtCanvasAWT = null;
             } else {
                 newtCanvasAWT = new NewtCanvasAWT(glWindow);
-                container.setLayout(new BorderLayout());
                 container.add(newtCanvasAWT, BorderLayout.CENTER);
-            }
-            if(DEBUG) {
-                container.add(new Label("North"), BorderLayout.NORTH);
-                container.add(new Label("South"), BorderLayout.SOUTH);
-                container.add(new Label("East"), BorderLayout.EAST);
-                container.add(new Label("West"), BorderLayout.WEST);
+                container.validate();
             }
             base.init(glWindow);
             if(base.isValid()) {
@@ -179,9 +215,15 @@ public class JOGLNewtApplet1Run extends Applet {
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
+        if(DEBUG) {
+            System.err.println("JOGLNewtApplet1Run.init() END");
+        }
     }
 
     public void start() {
+        if(DEBUG) {
+            System.err.println("JOGLNewtApplet1Run.start() START");
+        }
         this.validate();
         this.setVisible(true);
         
@@ -195,21 +237,35 @@ public class JOGLNewtApplet1Run extends Applet {
             while (null != topC.getParent()) {
                 topC = topC.getParent();
             }
+            System.err.println("JOGLNewtApplet1Run start:");
             System.err.println("TopComponent: "+topC.getLocation()+" rel, "+topC.getLocationOnScreen()+" screen, visible "+topC.isVisible()+", "+topC);
             System.err.println("Applet Pos: "+this.getLocation()+" rel, "+p0+" screen, visible "+this.isVisible()+", "+this);
             if(null != newtCanvasAWT) {
                 System.err.println("NewtCanvasAWT Pos: "+newtCanvasAWT.getLocation()+" rel, "+newtCanvasAWT.getLocationOnScreen()+" screen, visible "+newtCanvasAWT.isVisible()+", "+newtCanvasAWT);
             }
             System.err.println("GLWindow Pos: "+glWindow.getX()+"/"+glWindow.getY()+" rel, "+glWindow.getLocationOnScreen(null)+" screen");
+            System.err.println("GLWindow: "+glWindow);
         }
         base.start();
+        if(DEBUG) {
+            System.err.println("JOGLNewtApplet1Run.stop() END");
+        }
     }
 
     public void stop() {
+        if(DEBUG) {
+            System.err.println("JOGLNewtApplet1Run.stop() START");
+        }
         base.stop();
+        if(DEBUG) {
+            System.err.println("JOGLNewtApplet1Run.stop() END");
+        }
     }
 
     public void destroy() {
+        if(DEBUG) {
+            System.err.println("JOGLNewtApplet1Run.destroy() START");
+        }
         glWindow.setVisible(false); // hide 1st
         if(!glStandalone) {
             glWindow.reparentWindow(null); // get out of newtCanvasAWT
@@ -217,6 +273,9 @@ public class JOGLNewtApplet1Run extends Applet {
         }
         base.destroy(); // destroy glWindow unrecoverable
         base=null;
+        if(DEBUG) {
+            System.err.println("JOGLNewtApplet1Run.destroy() END");
+        }
     }
 }
 

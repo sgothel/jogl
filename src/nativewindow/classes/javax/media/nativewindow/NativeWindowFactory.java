@@ -475,4 +475,33 @@ public abstract class NativeWindowFactory {
         NativeWindow. Implementors of concrete NativeWindowFactory
         subclasses should override this method. */
     protected abstract NativeWindow getNativeWindowImpl(Object winObj, AbstractGraphicsConfiguration config) throws IllegalArgumentException;
+    
+    /**
+     * Returns the {@link OffscreenLayerSurface} instance of this {@link NativeSurface}.
+     * <p>
+     * In case this surface is a {@link NativeWindow}, we traverse from the given surface 
+     * up to root until a {@link OffscreenLayerSurface} is found.
+     * </p>
+     * 
+     * @param surface The surface to query.
+     * @param ifEnabled If true, only return the enabled {@link OffscreenLayerSurface}, see {@link OffscreenLayerSurface#isOffscreenLayerSurfaceEnabled()}. 
+     * @return
+     */
+    public static OffscreenLayerSurface getOffscreenLayerSurface(NativeSurface surface, boolean ifEnabled) {
+        if(surface instanceof OffscreenLayerSurface) {
+            final OffscreenLayerSurface ols = (OffscreenLayerSurface) surface;
+            return ( !ifEnabled || ols.isOffscreenLayerSurfaceEnabled() ) ? ols : null;
+        }
+        if(surface instanceof NativeWindow) {
+            NativeWindow nw = ((NativeWindow) surface).getParent();
+            while(null != nw) {
+                if(nw instanceof OffscreenLayerSurface) {
+                    final OffscreenLayerSurface ols = (OffscreenLayerSurface) nw;
+                    return ( !ifEnabled || ols.isOffscreenLayerSurfaceEnabled() ) ? ols : null;
+                }
+                nw = nw.getParent();                
+            }
+        }
+        return null;            
+    }
 }

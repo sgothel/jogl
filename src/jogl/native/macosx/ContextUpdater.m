@@ -1,43 +1,26 @@
 #import "ContextUpdater.h"
 #import <pthread.h>
 
+#define VERBOSE_ON 1
+
+#ifdef VERBOSE_ON
+    #define DBG_PRINT(...) NSLog(@ __VA_ARGS__)
+    // #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr)
+#else
+    #define DBG_PRINT(...)
+#endif
+
+#ifndef CGL_VERSION_1_3
+    #warning this SDK doesn't support OpenGL profile
+#endif
+
 @implementation ContextUpdater
 {
 }
 
-static pthread_mutex_t resourceLock = PTHREAD_MUTEX_INITIALIZER;
-
-static void printLockDebugInfo(char *message, char *func, int line)
-{
-    fprintf(stderr, "%s in function: \"%s\" at line: %d\n", message, func, line);
-    fflush(NULL);
-}
-
-- (void) lock
-{
-    pthread_mutex_lock(&resourceLock);
-}
-
-- (void) lockInFunction:(char *)func atLine:(int)line
-{
-    printLockDebugInfo("locked  ", func, line);
-    [self lock];
-}
-
-- (void) unlock
-{
-    pthread_mutex_unlock(&resourceLock);
-}
-
-- (void) unlockInFunction:(char *)func atLine:(int)line
-{
-    printLockDebugInfo("unlocked", func, line);
-    [self unlock];
-}
-
 - (void) update:(NSNotification *)notification
 {
-    [self lock];
+    pthread_mutex_lock(&resourceLock);
     
     NSRect r = [view frame];
     if(viewRect.origin.x != r.origin.x || 
@@ -48,24 +31,26 @@ static void printLockDebugInfo(char *message, char *func, int line)
         viewRect = r;
     }
 
-    [self unlock];
+    pthread_mutex_unlock(&resourceLock);
 }
 
 - (BOOL) needsUpdate
 {
     BOOL r;
-    [self lock];
+    pthread_mutex_lock(&resourceLock);
     
     r = viewUpdated;
     viewUpdated = FALSE;
     
-    [self unlock];
+    pthread_mutex_unlock(&resourceLock);
 
     return r;
 }
 
 - (id) initWithContext:(NSOpenGLContext *)context view: (NSView *)nsView
 {
+    DBG_PRINT("ContextUpdater::init.0 view %p, ctx %p\n", view, ctx);
+    pthread_mutex_init(&resourceLock, NULL); // fast non-recursive
     ctx = context;
     view = nsView;
     [ctx retain];
@@ -73,15 +58,19 @@ static void printLockDebugInfo(char *message, char *func, int line)
     viewRect = [view frame];
     viewUpdated = TRUE;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(update:) name:NSViewGlobalFrameDidChangeNotification object: view];
+    DBG_PRINT("ContextUpdater::init.X\n");
 
     return [super init];
 }
 
 - (void) dealloc
 {
+    DBG_PRINT("ContextUpdater::dealloc.0 view %p, ctx %p\n", view, ctx);
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [view release];
     [ctx release];
+    pthread_mutex_destroy(&resourceLock);
+    DBG_PRINT("ContextUpdater::dealloc.X\n");
     
     [super dealloc];
 }

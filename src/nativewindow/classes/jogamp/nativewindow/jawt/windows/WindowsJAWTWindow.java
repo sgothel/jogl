@@ -47,6 +47,7 @@ import javax.media.nativewindow.util.Point;
 
 import jogamp.nativewindow.jawt.JAWT;
 import jogamp.nativewindow.jawt.JAWTFactory;
+import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.nativewindow.jawt.JAWTWindow;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurface;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo;
@@ -65,9 +66,20 @@ public class WindowsJAWTWindow extends JAWTWindow {
     windowHandle = 0;
   }
 
+  protected void attachSurfaceLayerImpl(final long layerHandle) {
+      throw new UnsupportedOperationException("offscreen layer not supported");
+  }
+  protected void detachSurfaceLayerImpl(final long layerHandle) {
+      throw new UnsupportedOperationException("offscreen layer not supported");
+  }
+  
+  protected JAWT fetchJAWTImpl() throws NativeWindowException {
+      return JAWTUtil.getJAWT(false); // no offscreen
+  }
+  
   protected int lockSurfaceImpl() throws NativeWindowException {
     int ret = NativeWindow.LOCK_SUCCESS;
-    ds = JAWT.getJAWT().GetDrawingSurface(component);
+    ds = getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
       unlockSurfaceImpl();
@@ -92,7 +104,8 @@ public class WindowsJAWTWindow extends JAWTWindow {
       unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     }
-    win32dsi = (JAWT_Win32DrawingSurfaceInfo) dsi.platformInfo();
+    updateBounds(dsi.getBounds());
+    win32dsi = (JAWT_Win32DrawingSurfaceInfo) dsi.platformInfo(getJAWT());
     if (win32dsi == null) {
       unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
@@ -102,14 +115,11 @@ public class WindowsJAWTWindow extends JAWTWindow {
     if (windowHandle == 0 || drawable == 0) {
       unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
-    } else {
-      updateBounds(dsi.getBounds());
     }
     return ret;
   }
 
   protected void unlockSurfaceImpl() throws NativeWindowException {
-    long startTime = 0;
     if(null!=ds) {
         if (null!=dsi) {
             ds.FreeDrawingSurfaceInfo(dsi);
@@ -117,7 +127,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
         if (dsLocked) {
             ds.Unlock();
         }
-        JAWT.getJAWT().FreeDrawingSurface(ds);
+        getJAWT().FreeDrawingSurface(ds);
     }
     ds = null;
     dsi = null;

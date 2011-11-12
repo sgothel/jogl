@@ -50,7 +50,6 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.macosx.MacOSXGraphicsDevice;
@@ -64,7 +63,6 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.WrappedSurface;
-import jogamp.nativewindow.jawt.macosx.MacOSXJAWTWindow;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableImpl;
@@ -259,37 +257,9 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
       return MacOSXCGLGraphicsConfiguration.getAvailableCapabilities(this, device);
   }
 
-  protected static MacOSXJAWTWindow getLayeredSurfaceHost(NativeSurface surface) {
-      if(surface instanceof NativeWindow) {
-          final NativeWindow nwThis = (NativeWindow) surface;
-          if( nwThis instanceof MacOSXJAWTWindow) {
-              // direct surface host, eg. via AWT GLCanvas
-              final MacOSXJAWTWindow r = (MacOSXJAWTWindow) nwThis;
-              return r.isOffscreenLayerSurface() ? r : null;
-          } else {
-              NativeWindow nwParent = nwThis.getParent();
-              if(null != nwParent && nwParent instanceof MacOSXJAWTWindow) {
-                  final MacOSXJAWTWindow r = (MacOSXJAWTWindow) nwParent;
-                  return r.isOffscreenLayerSurface() ? r : null;
-              }
-          }
-      }
-      return null;      
-  }
-      
   protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
-    }
-    final MacOSXJAWTWindow lsh = MacOSXCGLDrawableFactory.getLayeredSurfaceHost(target);
-    if(null != lsh) {
-        // layered surface -> PBuffer
-        final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-        final GLCapabilities chosenCaps = (GLCapabilities) config.getChosenCapabilities().cloneMutable();
-        chosenCaps.setOnscreen(false);
-        chosenCaps.setPBuffer(true);
-        config.setChosenCapabilities(chosenCaps);
-        return new MacOSXPbufferCGLDrawable(this, target, false);
     }
     return new MacOSXOnscreenCGLDrawable(this, target);
   }
@@ -300,21 +270,6 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     if(!caps.isPBuffer()) {
         return new MacOSXOffscreenCGLDrawable(this, target);
     }
-
-    // PBuffer GLDrawable Creation
-    /**
-     * FIXME: Think about this ..
-     * should not be necessary ? ..
-    final List returnList = new ArrayList();
-    final GLDrawableFactory factory = this;
-    Runnable r = new Runnable() {
-        public void run() {
-          returnList.add(new MacOSXPbufferCGLDrawable(factory, target));
-        }
-      };
-    maybeDoSingleThreadedWorkaround(r);
-    return (GLDrawableImpl) returnList.get(0);
-    */
     return new MacOSXPbufferCGLDrawable(this, target, true);
   }
 
