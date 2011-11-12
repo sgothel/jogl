@@ -47,7 +47,7 @@ static void printLockDebugInfo(char *message, char *func, int line)
         viewUpdated = TRUE;
         viewRect = r;
     }
-    
+
     [self unlock];
 }
 
@@ -71,7 +71,7 @@ static void printLockDebugInfo(char *message, char *func, int line)
     [ctx retain];
     [view retain];
     viewRect = [view frame];
-    viewUpdated = FALSE;
+    viewUpdated = TRUE;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(update:) name:NSViewGlobalFrameDidChangeNotification object: view];
 
     return [super init];

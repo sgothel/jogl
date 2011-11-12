@@ -57,15 +57,19 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
     
   @Override
   protected void drawableUpdatedNotify() throws GLException {
-    if(0==updateHandle || CGL.updateContextNeedsUpdate(updateHandle)) {
+    final int w = drawable.getWidth();
+    final int h = drawable.getHeight();
+    final boolean updateContext = ( 0!=updateHandle && CGL.updateContextNeedsUpdate(updateHandle) ) ||
+                                  w != lastWidth || h != lastHeight;
+    if(updateContext) {
+        lastWidth = w;
+        lastHeight = h;
         if (contextHandle == 0) {
           throw new GLException("Context not created");
         }
         CGL.updateContext(contextHandle);
     }
   }
-  
-  protected long updateHandle = 0;
   
   @Override
   protected boolean createImpl() {
@@ -79,6 +83,9 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
             throw new InternalError("XXX2");
         }
     }
+    updateHandle = 0;
+    lastWidth = -1; 
+    lastHeight = -1;    
     return res;
   }
 
@@ -89,5 +96,8 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
         updateHandle = 0;
     }
     super.destroyImpl();    
-  }  
+  }
+  
+  private long updateHandle;
+  private int lastWidth, lastHeight;
 }
