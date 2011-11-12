@@ -84,8 +84,6 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
      * The use case for setting the Capabilities at a later time is
      * a change of the graphics device in a multi-screen environment.<br>
      *
-     * The objects reference is being used.
-     *
      * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
      */
     protected void setChosenCapabilities(CapabilitiesImmutable capsChosen) {

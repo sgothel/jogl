@@ -41,15 +41,16 @@ import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.DefaultGraphicsConfiguration;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import jogamp.nativewindow.MutableGraphicsConfiguration;
+
 import com.jogamp.common.nio.PointerBuffer;
 
-public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
+public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
     long pixelformat;
 
     MacOSXCGLGraphicsConfiguration(AbstractGraphicsScreen screen, 
@@ -65,10 +66,6 @@ public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration
 
     void setChosenPixelFormat(long pixelformat) {
         this.pixelformat=pixelformat;
-    }
-
-    void setChosenCapabilities(GLCapabilitiesImmutable caps) {
-        super.setChosenCapabilities(caps);
     }
 
     protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(MacOSXCGLDrawableFactory factory, AbstractGraphicsDevice device) {

@@ -29,6 +29,7 @@
 package jogamp.opengl;
 
 import java.util.ArrayList;
+
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
@@ -86,6 +87,7 @@ public class GLGraphicsConfigurationUtil {
         return getWinAttributeBits(caps.isOnscreen(), caps.isPBuffer());
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static final boolean addGLCapabilitiesPermutations(ArrayList capsBucket, GLCapabilitiesImmutable temp, int winattrbits) {
         int preSize = capsBucket.size();
         if( 0 != ( WINDOW_BIT & winattrbits )  )  {

@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.DefaultGraphicsConfiguration;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GL;
@@ -48,13 +47,14 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
+import jogamp.nativewindow.MutableGraphicsConfiguration;
 import jogamp.nativewindow.windows.DWM_BLURBEHIND;
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.MARGINS;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
-public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
+public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
     // Keep this under the same debug flag as the drawable factory for convenience
     protected static final boolean DEBUG = jogamp.opengl.Debug.debug("GraphicsConfiguration");
     
@@ -733,10 +733,10 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
 
   static PIXELFORMATDESCRIPTOR createPixelFormatDescriptor(long hdc, int pfdID) {
     PIXELFORMATDESCRIPTOR pfd = PIXELFORMATDESCRIPTOR.create();
-    pfd.setNSize((short) pfd.size());
+    pfd.setNSize((short) PIXELFORMATDESCRIPTOR.size());
     pfd.setNVersion((short) 1);
     if(0 != hdc && 1 <= pfdID) {
-        if (GDI.DescribePixelFormat(hdc, pfdID, pfd.size(), pfd) == 0) {
+        if (GDI.DescribePixelFormat(hdc, pfdID, PIXELFORMATDESCRIPTOR.size(), pfd) == 0) {
             // Accelerated pixel formats that are non displayable
             if(DEBUG) {
                 System.err.println("Info: Non displayable pixel format " + pfdID + " of device context: error code " + GDI.GetLastError());

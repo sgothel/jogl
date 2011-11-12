@@ -38,15 +38,25 @@ package jogamp.opengl.egl;
 
 import java.nio.IntBuffer;
 import java.util.ArrayList;
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.egl.*;
-import javax.media.opengl.*;
+
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.egl.EGLGraphicsDevice;
+import javax.media.opengl.DefaultGLCapabilitiesChooser;
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+
+import jogamp.nativewindow.MutableGraphicsConfiguration;
+import jogamp.opengl.Debug;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
-import jogamp.opengl.*;
 
-public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
+public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
 
     public final long getNativeConfig() {

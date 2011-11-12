@@ -32,8 +32,9 @@
 
 package javax.media.nativewindow.x11;
 
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.CapabilitiesImmutable;
 
+import jogamp.nativewindow.MutableGraphicsConfiguration;
 import jogamp.nativewindow.x11.XVisualInfo;
 
 /** Encapsulates a graphics configuration, or OpenGL pixel format, on
@@ -42,7 +43,7 @@ import jogamp.nativewindow.x11.XVisualInfo;
     GraphicsConfigurationFactory.chooseGraphicsConfiguration()} on X11
     platforms when toolkits other than the AWT are being used.  */
 
-public class X11GraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
+public class X11GraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
     private XVisualInfo info;
 
     public X11GraphicsConfiguration(X11GraphicsScreen screen, 
