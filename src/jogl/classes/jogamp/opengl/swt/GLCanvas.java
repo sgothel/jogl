@@ -3,10 +3,7 @@
  */
 package jogamp.opengl.swt;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.opengl.GL;
@@ -72,7 +69,6 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    /* Construction parameters stored for GLAutoDrawable accessor methods */
    private int ctxCreationFlags = 0;
    
-//   private final AbstractGraphicsConfiguration graphicsConfiguration;
    private final GLCapabilitiesImmutable glCapsRequested;
 
    /*
@@ -206,12 +202,10 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
             : (GLCapabilitiesImmutable) caps.cloneMutable();
       glCapsRequested = fixedCaps;
       
-//      this.graphicsConfiguration = chooseGraphicsConfiguration(fixedCaps, fixedCaps, chooser);
-      
       final GLDrawableFactory glFactory = GLDrawableFactory.getFactory(fixedCaps.getGLProfile());
 
       /* Create a NativeWindow proxy for the SWT canvas */
-      proxySurface = glFactory.createProxySurface(device, nativeWindowHandle, fixedCaps, null);
+      proxySurface = glFactory.createProxySurface(device, nativeWindowHandle, fixedCaps, chooser);
 
       /* Associate a GL surface with the proxy */
       drawable = glFactory.createGLDrawable(proxySurface);
@@ -238,17 +232,6 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
             sendReshape = true;
          }
       });
-   }
-   
-   private AbstractGraphicsConfiguration chooseGraphicsConfiguration(final GLCapabilitiesImmutable capsChosen,
-         final GLCapabilitiesImmutable capsRequested,
-         final GLCapabilitiesChooser chooser) {
-      //FIXME: Need to get platform specific screen implementation...
-      //TODO: is this safe to run in any thread?  Probably should be run in SWT thread.
-      final AbstractGraphicsScreen screen = null;
-      return GraphicsConfigurationFactory.getFactory(device.getClass()).chooseGraphicsConfiguration(capsChosen,
-                                                                                                   capsRequested,
-                                                                                                   chooser, screen);
    }
 
    /*
@@ -411,9 +394,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     */
    @Override
    public GLCapabilitiesImmutable getChosenGLCapabilities() {
-      return glCapsRequested;
-      /* FIXME: once the chooseGraphicsConfiguration method is correct, then do the following instead: */
-//      return (GLCapabilitiesImmutable)graphicsConfiguration.getChosenCapabilities();
+      return (GLCapabilitiesImmutable)proxySurface.getGraphicsConfiguration().getChosenCapabilities();
    }
 
    /**
@@ -422,9 +403,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     * @return Non-null GLCapabilities.
     */
    public GLCapabilitiesImmutable getRequestedGLCapabilities() {
-      return glCapsRequested;
-      /* FIXME: once the chooseGraphicsConfiguration method is correct, then do the following instead: */
-      //return (GLCapabilitiesImmutable)graphicsConfiguration.getRequestedCapabilities();
+      return (GLCapabilitiesImmutable)proxySurface.getGraphicsConfiguration().getRequestedCapabilities();
    }
 
    /*
