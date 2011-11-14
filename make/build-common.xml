@@ -286,6 +286,7 @@
         <property name="jogl.glumipmap.jar"             value="${build.jogl}/jogl.glu.mipmap.jar" />
         <property name="jogl.util.fixedfuncemu.jar"     value="${build.jogl}/jogl.util.fixedfuncemu.jar" />
         <property name="jogl.awt.jar"                   value="${build.jogl}/jogl.awt.jar" />
+        <property name="jogl.swt.jar"                   value="${build.jogl}/jogl.swt.jar" />
         <property name="jogl.util.awt.jar"              value="${build.jogl}/jogl.util.awt.jar" />
         <property name="jogl.os.x11.jar"                value="${build.jogl}/jogl.os.x11.jar" />
         <property name="jogl.os.win.jar"                value="${build.jogl}/jogl.os.win.jar" />
@@ -307,6 +308,7 @@
             <pathelement location="${jogl.glumipmap.jar}" />
             <pathelement location="${jogl.util.fixedfuncemu.jar}" />
             <pathelement location="${jogl.awt.jar}" />
+            <pathelement location="${jogl.swt.jar}" />
             <pathelement location="${jogl.util.awt.jar}" />
             <pathelement location="${jogl.os.x11.jar}" />
             <pathelement location="${jogl.os.win.jar}" />
