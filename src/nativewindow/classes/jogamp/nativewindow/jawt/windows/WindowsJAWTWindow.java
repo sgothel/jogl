@@ -139,7 +139,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
     return windowHandle;
   }
 
-  protected Point getLocationOnScreenImpl(int x, int y) {
+  protected Point getLocationOnScreenNativeImpl(int x, int y) {
     return GDI.GetRelativeLocation( getWindowHandle(), 0 /*root win*/, x, y);
   }
 

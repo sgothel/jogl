@@ -156,7 +156,7 @@ public class X11JAWTWindow extends JAWTWindow {
     x11dsi = null;
   }
 
-  protected Point getLocationOnScreenImpl(int x, int y) {
+  protected Point getLocationOnScreenNativeImpl(int x, int y) {
     return X11Util.GetRelativeLocation( getDisplayHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
   }
   

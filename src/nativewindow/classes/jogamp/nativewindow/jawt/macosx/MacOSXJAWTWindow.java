@@ -41,12 +41,12 @@
 package jogamp.nativewindow.jawt.macosx;
 
 import java.awt.Component;
+import java.nio.Buffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.Capabilities;
-import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.SurfaceChangeable;
@@ -208,7 +208,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
               unlockSurfaceImpl();
               throw new NativeWindowException("Could not create root CALayer: "+this);                
             }
-            if(!OSXUtil.AttachJAWTSurfaceLayer(dsi, rootSurfaceLayerHandle)) {
+            if(!AttachJAWTSurfaceLayer(dsi, rootSurfaceLayerHandle)) {
               OSXUtil.DestroyCALayer(rootSurfaceLayerHandle);
               rootSurfaceLayerHandle = 0;
               OSXUtil.DestroyNSWindow(drawable);
@@ -249,18 +249,34 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
       // Thread.dumpStack();
   }
   
-  protected Point getLocationOnScreenImpl(final int x0, final int y0) {
-      int x = x0; 
-      int y = y0;
-      Component c = component;
-      while(null != c) {
-          x += c.getX();
-          y += c.getY();
-          c = c.getParent();
-      }
-      return new Point(x, y);
-  }
+  /**
+   * {@inheritDoc}
+   * <p>
+   * On OS X locking the surface at this point (ie after creation and for location validation)
+   * is 'tricky' since the JVM traverses through many threads and crashes at:
+   *   lockSurfaceImpl() {
+   *      ..
+   *      ds = getJAWT().GetDrawingSurface(component);
+   * due to a SIGSEGV.
+   * 
+   * Hence we have some threading / sync issues with the native JAWT implementation.
+   * </p>      
+   */
+  @Override
+  public Point getLocationOnScreen(Point storage) {     
+      return getLocationOnScreenNonBlocking(storage, component);     
+  }  
+  protected Point getLocationOnScreenNativeImpl(final int x0, final int y0) { return null; }
 
+  private static boolean AttachJAWTSurfaceLayer(JAWT_DrawingSurfaceInfo dsi, long caLayer) {
+    if(0==caLayer) {
+        throw new IllegalArgumentException("caLayer 0x"+Long.toHexString(caLayer));
+    }
+    return AttachJAWTSurfaceLayer0(dsi.getBuffer(), caLayer);
+  }
+    
+  private static native boolean AttachJAWTSurfaceLayer0(Buffer jawtDrawingSurfaceInfoBuffer, long caLayer);
+  
   // Variables for lockSurface/unlockSurface
   private JAWT_DrawingSurface ds;
   private boolean dsLocked;

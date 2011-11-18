@@ -70,15 +70,6 @@ public class OSXUtil {
             throw new IllegalArgumentException("caLayer 0x"+Long.toHexString(caLayer));
         }
         DestroyCALayer0(caLayer);    
-    }    
-    public static boolean AttachJAWTSurfaceLayer(Object jawtDrawingSurfaceInfo, long caLayer) {
-        final jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo dsi =
-                (jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo) jawtDrawingSurfaceInfo;
-                
-        if(0==caLayer) {
-            throw new IllegalArgumentException("caLayer 0x"+Long.toHexString(caLayer));
-        }
-        return AttachJAWTSurfaceLayer0(dsi.getBuffer(), caLayer);
     }
     
     public static void RunOnMainThread(boolean waitUntilDone, Runnable runnable) {
@@ -103,7 +94,6 @@ public class OSXUtil {
     private static native void AddCASublayer0(long rootCALayer, long subCALayer);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);
-    private static native boolean AttachJAWTSurfaceLayer0(Buffer jawtDrawingSurfaceInfoBuffer, long caLayer);
     private static native void RunOnMainThread0(boolean waitUntilDone, Runnable runnable);
     private static native boolean IsMainThread0();
 }

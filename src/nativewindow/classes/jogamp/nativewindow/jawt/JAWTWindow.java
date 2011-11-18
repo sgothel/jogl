@@ -378,44 +378,85 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
   public final int getY() {
       return component.getY();
   }
-
+  
+  /**
+   * {@inheritDoc}
+   * 
+   * <p>
+   * This JAWT default implementation is currently still using 
+   * a blocking implementation. It first attempts to retrieve the location
+   * via a native implementation. If this fails, it tries the blocking AWT implementation.
+   * If the latter fails due to an external AWT tree-lock, the non block 
+   * implementation {@link #getLocationOnScreenNonBlocking(Point, Component)} is being used.
+   * The latter simply traverse up to the AWT component tree and sums the rel. position.
+   * We have to determine whether the latter is good enough for all cases,
+   * currently only OS X utilizes the non blocking method per default.
+   * </p>   
+   */
   public Point getLocationOnScreen(Point storage) {
+      Point los = getLocationOnScreenNative(storage);
+      if(null == los) {
+          if(!Thread.holdsLock(component.getTreeLock())) {
+              // avoid deadlock ..
+              if(DEBUG) {
+                  System.err.println("Warning: JAWT Lock hold, but not the AWT tree lock: "+this);
+                  Thread.dumpStack();
+              }
+              return getLocationOnScreenNonBlocking(storage, component);
+          }
+          java.awt.Point awtLOS = component.getLocationOnScreen();
+          if(null!=storage) {
+              los = storage.translate(awtLOS.x, awtLOS.y);
+          } else {
+              los = new Point(awtLOS.x, awtLOS.y);
+          }
+      }
+      return los;
+  }
+  
+  protected Point getLocationOnScreenNative(Point storage) {
       int lockRes = lockSurface();
       if(LOCK_SURFACE_NOT_READY == lockRes) {
-          // FIXME: Shall we deal with already locked or unrealized surfaces ?
-          System.err.println("Warning: JAWT Lock couldn't be acquired!");
-          Thread.dumpStack();
+          if(DEBUG) {
+              System.err.println("Warning: JAWT Lock couldn't be acquired: "+this);
+              Thread.dumpStack();
+          }
           return null;
       }
       try {
-          Point d = getLocationOnScreenImpl(0, 0);
+          Point d = getLocationOnScreenNativeImpl(0, 0);
           if(null!=d) {
             if(null!=storage) {
                 storage.translate(d.getX(),d.getY());
                 return storage;
             }
-            return d;
           }
-          // fall through intended ..
-          if(!Thread.holdsLock(component.getTreeLock())) {
-              // FIXME: Verify if this check is still required!
-              System.err.println("Warning: JAWT Lock hold, but not the AWT tree lock!");
-              Thread.dumpStack();
-              return null; // avoid deadlock ..
-          }
-          java.awt.Point awtLOS = component.getLocationOnScreen();
-          int dx = (int) ( awtLOS.getX() + .5 ) ;
-          int dy = (int) ( awtLOS.getY() + .5 ) ;
-          if(null!=storage) {
-              return storage.translate(dx, dy);
-          }
-          return new Point(dx, dy);
+          return d;
       } finally {
           unlockSurface();
-      }
+      }      
   }
-  protected abstract Point getLocationOnScreenImpl(int x, int y);
+  protected abstract Point getLocationOnScreenNativeImpl(int x, int y);
 
+  protected static Point getLocationOnScreenNonBlocking(Point storage, Component comp) {     
+      int x = 0; 
+      int y = 0;
+      while(null != comp) {
+          x += comp.getX();
+          y += comp.getY();
+          comp = comp.getParent();
+      }
+      if(null!=storage) {
+          storage.translate(x, y);
+          return storage;
+      }
+      return new Point(x, y);
+  }
+  
+  public boolean hasFocus() {
+      return component.hasFocus();
+  }
+  
     @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();

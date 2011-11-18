@@ -35,6 +35,7 @@
 
 #include "NativewindowCommon.h"
 #include "jogamp_nativewindow_macosx_OSXUtil.h"
+#include "jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow.h"
 
 #include <jawt_md.h>
 #import <JavaNativeFoundation.h>
@@ -323,30 +324,6 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyCALayer0
     JNF_COCOA_EXIT(env);
 }
 
-/*
- * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
- * Method:    attachJAWTSurfaceLayer
- * Signature: (JJ)Z
- */
-JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AttachJAWTSurfaceLayer0
-  (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
-{
-    JNF_COCOA_ENTER(env);
-    JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
-    if (NULL == dsi) {
-        NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
-        return JNI_FALSE;
-    }
-    CALayer* layer = (CALayer*) (intptr_t) caLayer;
-    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
-        id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
-        DBG_PRINT("CALayer::attachJAWTSurfaceLayer: %p -> %p\n", surfaceLayers.layer, layer);
-        surfaceLayers.layer = [layer autorelease];
-    }];
-    JNF_COCOA_EXIT(env);
-    return JNI_TRUE;
-}
-
 @interface MainRunnable : NSObject
 
 {
@@ -430,5 +407,29 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_IsMainThread0
   (JNIEnv *env, jclass unused)
 {
     return ( [NSThread isMainThread] == YES ) ? JNI_TRUE : JNI_FALSE ;
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
+ * Method:    AttachJAWTSurfaceLayer
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_AttachJAWTSurfaceLayer0
+  (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
+{
+    JNF_COCOA_ENTER(env);
+    JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
+    if (NULL == dsi) {
+        NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
+        return JNI_FALSE;
+    }
+    CALayer* layer = (CALayer*) (intptr_t) caLayer;
+    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
+        id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
+        DBG_PRINT("CALayer::attachJAWTSurfaceLayer: %p -> %p\n", surfaceLayers.layer, layer);
+        surfaceLayers.layer = [layer autorelease];
+    }];
+    JNF_COCOA_EXIT(env);
+    return JNI_TRUE;
 }
 
