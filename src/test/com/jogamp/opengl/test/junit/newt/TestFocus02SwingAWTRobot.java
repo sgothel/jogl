@@ -192,7 +192,6 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         System.err.println("FOCUS NEWT Canvas/GLWindow request");
         EventCountAdapterUtil.reset(eventCountAdapters);
         AWTRobotUtil.assertRequestFocusAndWait(robot, newtCanvasAWT, newtCanvasAWT.getNEWTChild(), glWindow1FA, buttonNorthOuterFA);
-        Assert.assertTrue(AWTRobotUtil.waitForFocusCount(false, newtCanvasAWTFA));
         Assert.assertEquals(true,  glWindow1FA.focusGained());
         Assert.assertEquals(false, buttonNorthOuterFA.focusGained());
         Assert.assertEquals(true,  buttonNorthOuterFA.focusLost());        
