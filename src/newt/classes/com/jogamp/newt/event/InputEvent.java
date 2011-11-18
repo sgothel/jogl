@@ -48,6 +48,11 @@ public abstract class InputEvent extends NEWTEvent
  public static final int  CONFINED_MASK  = 1 << 16;
  public static final int  INVISIBLE_MASK = 1 << 17;
 
+ /** Object when attached via {@link #setAttachment(Object)} marks the event consumed,
+  * ie. stops propagating the event any further to the event listener. 
+  */
+ public static final Object consumedTag = new Object();
+ 
  protected InputEvent(int eventType, Object source, long when, int modifiers) {
     super(eventType, source, when);
     this.modifiers=modifiers;
