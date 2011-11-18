@@ -744,6 +744,7 @@
 
     <target name="c.build.nativewindow.windowlib.macosx" if="isOSX">
       <javah destdir="${src.generated.c}/MacOSX" classpath="${javah.classpath}" class="jogamp.nativewindow.macosx.OSXUtil" />
+      <javah destdir="${src.generated.c}/MacOSX" classpath="${javah.classpath}" class="jogamp.nativewindow.jawt.macosx.MacOSXJAWTWindow" />
 
       <c.build c.compiler.src.files="c.src.files.macosx"
                output.lib.name="nativewindow_macosx"
