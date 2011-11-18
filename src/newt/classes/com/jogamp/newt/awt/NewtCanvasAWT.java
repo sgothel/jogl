@@ -400,6 +400,10 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
           configureNewtChild(true);
           newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
           newtChild.windowRepaint(0, 0, w, h);
+          
+          // force this AWT Canvas to be focus-able, 
+          // since this it is completely covered by the newtChild (z-order).
+          setFocusable(true);        
       } else {
           configureNewtChild(false);
           newtChild.setVisible(false);
