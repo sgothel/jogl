@@ -436,33 +436,32 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     // PBuffer GLDrawable Creation
+    GLDrawableImpl pbufferDrawable;
     final AbstractGraphicsDevice device = config.getScreen().getDevice();
 
+    /**
+     * Similar to ATI Bug https://bugzilla.mozilla.org/show_bug.cgi?id=486277,
+     * we need to have a context current on the same Display to create a PBuffer.
+     */
     final SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared(device);
-    if(null==sr) {
-        throw new IllegalArgumentException("No shared resource for "+device);
-    }
-    final List<GLDrawableImpl> returnList = new ArrayList<GLDrawableImpl>();
-    Runnable r = new Runnable() {
-        public void run() {
-          GLContext lastContext = GLContext.getCurrent();
-          if (lastContext != null) {
+    if(null!=sr) {
+        GLContext lastContext = GLContext.getCurrent();
+        if (lastContext != null) {
             lastContext.release();
-          }
-          sr.context.makeCurrent();
-          try {
-            GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(WindowsWGLDrawableFactory.this, target);
-            returnList.add(pbufferDrawable);
-          } finally {
+        }
+        sr.context.makeCurrent();
+        try {
+            pbufferDrawable = new WindowsPbufferWGLDrawable(WindowsWGLDrawableFactory.this, target);
+        } finally {
             sr.context.release();
             if (lastContext != null) {
               lastContext.makeCurrent();
             }
-          }
         }
-      };
-    maybeDoSingleThreadedWorkaround(r);
-    return returnList.get(0);
+    } else {
+        pbufferDrawable = new WindowsPbufferWGLDrawable(WindowsWGLDrawableFactory.this, target);
+    }
+    return pbufferDrawable;
   }
 
   /**

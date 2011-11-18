@@ -323,15 +323,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   // GLDrawableFactoryImpl details
   //
 
-  protected void maybeDoSingleThreadedWorkaround(Runnable action) {
-    if (Threading.isSingleThreaded() &&
-        !Threading.isOpenGLThread()) {
-      Threading.invokeOnOpenGLThread(action);
-    } else {
-      action.run();
-    }
-  }
-
   /**
    * Returns the sole GLDrawableFactoryImpl instance.
    *
