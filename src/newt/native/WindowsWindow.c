@@ -116,7 +116,7 @@ static jmethodID sendMouseEventID = NULL;
 static jmethodID enqueueKeyEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 static jmethodID focusActionID = NULL;
-static jmethodID enqueueRequestFocusID = NULL;
+static jmethodID requestFocusID = NULL;
 
 static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd);
 
@@ -870,7 +870,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 
     case WM_LBUTTONDOWN:
         DBG_PRINT("*** WindowsWindow: LBUTTONDOWN\n");
-        (*env)->CallVoidMethod(env, window, enqueueRequestFocusID, JNI_FALSE);
+        (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers(),
@@ -890,7 +890,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 
     case WM_MBUTTONDOWN:
         DBG_PRINT("*** WindowsWindow: MBUTTONDOWN\n");
-        (*env)->CallVoidMethod(env, window, enqueueRequestFocusID, JNI_FALSE);
+        (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers(),
@@ -910,7 +910,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 
     case WM_RBUTTONDOWN:
         DBG_PRINT("*** WindowsWindow: RBUTTONDOWN\n");
-        (*env)->CallVoidMethod(env, window, enqueueRequestFocusID, JNI_FALSE);
+        (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers(),
@@ -1270,7 +1270,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_initIDs
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZIIIC)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
-    enqueueRequestFocusID = (*env)->GetMethodID(env, clazz, "enqueueRequestFocus", "(Z)V");
+    requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
     focusActionID = (*env)->GetMethodID(env, clazz, "focusAction", "()Z");
 
     if (insetsChangedID == NULL ||
@@ -1285,7 +1285,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_initIDs
         enqueueKeyEventID == NULL ||
         sendKeyEventID == NULL ||
         focusActionID == NULL ||
-        enqueueRequestFocusID == NULL) {
+        requestFocusID == NULL) {
         return JNI_FALSE;
     }
     BuildDynamicKeyMapTable();

@@ -105,34 +105,91 @@
 static jint X11KeySym2NewtVKey(KeySym keySym) {
     if(IS_WITHIN(keySym,XK_F1,XK_F12)) 
         return (keySym-XK_F1)+J_VK_F1;
+    if(IS_WITHIN(keySym,XK_KP_0,XK_KP_9)) 
+        return (keySym-XK_KP_0)+J_VK_NUMPAD0;
 
     switch(keySym) {
-        case XK_Alt_L:
-        case XK_Alt_R:
-            return J_VK_ALT;
-
-        case XK_Left:
-            return J_VK_LEFT;
-        case XK_Right:
-            return J_VK_RIGHT;
-        case XK_Up:
-            return J_VK_UP;
-        case XK_Down:
-            return J_VK_DOWN;
-        case XK_Page_Up:
-            return J_VK_PAGE_UP;
-        case XK_Page_Down:
-            return J_VK_PAGE_DOWN;
+        case XK_Return:
+        case XK_KP_Enter:
+            return J_VK_ENTER;
+        case XK_BackSpace:
+            return J_VK_BACK_SPACE;
+        case XK_Tab:
+        case XK_KP_Tab:
+        case XK_ISO_Left_Tab:
+            return J_VK_TAB;
+        case XK_Cancel:
+            return J_VK_CANCEL;
+        case XK_Clear:
+            return J_VK_CLEAR;
         case XK_Shift_L:
         case XK_Shift_R:
             return J_VK_SHIFT;
         case XK_Control_L:
         case XK_Control_R:
             return J_VK_CONTROL;
+        case XK_Alt_L:
+        case XK_Alt_R:
+            return J_VK_ALT;
+        case XK_Pause:
+            return J_VK_PAUSE;
+        case XK_Caps_Lock:
+            return J_VK_CAPS_LOCK;
         case XK_Escape:
             return J_VK_ESCAPE;
+        case XK_space:
+        case XK_KP_Space:
+            return J_VK_SPACE;
+        case XK_Page_Up:
+        case XK_KP_Page_Up:
+            return J_VK_PAGE_UP;
+        case XK_Page_Down:
+        case XK_KP_Page_Down:
+            return J_VK_PAGE_DOWN;
+        case XK_End:
+        case XK_KP_End:
+            return J_VK_END;
+        case XK_Home:
+        case XK_KP_Home:
+            return J_VK_HOME;
+        case XK_Left:
+        case XK_KP_Left:
+            return J_VK_LEFT;
+        case XK_Up:
+        case XK_KP_Up:
+            return J_VK_UP;
+        case XK_Right:
+        case XK_KP_Right:
+            return J_VK_RIGHT;
+        case XK_Down:
+        case XK_KP_Down:
+            return J_VK_DOWN;
+        case XK_KP_Multiply:
+            return J_VK_MULTIPLY;
+        case XK_KP_Add:
+            return J_VK_ADD;
+        case XK_KP_Separator:
+            return J_VK_SEPARATOR;
+        case XK_KP_Subtract:
+            return J_VK_SUBTRACT;
+        case XK_KP_Decimal:
+            return J_VK_DECIMAL;
+        case XK_KP_Divide:
+            return J_VK_DIVIDE;
         case XK_Delete:
+        case XK_KP_Delete:
             return J_VK_DELETE;
+        case XK_Num_Lock:
+            return J_VK_NUM_LOCK;
+        case XK_Scroll_Lock:
+            return J_VK_SCROLL_LOCK;
+        case XK_Print:
+            return J_VK_PRINTSCREEN;
+        case XK_Insert:
+        case XK_KP_Insert:
+            return J_VK_INSERT;
+        case XK_Help:
+            return J_VK_HELP;
     }
     return keySym;
 }
@@ -180,7 +237,7 @@ static jmethodID sendMouseEventID = NULL;
 static jmethodID enqueueKeyEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 static jmethodID focusActionID = NULL;
-static jmethodID enqueueRequestFocusID = NULL;
+static jmethodID requestFocusID = NULL;
 
 static jmethodID displayCompletedID = NULL;
 
@@ -787,11 +844,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
                     keyChar=text[0];
                     XConvertCase(keySym, &lower_return, &upper_return);
                     // always return upper case, set modifier masks (SHIFT, ..)
-                    keySym = upper_return;
-                    modifiers = X11InputState2NewtModifiers(evt.xkey.state);
+                    keySym = X11KeySym2NewtVKey(upper_return);
                 } else {
                     keyChar=0;
+                    keySym = X11KeySym2NewtVKey(keySym);
                 }
+                modifiers = X11InputState2NewtModifiers(evt.xkey.state);
                 break;
 
             case ButtonPress:
@@ -806,7 +864,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
 
         switch(evt.type) {
             case ButtonPress:
-                (*env)->CallVoidMethod(env, jwindow, enqueueRequestFocusID, JNI_FALSE);
+                (*env)->CallVoidMethod(env, jwindow, requestFocusID, JNI_FALSE);
                 #ifdef USE_SENDIO_DIRECT
                 (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
                                       modifiers,
@@ -866,26 +924,26 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
             case KeyPress:
                 #ifdef USE_SENDIO_DIRECT
                 (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
-                                      modifiers, X11KeySym2NewtVKey(keySym), (jchar) keyChar);
+                                      modifiers, keySym, (jchar) -1);
                 #else
                 (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_PRESSED, 
-                                      modifiers, X11KeySym2NewtVKey(keySym), (jchar) keyChar);
+                                      modifiers, keySym, (jchar) -1);
                 #endif
 
                 break;
             case KeyRelease:
                 #ifdef USE_SENDIO_DIRECT
                 (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_RELEASED, 
-                                      modifiers, X11KeySym2NewtVKey(keySym), (jchar) keyChar);
+                                      modifiers, keySym, (jchar) -1);
 
                 (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_TYPED, 
-                                      modifiers, (jint) -1, (jchar) keyChar);
+                                      modifiers, keySym, (jchar) keyChar);
                 #else
                 (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_RELEASED, 
-                                      modifiers, X11KeySym2NewtVKey(keySym), (jchar) keyChar);
+                                      modifiers, keySym, (jchar) -1);
 
                 (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_TYPED, 
-                                      modifiers, (jint) -1, (jchar) keyChar);
+                                      modifiers, keySym, (jchar) keyChar);
                 #endif
 
                 break;
@@ -1480,7 +1538,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_initIDs0
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZIIIC)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
-    enqueueRequestFocusID = (*env)->GetMethodID(env, clazz, "enqueueRequestFocus", "(Z)V");
+    requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
     focusActionID = (*env)->GetMethodID(env, clazz, "focusAction", "()Z");
 
     if (insetsChangedID == NULL ||
@@ -1496,7 +1554,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_initIDs0
         enqueueKeyEventID == NULL ||
         sendKeyEventID == NULL ||
         focusActionID == NULL ||
-        enqueueRequestFocusID == NULL) {
+        requestFocusID == NULL) {
         return JNI_FALSE;
     }
     return JNI_TRUE;

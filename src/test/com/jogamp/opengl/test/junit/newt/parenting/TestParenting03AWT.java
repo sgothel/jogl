@@ -66,11 +66,16 @@ public class TestParenting03AWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting1AWTTwoNewtChilds01() throws InterruptedException, InvocationTargetException {
-        testWindowParenting1AWTTwoNewtChilds();
+    public void testWindowParenting1AWTOneNewtChilds01() throws InterruptedException, InvocationTargetException {
+        testWindowParenting1AWT(false);
     }
 
-    public void testWindowParenting1AWTTwoNewtChilds() throws InterruptedException, InvocationTargetException {
+    @Test
+    public void testWindowParenting1AWTTwoNewtChilds01() throws InterruptedException, InvocationTargetException {
+        testWindowParenting1AWT(true);
+    }
+    
+    public void testWindowParenting1AWT(boolean use2nd) throws InterruptedException, InvocationTargetException {
         final Frame frame1 = new Frame("AWT Parent Frame");
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUpdateFPSFrames(1, null);
@@ -84,7 +89,6 @@ public class TestParenting03AWT extends UITestCase {
         GLAnimatorControl animator1 = new Animator(glWindow1);
         animator1.start();
 
-        final boolean use2nd = true;
         GLWindow glWindow2 = null;
         NewtCanvasAWT newtCanvasAWT2 = null;
         GLAnimatorControl animator2 = null;

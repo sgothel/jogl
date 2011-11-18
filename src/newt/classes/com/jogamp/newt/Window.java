@@ -30,6 +30,8 @@ package com.jogamp.newt;
 
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.KeyListener;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.MouseListener;
 import jogamp.newt.Debug;
 import javax.media.nativewindow.CapabilitiesChooser;
@@ -309,16 +311,46 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     }
 
     /**
-     * May set to a {@link FocusRunnable}, {@link FocusRunnable#run()} before Newt requests the native focus.
+     * Sets a {@link FocusRunnable}, 
+     * which {@link FocusRunnable#run()} method is executed before the native focus is requested.
+     * <p>
      * This allows notifying a covered window toolkit like AWT that the focus is requested,
      * hence focus traversal can be made transparent.
+     * </p>
      */
     void setFocusAction(FocusRunnable focusAction);
+    
+    /**
+     * Sets a {@link KeyListener} allowing focus traversal with a covered window toolkit like AWT.
+     * <p>
+     * The {@link KeyListener} methods are invoked prior to all other {@link KeyListener}'s
+     * allowing to suppress the {@link KeyEvent} via the {@link InputEvent#consumedTag}.
+     * </p>
+     * @param l
+     */
+    void setKeyboardFocusHandler(KeyListener l);
 
+    /** 
+     * Request focus for this native window
+     * <p>
+     * The request is handled on this Window EDT and blocked until finished.
+     * </p>
+     * 
+     * @see #requestFocus(boolean)
+     */
     void requestFocus();
 
-    boolean hasFocus();
-
+    /** 
+     * Request focus for this native window
+     * <p>
+     * The request is handled on this Window EDT. 
+     * </p>
+     * 
+     * @param wait true if waiting until the request is executed, otherwise false
+     * @see #requestFocus()
+     */
+    void requestFocus(boolean wait);
+    
     void windowRepaint(int x, int y, int width, int height);
 
     void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event);

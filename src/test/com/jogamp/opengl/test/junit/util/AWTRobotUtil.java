@@ -67,7 +67,7 @@ public class AWTRobotUtil {
 
         int x0, y0;
         if(null!=comp) {
-            java.awt.Point p0 = comp.getLocationOnScreen();
+            java.awt.Point p0 = comp.getLocationOnScreen();            
             java.awt.Rectangle r0 = comp.getBounds();
             if( onTitleBarIfWindow && comp instanceof java.awt.Window) {
                 java.awt.Window window = (java.awt.Window) comp;
@@ -78,7 +78,7 @@ public class AWTRobotUtil {
             }
             x0 = (int) ( p0.getX() + r0.getWidth() / 2.0 + .5 ) ;
         } else {
-            javax.media.nativewindow.util.Point p0 = win.getLocationOnScreen(null);
+            javax.media.nativewindow.util.Point p0 = win.getLocationOnScreen(null);            
             if( onTitleBarIfWindow ) {
                 javax.media.nativewindow.util.InsetsImmutable insets = win.getInsets();
                 p0.translate(win.getWidth()/2, insets.getTopHeight()/2);                
@@ -280,8 +280,8 @@ public class AWTRobotUtil {
         Assert.assertTrue("Did not gain focus", hasFocus);
     }
 
-    static int keyType(int i, Robot robot, int keyCode,
-                       Object obj, InputEventCountAdapter counter) throws InterruptedException, AWTException, InvocationTargetException 
+    public static int keyType(int i, Robot robot, int keyCode,
+                              Object obj, InputEventCountAdapter counter) throws InterruptedException, AWTException, InvocationTargetException 
     {
         int tc = 0;
         int j;
@@ -293,13 +293,13 @@ public class AWTRobotUtil {
                 if(DEBUG) { System.err.println(i+":"+j+" KC1.0: "+counter+" - regain focus"); }
                 requestFocus(null, obj);
             }
-            final int c0 = counter.getCount();
+            final int c0 = null!=counter ? counter.getCount() : 0;
             if(DEBUG) { System.err.println(i+":"+j+" KC1.1: "+counter); }
             robot.waitForIdle();
             robot.keyPress(keyCode);
             robot.keyRelease(keyCode);
             if(DEBUG) { System.err.println(i+":"+j+" KC1.2: "+counter); }
-            tc = counter.getCount() - c0;
+            tc = ( null!=counter ? counter.getCount() : 1 ) - c0;
             for (int wait=0; wait<POLL_DIVIDER && 1 > tc; wait++) {
                 robot.delay(TIME_SLICE);
                 tc = counter.getCount() - c0;
@@ -355,13 +355,13 @@ public class AWTRobotUtil {
                 if(DEBUG) { System.err.println(i+":"+j+" MC1.0: "+counter+" - regain focus"); }
                 requestFocus(null, obj);
             }
-            final int c0 = counter.getCount();
+            final int c0 = null != counter ? counter.getCount() : 0;
             if(DEBUG) { System.err.println(i+":"+j+" MC1.1: "+counter); }
             robot.waitForIdle();
             robot.mousePress(mouseButton);
             robot.mouseRelease(mouseButton);
             if(DEBUG) { System.err.println(i+":"+j+" MC1.2: "+counter); }
-            tc = counter.getCount() - c0;
+            tc = ( null != counter ? counter.getCount() : 1 ) - c0;
             for (int wait=0; wait<POLL_DIVIDER && 1 > tc; wait++) {
                 robot.delay(TIME_SLICE);
                 tc = counter.getCount() - c0;

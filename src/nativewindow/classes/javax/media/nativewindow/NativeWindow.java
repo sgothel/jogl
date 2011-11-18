@@ -126,4 +126,7 @@ public interface NativeWindow extends NativeSurface {
    */
   public Point getLocationOnScreen(Point point);
   
+  /** Returns true if this native window owns the focus, otherwise false. */
+  boolean hasFocus();
+  
 }

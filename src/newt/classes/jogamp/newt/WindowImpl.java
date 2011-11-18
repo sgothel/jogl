@@ -110,6 +110,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     private RequestFocusAction requestFocusAction = new RequestFocusAction();
     private FocusRunnable focusAction = null;
+    private KeyListener keyboardFocusHandler = null;
 
     private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
     
@@ -1415,14 +1416,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
     
-    public void requestFocus() {
-        enqueueRequestFocus(true);
-    }
-
-    public final boolean hasFocus() {
-        return hasFocus;
-    }
-
     public final InsetsImmutable getInsets() {
         if(isUndecorated()) {
             return Insets.getZero();
@@ -1559,15 +1552,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    protected void enqueueRequestFocus(boolean wait) {
+    public final boolean hasFocus() {
+        return hasFocus;
+    }
+
+    public void requestFocus() {
+        requestFocus(true);
+    }
+
+    public void requestFocus(boolean wait) {
         runOnEDTIfAvail(wait, requestFocusAction);
     }
 
-    /** 
-     * May set to a {@link FocusRunnable}, {@link FocusRunnable#run()} before Newt requests the native focus.
-     * This allows notifying a covered window toolkit like AWT that the focus is requested,
-     * hence focus traversal can be made transparent.
-     */
     public void setFocusAction(FocusRunnable focusAction) {
         this.focusAction = focusAction;
     }
@@ -1588,7 +1584,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
         return res;
     }
-
+    
+    public void setKeyboardFocusHandler(KeyListener l) {
+        keyboardFocusHandler = l;
+    }
+    
     private class SetPositionActionImpl implements Runnable {
         int x, y;
 
@@ -1830,8 +1830,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // queue event in case window is locked, ie in operation
                 if( isWindowLocked() ) {
                     if(DEBUG_IMPLEMENTATION) {
-                        // System.err.println("Window.consumeEvent: queued "+e);
-                        // Thread.dumpStack(); // JAU
+                        System.err.println("Window.consumeEvent: queued "+e);
+                        // Thread.dumpStack();
                     }
                     return false;
                 }
@@ -2021,8 +2021,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(DEBUG_MOUSE_EVENT) {
             System.err.println("consumeMouseEvent: event:         "+e);
         }
-
-        for(int i = 0; i < mouseListeners.size(); i++ ) {
+        boolean consumed = false;
+        for(int i = 0; !consumed && i < mouseListeners.size(); i++ ) {
             MouseListener l = mouseListeners.get(i);
             switch(e.getEventType()) {
                 case MouseEvent.EVENT_MOUSE_CLICKED:
@@ -2052,13 +2052,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 default:
                     throw new NativeWindowException("Unexpected mouse event type " + e.getEventType());
             }
+            consumed = InputEvent.consumedTag == e.getAttachment();
         }
     }
 
     //
     // KeyListener/Event Support
     //
-
     public void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
         consumeKeyEvent(new KeyEvent(eventType, this, System.currentTimeMillis(), modifiers, keyCode, keyChar) );
     }
@@ -2107,25 +2107,38 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return (KeyListener[]) keyListeners.toArray();
     }
 
-    protected void consumeKeyEvent(KeyEvent e) {
-        if(DEBUG_KEY_EVENT) {
-            System.err.println("consumeKeyEvent: "+e);
+    private final boolean propagateKeyEvent(KeyEvent e, KeyListener l) {
+        switch(e.getEventType()) {
+            case KeyEvent.EVENT_KEY_PRESSED:
+                l.keyPressed(e);
+                break;
+            case KeyEvent.EVENT_KEY_RELEASED:
+                l.keyReleased(e);
+                break;
+            case KeyEvent.EVENT_KEY_TYPED:
+                l.keyTyped(e);
+                break;
+            default:
+                throw new NativeWindowException("Unexpected key event type " + e.getEventType());
         }
-        for(int i = 0; i < keyListeners.size(); i++ ) {
-            KeyListener l = keyListeners.get(i);
-            switch(e.getEventType()) {
-                case KeyEvent.EVENT_KEY_PRESSED:
-                    l.keyPressed(e);
-                    break;
-                case KeyEvent.EVENT_KEY_RELEASED:
-                    l.keyReleased(e);
-                    break;
-                case KeyEvent.EVENT_KEY_TYPED:
-                    l.keyTyped(e);
-                    break;
-                default:
-                    throw new NativeWindowException("Unexpected key event type " + e.getEventType());
+        return InputEvent.consumedTag == e.getAttachment();
+    }
+    
+    protected void consumeKeyEvent(KeyEvent e) {
+        boolean consumed;
+        if(null != keyboardFocusHandler) {
+            consumed = propagateKeyEvent(e, keyboardFocusHandler);
+            if(DEBUG_KEY_EVENT) {
+                System.err.println("consumeKeyEvent: "+e+", keyboardFocusHandler consumed: "+consumed);
             }
+        } else {
+            consumed = false;
+            if(DEBUG_KEY_EVENT) {
+                System.err.println("consumeKeyEvent: "+e);
+            }
+        }
+        for(int i = 0; !consumed && i < keyListeners.size(); i++ ) {
+            consumed = propagateKeyEvent(e, keyListeners.get(i));
         }
     }
 

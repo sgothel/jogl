@@ -51,7 +51,11 @@ class NewtAWTReparentingKeyAdapter extends KeyAdapter {
         if(e.getKeyChar()=='d') {
             glWindow.setUndecorated(!glWindow.isUndecorated());
         } else if(e.getKeyChar()=='f') {
-            glWindow.setFullscreen(!glWindow.isFullscreen());                
+            glWindow.setFullscreen(!glWindow.isFullscreen());
+        } else if(e.getKeyChar()=='l') {
+            javax.media.nativewindow.util.Point p0 = newtCanvasAWT.getNativeWindow().getLocationOnScreen(null);
+            javax.media.nativewindow.util.Point p1 = glWindow.getLocationOnScreen(null);
+            System.err.println("NewtCanvasAWT position: "+p0+", "+p1);                                    
         } else if(e.getKeyChar()=='p') {
             new Thread() {
                 public void run() {

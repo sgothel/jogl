@@ -76,7 +76,7 @@ static jmethodID enqueueMouseEventID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID enqueueKeyEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
-static jmethodID enqueueRequestFocusID = NULL;
+static jmethodID requestFocusID = NULL;
 
 static jmethodID insetsChangedID   = NULL;
 static jmethodID sizeChangedID     = NULL;
@@ -325,9 +325,9 @@ static jmethodID windowRepaintID = NULL;
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
     windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
-    enqueueRequestFocusID = (*env)->GetMethodID(env, clazz, "enqueueRequestFocus", "(Z)V");
+    requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
     if (enqueueMouseEventID && sendMouseEventID && enqueueKeyEventID && sendKeyEventID && sizeChangedID && visibleChangedID && insetsChangedID &&
-        positionChangedID && focusChangedID && windowDestroyNotifyID && enqueueRequestFocusID && windowRepaintID)
+        positionChangedID && focusChangedID && windowDestroyNotifyID && requestFocusID && windowRepaintID)
     {
         return YES;
     }
@@ -613,7 +613,7 @@ static jint mods2JavaMods(NSUInteger mods)
         return;
     }
     if (evType == EVENT_MOUSE_PRESSED) {
-        (*env)->CallVoidMethod(env, javaWindowObject, enqueueRequestFocusID, JNI_FALSE);
+        (*env)->CallVoidMethod(env, javaWindowObject, requestFocusID, JNI_FALSE);
     }
 
     NSPoint location = [self screenPos2NewtClientWinPos: [NSEvent mouseLocation]];

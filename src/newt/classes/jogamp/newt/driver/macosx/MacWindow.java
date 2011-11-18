@@ -311,20 +311,24 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable {
     
     @Override
     public void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
-        final int key = convertKeyChar(keyChar);
-        if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.sendKeyEvent "+Thread.currentThread().getName());
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
-        super.sendKeyEvent(eventType, modifiers, key, keyChar);        
+        final int keyCode2 = convertKeyChar(keyChar);
+        if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.sendKeyEvent "+Thread.currentThread().getName()+" char: "+keyChar+", code 0x"+Integer.toHexString(keyCode)+" -> 0x"+Integer.toHexString(keyCode2));
+        // only deliver keyChar on key Typed events, harmonizing platform behavior
+        keyChar = KeyEvent.EVENT_KEY_TYPED == eventType ? keyChar : (char)-1;
+        super.sendKeyEvent(eventType, modifiers, keyCode2, keyChar);        
     }
     
     @Override
     public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
-        final int key = convertKeyChar(keyChar);
-        if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.enqueueKeyEvent "+Thread.currentThread().getName());
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
-        super.enqueueKeyEvent(wait, eventType, modifiers, key, keyChar);
+        final int keyCode2 = convertKeyChar(keyChar);
+        if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.enqueueKeyEvent "+Thread.currentThread().getName()+" char: "+keyChar+", code 0x"+Integer.toHexString(keyCode)+" -> 0x"+Integer.toHexString(keyCode2));
+        // only deliver keyChar on key Typed events, harmonizing platform behavior
+        keyChar = KeyEvent.EVENT_KEY_TYPED == eventType ? keyChar : (char)-1;
+        super.enqueueKeyEvent(wait, eventType, modifiers, keyCode2, keyChar);
     }
 
     //----------------------------------------------------------------------

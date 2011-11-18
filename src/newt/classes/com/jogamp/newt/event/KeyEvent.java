@@ -34,6 +34,7 @@
 
 package com.jogamp.newt.event;
 
+@SuppressWarnings("serial")
 public class KeyEvent extends InputEvent
 {
  public KeyEvent(int eventType, Object source, long when, int modifiers, int keyCode, char keyChar) {
@@ -42,9 +43,12 @@ public class KeyEvent extends InputEvent
      this.keyChar=keyChar;
  }
 
+ /** Only valid if delivered via {@link KeyListener#keyPressed(KeyEvent)} */
  public char getKeyChar() {
     return keyChar;
  }
+ 
+ /** Always valid. */
  public int getKeyCode() {
     return keyCode;
  }

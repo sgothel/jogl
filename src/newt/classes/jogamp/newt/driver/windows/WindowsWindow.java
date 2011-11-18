@@ -42,6 +42,7 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 
@@ -242,6 +243,36 @@ public class WindowsWindow extends WindowImpl {
 
     protected void updateInsetsImpl(Insets insets) {
         // nop - using event driven insetsChange(..)         
+    }
+    
+    private final int validateKeyCode(int eventType, int keyCode) {
+        switch(eventType) {
+            case KeyEvent.EVENT_KEY_PRESSED:
+                lastPressedKeyCode = keyCode;
+                break;
+            case KeyEvent.EVENT_KEY_TYPED:
+                if(-1==keyCode) {
+                    keyCode = lastPressedKeyCode;
+                }
+                lastPressedKeyCode = -1;
+                break;
+        }
+        return keyCode;
+    }
+    private int lastPressedKeyCode = 0;
+    
+    @Override
+    public void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
+        // Note that we have to regenerate the keyCode for EVENT_KEY_TYPED on this platform
+        keyCode = validateKeyCode(eventType, keyCode);
+        super.sendKeyEvent(eventType, modifiers, keyCode, keyChar);        
+    }
+    
+    @Override
+    public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
+        // Note that we have to regenerate the keyCode for EVENT_KEY_TYPED on this platform
+        keyCode = validateKeyCode(eventType, keyCode);
+        super.enqueueKeyEvent(wait, eventType, modifiers, keyCode, keyChar);
     }
     
     //----------------------------------------------------------------------

@@ -75,7 +75,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
-    #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator"
+    #D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Xprof"
     #D_ARGS="-Djogl.debug.Animator"
@@ -229,7 +229,9 @@ function testswt() {
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
+testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
@@ -274,14 +276,7 @@ function testswt() {
 #
 # regressions
 #
-testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01AWT $*
-
-#../build-x86_64//test/results/TEST-com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT.xml:<testsuite errors="0" failures="5" hostname="jogamp02" name="com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT" tests="5" time="2.123" timestamp="2011-11-10T03:41:11">
-#../build-x86_64//test/results/TEST-com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT.xml:<testsuite errors="0" failures="1" hostname="jogamp02" name="com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT" tests="1" time="1.832" timestamp="2011-11-10T03:39:14">
-#../build-x86_64//test/results/TEST-com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT.xml:<testsuite errors="0" failures="2" hostname="jogamp02" name="com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT" tests="2" time="1.929" timestamp="2011-11-10T03:39:17">
-#../build-x86_64//test/results/TEST-com.jogamp.opengl.test.junit.newt.TestWindows01NEWT.xml:<testsuite errors="0" failures="1" hostname="jogamp02" name="com.jogamp.opengl.test.junit.newt.TestWindows01NEWT" tests="5" time="1.178" timestamp="2011-11-10T03:41:09">
-
-
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01AWT $*
 
 $spath/count-edt-start.sh java-run.log
 

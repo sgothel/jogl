@@ -28,6 +28,8 @@
  
 package jogamp.newt.awt.event;
 
+import java.awt.KeyboardFocusManager;
+
 import com.jogamp.newt.event.awt.AWTAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 
@@ -54,9 +56,16 @@ public class AWTParentWindowAdapter
     }
 
     public void focusGained(java.awt.event.FocusEvent e) {
+        // forward focus to NEWT child
+        final com.jogamp.newt.Window newtChild = getNewtWindow();
+        final boolean isOnscreen = newtChild.isNativeValid() && newtChild.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("AWT: focusGained: "+ e);
+            System.err.println("AWT: focusGained: onscreen "+ isOnscreen+", "+e);
         }
+        if(isOnscreen) {
+            KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+        }
+        newtChild.requestFocus(false);
     }
 
     public void focusLost(java.awt.event.FocusEvent e) {

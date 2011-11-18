@@ -41,6 +41,7 @@ import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
+
 import jogamp.newt.WindowImpl;
 
 import javax.media.nativewindow.*;
@@ -254,10 +255,18 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         window.setFocusAction(focusAction);
     }
     
+    public void setKeyboardFocusHandler(KeyListener l) {
+        window.setKeyboardFocusHandler(l);
+    }
+    
     public final void requestFocus() {
         window.requestFocus();
     }
 
+    public final void requestFocus(boolean wait) {
+        window.requestFocus(wait);        
+    }
+    
     public boolean hasFocus() {
         return window.hasFocus();
     }
