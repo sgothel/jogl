@@ -96,7 +96,7 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="com/jogamp/newt/* com/jogamp/newt/event/* com/jogamp/newt/util/* jogamp/newt/* jogamp/newt/event/*"/>
+                  value="com/jogamp/newt/* com/jogamp/newt/event/* com/jogamp/newt/util/* jogamp/newt/* jogamp/newt/event/* jogamp/newt/driver/*"/>
 
         <property name="java.part.opengl"
                   value="com/jogamp/newt/opengl/**"/>
