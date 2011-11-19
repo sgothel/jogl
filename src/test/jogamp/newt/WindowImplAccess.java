@@ -29,26 +29,16 @@
 package jogamp.newt;
 
 import com.jogamp.newt.Window;
-import com.jogamp.newt.opengl.GLWindow;
 
 /**
  * Allows access to protected methods of WindowImpl
  */
 public class WindowImplAccess {
     public static final void windowDestroyNotify(Window win) {
-        WindowImpl winImpl = null;
-        if(win instanceof GLWindow) {
-            GLWindow glwin = (GLWindow) win;
-            winImpl = (WindowImpl) glwin.getWindow();
-        } else if(win instanceof WindowImpl) {
-            winImpl = (WindowImpl) win;
-        } else {
-            throw new RuntimeException("Given Window not a GLWindow, not WindowImpl, but "+win.getClass());
-        }
-        final WindowImpl winImplF = winImpl;
-        winImplF.runOnEDTIfAvail(true, new Runnable() {
+        final WindowImpl winImpl = (WindowImpl) win.getDelegatedWindow();
+        winImpl.runOnEDTIfAvail(true, new Runnable() {
             public void run() {
-                winImplF.windowDestroyNotify();
+                winImpl.windowDestroyNotify();
             }
         });        
     }

@@ -31,10 +31,11 @@ package com.jogamp.newt.awt;
 
 import java.awt.AWTKeyStroke;
 import java.awt.Canvas;
-import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.KeyboardFocusManager;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -43,7 +44,6 @@ import java.util.Set;
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.awt.AWTWindowClosingProtocol;
 import javax.swing.MenuSelectionManager;
@@ -51,8 +51,9 @@ import javax.swing.MenuSelectionManager;
 import jogamp.nativewindow.awt.AWTMisc;
 import jogamp.nativewindow.jawt.JAWTWindow;
 import jogamp.newt.Debug;
+import jogamp.newt.awt.NewtFactoryAWT;
 import jogamp.newt.awt.event.AWTParentWindowAdapter;
-import jogamp.newt.awt.event.NewtFactoryAWT;
+import jogamp.newt.driver.DriverClearFocus;
 
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Window;
@@ -70,13 +71,13 @@ import com.jogamp.newt.event.awt.AWTMouseAdapter;
 public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProtocol {
     public static final boolean DEBUG = Debug.debug("Window");
 
-    JAWTWindow jawtWindow = null;
-    Window newtChild = null;
-    boolean isNewtChildOnscreen = true;
-    int newtChildCloseOp;
-    AWTAdapter awtAdapter = null;
-    AWTAdapter awtMouseAdapter = null;
-    AWTAdapter awtKeyAdapter = null;
+    private JAWTWindow jawtWindow = null;
+    private Window newtChild = null;
+    private boolean isOnscreen = true;
+    private int newtChildCloseOp;
+    private AWTAdapter awtAdapter = null;
+    private AWTAdapter awtMouseAdapter = null;
+    private AWTAdapter awtKeyAdapter = null;
     
     private AWTWindowClosingProtocol awtWindowClosingProtocol =
           new AWTWindowClosingProtocol(this, new Runnable() {
@@ -172,38 +173,27 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     
     class FocusAction implements Window.FocusRunnable {
         public boolean run() {
-            if(!isNewtChildOnscreen) {
-                throw new InternalError("focusAction() shall not be invoked for offscreen windows by native code");                
+            if(DEBUG) {
+                System.err.println("NewtCanvasAWT.FocusAction: "+Display.getThreadName()+", isOnscreen "+isOnscreen+", hasFocus "+hasFocus());
             }
-            if ( EventQueue.isDispatchThread() ) {
-                focusActionImpl.run();
-            } else {
-                try {
-                    EventQueue.invokeAndWait(focusActionImpl);
-                } catch (Exception e) {
-                    throw new NativeWindowException(e);
-                }
+            // Newt-EDT -> AWT-EDT may freeze Window's native peer requestFocus.
+            if(!hasFocus()) {
+                // Acquire the AWT focus 1st for proper AWT traversal
+                NewtCanvasAWT.super.requestFocus();
             }
-            return focusActionImpl.result;
-        }
-
-        class FocusActionImpl implements Runnable {
-            public final boolean result = false; // NEWT shall always proceed requesting the native focus
-            public void run() {
-                if(DEBUG) {
-                    System.err.println("FocusActionImpl.run() "+Display.getThreadName());
-                }
+            if(isOnscreen) {
+                // Remove the AWT focus in favor of the native NEWT focus
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
             }
+            return false; // NEWT shall proceed requesting the native focus
         }
-        FocusActionImpl focusActionImpl = new FocusActionImpl();
     }
-    FocusAction focusAction = new FocusAction();
+    private FocusAction focusAction = new FocusAction();
     
     WindowListener clearAWTMenusOnNewtFocus = new WindowAdapter() {
           @Override
           public void windowGainedFocus(WindowEvent arg0) {
-                  MenuSelectionManager.defaultManager().clearSelectedPath();
+              MenuSelectionManager.defaultManager().clearSelectedPath();
           }
     };
 
@@ -223,37 +213,66 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
              }             
          }
          
-         void handleKey(KeyEvent e, boolean onRelease) {             
-             final AWTKeyStroke ks = AWTKeyStroke.getAWTKeyStroke(e.getKeyCode(), e.getModifiers(), onRelease);
+         void handleKey(KeyEvent evt, boolean onRelease) {   
+             if(null == keyboardFocusManager) {
+                 throw new InternalError("XXX");
+             }
+             final AWTKeyStroke ks = AWTKeyStroke.getAWTKeyStroke(evt.getKeyCode(), evt.getModifiers(), onRelease);
              if(null != ks) {
-                 final KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-                 final Set<AWTKeyStroke> fwdKeys = kfm.getDefaultFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS); 
-                 final Set<AWTKeyStroke> bwdKeys = kfm.getDefaultFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS);         
+                 final Set<AWTKeyStroke> fwdKeys = keyboardFocusManager.getDefaultFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS); 
+                 final Set<AWTKeyStroke> bwdKeys = keyboardFocusManager.getDefaultFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS);         
                  if(fwdKeys.contains(ks)) {
                      if(DEBUG) {
-                         System.err.println("FTKL.handleKey (fwd): "+ks);
+                         System.err.println("NewtCanvasAWT.focusKey (fwd): "+ks+", current focusOwner "+keyboardFocusManager.getFocusOwner());
                      }
-                     kfm.focusNextComponent(NewtCanvasAWT.this);
+                     // Newt-EDT -> AWT-EDT may freeze Window's native peer requestFocus.
+                     NewtCanvasAWT.this.transferFocus();
                      suppress = true;
                  } else if(bwdKeys.contains(ks)) {
                      if(DEBUG) {
-                         System.err.println("FTKL.handleKey (bwd): "+ks);
+                         System.err.println("NewtCanvasAWT.focusKey (bwd): "+ks+", current focusOwner "+keyboardFocusManager.getFocusOwner());
                      }
-                     kfm.focusPreviousComponent(NewtCanvasAWT.this);
+                     // Newt-EDT -> AWT-EDT may freeze Window's native peer requestFocus.
+                     NewtCanvasAWT.this.transferFocusBackward();
                      suppress = true;
-                 } else if(DEBUG) {
-                     System.err.println("FTKL.handleKey (nop): "+ks);
                  }
-             } else if(DEBUG) {
-                 System.err.println("FTKL.handleKey: null");
              }
              if(suppress) {
-                 e.setAttachment(InputEvent.consumedTag);                 
+                 evt.setAttachment(InputEvent.consumedTag);                 
+             }
+             if(DEBUG) {
+                 System.err.println("NewtCanvasAWT.focusKey: XXX: "+ks);
              }
          }
     }
-    FocusTraversalKeyListener newtFocusTraversalKeyListener = null;
-    
+    private final FocusTraversalKeyListener newtFocusTraversalKeyListener = new FocusTraversalKeyListener(); 
+
+    class FocusPropertyChangeListener implements PropertyChangeListener {
+        public void propertyChange(PropertyChangeEvent evt) {
+            final Object oldF = evt.getOldValue();
+            final Object newF = evt.getNewValue();
+            if(DEBUG) {
+                System.err.println("NewtCanvasAWT.FocusProperty: "+evt.getPropertyName()+", src "+evt.getSource()+", "+oldF+" -> "+newF);
+            }
+            if(oldF == NewtCanvasAWT.this && newF == null) {
+                // focus traversal to NEWT - NOP
+                if(DEBUG) {                    
+                    System.err.println("NewtCanvasAWT.FocusProperty: NEWT focus traversal");
+                }
+            } else if(null != newF && newF != NewtCanvasAWT.this) {
+                // focus traversal to another AWT component
+                if(DEBUG) {                    
+                    System.err.println("NewtCanvasAWT.FocusProperty: lost focus - clear focus");
+                }
+                if(newtChild.getDelegatedWindow() instanceof DriverClearFocus) {
+                    ((DriverClearFocus)newtChild.getDelegatedWindow()).clearFocus();
+                }
+            }
+        }        
+    }
+    private final FocusPropertyChangeListener focusPropertyChangeListener = new FocusPropertyChangeListener();
+    private volatile KeyboardFocusManager keyboardFocusManager = null;
+
     /** sets a new NEWT child, provoking reparenting. */
     private NewtCanvasAWT setNEWTChild(Window child) {
         if(newtChild!=child) {
@@ -284,21 +303,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         return awtWindowClosingProtocol.setDefaultCloseOperation(op);
     }
 
-    private final void configureNewtChildInputEventHandler() {
-        if(null==awtMouseAdapter && null != newtChild.getGraphicsConfiguration()) {
-            isNewtChildOnscreen = newtChild.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
-            if(isNewtChildOnscreen) {
-                // onscreen child needs to fwd focus traversal
-                newtFocusTraversalKeyListener = new FocusTraversalKeyListener();
-                newtChild.setKeyboardFocusHandler(newtFocusTraversalKeyListener);
-            } else {
-                // offscreen child require AWT event fwd for key/mouse
-                awtMouseAdapter = new AWTMouseAdapter(newtChild).addTo(this);
-                awtKeyAdapter = new AWTKeyAdapter(newtChild).addTo(this);
-            }
-        }
-    }
-    
     /* package */ void configureNewtChild(boolean attach) {
         if(null!=awtAdapter) {
           awtAdapter.removeFrom(this);
@@ -312,18 +316,33 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             awtKeyAdapter.removeFrom(this);
             awtKeyAdapter = null;
         }
-        if(null!=newtFocusTraversalKeyListener) {
-            newtChild.setKeyboardFocusHandler(null);
-            newtFocusTraversalKeyListener = null;
-        }        
+        newtChild.setKeyboardFocusHandler(null);
+        if(null != keyboardFocusManager) {
+            keyboardFocusManager.removePropertyChangeListener("focusOwner", focusPropertyChangeListener);
+            keyboardFocusManager = null;
+        }
         
         if( null != newtChild ) {
             if(attach) {
+                if(null == jawtWindow.getGraphicsConfiguration()) {
+                    throw new InternalError("XXX");
+                }                
+                isOnscreen = jawtWindow.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
                 awtAdapter = new AWTParentWindowAdapter(newtChild).addTo(this);
                 newtChild.addWindowListener(clearAWTMenusOnNewtFocus);
                 newtChild.setFocusAction(focusAction); // enable AWT focus traversal
                 newtChildCloseOp = newtChild.setDefaultCloseOperation(WindowClosingProtocol.DO_NOTHING_ON_CLOSE);
                 awtWindowClosingProtocol.addClosingListenerOneShot();
+                keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+                keyboardFocusManager.addPropertyChangeListener("focusOwner", focusPropertyChangeListener);
+                if(isOnscreen) {
+                    // onscreen newt child needs to fwd AWT focus
+                    newtChild.setKeyboardFocusHandler(newtFocusTraversalKeyListener);
+                } else {
+                    // offscreen newt child requires AWT to fwd AWT key/mouse event
+                    awtMouseAdapter = new AWTMouseAdapter(newtChild).addTo(this);
+                    awtKeyAdapter = new AWTKeyAdapter(newtChild).addTo(this);
+                }
             } else {
                 newtChild.removeWindowListener(clearAWTMenusOnNewtFocus);
                 newtChild.setFocusAction(null);
@@ -447,7 +466,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     public void paint(Graphics g) {
         awtWindowClosingProtocol.addClosingListenerOneShot();
         if(null!=newtChild) {
-            configureNewtChildInputEventHandler();
             newtChild.windowRepaint(0, 0, getWidth(), getHeight());
         }
     }
@@ -455,7 +473,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     public void update(Graphics g) {
         awtWindowClosingProtocol.addClosingListenerOneShot();
         if(null!=newtChild) {
-            configureNewtChildInputEventHandler();
             newtChild.windowRepaint(0, 0, getWidth(), getHeight());
         }
     }
@@ -463,7 +480,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private final void requestFocusNEWTChild() {
         if(null!=newtChild) {
             newtChild.setFocusAction(null);
-            if(isNewtChildOnscreen) {                    
+            if(isOnscreen) {                    
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
             }
             newtChild.requestFocus();

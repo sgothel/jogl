@@ -52,15 +52,19 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.*;
 import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.awt.NewtCanvasAWT;
+import com.jogamp.newt.event.KeyAdapter;
+import com.jogamp.newt.event.KeyEvent;
 
 import java.io.IOException;
+
+import jogamp.newt.driver.DriverClearFocus;
 
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 public class TestParentingFocusTraversal01AWT extends UITestCase {
     static Dimension glSize, fSize;
-    static int numFocus = 5;
+    static int numFocus = 8;
     static long durationPerTest = numFocus * 100;
     static GLCapabilities glCaps;
     static boolean manual = false;
@@ -73,11 +77,16 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParentingAWTFocusTraversal01() throws InterruptedException, InvocationTargetException, AWTException {
-        testWindowParentingAWTFocusTraversal();
+    public void testWindowParentingAWTFocusTraversal01Onscreen() throws InterruptedException, InvocationTargetException, AWTException {
+        testWindowParentingAWTFocusTraversal(true);
     }
 
-    public void testWindowParentingAWTFocusTraversal() throws InterruptedException, InvocationTargetException, AWTException {
+    @Test
+    public void testWindowParentingAWTFocusTraversal02Offscreen() throws InterruptedException, InvocationTargetException, AWTException {
+        testWindowParentingAWTFocusTraversal(false);
+    }
+
+    public void testWindowParentingAWTFocusTraversal(boolean onscreen) throws InterruptedException, InvocationTargetException, AWTException {
         Robot robot = new Robot();
         
         // Bug 4908075 - http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4908075
@@ -105,43 +114,73 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
         }
         
         final Frame frame1 = new Frame("AWT Parent Frame");
-        final Button bWest = new Button("WEST");
-        final Button bEast = new Button("EAST");
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+        final Button cWest = new Button("WEST");
+        final Button cEast = new Button("EAST");
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUpdateFPSFrames(1, null);
         final NewtCanvasAWT newtCanvasAWT1 = new NewtCanvasAWT(glWindow1);
         newtCanvasAWT1.setPreferredSize(glSize);
+        newtCanvasAWT1.setShallUseOffscreenLayer(!onscreen);
+        newtCanvasAWT1.setFocusable(true);
 
         // Test FocusAdapter
         NEWTFocusAdapter glWindow1FA = new NEWTFocusAdapter("GLWindow1");
         glWindow1.addWindowListener(glWindow1FA);
         AWTFocusAdapter bWestFA = new AWTFocusAdapter("WEST");
-        bWest.addFocusListener(bWestFA);
+        cWest.addFocusListener(bWestFA);
         AWTFocusAdapter bEastFA = new AWTFocusAdapter("EAST");
-        bEast.addFocusListener(bEastFA);
+        cEast.addFocusListener(bEastFA);
         
         // Test KeyAdapter
         NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
         glWindow1.addKeyListener(glWindow1KA);
-        AWTKeyAdapter bWestKA = new AWTKeyAdapter("bWest");
-        bWest.addKeyListener(bWestKA);
-        AWTKeyAdapter bEastKA = new AWTKeyAdapter("bEast");
-        bEast.addKeyListener(bEastKA);
+        AWTKeyAdapter bWestKA = new AWTKeyAdapter("West");
+        cWest.addKeyListener(bWestKA);
+        AWTKeyAdapter bEastKA = new AWTKeyAdapter("East");
+        cEast.addKeyListener(bEastKA);
         
         // demo ..
         GLEventListener demo1 = new GearsES2(1);
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1));
+        glWindow1.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                if(e.getKeyChar()=='c') {                    
+                    System.err.println("Focus Clear");
+                    if(glWindow1.getDelegatedWindow() instanceof DriverClearFocus) {
+                         ((DriverClearFocus)glWindow1.getDelegatedWindow()).clearFocus();
+                    }
+                } else if(e.getKeyChar()=='e') {                    
+                    System.err.println("Focus East");
+                    try {
+                        java.awt.EventQueue.invokeLater(new Runnable() {
+                           public void run() {
+                               cEast.requestFocusInWindow();
+                           }                         
+                        });
+                    } catch (Exception ex) { ex.printStackTrace(); }
+                } else if(e.getKeyChar()=='w') {                    
+                    System.err.println("Focus West");
+                    try {
+                        java.awt.EventQueue.invokeLater(new Runnable() {
+                           public void run() {
+                               cWest.requestFocusInWindow();
+                           }                         
+                        });
+                    } catch (Exception ex) { ex.printStackTrace(); }
+                }
+            }            
+        });
         GLAnimatorControl animator1 = new Animator(glWindow1);
         animator1.start();
 
         // make frame
         frame1.setLayout(new BorderLayout());
         frame1.setLayout(new BorderLayout());
-        frame1.add(bWest, BorderLayout.WEST);
+        frame1.add(cWest, BorderLayout.WEST);
         frame1.add(newtCanvasAWT1, BorderLayout.CENTER);
-        frame1.add(bEast, BorderLayout.EAST);
+        frame1.add(cEast, BorderLayout.EAST);
 
         frame1.setLocation(0, 0);
         frame1.setSize(fSize);
@@ -163,7 +202,7 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
             //
             // initial focus on bWest
             //        
-            AWTRobotUtil.assertRequestFocusAndWait(robot, bWest, bWest, bWestFA, null);
+            AWTRobotUtil.assertRequestFocusAndWait(robot, cWest, cWest, bWestFA, null);
             Assert.assertEquals(true,  bWestFA.focusGained());
             Thread.sleep(durationPerTest/numFocus);
                     
@@ -172,7 +211,7 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
             //
             
             // bWest -> glWin
-            AWTRobotUtil.keyType(0, robot, java.awt.event.KeyEvent.VK_TAB, bWest, null);
+            AWTRobotUtil.keyType(0, robot, java.awt.event.KeyEvent.VK_TAB, cWest, null);
             Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA)); 
             Assert.assertEquals(true,  glWindow1FA.focusGained());
             Assert.assertEquals(true,  bWestFA.focusLost());
@@ -180,7 +219,7 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
             
             // glWin -> bEast
             AWTRobotUtil.keyType(0, robot, java.awt.event.KeyEvent.VK_TAB, glWindow1, null);
-            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(bEast, bEastFA, glWindow1FA)); 
+            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(cEast, bEastFA, glWindow1FA)); 
             Assert.assertEquals(true,  bEastFA.focusGained());
             Assert.assertEquals(true,  glWindow1FA.focusLost());
             Thread.sleep(durationPerTest/numFocus);
@@ -189,17 +228,51 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
             // back (using custom back traversal key 'backspace')
             //
             // bEast -> glWin
-            AWTRobotUtil.keyType(0, robot, java.awt.event.KeyEvent.VK_BACK_SPACE, bEast, null);
+            AWTRobotUtil.keyType(0, robot, java.awt.event.KeyEvent.VK_BACK_SPACE, cEast, null);
             Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bEastFA)); 
             Assert.assertEquals(true,  glWindow1FA.focusGained());
             Assert.assertEquals(true,  bEastFA.focusLost());
             Thread.sleep(durationPerTest/numFocus);
     
             AWTRobotUtil.keyType(0, robot, java.awt.event.KeyEvent.VK_BACK_SPACE, glWindow1, null);
-            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(bWest, bWestFA, glWindow1FA)); 
+            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(cWest, bWestFA, glWindow1FA)); 
             Assert.assertEquals(true,  bWestFA.focusGained());
             Assert.assertEquals(true,  glWindow1FA.focusLost());
-            Thread.sleep(durationPerTest/numFocus);    
+            Thread.sleep(durationPerTest/numFocus);  
+            
+            // direct AWT request focus
+            try {
+                java.awt.EventQueue.invokeAndWait(new Runnable() {
+                   public void run() {
+                       newtCanvasAWT1.requestFocus();
+                   }                         
+                });
+            } catch (Exception ex) { ex.printStackTrace(); }            
+            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA)); 
+            Assert.assertEquals(true,  glWindow1FA.focusGained());
+            Assert.assertEquals(true,  bWestFA.focusLost());
+            Thread.sleep(durationPerTest/numFocus);
+            
+            // direct AWT request focus
+            try {
+                java.awt.EventQueue.invokeAndWait(new Runnable() {
+                   public void run() {
+                       cWest.requestFocus();
+                   }                         
+                });
+            } catch (Exception ex) { ex.printStackTrace(); }            
+            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(cWest, bWestFA, glWindow1FA)); 
+            Assert.assertEquals(true,  bWestFA.focusGained());
+            Assert.assertEquals(true,  glWindow1FA.focusLost());
+            Thread.sleep(durationPerTest/numFocus);
+            
+            // direct NEWT request focus
+            System.err.println("AAAAAAAAAAAAAA");
+            glWindow1.requestFocus();
+            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA)); 
+            Assert.assertEquals(true,  glWindow1FA.focusGained());
+            Assert.assertEquals(true,  bWestFA.focusLost());
+            Thread.sleep(durationPerTest/numFocus);            
         }
         
         animator1.stop();
@@ -217,7 +290,7 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        Window window = glWindow.getWindow();
+        Window window = glWindow.getDelegatedWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);
