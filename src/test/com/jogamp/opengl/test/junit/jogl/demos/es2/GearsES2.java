@@ -246,9 +246,11 @@ public class GearsES2 implements GLEventListener {
         // Get the GL corresponding to the drawable we are animating
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        boolean hasFocus = false;
+        final boolean hasFocus;
         if(drawable.getNativeSurface() instanceof NativeWindow) {
           hasFocus = ((NativeWindow)drawable.getNativeSurface()).hasFocus();
+        } else {
+          hasFocus = true;
         }
         if(hasFocus) {
           gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);

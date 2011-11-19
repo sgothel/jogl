@@ -21,6 +21,7 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.es1;
 
+import javax.media.nativewindow.NativeWindow;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GLAutoDrawable;
@@ -181,8 +182,18 @@ public class GearsES1 implements GLEventListener {
     // Get the GL corresponding to the drawable we are animating
     GL2ES1 gl = drawable.getGL().getGL2ES1();
 
-    gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
+    final boolean hasFocus;
+    if(drawable.getNativeSurface() instanceof NativeWindow) {
+      hasFocus = ((NativeWindow)drawable.getNativeSurface()).hasFocus();
+    } else {
+      hasFocus = true;
+    }
+    if(hasFocus) {
+      gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    } else {
+      gl.glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
+    }
+    
     // Special handling for the case where the GLJPanel is translucent
     // and wants to be composited with other Java 2D content
     if (GLProfile.isAWTAvailable() && 
