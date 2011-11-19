@@ -236,7 +236,6 @@ static jmethodID enqueueMouseEventID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID enqueueKeyEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
-static jmethodID focusActionID = NULL;
 static jmethodID requestFocusID = NULL;
 
 static jmethodID displayCompletedID = NULL;
@@ -592,16 +591,14 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, Display *dpy,
     DBG_PRINT( "X11: requestFocus dpy %p,win %p, force %d, hasFocus %d\n", dpy, (void*)w, force, focus_return==w);
 
     if( JNI_TRUE==force || focus_return!=w) {
-        if( JNI_TRUE==force || JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
-            DBG_PRINT( "X11: XRaiseWindow dpy %p, win %p\n", dpy, (void*)w);
-            XRaiseWindow(dpy, w);
-            NewtWindows_setCWAbove(dpy, w);
-            // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
-            XGetWindowAttributes(dpy, w, &xwa);
-            if(xwa.map_state == IsViewable) {
-                DBG_PRINT( "X11: XSetInputFocus dpy %p,win %pd\n", dpy, (void*)w);
-                XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
-            }
+        DBG_PRINT( "X11: XRaiseWindow dpy %p, win %p\n", dpy, (void*)w);
+        XRaiseWindow(dpy, w);
+        NewtWindows_setCWAbove(dpy, w);
+        // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
+        XGetWindowAttributes(dpy, w, &xwa);
+        if(xwa.map_state == IsViewable) {
+            DBG_PRINT( "X11: XSetInputFocus dpy %p,win %pd\n", dpy, (void*)w);
+            XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
         }
     }
     DBG_PRINT( "X11: requestFocus dpy %p,win %p, force %d - FIN\n", dpy, (void*)w, force);
@@ -1539,7 +1536,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_initIDs0
     enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZIIIC)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
-    focusActionID = (*env)->GetMethodID(env, clazz, "focusAction", "()Z");
 
     if (insetsChangedID == NULL ||
         sizeChangedID == NULL ||
@@ -1553,7 +1549,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_initIDs0
         sendMouseEventID == NULL ||
         enqueueKeyEventID == NULL ||
         sendKeyEventID == NULL ||
-        focusActionID == NULL ||
         requestFocusID == NULL) {
         return JNI_FALSE;
     }

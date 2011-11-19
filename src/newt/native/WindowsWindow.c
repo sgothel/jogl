@@ -115,7 +115,6 @@ static jmethodID enqueueMouseEventID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID enqueueKeyEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
-static jmethodID focusActionID = NULL;
 static jmethodID requestFocusID = NULL;
 
 static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd);
@@ -602,18 +601,14 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, HWND hwnd, jb
         (void*) pHwnd, (void*)hwnd, current==hwnd);
 
     if( JNI_TRUE==force || current!=hwnd) {
-        if( JNI_TRUE==force || JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
-            UINT flags = SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE;
-            SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, flags);
-            SetForegroundWindow(hwnd);  // Slightly Higher Priority
-            SetFocus(hwnd);// Sets Keyboard Focus To Window
-            if(NULL!=pHwnd) {
-                SetActiveWindow(hwnd);
-            }
-            DBG_PRINT("*** WindowsWindow: requestFocus.X1\n");
-        } else {
-            DBG_PRINT("*** WindowsWindow: requestFocus.X0\n");
+        UINT flags = SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE;
+        SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, flags);
+        SetForegroundWindow(hwnd);  // Slightly Higher Priority
+        SetFocus(hwnd);// Sets Keyboard Focus To Window
+        if(NULL!=pHwnd) {
+            SetActiveWindow(hwnd);
         }
+        DBG_PRINT("*** WindowsWindow: requestFocus.X1\n");
     }
     DBG_PRINT("*** WindowsWindow: requestFocus.XX\n");
 }
@@ -1271,7 +1266,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_initIDs
     enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZIIIC)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
-    focusActionID = (*env)->GetMethodID(env, clazz, "focusAction", "()Z");
 
     if (insetsChangedID == NULL ||
         sizeChangedID == NULL ||
@@ -1284,7 +1278,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_initIDs
         sendMouseEventID == NULL ||
         enqueueKeyEventID == NULL ||
         sendKeyEventID == NULL ||
-        focusActionID == NULL ||
         requestFocusID == NULL) {
         return JNI_FALSE;
     }

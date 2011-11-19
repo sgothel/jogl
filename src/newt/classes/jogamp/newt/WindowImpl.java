@@ -932,7 +932,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if( null != cWin.getGraphicsConfiguration() ) {
             ofs = !cWin.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
         }
-        if( null != pWin && null != pWin.getGraphicsConfiguration() ) {
+        if( !ofs && null != pWin && null != pWin.getGraphicsConfiguration() ) {
             ofs |= !pWin.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
         }
         return ofs;
@@ -1169,7 +1169,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                 ok = WindowImpl.this.waitForSize(width, height, false, TIMEOUT_NATIVEWINDOW);
                             }
                             if(ok) {
-                                requestFocusImpl(true);
+                                requestFocusInt(true);
                                 display.dispatchMessagesNative(); // status up2date                                
                             }
                         }
@@ -1475,7 +1475,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public Object getWrappedWindow() {
         return null;
     }
-
+    
+    public final Window getDelegatedWindow() {
+        return this;
+    }
+    
     /**
      * If set to true, the default value, this NEWT Window implementation will
      * handle the destruction (ie {@link #destroy()} call) within {@link #windowDestroyNotify()} implementation.<br>
@@ -1561,15 +1565,23 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void requestFocus(boolean wait) {
-        runOnEDTIfAvail(wait, requestFocusAction);
+        if(!focusAction()) {
+            runOnEDTIfAvail(wait, requestFocusAction);
+        }
     }
-
+    
+    /** Internal request focus on current thread */
+    private void requestFocusInt(boolean force) {
+        if(!focusAction()) {
+            requestFocusImpl(force);
+        }        
+    }
+    
     public void setFocusAction(FocusRunnable focusAction) {
         this.focusAction = focusAction;
     }
-
-    /** Called by native requestFocusImpl() */
-    protected boolean focusAction() {
+    
+    private boolean focusAction() {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.focusAction() START - "+getThreadName()+", focusAction: "+focusAction+" - windowHandle "+toHexString(getWindowHandle()));
         }
@@ -1710,7 +1722,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         display.dispatchMessagesNative(); // status up2date                                                        
                         WindowImpl.this.waitForSize(w, h, false, TIMEOUT_NATIVEWINDOW);
                         display.dispatchMessagesNative(); // status up2date                                                        
-                        requestFocusImpl(true);
+                        requestFocusInt(true);
                         display.dispatchMessagesNative(); // status up2date
                         
                         if(DEBUG_IMPLEMENTATION) {

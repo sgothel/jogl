@@ -48,7 +48,6 @@ static const char * const ClazzAnyCstrName = "<init>";
 static const char * const ClazzNamePointCstrSignature = "(II)V";
 static jclass pointClz = NULL;
 static jmethodID pointCstr = NULL;
-static jmethodID focusActionID = NULL;
 
 static NSString* jstringToNSString(JNIEnv* env, jstring jstr)
 {
@@ -270,11 +269,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_initIDs0
     if(NULL==pointCstr) {
         NewtCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't fetch %s.%s %s",
             ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
-    }
-
-    focusActionID = (*env)->GetMethodID(env, clazz, "focusAction", "()Z");
-    if(NULL==focusActionID) {
-        NewtCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't fetch method focusAction()Z");
     }
 
     // Need this when debugging, as it is necessary to attach gdb to
@@ -510,26 +504,44 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_requestFocus0
   (JNIEnv *env, jobject window, jlong w, jboolean force)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSWindow* win = (NSWindow*) ((intptr_t) w);
+    NSWindow* mWin = (NSWindow*) ((intptr_t) w);
 #ifdef VERBOSE_ON
-    BOOL hasFocus = [win isKeyWindow];
+    BOOL hasFocus = [mWin isKeyWindow];
 #endif
 
-    DBG_PRINT( "requestFocus - window: %p, force %d, hasFocus %d (START)\n", win, force, hasFocus);
+    DBG_PRINT( "requestFocus - window: %p, force %d, hasFocus %d (START)\n", mWin, force, hasFocus);
 
-    // Even if we already own the focus, we need the 'focusAction()' call
-    // and the other probably redundant NS calls to force proper focus traversal 
-    // of the parent TK (AWT doesn't do it properly on OSX).
-    if( JNI_TRUE==force || JNI_FALSE == (*env)->CallBooleanMethod(env, window, focusActionID) ) {
-        DBG_PRINT( "makeKeyWindow win %p\n", win);
-        // [win performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:YES];
-        // [win performSelectorOnMainThread:@selector(makeKeyWindow) withObject:nil waitUntilDone:YES];
-        [win orderFrontRegardless];
-        [win makeKeyWindow];
-        [win makeFirstResponder: nil];
+    [mWin makeFirstResponder: nil];
+    // [mWin performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:YES];
+    // [mWin performSelectorOnMainThread:@selector(makeKeyWindow) withObject:nil waitUntilDone:YES];
+    [mWin orderFrontRegardless];
+    [mWin makeKeyWindow];
+
+    DBG_PRINT( "requestFocus - window: %p, force %d (END)\n", mWin, force);
+
+    [pool release];
+}
+
+/*
+ * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Method:    requestFocusParent0
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_requestFocusParent0
+  (JNIEnv *env, jobject window, jlong w)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSWindow* mWin = (NSWindow*) ((intptr_t) w);
+    NSWindow* pWin = [mWin parentWindow];
+#ifdef VERBOSE_ON
+    BOOL hasFocus = [mWin isKeyWindow];
+#endif
+
+    DBG_PRINT( "requestFocusParent0 - window: %p, parent: %p, hasFocus %d (START)\n", mWin, pWin, hasFocus );
+    if(NULL != pWin) {
+        [pWin makeKeyWindow];
     }
-
-    DBG_PRINT( "requestFocus - window: %p, force %d (END)\n", win, force);
+    DBG_PRINT( "requestFocusParent0 - window: %p, parent: %p (END)\n", mWin, pWin);
 
     [pool release];
 }
