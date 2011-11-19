@@ -30,7 +30,6 @@ package jogamp.newt.driver.android;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.newt.Window;
-import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 
 import jogamp.newt.driver.android.AndroidWindow;
@@ -63,9 +62,7 @@ public class NewtBaseActivity extends Activity {
    }     
    
    public void setContentView(android.view.Window androidWindow, Window newtWindow) {
-       if(newtWindow instanceof GLWindow) {
-           newtWindow = ((GLWindow)newtWindow).getWindow();
-       }
+       newtWindow = newtWindow.getDelegatedWindow();
        if(newtWindow instanceof AndroidWindow) {
            this.newtWindow = (AndroidWindow)newtWindow;
            this.newtWindow.setAndroidWindow(androidWindow);

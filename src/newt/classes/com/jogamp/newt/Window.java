@@ -134,6 +134,11 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
 
     boolean isVisible();
 
+    /** 
+     * If the implementation uses delegation, return the delegated {@link Window} instance, 
+     * otherwise return <code>this</code> instance. */
+    Window getDelegatedWindow();
+    
     //
     // Child Window Management
     // 

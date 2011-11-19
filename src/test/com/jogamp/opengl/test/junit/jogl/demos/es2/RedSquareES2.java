@@ -205,7 +205,7 @@ public class RedSquareES2 implements GLEventListener {
     class MyMouseAdapter extends MouseAdapter {
         public void mouseClicked(MouseEvent e) {
             System.err.println(e);
-            if(null != glWindow && e.getSource() == glWindow.getWindow()) {
+            if(null != glWindow && e.getSource() == glWindow.getDelegatedWindow()) {
                 if(e.getX() < glWindow.getWidth()/2) {
                     glWindow.setFullscreen(!glWindow.isFullscreen());
                     System.err.println("setFullscreen: "+glWindow.isFullscreen());

@@ -55,8 +55,8 @@ import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.Animator;
 
 /**
- * An implementation of {@link javax.media.opengl.GLAutoDrawable} interface,
- * using an aggregation of a {@link com.jogamp.newt.Window} implementation.
+ * An implementation of {@link GLAutoDrawable} and {@link Window} interface,
+ * using a delegated {@link Window} instance, which may be an aggregation (lifecycle: created and destroyed).
  * <P>
  * This implementation does not make the OpenGL context current<br>
  * before calling the various input EventListener callbacks, ie {@link com.jogamp.newt.event.MouseListener} etc.<br>
@@ -196,8 +196,8 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         return window.getRequestedCapabilities();
     }
 
-    public final Window getWindow() {
-        return window;
+    public final Window getDelegatedWindow() {
+        return window.getDelegatedWindow();
     }
 
     public final NativeWindow getParent() {

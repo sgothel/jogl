@@ -46,6 +46,7 @@ package com.jogamp.newt.event;
  *   <li> KeyEvent    <code>300..30x</code></li>
  * </ul><br>
  */
+@SuppressWarnings("serial")
 public class NEWTEvent extends java.util.EventObject {
     private final boolean isSystemEvent;
     private final int eventType;

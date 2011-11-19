@@ -467,7 +467,7 @@ public class TestParenting01aAWT extends UITestCase {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);
         }
-        if(!MiscUtils.setFieldIfExists(demo, "window", glWindow.getWindow())) {
+        if(!MiscUtils.setFieldIfExists(demo, "window", glWindow.getDelegatedWindow())) {
             MiscUtils.setFieldIfExists(demo, "glWindow", glWindow);
         }
     }
