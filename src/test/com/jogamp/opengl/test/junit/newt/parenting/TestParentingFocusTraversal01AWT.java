@@ -267,7 +267,6 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
             Thread.sleep(durationPerTest/numFocus);
             
             // direct NEWT request focus
-            System.err.println("AAAAAAAAAAAAAA");
             glWindow1.requestFocus();
             Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA)); 
             Assert.assertEquals(true,  glWindow1FA.focusGained());

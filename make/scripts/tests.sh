@@ -75,7 +75,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
-    #D_ARGS="-Dnewt.debug.Window"
+    D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Xprof"
     #D_ARGS="-Djogl.debug.Animator"
@@ -223,7 +223,7 @@ function testswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper
 #testawt com.jogamp.opengl.test.junit.newt.TestEventSourceNotAWTBug
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
-#testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot
+#testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT $*
