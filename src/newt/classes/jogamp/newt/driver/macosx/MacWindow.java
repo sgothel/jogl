@@ -177,21 +177,20 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
             if( 0 != ( FLAG_CHANGE_DECORATION & flags) ||
                 0 != ( FLAG_CHANGE_PARENTING & flags) ||
                 0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
-                 // FIXME: need solution for fullscreen ..
                 createWindow(isOffscreenInstance, true, pS, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
                 if(isVisible()) { flags |= FLAG_CHANGE_VISIBILITY; } 
             }
             if(x>=0 && y>=0) {
                 if( !isOffscreenInstance ) {                
                     setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), pS.getX(), pS.getY());
-                } // FIXME: need solution for position ..
+                } // else no offscreen position
                 // no native event (fullscreen, some reparenting)
                 positionChanged(true, getLocationOnScreenImpl(0, 0)); // incl. validation
             }
             if(width>0 && height>0) {
                 if( !isOffscreenInstance ) {                
                     setContentSize0(getWindowHandle(), width, height);
-                } // FIXME: need solution for size ..
+                } // else offscreen size is realized via recreation
                 // no native event (fullscreen, some reparenting)
                 sizeChanged(true, width, height, false); // incl. validation (incl. repositioning)
             }
@@ -236,7 +235,7 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
     protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
         if( !isOffscreenInstance ) {                
             return setPointerVisible0(getWindowHandle(), pointerVisible);
-        } // else FIXME: need solution
+        } // else may need offscreen solution ? FIXME
         return false;
     }
 
@@ -244,7 +243,7 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
     protected boolean confinePointerImpl(final boolean confine) {
         if( !isOffscreenInstance ) {                
             return confinePointer0(getWindowHandle(), confine);
-        } // else FIXME: need solution
+        } // else may need offscreen solution ? FIXME
         return false;
     }
     
@@ -252,7 +251,7 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
     protected void warpPointerImpl(final int x, final int y) {
         if( !isOffscreenInstance ) {                
             warpPointer0(getWindowHandle(), x, y);
-        } // else FIXME: need solution
+        } // else may need offscreen solution ? FIXME
     }
     
     @Override
