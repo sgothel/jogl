@@ -35,6 +35,7 @@ import org.junit.Assume;
 import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Button;
+import java.awt.Color;
 import java.awt.Robot;
 import java.lang.reflect.InvocationTargetException;
 
@@ -119,7 +120,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         AWTFocusAdapter frame1FA = new AWTFocusAdapter("frame1");
         frame1.addFocusListener(frame1FA);
         frame1.getContentPane().add(newtCanvasAWT, BorderLayout.CENTER);
-        Button button = new Button("Click me ..");
+        final Button button = new Button("Click me ..");
         AWTFocusAdapter buttonFA = new AWTFocusAdapter("Button");
         button.addFocusListener(buttonFA);
         AWTKeyAdapter buttonKA = new AWTKeyAdapter("Button");
@@ -127,7 +128,10 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         eventCountAdapters.add(buttonKA);
         frame1.getContentPane().add(button, BorderLayout.NORTH);
         frame1.setSize(width, height);
-        frame1.setVisible(true);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame1.setVisible(true);
+            } } );
         Assert.assertTrue(AWTRobotUtil.toFront(robot, frame1));
 
         Thread.sleep(durationPerTest); // manual testing

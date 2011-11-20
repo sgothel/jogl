@@ -102,6 +102,9 @@ public class AWTRobotUtil {
     public static boolean toFront(Robot robot, final java.awt.Window window)
         throws AWTException, InterruptedException, InvocationTargetException {
 
+        AWTWindowFocusAdapter winFA = new AWTWindowFocusAdapter("window");
+        window.addWindowFocusListener(winFA);
+        
         if(null == robot) {
             robot = new Robot();
             robot.setAutoWaitForIdle(true);
@@ -119,11 +122,11 @@ public class AWTRobotUtil {
             }});
         robot.delay(ROBOT_DELAY);
 
-        KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
         int wait;
-        for (wait=0; wait<POLL_DIVIDER && window != kfm.getFocusedWindow(); wait++) {
+        for (wait=0; wait<POLL_DIVIDER && !winFA.focusGained(); wait++) {
             Thread.sleep(TIME_SLICE);
         }
+        window.removeWindowFocusListener(winFA);
         return wait<POLL_DIVIDER;
     }
 

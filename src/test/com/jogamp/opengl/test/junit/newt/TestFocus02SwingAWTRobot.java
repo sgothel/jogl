@@ -145,14 +145,17 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         jPanel1.add(new Button("west"), BorderLayout.WEST);
         jPanel1.add(container1, BorderLayout.CENTER);
 
-        JFrame jFrame1 = new JFrame("Swing Parent JFrame");
+        final JFrame jFrame1 = new JFrame("Swing Parent JFrame");
         AWTFocusAdapter jFrame1FA = new AWTFocusAdapter("JFrame1");
         jFrame1.addFocusListener(jFrame1FA);
         // jFrame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
         jFrame1.setContentPane(jPanel1);
         jFrame1.setSize(width, height);
-        jFrame1.setVisible(true); // from here on, we need to run modifications on EDT
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                jFrame1.setVisible(true);
+            } } );
         Assert.assertTrue(AWTRobotUtil.toFront(robot, jFrame1));
 
         int wait=0;
