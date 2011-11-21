@@ -267,22 +267,6 @@ public abstract class GLDrawableFactory {
   public abstract boolean getWasSharedContextCreated(AbstractGraphicsDevice device);
 
   /**
-   * Returns the shared context mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
-   * either a pre-existing or newly created, or <code>null</code> if creation failed or not supported.<br>
-   * Creation of the shared context is tried only once.
-   *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
-   */
-  public final GLContext getOrCreateSharedContext(AbstractGraphicsDevice device) {
-      device = validateDevice(device);
-      if(null!=device) {
-        return getOrCreateSharedContextImpl(device);
-      }
-      return null;
-  }
-  protected abstract GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device);
-
-  /**
    * Returns the sole GLDrawableFactory instance for the desktop (X11, WGL, ..) if exist or null
    */
   public static GLDrawableFactory getDesktopFactory() {
