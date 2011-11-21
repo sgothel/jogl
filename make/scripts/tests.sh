@@ -198,12 +198,13 @@ function testswt() {
 #testawt javax.media.opengl.awt.GLCanvas $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestSwingAWT01GLn
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT02WindowClosing
 #testawt com.jogamp.opengl.test.junit.jogl.awt.text.TestAWTTextRendererUseVertexArrayBug464
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWTAnalyzeBug455 $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestTexture01AWT
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461OffscreenSupersamplingSwingAWT
