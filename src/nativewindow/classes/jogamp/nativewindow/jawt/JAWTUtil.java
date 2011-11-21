@@ -109,6 +109,10 @@ public class JAWTUtil {
   }
   
   static {
+    if(DEBUG) {
+        System.err.println("JAWTUtil initialization (JAWT/JNI/...");
+        // Thread.dumpStack();
+    }
     JAWTJNILibLoader.initSingleton();
     JAWTJNILibLoader.loadNativeWindow("awt");
 

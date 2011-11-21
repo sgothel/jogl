@@ -47,16 +47,18 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     boolean closeDisplay = false;
 
     /** Constructs a new X11GraphicsDevice corresponding to the given connection and default
-     *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#createDefaultToolkitLock(java.lang.String, long)}.<br>
+     *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.<br>
      *  Note that this is not an open connection, ie no native display handle exist.
      *  This constructor exist to setup a default device connection.
+     *  @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int)
      */
     public X11GraphicsDevice(String connection, int unitID) {
         super(NativeWindowFactory.TYPE_X11, connection, unitID);
     }
 
     /** Constructs a new X11GraphicsDevice corresponding to the given native display handle and default
-     *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#createDefaultToolkitLock(java.lang.String, long)}.
+     *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#createDefaultToolkitLock(String, long)}.
+     *  @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long)
      */
     public X11GraphicsDevice(long display, int unitID) {
         // FIXME: derive unitID from connection could be buggy, one DISPLAY for all screens for example..
@@ -69,6 +71,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     /**
      * @param display the Display connection
      * @param locker custom {@link javax.media.nativewindow.ToolkitLock}, eg to force null locking in NEWT
+     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long, ToolkitLock)
      */
     public X11GraphicsDevice(long display, int unitID, ToolkitLock locker) {
         super(NativeWindowFactory.TYPE_X11, X11Util.XDisplayString(display), unitID, display, locker);

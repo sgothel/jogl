@@ -335,7 +335,7 @@ public abstract class NativeWindowFactory {
      *   <li> Otherwise return {@link jogamp.nativewindow.NullToolkitLock} </li>
      * </ul>
      */
-    public static ToolkitLock getDefaultToolkitLock(String type) {
+    /* package */ static ToolkitLock getDefaultToolkitLock(String type) {
         if( requiresToolkitLock() ) {
             if( TYPE_X11 == type || TYPE_AWT == type && TYPE_X11 == getNativeWindowType(false) ) {
                 if( isAWTAvailable() ) {
@@ -346,7 +346,7 @@ public abstract class NativeWindowFactory {
         return NativeWindowFactoryImpl.getNullToolkitLock();
     }
 
-    protected static ToolkitLock getAWTToolkitLock() {
+    /* package */ static ToolkitLock getAWTToolkitLock() {
         Object resO = ReflectionUtil.callMethod(null, jawtUtilGetJAWTToolkitMethod);
 
         if(resO instanceof ToolkitLock) {

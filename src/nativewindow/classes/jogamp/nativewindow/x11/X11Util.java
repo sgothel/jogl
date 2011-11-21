@@ -97,9 +97,14 @@ public class X11Util {
                 System.err.println("X11Util firstX11ActionOnProcess: "+firstX11ActionOnProcess+
                                    ", XINITTHREADS_ALWAYS_ENABLED "+XINITTHREADS_ALWAYS_ENABLED+
                                    ", requiresX11Lock "+requiresX11Lock); 
+                // Thread.dumpStack();
             }
             isInit = true;
         }
+    }
+
+    public static synchronized boolean requiresToolkitLock() {
+        return requiresX11Lock;
     }
 
     public static void setX11ErrorHandler(boolean onoff, boolean quiet) {
@@ -119,10 +124,6 @@ public class X11Util {
                 }
             }
         }
-    }
-
-    public static boolean requiresToolkitLock() {
-        return requiresX11Lock;
     }
 
     public static void lockDefaultToolkit(long dpyHandle) {
