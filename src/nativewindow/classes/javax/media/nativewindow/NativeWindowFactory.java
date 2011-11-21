@@ -208,7 +208,7 @@ public abstract class NativeWindowFactory {
                 AccessController.doPrivileged(new PrivilegedAction<Object>() {
                     public Object run() {
                         try {
-                            jawtUtilClass = Class.forName(JAWTUtilClassName, false, NativeWindowFactory.class.getClassLoader());
+                            jawtUtilClass = Class.forName(JAWTUtilClassName, true, NativeWindowFactory.class.getClassLoader());
                             jawtUtilInitMethod = jawtUtilClass.getDeclaredMethod("initSingleton", (Class[])null);
                             jawtUtilInitMethod.setAccessible(true);
                             jawtUtilGetJAWTToolkitMethod = jawtUtilClass.getDeclaredMethod("getJAWTToolkitLock", new Class[]{});

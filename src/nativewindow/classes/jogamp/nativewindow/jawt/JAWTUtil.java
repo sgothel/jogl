@@ -109,7 +109,7 @@ public class JAWTUtil {
   }
   
   static {
-    JAWTJNILibLoader.loadAWTImpl();
+    JAWTJNILibLoader.initSingleton();
     JAWTJNILibLoader.loadNativeWindow("awt");
 
     headlessMode = GraphicsEnvironment.isHeadless();

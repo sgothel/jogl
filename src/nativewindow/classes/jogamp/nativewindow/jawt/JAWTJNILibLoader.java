@@ -46,8 +46,8 @@ import java.awt.Toolkit;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-public class JAWTJNILibLoader extends NWJNILibLoader {
-  public static void loadAWTImpl() {
+public class JAWTJNILibLoader extends NWJNILibLoader {  
+  static {
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
       public Object run() {
         // Make sure that awt.dll is loaded before loading jawt.dll. Otherwise
@@ -73,4 +73,9 @@ public class JAWTJNILibLoader extends NWJNILibLoader {
       }
     });
   }
+  
+  public static void initSingleton() {
+      // just exist to ensure static init has been run      
+  }
+  
 }
