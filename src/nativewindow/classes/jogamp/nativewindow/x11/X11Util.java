@@ -54,7 +54,7 @@ public class X11Util {
     /** 
      * See Bug 515 - https://jogamp.org/bugzilla/show_bug.cgi?id=515
      * 
-     * It is observed that ATI X11 drivers, eg. fglrx 8.78.6 and fglrx 11.08/8.881,
+     * It is observed that ATI X11 drivers, eg. fglrx 8.78.6, fglrx 11.08/8.881 and fglrx 11.11/8.911,
      * are quite sensitive to multiple Display connections.
      * Here, closing displays shall happen in the same order as
      * they were opened, -OR- shall not be closed at all!
@@ -305,9 +305,9 @@ public class X11Util {
     public static void dumpOpenDisplayConnections() {
         synchronized(globalLock) {
             System.err.println("X11Util: Open X11 Display Connections: "+openDisplayList.size());
-            for(int i=0; i<pendingDisplayList.size(); i++) {
+            for(int i=0; i<openDisplayList.size(); i++) {
                 NamedDisplay ndpy = openDisplayList.get(i);
-                System.err.println("X11Util: ["+i+"]: "+ndpy);
+                System.err.println("X11Util: Open["+i+"]: "+ndpy);
                 if(null!=ndpy) {
                     Throwable t = ndpy.getCreationStack();
                     if(null!=t) {
@@ -317,7 +317,7 @@ public class X11Util {
             }
         }
     }
-
+    
     public static int getPendingDisplayConnectionNumber() {
         synchronized(globalLock) {
             return pendingDisplayList.size();
@@ -329,7 +329,7 @@ public class X11Util {
             System.err.println("X11Util: Pending X11 Display Connections: "+pendingDisplayList.size());
             for(int i=0; i<pendingDisplayList.size(); i++) {
                 NamedDisplay ndpy = (NamedDisplay) pendingDisplayList.get(i);
-                System.err.println("X11Util: ["+i+"]: "+ndpy);
+                System.err.println("X11Util: Pending["+i+"]: "+ndpy);
                 if(null!=ndpy) {
                     Throwable t = ndpy.getCreationStack();
                     if(null!=t) {

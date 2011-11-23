@@ -11,7 +11,25 @@
 
 static void testOrder(int reverseDestroyOrder, const char * msg);
 
+static int useXInitThreads = 0;
+static int useXLockDisplay = 0;
+
 int main(int nargs, char **vargs) {
+    int arg=1;
+    while(arg<nargs) {
+       if(0 == strcmp(vargs[arg], "-xthreads")) {
+          useXInitThreads = 1;
+       } else if(0 == strcmp(vargs[arg], "-xlock")) {
+          useXLockDisplay = 1;
+       }
+       arg++;
+    }
+    fprintf(stderr, "-xthreads (XInitThreads): %d\n", useXInitThreads);
+    fprintf(stderr, "-xlock    (XLockDisplay): %d\n", useXLockDisplay);
+
+    if( useXInitThreads ) {
+      XInitThreads();
+    }
     testOrder(0, "Normal order");
     testOrder(1, "Reverse order");
     return 0;
@@ -19,6 +37,17 @@ int main(int nargs, char **vargs) {
 
 static void createGLWin(Display *dpy, int width, int height, Window *rWin, GLXContext *rCtx);
 static void useGL(Display *dpy, Window win, GLXContext ctx, int width, int height);
+
+static void XLOCKDISPLAY(Display *dpy) {
+    if( useXLockDisplay ) {
+        XLockDisplay(dpy);
+    }
+}
+static void XUNLOCKDISPLAY(Display *dpy) {
+    if( useXLockDisplay ) {
+        XUnlockDisplay(dpy);
+    }
+}
 
 void testOrder(int reverseDestroyOrder, const char * msg) {
     int major, minor;
@@ -32,35 +61,58 @@ void testOrder(int reverseDestroyOrder, const char * msg) {
 
     fprintf(stderr, "%s: Create #1\n", msg);
     disp1 = XOpenDisplay(NULL);
-    createGLWin(disp1, 200, 200, &win1, &ctx1);
-    useGL(disp1, win1, ctx1, 200, 200);
+    XLOCKDISPLAY(disp1);
+      createGLWin(disp1, 200, 200, &win1, &ctx1);
+      useGL(disp1, win1, ctx1, 200, 200);
+    XUNLOCKDISPLAY(disp1);
 
     fprintf(stderr, "%s: Create #2\n", msg);
     disp2 = XOpenDisplay(NULL);
-    createGLWin(disp2, 300, 300, &win2, &ctx2);
-    useGL(disp2, win2, ctx2, 300, 300);
+    XLOCKDISPLAY(disp2);
+      createGLWin(disp2, 300, 300, &win2, &ctx2);
+      useGL(disp2, win2, ctx2, 300, 300);
+    XUNLOCKDISPLAY(disp2);
 
     if(reverseDestroyOrder) {
-        fprintf(stderr, "%s: Destroy #2\n", msg);
-        glXMakeCurrent(disp2, 0, 0);
-        glXDestroyContext(disp2, ctx2);
+        fprintf(stderr, "%s: Destroy #2.0\n", msg);
+        XLOCKDISPLAY(disp2);
+          glXMakeCurrent(disp2, 0, 0);
+          glXDestroyContext(disp2, ctx2);
+        XUNLOCKDISPLAY(disp2);
         XCloseDisplay(disp2);
+        fprintf(stderr, "%s: Destroy #2.X\n", msg);
 
-        fprintf(stderr, "%s: Destroy #1\n", msg);
-        glXMakeCurrent(disp1, 0, 0);
-        glXDestroyContext(disp1, ctx1);
+        fprintf(stderr, "%s: Destroy #1.0\n", msg);
+        XLOCKDISPLAY(disp1);
+        fprintf(stderr, "%s: Destroy #1.1\n", msg);
+          glXMakeCurrent(disp1, 0, 0);
+          fprintf(stderr, "%s: Destroy #1.2\n", msg);
+          glXDestroyContext(disp1, ctx1);
+          fprintf(stderr, "%s: Destroy #1.3\n", msg);
+        XUNLOCKDISPLAY(disp1);
+        fprintf(stderr, "%s: Destroy #1.4\n", msg);
         XCloseDisplay(disp1);
+        fprintf(stderr, "%s: Destroy #1.X\n", msg);
     } else {
-        fprintf(stderr, "%s: Destroy #1\n", msg);
-        glXMakeCurrent(disp1, 0, 0);
-        glXDestroyContext(disp1, ctx1);
+        fprintf(stderr, "%s: Destroy #1.0\n", msg);
+        XLOCKDISPLAY(disp1);
+          glXMakeCurrent(disp1, 0, 0);
+          glXDestroyContext(disp1, ctx1);
+        XUNLOCKDISPLAY(disp1);
         XCloseDisplay(disp1);
+        fprintf(stderr, "%s: Destroy #1.X\n", msg);
 
-        fprintf(stderr, "%s: Destroy #2\n", msg);
-        glXMakeCurrent(disp2, 0, 0);
-        glXDestroyContext(disp2, ctx2);
+        fprintf(stderr, "%s: Destroy #2.0\n", msg);
+        XLOCKDISPLAY(disp2);
+        fprintf(stderr, "%s: Destroy #2.1\n", msg);
+          glXMakeCurrent(disp2, 0, 0);
+          fprintf(stderr, "%s: Destroy #2.2\n", msg);
+          glXDestroyContext(disp2, ctx2);
+          fprintf(stderr, "%s: Destroy #2.3\n", msg);
+        XUNLOCKDISPLAY(disp2);
+        fprintf(stderr, "%s: Destroy #2.4\n", msg);
         XCloseDisplay(disp2);
-
+        fprintf(stderr, "%s: Destroy #2.X\n", msg);
     }
 
     fprintf(stderr, "%s: Success - no bug\n", msg);
