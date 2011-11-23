@@ -407,19 +407,25 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       return isGLXVersionGreaterEqualOneThree(device);
   }
 
-  protected final NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device,
+  protected final NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice deviceReq,
                                                            GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
                                                            GLCapabilitiesChooser chooser,
                                                            int width, int height) {
-    X11GraphicsScreen screen = null;
-    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
-    if(null!=sr) {
-        screen = (X11GraphicsScreen) sr.getScreen();
+    if(null == deviceReq) {
+        throw new InternalError("deviceReq is null");
     }
-    if(null==screen) {
-        return null;
+    final SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(deviceReq);
+    if(null==sr) {
+        throw new InternalError("No SharedResource for: "+deviceReq);
     }
+    final X11GraphicsScreen sharedScreen = (X11GraphicsScreen) sr.getScreen();
+    final AbstractGraphicsDevice sharedDevice = sharedScreen.getDevice(); // should be same ..
 
+    // create screen/device pair
+    X11GraphicsDevice device = new X11GraphicsDevice(X11Util.openDisplay(sharedDevice.getConnection()), AbstractGraphicsDevice.DEFAULT_UNIT);
+    device.setCloseDisplay(true);
+    X11GraphicsScreen screen = new X11GraphicsScreen(device, sharedScreen.getIndex()); 
+    
     WrappedSurface ns = new WrappedSurface(
                X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen) );
     if(ns != null) {
