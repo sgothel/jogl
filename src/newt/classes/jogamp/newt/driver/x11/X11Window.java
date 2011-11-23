@@ -57,16 +57,16 @@ public class X11Window extends WindowImpl {
         final X11Screen screen = (X11Screen) getScreen();
         final X11Display display = (X11Display) screen.getDisplay();
         final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice());
-        config = factory.chooseGraphicsConfiguration(
+        final X11GraphicsConfiguration cfg = (X11GraphicsConfiguration) factory.chooseGraphicsConfiguration(
                 capsRequested, capsRequested, capabilitiesChooser, screen.getGraphicsScreen());
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("X11Window.createNativeImpl() factory: "+factory+", chosen config: "+config);
+            System.err.println("X11Window.createNativeImpl() factory: "+factory+", chosen config: "+cfg);
         }        
-        if (config == null) {
+        if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
-        X11GraphicsConfiguration x11config = (X11GraphicsConfiguration) config;
-        final long visualID = x11config.getVisualID();
+        setGraphicsConfiguration(cfg);
+        final long visualID = cfg.getVisualID();
         final int flags = getReconfigureFlags(0, true) & 
                           ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;        
         setWindowHandle(CreateWindow0(getParentWindowHandle(),

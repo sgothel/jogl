@@ -196,9 +196,9 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
               throw new NativeWindowException("Unable to created dummy NSWindow (layered case)");
             }
             // fix caps reflecting offscreen!
-            Capabilities caps = (Capabilities) config.getChosenCapabilities().cloneMutable();
+            Capabilities caps = (Capabilities) getPrivateGraphicsConfiguration().getChosenCapabilities().cloneMutable();
             caps.setOnscreen(false);
-            config.setChosenCapabilities(caps);
+            getPrivateGraphicsConfiguration().setChosenCapabilities(caps);
         } 
         if(0 == rootSurfaceLayerHandle) {
             rootSurfaceLayerHandle = OSXUtil.CreateCALayer();

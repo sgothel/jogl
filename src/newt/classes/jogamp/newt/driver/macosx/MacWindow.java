@@ -34,6 +34,7 @@
 
 package jogamp.newt.driver.macosx;
 
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
@@ -59,11 +60,12 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
     
     @Override
     protected void createNativeImpl() {
-        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(
+        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(
                 capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen());
-        if (config == null) {
+        if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
+        setGraphicsConfiguration(cfg);
         reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_VISIBILITY, true));        
         if (0 == getWindowHandle()) {
             throw new NativeWindowException("Error creating window");
@@ -303,7 +305,7 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
             }
             setWindowHandle(createWindow0(getParentWindowHandle(),
                                  pS.getX(), pS.getY(), width, height,
-                                 (config.getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance),
+                                 (getGraphicsConfiguration().getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance),
                                  fullscreen,
                                  ((isUndecorated() || offscreenInstance) ?
                                    NSBorderlessWindowMask :

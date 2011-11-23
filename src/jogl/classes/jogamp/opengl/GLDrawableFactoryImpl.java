@@ -136,7 +136,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    final MutableGraphicsConfiguration config = (MutableGraphicsConfiguration) target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    final MutableGraphicsConfiguration config = (MutableGraphicsConfiguration) target.getGraphicsConfiguration();
     GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     AbstractGraphicsDevice adevice = config.getScreen().getDevice();
     GLDrawable result = null;

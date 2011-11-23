@@ -454,7 +454,7 @@ public abstract class GLContextImpl extends GLContext {
           boolean newCreated = false;
           if (!isCreated()) {
             GLProfile.initProfiles(
-                    getGLDrawable().getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice());
+                    getGLDrawable().getNativeSurface().getGraphicsConfiguration().getScreen().getDevice());
             newCreated = createImpl(); // may throws exception if fails!
             if (DEBUG) {
                 if(newCreated) {
@@ -548,7 +548,7 @@ public abstract class GLContextImpl extends GLContext {
    */
   protected final long createContextARB(long share, boolean direct) 
   {
-    AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
     AbstractGraphicsDevice device = config.getScreen().getDevice();
     GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     GLProfile glp = glCaps.getGLProfile();
@@ -654,7 +654,7 @@ public abstract class GLContextImpl extends GLContext {
        }
     }
     if(0!=_context) {
-        AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
+        AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
         if( isExtensionAvailable("GL_ARB_ES2_compatibility") ) {
             ctp |= CTX_PROFILE_ES2_COMPAT;
         }
@@ -873,7 +873,7 @@ public abstract class GLContextImpl extends GLContext {
 
     updateGLXProcAddressTable();
 
-    AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
     final int ctxImplBits = drawable.getChosenGLCapabilities().getHardwareAccelerated() ? GLContext.CTX_IMPL_ACCEL_HARD : GLContext.CTX_IMPL_ACCEL_SOFT;
     contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits, ctxImplBits);

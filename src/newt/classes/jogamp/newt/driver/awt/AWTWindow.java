@@ -39,7 +39,9 @@ import java.awt.Container;
 import java.awt.DisplayMode;
 import java.awt.Frame;
 import java.awt.Insets;
+
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
 import javax.media.nativewindow.awt.AWTGraphicsDevice;
 import javax.media.nativewindow.awt.AWTGraphicsScreen;
 import javax.media.nativewindow.util.Point;
@@ -145,25 +147,22 @@ public class AWTWindow extends WindowImpl {
     public boolean hasDeviceChanged() {
         boolean res = canvas.hasDeviceChanged();
         if(res) {
-            config = canvas.getAWTGraphicsConfiguration();
-            if (config == null) {
+            final AWTGraphicsConfiguration cfg = canvas.getAWTGraphicsConfiguration();
+            if (null == cfg) {
                 throw new NativeWindowException("Error Device change null GraphicsConfiguration: "+this);
             }
-            updateDeviceData();
+            setGraphicsConfiguration(cfg);
+            
+            // propagate new info ..
+            ((AWTScreen)getScreen()).setAWTGraphicsScreen((AWTGraphicsScreen)cfg.getScreen());
+            ((AWTDisplay)getScreen().getDisplay()).setAWTGraphicsDevice((AWTGraphicsDevice)cfg.getScreen().getDevice());
+    
+            final DisplayMode mode = ((AWTGraphicsDevice)cfg.getScreen().getDevice()).getGraphicsDevice().getDisplayMode();
+            if(null != mode) {
+                ((AWTScreen)getScreen()).setScreenSize(mode.getWidth(), mode.getHeight());
+            }
         }
         return res;
-    }
-
-    private void updateDeviceData() {
-        // propagate new info ..
-        ((AWTScreen)getScreen()).setAWTGraphicsScreen((AWTGraphicsScreen)config.getScreen());
-        ((AWTDisplay)getScreen().getDisplay()).setAWTGraphicsDevice((AWTGraphicsDevice)config.getScreen().getDevice());
-
-        final DisplayMode mode = ((AWTGraphicsDevice)config.getScreen().getDevice()).getGraphicsDevice().getDisplayMode();
-        if(null != mode) {
-            ((AWTScreen)getScreen()).setScreenSize(mode.getWidth(), mode.getHeight());
-        }
-        
     }
 
     protected void updateInsetsImpl(javax.media.nativewindow.util.Insets insets) {
@@ -202,11 +201,12 @@ public class AWTWindow extends WindowImpl {
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             if( 0 != ( FLAG_IS_VISIBLE & flags ) ) {
                 if( !hasDeviceChanged() ) {
-                    // oops ??
-                    config = canvas.getAWTGraphicsConfiguration();
-                    if(null == config) {
+                    // oops ??                   
+                    final AWTGraphicsConfiguration cfg = canvas.getAWTGraphicsConfiguration();
+                    if(null == cfg) {
                         throw new NativeWindowException("Error: !hasDeviceChanged && null == GraphicsConfiguration: "+this);
                     }
+                    setGraphicsConfiguration(cfg);
                 }
             }
             visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));

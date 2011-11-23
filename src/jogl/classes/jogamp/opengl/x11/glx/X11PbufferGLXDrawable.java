@@ -82,7 +82,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
   }
 
   private void createPbuffer() {
-      X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+      X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration();
       AbstractGraphicsScreen aScreen = config.getScreen();
       AbstractGraphicsDevice aDevice = aScreen.getDevice();
       long display = aDevice.getHandle();

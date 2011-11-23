@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -50,7 +51,7 @@ public interface AbstractGraphicsConfiguration extends Cloneable {
 
     /**
      * Return the capabilities reflecting this graphics configuration,
-     * which may differ from the capabilites used to choose this configuration.
+     * which may differ from the capabilities used to choose this configuration.
      *
      * @return An immutable instance of the Capabilities to avoid mutation by
      * the user.
@@ -61,7 +62,7 @@ public interface AbstractGraphicsConfiguration extends Cloneable {
      * Return the capabilities used to choose this graphics configuration.
      *
      * These may be used to reconfigure the NativeWindow in case
-     * the device changes in a multi screen environment.
+     * the device changes in a multiple screen environment.
      *
      * @return An immutable instance of the Capabilities to avoid mutation by
      * the user.
@@ -69,10 +70,10 @@ public interface AbstractGraphicsConfiguration extends Cloneable {
     public CapabilitiesImmutable getRequestedCapabilities();
 
     /**
-     * In case this instance already reflects a native configuration,
-     * return this one.
-     * Otherwise return the encapsuled native configuration, 
-     * as it shall be included e.g. in the AWT case.
+     * In case the implementation utilizes a delegation pattern to wrap abstract toolkits,
+     * this method shall return the native {@link AbstractGraphicsConfiguration},
+     * otherwise this instance.
+     * @see NativeSurface#getGraphicsConfiguration()
      */
     public AbstractGraphicsConfiguration getNativeGraphicsConfiguration();
 }

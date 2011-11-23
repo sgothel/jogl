@@ -90,7 +90,7 @@ public class TestWindows01NEWT extends UITestCase {
             Assert.assertEquals(y, window.getY());
         } */
 
-        CapabilitiesImmutable chosenCapabilities = window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        CapabilitiesImmutable chosenCapabilities = window.getGraphicsConfiguration().getChosenCapabilities();
         Assert.assertNotNull(chosenCapabilities);
         Assert.assertTrue(chosenCapabilities.getGreenBits()>=5);
         Assert.assertTrue(chosenCapabilities.getBlueBits()>=5);

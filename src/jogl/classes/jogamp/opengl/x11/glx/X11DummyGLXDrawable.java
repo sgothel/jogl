@@ -50,7 +50,7 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
     this.realized = true;
 
     WrappedSurface ns = (WrappedSurface) getNativeSurface();
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)ns.getGraphicsConfiguration();
 
     X11GraphicsDevice device = (X11GraphicsDevice) screen.getDevice();
     long dpy = device.getHandle();
@@ -83,7 +83,7 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
   protected void destroyImpl() {
     if(0!=dummyWindow) {
         destroyHandle();
-        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration();
         X11Util.DestroyDummyWindow(config.getScreen().getDevice().getHandle(), dummyWindow);
     }
   }

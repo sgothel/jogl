@@ -189,7 +189,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             if (0 == hdc) {
                 throw new GLException("Error: HDC is null");
             }
-            WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+            WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) ns.getGraphicsConfiguration();
 
             if( !config.isExternal() ) {
                 if( !config.isDetermined() ) {

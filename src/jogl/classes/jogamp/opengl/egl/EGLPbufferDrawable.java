@@ -61,7 +61,7 @@ public class EGLPbufferDrawable extends EGLDrawable {
     }
     
     protected long createSurface(long eglDpy, long eglNativeCfg, long surfaceHandle) {
-        final AbstractGraphicsConfiguration config = getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        final AbstractGraphicsConfiguration config = getNativeSurface().getGraphicsConfiguration();
         final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
 
         if(useTexture) {

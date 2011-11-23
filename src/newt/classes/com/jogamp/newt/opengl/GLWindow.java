@@ -412,7 +412,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
                 } else {
                     nw = window;
                 }
-                GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) nw.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+                GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) nw.getGraphicsConfiguration().getChosenCapabilities();
                 if(null==factory) {
                     factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
                 }

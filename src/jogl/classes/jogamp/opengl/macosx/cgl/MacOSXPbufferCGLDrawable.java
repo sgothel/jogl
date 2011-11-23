@@ -126,7 +126,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
 
   private void createPbuffer() {
     final NativeSurface ns = getNativeSurface();
-    final DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    final DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) ns.getGraphicsConfiguration();
     final GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
     final GLProfile glProfile = capabilities.getGLProfile();
     MacOSXCGLDrawableFactory.SharedResource sr = ((MacOSXCGLDrawableFactory)factory).getOrCreateOSXSharedResource(config.getScreen().getDevice());

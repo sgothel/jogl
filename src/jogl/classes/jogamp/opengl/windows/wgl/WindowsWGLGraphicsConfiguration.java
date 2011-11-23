@@ -149,7 +149,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
      * @see #isDetermined()
      */
     public final void preselectGraphicsConfiguration(GLDrawableFactory factory, int[] pfdIDs) {
-        AbstractGraphicsDevice device = getNativeGraphicsConfiguration().getScreen().getDevice();
+        AbstractGraphicsDevice device = getScreen().getDevice();
         WindowsWGLGraphicsConfigurationFactory.preselectGraphicsConfiguration(chooser, factory, device, this, pfdIDs);
     }
 

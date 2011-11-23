@@ -212,7 +212,7 @@ public abstract class EGLContext extends GLContextImpl {
     }
 
     protected final void updateGLXProcAddressTable() {
-        final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
         final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
         final String key = "EGL-"+adevice.getUniqueID();
         if (DEBUG) {

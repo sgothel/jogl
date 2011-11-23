@@ -120,7 +120,7 @@ public class TestParenting02NEWT extends UITestCase {
         // glWindow1.addGLEventListener(demo1);
 
         glWindow1.setVisible(true);
-        CapabilitiesImmutable capsChosen = glWindow1.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        CapabilitiesImmutable capsChosen = glWindow1.getGraphicsConfiguration().getChosenCapabilities();
         Assert.assertNotNull(capsChosen);
         Assert.assertTrue(capsChosen.isOnscreen()==true);
 
@@ -142,7 +142,7 @@ public class TestParenting02NEWT extends UITestCase {
         // glWindow2.addGLEventListener(demo2);
 
         glWindow2.setVisible(true);
-        capsChosen = glWindow2.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        capsChosen = glWindow2.getGraphicsConfiguration().getChosenCapabilities();
         Assert.assertNotNull(capsChosen);
         Assert.assertTrue(capsChosen.isOnscreen()==true);
 

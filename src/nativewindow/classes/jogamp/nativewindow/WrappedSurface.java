@@ -65,6 +65,6 @@ public class WrappedSurface extends ProxySurface implements SurfaceChangeable {
   }
 
   public String toString() {
-    return "WrappedSurface[config " + config + ", displayHandle 0x" + Long.toHexString(getDisplayHandle()) + ", surfaceHandle 0x" + Long.toHexString(getSurfaceHandle()) + ", size " + getWidth() + "x" + getHeight() + "]";
+    return "WrappedSurface[config " + getPrivateGraphicsConfiguration() + ", displayHandle 0x" + Long.toHexString(getDisplayHandle()) + ", surfaceHandle 0x" + Long.toHexString(getSurfaceHandle()) + ", size " + getWidth() + "x" + getHeight() + "]";
   }
 }

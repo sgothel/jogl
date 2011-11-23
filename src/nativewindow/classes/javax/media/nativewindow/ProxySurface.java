@@ -34,18 +34,18 @@ import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 public abstract class ProxySurface implements NativeSurface {
+    private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
+    private AbstractGraphicsConfiguration config; // control access due to delegation
     protected RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
-    protected AbstractGraphicsConfiguration config;
     protected long displayHandle;
     protected int height;
     protected int scrnIndex;
     protected int width;
-    private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
 
     public ProxySurface(AbstractGraphicsConfiguration cfg) {
         invalidate();
         config = cfg;
-        displayHandle=cfg.getScreen().getDevice().getHandle();
+        displayHandle=cfg.getNativeGraphicsConfiguration().getScreen().getDevice().getHandle();
     }
 
     void invalidate() {
@@ -58,12 +58,16 @@ public abstract class ProxySurface implements NativeSurface {
         return displayHandle;
     }
 
-    public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
+    protected final AbstractGraphicsConfiguration getPrivateGraphicsConfiguration() {
         return config;
+    }
+    
+    public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
+        return config.getNativeGraphicsConfiguration();
     }
 
     public final int getScreenIndex() {
-        return config.getScreen().getIndex();
+        return getGraphicsConfiguration().getScreen().getIndex();
     }
 
     public abstract long getSurfaceHandle();
@@ -107,7 +111,7 @@ public abstract class ProxySurface implements NativeSurface {
 
         if ( LOCK_SURFACE_NOT_READY == res ) {
             try {
-                final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
+                final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
                 adevice.lock();
                 try {
                     res = lockSurfaceImpl();
@@ -129,7 +133,7 @@ public abstract class ProxySurface implements NativeSurface {
         surfaceLock.validateLocked();
 
         if (surfaceLock.getHoldCount() == 1) {
-            final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
+            final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
             try {
                 unlockSurfaceImpl();
             } finally {

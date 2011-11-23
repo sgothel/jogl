@@ -63,7 +63,7 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
         throw new GLException("WindowsDummyWGLDrawable: surface not ready (lockSurface)");
     }
     try {
-        WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration();
         config.updateGraphicsConfiguration(factory, ns, null);
         if (DEBUG) {
           System.err.println("!!! WindowsDummyWGLDrawable: "+config);

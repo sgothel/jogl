@@ -77,7 +77,7 @@ public class GDISurface extends ProxySurface {
   }
 
   public String toString() {
-    return "GDISurface[config "+config+
+    return "GDISurface[config "+getPrivateGraphicsConfiguration()+
                 ", displayHandle 0x"+Long.toHexString(getDisplayHandle())+
                 ", windowHandle 0x"+Long.toHexString(windowHandle)+
                 ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+

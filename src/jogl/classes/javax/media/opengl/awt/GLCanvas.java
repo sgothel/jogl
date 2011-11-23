@@ -279,7 +279,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
      * otherwise it is from an ancestor component that this Canvas is being
      * added to, and we go into this block.
      */
-    GraphicsConfiguration chosen =  awtConfig.getGraphicsConfiguration();
+    GraphicsConfiguration chosen =  awtConfig.getAWTGraphicsConfiguration();
 
     if (gc != null && chosen != null && !chosen.equals(gc)) {
       /*
@@ -308,7 +308,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         AWTGraphicsConfiguration config = chooseGraphicsConfiguration( (GLCapabilitiesImmutable)awtConfig.getChosenCapabilities(),
                                                                        (GLCapabilitiesImmutable)awtConfig.getRequestedCapabilities(),
                                                                        chooser, gc.getDevice());
-        final GraphicsConfiguration compatible = (null!=config)?config.getGraphicsConfiguration():null;
+        final GraphicsConfiguration compatible = (null!=config)?config.getAWTGraphicsConfiguration():null;
         boolean equalCaps = config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities());
         if(DEBUG) {
             Exception e = new Exception("Info: Call Stack: "+Thread.currentThread().getName());

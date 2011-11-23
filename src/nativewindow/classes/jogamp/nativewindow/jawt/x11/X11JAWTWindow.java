@@ -61,7 +61,8 @@ public class X11JAWTWindow extends JAWTWindow {
   }
 
   protected void validateNative() throws NativeWindowException {
-    final AWTGraphicsDevice awtDevice = (AWTGraphicsDevice) config.getScreen().getDevice();
+    // FIXME: REMOVE !!!!!!!!
+    final AWTGraphicsDevice awtDevice = (AWTGraphicsDevice) getPrivateGraphicsConfiguration().getScreen().getDevice();
 
     if(awtDevice.getHandle() != 0) {
         // subtype and handle set already, done
@@ -71,7 +72,7 @@ public class X11JAWTWindow extends JAWTWindow {
     long displayHandle = 0;
     
     // first try a pre-existing attached native configuration, ie native X11GraphicsDevice
-    AbstractGraphicsConfiguration aconfig = (null!=config) ? config.getNativeGraphicsConfiguration() : null;
+    AbstractGraphicsConfiguration aconfig = getGraphicsConfiguration();
     AbstractGraphicsScreen ascreen = (null!=aconfig) ? aconfig.getScreen() : null;
     AbstractGraphicsDevice adevice = (null!=ascreen) ? ascreen.getDevice() : null; // X11GraphicsDevice
     if(null!=adevice) {

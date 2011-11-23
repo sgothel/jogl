@@ -127,7 +127,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   private final void initGLXVersion() {
     if(null == glXVersion) {
-        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration();
         X11GraphicsDevice device = (X11GraphicsDevice) config.getScreen().getDevice();
 
         glXVersion = X11GLXDrawableFactory.getGLXVersion(device);
@@ -179,7 +179,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected void destroyContextARBImpl(long ctx) {
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration();
     long display = config.getScreen().getDevice().getHandle();
 
     glXMakeContextCurrent(display, 0, 0, 0);
@@ -239,7 +239,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         attribs.put(ctx_arb_attribs_idx_flags + 1, flags);
     }
 
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration();
     AbstractGraphicsDevice device = config.getScreen().getDevice();
     long display = device.getHandle();
 
@@ -289,7 +289,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     isDirect = false; // fall back
 
     X11GLXDrawableFactory factory = (X11GLXDrawableFactory)drawable.getFactoryImpl();
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration();
     AbstractGraphicsDevice device = config.getScreen().getDevice();
     X11GLXContext sharedContext = (X11GLXContext) factory.getOrCreateSharedContextImpl(device);
     long display = device.getHandle();
@@ -460,7 +460,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected final void updateGLXProcAddressTable() {
-    final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
     final String key = "GLX-"+adevice.getUniqueID();
     if (DEBUG) {
@@ -526,14 +526,14 @@ public abstract class X11GLXContext extends GLContextImpl {
     if (glExtensionName.equals("GL_ARB_pbuffer") ||
         glExtensionName.equals("GL_ARB_pixel_format")) {
       return getGLDrawable().getFactory().canCreateGLPbuffer(
-          drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice() );
+          drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice() );
     }
     return super.isExtensionAvailable(glExtensionName);
   }
 
   @Override
   protected void setSwapIntervalImpl(int interval) {
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration();
     GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     if(!glCaps.isOnscreen()) return;
 

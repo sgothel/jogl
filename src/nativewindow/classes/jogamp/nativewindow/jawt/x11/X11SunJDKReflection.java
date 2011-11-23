@@ -96,7 +96,7 @@ public class X11SunJDKReflection {
   public static int graphicsConfigurationGetVisualID(AbstractGraphicsConfiguration config) {
       try {
           if (config instanceof AWTGraphicsConfiguration) {
-              return graphicsConfigurationGetVisualID(((AWTGraphicsConfiguration) config).getGraphicsConfiguration());
+              return graphicsConfigurationGetVisualID(((AWTGraphicsConfiguration) config).getAWTGraphicsConfiguration());
           }
           return 0;
       } catch (Exception e) {

@@ -70,7 +70,7 @@ public class GLPbufferImpl implements GLPbuffer {
   public GLPbufferImpl(GLDrawableImpl pbufferDrawable,
                        GLContext parentContext) {
     GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)
-         pbufferDrawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+         pbufferDrawable.getNativeSurface().getGraphicsConfiguration().getChosenCapabilities();
     if(caps.isOnscreen()) {
         if(caps.isPBuffer()) {
             throw new IllegalArgumentException("Error: Given drawable is Onscreen and Pbuffer: "+pbufferDrawable);

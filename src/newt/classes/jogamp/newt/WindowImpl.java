@@ -87,7 +87,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private boolean screenReferenceAdded = false;
     private NativeWindow parentWindow = null;
     private long parentWindowHandle = 0;
-    protected AbstractGraphicsConfiguration config = null;
+    private AbstractGraphicsConfiguration config = null; // control access due to delegation
     protected CapabilitiesImmutable capsRequested = null;
     protected CapabilitiesChooser capabilitiesChooser = null; // default null -> default
     protected boolean fullscreen = false, hasFocus = false;    
@@ -215,6 +215,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    protected final void setGraphicsConfiguration(AbstractGraphicsConfiguration cfg) {
+        config = cfg;
+    }
+    
     public static interface LifecycleHook {
         /**
          * Reset of internal state counter, ie totalFrames, etc.
@@ -547,7 +551,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if ( LOCK_SURFACE_NOT_READY == res ) {
             try {
                 if( isNativeValid() ) {
-                    final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
+                    final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
                     adevice.lock();
                     try {
                         res = lockSurfaceImpl();
@@ -572,7 +576,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         windowLock.validateLocked();
 
         if (surfaceLock.getHoldCount() == 1) {
-            final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
+            final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
             try {
                 unlockSurfaceImpl();
             } finally {
@@ -615,8 +619,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return false;
     }
 
-    public AbstractGraphicsConfiguration getGraphicsConfiguration() {
-        return config;
+    public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
+        return config.getNativeGraphicsConfiguration();
     }
 
     public final long getDisplayHandle() {
@@ -1251,7 +1255,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public final CapabilitiesImmutable getChosenCapabilities() {
-        return config.getNativeGraphicsConfiguration().getChosenCapabilities();
+        return getGraphicsConfiguration().getChosenCapabilities();
     }
 
     public final CapabilitiesImmutable getRequestedCapabilities() {

@@ -239,7 +239,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         }
         
         // propagate data ..
-        config = eglConfig;
+        setGraphicsConfiguration(eglConfig);
         setWindowHandle(surfaceHandle);
         Log.d(MD.TAG, "createNativeImpl X");
     }

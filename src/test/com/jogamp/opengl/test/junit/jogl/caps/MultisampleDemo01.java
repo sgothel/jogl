@@ -63,7 +63,7 @@ class MultisampleDemo01 implements GLEventListener {
     }
 
     public void init(GLAutoDrawable drawable) {
-        AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
         System.err.println();
         System.err.println("Info: " + config);
         System.err.println();

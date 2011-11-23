@@ -56,7 +56,7 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
 
   protected void setRealizedImpl() {
     if(realized) {
-        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration();
         config.updateGraphicsConfiguration();
 
         if (DEBUG) {

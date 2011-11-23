@@ -167,6 +167,11 @@ public interface NativeSurface extends SurfaceUpdatedListener {
 
   /**
    * Returns the graphics configuration corresponding to this window.
+   * <p>
+   * In case the implementation utilizes a delegation pattern to wrap abstract toolkits,
+   * this method shall return the native {@link AbstractGraphicsConfiguration}.
+   * </p>
+   * @see AbstractGraphicsConfiguration#getNativeGraphicsConfiguration()
    * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
    */
   public AbstractGraphicsConfiguration getGraphicsConfiguration();

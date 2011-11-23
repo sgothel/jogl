@@ -141,11 +141,12 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
       return super.clone();
   }
 
-  public GraphicsConfiguration getGraphicsConfiguration() {
+  /** Return the AWT {@link GraphicsConfiguration}. */
+  public GraphicsConfiguration getAWTGraphicsConfiguration() {
     return config;
   }
 
-    @Override
+  @Override
   public AbstractGraphicsConfiguration getNativeGraphicsConfiguration() {
     return (null!=encapsulated)?encapsulated:this;
   }

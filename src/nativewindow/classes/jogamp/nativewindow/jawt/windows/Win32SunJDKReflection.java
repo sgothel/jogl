@@ -95,7 +95,7 @@ public class Win32SunJDKReflection {
   public static int graphicsConfigurationGetPixelFormatID(AbstractGraphicsConfiguration config) {
       try {
           if (config instanceof AWTGraphicsConfiguration) {
-              return graphicsConfigurationGetPixelFormatID(((AWTGraphicsConfiguration) config).getGraphicsConfiguration());
+              return graphicsConfigurationGetPixelFormatID(((AWTGraphicsConfiguration) config).getAWTGraphicsConfiguration());
           }
           return 0;
       } catch (Exception e) {

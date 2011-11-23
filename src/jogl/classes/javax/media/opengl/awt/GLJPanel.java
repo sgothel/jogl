@@ -310,7 +310,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       }
 
       if(!regenerate) {
-          AbstractGraphicsDevice adevice = disposeDrawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
+          AbstractGraphicsDevice adevice = disposeDrawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
           String adeviceMsg=null;
           if(DEBUG) {
             adeviceMsg = adevice.toString();
@@ -1633,7 +1633,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                   }
                 }
                 if (joglContext == null) {
-                  AbstractGraphicsDevice device = j2dContext.getGLDrawable().getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
+                  AbstractGraphicsDevice device = j2dContext.getGLDrawable().getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
                   if (factory.canCreateExternalGLDrawable(device)) {
                     joglDrawable = factory.createExternalGLDrawable();
                     // FIXME: Need to share with j2d context, due to FBO resource .. 

@@ -36,6 +36,8 @@ package jogamp.newt.driver.windows;
 
 import jogamp.nativewindow.windows.GDI;
 import jogamp.newt.WindowImpl;
+
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Insets;
@@ -101,13 +103,14 @@ public class WindowsWindow extends WindowImpl {
     }
 
     protected void createNativeImpl() {
-        WindowsScreen  screen = (WindowsScreen) getScreen();
-        WindowsDisplay display = (WindowsDisplay) screen.getDisplay();
-        config = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice()).chooseGraphicsConfiguration(
+        final WindowsScreen  screen = (WindowsScreen) getScreen();
+        final WindowsDisplay display = (WindowsDisplay) screen.getDisplay();
+        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice()).chooseGraphicsConfiguration(
                 capsRequested, capsRequested, capabilitiesChooser, screen.getGraphicsScreen());
-        if (config == null) {
+        if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
+        setGraphicsConfiguration(cfg);
         final int flags = getReconfigureFlags(0, true) & 
                           ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;
         setWindowHandle(CreateWindow0(display.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),

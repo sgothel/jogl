@@ -117,7 +117,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   }
 
   private void createPbuffer() {
-    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration();
     SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResource(config.getScreen().getDevice());
     long parentHdc = sharedResource.getDrawable().getNativeSurface().getSurfaceHandle();
     WGLExt wglExt = sharedResource.getContext().getWGLExt();

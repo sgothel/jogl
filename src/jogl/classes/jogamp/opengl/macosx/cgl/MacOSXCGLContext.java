@@ -215,7 +215,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         throw new GLException("GLContextShareSet returned a NULL OpenGL context");
       }
     }
-    MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
     GLCapabilitiesImmutable capabilitiesChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     if (capabilitiesChosen.getPbufferFloatingPointBuffers() &&
         !isTigerOrLater) {
@@ -291,7 +291,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   }
 
   protected final void updateGLXProcAddressTable() {
-    final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
     final String key = "MacOSX-"+adevice.getUniqueID();
     if (DEBUG) {
@@ -406,7 +406,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         long ctx = 0;
         final MacOSXCGLDrawable drawable = (MacOSXCGLDrawable) MacOSXCGLContext.this.drawable;
         final NativeSurface surface = drawable.getNativeSurface();
-        final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) surface.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) surface.getGraphicsConfiguration();
         final OffscreenLayerSurface backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(surface, true);        
         final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         long pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2NSPixelFormat(chosenCaps, ctp, major, minor);
@@ -548,7 +548,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     
     public long create(long share, int ctp, int major, int minor) {
       long ctx = 0;
-      MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+      MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
       GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
       long pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2CGLPixelFormat(chosenCaps, ctp, major, minor);
       if (pixelFormat == 0) {

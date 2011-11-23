@@ -83,7 +83,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
     if(DEBUG) {
         System.err.println("WindowsBitmapWGLDrawable (1): "+ns);
     }
-    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration();
     GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getRequestedCapabilities();
     int width = getWidth();
     int height = getHeight();

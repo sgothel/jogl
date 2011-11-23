@@ -51,14 +51,15 @@ public class Window extends jogamp.newt.WindowImpl {
         if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("GDL Window does not support window parenting");
         }
-        AbstractGraphicsScreen aScreen = getScreen().getGraphicsScreen();
-        AbstractGraphicsDevice aDevice = getScreen().getDisplay().getGraphicsDevice();
+        final AbstractGraphicsScreen aScreen = getScreen().getGraphicsScreen();
+        final AbstractGraphicsDevice aDevice = getScreen().getDisplay().getGraphicsDevice();
 
-        config = GraphicsConfigurationFactory.getFactory(aDevice).chooseGraphicsConfiguration(
+        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(aDevice).chooseGraphicsConfiguration(
                 capsRequested, capsRequested, capabilitiesChooser, aScreen);
-        if (config == null) {
+        if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
+        setGraphicsConfiguration(cfg);
 
         synchronized(Window.class) {
             setWindowHandle(nextWindowHandle++); // just a marker

@@ -55,18 +55,19 @@ public class KDWindow extends WindowImpl {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
-        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(
+        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(
                 capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen());
-        if (config == null) {
+        if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
+        setGraphicsConfiguration(cfg);
 
-        GLCapabilitiesImmutable eglCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+        GLCapabilitiesImmutable eglCaps = (GLCapabilitiesImmutable) cfg.getChosenCapabilities();
         int[] eglAttribs = EGLGraphicsConfiguration.GLCapabilities2AttribList(eglCaps);
 
         eglWindowHandle = CreateWindow(getDisplayHandle(), eglAttribs);
         if (eglWindowHandle == 0) {
-            throw new NativeWindowException("Error creating egl window: "+config);
+            throw new NativeWindowException("Error creating egl window: "+cfg);
         }
         setVisible0(eglWindowHandle, false);
         setWindowHandle(RealizeWindow(eglWindowHandle));

@@ -70,7 +70,7 @@ public class JoglVersion extends JogampVersion {
 
     public static StringBuilder getGLInfo(GL gl, StringBuilder sb) {
         AbstractGraphicsDevice device = gl.getContext().getGLDrawable().getNativeSurface()
-                                            .getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
+                                            .getGraphicsConfiguration().getScreen().getDevice();
         if(null==sb) {
             sb = new StringBuilder();
         }

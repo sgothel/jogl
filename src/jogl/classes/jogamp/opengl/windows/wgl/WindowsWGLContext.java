@@ -118,7 +118,7 @@ public class WindowsWGLContext extends GLContextImpl {
   public final boolean isGLReadDrawableAvailable() {
     if(!wglGLReadDrawableAvailableSet && null != getWGLExtProcAddressTable()) {
         WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
-        AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
         AbstractGraphicsDevice device = config.getScreen().getDevice();
         switch( factory.isReadDrawableAvailable(device) ) {
             case  1:
@@ -259,7 +259,7 @@ public class WindowsWGLContext extends GLContextImpl {
    */
   protected boolean createImpl() {
     WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
-    AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
     AbstractGraphicsDevice device = config.getScreen().getDevice();
     WindowsWGLContext sharedContext = (WindowsWGLContext) factory.getOrCreateSharedContextImpl(device);
     GLCapabilitiesImmutable glCaps = drawable.getChosenGLCapabilities();
@@ -394,7 +394,7 @@ public class WindowsWGLContext extends GLContextImpl {
   }
 
   protected final void updateGLXProcAddressTable() {
-    final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
     final String key = "WGL-"+adevice.getUniqueID();
     if (DEBUG) {

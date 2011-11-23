@@ -77,7 +77,7 @@ public class TestRemoteWindow01NEWT extends UITestCase {
         // Create native OpenGL resources .. XGL/WGL/CGL .. 
         // equivalent to GLAutoDrawable methods: setVisible(true)
         // 
-        CapabilitiesImmutable chosenCapabilities = window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        CapabilitiesImmutable chosenCapabilities = window.getGraphicsConfiguration().getChosenCapabilities();
         Assert.assertNotNull(chosenCapabilities);
         Assert.assertTrue(chosenCapabilities.getGreenBits()>5);
         Assert.assertTrue(chosenCapabilities.getBlueBits()>5);

@@ -253,7 +253,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         if (target == null) {
           throw new IllegalArgumentException("Null target");
         }
-        AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        AbstractGraphicsConfiguration config = target.getGraphicsConfiguration();
         GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         if(!caps.isPBuffer()) {
             throw new GLException("Non pbuffer not yet implemented");

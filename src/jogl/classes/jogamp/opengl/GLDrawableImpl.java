@@ -52,7 +52,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
       this.factory = factory;
       this.surface = comp;
       this.realized = realized;
-      this.requestedCapabilities = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getNativeGraphicsConfiguration().getRequestedCapabilities();
+      this.requestedCapabilities = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getRequestedCapabilities();
   }
 
   /** 
@@ -79,7 +79,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   public final void swapBuffers() throws GLException {
-    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)surface.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)surface.getGraphicsConfiguration().getChosenCapabilities();
     if ( caps.getDoubleBuffered() ) {
         if(!surface.surfaceSwap()) {
             int lockRes = lockSurface(); // it's recursive, so it's ok within [makeCurrent .. release]
@@ -114,7 +114,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   public GLCapabilitiesImmutable getChosenGLCapabilities() {
-    return  (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    return  (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
   }
 
   public GLCapabilitiesImmutable getRequestedGLCapabilities() {

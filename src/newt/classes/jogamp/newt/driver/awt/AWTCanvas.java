@@ -99,7 +99,7 @@ public class AWTCanvas extends Canvas {
     if(null==awtConfig) {
         throw new NativeWindowException("Error: NULL AWTGraphicsConfiguration");
     }
-    chosen = awtConfig.getGraphicsConfiguration();
+    chosen = awtConfig.getAWTGraphicsConfiguration();
 
     // before native peer is valid: X11
     disableBackgroundErase();
@@ -192,7 +192,7 @@ public class AWTCanvas extends Canvas {
          */
         AWTGraphicsConfiguration config = chooseGraphicsConfiguration(
                 awtConfig.getChosenCapabilities(), awtConfig.getRequestedCapabilities(), chooser, gc.getDevice());
-        final GraphicsConfiguration compatible = (null!=config)?config.getGraphicsConfiguration():null;
+        final GraphicsConfiguration compatible = (null!=config)?config.getAWTGraphicsConfiguration():null;
         if(Window.DEBUG_IMPLEMENTATION) {
             Exception e = new Exception("Info: Call Stack: "+Thread.currentThread().getName());
             e.printStackTrace();

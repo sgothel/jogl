@@ -70,7 +70,7 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
   
   private void createPixmap() {
     NativeSurface ns = getNativeSurface();
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) ns.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) ns.getGraphicsConfiguration();
     XVisualInfo vis = config.getXVisualInfo();
     int bitsPerPixel = vis.getDepth();
     AbstractGraphicsScreen aScreen = config.getScreen();

@@ -67,7 +67,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
   
   // lifetime: forever
   protected Component component;
-  protected AWTGraphicsConfiguration config;
+  private AWTGraphicsConfiguration config; // control access due to delegation
   private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
 
   // lifetime: valid after lock but may change with each 1st lock, purges after invalidate
@@ -273,7 +273,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
     if ( LOCK_SURFACE_NOT_READY == res ) {
         determineIfApplet();
         try {
-            final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
+            final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
             adevice.lock();
             try {
                 jawt = fetchJAWTImpl();
@@ -299,7 +299,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
     surfaceLock.validateLocked();
 
     if (surfaceLock.getHoldCount() == 1) {
-        final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
+        final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
         try {
             unlockSurfaceImpl();
         } finally {
@@ -329,16 +329,20 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
     return drawable;
   }
   
-  public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
+  public final AWTGraphicsConfiguration getPrivateGraphicsConfiguration() {
     return config;
+  }
+  
+  public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
+    return config.getNativeGraphicsConfiguration();
   }
 
   public final long getDisplayHandle() {
-    return config.getScreen().getDevice().getHandle();
+    return getGraphicsConfiguration().getScreen().getDevice().getHandle();
   }
 
   public final int getScreenIndex() {
-    return config.getScreen().getIndex();
+    return getGraphicsConfiguration().getScreen().getIndex();
   }
 
   public int getWidth() {
@@ -472,7 +476,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
       sb.append(", component NULL");
     }
     sb.append(", lockedExt "+isSurfaceLockedByOtherThread()+
-              ",\n\tconfig "+config+
+              ",\n\tconfig "+getPrivateGraphicsConfiguration()+
               ",\n\tawtComponent "+getAWTComponent()+"]");
 
     return sb.toString();

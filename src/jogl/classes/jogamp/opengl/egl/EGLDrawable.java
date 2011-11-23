@@ -99,7 +99,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
 
     protected void setRealizedImpl() {
         if (realized) {
-            AbstractGraphicsConfiguration aConfig = surface.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+            AbstractGraphicsConfiguration aConfig = surface.getGraphicsConfiguration();
             AbstractGraphicsDevice aDevice = aConfig.getScreen().getDevice();
             if(aDevice instanceof EGLGraphicsDevice) {
                 if(DEBUG) {

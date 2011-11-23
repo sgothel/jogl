@@ -35,6 +35,7 @@ package jogamp.newt.driver.broadcom.egl;
 
 import jogamp.opengl.egl.*;
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -51,13 +52,14 @@ public class Window extends jogamp.newt.WindowImpl {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
-        // query a good configuration .. even thought we drop this one 
-        // and reuse the EGLUtil choosen one later.
-        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(
+        // query a good configuration, however chose the final one by the native queried egl-cfg-id  
+        // after creation at {@link #windowCreated(int, int, int)}.
+        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(
                 capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen());
-        if (config == null) {
+        if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
+        setGraphicsConfiguration(cfg);
         setSizeImpl(getScreen().getWidth(), getScreen().getHeight());
 
         setWindowHandle(realizeWindow(true, width, height));
@@ -139,7 +141,7 @@ public class Window extends jogamp.newt.WindowImpl {
 
     private long realizeWindow(boolean chromaKey, int width, int height) {
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("BCEGL Window.realizeWindow() with: chroma "+chromaKey+", "+width+"x"+height+", "+config);
+            System.err.println("BCEGL Window.realizeWindow() with: chroma "+chromaKey+", "+width+"x"+height+", "+getGraphicsConfiguration());
         }
         long handle = CreateWindow(getDisplayHandle(), chromaKey, width, height);
         if (0 == handle) {
@@ -152,13 +154,14 @@ public class Window extends jogamp.newt.WindowImpl {
     private void windowCreated(int cfgID, int width, int height) {
         this.width = width;
         this.height = height;
-        GLCapabilitiesImmutable capsReq = (GLCapabilitiesImmutable) config.getRequestedCapabilities();
-        config = EGLGraphicsConfiguration.create(capsReq, getScreen().getGraphicsScreen(), cfgID);
-        if (config == null) {
+        GLCapabilitiesImmutable capsReq = (GLCapabilitiesImmutable) getGraphicsConfiguration().getRequestedCapabilities();
+        final AbstractGraphicsConfiguration cfg = EGLGraphicsConfiguration.create(capsReq, getScreen().getGraphicsScreen(), cfgID);
+        if (null == cfg) {
             throw new NativeWindowException("Error creating EGLGraphicsConfiguration from id: "+cfgID+", "+this);
         }
+        setGraphicsConfiguration(cfg);
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("BCEGL Window.windowCreated(): "+toHexString(cfgID)+", "+width+"x"+height+", "+config);
+            System.err.println("BCEGL Window.windowCreated(): "+toHexString(cfgID)+", "+width+"x"+height+", "+cfg);
         }
     }
 
