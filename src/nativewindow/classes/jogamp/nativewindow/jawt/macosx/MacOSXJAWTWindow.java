@@ -40,7 +40,6 @@
 
 package jogamp.nativewindow.jawt.macosx;
 
-import java.awt.Component;
 import java.nio.Buffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;

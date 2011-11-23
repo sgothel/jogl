@@ -47,8 +47,10 @@ import jogamp.nativewindow.x11.*;
 public class X11AWTGLXGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
 
-    public X11AWTGLXGraphicsConfigurationFactory() {
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.awt.AWTGraphicsDevice.class, this);
+    public static void registerFactory() {
+        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.awt.AWTGraphicsDevice.class, new X11AWTGLXGraphicsConfigurationFactory());
+    }    
+    private X11AWTGLXGraphicsConfigurationFactory() {
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(

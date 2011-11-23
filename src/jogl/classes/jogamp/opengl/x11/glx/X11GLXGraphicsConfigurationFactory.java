@@ -71,8 +71,10 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
     static X11GLCapabilities.XVisualIDComparator XVisualIDComparator = new X11GLCapabilities.XVisualIDComparator();
 
-    X11GLXGraphicsConfigurationFactory() {
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, this);
+    static void registerFactory() {
+        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, new X11GLXGraphicsConfigurationFactory());
+    }
+    private X11GLXGraphicsConfigurationFactory() {
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(

@@ -43,6 +43,12 @@ import javax.media.nativewindow.x11.X11GraphicsConfiguration;
 import javax.media.nativewindow.x11.X11GraphicsScreen;
 
 public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactory {
+    public static void registerFactory() {
+        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, new X11GraphicsConfigurationFactory());
+    }    
+    private X11GraphicsConfigurationFactory() {
+    }
+    
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
         CapabilitiesImmutable  capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen screen)
         throws IllegalArgumentException, NativeWindowException {

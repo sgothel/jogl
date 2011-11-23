@@ -67,8 +67,10 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
     protected static final boolean DEBUG = jogamp.opengl.Debug.debug("GraphicsConfiguration");
     static WGLGLCapabilities.PfdIDComparator PfdIDComparator = new WGLGLCapabilities.PfdIDComparator();
 
-    WindowsWGLGraphicsConfigurationFactory() {
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.windows.WindowsGraphicsDevice.class, this);
+    static void registerFactory() {
+        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.windows.WindowsGraphicsDevice.class, new WindowsWGLGraphicsConfigurationFactory());
+    }
+    private WindowsWGLGraphicsConfigurationFactory() {
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(

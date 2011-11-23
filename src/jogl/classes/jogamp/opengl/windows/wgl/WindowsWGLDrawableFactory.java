@@ -42,7 +42,6 @@ package jogamp.opengl.windows.wgl;
 
 import java.nio.Buffer;
 import java.nio.ShortBuffer;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -106,11 +105,11 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
 
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
-    new WindowsWGLGraphicsConfigurationFactory();
+    WindowsWGLGraphicsConfigurationFactory.registerFactory();
     if(GLProfile.isAWTAvailable()) {
         try {
-          ReflectionUtil.createInstance("jogamp.opengl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory",
-                                        null, getClass().getClassLoader());
+          ReflectionUtil.callStaticMethod("jogamp.opengl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory", 
+                                          "registerFactory", null, null, getClass().getClassLoader());                
         } catch (JogampRuntimeException jre) { /* n/a .. */ }
     }
 

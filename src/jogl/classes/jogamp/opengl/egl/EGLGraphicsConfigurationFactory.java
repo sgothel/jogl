@@ -69,9 +69,11 @@ import java.nio.IntBuffer;
 public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     static EGLGLCapabilities.EglCfgIDComparator EglCfgIDComparator = new EGLGLCapabilities.EglCfgIDComparator();
 
-    EGLGraphicsConfigurationFactory() {
+    static void registerFactory() {
         // become the selector for KD/EGL ..
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.egl.EGLGraphicsDevice.class, this);
+        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.egl.EGLGraphicsDevice.class, new EGLGraphicsConfigurationFactory());
+    }
+    private EGLGraphicsConfigurationFactory() {
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl (

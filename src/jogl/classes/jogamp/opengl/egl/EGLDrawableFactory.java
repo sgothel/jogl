@@ -56,7 +56,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     static {
         // Register our GraphicsConfigurationFactory implementations
         // The act of constructing them causes them to be registered
-        new EGLGraphicsConfigurationFactory();
+        EGLGraphicsConfigurationFactory.registerFactory();
 
         // Check for other underlying stuff ..
         if(NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {

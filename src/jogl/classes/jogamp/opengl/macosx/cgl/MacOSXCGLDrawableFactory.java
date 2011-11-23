@@ -49,6 +49,7 @@ import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.DefaultGraphicsScreen;
+import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
@@ -99,11 +100,11 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
 
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
-    new MacOSXCGLGraphicsConfigurationFactory();
+    MacOSXCGLGraphicsConfigurationFactory.registerFactory();
     if(GLProfile.isAWTAvailable()) {
         try {
-          ReflectionUtil.createInstance("jogamp.opengl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory",
-                                        null, getClass().getClassLoader());
+          ReflectionUtil.callStaticMethod("jogamp.opengl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory", 
+                                          "registerFactory", null, null, getClass().getClassLoader());                
         } catch (JogampRuntimeException jre) { /* n/a .. */ }
     }
 

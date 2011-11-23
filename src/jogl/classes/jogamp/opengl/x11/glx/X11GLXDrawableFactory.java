@@ -87,11 +87,11 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     super();
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
-    new X11GLXGraphicsConfigurationFactory();
+    X11GLXGraphicsConfigurationFactory.registerFactory();
     if(GLProfile.isAWTAvailable()) {
         try {
-          ReflectionUtil.createInstance("jogamp.opengl.x11.glx.awt.X11AWTGLXGraphicsConfigurationFactory",
-                                        null, getClass().getClassLoader());
+          ReflectionUtil.callStaticMethod("jogamp.opengl.x11.glx.awt.X11AWTGLXGraphicsConfigurationFactory", 
+                                          "registerFactory", null, null, getClass().getClassLoader());
         } catch (JogampRuntimeException jre) { /* n/a .. */ }
     }
 

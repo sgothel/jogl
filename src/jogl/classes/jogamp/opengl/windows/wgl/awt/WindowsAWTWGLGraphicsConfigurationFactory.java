@@ -62,8 +62,10 @@ import javax.media.opengl.GLDrawableFactory;
 public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     protected static final boolean DEBUG = jogamp.opengl.Debug.debug("GraphicsConfiguration");
 
-    public WindowsAWTWGLGraphicsConfigurationFactory() {
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.awt.AWTGraphicsDevice.class, this);
+    public static void registerFactory() {
+        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.awt.AWTGraphicsDevice.class, new WindowsAWTWGLGraphicsConfigurationFactory());
+    }
+    private WindowsAWTWGLGraphicsConfigurationFactory() {        
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(

@@ -51,8 +51,10 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     protected static final boolean DEBUG = jogamp.opengl.Debug.debug("GraphicsConfiguration");
 
-    MacOSXCGLGraphicsConfigurationFactory() {
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.macosx.MacOSXGraphicsDevice.class, this);
+    static void registerFactory() {
+        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.macosx.MacOSXGraphicsDevice.class, new MacOSXCGLGraphicsConfigurationFactory());
+    }
+    private MacOSXCGLGraphicsConfigurationFactory() {        
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(

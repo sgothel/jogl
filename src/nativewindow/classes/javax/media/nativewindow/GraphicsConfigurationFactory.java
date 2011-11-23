@@ -65,7 +65,27 @@ public abstract class GraphicsConfigurationFactory {
     private static Class<?> abstractGraphicsDeviceClass;
 
     static {
-        initialize();
+        abstractGraphicsDeviceClass = javax.media.nativewindow.AbstractGraphicsDevice.class;
+        
+        // Register the default no-op factory for arbitrary
+        // AbstractGraphicsDevice implementations, including
+        // AWTGraphicsDevice instances -- the OpenGL binding will take
+        // care of handling AWTGraphicsDevices on X11 platforms (as
+        // well as X11GraphicsDevices in non-AWT situations)
+        registerFactory(abstractGraphicsDeviceClass, new DefaultGraphicsConfigurationFactoryImpl());
+        
+        if (NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {
+            try {
+                ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.X11GraphicsConfigurationFactory", 
+                                                "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());                
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            try {
+                ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.awt.X11AWTGraphicsConfigurationFactory", 
+                                                "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());                
+            } catch (Exception e) { /* n/a */ }
+        }
     }
 
     protected static String getThreadName() {
@@ -83,27 +103,6 @@ public abstract class GraphicsConfigurationFactory {
     /** Creates a new NativeWindowFactory instance. End users do not
         need to call this method. */
     protected GraphicsConfigurationFactory() {
-    }
-
-    private static void initialize() {
-        abstractGraphicsDeviceClass = javax.media.nativewindow.AbstractGraphicsDevice.class;
-        
-        if (NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {
-            try {
-                GraphicsConfigurationFactory factory = (GraphicsConfigurationFactory)
-                    ReflectionUtil.createInstance("jogamp.nativewindow.x11.X11GraphicsConfigurationFactory", null,
-                                                  GraphicsConfigurationFactory.class.getClassLoader());
-                registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, factory);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-        // Register the default no-op factory for arbitrary
-        // AbstractGraphicsDevice implementations, including
-        // AWTGraphicsDevice instances -- the OpenGL binding will take
-        // care of handling AWTGraphicsDevices on X11 platforms (as
-        // well as X11GraphicsDevices in non-AWT situations)
-        registerFactory(abstractGraphicsDeviceClass, new DefaultGraphicsConfigurationFactoryImpl());
     }
 
     /** Returns the factory for use with the given type of

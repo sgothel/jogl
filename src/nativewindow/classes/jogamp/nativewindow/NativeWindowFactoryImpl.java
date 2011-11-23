@@ -35,7 +35,6 @@ package jogamp.nativewindow;
 import java.lang.reflect.Constructor;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ToolkitLock;
