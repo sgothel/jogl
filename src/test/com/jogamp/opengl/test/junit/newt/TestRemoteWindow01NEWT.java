@@ -43,7 +43,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 public class TestRemoteWindow01NEWT extends UITestCase {
     static int width, height;
-    static String remoteDisplay = "nowhere:0.0";
+    static String remoteDisplay = "localhost:0.0";
 
     @BeforeClass
     public static void initClass() {

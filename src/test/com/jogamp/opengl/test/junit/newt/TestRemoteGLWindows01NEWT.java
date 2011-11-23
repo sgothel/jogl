@@ -50,7 +50,7 @@ import javax.media.nativewindow.NativeWindowException;
 public class TestRemoteGLWindows01NEWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 100; // ms
-    static String remoteDisplay = "nowhere:0.0";
+    static String remoteDisplay = "localhost:0.0";
 
     @BeforeClass
     public static void initClass() {
