@@ -64,8 +64,8 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     this.encapsulated=encapsulated;
   }
 
-  public AWTGraphicsConfiguration(AWTGraphicsScreen screen, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-                                  GraphicsConfiguration config) {
+  private AWTGraphicsConfiguration(AWTGraphicsScreen screen, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
+                                   GraphicsConfiguration config) {
     super(screen, capsChosen, capsRequested);
     this.config = config;
     this.encapsulated=null;
@@ -102,6 +102,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
           capsChosen = setupCapabilitiesRGBABits(capsRequested, gc);
       }
       return new AWTGraphicsConfiguration(awtScreen, capsChosen, capsRequested, awtGfxConfig);
+      // FIXME: use encapsulated X11 as used in X11AWTGLXGraphicsConfigurationFactory
   }
 
   public void updateGraphicsConfiguration(Component awtComp)
@@ -127,6 +128,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
       CapabilitiesImmutable caps = ( null != getChosenCapabilities() ) ? getChosenCapabilities() : getRequestedCapabilities();
       GraphicsConfiguration gc = awtGraphicsDevice.getDefaultConfiguration();
       setChosenCapabilities(setupCapabilitiesRGBABits(caps, gc));
+      // FIXME: use encapsulated X11 as used in X11AWTGLXGraphicsConfigurationFactory
   }
   
   // open access to superclass method
