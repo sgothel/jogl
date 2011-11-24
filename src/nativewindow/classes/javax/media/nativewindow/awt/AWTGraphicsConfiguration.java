@@ -47,6 +47,7 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.image.ColorModel;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
+
 import jogamp.nativewindow.Debug;
 
 /** A wrapper for an AWT GraphicsConfiguration allowing it to be
@@ -70,67 +71,39 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     this.config = config;
     this.encapsulated=null;
   }
-
+  
   /**
    * @param capsChosen if null, <code>capsRequested</code> is copied and aligned 
-   *        with the graphics capabilties of the AWT Component to produce the chosen Capabilties.
+   *        with the graphics Capabilities of the AWT Component to produce the chosen Capabilities.
    *        Otherwise the <code>capsChosen</code> is used.
    */
-  public static AWTGraphicsConfiguration create(Component awtComp, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested)
-  {
-      AWTGraphicsScreen awtScreen = null;
-      AWTGraphicsDevice awtDevice = null;
-      GraphicsDevice awtGraphicsDevice = null;
-      GraphicsConfiguration awtGfxConfig = awtComp.getGraphicsConfiguration();
-      if(null!=awtGfxConfig) {
-          awtGraphicsDevice = awtGfxConfig.getDevice();
-          if(null!=awtGraphicsDevice) {
-              // Create Device/Screen
-              awtDevice = new AWTGraphicsDevice(awtGraphicsDevice, AbstractGraphicsDevice.DEFAULT_UNIT);
-              awtScreen = new AWTGraphicsScreen(awtDevice);
-          }
+  public static AWTGraphicsConfiguration create(Component awtComp, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested) {
+      final GraphicsConfiguration awtGfxConfig = awtComp.getGraphicsConfiguration();
+      if(null==awtGfxConfig) {
+          throw new NativeWindowException("AWTGraphicsConfiguration.create: Null AWT GraphicsConfiguration @ "+awtComp);          
       }
-      if(null==awtScreen) {
-          // use defaults since no native peer is available yet
-          awtScreen = (AWTGraphicsScreen) AWTGraphicsScreen.createScreenDevice(-1, AbstractGraphicsDevice.DEFAULT_UNIT);
-          awtDevice = (AWTGraphicsDevice) awtScreen.getDevice();
-          awtGraphicsDevice = awtDevice.getGraphicsDevice();
+      final GraphicsDevice awtGraphicsDevice = awtGfxConfig.getDevice();
+      if(null==awtGraphicsDevice) {
+          throw new NativeWindowException("AWTGraphicsConfiguration.create: Null AWT GraphicsDevice @ "+awtGfxConfig);
       }
+
+      // Create Device/Screen
+      final AWTGraphicsDevice awtDevice = new AWTGraphicsDevice(awtGraphicsDevice, AbstractGraphicsDevice.DEFAULT_UNIT);
+      final AWTGraphicsScreen awtScreen = new AWTGraphicsScreen(awtDevice);
 
       if(null==capsChosen) {
           GraphicsConfiguration gc = awtGraphicsDevice.getDefaultConfiguration();
-          capsChosen = setupCapabilitiesRGBABits(capsRequested, gc);
+          capsChosen = AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capsRequested, gc);
       }
+      final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(awtDevice);
+      final AbstractGraphicsConfiguration config = factory.chooseGraphicsConfiguration(capsChosen, capsRequested, null, awtScreen);
+      if(config instanceof AWTGraphicsConfiguration) {
+          return (AWTGraphicsConfiguration) config;
+      }
+      // System.err.println("Info: AWTGraphicsConfiguration.create: Expected AWTGraphicsConfiguration got: "+config.getClass()+" w/ factory "+factory.getClass()+" - Unable to encapsulate native GraphicsConfiguration.");
       return new AWTGraphicsConfiguration(awtScreen, capsChosen, capsRequested, awtGfxConfig);
-      // FIXME: use encapsulated X11 as used in X11AWTGLXGraphicsConfigurationFactory
   }
 
-  public void updateGraphicsConfiguration(Component awtComp)
-  {
-      AWTGraphicsScreen awtScreen = null;
-      AWTGraphicsDevice awtDevice = null;
-      GraphicsDevice awtGraphicsDevice = null;
-      GraphicsConfiguration awtGfxConfig = awtComp.getGraphicsConfiguration();
-      if(null!=awtGfxConfig) {
-          awtGraphicsDevice = awtGfxConfig.getDevice();
-          if(null!=awtGraphicsDevice) {
-              // Create Device/Screen
-              awtDevice = new AWTGraphicsDevice(awtGraphicsDevice, AbstractGraphicsDevice.DEFAULT_UNIT);
-              awtScreen = new AWTGraphicsScreen(awtDevice);
-          }
-      }
-      if(null==awtScreen) {
-          throw new NativeWindowException("native peer n/a: "+awtComp);
-      }
-      config = awtGfxConfig;
-      setScreen(awtScreen);
-
-      CapabilitiesImmutable caps = ( null != getChosenCapabilities() ) ? getChosenCapabilities() : getRequestedCapabilities();
-      GraphicsConfiguration gc = awtGraphicsDevice.getDefaultConfiguration();
-      setChosenCapabilities(setupCapabilitiesRGBABits(caps, gc));
-      // FIXME: use encapsulated X11 as used in X11AWTGLXGraphicsConfigurationFactory
-  }
-  
   // open access to superclass method
   public void setChosenCapabilities(CapabilitiesImmutable capsChosen) {
       super.setChosenCapabilities(capsChosen);
@@ -190,7 +163,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     return capabilities;
   }
 
-    @Override
+  @Override
   public String toString() {
     return getClass().getSimpleName()+"[" + getScreen() +
                                    ",\n\tchosen    " + capabilitiesChosen+

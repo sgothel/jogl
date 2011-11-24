@@ -48,7 +48,6 @@ import javax.media.opengl.*;
 
 import jogamp.opengl.*;
 
-import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
 import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.x11.*;
@@ -88,13 +87,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
     X11GLXGraphicsConfigurationFactory.registerFactory();
-    if(GLProfile.isAWTAvailable()) {
-        try {
-          ReflectionUtil.callStaticMethod("jogamp.opengl.x11.glx.awt.X11AWTGLXGraphicsConfigurationFactory", 
-                                          "registerFactory", null, null, getClass().getClassLoader());
-        } catch (JogampRuntimeException jre) { /* n/a .. */ }
-    }
-
+    
     defaultDevice = new X11GraphicsDevice(X11Util.getNullDisplayName(), AbstractGraphicsDevice.DEFAULT_UNIT);
 
     // Init shared resources off thread
@@ -110,7 +103,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   SharedResourceImplementation sharedResourceImpl;
   SharedResourceRunner sharedResourceRunner;
   Thread sharedResourceThread;
-  HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
+  HashMap<String /* connection */, SharedResourceRunner.Resource> sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
 
   static class SharedResource implements SharedResourceRunner.Resource {
       X11GraphicsDevice device;
@@ -156,23 +149,24 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         }
         public SharedResourceRunner.Resource mapPut(String connection, SharedResourceRunner.Resource resource) {
             synchronized(sharedMap) {
-                return (SharedResourceRunner.Resource) sharedMap.put(connection, resource);
+                return sharedMap.put(connection, resource);
             }
         }
         public SharedResourceRunner.Resource mapGet(String connection) {
             synchronized(sharedMap) {
-                return (SharedResourceRunner.Resource) sharedMap.get(connection);
+                return sharedMap.get(connection);
             }
         }
-        public Collection/*<Resource>*/ mapValues() {
+        public Collection<SharedResourceRunner.Resource> mapValues() {
             synchronized(sharedMap) {
                 return sharedMap.values();
             }
         }
 
         public SharedResourceRunner.Resource createSharedResource(String connection) {
-            X11GraphicsDevice sharedDevice = new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT);
-            sharedDevice.setCloseDisplay(true);
+            X11GraphicsDevice sharedDevice = 
+                    new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT, 
+                                          NativeWindowFactory.getNullToolkitLock(), true); // own non-shared display connection, no locking
             sharedDevice.lock();
             try {
                 String glXVendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
@@ -421,10 +415,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     final X11GraphicsScreen sharedScreen = (X11GraphicsScreen) sr.getScreen();
     final AbstractGraphicsDevice sharedDevice = sharedScreen.getDevice(); // should be same ..
 
-    // create screen/device pair
-    X11GraphicsDevice device = new X11GraphicsDevice(X11Util.openDisplay(sharedDevice.getConnection()), AbstractGraphicsDevice.DEFAULT_UNIT);
-    device.setCloseDisplay(true);
-    X11GraphicsScreen screen = new X11GraphicsScreen(device, sharedScreen.getIndex()); 
+    // create screen/device pair - Null X11 locking, due to private non-shared Display handle
+    final X11GraphicsDevice device = new X11GraphicsDevice(X11Util.openDisplay(sharedDevice.getConnection()), AbstractGraphicsDevice.DEFAULT_UNIT, NativeWindowFactory.getNullToolkitLock(), true);
+    final X11GraphicsScreen screen = new X11GraphicsScreen(device, sharedScreen.getIndex()); 
     
     WrappedSurface ns = new WrappedSurface(
                X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen) );

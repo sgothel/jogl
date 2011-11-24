@@ -36,6 +36,7 @@ import javax.media.nativewindow.awt.*;
 import com.jogamp.newt.NewtFactory;
 
 import jogamp.nativewindow.jawt.JAWTWindow;
+import jogamp.nativewindow.x11.awt.X11AWTGraphicsConfigurationFactory;
 import jogamp.newt.Debug;
 
 public class NewtFactoryAWT extends NewtFactory {
@@ -64,7 +65,7 @@ public class NewtFactoryAWT extends NewtFactory {
   }
 
   public static JAWTWindow getNativeWindow(java.awt.Component awtComp, CapabilitiesImmutable capsRequested) {
-      AWTGraphicsConfiguration config = AWTGraphicsConfiguration.create(awtComp, null, capsRequested);
+      AWTGraphicsConfiguration config = X11AWTGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(awtComp, null, capsRequested);
       NativeWindow nw = NativeWindowFactory.getNativeWindow(awtComp, config); // a JAWTWindow
       if(! ( nw instanceof JAWTWindow ) ) {
           throw new NativeWindowException("Not an AWT NativeWindow: "+nw);
@@ -73,24 +74,6 @@ public class NewtFactoryAWT extends NewtFactory {
         System.err.println("NewtFactoryAWT.getNativeWindow: "+awtComp+" -> "+nw);
       }
       return (JAWTWindow)nw;
-  }
-  
-  public static void updateGraphicsConfiguration(JAWTWindow nw, java.awt.Component awtComp) {
-      if(DEBUG_IMPLEMENTATION) {
-        System.err.println("NewtFactoryAWT.updateGraphicsConfiguration: (pre) "+awtComp+" -> "+nw);
-      }
-      final AWTGraphicsConfiguration awtConfig = (AWTGraphicsConfiguration) nw.getGraphicsConfiguration();
-      awtConfig.updateGraphicsConfiguration(awtComp);
-      // lockSurface() re-issues JAWTWindow's native validation 
-      if( NativeSurface.LOCK_SURFACE_NOT_READY >= nw.lockSurface() ) {
-          throw new NativeWindowException("could not lock "+nw);
-      }
-      nw.unlockSurface();
-      
-      if(DEBUG_IMPLEMENTATION) {
-        System.err.println("NewtFactoryAWT.updateGraphicsConfiguration: (post) "+awtComp+" -> "+nw);
-      }
-  }
-  
+  }  
 }
 

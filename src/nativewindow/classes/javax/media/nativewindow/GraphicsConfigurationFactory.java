@@ -40,7 +40,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * Provides the mechanism by which the graphics configuration for a
  * window can be chosen before the window is created. The graphics 
@@ -81,10 +80,12 @@ public abstract class GraphicsConfigurationFactory {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            try {
-                ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.awt.X11AWTGraphicsConfigurationFactory", 
-                                                "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());                
-            } catch (Exception e) { /* n/a */ }
+            if(NativeWindowFactory.isAWTAvailable()) {
+                try {
+                    ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.awt.X11AWTGraphicsConfigurationFactory", 
+                                                    "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());                
+                } catch (Exception e) { /* n/a */ }
+            }
         }
     }
 
