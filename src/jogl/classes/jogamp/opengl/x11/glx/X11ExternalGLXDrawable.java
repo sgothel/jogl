@@ -66,7 +66,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
     }
     int[] val = new int[1];
     GLX.glXQueryContext(display, context, GLX.GLX_SCREEN, val, 0);
-    X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val[0]);
+    X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val[0], false);
 
     GLX.glXQueryContext(display, context, GLX.GLX_FBCONFIG_ID, val, 0);
     X11GLXGraphicsConfiguration cfg = X11GLXGraphicsConfiguration.create(glp, x11Screen, val[0]);

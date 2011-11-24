@@ -48,9 +48,9 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
         super(device, fetchScreen(device, screen));
     }
 
-    public static AbstractGraphicsScreen createScreenDevice(long display, int screenIdx) {
+    public static AbstractGraphicsScreen createScreenDevice(long display, int screenIdx, boolean owner) {
         if(0==display) throw new NativeWindowException("display is null");
-        return new X11GraphicsScreen(new X11GraphicsDevice(display, AbstractGraphicsDevice.DEFAULT_UNIT), screenIdx);
+        return new X11GraphicsScreen(new X11GraphicsDevice(display, AbstractGraphicsDevice.DEFAULT_UNIT, owner), screenIdx);
     }
 
     public long getDefaultVisualID() {

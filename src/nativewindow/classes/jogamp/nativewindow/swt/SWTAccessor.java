@@ -202,7 +202,9 @@ public class SWTAccessor {
         if( null != OS_gtk_class ) {
             long widgedHandle = callStaticMethodL2L(OS_GTK_WIDGET_WINDOW, handle);
             long displayHandle = callStaticMethodL2L(OS_gdk_x11_drawable_get_xdisplay, widgedHandle);
-            return new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT);
+            // FIXME: May think about creating a private non-shared X11 Display handle, like we use to for AWT
+            //        to avoid locking problems !
+            return new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT, false);
         }
         if( NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false) ) {
             return new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);

@@ -72,7 +72,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
     }
     int[] val = new int[1];
     GLX.glXQueryContext(display, ctx, GLX.GLX_SCREEN, val, 0);
-    X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val[0]);
+    X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val[0], false);
 
     GLX.glXQueryContext(display, ctx, GLX.GLX_FBCONFIG_ID, val, 0);
     X11GLXGraphicsConfiguration cfg = null;

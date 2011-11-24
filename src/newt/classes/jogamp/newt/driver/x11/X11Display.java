@@ -85,13 +85,8 @@ public class X11Display extends DisplayImpl {
             throw e;
         }
         
-        if(X11Util.XINITTHREADS_ALWAYS_ENABLED) {
-            // Hack: Force non X11Display locking, even w/ AWT and w/o isFirstUIActionOnProcess() 
-            aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, NativeWindowFactory.getNullToolkitLock());            
-        } else {
-            // Proper: Use AWT/X11Display locking w/ AWT and X11Display locking only w/o isFirstUIActionOnProcess()
-            aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT);
-        }
+        // We use a private non-shared X11 Display instance for EDT window operations and one for exposed animation, eg. OpenGL 
+        aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, NativeWindowFactory.getNullToolkitLock(), false);
     }
 
     protected void closeNativeImpl() {
