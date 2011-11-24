@@ -74,7 +74,7 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GLGraphicsConfigur
         }
 
         if(null==absScreen) {
-            absScreen = AWTGraphicsScreen.createScreenDevice(-1, AbstractGraphicsDevice.DEFAULT_UNIT);
+            absScreen = AWTGraphicsScreen.createDefault();
         }
         AWTGraphicsScreen awtScreen = (AWTGraphicsScreen) absScreen;
         device = ((AWTGraphicsDevice)awtScreen.getDevice()).getGraphicsDevice();

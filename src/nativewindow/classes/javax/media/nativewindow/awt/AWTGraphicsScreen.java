@@ -42,7 +42,6 @@ package javax.media.nativewindow.awt;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.AbstractGraphicsDevice;
 
 /** A wrapper for an AWT GraphicsDevice (screen) allowing it to be
     handled in a toolkit-independent manner. */
@@ -74,17 +73,15 @@ public class AWTGraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
   }
 
   public static AbstractGraphicsScreen createScreenDevice(GraphicsDevice awtDevice, int unitID) {
-    AWTGraphicsDevice device = (AWTGraphicsDevice) AWTGraphicsDevice.createDevice(awtDevice, unitID);
-    return new AWTGraphicsScreen(device);
+    return new AWTGraphicsScreen(new AWTGraphicsDevice(awtDevice, unitID));
   }
 
   public static AbstractGraphicsScreen createScreenDevice(int index, int unitID) {
-    GraphicsDevice awtDevice = getScreenDevice(index);
-    return createScreenDevice(awtDevice, unitID);
+    return createScreenDevice(getScreenDevice(index), unitID);
   }
 
   public static AbstractGraphicsScreen createDefault() {
-    return createScreenDevice(-1, AbstractGraphicsDevice.DEFAULT_UNIT);
+    return new AWTGraphicsScreen(AWTGraphicsDevice.createDefault());
   }
 
   public Object clone() {

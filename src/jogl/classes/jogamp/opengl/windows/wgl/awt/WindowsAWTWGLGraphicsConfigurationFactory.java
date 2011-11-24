@@ -78,7 +78,7 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
         }
 
         if(null==absScreen) {
-            absScreen = AWTGraphicsScreen.createScreenDevice(-1, AbstractGraphicsDevice.DEFAULT_UNIT);
+            absScreen = AWTGraphicsScreen.createDefault();
             if(DEBUG) {
                 System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: creating default device: "+absScreen);
             }

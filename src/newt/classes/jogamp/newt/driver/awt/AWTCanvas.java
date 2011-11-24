@@ -246,7 +246,9 @@ public class AWTCanvas extends Canvas {
                                                                       CapabilitiesImmutable capsRequested,
                                                                       CapabilitiesChooser chooser,
                                                                       GraphicsDevice device) {
-    AbstractGraphicsScreen aScreen = AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT);
+    final AbstractGraphicsScreen aScreen = null != device ? 
+            AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT):
+            AWTGraphicsScreen.createDefault();
     AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
       GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capsChosen,
                                                                                                    capsRequested,

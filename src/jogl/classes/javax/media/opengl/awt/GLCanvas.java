@@ -1001,7 +1001,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       return null;
     }
 
-    final AbstractGraphicsScreen aScreen = AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT);
+    final AbstractGraphicsScreen aScreen = null != device ? 
+            AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT):
+            AWTGraphicsScreen.createDefault();
     AWTGraphicsConfiguration config = null;
 
     if( EventQueue.isDispatchThread() || Thread.holdsLock(getTreeLock()) ) {

@@ -46,26 +46,20 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 
 /** A wrapper for an AWT GraphicsDevice allowing it to be
     handled in a toolkit-independent manner. */
-
 public class AWTGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
   private GraphicsDevice device;
-  private String subType;
 
-  protected AWTGraphicsDevice(GraphicsDevice device, int unitID) {
+  public AWTGraphicsDevice(GraphicsDevice device, int unitID) {
     super(NativeWindowFactory.TYPE_AWT, device.getIDstring(), unitID);
     this.device = device;
-    this.subType = null;
   }
 
-  public static AbstractGraphicsDevice createDevice(GraphicsDevice awtDevice, int unitID) {
-    if(null==awtDevice) {
-        awtDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        unitID = AbstractGraphicsDevice.DEFAULT_UNIT; 
-    }
-    return new AWTGraphicsDevice(awtDevice, unitID);
+  public static AWTGraphicsDevice createDefault() {
+    GraphicsDevice awtDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    return new AWTGraphicsDevice(awtDevice, AbstractGraphicsDevice.DEFAULT_UNIT);
   }
 
-    @Override
+  @Override
   public Object clone() {
       return super.clone();
   }
@@ -74,26 +68,9 @@ public class AWTGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     return device;
   }
 
-  /**
-   * In case the native handle was specified, e.g. using X11,
-   * we shall be able to mark it.<br>
-   * This will also set the subType, queried with {@link #getSubType()}
-   * and reset the ToolkitLock type with {@link NativeWindowFactory#createDefaultToolkitLock(java.lang.String, long)}
-   * and {@link #setToolkitLock(javax.media.nativewindow.ToolkitLock)}.
-   */
-  public void setSubType(String subType, long handle) {
-    this.handle = handle;
-    this.subType = subType;
-    setToolkitLock( NativeWindowFactory.createDefaultToolkitLock(subType, handle) );
-  }
-
-  public String getSubType() {
-    return subType;
-  }
-
-    @Override
+  @Override
   public String toString() {
-    return getClass().getSimpleName()+"[type "+getType()+"[subType "+getSubType()+"], connection "+getConnection()+", unitID "+getUnitID()+", awtDevice "+device+", handle 0x"+Long.toHexString(getHandle())+"]";
+    return getClass().getSimpleName()+"[type "+getType()+", connection "+getConnection()+", unitID "+getUnitID()+", awtDevice "+device+", handle 0x"+Long.toHexString(getHandle())+"]";
   }
 }
 

@@ -33,7 +33,6 @@
 
 package jogamp.newt.driver.awt;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.newt.NewtFactory;
 import jogamp.newt.DisplayImpl;
@@ -43,7 +42,7 @@ public class AWTDisplay extends DisplayImpl {
     }
 
     protected void createNativeImpl() {
-        aDevice = (AWTGraphicsDevice) AWTGraphicsDevice.createDevice(null, AbstractGraphicsDevice.DEFAULT_UNIT); // default
+        aDevice = AWTGraphicsDevice.createDefault();
     }
 
     protected void setAWTGraphicsDevice(AWTGraphicsDevice d) {
