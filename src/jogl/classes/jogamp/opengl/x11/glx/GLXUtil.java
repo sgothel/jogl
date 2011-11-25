@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,55 +33,20 @@
 
 package jogamp.opengl.x11.glx;
 
-import javax.media.opengl.*;
+import javax.media.nativewindow.x11.X11GraphicsDevice;
+import javax.media.opengl.GLException;
 
+import jogamp.opengl.Debug;
+
+import com.jogamp.common.util.VersionNumber;
 
 public class GLXUtil {
-    public static String getExtension(long display) {
-        return GLX.glXGetClientString(display, GLX.GLX_EXTENSIONS);
-    }
-
-    public static boolean isMultisampleAvailable(String extensions) {
-        if (extensions != null) {
-            return (extensions.indexOf("GLX_ARB_multisample") >= 0);
-        }
-        return false;
-    }
-
-    public static boolean isMultisampleAvailable(long display) {
-        return isMultisampleAvailable(getExtension(display));
-    }
-
-    /** Workaround for apparent issue with ATI's proprietary drivers
-        where direct contexts still send GLX tokens for GL calls */
-    public static String getVendorName(long display) {
-        return GLX.glXGetClientString(display, GLX.GLX_VENDOR);
-    }
-
-    public static boolean isVendorNVIDIA(String vendor) {
-        return vendor != null && vendor.startsWith("NVIDIA") ;
-    }
-
-    public static boolean isVendorATI(String vendor) {
-        return vendor != null && vendor.startsWith("ATI") ;
-    }
-
-    public static boolean isVendorATI(long display) {
-        return isVendorATI(getVendorName(display));
-    }
-
-    public static boolean isVendorNVIDIA(long display) {
-        return isVendorNVIDIA(getVendorName(display));
-    }
-
-    public static void getGLXVersion(long display, int major[], int minor[]) { 
-        if(0 == display) {
-            throw new GLException("null display handle");
-        }
-        if(major.length<1||minor.length<1) {
-            throw new GLException("passed int arrays size is not >= 1");
-        }
-
+    public static final boolean DEBUG = Debug.debug("GLXUtil");
+    
+    public static VersionNumber getGLXServerVersionNumber(long display) {
+        int[] major = new int[1];
+        int[] minor = new int[1];
+        
         if (!GLX.glXQueryVersion(display, major, 0, minor, 0)) {
           throw new GLException("glXQueryVersion failed");
         }
@@ -97,6 +63,67 @@ public class GLXUtil {
               major[0] = 1;
               minor[0] = 2;
           }
-        }
+        }                
+        return new VersionNumber(major[0], minor[0], 0);
     }
+    
+    public static boolean isMultisampleAvailable(String extensions) {
+        if (extensions != null) {
+            return (extensions.indexOf("GLX_ARB_multisample") >= 0);
+        }
+        return false;
+    }
+
+    public static boolean isVendorNVIDIA(String vendor) {
+        return vendor != null && vendor.startsWith("NVIDIA") ;
+    }
+
+    public static boolean isVendorATI(String vendor) {
+        return vendor != null && vendor.startsWith("ATI") ;
+    }
+
+    public static boolean isClientMultisampleAvailable() {
+        return clientMultisampleAvailable;
+    }
+    public static String getClientVendorName() {
+        return clientVendorName;
+    }
+    public static VersionNumber getClientVersionNumber() {
+        return clientVersionNumber;
+    }    
+    public static synchronized boolean initGLXClientDataSingleton(X11GraphicsDevice x11Device) { 
+        if(null != clientVendorName) {
+            return false;
+        }
+        if(DEBUG) {
+            System.err.println("initGLXClientDataSingleton: "+x11Device);
+            Thread.dumpStack();
+        }
+        if(null == x11Device) {
+            throw new GLException("null X11GraphicsDevice");
+        }
+        if(0 == x11Device.getHandle()) {
+            throw new GLException("null X11GraphicsDevice display handle");
+        }
+        
+        clientMultisampleAvailable = isMultisampleAvailable(GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_EXTENSIONS));
+        clientVendorName = GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_VENDOR);
+        
+        int[] major = new int[1];
+        int[] minor = new int[1];
+        final String str = GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_VERSION);
+        try {
+              // e.g. "1.3"
+              major[0] = Integer.valueOf(str.substring(0, 1)).intValue();
+              minor[0] = Integer.valueOf(str.substring(2, 3)).intValue();
+        } catch (Exception e) {
+              major[0] = 1;
+              minor[0] = 2;
+        }
+        clientVersionNumber = new VersionNumber(major[0], minor[0], 0);
+        return true;
+    }
+    private static boolean clientMultisampleAvailable = false;
+    private static String clientVendorName = null;
+    private static VersionNumber clientVersionNumber = null;
 }

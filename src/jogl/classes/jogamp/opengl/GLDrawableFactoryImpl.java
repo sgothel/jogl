@@ -57,11 +57,8 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.Threading;
 
 import jogamp.nativewindow.MutableGraphicsConfiguration;
-
-import com.jogamp.common.util.VersionNumber;
 
 /** Extends GLDrawableFactory with a few methods for handling
     typically software-accelerated offscreen rendering (Device
@@ -70,11 +67,6 @@ import com.jogamp.common.util.VersionNumber;
     they may be instantiated by the GLJPanel implementation. */
 public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
-  public static final VersionNumber versionOneZero = new VersionNumber(1, 0, 0);
-  public static final VersionNumber versionOneOne = new VersionNumber(1, 1, 0);
-  public static final VersionNumber versionOneTwo = new VersionNumber(1, 2, 0);
-  public static final VersionNumber versionOneThree = new VersionNumber(1, 3, 0);
-  public static final VersionNumber versionOneFour = new VersionNumber(1, 4, 0);
 
   protected GLDrawableFactoryImpl() {
     super();

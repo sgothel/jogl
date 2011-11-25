@@ -35,13 +35,27 @@ package jogamp.opengl.x11.glx;
 
 import java.util.ArrayList;
 
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.x11.*;
-import javax.media.opengl.*;
+import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.x11.X11GraphicsConfiguration;
+import javax.media.nativewindow.x11.X11GraphicsScreen;
+import javax.media.opengl.DefaultGLCapabilitiesChooser;
+import javax.media.opengl.GL;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+
+import jogamp.nativewindow.x11.X11Lib;
+import jogamp.nativewindow.x11.X11Util;
+import jogamp.nativewindow.x11.XRenderDirectFormat;
+import jogamp.nativewindow.x11.XRenderPictFormat;
+import jogamp.nativewindow.x11.XVisualInfo;
+import jogamp.opengl.Debug;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 import com.jogamp.common.nio.PointerBuffer;
-import jogamp.opengl.*;
-import jogamp.nativewindow.x11.*;
 
 public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implements Cloneable {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
@@ -56,19 +70,20 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
 
     static X11GLXGraphicsConfiguration create(GLProfile glp, X11GraphicsScreen x11Screen, int fbcfgID) {
-      long display = x11Screen.getDevice().getHandle();
+      final long display = x11Screen.getDevice().getHandle();
       if(0==display) {
           throw new GLException("Display null of "+x11Screen);
       }
-      int screen = x11Screen.getIndex();
-      long fbcfg = glXFBConfigID2FBConfig(display, screen, fbcfgID);
+      final int screen = x11Screen.getIndex();
+      final long fbcfg = glXFBConfigID2FBConfig(display, screen, fbcfgID);
       if(0==fbcfg) {
           throw new GLException("FBConfig null of "+toHexString(fbcfgID));
       }
       if(null==glp) {
         glp = GLProfile.getDefault(x11Screen.getDevice());
       }
-      X11GLCapabilities caps = GLXFBConfig2GLCapabilities(glp, display, fbcfg, true, true, true, GLXUtil.isMultisampleAvailable(display));
+      final X11GLXDrawableFactory factory = (X11GLXDrawableFactory) GLDrawableFactory.getDesktopFactory();
+      final X11GLCapabilities caps = GLXFBConfig2GLCapabilities(glp, display, fbcfg, true, true, true, factory.isGLXMultisampleAvailable(x11Screen.getDevice()));
       if(null==caps) {
           throw new GLException("GLCapabilities null of "+toHexString(fbcfg));
       }
@@ -98,10 +113,6 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
                 System.err.println("!!! updateGraphicsConfiguration: "+this);
             }
         }
-    }
-
-    private static int nonZeroOrDontCare(int value) {
-        return value != 0 ? value : (int)GLX.GLX_DONT_CARE ;
     }
 
     static int[] GLCapabilities2AttribList(GLCapabilitiesImmutable caps,

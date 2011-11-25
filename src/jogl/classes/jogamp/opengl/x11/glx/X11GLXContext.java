@@ -40,28 +40,33 @@
 
 package jogamp.opengl.x11.glx;
 
-import java.nio.*;
-import java.util.*;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
-import javax.media.opengl.*;
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.x11.X11GraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+
+import jogamp.nativewindow.x11.X11Util;
+import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.GLContextShareSet;
+import jogamp.opengl.GLDrawableImpl;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.common.util.VersionNumber;
-import jogamp.opengl.*;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
-import jogamp.nativewindow.x11.X11Util;
 
 public abstract class X11GLXContext extends GLContextImpl {
   protected static final boolean TRACE_CONTEXT_CURRENT = false; // true;
 
   private static final Map<String, String> functionNameMap;
   private static final Map<String, String> extensionNameMap;
-  private VersionNumber glXVersion;
-  private boolean glXVersionOneOneCapable;
-  private boolean glXVersionOneThreeCapable;
   private GLXExt _glXExt;
   // Table that holds the addresses of the native C-language entry points for
   // GLX extension functions.
@@ -91,9 +96,6 @@ public abstract class X11GLXContext extends GLContextImpl {
   
   @Override
   protected void resetStates() {
-    glXVersion = null;
-    glXVersionOneOneCapable = false;
-    glXVersionOneThreeCapable = false;
     // no inner state _glXExt=null;
     glXExtProcAddressTable = null;
     hasSwapIntervalSGI = 0;
@@ -125,25 +127,10 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   protected Map<String, String> getExtensionNameMap() { return extensionNameMap; }
 
-  private final void initGLXVersion() {
-    if(null == glXVersion) {
-        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration();
-        X11GraphicsDevice device = (X11GraphicsDevice) config.getScreen().getDevice();
-
-        glXVersion = X11GLXDrawableFactory.getGLXVersion(device);
-        glXVersionOneOneCapable   = ( null != glXVersion ) ? glXVersion.compareTo(GLDrawableFactoryImpl.versionOneOne) >= 0 : false ;
-        glXVersionOneThreeCapable = ( null != glXVersion ) ? glXVersion.compareTo(GLDrawableFactoryImpl.versionOneThree) >= 0 : false ;
-    }      
+  protected final boolean isGLXVersionGreaterEqualOneThree() {
+    return ((X11GLXDrawableFactory)drawable.getFactoryImpl()).isGLXVersionGreaterEqualOneThree(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice());      
   }
-  public final boolean isGLXVersionGreaterEqualOneOne() {
-    initGLXVersion();
-    return glXVersionOneOneCapable;
-  }
-  public final boolean isGLXVersionGreaterEqualOneThree() {
-    initGLXVersion();
-    return glXVersionOneThreeCapable;
-  }
-
+  
   public final boolean isGLReadDrawableAvailable() {
     return isGLXVersionGreaterEqualOneThree();
   }
@@ -154,10 +141,10 @@ public abstract class X11GLXContext extends GLContextImpl {
     try {
         if(TRACE_CONTEXT_CURRENT) {
             Throwable t = new Throwable(Thread.currentThread()+" - glXMakeContextCurrent("+toHexString(dpy)+", "+
-                    toHexString(writeDrawable)+", "+toHexString(readDrawable)+", "+toHexString(ctx)+") - GLX >= 1.3 "+ glXVersionOneThreeCapable);
+                    toHexString(writeDrawable)+", "+toHexString(readDrawable)+", "+toHexString(ctx)+") - GLX >= 1.3 "+ isGLXVersionGreaterEqualOneThree());
             t.printStackTrace();
         }
-        if ( glXVersionOneThreeCapable ) {
+        if ( isGLXVersionGreaterEqualOneThree() ) {
             res = GLX.glXMakeContextCurrent(dpy, writeDrawable, readDrawable, ctx);
         } else if ( writeDrawable == readDrawable ) {
             res = GLX.glXMakeCurrent(dpy, writeDrawable, ctx);
@@ -293,8 +280,6 @@ public abstract class X11GLXContext extends GLContextImpl {
     AbstractGraphicsDevice device = config.getScreen().getDevice();
     X11GLXContext sharedContext = (X11GLXContext) factory.getOrCreateSharedContextImpl(device);
     long display = device.getHandle();
-
-    isGLReadDrawableAvailable(); // trigger setup glXVersionOneThreeCapable
 
     X11GLXContext other = (X11GLXContext) GLContextShareSet.getShareContext(this);
     long share = 0;
@@ -493,10 +478,12 @@ public abstract class X11GLXContext extends GLContextImpl {
   protected final StringBuffer getPlatformExtensionsStringImpl() {
     StringBuffer sb = new StringBuffer();
     if (DEBUG) {
-      System.err.println("!!! GLX Version "+glXVersion);
+      System.err.println("!!! GLX Version client version "+ GLXUtil.getClientVersionNumber()+
+                         ", server: "+         
+        ((X11GLXDrawableFactory)drawable.getFactoryImpl()).getGLXVersionNumber(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice()));
     }
-    if(isGLXVersionGreaterEqualOneOne()) {
-        final NativeSurface ns = drawable.getNativeSurface();
+    final NativeSurface ns = drawable.getNativeSurface();
+    if(((X11GLXDrawableFactory)drawable.getFactoryImpl()).isGLXVersionGreaterEqualOneOne(ns.getGraphicsConfiguration().getScreen().getDevice())) {
         {
             final String ret = GLX.glXGetClientString(ns.getDisplayHandle(), GLX.GLX_EXTENSIONS);
             if (DEBUG) {

@@ -40,8 +40,14 @@
 
 package jogamp.opengl;
 
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
 
 public abstract class GLDrawableImpl implements GLDrawable {
   protected static final boolean DEBUG = Debug.debug("GLDrawable");
