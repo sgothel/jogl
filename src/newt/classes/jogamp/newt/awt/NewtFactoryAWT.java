@@ -26,18 +26,18 @@
  * or implied, of JogAmp Community.
  */
  
-
 package jogamp.newt.awt;
 
-
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.awt.*;
-
-import com.jogamp.newt.NewtFactory;
+import javax.media.nativewindow.CapabilitiesImmutable;
+import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
 
 import jogamp.nativewindow.jawt.JAWTWindow;
-import jogamp.nativewindow.x11.awt.X11AWTGraphicsConfigurationFactory;
 import jogamp.newt.Debug;
+
+import com.jogamp.newt.NewtFactory;
 
 public class NewtFactoryAWT extends NewtFactory {
   public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
@@ -65,7 +65,7 @@ public class NewtFactoryAWT extends NewtFactory {
   }
 
   public static JAWTWindow getNativeWindow(java.awt.Component awtComp, CapabilitiesImmutable capsRequested) {
-      AWTGraphicsConfiguration config = X11AWTGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(awtComp, null, capsRequested);
+      AWTGraphicsConfiguration config = AWTGraphicsConfiguration.create(awtComp, null, capsRequested);
       NativeWindow nw = NativeWindowFactory.getNativeWindow(awtComp, config); // a JAWTWindow
       if(! ( nw instanceof JAWTWindow ) ) {
           throw new NativeWindowException("Not an AWT NativeWindow: "+nw);

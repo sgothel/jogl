@@ -1497,6 +1497,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // WindowImpl
     //
 
+    /** 
+     * Returns the non delegated {@link AbstractGraphicsConfiguration}, 
+     * see {@link #getGraphicsConfiguration()}. */
+    public final AbstractGraphicsConfiguration getPrivateGraphicsConfiguration() {
+        return config;
+    }
+    
     protected final long getParentWindowHandle() {
         return isFullscreen() ? 0 : parentWindowHandle;
     }

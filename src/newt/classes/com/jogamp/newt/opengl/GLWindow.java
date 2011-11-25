@@ -408,7 +408,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
             if (null == context && visible && 0 != window.getWindowHandle() && 0<getWidth()*getHeight()) {
                 NativeWindow nw;
                 if (window.getWrappedWindow() != null) {
-                    nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow(), window.getGraphicsConfiguration());
+                    nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow(), window.getPrivateGraphicsConfiguration());
                 } else {
                     nw = window;
                 }
