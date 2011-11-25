@@ -24,6 +24,7 @@ rm -f java-run.log
 spath=`dirname $0`
 
 . $spath/setenv-jogl.sh $bdir JOGL_ALL
+unset CLASSPATH
 
 MOSX=0
 MOSX_MT=0
@@ -39,7 +40,6 @@ echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a java-run.log
 echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a java-run.log
 echo SWT_CLASSPATH: $SWT_CLASSPATH 2>&1 | tee -a java-run.log
 echo $javaexe $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
-echo CLASSPATH $CLASSPATH 2>&1 | tee -a java-run.log
 echo MacOsX $MOSX
 
 function jrun() {
@@ -55,12 +55,12 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile -Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.debug.GLProfile"
     # D_ARGS="-Dnewt.debug.EDT -Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.NativeWindow"
-    D_ARGS="-Dnativewindow.debug.NativeWindow"
+    #D_ARGS="-Dnativewindow.debug.NativeWindow"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.EDT -Dnewt.debug.Window -Djogl.debug.GLContext"
     #D_ARGS="-Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.X11Util.TraceDisplayLifecycle=true -Dnativewindow.debug.X11Util"
     #D_ARGS="-Dnativewindow.debug.X11Util -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnewt.debug=all"
-    #D_ARGS="-Dnativewindow.debug.X11Util"
+    D_ARGS="-Djogl.debug.GLDrawable -Djogl.debug.GLContext"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=1000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
     #D_ARGS="-Dnewt.debug.EDT -Djogamp.common.utils.locks.Lock.timeout=600000 -Djogl.debug.Animator -Dnewt.debug.Display -Dnewt.debug.Screen"
@@ -111,8 +111,12 @@ function jrun() {
     #X_ARGS="-verbose:jni"
 
     if [ $awton -eq 1 ] ; then
+        export CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
+        echo CLASSPATH $CLASSPATH
         X_ARGS="-Djava.awt.headless=false"
     else
+        export CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
+        echo CLASSPATH $CLASSPATH
         X_ARGS="-Djava.awt.headless=true"
     fi
     if [ $MOSX_MT -eq 1 ] ; then
@@ -280,7 +284,11 @@ function testswt() {
 #
 # regressions
 #
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
+testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
 
 $spath/count-edt-start.sh java-run.log
 
