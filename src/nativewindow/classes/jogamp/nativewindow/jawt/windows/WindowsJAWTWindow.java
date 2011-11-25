@@ -59,9 +59,6 @@ public class WindowsJAWTWindow extends JAWTWindow {
     super(comp, config);
   }
 
-  protected void validateNative() throws NativeWindowException {
-  }
-
   protected void invalidateNative() {
     windowHandle = 0;
   }

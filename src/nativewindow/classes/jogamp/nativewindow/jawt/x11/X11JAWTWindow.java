@@ -38,12 +38,8 @@
 package jogamp.nativewindow.jawt.x11;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.awt.AWTGraphicsDevice;
 import javax.media.nativewindow.util.Point;
 
 import jogamp.nativewindow.jawt.JAWT;
@@ -60,34 +56,6 @@ public class X11JAWTWindow extends JAWTWindow {
     super(comp, config);
   }
 
-  protected void validateNative() throws NativeWindowException {
-    // FIXME: REMOVE !!!!!!!!
-    final AWTGraphicsDevice awtDevice = (AWTGraphicsDevice) getPrivateGraphicsConfiguration().getScreen().getDevice();
-
-    if(awtDevice.getHandle() != 0) {
-        // subtype and handle set already, done
-        return;
-    }
-
-    long displayHandle = 0;
-    
-    // first try a pre-existing attached native configuration, ie native X11GraphicsDevice
-    AbstractGraphicsConfiguration aconfig = getGraphicsConfiguration();
-    AbstractGraphicsScreen ascreen = (null!=aconfig) ? aconfig.getScreen() : null;
-    AbstractGraphicsDevice adevice = (null!=ascreen) ? ascreen.getDevice() : null; // X11GraphicsDevice
-    if(null!=adevice) {
-        displayHandle = adevice.getHandle();
-    }
-
-    if(0 == displayHandle) {
-        displayHandle = X11SunJDKReflection.graphicsDeviceGetDisplay(awtDevice.getGraphicsDevice());
-    }
-    if(0==displayHandle) {
-        throw new InternalError("X11JAWTWindow: No X11 Display handle available");
-    }
-    awtDevice.setSubType(NativeWindowFactory.TYPE_X11, displayHandle);
-  }
-  
   protected void invalidateNative() { }
 
   protected void attachSurfaceLayerImpl(final long layerHandle) {

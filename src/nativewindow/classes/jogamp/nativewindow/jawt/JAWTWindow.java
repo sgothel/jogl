@@ -41,7 +41,6 @@ import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 import java.awt.Component;
-import java.awt.Window;
 import java.applet.Applet;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -89,7 +88,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
         throw new NativeWindowException("Error: AbstractGraphicsConfiguration is null");
     }
     if(! ( config instanceof AWTGraphicsConfiguration ) ) {
-        throw new NativeWindowException("Error: AbstractGraphicsConfiguration is not an AWTGraphicsConfiguration");
+        throw new NativeWindowException("Error: AbstractGraphicsConfiguration is not an AWTGraphicsConfiguration: "+config);
     }
     this.config = (AWTGraphicsConfiguration) config;
     init((Component)comp);
@@ -99,7 +98,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
     invalidate();
     this.component = windowObject;
     this.isApplet = false;
-    validateNative();
   }
   
   /** 
@@ -118,17 +116,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
       return shallUseOffscreenLayer;
   }
   
-  /**
-   * Implementors shall ensure that all native handles are valid, eg. the {@link javax.media.nativewindow.awt.AWTGraphicsDevice AWTGraphicsDevice}'s
-   * subtype via {@link javax.media.nativewindow.awt.AWTGraphicsDevice#setSubType(String, long) awtGraphicsDevice.setSubType(NativeWindowFactory.TYPE_X11, displayHandle)}.
-   * <p>
-   * This method may be called several times, 
-   * hence the implementation shall check for valid values 1st and bail out early if satisfied.
-   * </p>
-   * @throws NativeWindowException
-   */
-  protected abstract void validateNative() throws NativeWindowException;
-
   protected synchronized void invalidate() {
     invalidateNative();
     jawt = null;
@@ -266,7 +253,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
   protected abstract int lockSurfaceImpl() throws NativeWindowException;
 
   public final int lockSurface() throws NativeWindowException {
-    validateNative();
     surfaceLock.lock();
     int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
 
@@ -358,13 +344,8 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
   //
 
   public synchronized void destroy() {
-    invalidate();
-    if(null!=component) {
-        if(component instanceof Window) {
-            ((Window)component).dispose();
-        }
-        component = null;
-    }
+    invalidate();    
+    component = null; // don't dispose the AWT component, since we are merely an immutable uplink 
   }
 
   public final NativeWindow getParent() {

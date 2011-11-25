@@ -67,9 +67,6 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
     }
   }
 
-  protected void validateNative() throws NativeWindowException {
-  }  
-
   protected void invalidateNative() {
       surfaceHandle=0;
       if(isOffscreenLayerSurfaceEnabled()) {
