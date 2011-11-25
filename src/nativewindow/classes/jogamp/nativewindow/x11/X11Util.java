@@ -34,6 +34,7 @@
 package jogamp.nativewindow.x11;
 
 import com.jogamp.common.util.LongObjectHashMap;
+
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
 
@@ -66,13 +67,12 @@ public class X11Util {
      */
     public static final boolean ATI_HAS_XCLOSEDISPLAY_BUG = true;
     
-    public static final boolean XINITTHREADS_ALWAYS_ENABLED = true;
-
     private static final boolean DEBUG = Debug.debug("X11Util");
     private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.getBooleanProperty("nativewindow.debug.X11Util.TraceDisplayLifecycle", true, AccessController.getContext());
 
     private static volatile String nullDisplayName = null;
-    private static boolean requiresX11Lock = false;
+    private static boolean isX11LockAvailable = false;
+    private static boolean requiresX11Lock = true;
     private static boolean isInit = false;
     private static boolean markAllDisplaysUnclosable = false; // ATI/AMD X11 driver issues
 
@@ -84,23 +84,20 @@ public class X11Util {
         if(!isInit) {
             NWJNILibLoader.loadNativeWindow("x11");
 
-            /**
-             * Always issue XInitThreads() since we have independent
-             * off-thread created Display connections able to utilize multithreading, 
-             * ie NEWT (jogamp.newt.x11.X11Display.createNativeImpl()) !!
-             */
-            initialize0( XINITTHREADS_ALWAYS_ENABLED ? true : firstX11ActionOnProcess );
+            isX11LockAvailable = initialize0( firstX11ActionOnProcess );
 
-            requiresX11Lock = !firstX11ActionOnProcess ;
-            
             if(DEBUG) {
                 System.err.println("X11Util firstX11ActionOnProcess: "+firstX11ActionOnProcess+
-                                   ", XINITTHREADS_ALWAYS_ENABLED "+XINITTHREADS_ALWAYS_ENABLED+
-                                   ", requiresX11Lock "+requiresX11Lock); 
-                // Thread.dumpStack();
+                                   ", requiresX11Lock "+requiresX11Lock+
+                                   ", isX11LockAvailable "+isX11LockAvailable); 
+                Thread.dumpStack();
             }
             isInit = true;
         }
+    }
+
+    public static synchronized boolean isNativeLockAvailable() {
+        return isX11LockAvailable;
     }
 
     public static synchronized boolean requiresToolkitLock() {
@@ -127,16 +124,18 @@ public class X11Util {
     }
 
     public static void lockDefaultToolkit(long dpyHandle) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
-        if(requiresX11Lock) {
-            X11Util.XLockDisplay(dpyHandle);
+        if(ToolkitLock.TRACE_LOCK) {
+            System.out.println("+++ X11 Display lockDefaultToolkit [x11Lock: "+isX11LockAvailable+"] get 0x"+Long.toHexString(dpyHandle));
         }
+        NativeWindowFactory.getDefaultToolkitLock().lock();
+        X11Util.XLockDisplay(dpyHandle);
     }
 
     public static void unlockDefaultToolkit(long dpyHandle) {
-        if(requiresX11Lock) {
-            X11Util.XUnlockDisplay(dpyHandle);
+        if(ToolkitLock.TRACE_LOCK) {
+            System.out.println("+++ X11 Display lockDefaultToolkit [x11Lock: "+isX11LockAvailable+"] rel 0x"+Long.toHexString(dpyHandle));
         }
+        X11Util.XUnlockDisplay(dpyHandle);
         NativeWindowFactory.getDefaultToolkitLock().unlock();
     }
 
@@ -225,7 +224,6 @@ public class X11Util {
 
         public final void setUncloseable(boolean v) { unCloseable = v; }
         public final boolean isUncloseable() { return unCloseable; }
-
         public final Throwable getCreationStack() { return creationStack; }
 
         @Override
@@ -245,14 +243,11 @@ public class X11Util {
     public static int shutdown(boolean realXCloseOpenAndPendingDisplays, boolean verbose) {
         int num=0;
         if(DEBUG||verbose||pendingDisplayList.size() > 0) {
-            String msg = "X11Util.Display: Shutdown (close open / pending Displays: "+realXCloseOpenAndPendingDisplays+
-                         ", open (no close attempt): "+openDisplayMap.size()+"/"+openDisplayList.size()+
-                         ", pending (not closed, marked uncloseable): "+pendingDisplayList.size()+")" ;
+            System.err.println("X11Util.Display: Shutdown (close open / pending Displays: "+realXCloseOpenAndPendingDisplays+
+                               ", open (no close attempt): "+openDisplayMap.size()+"/"+openDisplayList.size()+
+                               ", pending (not closed, marked uncloseable): "+pendingDisplayList.size()+")");
             if(DEBUG) {
-                Exception e = new Exception(msg);
-                e.printStackTrace();
-            } else {
-                System.err.println(msg);
+                Thread.dumpStack();
             }
             if( openDisplayList.size() > 0) {
                 X11Util.dumpOpenDisplayConnections();
@@ -385,8 +380,8 @@ public class X11Util {
             }
         }
         if(DEBUG) {
-            Exception e = new Exception("X11Util.Display: openDisplay [reuse "+reused+"] "+namedDpy+". Thread "+Thread.currentThread().getName());
-            e.printStackTrace();
+            System.err.println("X11Util.Display: openDisplay [reuse "+reused+"] "+namedDpy+". Thread "+Thread.currentThread().getName());
+            // Thread.dumpStack();
         }
         return namedDpy.getHandle();
     }
@@ -409,10 +404,6 @@ public class X11Util {
             if(!openDisplayList.remove(namedDpy)) { throw new RuntimeException("Internal: "+namedDpy); }
             
             if(!namedDpy.isUncloseable()) {
-                if(DEBUG) {
-                    System.err.println("X11Util.Display: XCloseDisplay "+namedDpy+". Thread "+Thread.currentThread().getName());
-                    Thread.dumpStack();
-                }
                 XCloseDisplay(namedDpy.getHandle());
             } else {
                 // for reuse
@@ -456,8 +447,8 @@ public class X11Util {
         try {
             long handle = X11Lib.XOpenDisplay(arg0);
             if(TRACE_DISPLAY_LIFECYCLE) {
-                Throwable t = new Throwable(Thread.currentThread()+" - X11Util.XOpenDisplay("+arg0+") 0x"+Long.toHexString(handle));
-                t.printStackTrace();
+                System.err.println(Thread.currentThread()+" - X11Util.XOpenDisplay("+arg0+") 0x"+Long.toHexString(handle));
+                // Thread.dumpStack();
             }
             return handle;
         } finally {
@@ -469,8 +460,8 @@ public class X11Util {
         NativeWindowFactory.getDefaultToolkitLock().lock();
         try {
             if(TRACE_DISPLAY_LIFECYCLE) {
-                Throwable t = new Throwable(Thread.currentThread()+" - X11Util.XCloseDisplay() 0x"+Long.toHexString(display));
-                t.printStackTrace();
+                System.err.println(Thread.currentThread()+" - X11Util.XCloseDisplay() 0x"+Long.toHexString(display));
+                // Thread.dumpStack();
             }
             int res = -1;            
             X11Util.setX11ErrorHandler(true, DEBUG ? false : true);
@@ -678,19 +669,13 @@ public class X11Util {
     }
 
     public static void XLockDisplay(long handle) {
-        if(ToolkitLock.TRACE_LOCK) {
-            System.out.println("+++ X11 Display Lock get 0x"+Long.toHexString(handle));
-        }
         X11Lib.XLockDisplay(handle);
-    }
+    }  
 
     public static void XUnlockDisplay(long handle) {
-        if(ToolkitLock.TRACE_LOCK) {
-            System.out.println("--- X11 Display Lock rel 0x"+Long.toHexString(handle));
-        }
         X11Lib.XUnlockDisplay(handle);
     }
 
-    private static native void initialize0(boolean firstUIActionOnProcess);
+    private static native boolean initialize0(boolean firstUIActionOnProcess);
     private static native void setX11ErrorHandler0(boolean onoff, boolean quiet);
 }

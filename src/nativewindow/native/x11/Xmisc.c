@@ -293,14 +293,16 @@ static void x11IOErrorHandlerEnable(int onoff, JNIEnv * env) {
 }
 
 static int _initialized=0;
+static jboolean _xinitThreadsOK=JNI_FALSE;
 
-JNIEXPORT void JNICALL 
+JNIEXPORT jboolean JNICALL 
 Java_jogamp_nativewindow_x11_X11Util_initialize0(JNIEnv *env, jclass _unused, jboolean firstUIActionOnProcess) {
     if(0==_initialized) {
         if( JNI_TRUE == firstUIActionOnProcess ) {
             if( 0 == XInitThreads() ) {
                 fprintf(stderr, "Warning: XInitThreads() failed\n");
             } else {
+                _xinitThreadsOK=JNI_TRUE;
                 fprintf(stderr, "Info: XInitThreads() called for concurrent Thread support\n");
             }
         } else {
@@ -311,6 +313,7 @@ Java_jogamp_nativewindow_x11_X11Util_initialize0(JNIEnv *env, jclass _unused, jb
         x11IOErrorHandlerEnable(1, env);
         _initialized=1;
     }
+    return _xinitThreadsOK;
 }
 
 JNIEXPORT void JNICALL 
