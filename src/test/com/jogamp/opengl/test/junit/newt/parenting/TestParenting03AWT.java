@@ -54,7 +54,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 public class TestParenting03AWT extends UITestCase {
     static Dimension glSize, fSize;
-    static long durationPerTest = 800;
+    static long durationPerTest = 1100;
     static long waitAdd2nd = 500;
     static GLCapabilities glCaps;
 

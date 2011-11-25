@@ -50,9 +50,11 @@ import org.junit.Test;
 public class TestGearsAWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
+    static boolean firstUIActionOnProcess = false;
 
     @BeforeClass
     public static void initClass() {
+        GLProfile.initSingleton(firstUIActionOnProcess);
         glp = GLProfile.getDefault();
         Assert.assertNotNull(glp);
         width  = 512;
@@ -117,6 +119,8 @@ public class TestGearsAWT extends UITestCase {
                 try {
                     duration = Integer.parseInt(args[i]);
                 } catch (Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-firstUIAction")) {
+                firstUIActionOnProcess = true;
             }
         }
         org.junit.runner.JUnitCore.main(TestGearsAWT.class.getName());
