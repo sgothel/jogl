@@ -11,23 +11,19 @@
 
 static void testOrder(int reverseDestroyOrder, const char * msg);
 
-static int useXInitThreads = 0;
 static int useXLockDisplay = 0;
 
 int main(int nargs, char **vargs) {
     int arg=1;
     while(arg<nargs) {
-       if(0 == strcmp(vargs[arg], "-xthreads")) {
-          useXInitThreads = 1;
-       } else if(0 == strcmp(vargs[arg], "-xlock")) {
+       if(0 == strcmp(vargs[arg], "-xlock")) {
           useXLockDisplay = 1;
        }
        arg++;
     }
-    fprintf(stderr, "-xthreads (XInitThreads): %d\n", useXInitThreads);
     fprintf(stderr, "-xlock    (XLockDisplay): %d\n", useXLockDisplay);
 
-    if( useXInitThreads ) {
+    if( useXLockDisplay ) {
       XInitThreads();
     }
     testOrder(0, "Normal order");
