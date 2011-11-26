@@ -34,10 +34,13 @@
 
 package jogamp.newt.driver.x11;
 
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.x11.*;
-import jogamp.newt.*;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.x11.X11GraphicsDevice;
+
 import jogamp.nativewindow.x11.X11Util;
+import jogamp.newt.DisplayImpl;
+import jogamp.newt.NEWTJNILibLoader;
 
 public class X11Display extends DisplayImpl {
 
@@ -65,6 +68,13 @@ public class X11Display extends DisplayImpl {
         return X11Util.validateDisplayName(name, handle);
     }
 
+    /**
+     * {@inheritDoc}
+     * 
+     * We use a private non-shared X11 Display instance for EDT window operations and one for exposed animation, eg. OpenGL.
+     * Since it is possible to share this device via {@link com.jogamp.newt.NewtFactory#createDisplay(String, boolean)},
+     * we have to supply it w/ basic locking, implicit to the constructor {@link X11GraphicsDevice#X11GraphicsDevice(long, int, boolean)}.
+     */
     protected void createNativeImpl() {
         long handle = X11Util.openDisplay(name);
         if( 0 == handle ) {
@@ -86,8 +96,8 @@ public class X11Display extends DisplayImpl {
             throw e;
         }
         
-        // We use a private non-shared X11 Display instance for EDT window operations and one for exposed animation, eg. OpenGL 
-        aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, NativeWindowFactory.getNullToolkitLock(), false);
+        // see API doc above!
+        aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, false);
     }
 
     protected void closeNativeImpl() {
