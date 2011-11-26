@@ -443,8 +443,6 @@ NS_DURING
         if([mView isInFullScreenMode]) {
             [mView exitFullScreenModeWithOptions: NULL];
         }
-        [mWin setContentView: nil];
-        [mView release];
     }
 NS_HANDLER
 NS_ENDHANDLER
@@ -452,7 +450,6 @@ NS_ENDHANDLER
     if(NULL!=pWin) {
         [mWin detachFromParent: pWin];
     }
-    [mWin orderOut: mWin];
 
     DBG_PRINT( "windowClose.1 - %p,%d view %p,%d, parent %p\n", 
         mWin, getRetainCount(mWin), mView, getRetainCount(mView), pWin);
