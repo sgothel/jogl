@@ -195,9 +195,10 @@ public abstract class NativeWindowFactory {
 
             final ClassLoader cl = NativeWindowFactory.class.getClassLoader();
 
-            // X11 initialization before possible AWT initialization
-            initNativeImpl(firstUIActionOnProcess, cl);
-            
+            if(firstUIActionOnProcess) {
+                // X11 initialization before possible AWT initialization
+                initNativeImpl(true, cl);
+            }            
             isAWTAvailable = false; // may be set to true below
 
             if( !Debug.getBooleanProperty("java.awt.headless", true, acc) &&
@@ -228,6 +229,10 @@ public abstract class NativeWindowFactory {
                         isAWTAvailable = ((Boolean)resO).equals(Boolean.FALSE);
                     }
                 }
+            }
+            if(!firstUIActionOnProcess) {
+                // X11 initialization after possible AWT initialization
+                initNativeImpl(false, cl);
             }
             registeredFactories = Collections.synchronizedMap(new HashMap<Class<?>, NativeWindowFactory>());
 

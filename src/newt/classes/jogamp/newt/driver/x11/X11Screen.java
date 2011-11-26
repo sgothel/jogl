@@ -258,8 +258,8 @@ public class X11Screen extends ScreenImpl {
     // Internals only
     //    
     private final <T> T runWithLockedDisplayHandle(DisplayRunnable<T> action) {
-        // return display.runWithLockedDisplayHandle(action);
-        return runWithTempDisplayHandle(action);
+        return display.runWithLockedDisplayHandle(action);
+        // return runWithTempDisplayHandle(action);
         // return runWithoutLock(action);
     }
     

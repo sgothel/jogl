@@ -73,8 +73,12 @@ public class X11Util {
      * </p>
      */
     public static final boolean ATI_HAS_XCLOSEDISPLAY_BUG = true;
+
+    /** Value is <code>true</code>, best 'stable' results if always using XInitThreads(). */
+    public static final boolean XINITTHREADS_ALWAYS_ENABLED = true;
     
-    // public static final boolean HAS_XLOCKDISPLAY_BUG = false;
+    /** Value is <code>true</code>, best 'stable' results if not using XLockDisplay/XUnlockDisplay at all. */
+    public static final boolean HAS_XLOCKDISPLAY_BUG = true;
     
     private static final boolean DEBUG = Debug.debug("X11Util");
     private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.getBooleanProperty("nativewindow.debug.X11Util.TraceDisplayLifecycle", true, AccessController.getContext());
@@ -89,15 +93,19 @@ public class X11Util {
     private static Object setX11ErrorHandlerLock = new Object();
 
     
+    @SuppressWarnings("unused")
     public static synchronized void initSingleton(final boolean firstX11ActionOnProcess) {
         if(!isInit) {
             NWJNILibLoader.loadNativeWindow("x11");
 
-            isX11LockAvailable = initialize0( firstX11ActionOnProcess ) /* && !HAS_XLOCKDISPLAY_BUG */ ;
+            final boolean callXInitThreads = XINITTHREADS_ALWAYS_ENABLED || firstX11ActionOnProcess;
+            final boolean isXInitThreadsOK = initialize0( XINITTHREADS_ALWAYS_ENABLED || firstX11ActionOnProcess );
+            isX11LockAvailable = isXInitThreadsOK && !HAS_XLOCKDISPLAY_BUG ;
 
             if(DEBUG) {
                 System.err.println("X11Util firstX11ActionOnProcess: "+firstX11ActionOnProcess+
                                    ", requiresX11Lock "+requiresX11Lock+
+                                   ", XInitThreads [called "+callXInitThreads+", OK "+isXInitThreadsOK+"]"+
                                    ", isX11LockAvailable "+isX11LockAvailable); 
                 // Thread.dumpStack();
             }

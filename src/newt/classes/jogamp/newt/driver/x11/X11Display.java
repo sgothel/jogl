@@ -36,6 +36,7 @@ package jogamp.newt.driver.x11;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.x11.X11GraphicsDevice;
 
 import jogamp.nativewindow.x11.X11Util;
@@ -70,11 +71,18 @@ public class X11Display extends DisplayImpl {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * We use a private non-shared X11 Display instance for EDT window operations and one for exposed animation, eg. OpenGL.
-     * Since it is possible to share this device via {@link com.jogamp.newt.NewtFactory#createDisplay(String, boolean)},
-     * we have to supply it w/ basic locking, implicit to the constructor {@link X11GraphicsDevice#X11GraphicsDevice(long, int, boolean)}.
+     * <p>
+     * In case {@link X11Util#HAS_XLOCKDISPLAY_BUG} and {@link X11Util#XINITTHREADS_ALWAYS_ENABLED}, 
+     * we use null locking. Even though this seems not to be rational, it gives most stable results on all platforms.
+     * </p>
+     * <p>
+     * Otherwise we use basic locking via the constructor {@link X11GraphicsDevice#X11GraphicsDevice(long, int, boolean)},
+     * since it is possible to share this device via {@link com.jogamp.newt.NewtFactory#createDisplay(String, boolean)}.
+     * </p> 
      */
+    @SuppressWarnings("unused")
     protected void createNativeImpl() {
         long handle = X11Util.openDisplay(name);
         if( 0 == handle ) {
@@ -97,7 +105,11 @@ public class X11Display extends DisplayImpl {
         }
         
         // see API doc above!
-        aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, false);
+        if(X11Util.XINITTHREADS_ALWAYS_ENABLED && X11Util.HAS_XLOCKDISPLAY_BUG) {
+            aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, NativeWindowFactory.getNullToolkitLock(), false);            
+        } else {
+            aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, false);
+        }
     }
 
     protected void closeNativeImpl() {
