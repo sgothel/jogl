@@ -236,7 +236,7 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         NEWTGLContext.destroyWindow(winctx);
     }
 
-    @Test(timeout=120000)    
+    @Test(timeout=240000)    
     public void testShaderState01PerformanceDouble() throws InterruptedException {
         // preset ..
         final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(GLProfile.getGL2ES2(), 480, 480, false);

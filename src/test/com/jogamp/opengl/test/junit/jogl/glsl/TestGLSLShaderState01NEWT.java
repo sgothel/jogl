@@ -54,13 +54,14 @@ import org.junit.BeforeClass;
  */
 public class TestGLSLShaderState01NEWT extends UITestCase {
     static long durationPerTest = 10; // ms
+    static boolean firstUIActionOnProcess = false;
 
     static final int vertices0_loc = 0; // FIXME: AMD needs this to be location 0 ? hu ?
     static final int colors0_loc = 1;
     
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
+        GLProfile.initSingleton(firstUIActionOnProcess);
     }
     
     @Test
@@ -181,11 +182,11 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         NEWTGLContext.destroyWindow(winctx);
     }
 
-    @Test(timeout=120000)
+    @Test(timeout=240000)
     public void testShaderState00PerformanceSingleKeepEnabled() throws InterruptedException {
         testShaderState00PerformanceSingle(false);
     }
-    @Test(timeout=120000)
+    @Test(timeout=240000)
     public void testShaderState00PerformanceSingleToggleEnable() throws InterruptedException {
         testShaderState00PerformanceSingle(true);
     }
@@ -278,7 +279,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         NEWTGLContext.destroyWindow(winctx);        
     }
     
-    @Test(timeout=120000)
+    @Test(timeout=240000)
     public void testShaderState01PerformanceDouble() throws InterruptedException {
         // preset ..
         final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(GLProfile.getGL2ES2(), 480, 480, false);
@@ -386,9 +387,10 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = MiscUtils.atoi(args[++i], (int)durationPerTest);
-            }
-            if(args[i].equals("-wait")) {
+            } else if(args[i].equals("-wait")) {
                 wait = true;
+            } else if(args[i].equals("-firstUIAction")) {
+                firstUIActionOnProcess = true;
             }
         }
         if(wait) {

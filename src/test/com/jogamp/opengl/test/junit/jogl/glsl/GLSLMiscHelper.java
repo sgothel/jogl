@@ -37,8 +37,8 @@ import javax.media.opengl.GLDrawable;
 import org.junit.Assert;
 
 public class GLSLMiscHelper {
-    public static final int frames_perftest =  10000; // frames
-    public static final int frames_warmup   =    500; // frames
+    public static final int frames_perftest = 600; // frames
+    public static final int frames_warmup   = 100; // frames
     
     public static void validateGLArrayDataServerState(GL2ES2 gl, GLArrayDataServer data) {
         final ShaderState st = ShaderState.getShaderState(gl);
