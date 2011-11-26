@@ -30,7 +30,6 @@ package com.jogamp.newt;
 
 import com.jogamp.newt.util.EDTUtil;
 import jogamp.newt.Debug;
-import jogamp.newt.DisplayImpl;
 
 import java.util.*;
 
@@ -130,7 +129,10 @@ public abstract class Display {
     public abstract int getId();
 
     /**
-     * @return this display instance name as defined at creation time
+     * @return This display connection name as defined at creation time. 
+     *         The display connection name is a technical platform specific detail, see {@link AbstractGraphicsDevice#getConnection()}. 
+     *
+     * @see AbstractGraphicsDevice#getConnection()
      */
     public abstract String getName();
 
@@ -198,6 +200,7 @@ public abstract class Display {
     }
 
     /** Returns the global display collection */
+    @SuppressWarnings("unchecked")
     public static Collection<Display> getAllDisplays() {
         ArrayList<Display> list;
         synchronized(displayList) {

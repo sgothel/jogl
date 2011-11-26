@@ -92,7 +92,8 @@ public class NewtFactory {
      * <p>
      * An already existing display connection of the same <code>name</code> will be reused.  
      * </p>
-     * @param name the display connection name
+     * @param name the display connection name which is a technical platform specific detail,
+     *        see {@link AbstractGraphicsDevice#getConnection()}. Use <code>null</code> for default.
      * @return the new or reused Display instance
      */
     public static Display createDisplay(String name) {
@@ -108,7 +109,8 @@ public class NewtFactory {
      * An already existing display connection of the same <code>name</code> will be reused
      * <b>if</b> <code>reuse</code> is <code>true</code>, otherwise a new instance is being created.
      * </p>
-     * @param name the display connection name
+     * @param name the display connection name which is a technical platform specific detail,
+     *        see {@link AbstractGraphicsDevice#getConnection()}. Use <code>null</code> for default.
      * @param reuse attempt to reuse an existing Display with same <code>name</code> if set true, otherwise create a new instance.
      * @return the new or reused Display instance
      */
@@ -125,7 +127,8 @@ public class NewtFactory {
      * An already existing display connection of the same <code>name</code> will be reused.
      * </p>
      * @param type explicit NativeWindow type eg. {@link NativeWindowFactory#TYPE_AWT}
-     * @param name the display connection name
+     * @param name the display connection name which is a technical platform specific detail,
+     *        see {@link AbstractGraphicsDevice#getConnection()}. Use <code>null</code> for default.
      * @return the new or reused Display instance
      */
     public static Display createDisplay(String type, String name) {
@@ -142,7 +145,8 @@ public class NewtFactory {
      * <b>if</b> <code>reuse</code> is <code>true</code>, otherwise a new instance is being created.
      * </p>
      * @param type explicit NativeWindow type eg. {@link NativeWindowFactory#TYPE_AWT}
-     * @param name the display connection name
+     * @param name the display connection name which is a technical platform specific detail,
+     *        see {@link AbstractGraphicsDevice#getConnection()}. Use <code>null</code> for default.
      * @param reuse attempt to reuse an existing Display with same <code>name</code> if set true, otherwise create a new instance.
      * @return the new or reused Display instance
      */

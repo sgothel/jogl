@@ -321,7 +321,10 @@ public abstract class GLContextImpl extends GLContext {
   //
 
   /**
-   * MakeCurrent functionality, which also issues the creation of the actual OpenGL context.<br>
+   * {@inheritDoc}
+   * <p>
+   * MakeCurrent functionality, which also issues the creation of the actual OpenGL context.
+   * </p>
    * The complete callgraph for general OpenGL context creation is:<br>
    * <ul>
    *    <li> {@link #makeCurrent} <i>GLContextImpl</i></li>
