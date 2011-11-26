@@ -76,13 +76,13 @@
                   value="javax/media/nativewindow/awt/* jogamp/nativewindow/jawt/** jogamp/nativewindow/**/awt/**"/>
 
         <property name="java.part.x11"
-                  value="jogamp/nativewindow/x11/** javax/media/nativewindow/x11/*" />
+                  value="jogamp/nativewindow/x11/* javax/media/nativewindow/x11/*" />
 
         <property name="java.part.windows"
-                  value="jogamp/nativewindow/windows/** javax/media/nativewindow/windows/*" />
+                  value="jogamp/nativewindow/windows/* javax/media/nativewindow/windows/*" />
 
         <property name="java.part.macosx"
-                  value="jogamp/nativewindow/macosx/** javax/media/nativewindow/macosx/*" />
+                  value="jogamp/nativewindow/macosx/* javax/media/nativewindow/macosx/*" />
 
         <!-- condition excludes -->
 
