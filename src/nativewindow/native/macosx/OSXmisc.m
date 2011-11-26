@@ -40,7 +40,7 @@
 #include <jawt_md.h>
 #import <JavaNativeFoundation.h>
 
-// #define VERBOSE 1
+#define VERBOSE 1
 //
 #ifdef VERBOSE
     // #define DBG_PRINT(...) NSLog(@ ## __VA_ARGS__)
@@ -202,10 +202,6 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateNSWindow0
     [myWindow setOpaque: NO];
     [myWindow setBackgroundColor: [NSColor clearColor]];
 
-    // force surface creation
-    // [myView lockFocus];
-    // [myView unlockFocus];
-
     [pool release];
 
     return (jlong) ((intptr_t) myWindow);
@@ -221,13 +217,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyNSWindow0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* mWin = (NSWindow*) ((intptr_t) nsWindow);
-    NSView* mView = [mWin contentView];
 
-    if(NULL!=mView) {
-        [mWin setContentView: nil];
-        [mView release];
-    }
-    [mWin orderOut: mWin];
     [mWin close]; // performs release!
     [pool release];
 }
@@ -244,6 +234,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
 
     // CALayer* layer = [[CALayer alloc] init];
     CALayer* layer = [CALayer layer];
+
+    // no animations for add/remove/swap sublayers etc 
+    [layer removeAnimationForKey: kCAOnOrderIn];
+    [layer removeAnimationForKey: kCAOnOrderOut];
+    [layer removeAnimationForKey: kCATransition];
 
     // initial dummy size !
     CGRect lRect = [layer frame];
@@ -272,11 +267,23 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
     CALayer* subLayer = (CALayer*) ((intptr_t) subCALayer);
 
     CGRect lRectRoot = [rootLayer frame];
-    // simple 1:1 layout !
-    [subLayer setFrame:lRectRoot];
-    DBG_PRINT("CALayer::AddCASublayer0.0: %p . %p %lf/%lf %lfx%lf (refcnt %d)\n", 
+    DBG_PRINT("CALayer::AddCASublayer0.0: Origin %p frame0: %lf/%lf %lfx%lf\n", 
+        rootLayer, lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height);
+    if(lRectRoot.origin.x<0 || lRectRoot.origin.y<0) {
+        lRectRoot.origin.x = 0;
+        lRectRoot.origin.y = 0;
+        [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
+            [rootLayer setFrame: lRectRoot];
+        }];
+        DBG_PRINT("CALayer::AddCASublayer0.1: Origin %p frame*: %lf/%lf %lfx%lf\n", 
+            rootLayer, lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height);
+    }
+    DBG_PRINT("CALayer::AddCASublayer0.2: %p . %p %lf/%lf %lfx%lf (refcnt %d)\n", 
         rootLayer, subLayer, lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height, (int)[subLayer retainCount]);
+
     [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
+        // simple 1:1 layout !
+        [subLayer setFrame:lRectRoot];
         [rootLayer addSublayer:subLayer];
     }];
     DBG_PRINT("CALayer::AddCASublayer0.X: %p . %p (refcnt %d)\n", rootLayer, subLayer, (int)[subLayer retainCount]);

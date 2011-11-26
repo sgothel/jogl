@@ -97,6 +97,11 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
     pthread_mutex_init(&renderLock, NULL); // fast non-recursive
     pthread_cond_init(&renderSignal, NULL); // no attribute
 
+    // no animations for add/remove/swap sublayers etc 
+    [self removeAnimationForKey: kCAOnOrderIn];
+    [self removeAnimationForKey: kCAOnOrderOut];
+    [self removeAnimationForKey: kCATransition];
+
     pbuffer = p;
     [pbuffer retain];
 
@@ -201,6 +206,8 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
 - (void)dealloc
 {
     DBG_PRINT("MyNSOpenGLLayer::dealloc.0 %p (refcnt %d)\n", self, (int)[self retainCount]);
+    // NSLog(@"MyNSOpenGLLayer::dealloc: %@",[NSThread callStackSymbols]);
+
     [self disableAnimation];
     [self deallocTex];
     pthread_cond_destroy(&renderSignal);
@@ -229,7 +236,6 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
         forLayerTime:(CFTimeInterval)timeInterval displayTime:(const CVTimeStamp *)timeStamp
 {
     [context makeCurrentContext];
-    // FIXME ?? [context update];
    
     /**
      * v-sync doesn't works w/ NSOpenGLLayer's context .. well :(
@@ -261,13 +267,6 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
         CGRect lRect = [self frame];
         DBG_PRINT("MyNSOpenGLLayer::drawInOpenGLContext %p frame0: %lf/%lf %lfx%lf\n", 
             self, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
-        if(lRect.origin.x<0 || lRect.origin.y<0) {
-            lRect.origin.x = 0;
-            lRect.origin.y = 0;
-            [self setFrame: lRect];
-            DBG_PRINT("MyNSOpenGLLayer::drawInOpenGLContext %p frame*: %lf/%lf %lfx%lf\n", 
-                self, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
-        }
     }
 
     glBindTexture(textureTarget, textureID);
