@@ -191,13 +191,50 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacDisplay_initNSAppli
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacDisplay_runNSApplication0
   (JNIEnv *env, jclass clazz)
 {
-    // NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     DBG_PRINT( "\nrunNSApplication0.0\n");
 
     [NSApp run];
 
     DBG_PRINT( "\nrunNSApplication0.X\n");
-    // [pool release];
+    [pool release];
+}
+
+/*
+ * Class:     jogamp_newt_driver_macosx_MacDisplay
+ * Method:    stopNSApplication0
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacDisplay_stopNSApplication0
+  (JNIEnv *env, jclass clazz)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    DBG_PRINT( "\nstopNSApplication0.0 nsApp.running %d\n", (NSApp && [NSApp isRunning]));
+
+    if(NSApp && [NSApp isRunning]) {
+        [NSApp performSelectorOnMainThread:@selector(stop:) withObject:nil waitUntilDone:YES];
+        // [NSApp stop: nil];
+        NSEvent* event = [NSEvent otherEventWithType: NSApplicationDefined
+                                            location: NSMakePoint(0,0)
+                                       modifierFlags: 0
+                                           timestamp: 0.0
+                                        windowNumber: 0
+                                             context: nil
+                                             subtype: 0
+                                               data1: 0
+                                               data2: 0];
+        DBG_PRINT( "\nstopNSApplication0.1\n");
+        [NSApp postEvent: event atStart: true];
+    }
+    /**
+    DBG_PRINT( "\nstopNSApplication0.2\n");
+    if(NSApp && [NSApp isRunning]) {
+        DBG_PRINT( "\nstopNSApplication0.3\n");
+        [NSApp terminate:nil];
+    } */
+
+    DBG_PRINT( "\nstopNSApplication0.X\n");
+    [pool release];
 }
 
 /*
@@ -443,6 +480,8 @@ NS_DURING
         if([mView isInFullScreenMode]) {
             [mView exitFullScreenModeWithOptions: NULL];
         }
+        [mWin setContentView: nil];
+        [mView release];
     }
 NS_HANDLER
 NS_ENDHANDLER
@@ -450,6 +489,7 @@ NS_ENDHANDLER
     if(NULL!=pWin) {
         [mWin detachFromParent: pWin];
     }
+    [mWin orderOut: mWin];
 
     DBG_PRINT( "windowClose.1 - %p,%d view %p,%d, parent %p\n", 
         mWin, getRetainCount(mWin), mView, getRetainCount(mView), pWin);

@@ -72,8 +72,12 @@ public class MacDisplay extends DisplayImpl {
     public static void runNSApplication() {
         runNSApplication0();
     }
+    public static void stopNSApplication() {
+        stopNSApplication0();
+    }
 
     private static native boolean initNSApplication0();
     private static native void runNSApplication0();
+    private static native void stopNSApplication0();
 }
 

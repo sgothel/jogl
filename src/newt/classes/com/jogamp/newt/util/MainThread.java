@@ -93,6 +93,9 @@ import jogamp.newt.NEWTJNILibLoader;
  */
 public class MainThread {
     private static final String MACOSXDisplayClassName = "jogamp.newt.driver.macosx.MacDisplay";
+    private static final Platform.OSType osType;
+    private static final boolean isMacOSX;
+        
     
     /** if true, use the main thread EDT, otherwise AWT's EDT */
     public static final boolean  HINT_USE_MAIN_THREAD;
@@ -103,7 +106,9 @@ public class MainThread {
         NativeWindowFactory.initSingleton(true);
         NEWTJNILibLoader.loadNEWT();
         HINT_USE_MAIN_THREAD = !NativeWindowFactory.isAWTAvailable() || 
-                                Debug.getBooleanProperty("newt.MainThread.force", true, localACC);        
+                                Debug.getBooleanProperty("newt.MainThread.force", true, localACC);
+        osType = Platform.getOSType();
+        isMacOSX = osType == Platform.OSType.MACOS;                
     }
     
     public static boolean useMainThread = false;
@@ -132,7 +137,7 @@ public class MainThread {
             try {
                 Class<?> mainClass = ReflectionUtil.getClass(mainClassName, true, getClass().getClassLoader());
                 if(null==mainClass) {
-                    throw new RuntimeException(new ClassNotFoundException("MainThread couldn't find main class "+mainClassName));
+                    throw new RuntimeException(new ClassNotFoundException("MainAction couldn't find main class "+mainClassName));
                 }
                 try {
                     mainClassMain = mainClass.getDeclaredMethod("main", new Class[] { String[].class });
@@ -151,8 +156,23 @@ public class MainThread {
             if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" user app fin");
 
             if ( useMainThread ) {
-                if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" MainThread fin - stop");
-                System.exit(0);
+                if(isMacOSX) {
+                    try {
+                        if(DEBUG) {
+                            System.err.println("MainAction.main(): "+Thread.currentThread()+" MainAction fin - stopNSApp.0"); 
+                        }
+                        ReflectionUtil.callStaticMethod(MACOSXDisplayClassName, "stopNSApplication", 
+                            null, null, MainThread.class.getClassLoader());
+                        if(DEBUG) {
+                            System.err.println("MainAction.main(): "+Thread.currentThread()+" MainAction fin - stopNSApp.X"); 
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" MainAction fin - System.exit(0)");
+                    System.exit(0);                
+                }   
             }
         }
     }
@@ -164,9 +184,6 @@ public class MainThread {
         
         useMainThread = HINT_USE_MAIN_THREAD;
 
-        final Platform.OSType osType = Platform.getOSType();
-        final boolean isMacOSX = osType == Platform.OSType.MACOS;
-        
         if(DEBUG) {
             System.err.println("MainThread.main(): "+cur.getName()+
                 ", useMainThread "+ useMainThread +
