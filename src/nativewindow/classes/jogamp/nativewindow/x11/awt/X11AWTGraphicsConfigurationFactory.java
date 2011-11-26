@@ -110,7 +110,7 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
             owner = true;
         }
         final ToolkitLock lock = owner ? 
-                NativeWindowFactory.getNullToolkitLock() : // own non-shared X11 display connection, no lock
+                NativeWindowFactory.getDefaultToolkitLock(NativeWindowFactory.TYPE_AWT) : // own non-shared X11 display connection, no X11 lock
                 NativeWindowFactory.createDefaultToolkitLock(NativeWindowFactory.TYPE_X11, NativeWindowFactory.TYPE_AWT, displayHandle);
         final X11GraphicsDevice x11Device = new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT, lock, owner); 
         final X11GraphicsScreen x11Screen = new X11GraphicsScreen(x11Device, awtScreen.getIndex());
