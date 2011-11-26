@@ -33,7 +33,7 @@
  */
 package jogamp.newt.driver.x11;
 
-// import jogamp.nativewindow.x11.X11Util;
+import jogamp.nativewindow.x11.X11Util;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.ScreenImpl;
 import jogamp.newt.DisplayImpl.DisplayRunnable;
@@ -258,13 +258,12 @@ public class X11Screen extends ScreenImpl {
     // Internals only
     //    
     private final <T> T runWithLockedDisplayHandle(DisplayRunnable<T> action) {
-        return display.runWithLockedDisplayHandle(action);
-        // return runWithLockedTempDisplayHandle(action);
+        // return display.runWithLockedDisplayHandle(action);
+        return runWithTempDisplayHandle(action);
         // return runWithoutLock(action);
     }
     
-    /** just here to debug X11 RANDR / GL locking issues
-    private final <T> T runWithLockedTempDisplayHandle(DisplayRunnable<T> action) {
+    private final <T> T runWithTempDisplayHandle(DisplayRunnable<T> action) {
         final long displayHandle = X11Util.openDisplay(display.getName());        
         if(0 == displayHandle) {
             throw new RuntimeException("null device");
@@ -279,7 +278,7 @@ public class X11Screen extends ScreenImpl {
     }
     private final <T> T runWithoutLock(DisplayRunnable<T> action) {
         return action.run(display.getHandle());
-    } */
+    }
     
     private static native long GetScreen0(long dpy, int scrn_idx);
 
