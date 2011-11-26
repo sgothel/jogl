@@ -54,18 +54,31 @@ import javax.media.nativewindow.util.Point;
 public class X11Util {
     /** 
      * See Bug 515 - https://jogamp.org/bugzilla/show_bug.cgi?id=515
-     * 
-     * It is observed that ATI X11 drivers, eg. fglrx 8.78.6, fglrx 11.08/8.881 and fglrx 11.11/8.911,
+     * <p> 
+     * It is observed that ATI X11 drivers, eg.
+     * <ul> 
+     *   <li>fglrx 8.78.6,</li>
+     *   <li>fglrx 11.08/8.881 and </li>
+     *   <li>fglrx 11.11/8.911</li>
+     * </ul>  
      * are quite sensitive to multiple Display connections.
-     * Here, closing displays shall happen in the same order as
-     * they were opened, -OR- shall not be closed at all!
-     * Otherwise some driver related bug appears and brings down the JVM.
+     * </p>
+     * <p>
+     * With the above drivers closing displays shall happen in the same order as
+     * they were opened, <b>or</b> shall not be closed at all!
+     * If closed, some driver related bug appears and brings down the JVM.
+     * </p>
+     * <p>
      * You may test this, ie just reverse the destroy order below.
      * See also native test: jogl/test/native/displayMultiple02.c
-     * 
-     * Our current 'workaround' is to not close them at all if driver vendor is ATI.
+     * </p>
+     * <p>
+     * Workaround is to not close them at all if driver vendor is ATI.
+     * </p>
      */
     public static final boolean ATI_HAS_XCLOSEDISPLAY_BUG = true;
+    
+    // public static final boolean HAS_XLOCKDISPLAY_BUG = false;
     
     private static final boolean DEBUG = Debug.debug("X11Util");
     private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.getBooleanProperty("nativewindow.debug.X11Util.TraceDisplayLifecycle", true, AccessController.getContext());
@@ -84,13 +97,13 @@ public class X11Util {
         if(!isInit) {
             NWJNILibLoader.loadNativeWindow("x11");
 
-            isX11LockAvailable = initialize0( firstX11ActionOnProcess );
+            isX11LockAvailable = initialize0( firstX11ActionOnProcess ) /* && !HAS_XLOCKDISPLAY_BUG */ ;
 
             if(DEBUG) {
                 System.err.println("X11Util firstX11ActionOnProcess: "+firstX11ActionOnProcess+
                                    ", requiresX11Lock "+requiresX11Lock+
                                    ", isX11LockAvailable "+isX11LockAvailable); 
-                Thread.dumpStack();
+                // Thread.dumpStack();
             }
             isInit = true;
         }
