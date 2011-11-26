@@ -317,6 +317,11 @@ Java_jogamp_nativewindow_x11_X11Util_initialize0(JNIEnv *env, jclass _unused, jb
 }
 
 JNIEXPORT void JNICALL 
+Java_jogamp_nativewindow_x11_X11Util_shutdown0(JNIEnv *env, jclass _unused) {
+    x11IOErrorHandlerEnable(0, env);
+}
+
+JNIEXPORT void JNICALL 
 Java_jogamp_nativewindow_x11_X11Util_setX11ErrorHandler0(JNIEnv *env, jclass _unused, jboolean onoff, jboolean quiet) {
   x11ErrorHandlerEnableBlocking(env, ( JNI_TRUE == onoff ) ? 1 : 0, ( JNI_TRUE == quiet ) ? 1 : 0);
 }

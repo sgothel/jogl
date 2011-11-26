@@ -277,6 +277,7 @@ public class X11Util {
             openDisplayList.clear();
             pendingDisplayList.clear();
             openDisplayMap.clear();
+            shutdown0();
         }
         return num;
     }
@@ -690,5 +691,6 @@ public class X11Util {
     }
 
     private static native boolean initialize0(boolean firstUIActionOnProcess);
+    private static native void shutdown0();
     private static native void setX11ErrorHandler0(boolean onoff, boolean quiet);
 }
