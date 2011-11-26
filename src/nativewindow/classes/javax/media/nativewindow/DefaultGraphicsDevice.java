@@ -55,7 +55,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         this.unitID = unitID;
         this.uniqueID = getUniqueID(type, connection, unitID);
         this.handle = 0;
-        setToolkitLock( NativeWindowFactory.getDefaultToolkitLock(type) );
+        this.toolkitLock = NativeWindowFactory.getDefaultToolkitLock(type);
     }
 
     /**
@@ -70,7 +70,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         this.unitID = unitID;
         this.uniqueID = getUniqueID(type, connection, unitID);
         this.handle = handle;
-        setToolkitLock( NativeWindowFactory.createDefaultToolkitLock(type, handle) );
+        this.toolkitLock = NativeWindowFactory.createDefaultToolkitLock(type, handle);
     }
 
     /**
@@ -85,7 +85,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         this.unitID = unitID;
         this.uniqueID = getUniqueID(type, connection, unitID);
         this.handle = handle;
-        setToolkitLock( locker );
+        this.toolkitLock = null != locker ? locker : NativeWindowFactoryImpl.getNullToolkitLock();
     }
 
     @Override
@@ -152,10 +152,21 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * Set the internal ToolkitLock, which is used within the
      * {@link #lock()} and {@link #unlock()} implementation.
      *
+     * <p>
+     * The current ToolkitLock is being locked/unlocked while swapping the reference,
+     * ensuring no concurrent access can occur during the swap.
+     * </p>
+     * 
      * @param locker the ToolkitLock, if null, {@link jogamp.nativewindow.NullToolkitLock} is being used
      */
     protected void setToolkitLock(ToolkitLock locker) {
-        this.toolkitLock = ( null == locker ) ? NativeWindowFactoryImpl.getNullToolkitLock() : locker ;
+        final ToolkitLock _toolkitLock = toolkitLock;
+        _toolkitLock.lock();
+        try {
+            toolkitLock = ( null == locker ) ? NativeWindowFactoryImpl.getNullToolkitLock() : locker ;
+        } finally {
+            _toolkitLock.unlock();
+        }
     }
 
     /**
