@@ -95,10 +95,10 @@ public class TestScreenMode00bNEWT extends UITestCase {
         System.err.println("orig: "+sm_o);
         System.err.println("curr: "+sm_c);
         
-        for(i=0; i<100; i++) {
+        for(i=0; i<50; i++) {
             sm_c = screen.getCurrentScreenMode();
             Assert.assertNotNull(sm_c);
-            System.err.print(".");
+            System.err.print("."+i);
         }
         System.err.println("!");
         
