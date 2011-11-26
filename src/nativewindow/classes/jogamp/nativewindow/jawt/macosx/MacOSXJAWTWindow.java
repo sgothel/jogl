@@ -51,6 +51,7 @@ import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.SurfaceChangeable;
 import javax.media.nativewindow.util.Point;
 
+import jogamp.nativewindow.MutableGraphicsConfiguration;
 import jogamp.nativewindow.jawt.JAWT;
 import jogamp.nativewindow.jawt.JAWTFactory;
 import jogamp.nativewindow.jawt.JAWTUtil;
@@ -195,7 +196,10 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
             Capabilities caps = (Capabilities) getPrivateGraphicsConfiguration().getChosenCapabilities().cloneMutable();
             caps.setOnscreen(false);
             getPrivateGraphicsConfiguration().setChosenCapabilities(caps);
-        } 
+            caps = (Capabilities) getGraphicsConfiguration().getChosenCapabilities().cloneMutable();
+            caps.setOnscreen(false);
+            ((MutableGraphicsConfiguration)getGraphicsConfiguration()).setChosenCapabilities(caps);
+        }
         if(0 == rootSurfaceLayerHandle) {
             rootSurfaceLayerHandle = OSXUtil.CreateCALayer();
             if(0 == rootSurfaceLayerHandle) {
