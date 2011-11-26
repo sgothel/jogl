@@ -33,7 +33,6 @@
 
 package jogamp.nativewindow.x11.awt;
 
-import java.awt.Component;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 
@@ -54,6 +53,7 @@ import javax.media.nativewindow.x11.X11GraphicsDevice;
 import javax.media.nativewindow.x11.X11GraphicsScreen;
 
 import jogamp.nativewindow.jawt.x11.X11SunJDKReflection;
+import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 
 public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
@@ -102,7 +102,7 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
              * some work, but some behave erratic. 
              * I.e. hangs in XQueryExtension(..) via X11GraphicsScreen.
              */
-            final String displayName = X11Util.XDisplayString(displayHandle);
+            final String displayName = X11Lib.XDisplayString(displayHandle);
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName() + " - X11AWTGraphicsConfigurationFactory: create X11 display @ "+displayName+" / 0x"+Long.toHexString(displayHandle));
             }

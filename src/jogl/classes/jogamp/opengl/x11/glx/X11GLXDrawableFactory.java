@@ -59,6 +59,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.WrappedSurface;
+import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
 import jogamp.opengl.GLContextImpl;
@@ -511,8 +512,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     int[] size = new int[1];
-    boolean res = X11Util.XF86VidModeGetGammaRampSize(display,
-                                                      X11Util.DefaultScreen(display),
+    boolean res = X11Lib.XF86VidModeGetGammaRampSize(display,
+                                                      X11Lib.DefaultScreen(display),
                                                       size, 0);
     if (!res) {
       return 0;
@@ -534,8 +535,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       rampData[i] = (short) (ramp[i] * 65535);
     }
 
-    boolean res = X11Util.XF86VidModeSetGammaRamp(display,
-                                              X11Util.DefaultScreen(display),
+    boolean res = X11Lib.XF86VidModeSetGammaRamp(display,
+                                              X11Lib.DefaultScreen(display),
                                               rampData.length,
                                               rampData, 0,
                                               rampData, 0,
@@ -561,8 +562,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
 
-    boolean res = X11Util.XF86VidModeGetGammaRamp(display,
-                                              X11Util.DefaultScreen(display),
+    boolean res = X11Lib.XF86VidModeGetGammaRamp(display,
+                                              X11Lib.DefaultScreen(display),
                                               size,
                                               redRampData,
                                               greenRampData,
@@ -598,8 +599,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
 
-    X11Util.XF86VidModeSetGammaRamp(display,
-                                X11Util.DefaultScreen(display),
+    X11Lib.XF86VidModeSetGammaRamp(display,
+                                X11Lib.DefaultScreen(display),
                                 size,
                                 redRampData,
                                 greenRampData,

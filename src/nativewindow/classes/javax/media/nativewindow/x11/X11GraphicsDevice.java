@@ -34,6 +34,7 @@
 package javax.media.nativewindow.x11;
 
 import jogamp.nativewindow.Debug;
+import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 import javax.media.nativewindow.DefaultGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
@@ -64,7 +65,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      */
     public X11GraphicsDevice(long display, int unitID, boolean owner) {
         // FIXME: derive unitID from connection could be buggy, one DISPLAY for all screens for example..
-        super(NativeWindowFactory.TYPE_X11, X11Util.XDisplayString(display), unitID, display);
+        super(NativeWindowFactory.TYPE_X11, X11Lib.XDisplayString(display), unitID, display);
         if(0==display) {
             throw new NativeWindowException("null display");
         }
@@ -77,7 +78,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long, ToolkitLock)
      */
     public X11GraphicsDevice(long display, int unitID, ToolkitLock locker, boolean owner) {
-        super(NativeWindowFactory.TYPE_X11, X11Util.XDisplayString(display), unitID, display, locker);
+        super(NativeWindowFactory.TYPE_X11, X11Lib.XDisplayString(display), unitID, display, locker);
         if(0==display) {
             throw new NativeWindowException("null display");
         }

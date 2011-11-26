@@ -53,7 +53,7 @@ public class X11ToolkitLock implements ToolkitLock {
     public final void lock() {
         if(TRACE_LOCK) { System.err.println("X11ToolkitLock.lock() - native: "+(null==lock)); }
         if(null == lock) {
-            X11Util.XLockDisplay(displayHandle);
+            X11Lib.XLockDisplay(displayHandle);
         } else {
             lock.lock();
         }
@@ -62,7 +62,7 @@ public class X11ToolkitLock implements ToolkitLock {
     public final void unlock() {
         if(TRACE_LOCK) { System.err.println("X11ToolkitLock.unlock() - native: "+(null==lock)); }
         if(null == lock) {
-            X11Util.XUnlockDisplay(displayHandle);
+            X11Lib.XUnlockDisplay(displayHandle);
         } else {
             lock.unlock();
         }

@@ -57,7 +57,7 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
     int scrn = screen.getIndex();
     long visualID = config.getVisualID();
 
-    dummyWindow = X11Util.CreateDummyWindow(dpy, scrn, visualID, f_dim, f_dim);
+    dummyWindow = X11Lib.CreateDummyWindow(dpy, scrn, visualID, f_dim, f_dim);
     ns.setSurfaceHandle( dummyWindow );
     ns.surfaceSizeChanged(f_dim, f_dim);
 
@@ -84,7 +84,7 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
     if(0!=dummyWindow) {
         destroyHandle();
         X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration();
-        X11Util.DestroyDummyWindow(config.getScreen().getDevice().getHandle(), dummyWindow);
+        X11Lib.DestroyDummyWindow(config.getScreen().getDevice().getHandle(), dummyWindow);
     }
   }
 }

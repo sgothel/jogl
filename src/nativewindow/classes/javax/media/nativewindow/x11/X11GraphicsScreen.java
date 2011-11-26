@@ -34,6 +34,8 @@
 package javax.media.nativewindow.x11;
 
 import javax.media.nativewindow.*;
+
+import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 
 /** Encapsulates a screen index on X11
@@ -57,14 +59,14 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
     public long getDefaultVisualID() {
         // It still could be an AWT hold handle ..
         long display = getDevice().getHandle();
-        int scrnIdx = X11Util.DefaultScreen(display);
-        return X11Util.DefaultVisualID(display, scrnIdx);
+        int scrnIdx = X11Lib.DefaultScreen(display);
+        return X11Lib.DefaultVisualID(display, scrnIdx);
     }
 
     private static int fetchScreen(X11GraphicsDevice device, int screen) {
         // It still could be an AWT hold handle ..
         long display = device.getHandle();
-        if(X11Util.XineramaEnabled(display)) {
+        if(X11Lib.XineramaEnabled(display)) {
             screen = 0; // Xinerama -> 1 screen
         }
         return screen;

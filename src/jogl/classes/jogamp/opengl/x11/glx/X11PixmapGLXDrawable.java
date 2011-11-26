@@ -78,14 +78,14 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
     long dpy = aDevice.getHandle();
     int screen = aScreen.getIndex();
 
-    pixmap = X11Util.XCreatePixmap(dpy, X11Util.RootWindow(dpy, screen),
+    pixmap = X11Lib.XCreatePixmap(dpy, X11Lib.RootWindow(dpy, screen),
                                   surface.getWidth(), surface.getHeight(), bitsPerPixel);
     if (pixmap == 0) {
         throw new GLException("XCreatePixmap failed");
     }
     long drawable = GLX.glXCreateGLXPixmap(dpy, vis, pixmap);
     if (drawable == 0) {
-        X11Util.XFreePixmap(dpy, pixmap);
+        X11Lib.XFreePixmap(dpy, pixmap);
         pixmap = 0;
         throw new GLException("glXCreateGLXPixmap failed");
     }
@@ -126,7 +126,7 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
     GLX.glXMakeCurrent(display, 0, 0);
 
     GLX.glXDestroyGLXPixmap(display, drawable);
-    X11Util.XFreePixmap(display, pixmap);
+    X11Lib.XFreePixmap(display, pixmap);
     drawable = 0;
     pixmap = 0;
     ((SurfaceChangeable)ns).setSurfaceHandle(0);

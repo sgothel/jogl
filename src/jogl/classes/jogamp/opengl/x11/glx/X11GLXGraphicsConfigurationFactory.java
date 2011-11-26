@@ -51,7 +51,6 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.PointerBuffer;
 import jogamp.nativewindow.x11.X11Lib;
-import jogamp.nativewindow.x11.X11Util;
 import jogamp.nativewindow.x11.XVisualInfo;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLGraphicsConfigurationFactory;
@@ -161,7 +160,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         int[] count = new int[1];
         XVisualInfo template = XVisualInfo.create();
         template.setScreen(screen);
-        XVisualInfo[] infos = X11Util.XGetVisualInfo(display, X11Lib.VisualScreenMask, template, count, 0);
+        XVisualInfo[] infos = X11Lib.XGetVisualInfo(display, X11Lib.VisualScreenMask, template, count, 0);
         if (infos == null || infos.length<1) {
             throw new GLException("Error while enumerating available XVisualInfos");
         }
@@ -346,7 +345,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         int[] count = new int[1];
         XVisualInfo template = XVisualInfo.create();
         template.setScreen(screen);
-        XVisualInfo[] infos = X11Util.XGetVisualInfo(display, X11Lib.VisualScreenMask, template, count, 0);
+        XVisualInfo[] infos = X11Lib.XGetVisualInfo(display, X11Lib.VisualScreenMask, template, count, 0);
         if (infos == null || infos.length<1) {
             throw new GLException("Error while enumerating available XVisualInfos");
         }

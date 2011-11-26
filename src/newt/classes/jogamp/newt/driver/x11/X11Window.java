@@ -34,7 +34,7 @@
 
 package jogamp.newt.driver.x11;
 
-import jogamp.nativewindow.x11.X11Util;
+import jogamp.nativewindow.x11.X11Lib;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.DisplayImpl.DisplayRunnable;
 import jogamp.newt.WindowImpl;
@@ -168,7 +168,7 @@ public class X11Window extends WindowImpl {
     
     protected Point getLocationOnScreenImpl(final int x, final int y) {
         // X11Util.GetRelativeLocation: locks display already !
-        return X11Util.GetRelativeLocation( getScreen().getDisplay().getHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
+        return X11Lib.GetRelativeLocation( getScreen().getDisplay().getHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
     }
 
     protected void updateInsetsImpl(Insets insets) {

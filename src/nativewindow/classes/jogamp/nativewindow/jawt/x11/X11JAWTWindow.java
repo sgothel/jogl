@@ -48,7 +48,7 @@ import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.nativewindow.jawt.JAWTWindow;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurface;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo;
-import jogamp.nativewindow.x11.X11Util;
+import jogamp.nativewindow.x11.X11Lib;
 
 public class X11JAWTWindow extends JAWTWindow {
 
@@ -126,7 +126,7 @@ public class X11JAWTWindow extends JAWTWindow {
   }
 
   protected Point getLocationOnScreenNativeImpl(int x, int y) {
-    return X11Util.GetRelativeLocation( getDisplayHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
+    return X11Lib.GetRelativeLocation( getDisplayHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
   }
   
   // Variables for lockSurface/unlockSurface

@@ -28,6 +28,7 @@
 package jogamp.nativewindow.jawt.x11;
 
 import jogamp.nativewindow.jawt.*;
+import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 import javax.media.nativewindow.ToolkitLock;
 
@@ -57,7 +58,7 @@ public class X11JAWTToolkitLock implements ToolkitLock {
         if(TRACE_LOCK) { System.err.println("X11JAWTToolkitLock.lock() - native: "+(null==lock)); }
         JAWTUtil.lockToolkit();
         if(null == lock) {
-            X11Util.XLockDisplay(displayHandle);
+            X11Lib.XLockDisplay(displayHandle);
         } else {
             lock.lock();
         }
@@ -66,7 +67,7 @@ public class X11JAWTToolkitLock implements ToolkitLock {
     public final void unlock() {
         if(TRACE_LOCK) { System.err.println("X11JAWTToolkitLock.unlock() - native: "+(null==lock)); }
         if(null == lock) {
-            X11Util.XUnlockDisplay(displayHandle);
+            X11Lib.XUnlockDisplay(displayHandle);
         } else {
             lock.unlock();
         }

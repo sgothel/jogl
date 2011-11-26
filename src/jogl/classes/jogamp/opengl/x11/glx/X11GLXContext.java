@@ -53,6 +53,7 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLContextShareSet;
@@ -233,9 +234,9 @@ public abstract class X11GLXContext extends GLContextImpl {
     try {
         // critical path, a remote display might not support this command,
         // hence we need to catch the X11 Error within this block.
-        X11Util.XSync(display, false);
+        X11Lib.XSync(display, false);
         ctx = _glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs);
-        X11Util.XSync(display, false);
+        X11Lib.XSync(display, false);
     } catch (RuntimeException re) {
         if(DEBUG) {
           Throwable t = new Throwable("Info: X11GLXContext.createContextARBImpl glXCreateContextAttribsARB failed with "+getGLVersion(major, minor, ctp, "@creation"), re);

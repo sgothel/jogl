@@ -40,13 +40,9 @@ import jogamp.nativewindow.NWJNILibLoader;
 
 import javax.media.nativewindow.*;
 
-import java.nio.Buffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
 import java.security.AccessController;
 import java.util.ArrayList;
 import java.util.List;
-import javax.media.nativewindow.util.Point;
 
 /**
  * Contains a thread safe X11 utility to retrieve display connections.
@@ -134,22 +130,6 @@ public class X11Util {
                 }
             }
         }
-    }
-
-    public static void lockDefaultToolkit(long dpyHandle) {
-        if(ToolkitLock.TRACE_LOCK) {
-            System.out.println("+++ X11 Display lockDefaultToolkit [x11Lock: "+isX11LockAvailable+"] get 0x"+Long.toHexString(dpyHandle));
-        }
-        NativeWindowFactory.getDefaultToolkitLock().lock();
-        X11Util.XLockDisplay(dpyHandle);
-    }
-
-    public static void unlockDefaultToolkit(long dpyHandle) {
-        if(ToolkitLock.TRACE_LOCK) {
-            System.out.println("+++ X11 Display lockDefaultToolkit [x11Lock: "+isX11LockAvailable+"] rel 0x"+Long.toHexString(dpyHandle));
-        }
-        X11Util.XUnlockDisplay(dpyHandle);
-        NativeWindowFactory.getDefaultToolkitLock().unlock();
     }
 
     public static String getNullDisplayName() {
@@ -445,7 +425,7 @@ public class X11Util {
 
     public static String validateDisplayName(String name, long handle) {
         if( ( null==name || AbstractGraphicsDevice.DEFAULT_CONNECTION.equals(name) ) && 0!=handle) {
-            name = XDisplayString(handle);
+            name = X11Lib.XDisplayString(handle);
         }
         return validateDisplayName(name);
     }
@@ -491,203 +471,6 @@ public class X11Util {
         } finally {
             NativeWindowFactory.getDefaultToolkitLock().unlock();
         }
-    }
-
-    public static int XFree(Buffer arg0)  {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
-        try {
-            return X11Lib.XFree(arg0);
-        } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
-        }
-    }
-
-    public static int XSync(long display, boolean discard) {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.XSync(display, discard);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static void XSynchronize(long display, boolean onoff) {
-        lockDefaultToolkit(display);
-        try {
-            X11Lib.XSynchronize(display, onoff);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static boolean XineramaEnabled(long display) {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.XineramaEnabled(display);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static int DefaultScreen(long display) {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.DefaultScreen(display);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static long RootWindow(long display, int screen_number) {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.RootWindow(display, screen_number);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static long XCreatePixmap(long display, long arg1, int arg2, int arg3, int arg4) {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.XCreatePixmap(display, arg1, arg2, arg3, arg4);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static String XDisplayString(long display) {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.XDisplayString(display);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static int XFlush(long display) {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.XFlush(display);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static int XFreePixmap(long display, long arg1) {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.XFreePixmap(display, arg1);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static long DefaultVisualID(long display, int screen) {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.DefaultVisualID(display, screen);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static long CreateDummyWindow(long display, int screen_index, long visualID, int width, int height) {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.CreateDummyWindow(display, screen_index, visualID, width, height);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static void DestroyDummyWindow(long display, long window) {
-        lockDefaultToolkit(display);
-        try {
-            X11Lib.DestroyDummyWindow(display, window);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static Point GetRelativeLocation(long display, int screen_index, long src_win, long dest_win, int src_x, int src_y) {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.GetRelativeLocation(display, screen_index, src_win, dest_win, src_x, src_y);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static XVisualInfo[] XGetVisualInfo(long display, long arg1, XVisualInfo arg2, int[] arg3, int arg3_offset) {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.XGetVisualInfo(display, arg1, arg2, arg3, arg3_offset);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static boolean XF86VidModeGetGammaRamp(long display, int screen, int size, ShortBuffer red_array, ShortBuffer green_array, ShortBuffer blue_array)  {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.XF86VidModeGetGammaRamp(display, screen, size, red_array, green_array, blue_array);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static boolean XF86VidModeGetGammaRamp(long display, int screen, int size, short[] red_array, int red_array_offset, short[] green_array, int green_array_offset, short[] blue_array, int blue_array_offset)  {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.XF86VidModeGetGammaRamp(display, screen, size, red_array, red_array_offset, green_array, green_array_offset, blue_array, blue_array_offset);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static boolean XF86VidModeGetGammaRampSize(long display, int screen, IntBuffer size)  {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.XF86VidModeGetGammaRampSize(display, screen, size);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static boolean XF86VidModeGetGammaRampSize(long display, int screen, int[] size, int size_offset)  {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.XF86VidModeGetGammaRampSize(display, screen, size, size_offset);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static boolean XF86VidModeSetGammaRamp(long display, int screen, int size, ShortBuffer red_array, ShortBuffer green_array, ShortBuffer blue_array)  {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.XF86VidModeSetGammaRamp(display, screen, size, red_array, green_array, blue_array);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static boolean XF86VidModeSetGammaRamp(long display, int screen, int size, short[] red_array, int red_array_offset, short[] green_array, int green_array_offset, short[] blue_array, int blue_array_offset)  {
-        lockDefaultToolkit(display);
-        try {
-            return X11Lib.XF86VidModeSetGammaRamp(display, screen, size, red_array, red_array_offset, green_array, green_array_offset, blue_array, blue_array_offset);
-        } finally {
-            unlockDefaultToolkit(display);
-        }
-    }
-
-    public static void XLockDisplay(long handle) {
-        X11Lib.XLockDisplay(handle);
-    }  
-
-    public static void XUnlockDisplay(long handle) {
-        X11Lib.XUnlockDisplay(handle);
     }
 
     private static native boolean initialize0(boolean firstUIActionOnProcess);
