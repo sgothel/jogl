@@ -128,7 +128,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   SharedResourceImplementation sharedResourceImpl;
   SharedResourceRunner sharedResourceRunner;
   Thread sharedResourceThread;
-  HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
+  HashMap<String /*connection*/, SharedResourceRunner.Resource> sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
 
   long processAffinityChanges = 0;
   PointerBuffer procMask = PointerBuffer.allocateDirect(1);
@@ -250,15 +250,15 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         }
         public SharedResourceRunner.Resource mapPut(String connection, SharedResourceRunner.Resource resource) {
             synchronized(sharedMap) {
-                return (SharedResourceRunner.Resource) sharedMap.put(connection, resource);
+                return sharedMap.put(connection, resource);
             }
         }
         public SharedResourceRunner.Resource mapGet(String connection) {
             synchronized(sharedMap) {
-                return (SharedResourceRunner.Resource) sharedMap.get(connection);
+                return sharedMap.get(connection);
             }
         }
-        public Collection/*<Resource>*/ mapValues() {
+        public Collection<SharedResourceRunner.Resource> mapValues() {
             synchronized(sharedMap) {
                 return sharedMap.values();
             }
@@ -269,9 +269,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             sharedDevice.lock();
             try {
                 AbstractGraphicsScreen absScreen = new DefaultGraphicsScreen(sharedDevice, 0);
-                if (null == absScreen) {
-                    throw new GLException("Couldn't create shared screen for device: "+sharedDevice+", idx 0");
-                }
                 GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP);
                 if (null == glp) {
                     throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);

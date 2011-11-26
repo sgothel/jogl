@@ -50,7 +50,7 @@ public class SharedResourceRunner implements Runnable {
 
         Resource mapPut(String connection, Resource resource);
         Resource mapGet(String connection);
-        Collection/*<Resource>*/ mapValues();
+        Collection<Resource> mapValues();
     }
 
     Implementation impl = null;
@@ -246,10 +246,9 @@ public class SharedResourceRunner implements Runnable {
     }
 
     private void releaseSharedResources() {
-        Collection/*<Resource>*/ sharedResources = impl.mapValues();
-        for (Iterator iter = sharedResources.iterator(); iter.hasNext();) {
-            Resource sr = (Resource) iter.next();
-            impl.releaseSharedResource(sr);
+        Collection<Resource> sharedResources = impl.mapValues();
+        for (Iterator<Resource> iter = sharedResources.iterator(); iter.hasNext();) {
+            impl.releaseSharedResource(iter.next());
         }
         impl.clear();
     }

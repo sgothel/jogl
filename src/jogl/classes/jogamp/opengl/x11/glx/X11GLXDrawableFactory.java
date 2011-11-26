@@ -119,7 +119,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   SharedResourceImplementation sharedResourceImpl;
   SharedResourceRunner sharedResourceRunner;
   Thread sharedResourceThread;
-  HashMap<String /* connection */, SharedResourceRunner.Resource> sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
+  HashMap<String /* connection */, SharedResourceRunner.Resource> sharedMap = new HashMap<String, SharedResourceRunner.Resource>();  
 
   static class SharedResource implements SharedResourceRunner.Resource {
       X11GraphicsDevice device;
@@ -188,7 +188,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         public SharedResourceRunner.Resource createSharedResource(String connection) {
             X11GraphicsDevice sharedDevice = 
                     new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT, 
-                                          NativeWindowFactory.getNullToolkitLock(), true); // own non-shared display connection, no locking
+                                          true); // own non-shared display connection, no locking
+                    // new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT, 
+                    //                       NativeWindowFactory.getNullToolkitLock(), true); // own non-shared display connection, no locking
             sharedDevice.lock();
             try {
                 GLXUtil.initGLXClientDataSingleton(sharedDevice);
@@ -253,12 +255,14 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
             }
 
             if (null != sr.context) {
-                // may cause JVM SIGSEGV: sharedContext.destroy();
+                // may cause JVM SIGSEGV:
+                // sr.context.makeCurrent();
+                // sr.context.destroy();
                 sr.context = null;
             }
 
             if (null != sr.drawable) {
-                // may cause JVM SIGSEGV: sharedDrawable.destroy();
+                // may cause JVM SIGSEGV: sr.drawable.destroy();
                 sr.drawable = null;
             }
 
@@ -267,7 +271,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
             }
 
             if (null != sr.device) {
-                sr.device.close();
+                // may cause JVM SIGSEGV: sr.device.close();
                 sr.device = null;
             }
         }
