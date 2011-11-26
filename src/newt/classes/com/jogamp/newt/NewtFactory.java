@@ -85,53 +85,120 @@ public class NewtFactory {
     public static boolean useEDT() { return useEDT; }
 
     /**
-     * Create a Display entity, incl native creation
+     * Create a Display entity.
+     * <p>
+     * Native creation is lazily done at usage, ie. {@link Display#addReference()}.
+     * </p>
+     * <p>
+     * An already existing display connection of the same <code>name</code> will be reused.  
+     * </p>
+     * @param name the display connection name
+     * @return the new or reused Display instance
      */
     public static Display createDisplay(String name) {
         return createDisplay(name, true);
     }
 
+    /**
+     * Create a Display entity.
+     * <p>
+     * Native creation is lazily done at usage, ie. {@link Display#addReference()}.
+     * </p>
+     * <p>
+     * An already existing display connection of the same <code>name</code> will be reused
+     * <b>if</b> <code>reuse</code> is <code>true</code>, otherwise a new instance is being created.
+     * </p>
+     * @param name the display connection name
+     * @param reuse attempt to reuse an existing Display with same <code>name</code> if set true, otherwise create a new instance.
+     * @return the new or reused Display instance
+     */
     public static Display createDisplay(String name, boolean reuse) {
       return DisplayImpl.create(NativeWindowFactory.getNativeWindowType(true), name, 0, reuse);
     }
 
     /**
-     * Create a Display entity using the given implementation type, incl native creation
+     * Create a Display entity.
+     * <p>
+     * Native creation is lazily done at usage, ie. {@link Display#addReference()}.
+     * </p>
+     * <p>
+     * An already existing display connection of the same <code>name</code> will be reused.
+     * </p>
+     * @param type explicit NativeWindow type eg. {@link NativeWindowFactory#TYPE_AWT}
+     * @param name the display connection name
+     * @return the new or reused Display instance
      */
     public static Display createDisplay(String type, String name) {
         return createDisplay(type, name, true);
     }
 
+    /**
+     * Create a Display entity.
+     * <p>
+     * Native creation is lazily done at usage, ie. {@link Display#addReference()}.
+     * </p>
+     * <p>
+     * An already existing display connection of the same <code>name</code> will be reused
+     * <b>if</b> <code>reuse</code> is <code>true</code>, otherwise a new instance is being created.
+     * </p>
+     * @param type explicit NativeWindow type eg. {@link NativeWindowFactory#TYPE_AWT}
+     * @param name the display connection name
+     * @param reuse attempt to reuse an existing Display with same <code>name</code> if set true, otherwise create a new instance.
+     * @return the new or reused Display instance
+     */
     public static Display createDisplay(String type, String name, boolean reuse) {
       return DisplayImpl.create(type, name, 0, reuse);
     }
 
     /**
-     * Create a Screen entity, incl native creation
+     * Create a Screen entity.
+     * <p>
+     * Native creation is lazily done at usage, ie. {@link Screen#addReference()}.
+     * </p>
+     * <p>
+     * The lifecycle of this Screen's Display is handled via {@link Display#addReference()}
+     * and {@link Display#removeReference()}.
+     * </p>
      */
     public static Screen createScreen(Display display, int index) {
       return ScreenImpl.create(display, index);
     }
 
     /**
-     * Create a top level Window entity, incl native creation.<br>
-     * The Display/Screen is created and owned, ie destructed atomatically.<br>
-     * A new Display is only created if no preexisting one could be found via {@link Display#getLastDisplayOf(java.lang.String, java.lang.String, int)}.
+     * Create a top level Window entity on the default Display and default Screen.
+     * <p>
+     * Native creation is lazily done at usage, ie. {@link Window#setVisible(boolean)}.
+     * </p>
+     * <p>
+     * An already existing default Display will be reused.
+     * </p>
+     * <p>
+     * The lifecycle of this Window's Screen and Display is handled via {@link Screen#addReference()}
+     * and {@link Screen#removeReference()}.
+     * </p>
      */
     public static Window createWindow(CapabilitiesImmutable caps) {
         return createWindowImpl(NativeWindowFactory.getNativeWindowType(true), caps);
     }
 
     /**
-     * Create a top level Window entity, incl native creation
+     * Create a top level Window entity.
+     * <p>
+     * Native creation is lazily done at usage, ie. {@link Window#setVisible(boolean)}.
+     * </p>
+     * <p>
+     * The lifecycle of this Window's Screen and Display is handled via {@link Screen#addReference()}
+     * and {@link Screen#removeReference()}.
+     * </p>
      */
     public static Window createWindow(Screen screen, CapabilitiesImmutable caps) {
         return createWindowImpl(screen, caps);
     }
 
     /**
-     * Create a child Window entity attached to the given parent, incl native creation.<br>
-     * The Screen and Display information is regenerated utilizing the parents information.<br>
+     * Create a child Window entity attached to the given parent.<br>
+     * The Screen and Display information is regenerated utilizing the parents information,
+     * while reusing an existing Display.<br>
      * <p>
      * In case <code>parentWindowObject</code> is a {@link com.jogamp.newt.Window} instance,<br>
      * the new window is added to it's list of children.<br>
@@ -143,6 +210,10 @@ public class NewtFactory {
      * In case <code>parentWindowObject</code> is a different {@link javax.media.nativewindow.NativeWindow} implementation,<br>
      * you have to handle all events appropriate.<br></p>
      * <p>
+     * <p>
+     * The lifecycle of this Window's Screen and Display is handled via {@link Screen#addReference()}
+     * and {@link Screen#removeReference()}.
+     * </p>
      *
      * @param parentWindowObject either a NativeWindow instance
      */

@@ -122,12 +122,13 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     }
 
     /**
-     * Creates a new GLWindow attaching a new Window referencing a new Screen
-     * with the given GLCapabilities.
-     * <P>
-     * The resulting GLWindow owns the Window, Screen and Device, ie it will be destructed.
-     * <P>
-     * The default display connection will be used and reused if already in process.  
+     * Creates a new GLWindow attaching a new Window referencing a 
+     * new default Screen and default Display with the given GLCapabilities.
+     * <p>
+     * The lifecycle of this Window's Screen and Display is handled via {@link Screen#addReference()}
+     * and {@link Screen#removeReference()}.
+     * </p>
+     * The default Display will be reused if already instantiated.  
      */
     public static GLWindow create(GLCapabilitiesImmutable caps) {
         return new GLWindow(NewtFactory.createWindow(caps));
@@ -136,8 +137,10 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     /**
      * Creates a new GLWindow attaching a new Window referencing the given Screen
      * with the given GLCapabilities.
-     * <P>
-     * The resulting GLWindow owns the Window, ie it will be destructed.
+     * <p>
+     * The lifecycle of this Window's Screen and Display is handled via {@link Screen#addReference()}
+     * and {@link Screen#removeReference()}.
+     * </p>
      */
     public static GLWindow create(Screen screen, GLCapabilitiesImmutable caps) {
         return new GLWindow(NewtFactory.createWindow(screen, caps));
@@ -145,8 +148,10 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
 
     /** 
      * Creates a new GLWindow attaching the given window.
-     * <P>
-     * The resulting GLWindow does not own the given Window, ie it will not be destructed. 
+     * <p>
+     * The lifecycle of this Window's Screen and Display is handled via {@link Screen#addReference()}
+     * and {@link Screen#removeReference()}.
+     * </p>
      */
     public static GLWindow create(Window window) {
         return new GLWindow(window);
@@ -155,11 +160,15 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     /** 
      * Creates a new GLWindow attaching a new child Window 
      * of the given <code>parentNativeWindow</code> with the given GLCapabilities.
-     * <P>
+     * <p>
      * The Display/Screen will be compatible with the <code>parentNativeWindow</code>,
      * or even identical in case it's a Newt Window.
-     * <P>
-     * The resulting GLWindow owns the Window, ie it will be destructed. 
+     * An already instantiated compatible Display will be reused.  
+     * </p>
+     * <p>
+     * The lifecycle of this Window's Screen and Display is handled via {@link Screen#addReference()}
+     * and {@link Screen#removeReference()}.
+     * </p>
      */
     public static GLWindow create(NativeWindow parentNativeWindow, GLCapabilitiesImmutable caps) {
         return new GLWindow(NewtFactory.createWindow(parentNativeWindow, caps));
