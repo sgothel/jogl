@@ -104,20 +104,26 @@ public interface NativeWindow extends NativeSurface {
   
   /** 
    * @return the current x position of the top-left corner
-   *         of the client area, hence excluding insets (window decorations).<br> 
+   *         of the client area relative to it's parent. 
+   *         Since the position reflects the client area, it does not include the insets.
    * @see #getInsets()
    */
   public int getX();
 
   /** 
    * @return the current y position of the top-left corner
-   *         of the client area, hence excluding insets (window decorations).<br> 
+   *         of the client area relative to it's parent. 
+   *         Since the position reflects the client area, it does not include the insets.
    * @see #getInsets()
    */
   public int getY();
 
   /** 
-   * Returns the current absolute location of this window. 
+   * Returns the current position of the top-left corner 
+   * of the client area in screen coordinates.
+   * <p>
+   * Since the position reflects the client area, it does not include the insets.
+   * </p> 
    * @param point if not null,
    *        {@link javax.media.nativewindow.util.Point#translate(javax.media.nativewindow.util.Point)}
    *        the passed {@link javax.media.nativewindow.util.Point} by this location on the screen and return it.
