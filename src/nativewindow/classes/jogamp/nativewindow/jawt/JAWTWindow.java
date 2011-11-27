@@ -41,6 +41,7 @@ import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.applet.Applet;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -75,7 +76,8 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
   private boolean isOffscreenLayerSurface;
   protected long drawable;
   protected Rectangle bounds;
-
+  protected Insets insets;
+  
   /**
    * Constructed by {@link jogamp.nativewindow.NativeWindowFactoryImpl#getNativeWindow(Object, AbstractGraphicsConfiguration)}
    * via this platform's specialization (X11, OSX, Windows, ..).
@@ -122,6 +124,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
     isOffscreenLayerSurface = false;
     drawable= 0;
     bounds = new Rectangle();
+    insets = new Insets();
   }
   protected abstract void invalidateNative();
 
@@ -130,12 +133,20 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
     bounds.setY(jawtBounds.getY());
     bounds.setWidth(jawtBounds.getWidth());
     bounds.setHeight(jawtBounds.getHeight());
+    
+    if(component instanceof Container) {
+        java.awt.Insets contInsets = ((Container)component).getInsets();
+        insets.setLeftWidth(contInsets.left);
+        insets.setRightWidth(contInsets.right);
+        insets.setTopHeight(contInsets.top);
+        insets.setBottomHeight(contInsets.bottom);
+    }
   }
 
   /** @return the JAWT_DrawingSurfaceInfo's (JAWT_Rectangle) bounds, updated with lock */
   public final RectangleImmutable getBounds() { return bounds; }
   
-  public final InsetsImmutable getInsets() { return Insets.getZero(); }
+  public final InsetsImmutable getInsets() { return insets; }
 
   public final Component getAWTComponent() {
     return component;
@@ -449,7 +460,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
     sb.append("JAWT-Window["+
                 "windowHandle 0x"+Long.toHexString(getWindowHandle())+
                 ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
-                ", bounds "+bounds);
+                ", bounds "+bounds+", insets "+insets);
     if(null!=component) {
       sb.append(", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                 ", visible "+component.isVisible());
