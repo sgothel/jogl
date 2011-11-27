@@ -154,7 +154,7 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
     }
     
     public void updatePosition() {
-        final Point pS = getLocationOnScreenImpl(getX(), getY());
+        final Point pS = getTopLevelLocationOnScreen(getX(), getY());
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("MacWindow: updatePosition() - isOffscreenInstance "+isOffscreenInstance+", new abs pos: pS "+pS);
         }
@@ -162,12 +162,12 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
             setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), pS.getX(), pS.getY());
         } // else no offscreen position
         // no native event (fullscreen, some reparenting)
-        positionChanged(true, pS);
+        super.positionChanged(true, getX(), getY());
     }
     
     
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
-        final Point pS = getLocationOnScreenImpl(x, y);
+        final Point pS = getTopLevelLocationOnScreen(x, y);
         isOffscreenInstance = 0 != sscSurfaceHandle || isOffscreenInstance(this, this.getParent());
         
         if(DEBUG_IMPLEMENTATION) {
@@ -195,7 +195,7 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
                 setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), pS.getX(), pS.getY());
             } // else no offscreen position
             // no native event (fullscreen, some reparenting)
-            positionChanged(true, pS); // incl. validation
+            super.positionChanged(true,  x, y);
         }
         if(width>0 && height>0) {
             if( !isOffscreenInstance ) {                
@@ -219,22 +219,23 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
 
     protected Point getLocationOnScreenImpl(int x, int y) {
         Point p = new Point(x, y);
-        if(0<=p.getX() && 0<=p.getY()) {
-            final InsetsImmutable _insets = getInsets(); // zero if undecorated
-            // client position -> top-level window position
-            p.setX(p.getX() - _insets.getLeftWidth()) ;
-            p.setY(p.getY() - _insets.getTopHeight()) ;
-        }
         // min val is 0
-        p.setX(Math.max(p.getX(),  0));
-        p.setY(Math.max(p.getY(),  0));
+        p.setX(Math.max(p.getX(), 0));
+        p.setY(Math.max(p.getY(), 0));
         
         final NativeWindow parent = getParent();
         if( null != parent && 0 != parent.getWindowHandle() ) {
-            final Point plos = parent.getLocationOnScreen(null);
-            p.translate(plos);
+            p.translate(parent.getLocationOnScreen(null));
         }
         return p;        
+    }
+    
+    private Point getTopLevelLocationOnScreen(int x, int y) {
+        final InsetsImmutable _insets = getInsets(); // zero if undecorated
+        // client position -> top-level window position
+        x -= _insets.getLeftWidth() ;
+        y -= _insets.getTopHeight() ;
+        return getLocationOnScreenImpl(x, y);
     }
     
     protected void updateInsetsImpl(Insets insets) {
@@ -244,15 +245,24 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
     @Override
     protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
         if(width != newWidth || height != newHeight) {
-            final Point p0S = getLocationOnScreenImpl(x, y);            
+            final Point p0S = getTopLevelLocationOnScreen(x, y);            
             setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), p0S.getX(), p0S.getY());               
         }
         super.sizeChanged(defer, newWidth, newHeight, force);
     }
     
     @Override
-    protected void positionChanged(boolean defer, int newX, int newY) {
-        positionChanged(defer, new Point(newX, newY));
+    protected void positionChanged(boolean defer, int newX, int newY) {        
+        // passed coordinates are in screen position of the client area
+        if(getWindowHandle()!=0) {
+            // screen position -> window position
+            Point absPos = new Point(newX, newY);            
+            final NativeWindow parent = getParent();
+            if(null != parent) {
+                absPos.translate( parent.getLocationOnScreen(null).scale(-1, -1) );
+            }
+            super.positionChanged(defer, absPos.getX(), absPos.getY());
+        }
     }
     
     @Override
@@ -346,21 +356,6 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
         } catch (Exception ie) {
             ie.printStackTrace();
         }
-    }
-    
-    private void positionChanged(boolean defer, Point absPos) {
-        if(getWindowHandle()!=0) {
-            position2ClientSpace(absPos);
-            super.positionChanged(defer, absPos.getX(), absPos.getY());
-        }
-    }
-    
-    private Point position2ClientSpace(Point absPos) {
-        final NativeWindow parent = getParent();
-        if(null != parent) {
-            return absPos.translate( parent.getLocationOnScreen(null).scale(-1, -1) );
-        }
-        return absPos;
     }
     
     protected static native boolean initIDs0();
