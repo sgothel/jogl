@@ -242,9 +242,9 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
       if(null != getJAWT()) {
           System.err.println("JAWT version: 0x"+Integer.toHexString(getJAWT().getCachedVersion())+
                              ", CA_LAYER: "+ JAWTUtil.isJAWTUsingOffscreenLayer(getJAWT())+
-                             ", isLayeredSurface "+isOffscreenLayerSurfaceEnabled()+", bounds "+bounds);
+                             ", isLayeredSurface "+isOffscreenLayerSurfaceEnabled()+", bounds "+bounds+", insets "+insets);
       } else {
-          System.err.println("JAWT n/a, bounds "+bounds);          
+          System.err.println("JAWT n/a, bounds "+bounds+", insets "+insets);          
       }
       // Thread.dumpStack();
   }

@@ -30,6 +30,8 @@ package jogamp.newt.awt.event;
 
 import java.awt.KeyboardFocusManager;
 
+import jogamp.newt.driver.DriverUpdatePosition;
+
 import com.jogamp.newt.event.awt.AWTAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 
@@ -99,7 +101,12 @@ public class AWTParentWindowAdapter
     }
 
     public void componentMoved(java.awt.event.ComponentEvent e) {
-        // no propagation to NEWT child window
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("AWT: componentMoved: "+e);            
+        }
+        if(getNewtWindow().getDelegatedWindow() instanceof DriverUpdatePosition) {
+            ((DriverUpdatePosition)getNewtWindow().getDelegatedWindow()).updatePosition();
+        }            
     }
 
     public void windowActivated(java.awt.event.WindowEvent e) {
@@ -113,11 +120,11 @@ public class AWTParentWindowAdapter
     public void hierarchyChanged(java.awt.event.HierarchyEvent e) {
         if( null == getNewtEventListener() ) {
             long bits = e.getChangeFlags();
-            final java.awt.Component changed = e.getChanged();
+            final java.awt.Component changed = e.getChanged();            
             if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & bits ) ) {
                 final boolean showing = changed.isShowing();
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("AWT: hierarchyChanged SHOWING_CHANGED: showing "+showing+", "+changed);
+                    System.err.println("AWT: hierarchyChanged SHOWING_CHANGED: showing "+showing+", "+changed+", source "+e.getComponent());
                 }
                 getNewtWindow().runOnEDTIfAvail(false, new Runnable() {
                     public void run() {

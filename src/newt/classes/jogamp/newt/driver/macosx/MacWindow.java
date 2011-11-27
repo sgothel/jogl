@@ -46,10 +46,11 @@ import javax.media.nativewindow.util.PointImmutable;
 
 import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.DriverClearFocus;
+import jogamp.newt.driver.DriverUpdatePosition;
 
 import com.jogamp.newt.event.KeyEvent;
 
-public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverClearFocus {
+public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverClearFocus, DriverUpdatePosition {
     
     static {
         MacDisplay.initSingleton();
@@ -152,8 +153,21 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
         }
     }
     
+    public void updatePosition() {
+        final Point pS = getLocationOnScreenImpl(getX(), getY());
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("MacWindow: updatePosition() - isOffscreenInstance "+isOffscreenInstance+", new abs pos: pS "+pS);
+        }
+        if( !isOffscreenInstance ) {                
+            setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), pS.getX(), pS.getY());
+        } // else no offscreen position
+        // no native event (fullscreen, some reparenting)
+        positionChanged(true, pS);
+    }
+    
+    
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
-        final PointImmutable pS = position2TopLevel(new Point(x, y));
+        final Point pS = getLocationOnScreenImpl(x, y);
         isOffscreenInstance = 0 != sscSurfaceHandle || isOffscreenInstance(this, this.getParent());
         
         if(DEBUG_IMPLEMENTATION) {
@@ -162,57 +176,65 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
                                ", "+getReconfigureFlagsAsString(null, flags));
         }
         
-        if( getWindowHandle() == 0 ) {
-            if( 0 != ( FLAG_IS_VISIBLE & flags) ) {
-                createWindow(isOffscreenInstance, false, pS, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
-                // no native event ..
-                visibleChanged(true, true); 
-            } /* else { ?? } */
-        } else {
-            if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 == ( FLAG_IS_VISIBLE & flags) ) {
-                if ( !isOffscreenInstance ) {
-                    orderOut0(getWindowHandle());
-                }
-                // no native event ..
-                visibleChanged(true, false); 
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 == ( FLAG_IS_VISIBLE & flags) ) {
+            if ( !isOffscreenInstance ) {
+                orderOut0(getWindowHandle());
             }
-            if( 0 != ( FLAG_CHANGE_DECORATION & flags) ||
-                0 != ( FLAG_CHANGE_PARENTING & flags) ||
-                0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
-                createWindow(isOffscreenInstance, true, pS, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
-                if(isVisible()) { flags |= FLAG_CHANGE_VISIBILITY; } 
-            }
-            if(x>=0 && y>=0) {
-                if( !isOffscreenInstance ) {                
-                    setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), pS.getX(), pS.getY());
-                } // else no offscreen position
-                // no native event (fullscreen, some reparenting)
-                positionChanged(true, getLocationOnScreenImpl(0, 0)); // incl. validation
-            }
-            if(width>0 && height>0) {
-                if( !isOffscreenInstance ) {                
-                    setContentSize0(getWindowHandle(), width, height);
-                } // else offscreen size is realized via recreation
-                // no native event (fullscreen, some reparenting)
-                sizeChanged(true, width, height, false); // incl. validation (incl. repositioning)
-            }
-            if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 != ( FLAG_IS_VISIBLE & flags) ) {
-                if( !isOffscreenInstance ) {                
-                    orderFront0(getWindowHandle());
-                }
-                // no native event ..
-                visibleChanged(true, true);
-            } 
+            // no native event ..
+            visibleChanged(true, false); 
+        }
+        if( 0 == getWindowHandle() && 0 != ( FLAG_IS_VISIBLE & flags) ||
+            0 != ( FLAG_CHANGE_DECORATION & flags) ||
+            0 != ( FLAG_CHANGE_PARENTING & flags) ||
+            0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
+            createWindow(isOffscreenInstance, 0 != getWindowHandle(), pS, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
+            if(isVisible()) { flags |= FLAG_CHANGE_VISIBILITY; } 
+        }
+        if(x>=0 && y>=0) {
             if( !isOffscreenInstance ) {                
-                setAlwaysOnTop0(getWindowHandle(), 0 != ( FLAG_IS_ALWAYSONTOP & flags));
+                setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), pS.getX(), pS.getY());
+            } // else no offscreen position
+            // no native event (fullscreen, some reparenting)
+            positionChanged(true, pS); // incl. validation
+        }
+        if(width>0 && height>0) {
+            if( !isOffscreenInstance ) {                
+                setContentSize0(getWindowHandle(), width, height);
+            } // else offscreen size is realized via recreation
+            // no native event (fullscreen, some reparenting)
+            sizeChanged(true, width, height, false); // incl. validation (incl. repositioning)
+        }
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 != ( FLAG_IS_VISIBLE & flags) ) {
+            if( !isOffscreenInstance ) {                
+                orderFront0(getWindowHandle());
             }
+            // no native event ..
+            visibleChanged(true, true);
+        } 
+        if( !isOffscreenInstance ) {                
+            setAlwaysOnTop0(getWindowHandle(), 0 != ( FLAG_IS_ALWAYSONTOP & flags));
         }
         return true;
     }
 
     protected Point getLocationOnScreenImpl(int x, int y) {
-        return position2TopLevel(new Point(x, y)); // allows offscreen ..        
-        // return (Point) getLocationOnScreen0(getWindowHandle(), x, y);
+        Point p = new Point(x, y);
+        if(0<=p.getX() && 0<=p.getY()) {
+            final InsetsImmutable _insets = getInsets(); // zero if undecorated
+            // client position -> top-level window position
+            p.setX(p.getX() - _insets.getLeftWidth()) ;
+            p.setY(p.getY() - _insets.getTopHeight()) ;
+        }
+        // min val is 0
+        p.setX(Math.max(p.getX(),  0));
+        p.setY(Math.max(p.getY(),  0));
+        
+        final NativeWindow parent = getParent();
+        if( null != parent && 0 != parent.getWindowHandle() ) {
+            final Point plos = parent.getLocationOnScreen(null);
+            p.translate(plos);
+        }
+        return p;        
     }
     
     protected void updateInsetsImpl(Insets insets) {
@@ -222,7 +244,7 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
     @Override
     protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
         if(width != newWidth || height != newHeight) {
-            final Point p0S = position2TopLevel(new Point(x, y));            
+            final Point p0S = getLocationOnScreenImpl(x, y);            
             setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), p0S.getX(), p0S.getY());               
         }
         super.sizeChanged(defer, newWidth, newHeight, force);
@@ -320,8 +342,6 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
                 orderOut0(0!=getParentWindowHandle() ? getParentWindowHandle() : getWindowHandle());
             } else {
                 setTitle0(getWindowHandle(), getTitle());
-                // need to revalidate real position
-                positionChanged(true, getLocationOnScreenImpl(0, 0)); // incl. validation
             }
         } catch (Exception ie) {
             ie.printStackTrace();
@@ -341,25 +361,6 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
             return absPos.translate( parent.getLocationOnScreen(null).scale(-1, -1) );
         }
         return absPos;
-    }
-    
-    private Point position2TopLevel(Point clientPos) {        
-        if(0<=clientPos.getX() && 0<=clientPos.getY()) {
-            final InsetsImmutable _insets = getInsets(); // zero if undecorated
-            // client position -> top-level window position
-            clientPos.setX(clientPos.getX() - _insets.getLeftWidth()) ;
-            clientPos.setY(clientPos.getY() - _insets.getTopHeight()) ;
-        }
-        // min val is 0
-        clientPos.setX(Math.max(clientPos.getX(),  0));
-        clientPos.setY(Math.max(clientPos.getY(),  0));
-        // On MacOSX the absolute position is required to position 
-        // a window - even a child window!
-        final NativeWindow parent = getParent();
-        if( null != parent && 0 != parent.getWindowHandle() ) {
-            clientPos.translate(parent.getLocationOnScreen(null));
-        }
-        return clientPos;
     }
     
     protected static native boolean initIDs0();
