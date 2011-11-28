@@ -35,17 +35,20 @@
 
 package jogamp.opengl.egl;
 
-import javax.media.opengl.*;
-
-import jogamp.opengl.*;
-
-import com.jogamp.gluegen.runtime.ProcAddressTable;
-import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
-import java.nio.*;
-import java.util.*;
+import java.nio.ByteBuffer;
+import java.util.Map;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+
+import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.GLDrawableImpl;
+
+import com.jogamp.gluegen.runtime.ProcAddressTable;
+import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 
 public abstract class EGLContext extends GLContextImpl {
     private boolean eglQueryStringInitialized;
@@ -135,12 +138,12 @@ public abstract class EGLContext extends GLContextImpl {
         // FIXME
     }
 
-    protected boolean createImpl() throws GLException {
+    protected boolean createImpl(GLContextImpl shareWith) throws GLException {
         long eglDisplay = ((EGLDrawable)drawable).getDisplay();
         EGLGraphicsConfiguration config = ((EGLDrawable)drawable).getGraphicsConfiguration();
         GLProfile glProfile = drawable.getGLProfile();
         long eglConfig = config.getNativeConfig();
-        long shareWith = EGL.EGL_NO_CONTEXT;
+        long shareWithHandle = EGL.EGL_NO_CONTEXT;
 
         if (eglDisplay == 0) {
             throw new GLException("Error: attempted to create an OpenGL context without a display connection");
@@ -160,10 +163,9 @@ public abstract class EGLContext extends GLContextImpl {
             }
         }
 
-        EGLContext other = (EGLContext) GLContextShareSet.getShareContext(this);
-        if (other != null) {
-            shareWith = other.getHandle();
-            if (shareWith == 0) {
+        if (shareWith != null) {
+            shareWithHandle = shareWith.getHandle();
+            if (shareWithHandle == 0) {
                 throw new GLException("GLContextShareSet returned an invalid OpenGL context");
             }
         }
@@ -179,10 +181,10 @@ public abstract class EGLContext extends GLContextImpl {
         } else {
             throw new GLException("Error creating OpenGL context - invalid GLProfile: "+glProfile);
         }
-        contextHandle = EGL.eglCreateContext(eglDisplay, eglConfig, shareWith, contextAttrs, 0);
+        contextHandle = EGL.eglCreateContext(eglDisplay, eglConfig, shareWithHandle, contextAttrs, 0);
         if (contextHandle == 0) {
             throw new GLException("Error creating OpenGL context: eglDisplay "+toHexString(eglDisplay)+
-                                  ", eglConfig "+config+", "+glProfile+", shareWith "+toHexString(shareWith)+", error "+toHexString(EGL.eglGetError()));
+                                  ", eglConfig "+config+", "+glProfile+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
         }
         if (DEBUG) {
             System.err.println(getThreadName() + ": !!! Created OpenGL context 0x" +
@@ -190,7 +192,7 @@ public abstract class EGLContext extends GLContextImpl {
                                ",\n\twrite surface 0x" + Long.toHexString(drawable.getHandle()) +
                                ",\n\tread  surface 0x" + Long.toHexString(drawableRead.getHandle())+
                                ",\n\t"+this+
-                               ",\n\tsharing with 0x" + Long.toHexString(shareWith));
+                               ",\n\tsharing with 0x" + Long.toHexString(shareWithHandle));
         }
         if (!EGL.eglMakeCurrent(((EGLDrawable)drawable).getDisplay(),
                                 drawable.getHandle(),

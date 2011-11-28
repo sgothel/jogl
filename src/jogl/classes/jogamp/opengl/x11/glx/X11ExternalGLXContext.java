@@ -95,7 +95,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
     return new X11ExternalGLXContext(new Drawable(factory, ns), ctx);
   }
 
-  protected boolean createImpl() {
+  protected boolean createImpl(GLContextImpl shareWith) {
       return true;
   }
 

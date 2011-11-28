@@ -44,6 +44,7 @@ import java.awt.Graphics;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 
+import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.awt.Java2D;
 import jogamp.opengl.awt.Java2DGLContext;
 import jogamp.opengl.macosx.cgl.MacOSXCGLContext;
@@ -79,8 +80,8 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
     }            
   }
 
-  protected boolean createImpl() {
-    long share = createImplPreset();
+  protected boolean createImpl(GLContextImpl shareWith) {
+    long share = createImplPreset(shareWith);
     
     long ctx = Java2D.createOGLContextOnSurface(graphics, share);
     if (ctx == 0) {

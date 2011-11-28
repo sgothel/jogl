@@ -54,7 +54,6 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import jogamp.opengl.GLContextImpl;
-import jogamp.opengl.GLContextShareSet;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.GLBackendType;
@@ -204,35 +203,35 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     return false;
   }
 
-  protected long createImplPreset() throws GLException {
-    MacOSXCGLContext other = (MacOSXCGLContext) GLContextShareSet.getShareContext(this);
+  protected long createImplPreset(GLContextImpl shareWith) throws GLException {
     long share = 0;
-    if (other != null) {
+    if (shareWith != null) {
       // Change our OpenGL mode to match that of any share context before we create ourselves
-      setOpenGLMode(other.getOpenGLMode());
-      share = other.getHandle();
+      setOpenGLMode(((MacOSXCGLContext)shareWith).getOpenGLMode());
+      share = shareWith.getHandle();
       if (share == 0) {
         throw new GLException("GLContextShareSet returned a NULL OpenGL context");
       }
     }
+    
     MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
     GLCapabilitiesImmutable capabilitiesChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
-    if (capabilitiesChosen.getPbufferFloatingPointBuffers() &&
-        !isTigerOrLater) {
+    if (capabilitiesChosen.getPbufferFloatingPointBuffers() && !isTigerOrLater) {
        throw new GLException("Floating-point pbuffers supported only on OS X 10.4 or later");
     }
     GLProfile glp = capabilitiesChosen.getGLProfile();
     if(glp.isGLES1() || glp.isGLES2() || glp.isGL4() || glp.isGL3() && !isLionOrLater) {
         throw new GLException("OpenGL profile not supported on MacOSX "+Platform.getOSVersionNumber()+": "+glp);
     }
+    
     if (DEBUG) {
       System.err.println("!!! Share context is " + toHexString(share) + " for " + this);
     }
-    return share;
+    return share;      
   }
-    
-  protected boolean createImpl() throws GLException {
-    long share = createImplPreset();
+  
+  protected boolean createImpl(GLContextImpl shareWith) throws GLException {
+    long share = createImplPreset(shareWith);
     contextHandle = createContextARB(share, true);
     return 0 != contextHandle;
   }

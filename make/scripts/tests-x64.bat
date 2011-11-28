@@ -6,6 +6,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GL
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.awt.TestSwingAWT01GLn
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT -time 5000
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT -time 5000
+scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 %1 %2 %3 %4 %5
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT %1 %2 %3 %4 %5 %6
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT
 
@@ -34,7 +35,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestFocus01Swin
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot %1 %2 %3 %4 %5 %6
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.nativewindow.TestRecursiveToolkitLockCORE
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT -time 100000
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT %1 %2 %3
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT %1 %2 %3
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01AWT %1 %2 %3
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting03bAWT -time 100000
 

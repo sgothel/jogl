@@ -56,7 +56,6 @@ import javax.media.opengl.GLProfile;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.opengl.GLContextImpl;
-import jogamp.opengl.GLContextShareSet;
 import jogamp.opengl.GLDrawableImpl;
 
 import com.jogamp.common.nio.Buffers;
@@ -262,17 +261,17 @@ public abstract class X11GLXContext extends GLContextImpl {
     return ctx;
   }
 
-  protected boolean createImpl() {
+  protected boolean createImpl(GLContextImpl shareWith) {
       // covers the whole context creation loop incl createContextARBImpl and destroyContextARBImpl
       X11Util.setX11ErrorHandler(true, true);
       try {
-          return createImplRaw();
+          return createImplRaw(shareWith);
       } finally {
           X11Util.setX11ErrorHandler(false, false);
       }
   }
 
-  private boolean createImplRaw() {
+  private boolean createImplRaw(GLContextImpl shareWith) {
     boolean direct = true; // try direct always
     isDirect = false; // fall back
 
@@ -282,10 +281,9 @@ public abstract class X11GLXContext extends GLContextImpl {
     X11GLXContext sharedContext = (X11GLXContext) factory.getOrCreateSharedContextImpl(device);
     long display = device.getHandle();
 
-    X11GLXContext other = (X11GLXContext) GLContextShareSet.getShareContext(this);
     long share = 0;
-    if (other != null) {
-      share = other.getHandle();
+    if (shareWith != null) {
+      share = shareWith.getHandle();
       if (share == 0) {
         throw new GLException("GLContextShareSet returned an invalid OpenGL context");
       }

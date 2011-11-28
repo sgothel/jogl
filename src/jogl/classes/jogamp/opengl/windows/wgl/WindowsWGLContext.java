@@ -55,7 +55,6 @@ import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.GLContextImpl;
-import jogamp.opengl.GLContextShareSet;
 import jogamp.opengl.GLDrawableImpl;
 
 public class WindowsWGLContext extends GLContextImpl {
@@ -257,20 +256,19 @@ public class WindowsWGLContext extends GLContextImpl {
    * Creates and initializes an appropriate OpenGL context. Should only be
    * called by {@link #makeCurrentImpl()}.
    */
-  protected boolean createImpl() {
-    WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
+  protected boolean createImpl(GLContextImpl shareWith) {
     AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
     AbstractGraphicsDevice device = config.getScreen().getDevice();
+    WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
     WindowsWGLContext sharedContext = (WindowsWGLContext) factory.getOrCreateSharedContextImpl(device);
     GLCapabilitiesImmutable glCaps = drawable.getChosenGLCapabilities();
 
     isGLReadDrawableAvailable(); // trigger setup wglGLReadDrawableAvailable
 
     // Windows can set up sharing of display lists after creation time
-    WindowsWGLContext other = (WindowsWGLContext) GLContextShareSet.getShareContext(this);
     long share = 0;
-    if (other != null) {
-      share = other.getHandle();
+    if (null != shareWith) {
+      share = shareWith.getHandle();
       if (share == 0) {
         throw new GLException("GLContextShareSet returned an invalid OpenGL context");
       }
@@ -347,17 +345,19 @@ public class WindowsWGLContext extends GLContextImpl {
             WGL.wglDeleteContext(contextHandle);
             throw new GLException("Error making old context current: 0x" + toHexString(contextHandle) + ", werr: " + GDI.GetLastError());
         }
+        if(0!=share) {
+            // Only utilize the classic GDI 'wglShareLists' shared context method 
+            // for traditional non ARB context.
+            if (!WGL.wglShareLists(share, contextHandle)) {
+                throw new GLException("wglShareLists(" + toHexString(share) +
+                                      ", " + toHexString(contextHandle) + ") failed: werr " + GDI.GetLastError());
+            }
+        }
         if (DEBUG) {
             System.err.println(getThreadName() + ": createImpl: OK (old) share "+share);
         }
     }
 
-    if(0!=share) {
-        if (!WGL.wglShareLists(share, contextHandle)) {
-            throw new GLException("wglShareLists(" + toHexString(share) +
-                                  ", " + toHexString(contextHandle) + ") failed: werr " + GDI.GetLastError());
-        }
-    }
     return true;
   }
   

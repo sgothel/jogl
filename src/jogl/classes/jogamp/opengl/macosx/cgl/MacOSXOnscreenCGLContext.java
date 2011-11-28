@@ -42,6 +42,8 @@ package jogamp.opengl.macosx.cgl;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 
+import jogamp.opengl.GLContextImpl;
+
 public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
 
   public MacOSXOnscreenCGLContext(MacOSXOnscreenCGLDrawable drawable,
@@ -72,8 +74,8 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
   }
   
   @Override
-  protected boolean createImpl() {
-    boolean res = super.createImpl();
+  protected boolean createImpl(GLContextImpl sharedWith) {
+    boolean res = super.createImpl(sharedWith);
     lastWidth = -1; 
     lastHeight = -1;    
     if(res && isNSContext()) {

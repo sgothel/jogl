@@ -458,7 +458,17 @@ public abstract class GLContextImpl extends GLContext {
           if (!isCreated()) {
             GLProfile.initProfiles(
                     getGLDrawable().getNativeSurface().getGraphicsConfiguration().getScreen().getDevice());
-            newCreated = createImpl(); // may throws exception if fails!
+            final GLContextImpl shareWith = (GLContextImpl) GLContextShareSet.getShareContext(this);
+            if (null != shareWith) {
+                shareWith.getDrawableImpl().lockSurface();
+            }
+            try {
+                newCreated = createImpl(shareWith); // may throws exception if fails!
+            } finally {
+                if (null != shareWith) {
+                    shareWith.getDrawableImpl().unlockSurface();
+                }                
+            }
             if (DEBUG) {
                 if(newCreated) {
                     System.err.println(getThreadName() + ": !!! Create GL context OK: " + toHexString(contextHandle) + " for " + getClass().getName());
@@ -485,7 +495,7 @@ public abstract class GLContextImpl extends GLContext {
     }
   }
   protected abstract void makeCurrentImpl(boolean newCreatedContext) throws GLException;
-  protected abstract boolean createImpl() throws GLException ;
+  protected abstract boolean createImpl(GLContextImpl sharedWith) throws GLException ;
 
   /** 
    * Platform dependent but harmonized implementation of the <code>ARB_create_context</code>
