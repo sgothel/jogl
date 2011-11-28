@@ -247,9 +247,9 @@ public class X11Screen extends ScreenImpl {
             }            
         }).booleanValue();
         
-        if(DEBUG && done) {
+        if(DEBUG || !done) {
             System.err.println("X11Screen.setCurrentScreenModeImpl: TO ("+SCREEN_MODE_CHANGE_TIMEOUT+") reached: "+
-                               (System.currentTimeMillis()-t0)+"ms");
+                               (System.currentTimeMillis()-t0)+"ms; Current: "+getCurrentScreenMode()+"; Desired: "+screenMode);
         }
         return done;
     }

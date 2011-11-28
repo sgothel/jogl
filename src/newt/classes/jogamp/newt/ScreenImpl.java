@@ -346,32 +346,32 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         try {
             long t0=0, t1=0;
             if(DEBUG) {
-                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): 0.0 "+screenMode);
+                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): 0.0 "+smU);
                 t0 = System.currentTimeMillis();
             }                
 
             sms.fireScreenModeChangeNotify(smU);
 
             if(DEBUG) {
-                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): 0.1 "+screenMode);
+                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): 0.1 "+smU);
                 t1 = System.currentTimeMillis();
             }
 
             success = setCurrentScreenModeImpl(smU);                    
             if(success) {
-                setScreenSize(screenMode.getRotatedWidth(), screenMode.getRotatedHeight());
+                setScreenSize(smU.getRotatedWidth(), smU.getRotatedHeight());
             }
             
             if(DEBUG) {
                 t1 = System.currentTimeMillis() - t1;
-                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): X.0 "+screenMode+", success: "+success);
+                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): X.0 "+smU+", success: "+success);
             }
 
             sms.fireScreenModeChanged(smU, success);
                             
             if(DEBUG) {
                 t0 = System.currentTimeMillis() - t0;
-                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): X.X "+screenMode+", success: "+success+
+                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): X.X "+smU+", success: "+success+
                                    " - dt0 "+t0+"ms, dt1 "+t1+"ms");
             }
         } finally {
