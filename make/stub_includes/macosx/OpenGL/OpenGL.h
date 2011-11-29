@@ -118,6 +118,8 @@ CGLError CGLCreateContext(CGLPixelFormatObj pix,
                           CGLContextObj* ctx);
 void CGLReleaseContext(CGLContextObj ctx);
 CGLError CGLDestroyContext(CGLContextObj ctx);
+CGLError CGLLockContext (CGLContextObj ctx);
+CGLError CGLUnlockContext (CGLContextObj ctx);
 CGLError CGLSetCurrentContext(CGLContextObj ctx);
 CGLContextObj CGLGetCurrentContext (void);
 CGLError CGLFlushDrawable ( CGLContextObj ctx);
