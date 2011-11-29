@@ -52,8 +52,8 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
   }
 
   @Override
-  protected void makeCurrentImpl(boolean newCreated) throws GLException {
-      super.makeCurrentImpl(newCreated);
+  protected void makeCurrentImpl() throws GLException {
+      super.makeCurrentImpl();
       drawableUpdatedNotify();  
   }
     

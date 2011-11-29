@@ -332,7 +332,7 @@ public class WindowsWGLContext extends GLContextImpl {
         if(glCaps.getGLProfile().isGL3()) {
           WGL.wglMakeCurrent(0, 0);
           WGL.wglDeleteContext(temp_ctx);
-          throw new GLException("WindowsWGLContext.createContext failed, but context > GL2 requested "+getGLVersion()+", ");
+          throw new GLException("WindowsWGLContext.createContext ctx !ARB, context > GL2 requested "+getGLVersion());
         }
         if(DEBUG) {
           System.err.println("WindowsWGLContext.createContext failed, fall back to !ARB context "+getGLVersion());
@@ -361,15 +361,10 @@ public class WindowsWGLContext extends GLContextImpl {
     return true;
   }
   
-  protected void  makeCurrentImpl(boolean newCreated) throws GLException {
+  protected void  makeCurrentImpl() throws GLException {
     if (WGL.wglGetCurrentContext() != contextHandle) {
       if (!wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
         throw new GLException("Error making context current: 0x" + toHexString(contextHandle) + ", werr: " + GDI.GetLastError() + ", " + this);
-      } else {
-        if (DEBUG && newCreated) {
-          System.err.println(getThreadName() + ": wglMakeCurrent(hdc " + toHexString(drawable.getHandle()) +
-                             ", contextHandle " + toHexString(contextHandle) + ") succeeded");
-        }
       }
     }
   }

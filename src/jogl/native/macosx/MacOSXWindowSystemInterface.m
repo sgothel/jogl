@@ -567,10 +567,21 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
 }
 
 Bool makeCurrentContext(NSOpenGLContext* ctx) {
+#if 0
+  // we issue the CGL Lock from Java upfront!
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  CGLError cglError = CGLLockContext([ctx CGLContextObj]);
+  if(0 == cglError) {
+      [ctx makeCurrentContext];
+  }
+  [pool release];
+  return 0 == cglError;
+#else
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
   [ctx makeCurrentContext];
   [pool release];
   return true;
+#endif
 }
 
 Bool clearCurrentContext(NSOpenGLContext* ctx) {
@@ -580,6 +591,10 @@ Bool clearCurrentContext(NSOpenGLContext* ctx) {
       [ctx makeCurrentContext];
   }
   [NSOpenGLContext clearCurrentContext];
+#if 0
+  // we issue the CGL Lock from Java upfront!
+  CGLUnlockContext([ctx CGLContextObj]);
+#endif
   [pool release];
   return true;
 }

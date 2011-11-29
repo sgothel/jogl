@@ -236,11 +236,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     return 0 != contextHandle;
   }
   
-  protected void makeCurrentImpl(boolean newCreated) throws GLException {
+  protected void makeCurrentImpl() throws GLException {
     if (getOpenGLMode() != ((MacOSXCGLDrawable)drawable).getOpenGLMode()) {
       setOpenGLMode(((MacOSXCGLDrawable)drawable).getOpenGLMode());
     }
-
     if (!impl.makeCurrent(contextHandle)) {
       throw new GLException("Error making Context current: "+this);
     }      
@@ -511,11 +510,30 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
     
     public boolean makeCurrent(long ctx) {
-      return CGL.makeCurrentContext(ctx);
+      final long cglCtx = CGL.getCGLContext(ctx);
+      if(0 == cglCtx) {
+          throw new InternalError("Null CGLContext for: "+this);
+      }
+      int err = CGL.CGLLockContext(cglCtx);
+      if(CGL.kCGLNoError == err) {
+          return CGL.makeCurrentContext(ctx);
+      } else if(DEBUG) {
+          System.err.println("NSGL: Could not lock context: err 0x"+Integer.toHexString(err)+": "+this);
+      }
+      return false;
     }
 
     public boolean release(long ctx) {
-      return CGL.clearCurrentContext(ctx);
+      final boolean res = CGL.clearCurrentContext(ctx);
+      final long cglCtx = CGL.getCGLContext(ctx);
+      if(0 == cglCtx) {
+          throw new InternalError("Null CGLContext for: "+this);
+      }
+      final int err = CGL.CGLUnlockContext(cglCtx);
+      if(DEBUG && CGL.kCGLNoError != err) {
+          System.err.println("CGL: Could not unlock context: err 0x"+Integer.toHexString(err)+": "+this);
+      }      
+      return res && CGL.kCGLNoError == err;
     }
 
     public boolean setSwapInterval(int interval) {
@@ -594,11 +612,30 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
     
     public boolean makeCurrent(long ctx) {
-      return CGL.CGLSetCurrentContext(ctx) == CGL.kCGLNoError;
+      int err = CGL.CGLLockContext(ctx);
+      if(CGL.kCGLNoError == err) {
+          err = CGL.CGLSetCurrentContext(ctx);
+          if(CGL.kCGLNoError == err) {
+              return true;
+          } else if(DEBUG) {
+              System.err.println("CGL: Could not make context current: err 0x"+Integer.toHexString(err)+": "+this);
+          }
+      } else if(DEBUG) {
+          System.err.println("CGL: Could not lock context: err 0x"+Integer.toHexString(err)+": "+this);
+      }
+      return false;
     }
 
     public boolean release(long ctx) {
-      return (CGL.CGLSetCurrentContext(0) == CGL.kCGLNoError);
+      int err = CGL.CGLSetCurrentContext(0);
+      if(DEBUG && CGL.kCGLNoError != err) {
+          System.err.println("CGL: Could not release current context: err 0x"+Integer.toHexString(err)+": "+this);
+      }
+      int err2 = CGL.CGLUnlockContext(ctx);
+      if(DEBUG && CGL.kCGLNoError != err2) {
+          System.err.println("CGL: Could not unlock context: err 0x"+Integer.toHexString(err2)+": "+this);
+      }
+      return CGL.kCGLNoError == err && CGL.kCGLNoError == err2;
     }
     
     public boolean setSwapInterval(int interval) {

@@ -370,7 +370,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         if(glp.isGL3()) {
           glXMakeContextCurrent(display, 0, 0, 0);
           GLX.glXDestroyContext(display, temp_ctx);
-          throw new GLException("X11GLXContext.createContextImpl failed, but context > GL2 requested - requested: "+glp+", current: "+getGLVersion()+", ");
+          throw new GLException("X11GLXContext.createContextImpl ctx !ARB, context > GL2 requested - requested: "+glp+", current: "+getGLVersion()+", ");
         }
         if(DEBUG) {
           System.err.println("X11GLXContext.createContextImpl failed, fall back to !ARB context "+getGLVersion());
@@ -394,7 +394,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     return true;
   }
 
-  protected void makeCurrentImpl(boolean newCreated) throws GLException {
+  protected void makeCurrentImpl() throws GLException {
     long dpy = drawable.getNativeSurface().getDisplayHandle();
 
     if (GLX.glXGetCurrentContext() != contextHandle) {
@@ -405,13 +405,6 @@ public abstract class X11GLXContext extends GLContextImpl {
             }
         } finally {
             X11Util.setX11ErrorHandler(false, false);
-        }
-        if (DEBUG && newCreated) {
-            System.err.println(getThreadName() + ": glXMakeCurrent(display " + 
-                               toHexString(dpy)+
-                               ", drawable " + toHexString(drawable.getHandle()) +
-                               ", drawableRead " + toHexString(drawableRead.getHandle()) +
-                               ", context " + toHexString(contextHandle) + ") succeeded");
         }
     }
   }

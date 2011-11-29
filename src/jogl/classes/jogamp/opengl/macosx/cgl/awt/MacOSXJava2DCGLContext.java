@@ -74,7 +74,7 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
     this.graphics = g;
   }
 
-  protected void makeCurrentImpl(boolean newCreated) throws GLException {
+  protected void makeCurrentImpl() throws GLException {
     if (!Java2D.makeOGLContextCurrentOnSurface(graphics, contextHandle)) {
       throw new GLException("Error making context current");
     }            
@@ -85,6 +85,16 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
     
     long ctx = Java2D.createOGLContextOnSurface(graphics, share);
     if (ctx == 0) {
+      if(DEBUG) { 
+          System.err.println("Error creating current: "+this);
+      }
+      return false;
+    }
+    if (!Java2D.makeOGLContextCurrentOnSurface(graphics, contextHandle)) {
+      Java2D.destroyOGLContext(ctx);
+      if(DEBUG) { 
+          System.err.println("Error making created context current: "+this);
+      }
       return false;
     }
     setGLFunctionAvailability(true, true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY); // use GL_VERSION

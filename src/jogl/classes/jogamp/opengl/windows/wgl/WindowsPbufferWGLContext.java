@@ -42,6 +42,8 @@ package jogamp.opengl.windows.wgl;
 
 import javax.media.opengl.*;
 
+import jogamp.opengl.GLContextImpl;
+
 public class WindowsPbufferWGLContext extends WindowsWGLContext {
   // State for render-to-texture and render-to-texture-rectangle support
   private boolean rtt;       // render-to-texture?
@@ -86,9 +88,9 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
     }
   }
 
-  protected void makeCurrentImpl(boolean newCreated) throws GLException {
-    super.makeCurrentImpl(newCreated);
-    if (newCreated) {
+  protected boolean createImpl(GLContextImpl shareWith) {
+    boolean res = super.createImpl(shareWith);
+    if(res) {
       GLCapabilitiesImmutable capabilities = drawable.getChosenGLCapabilities();
 
       // Initialize render-to-texture support if requested
@@ -135,6 +137,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
         }
       }
     }
+    return res;
   }
 
   public int getFloatingPointMode() {

@@ -98,7 +98,7 @@ public abstract class EGLContext extends GLContextImpl {
         return true;
     }
 
-    protected void makeCurrentImpl(boolean newCreated) throws GLException {
+    protected void makeCurrentImpl() throws GLException {
         if(EGL.EGL_NO_DISPLAY==((EGLDrawable)drawable).getDisplay() ) {
             throw new GLException("drawable not properly initialized, NO DISPLAY: "+drawable);
         }

@@ -360,7 +360,7 @@ public abstract class GLContextImpl extends GLContext {
   public int makeCurrent() throws GLException {
     // One context can only be current by one thread,
     // and one thread can only have one context current!
-    GLContext current = getCurrent();
+    final GLContext current = getCurrent();
     if (current != null) {
       if (current == this) {
         // Assume we don't need to make this context current again
@@ -454,7 +454,6 @@ public abstract class GLContextImpl extends GLContext {
           if (0 == drawable.getHandle()) {
               throw new GLException("drawable has invalid handle: "+drawable);
           }
-          boolean newCreated = false;
           if (!isCreated()) {
             GLProfile.initProfiles(
                     getGLDrawable().getNativeSurface().getGraphicsConfiguration().getScreen().getDevice());
@@ -462,28 +461,30 @@ public abstract class GLContextImpl extends GLContext {
             if (null != shareWith) {
                 shareWith.getDrawableImpl().lockSurface();
             }
+            boolean created;
             try {
-                newCreated = createImpl(shareWith); // may throws exception if fails!
+                created = createImpl(shareWith); // may throws exception if fails!
             } finally {
                 if (null != shareWith) {
                     shareWith.getDrawableImpl().unlockSurface();
                 }                
             }
             if (DEBUG) {
-                if(newCreated) {
+                if(created) {
                     System.err.println(getThreadName() + ": !!! Create GL context OK: " + toHexString(contextHandle) + " for " + getClass().getName());
                 } else {
                     System.err.println(getThreadName() + ": !!! Create GL context FAILED for " + getClass().getName());
                 }
             }
-            if(!newCreated) {
+            if(!created) {
                 shallUnlockSurface = true;
                 return CONTEXT_NOT_CURRENT;
             }
             GLContextShareSet.contextCreated(this);
+            return CONTEXT_CURRENT_NEW;
           }
-          makeCurrentImpl(newCreated);
-          return newCreated ? CONTEXT_CURRENT_NEW : CONTEXT_CURRENT ;
+          makeCurrentImpl();
+          return CONTEXT_CURRENT;
       } catch (RuntimeException e) {
         shallUnlockSurface = true;
         throw e;
@@ -494,26 +495,41 @@ public abstract class GLContextImpl extends GLContext {
       }
     }
   }
-  protected abstract void makeCurrentImpl(boolean newCreatedContext) throws GLException;
+  protected abstract void makeCurrentImpl() throws GLException;
+  
+  /** 
+   * Platform dependent entry point for context creation.<br>
+   *
+   * This method is called from {@link #makeCurrentLocking()} .. {@link #makeCurrent()} .<br>
+   *
+   * The implementation shall verify this context with a 
+   * <code>MakeContextCurrent</code> call.<br>
+   *
+   * The implementation <b>must</b> leave the context current.<br>
+   * 
+   * @param share the shared context or null
+   * @return the valid and current context if successful, or null
+   * @throws GLException
+   */
   protected abstract boolean createImpl(GLContextImpl sharedWith) throws GLException ;
 
   /** 
    * Platform dependent but harmonized implementation of the <code>ARB_create_context</code>
    * mechanism to create a context.<br>
    *
-   * This method is called from {@link #createContextARB}.<br>
+   * This method is called from {@link #createContextARB}, {@link #createImpl(GLContextImpl)} .. {@link #makeCurrent()} .<br>
    *
    * The implementation shall verify this context with a 
    * <code>MakeContextCurrent</code> call.<br>
    *
-   * The implementation shall leave the context current.<br>
+   * The implementation <b>must</b> leave the context current.<br>
    *
    * @param share the shared context or null
    * @param direct flag if direct is requested
    * @param ctxOptionFlags <code>ARB_create_context</code> related, see references below
    * @param major major number
    * @param minor minor number
-   * @return the valid context if successfull, or null
+   * @return the valid and current context if successful, or null
    *
    * @see #makeCurrent
    * @see #CTX_PROFILE_COMPAT

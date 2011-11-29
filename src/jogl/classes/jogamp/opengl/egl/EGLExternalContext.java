@@ -66,7 +66,7 @@ public class EGLExternalContext extends EGLContext {
         lastContext = null;
     }
 
-    protected void makeCurrentImpl(boolean newCreated) throws GLException {
+    protected void makeCurrentImpl() throws GLException {
     }
 
     protected void releaseImpl() throws GLException {

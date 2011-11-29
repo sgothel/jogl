@@ -116,7 +116,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
     lastContext = null;
   }
 
-  protected void makeCurrentImpl(boolean newCreated) throws GLException {
+  protected void makeCurrentImpl() throws GLException {
   }
 
   protected void releaseImpl() throws GLException {

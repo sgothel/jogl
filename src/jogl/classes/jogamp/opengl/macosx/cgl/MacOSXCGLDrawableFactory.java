@@ -49,7 +49,6 @@ import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.DefaultGraphicsScreen;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
@@ -212,6 +211,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                             gle.printStackTrace();
                         }
                     } finally {
+                        context.release();
                         context.destroy();
                     }
                 }

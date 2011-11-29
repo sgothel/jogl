@@ -38,6 +38,8 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLPbuffer;
 
+import jogamp.opengl.GLContextImpl;
+
 public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
 
   // State for render-to-texture and render-to-texture-rectangle support
@@ -60,10 +62,9 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   public void releasePbufferFromTexture() {
   }
 
-  protected void makeCurrentImpl(boolean newCreated) throws GLException {
-    super.makeCurrentImpl(newCreated);
-    
-    if (newCreated) {
+  protected boolean createImpl(GLContextImpl shareWith) {
+    boolean res = super.createImpl(shareWith);
+    if(res) {  
       // Initialize render-to-texture support if requested
       final GL gl = getGL();
       final MacOSXPbufferCGLDrawable osxPDrawable = (MacOSXPbufferCGLDrawable)drawable;
@@ -81,6 +82,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
                       0, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, null);
       gl.glCopyTexSubImage2D(textureTarget, 0, 0, 0, 0, 0, drawable.getWidth(), drawable.getHeight());
     }
+    return res;
   }
 
   public int getFloatingPointMode() {
