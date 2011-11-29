@@ -193,49 +193,31 @@ static jmethodID windowRepaintID = NULL;
     return destroyNotifySent;
 }
 
-#define SOFT_LOCK_BLOCKING 1
-
 - (BOOL) softLock
 {
     pthread_mutex_lock(&softLockSync);
     softLocked = YES;
-#ifndef SOFT_LOCK_BLOCKING
-    pthread_mutex_unlock(&softLockSync);
-#endif
     return softLocked;
 }
 
 - (void) softUnlock
 {
-#ifndef SOFT_LOCK_BLOCKING
-    pthread_mutex_lock(&softLockSync);
-#endif
     softLocked = NO;
     pthread_mutex_unlock(&softLockSync);
 }
 
 - (BOOL) needsDisplay
 {
-#ifndef SOFT_LOCK_BLOCKING
-    return NO == softLocked && NO == destroyNotifySent && [super needsDisplay];
-#else
     return NO == destroyNotifySent && [super needsDisplay];
-#endif
 }
 
 - (void) displayIfNeeded
 {
-#ifndef SOFT_LOCK_BLOCKING
-    if( NO == softLocked && NO == destroyNotifySent ) {
-        [super displayIfNeeded];
-    }
-#else
     [self softLock];
     if( NO == destroyNotifySent ) {
         [super displayIfNeeded];
     }
     [self softUnlock];
-#endif
 }
 
 - (void) viewWillDraw
