@@ -37,20 +37,20 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import com.jogamp.opengl.util.Animator;
 
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestSharedContextListNEWT2 extends UITestCase {
+public class TestSharedContextVBOES2NEWT2 extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
     static int width, height;
     GLWindow sharedDrawable;
-    Gears sharedGears;
+    GearsES2 sharedGears;
 
     @BeforeClass
     public static void initClass() {
@@ -66,7 +66,8 @@ public class TestSharedContextListNEWT2 extends UITestCase {
     private void initShared() {
     	sharedDrawable = GLWindow.create(caps);
         Assert.assertNotNull(sharedDrawable);
-        sharedGears = new Gears(0);
+        // sharedGears = new Gears(0);
+        sharedGears = new GearsES2(0);
         Assert.assertNotNull(sharedGears);
         sharedDrawable.addGLEventListener(sharedGears);
         sharedDrawable.setSize(width, height);
@@ -92,7 +93,7 @@ public class TestSharedContextListNEWT2 extends UITestCase {
 
         glWindow.setSize(width, height);
 
-        Gears gears = new Gears(vsync ? 1 : 0);
+        GearsES2 gears = new GearsES2(vsync ? 1 : 0);
         if(useShared) {
             gears.setGears(sharedGears.getGear1(), sharedGears.getGear2(), sharedGears.getGear3());
         }
@@ -152,6 +153,6 @@ public class TestSharedContextListNEWT2 extends UITestCase {
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
         System.err.println(stdin.readLine()); */         
-        org.junit.runner.JUnitCore.main(TestSharedContextListNEWT2.class.getName());
+        org.junit.runner.JUnitCore.main(TestSharedContextVBOES2NEWT2.class.getName());
     }
 }
