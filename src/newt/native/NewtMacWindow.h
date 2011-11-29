@@ -54,8 +54,8 @@
     JavaVM *jvmHandle;
     int jvmVersion;
 
-    BOOL destroyNotifySent;
-    BOOL softLocked;
+    volatile BOOL destroyNotifySent;
+    volatile BOOL softLocked;
     pthread_mutex_t softLockSync;
 
     NSTrackingRectTag ptrTrackingTag;
@@ -89,7 +89,7 @@
 
 - (BOOL) needsDisplay;
 - (void) displayIfNeeded;
-- (void) viewWillDraw;
+- (void) display;
 - (void) drawRect:(NSRect)dirtyRect;
 - (void) viewDidHide;
 - (void) viewDidUnhide;

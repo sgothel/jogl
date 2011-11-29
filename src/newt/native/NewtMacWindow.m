@@ -104,7 +104,11 @@ static jmethodID windowRepaintID = NULL;
     jvmVersion = 0;
     destroyNotifySent = NO;
     softLocked = NO;
-    pthread_mutex_init(&softLockSync, NULL); // fast non-recursive
+
+    pthread_mutexattr_t softLockSyncAttr;
+    pthread_mutexattr_init(&softLockSyncAttr);
+    pthread_mutexattr_settype(&softLockSyncAttr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&softLockSync, &softLockSyncAttr); // recursive
 
     ptrTrackingTag = 0;
 
@@ -122,7 +126,7 @@ static jmethodID windowRepaintID = NULL;
 - (void) dealloc
 {
     if(softLocked) {
-        fprintf(stderr, "*** Warning: softLock still hold @ dealloc!\n"); fflush(NULL);
+        NSLog(@"NewtView::dealloc: softLock still hold @ dealloc!\n");
     }
     pthread_mutex_destroy(&softLockSync);
     [super dealloc];
@@ -195,13 +199,17 @@ static jmethodID windowRepaintID = NULL;
 
 - (BOOL) softLock
 {
+    // DBG_PRINT("*************** softLock.0: %p\n", (void*)pthread_self());
+    // NSLog(@"NewtView::softLock: %@",[NSThread callStackSymbols]);
     pthread_mutex_lock(&softLockSync);
     softLocked = YES;
+    // DBG_PRINT("*************** softLock.X: %p\n", (void*)pthread_self());
     return softLocked;
 }
 
 - (void) softUnlock
 {
+    // DBG_PRINT("*************** softUnlock: %p\n", (void*)pthread_self());
     softLocked = NO;
     pthread_mutex_unlock(&softLockSync);
 }
@@ -213,22 +221,25 @@ static jmethodID windowRepaintID = NULL;
 
 - (void) displayIfNeeded
 {
-    [self softLock];
-    if( NO == destroyNotifySent ) {
+    if( YES == [self needsDisplay] ) {
+        [self softLock];
         [super displayIfNeeded];
+        [self softUnlock];
     }
-    [self softUnlock];
 }
 
-- (void) viewWillDraw
+- (void) display
 {
-    DBG_PRINT("*************** viewWillDraw: 0x%p\n", javaWindowObject);
-    [super viewWillDraw];
+    if( NO == destroyNotifySent ) {
+        [self softLock];
+        [super display];
+        [self softUnlock];
+    }
 }
 
 - (void) drawRect:(NSRect)dirtyRect
 {
-    DBG_PRINT("*************** dirtyRect: 0x%p %lf/%lf %lfx%lf\n", 
+    DBG_PRINT("*************** dirtyRect: %p %lf/%lf %lfx%lf\n", 
         javaWindowObject, dirtyRect.origin.x, dirtyRect.origin.y, dirtyRect.size.width, dirtyRect.size.height);
 
     int shallBeDetached = 0;
@@ -240,7 +251,7 @@ static jmethodID windowRepaintID = NULL;
 
     NSRect viewFrame = [self frame];
 
-    (*env)->CallVoidMethod(env, javaWindowObject, windowRepaintID, JNI_FALSE,
+    (*env)->CallVoidMethod(env, javaWindowObject, windowRepaintID, JNI_TRUE, // defer ..
         dirtyRect.origin.x, viewFrame.size.height - dirtyRect.origin.y, 
         dirtyRect.size.width, dirtyRect.size.height);
 
@@ -823,7 +834,7 @@ static jint mods2JavaMods(NSUInteger mods)
 
     if( false == [view getDestroyNotifySent] ) {
         jobject javaWindowObject = [view getJavaWindowObject];
-        DBG_PRINT( "*************** windowWillClose.0: 0x%p\n", (void *)(intptr_t)javaWindowObject);
+        DBG_PRINT( "*************** windowWillClose.0: %p\n", (void *)(intptr_t)javaWindowObject);
         if (javaWindowObject == NULL) {
             DBG_PRINT("windowWillClose: null javaWindowObject\n");
             return;
@@ -847,7 +858,7 @@ static jint mods2JavaMods(NSUInteger mods)
         if (shallBeDetached) {
             (*jvmHandle)->DetachCurrentThread(jvmHandle);
         }
-        DBG_PRINT( "*************** windowWillClose.X: 0x%p\n", (void *)(intptr_t)javaWindowObject);
+        DBG_PRINT( "*************** windowWillClose.X: %p\n", (void *)(intptr_t)javaWindowObject);
     } else {
         DBG_PRINT( "*************** windowWillClose (skip)\n");
     }
