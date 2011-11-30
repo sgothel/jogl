@@ -201,9 +201,16 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     public final boolean getWasSharedContextCreated(AbstractGraphicsDevice device) {
-        SharedResource sr = getOrCreateEGLSharedResource(device);
-        if(null!=sr) {
-            return sr.wasES1ContextAvailable() || sr.wasES2ContextAvailable();
+        try {
+            SharedResource sr = getOrCreateEGLSharedResource(device);
+            if(null!=sr) {
+                return sr.wasES1ContextAvailable() || sr.wasES2ContextAvailable();
+            }
+        } catch (GLException gle) {
+            if(DEBUG) {
+                System.err.println("Catched Exception while EGL Shared Resource initialization");
+                gle.printStackTrace();
+            }
         }
         return false;        
     }

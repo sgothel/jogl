@@ -290,9 +290,16 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public final boolean getWasSharedContextCreated(AbstractGraphicsDevice device) {
-    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
-    if(null!=sr) {
-      return null != sr.getContext();
+    try {
+        SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
+        if(null!=sr) {
+          return null != sr.getContext();
+        }
+    } catch (GLException gle) {
+        if(DEBUG) {
+            System.err.println("Catched Exception while X11GLX Shared Resource initialization");
+            gle.printStackTrace();
+        }
     }
     return false;
   }

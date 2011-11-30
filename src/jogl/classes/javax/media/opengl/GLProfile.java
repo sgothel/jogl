@@ -74,6 +74,11 @@ public class GLProfile {
     
     public static final boolean DEBUG = Debug.debug("GLProfile");
 
+    static {
+        // Also initializes TempJarCache if shall be used.
+        Platform.initSingleton();
+    }
+    
     /**
      * Static one time initialization of JOGL.
      * <p>
@@ -145,6 +150,7 @@ public class GLProfile {
     public static synchronized void shutdown() {
         if(initialized) {
             initialized = false;
+            NativeWindowFactory.shutdown();
             GLDrawableFactory.shutdown();
             GLContext.shutdown();
         }
@@ -1137,10 +1143,6 @@ public class GLProfile {
         return "GLProfile[" + getName() + "/" + getImplName() + "]";
     }
 
-    static {
-        Platform.initSingleton();
-    }
-
     private static /*final*/ boolean isAWTAvailable;
 
     private static /*final*/ boolean hasDesktopGLFactory;    
@@ -1332,10 +1334,13 @@ public class GLProfile {
             // Triggers eager initialization of share context in GLDrawableFactory for the device,
             // hence querying all available GLProfiles
             boolean desktopSharedCtxAvail = desktopFactory.getWasSharedContextCreated(device);
+            if(!desktopSharedCtxAvail) {
+                hasDesktopGLFactory = false;
+            }
             if (DEBUG) {
                 System.err.println("GLProfile.initProfilesForDevice: "+device+": desktop Shared Ctx "+desktopSharedCtxAvail);
             }
-            if( null == GLContext.getAvailableGLVersion(device, 2, GLContext.CTX_PROFILE_COMPAT) ) {
+            if( hasDesktopGLFactory && null == GLContext.getAvailableGLVersion(device, 2, GLContext.CTX_PROFILE_COMPAT) ) {
                 // nobody yet set the available desktop versions, see {@link GLContextImpl#makeCurrent},
                 // so we have to add the usual suspect
                 GLContext.mapAvailableGLVersion(device,
@@ -1351,6 +1356,14 @@ public class GLProfile {
             // Triggers eager initialization of share context in GLDrawableFactory for the device,
             // hence querying all available GLProfiles
             boolean eglSharedCtxAvail = eglFactory.getWasSharedContextCreated(device);
+            if(!eglSharedCtxAvail) {
+                // Remark: On Windows there is a libEGL.dll delivered w/ Chrome 15.0.874.121m and Firefox 8.0.1
+                // but it seems even EGL.eglInitialize(eglDisplay, null, null) 
+                // fails in some scenarios (eg VirtualBox 4.1.6) w/ EGL error 0x3001 (EGL_NOT_INITIALIZED).
+                hasEGLFactory = false;
+                hasGLES2Impl = false;
+                hasGLES1Impl = false;
+            }
             if (DEBUG) {
                 System.err.println("GLProfile.initProfilesForDevice: "+device+": egl Shared Ctx "+eglSharedCtxAvail);
             }

@@ -238,7 +238,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         }
 
         if(NativeSurface.LOCK_SURFACE_NOT_READY >= sharedDrawable.lockSurface()) {
-            throw new GLException("Surface not ready (lockSurface)");
+            throw new GLException("Shared Surface not ready (lockSurface): "+device+" -> "+sharedDrawable);
         }
         try {
             long hdc = sharedDrawable.getHandle();

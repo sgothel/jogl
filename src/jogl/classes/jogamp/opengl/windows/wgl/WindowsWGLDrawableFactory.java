@@ -370,9 +370,16 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   final static String wglMakeContextCurrent = "wglMakeContextCurrent";
 
   public final boolean getWasSharedContextCreated(AbstractGraphicsDevice device) {
-    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
-    if(null!=sr) {
-      return null != sr.getContext();
+    try {
+        SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
+        if(null!=sr) {
+          return null != sr.getContext();
+        }
+    } catch (GLException gle) {
+        if(DEBUG) {
+            System.err.println("Catched Exception while WindowsWGL Shared Resource initialization");
+            gle.printStackTrace();
+        }
     }
     return false;
   }

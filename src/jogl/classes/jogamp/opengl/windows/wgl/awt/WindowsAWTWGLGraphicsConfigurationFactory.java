@@ -124,12 +124,17 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
         // otherwise no hardware accelerated PFD could be achieved.
         //   - preselect with no constrains
         //   - try to create dedicated GC
-        winConfig.preselectGraphicsConfiguration(drawableFactory, null);
-        if ( 1 <= winConfig.getPixelFormatID() ) {
-            chosenGC = Win32SunJDKReflection.graphicsConfigurationGet(device, winConfig.getPixelFormatID());
-            if(DEBUG) {
-                System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: Found new AWT PFD ID "+winConfig.getPixelFormatID()+" -> "+winConfig);
+        try {
+            winConfig.preselectGraphicsConfiguration(drawableFactory, null);
+            if ( 1 <= winConfig.getPixelFormatID() ) {
+                chosenGC = Win32SunJDKReflection.graphicsConfigurationGet(device, winConfig.getPixelFormatID());
+                if(DEBUG) {
+                    System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: Found new AWT PFD ID "+winConfig.getPixelFormatID()+" -> "+winConfig);
+                }
             }
+        } catch (GLException gle0) {
+            gle0.printStackTrace();
+            // go on ..
         }
 
         if( null == chosenGC ) {

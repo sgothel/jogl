@@ -265,6 +265,19 @@ public abstract class NativeWindowFactory {
         }
     }
 
+    public static synchronized void shutdown() {
+        if(initialized) {
+            initialized = false;
+            if(DEBUG) {
+                System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.shutdown() START");                
+            }
+            // X11Util.shutdown(..) already called via GLDrawableFactory.shutdown() ..
+            if(DEBUG) {
+                System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.shutdown() END");                
+            }
+        }
+    }
+    
     /** @return true if initialized with <b>{@link #initSingleton(boolean) initSingleton(firstUIActionOnProcess==true)}</b>,
         otherwise false. */
     public static boolean isFirstUIActionOnProcess() {

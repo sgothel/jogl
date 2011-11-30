@@ -232,9 +232,16 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
     
   public final boolean getWasSharedContextCreated(AbstractGraphicsDevice device) {
-    SharedResource sr = getOrCreateOSXSharedResource(device);
-    if(null!=sr) {
-        return sr.wasContextAvailable();
+    try {
+        SharedResource sr = getOrCreateOSXSharedResource(device);
+        if(null!=sr) {
+            return sr.wasContextAvailable();
+        }
+    } catch (GLException gle) {
+        if(DEBUG) {
+            System.err.println("Catched Exception while MaxOSXCGL Shared Resource initialization");
+            gle.printStackTrace();
+        }
     }
     return false;        
   }

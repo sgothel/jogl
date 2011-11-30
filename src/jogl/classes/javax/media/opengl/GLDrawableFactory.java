@@ -199,8 +199,7 @@ public abstract class GLDrawableFactory {
   private static void shutdownImpl() {
     synchronized(glDrawableFactories) {
         for(int i=0; i<glDrawableFactories.size(); i++) {
-            GLDrawableFactory factory = glDrawableFactories.get(i);
-            factory.shutdownInstance();
+            glDrawableFactories.get(i).shutdownInstance();
         }
         glDrawableFactories.clear();
     }
