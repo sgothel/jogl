@@ -41,8 +41,6 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
-import jogamp.newt.Debug;
-
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 
@@ -248,7 +246,7 @@ public class JOGLNewtApplet1Run extends Applet {
         }
         base.start();
         if(DEBUG) {
-            System.err.println("JOGLNewtApplet1Run.stop() END");
+            System.err.println("JOGLNewtApplet1Run.start() END");
         }
     }
 
@@ -273,6 +271,10 @@ public class JOGLNewtApplet1Run extends Applet {
         }
         base.destroy(); // destroy glWindow unrecoverable
         base=null;
+        if(DEBUG) {
+            System.err.println("JOGLNewtApplet1Run.destroy() .. GLProfile.shutdown() ..");
+        }
+        GLProfile.shutdown();
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.destroy() END");
         }
