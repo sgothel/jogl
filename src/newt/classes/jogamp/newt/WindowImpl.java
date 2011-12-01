@@ -1576,7 +1576,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void requestFocus(boolean wait) {
-        if(!focusAction()) {
+        if(isNativeValid() && !focusAction()) {
             runOnEDTIfAvail(wait, requestFocusAction);
         }
     }
