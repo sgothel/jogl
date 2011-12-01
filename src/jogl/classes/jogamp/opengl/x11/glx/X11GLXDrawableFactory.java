@@ -72,15 +72,15 @@ import com.jogamp.common.util.VersionNumber;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   
-  private static final DesktopGLDynamicLookupHelper x11GLXDynamicLookupHelper;
-  
   public static final VersionNumber versionOneZero = new VersionNumber(1, 0, 0);
   public static final VersionNumber versionOneOne = new VersionNumber(1, 1, 0);
   public static final VersionNumber versionOneTwo = new VersionNumber(1, 2, 0);
   public static final VersionNumber versionOneThree = new VersionNumber(1, 3, 0);
   public static final VersionNumber versionOneFour = new VersionNumber(1, 4, 0);
 
-  static {
+  public X11GLXDrawableFactory() {
+    super();
+
     DesktopGLDynamicLookupHelper tmp = null;
     try {
         tmp = new DesktopGLDynamicLookupHelper(new X11GLXDynamicLibraryBundleInfo());
@@ -90,37 +90,57 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
     x11GLXDynamicLookupHelper = tmp;
+    
     if(null!=x11GLXDynamicLookupHelper) {
         GLX.getGLXProcAddressTable().reset(x11GLXDynamicLookupHelper);
+        
+        // Register our GraphicsConfigurationFactory implementations
+        // The act of constructing them causes them to be registered
+        X11GLXGraphicsConfigurationFactory.registerFactory();
+        
+        defaultDevice = new X11GraphicsDevice(X11Util.getNullDisplayName(), AbstractGraphicsDevice.DEFAULT_UNIT);
+        sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
+        
+        // Init shared resources off thread
+        // Will be released via ShutdownHook
+        sharedResourceImpl = new SharedResourceImplementation();
+        sharedResourceRunner = new SharedResourceRunner(sharedResourceImpl);
+        sharedResourceThread = new Thread(sharedResourceRunner, Thread.currentThread().getName()+"-SharedResourceRunner");
+        sharedResourceThread.setDaemon(true); // Allow JVM to exit, even if this one is running
+        sharedResourceThread.start();        
+    }    
+  }
+
+  protected final void destroy() {
+    if(null != sharedResourceRunner) {
+        sharedResourceRunner.releaseAndWait();
+        sharedResourceRunner = null;
     }
+    if(null != sharedMap) {
+        sharedMap.clear();
+        sharedMap = null;
+    }
+    defaultDevice = null;
+    if(null != x11GLXDynamicLookupHelper) {
+        x11GLXDynamicLookupHelper.destroy();
+        x11GLXDynamicLookupHelper = null;
+    }
+
+    // Don't really close pending Display connections,
+    // since this may trigger a JVM exception
+    X11Util.shutdown( false, DEBUG );
   }
 
   public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
       return x11GLXDynamicLookupHelper;
   }
 
-  public X11GLXDrawableFactory() {
-    super();
-    // Register our GraphicsConfigurationFactory implementations
-    // The act of constructing them causes them to be registered
-    X11GLXGraphicsConfigurationFactory.registerFactory();
-    
-    defaultDevice = new X11GraphicsDevice(X11Util.getNullDisplayName(), AbstractGraphicsDevice.DEFAULT_UNIT);
-
-    // Init shared resources off thread
-    // Will be released via ShutdownHook
-    sharedResourceImpl = new SharedResourceImplementation();
-    sharedResourceRunner = new SharedResourceRunner(sharedResourceImpl);
-    sharedResourceThread = new Thread(sharedResourceRunner, Thread.currentThread().getName()+"-SharedResourceRunner");
-    sharedResourceThread.setDaemon(true); // Allow JVM to exit, even if this one is running
-    sharedResourceThread.start();
-  }
-
-  X11GraphicsDevice defaultDevice;
-  SharedResourceImplementation sharedResourceImpl;
-  SharedResourceRunner sharedResourceRunner;
-  Thread sharedResourceThread;
-  HashMap<String /* connection */, SharedResourceRunner.Resource> sharedMap = new HashMap<String, SharedResourceRunner.Resource>();  
+  private DesktopGLDynamicLookupHelper x11GLXDynamicLookupHelper;  
+  private X11GraphicsDevice defaultDevice;
+  private SharedResourceImplementation sharedResourceImpl;
+  private SharedResourceRunner sharedResourceRunner;
+  private Thread sharedResourceThread;
+  private HashMap<String /* connection */, SharedResourceRunner.Resource> sharedMap;  
 
   static class SharedResource implements SharedResourceRunner.Resource {
       X11GraphicsDevice device;
@@ -330,14 +350,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
   SharedResource getOrCreateSharedResource(AbstractGraphicsDevice device) {
     return (SharedResource) sharedResourceRunner.getOrCreateShared(device);
-  }
-
-  protected final void shutdownInstance() {
-    sharedResourceRunner.releaseAndWait();
-
-    // Don't really close pending Display connections,
-    // since this may trigger a JVM exception
-    X11Util.shutdown( false, DEBUG );
   }
 
   protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {

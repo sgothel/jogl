@@ -72,43 +72,58 @@ import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.ReflectionUtil;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
-  private static final DesktopGLDynamicLookupHelper macOSXCGLDynamicLookupHelper;
+  public MacOSXCGLDrawableFactory() {
+    super();
 
-  static {
-        DesktopGLDynamicLookupHelper tmp = null;
-        try {
-            tmp = new DesktopGLDynamicLookupHelper(new MacOSXCGLDynamicLibraryBundleInfo());
-        } catch (GLException gle) {
-            if(DEBUG) {
-                gle.printStackTrace();
-            }
+    DesktopGLDynamicLookupHelper tmp = null;
+    try {
+        tmp = new DesktopGLDynamicLookupHelper(new MacOSXCGLDynamicLibraryBundleInfo());
+    } catch (GLException gle) {
+        if(DEBUG) {
+            gle.printStackTrace();
         }
-        macOSXCGLDynamicLookupHelper = tmp;
+    }
+    macOSXCGLDynamicLookupHelper = tmp;
+    
+    if(null!=macOSXCGLDynamicLookupHelper) {
         /** FIXME ?? 
-        if(null!=macOSXCGLDynamicLookupHelper) {
-            CGL.getCGLProcAddressTable().reset(macOSXCGLDynamicLookupHelper);
-        } */
+        CGL.getCGLProcAddressTable().reset(macOSXCGLDynamicLookupHelper);
+        */
+        
+        // Register our GraphicsConfigurationFactory implementations
+        // The act of constructing them causes them to be registered
+        MacOSXCGLGraphicsConfigurationFactory.registerFactory();
+        if(GLProfile.isAWTAvailable()) {
+            try {
+              ReflectionUtil.callStaticMethod("jogamp.opengl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory", 
+                                              "registerFactory", null, null, getClass().getClassLoader());                
+            } catch (JogampRuntimeException jre) { /* n/a .. */ }
+        }
+    
+        defaultDevice = new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+        sharedMap = new HashMap<String, SharedResource>();
+    }     
+  }
+
+  protected final void destroy() {
+    if(null != sharedMap) {
+        sharedMap.clear();
+        sharedMap = null;
+    }
+    defaultDevice = null;
+    if(null != macOSXCGLDynamicLookupHelper) {
+        macOSXCGLDynamicLookupHelper.destroy();
+        macOSXCGLDynamicLookupHelper = null;
+    }
   }
 
   public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
       return macOSXCGLDynamicLookupHelper;
   }
 
-  public MacOSXCGLDrawableFactory() {
-    super();
-
-    // Register our GraphicsConfigurationFactory implementations
-    // The act of constructing them causes them to be registered
-    MacOSXCGLGraphicsConfigurationFactory.registerFactory();
-    if(GLProfile.isAWTAvailable()) {
-        try {
-          ReflectionUtil.callStaticMethod("jogamp.opengl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory", 
-                                          "registerFactory", null, null, getClass().getClassLoader());                
-        } catch (JogampRuntimeException jre) { /* n/a .. */ }
-    }
-
-    defaultDevice = new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
-  }
+  private DesktopGLDynamicLookupHelper macOSXCGLDynamicLookupHelper;
+  private HashMap<String, SharedResource> sharedMap = new HashMap<String, SharedResource>();
+  private MacOSXGraphicsDevice defaultDevice;
 
   static class SharedResource {
       // private MacOSXCGLDrawable drawable;
@@ -136,8 +151,6 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
       final boolean isRECTTextureAvailable() { return hasRECTTextures; }
       final boolean isAppletFloatPixelsAvailable() { return hasAppletFloatPixels; }
   }
-  HashMap<String, SharedResource> sharedMap = new HashMap<String, SharedResource>();
-  MacOSXGraphicsDevice defaultDevice;
 
   public final AbstractGraphicsDevice getDefaultDevice() {
       return defaultDevice;
@@ -258,8 +271,6 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
       }
       return null;
   }
-
-  protected final void shutdownInstance() {}
 
   protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
       return MacOSXCGLGraphicsConfiguration.getAvailableCapabilities(this, device);

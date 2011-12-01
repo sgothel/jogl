@@ -47,6 +47,7 @@ import java.util.List;
 
 import com.jogamp.common.JogampRuntimeException;
 import jogamp.common.Debug;
+
 import com.jogamp.common.util.ReflectionUtil;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -94,7 +95,7 @@ public abstract class GLDrawableFactory {
   static final String macosxFactoryClassNameCGL = "jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory";
   static final String macosxFactoryClassNameAWTCGL = "jogamp.opengl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
   
-  private static volatile boolean initialized = false;
+  private static volatile boolean isInit = false;
   private static GLDrawableFactory eglFactory;
   private static GLDrawableFactory nativeOSFactory;
 
@@ -104,17 +105,24 @@ public abstract class GLDrawableFactory {
   private static boolean factoryShutdownHookRegistered = false;
   private static Thread factoryShutdownHook = null;
 
-  /**
-   * Instantiate singleton factories if available, EGLES1, EGLES2 and the OS native ones.
-   */
   static {
     nativeOSType = NativeWindowFactory.getNativeWindowType(true);
   }
 
-  protected static final void initialize() {
-    if(initialized) { return; }
-    initialized = true;
-    
+  /**
+   * Instantiate singleton factories if available, EGLES1, EGLES2 and the OS native ones.
+   */
+  public static final void initSingleton() { 
+      if (!isInit) { // volatile: ok
+          synchronized (GLDrawableFactory.class) {
+              if (!isInit) {
+                  isInit=true;
+                  initSingletonImpl();
+              }
+          }
+      }
+  }  
+  private static final void initSingletonImpl() {
     registerFactoryShutdownHook();
     
     GLDrawableFactory tmp = null;
@@ -165,6 +173,30 @@ public abstract class GLDrawableFactory {
     eglFactory = tmp;
   }
 
+  protected static void shutdown() {
+    if (isInit) { // volatile: ok
+      synchronized (GLDrawableFactory.class) {
+          if (isInit) {
+              isInit=false;
+              unregisterFactoryShutdownHook();
+              shutdownImpl();
+          }
+      }
+    }
+  }
+  private static void shutdownImpl() {
+    synchronized(glDrawableFactories) {
+        for(int i=0; i<glDrawableFactories.size(); i++) {
+            glDrawableFactories.get(i).destroy();
+        }
+        glDrawableFactories.clear();
+        
+        // both were members of glDrawableFactories and are shutdown already 
+        nativeOSFactory = null;
+        eglFactory = null;
+    }
+  }
+  
   private static synchronized void registerFactoryShutdownHook() {
     if (factoryShutdownHookRegistered) {
         return;
@@ -174,7 +206,7 @@ public abstract class GLDrawableFactory {
             GLDrawableFactory.shutdownImpl();
         }
     });
-    AccessController.doPrivileged(new PrivilegedAction() {
+    AccessController.doPrivileged(new PrivilegedAction<Object>() {
         public Object run() {
             Runtime.getRuntime().addShutdownHook(factoryShutdownHook);
             return null;
@@ -187,7 +219,7 @@ public abstract class GLDrawableFactory {
     if (!factoryShutdownHookRegistered) {
         return;
     }
-    AccessController.doPrivileged(new PrivilegedAction() {
+    AccessController.doPrivileged(new PrivilegedAction<Object>() {
         public Object run() {
             Runtime.getRuntime().removeShutdownHook(factoryShutdownHook);
             return null;
@@ -196,22 +228,6 @@ public abstract class GLDrawableFactory {
     factoryShutdownHookRegistered = false;
   }
 
-  private static void shutdownImpl() {
-    synchronized(glDrawableFactories) {
-        for(int i=0; i<glDrawableFactories.size(); i++) {
-            glDrawableFactories.get(i).shutdownInstance();
-        }
-        glDrawableFactories.clear();
-    }
-  }
-
-  protected static void shutdown() {
-    unregisterFactoryShutdownHook();
-    shutdownImpl();
-    eglFactory = null;
-    nativeOSFactory = null;    
-    initialized = false;    
-  }
 
   protected GLDrawableFactory() {
     synchronized(glDrawableFactories) {
@@ -222,7 +238,7 @@ public abstract class GLDrawableFactory {
   protected void enterThreadCriticalZone() {};
   protected void leaveThreadCriticalZone() {};
 
-  protected abstract void shutdownInstance();
+  protected abstract void destroy();
 
   /**
    * Retrieve the default <code>device</code> {@link AbstractGraphicsDevice#getConnection() connection},

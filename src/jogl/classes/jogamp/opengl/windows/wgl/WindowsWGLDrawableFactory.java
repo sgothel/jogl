@@ -80,9 +80,9 @@ import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.SharedResourceRunner;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
-  private static final DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper;
+  public WindowsWGLDrawableFactory() {
+    super();
 
-  static {
     DesktopGLDynamicLookupHelper tmp = null;
     try {
         tmp = new DesktopGLDynamicLookupHelper(new WindowsWGLDynamicLibraryBundleInfo());
@@ -92,48 +92,67 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
     windowsWGLDynamicLookupHelper = tmp;
+    
     if(null!=windowsWGLDynamicLookupHelper) {
         WGL.getWGLProcAddressTable().reset(windowsWGLDynamicLookupHelper);
+        
+        // Register our GraphicsConfigurationFactory implementations
+        // The act of constructing them causes them to be registered
+        WindowsWGLGraphicsConfigurationFactory.registerFactory();
+        if(GLProfile.isAWTAvailable()) {
+            try {
+              ReflectionUtil.callStaticMethod("jogamp.opengl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory", 
+                                              "registerFactory", null, null, getClass().getClassLoader());                
+            } catch (JogampRuntimeException jre) { /* n/a .. */ }
+        }
+    
+        defaultDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+        sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
+    
+        // Init shared resources off thread
+        // Will be released via ShutdownHook
+        sharedResourceImpl = new SharedResourceImplementation();
+        sharedResourceRunner = new SharedResourceRunner(sharedResourceImpl);
+        sharedResourceThread = new Thread(sharedResourceRunner, Thread.currentThread().getName()+"-SharedResourceRunner");
+        sharedResourceThread.setDaemon(true); // Allow JVM to exit, even if this one is running
+        sharedResourceThread.start();
     }
+  }
+
+  protected final void destroy() {
+    if(null != sharedResourceRunner) {
+        sharedResourceRunner.releaseAndWait();
+        sharedResourceRunner = null;
+    }
+    if(null != sharedMap) {
+        sharedMap.clear();
+        sharedMap = null;
+    }
+    defaultDevice = null;
+    if(null != windowsWGLDynamicLookupHelper) {
+        // FIXME: If closing the native library NativeLibrary.close(), 
+        // reload of Applets doesn't work. Dunno why. 
+        // windowsWGLDynamicLookupHelper.destroy();
+        windowsWGLDynamicLookupHelper = null;
+    }
+    
+    RegisteredClassFactory.shutdownSharedClasses();
   }
 
   public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
       return windowsWGLDynamicLookupHelper;
   }
 
-  public WindowsWGLDrawableFactory() {
-    super();
+  private DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper;
+  private WindowsGraphicsDevice defaultDevice;
+  private SharedResourceImplementation sharedResourceImpl;
+  private SharedResourceRunner sharedResourceRunner;
+  private Thread sharedResourceThread;
+  private HashMap<String /*connection*/, SharedResourceRunner.Resource> sharedMap;
 
-    // Register our GraphicsConfigurationFactory implementations
-    // The act of constructing them causes them to be registered
-    WindowsWGLGraphicsConfigurationFactory.registerFactory();
-    if(GLProfile.isAWTAvailable()) {
-        try {
-          ReflectionUtil.callStaticMethod("jogamp.opengl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory", 
-                                          "registerFactory", null, null, getClass().getClassLoader());                
-        } catch (JogampRuntimeException jre) { /* n/a .. */ }
-    }
-
-    defaultDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
-
-    // Init shared resources off thread
-    // Will be released via ShutdownHook
-    sharedResourceImpl = new SharedResourceImplementation();
-    sharedResourceRunner = new SharedResourceRunner(sharedResourceImpl);
-    sharedResourceThread = new Thread(sharedResourceRunner, Thread.currentThread().getName()+"-SharedResourceRunner");
-    sharedResourceThread.setDaemon(true); // Allow JVM to exit, even if this one is running
-    sharedResourceThread.start();
-  }
-
-  WindowsGraphicsDevice defaultDevice;
-  SharedResourceImplementation sharedResourceImpl;
-  SharedResourceRunner sharedResourceRunner;
-  Thread sharedResourceThread;
-  HashMap<String /*connection*/, SharedResourceRunner.Resource> sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
-
-  long processAffinityChanges = 0;
-  PointerBuffer procMask = PointerBuffer.allocateDirect(1);
-  PointerBuffer sysMask = PointerBuffer.allocateDirect(1);
+  private long processAffinityChanges = 0;
+  private PointerBuffer procMask = PointerBuffer.allocateDirect(1);
+  private PointerBuffer sysMask = PointerBuffer.allocateDirect(1);
 
   protected void enterThreadCriticalZone() {
     synchronized (sysMask) {
@@ -411,11 +430,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
 
   SharedResource getOrCreateSharedResource(AbstractGraphicsDevice device) {
     return (SharedResource) sharedResourceRunner.getOrCreateShared(device);
-  }
-
-  protected final void shutdownInstance() {
-    sharedResourceRunner.releaseAndWait();
-    RegisteredClassFactory.shutdownSharedClasses();
   }
 
   protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {

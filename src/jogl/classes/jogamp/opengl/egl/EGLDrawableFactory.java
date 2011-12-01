@@ -50,10 +50,9 @@ import java.util.HashMap;
 import java.util.List;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
-    private static final GLDynamicLookupHelper eglES1DynamicLookupHelper;
-    private static final GLDynamicLookupHelper eglES2DynamicLookupHelper;
-
-    static {
+    public EGLDrawableFactory() {
+        super();
+        
         // Register our GraphicsConfigurationFactory implementations
         // The act of constructing them causes them to be registered
         EGLGraphicsConfigurationFactory.registerFactory();
@@ -94,12 +93,32 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         if(null!=eglES2DynamicLookupHelper && eglES2DynamicLookupHelper.isLibComplete()) {
             EGL.resetProcAddressTable(eglES2DynamicLookupHelper);
         }
+        if(null != eglES1DynamicLookupHelper || null != eglES2DynamicLookupHelper) {
+            defaultDevice = new EGLGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+            sharedMap = new HashMap();
+        }
     }
 
-    public EGLDrawableFactory() {
-        super();
-        defaultDevice = new EGLGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+    protected final void destroy() {
+        if(null != sharedMap) {
+            sharedMap.clear();
+            sharedMap = null;
+        }
+        defaultDevice = null;
+        if(null != eglES1DynamicLookupHelper) {
+            eglES1DynamicLookupHelper.destroy();
+            eglES1DynamicLookupHelper = null;
+        }
+        if(null != eglES2DynamicLookupHelper) {
+            eglES2DynamicLookupHelper.destroy();
+            eglES2DynamicLookupHelper = null;
+        }        
     }
+
+    private GLDynamicLookupHelper eglES1DynamicLookupHelper;
+    private GLDynamicLookupHelper eglES2DynamicLookupHelper;
+    private HashMap/*<connection, SharedResource>*/ sharedMap;
+    private EGLGraphicsDevice defaultDevice;
 
     static class SharedResource {
       private EGLGraphicsDevice device;
@@ -125,8 +144,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
       final boolean wasES1ContextAvailable() { return wasES1ContextCreated; }
       final boolean wasES2ContextAvailable() { return wasES2ContextCreated; }
     }
-    HashMap/*<connection, SharedResource>*/ sharedMap = new HashMap();
-    EGLGraphicsDevice defaultDevice;
 
     public final AbstractGraphicsDevice getDefaultDevice() {
       return defaultDevice;
@@ -242,8 +259,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             throw new GLException("Unsupported: ES"+esProfile);
         }
     }
-
-    protected final void shutdownInstance() {}
 
     protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
         return EGLGraphicsConfigurationFactory.getAvailableCapabilities(this, device);
