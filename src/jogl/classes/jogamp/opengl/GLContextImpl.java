@@ -69,8 +69,6 @@ import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLProfile;
 
 public abstract class GLContextImpl extends GLContext {
-  public static final boolean DEBUG = Debug.debug("GLContext");
-    
   // RecursiveLock maintains a queue of waiting Threads, ensuring the longest waiting thread will be notified at unlock.  
   protected RecursiveLock lock = LockFactory.createRecursiveLock();
 
@@ -113,6 +111,12 @@ public abstract class GLContextImpl extends GLContext {
       mappedGLXProcAddress = new HashMap<String, ProcAddressTable>();
   }
 
+  public static void shutdownImpl() {
+      mappedExtensionAvailabilityCache.clear();
+      mappedGLProcAddress.clear();
+      mappedGLXProcAddress.clear();      
+  }
+  
   public GLContextImpl(GLDrawableImpl drawable, GLContext shareWith) {
     super();
 

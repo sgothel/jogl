@@ -66,7 +66,8 @@ import jogamp.opengl.GLContextImpl;
     abstraction provides a stable object which clients can use to
     refer to a given context. */
 public abstract class GLContext {
-  
+  public static final boolean DEBUG = Debug.debug("GLContext");
+      
   /** Reflects property jogl.debug.DebugGL. If true, the debug pipeline is enabled at context creation. */
   public final static boolean DEBUG_GL;
   /** Reflects property jogl.debug.TraceGL. If true, the trace pipeline is enabled at context creation. */
@@ -792,16 +793,18 @@ public abstract class GLContext {
               throw new InternalError("Already set: "+devKey);
           }
           deviceVersionsAvailableSet.add(devKey);
-          if (GLContextImpl.DEBUG) {
+          if (DEBUG) {
             System.err.println(getThreadName() + ": !!! createContextARB: SET mappedVersionsAvailableSet "+devKey);
             // Thread.dumpStack();
           }
       }
   }
   
+  /** clears the device/context mappings as well as the GL/GLX proc address tables. */
   protected static void shutdown() {
       deviceVersionAvailable.clear();
-      deviceVersionsAvailableSet.clear();
+      deviceVersionsAvailableSet.clear();      
+      GLContextImpl.shutdownImpl(); // well ..
   }
 
   /**
