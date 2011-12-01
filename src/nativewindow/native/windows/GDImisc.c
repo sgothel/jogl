@@ -58,7 +58,7 @@ Java_jogamp_nativewindow_windows_GDIUtil_CreateWindowClass
     ZeroMemory( &wc, sizeof( wc ) );
     if( GetClassInfo( hInstance,  clazzName, &wc ) ) {
         // registered already
-        res = JNI_TRUE
+        res = JNI_TRUE;
     } else {
         // register now
         ZeroMemory( &wc, sizeof( wc ) );
