@@ -42,7 +42,7 @@ public class NWJNILibLoader extends JNILibLoaderBase {
       public Object run() {
         final String libName = "nativewindow_"+ossuffix ;
         if(TempJarCache.isInitialized() && null == TempJarCache.findLibrary(libName)) {
-            addNativeJarLibs(NWJNILibLoader.class, "jogl.all", "jogl-all", new String[] { "nativewindow" } );
+            addNativeJarLibs(NWJNILibLoader.class, "jogl-all", new String[] { "nativewindow" } );
         }
         loadLibrary(libName, false);
         return null;

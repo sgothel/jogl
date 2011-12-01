@@ -52,7 +52,7 @@ public class NEWTJNILibLoader extends JNILibLoaderBase {
       public Object run() {
         final String libName = "newt";
         if(TempJarCache.isInitialized() && null == TempJarCache.findLibrary(libName)) {
-            addNativeJarLibs(NEWTJNILibLoader.class, "jogl.all", "jogl-all", new String[] { "nativewindow", "newt" } );
+            addNativeJarLibs(NEWTJNILibLoader.class, "jogl-all", new String[] { "nativewindow", "newt" } );
         }
         loadLibrary(libName, false);
         return null;
