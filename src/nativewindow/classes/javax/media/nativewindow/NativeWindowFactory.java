@@ -80,20 +80,25 @@ public abstract class NativeWindowFactory {
 
     private static NativeWindowFactory defaultFactory;
     private static Map<Class<?>, NativeWindowFactory> registeredFactories;
+    
     private static Class<?> nativeWindowClass;
     private static String nativeWindowingTypePure;
     private static String nativeWindowingTypeCustom;
     private static boolean isAWTAvailable;
-    public static final String AWTComponentClassName = "java.awt.Component" ;
-    public static final String JAWTUtilClassName = "jogamp.nativewindow.jawt.JAWTUtil" ;
-    public static final String X11UtilClassName = "jogamp.nativewindow.x11.X11Util";
-    public static final String OSXUtilClassName = "jogamp.nativewindow.macosx.OSXUtil";
-    public static final String GDIClassName = "jogamp.nativewindow.windows.GDI";
-    public static final String X11JAWTToolkitLockClassName = "jogamp.nativewindow.jawt.x11.X11JAWTToolkitLock" ;
-    public static final String X11ToolkitLockClassName = "jogamp.nativewindow.x11.X11ToolkitLock" ;
+    
+    private static final String JAWTUtilClassName = "jogamp.nativewindow.jawt.JAWTUtil" ;
+    private static final String X11UtilClassName = "jogamp.nativewindow.x11.X11Util";
+    private static final String OSXUtilClassName = "jogamp.nativewindow.macosx.OSXUtil";
+    private static final String GDIClassName = "jogamp.nativewindow.windows.GDIUtil";
+    
     private static Class<?>  jawtUtilClass;
     private static Method jawtUtilGetJAWTToolkitMethod;
     private static Method jawtUtilInitMethod;
+    
+    public static final String AWTComponentClassName = "java.awt.Component" ;
+    public static final String X11JAWTToolkitLockClassName = "jogamp.nativewindow.jawt.x11.X11JAWTToolkitLock" ;
+    public static final String X11ToolkitLockClassName = "jogamp.nativewindow.x11.X11ToolkitLock" ;
+    
     private static Class<?>  x11JAWTToolkitLockClass;
     private static Constructor<?> x11JAWTToolkitLockConstructor;
     private static Class<?>  x11ToolkitLockClass;
@@ -137,16 +142,18 @@ public abstract class NativeWindowFactory {
 
     static boolean initialized = false;
 
-    private static void initNativeImpl(final boolean firstUIActionOnProcess, final ClassLoader cl) {
+    private static void initSingletonNativeImpl(final boolean firstUIActionOnProcess, final ClassLoader cl) {
         isFirstUIActionOnProcess = firstUIActionOnProcess;
-
-        String clazzName = null;
+        
+        final String clazzName;
         if( TYPE_X11.equals(nativeWindowingTypePure) ) {
             clazzName = X11UtilClassName;
         } else if( TYPE_WINDOWS.equals(nativeWindowingTypePure) ) {
             clazzName = GDIClassName;
         } else if( TYPE_MACOSX.equals(nativeWindowingTypePure) ) {
             clazzName = OSXUtilClassName;
+        } else {
+            clazzName = null;
         }
         if( null != clazzName ) {
             ReflectionUtil.callStaticMethod(clazzName, "initSingleton",
@@ -157,7 +164,7 @@ public abstract class NativeWindowFactory {
             requiresToolkitLock = res.booleanValue();             
         } else {            
             requiresToolkitLock = false;
-        }
+        }        
     }
 
     /**
@@ -183,6 +190,8 @@ public abstract class NativeWindowFactory {
                 System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.initSingleton("+firstUIActionOnProcess+")");
             }
 
+            final ClassLoader cl = NativeWindowFactory.class.getClassLoader();
+
             // Gather the windowing OS first
             AccessControlContext acc = AccessController.getContext();
             nativeWindowingTypePure = _getNativeWindowingType();
@@ -193,11 +202,9 @@ public abstract class NativeWindowFactory {
                 nativeWindowingTypeCustom = tmp;
             }
 
-            final ClassLoader cl = NativeWindowFactory.class.getClassLoader();
-
             if(firstUIActionOnProcess) {
                 // X11 initialization before possible AWT initialization
-                initNativeImpl(true, cl);
+                initSingletonNativeImpl(true, cl);
             }            
             isAWTAvailable = false; // may be set to true below
 
@@ -232,7 +239,7 @@ public abstract class NativeWindowFactory {
             }
             if(!firstUIActionOnProcess) {
                 // X11 initialization after possible AWT initialization
-                initNativeImpl(false, cl);
+                initSingletonNativeImpl(false, cl);
             }
             registeredFactories = Collections.synchronizedMap(new HashMap<Class<?>, NativeWindowFactory>());
 
@@ -271,6 +278,8 @@ public abstract class NativeWindowFactory {
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.shutdown() START");                
             }
+            registeredFactories.clear();
+            registeredFactories = null;
             // X11Util.shutdown(..) already called via GLDrawableFactory.shutdown() ..
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.shutdown() END");                

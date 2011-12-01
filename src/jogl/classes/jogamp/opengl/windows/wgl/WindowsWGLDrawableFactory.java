@@ -70,6 +70,7 @@ import com.jogamp.common.util.VersionNumber;
 
 import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.windows.GDI;
+import jogamp.nativewindow.windows.GDIUtil;
 import jogamp.nativewindow.windows.GDISurface;
 import jogamp.nativewindow.windows.RegisteredClassFactory;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
@@ -274,7 +275,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                     throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
                 }
                 final int f_dim = 64;
-                long hwnd = GDI.CreateDummyWindow(0, 0, f_dim, f_dim);
+                long hwnd = GDIUtil.CreateDummyWindow(0, 0, f_dim, f_dim);
                 WindowsDummyWGLDrawable sharedDrawable = WindowsDummyWGLDrawable.create(WindowsWGLDrawableFactory.this, glp, absScreen, hwnd, f_dim, f_dim, true);
                 if (null == sharedDrawable) {
                     throw new GLException("Couldn't create shared drawable for screen: "+absScreen+", "+glp);

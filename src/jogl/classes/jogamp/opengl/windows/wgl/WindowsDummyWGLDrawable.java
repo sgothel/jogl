@@ -46,6 +46,8 @@ import javax.media.opengl.GLProfile;
 
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import jogamp.nativewindow.windows.GDI;
+import jogamp.nativewindow.windows.GDIUtil;
+
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLException;
@@ -96,7 +98,7 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
   protected void destroyImpl() {
     if (handleHwndLifecycle && hwnd != 0) {
       GDI.ShowWindow(hwnd, GDI.SW_HIDE);
-      GDI.DestroyDummyWindow(hwnd);
+      GDIUtil.DestroyDummyWindow(hwnd);
       hwnd = 0;
     }
   }

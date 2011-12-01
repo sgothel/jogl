@@ -195,6 +195,8 @@ WINUSERAPI HWND WINAPI WindowFromDC(HDC hDC); // avail in >= Win2k
 WINUSERAPI BOOL WINAPI GetClientRect(HWND hwnd, LPRECT lpRect);
 WINUSERAPI BOOL WINAPI DestroyWindow(HWND hWnd);
 WINUSERAPI DWORD WINAPI GetObjectType(HGDIOBJ h);
+WINUSERAPI BOOL WINAPI IsWindowVisible(HWND hWnd);
+WINUSERAPI BOOL WINAPI IsWindow(HWND hWnd);
 
 WINUSERAPI HANDLE WINAPI GetCurrentProcess(void);
 WINUSERAPI BOOL WINAPI GetProcessAffinityMask(HANDLE hProcess,PDWORD_PTR lpProcessAffinityMask,PDWORD_PTR lpSystemAffinityMask);

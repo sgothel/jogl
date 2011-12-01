@@ -35,6 +35,7 @@
 package jogamp.newt.driver.windows;
 
 import jogamp.nativewindow.windows.GDI;
+import jogamp.nativewindow.windows.GDIUtil;
 import jogamp.newt.WindowImpl;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
@@ -241,7 +242,7 @@ public class WindowsWindow extends WindowImpl {
     }
         
     protected Point getLocationOnScreenImpl(int x, int y) {
-        return GDI.GetRelativeLocation( getWindowHandle(), 0 /*root win*/, x, y);
+        return GDIUtil.GetRelativeLocation( getWindowHandle(), 0 /*root win*/, x, y);
     }
 
     protected void updateInsetsImpl(Insets insets) {

@@ -32,13 +32,8 @@
  */
 package jogamp.newt.driver.windows;
 
-import com.jogamp.common.util.ArrayHashSet;
-import java.util.ArrayList;
-
-import com.jogamp.newt.*;
 import jogamp.newt.ScreenImpl;
 import com.jogamp.newt.ScreenMode;
-import jogamp.newt.ScreenModeStatus;
 import com.jogamp.newt.util.ScreenModeUtil;
 
 import javax.media.nativewindow.*;
