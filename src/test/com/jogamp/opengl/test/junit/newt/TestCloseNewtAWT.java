@@ -110,8 +110,6 @@ public class TestCloseNewtAWT extends UITestCase {
         Thread.sleep(500);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true));
-
-        GLProfile.shutdown();
     }
 
     public static void main(String[] args) {

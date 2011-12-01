@@ -34,11 +34,6 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
         GLProfile.initSingleton(true);
     }
 
-    @AfterClass
-    public static void tearDownClass() {
-        GLProfile.shutdown();
-    }
-
     class MyShader {
         int shaderProgram;
         int vertShader;

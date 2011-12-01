@@ -54,6 +54,7 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
+import javax.media.opengl.GLProfile.ShutdownType;
 
 /** <P> Provides a virtual machine- and operating system-independent
     mechanism for creating {@link GLDrawable}s. </P>
@@ -173,21 +174,21 @@ public abstract class GLDrawableFactory {
     eglFactory = tmp;
   }
 
-  protected static void shutdown() {
+  protected static void shutdown(ShutdownType shutdownType) {
     if (isInit) { // volatile: ok
       synchronized (GLDrawableFactory.class) {
           if (isInit) {
               isInit=false;
               unregisterFactoryShutdownHook();
-              shutdownImpl();
+              shutdownImpl(shutdownType);
           }
       }
     }
   }
-  private static void shutdownImpl() {
+  private static void shutdownImpl(ShutdownType shutdownType) {
     synchronized(glDrawableFactories) {
         for(int i=0; i<glDrawableFactories.size(); i++) {
-            glDrawableFactories.get(i).destroy();
+            glDrawableFactories.get(i).destroy(shutdownType);
         }
         glDrawableFactories.clear();
         
@@ -203,7 +204,7 @@ public abstract class GLDrawableFactory {
     }
     factoryShutdownHook = new Thread(new Runnable() {
         public void run() {
-            GLDrawableFactory.shutdownImpl();
+            GLDrawableFactory.shutdownImpl(GLProfile.ShutdownType.COMPLETE);
         }
     });
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
@@ -238,7 +239,7 @@ public abstract class GLDrawableFactory {
   protected void enterThreadCriticalZone() {};
   protected void leaveThreadCriticalZone() {};
 
-  protected abstract void destroy();
+  protected abstract void destroy(ShutdownType shutdownType);
 
   /**
    * Retrieve the default <code>device</code> {@link AbstractGraphicsDevice#getConnection() connection},

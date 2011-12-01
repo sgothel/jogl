@@ -61,6 +61,7 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLProfile.ShutdownType;
 
 import jogamp.nativewindow.WrappedSurface;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
@@ -72,24 +73,30 @@ import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.ReflectionUtil;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
+  private static DesktopGLDynamicLookupHelper macOSXCGLDynamicLookupHelper = null;
+  
   public MacOSXCGLDrawableFactory() {
     super();
 
-    DesktopGLDynamicLookupHelper tmp = null;
-    try {
-        tmp = new DesktopGLDynamicLookupHelper(new MacOSXCGLDynamicLibraryBundleInfo());
-    } catch (GLException gle) {
-        if(DEBUG) {
-            gle.printStackTrace();
+    synchronized(MacOSXCGLDrawableFactory.class) {
+        if(null==macOSXCGLDynamicLookupHelper) {
+            DesktopGLDynamicLookupHelper tmp = null;
+            try {
+                tmp = new DesktopGLDynamicLookupHelper(new MacOSXCGLDynamicLibraryBundleInfo());
+            } catch (GLException gle) {
+                if(DEBUG) {
+                    gle.printStackTrace();
+                }
+            }
+            macOSXCGLDynamicLookupHelper = tmp;
+            /** FIXME ?? 
+            if(null!=macOSXCGLDynamicLookupHelper) {
+                CGL.getCGLProcAddressTable().reset(macOSXCGLDynamicLookupHelper);
+            } */
         }
     }
-    macOSXCGLDynamicLookupHelper = tmp;
     
     if(null!=macOSXCGLDynamicLookupHelper) {
-        /** FIXME ?? 
-        CGL.getCGLProcAddressTable().reset(macOSXCGLDynamicLookupHelper);
-        */
-        
         // Register our GraphicsConfigurationFactory implementations
         // The act of constructing them causes them to be registered
         MacOSXCGLGraphicsConfigurationFactory.registerFactory();
@@ -105,23 +112,25 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     }     
   }
 
-  protected final void destroy() {
+  protected final void destroy(ShutdownType shutdownType) {
     if(null != sharedMap) {
         sharedMap.clear();
         sharedMap = null;
     }
     defaultDevice = null;
-    if(null != macOSXCGLDynamicLookupHelper) {
+    /**
+     * Pulling away the native library may cause havoc ..
+     * 
+    if(ShutdownType.COMPLETE == shutdownType && null != macOSXCGLDynamicLookupHelper) {
         macOSXCGLDynamicLookupHelper.destroy();
         macOSXCGLDynamicLookupHelper = null;
-    }
+    } */
   }
 
   public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
       return macOSXCGLDynamicLookupHelper;
   }
 
-  private DesktopGLDynamicLookupHelper macOSXCGLDynamicLookupHelper;
   private HashMap<String, SharedResource> sharedMap = new HashMap<String, SharedResource>();
   private MacOSXGraphicsDevice defaultDevice;
 

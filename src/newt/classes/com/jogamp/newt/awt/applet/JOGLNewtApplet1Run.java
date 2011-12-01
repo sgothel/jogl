@@ -271,10 +271,7 @@ public class JOGLNewtApplet1Run extends Applet {
         }
         base.destroy(); // destroy glWindow unrecoverable
         base=null;
-        if(DEBUG) {
-            System.err.println("JOGLNewtApplet1Run.destroy() .. GLProfile.shutdown() ..");
-        }
-        GLProfile.shutdown();
+        GLProfile.shutdown(GLProfile.ShutdownType.SHARED_ONLY);
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.destroy() END");
         }

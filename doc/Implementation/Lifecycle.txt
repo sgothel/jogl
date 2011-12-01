@@ -1,0 +1,41 @@
+
+Persistent Resources - JVM Lifetime (1)
+========================================
+
+- Platform 
+
+- JNILibLoaderBase
+    Contains a set of loaded JNI libraries via System.load(..)
+
+- JVMUtil
+    Only issues JVM startup initialization
+
+- TempJarCache
+    Contains a TempFileCache for all cached JarFile,
+    referenced by URL
+
+Initialization Sequence:
+==========================
+
+Deinitialization is reverse ofc.
+
+- GLProfile
+    - Platform (1)
+        - JVMUtil (1)
+        - JNILibLoaderBase (1)
+        - TempJarCache (1)
+
+    - NativeWindowFactory
+        - X11Util
+
+    - GLDrawableFactory / GLDrawableFactoryImpl
+        - X11GLXDrawableFactory, EGLDrawableFactory, ... (all platforms)
+            - *DynamicLookupHelper ..
+                - NativeLibrary ..
+
+    - GLContext 
+        - proc-address-tables (GL, GLX..)
+        - context version mapping
+
+
+

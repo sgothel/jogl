@@ -61,6 +61,7 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLProfile.ShutdownType;
 
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.nio.PointerBuffer;
@@ -80,22 +81,29 @@ import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.SharedResourceRunner;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
+  private static DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper = null;
+  
   public WindowsWGLDrawableFactory() {
     super();
 
-    DesktopGLDynamicLookupHelper tmp = null;
-    try {
-        tmp = new DesktopGLDynamicLookupHelper(new WindowsWGLDynamicLibraryBundleInfo());
-    } catch (GLException gle) {
-        if(DEBUG) {
-            gle.printStackTrace();
+    synchronized(WindowsWGLDrawableFactory.class) {
+        if(null==windowsWGLDynamicLookupHelper) {
+            DesktopGLDynamicLookupHelper tmp = null;
+            try {
+                tmp = new DesktopGLDynamicLookupHelper(new WindowsWGLDynamicLibraryBundleInfo());
+            } catch (GLException gle) {
+                if(DEBUG) {
+                    gle.printStackTrace();
+                }
+            }
+            windowsWGLDynamicLookupHelper = tmp;
+            if(null!=windowsWGLDynamicLookupHelper) {
+                WGL.getWGLProcAddressTable().reset(windowsWGLDynamicLookupHelper);
+            }               
         }
     }
-    windowsWGLDynamicLookupHelper = tmp;
     
     if(null!=windowsWGLDynamicLookupHelper) {
-        WGL.getWGLProcAddressTable().reset(windowsWGLDynamicLookupHelper);
-        
         // Register our GraphicsConfigurationFactory implementations
         // The act of constructing them causes them to be registered
         WindowsWGLGraphicsConfigurationFactory.registerFactory();
@@ -119,7 +127,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     }
   }
 
-  protected final void destroy() {
+  protected final void destroy(ShutdownType shutdownType) {
     if(null != sharedResourceRunner) {
         sharedResourceRunner.releaseAndWait();
         sharedResourceRunner = null;
@@ -129,12 +137,13 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         sharedMap = null;
     }
     defaultDevice = null;
-    if(null != windowsWGLDynamicLookupHelper) {
-        // FIXME: If closing the native library NativeLibrary.close(), 
-        // reload of Applets doesn't work. Dunno why. 
-        // windowsWGLDynamicLookupHelper.destroy();
+    /**
+     * Pulling away the native library may cause havoc ..
+     * 
+    if(ShutdownType.COMPLETE == shutdownType && null != windowsWGLDynamicLookupHelper) {
+        windowsWGLDynamicLookupHelper.destroy();
         windowsWGLDynamicLookupHelper = null;
-    }
+    } */
     
     RegisteredClassFactory.shutdownSharedClasses();
   }
@@ -143,7 +152,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       return windowsWGLDynamicLookupHelper;
   }
 
-  private DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper;
   private WindowsGraphicsDevice defaultDevice;
   private SharedResourceImplementation sharedResourceImpl;
   private SharedResourceRunner sharedResourceRunner;

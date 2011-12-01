@@ -60,13 +60,6 @@ public class TestGLSLSimple01NEWT extends UITestCase {
         GLProfile.initSingleton(true);
     }
 
-    @AfterClass
-    public static void tearDownClass() {
-        System.err.println("class tear down ..");
-        GLProfile.shutdown();
-        System.err.println("class tear down end");
-    }
-
     @Test(timeout=60000)
     public void testGLSLCompilation01() {
         GLProfile glp = GLProfile.get(GLProfile.GL2ES2);

@@ -57,6 +57,7 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLProfile.ShutdownType;
 
 import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.x11.X11Lib;
@@ -78,22 +79,29 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   public static final VersionNumber versionOneThree = new VersionNumber(1, 3, 0);
   public static final VersionNumber versionOneFour = new VersionNumber(1, 4, 0);
 
+  private static DesktopGLDynamicLookupHelper x11GLXDynamicLookupHelper = null;
+  
   public X11GLXDrawableFactory() {
     super();
 
-    DesktopGLDynamicLookupHelper tmp = null;
-    try {
-        tmp = new DesktopGLDynamicLookupHelper(new X11GLXDynamicLibraryBundleInfo());
-    } catch (GLException gle) {
-        if(DEBUG) {
-            gle.printStackTrace();
+    synchronized(X11GLXDrawableFactory.class) {
+        if(null==x11GLXDynamicLookupHelper) {
+            DesktopGLDynamicLookupHelper tmp = null;
+            try {
+                tmp = new DesktopGLDynamicLookupHelper(new X11GLXDynamicLibraryBundleInfo());
+            } catch (GLException gle) {
+                if(DEBUG) {
+                    gle.printStackTrace();
+                }
+            }
+            x11GLXDynamicLookupHelper = tmp;
+            if(null!=x11GLXDynamicLookupHelper) {
+                GLX.getGLXProcAddressTable().reset(x11GLXDynamicLookupHelper);
+            }
         }
     }
-    x11GLXDynamicLookupHelper = tmp;
     
-    if(null!=x11GLXDynamicLookupHelper) {
-        GLX.getGLXProcAddressTable().reset(x11GLXDynamicLookupHelper);
-        
+    if(null!=x11GLXDynamicLookupHelper) {        
         // Register our GraphicsConfigurationFactory implementations
         // The act of constructing them causes them to be registered
         X11GLXGraphicsConfigurationFactory.registerFactory();
@@ -111,7 +119,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     }    
   }
 
-  protected final void destroy() {
+  protected final void destroy(ShutdownType shutdownType) {
     if(null != sharedResourceRunner) {
         sharedResourceRunner.releaseAndWait();
         sharedResourceRunner = null;
@@ -121,10 +129,13 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         sharedMap = null;
     }
     defaultDevice = null;
-    if(null != x11GLXDynamicLookupHelper) {
+    /**
+     * Pulling away the native library may cause havoc ..
+     * 
+    if(ShutdownType.COMPLETE == shutdownType && null != x11GLXDynamicLookupHelper) {
         x11GLXDynamicLookupHelper.destroy();
         x11GLXDynamicLookupHelper = null;
-    }
+    } */
 
     // Don't really close pending Display connections,
     // since this may trigger a JVM exception
@@ -135,7 +146,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       return x11GLXDynamicLookupHelper;
   }
 
-  private DesktopGLDynamicLookupHelper x11GLXDynamicLookupHelper;  
   private X11GraphicsDevice defaultDevice;
   private SharedResourceImplementation sharedResourceImpl;
   private SharedResourceRunner sharedResourceRunner;
@@ -273,17 +283,19 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 System.err.println("!!!   Screen  : " + sr.screen);
                 System.err.println("!!!   Drawable: " + sr.drawable);
                 System.err.println("!!!   CTX     : " + sr.context);
+                Thread.dumpStack();
             }
 
             if (null != sr.context) {
                 // may cause JVM SIGSEGV:
-                // sr.context.makeCurrent();
-                // sr.context.destroy();
+                sr.context.makeCurrent();
+                sr.context.destroy();
                 sr.context = null;
             }
 
             if (null != sr.drawable) {
-                // may cause JVM SIGSEGV: sr.drawable.destroy();
+                // may cause JVM SIGSEGV:
+                sr.drawable.destroy();
                 sr.drawable = null;
             }
 
@@ -292,7 +304,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
             }
 
             if (null != sr.device) {
-                // may cause JVM SIGSEGV: sr.device.close();
+                // may cause JVM SIGSEGV:
+                sr.device.close();
                 sr.device = null;
             }
         }

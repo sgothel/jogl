@@ -140,6 +140,10 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     }
 
     public boolean close() {
+        if(0 != handle) {
+            handle = 0;
+            return true;
+        }
         return false;
     }
 

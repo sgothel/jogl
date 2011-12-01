@@ -67,6 +67,8 @@ public class VersionApplet extends Applet {
   private synchronized void my_init() {
     if(null != canvas) { return; }
 
+    setEnabled(true);
+    
     GLProfile glp = GLProfile.getDefault();
     GLCapabilities glcaps = new GLCapabilities(glp);
 
@@ -120,30 +122,36 @@ public class VersionApplet extends Applet {
           remove(canvas);
           canvas.destroy();
           canvas = null;
-          remove(tareaVersion);
-          tareaVersion=null;
+          remove(tareaVersion.getParent()); // remove the grid
+          tareaVersion = null;
+          tareaCaps = null;
+          setEnabled(false);
       }
   }
 
   public void init() {
     System.err.println("VersionApplet: init() - begin");
+    GLProfile.initSingleton(false);
     my_init();
     System.err.println("VersionApplet: init() - end");
   }
 
   public void start() {
     System.err.println("VersionApplet: start() - begin");
+    canvas.setVisible(true);
     System.err.println("VersionApplet: start() - end");
   }
 
   public void stop() {
     System.err.println("VersionApplet: stop() - begin");
+    canvas.setVisible(false);
     System.err.println("VersionApplet: stop() - end");
   }
 
   public void destroy() {
     System.err.println("VersionApplet: destroy() - start");
     my_release();
+    GLProfile.shutdown(GLProfile.ShutdownType.SHARED_ONLY);
     System.err.println("VersionApplet: destroy() - end");
   }
 

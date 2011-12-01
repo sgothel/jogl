@@ -39,6 +39,7 @@ package jogamp.opengl.egl;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.EGLGraphicsDevice;
 import javax.media.opengl.*;
+import javax.media.opengl.GLProfile.ShutdownType;
 
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
@@ -50,6 +51,9 @@ import java.util.HashMap;
 import java.util.List;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
+    private static GLDynamicLookupHelper eglES1DynamicLookupHelper = null;
+    private static GLDynamicLookupHelper eglES2DynamicLookupHelper = null;
+    
     public EGLDrawableFactory() {
         super();
         
@@ -68,30 +72,38 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         // to a dynamic one, where there can be 2 instances 
         // for each ES profile with their own ProcAddressTable.
 
-        GLDynamicLookupHelper tmp=null;
-        try {
-            tmp = new GLDynamicLookupHelper(new EGLES1DynamicLibraryBundleInfo());
-        } catch (GLException gle) {
-            if(DEBUG) {
-                gle.printStackTrace();
+        synchronized(EGLDrawableFactory.class) {
+            if(null==eglES1DynamicLookupHelper) {
+                GLDynamicLookupHelper tmp=null;
+                try {
+                    tmp = new GLDynamicLookupHelper(new EGLES1DynamicLibraryBundleInfo());
+                } catch (GLException gle) {
+                    if(DEBUG) {
+                        gle.printStackTrace();
+                    }
+                }
+                eglES1DynamicLookupHelper = tmp;
+                if(null!=eglES1DynamicLookupHelper && eglES1DynamicLookupHelper.isLibComplete()) {
+                    EGL.resetProcAddressTable(eglES1DynamicLookupHelper);
+                }
             }
-        }
-        eglES1DynamicLookupHelper = tmp;
-        if(null!=eglES1DynamicLookupHelper && eglES1DynamicLookupHelper.isLibComplete()) {
-            EGL.resetProcAddressTable(eglES1DynamicLookupHelper);
         }
 
-        tmp=null;
-        try {
-            tmp = new GLDynamicLookupHelper(new EGLES2DynamicLibraryBundleInfo());
-        } catch (GLException gle) {
-            if(DEBUG) {
-                gle.printStackTrace();
+        synchronized(EGLDrawableFactory.class) {
+            if(null==eglES2DynamicLookupHelper) {
+                GLDynamicLookupHelper tmp=null;
+                try {
+                    tmp = new GLDynamicLookupHelper(new EGLES2DynamicLibraryBundleInfo());
+                } catch (GLException gle) {
+                    if(DEBUG) {
+                        gle.printStackTrace();
+                    }
+                }
+                eglES2DynamicLookupHelper = tmp;
+                if(null!=eglES2DynamicLookupHelper && eglES2DynamicLookupHelper.isLibComplete()) {
+                    EGL.resetProcAddressTable(eglES2DynamicLookupHelper);
+                }
             }
-        }
-        eglES2DynamicLookupHelper = tmp;
-        if(null!=eglES2DynamicLookupHelper && eglES2DynamicLookupHelper.isLibComplete()) {
-            EGL.resetProcAddressTable(eglES2DynamicLookupHelper);
         }
         if(null != eglES1DynamicLookupHelper || null != eglES2DynamicLookupHelper) {
             defaultDevice = new EGLGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
@@ -99,24 +111,27 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
 
-    protected final void destroy() {
+    protected final void destroy(ShutdownType shutdownType) {
         if(null != sharedMap) {
             sharedMap.clear();
             sharedMap = null;
         }
         defaultDevice = null;
-        if(null != eglES1DynamicLookupHelper) {
-            eglES1DynamicLookupHelper.destroy();
-            eglES1DynamicLookupHelper = null;
-        }
-        if(null != eglES2DynamicLookupHelper) {
-            eglES2DynamicLookupHelper.destroy();
-            eglES2DynamicLookupHelper = null;
-        }        
+        /**
+         * Pulling away the native library may cause havoc ..
+         * 
+        if(ShutdownType.COMPLETE == shutdownType) {
+            if(null != eglES1DynamicLookupHelper) {
+                eglES1DynamicLookupHelper.destroy();
+                eglES1DynamicLookupHelper = null;
+            }
+            if(null != eglES2DynamicLookupHelper) {
+                eglES2DynamicLookupHelper.destroy();
+                eglES2DynamicLookupHelper = null;
+            }
+        } */
     }
 
-    private GLDynamicLookupHelper eglES1DynamicLookupHelper;
-    private GLDynamicLookupHelper eglES2DynamicLookupHelper;
     private HashMap/*<connection, SharedResource>*/ sharedMap;
     private EGLGraphicsDevice defaultDevice;
 

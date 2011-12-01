@@ -112,7 +112,7 @@ public class TestScreenMode01NEWT extends UITestCase {
      */
     @After
     public void cleanupGL() throws InterruptedException {
-        GLProfile.shutdown();
+        GLProfile.shutdown(GLProfile.ShutdownType.COMPLETE);
         GLProfile.initSingleton(true);
     }
     

@@ -137,17 +137,6 @@ public class TestGLProfile01NEWT extends UITestCase {
         dumpVersion(glp);
     }
     
-    @Test
-    public void test06GLProfileShutdownRecreate() throws InterruptedException {
-        GLProfile.shutdown();
-        GLProfile.initSingleton(true);
-        System.out.println("GLProfile.getDefault(): "+GLProfile.getDefault());
-        System.out.println("GLProfile.getDefaultDesktopDevice(): "+GLProfile.getDefaultDesktopDevice());
-        System.out.println("GLProfile.getDefaultEGLDevice(): "+GLProfile.getDefaultEGLDevice());
-        System.out.println("GLProfile.getDefaultDevice(): "+GLProfile.getDefaultDevice());
-    }
-
-
     protected void dumpVersion(GLProfile glp) throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);
         GLWindow glWindow = GLWindow.create(caps);

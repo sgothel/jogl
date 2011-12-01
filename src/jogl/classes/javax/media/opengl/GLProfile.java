@@ -114,6 +114,10 @@ public class GLProfile {
             synchronized(GLProfile.class) {
                 if(!initialized) {
                     initialized = true;
+                    if(DEBUG) {
+                        System.err.println("GLProfile.initSingleton(firstUIActionOnProcess: "+firstUIActionOnProcess+") - thread "+Thread.currentThread().getName());
+                        Thread.dumpStack();
+                    }
                     Platform.initSingleton();
         
                     // run the whole static initialization privileged to speed up,
@@ -146,20 +150,41 @@ public class GLProfile {
         getProfileMap(device);
     }
 
+    /** 
+     * Shutdown type for {@link GLProfile#shutdown(ShutdownType)}.
+     * <p>
+     * {@link #SHARED_ONLY} For thread based resources only, suitable for eg. {@link java.applet.Applet Applet} restart.<br>
+     * {@link #COMPLETE} Everything.<br>
+     * </p>
+     */ 
+    public enum ShutdownType {
+        /* Shared thread based resources only, eg. for Applets */ 
+        SHARED_ONLY,
+        /* Everything */
+        COMPLETE;
+    }
+    
     /**
      * Manual shutdown method, may be called after your last JOGL use
      * within the running JVM.<br>
      * It releases all temporary created resources, ie issues {@link javax.media.opengl.GLDrawableFactory#shutdown()}.<br>
      * The shutdown implementation is called via the JVM shutdown hook, if not manually invoked here.<br>
-     * Invoke <code>shutdown()</code> manually is recommended, due to the unreliable JVM state within the shutdown hook.<br>
+     * Invoke <code>shutdown(type)</code> manually is recommended, due to the unreliable JVM state within the shutdown hook.<br>
+     * @param type the shutdown type, see {@link ShutdownType}.
      */
-    public static void shutdown() {
+    public static void shutdown(ShutdownType type) {
         if(initialized) { // volatile: ok
             synchronized(GLProfile.class) {
                 if(initialized) {
                     initialized = false;
-                    GLDrawableFactory.shutdown(); // may utilize static GLContext mappings
-                    GLContext.shutdown(); // does not utilize shared resources of GLDrawableFactory
+                    if(DEBUG) {
+                        System.err.println("GLProfile.shutdown(type: "+type+") - thread "+Thread.currentThread().getName());
+                        Thread.dumpStack();
+                    }                    
+                    GLDrawableFactory.shutdown(type);
+                    if(ShutdownType.COMPLETE == type) {
+                        GLContext.shutdown();
+                    }
                     NativeWindowFactory.shutdown();
                 }
             }

@@ -96,10 +96,8 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
                 System.err.println(Thread.currentThread().getName() + " - X11GraphicsDevice.close(): "+this);
             }
             X11Util.closeDisplay(handle);
-            handle = 0;
-            return true;
         }
-        return false;
+        return super.close();
     }
 }
 

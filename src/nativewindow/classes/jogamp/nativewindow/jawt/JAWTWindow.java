@@ -356,6 +356,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
 
   public synchronized void destroy() {
     invalidate();    
+    getGraphicsConfiguration().getScreen().getDevice().close();
     component = null; // don't dispose the AWT component, since we are merely an immutable uplink 
   }
 
