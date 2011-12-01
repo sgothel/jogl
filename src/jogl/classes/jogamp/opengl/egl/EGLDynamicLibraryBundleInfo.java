@@ -29,17 +29,10 @@
 package jogamp.opengl.egl;
 
 import com.jogamp.common.os.AndroidVersion;
-import com.jogamp.common.os.DynamicLookupHelper;
-import com.jogamp.common.os.NativeLibrary;
-import com.jogamp.common.os.Platform;
 
 import java.util.*;
 
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
 import jogamp.opengl.*;
-
-import java.security.*;
 
 /**
  * Abstract implementation of the DynamicLookupHelper for EGL,

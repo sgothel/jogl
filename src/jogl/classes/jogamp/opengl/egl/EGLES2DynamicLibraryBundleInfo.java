@@ -30,10 +30,6 @@ package jogamp.opengl.egl;
 
 import java.util.*;
 
-import com.jogamp.common.os.Platform;
-
-import jogamp.opengl.*;
-
 public class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo {
     protected EGLES2DynamicLibraryBundleInfo() {
         super();

@@ -37,20 +37,21 @@
 
 package jogamp.nativewindow.jawt;
 
-import jogamp.nativewindow.*;
 import java.awt.EventQueue;
-
-import javax.media.nativewindow.*;
-
-import com.jogamp.common.os.Platform;
-
-
 import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
-import java.lang.reflect.*;
-import java.security.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Map;
+
+import javax.media.nativewindow.NativeWindowException;
+
+import jogamp.nativewindow.Debug;
+
+import com.jogamp.common.os.Platform;
 
 public class JAWTUtil {
   protected static final boolean DEBUG = Debug.debug("JAWT");

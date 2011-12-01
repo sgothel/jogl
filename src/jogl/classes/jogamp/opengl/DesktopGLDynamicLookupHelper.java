@@ -42,7 +42,7 @@ public class DesktopGLDynamicLookupHelper extends GLDynamicLookupHelper {
     public synchronized boolean loadGLULibrary() {
         /** hacky code .. where all platform GLU libs are tried ..*/
         if(null==gluLib) {
-            List/*<String>*/ gluLibNames = new ArrayList();
+            List<String> gluLibNames = new ArrayList<String>();
             gluLibNames.add("/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib"); // osx
             gluLibNames.add("libGLU.so"); // unix
             gluLibNames.add("GLU32"); // windows
