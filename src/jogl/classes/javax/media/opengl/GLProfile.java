@@ -109,24 +109,30 @@ public class GLProfile {
      * @param firstUIActionOnProcess Should be <code>true</code> if called before the first UI action of the running program,
      * otherwise <code>false</code>.
      */
-    public static synchronized void initSingleton(final boolean firstUIActionOnProcess) {
-        if(!initialized) {
-            initialized = true;
-            // run the whole static initialization privileged to speed up,
-            // since this skips checking further access
-            AccessController.doPrivileged(new PrivilegedAction<Object>() {
-                public Object run() {
-                    if(TempJarCache.isInitialized()) {
-                       String[] atomicNativeJarBaseNames = new String[] { "nativewindow", "jogl", null };
-                       if( ReflectionUtil.isClassAvailable("com.jogamp.newt.NewtFactory", GLProfile.class.getClassLoader()) ) {
-                           atomicNativeJarBaseNames[2] = "newt";
-                       }
-                       JNILibLoaderBase.addNativeJarLibs(GLProfile.class, "jogl.all", "jogl-all", atomicNativeJarBaseNames);
-                    }
-                    initProfilesForDefaultDevices(firstUIActionOnProcess);
-                    return null;
+    public static void initSingleton(final boolean firstUIActionOnProcess) {
+        if(!initialized) { // volatile: ok
+            synchronized(GLProfile.class) {
+                if(!initialized) {
+                    initialized = true;
+                    Platform.initSingleton();
+        
+                    // run the whole static initialization privileged to speed up,
+                    // since this skips checking further access
+                    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                        public Object run() {
+                            if(TempJarCache.isInitialized()) {
+                               String[] atomicNativeJarBaseNames = new String[] { "nativewindow", "jogl", null };
+                               if( ReflectionUtil.isClassAvailable("com.jogamp.newt.NewtFactory", GLProfile.class.getClassLoader()) ) {
+                                   atomicNativeJarBaseNames[2] = "newt";
+                               }
+                               JNILibLoaderBase.addNativeJarLibs(GLProfile.class, "jogl-all", atomicNativeJarBaseNames);
+                            }
+                            initProfilesForDefaultDevices(firstUIActionOnProcess);
+                            return null;
+                        }
+                    });
                 }
-            });
+            }
         }
     }
 
@@ -147,12 +153,16 @@ public class GLProfile {
      * The shutdown implementation is called via the JVM shutdown hook, if not manually invoked here.<br>
      * Invoke <code>shutdown()</code> manually is recommended, due to the unreliable JVM state within the shutdown hook.<br>
      */
-    public static synchronized void shutdown() {
-        if(initialized) {
-            initialized = false;
-            NativeWindowFactory.shutdown();
-            GLDrawableFactory.shutdown();
-            GLContext.shutdown();
+    public static void shutdown() {
+        if(initialized) { // volatile: ok
+            synchronized(GLProfile.class) {
+                if(initialized) {
+                    initialized = false;
+                    GLDrawableFactory.shutdown(); // may utilize static GLContext mappings
+                    GLContext.shutdown(); // does not utilize shared resources of GLDrawableFactory
+                    NativeWindowFactory.shutdown();
+                }
+            }
         }
     }
 
@@ -1157,7 +1167,7 @@ public class GLProfile {
     private static /*final*/ AbstractGraphicsDevice defaultDesktopDevice;
     private static /*final*/ AbstractGraphicsDevice defaultEGLDevice;
 
-    static boolean initialized = false;
+    private static volatile boolean initialized = false;
 
     /**
      * Tries the profiles implementation and native libraries.
@@ -1193,7 +1203,7 @@ public class GLProfile {
         // - Instantiate GLDrawableFactory incl its shared dummy drawable/context,
         //   which will register at GLContext ..
         //
-        GLDrawableFactory.initialize();
+        GLDrawableFactory.initSingleton();
         
         Throwable t=null;
         // if successfull it has a shared dummy drawable and context created
@@ -1451,7 +1461,7 @@ public class GLProfile {
     }
 
     private static void validateInitialization() {
-        if(!initialized) {
+        if(!initialized) { // volatile: ok
             synchronized(GLProfile.class) {
                 if(!initialized) {
                     initSingleton(false);
