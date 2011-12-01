@@ -33,16 +33,18 @@
 
 package jogamp.nativewindow.x11;
 
-import com.jogamp.common.util.LongObjectHashMap;
+import java.security.AccessController;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.NativeWindowFactory;
 
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
 
-import javax.media.nativewindow.*;
-
-import java.security.AccessController;
-import java.util.ArrayList;
-import java.util.List;
+import com.jogamp.common.util.LongObjectHashMap;
 
 /**
  * Contains a thread safe X11 utility to retrieve display connections.
@@ -83,10 +85,10 @@ public class X11Util {
     private static final boolean DEBUG = Debug.debug("X11Util");
     private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.getBooleanProperty("nativewindow.debug.X11Util.TraceDisplayLifecycle", true, AccessController.getContext());
 
-    private static volatile String nullDisplayName = null;
+    private static String nullDisplayName = null;
     private static boolean isX11LockAvailable = false;
     private static boolean requiresX11Lock = true;
-    private static boolean isInit = false;
+    private static volatile boolean isInit = false;
     private static boolean markAllDisplaysUnclosable = false; // ATI/AMD X11 driver issues
 
     private static int setX11ErrorHandlerRecCount = 0;
@@ -94,25 +96,37 @@ public class X11Util {
 
     
     @SuppressWarnings("unused")
-    public static synchronized void initSingleton(final boolean firstX11ActionOnProcess) {
+    public static void initSingleton(final boolean firstX11ActionOnProcess) {
         if(!isInit) {
-            NWJNILibLoader.loadNativeWindow("x11");
-
-            final boolean callXInitThreads = XINITTHREADS_ALWAYS_ENABLED || firstX11ActionOnProcess;
-            final boolean isXInitThreadsOK = initialize0( XINITTHREADS_ALWAYS_ENABLED || firstX11ActionOnProcess );
-            isX11LockAvailable = isXInitThreadsOK && !HAS_XLOCKDISPLAY_BUG ;
-
-            if(DEBUG) {
-                System.err.println("X11Util firstX11ActionOnProcess: "+firstX11ActionOnProcess+
-                                   ", requiresX11Lock "+requiresX11Lock+
-                                   ", XInitThreads [called "+callXInitThreads+", OK "+isXInitThreadsOK+"]"+
-                                   ", isX11LockAvailable "+isX11LockAvailable); 
-                // Thread.dumpStack();
+            synchronized(X11Util.class) {
+                if(!isInit) {
+                    isInit = true;
+                    NWJNILibLoader.loadNativeWindow("x11");
+        
+                    final boolean callXInitThreads = XINITTHREADS_ALWAYS_ENABLED || firstX11ActionOnProcess;
+                    final boolean isXInitThreadsOK = initialize0( XINITTHREADS_ALWAYS_ENABLED || firstX11ActionOnProcess );
+                    isX11LockAvailable = isXInitThreadsOK && !HAS_XLOCKDISPLAY_BUG ;
+        
+                    final long dpy = X11Lib.XOpenDisplay(null);
+                    try {
+                        nullDisplayName = X11Lib.XDisplayString(dpy);
+                    } finally {
+                        X11Lib.XCloseDisplay(dpy);
+                    }
+                    
+                    if(DEBUG) {
+                        System.err.println("X11Util firstX11ActionOnProcess: "+firstX11ActionOnProcess+
+                                           ", requiresX11Lock "+requiresX11Lock+
+                                           ", XInitThreads [called "+callXInitThreads+", OK "+isXInitThreadsOK+"]"+
+                                           ", isX11LockAvailable "+isX11LockAvailable+
+                                           ", X11 Display(NULL) <"+nullDisplayName+">");
+                        // Thread.dumpStack();
+                    }
+                }
             }
-            isInit = true;
         }
     }
-
+    
     public static synchronized boolean isNativeLockAvailable() {
         return isX11LockAvailable;
     }
@@ -141,23 +155,6 @@ public class X11Util {
     }
 
     public static String getNullDisplayName() {
-        if(null==nullDisplayName) { // volatile: ok
-            synchronized(X11Util.class) {
-                if(null==nullDisplayName) {
-                    NativeWindowFactory.getDefaultToolkitLock().lock();
-                    long dpy = X11Lib.XOpenDisplay(null);
-                    try {
-                        nullDisplayName = X11Lib.XDisplayString(dpy);
-                    } finally {
-                        X11Lib.XCloseDisplay(dpy);
-                        NativeWindowFactory.getDefaultToolkitLock().unlock();
-                    }
-                    if(DEBUG) {
-                        System.out.println("X11 Display(NULL) <"+nullDisplayName+">");
-                    }
-                }
-            }
-        }
         return nullDisplayName;
     }
     
@@ -238,9 +235,14 @@ public class X11Util {
         }
     }
 
-    /** Returns the number of unclosed X11 Displays.
+    /** 
+     * Cleanup resources. 
+     * If <code>realXCloseOpenAndPendingDisplays</code> is <code>false</code>, 
+     * keep alive all references (open display connection) for restart on same ClassLoader.
+     * 
+     * @return number of unclosed X11 Displays.<br>
      * @param realXCloseOpenAndPendingDisplays if true, {@link #closePendingDisplayConnections()} is called.
-      */
+     */
     public static int shutdown(boolean realXCloseOpenAndPendingDisplays, boolean verbose) {
         int num=0;
         if(DEBUG||verbose||pendingDisplayList.size() > 0) {
@@ -261,11 +263,11 @@ public class X11Util {
         synchronized(globalLock) {
             if(realXCloseOpenAndPendingDisplays) {
                 closePendingDisplayConnections();    
+                openDisplayList.clear();
+                pendingDisplayList.clear();
+                openDisplayMap.clear();
+                shutdown0();
             }
-            openDisplayList.clear();
-            pendingDisplayList.clear();
-            openDisplayMap.clear();
-            shutdown0();
         }
         return num;
     }

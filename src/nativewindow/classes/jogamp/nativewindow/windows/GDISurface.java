@@ -61,14 +61,22 @@ public class GDISurface extends ProxySurface {
         throw new InternalError("surface not released");
     }
     surfaceHandle = GDI.GetDC(windowHandle);
+    /*
+    if(0 == surfaceHandle) {
+        System.err.println("****** DC Acquire: 0x"+Long.toHexString(windowHandle)+", isWindow "+GDI.IsWindow(windowHandle)+", isVisible "+GDI.IsWindowVisible(windowHandle)+", GDI LastError: "+GDI.GetLastError()+", 0x"+Long.toHexString(surfaceHandle)+", GDI LastError: "+GDI.GetLastError()+", thread: "+Thread.currentThread().getName());
+        Thread.dumpStack();
+    }
+    */
     return (0 != surfaceHandle) ? LOCK_SUCCESS : LOCK_SURFACE_NOT_READY;
   }
 
   protected void unlockSurfaceImpl() {
     if (0 == surfaceHandle) {
-        throw new InternalError("surface not acquired");
+        throw new InternalError("surface not acquired: "+this+", thread: "+Thread.currentThread().getName());
     }
-    GDI.ReleaseDC(windowHandle, surfaceHandle);
+    if(0 == GDI.ReleaseDC(windowHandle, surfaceHandle)) {
+        throw new NativeWindowException("DC not released: "+this+", isWindow "+GDI.IsWindow(windowHandle)+", werr "+GDI.GetLastError()+", thread: "+Thread.currentThread().getName());        
+    }
     surfaceHandle=0;
   }
 
