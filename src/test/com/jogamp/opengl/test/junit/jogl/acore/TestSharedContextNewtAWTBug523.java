@@ -114,10 +114,6 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
     private static FloatBuffer sharedVertexBuffer;
     private static IntBuffer sharedIndexBuffer;
 
-    static {
-        GLProfile.initSingleton(true);
-    }
-
     static private GLPbuffer initShared(GLCapabilities caps) {
         GLPbuffer sharedDrawable = GLDrawableFactory.getFactory(caps.getGLProfile()).createGLPbuffer(null, caps, null, 64, 64, null);
         Assert.assertNotNull(sharedDrawable);
