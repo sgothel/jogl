@@ -42,6 +42,7 @@ import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -58,7 +59,7 @@ public class TestListenerCom01AWT extends UITestCase {
     }
 
     @Test
-    public void testListenerStringPassingAndOrder() throws InterruptedException {
+    public void testListenerStringPassingAndOrder() throws InterruptedException, InvocationTargetException {
         // setup NEWT GLWindow ..
         GLWindow glWindow = GLWindow.create(new GLCapabilities(null));
         Assert.assertNotNull(glWindow);
@@ -88,10 +89,13 @@ public class TestListenerCom01AWT extends UITestCase {
 
         // attach NEWT GLWindow to AWT Canvas
         NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
-        Frame frame = new Frame("AWT Parent Frame");
+        final Frame frame = new Frame("AWT Parent Frame");
         frame.add(newtCanvasAWT);
         frame.setSize(width, height);
-        frame.setVisible(true);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.setVisible(true);
+            }});
 
         Animator animator1 = new Animator(glWindow);
         animator1.setUpdateFPSFrames(1, null);        
@@ -104,7 +108,10 @@ public class TestListenerCom01AWT extends UITestCase {
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
 
-        frame.dispose();
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.dispose();
+            }});
         glWindow.destroy();
     }
 

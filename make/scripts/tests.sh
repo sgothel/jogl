@@ -50,7 +50,7 @@ function jrun() {
 
     #D_ARGS="-Djogl.debug.ExtensionAvailabilityCache -Djogl.debug=all -Dnativewindow.debug=all -Djogamp.debug.ProcAddressHelper=true -Djogamp.debug.NativeLibrary=true -Djogamp.debug.NativeLibrary.Lookup=true"
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
-    D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.MainThread"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.ExtensionAvailabilityCache"
@@ -168,7 +168,7 @@ function testswt() {
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedNEWT $*
@@ -223,7 +223,7 @@ testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWTAnalyzeBug455 $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestTexture01AWT
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461OffscreenSupersamplingSwingAWT
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461OffscreenSupersamplingSwingAWT
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestGrayTextureFromFileAWTBug417
 #testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug463ScaleImageMemoryAWT $*

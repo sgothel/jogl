@@ -44,6 +44,7 @@ import java.awt.Frame;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -92,11 +93,11 @@ public class TestGearsAWTAnalyzeBug455 extends UITestCase {
                 int height) {
         }        
     }
-    protected void runTestGL(GLCapabilities caps) throws InterruptedException {
-        Frame frame = new Frame("Gears AWT Test");
+    protected void runTestGL(GLCapabilities caps) throws InterruptedException, InvocationTargetException {
+        final Frame frame = new Frame("Gears AWT Test");
         Assert.assertNotNull(frame);
 
-        GLCanvas glCanvas = new GLCanvas(caps);
+        final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
         glCanvas.setAutoSwapBufferMode(!altSwap);
         frame.add(glCanvas);
@@ -111,7 +112,10 @@ public class TestGearsAWTAnalyzeBug455 extends UITestCase {
         new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glCanvas);
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
-        frame.setVisible(true);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.setVisible(true);
+            }});
         animator.setUpdateFPSFrames(60, System.err);        
         animator.start();
 
@@ -127,14 +131,15 @@ public class TestGearsAWTAnalyzeBug455 extends UITestCase {
         Assert.assertEquals(false, animator.isAnimating());
         frame.setVisible(false);
         Assert.assertEquals(false, frame.isVisible());
-        frame.remove(glCanvas);
-        frame.dispose();
-        frame=null;
-        glCanvas=null;
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.remove(glCanvas);
+                frame.dispose();
+            }});
     }
 
     @Test
-    public void test01() throws InterruptedException {
+    public void test01() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(true); // code assumes dbl buffer setup
         runTestGL(caps);
