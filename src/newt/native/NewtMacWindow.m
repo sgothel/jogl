@@ -44,15 +44,17 @@ jint GetDeltaY(NSEvent *event, jint javaMods) {
         // mouse pad case
         deltaY =
             CGEventGetIntegerValueField(cgEvent, kCGScrollWheelEventPointDeltaAxis1);
+        // fprintf(stderr, "WHEEL/PAD: %lf\n", (double)deltaY);
     } else {
         // traditional mouse wheel case
         deltaY = [event deltaY];
+        // fprintf(stderr, "WHEEL/TRAD: %lf\n", (double)deltaY);
         if (deltaY == 0.0 && (javaMods & EVENT_SHIFT_MASK) != 0) {
             // shift+vertical wheel scroll produces horizontal scroll
             // we convert it to vertical
             deltaY = [event deltaX];
         }
-        if (deltaY < 1.0  && deltaY > -1.0) {
+        if (-1.0 < deltaY && deltaY < 1.0) {
             deltaY *= 10.0;
         } else {
             if (deltaY < 0.0) {
@@ -62,14 +64,8 @@ jint GetDeltaY(NSEvent *event, jint javaMods) {
             }
         }
     }
-
-    if (deltaY > 0) {
-        return (NSInteger)deltaY;
-    } else if (deltaY < 0) {
-        return -(NSInteger)deltaY;
-    }
-
-    return 0;
+    // fprintf(stderr, "WHEEL/res: %d\n", (int)deltaY);
+    return (jint) deltaY;
 }
 
 static jmethodID enqueueMouseEventID = NULL;
@@ -581,6 +577,7 @@ static jint mods2JavaMods(NSUInteger mods)
     switch ([event type]) {
     case NSScrollWheel: {
         scrollDeltaY = GetDeltaY(event, javaMods);
+        javaButtonNum = 1;
         break;
     }
     case NSLeftMouseDown:
@@ -597,9 +594,6 @@ static jint mods2JavaMods(NSUInteger mods)
     case NSOtherMouseUp:
     case NSOtherMouseDragged:
         javaButtonNum = 2;
-        break;
-    default:
-        javaButtonNum = 0;
         break;
     }
 

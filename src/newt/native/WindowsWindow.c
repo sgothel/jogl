@@ -953,7 +953,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
                                (jint) EVENT_MOUSE_WHEEL_MOVED,
                                GetModifiers(),
                                (jint) eventPt.x, (jint) eventPt.y,
-                               (jint) 0,  (jint) (GET_WHEEL_DELTA_WPARAM(wParam)/120.0f));
+                               (jint) 1,  (jint) (GET_WHEEL_DELTA_WPARAM(wParam)/120.0f));
         useDefWindowProc = 1;
         break;
     }

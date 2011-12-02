@@ -44,9 +44,15 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.newt.event.MouseEvent;
+
 public class X11Window extends WindowImpl {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
-
+    private static final int X11_WHEEL_ONE_UP_BUTTON = 4;
+    private static final int X11_WHEEL_ONE_DOWN_BUTTON = 5;
+    private static final int X11_WHEEL_TWO_UP_BUTTON = 6;
+    private static final int X11_WHEEL_TWO_DOWN_BUTTON = 7;
+    
     static {
         X11Display.initSingleton();
     }
@@ -174,6 +180,48 @@ public class X11Window extends WindowImpl {
     protected void updateInsetsImpl(Insets insets) {
         // nop - using event driven insetsChange(..)         
     }
+    
+    protected void doMouseEvent(boolean enqueue, boolean wait, int eventType, int modifiers,
+                                int x, int y, int button, int rotation) {
+        switch(eventType) {
+            case MouseEvent.EVENT_MOUSE_PRESSED:
+                switch(button) {
+                    case X11_WHEEL_ONE_UP_BUTTON:
+                    case X11_WHEEL_ONE_DOWN_BUTTON:
+                    case X11_WHEEL_TWO_UP_BUTTON:
+                    case X11_WHEEL_TWO_DOWN_BUTTON:
+                        // ignore wheel pressed !
+                        return;
+                }
+                break;
+            case MouseEvent.EVENT_MOUSE_RELEASED:
+                switch(button) {
+                    case X11_WHEEL_ONE_UP_BUTTON:
+                        eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
+                        button = 1;
+                        rotation = 1;
+                        break;
+                    case X11_WHEEL_ONE_DOWN_BUTTON:
+                        eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
+                        button = 1;
+                        rotation = -1;
+                        break;
+                    case X11_WHEEL_TWO_UP_BUTTON:
+                        eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
+                        button = 2;
+                        rotation = 1;
+                        break;
+                    case X11_WHEEL_TWO_DOWN_BUTTON:
+                        eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
+                        button = 2;
+                        rotation = -1;
+                        break;
+                }                
+                break;
+        }
+        super.doMouseEvent(enqueue, wait, eventType, modifiers, x, y, button, rotation);        
+    }
+    
     
     //----------------------------------------------------------------------
     // Internals only

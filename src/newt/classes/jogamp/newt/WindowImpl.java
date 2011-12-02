@@ -1904,8 +1904,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                   int x, int y, int button, int rotation) {
         doMouseEvent(true, wait, eventType, modifiers, x, y, button, rotation);
     }
-    private void doMouseEvent(boolean enqueue, boolean wait, int eventType, int modifiers,
-                              int x, int y, int button, int rotation) {
+    
+    protected void doMouseEvent(boolean enqueue, boolean wait, int eventType, int modifiers,
+                                int x, int y, int button, int rotation) {
         if(eventType == MouseEvent.EVENT_MOUSE_ENTERED ||            
            eventType == MouseEvent.EVENT_MOUSE_EXITED) {
             if(eventType == MouseEvent.EVENT_MOUSE_EXITED && x==-1 && y==-1) {

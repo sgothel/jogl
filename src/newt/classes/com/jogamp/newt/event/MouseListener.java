@@ -43,6 +43,8 @@ public interface MouseListener extends NEWTEventListener
  public void mouseReleased(MouseEvent e);
  public void mouseMoved(MouseEvent e);
  public void mouseDragged(MouseEvent e);
+ 
+ /** See {@link MouseEvent#getWheelRotation() } */
  public void mouseWheelMoved(MouseEvent e);
 }
 

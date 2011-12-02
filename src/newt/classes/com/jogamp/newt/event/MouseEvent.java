@@ -139,6 +139,20 @@ public class MouseEvent extends InputEvent
         return pressure[index];
     }
     
+    /**
+     * <i>Usually</i> a wheel rotation of <b>&gt; 0 is up</b>,
+     * and  <b>&lt; 0 is down</b>.<br>
+     * <i>However</i>, on some OS this might be flipped due to the OS <i>default</i> behavior.
+     * The latter is true for OS X 10.7 (Lion) for example.
+     * <p>
+     * The events will be send usually in steps of one, ie. <i>-1</i> and <i>1</i>.
+     * Higher values may result due to fast scrolling.
+     * </p>
+     * <p>
+     * The button number refers to the wheel number.
+     * </p> 
+     * @return
+     */
     public int getWheelRotation() {
         return wheelRotation;
     }
