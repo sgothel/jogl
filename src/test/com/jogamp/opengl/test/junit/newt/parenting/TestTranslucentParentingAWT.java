@@ -50,6 +50,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
@@ -89,8 +90,15 @@ public class TestTranslucentParentingAWT extends UITestCase {
                 boolean capable1 = ( null != tcm ) ? tcm.getTransparency() == Transparency.TRANSLUCENT : false;
                 boolean capable2 = false;
                 try {
-                    capable2 = com.sun.awt.AWTUtilities.isTranslucencyCapable(config);
-                } catch (Exception e) {}
+                    capable2 = ((Boolean)ReflectionUtil.callStaticMethod(
+                                                "com.sun.awt.AWTUtilities", "isTranslucencyCapable", 
+                                                new Class<?>[] { GraphicsConfiguration.class }, 
+                                                new Object[] { config } , 
+                                                GraphicsConfiguration.class.getClassLoader())).booleanValue();
+                    System.err.println("com.sun.awt.AWTUtilities.isTranslucencyCapable(config) passed: "+capable2);
+                } catch (RuntimeException re) {
+                    System.err.println("com.sun.awt.AWTUtilities.isTranslucencyCapable(config) failed: "+re.getMessage());
+                }
                 System.err.println(i+":"+j+" "+config+", "+tcm+", capable "+capable1+"/"+capable2);
                 if(capable1&&capable2) {
                     gc=configs[j];
