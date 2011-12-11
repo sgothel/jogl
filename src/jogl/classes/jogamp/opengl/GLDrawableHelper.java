@@ -134,7 +134,7 @@ public class GLDrawableHelper {
       if(listenersToBeInit.remove(l)) {
           l.init(drawable);
           if(sendReshape) {
-              reshape(l, drawable, 0, 0, drawable.getWidth(), drawable.getHeight(), true /* setViewport */);
+              reshape(l, drawable, 0, 0, drawable.getWidth(), drawable.getHeight(), true /* setViewport */, false);
           }
           return true;
       }
@@ -177,7 +177,12 @@ public class GLDrawableHelper {
   }
 
   private void reshape(GLEventListener listener, GLAutoDrawable drawable,
-                             int x, int y, int width, int height, boolean setViewport) {
+                       int x, int y, int width, int height, boolean setViewport, boolean checkInit) {
+    if(checkInit) {
+        // GLEventListener may need to be init, 
+        // in case this one is added after the realization of the GLAutoDrawable      
+        init( listener, drawable, false ) ;
+    }
     if(setViewport) {
         drawable.getGL().glViewport(x, y, width, height);
     }
@@ -187,7 +192,7 @@ public class GLDrawableHelper {
   public final void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     synchronized(listenersLock) {
         for (int i=0; i < listeners.size(); i++) {
-          reshape((GLEventListener) listeners.get(i), drawable, x, y, width, height, 0==i);
+          reshape((GLEventListener) listeners.get(i), drawable, x, y, width, height, 0==i, true);
         }
     }
   }
