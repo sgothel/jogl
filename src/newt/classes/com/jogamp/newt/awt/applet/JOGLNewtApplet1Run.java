@@ -188,13 +188,6 @@ public class JOGLNewtApplet1Run extends Applet {
                 container.add(new Button("East"), BorderLayout.EAST);
                 container.add(new Button("West"), BorderLayout.WEST);
             }
-            if(glStandalone) {
-                newtCanvasAWT = null;
-            } else {
-                newtCanvasAWT = new NewtCanvasAWT(glWindow);
-                container.add(newtCanvasAWT, BorderLayout.CENTER);
-                container.validate();
-            }
             base.init(glWindow);
             if(base.isValid()) {
                 GLEventListener glEventListener = base.getGLEventListener();
@@ -208,6 +201,13 @@ public class JOGLNewtApplet1Run extends Applet {
                 if(glEventListener instanceof KeyListener) {
                     addKeyListener((KeyListener)glEventListener);
                 }
+            }
+            if(glStandalone) {
+                newtCanvasAWT = null;
+            } else {
+                newtCanvasAWT = new NewtCanvasAWT(glWindow);
+                container.add(newtCanvasAWT, BorderLayout.CENTER);
+                container.validate();
             }
         } catch (Throwable t) {
             throw new RuntimeException(t);
