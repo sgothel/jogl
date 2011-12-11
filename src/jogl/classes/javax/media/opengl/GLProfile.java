@@ -48,6 +48,8 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.cache.TempJarCache;
+import com.jogamp.common.util.locks.LockFactory;
+import com.jogamp.common.util.locks.RecursiveThreadGroupLock;
 import com.jogamp.nativewindow.NativeWindowVersion;
 import com.jogamp.opengl.JoglVersion;
 
@@ -80,64 +82,72 @@ public class GLProfile {
     }
     
     /**
-     * Static one time initialization of JOGL.
+     * Static initialization of JOGL.
      * <p>
      * The parameter <code>firstUIActionOnProcess</code> has an impact on concurrent locking,<br>
      * see {@link javax.media.nativewindow.NativeWindowFactory#initSingleton(boolean) NativeWindowFactory.initSingleton(firstUIActionOnProcess)}.
      * </p>
      * <p>
-     * Applications shall call this methods <b>ASAP</b>, before any other UI invocation.<br>
-     * You may issue the call in your <code>main class</code> static block, which is the earliest point in your application/applet lifecycle,
-     * or within the <code>main function</code>.<br>
-     * In case applications are able to initialize JOGL before any other UI action,<br>
-     * they shall invoke this method with <code>firstUIActionOnProcess=true</code> and benefit from fast native multithreading support on all platforms if possible.</P>
+     * Applications using this method may place it's call before any other UI invocation
+     * in the <code>main class</code>'s static block or within the <code>main function</code>.
+     * In such case, applications may pass <code>firstUIActionOnProcess=true</code> to use native toolkit locking.</P>
      * <P>
-     * RCP Application (Applet's, Webstart, Netbeans, ..) using JOGL may not be able to initialize JOGL
-     * before the first UI action.<br>
-     * In such case you shall invoke this method with <code>firstUIActionOnProcess=false</code>.<br>
-     * On some platforms, notably X11 with AWT usage, JOGL will utilize special locking mechanisms which may slow down your
-     * application.</P>
+     * RCP Application (Applet's, Webstart, Netbeans, ..) using JOGL are not be able to initialize JOGL
+     * before the first UI action.
+     * In such case you shall pass <code>firstUIActionOnProcess=false</code>.</P>
      * <P>
-     * Remark: NEWT is currently not affected by this behavior, ie always uses native multithreading.</P>
-     * <P>
-     * However, in case this method is not invoked, hence GLProfile is not initialized explicitly by the user,<br>
-     * the first call to {@link #getDefault()}, {@link #get(java.lang.String)}, etc, will initialize with <code>firstUIActionOnProcess=false</code>,<br>
-     * hence without the possibility to enable native multithreading.<br>
-     * This is not the recommended way, since it may has a performance impact, but it allows you to run code without explicit initialization.</P>
+     * In case this method is not invoked, GLProfile is initialized implicit by
+     * the first call to {@link #getDefault()}, {@link #get(java.lang.String)} passing <code>firstUIActionOnProcess=false</code>.
      * <P>
      *
      * @param firstUIActionOnProcess Should be <code>true</code> if called before the first UI action of the running program,
      * otherwise <code>false</code>.
+     * 
+     * @deprecated This method shall not need to be called for other reasons than having a defined initialization sequence.
+     *             To ensure homogeneous behavior with application not calling this method, you shall pass <code>firstUIActionOnProcess=false</code>.
+     *             This method is subject to be removed in future versions of JOGL. 
      */
     public static void initSingleton(final boolean firstUIActionOnProcess) {
-        if(!initialized) { // volatile: ok
-            synchronized(GLProfile.class) {
-                if(!initialized) {
-                    initialized = true;
-                    if(DEBUG) {
-                        System.err.println("GLProfile.initSingleton(firstUIActionOnProcess: "+firstUIActionOnProcess+") - thread "+Thread.currentThread().getName());
-                        Thread.dumpStack();
-                    }
-                    Platform.initSingleton();
-        
-                    // run the whole static initialization privileged to speed up,
-                    // since this skips checking further access
-                    AccessController.doPrivileged(new PrivilegedAction<Object>() {
-                        public Object run() {
-                            if(TempJarCache.isInitialized()) {
-                               String[] atomicNativeJarBaseNames = new String[] { "nativewindow", "jogl", null };
-                               if( ReflectionUtil.isClassAvailable("com.jogamp.newt.NewtFactory", GLProfile.class.getClassLoader()) ) {
-                                   atomicNativeJarBaseNames[2] = "newt";
-                               }
-                               JNILibLoaderBase.addNativeJarLibs(GLProfile.class, "jogl-all", atomicNativeJarBaseNames);
-                            }
-                            initProfilesForDefaultDevices(firstUIActionOnProcess);
-                            return null;
-                        }
-                    });
+        initLock.lock();
+        try {
+            if(!initialized) { // volatile: ok
+                initialized = true;
+                if(DEBUG) {
+                    System.err.println("GLProfile.initSingleton(firstUIActionOnProcess: "+firstUIActionOnProcess+") - thread "+Thread.currentThread().getName());
+                    Thread.dumpStack();
                 }
+                Platform.initSingleton();
+    
+                // run the whole static initialization privileged to speed up,
+                // since this skips checking further access
+                AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                    public Object run() {
+                        if(TempJarCache.isInitialized()) {
+                           String[] atomicNativeJarBaseNames = new String[] { "nativewindow", "jogl", null };
+                           if( ReflectionUtil.isClassAvailable("com.jogamp.newt.NewtFactory", GLProfile.class.getClassLoader()) ) {
+                               atomicNativeJarBaseNames[2] = "newt";
+                           }
+                           JNILibLoaderBase.addNativeJarLibs(GLProfile.class, "jogl-all", atomicNativeJarBaseNames);
+                        }
+                        initProfilesForDefaultDevices(firstUIActionOnProcess);
+                        return null;
+                    }
+                });
             }
+        } finally {
+            initLock.unlock();
         }
+    }
+    
+    /**
+     * Static initialization of JOGL.
+     *
+     * <p>
+     * This method shall not need to be called for other reasons than having a defined initialization sequence.
+     * </p>
+     */
+    public static void initSingleton() {
+        GLProfile.initSingleton(false);
     }
 
     /**
@@ -147,7 +157,7 @@ public class GLProfile {
      * @throws GLException if no profile for the given device is available.
      */
     public static void initProfiles(AbstractGraphicsDevice device) throws GLException {
-        getProfileMap(device);
+        getProfileMap(device, true);
     }
 
     /** 
@@ -168,26 +178,29 @@ public class GLProfile {
      * Manual shutdown method, may be called after your last JOGL use
      * within the running JVM.<br>
      * It releases all temporary created resources, ie issues {@link javax.media.opengl.GLDrawableFactory#shutdown()}.<br>
-     * The shutdown implementation is called via the JVM shutdown hook, if not manually invoked here.<br>
-     * Invoke <code>shutdown(type)</code> manually is recommended, due to the unreliable JVM state within the shutdown hook.<br>
+     * The shutdown implementation is called via the JVM shutdown hook, if not manually invoked.<br>
+     * <p>
+     * This method shall not need to be called for other reasons than issuing a proper shutdown of resources.
+     * </p>
      * @param type the shutdown type, see {@link ShutdownType}.
      */
     public static void shutdown(ShutdownType type) {
-        if(initialized) { // volatile: ok
-            synchronized(GLProfile.class) {
-                if(initialized) {
-                    initialized = false;
-                    if(DEBUG) {
-                        System.err.println("GLProfile.shutdown(type: "+type+") - thread "+Thread.currentThread().getName());
-                        Thread.dumpStack();
-                    }                    
-                    GLDrawableFactory.shutdown(type);
-                    if(ShutdownType.COMPLETE == type) {
-                        GLContext.shutdown();
-                    }
-                    NativeWindowFactory.shutdown();
+        initLock.lock();
+        try {
+            if(initialized) { // volatile: ok
+                initialized = false;
+                if(DEBUG) {
+                    System.err.println("GLProfile.shutdown(type: "+type+") - thread "+Thread.currentThread().getName());
+                    Thread.dumpStack();
+                }                    
+                GLDrawableFactory.shutdown(type);
+                if(ShutdownType.COMPLETE == type) {
+                    GLContext.shutdown();
                 }
+                NativeWindowFactory.shutdown();
             }
+        } finally {
+            initLock.unlock();
         }
     }
 
@@ -204,12 +217,13 @@ public class GLProfile {
      * @return true if the profile is available for the device, otherwise false.
      */
     public static boolean isAvailable(AbstractGraphicsDevice device, String profile) {
-        try {
-            return null != getProfileMap(device).get(profile);
-        } catch (GLException gle) { /* profiles for device n/a */ }
-        return false;
+        initSingleton();
+        return isAvailableImpl(getProfileMap(device, false), profile);
     }
-
+    private static boolean isAvailableImpl(HashMap<String /*GLProfile_name*/, GLProfile> map, String profile) {
+        return null != map && null != map.get(profile);
+    }
+    
     /** 
      * Returns the availability of a profile on the default device.
      * 
@@ -234,74 +248,71 @@ public class GLProfile {
         boolean avail;
         StringBuffer sb = new StringBuffer();
 
-        validateInitialization();
-
+        initSingleton();
+        
         if(null==device) {
             device = defaultDevice;
         }
-
+        final HashMap<String /*GLProfile_name*/, GLProfile> map = getProfileMap(device, false);
+        
         sb.append("GLAvailability[Native[GL4bc ");
-        avail=isAvailable(device, GL4bc);
+        avail=isAvailableImpl(map, GL4bc);
         sb.append(avail);
         if(avail) {
             glAvailabilityToString(device, sb, 4, GLContext.CTX_PROFILE_COMPAT);
         }
 
         sb.append(", GL4 ");
-        avail=isAvailable(device, GL4);
+        avail=isAvailableImpl(map, GL4);
         sb.append(avail);
         if(avail) {
             glAvailabilityToString(device, sb, 4, GLContext.CTX_PROFILE_CORE);
         }
 
         sb.append(", GL3bc ");
-        avail=isAvailable(device, GL3bc);
+        avail=isAvailableImpl(map, GL3bc);
         sb.append(avail);
         if(avail) {
             glAvailabilityToString(device, sb, 3, GLContext.CTX_PROFILE_COMPAT);
         }
 
         sb.append(", GL3 ");
-        avail=isAvailable(device, GL3);
+        avail=isAvailableImpl(map, GL3);
         sb.append(avail);
         if(avail) {
             glAvailabilityToString(device, sb, 3, GLContext.CTX_PROFILE_CORE);
         }
 
         sb.append(", GL2 ");
-        avail=isAvailable(device, GL2);
+        avail=isAvailableImpl(map, GL2);
         sb.append(avail);
         if(avail) {
             glAvailabilityToString(device, sb, 2, GLContext.CTX_PROFILE_COMPAT);
         }
 
         sb.append(", GL2ES1 ");
-        sb.append(isAvailable(device, GL2ES1));
+        sb.append(isAvailableImpl(map, GL2ES1));
 
         sb.append(", GLES1 ");
-        avail=isAvailable(device, GLES1);
+        avail=isAvailableImpl(map, GLES1);
         sb.append(avail);
         if(avail) {
             glAvailabilityToString(device, sb, 1, GLContext.CTX_PROFILE_ES);
         }
 
         sb.append(", GL2ES2 ");
-        sb.append(isAvailable(device, GL2ES2));
+        sb.append(isAvailableImpl(map, GL2ES2));
 
         sb.append(", GLES2 ");
-        avail=isAvailable(device, GLES2);
+        avail=isAvailableImpl(map, GLES2);
         sb.append(avail);
         if(avail) {
             glAvailabilityToString(device, sb, 2, GLContext.CTX_PROFILE_ES);
         }
 
         sb.append("], Profiles[");
-        HashMap<String /*GLProfile_name*/, GLProfile> profileMap = null;
-        try {
-            profileMap = getProfileMap(device);
-        } catch (GLException gle) { /* profiles for device n/a */ }
-        if(null != profileMap) {
-            for(Iterator<GLProfile> i=profileMap.values().iterator(); i.hasNext(); ) {
+        if(null != map) {
+            for(Iterator<GLProfile> i=map.values().iterator(); i.hasNext(); ) {
                 sb.append(i.next().toString());
                 sb.append(", ");
             }
@@ -316,7 +327,7 @@ public class GLProfile {
 
         return sb.toString();
     }
-
+    
     /** Uses the default device */
     public static String glAvailabilityToString() {
         return glAvailabilityToString(null);
@@ -637,7 +648,7 @@ public class GLProfile {
         if(null==profile || profile.equals("GL")) {
             profile = GL_DEFAULT;
         }
-        final HashMap<String /*GLProfile_name*/, GLProfile> glpMap = getProfileMap(device);
+        final HashMap<String /*GLProfile_name*/, GLProfile> glpMap = getProfileMap(device, true);
         final GLProfile glp = glpMap.get(profile);
         if(null == glp) {
             throw new GLException("Profile "+profile+" is not available on "+device+", but: "+glpMap.values());
@@ -667,7 +678,7 @@ public class GLProfile {
     public static GLProfile get(AbstractGraphicsDevice device, String[] profiles)
         throws GLException
     {
-        HashMap<String /*GLProfile_name*/, GLProfile> map = getProfileMap(device);
+        HashMap<String /*GLProfile_name*/, GLProfile> map = getProfileMap(device, true);
         for(int i=0; i<profiles.length; i++) {
             String profile = profiles[i];
             GLProfile glProfile = map.get(profile);
@@ -1193,6 +1204,7 @@ public class GLProfile {
     private static /*final*/ AbstractGraphicsDevice defaultEGLDevice;
 
     private static volatile boolean initialized = false;
+    private static RecursiveThreadGroupLock initLock = LockFactory.createRecursiveThreadGroupLock();
 
     /**
      * Tries the profiles implementation and native libraries.
@@ -1332,19 +1344,24 @@ public class GLProfile {
      * @param device the device for which profiles shall be initialized
      * @return true if any profile for the device exists, otherwise false
      */
-    private static synchronized boolean initProfilesForDevice(AbstractGraphicsDevice device) {
+    private static boolean initProfilesForDevice(AbstractGraphicsDevice device) {
         if(null == device) {
             return false;
         }
-        GLDrawableFactory factory = GLDrawableFactory.getFactoryImpl(device);
-        factory.enterThreadCriticalZone();
+        initLock.lock();
         try {
-            return initProfilesForDeviceCritical(device);
+            GLDrawableFactory factory = GLDrawableFactory.getFactoryImpl(device);
+            factory.enterThreadCriticalZone();
+            try {
+                return initProfilesForDeviceCritical(device);
+            } finally {
+                factory.leaveThreadCriticalZone();
+            }
         } finally {
-            factory.leaveThreadCriticalZone();
+            initLock.unlock();
         }
     }
-    private static synchronized boolean initProfilesForDeviceCritical(AbstractGraphicsDevice device) {
+    private static boolean initProfilesForDeviceCritical(AbstractGraphicsDevice device) {
         boolean isSet = GLContext.getAvailableGLVersionsSet(device);
 
         if(DEBUG) {
@@ -1368,7 +1385,14 @@ public class GLProfile {
 
             // Triggers eager initialization of share context in GLDrawableFactory for the device,
             // hence querying all available GLProfiles
-            boolean desktopSharedCtxAvail = desktopFactory.getWasSharedContextCreated(device);
+            final Thread sharedResourceThread = desktopFactory.getSharedResourceThread();
+            if(null != sharedResourceThread) {
+                initLock.addOwner(sharedResourceThread);
+            }
+            boolean desktopSharedCtxAvail = desktopFactory.createSharedResource(device);
+            if(null != sharedResourceThread) {
+                initLock.removeOwner(sharedResourceThread);
+            }
             if(!desktopSharedCtxAvail) {
                 hasDesktopGLFactory = false;
             }
@@ -1390,7 +1414,14 @@ public class GLProfile {
 
             // Triggers eager initialization of share context in GLDrawableFactory for the device,
             // hence querying all available GLProfiles
-            boolean eglSharedCtxAvail = eglFactory.getWasSharedContextCreated(device);
+            final Thread sharedResourceThread = eglFactory.getSharedResourceThread();
+            if(null != sharedResourceThread) {
+                initLock.addOwner(sharedResourceThread);
+            }
+            boolean eglSharedCtxAvail = eglFactory.createSharedResource(device);
+            if(null != sharedResourceThread) {
+                initLock.removeOwner(sharedResourceThread);
+            }
             if(!eglSharedCtxAvail) {
                 // Remark: On Windows there is a libEGL.dll delivered w/ Chrome 15.0.874.121m and Firefox 8.0.1
                 // but it seems even EGL.eglInitialize(eglDisplay, null, null) 
@@ -1471,28 +1502,18 @@ public class GLProfile {
     }
 
     public static AbstractGraphicsDevice getDefaultDevice() {
-        validateInitialization();
+        initSingleton();
         return defaultDevice;
     }
 
     public static AbstractGraphicsDevice getDefaultDesktopDevice() {
-        validateInitialization();
+        initSingleton();
         return defaultDesktopDevice;
     }
 
     public static AbstractGraphicsDevice getDefaultEGLDevice() {
-        validateInitialization();
+        initSingleton();
         return defaultEGLDevice;
-    }
-
-    private static void validateInitialization() {
-        if(!initialized) { // volatile: ok
-            synchronized(GLProfile.class) {
-                if(!initialized) {
-                    initSingleton(false);
-                }
-            }
-        }
     }
 
     private static String array2String(String[] list) {
@@ -1656,29 +1677,38 @@ public class GLProfile {
      *  - initialization<br<
      *
      * @param device the key 'device -> GLProfiles-Map'
+     * @param throwExceptionOnZeroProfile true if <code>GLException</code> shall be thrown in case of no mapped profile, otherwise false.
      * @return the GLProfile HashMap if exists, otherwise null 
      * @throws GLException if no profile for the given device is available.
      */
-    private static HashMap<String /*GLProfile_name*/, GLProfile> getProfileMap(AbstractGraphicsDevice device) throws GLException {
-        validateInitialization();
+    private static HashMap<String /*GLProfile_name*/, GLProfile> getProfileMap(AbstractGraphicsDevice device, boolean throwExceptionOnZeroProfile) 
+        throws GLException 
+    {
+        initSingleton();
+
         if(null==device) {
             device = defaultDevice;
         }
         String deviceKey = device.getUniqueID();
         HashMap<String /*GLProfile_name*/, GLProfile> map = deviceConn2ProfileMap.get(deviceKey);
-        if( null == map ) {
-            if( !initProfilesForDevice(device) ) {
+        if( null != map ) {
+            return map;
+        }
+        if( !initProfilesForDevice(device) ) {
+            if( throwExceptionOnZeroProfile ) {
                 throw new GLException("No Profile available for "+device);
+            } else {
+                return null;
             }
-            if( null == deviceConn2ProfileMap.get(deviceKey) ) {
-                throw new InternalError("initProfilesForDevice(..) didn't issue setProfileMap(..) on "+device);
-            }
+        }
+        map = deviceConn2ProfileMap.get(deviceKey);
+        if( null == map && throwExceptionOnZeroProfile ) {
+            throw new InternalError("initProfilesForDevice(..) didn't setProfileMap(..) for "+device);
         }
         return map;
     }
 
     private static void setProfileMap(AbstractGraphicsDevice device, HashMap<String /*GLProfile_name*/, GLProfile> mappedProfiles) {
-        validateInitialization();
         synchronized ( deviceConn2ProfileMap ) {
             deviceConn2ProfileMap.put(device.getUniqueID(), mappedProfiles);
         }

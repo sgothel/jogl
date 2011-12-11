@@ -252,8 +252,12 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     }
     return sr;
   }
-    
-  public final boolean getWasSharedContextCreated(AbstractGraphicsDevice device) {
+   
+  protected final Thread getSharedResourceThread() {
+    return null;
+  }
+  
+  protected final boolean createSharedResource(AbstractGraphicsDevice device) {
     try {
         SharedResource sr = getOrCreateOSXSharedResource(device);
         if(null!=sr) {

@@ -170,7 +170,6 @@ public class JOGLNewtApplet1Run extends Applet {
                                       glTrace);
 
         try {
-            GLProfile.initSingleton(false);
             GLCapabilities caps = new GLCapabilities(GLProfile.get(glProfileName));
             caps.setAlphaBits(glAlphaBits);
             if(0<glNumMultisampleBuffer) {
@@ -271,7 +270,6 @@ public class JOGLNewtApplet1Run extends Applet {
         }
         base.destroy(); // destroy glWindow unrecoverable
         base=null;
-        GLProfile.shutdown(GLProfile.ShutdownType.SHARED_ONLY);
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.destroy() END");
         }

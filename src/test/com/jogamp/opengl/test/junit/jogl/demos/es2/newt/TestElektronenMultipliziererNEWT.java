@@ -65,11 +65,6 @@ public class TestElektronenMultipliziererNEWT extends UITestCase {
     static int startFrame = 1700;
     static long duration = 5000; // ms
     
-    @BeforeClass
-    public static void initClass() {
-        GLProfile.initSingleton(true);
-    }
-
     @AfterClass
     public static void releaseClass() {
     }

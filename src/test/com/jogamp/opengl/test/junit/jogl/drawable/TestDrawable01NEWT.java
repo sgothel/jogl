@@ -52,7 +52,6 @@ public class TestDrawable01NEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
         glp = GLProfile.getDefault();
         Assert.assertNotNull(glp);
         factory = GLDrawableFactory.getFactory(glp);

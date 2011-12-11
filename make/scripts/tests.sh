@@ -172,6 +172,7 @@ function testswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
@@ -251,7 +252,7 @@ function testswt() {
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01AWT $*
-testawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleNEWT $*

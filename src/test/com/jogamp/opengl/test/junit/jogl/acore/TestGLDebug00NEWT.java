@@ -55,11 +55,6 @@ public class TestGLDebug00NEWT extends UITestCase {
     static String dbgTstMsg0 = "Hello World";
     static int dbgTstId0 = 42;
     
-    @BeforeClass
-    public static void initClass() {
-        // GLProfile.initSingleton(true);
-    }
-    
     public class WindowContext {        
         public final Window window;
         public final GLContext context;

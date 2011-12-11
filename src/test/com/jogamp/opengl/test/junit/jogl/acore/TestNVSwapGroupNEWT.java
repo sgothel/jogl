@@ -52,7 +52,6 @@ public class TestNVSwapGroupNEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
         glp = GLProfile.getDefault();
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);

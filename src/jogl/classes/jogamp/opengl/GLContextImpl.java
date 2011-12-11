@@ -459,8 +459,6 @@ public abstract class GLContextImpl extends GLContext {
               throw new GLException("drawable has invalid handle: "+drawable);
           }
           if (!isCreated()) {
-            GLProfile.initProfiles(
-                    getGLDrawable().getNativeSurface().getGraphicsConfiguration().getScreen().getDevice());
             final GLContextImpl shareWith = (GLContextImpl) GLContextShareSet.getShareContext(this);
             if (null != shareWith) {
                 shareWith.getDrawableImpl().lockSurface();

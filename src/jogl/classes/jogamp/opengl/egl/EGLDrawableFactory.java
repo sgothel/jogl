@@ -232,7 +232,11 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return sr;
     }
 
-    public final boolean getWasSharedContextCreated(AbstractGraphicsDevice device) {
+    protected final Thread getSharedResourceThread() {
+        return null;
+    }
+    
+    protected final boolean createSharedResource(AbstractGraphicsDevice device) {
         try {
             SharedResource sr = getOrCreateEGLSharedResource(device);
             if(null!=sr) {

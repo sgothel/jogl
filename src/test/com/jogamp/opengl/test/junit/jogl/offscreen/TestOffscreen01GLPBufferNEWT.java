@@ -56,7 +56,6 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
         glpDefault = GLProfile.getDefault();
         Assert.assertNotNull(glpDefault);
         glDrawableFactory = GLDrawableFactory.getFactory(glpDefault);

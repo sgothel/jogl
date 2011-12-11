@@ -44,6 +44,10 @@ public class SharedResourceRunner implements Runnable {
     }
 
     public static interface Implementation {
+        /**
+         * @param connection for creation a {@link AbstractGraphicsDevice} instance. 
+         * @return A new shared resource instance 
+         */
         Resource createSharedResource(String connection);
         void releaseSharedResource(Resource shared);
         void clear();
@@ -53,15 +57,15 @@ public class SharedResourceRunner implements Runnable {
         Collection<Resource> mapValues();
     }
 
-    Implementation impl = null;
+    final HashSet<String> devicesTried = new HashSet<String>();
+    final Implementation impl;
 
-    boolean ready = false;
-    boolean released = false;
-    boolean shouldRelease = false;
-    String initConnection = null;
-    String releaseConnection = null;
-
-    HashSet<String> devicesTried = new HashSet<String>();
+    Thread thread;
+    boolean ready;
+    boolean released;
+    boolean shouldRelease;
+    String initConnection;
+    String releaseConnection;
 
     private boolean getDeviceTried(String connection) {
         synchronized (devicesTried) {
@@ -81,22 +85,82 @@ public class SharedResourceRunner implements Runnable {
 
     public SharedResourceRunner(Implementation impl) {
         this.impl = impl;
+        resetState();
+    }
+    
+    private void resetState() {
+        devicesTried.clear();
+        thread = null;
+        ready = false;
+        released = false;
+        shouldRelease = false;
+        initConnection = null;
+        releaseConnection = null;
     }
 
+    /** 
+     * Start the shared resource runner thread, if not running.
+     * <p>
+     * Validate the thread upfront and release all related resource if it was killed.
+     * </p>
+     * 
+     * @return the shared resource runner thread.
+     */
+    public Thread start() {
+        if(null != thread && !thread.isAlive()) {
+            // thread was killed unrecognized ..
+            if (DEBUG) {
+                System.err.println("SharedResourceRunner.start() - dead-old-thread cleanup - "+Thread.currentThread().getName());
+            }
+            releaseSharedResources();
+            thread = null;
+        }        
+        if(null == thread) {
+            if (DEBUG) {
+                System.err.println("SharedResourceRunner.start() - start new Thread - "+Thread.currentThread().getName());
+            }
+            resetState();
+            thread = new Thread(this, Thread.currentThread().getName()+"-SharedResourceRunner");
+            thread.setDaemon(true); // Allow JVM to exit, even if this one is running
+            thread.start();
+        }
+        return thread;
+    }
+    
+    public void stop() {
+        if(null != thread) {
+            if (DEBUG) {
+                System.err.println("SharedResourceRunner.stop() - "+Thread.currentThread().getName());
+            }
+            synchronized (this) {
+                shouldRelease = true;
+                this.notifyAll();
+    
+                while (!released) {
+                    try {
+                        this.wait();
+                    } catch (InterruptedException ex) {
+                    }
+                }
+            }
+        }
+    }
+    
     public SharedResourceRunner.Resource getOrCreateShared(AbstractGraphicsDevice device) {
         SharedResourceRunner.Resource sr = null;
         if(null != device) {
+            start();
             final String connection = device.getConnection();
             sr = impl.mapGet(connection);
             if (null == sr && !getDeviceTried(connection)) {
                 addDeviceTried(connection);
                 if (DEBUG) {
-                    System.err.println("getOrCreateShared() " + connection + ": trying");
+                    System.err.println("SharedResourceRunner.getOrCreateShared() " + connection + ": trying - "+Thread.currentThread().getName());
                 }
                 doAndWait(connection, null);
                 sr = impl.mapGet(connection);
                 if (DEBUG) {
-                    System.err.println("getOrCreateShared() " + connection + ": "+ ( ( null != sr ) ? "success" : "failed" ) );               
+                    System.err.println("SharedResourceRunner.getOrCreateShared() " + connection + ": "+ ( ( null != sr ) ? "success" : "failed" ) +" - "+Thread.currentThread().getName());
                 }
             }
         }
@@ -111,11 +175,11 @@ public class SharedResourceRunner implements Runnable {
             if (null != sr) {
                 removeDeviceTried(connection);
                 if (DEBUG) {
-                    System.err.println("releaseShared() " + connection + ": trying");
+                    System.err.println("SharedResourceRunner.releaseShared() " + connection + ": trying - "+Thread.currentThread().getName());
                 }
                 doAndWait(null, connection);
                 if (DEBUG) {
-                    System.err.println("releaseShared() " + connection + ": done");
+                    System.err.println("SharedResourceRunner.releaseShared() " + connection + ": done - "+Thread.currentThread().getName());
                 }
             }
         }
@@ -125,9 +189,9 @@ public class SharedResourceRunner implements Runnable {
     private final void doAndWait(String initConnection, String releaseConnection) {
         // wait until thread becomes ready to init new device,
         // pass the device and release the sync
-        String threadName = Thread.currentThread().getName();
+        final String threadName = Thread.currentThread().getName();
         if (DEBUG) {
-            System.err.println(threadName + " doAndWait START init: " + initConnection + ", release: "+releaseConnection);
+            System.err.println("SharedResourceRunner.doAndWait() START init: " + initConnection + ", release: "+releaseConnection+" - "+threadName);
         }
         synchronized (this) {
             while (!ready) {
@@ -137,7 +201,7 @@ public class SharedResourceRunner implements Runnable {
                 }
             }
             if (DEBUG) {
-                System.err.println(threadName + " initializeAndWait set command init: " + initConnection + ", release: "+releaseConnection);
+                System.err.println("SharedResourceRunner.doAndWait() set command: " + initConnection + ", release: "+releaseConnection+" - "+threadName);
             }
             this.initConnection = initConnection;
             this.releaseConnection = releaseConnection;
@@ -151,31 +215,17 @@ public class SharedResourceRunner implements Runnable {
                 }
             }
             if (DEBUG) {
-                System.err.println(threadName + " initializeAndWait END init: " + initConnection + ", release: "+releaseConnection);
+                System.err.println("SharedResourceRunner.initializeAndWait END init: " + initConnection + ", release: "+releaseConnection+" - "+threadName);
             }
         }
         // done
     }
 
-    public final void releaseAndWait() {
-        synchronized (this) {
-            shouldRelease = true;
-            this.notifyAll();
-
-            while (!released) {
-                try {
-                    this.wait();
-                } catch (InterruptedException ex) {
-                }
-            }
-        }
-    }
-
     public final void run() {
-        String threadName = Thread.currentThread().getName();
+        final String threadName = Thread.currentThread().getName();
 
         if (DEBUG) {
-            System.err.println(threadName + " STARTED");
+            System.err.println("SharedResourceRunner.run(): STARTED - " + threadName);
         }
 
         synchronized (this) {
@@ -184,21 +234,27 @@ public class SharedResourceRunner implements Runnable {
                     // wait for stop or init
                     ready = true;
                     if (DEBUG) {
-                        System.err.println(threadName + " -> ready");
+                        System.err.println("SharedResourceRunner.run(): READY - " + threadName);
                     }
                     notifyAll();
                     this.wait();
-                } catch (InterruptedException ex) { }
+                } catch (InterruptedException ex) { 
+                    shouldRelease = true;
+                    if(DEBUG) {
+                        System.err.println("SharedResourceRunner.run(): INTERRUPTED - "+Thread.currentThread().getName());                        
+                        ex.printStackTrace();
+                    }
+                }
                 ready = false;
 
                 if (!shouldRelease) {
                     if (DEBUG) {
-                        System.err.println(threadName + " woke up for device connection init: " + initConnection +
-                                                        ", release: " + releaseConnection);
+                        System.err.println("SharedResourceRunner.run(): WOKE UP for device connection init: " + initConnection +
+                                           ", release: " + releaseConnection + " - " + threadName);
                     }
                     if(null != initConnection) {
                         if (DEBUG) {
-                            System.err.println(threadName + " create Shared for: " + initConnection);
+                            System.err.println("SharedResourceRunner.run(): create Shared for: " + initConnection + " - " + threadName);
                         }
                         Resource sr = null;
                         try {
@@ -212,7 +268,7 @@ public class SharedResourceRunner implements Runnable {
                     }
                     if(null != releaseConnection) {
                         if (DEBUG) {
-                            System.err.println(threadName + " release Shared for: " + releaseConnection);
+                            System.err.println("SharedResourceRunner.run(): release Shared for: " + releaseConnection + " - " + threadName);
                         }
                         Resource sr = impl.mapGet(releaseConnection);
                         if (null != sr) {
@@ -230,25 +286,34 @@ public class SharedResourceRunner implements Runnable {
             }
 
             if (DEBUG) {
-                System.err.println(threadName + " release START");
+                System.err.println("SharedResourceRunner.run(): RELEASE START - " + threadName);
             }
 
             releaseSharedResources();
 
             if (DEBUG) {
-                System.err.println(threadName + " release END");
+                System.err.println("SharedResourceRunner.run(): RELEASE END - " + threadName);
             }
 
+            shouldRelease = false;
             released = true;
-            ready = false;
+            thread = null;
             notifyAll();
         }
     }
 
     private void releaseSharedResources() {
+        synchronized (devicesTried) {
+            devicesTried.clear();
+        }
         Collection<Resource> sharedResources = impl.mapValues();
         for (Iterator<Resource> iter = sharedResources.iterator(); iter.hasNext();) {
-            impl.releaseSharedResource(iter.next());
+            try {
+                impl.releaseSharedResource(iter.next());
+            } catch (Throwable t) {
+                System.err.println("Catched Exception: "+t.getStackTrace()+" - "+Thread.currentThread().getName());
+                t.printStackTrace();
+            }
         }
         impl.clear();
     }

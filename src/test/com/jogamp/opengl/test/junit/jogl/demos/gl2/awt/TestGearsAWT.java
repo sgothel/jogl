@@ -55,7 +55,6 @@ public class TestGearsAWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(firstUIActionOnProcess);
         glp = GLProfile.getDefault();
         Assert.assertNotNull(glp);
         width  = 512;

@@ -54,7 +54,6 @@ public class TestSharedContextVBOES2NEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
         glp = GLProfile.getDefault();
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);

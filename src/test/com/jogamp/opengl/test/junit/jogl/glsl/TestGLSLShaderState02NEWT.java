@@ -58,11 +58,6 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
     static final int vertices0_loc = 0; // FIXME: AMD needs this to be location 0 ? hu ?
     static final int colors0_loc = 5;
     
-    @BeforeClass
-    public static void initClass() {
-        GLProfile.initSingleton(true);
-    }
-    
     @Test
     public void testShaderState01ValidationSP1Linked() throws InterruptedException {
         testShaderState01Validation(true);

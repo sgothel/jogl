@@ -59,7 +59,6 @@ public class TestGearsES2NEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
         /*if(GLProfile.isAvailable(GLProfile.getDefaultEGLDevice(), GLProfile.GLES2)) {
             // exact match
             glp = GLProfile.get(GLProfile.getDefaultEGLDevice(), GLProfile.GLES2);

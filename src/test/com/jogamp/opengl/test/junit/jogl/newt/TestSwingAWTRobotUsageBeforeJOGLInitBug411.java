@@ -112,9 +112,6 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
     public static void setup() throws InterruptedException, InvocationTargetException, AWTException {
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.setup(): Start Pre-JOGL-Swing");
 
-        // GLProfile.initSingleton(false);
-        // GLProfile.initSingleton(true);
-
         // simulate AWT usage before JOGL's initialization of X11 threading
         windowClosing=false;
         border = BorderFactory.createLineBorder (Color.yellow, 2);
@@ -166,8 +163,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.setup(): Before JOGL init");
 
         // just to trigger JOGL initialization at a well defined point ..
-        // ofc it's not the first UI command
-        GLProfile.initSingleton(false);
+        GLProfile.initSingleton();
 
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.setup(): End Pre-JOGL-Swing");
     }

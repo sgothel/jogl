@@ -61,7 +61,6 @@ public class TestOffscreen02BitmapNEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
         glpDefault = GLProfile.getDefault();
         Assert.assertNotNull(glpDefault);
         glDrawableFactory = GLDrawableFactory.getFactory(glpDefault);

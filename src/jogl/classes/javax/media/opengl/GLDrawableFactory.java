@@ -89,7 +89,6 @@ import javax.media.opengl.GLProfile.ShutdownType;
     property <code>opengl.factory.class.name</code> to the
     fully-qualified name of the desired class. </P>
 */
-
 public abstract class GLDrawableFactory {
 
   private static final String nativeOSType;
@@ -274,18 +273,31 @@ public abstract class GLDrawableFactory {
   }
 
   /**
-   * Returns true if a shared context could be created while initialization 
-   * of shared resources for <code>device</code> {@link AbstractGraphicsDevice#getConnection()}.<br>
-   * This does not imply a shared context is mapped, but was available<br>.
+   * Validate and start the shared resource runner thread if necessary and 
+   * if the implementation uses it.
+   * 
+   * @return the shared resource runner thread, if implementation uses it.
+   */
+  protected abstract Thread getSharedResourceThread();
+  
+  /**
+   * Create the shared resource used internally as a reference for capabilities etc.
+   * <p>
+   * Returns true if a shared resource could be created 
+   * for the <code>device</code> {@link AbstractGraphicsDevice#getConnection()}.<br>
+   * This does not imply a shared resource is mapped (ie. made persistent), but is available in general<br>.
+   * </p>
    *
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @return true if a shared resource could been created, otherwise false. 
    */
-  public abstract boolean getWasSharedContextCreated(AbstractGraphicsDevice device);
-
+  protected abstract boolean createSharedResource(AbstractGraphicsDevice device);
+  
   /**
    * Returns the sole GLDrawableFactory instance for the desktop (X11, WGL, ..) if exist or null
    */
   public static GLDrawableFactory getDesktopFactory() {
+    initSingleton();    
     return nativeOSFactory;
   }
 
@@ -293,6 +305,7 @@ public abstract class GLDrawableFactory {
    * Returns the sole GLDrawableFactory instance for EGL if exist or null
    */
   public static GLDrawableFactory getEGLFactory() {
+    initSingleton();    
     return eglFactory;
   }
 

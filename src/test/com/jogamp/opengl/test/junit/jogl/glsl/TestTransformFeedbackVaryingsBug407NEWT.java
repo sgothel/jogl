@@ -29,11 +29,6 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
 
     private String VERTEX_SHADER_TEXT;
 
-    @BeforeClass
-    public static void initClass() {
-        GLProfile.initSingleton(true);
-    }
-
     class MyShader {
         int shaderProgram;
         int vertShader;

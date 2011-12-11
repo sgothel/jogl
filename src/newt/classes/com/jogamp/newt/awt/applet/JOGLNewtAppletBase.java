@@ -43,6 +43,7 @@ import jogamp.newt.Debug;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseListener;
+import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
@@ -199,6 +200,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     public void start() {
         if(isValid) {
             glWindow.setVisible(true);
+            glWindow.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
             glAnimator.start();
             awtParent = glWindow.getParent();
         }

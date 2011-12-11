@@ -57,11 +57,9 @@ public class TestParenting03AWT extends UITestCase {
     static long durationPerTest = 1100;
     static long waitAdd2nd = 500;
     static GLCapabilities glCaps;
-    static boolean firstUIActionOnProcess = false;
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(firstUIActionOnProcess);
         glSize = new Dimension(400,200);
         fSize = new Dimension(3*400,2*200);
         glCaps = new GLCapabilities(null);
@@ -217,8 +215,6 @@ public class TestParenting03AWT extends UITestCase {
                 durationPerTest = atoi(args[++i]);
             } else if(args[i].equals("-wait")) {
                 waitAdd2nd = atoi(args[++i]);
-            } else if(args[i].equals("-firstUIAction")) {
-                firstUIActionOnProcess = true;
             }
         }
         String tstname = TestParenting03AWT.class.getName();

@@ -54,12 +54,6 @@ import org.junit.AfterClass;
 public class TestGLSLSimple01NEWT extends UITestCase {
     static long durationPerTest = 100; // ms
 
-    @BeforeClass
-    public static void initClass() {
-        System.err.println("class init");
-        GLProfile.initSingleton(true);
-    }
-
     @Test(timeout=60000)
     public void testGLSLCompilation01() {
         GLProfile glp = GLProfile.get(GLProfile.GL2ES2);

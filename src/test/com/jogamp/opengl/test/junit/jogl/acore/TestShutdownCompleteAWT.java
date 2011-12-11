@@ -88,7 +88,7 @@ public class TestShutdownCompleteAWT extends UITestCase {
     }
 
     protected void oneLife() throws InterruptedException, InvocationTargetException {
-        GLProfile.initSingleton(false);
+        GLProfile.initSingleton();
         runTestGL();        
         GLProfile.shutdown(GLProfile.ShutdownType.COMPLETE);        
     }

@@ -72,7 +72,7 @@ public class TestShutdownSharedNEWT extends UITestCase {
     }
 
     protected void oneLife() throws InterruptedException {
-        GLProfile.initSingleton(false);
+        GLProfile.initSingleton();
         runTestGL();        
         GLProfile.shutdown(GLProfile.ShutdownType.SHARED_ONLY);        
     }

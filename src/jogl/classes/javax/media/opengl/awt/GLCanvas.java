@@ -1047,7 +1047,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     // System.err.println(NativeWindowVersion.getInstance());
     System.err.println(JoglVersion.getInstance());
 
-    GLProfile.initSingleton(false);
     GLDrawableFactory factory = GLDrawableFactory.getDesktopFactory();
     List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(null);
     for(int i=0; i<availCaps.size(); i++) {

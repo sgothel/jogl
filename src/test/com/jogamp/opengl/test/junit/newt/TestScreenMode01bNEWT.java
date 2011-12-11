@@ -65,7 +65,6 @@ public class TestScreenMode01bNEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        GLProfile.initSingleton(true);
         width  = 100;
         height = 100;
         glp = GLProfile.getDefault();

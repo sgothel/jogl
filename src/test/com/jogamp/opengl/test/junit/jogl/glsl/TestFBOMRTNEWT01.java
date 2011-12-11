@@ -56,11 +56,6 @@ import org.junit.BeforeClass;
 public class TestFBOMRTNEWT01 extends UITestCase {
     static long durationPerTest = 10; // ms
 
-    @BeforeClass
-    public static void initClass() {
-        GLProfile.initSingleton(true);
-    }
-    
     @Test
     public void test01() throws InterruptedException {
         // preset ..

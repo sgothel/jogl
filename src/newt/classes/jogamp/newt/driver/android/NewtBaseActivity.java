@@ -27,8 +27,6 @@
  */
 package jogamp.newt.driver.android;
 
-import javax.media.opengl.GLProfile;
-
 import com.jogamp.newt.Window;
 import com.jogamp.opengl.util.Animator;
 
@@ -100,9 +98,6 @@ public class NewtBaseActivity extends Activity {
            jogamp.common.os.android.StaticContext.setContext(extActivity.getApplicationContext());
        }
        extActivity.getWindow();
-
-       // init GLProfile
-       GLProfile.initSingleton(true);       
    }
    
    @Override

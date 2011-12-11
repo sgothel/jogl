@@ -119,17 +119,14 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     
         // Init shared resources off thread
         // Will be released via ShutdownHook
-        sharedResourceImpl = new SharedResourceImplementation();
-        sharedResourceRunner = new SharedResourceRunner(sharedResourceImpl);
-        sharedResourceThread = new Thread(sharedResourceRunner, Thread.currentThread().getName()+"-SharedResourceRunner");
-        sharedResourceThread.setDaemon(true); // Allow JVM to exit, even if this one is running
-        sharedResourceThread.start();
+        sharedResourceRunner = new SharedResourceRunner(new SharedResourceImplementation());
+        sharedResourceRunner.start();
     }
   }
 
   protected final void destroy(ShutdownType shutdownType) {
     if(null != sharedResourceRunner) {
-        sharedResourceRunner.releaseAndWait();
+        sharedResourceRunner.stop();
         sharedResourceRunner = null;
     }
     if(null != sharedMap) {
@@ -153,9 +150,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   private WindowsGraphicsDevice defaultDevice;
-  private SharedResourceImplementation sharedResourceImpl;
   private SharedResourceRunner sharedResourceRunner;
-  private Thread sharedResourceThread;
   private HashMap<String /*connection*/, SharedResourceRunner.Resource> sharedMap;
 
   private long processAffinityChanges = 0;
@@ -397,7 +392,11 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   final static String WGL_ARB_make_current_read = "WGL_ARB_make_current_read";
   final static String wglMakeContextCurrent = "wglMakeContextCurrent";
 
-  public final boolean getWasSharedContextCreated(AbstractGraphicsDevice device) {
+  protected final Thread getSharedResourceThread() {
+    return sharedResourceRunner.start();
+  }
+  
+  protected final boolean createSharedResource(AbstractGraphicsDevice device) {
     try {
         SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
         if(null!=sr) {

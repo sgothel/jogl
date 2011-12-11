@@ -111,17 +111,14 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         
         // Init shared resources off thread
         // Will be released via ShutdownHook
-        sharedResourceImpl = new SharedResourceImplementation();
-        sharedResourceRunner = new SharedResourceRunner(sharedResourceImpl);
-        sharedResourceThread = new Thread(sharedResourceRunner, Thread.currentThread().getName()+"-SharedResourceRunner");
-        sharedResourceThread.setDaemon(true); // Allow JVM to exit, even if this one is running
-        sharedResourceThread.start();        
+        sharedResourceRunner = new SharedResourceRunner(new SharedResourceImplementation());
+        sharedResourceRunner.start();
     }    
   }
 
   protected final void destroy(ShutdownType shutdownType) {
     if(null != sharedResourceRunner) {
-        sharedResourceRunner.releaseAndWait();
+        sharedResourceRunner.stop();
         sharedResourceRunner = null;
     }
     if(null != sharedMap) {
@@ -147,9 +144,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   private X11GraphicsDevice defaultDevice;
-  private SharedResourceImplementation sharedResourceImpl;
   private SharedResourceRunner sharedResourceRunner;
-  private Thread sharedResourceThread;
   private HashMap<String /* connection */, SharedResourceRunner.Resource> sharedMap;  
 
   static class SharedResource implements SharedResourceRunner.Resource {
@@ -322,7 +317,11 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       return false;
   }
 
-  public final boolean getWasSharedContextCreated(AbstractGraphicsDevice device) {
+  protected final Thread getSharedResourceThread() {
+    return sharedResourceRunner.start();
+  }
+    
+  protected final boolean createSharedResource(AbstractGraphicsDevice device) {
     try {
         SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
         if(null!=sr) {

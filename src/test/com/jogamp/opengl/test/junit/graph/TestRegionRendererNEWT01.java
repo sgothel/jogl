@@ -32,11 +32,6 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         org.junit.runner.JUnitCore.main(tstname);
     }    
     
-    @BeforeClass
-    public static void initClass() {
-        GLProfile.initSingleton(true);
-    }
-
     static void destroyWindow(GLWindow window) {
         if(null!=window) {
             window.destroy();

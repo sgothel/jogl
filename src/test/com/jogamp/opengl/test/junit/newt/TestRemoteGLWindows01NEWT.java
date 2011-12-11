@@ -48,17 +48,9 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 
 public class TestRemoteGLWindows01NEWT extends UITestCase {
-    static int width, height;
+    static int width = 640, height = 480;
     static long durationPerTest = 100; // ms
     static String remoteDisplay = "localhost:0.0";
-
-    @BeforeClass
-    public static void initClass() {
-        GLProfile.initSingleton(true);
-        // GLProfile.initSingleton(false);
-        width  = 640;
-        height = 480;
-    }
 
     static GLWindow createWindow(Screen screen, GLCapabilities caps, GLEventListener demo)
         throws InterruptedException

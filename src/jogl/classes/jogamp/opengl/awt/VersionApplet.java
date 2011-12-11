@@ -131,7 +131,6 @@ public class VersionApplet extends Applet {
 
   public void init() {
     System.err.println("VersionApplet: init() - begin");
-    GLProfile.initSingleton(false);
     my_init();
     System.err.println("VersionApplet: init() - end");
   }
@@ -151,7 +150,6 @@ public class VersionApplet extends Applet {
   public void destroy() {
     System.err.println("VersionApplet: destroy() - start");
     my_release();
-    GLProfile.shutdown(GLProfile.ShutdownType.SHARED_ONLY);
     System.err.println("VersionApplet: destroy() - end");
   }
 
