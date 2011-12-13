@@ -59,6 +59,9 @@ public class TestRulerNEWT01 extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException {
+        long t0 = System.nanoTime();
+        GLProfile.initSingleton();
+        long t1 = System.nanoTime();
         // preset ..
         final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(GLProfile.getGL2ES2(), 640, 480, true);
         final GLDrawable drawable = winctx.context.getGLDrawable();
@@ -156,7 +159,15 @@ public class TestRulerNEWT01 extends UITestCase {
             Thread.sleep(durationPerTest/10);
         }
         
+        long t2 = System.nanoTime();
+        
         NEWTGLContext.destroyWindow(winctx);
+        
+        long t3 = System.nanoTime();
+        
+        System.err.println("t1-t0: "+ (t1-t0)/10e6 +"ms"); 
+        System.err.println("t3-t0: "+ (t3-t0)/10e6 +"ms"); 
+        System.err.println("t3-t2: "+ (t3-t2)/10e6 +"ms"); 
     }
     
     public static void main(String args[]) throws IOException {

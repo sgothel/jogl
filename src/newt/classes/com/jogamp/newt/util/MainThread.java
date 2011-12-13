@@ -102,7 +102,6 @@ public class MainThread {
     
     static {
         final AccessControlContext localACC = AccessController.getContext();
-        Platform.initSingleton();
         NativeWindowFactory.initSingleton(true);
         NEWTJNILibLoader.loadNEWT();
         HINT_USE_MAIN_THREAD = !NativeWindowFactory.isAWTAvailable() || 

@@ -91,7 +91,6 @@ import javax.media.opengl.GLProfile.ShutdownType;
 */
 public abstract class GLDrawableFactory {
 
-  private static final String nativeOSType;
   static final String macosxFactoryClassNameCGL = "jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory";
   static final String macosxFactoryClassNameAWTCGL = "jogamp.opengl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
   
@@ -104,10 +103,6 @@ public abstract class GLDrawableFactory {
   // Shutdown hook mechanism for the factory
   private static boolean factoryShutdownHookRegistered = false;
   private static Thread factoryShutdownHook = null;
-
-  static {
-    nativeOSType = NativeWindowFactory.getNativeWindowType(true);
-  }
 
   /**
    * Instantiate singleton factories if available, EGLES1, EGLES2 and the OS native ones.
@@ -125,6 +120,7 @@ public abstract class GLDrawableFactory {
   private static final void initSingletonImpl() {
     registerFactoryShutdownHook();
     
+    final String nativeOSType = NativeWindowFactory.getNativeWindowType(true);
     GLDrawableFactory tmp = null;
     String factoryClassName = Debug.getProperty("jogl.gldrawablefactory.class.name", true, AccessController.getContext());
     ClassLoader cl = GLDrawableFactory.class.getClassLoader();
@@ -297,7 +293,7 @@ public abstract class GLDrawableFactory {
    * Returns the sole GLDrawableFactory instance for the desktop (X11, WGL, ..) if exist or null
    */
   public static GLDrawableFactory getDesktopFactory() {
-    initSingleton();    
+    GLProfile.initSingleton();    
     return nativeOSFactory;
   }
 
@@ -305,7 +301,7 @@ public abstract class GLDrawableFactory {
    * Returns the sole GLDrawableFactory instance for EGL if exist or null
    */
   public static GLDrawableFactory getEGLFactory() {
-    initSingleton();    
+    GLProfile.initSingleton();    
     return eglFactory;
   }
 

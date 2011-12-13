@@ -87,9 +87,17 @@ public class TestShutdownSharedAWT extends UITestCase {
     }
 
     protected void oneLife() throws InterruptedException, InvocationTargetException {
+        long t0 = System.nanoTime();
         GLProfile.initSingleton();
+        long t1 = System.nanoTime();
         runTestGL();        
+        long t2 = System.nanoTime();
         GLProfile.shutdown(GLProfile.ShutdownType.SHARED_ONLY);        
+        long t3 = System.nanoTime();
+        System.err.println("Total:                          "+ (t3-t0)/10e6 +"ms"); 
+        System.err.println("  GLProfile.initSingleton():    "+ (t1-t0)/10e6 +"ms"); 
+        System.err.println("  Demo Code:                    "+ (t2-t1)/10e6 +"ms"); 
+        System.err.println("  GLProfile.shutdown(SHARED):   "+ (t3-t2)/10e6 +"ms"); 
     }
     
     @Test
