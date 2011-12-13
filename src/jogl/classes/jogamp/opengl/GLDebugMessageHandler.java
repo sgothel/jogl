@@ -123,7 +123,14 @@ public class GLDebugMessageHandler {
             }
             return;            
         }
-        
+        if(Platform.OS_TYPE == Platform.OSType.WINDOWS && Platform.is32Bit()) {
+            // Currently buggy, ie. throws an exception after leaving the native callback.
+            // Probably a 32bit on 64bit JVM / OpenGL-driver issue.
+            if(DEBUG) {
+                System.err.println("GLDebugMessageHandler: Windows 32bit currently not supported!");
+            }
+            return;
+        }
         if( ctx.isExtensionAvailable(GL_ARB_debug_output) ) {
             extName = GL_ARB_debug_output;
             extType = EXT_ARB;
@@ -230,18 +237,10 @@ public class GLDebugMessageHandler {
     final void enableImpl(boolean enable) throws GLException {
         if(enable) {
             if(0 == handle) {
-                if(Platform.OS_TYPE == Platform.OSType.WINDOWS && Platform.is32Bit()) {
-                    // Currently buggy, ie. throws an exception after leaving the native callback.
-                    // Probably a 32bit on 64bit JVM / OpenGL-driver issue.
-                    if(DEBUG) {
-                        System.err.println("GLDebugMessageHandler: Windows 32bit currently not supported!");
-                    }
-                } else {
-                    setSynchronousImpl();
-                    handle = register0(glDebugMessageCallbackProcAddress, extType);
-                    if(0 == handle) {
-                        throw new GLException("Failed to register via \"glDebugMessageCallback*\" using "+extName);
-                    }
+                setSynchronousImpl();
+                handle = register0(glDebugMessageCallbackProcAddress, extType);
+                if(0 == handle) {
+                    throw new GLException("Failed to register via \"glDebugMessageCallback*\" using "+extName);
                 }
             }
         } else {
