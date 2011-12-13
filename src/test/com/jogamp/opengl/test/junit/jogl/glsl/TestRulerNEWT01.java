@@ -165,9 +165,9 @@ public class TestRulerNEWT01 extends UITestCase {
         
         long t3 = System.nanoTime();
         
-        System.err.println("t1-t0: "+ (t1-t0)/10e6 +"ms"); 
-        System.err.println("t3-t0: "+ (t3-t0)/10e6 +"ms"); 
-        System.err.println("t3-t2: "+ (t3-t2)/10e6 +"ms"); 
+        System.err.println("t1-t0: "+ (t1-t0)/1e6 +"ms"); 
+        System.err.println("t3-t0: "+ (t3-t0)/1e6 +"ms"); 
+        System.err.println("t3-t2: "+ (t3-t2)/1e6 +"ms"); 
     }
     
     public static void main(String args[]) throws IOException {
