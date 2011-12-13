@@ -35,6 +35,7 @@ import javax.media.opengl.GLDebugListener;
 import javax.media.opengl.GLDebugMessage;
 import javax.media.opengl.GLException;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import jogamp.opengl.gl4.GL4bcProcAddressTable;
 
@@ -199,7 +200,7 @@ public class GLDebugMessageHandler {
      */
     public final void setSynchronous(boolean synchronous) {
         this.synchronous = synchronous;
-        if(isEnabled() && isExtensionARB()) {
+        if( isEnabled() ) {
             setSynchronousImpl();
         }
     }    
@@ -227,12 +228,20 @@ public class GLDebugMessageHandler {
         enableImpl(enable);
     }        
     final void enableImpl(boolean enable) throws GLException {
-        setSynchronousImpl();
         if(enable) {
             if(0 == handle) {
-                handle = register0(glDebugMessageCallbackProcAddress, extType);
-                if(0 == handle) {
-                    throw new GLException("Failed to register via \"glDebugMessageCallback*\" using "+extName);
+                if(Platform.OS_TYPE == Platform.OSType.WINDOWS && Platform.is32Bit()) {
+                    // Currently buggy, ie. throws an exception after leaving the native callback.
+                    // Probably a 32bit on 64bit JVM / OpenGL-driver issue.
+                    if(DEBUG) {
+                        System.err.println("GLDebugMessageHandler: Windows 32bit currently not supported!");
+                    }
+                } else {
+                    setSynchronousImpl();
+                    handle = register0(glDebugMessageCallbackProcAddress, extType);
+                    if(0 == handle) {
+                        throw new GLException("Failed to register via \"glDebugMessageCallback*\" using "+extName);
+                    }
                 }
             }
         } else {

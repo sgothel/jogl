@@ -35,21 +35,22 @@ typedef void (GLAPIENTRY* _local_GLDEBUGPROCAMD)(GLuint id,GLenum category,GLenu
 JNIEXPORT jboolean JNICALL Java_jogamp_opengl_GLDebugMessageHandler_initIDs0
   (JNIEnv *env, jclass clazz)
 {
+    jboolean res;
     JoglCommon_init(env);
 
     glDebugMessageARB = (*env)->GetMethodID(env, clazz, "glDebugMessageARB", "(IIIILjava/lang/String;)V");
     glDebugMessageAMD = (*env)->GetMethodID(env, clazz, "glDebugMessageAMD", "(IIILjava/lang/String;)V");
 
-    if ( NULL == glDebugMessageARB || NULL == glDebugMessageAMD ) {
-        return JNI_FALSE;
-    }
-    return JNI_TRUE;
+    res = ( NULL != glDebugMessageARB && NULL != glDebugMessageAMD ) ? JNI_TRUE : JNI_FALSE ;
+
+    DBG_PRINT("GLDebugMessageHandler.initIDS0: OK: %d, ARB %p, AMD %p\n", res, glDebugMessageARB, glDebugMessageAMD);
+
+    return res;
 }
 
 typedef struct {
     JavaVM *vm;
     int version;
-    JNIEnv *env;
     jobject obj;
     int extType;
 } DebugHandlerType;
@@ -65,10 +66,12 @@ static void GLDebugMessageARBCallback(GLenum source, GLenum type, GLuint id, GLe
     JNIEnv *curEnv = NULL;
     JNIEnv *newEnv = NULL;
     int envRes ;
-    DBG_PRINT("GLDebugMessageARBCallback: 01 - %s\n", message);
+    DBG_PRINT("GLDebugMessageARBCallback: 00 - %s, vm %p, version 0x%X, jobject %p, extType %d\n", 
+        message, handle->vm, handle->version, (void*)handle->obj, handle->extType);
 
     // retrieve this thread's JNIEnv curEnv - or detect it's detached
     envRes = (*vm)->GetEnv(vm, (void **) &curEnv, version) ;
+    DBG_PRINT("GLDebugMessageARBCallback: 01 - JVM Env: curEnv %p, res 0x%X\n", curEnv, envRes);
     if( JNI_EDETACHED == envRes ) {
         // detached thread - attach to JVM
         if( JNI_OK != ( envRes = (*vm)->AttachCurrentThread(vm, (void**) &newEnv, NULL) ) ) {
@@ -107,9 +110,12 @@ static void GLDebugMessageAMDCallback(GLuint id, GLenum category, GLenum severit
     JNIEnv *curEnv = NULL;
     JNIEnv *newEnv = NULL;
     int envRes ;
+    DBG_PRINT("GLDebugMessageAMDCallback: 00 - %s, vm %p, version 0x%X, jobject %p, extType %d\n", 
+        message, handle->vm, handle->version, (void*)handle->obj, handle->extType);
 
     // retrieve this thread's JNIEnv curEnv - or detect it's detached
     envRes = (*vm)->GetEnv(vm, (void **) &curEnv, version) ;
+    DBG_PRINT("GLDebugMessageAMDCallback: 01 - JVM Env: curEnv %p, res 0x%X\n", curEnv, envRes);
     if( JNI_EDETACHED == envRes ) {
         // detached thread - attach to JVM
         if( JNI_OK != ( envRes = (*vm)->AttachCurrentThread(vm, (void**) &newEnv, NULL) ) ) {
@@ -117,6 +123,7 @@ static void GLDebugMessageAMDCallback(GLuint id, GLenum category, GLenum severit
             return;
         }
         curEnv = newEnv;
+        DBG_PRINT("GLDebugMessageAMDCallback: 02 - attached .. \n");
     } else if( JNI_OK != envRes ) {
         // oops ..
         fprintf(stderr, "GLDebugMessageAMDCallback: can't GetEnv: %d\n", envRes);
@@ -128,7 +135,9 @@ static void GLDebugMessageAMDCallback(GLuint id, GLenum category, GLenum severit
     if( NULL != newEnv ) {
         // detached attached thread
         (*vm)->DetachCurrentThread(vm);
+        DBG_PRINT("GLDebugMessageAMDCallback: 04 - detached .. \n");
     }
+    DBG_PRINT("GLDebugMessageAMDCallback: 0X\n");
     /**
      * On Java 32bit on 64bit Windows,
      * the unit test com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT crashes after this point.
@@ -152,9 +161,10 @@ JNIEXPORT jlong JNICALL Java_jogamp_opengl_GLDebugMessageHandler_register0
     }
     handle->vm = vm;
     handle->version = (*env)->GetVersion(env);
-    handle->env = env;
     handle->obj = (*env)->NewGlobalRef(env, obj);
     handle->extType = extType;
+    DBG_PRINT("GLDebugMessageHandler.register0: vm %p, version 0x%X, jobject %p, extType %d\n", 
+        handle->vm, handle->version, (void*)handle->obj, handle->extType);
 
     if(jogamp_opengl_GLDebugMessageHandler_EXT_ARB == extType) {
         _local_PFNGLDEBUGMESSAGECALLBACKARBPROC ptr_glDebugMessageCallbackARB;
@@ -181,9 +191,9 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_GLDebugMessageHandler_unregister0
 {
     DebugHandlerType * handle = (DebugHandlerType*) (intptr_t) jhandle;
 
-    if(env != handle->env) {
-        JoglCommon_throwNewRuntimeException(env, "wrong handle (env doesn't match)");
-    }
+    DBG_PRINT("GLDebugMessageHandler.unregister0: vm %p, version 0x%X, jobject %p, extType %d\n", 
+        handle->vm, handle->version, (void*)handle->obj, handle->extType);
+
     if(JNI_FALSE == (*env)->IsSameObject(env, obj, handle->obj)) {
         JoglCommon_throwNewRuntimeException(env, "wrong handle (obj doesn't match)");
     }

@@ -19,7 +19,10 @@ REM set D_ARGS="-Dnewt.debug.Window" "-Dnativewindow.debug.TraceLock"
 REM set D_ARGS="-Dnativewindow.debug.TraceLock"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display"
 set D_ARGS="-Djogl.debug=all"
+REM set D_ARGS="-Djogl.debug.DebugGL" "-Djogl.debug.TraceGL"
+REM set D_ARGS="-Djogl.debug.DebugGL" "-Djogl.debug.TraceGL" "-Djogl.debug=all"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display" "-Dnewt.test.Window.reparent.incompatible=true"
+REM set D_ARGS="-Xcheck:jni" "-Xint" "-verbose:jni"
 
 set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true"
 

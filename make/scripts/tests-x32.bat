@@ -41,5 +41,6 @@ REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT0
 REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
 
-scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
-REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01
+REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
+scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01
+
