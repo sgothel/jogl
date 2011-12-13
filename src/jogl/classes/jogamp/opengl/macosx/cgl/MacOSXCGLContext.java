@@ -95,7 +95,12 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     // We exclude 3.0, since we would map it's core to GL2. Hence we force mapping 2.1 to GL2
     if(3==major && 1<=minor && minor<=2) {
         // [3.1..3.2] -> GL3*
+        if(!isLionOrLater) {
+            // no GL3* on pre lion
+            return false;
+        }
         if(ctBwdCompat) {
+            // no compatibility profile on OS X
             return false;
         }
         return ctCore;
