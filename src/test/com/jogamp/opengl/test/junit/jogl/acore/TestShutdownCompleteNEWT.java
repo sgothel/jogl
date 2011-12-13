@@ -28,7 +28,9 @@
  
 package com.jogamp.opengl.test.junit.jogl.acore;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
@@ -72,10 +74,15 @@ public class TestShutdownCompleteNEWT extends UITestCase {
     }
 
     protected void oneLife() throws InterruptedException {
+        if(waitForEach) {
+            waitForEnter();
+        }
         long t0 = System.nanoTime();
         GLProfile.initSingleton();
         long t1 = System.nanoTime();
-        runTestGL();        
+        if(!initOnly) {
+            runTestGL();
+        }
         long t2 = System.nanoTime();
         GLProfile.shutdown(GLProfile.ShutdownType.COMPLETE);        
         long t3 = System.nanoTime();
@@ -101,7 +108,35 @@ public class TestShutdownCompleteNEWT extends UITestCase {
         oneLife();
     }
     
+    static boolean initOnly = false;
+    static boolean waitForEach = false;
+    
+    static void waitForEnter() {
+        BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+        System.err.println("Press enter to continue");
+        try {
+            System.err.println(stdin.readLine());
+        } catch (IOException e) { }        
+    }
+    
     public static void main(String args[]) throws IOException {
+        boolean waitForKey = false;
+        
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-wait")) {
+                waitForKey = true;
+            } else if(args[i].equals("-waitForEach")) {
+                waitForEach = true;
+                waitForKey = true;
+            } else if(args[i].equals("-initOnly")) {
+                initOnly = true;
+            }
+        }
+        
+        if(waitForKey) {
+            waitForEnter();
+        }
+        
         String tstname = TestShutdownCompleteNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }

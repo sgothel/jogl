@@ -53,7 +53,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
     super(drawable, null);
     this.contextHandle = ctx;
     GLContextShareSet.contextCreated(this);
-    setGLFunctionAvailability(false, true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
+    setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
     getGLStateTracker().setEnabled(false); // external context usage can't track state in Java
   }
 

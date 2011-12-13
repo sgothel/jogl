@@ -614,7 +614,7 @@ public abstract class GLContextImpl extends GLContext {
         _ctp[0] |= additionalCtxCreationFlags;
         _ctx = createContextARBImpl(share, direct, _ctp[0], _major[0], _minor[0]);
         if(0!=_ctx) {
-            setGLFunctionAvailability(true, true, _major[0], _minor[0], _ctp[0]);
+            setGLFunctionAvailability(true, _major[0], _minor[0], _ctp[0]);
         }
     }
     return _ctx;
@@ -690,7 +690,6 @@ public abstract class GLContextImpl extends GLContext {
             ctp |= CTX_PROFILE_ES2_COMPAT;
         }
         GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, major[0], minor[0], ctp);
-        setGLFunctionAvailability(true, true, major[0], minor[0], ctp);
         destroyContextARBImpl(_context);
         if (DEBUG) {
           System.err.println(getThreadName() + ": !!! createContextARBMapVersionsAvailable HAVE: "+
@@ -708,8 +707,9 @@ public abstract class GLContextImpl extends GLContext {
     major[0]=majorMax;
     minor[0]=minorMax;
     long _context=0;
+    boolean ok = false;
 
-    while ( 0==_context &&
+    while ( !ok &&
             GLContext.isValidGLVersion(major[0], minor[0]) &&
             ( major[0]>majorMin || major[0]==majorMin && minor[0] >=minorMin ) ) {
 
@@ -718,15 +718,20 @@ public abstract class GLContextImpl extends GLContext {
         }
         _context = createContextARBImpl(share, direct, ctxOptionFlags, major[0], minor[0]);
 
-        boolean ok = 0!=_context;
+        if(0 != _context) {
+            ok = true;
+            setGLFunctionAvailability(true, major[0], minor[0], ctxOptionFlags);            
+        } else {
+            ok = false;            
+        }
         
         if(ok && major[0]>=3) {
             int[] hasMajor = new int[1]; int[] hasMinor = new int[1];
-            setGLFunctionAvailability(true, false, major[0], minor[0], ctxOptionFlags);
             gl.glGetIntegerv(GL3.GL_MAJOR_VERSION, hasMajor, 0);
             gl.glGetIntegerv(GL3.GL_MINOR_VERSION, hasMinor, 0);
             ok = hasMajor[0]>major[0] || ( hasMajor[0]==major[0] && hasMinor[0]>=minor[0] ) ;
             if(!ok) {
+                removeCachedVersion(major[0], minor[0], ctxOptionFlags);
                 destroyContextARBImpl(_context);
                 _context = 0;
             }
@@ -734,6 +739,7 @@ public abstract class GLContextImpl extends GLContext {
                 System.err.println(getThreadName() + ": createContextARBVersions: version verification - expected "+major[0]+"."+minor[0]+", has "+hasMajor[0]+"."+hasMinor[0]+" == "+ok);
             }
         }
+        
         if(!ok) {
             if(!GLContext.decrementGLVersion(major, minor)) break;
         }
@@ -885,15 +891,15 @@ public abstract class GLContextImpl extends GLContext {
    *
    * @param force force the setting, even if is already being set.
    *              This might be useful if you change the OpenGL implementation.
-   * @param cached whether this version's data shall be cached or not
    * @param major OpenGL major version
    * @param minor OpenGL minor version
    * @param ctxProfileBits OpenGL context profile and option bits, see {@link javax.media.opengl.GLContext#CTX_OPTION_ANY}
+   * 
    * @see #setContextVersion
    * @see javax.media.opengl.GLContext#CTX_OPTION_ANY
    * @see javax.media.opengl.GLContext#CTX_PROFILE_COMPAT
    */
-  protected final void setGLFunctionAvailability(boolean force, boolean cached, int major, int minor, int ctxProfileBits) {
+  protected final void setGLFunctionAvailability(boolean force, int major, int minor, int ctxProfileBits) {
     if(null!=this.gl && null!=glProcAddressTable && !force) {
         return; // already done and not forced
     }
@@ -935,12 +941,10 @@ public abstract class GLContextImpl extends GLContext {
                                                                  new Object[] { new GLProcAddressResolver() } );
         }
         resetProcAddressTable(getGLProcAddressTable());
-        if(cached) {
-            synchronized(mappedContextTypeObjectLock) {
-                mappedGLProcAddress.put(contextFQN, getGLProcAddressTable());
-                if(DEBUG) {
-                    System.err.println(getThreadName() + ": !!! GLContext GL ProcAddressTable mapping key("+contextFQN+") -> "+getGLProcAddressTable().hashCode());
-                }
+        synchronized(mappedContextTypeObjectLock) {
+            mappedGLProcAddress.put(contextFQN, getGLProcAddressTable());
+            if(DEBUG) {
+                System.err.println(getThreadName() + ": !!! GLContext GL ProcAddressTable mapping key("+contextFQN+") -> "+getGLProcAddressTable().hashCode());
             }
         }
     }
@@ -950,34 +954,56 @@ public abstract class GLContextImpl extends GLContext {
     //
     setContextVersion(major, minor, ctxProfileBits);
 
-    if(cached) {
-        //
-        // Update ExtensionAvailabilityCache
-        //
-        ExtensionAvailabilityCache eCache;
-        synchronized(mappedContextTypeObjectLock) {
-            eCache = mappedExtensionAvailabilityCache.get( contextFQN );
+    //
+    // Update ExtensionAvailabilityCache
+    //
+    ExtensionAvailabilityCache eCache;
+    synchronized(mappedContextTypeObjectLock) {
+        eCache = mappedExtensionAvailabilityCache.get( contextFQN );
+    }
+    if(null !=  eCache) {
+        extensionAvailability = eCache;
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache reusing key("+contextFQN+") -> "+eCache.hashCode());
         }
-        if(null !=  eCache) {
-            extensionAvailability = eCache;
+    } else {
+        if(null==extensionAvailability) {
+            extensionAvailability = new ExtensionAvailabilityCache(this);
+        }
+        extensionAvailability.reset();
+        synchronized(mappedContextTypeObjectLock) {
+            mappedExtensionAvailabilityCache.put(contextFQN, extensionAvailability);
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache reusing key("+contextFQN+") -> "+eCache.hashCode());
-            }
-        } else {
-            if(null==extensionAvailability) {
-                extensionAvailability = new ExtensionAvailabilityCache(this);
-            }
-            extensionAvailability.reset();
-            synchronized(mappedContextTypeObjectLock) {
-                mappedExtensionAvailabilityCache.put(contextFQN, extensionAvailability);
-                if(DEBUG) {
-                    System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+extensionAvailability.hashCode());
-                }
+                System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+extensionAvailability.hashCode());
             }
         }
     }
   }
 
+  protected final void removeCachedVersion(int major, int minor, int ctxProfileBits) {
+    AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
+    AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
+    final int ctxImplBits = drawable.getChosenGLCapabilities().getHardwareAccelerated() ? GLContext.CTX_IMPL_ACCEL_HARD : GLContext.CTX_IMPL_ACCEL_SOFT;
+    contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits, ctxImplBits);
+    if (DEBUG) {
+      System.err.println(getThreadName() + ": !!! RM Context FQN: "+contextFQN);
+    }
+
+    synchronized(mappedContextTypeObjectLock) {
+        ProcAddressTable table = mappedGLProcAddress.remove( contextFQN );
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": !!! RM GLContext GL ProcAddressTable mapping key("+contextFQN+") -> "+table.hashCode());
+        }
+    }
+
+    synchronized(mappedContextTypeObjectLock) {
+        ExtensionAvailabilityCache  eCache = mappedExtensionAvailabilityCache.get( contextFQN );
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": !!! RM GLContext GL ExtensionAvailabilityCache reusing key("+contextFQN+") -> "+eCache.hashCode());
+        }
+    }
+  }
+  
   /**
    * Updates the platform's 'GLX' function cache
    */

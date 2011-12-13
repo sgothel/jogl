@@ -28,7 +28,9 @@
  
 package com.jogamp.opengl.test.junit.jogl.acore;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
@@ -102,6 +104,22 @@ public class TestShutdownSharedNEWT extends UITestCase {
     }
     
     public static void main(String args[]) throws IOException {
+        boolean waitForKey = false;
+        
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-wait")) {
+                waitForKey = true;
+            }
+        }
+        
+        if(waitForKey) {
+            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            System.err.println("Press enter to continue");
+            try {
+                System.err.println(stdin.readLine());
+            } catch (IOException e) { }
+        }
+        
         String tstname = TestShutdownSharedNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }

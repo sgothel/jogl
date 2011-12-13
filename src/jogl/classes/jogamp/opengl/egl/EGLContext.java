@@ -209,7 +209,7 @@ public abstract class EGLContext extends GLContextImpl {
         } else {            
             major = 1;
         }
-        setGLFunctionAvailability(true, true, major, 0, ctp);
+        setGLFunctionAvailability(true, major, 0, ctp);
         return true;
     }
 
