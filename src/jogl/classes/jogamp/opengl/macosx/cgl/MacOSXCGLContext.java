@@ -477,9 +477,12 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   texHeight = drawable.getHeight();                  
               }              
               nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, drawable.getHandle(), fixedCaps.isBackgroundOpaque(), texWidth, texHeight);
+              if(0>=texWidth || 0>=texHeight || !drawable.isRealized()) {
+                  throw new GLException("Drawable not realized yet or invalid texture size, texSize "+texWidth+"x"+texHeight+", "+drawable);
+              }
               if (DEBUG) {
-                  System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer));
-              }              
+                  System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer)+", texSize "+texWidth+"x"+texHeight+", "+drawable);
+              }
               backingLayerHost.attachSurfaceLayer(nsOpenGLLayer);
           }
         } finally {
