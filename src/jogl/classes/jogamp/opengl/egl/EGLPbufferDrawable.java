@@ -53,7 +53,6 @@ public class EGLPbufferDrawable extends EGLDrawable {
 
     protected EGLPbufferDrawable(EGLDrawableFactory factory, NativeSurface target) {
         super(factory, target);
-        setRealized(true);
     }
 
     protected void destroyImpl() {

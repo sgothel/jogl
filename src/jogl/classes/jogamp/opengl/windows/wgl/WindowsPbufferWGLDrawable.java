@@ -64,8 +64,6 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   
   protected WindowsPbufferWGLDrawable(GLDrawableFactory factory, NativeSurface target) {
     super(factory, target, false);
-    
-    setRealized(true);
   }
 
   protected void destroyImpl() {

@@ -58,7 +58,6 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
 
   protected WindowsBitmapWGLDrawable(GLDrawableFactory factory, NativeSurface target) {
     super(factory, target, false);
-    setRealized(true);
   }
 
   protected void destroyImpl() {

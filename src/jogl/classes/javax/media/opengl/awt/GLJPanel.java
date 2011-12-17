@@ -1031,6 +1031,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                                                 chooser,
                                                 Math.max(1, panelWidth),
                                                 Math.max(1, panelHeight));
+      offscreenDrawable.setRealized(true);
       offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith);
       offscreenContext.setSynchronized(true);
       offscreenContext.setContextCreationFlags(additionalCtxCreationFlags);

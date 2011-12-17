@@ -49,7 +49,6 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
 
   protected X11PixmapGLXDrawable(GLDrawableFactory factory, NativeSurface target) {
     super(factory, target, false);
-    setRealized(true);
   }
 
   protected void destroyImpl() {

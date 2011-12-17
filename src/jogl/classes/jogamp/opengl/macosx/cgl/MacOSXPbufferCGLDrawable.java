@@ -74,12 +74,8 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   protected long pBuffer;
   protected int pBufferTexTarget, pBufferTexWidth, pBufferTexHeight;
 
-  public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, NativeSurface target, boolean realizeNow) {
+  public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, NativeSurface target) {
     super(factory, target, false);
-
-    if(realizeNow) {
-        setRealized(true);
-    }
   }
 
   protected void destroyImpl() {

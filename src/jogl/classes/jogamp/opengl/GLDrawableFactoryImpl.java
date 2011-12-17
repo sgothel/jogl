@@ -134,29 +134,26 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     GLDrawable result = null;
     adevice.lock();
     try {
-        if(chosenCaps.isOnscreen()) {
-            // onscreen
-            final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(target, true);
-            if(null == ols) {
-                // traditional onscreen
-                if(DEBUG) {
-                    System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target);
-                }
-                result = createOnscreenDrawableImpl(target);
-            } else {            
-                // layered surface -> offscreen/PBuffer
-                final GLCapabilities chosenCapsMod = (GLCapabilities) chosenCaps.cloneMutable();
-                chosenCapsMod.setOnscreen(false);
-                chosenCapsMod.setPBuffer(canCreateGLPbuffer(adevice));
-                config.setChosenCapabilities(chosenCapsMod);
-                if(DEBUG) {
-                    System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable -> Offscreen-Layer: "+target);
-                }
-                if( ! ( target instanceof SurfaceChangeable ) ) {
-                    throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen layered surface: "+target);
-                }
-                result = createOffscreenDrawableImpl(target);
+        final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(target, true);
+        if(null != ols) {
+            // layered surface -> Offscreen/PBuffer
+            final GLCapabilities chosenCapsMod = (GLCapabilities) chosenCaps.cloneMutable();
+            chosenCapsMod.setOnscreen(false);
+            chosenCapsMod.setPBuffer(canCreateGLPbuffer(adevice));
+            config.setChosenCapabilities(chosenCapsMod);
+            if(DEBUG) {
+                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable -> Offscreen-Layer: "+target);
             }
+            if( ! ( target instanceof SurfaceChangeable ) ) {
+                throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen layered surface: "+target);
+            }
+            result = createOffscreenDrawableImpl(target);            
+        } else if(chosenCaps.isOnscreen()) {
+            // onscreen
+            if(DEBUG) {
+                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target);
+            }
+            result = createOnscreenDrawableImpl(target);
         } else {
             // offscreen
             if(DEBUG) {
@@ -215,6 +212,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     device.lock();
     try {
         drawable = (GLDrawableImpl) createGLDrawable( createOffscreenSurfaceImpl(device, capsChosen, capsRequested, chooser, width, height) );
+        if(null != drawable) {
+            drawable.setRealized(true);
+        }
     } finally {
         device.unlock();
     }

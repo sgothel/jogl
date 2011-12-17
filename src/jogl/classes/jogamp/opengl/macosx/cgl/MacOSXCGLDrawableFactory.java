@@ -215,6 +215,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
             caps.setPBuffer(true);
             final MacOSXCGLDrawable drawable = (MacOSXCGLDrawable) createGLDrawable( createOffscreenSurfaceImpl(sharedDevice, caps, caps, null, 64, 64) );        
             if(null!=drawable) {
+                drawable.setRealized(true);
                 final GLContext context = drawable.createContext(null);
                 if (null != context) {
                     context.setSynchronized(true);
@@ -302,7 +303,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     if(!caps.isPBuffer()) {
         return new MacOSXOffscreenCGLDrawable(this, target);
     }
-    return new MacOSXPbufferCGLDrawable(this, target, true);
+    return new MacOSXPbufferCGLDrawable(this, target);
   }
 
   public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {

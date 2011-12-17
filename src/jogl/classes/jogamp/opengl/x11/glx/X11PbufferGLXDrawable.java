@@ -49,12 +49,6 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
                                   GLCapabilitiesChooser chooser,
                                   int width, int height */
     super(factory, target, false);
-
-    setRealized(true);
-
-    if (DEBUG) {
-        System.err.println("Created pbuffer " + this);
-    }
   }
 
   protected void destroyImpl() {
@@ -133,6 +127,10 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       GLX.glXQueryDrawable(display, pbuffer, GLX.GLX_HEIGHT, tmp, 0);
       int height = tmp[0];
       ((SurfaceChangeable)ns).surfaceSizeChanged(width, height);
+      
+      if (DEBUG) {
+        System.err.println("Created pbuffer " + this);
+      }
   }
 
   public int getFloatingPointMode() {
