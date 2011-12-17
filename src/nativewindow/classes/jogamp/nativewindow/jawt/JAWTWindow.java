@@ -48,6 +48,7 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.OffscreenLayerOption;
 import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
@@ -59,7 +60,7 @@ import javax.media.nativewindow.util.RectangleImmutable;
 
 import jogamp.nativewindow.SurfaceUpdatedHelper;
 
-public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface {
+public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface, OffscreenLayerOption {
   protected static final boolean DEBUG = JAWTUtil.DEBUG;
 
   // user properties
@@ -102,20 +103,16 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
     this.isApplet = false;
   }
   
-  /** 
-   * Request an JAWT offscreen layer if supported.
-   * Shall be called before {@link #lockSurface()}.
-   * 
-   * @see #getShallUseOffscreenLayer()
-   * @see #isOffscreenLayerSurfaceEnabled() 
-   */
   public void setShallUseOffscreenLayer(boolean v) {
       shallUseOffscreenLayer = v;
   }
   
-  /** Returns the property set by {@link #setShallUseOffscreenLayer(boolean)}. */
   public final boolean getShallUseOffscreenLayer() {
       return shallUseOffscreenLayer;
+  }
+  
+  public final boolean isOffscreenLayerSurfaceEnabled() { 
+      return isOffscreenLayerSurface;
   }
   
   protected synchronized void invalidate() {
@@ -165,14 +162,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
       return jawt;
   }
 
-  /** 
-   * {@inheritDoc}
-   * @see #setShallUseOffscreenLayer(boolean) 
-   */
-  public final boolean isOffscreenLayerSurfaceEnabled() { 
-      return isOffscreenLayerSurface;
-  }
-  
   /** 
    * {@inheritDoc}
    */
@@ -356,7 +345,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
 
   public synchronized void destroy() {
     invalidate();    
-    getGraphicsConfiguration().getScreen().getDevice().close();
     component = null; // don't dispose the AWT component, since we are merely an immutable uplink 
   }
 
@@ -454,14 +442,15 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface 
       return component.hasFocus();
   }
   
-    @Override
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
 
     sb.append("JAWT-Window["+
                 "windowHandle 0x"+Long.toHexString(getWindowHandle())+
                 ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
-                ", bounds "+bounds+", insets "+insets);
+                ", bounds "+bounds+", insets "+insets+
+                ", shallUseOffscreenLayer "+shallUseOffscreenLayer+", isOffscreenLayerSurface "+isOffscreenLayerSurface);
     if(null!=component) {
       sb.append(", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                 ", visible "+component.isVisible());

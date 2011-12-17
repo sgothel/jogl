@@ -28,21 +28,34 @@
 package javax.media.nativewindow;
 
 /**
- * Interface specifying the offscreen layer surface protocol.
+ * Handling requests for using an {@link OffscreenLayerSurface}
+ * within the implementation.
  */
-public interface OffscreenLayerSurface {
-  /** 
-   * Attach the offscreen layer to this offscreen layer surface.
-   * @see #isOffscreenLayerSurfaceEnabled()
-   * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false
-   */
-  public void attachSurfaceLayer(final long layerHandle) throws NativeWindowException;
-  
-  /** 
-   * Detaches a previously attached offscreen layer from this offscreen layer surface.
-   * @see #attachSurfaceLayer(long)
-   * @see #isOffscreenLayerSurfaceEnabled()
-   * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false
-   */
-  public void detachSurfaceLayer(final long layerHandle) throws NativeWindowException;
+public interface OffscreenLayerOption {
+    /** 
+     * Request an offscreen layer, if supported.
+     * <p>
+     * Shall be called before the first {@link NativeWindow#lockSurface()},
+     * and hence before realization.
+     * </p>
+     * 
+     * @see #getShallUseOffscreenLayer()
+     * @see #isOffscreenLayerSurfaceEnabled() 
+     */
+    public void setShallUseOffscreenLayer(boolean v);
+
+    /** Returns the property set by {@link #setShallUseOffscreenLayer(boolean)}. */
+    public boolean getShallUseOffscreenLayer();
+
+    /** 
+     * Returns true if this instance uses an offscreen layer, otherwise false.
+     * <p>
+     * This instance is an offscreen layer, if {@link #setShallUseOffscreenLayer(boolean) setShallUseOffscreenLayer(true)}
+     * has been called before it's realization and first lock and the underlying implementation supports it.
+     * </p>
+     * The return value is undefined before issuing the first {@link NativeWindow#lockSurface()}.
+     *  
+     * @see #setShallUseOffscreenLayer(boolean) 
+     */
+    public boolean isOffscreenLayerSurfaceEnabled();
 }

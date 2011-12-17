@@ -42,6 +42,7 @@ import java.security.PrivilegedAction;
 import java.util.Set;
 
 import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.OffscreenLayerOption;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.awt.AWTWindowClosingProtocol;
 import javax.swing.MenuSelectionManager;
@@ -66,7 +67,7 @@ import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTMouseAdapter;
 
 @SuppressWarnings("serial")
-public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProtocol {
+public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProtocol, OffscreenLayerOption {
     public static final boolean DEBUG = Debug.debug("Window");
 
     private JAWTWindow jawtWindow = null;
@@ -115,28 +116,18 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         setNEWTChild(child);
     }
     
-    /** 
-     * Request an JAWT offscreen layer if supported it. 
-     * Shall be called before {@link #addNotify()} is issued, 
-     * ie. before adding the component to the AWT tree and make it visible.
-     * 
-     * @see #isOffscreenLayerSurface()
-     */
     public void setShallUseOffscreenLayer(boolean v) {
         shallUseOffscreenLayer = v;
     }
     
-    /** 
-     * Returns true if the underlying JAWT uses offscreen layering, 
-     * otherwise false. This information is valid only after {@link #addNotify()} is issued, 
-     * ie. before adding the component to the AWT tree and make it visible.
-     * 
-     * @see #setShallUseOffscreenLayer(boolean)
-     */
-    public boolean isOffscreenLayerSurface() {
-        return jawtWindow.isOffscreenLayerSurfaceEnabled();
+    public final boolean getShallUseOffscreenLayer() {
+        return shallUseOffscreenLayer;        
     }
     
+    public final boolean isOffscreenLayerSurfaceEnabled() { 
+        return jawtWindow.isOffscreenLayerSurfaceEnabled();
+    }
+      
     /** 
      * Returns true if the AWT component is parented to an {@link java.applet.Applet}, 
      * otherwise false. This information is valid only after {@link #addNotify()} is issued, 
@@ -404,7 +395,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
           newtChild.setVisible(false);
           newtChild.reparentWindow(null);
           if(null != jawtWindow) {
-              jawtWindow.destroy();
+              NewtFactoryAWT.destroyNativeWindow(jawtWindow);
               jawtWindow=null;
           }
       }
@@ -429,7 +420,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             }
             configureNewtChild(false);
             if(null!=jawtWindow) {
-                jawtWindow.destroy();
+                NewtFactoryAWT.destroyNativeWindow(jawtWindow);
                 jawtWindow=null;
             }
             newtChild.setVisible(false);
@@ -440,7 +431,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 cont.remove(this);
             }
         }
-    }
+    }    
 
     @Override
     public void paint(Graphics g) {

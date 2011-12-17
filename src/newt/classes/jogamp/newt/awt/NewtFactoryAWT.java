@@ -28,6 +28,7 @@
  
 package jogamp.newt.awt;
 
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
@@ -74,6 +75,13 @@ public class NewtFactoryAWT extends NewtFactory {
         System.err.println("NewtFactoryAWT.getNativeWindow: "+awtComp+" -> "+nw);
       }
       return (JAWTWindow)nw;
-  }  
+  }
+    
+  public static void destroyNativeWindow(JAWTWindow jawtWindow) {
+      final AbstractGraphicsConfiguration config = jawtWindow.getGraphicsConfiguration();
+      jawtWindow.destroy();
+      config.getScreen().getDevice().close();      
+  }
+    
 }
 

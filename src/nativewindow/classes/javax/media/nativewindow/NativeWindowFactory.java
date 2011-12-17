@@ -528,24 +528,28 @@ public abstract class NativeWindowFactory {
      * Returns the {@link OffscreenLayerSurface} instance of this {@link NativeSurface}.
      * <p>
      * In case this surface is a {@link NativeWindow}, we traverse from the given surface 
-     * up to root until a {@link OffscreenLayerSurface} is found.
+     * up to root until an implementation of {@link OffscreenLayerSurface} is found.
+     * In case <code>ifEnabled</code> is true, the surface must also implement {@link OffscreenLayerOption}
+     * where {@link OffscreenLayerOption#isOffscreenLayerSurfaceEnabled()} is <code>true</code>.  
      * </p>
      * 
      * @param surface The surface to query.
-     * @param ifEnabled If true, only return the enabled {@link OffscreenLayerSurface}, see {@link OffscreenLayerSurface#isOffscreenLayerSurfaceEnabled()}. 
+     * @param ifEnabled If true, only return the enabled {@link OffscreenLayerSurface}, see {@link OffscreenLayerOption#isOffscreenLayerSurfaceEnabled()}. 
      * @return
      */
     public static OffscreenLayerSurface getOffscreenLayerSurface(NativeSurface surface, boolean ifEnabled) {
-        if(surface instanceof OffscreenLayerSurface) {
+        if(surface instanceof OffscreenLayerSurface && 
+           ( !ifEnabled || surface instanceof OffscreenLayerOption ) ) {
             final OffscreenLayerSurface ols = (OffscreenLayerSurface) surface;
-            return ( !ifEnabled || ols.isOffscreenLayerSurfaceEnabled() ) ? ols : null;
+            return ( !ifEnabled || ((OffscreenLayerOption)ols).isOffscreenLayerSurfaceEnabled() ) ? ols : null;
         }
         if(surface instanceof NativeWindow) {
             NativeWindow nw = ((NativeWindow) surface).getParent();
             while(null != nw) {
-                if(nw instanceof OffscreenLayerSurface) {
+                if(nw instanceof OffscreenLayerSurface &&
+                   ( !ifEnabled || nw instanceof OffscreenLayerOption ) ) {
                     final OffscreenLayerSurface ols = (OffscreenLayerSurface) nw;
-                    return ( !ifEnabled || ols.isOffscreenLayerSurfaceEnabled() ) ? ols : null;
+                    return ( !ifEnabled || ((OffscreenLayerOption)ols).isOffscreenLayerSurfaceEnabled() ) ? ols : null;
                 }
                 nw = nw.getParent();                
             }

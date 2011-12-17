@@ -39,7 +39,8 @@ import java.lang.reflect.InvocationTargetException;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
-import javax.media.opengl.awt.GLCanvas;
+
+import jogamp.nativewindow.jawt.JAWTUtil;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -49,19 +50,22 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
-public class TestParentingOffscreenLayer01AWT extends UITestCase {
-    static Dimension frameSize;
+public class TestParentingOffscreenLayer02NewtCanvasAWT extends UITestCase {
+    static Dimension frameSize0;
+    static Dimension frameSize1;
     static Dimension preferredGLSize;
     static Dimension minGLSize;
-    static long durationPerTest = 800;
+    static long durationPerTest = 1000;
 
     @BeforeClass
     public static void initClass() {
-        frameSize = new Dimension(500,300);
+        frameSize0 = new Dimension(500,300);
+        frameSize1 = new Dimension(800,600);
         preferredGLSize = new Dimension(400,200);
         minGLSize = new Dimension(200,100);
     }
@@ -85,7 +89,6 @@ public class TestParentingOffscreenLayer01AWT extends UITestCase {
         
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-                // f.pack();
                 f.validate();
                 f.setVisible(true);
             }});        
@@ -101,48 +104,26 @@ public class TestParentingOffscreenLayer01AWT extends UITestCase {
         }
     }
     
-    // @Test
-    public void testOffscreenLayerPath0_GLCanvas() throws InterruptedException, InvocationTargetException {
+    @Test
+    public void testOnscreenLayerNewtCanvas_Onscreen() throws InterruptedException, InvocationTargetException {
+        testOffscreenLayerNewtCanvas_Impl(false, false);
+    }
+    
+    @Test
+    public void testOffscreenLayerNewtCanvas_OffscreenLayerWithOffscreenClass() throws InterruptedException, InvocationTargetException {
+        testOffscreenLayerNewtCanvas_Impl(true, true);
+    }
+    
+    @Test
+    public void testOffscreenLayerNewtCanvas_OffscreenLayerWithOnscreenClass() throws InterruptedException, InvocationTargetException {
+        testOffscreenLayerNewtCanvas_Impl(true, false);
+    }
+    
+    private void testOffscreenLayerNewtCanvas_Impl(boolean offscreenLayer, boolean offscreenClass) throws InterruptedException, InvocationTargetException {
         final Frame frame1 = new Frame("AWT Parent Frame");
         
         GLCapabilities glCaps = new GLCapabilities(null);
-        final GLCanvas glc = new GLCanvas(glCaps);
-        glc.setPreferredSize(preferredGLSize);
-        glc.setMinimumSize(minGLSize);
-        
-        GLEventListener demo1 = new GearsES2(1);
-        glc.addGLEventListener(demo1);
-        
-        frame1.setSize(frameSize);
-        setupFrameAndShow(frame1, glc);
-        
-        GLAnimatorControl animator1 = new Animator(glc);
-        animator1.start();
-
-        Thread.sleep(durationPerTest);
-        end(animator1, frame1, null);
-    }
-
-    @Test
-    public void testOnscreenLayer() throws InterruptedException, InvocationTargetException {
-        testOffscreenLayerPath1_Impl(false, false);
-    }
-    
-    @Test
-    public void testOffscreenLayerPath1_NewtOffscreen() throws InterruptedException, InvocationTargetException {
-        testOffscreenLayerPath1_Impl(true, true);
-    }
-    
-    @Test
-    public void testOffscreenLayerPath1_NewtOnscreen() throws InterruptedException, InvocationTargetException {
-        testOffscreenLayerPath1_Impl(true, false);
-    }
-    
-    private void testOffscreenLayerPath1_Impl(boolean offscreenLayer, boolean newtOffscreenClass) throws InterruptedException, InvocationTargetException {
-        final Frame frame1 = new Frame("AWT Parent Frame");
-        
-        GLCapabilities glCaps = new GLCapabilities(null);
-        if(newtOffscreenClass) {
+        if(offscreenClass) {
             glCaps.setOnscreen(false);
             glCaps.setPBuffer(true);
         }
@@ -159,26 +140,29 @@ public class TestParentingOffscreenLayer01AWT extends UITestCase {
         glWindow1.addGLEventListener(demo1);
         glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1));
         
-        frame1.setSize(frameSize);
+        frame1.setSize(frameSize0);
         setupFrameAndShow(frame1, newtCanvasAWT1);
-        Assert.assertTrue(glWindow1.isNativeValid());
+        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glWindow1, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true));
         Assert.assertEquals(newtCanvasAWT1.getNativeWindow(),glWindow1.getParent());
-        
+        Assert.assertEquals(JAWTUtil.isOffscreenLayerSupported() && offscreenLayer, 
+                            newtCanvasAWT1.isOffscreenLayerSurfaceEnabled());
+
         GLAnimatorControl animator1 = new Animator(glWindow1);
         animator1.start();
 
-        Thread.sleep(durationPerTest);
+        Thread.sleep(durationPerTest/2);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame1.setSize(frameSize1);
+                frame1.validate();
+            }});        
+        
+        Thread.sleep(durationPerTest/2);
+        
         end(animator1, frame1, glWindow1);
     }
 
-    // @Test
-    public void testOffscreenLayerPath2_NewtOffscreen() throws InterruptedException, InvocationTargetException {
-        testOffscreenLayerPath2_Impl(true);
-    }
-    
-    private void testOffscreenLayerPath2_Impl(boolean newtOffscreenClass) throws InterruptedException, InvocationTargetException {
-    }
-    
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
@@ -206,7 +190,7 @@ public class TestParentingOffscreenLayer01AWT extends UITestCase {
                 durationPerTest = atoi(args[++i]);
             }
         }
-        String tstname = TestParentingOffscreenLayer01AWT.class.getName();
+        String tstname = TestParentingOffscreenLayer02NewtCanvasAWT.class.getName();
         /*
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
