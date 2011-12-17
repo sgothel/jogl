@@ -18,7 +18,7 @@ REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.newt.TestGLWindows01
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot
-REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot
+scripts\java-win32.bat com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.nativewindow.TestRecursiveToolkitLockCORE
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT -time 100000
 
@@ -42,5 +42,5 @@ REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
 
 REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
-scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01
+REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01
 
