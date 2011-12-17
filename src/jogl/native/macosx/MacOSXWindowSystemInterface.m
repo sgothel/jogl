@@ -603,7 +603,7 @@ Bool deleteContext(NSOpenGLContext* ctx, Bool releaseOnMainThread) {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
   [ctx clearDrawable];
   if(releaseOnMainThread && NO == [NSThread isMainThread]) {
-      [ctx performSelectorOnMainThread:@selector(release) withObject:nil waitUntilDone:YES];
+      [ctx performSelectorOnMainThread:@selector(release) withObject:nil waitUntilDone:NO];
   } else {
       // would hangs for ~10s for 1 of a shared context set or offscreen context, set releaseOnMainThread=true !
       [ctx release]; 

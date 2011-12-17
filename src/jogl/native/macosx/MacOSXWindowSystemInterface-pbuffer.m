@@ -55,6 +55,8 @@
 
 - (void)deallocTex;
 - (void)disableAnimation;
+- (void)releaseLayer;
+- (void)dealloc;
 - (int)getSwapInterval;
 - (void)setSwapInterval:(int)interval;
 - (void)tick;
@@ -94,7 +96,10 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
        texWidth: (int) _texWidth 
        texHeight: (int) _texHeight;
 {
-    pthread_mutex_init(&renderLock, NULL); // fast non-recursive
+    pthread_mutexattr_t renderLockAttr;
+    pthread_mutexattr_init(&renderLockAttr);
+    pthread_mutexattr_settype(&renderLockAttr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&renderLock, &renderLockAttr); // recursive
     pthread_cond_init(&renderSignal, NULL); // no attribute
 
     // no animations for add/remove/swap sublayers etc 
@@ -200,6 +205,17 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
         [pbuffer release];
         pbuffer = NULL;
     }
+    pthread_mutex_unlock(&renderLock);
+}
+
+- (void)releaseLayer
+{
+    DBG_PRINT("MyNSOpenGLLayer::releaseLayer.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
+    pthread_mutex_lock(&renderLock);
+    [self disableAnimation];
+    [self deallocTex];
+    [self release];
+    DBG_PRINT("MyNSOpenGLLayer::releaseLayer.X: %p (refcnt %d)\n", self, (int)[self retainCount]);
     pthread_mutex_unlock(&renderLock);
 }
 
@@ -450,16 +466,15 @@ void setNSOpenGLLayerNeedsDisplay(NSOpenGLLayer* layer) {
 void releaseNSOpenGLLayer(NSOpenGLLayer* layer) {
     MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    DBG_PRINT("MyNSOpenGLLayer::releaseNSOpenGLLayer.0: %p (refcnt %d)\n", l, (int)[l retainCount]);
+    DBG_PRINT("MyNSOpenGLLayer::releaseNSOpenGLLayer.0: %p\n", l);
 
-    [l performSelectorOnMainThread:@selector(disableAnimation) withObject:nil waitUntilDone:YES];
-    // [l disableAnimation];
+    if ( [NSThread isMainThread] == YES ) {
+        [l releaseLayer];
+    } else { 
+        [l performSelectorOnMainThread:@selector(releaseLayer) withObject:nil waitUntilDone:NO];
+    }
 
-    [l performSelectorOnMainThread:@selector(deallocTex) withObject:nil waitUntilDone:YES];
-    // [l deallocTex];
-
-    [l release];
-    DBG_PRINT("MyNSOpenGLLayer::releaseNSOpenGLLayer.X: %p (refcnt %d)\n", l, (int)[l retainCount]);
+    DBG_PRINT("MyNSOpenGLLayer::releaseNSOpenGLLayer.X: %p\n", l);
     [pool release];
 }
 
