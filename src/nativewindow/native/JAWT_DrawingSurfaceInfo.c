@@ -59,6 +59,13 @@ Java_jogamp_nativewindow_jawt_JAWT_1DrawingSurfaceInfo_platformInfo0(JNIEnv* env
     return NULL;
   }
   if (dsi->platformInfo == NULL) {
+    (*env)->ThrowNew(env, (*env)->FindClass(env, "java/lang/RuntimeException"),
+                     "platformInfo pointer is NULL");
+    return NULL;
+  }
+  if(0==PLATFORM_DSI_SIZE) {
+    (*env)->ThrowNew(env, (*env)->FindClass(env, "java/lang/RuntimeException"),
+                     "platformInfo size is 0");
     return NULL;
   }
   return (*env)->NewDirectByteBuffer(env, dsi->platformInfo, PLATFORM_DSI_SIZE);
