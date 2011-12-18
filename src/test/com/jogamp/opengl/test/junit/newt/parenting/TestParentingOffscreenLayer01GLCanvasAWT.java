@@ -109,10 +109,11 @@ public class TestParentingOffscreenLayer01GLCanvasAWT extends UITestCase {
         testOffscreenLayerGLCanvas_Impl(false, false);
     }
     
+    /** We have no GLCanvas OffscreenWindow as we have for NEWT .. test disabled.
     @Test
     public void testOffscreenLayerGLCanvas_OffscreenLayerWithOffscreenClass() throws InterruptedException, InvocationTargetException {
         testOffscreenLayerGLCanvas_Impl(true, true);
-    }
+    } */
     
     @Test
     public void testOffscreenLayerGLCanvas_OffscreenLayerWithOnscreenClass() throws InterruptedException, InvocationTargetException {
