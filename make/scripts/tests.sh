@@ -1,11 +1,13 @@
 #! /bin/bash
 
-if [ -z "$1" -o -z "$2" ] ; then
-    echo Usage $0 java-exe build-dir
+if [ -z "$1" -o -z "$2" -o -z "$3" ] ; then
+    echo Usage $0 java-exe java-xargs build-dir
     exit 0
 fi
 
 javaexe=$1
+shift
+javaxargs=$1
 shift
 bdir=$1
 shift
@@ -39,7 +41,7 @@ echo LIBXCB_ALLOW_SLOPPY_LOCK: $LIBXCB_ALLOW_SLOPPY_LOCK 2>&1 | tee -a java-run.
 echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a java-run.log
 echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a java-run.log
 echo SWT_CLASSPATH: $SWT_CLASSPATH 2>&1 | tee -a java-run.log
-echo $javaexe $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
+echo $javaexe $javaxargs $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 echo MacOsX $MOSX
 
 function jrun() {
@@ -134,13 +136,13 @@ function jrun() {
     echo
     echo LD_LIBRARY_PATH $LD_LIBRARY_PATH
     echo
-    echo $javaexe $X_ARGS $D_ARGS $C_ARG $*
+    echo $javaexe $javaxargs $X_ARGS $D_ARGS $C_ARG $*
     #LD_LIBRARY_PATH=/usr/local/projects/Xorg.modular/build-x86_64/lib:$LD_LIBRARY_PATH \
     #LD_LIBRARY_PATH=/opt-linux-x86_64/x11lib-1.3:$LD_LIBRARY_PATH \
     #LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64:$LD_LIBRARY_PATH \
     #LIBGL_DRIVERS_PATH=/usr/lib/mesa:/usr/lib32/mesa \
     #LD_LIBRARY_PATH=/usr/lib/mesa:/usr/lib32/mesa:$LD_LIBRARY_PATH \
-    $javaexe $X_ARGS $D_ARGS $C_ARG $*
+    $javaexe $javaxargs $X_ARGS $D_ARGS $C_ARG $*
     echo
     echo "Test End: $*"
     echo
@@ -175,7 +177,6 @@ function testswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT $*
@@ -212,7 +213,7 @@ function testswt() {
 #testawt jogamp.newt.awt.opengl.VersionApplet $*
 #testawt javax.media.opengl.awt.GLCanvas $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestPBufferDeadlockAWT $*
@@ -253,7 +254,7 @@ function testswt() {
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
-testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01GLCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01GLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer02NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT

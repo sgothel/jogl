@@ -6,5 +6,5 @@ if [ -e $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh ] ; then
     . $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh
 fi
 
-. $SDIR/tests.sh  `which java` ../build-x86_64 $*
+. $SDIR/tests.sh  `which java` -d64 ../build-x86_64 $*
 
