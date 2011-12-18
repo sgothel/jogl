@@ -43,6 +43,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.common.jvm.JNILibLoaderBase;
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.cache.TempJarCache;
 
 public class NEWTJNILibLoader extends JNILibLoaderBase {
@@ -50,6 +51,7 @@ public class NEWTJNILibLoader extends JNILibLoaderBase {
   public static void loadNEWT() {
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
       public Object run() {
+        Platform.initSingleton();
         final String libName = "newt";
         if(TempJarCache.isInitialized() && null == TempJarCache.findLibrary(libName)) {
             addNativeJarLibs(NEWTJNILibLoader.class, "jogl-all", new String[] { "nativewindow", "newt" } );

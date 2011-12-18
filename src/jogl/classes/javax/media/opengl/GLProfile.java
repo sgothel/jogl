@@ -116,12 +116,13 @@ public class GLProfile {
                     System.err.println("GLProfile.initSingleton(firstUIActionOnProcess: "+firstUIActionOnProcess+") - thread "+Thread.currentThread().getName());
                     Thread.dumpStack();
                 }
-                Platform.initSingleton();
     
                 // run the whole static initialization privileged to speed up,
                 // since this skips checking further access
                 AccessController.doPrivileged(new PrivilegedAction<Object>() {
                     public Object run() {
+                        Platform.initSingleton();
+                        
                         if(TempJarCache.isInitialized()) {
                            String[] atomicNativeJarBaseNames = new String[] { "nativewindow", "jogl", null };
                            if( ReflectionUtil.isClassAvailable("com.jogamp.newt.NewtFactory", GLProfile.class.getClassLoader()) ) {

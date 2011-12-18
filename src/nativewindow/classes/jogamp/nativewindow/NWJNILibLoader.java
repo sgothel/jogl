@@ -33,6 +33,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.common.jvm.JNILibLoaderBase;
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.cache.TempJarCache;
 
 public class NWJNILibLoader extends JNILibLoaderBase {
@@ -40,6 +41,7 @@ public class NWJNILibLoader extends JNILibLoaderBase {
   public static void loadNativeWindow(final String ossuffix) {
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
       public Object run() {
+        Platform.initSingleton();
         final String libName = "nativewindow_"+ossuffix ;
         if(TempJarCache.isInitialized() && null == TempJarCache.findLibrary(libName)) {
             addNativeJarLibs(NWJNILibLoader.class, "jogl-all", new String[] { "nativewindow" } );

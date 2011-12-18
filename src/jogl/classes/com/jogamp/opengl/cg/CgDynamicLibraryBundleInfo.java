@@ -28,12 +28,30 @@
  
 package com.jogamp.opengl.cg;
 
+import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.os.DynamicLibraryBundleInfo;
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.cache.TempJarCache;
+
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.*;
 
 public class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
     private static List<String> glueLibNames;
     static {
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            public Object run() {
+                Platform.initSingleton();
+                
+                if(TempJarCache.isInitialized()) {
+                   // Cg class and natives are available in their single atomic JAR files only 
+                   JNILibLoaderBase.addNativeJarLibs(CgDynamicLibraryBundleInfo.class, "jogl_cg", null);
+                }
+                return null;
+            }
+        });
+        
         glueLibNames = new ArrayList<String>();
         // glueLibNames.addAll(getGlueLibNamesPreload());
         glueLibNames.add("jogl_cg");
