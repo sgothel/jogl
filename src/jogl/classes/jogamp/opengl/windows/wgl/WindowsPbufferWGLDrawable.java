@@ -41,6 +41,7 @@
 package jogamp.opengl.windows.wgl;
 
 import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.SurfaceChangeable;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLContext;
@@ -117,143 +118,151 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   private void createPbuffer() {
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration();
     SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResource(config.getScreen().getDevice());
-    long parentHdc = sharedResource.getDrawable().getNativeSurface().getSurfaceHandle();
-    WGLExt wglExt = sharedResource.getContext().getWGLExt();
+    NativeSurface sharedSurface = sharedResource.getDrawable().getNativeSurface();
+    if (NativeSurface.LOCK_SURFACE_NOT_READY >= sharedSurface.lockSurface()) {
+      throw new NativeWindowException("Could not lock (sharedSurface): "+this);
+    }
+    try {
+        long sharedHdc = sharedSurface.getSurfaceHandle();
+        WGLExt wglExt = sharedResource.getContext().getWGLExt();
+        
+        if (DEBUG) {
+            System.out.println("Pbuffer config: " + config);
+        }
     
-    if (DEBUG) {
-        System.out.println("Pbuffer config: " + config);
-    }
-
-    int[]   iattributes = new int  [2*WindowsWGLGraphicsConfiguration.MAX_ATTRIBS];
-    float[] fattributes = new float[1];
-    int[]   floatModeTmp = new int[1];
-    int     niattribs   = 0;
-    int     width, height;
-
-    GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
-    GLProfile glProfile = chosenCaps.getGLProfile();
-
-    if (DEBUG) {
-      System.out.println("Pbuffer parentHdc = " + toHexString(parentHdc));
-      System.out.println("Pbuffer chosenCaps: " + chosenCaps);
-    }
-
-    if(!WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(chosenCaps,
-                                    iattributes, sharedResource, -1, floatModeTmp)){
-      throw new GLException("Pbuffer-related extensions not supported");
-    }
-
-    floatMode = floatModeTmp[0];
-    boolean rtt      = chosenCaps.getPbufferRenderToTexture();
-    boolean rect     = chosenCaps.getPbufferRenderToTextureRectangle();
-    boolean useFloat = chosenCaps.getPbufferFloatingPointBuffers();
-    // boolean ati      = false;
-
-    /**
-    if (useFloat) {
-      ati = (floatMode == GLPbuffer.ATI_FLOAT);
-    } */
-
-    int[] pformats = new int[WindowsWGLGraphicsConfiguration.MAX_PFORMATS];
-    int   nformats;
-    int[] nformatsTmp = new int[1];
-    if (!wglExt.wglChoosePixelFormatARB(parentHdc,
-                                        iattributes, 0,
-                                        fattributes, 0,
-                                        WindowsWGLGraphicsConfiguration.MAX_PFORMATS,
-                                        pformats, 0,
-                                        nformatsTmp, 0)) {
-      throw new GLException("pbuffer creation error: wglChoosePixelFormat() failed");
-    }
-    nformats = nformatsTmp[0];
-    if (nformats <= 0) {
-      throw new GLException("pbuffer creation error: Couldn't find a suitable pixel format");
-    }
-
-    if (DEBUG) {
-      System.err.println("" + nformats + " suitable pixel formats found");
-      for (int i = 0; i < nformats; i++) {
-        WGLGLCapabilities dbgCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, parentHdc, pformats[i], glProfile, false, true);
-        System.err.println("pixel format " + pformats[i] + " (index " + i + "): " + dbgCaps);
-      }
-    }
-
-    int pfdid = 0;
-    long tmpBuffer = 0;
-    {
-        int whichFormat;
-        // Loop is a workaround for bugs in NVidia's recent drivers
-        for (whichFormat = 0; whichFormat < nformats; whichFormat++) {
-          int format = pformats[whichFormat];
-
-          // Create the p-buffer.
-          niattribs = 0;
-
-          if (rtt) {
-            iattributes[niattribs++]   = WGLExt.WGL_TEXTURE_FORMAT_ARB;
-            if (useFloat) {
-              iattributes[niattribs++] = WGLExt.WGL_TEXTURE_FLOAT_RGB_NV;
-            } else {
-              iattributes[niattribs++] = WGLExt.WGL_TEXTURE_RGBA_ARB;
+        int[]   iattributes = new int  [2*WindowsWGLGraphicsConfiguration.MAX_ATTRIBS];
+        float[] fattributes = new float[1];
+        int[]   floatModeTmp = new int[1];
+        int     niattribs   = 0;
+        int     width, height;
+    
+        GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
+        GLProfile glProfile = chosenCaps.getGLProfile();
+    
+        if (DEBUG) {
+          System.out.println("Pbuffer parentHdc = " + toHexString(sharedHdc));
+          System.out.println("Pbuffer chosenCaps: " + chosenCaps);
+        }
+    
+        if(!WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(chosenCaps,
+                                        iattributes, sharedResource, -1, floatModeTmp)){
+          throw new GLException("Pbuffer-related extensions not supported");
+        }
+    
+        floatMode = floatModeTmp[0];
+        boolean rtt      = chosenCaps.getPbufferRenderToTexture();
+        boolean rect     = chosenCaps.getPbufferRenderToTextureRectangle();
+        boolean useFloat = chosenCaps.getPbufferFloatingPointBuffers();
+        // boolean ati      = false;
+    
+        /**
+        if (useFloat) {
+          ati = (floatMode == GLPbuffer.ATI_FLOAT);
+        } */
+    
+        int[] pformats = new int[WindowsWGLGraphicsConfiguration.MAX_PFORMATS];
+        int   nformats;
+        int[] nformatsTmp = new int[1];
+        if (!wglExt.wglChoosePixelFormatARB(sharedHdc,
+                                            iattributes, 0,
+                                            fattributes, 0,
+                                            WindowsWGLGraphicsConfiguration.MAX_PFORMATS,
+                                            pformats, 0,
+                                            nformatsTmp, 0)) {
+          throw new GLException("pbuffer creation error: wglChoosePixelFormat() failed");
+        }
+        nformats = nformatsTmp[0];
+        if (nformats <= 0) {
+          throw new GLException("pbuffer creation error: Couldn't find a suitable pixel format");
+        }
+    
+        if (DEBUG) {
+          System.err.println("" + nformats + " suitable pixel formats found");
+          for (int i = 0; i < nformats; i++) {
+            WGLGLCapabilities dbgCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, sharedHdc, pformats[i], glProfile, false, true);
+            System.err.println("pixel format " + pformats[i] + " (index " + i + "): " + dbgCaps);
+          }
+        }
+    
+        int pfdid = 0;
+        long tmpBuffer = 0;
+        {
+            int whichFormat;
+            // Loop is a workaround for bugs in NVidia's recent drivers
+            for (whichFormat = 0; whichFormat < nformats; whichFormat++) {
+              int format = pformats[whichFormat];
+    
+              // Create the p-buffer.
+              niattribs = 0;
+    
+              if (rtt) {
+                iattributes[niattribs++]   = WGLExt.WGL_TEXTURE_FORMAT_ARB;
+                if (useFloat) {
+                  iattributes[niattribs++] = WGLExt.WGL_TEXTURE_FLOAT_RGB_NV;
+                } else {
+                  iattributes[niattribs++] = WGLExt.WGL_TEXTURE_RGBA_ARB;
+                }
+    
+                iattributes[niattribs++] = WGLExt.WGL_TEXTURE_TARGET_ARB;
+                iattributes[niattribs++] = rect ? WGLExt.WGL_TEXTURE_RECTANGLE_NV : WGLExt.WGL_TEXTURE_2D_ARB;
+    
+                iattributes[niattribs++] = WGLExt.WGL_MIPMAP_TEXTURE_ARB;
+                iattributes[niattribs++] = GL.GL_FALSE;
+    
+                iattributes[niattribs++] = WGLExt.WGL_PBUFFER_LARGEST_ARB;
+                iattributes[niattribs++] = GL.GL_FALSE;
+              }
+    
+              iattributes[niattribs++] = 0;
+    
+              tmpBuffer = wglExt.wglCreatePbufferARB(sharedHdc, format, getWidth(), getHeight(), iattributes, 0);
+              if (tmpBuffer != 0) {
+                // Done
+                break;
+              }
             }
-
-            iattributes[niattribs++] = WGLExt.WGL_TEXTURE_TARGET_ARB;
-            iattributes[niattribs++] = rect ? WGLExt.WGL_TEXTURE_RECTANGLE_NV : WGLExt.WGL_TEXTURE_2D_ARB;
-
-            iattributes[niattribs++] = WGLExt.WGL_MIPMAP_TEXTURE_ARB;
-            iattributes[niattribs++] = GL.GL_FALSE;
-
-            iattributes[niattribs++] = WGLExt.WGL_PBUFFER_LARGEST_ARB;
-            iattributes[niattribs++] = GL.GL_FALSE;
-          }
-
-          iattributes[niattribs++] = 0;
-
-          tmpBuffer = wglExt.wglCreatePbufferARB(parentHdc, format, getWidth(), getHeight(), iattributes, 0);
-          if (tmpBuffer != 0) {
-            // Done
-            break;
-          }
+    
+            if (0 == tmpBuffer) {
+              throw new GLException("pbuffer creation error: wglCreatePbuffer() failed: tried " + nformats +
+                                    " pixel formats, last error was: " + wglGetLastError());
+            }
+            pfdid = pformats[whichFormat];
         }
-
-        if (0 == tmpBuffer) {
-          throw new GLException("pbuffer creation error: wglCreatePbuffer() failed: tried " + nformats +
-                                " pixel formats, last error was: " + wglGetLastError());
+    
+        // Get the device context.
+        long tmpHdc = wglExt.wglGetPbufferDCARB(tmpBuffer);
+        if (tmpHdc == 0) {
+          throw new GLException("pbuffer creation error: wglGetPbufferDC() failed");
         }
-        pfdid = pformats[whichFormat];
+    
+        NativeSurface ns = getNativeSurface();
+        // Set up instance variables
+        buffer = tmpBuffer;
+        ((SurfaceChangeable)ns).setSurfaceHandle(tmpHdc);
+        cachedWGLExt = wglExt;   
+    
+        // Re-query chosen pixel format
+        {
+          WGLGLCapabilities newCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, sharedHdc, pfdid, glProfile, false, true);
+          if(null == newCaps) {
+            throw new GLException("pbuffer creation error: unable to re-query chosen PFD ID: " + pfdid + ", hdc " + GLDrawableImpl.toHexString(tmpHdc));
+          }
+          if(newCaps.isOnscreen() || !newCaps.isPBuffer()) {
+            throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps);
+          }
+          config.setCapsPFD(newCaps);
+        }
+    
+        // Determine the actual width and height we were able to create.
+        int[] tmp = new int[1];
+        wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_WIDTH_ARB,  tmp, 0 );
+        width = tmp[0];
+        wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_HEIGHT_ARB, tmp, 0 );
+        height = tmp[0];
+        ((SurfaceChangeable)ns).surfaceSizeChanged(width, height);
+    } finally {
+        sharedSurface.unlockSurface();
     }
-
-    // Get the device context.
-    long tmpHdc = wglExt.wglGetPbufferDCARB(tmpBuffer);
-    if (tmpHdc == 0) {
-      throw new GLException("pbuffer creation error: wglGetPbufferDC() failed");
-    }
-
-    NativeSurface ns = getNativeSurface();
-    // Set up instance variables
-    buffer = tmpBuffer;
-    ((SurfaceChangeable)ns).setSurfaceHandle(tmpHdc);
-    cachedWGLExt = wglExt;   
-
-    // Re-query chosen pixel format
-    {
-      WGLGLCapabilities newCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, parentHdc, pfdid, glProfile, false, true);
-      if(null == newCaps) {
-        throw new GLException("pbuffer creation error: unable to re-query chosen PFD ID: " + pfdid + ", hdc " + GLDrawableImpl.toHexString(tmpHdc));
-      }
-      if(newCaps.isOnscreen() || !newCaps.isPBuffer()) {
-        throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps);
-      }
-      config.setCapsPFD(newCaps);
-    }
-
-    // Determine the actual width and height we were able to create.
-    int[] tmp = new int[1];
-    wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_WIDTH_ARB,  tmp, 0 );
-    width = tmp[0];
-    wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_HEIGHT_ARB, tmp, 0 );
-    height = tmp[0];
-    ((SurfaceChangeable)ns).surfaceSizeChanged(width, height);
   }
 
   private static String wglGetLastError() {
