@@ -42,8 +42,6 @@
     <target name="clean" description="Remove all build products" depends="declare.common">
         <delete includeEmptyDirs="true" quiet="true">
             <fileset dir="${build.test}" />
-            <fileset dir="${build}/test/results-x32"/>
-            <fileset dir="${build}/test/results-x64"/>
             <fileset dir="." includes="*.tga" />
             <fileset file="${jogl.test.jar}" />
         </delete>
@@ -57,14 +55,6 @@
       <!-- Create the required output directories. -->
       <mkdir dir="${obj.test}" />
       <mkdir dir="${classes}" />
-
-      <!-- Clean the results -->
-      <delete quiet="true">
-        <fileset dir="${results.test}" includes="**"/>
-        <fileset file="${build}/${test.archive.name}.7z"/>
-        <fileset dir="." includes="*.tga" />
-      </delete>
-      <mkdir dir="${results.test}" />
 
       <property name="jogl.test.jar.path" location="${jogl.test.jar}"/> <!-- absolute path -->
       <echo message="jogl.test.jar ${jogl.test.jar.path}"/>
@@ -498,12 +488,23 @@
         <move todir="${build}/test/results-x32">
             <fileset dir="${results.test}" includes="**" />
         </move>
+        <mkdir dir="${build}/test/results"/>
 
         <var name="jvmDataModel.arg" unset="true"/>
         <var name="jvmDataModel.arg" value="-d64"/>
     </target>
 
-    <target name="junit.run" depends="declare.common, junit.run.d32, junit.run.tests">
+    <target name="junit.run.settings">
+        <delete quiet="true">
+            <fileset dir="${results.test}" includes="**"/>
+            <fileset dir="${build}/test/results-x32" includes="**"/>
+            <fileset file="${build}/${test.archive.name}.7z"/>
+            <fileset dir="." includes="*.tga" />
+        </delete>
+        <mkdir dir="${results.test}" />
+    </target>
+
+    <target name="junit.run" depends="declare.common, junit.run.settings, junit.run.d32, junit.run.tests">
         <mkdir dir="${results.test}" />
         <move todir="${results.test}">
             <fileset dir="." includes="*.tga" />
