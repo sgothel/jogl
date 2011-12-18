@@ -2038,7 +2038,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public MouseListener[] getMouseListeners() {
-        return (MouseListener[]) mouseListeners.toArray();
+        return mouseListeners.toArray(new MouseListener[mouseListeners.size()]);
     }
 
     protected void consumeMouseEvent(MouseEvent e) {
@@ -2128,7 +2128,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public KeyListener[] getKeyListeners() {
-        return (KeyListener[]) keyListeners.toArray();
+        return keyListeners.toArray(new KeyListener[keyListeners.size()]);
     }
 
     private final boolean propagateKeyEvent(KeyEvent e, KeyListener l) {
@@ -2216,7 +2216,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public WindowListener[] getWindowListeners() {
-        return (WindowListener[]) windowListeners.toArray();
+        return windowListeners.toArray(new WindowListener[windowListeners.size()]);
     }
 
     protected void consumeWindowEvent(WindowEvent e) {
