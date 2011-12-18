@@ -42,6 +42,8 @@
     <target name="clean" description="Remove all build products" depends="declare.common">
         <delete includeEmptyDirs="true" quiet="true">
             <fileset dir="${build.test}" />
+            <fileset dir="${build}/test/results-x32"/>
+            <fileset dir="${build}/test/results-x64"/>
             <fileset dir="." includes="*.tga" />
             <fileset file="${jogl.test.jar}" />
         </delete>
@@ -132,6 +134,7 @@
                  output="${test.class.result.file}">
                 <env key="${system.env.library.path}" path="${obj.all.paths}"/>
                 <env key="CLASSPATH" value="${junit_jogl_awt.run.jars}"/>
+                <arg line="${jvmDataModel.arg}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
@@ -477,19 +480,42 @@
     </target>
 
     <target name="test.auto.run" depends="junit.run"/>
-    <target name="junit.run" depends="junit.run.noui,junit.run.newt.headless,junit.run.awt,junit.run.newt.awt,junit.run.swt.headless,junit.run.swt.awt">
+
+        <condition property="jvmarg.mainthrd" value="-XstartOnFirstThread"><isset property="isOSX"/></condition>
+
+    <target name="junit.run.tests" depends="junit.run.noui,junit.run.newt.headless,junit.run.awt,junit.run.newt.awt,junit.run.swt.headless,junit.run.swt.awt"/>
+
+    <target name="junit.run.d32" if="isOSX">
+        <var name="jvmDataModel.arg" unset="true"/>
+        <var name="jvmDataModel.arg" value="-d32"/>
+
+        <antcall target="junit.run.tests" inheritRefs="true" inheritAll="true"/>
+
+        <mkdir dir="${build}/test/results-x32"/>
+        <move todir="${build}/test/results-x32">
+            <fileset dir="." includes="*.tga" />
+        </move>
+        <move todir="${build}/test/results-x32">
+            <fileset dir="${results.test}" includes="**" />
+        </move>
+
+        <var name="jvmDataModel.arg" unset="true"/>
+        <var name="jvmDataModel.arg" value="-d64"/>
+    </target>
+
+    <target name="junit.run" depends="declare.common, junit.run.d32, junit.run.tests">
+        <mkdir dir="${results.test}" />
+        <move todir="${results.test}">
+            <fileset dir="." includes="*.tga" />
+        </move>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <!-- updates / create the test results zip file -->
     <target name="test-zip-archive" depends="declare.common">
-        <move todir="${results.test}">
-            <fileset dir="." includes="*.tga" />
-        </move>
-        <mkdir dir="${results.test}" />
         <archive.7z destfile="${build}/${test.archive.name}.7z"
-                    basedir="${results.test}" 
-                    includes="**" />
+                    basedir="${project.root}" 
+                    includes="${rootrel.build}/test/results ${rootrel.build}/test/results-x64 ${rootrel.build}/test/results-x32" />
     </target>
 
     <!-- ================================================================== -->

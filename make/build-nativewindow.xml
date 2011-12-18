@@ -245,7 +245,9 @@
                  config="${jawt.cfg}"
                  includeRefid="stub.includes.fileset.platform"
                  literalInclude="${stub.includes.gluegen.gg}, ${stub.includes}/jni"
-                 emitter="com.jogamp.gluegen.JavaEmitter">
+                 emitter="com.jogamp.gluegen.JavaEmitter"
+                 debug="false"
+                 dumpCPP="false">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
@@ -286,7 +288,7 @@
             <param name="jawt.platform.header"                   value="${stub.includes}/jni/win32/jawt_md.h" />
         </antcall>          
 
-        <echo message="Generating platform-specifics: MaxOsX" />
+        <echo message="Generating platform-specifics: MacOSX" />
         <antcall target="java.generate.platforms" inheritRefs="true">
           <param name="window.os.system"                     value="macosx"/>
           <param name="jawt.cfg"                             value="${config.nativewindow}/jawt-macosx.cfg" />
