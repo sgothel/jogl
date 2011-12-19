@@ -49,9 +49,8 @@ import java.nio.*;
 
 /**
  * Utility routines for dealing with direct buffers.
- * @author Kenneth Russel
- * @author Sven Gothel
- * @author Michael Bien
+ * 
+ * @author Kenneth Russel, et.al.
  */
 public class GLBuffers extends Buffers {
 
@@ -66,7 +65,8 @@ public class GLBuffers extends Buffers {
      *              GL_UNSIGNED_INT_8_8_8_8, GL_UNSIGNED_INT_8_8_8_8_REV, 
      *              GL_UNSIGNED_INT_10_10_10_2, GL_UNSIGNED_INT_2_10_10_10_REV
      *              GL_UNSIGNED_INT_24_8, GL_UNSIGNED_INT_10F_11F_11F_REV,
-     *              GL_UNSIGNED_INT_5_9_9_9_REV, GL_FLOAT_32_UNSIGNED_INT_24_8_REV (25)         
+     *              GL_UNSIGNED_INT_5_9_9_9_REV, GL_FLOAT_32_UNSIGNED_INT_24_8_REV,         
+     *              GL_HILO16_NV, GL_SIGNED_HILO16_NV (27)         
      * @return -1 if glType is unhandled, otherwise the actual value > 0 
      */
     public static final int sizeOfGLType(int glType) {
@@ -97,6 +97,8 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_UNSIGNED_INT_24_8:
             case GL2GL3.GL_UNSIGNED_INT_10F_11F_11F_REV:
             case GL2GL3.GL_UNSIGNED_INT_5_9_9_9_REV:
+            case GL2.GL_HILO16_NV:
+            case GL2.GL_SIGNED_HILO16_NV:
                 return SIZEOF_INT;
                 
             case GL2GL3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
@@ -122,7 +124,8 @@ public class GLBuffers extends Buffers {
      *              GL_UNSIGNED_INT_8_8_8_8, GL_UNSIGNED_INT_8_8_8_8_REV, 
      *              GL_UNSIGNED_INT_10_10_10_2, GL_UNSIGNED_INT_2_10_10_10_REV
      *              GL_UNSIGNED_INT_24_8, GL_UNSIGNED_INT_10F_11F_11F_REV,
-     *              GL_UNSIGNED_INT_5_9_9_9_REV, GL_FLOAT_32_UNSIGNED_INT_24_8_REV (25)         
+     *              GL_UNSIGNED_INT_5_9_9_9_REV, GL_FLOAT_32_UNSIGNED_INT_24_8_REV,         
+     *              GL_HILO16_NV, GL_SIGNED_HILO16_NV (27)         
      * @return null if glType is unhandled, otherwise the new Buffer object 
      */
     public static final Buffer newDirectGLBuffer(int glType, int numElements) {
@@ -153,6 +156,8 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_UNSIGNED_INT_24_8:
             case GL2GL3.GL_UNSIGNED_INT_10F_11F_11F_REV:
             case GL2GL3.GL_UNSIGNED_INT_5_9_9_9_REV:
+            case GL2.GL_HILO16_NV:
+            case GL2.GL_SIGNED_HILO16_NV:
                 return newDirectIntBuffer(numElements);
                 
             case GL2GL3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
@@ -178,7 +183,8 @@ public class GLBuffers extends Buffers {
      *              GL_UNSIGNED_INT_8_8_8_8, GL_UNSIGNED_INT_8_8_8_8_REV, 
      *              GL_UNSIGNED_INT_10_10_10_2, GL_UNSIGNED_INT_2_10_10_10_REV
      *              GL_UNSIGNED_INT_24_8, GL_UNSIGNED_INT_10F_11F_11F_REV,
-     *              GL_UNSIGNED_INT_5_9_9_9_REV, GL_FLOAT_32_UNSIGNED_INT_24_8_REV (25)         
+     *              GL_UNSIGNED_INT_5_9_9_9_REV, GL_FLOAT_32_UNSIGNED_INT_24_8_REV,      
+     *              GL_HILO16_NV, GL_SIGNED_HILO16_NV (27)         
      * @return null if glType is unhandled or parent is null or bufLen is 0, otherwise the new Buffer object 
      */
     public static final Buffer sliceGLBuffer(ByteBuffer parent, int bytePos, int byteLen, int glType) {
@@ -215,6 +221,8 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_UNSIGNED_INT_24_8:
             case GL2GL3.GL_UNSIGNED_INT_10F_11F_11F_REV:
             case GL2GL3.GL_UNSIGNED_INT_5_9_9_9_REV:
+            case GL2.GL_HILO16_NV:
+            case GL2.GL_SIGNED_HILO16_NV:
                 return parent.asIntBuffer();
                 
             case GL2GL3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
@@ -360,7 +368,7 @@ public class GLBuffers extends Buffers {
      *              GL_RGB, GL_BGR, GL_RGBA, GL_BGRA, GL_ABGR_EXT,
      *              GL_RED_INTEGER, GL_GREEN_INTEGER, GL_BLUE_INTEGER,
      *              GL_RG_INTEGER, GL_RGB_INTEGER, GL_BGR_INTEGER, 
-     *              GL_RGBA_INTEGER, GL_BGRA_INTEGER (24)
+     *              GL_RGBA_INTEGER, GL_BGRA_INTEGER, GL_HILO_NV, GL_SIGNED_HILO_NV (26)
      *           
      * @param type must be one of 
      *              GL_BITMAP, 
@@ -373,7 +381,8 @@ public class GLBuffers extends Buffers {
      *              GL_UNSIGNED_INT_8_8_8_8, GL_UNSIGNED_INT_8_8_8_8_REV, 
      *              GL_UNSIGNED_INT_10_10_10_2, GL_UNSIGNED_INT_2_10_10_10_REV
      *              GL_UNSIGNED_INT_24_8, GL_UNSIGNED_INT_10F_11F_11F_REV,
-     *              GL_UNSIGNED_INT_5_9_9_9_REV, GL_FLOAT_32_UNSIGNED_INT_24_8_REV (26)         
+     *              GL_UNSIGNED_INT_5_9_9_9_REV, GL_FLOAT_32_UNSIGNED_INT_24_8_REV,
+     *              GL_HILO16_NV, GL_SIGNED_HILO16_NV (28)         
      * 
      * @param width in pixels
      * @param height in pixels
@@ -410,6 +419,8 @@ public class GLBuffers extends Buffers {
             case GL.GL_LUMINANCE_ALPHA:
             case GL2GL3.GL_RG:
             case GL2GL3.GL_RG_INTEGER:
+            case GL2.GL_HILO_NV:
+            case GL2.GL_SIGNED_HILO_NV:
               elements = 2;
               break;
             case GL.GL_RGB:
@@ -470,6 +481,11 @@ public class GLBuffers extends Buffers {
               esize = 2;
               elements = 1;
               break;
+            case GL2.GL_HILO16_NV:
+            case GL2.GL_SIGNED_HILO16_NV:
+              esize = 2;
+              elements = 2;
+              break;                
             case GL2GL3.GL_UNSIGNED_INT_8_8_8_8:
             case GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:
             case GL2GL3.GL_UNSIGNED_INT_10_10_10_2:
