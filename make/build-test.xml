@@ -370,7 +370,7 @@
                  relative="true"
                  failonerror="false">
                 <env key="${system.env.library.path}" path="${obj.all.paths}"/>
-                <env key="CLASSPATH" value="${junit_jogl_swt.run.jars}"/>
+                <env key="CLASSPATH" value="${junit_extra_classpath}${junit_jogl_swt.run.jars}"/>
                 <arg line="${jvmDataModel.arg}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <arg line="${jvmarg.headless}"/>
@@ -398,14 +398,12 @@
         </for>
     </target>
 
-    <!-- currently freezes OSX -->
-    <target name="junit.run.swt.awt" depends="test.compile" description="Runs all SWT_AWT tests." if="isSWTRuntimeAvailable" unless="isOSX">
-      <!-- Test*SWT* -->
+    <target name="junit.run.swt.awt" depends="test.compile" description="Runs all SWT_AWT tests." if="isSWTRuntimeAvailable">
+      <!-- Test*SWT*AWT* -->
       <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
           <env key="${system.env.library.path}" path="${obj.all.paths}"/>
           <jvmarg value="${jvmDataModel.arg}"/>
           <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
-          <jvmarg value="${jvmarg.mainthrd}"/>
 
           <!--
           <jvmarg value="-Djogl.debug=all"/>
@@ -420,7 +418,7 @@
 
           <formatter usefile="false" type="plain"/>
           <formatter usefile="true" type="xml"/>
-          <classpath refid="junit_jogl_swt.run.classpath"/>
+          <classpath path="${junit_extra_classpath}${junit_jogl_swt.run.jars}"/>
 
           <batchtest todir="${results.test}">
             <fileset dir="${classes}">
@@ -478,6 +476,8 @@
     <target name="junit.run.d32" if="isOSX">
         <var name="jvmDataModel.arg" unset="true"/>
         <var name="jvmDataModel.arg" value="-d32"/>
+        <var name="junit_extra_classpath" unset="true"/>
+        <var name="junit_extra_classpath" value="${swt-cocoa-macosx-x86_32.jar}:"/>
 
         <antcall target="junit.run.tests" inheritRefs="true" inheritAll="true"/>
 
@@ -492,6 +492,8 @@
 
         <var name="jvmDataModel.arg" unset="true"/>
         <var name="jvmDataModel.arg" value="-d64"/>
+        <var name="junit_extra_classpath" unset="true"/>
+        <var name="junit_extra_classpath" value=""/>
     </target>
 
     <target name="junit.run.settings">

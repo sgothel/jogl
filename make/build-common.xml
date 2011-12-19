@@ -145,7 +145,8 @@
         <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt-debug.jar">
           <istrue value="${isAndroid}" /> <!-- FIXME JAU .. hack -->
         </condition>
-        <condition property="swt.jar" value="${project.root}/make/lib/swt/cocoa-macosx-x86_64/swt-debug.jar">
+        <property name="swt-cocoa-macosx-x86_64.jar" value="${project.root}/make/lib/swt/cocoa-macosx-x86_64/swt-debug.jar"/>
+        <condition property="swt.jar" value="${swt-cocoa-macosx-x86_64.jar}">
           <and>
             <istrue value="${isOSX}" />
             <or>
@@ -154,7 +155,8 @@
             </or>                
           </and>
         </condition>
-        <condition property="swt.jar" value="${project.root}/make/lib/swt/cocoa-macosx/swt-debug.jar">
+        <property name="swt-cocoa-macosx-x86_32.jar" value="${project.root}/make/lib/swt/cocoa-macosx/swt-debug.jar"/>
+        <condition property="swt.jar" value="${swt-cocoa-macosx-x86_32.jar}">
           <and>
             <istrue value="${isOSX}" />
             <or>
@@ -494,6 +496,8 @@
         <property name="junit_jogl_android.run.jars"
                   value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all-android.jar}${path.separator}${jogl.test.jar}"/>
 
+        <!-- Dummy extra CLASSPATH value, maybe overwritten -->  
+        <property name="junit_extra_classpath" value=""/>
 
         <!-- The location and name of the configuration ANT file that will 
            - validate to ensure that all user-define variables are set. -->

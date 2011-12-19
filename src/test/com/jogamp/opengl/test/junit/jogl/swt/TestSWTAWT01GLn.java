@@ -29,6 +29,7 @@
 package com.jogamp.opengl.test.junit.jogl.swt;
 
 import java.awt.Frame;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
@@ -36,6 +37,8 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
+
+import jogamp.nativewindow.swt.SWTAccessor;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
@@ -76,46 +79,47 @@ public class TestSWTAWT01GLn extends UITestCase {
     }
 
     @Before
-    public void init() {
-        display = new Display();
-        Assert.assertNotNull( display );
-        shell = new Shell( display );
-        Assert.assertNotNull( shell );
-        shell.setLayout( new FillLayout() );
-        composite = new Composite( shell, SWT.EMBEDDED | SWT.NO_BACKGROUND );
-        composite.setLayout( new FillLayout() );
-        Assert.assertNotNull( composite );
-        frame = SWT_AWT.new_Frame( composite );
-        Assert.assertNotNull( frame );
+    public void init() throws InterruptedException, InvocationTargetException {
+        SWTAccessor.invoke(true, new Runnable() {
+            public void run() {        
+                display = new Display();
+                Assert.assertNotNull( display );
+                shell = new Shell( display );
+                Assert.assertNotNull( shell );
+                shell.setLayout( new FillLayout() );
+                composite = new Composite( shell, SWT.EMBEDDED | SWT.NO_BACKGROUND );
+                composite.setLayout( new FillLayout() );
+                Assert.assertNotNull( composite );
+                frame = SWT_AWT.new_Frame( composite );
+                Assert.assertNotNull( frame );
+            }});
     }
 
     @After
-    public void release() {
+    public void release() throws InterruptedException, InvocationTargetException {
         Assert.assertNotNull( display );
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite );
         Assert.assertNotNull( glcanvas );
-        try {
-            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    frame.setVisible(false);
-                    frame.remove(glcanvas);
-                    frame.dispose();
-                }});
-            composite.dispose();
-            shell.close();
-            shell.dispose();
-            display.dispose();
-        }
-        catch( Throwable throwable ) {
-            throwable.printStackTrace();
-            Assume.assumeNoException( throwable );
-        }
-        display = null;
-        shell = null;
-        composite = null;
-        frame = null;
-        glcanvas = null;
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.setVisible(false);
+                frame.remove(glcanvas);
+                frame.dispose();
+                frame = null;
+                glcanvas = null;
+            }});
+        
+        SWTAccessor.invoke(true, new Runnable() {
+            public void run() {
+                composite.dispose();
+                shell.close();
+                shell.dispose();
+                display.dispose();
+                display = null;
+                shell = null;
+                composite = null;
+            }});
     }
 
     protected void runTestGL( GLProfile glprofile ) throws InterruptedException {
@@ -148,18 +152,26 @@ public class TestSWTAWT01GLn extends UITestCase {
             }
         });
 
-        shell.setText( getClass().getName() );
-        shell.setSize( 640, 480 );
-        shell.open();
+        SWTAccessor.invoke(true, new Runnable() {
+            public void run() {
+                shell.setText( getClass().getName() );
+                shell.setSize( 640, 480 );
+                shell.open();
+            }});
 
         long lStartTime = System.currentTimeMillis();
         long lEndTime = lStartTime + duration;
         try {
             while( (System.currentTimeMillis() < lEndTime) && !composite.isDisposed() ) {
-                if( !display.readAndDispatch() ) {
-                    // blocks on linux .. display.sleep();
-                    Thread.sleep(10);
-                }
+                SWTAccessor.invoke(true, new Runnable() {
+                    public void run() {
+                        if( !display.readAndDispatch() ) {
+                            // blocks on linux .. display.sleep();
+                            try {
+                                Thread.sleep(10);
+                            } catch (InterruptedException e) { }
+                        }
+                    }});
             }
         }
         catch( Throwable throwable ) {
