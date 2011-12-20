@@ -499,6 +499,8 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 if(null == currentSM) {
                     throw new InternalError("getCurrentScreenModeImpl() == null");
                 }
+                // Update rotated Screen size, since native RandR impl. is more correct.
+                setScreenSize(currentSM.getRotatedWidth(), currentSM.getRotatedHeight());
 
                 ArrayHashSet<ScreenMode> screenModes = collectNativeScreenModes(screenModesIdx2NativeIdx);
                 if(screenModes.size()==0) {
@@ -549,9 +551,18 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 int nativeId = smProps[0];
                 int screenModeIdx = ScreenModeUtil.streamIn(resolutionPool, surfaceSizePool, screenSizeMMPool,
                                                             monitorModePool, screenModePool, smProps, 1);
+                if(DEBUG) {
+                    System.err.println("ScreenImpl.collectNativeScreenModes: #"+num+": idx: "+nativeId+" native -> "+screenModeIdx+" newt");
+                }
+                
                 if(screenModeIdx >= 0) {
                     screenModesIdx2NativeId.put(screenModeIdx, nativeId);
                 }
+            } else if(DEBUG) {
+                System.err.println("ScreenImpl.collectNativeScreenModes: #"+num+": smProps: "+(null!=smProps)+
+                                   ", len: "+(null != smProps ? smProps.length : 0)+
+                                   ", bpp: "+(null != smProps && 0 < smProps.length ? smProps[idxBpp] : 0)+
+                                   " - DROPPING");
             }
             num++;
         } while ( null != smProps && 0 < smProps.length );

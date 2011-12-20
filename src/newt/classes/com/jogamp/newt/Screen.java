@@ -120,12 +120,12 @@ public abstract class Screen {
     public abstract int getIndex();
 
     /**
-     * @return the current screen width
+     * @return the current screen width, reflecting {@link ScreenMode} rotation 
      */
     public abstract int getWidth();
 
     /**
-     * @return the current screen height
+     * @return the current screen height, reflecting {@link ScreenMode} rotation
      */
     public abstract int getHeight();
 
