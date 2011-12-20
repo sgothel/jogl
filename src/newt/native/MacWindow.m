@@ -38,6 +38,7 @@
 
 #import "MouseEvent.h"
 #import "KeyEvent.h"
+#import "ScreenMode.h"
 
 #import <ApplicationServices/ApplicationServices.h>
 
@@ -237,6 +238,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacDisplay_stopNSApplicati
     [pool release];
 }
 
+static NSScreen * NewtScreen_getNSScreenByIndex(int screen_idx) {
+    NSArray *screens = [NSScreen screens];
+    if(screen_idx<0) screen_idx=0;
+    if(screen_idx>=[screens count]) screen_idx=0;
+    return (NSScreen *) [screens objectAtIndex: screen_idx];
+}
+
 /*
  * Class:     jogamp_newt_driver_macosx_MacScreen
  * Method:    getWidthImpl
@@ -247,10 +255,7 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_macosx_MacScreen_getWidthImpl0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    NSArray *screens = [NSScreen screens];
-    if(screen_idx<0) screen_idx=0;
-    if(screen_idx>=[screens count]) screen_idx=0;
-    NSScreen *screen = (NSScreen *) [screens objectAtIndex: screen_idx];
+    NSScreen *screen = NewtScreen_getNSScreenByIndex((int)screen_idx);
     NSRect rect = [screen frame];
 
     [pool release];
@@ -268,15 +273,181 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_macosx_MacScreen_getHeightImpl0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    NSArray *screens = [NSScreen screens];
-    if(screen_idx<0) screen_idx=0;
-    if(screen_idx>=[screens count]) screen_idx=0;
-    NSScreen *screen = (NSScreen *) [screens objectAtIndex: screen_idx];
+    NSScreen *screen = NewtScreen_getNSScreenByIndex((int)screen_idx);
     NSRect rect = [screen frame];
 
     [pool release];
 
     return (jint) (rect.size.height);
+}
+
+static CGDirectDisplayID NewtScreen_getCGDirectDisplayIDByNSScreen(NSScreen *screen) {
+    // Mind: typedef uint32_t CGDirectDisplayID; - however, we assume it's 64bit on 64bit ?!
+    NSDictionary * dict = [screen deviceDescription];
+    NSNumber * val = (NSNumber *) [dict objectForKey: @"NSScreenNumber"];
+    // [NSNumber integerValue] returns NSInteger which is 32 or 64 bit native size
+    return (CGDirectDisplayID) [val integerValue];
+}
+
+/**
+ * Only in >= 10.6:
+ *   CGDisplayModeGetWidth(mode)
+ *   CGDisplayModeGetRefreshRate(mode)
+ *   CGDisplayModeGetHeight(mode)
+ */
+static long GetDictionaryLong(CFDictionaryRef theDict, const void* key) 
+{
+    long value = 0;
+    CFNumberRef numRef;
+    numRef = (CFNumberRef)CFDictionaryGetValue(theDict, key); 
+    if (numRef != NULL)
+        CFNumberGetValue(numRef, kCFNumberLongType, &value);    
+    return value;
+}
+#define CGDDGetModeWidth(mode) GetDictionaryLong((mode), kCGDisplayWidth)
+#define CGDDGetModeHeight(mode) GetDictionaryLong((mode), kCGDisplayHeight)
+#define CGDDGetModeRefreshRate(mode) GetDictionaryLong((mode), kCGDisplayRefreshRate)
+#define CGDDGetModeBitsPerPixel(mode) GetDictionaryLong((mode), kCGDisplayBitsPerPixel)
+
+// Duplicate each Mode by all possible rotations (4):
+// For each real-mode: [mode, 0], [mode, 90], [mode, 180], [mode, 270]
+#define ROTMODES_PER_REALMODE 4
+
+/*
+ * Class:     jogamp_newt_driver_macosx_MacScreen
+ * Method:    getScreenMode0
+ * Signature: (II)[I
+ */
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_MacScreen_getScreenMode0
+  (JNIEnv *env, jobject obj, jint scrn_idx, jint mode_idx)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    int prop_num = NUM_SCREEN_MODE_PROPERTIES_ALL;
+    NSScreen *screen = NewtScreen_getNSScreenByIndex((int)scrn_idx);
+    CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+
+    CFArrayRef availableModes = CGDisplayAvailableModes(display);
+    CFIndex numberOfAvailableModes = CFArrayGetCount(availableModes);
+    CFIndex numberOfAvailableModesRots = ROTMODES_PER_REALMODE * numberOfAvailableModes; 
+    CFDictionaryRef mode = NULL;
+    int currentCCWRot = (int)CGDisplayRotation(display);
+    jint ccwRot = 0;
+
+#ifdef VERBOSE_ON
+    if(0 >= mode_idx) {
+        // only for current mode (-1) and first mode (scanning)
+        DBG_PRINT( "getScreenMode0: scrn %d (%p, %p), mode %d, avail: %d/%d, current rot %d ccw\n",  
+            (int)scrn_idx, screen, (void*)(intptr_t)display, (int)mode_idx, (int)numberOfAvailableModes, (int)numberOfAvailableModesRots, currentCCWRot);
+    }
+#endif
+
+    if(numberOfAvailableModesRots<=mode_idx) {
+        // n/a - end of modes
+        DBG_PRINT( "getScreenMode0: end of modes: mode %d, avail: %d/%d\n",
+            (int)mode_idx, (int)numberOfAvailableModes, (int)numberOfAvailableModesRots);
+        [pool release];
+        return (*env)->NewIntArray(env, 0);
+    } else if(-1 < mode_idx) {
+        // only at initialization time, where index >= 0
+        prop_num++; // add 1st extra prop, mode_idx
+        mode = (CFDictionaryRef)CFArrayGetValueAtIndex(availableModes, mode_idx / ROTMODES_PER_REALMODE);
+        ccwRot = mode_idx % ROTMODES_PER_REALMODE * 90;
+    } else {
+        // current mode
+        mode = CGDisplayCurrentMode(display);
+        ccwRot = currentCCWRot;
+    }
+    // mode = CGDisplayModeRetain(mode); // 10.6 on CGDisplayModeRef
+
+    CGSize screenDim = CGDisplayScreenSize(display);
+    int mWidth = CGDDGetModeWidth(mode);
+    int mHeight = CGDDGetModeHeight(mode);
+
+    // swap width and height, since OSX reflects rotated dimension, we don't
+    if ( 90 == currentCCWRot || 270 == currentCCWRot ) {
+        int tempWidth = mWidth;
+        mWidth = mHeight;
+        mHeight = tempWidth;
+    }
+
+    jint prop[ prop_num ];
+    int propIndex = 0;
+    int propIndexRes = 0;
+
+    if( -1 < mode_idx ) {
+        prop[propIndex++] = mode_idx;
+    }
+    prop[propIndex++] = 0; // set later for verification of iterator
+    propIndexRes = propIndex;
+    prop[propIndex++] = mWidth;
+    prop[propIndex++] = mHeight;
+    prop[propIndex++] = CGDDGetModeBitsPerPixel(mode);
+    prop[propIndex++] = (jint) screenDim.width;
+    prop[propIndex++] = (jint) screenDim.height;
+    prop[propIndex++] = CGDDGetModeRefreshRate(mode);
+    prop[propIndex++] = ccwRot;
+    prop[propIndex - NUM_SCREEN_MODE_PROPERTIES_ALL] = ( -1 < mode_idx ) ? propIndex-1 : propIndex ; // count == NUM_SCREEN_MODE_PROPERTIES_ALL
+
+    DBG_PRINT( "getScreenMode0: Mode %d/%d (%d): %dx%d, %d bpp, %dx%d mm, %d Hz, rot %d ccw\n",
+        (int)mode_idx, (int)numberOfAvailableModesRots, (int)numberOfAvailableModes, 
+        (int)prop[propIndexRes+0], (int)prop[propIndexRes+1], (int)prop[propIndexRes+2], 
+        (int)prop[propIndexRes+3], (int)prop[propIndexRes+4], (int)prop[propIndexRes+5], (int)prop[propIndexRes+6]);
+
+    jintArray properties = (*env)->NewIntArray(env, prop_num);
+    if (properties == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size %d", prop_num);
+    }
+    (*env)->SetIntArrayRegion(env, properties, 0, prop_num, prop);
+    
+    // CGDisplayModeRelease(mode); // 10.6 on CGDisplayModeRef
+    [pool release];
+
+    return properties;
+}
+
+/*
+ * Class:     jogamp_newt_driver_macosx_MacScreen
+ * Method:    setScreenMode0
+ * Signature: (II)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacScreen_setScreenMode0
+  (JNIEnv *env, jobject object, jint scrn_idx, jint mode_idx)
+{
+    jboolean res = JNI_TRUE;
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    NSScreen *screen = NewtScreen_getNSScreenByIndex((int)scrn_idx);
+    CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+
+    CFArrayRef availableModes = CGDisplayAvailableModes(display);
+    CFIndex numberOfAvailableModes = CFArrayGetCount(availableModes);
+    CFIndex numberOfAvailableModesRots = ROTMODES_PER_REALMODE * numberOfAvailableModes;
+
+    CFDictionaryRef mode = (CFDictionaryRef)CFArrayGetValueAtIndex(availableModes, mode_idx / ROTMODES_PER_REALMODE);
+    // mode = CGDisplayModeRetain(mode); // 10.6 on CGDisplayModeRef
+
+    int ccwRot = mode_idx % ROTMODES_PER_REALMODE * 90;
+    DBG_PRINT( "setScreenMode0: scrn %d (%p, %p), mode %d, rot %d ccw, avail: %d/%d\n",  
+        (int)scrn_idx, screen, (void*)(intptr_t)display, (int)mode_idx, ccwRot, (int)numberOfAvailableModes, (int)numberOfAvailableModesRots);
+
+    if(ccwRot!=0) {
+        // FIXME: How to rotate the display/screen on OSX programmatically ?
+        DBG_PRINT( "setScreenMode0: Don't know how to rotate screen on OS X: rot %d ccw\n", ccwRot);
+        res = JNI_FALSE;
+    }
+    if(JNI_TRUE == res) {
+        CGError err = CGDisplaySwitchToMode(display, mode);
+        if(kCGErrorSuccess != err) {
+            DBG_PRINT( "setScreenMode0: SetMode failed: %d\n", (int)err);
+            res = JNI_FALSE;
+        }
+    }
+
+    // CGDisplayModeRelease(mode); // 10.6 on CGDisplayModeRef
+    [pool release];
+
+    return res;
 }
 
 /*

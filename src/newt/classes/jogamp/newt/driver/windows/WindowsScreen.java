@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,11 +33,12 @@
  */
 package jogamp.newt.driver.windows;
 
+import javax.media.nativewindow.DefaultGraphicsScreen;
+
 import jogamp.newt.ScreenImpl;
+
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.util.ScreenModeUtil;
-
-import javax.media.nativewindow.*;
 
 public class WindowsScreen extends ScreenImpl {
 
