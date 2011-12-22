@@ -39,23 +39,32 @@
 
 package jogamp.opengl.awt;
 
-import jogamp.opengl.*;
+import java.awt.Graphics;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.HeadlessException;
+import java.awt.Rectangle;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
-import java.awt.*;
-import java.awt.image.*;
-import java.lang.reflect.*;
-import java.security.*;
+import javax.media.opengl.GL;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
 
-import javax.media.opengl.*;
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.awt.*;
+import jogamp.opengl.Debug;
+
 
 /** Defines integration with the Java2D OpenGL pipeline. This
     integration is only supported in 1.6 and is highly experimental. */
 
 public class Java2D {
   private static boolean DEBUG = Debug.debug("Java2D");
-  private static boolean VERBOSE = Debug.verbose();
   private static boolean isHeadless;
   private static boolean isOGLPipelineActive;
   private static Method invokeWithOGLContextCurrentMethod;
@@ -103,9 +112,9 @@ public class Java2D {
   private static Method destroyOGLContextMethod;
 
   static {
-    AccessController.doPrivileged(new PrivilegedAction() {
+    AccessController.doPrivileged(new PrivilegedAction<Object>() {
         public Object run() {
-          if (DEBUG && VERBOSE) {
+          if (DEBUG) {
             System.err.println("Checking for Java2D/OpenGL support");
           }
           try {
@@ -119,7 +128,7 @@ public class Java2D {
             // If we get here, we aren't running in headless mode
             isHeadless = false;
             String name = cfg.getClass().getName();
-            if (DEBUG && VERBOSE) {
+            if (DEBUG) {
               System.err.println("Java2D support: default GraphicsConfiguration = " + name);
             }
             isOGLPipelineActive = (name.startsWith("sun.java2d.opengl"));
@@ -127,7 +136,7 @@ public class Java2D {
             if (isOGLPipelineActive) {
               try {
                 // Try to get methods we need to integrate
-                Class utils = Class.forName("sun.java2d.opengl.OGLUtilities");
+                Class<?> utils = Class.forName("sun.java2d.opengl.OGLUtilities");
                 invokeWithOGLContextCurrentMethod = utils.getDeclaredMethod("invokeWithOGLContextCurrent",
                                                                             new Class[] {
                                                                               Graphics.class,
@@ -176,7 +185,7 @@ public class Java2D {
                   getOGLSurfaceTypeMethod.setAccessible(true);
                 } catch (Exception e) {
                   fbObjectSupportInitialized = false;
-                  if (DEBUG && VERBOSE) {
+                  if (DEBUG) {
                     e.printStackTrace();
                     System.err.println("Info: Disabling Java2D/JOGL FBO support");
                   }
@@ -190,7 +199,7 @@ public class Java2D {
                                                                     });
                   getOGLTextureTypeMethod.setAccessible(true);
                 } catch (Exception e) {
-                  if (DEBUG && VERBOSE) {
+                  if (DEBUG) {
                     e.printStackTrace();
                     System.err.println("Info: GL_ARB_texture_rectangle FBO support disabled");
                   }
@@ -199,11 +208,11 @@ public class Java2D {
                 // Try to set up APIs for enabling the bridge on OS X,
                 // where it isn't possible to create generalized
                 // external GLDrawables
-                Class cglSurfaceData = null;
+                Class<?> cglSurfaceData = null;
                 try {
                   cglSurfaceData = Class.forName("sun.java2d.opengl.CGLSurfaceData");
                 } catch (Exception e) {
-                  if (DEBUG && VERBOSE) {
+                  if (DEBUG) {
                     e.printStackTrace();
                     System.err.println("Info: Unable to find class sun.java2d.opengl.CGLSurfaceData for OS X");
                   }
@@ -234,7 +243,7 @@ public class Java2D {
                   destroyOGLContextMethod.setAccessible(true);
                 }
               } catch (Exception e) {
-                if (DEBUG && VERBOSE) {
+                if (DEBUG) {
                   e.printStackTrace();
                   System.err.println("Info: Disabling Java2D/JOGL integration");
                 }
@@ -513,15 +522,15 @@ public class Java2D {
   }
 
   private static int getOGLUtilitiesIntField(final String name) {
-    Integer i = (Integer) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
+    Integer i = AccessController.doPrivileged(new PrivilegedAction<Integer>() {
+        public Integer run() {
           try {
-            Class utils = Class.forName("sun.java2d.opengl.OGLUtilities");
+            Class<?> utils = Class.forName("sun.java2d.opengl.OGLUtilities");
             Field f = utils.getField(name);
             f.setAccessible(true);
-            return f.get(null);
+            return (Integer) f.get(null);
           } catch (Exception e) {
-            if (DEBUG && VERBOSE) {
+            if (DEBUG) {
               e.printStackTrace();
             }
             return null;
@@ -530,7 +539,7 @@ public class Java2D {
       });
     if (i == null)
       return 0;
-    if (DEBUG && VERBOSE) {
+    if (DEBUG) {
       System.err.println("OGLUtilities." + name + " = " + i.intValue());
     }
     return i.intValue();

@@ -348,11 +348,10 @@ public class GLDrawableHelper {
         return;
     }
 
-    if(null==initAction) {
-        // disposal case
-        if(!context.isCreated()) {
-            throw new GLException(Thread.currentThread().getName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context is not created: "+context);
-        }
+    final boolean isDisposeAction = null==initAction ;
+    
+    if( isDisposeAction && !context.isCreated() ) {
+        throw new GLException(Thread.currentThread().getName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context is not created: "+context);
     }
 
     // Support for recursive makeCurrent() calls as well as calling
@@ -383,7 +382,7 @@ public class GLDrawableHelper {
           res = context.makeCurrent();
       }
       if (res != GLContext.CONTEXT_NOT_CURRENT) {
-        if(null!=initAction) {
+        if(!isDisposeAction) {
             perThreadInitAction.set(initAction);
             if (res == GLContext.CONTEXT_CURRENT_NEW) {
               if (DEBUG) {
@@ -398,12 +397,10 @@ public class GLDrawableHelper {
             runnable.run();
             // td2 = System.currentTimeMillis();
             // tdR = td2 - tdR; // render time
-            if (autoSwapBufferMode && null != initAction) {
-              if (drawable != null) {
+            if (autoSwapBufferMode && !isDisposeAction && drawable != null) {
                 drawable.swapBuffers();
                 // td3 = System.currentTimeMillis();
                 // td2 = td3 - td2; // swapBuffers
-              }
             }
         }
       }

@@ -466,6 +466,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                 animator.resume();
             }
         }
+        
         if(!regenerate) {
             disposeAbstractGraphicsDevice();
         }
@@ -887,7 +888,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           } else {
             adeviceMsg = null;  
           }
-          boolean closed = awtConfig.getScreen().getDevice().close();
+          boolean closed = adevice.close();
           if(DEBUG) {
             System.err.println(Thread.currentThread().getName() + " - GLCanvas.dispose(false): closed GraphicsDevice: "+adeviceMsg+", result: "+closed);
           }

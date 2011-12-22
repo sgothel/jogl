@@ -42,6 +42,8 @@ package jogamp.opengl;
 
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
+
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAnimatorControl;
@@ -107,6 +109,8 @@ public class GLPbufferImpl implements GLPbuffer {
 
   public void destroy() {
     if(pbufferDrawable.isRealized()) {
+        final AbstractGraphicsDevice adevice = pbufferDrawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
+        
         if (null != context && context.isCreated()) {
             try {
                 drawableHelper.invokeGL(pbufferDrawable, context, disposeAction, null);
@@ -117,6 +121,10 @@ public class GLPbufferImpl implements GLPbuffer {
             // drawableHelper.reset();
         }
         pbufferDrawable.destroy();
+        
+        if(null != adevice) {
+            adevice.close();
+        }
     }
   }
 
