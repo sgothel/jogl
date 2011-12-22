@@ -35,10 +35,12 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.util.MonitorMode;
 import com.jogamp.newt.util.ScreenModeUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -50,6 +52,7 @@ import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.SurfaceSize;
 
 public class TestScreenMode00NEWT extends UITestCase {
+    static int screenIdx = 0;
     static int width, height;
     
     static int waitTimeShort = 4; //1 sec
@@ -64,7 +67,7 @@ public class TestScreenMode00NEWT extends UITestCase {
         height = 480;
     }
 
-    @Test
+    // @Test
     public void testScreenModeInfo00() throws InterruptedException {
         DimensionImmutable res = new Dimension(640, 480);
         SurfaceSize surfsz = new SurfaceSize(res, 32);
@@ -95,12 +98,12 @@ public class TestScreenMode00NEWT extends UITestCase {
 
     @Test
     public void testScreenModeInfo01() throws InterruptedException {
-        Capabilities caps = new Capabilities();
-        Window window = NewtFactory.createWindow(caps);
-        window.setSize(width, height);
-        window.setVisible(true);
-
-        Screen screen = window.getScreen();
+        Display dpy = NewtFactory.createDisplay(null);
+        Screen screen = NewtFactory.createScreen(dpy, screenIdx);
+        screen.addReference();
+        Assert.assertEquals(true,screen.isNativeValid());
+        Assert.assertEquals(true,screen.getDisplay().isNativeValid());
+        System.err.println("Screen: "+screen.toString());
 
         List<ScreenMode> screenModes = screen.getScreenModes();
         Assert.assertTrue(screenModes.size()>0);
@@ -119,15 +122,25 @@ public class TestScreenMode00NEWT extends UITestCase {
         Assert.assertEquals(sm_c.getRotatedWidth(), screen.getWidth());
         Assert.assertEquals(sm_c.getRotatedHeight(), screen.getHeight());
 
-        window.destroy();
+        screen.removeReference();
 
-        Assert.assertEquals(false,window.isVisible());
-        Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,screen.getDisplay().isNativeValid());
     }
 
+    static int atoi(String a) {
+        try {
+            return Integer.parseInt(a);
+        } catch (Exception ex) { throw new RuntimeException(ex); }
+    }
+    
     public static void main(String args[]) throws IOException {
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-screen")) {
+                i++;
+                screenIdx = atoi(args[i]);
+            }
+        }
         String tstname = TestScreenMode00NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }

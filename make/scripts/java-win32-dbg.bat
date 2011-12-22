@@ -26,5 +26,5 @@ REM set D_ARGS="-Xcheck:jni" "-Xint" "-verbose:jni"
 
 set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true"
 
-%J2RE_HOME%\bin\java -classpath %CP_ALL% "-Djava.library.path=%LIB_DIR%" %D_ARGS% %X_ARGS% %1 %2 %3 %4 %5 %6 %7 %8 %9 > java-win32-dbg.log 2>&1
+%J2RE_HOME%\bin\java -classpath %CP_ALL% "-Djava.library.path=%LIB_DIR%" %D_ARGS% %X_ARGS% %* > java-win32-dbg.log 2>&1
 

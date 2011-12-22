@@ -74,6 +74,10 @@ public class AndroidScreen extends jogamp.newt.ScreenImpl {
         return ScreenModeUtil.streamIn(props, 0);
     }
     
+    protected int validateScreenIndex(int idx) {
+        return 0; // FIXME: only one screen available ? 
+    }
+    
     //----------------------------------------------------------------------
     // Internals only
     //

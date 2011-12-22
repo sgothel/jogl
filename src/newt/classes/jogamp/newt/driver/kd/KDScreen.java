@@ -54,4 +54,8 @@ public class KDScreen extends ScreenImpl {
     protected void setScreenSize(int w, int h) {
         super.setScreenSize(w, h);
     }
+    
+    protected int validateScreenIndex(int idx) {
+        return 0; // only one screen available 
+    }       
 }

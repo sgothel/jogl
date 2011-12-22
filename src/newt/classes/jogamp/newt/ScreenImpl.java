@@ -100,7 +100,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         return (Class<? extends Screen>)screenClass;
     }
 
-    public static Screen create(Display display, final int idx) {
+    public static Screen create(Display display, int idx) {
         try {
             if(usrWidth<0 || usrHeight<0) {
                 synchronized (Screen.class) {
@@ -114,18 +114,20 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 }
             }
             synchronized(screenList) {
+                Class<? extends Screen> screenClass = getScreenClass(display.getType());
+                ScreenImpl screen  = (ScreenImpl) screenClass.newInstance();
+                screen.display = (DisplayImpl) display;
+                idx = screen.validateScreenIndex(idx);
                 {
                     Screen screen0 = ScreenImpl.getLastScreenOf(display, idx, -1);
                     if(null != screen0) {
                         if(DEBUG) {
                             System.err.println("Screen.create() REUSE: "+screen0+" "+Display.getThreadName());
                         }
+                        screen = null;
                         return screen0;
                     }
                 }
-                Class<? extends Screen> screenClass = getScreenClass(display.getType());
-                ScreenImpl screen  = (ScreenImpl) screenClass.newInstance();
-                screen.display = (DisplayImpl) display;
                 screen.screen_idx = idx;
                 screen.fqname = (display.getFQName()+idx).intern();
                 screen.hashCode = screen.fqname.hashCode();
@@ -238,7 +240,8 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
     protected abstract void createNativeImpl();
     protected abstract void closeNativeImpl();
-
+    protected abstract int validateScreenIndex(int idx);
+    
     public final String getFQName() {
         return fqname;
     }

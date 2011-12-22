@@ -199,7 +199,7 @@ function testswt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
-testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT
+testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00bNEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01bNEWT

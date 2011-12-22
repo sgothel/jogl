@@ -115,7 +115,7 @@ public class WindowsWindow extends WindowImpl {
         final int flags = getReconfigureFlags(0, true) & 
                           ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;
         setWindowHandle(CreateWindow0(display.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
-                                      getParentWindowHandle(), x, y, width, height, flags)); 
+                                      getParentWindowHandle(), x, y, width, height, autoPosition, flags)); 
         if (getWindowHandle() == 0) {
             throw new NativeWindowException("Error creating window");
         }
@@ -287,7 +287,7 @@ public class WindowsWindow extends WindowImpl {
 
     private native long CreateWindow0(long hInstance, String wndClassName, String wndName,
                                       long parentWindowHandle,
-                                      int x, int y, int width, int height, int flags);
+                                      int x, int y, int width, int height, boolean autoPosition, int flags);
     private native long MonitorFromWindow0(long windowHandle);
     private native void reconfigureWindow0(long parentWindowHandle, long windowHandle,
                                            int x, int y, int width, int height, int flags);

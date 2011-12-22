@@ -52,6 +52,10 @@ public class Screen extends jogamp.newt.ScreenImpl {
 
     protected void closeNativeImpl() { }
 
+    protected int validateScreenIndex(int idx) {
+        return 0; // only one screen available 
+    }
+        
     //----------------------------------------------------------------------
     // Internals only
     //

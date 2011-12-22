@@ -62,4 +62,9 @@ public class AWTScreen extends ScreenImpl {
     }
 
     protected void closeNativeImpl() { }
+    
+    protected int validateScreenIndex(int idx) {
+        return idx; // FIXME: ??? 
+    }    
+    
 }

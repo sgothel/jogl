@@ -256,7 +256,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_kd_KDWindow_RealizeWindow
     jint res = kdRealizeWindow(w, &nativeWindow);
     if(res) {
         fprintf(stderr, "[RealizeWindow] failed: 0x%X, 0x%X\n", res, kdGetError());
-        nativeWindow = NULL;
+        nativeWindow = 0;
     }
     DBG_PRINT( "[RealizeWindow] ok: %p\n", nativeWindow);
     return (jlong) (intptr_t) nativeWindow;

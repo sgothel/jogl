@@ -33,6 +33,7 @@
  */
 package jogamp.newt.driver.x11;
 
+import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.ScreenImpl;
@@ -254,6 +255,21 @@ public class X11Screen extends ScreenImpl {
         return done;
     }
 
+    private class XineramaEnabledQuery implements DisplayImpl.DisplayRunnable<Boolean> {
+        public Boolean run(long dpy) {        
+            return new Boolean(X11Lib.XineramaEnabled(dpy)); 
+        }        
+    }
+    private XineramaEnabledQuery xineramaEnabledQuery = new XineramaEnabledQuery();
+    
+    protected int validateScreenIndex(final int idx) {
+        if(getDisplay().isNativeValid()) {
+            return runWithLockedDisplayHandle( xineramaEnabledQuery ).booleanValue() ? 0 : idx;
+        } else {
+            return runWithTempDisplayHandle( xineramaEnabledQuery ).booleanValue() ? 0 : idx;
+        }
+    }
+        
     //----------------------------------------------------------------------
     // Internals only
     //    

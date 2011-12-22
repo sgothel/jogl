@@ -79,7 +79,7 @@ public class X11Window extends WindowImpl {
         setWindowHandle(CreateWindow0(getParentWindowHandle(),
                                display.getEDTHandle(), screen.getIndex(), visualID, 
                                display.getJavaObjectAtom(), display.getWindowDeleteAtom(), 
-                               x, y, width, height, flags));
+                               x, y, width, height, autoPosition, flags));
         windowHandleClose = getWindowHandle();
         if (0 == windowHandleClose) {
             throw new NativeWindowException("Error creating window");
@@ -239,7 +239,7 @@ public class X11Window extends WindowImpl {
     
     private native long CreateWindow0(long parentWindowHandle, long display, int screen_index, 
                                             long visualID, long javaObjectAtom, long windowDeleteAtom, 
-                                            int x, int y, int width, int height, int flags); 
+                                            int x, int y, int width, int height, boolean autoPosition, int flags); 
     private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom);
     private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long windowHandle,
                                            int x, int y, int width, int height, int flags);    

@@ -1338,7 +1338,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
   (JNIEnv *env, jobject obj, 
    jlong hInstance, jstring jWndClassName, jstring jWndName, 
    jlong parent,
-   jint jx, jint jy, jint defaultWidth, jint defaultHeight, jint flags)
+   jint jx, jint jy, jint defaultWidth, jint defaultHeight, jboolean autoPosition, jint flags)
 {
     HWND parentWindow = (HWND) (intptr_t) parent;
     const TCHAR* wndClassName = NULL;
@@ -1367,7 +1367,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
         windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
     } else {
         windowStyle |= WS_OVERLAPPEDWINDOW;
-        if(0>_x || 0>_y) {
+        if(JNI_TRUE == autoPosition) {
             // user didn't requested specific position, use WM default
             _x = CW_USEDEFAULT;
             _y = 0;
@@ -1380,9 +1380,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
                           (HINSTANCE) (intptr_t) hInstance,
                           NULL);
 
-    DBG_PRINT("*** WindowsWindow: CreateWindow thread 0x%X, parent %p, window %p, %d/%d %dx%d, undeco %d, alwaysOnTop %d\n", 
+    DBG_PRINT("*** WindowsWindow: CreateWindow thread 0x%X, parent %p, window %p, %d/%d %dx%d, undeco %d, alwaysOnTop %d, autoPosition %d\n", 
         (int)GetCurrentThreadId(), parentWindow, window, x, y, width, height,
-        TST_FLAG_IS_UNDECORATED(flags), TST_FLAG_IS_ALWAYSONTOP(flags));
+        TST_FLAG_IS_UNDECORATED(flags), TST_FLAG_IS_ALWAYSONTOP(flags), autoPosition);
 
     if (NULL == window) {
         int lastError = (int) GetLastError();
@@ -1402,7 +1402,6 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
         {
             RECT rc;
             RECT * insets;
-            BOOL userPos = 0<=x && 0<=y ;
 
             ShowWindow(window, SW_SHOW);
 
@@ -1410,12 +1409,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
             insets = UpdateInsets(env, wud->jinstance, window);
             (*env)->CallVoidMethod(env, wud->jinstance, visibleChangedID, JNI_FALSE, JNI_TRUE);
 
-            if(!userPos) {
+            if(JNI_TRUE == autoPosition) {
                 GetWindowRect(window, &rc);
                 x = rc.left + insets->left; // client coords
                 y = rc.top + insets->top;   // client coords
             }
-            DBG_PRINT("*** WindowsWindow: CreateWindow client: %d/%d %dx%d (is user-pos %d)\n", x, y, width, height, userPos);
+            DBG_PRINT("*** WindowsWindow: CreateWindow client: %d/%d %dx%d (autoPosition %d)\n", x, y, width, height, autoPosition);
 
             x -= insets->left; // top-level
             y -= insets->top;  // top-level

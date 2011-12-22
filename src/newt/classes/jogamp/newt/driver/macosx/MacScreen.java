@@ -106,6 +106,10 @@ public class MacScreen extends ScreenImpl {
         return setScreenMode0(screen_idx, nativeModeIdx);
     }
     
+    protected int validateScreenIndex(int idx) {
+        return idx; 
+    }
+        
     private native int[] getScreenMode0(int screen_index, int mode_index);
     private native boolean setScreenMode0(int screen_index, int mode_idx);
 }

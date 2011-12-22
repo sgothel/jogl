@@ -32,8 +32,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import com.jogamp.newt.Display;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.WindowEvent;
+import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
@@ -41,6 +46,11 @@ import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.PointImmutable;
+import javax.media.nativewindow.util.DimensionImmutable;
 
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
@@ -55,8 +65,23 @@ import org.junit.Test;
 
 public class TestGearsES2NEWT extends UITestCase {
     static GLProfile glp;
-    static int width, height;
+    
+    static int screenIdx = 0;
+    static PointImmutable wpos;
+    static DimensionImmutable wsize;
 
+    static long duration = 500; // ms
+    static boolean opaque = true;
+    static boolean undecorated = false;
+    static boolean alwaysOnTop = false;
+    static boolean fullscreen = false;
+    static boolean pmvUseBackingArray = true;
+    static boolean vsync = false;
+    static boolean waitForKey = false;
+    static boolean mouseVisible = true;
+    static boolean mouseConfined = false;
+    static boolean showFPS = false;
+    
     @BeforeClass
     public static void initClass() {
         /*if(GLProfile.isAvailable(GLProfile.getDefaultEGLDevice(), GLProfile.GLES2)) {
@@ -67,10 +92,9 @@ public class TestGearsES2NEWT extends UITestCase {
             glp = GLProfile.getGL2ES2(); 
         }
         Assert.assertNotNull(glp);
-        // width  = 512;
-        // height = 512;
-        width  = 200;
-        height = 200;
+        if(null == wsize) {
+            wsize = new Dimension(200, 200);
+        }
     }
 
     @AfterClass
@@ -79,11 +103,15 @@ public class TestGearsES2NEWT extends UITestCase {
 
     protected void runTestGL(GLCapabilities caps, boolean undecorated) throws InterruptedException {
         System.err.println("requested: "+caps);
-        final GLWindow glWindow = GLWindow.create(caps);
+        Display dpy = NewtFactory.createDisplay(null);
+        Screen screen = NewtFactory.createScreen(dpy, screenIdx);
+        final GLWindow glWindow = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow);
-        glWindow.setTitle("Gears NEWT Test (translucent "+!caps.isBackgroundOpaque()+")");
-        glWindow.setSize(width, height);
-        glWindow.setPosition(100, 100);
+        glWindow.setTitle("Gears NEWT Test (translucent "+!caps.isBackgroundOpaque()+"), size "+wsize+", pos "+wpos);
+        glWindow.setSize(wsize.getWidth(), wsize.getHeight());
+        if(null != wpos) {
+            glWindow.setPosition(wpos.getX(), wpos.getY());
+        }
         glWindow.setUndecorated(undecorated);
         glWindow.setAlwaysOnTop(alwaysOnTop);
         glWindow.setFullscreen(fullscreen);
@@ -122,6 +150,15 @@ public class TestGearsES2NEWT extends UITestCase {
         glWindow.addKeyListener(quitAdapter);
         glWindow.addWindowListener(quitAdapter);
 
+        glWindow.addWindowListener(new WindowAdapter() {
+            public void windowResized(WindowEvent e) {
+                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+            }
+            public void windowMoved(WindowEvent e) {
+                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+            }            
+        });
+        
         glWindow.addKeyListener(new KeyAdapter() {
             public void keyTyped(KeyEvent e) {
                 if(e.getKeyChar()=='f') {
@@ -188,14 +225,14 @@ public class TestGearsES2NEWT extends UITestCase {
             }
         });
 
-        animator.setUpdateFPSFrames(60, System.err);
+        animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
         animator.start();
         // glWindow.setSkipContextReleaseThread(animator.getThread());
 
         glWindow.setVisible(true);
         
-        System.err.println("size/pos: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
         System.err.println("chosen: "+glWindow.getChosenCapabilities());
+        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
         
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
@@ -212,25 +249,22 @@ public class TestGearsES2NEWT extends UITestCase {
         runTestGL(caps, undecorated);
     }
 
-    static long duration = 500; // ms
-    static boolean opaque = true;
-    static boolean undecorated = false;
-    static boolean alwaysOnTop = false;
-    static boolean fullscreen = false;
-    static boolean pmvUseBackingArray = true;
-    static boolean vsync = false;
-    static boolean waitForKey = false;
-    static boolean mouseVisible = true;
-    static boolean mouseConfined = false;
-
+    static int atoi(String a) {
+        try {
+            return Integer.parseInt(a);
+        } catch (Exception ex) { throw new RuntimeException(ex); }
+    }
+    
     public static void main(String args[]) throws IOException {
+        
+        int x=0, y=0, w=200, h=200;
+        boolean useSize = false;
+        boolean usePos = false;
         
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
-                try {
-                    duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                duration = atoi(args[i]);
             } else if(args[i].equals("-translucent")) {
                 opaque = false;
             } else if(args[i].equals("-undecorated")) {
@@ -249,8 +283,38 @@ public class TestGearsES2NEWT extends UITestCase {
                 mouseVisible = false;
             } else if(args[i].equals("-mouseConfine")) {
                 mouseConfined = true;
+            } else if(args[i].equals("-showFPS")) {
+                showFPS = true;
+            } else if(args[i].equals("-width")) {
+                i++;
+                w = atoi(args[i]);
+                useSize = true;
+            } else if(args[i].equals("-height")) {
+                i++;
+                h = atoi(args[i]);
+                useSize = true;
+            } else if(args[i].equals("-x")) {
+                i++;
+                x = atoi(args[i]);
+                usePos = true;
+            } else if(args[i].equals("-y")) {
+                i++;
+                y = atoi(args[i]);
+                usePos = true;
+            } else if(args[i].equals("-screen")) {
+                i++;
+                screenIdx = atoi(args[i]);
             }
         }
+        if(useSize) {
+            wsize = new Dimension(w, h);
+        }
+        if(usePos) {
+            wpos = new Point(x, y);
+        }
+        System.err.println("position "+wpos);
+        System.err.println("size "+wsize);
+        System.err.println("screen "+screenIdx);
         System.err.println("translucent "+(!opaque));
         System.err.println("undecorated "+undecorated);
         System.err.println("atop "+alwaysOnTop);

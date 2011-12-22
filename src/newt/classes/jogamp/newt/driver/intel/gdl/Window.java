@@ -84,11 +84,6 @@ public class Window extends jogamp.newt.WindowImpl {
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         Screen  screen = (Screen) getScreen();
 
-        x=(x>=0)?x:this.x;
-        y=(x>=0)?y:this.y;
-        width=(width>0)?width:this.width;
-        height=(height>0)?height:this.height;
-
         if(width>screen.getWidth()) {
             width=screen.getWidth();
         }

@@ -26,19 +26,51 @@
  * or implied, of JogAmp Community.
  */
 
-#ifndef NEWT_COMMON_H
-#define NEWT_COMMON_H 1
+#ifndef _X11COMMON_H_
+#define _X11COMMON_H_
 
-#include <jni.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
 
-void NewtCommon_init(JNIEnv *env);
+#include <gluegen_stdint.h>
 
-jchar* NewtCommon_GetNullTerminatedStringChars(JNIEnv* env, jstring str);
+#include <unistd.h>
+#include <errno.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/keysym.h>
+#include <X11/Xatom.h>
 
-void NewtCommon_FatalError(JNIEnv *env, const char* msg, ...);
-void NewtCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...);
+#include <X11/extensions/Xrandr.h>
 
-JNIEnv* NewtCommon_GetJNIEnv (JavaVM * jvmHandle, int jvmVersion, int * shallBeDetached);
+#include "jogamp_newt_driver_x11_X11Screen.h"
+#include "jogamp_newt_driver_x11_X11Display.h"
+#include "jogamp_newt_driver_x11_X11Window.h"
 
+#include "Window.h"
+#include "MouseEvent.h"
+#include "InputEvent.h"
+#include "KeyEvent.h"
+#include "WindowEvent.h"
+#include "ScreenMode.h"
+
+#include "NewtCommon.h"
+
+#define VERBOSE_ON 1
+
+#ifdef VERBOSE_ON
+    #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
+#else
+    #define DBG_PRINT(...)
 #endif
+
+extern jclass X11NewtWindowClazz;
+extern jmethodID insetsChangedID;
+extern jmethodID visibleChangedID;
+
+jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom, Bool showWarning);
+
+#endif /* _X11COMMON_H_ */
+

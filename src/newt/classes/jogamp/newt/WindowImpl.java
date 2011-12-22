@@ -92,7 +92,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected CapabilitiesChooser capabilitiesChooser = null; // default null -> default
     protected boolean fullscreen = false, hasFocus = false;    
     protected int width = 128, height = 128; // client-area size w/o insets, default: may be overwritten by user
-    protected int x = -1, y = -1; // client-area pos w/o insets, default: undefined (allow WM to choose if not set by user)
+    protected int x = 64, y = 64; // client-area pos w/o insets
+    protected boolean autoPosition = true; // default: true (allow WM to choose if not set by user)
     protected Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
         
     protected int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen client-area size/pos w/o insets
@@ -276,8 +277,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             NativeSurface.LOCK_SURFACE_NOT_READY >= parentWindow.lockSurface() ) {
             throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
         }        
-        if( ( 0>x || 0>y ) && ( isUndecorated() || null != parentWindow ) ) {
-            // default child/undecorated window position is 0/0, if not set by user
+        if( ( 0>x || 0>y ) && null != parentWindow ) {
+            // min. child window position is 0/0
             x = 0; y = 0;
         }
         try {
@@ -1643,6 +1644,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void setPosition(int x, int y) {
+        autoPosition = false;
         runOnEDTIfAvail(true, new SetPositionActionImpl(x, y));
     }
     
@@ -2349,6 +2351,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     
     /** Triggered by implementation's WM events to update the position. */ 
     protected void positionChanged(boolean defer, int newX, int newY) {
+        autoPosition = false;
         if ( x != newX || y != newY ) {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.positionChanged: ("+getThreadName()+"): (defer: "+defer+") "+x+"/"+y+" -> "+newX+"/"+newY+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
@@ -2414,8 +2417,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * Triggered by implementation's WM events to update the content
      */ 
     protected void windowRepaint(boolean defer, int x, int y, int width, int height) {
-        x = ( 0 > x ) ? this.x : x;
-        y = ( 0 > y ) ? this.y : y;
         width = ( 0 >= width ) ? this.width : width;
         height = ( 0 >= height ) ? this.height : height;
         if(DEBUG_IMPLEMENTATION) {

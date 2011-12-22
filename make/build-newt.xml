@@ -472,6 +472,8 @@
           <include name="${rootrel.src.c}/WindowsWindow.c" if="isWindows"/>
           <include name="${rootrel.src.c}/*.m"             if="isOSX"/>
           <include name="${rootrel.src.c}/AndroidWindow.c" if="isAndroid"/>
+          <include name="${rootrel.src.c}/X11Display.c"    if="isX11"/>
+          <include name="${rootrel.src.c}/X11Screen.c"     if="isX11"/>
           <include name="${rootrel.src.c}/X11Window.c"     if="isX11"/>
           <include name="${rootrel.src.c}/KDWindow.c"      if="setup.addNativeKD"/>
           <include name="${rootrel.src.c}/IntelGDL.c"      if="setup.addNativeIntelGDL"/>

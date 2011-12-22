@@ -188,11 +188,6 @@ public class AWTWindow extends WindowImpl {
             container.setVisible(0 != ( FLAG_IS_VISIBLE & flags));
         }
         
-        x=(x>=0)?x:AWTWindow.this.x;
-        y=(x>=0)?y:AWTWindow.this.y;
-        width=(width>0)?width:AWTWindow.this.width;
-        height=(height>0)?height:AWTWindow.this.height;
-
         container.setLocation(x, y);
         Insets insets = container.getInsets();
         container.setSize(width + insets.left + insets.right,

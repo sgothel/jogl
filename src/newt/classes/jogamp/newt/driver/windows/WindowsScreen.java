@@ -101,6 +101,10 @@ public class WindowsScreen extends ScreenImpl {
                               sm.getRotation());
     }
 
+    protected int validateScreenIndex(int idx) {
+        return 0; // big-desktop, only one screen available 
+    }
+        
     // Native calls
     private native int getWidthImpl0(int scrn_idx);
 
