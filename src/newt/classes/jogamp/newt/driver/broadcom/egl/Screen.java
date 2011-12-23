@@ -65,7 +65,7 @@ public class Screen extends jogamp.newt.ScreenImpl {
     // Internals only
     //
 
-    private static final int fixedWidth = 1920;  // FIXME
-    private static final int fixedHeight = 1080; // FIXME
+    static final int fixedWidth = 1920;  // FIXME
+    static final int fixedHeight = 1080; // FIXME
 }
 
