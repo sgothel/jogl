@@ -58,7 +58,7 @@
 
 #include "NewtCommon.h"
 
-#define VERBOSE_ON 1
+// #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
     #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
@@ -71,6 +71,10 @@ extern jmethodID insetsChangedID;
 extern jmethodID visibleChangedID;
 
 jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom, Bool showWarning);
+
+void NewtDisplay_displayDispatchErrorHandlerEnable(int onoff, JNIEnv * env);
+Status NewtWindows_getRootAndParent (Display *dpy, Window w, Window * root_return, Window * parent_return);
+Status NewtWindows_updateInsets(JNIEnv *env, jobject jwindow, Display *dpy, Window window, int *left, int *right, int *top, int *bottom);
 
 #endif /* _X11COMMON_H_ */
 

@@ -94,7 +94,7 @@ static int displayDispatchErrorHandler(Display *dpy, XErrorEvent *e)
     return 0;
 }
 
-static void displayDispatchErrorHandlerEnable(int onoff, JNIEnv * env) {
+void NewtDisplay_displayDispatchErrorHandlerEnable(int onoff, JNIEnv * env) {
     if(onoff) {
         if(NULL==origErrorHandler) {
             setupJVMVars(env);
@@ -403,7 +403,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
 
         // DBG_PRINT( "X11: DispatchMessages dpy %p, win %p, Event %d\n", (void*)dpy, (void*)evt.xany.window, (int)evt.type);
 
-        displayDispatchErrorHandlerEnable(1, env);
+        NewtDisplay_displayDispatchErrorHandlerEnable(1, env);
 
         jwindow = getJavaWindowProperty(env, dpy, evt.xany.window, javaObjectAtom,
         #ifdef VERBOSE_ON
@@ -413,7 +413,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
         #endif
             );
 
-        displayDispatchErrorHandlerEnable(0, env);
+        NewtDisplay_displayDispatchErrorHandlerEnable(0, env);
 
         if(NULL==jwindow) {
             fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for X11 window %p\n", 

@@ -143,7 +143,7 @@ jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong ja
 }
 
 /** @return zero if fails, non zero if OK */
-static Status NewtWindows_getRootAndParent (Display *dpy, Window w, Window * root_return, Window * parent_return) {
+Status NewtWindows_getRootAndParent (Display *dpy, Window w, Window * root_return, Window * parent_return) {
     Window *children_return=NULL;
     unsigned int nchildren_return=0;
 
@@ -224,7 +224,7 @@ static Status NewtWindows_getFrameExtends(Display *dpy, Window window, int *left
 
     return 1; // Ok
 }
-static Status NewtWindows_updateInsets(JNIEnv *env, jobject jwindow, Display *dpy, Window window, int *left, int *right, int *top, int *bottom) {
+Status NewtWindows_updateInsets(JNIEnv *env, jobject jwindow, Display *dpy, Window window, int *left, int *right, int *top, int *bottom) {
     if(0 != NewtWindows_getFrameExtends(dpy, window, left, right, top, bottom)) {
         DBG_PRINT( "NewtWindows_updateInsets: insets by _NET_FRAME_EXTENTS [ l %d, r %d, t %d, b %d ]\n",
             *left, *right, *top, *bottom);
@@ -713,7 +713,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
         fsEWMHFlags |= _NET_WM_ABOVE; // toggle above only
     }
 
-    displayDispatchErrorHandlerEnable(1, env);
+    NewtDisplay_displayDispatchErrorHandlerEnable(1, env);
 
     DBG_PRINT( "X11: reconfigureWindow0 dpy %p, scrn %d, parent %p/%p, win %p, %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d, tempInvisible %d, fsEWMHFlags %d\n",
         (void*)dpy, screen_index, (void*) jparent, (void*)parent, (void*)w,
@@ -731,7 +731,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
         ( TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) ) {
         Bool enable = TST_FLAG_CHANGE_FULLSCREEN(flags) ? TST_FLAG_IS_FULLSCREEN(flags) : TST_FLAG_IS_ALWAYSONTOP(flags) ;
         if( NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHFlags, isVisible, enable) ) {
-            displayDispatchErrorHandlerEnable(0, env);
+            NewtDisplay_displayDispatchErrorHandlerEnable(0, env);
             return;
         }
     }
@@ -795,7 +795,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
         NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHFlags, isVisible, True);
     }
 
-    displayDispatchErrorHandlerEnable(0, env);
+    NewtDisplay_displayDispatchErrorHandlerEnable(0, env);
 
     DBG_PRINT( "X11: reconfigureWindow0 X\n");
 }
