@@ -38,15 +38,12 @@ import org.junit.Test;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
-import com.jogamp.newt.Window;
 import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.util.MonitorMode;
 import com.jogamp.newt.util.ScreenModeUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.util.Iterator;
 import java.util.List;
-import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.SurfaceSize;
@@ -67,7 +64,7 @@ public class TestScreenMode00NEWT extends UITestCase {
         height = 480;
     }
 
-    // @Test
+    @Test
     public void testScreenModeInfo00() throws InterruptedException {
         DimensionImmutable res = new Dimension(640, 480);
         SurfaceSize surfsz = new SurfaceSize(res, 32);
@@ -119,8 +116,6 @@ public class TestScreenMode00NEWT extends UITestCase {
         System.err.println("curr SM: "+sm_c);
         System.err.println("curr sz: "+screen.getWidth()+"x"+screen.getHeight());
         Assert.assertEquals(sm_o, sm_c);
-        Assert.assertEquals(sm_c.getRotatedWidth(), screen.getWidth());
-        Assert.assertEquals(sm_c.getRotatedHeight(), screen.getHeight());
 
         screen.removeReference();
 

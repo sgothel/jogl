@@ -200,8 +200,6 @@ public class TestScreenMode01NEWT extends UITestCase {
         Assert.assertNotNull(smOrig);
         Assert.assertEquals(smCurrent, smOrig);
         System.err.println("[0] current/orig: "+smCurrent);
-        Assert.assertEquals(smCurrent.getRotatedWidth(), screen.getWidth());
-        Assert.assertEquals(smCurrent.getRotatedHeight(), screen.getHeight());
 
         screenModes = ScreenModeUtil.filterByRate(screenModes, smOrig.getMonitorMode().getRefreshRate());
         Assert.assertNotNull(screenModes);
@@ -222,8 +220,6 @@ public class TestScreenMode01NEWT extends UITestCase {
         screen.setCurrentScreenMode(sm);
         Assert.assertEquals(sm, screen.getCurrentScreenMode());
         Assert.assertNotSame(smOrig, screen.getCurrentScreenMode());
-        Assert.assertEquals(sm.getRotatedWidth(), screen.getWidth());
-        Assert.assertEquals(sm.getRotatedHeight(), screen.getHeight());
 
         Thread.sleep(waitTimeLong);
 
@@ -253,8 +249,6 @@ public class TestScreenMode01NEWT extends UITestCase {
 
         Assert.assertNotNull(smCurrent);
         Assert.assertEquals(smCurrent, smOrig);
-        Assert.assertEquals(smCurrent.getRotatedWidth(), screen.getWidth());
-        Assert.assertEquals(smCurrent.getRotatedHeight(), screen.getHeight());
 
         screen.destroy();
 
@@ -288,8 +282,6 @@ public class TestScreenMode01NEWT extends UITestCase {
         Assert.assertNotNull(smOrig);
         Assert.assertEquals(smCurrent, smOrig);
         System.err.println("[0] current/orig: "+smCurrent);
-        Assert.assertEquals(smCurrent.getRotatedWidth(), screen.getWidth());
-        Assert.assertEquals(smCurrent.getRotatedHeight(), screen.getHeight());
         
         List<ScreenMode> screenModes = screen.getScreenModes();
         if(screenModes.size()==1) {
@@ -316,8 +308,6 @@ public class TestScreenMode01NEWT extends UITestCase {
 
         System.err.println("[0] set current: "+screenMode);
         screen.setCurrentScreenMode(screenMode);
-        Assert.assertEquals(screenMode.getRotatedWidth(), screen.getWidth());
-        Assert.assertEquals(screenMode.getRotatedHeight(), screen.getHeight());
         
         if(!preFS) {
             System.err.println("[0] set FS post 0: "+window.isFullscreen());
@@ -354,8 +344,6 @@ public class TestScreenMode01NEWT extends UITestCase {
 
         Assert.assertNotNull(smCurrent);
         Assert.assertEquals(smCurrent, smOrig);
-        Assert.assertEquals(smCurrent.getRotatedWidth(), screen.getWidth());
-        Assert.assertEquals(smCurrent.getRotatedHeight(), screen.getHeight());
 
         screen.destroy();
     }

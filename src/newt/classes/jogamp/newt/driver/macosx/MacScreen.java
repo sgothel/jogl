@@ -37,6 +37,8 @@ package jogamp.newt.driver.macosx;
 import java.util.List;
 
 import javax.media.nativewindow.DefaultGraphicsScreen;
+import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.nativewindow.util.Dimension;
 
 import jogamp.newt.ScreenImpl;
 
@@ -53,7 +55,6 @@ public class MacScreen extends ScreenImpl {
 
     protected void createNativeImpl() {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
-        setScreenSize(getWidthImpl0(screen_idx), getHeightImpl0(screen_idx));
     }
 
     protected void closeNativeImpl() { }
@@ -110,6 +111,10 @@ public class MacScreen extends ScreenImpl {
         return idx; 
     }
         
+    protected DimensionImmutable getNativeScreenSizeImpl() {
+        return new Dimension(getWidthImpl0(screen_idx), getHeightImpl0(screen_idx));
+    }
+    
     private native int[] getScreenMode0(int screen_index, int mode_index);
     private native boolean setScreenMode0(int screen_index, int mode_idx);
 }

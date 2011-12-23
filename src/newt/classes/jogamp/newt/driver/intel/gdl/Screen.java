@@ -35,6 +35,8 @@ package jogamp.newt.driver.intel.gdl;
 
 import jogamp.newt.*;
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
 
 public class Screen extends jogamp.newt.ScreenImpl {
 
@@ -57,6 +59,10 @@ public class Screen extends jogamp.newt.ScreenImpl {
         return 0; // only one screen available 
     }
         
+    protected DimensionImmutable getNativeScreenSizeImpl() {
+        return new Dimension(cachedWidth, cachedHeight);
+    }
+    
     //----------------------------------------------------------------------
     // Internals only
     //
@@ -66,7 +72,11 @@ public class Screen extends jogamp.newt.ScreenImpl {
 
     // called by GetScreenInfo() ..
     private void screenCreated(int width, int height) {
-        setScreenSize(width, height);
+        cachedWidth = width;
+        cachedHeight = height;
     }
+    
+    private static int cachedWidth = 0;
+    private static int cachedHeight = 0;
 }
 

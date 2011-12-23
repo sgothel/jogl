@@ -34,6 +34,8 @@
 package jogamp.newt.driver.broadcom.egl;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
 
 public class Screen extends jogamp.newt.ScreenImpl {
 
@@ -47,7 +49,6 @@ public class Screen extends jogamp.newt.ScreenImpl {
 
     protected void createNativeImpl() {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
-        setScreenSize(fixedWidth, fixedHeight);
     }
 
     protected void closeNativeImpl() { }
@@ -55,12 +56,16 @@ public class Screen extends jogamp.newt.ScreenImpl {
     protected int validateScreenIndex(int idx) {
         return 0; // only one screen available 
     }
-        
+     
+    protected DimensionImmutable getNativeScreenSizeImpl() {
+        return new Dimension(fixedWidth, fixedHeight); // FIXME
+    }
+    
     //----------------------------------------------------------------------
     // Internals only
     //
 
-    static final int fixedWidth = 1920;
-    static final int fixedHeight = 1080;
+    private static final int fixedWidth = 1920;  // FIXME
+    private static final int fixedHeight = 1080; // FIXME
 }
 

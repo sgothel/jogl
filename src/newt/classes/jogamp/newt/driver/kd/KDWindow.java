@@ -146,7 +146,7 @@ public class KDWindow extends WindowImpl {
     @Override
     protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
         if(fullscreen) {
-            ((KDScreen)getScreen()).setScreenSize(width, height);
+            ((KDScreen)getScreen()).sizeChanged(width, height);
         }
         super.sizeChanged(defer, newWidth, newHeight, force);
     }

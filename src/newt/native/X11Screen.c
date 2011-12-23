@@ -57,14 +57,14 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getWidth0
   (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
 {
     Display * dpy = (Display *) (intptr_t) display;
-    return (jint) XDisplayWidth( dpy, scrn_idx);
+    return (jint) DisplayWidth( dpy, scrn_idx);
 }
 
 JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getHeight0
   (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
 {
     Display * dpy = (Display *) (intptr_t) display;
-    return (jint) XDisplayHeight( dpy, scrn_idx);
+    return (jint) DisplayHeight( dpy, scrn_idx);
 }
 
 static int showedRandRVersion = 0;

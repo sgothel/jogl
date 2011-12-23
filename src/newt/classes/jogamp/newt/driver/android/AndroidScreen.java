@@ -29,6 +29,8 @@
 package jogamp.newt.driver.android;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
 
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.util.ScreenModeUtil;
@@ -78,6 +80,11 @@ public class AndroidScreen extends jogamp.newt.ScreenImpl {
         return 0; // FIXME: only one screen available ? 
     }
     
+    protected DimensionImmutable getNativeScreenSizeImpl() {
+        final ScreenMode sm = getCurrentScreenMode();
+        return new Dimension(sm.getRotatedWidth(), sm.getRotatedHeight());
+    }
+    
     //----------------------------------------------------------------------
     // Internals only
     //
@@ -95,7 +102,7 @@ public class AndroidScreen extends jogamp.newt.ScreenImpl {
         if (ScreenMode.ROTATE_90 == nrot || ScreenMode.ROTATE_270 == nrot) {
             props[offset++] = outMetrics.heightPixels;
             props[offset++] = outMetrics.widthPixels;
-        } else {        
+        } else {
             props[offset++] = outMetrics.widthPixels;
             props[offset++] = outMetrics.heightPixels;
         }

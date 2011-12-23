@@ -38,6 +38,8 @@ import java.awt.DisplayMode;
 import jogamp.newt.ScreenImpl;
 import javax.media.nativewindow.awt.AWTGraphicsDevice;
 import javax.media.nativewindow.awt.AWTGraphicsScreen;
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
 
 public class AWTScreen extends ScreenImpl {
     public AWTScreen() {
@@ -45,26 +47,32 @@ public class AWTScreen extends ScreenImpl {
 
     protected void createNativeImpl() {
         aScreen = new AWTGraphicsScreen((AWTGraphicsDevice)display.getGraphicsDevice());
-        
-        final DisplayMode mode = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice().getDisplayMode();
-        if(null != mode) {
-            setScreenSize(mode.getWidth(), mode.getHeight());
-        }
     }
 
     protected void setAWTGraphicsScreen(AWTGraphicsScreen s) {
         aScreen = s;
     }
 
-    // done by AWTWindow ..
-    protected void setScreenSize(int w, int h) {
-        super.setScreenSize(w, h);
+    /**
+     *  Used by AWTWindow ..
+     */
+    @Override
+    protected void updateScreenSize() {
+        super.updateScreenSize();
     }
 
     protected void closeNativeImpl() { }
     
     protected int validateScreenIndex(int idx) {
-        return idx; // FIXME: ??? 
+        return idx; // pass through ... 
     }    
+
+    protected DimensionImmutable getNativeScreenSizeImpl() {
+        final DisplayMode mode = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice().getDisplayMode();
+        if(null != mode) {
+            return new Dimension(mode.getWidth(), mode.getHeight());
+        }
+        return null;
+    }
     
 }

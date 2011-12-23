@@ -34,6 +34,8 @@
 package jogamp.newt.driver.windows;
 
 import javax.media.nativewindow.DefaultGraphicsScreen;
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
 
 import jogamp.newt.ScreenImpl;
 
@@ -51,9 +53,8 @@ public class WindowsScreen extends ScreenImpl {
 
     protected void createNativeImpl() {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
-        setScreenSize(getWidthImpl0(screen_idx), getHeightImpl0(screen_idx));
     }
-
+    
     protected void closeNativeImpl() {
     }
 
@@ -105,6 +106,10 @@ public class WindowsScreen extends ScreenImpl {
         return 0; // big-desktop, only one screen available 
     }
         
+    protected DimensionImmutable getNativeScreenSizeImpl() {
+        return new Dimension(getWidthImpl0(screen_idx), getHeightImpl0(screen_idx));
+    }
+    
     // Native calls
     private native int getWidthImpl0(int scrn_idx);
 

@@ -36,7 +36,6 @@ package jogamp.newt.driver.awt;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.DisplayMode;
 import java.awt.Frame;
 import java.awt.Insets;
 
@@ -157,10 +156,7 @@ public class AWTWindow extends WindowImpl {
             ((AWTScreen)getScreen()).setAWTGraphicsScreen((AWTGraphicsScreen)cfg.getScreen());
             ((AWTDisplay)getScreen().getDisplay()).setAWTGraphicsDevice((AWTGraphicsDevice)cfg.getScreen().getDevice());
     
-            final DisplayMode mode = ((AWTGraphicsDevice)cfg.getScreen().getDevice()).getGraphicsDevice().getDisplayMode();
-            if(null != mode) {
-                ((AWTScreen)getScreen()).setScreenSize(mode.getWidth(), mode.getHeight());
-            }
+            ((AWTScreen)getScreen()).updateScreenSize();
         }
         return res;
     }

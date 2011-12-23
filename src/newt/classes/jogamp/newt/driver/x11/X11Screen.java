@@ -43,6 +43,8 @@ import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.util.ScreenModeUtil;
 import java.util.List;
 
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.x11.*;
 
 public class X11Screen extends ScreenImpl {
@@ -58,11 +60,7 @@ public class X11Screen extends ScreenImpl {
         // validate screen index
         Long handle = display.runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Long>() {
             public Long run(long dpy) {        
-                long handle = GetScreen0(dpy, screen_idx);
-                if(0 != handle) {
-                    setScreenSize(getWidth0(dpy, screen_idx), getHeight0(dpy, screen_idx));
-                }
-                return new Long(handle);
+                return new Long(GetScreen0(dpy, screen_idx));
             } } );        
         if (handle.longValue() == 0) {
             throw new RuntimeException("Error creating screen: " + screen_idx);
@@ -270,6 +268,13 @@ public class X11Screen extends ScreenImpl {
         }
     }
         
+    protected DimensionImmutable getNativeScreenSizeImpl() {
+        return display.runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<DimensionImmutable>() {
+            public DimensionImmutable run(long dpy) {
+                return new Dimension(getWidth0(dpy, screen_idx), getHeight0(dpy, screen_idx));
+            } } );        
+    }    
+    
     //----------------------------------------------------------------------
     // Internals only
     //    

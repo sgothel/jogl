@@ -178,6 +178,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 throw new NativeWindowException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
             }
             initScreenModeStatus();
+            updateScreenSize();            
             if(DEBUG) {
                 System.err.println("Screen.createNative() END ("+DisplayImpl.getThreadName()+", "+this+")");
             }
@@ -240,20 +241,36 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
     protected abstract void createNativeImpl();
     protected abstract void closeNativeImpl();
+    
+    /**
+     * Returns the validated screen index, which is either the passed <code>idx</code>
+     * value or <code>0</code>.
+     * <p>
+     * On big-desktops this shall return always 0.
+     * </p>
+     */
     protected abstract int validateScreenIndex(int idx);
+    
+    /**
+     * Returns the <b>rotated</b> virtual ScreenSize.
+     * <p>
+     * This method is called after the ScreenMode has been set, 
+     * hence you may utilize it.
+     * </p> 
+     */
+    protected abstract DimensionImmutable getNativeScreenSizeImpl(); 
     
     public final String getFQName() {
         return fqname;
     }
 
     /**
-     * Set the <b>rotated</b> ScreenSize.
-     * @see com.jogamp.newt.ScreenMode#getRotatedWidth()
-     * @see com.jogamp.newt.ScreenMode#getRotatedHeight()
+     * Updates the <b>rotated</b> virtual ScreenSize using the native impl.
      */
-    protected void setScreenSize(int w, int h) {
-        System.err.println("Detected screen size "+w+"x"+h);
-        width=w; height=h;
+    protected void updateScreenSize() {
+        final DimensionImmutable dim = getNativeScreenSizeImpl();
+        width=dim.getWidth(); height=dim.getHeight();
+        System.err.println("Detected screen size "+width+"x"+height);
     }
 
     public final Display getDisplay() {
@@ -274,16 +291,14 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
     
     /**
-     * @return the <b>rotated</b> width.
-     * @see com.jogamp.newt.ScreenMode#getRotatedWidth()
+     * @return the <b>rotated</b> virtual width.
      */
     public final int getWidth() {
         return (usrWidth>0) ? usrWidth : (width>0) ? width : 480;
     }
 
     /**
-     * @return the <b>rotated</b> height
-     * @see com.jogamp.newt.ScreenMode#getRotatedHeight()
+     * @return the <b>rotated</b> virtual height.
      */
     public final int getHeight() {
         return (usrHeight>0) ? usrHeight : (height>0) ? height : 480;
@@ -361,9 +376,6 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             }
 
             success = setCurrentScreenModeImpl(smU);                    
-            if(success) {
-                setScreenSize(smU.getRotatedWidth(), smU.getRotatedHeight());
-            }
             
             if(DEBUG) {
                 t1 = System.currentTimeMillis() - t1;
@@ -391,7 +403,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
     public void screenModeChanged(ScreenMode sm, boolean success) {
         if(success) {
-            setScreenSize(sm.getRotatedWidth(), sm.getRotatedHeight());
+            updateScreenSize();
         }
         for(int i=0; i<referencedScreenModeListener.size(); i++) {
             ((ScreenModeListener)referencedScreenModeListener.get(i)).screenModeChanged(sm, success);
@@ -502,8 +514,6 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 if(null == currentSM) {
                     throw new InternalError("getCurrentScreenModeImpl() == null");
                 }
-                // Update rotated Screen size, since native RandR impl. is more correct.
-                setScreenSize(currentSM.getRotatedWidth(), currentSM.getRotatedHeight());
 
                 ArrayHashSet<ScreenMode> screenModes = collectNativeScreenModes(screenModesIdx2NativeIdx);
                 if(screenModes.size()==0) {
