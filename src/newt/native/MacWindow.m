@@ -651,8 +651,9 @@ NS_DURING
         if([mView isInFullScreenMode]) {
             [mView exitFullScreenModeWithOptions: NULL];
         }
-        [mWin setContentView: nil];
-        [mView release];
+        // Note: mWin's release will also release it's mView!
+        // [mWin setContentView: nil];
+        // [mView release];
     }
 NS_HANDLER
 NS_ENDHANDLER
@@ -665,7 +666,11 @@ NS_ENDHANDLER
     DBG_PRINT( "windowClose.1 - %p,%d view %p,%d, parent %p\n", 
         mWin, getRetainCount(mWin), mView, getRetainCount(mView), pWin);
 
-    [mWin close]; // performs release!
+    // '[mWin close]' causes a crash at exit.
+    // This probably happens b/c it sends events to the main loop
+    // but our resources are gone ?!
+    // However, issuing a simple release seems to work quite well.
+    [mWin release];
 
     DBG_PRINT( "windowClose.X - %p,%d view %p,%d, parent %p\n", 
         mWin, getRetainCount(mWin), mView, getRetainCount(mView), pWin);

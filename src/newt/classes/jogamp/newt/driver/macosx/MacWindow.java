@@ -87,6 +87,9 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
             }
         } finally {
             setWindowHandle(0);
+            surfaceHandle = 0;
+            sscSurfaceHandle = 0;
+            isOffscreenInstance = false;            
         }
     }
     
@@ -394,8 +397,8 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
     private static final int NSBackingStoreNonretained  = 1;
     private static final int NSBackingStoreBuffered     = 2;
 
-    private volatile long surfaceHandle;
-    private long sscSurfaceHandle;
-    private boolean isOffscreenInstance;
+    private volatile long surfaceHandle = 0;
+    private long sscSurfaceHandle = 0;
+    private boolean isOffscreenInstance = false;
     
 }

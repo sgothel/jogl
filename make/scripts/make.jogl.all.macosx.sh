@@ -5,7 +5,9 @@ if [ -e /opt-share/etc/profile.ant ] ; then
 fi
 
 
-#    -Dc.compiler.debug=true 
+#    -Dc.compiler.debug=true \
+#    -Djavacdebug="true" \
+#    -Djavacdebuglevel="source,lines,vars" \
 
 ant \
     -Drootrel.build=build-macosx \
