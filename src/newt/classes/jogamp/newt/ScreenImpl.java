@@ -34,6 +34,21 @@
 
 package jogamp.newt;
 
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.SurfaceSize;
+
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.newt.Display;
@@ -43,16 +58,6 @@ import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.event.ScreenModeListener;
 import com.jogamp.newt.util.MonitorMode;
 import com.jogamp.newt.util.ScreenModeUtil;
-
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.Point;
-import javax.media.nativewindow.util.SurfaceSize;
-
-import java.security.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     protected static final boolean DEBUG_TEST_SCREENMODE_DISABLED = Debug.isPropertyDefined("newt.test.Screen.disableScreenMode", true);
@@ -519,11 +524,12 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 }
 
                 ArrayHashSet<ScreenMode> screenModes = collectNativeScreenModes(screenModesIdx2NativeIdx);
-                if(screenModes.size()==0) {
-                    if(DEBUG) {
-                        System.err.println("ScreenImpl.initScreenModeStatus: added current (last resort, collect failed): "+currentSM);
+                screenModes.getOrAdd(currentSM);
+                if(DEBUG) {
+                    int i=0;
+                    for(Iterator<ScreenMode> iter=screenModes.iterator(); iter.hasNext(); i++) {
+                        System.err.println(i+": "+iter.next());
                     }
-                    screenModes.getOrAdd(currentSM);
                 }
                 
                 sms = new ScreenModeStatus(screenModes, screenModesIdx2NativeIdx);
