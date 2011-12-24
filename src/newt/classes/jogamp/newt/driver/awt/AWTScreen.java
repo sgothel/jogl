@@ -39,7 +39,7 @@ import jogamp.newt.ScreenImpl;
 import javax.media.nativewindow.awt.AWTGraphicsDevice;
 import javax.media.nativewindow.awt.AWTGraphicsScreen;
 import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.nativewindow.util.Point;
 
 public class AWTScreen extends ScreenImpl {
     public AWTScreen() {
@@ -57,8 +57,8 @@ public class AWTScreen extends ScreenImpl {
      *  Used by AWTWindow ..
      */
     @Override
-    protected void updateScreenSize() {
-        super.updateScreenSize();
+    protected void updateVirtualScreenOriginAndSize() {
+        super.updateVirtualScreenOriginAndSize();
     }
 
     protected void closeNativeImpl() { }
@@ -67,12 +67,14 @@ public class AWTScreen extends ScreenImpl {
         return idx; // pass through ... 
     }    
 
-    protected DimensionImmutable getNativeScreenSizeImpl() {
+    protected void getVirtualScreenOriginAndSize(Point virtualOrigin, Dimension virtualSize) {
         final DisplayMode mode = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice().getDisplayMode();
         if(null != mode) {
-            return new Dimension(mode.getWidth(), mode.getHeight());
+            virtualOrigin.setX(0);
+            virtualOrigin.setY(0);
+            virtualSize.setWidth(mode.getWidth());
+            virtualSize.setHeight(mode.getHeight());
         }
-        return null;
     }
     
 }

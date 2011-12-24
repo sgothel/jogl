@@ -45,7 +45,9 @@ import com.jogamp.newt.util.MonitorMode;
 import com.jogamp.newt.util.ScreenModeUtil;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.SurfaceSize;
 
 import java.security.*;
@@ -61,8 +63,10 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     protected int hashCode;
     protected AbstractGraphicsScreen aScreen;
     protected int refCount; // number of Screen references by Window
-    protected int width=-1, height=-1; // detected values: set using setScreenSize
-    protected static int usrWidth=-1, usrHeight=-1; // property values: newt.ws.swidth and newt.ws.sheight
+    protected Point vOrigin = new Point(0, 0); // virtual top-left origin
+    protected Dimension vSize = new Dimension(0, 0); // virtual rotated screen size
+    protected static Dimension usrSize = null; // property values: newt.ws.swidth and newt.ws.sheight
+    protected static volatile boolean usrSizeQueried = false;
     private static AccessControlContext localACC = AccessController.getContext();
     private ArrayList<ScreenModeListener> referencedScreenModeListener = new ArrayList<ScreenModeListener>();
     long t0; // creationTime
@@ -102,13 +106,15 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
     public static Screen create(Display display, int idx) {
         try {
-            if(usrWidth<0 || usrHeight<0) {
+            if(!usrSizeQueried) {
                 synchronized (Screen.class) {
-                    if(usrWidth<0 || usrHeight<0) {
-                        usrWidth  = Debug.getIntProperty("newt.ws.swidth", true, localACC);
-                        usrHeight = Debug.getIntProperty("newt.ws.sheight", true, localACC);
-                        if(usrWidth>0 || usrHeight>0) {
-                            System.err.println("User screen size "+usrWidth+"x"+usrHeight);
+                    if(!usrSizeQueried) {
+                        usrSizeQueried = true;
+                        final int w = Debug.getIntProperty("newt.ws.swidth", true, localACC);
+                        final int h = Debug.getIntProperty("newt.ws.sheight", true, localACC);                        
+                        if(w>0 && h>0) {
+                            usrSize = new Dimension(w, h);
+                            System.err.println("User screen size "+usrSize);
                         }
                     }
                 }
@@ -178,7 +184,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 throw new NativeWindowException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
             }
             initScreenModeStatus();
-            updateScreenSize();            
+            updateVirtualScreenOriginAndSize();            
             if(DEBUG) {
                 System.err.println("Screen.createNative() END ("+DisplayImpl.getThreadName()+", "+this+")");
             }
@@ -252,13 +258,15 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     protected abstract int validateScreenIndex(int idx);
     
     /**
-     * Returns the <b>rotated</b> virtual ScreenSize.
+     * Stores the virtual origin and virtual <b>rotated</b> screen size.
      * <p>
      * This method is called after the ScreenMode has been set, 
      * hence you may utilize it.
      * </p> 
+     * @param virtualOrigin the store for the virtual origin
+     * @param virtualSize the store for the virtual rotated size
      */
-    protected abstract DimensionImmutable getNativeScreenSizeImpl(); 
+    protected abstract void getVirtualScreenOriginAndSize(Point virtualOrigin, Dimension virtualSize); 
     
     public final String getFQName() {
         return fqname;
@@ -267,10 +275,9 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     /**
      * Updates the <b>rotated</b> virtual ScreenSize using the native impl.
      */
-    protected void updateScreenSize() {
-        final DimensionImmutable dim = getNativeScreenSizeImpl();
-        width=dim.getWidth(); height=dim.getHeight();
-        System.err.println("Detected screen size "+width+"x"+height);
+    protected void updateVirtualScreenOriginAndSize() {
+        getVirtualScreenOriginAndSize(vOrigin, vSize);
+        System.err.println("Detected screen origin "+vOrigin+", size "+vSize);
     }
 
     public final Display getDisplay() {
@@ -289,19 +296,15 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         return null != aScreen;
     }
 
+    public int getX() { return vOrigin.getX(); }
+    public int getY() { return vOrigin.getY(); }
     
-    /**
-     * @return the <b>rotated</b> virtual width.
-     */
     public final int getWidth() {
-        return (usrWidth>0) ? usrWidth : (width>0) ? width : 480;
+        return (null != usrSize) ? usrSize.getWidth() : vSize.getWidth();
     }
 
-    /**
-     * @return the <b>rotated</b> virtual height.
-     */
     public final int getHeight() {
-        return (usrHeight>0) ? usrHeight : (height>0) ? height : 480;
+        return (null != usrSize) ? usrSize.getHeight() : vSize.getHeight();
     }
 
     @Override
@@ -403,7 +406,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
     public void screenModeChanged(ScreenMode sm, boolean success) {
         if(success) {
-            updateScreenSize();
+            updateVirtualScreenOriginAndSize();
         }
         for(int i=0; i<referencedScreenModeListener.size(); i++) {
             ((ScreenModeListener)referencedScreenModeListener.get(i)).screenModeChanged(sm, success);

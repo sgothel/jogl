@@ -1677,7 +1677,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         nfs_y = WindowImpl.this.y;
                         nfs_width = WindowImpl.this.width;
                         nfs_height = WindowImpl.this.height;
-                        x = 0; y = 0;
+                        x = screen.getX(); y = screen.getY();
                         w = screen.getWidth();
                         h = screen.getHeight();
                     } else {

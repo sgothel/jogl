@@ -36,7 +36,7 @@ package jogamp.newt.driver.kd;
 import jogamp.newt.ScreenImpl;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.nativewindow.util.Point;
 
 public class KDScreen extends ScreenImpl {
     static {
@@ -56,8 +56,11 @@ public class KDScreen extends ScreenImpl {
         return 0; // only one screen available 
     }       
     
-    protected DimensionImmutable getNativeScreenSizeImpl() {
-        return new Dimension(cachedWidth, cachedHeight);
+    protected void getVirtualScreenOriginAndSize(Point virtualOrigin, Dimension virtualSize) {
+        virtualOrigin.setX(0);
+        virtualOrigin.setY(0);
+        virtualSize.setWidth(cachedWidth);
+        virtualSize.setHeight(cachedHeight);
     }
     
     protected void sizeChanged(int w, int h) {

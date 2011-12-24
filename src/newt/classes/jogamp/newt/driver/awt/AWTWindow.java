@@ -156,7 +156,7 @@ public class AWTWindow extends WindowImpl {
             ((AWTScreen)getScreen()).setAWTGraphicsScreen((AWTGraphicsScreen)cfg.getScreen());
             ((AWTDisplay)getScreen().getDisplay()).setAWTGraphicsDevice((AWTGraphicsDevice)cfg.getScreen().getDevice());
     
-            ((AWTScreen)getScreen()).updateScreenSize();
+            ((AWTScreen)getScreen()).updateVirtualScreenOriginAndSize();
         }
         return res;
     }

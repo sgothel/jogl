@@ -120,12 +120,22 @@ public abstract class Screen {
     public abstract int getIndex();
 
     /**
-     * @return the current screen width, reflecting {@link ScreenMode} rotation 
+     * @return the x position of the virtual top-left origin.
+     */
+    public abstract int getX();
+    
+    /**
+     * @return the y position of the virtual top-left origin.
+     */
+    public abstract int getY();
+    
+    /**
+     * @return the <b>rotated</b> virtual width.
      */
     public abstract int getWidth();
 
     /**
-     * @return the current screen height, reflecting {@link ScreenMode} rotation
+     * @return the <b>rotated</b> virtual height.
      */
     public abstract int getHeight();
 

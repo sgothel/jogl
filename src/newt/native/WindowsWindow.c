@@ -869,7 +869,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers(),
-                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jint) 1, (jint) 0);
         useDefWindowProc = 1;
         break;
@@ -878,7 +878,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_RELEASED,
                                GetModifiers(),
-                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jint) 1, (jint) 0);
         useDefWindowProc = 1;
         break;
@@ -889,7 +889,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers(),
-                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jint) 2, (jint) 0);
         useDefWindowProc = 1;
         break;
@@ -898,7 +898,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_RELEASED,
                                GetModifiers(),
-                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jint) 2, (jint) 0);
         useDefWindowProc = 1;
         break;
@@ -909,7 +909,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers(),
-                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jint) 3, (jint) 0);
         useDefWindowProc = 1;
         break;
@@ -918,7 +918,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_RELEASED,
                                GetModifiers(),
-                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jint) 3,  (jint) 0);
         useDefWindowProc = 1;
         break;
@@ -927,7 +927,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_MOVED,
                                GetModifiers(),
-                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jint) 0,  (jint) 0);
         useDefWindowProc = 1;
         break;
@@ -973,8 +973,8 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         break;
 
     case WM_MOVE:
-        DBG_PRINT("*** WindowsWindow: WM_MOVE window %p, %d/%d\n", wnd, (int)LOWORD(lParam), (int)HIWORD(lParam));
-        (*env)->CallVoidMethod(env, window, positionChangedID, JNI_FALSE, (jint)LOWORD(lParam), (jint)HIWORD(lParam));
+        DBG_PRINT("*** WindowsWindow: WM_MOVE window %p, %d/%d\n", wnd, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        (*env)->CallVoidMethod(env, window, positionChangedID, JNI_FALSE, (jint)GET_X_LPARAM(lParam), (jint)GET_Y_LPARAM(lParam));
         useDefWindowProc = 1;
         break;
 
@@ -1041,13 +1041,47 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsDisplay_DispatchMe
 
 /*
  * Class:     jogamp_newt_driver_windows_WindowsScreen
+ * Method:    getOriginX0
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getOriginX0
+  (JNIEnv *env, jobject obj, jint scrn_idx)
+{
+    if( GetSystemMetrics( SM_CMONITORS) > 1) {
+        return (jint)GetSystemMetrics(SM_XVIRTUALSCREEN);
+    } else {
+        return 0;
+    }
+}
+
+/*
+ * Class:     jogamp_newt_driver_windows_WindowsScreen
+ * Method:    getOriginY0
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getOriginY0
+  (JNIEnv *env, jobject obj, jint scrn_idx)
+{
+    if( GetSystemMetrics( SM_CMONITORS ) > 1) {
+        return (jint)GetSystemMetrics(SM_YVIRTUALSCREEN);
+    } else {
+        return 0;
+    }
+}
+
+/*
+ * Class:     jogamp_newt_driver_windows_WindowsScreen
  * Method:    getWidthImpl
  * Signature: (I)I
  */
 JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getWidthImpl0
   (JNIEnv *env, jobject obj, jint scrn_idx)
 {
-    return (jint)GetSystemMetrics(SM_CXSCREEN);
+    if( GetSystemMetrics( SM_CMONITORS) > 1) {
+        return (jint)GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    } else {
+        return (jint)GetSystemMetrics(SM_CXSCREEN);
+    }
 }
 
 /*
@@ -1058,7 +1092,11 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getWidthImp
 JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getHeightImpl0
   (JNIEnv *env, jobject obj, jint scrn_idx)
 {
-    return (jint)GetSystemMetrics(SM_CYSCREEN);
+    if( GetSystemMetrics( SM_CMONITORS ) > 1) {
+        return (jint)GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    } else {
+        return (jint)GetSystemMetrics(SM_CYSCREEN);
+    }
 }
 
 static int NewtScreen_RotationNativeCCW2NewtCCW(JNIEnv *env, int native) {
@@ -1309,9 +1347,6 @@ static void NewtWindow_setVisiblePosSize(HWND hwnd, BOOL atop, BOOL visible,
         flags = SWP_SHOWWINDOW;
     } else {
         flags = SWP_NOACTIVATE | SWP_NOZORDER;
-    }
-    if(0>x || 0>y) {
-        flags |= SWP_NOMOVE;
     }
     if(0>=width || 0>=height ) {
         flags |= SWP_NOSIZE;

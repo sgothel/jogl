@@ -44,7 +44,7 @@ import com.jogamp.newt.util.ScreenModeUtil;
 import java.util.List;
 
 import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.x11.*;
 
 public class X11Screen extends ScreenImpl {
@@ -268,10 +268,14 @@ public class X11Screen extends ScreenImpl {
         }
     }
         
-    protected DimensionImmutable getNativeScreenSizeImpl() {
-        return display.runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<DimensionImmutable>() {
-            public DimensionImmutable run(long dpy) {
-                return new Dimension(getWidth0(dpy, screen_idx), getHeight0(dpy, screen_idx));
+    protected void getVirtualScreenOriginAndSize(final Point virtualOrigin, final Dimension virtualSize) {
+        display.runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Object>() {
+            public Object run(long dpy) {
+                virtualOrigin.setX(0);
+                virtualOrigin.setY(0);
+                virtualSize.setWidth(getWidth0(dpy, screen_idx));
+                virtualSize.setHeight(getHeight0(dpy, screen_idx));
+                return null;
             } } );        
     }    
     
