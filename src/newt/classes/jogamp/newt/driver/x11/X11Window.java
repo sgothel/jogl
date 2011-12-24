@@ -108,14 +108,12 @@ public class X11Window extends WindowImpl {
             System.err.println("X11Window reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
                                getReconfigureFlagsAsString(null, flags));
         }
-        if(0 == ( FLAG_IS_UNDECORATED & flags) && 0<=x && 0<=y) {
+        if(0 == ( FLAG_IS_UNDECORATED & flags)) {
             final InsetsImmutable i = getInsets();         
             
             // client position -> top-level window position
             x -= i.getLeftWidth() ;
             y -= i.getTopHeight() ;
-            if( 0 > x ) { x = 0; }
-            if( 0 > y ) { y = 0; }            
         }        
         reconfigureWindow0( getDisplayEDTHandle(), getScreenIndex(), getParentWindowHandle(), getWindowHandle(),
                             x, y, width, height, flags);

@@ -456,14 +456,12 @@ static Bool WaitForUnmapNotify( Display *dpy, XEvent *event, XPointer arg ) {
 static void NewtWindows_setPosSize(Display *dpy, Window w, jint x, jint y, jint width, jint height) {
     if(width>0 && height>0 || x>=0 && y>=0) { // resize/position if requested
         XWindowChanges xwc;
-        int flags = 0;
+        int flags = CWX | CWY;
 
         memset(&xwc, 0, sizeof(XWindowChanges));
-        if(0<=x && 0<=y) {
-            flags |= CWX | CWY;
-            xwc.x=x;
-            xwc.y=y;
-        }
+        xwc.x=x;
+        xwc.y=y;
+
         if(0<width && 0<height) {
             flags |= CWWidth | CWHeight;
             xwc.width=width;

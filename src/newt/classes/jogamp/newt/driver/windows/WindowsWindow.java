@@ -174,12 +174,8 @@ public class WindowsWindow extends WindowImpl {
             final InsetsImmutable i = getInsets();
             
             // client position -> top-level window position
-            if(0<=x && 0<=y) {
-                x -= i.getLeftWidth() ;
-                y -= i.getTopHeight() ;
-                if( 0 > x ) { x = 0; }
-                if( 0 > y ) { y = 0; }
-            }
+            x -= i.getLeftWidth() ;
+            y -= i.getTopHeight() ;
             
             if(0<width && 0<height) {
                 // client size -> top-level window size
