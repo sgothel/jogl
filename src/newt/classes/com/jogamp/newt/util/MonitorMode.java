@@ -43,8 +43,9 @@ public class MonitorMode {
     int refreshRate;
 
     public MonitorMode(SurfaceSize surfaceSize, DimensionImmutable screenSizeMM, int refreshRate) {
-        if(null==surfaceSize || refreshRate<=0) {
-            throw new IllegalArgumentException("surfaceSize must be set and refreshRate greater 0");
+        // Don't validate screenSizeMM and refreshRate, since they may not be supported by the OS 
+        if(null==surfaceSize) {
+            throw new IllegalArgumentException("surfaceSize must be set ("+surfaceSize+")");
         }
         this.surfaceSize=surfaceSize;
         this.screenSizeMM=screenSizeMM;

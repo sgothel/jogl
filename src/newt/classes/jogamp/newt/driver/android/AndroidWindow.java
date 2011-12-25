@@ -343,7 +343,9 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
             surfaceHandle = 0;
             surface=null;
         }
-        getScreen().getCurrentScreenMode(); // if ScreenMode changed .. trigger ScreenMode event
+        if(getScreen().isNativeValid()) {
+            getScreen().getCurrentScreenMode(); // if ScreenMode changed .. trigger ScreenMode event
+        }
 
         if(0>x || 0>y) {
             x = 0;
