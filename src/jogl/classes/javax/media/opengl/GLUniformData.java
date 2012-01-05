@@ -107,10 +107,10 @@ public class GLUniformData {
         if(data instanceof Buffer) {
             final int sz = rows*columns;
             final Buffer buffer = (Buffer)data;
-            if(buffer.limit()<sz || 0!=buffer.limit()%sz) {
-                throw new GLException("data buffer size invalid: new buffer limit: "+buffer.limit()+"\n\t"+this);
+            if(buffer.remaining()<sz || 0!=buffer.remaining()%sz) {
+                throw new GLException("remaining data buffer size invalid: buffer: "+buffer.toString()+"\n\t"+this);
             }
-            this.count=buffer.limit()/(rows*columns);
+            this.count=buffer.remaining()/(rows*columns);
         } else {
             if(isMatrix) {
                 throw new GLException("Atom type not allowed for matrix : "+this);
