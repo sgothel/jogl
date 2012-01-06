@@ -65,7 +65,10 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
       
       final GLAnimatorControl animatorCtrl = useFPSAnimator ? new FPSAnimator(canvas, 60) : new Animator(canvas);
       animatorCtrl.setUpdateFPSFrames(60, System.err);
-      
+      if(!useAnimStartStop) {
+          animatorCtrl.start();
+          animatorCtrl.pause();
+      }
       final JFrame frame = new JFrame();
       frame.setTitle(getSimpleTestName());
       frame.addWindowListener(new WindowAdapter() { 
