@@ -92,7 +92,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
 
     public synchronized void add(GLAutoDrawable drawable) {
         if(DEBUG) {
-            System.err.println("Animator add: "+drawable.hashCode()+" - "+Thread.currentThread());
+            System.err.println("Animator add: "+drawable.hashCode()+" - "+Thread.currentThread().getName());
         }
         boolean paused = pause();
         drawables.add(drawable);
@@ -113,7 +113,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
 
     public synchronized void remove(GLAutoDrawable drawable) {
         if(DEBUG) {
-            System.err.println("Animator remove: "+drawable.hashCode()+" - "+Thread.currentThread() + ": "+toString());
+            System.err.println("Animator remove: "+drawable.hashCode()+" - "+Thread.currentThread().getName() + ": "+toString());
         }
 
         boolean paused = pause();

@@ -243,7 +243,8 @@ public class Animator extends AnimatorBase {
         // dependencies on the Animator's internal thread. Currently we
         // use a couple of heuristics to determine whether we should do
         // the blocking wait().
-        long remaining = impl.blockUntilDone(animThread) ? TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION : 0;
+        final boolean blocking = impl.blockUntilDone(animThread);
+        long remaining = blocking ? TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION : 0;
         while (remaining>0 && condition.result()) {
             long td = System.currentTimeMillis();
             try {
@@ -253,12 +254,13 @@ public class Animator extends AnimatorBase {
         }
         if(DEBUG) {
             if(remaining<0) {
-                System.err.println("finishLifecycleAction(" + condition.getClass().getName() + "): ++++++ timeout reached ++++++ ");
+                System.err.println("finishLifecycleAction(" + condition.getClass().getName() + "): ++++++ timeout reached ++++++ " + Thread.currentThread().getName());
             }
             System.err.println("finishLifecycleAction(" + condition.getClass().getName() + "): finished "+
-                    "- waited " + (TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION-remaining) + "/" + TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION + 
+                    "- blocking "+blocking+
+                    ", waited " + (blocking ? ( TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION - remaining ) : 0 ) + "/" + TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION + 
                     ", started: " + isStartedImpl() +", animating: " + isAnimatingImpl() +
-                    ", paused: " + isPausedImpl() + ", drawables " + drawables.size());
+                    ", paused: " + isPausedImpl() + ", drawables " + drawables.size() + " - " + Thread.currentThread().getName());
         }
     }
 
