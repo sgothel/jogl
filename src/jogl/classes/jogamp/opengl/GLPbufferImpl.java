@@ -99,28 +99,21 @@ public class GLPbufferImpl implements GLPbuffer {
     return true;
   }
 
-  class DisposeAction implements Runnable {
-    public void run() {
-        // Lock: Covered by DestroyAction ..
-        drawableHelper.dispose(GLPbufferImpl.this);
-    }
-  }
-  DisposeAction disposeAction = new DisposeAction();
-
   public void destroy() {
     if(pbufferDrawable.isRealized()) {
         final AbstractGraphicsDevice adevice = pbufferDrawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
         
         if (null != context && context.isCreated()) {
             try {
-                drawableHelper.invokeGL(pbufferDrawable, context, disposeAction, null);
+                drawableHelper.disposeGL(GLPbufferImpl.this, pbufferDrawable, context, null);
             } catch (GLException gle) {
                 gle.printStackTrace();
             }
-            context.destroy();
+            context = null;
             // drawableHelper.reset();
         }
         pbufferDrawable.destroy();
+        pbufferDrawable = null;
         
         if(null != adevice) {
             adevice.close();

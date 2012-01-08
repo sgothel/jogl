@@ -355,14 +355,6 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     // Hide methods here ..
     protected class GLLifecycleHook implements WindowImpl.LifecycleHook {
 
-        private class DisposeAction implements Runnable {
-            public final void run() {
-                // Lock: Covered by DestroyAction ..
-                helper.dispose(GLWindow.this);
-            }
-        }
-        DisposeAction disposeAction = new DisposeAction();
-
         public synchronized void destroyActionPreLock() {
             // nop
         }
@@ -380,11 +372,10 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
                     // Catch dispose GLExceptions by GLEventListener, just 'print' them
                     // so we can continue with the destruction.
                     try {
-                        helper.invokeGL(drawable, context, disposeAction, null);
+                        helper.disposeGL(GLWindow.this, drawable, context, null);
                     } catch (GLException gle) {
                         gle.printStackTrace();
                     }
-                    context.destroy();
                 }
                 drawable.setRealized(false);
             }

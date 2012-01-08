@@ -283,7 +283,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
             if (null != sr.context) {
                 // may cause JVM SIGSEGV:
-                sr.context.makeCurrent();
                 sr.context.destroy();
                 sr.context = null;
             }

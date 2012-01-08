@@ -59,6 +59,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.OffscreenLayerOption;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -441,25 +442,25 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
             disposeRegenerate=regenerate;
 
-            if (Threading.isSingleThreaded() &&
-                !Threading.isOpenGLThread()) {
-              // Workaround for termination issues with applets --
-              // sun.applet.AppletPanel should probably be performing the
-              // remove() call on the EDT rather than on its own thread
-              // Hint: User should run remove from EDT.
-              if (ThreadingImpl.isAWTMode() &&
-                  Thread.holdsLock(getTreeLock())) {
-                // The user really should not be invoking remove() from this
-                // thread -- but since he/she is, we can not go over to the
-                // EDT at this point. Try to destroy the context from here.
-                if(context.isCreated()) {
-                    drawableHelper.invokeGL(drawable, context, disposeAction, null);
+            if(context.isCreated()) {
+                if (Threading.isSingleThreaded() &&
+                    !Threading.isOpenGLThread()) {
+                  // Workaround for termination issues with applets --
+                  // sun.applet.AppletPanel should probably be performing the
+                  // remove() call on the EDT rather than on its own thread
+                  // Hint: User should run remove from EDT.
+                  if (ThreadingImpl.isAWTMode() &&
+                      Thread.holdsLock(getTreeLock())) {
+                    // The user really should not be invoking remove() from this
+                    // thread -- but since he/she is, we can not go over to the
+                    // EDT at this point. Try to destroy the context from here.
+                    drawableHelper.disposeGL(GLCanvas.this, drawable, context, postDisposeAction);
+                  } else {
+                    Threading.invokeOnOpenGLThread(disposeOnEventDispatchThreadAction);
+                  }
+                } else {
+                  drawableHelper.disposeGL(GLCanvas.this, drawable, context, postDisposeAction);
                 }
-              } else if(context.isCreated()) {
-                Threading.invokeOnOpenGLThread(disposeOnEventDispatchThreadAction);
-              }
-            } else if(context.isCreated()) {
-              drawableHelper.invokeGL(drawable, context, disposeAction, null);
             }
 
             if(animatorPaused) {
@@ -834,16 +835,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
   }
 
-  class DisposeAction implements Runnable {
+  class PostDisposeAction implements Runnable {
     public void run() {
-      drawableHelper.dispose(GLCanvas.this);
-
-      if(null!=context) {
-        context.makeCurrent(); // implicit wait for lock ..
-        context.destroy();
-        context=null;
-      }
-
+      context=null;
       if(null!=drawable) {
           final JAWTWindow jawtWindow = (JAWTWindow)drawable.getNativeSurface();
           drawable.setRealized(false);
@@ -867,21 +861,22 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
   }
   private boolean disposeRegenerate;
-  private DisposeAction disposeAction = new DisposeAction();
+  private PostDisposeAction postDisposeAction = new PostDisposeAction();
 
   private DisposeOnEventDispatchThreadAction disposeOnEventDispatchThreadAction =
     new DisposeOnEventDispatchThreadAction();
 
   class DisposeOnEventDispatchThreadAction implements Runnable {
     public void run() {
-      drawableHelper.invokeGL(drawable, context, disposeAction, null);
+      drawableHelper.disposeGL(GLCanvas.this, drawable, context, postDisposeAction);      
     }
   }
 
   class DisposeAbstractGraphicsDeviceAction implements Runnable {
     public void run() {
       if(null != awtConfig) {
-          final AbstractGraphicsDevice adevice = awtConfig.getScreen().getDevice();
+          final AbstractGraphicsConfiguration aconfig = awtConfig.getNativeGraphicsConfiguration();          
+          final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
           final String adeviceMsg;
           if(DEBUG) {
             adeviceMsg = adevice.toString();
@@ -1091,9 +1086,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
 
     GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault(GLProfile.getDefaultDesktopDevice()) );
-    Frame frame = new Frame("JOGL AWT Test");
+    final Frame frame = new Frame("JOGL AWT Test");
 
-    GLCanvas glCanvas = new GLCanvas(caps);
+    final GLCanvas glCanvas = new GLCanvas(caps);
     frame.add(glCanvas);
     frame.setSize(128, 128);
 
@@ -1102,24 +1097,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
             GL gl = drawable.getGL();
             System.err.println(JoglVersion.getGLInfo(gl, null));
         }
-
-        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        }
-
-        public void display(GLAutoDrawable drawable) {
-        }
-
-        public void dispose(GLAutoDrawable drawable) {
-        }
+        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+        public void display(GLAutoDrawable drawable) { }
+        public void dispose(GLAutoDrawable drawable) { }
     });
-
-    final Frame _frame = frame;
-    final GLCanvas _glCanvas = glCanvas;
 
     try {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-                _frame.setVisible(true);
+                frame.setVisible(true);
             }});
     } catch (Throwable t) {
         t.printStackTrace();
@@ -1128,9 +1114,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     try {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-                _frame.setVisible(false);
-                _frame.remove(_glCanvas);
-                _frame.dispose();
+                frame.dispose();
             }});
     } catch (Throwable t) {
         t.printStackTrace();

@@ -295,8 +295,11 @@ public abstract class GLContext {
   
   /**
    * Destroys this OpenGL context and frees its associated
-   * resources. The context should have been released before this
-   * method is called.
+   * resources.
+   * <p>
+   * The context may be current w/o recursion when calling <code>destroy()</code>,
+   * in which case this method destroys the context and releases the lock.
+   * </p> 
    */
   public abstract void destroy();
 

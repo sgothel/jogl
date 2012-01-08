@@ -284,27 +284,24 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         animatorPaused = animator.pause();
       }
 
-      final GLDrawable drawable = backend.getDrawable();
-      final GLContext context = backend.getContext();
-      
-      if (Threading.isSingleThreaded() &&
-          !Threading.isOpenGLThread()) {
-          // Workaround for termination issues with applets --
-          // sun.applet.AppletPanel should probably be performing the
-          // remove() call on the EDT rather than on its own thread
-          if (ThreadingImpl.isAWTMode() &&
-              Thread.holdsLock(getTreeLock())) {
-            // The user really should not be invoking remove() from this
-            // thread -- but since he/she is, we can not go over to the
-            // EDT at this point. Try to destroy the context from here.
-            if(context.isCreated()) {
-                drawableHelper.invokeGL(drawable, context, disposeAction, null);
-            }
-          } else if(context.isCreated()) {
-            Threading.invokeOnOpenGLThread(disposeOnEventDispatchThreadAction);
+      if(backend.getContext().isCreated()) {      
+          if (Threading.isSingleThreaded() &&
+              !Threading.isOpenGLThread()) {
+              // Workaround for termination issues with applets --
+              // sun.applet.AppletPanel should probably be performing the
+              // remove() call on the EDT rather than on its own thread
+              if (ThreadingImpl.isAWTMode() &&
+                  Thread.holdsLock(getTreeLock())) {
+                // The user really should not be invoking remove() from this
+                // thread -- but since he/she is, we can not go over to the
+                // EDT at this point. Try to destroy the context from here.
+                drawableHelper.disposeGL(GLJPanel.this, backend.getDrawable(), backend.getContext(), postDisposeAction);
+              } else {
+                Threading.invokeOnOpenGLThread(disposeOnEventDispatchThreadAction);
+              }
+          } else {
+              drawableHelper.disposeGL(GLJPanel.this, backend.getDrawable(), backend.getContext(), postDisposeAction);
           }
-      } else if(context.isCreated()) {
-          drawableHelper.invokeGL(drawable, context, disposeAction, null);
       }
       if(null != backend) {
           // not yet destroyed due to backend.isUsingOwnThreadManagment() == true
@@ -689,12 +686,8 @@ public void reshape(int x, int y, int width, int height) {
     return "AWT-GLJPanel[ "+((null!=backend)?backend.getDrawable().getClass().getName():"null-drawable")+"]";
   }
 
-  private DisposeAction disposeAction = new DisposeAction();
-
-  class DisposeAction implements Runnable {
+  class PostDisposeAction implements Runnable {
       public void run() {
-          updater.dispose(GLJPanel.this);
-
           if (backend != null && !backend.isUsingOwnThreadManagment()) {
               backend.destroy();
               backend = null;
@@ -702,13 +695,14 @@ public void reshape(int x, int y, int width, int height) {
           }
       }
   }
+  private PostDisposeAction postDisposeAction = new PostDisposeAction();
 
   private DisposeOnEventDispatchThreadAction disposeOnEventDispatchThreadAction =
     new DisposeOnEventDispatchThreadAction();
 
   class DisposeOnEventDispatchThreadAction implements Runnable {
     public void run() {
-      drawableHelper.invokeGL(backend.getDrawable(), backend.getContext(), disposeAction, null);
+      drawableHelper.disposeGL(GLJPanel.this, backend.getDrawable(), backend.getContext(), postDisposeAction);
     }
   }
   
@@ -1579,15 +1573,13 @@ public void reshape(int x, int y, int width, int height) {
                 backend = null;
                 oglPipelineEnabled = false;
                 handleReshape = true;
-                j2dContext.release();
                 j2dContext.destroy();
                 j2dContext = null;
                 return;
               }
-              j2dContext.release();
+            } else {
+              j2dContext.makeCurrent();
             }
-
-            j2dContext.makeCurrent();
             try {
               captureJ2DState(j2dContext.getGL(), g);
               Object curSurface = Java2D.getOGLSurfaceIdentifier(g);

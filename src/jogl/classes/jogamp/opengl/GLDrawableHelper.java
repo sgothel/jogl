@@ -57,6 +57,9 @@ import com.jogamp.opengl.util.Animator;
     methods to be able to share it between GLCanvas and GLJPanel. */
 
 public class GLDrawableHelper {
+  /** true if property <code>jogl.debug.GLDrawable.PerfStats</code> is defined. */
+  private static final boolean PERF_STATS = Debug.isPropertyDefined("jogl.debug.GLDrawable.PerfStats", true);
+    
   protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
   private Object listenersLock = new Object();
   private ArrayList<GLEventListener> listeners;
@@ -128,6 +131,10 @@ public class GLDrawableHelper {
   /**
    * Issues {@link javax.media.opengl.GLEventListener#dispose(javax.media.opengl.GLAutoDrawable)}
    * to all listeners.
+   * <p>
+   * Please consider using {@link #disposeGL(GLAutoDrawable, GLDrawable, GLContext, Runnable)}
+   * for correctness!
+   * </p>
    * @param drawable
    */
   public final void dispose(GLAutoDrawable drawable) {
@@ -137,7 +144,7 @@ public class GLDrawableHelper {
         }
     }
   }
-
+  
   private boolean init(GLEventListener l, GLAutoDrawable drawable, boolean sendReshape) {
       if(listenersToBeInit.remove(l)) {
           l.init(drawable);
@@ -307,6 +314,8 @@ public class GLDrawableHelper {
    *          ie. {@link Animator#getThread()}.
    * @deprecated this is an experimental feature, 
    *             intended for measuring performance in regards to GL context switch
+   *             and only being used if {@link #PERF_STATS} is enabled
+   *             by defining property <code>jogl.debug.GLDrawable.PerfStats</code>.
    */
   public final void setSkipContextReleaseThread(Thread t) {
     skipContextReleaseThread = t;
@@ -318,7 +327,7 @@ public class GLDrawableHelper {
   public final Thread getSkipContextReleaseThread() {
     return skipContextReleaseThread;
   }
-
+  
   private static final ThreadLocal<Runnable> perThreadInitAction = new ThreadLocal<Runnable>();
 
   /** Principal helper method which runs a Runnable with the context
@@ -328,8 +337,6 @@ public class GLDrawableHelper {
       class helps ensure that we don't inadvertently use private
       methods of the GLContext or its implementing classes.<br>
    * <br>
-   * Remark: In case this method is called to dispose the GLDrawable/GLAutoDrawable,
-   * <code>initAction</code> shall be <code>null</code> to mark this cause.<br>
    *
    * @param drawable
    * @param context
@@ -348,12 +355,112 @@ public class GLDrawableHelper {
         return;
     }
 
+    if(PERF_STATS) {
+        invokeGLImplStats(drawable, context, runnable, initAction, null);    
+    } else {
+        invokeGLImpl(drawable, context, runnable, initAction, null);
+    }
+  }
+
+  /** 
+   * Principal helper method which runs {@link #dispose(GLAutoDrawable)} with the context
+   * made current and destroys the context afterwards while holding the lock.  
+   * 
+   * @param autoDrawable
+   * @param drawable
+   * @param context
+   * @param postAction
+   */
+  public final void disposeGL(GLAutoDrawable autoDrawable,
+                              GLDrawable drawable,
+                              GLContext context,
+                              Runnable  postAction) {
+    if(PERF_STATS) {
+        invokeGLImplStats(drawable, context, null, null, autoDrawable);    
+    } else {
+        invokeGLImpl(drawable, context, null, null, autoDrawable);
+    }
+    if(null != postAction) {
+        postAction.run();
+    }
+  }
+  
+  private final void invokeGLImpl(GLDrawable drawable,
+                                  GLContext context,
+                                  Runnable  runnable,
+                                  Runnable  initAction,
+                                  GLAutoDrawable disposeAutoDrawable) {
+    final Thread currentThread = Thread.currentThread();
+    
+    final boolean isDisposeAction = null==initAction ;
+        
+    // Support for recursive makeCurrent() calls as well as calling
+    // other drawables' display() methods from within another one's
+    GLContext lastContext = GLContext.getCurrent();
+    Runnable  lastInitAction = null;
+    if (lastContext != null) {
+        if (lastContext == context) {
+            lastContext = null; // utilize recursive locking
+        } else {
+            lastInitAction = perThreadInitAction.get();
+            lastContext.release();
+        }
+    }
+    int res = GLContext.CONTEXT_NOT_CURRENT;
+  
+    try {
+      res = context.makeCurrent();
+      if (res != GLContext.CONTEXT_NOT_CURRENT) {
+        if(!isDisposeAction) {
+            perThreadInitAction.set(initAction);
+            if (res == GLContext.CONTEXT_CURRENT_NEW) {
+              if (DEBUG) {
+                System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
+              }
+              initAction.run();
+            }
+            runnable.run();
+            if (autoSwapBufferMode) {
+                drawable.swapBuffers();
+            }
+        } else {
+            if(res == GLContext.CONTEXT_CURRENT_NEW) {
+                throw new GLException(currentThread.getName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context was not created (new ctx): "+context);
+            }
+            if(listeners.size()>0) {
+                dispose(disposeAutoDrawable);
+            }
+        }
+      }
+    } finally {
+      try {
+          if(isDisposeAction) {
+              context.destroy();
+          } else if( res != GLContext.CONTEXT_NOT_CURRENT ) {
+              context.release();
+          }
+      } catch (Exception e) {
+          System.err.println("Catched: "+e.getMessage());
+          e.printStackTrace();
+      }
+      if (lastContext != null) {
+        final int res2 = lastContext.makeCurrent();
+        if (null != lastInitAction && res2 == GLContext.CONTEXT_CURRENT_NEW) {
+          lastInitAction.run();
+        }
+      }
+    }
+  }
+  
+  private final void invokeGLImplStats(GLDrawable drawable,
+                                       GLContext context,
+                                       Runnable  runnable,
+                                       Runnable  initAction,
+                                       GLAutoDrawable disposeAutoDrawable) {
+    final Thread currentThread = Thread.currentThread();
+    
     final boolean isDisposeAction = null==initAction ;
     
-    if( isDisposeAction && !context.isCreated() ) {
-        throw new GLException(Thread.currentThread().getName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context is not created: "+context);
-    }
-
     // Support for recursive makeCurrent() calls as well as calling
     // other drawables' display() methods from within another one's
     int res = GLContext.CONTEXT_NOT_CURRENT;
@@ -361,7 +468,9 @@ public class GLDrawableHelper {
     Runnable  lastInitAction = null;
     if (lastContext != null) {
         if (lastContext == context) {
-            res = GLContext.CONTEXT_CURRENT;
+            if( currentThread == skipContextReleaseThread ) {
+                res = GLContext.CONTEXT_CURRENT;
+            } // else: utilize recursive locking
             lastContext = null;
         } else {
             lastInitAction = perThreadInitAction.get();
@@ -369,17 +478,18 @@ public class GLDrawableHelper {
         }
     }
   
-    /**
     long t0 = System.currentTimeMillis();
-    long td1 = 0; // makeCurrent
+    long tdA = 0; // makeCurrent
     long tdR = 0; // render time
-    long td2 = 0; // swapBuffers
-    long td3 = 0; // release
-    boolean scr = true; */
-    
+    long tdS = 0; // swapBuffers
+    long tdX = 0; // release
+    boolean ctxClaimed = false;
+    boolean ctxReleased = false;
+    boolean ctxDestroyed = false;    
     try {
       if (res == GLContext.CONTEXT_NOT_CURRENT) {
           res = context.makeCurrent();
+          ctxClaimed = true;
       }
       if (res != GLContext.CONTEXT_NOT_CURRENT) {
         if(!isDisposeAction) {
@@ -390,39 +500,50 @@ public class GLDrawableHelper {
               }
               initAction.run();
             }
-        }
-        // tdR = System.currentTimeMillis();        
-        // td1 = tdR - t0; // makeCurrent
-        if(null!=runnable) {
+            tdR = System.currentTimeMillis();        
+            tdA = tdR - t0; // makeCurrent
             runnable.run();
-            // td2 = System.currentTimeMillis();
-            // tdR = td2 - tdR; // render time
-            if (autoSwapBufferMode && !isDisposeAction && drawable != null) {
+            tdS = System.currentTimeMillis();
+            tdR = tdS - tdR; // render time
+            if (autoSwapBufferMode) {
                 drawable.swapBuffers();
-                // td3 = System.currentTimeMillis();
-                // td2 = td3 - td2; // swapBuffers
+                tdX = System.currentTimeMillis();
+                tdS = tdX - tdS; // swapBuffers
+            }
+        } else {
+            if(res == GLContext.CONTEXT_CURRENT_NEW) {
+                throw new GLException(currentThread.getName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context was not created (new ctx): "+context);
+            }
+            if(listeners.size()>0) {
+                dispose(disposeAutoDrawable);
             }
         }
       }
     } finally {
-      if(res != GLContext.CONTEXT_NOT_CURRENT &&
-         (null == skipContextReleaseThread || Thread.currentThread()!=skipContextReleaseThread) ) {
-          try {
+      try {
+          if(isDisposeAction) {
+              context.destroy();
+              ctxDestroyed = true;
+          } else if( res != GLContext.CONTEXT_NOT_CURRENT &&
+                     (null == skipContextReleaseThread || currentThread != skipContextReleaseThread) ) {
               context.release();
-              // scr = false;
-          } catch (Exception e) {
+              ctxReleased = true;
           }
+      } catch (Exception e) {
+          System.err.println("Catched: "+e.getMessage());
+          e.printStackTrace();
       }
-      // td3 = System.currentTimeMillis() - td3; // release
+
+      tdX = System.currentTimeMillis() - tdX; // release / destroy
       if (lastContext != null) {
-        int res2 = lastContext.makeCurrent();
+        final int res2 = lastContext.makeCurrent();
         if (null != lastInitAction && res2 == GLContext.CONTEXT_CURRENT_NEW) {
           lastInitAction.run();
         }
       }
     }
-    // long td0 = System.currentTimeMillis() - t0;
-    // System.err.println("td0 "+td0+"ms, fps "+(1.0/(td0/1000.0))+", td-makeCurrent: "+td1+"ms, td-render "+tdR+"ms, td-swap "+td2+"ms, td-release "+td3+"ms, skip ctx release: "+scr);
+    long td = System.currentTimeMillis() - t0;
+    System.err.println("td0 "+td+"ms, fps "+(1.0/(td/1000.0))+", td-makeCurrent: "+tdA+"ms, td-render "+tdR+"ms, td-swap "+tdS+"ms, td-release "+tdX+"ms, ctx claimed: "+ctxClaimed+", ctx release: "+ctxReleased+", ctx destroyed "+ctxDestroyed);
   }
-
+    
 }

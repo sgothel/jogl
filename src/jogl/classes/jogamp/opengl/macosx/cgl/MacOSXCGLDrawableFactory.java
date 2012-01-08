@@ -234,7 +234,6 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                             gle.printStackTrace();
                         }
                     } finally {
-                        context.release();
                         context.destroy();
                     }
                 }
