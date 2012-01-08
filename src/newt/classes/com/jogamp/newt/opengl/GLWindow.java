@@ -306,7 +306,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     @Override
     public final String toString() {
         return "NEWT-GLWindow[ \n\tHelper: " + helper + ", \n\tDrawable: " + drawable + 
-               ", \n\tContext: " + context + /** ", \n\tWindow: "+window+", \n\tFactory: "+factory+ */ "]";
+               ", \n\tContext: " + context + ", \n\tWindow: "+window+ /** ", \n\tFactory: "+factory+ */ "]";
     }
 
     public final int reparentWindow(NativeWindow newParent) {

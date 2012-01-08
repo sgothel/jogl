@@ -49,6 +49,8 @@ import java.util.HashSet;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 
 import com.jogamp.common.util.IntObjectHashMap;
+import com.jogamp.common.util.locks.LockFactory;
+import com.jogamp.common.util.locks.RecursiveLock;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
@@ -107,11 +109,14 @@ public abstract class GLContext {
   protected static final int CTX_IMPL_ACCEL_SOFT = 1 << 0;
   /** GLContext {@link com.jogamp.gluegen.runtime.ProcAddressTable} caching related: GL hardware implementation */
   protected static final int CTX_IMPL_ACCEL_HARD = 1 << 1;
-
+  
   private static ThreadLocal<GLContext> currentContext = new ThreadLocal<GLContext>();
 
   private HashMap<String, Object> attachedObjectsByString = new HashMap<String, Object>();
   private IntObjectHashMap attachedObjectsByInt = new IntObjectHashMap();
+
+  // RecursiveLock maintains a queue of waiting Threads, ensuring the longest waiting thread will be notified at unlock.  
+  protected RecursiveLock lock = LockFactory.createRecursiveLock();
 
   /** The underlying native OpenGL context */
   protected long contextHandle;
@@ -411,6 +416,8 @@ public abstract class GLContext {
         sb.append(",\n\tDrawable: ");
         sb.append(getGLDrawable());
     }
+    sb.append(", lock ");
+    sb.append(lock.toString());
     return sb;
   }
 

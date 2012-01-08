@@ -1542,7 +1542,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         for (int i = 0; i < keyListeners.size(); i++ ) {
           sb.append(keyListeners.get(i)+", ");
         }
-        sb.append("] ]");
+        sb.append("], surfaceLock "+surfaceLock);
+        sb.append(", windowLock "+windowLock+"]");
         return sb.toString();
     }
 

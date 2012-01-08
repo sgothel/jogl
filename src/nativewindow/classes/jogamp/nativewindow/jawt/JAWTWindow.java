@@ -459,7 +459,8 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     }
     sb.append(", lockedExt "+isSurfaceLockedByOtherThread()+
               ",\n\tconfig "+getPrivateGraphicsConfiguration()+
-              ",\n\tawtComponent "+getAWTComponent()+"]");
+              ",\n\tawtComponent "+getAWTComponent()+
+              ",\n\tsurfaceLock "+surfaceLock+"]");
 
     return sb.toString();
   }

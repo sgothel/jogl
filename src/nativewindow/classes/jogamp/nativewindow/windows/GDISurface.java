@@ -89,7 +89,8 @@ public class GDISurface extends ProxySurface {
                 ", displayHandle 0x"+Long.toHexString(getDisplayHandle())+
                 ", windowHandle 0x"+Long.toHexString(windowHandle)+
                 ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
-                ", size "+getWidth()+"x"+getHeight()+"]";
+                ", size "+getWidth()+"x"+getHeight()+
+                ", surfaceLock "+surfaceLock+"]";
   }
 
 }

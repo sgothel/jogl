@@ -47,8 +47,6 @@ import java.util.Map;
 
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.common.util.locks.LockFactory;
-import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.gluegen.runtime.FunctionAddressResolver;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLExtensionNames;
@@ -71,9 +69,6 @@ import javax.media.opengl.GLProfile;
 public abstract class GLContextImpl extends GLContext {
   public static final boolean TRACE_SWITCH = Debug.isPropertyDefined("jogl.debug.GLContext.TraceSwitch", true);
   
-  // RecursiveLock maintains a queue of waiting Threads, ensuring the longest waiting thread will be notified at unlock.  
-  protected RecursiveLock lock = LockFactory.createRecursiveLock();
-
   /**
    * Context full qualified name: display_type + display_connection + major + minor + ctp.
    * This is the key for all cached GL ProcAddressTables, etc, to support multi display/device setups.
