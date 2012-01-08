@@ -9,8 +9,11 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.reflect.InvocationTargetException;
 
+import javax.media.nativewindow.NativeWindow;
 import javax.media.opengl.GLAnimatorControl;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JComboBox;
@@ -18,8 +21,11 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import jogamp.nativewindow.windows.GDI;
+
 import org.junit.Test;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -30,6 +36,10 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
     static final String LABEL = "Label"; 
     static final String CANVAS = "GLCanvas";
     
+    public enum AnimatorControlBehavior {
+        StartStop, PauseResume, Continue;
+    }
+    
     static long durationPerTest = 200*4; // ms    
     static boolean manual = false;
     static volatile boolean shouldStop = false;
@@ -38,37 +48,70 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
     
     @Test
     public void testFPSAnimatorStartStop() throws InterruptedException, InvocationTargetException {
-        testImpl(true, true);
+        testImpl(AnimatorControlBehavior.StartStop, true);
     }
     
     @Test
     public void testFPSAnimatorResumePause() throws InterruptedException, InvocationTargetException {
-        testImpl(false, true);
+        testImpl(AnimatorControlBehavior.PauseResume, true);
+    }
+    
+    @Test
+    public void testFPSAnimatorContinue() throws InterruptedException, InvocationTargetException {
+        testImpl(AnimatorControlBehavior.Continue, true);
     }
     
     @Test
     public void testAnimatorStartStop() throws InterruptedException, InvocationTargetException {
-        testImpl(true, false);
+        testImpl(AnimatorControlBehavior.StartStop, false);
     }
     
     @Test
     public void testAnimatorResumePause() throws InterruptedException, InvocationTargetException {
-        testImpl(false, false);
+        testImpl(AnimatorControlBehavior.PauseResume, false);
     }
     
-    void testImpl(final boolean useAnimStartStop, boolean useFPSAnimator) throws InterruptedException, InvocationTargetException {
+    @Test
+    public void testAnimatorContinue() throws InterruptedException, InvocationTargetException {
+        testImpl(AnimatorControlBehavior.Continue, false);
+    }
+    
+    void testImpl(final AnimatorControlBehavior animCtrl, boolean useFPSAnimator) throws InterruptedException, InvocationTargetException {
       final GLProfile glp = GLProfile.get(GLProfile.GL2); 
       final GLCapabilities caps = new GLCapabilities(glp); 
       final GLCanvas canvas = new GLCanvas(caps); 
       canvas.setPreferredSize(new Dimension(640, 480));
-      canvas.addGLEventListener(new GearsES2(1));
       
       final GLAnimatorControl animatorCtrl = useFPSAnimator ? new FPSAnimator(canvas, 60) : new Animator(canvas);
       animatorCtrl.setUpdateFPSFrames(60, System.err);
-      if(!useAnimStartStop) {
-          animatorCtrl.start();
-          animatorCtrl.pause();
+      switch (animCtrl) {
+          case PauseResume:
+              animatorCtrl.start();
+              animatorCtrl.pause();
+              break;
+          case Continue:
+              animatorCtrl.start();
+              break;
       }
+
+      canvas.addGLEventListener(new GearsES2(1));
+      if(Platform.OS_TYPE == Platform.OSType.WINDOWS) {
+          canvas.addGLEventListener(new GLEventListener() {
+            public void init(GLAutoDrawable drawable) { } 
+            public void dispose(GLAutoDrawable drawable) { }
+            public void display(GLAutoDrawable drawable) {
+                final NativeWindow win = (NativeWindow) drawable.getNativeSurface();
+                long hdc = win.getSurfaceHandle();
+                long hdw = win.getWindowHandle();
+                long hdw_hdc = GDI.WindowFromDC(hdc);
+                // System.err.println("*** hdc 0x"+Long.toHexString(hdc)+", hdw(hdc) 0x"+Long.toHexString(hdw_hdc)+", hdw 0x"+Long.toHexString(hdw) + " - " + Thread.currentThread().getName() + ", " + animatorCtrl);
+                // System.err.println(drawable.getNativeSurface().toString());
+            }
+            public void reshape(GLAutoDrawable drawable, int x, int y, int width,
+                    int height) { }
+          });
+      }
+
       final JFrame frame = new JFrame();
       frame.setTitle(getSimpleTestName());
       frame.addWindowListener(new WindowAdapter() { 
@@ -84,30 +127,40 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
       final JComboBox comboBox = new JComboBox(new String[] { LABEL, CANVAS });
       comboBox.setEditable(false);
       comboBox.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent evt) {
-            final String os = selected;
-            CardLayout cl = (CardLayout)(cards.getLayout());
-            String s = (String)evt.getItem();
-            if(s.equals(CANVAS)) {
-                if(useAnimStartStop) {
-                    animatorCtrl.start();
+        public void itemStateChanged(final ItemEvent evt) {
+            final CardLayout cl = (CardLayout)(cards.getLayout());
+            final String newSelection = (String)evt.getItem();
+            if(!newSelection.equals(selected)) {
+                final String oldSelected = selected;
+                if(newSelection.equals(CANVAS)) {
+                    switch (animCtrl) {
+                       case StartStop:
+                           animatorCtrl.start();
+                           break;
+                       case PauseResume:
+                           animatorCtrl.resume();
+                           break;
+                    }
+                    cl.show(cards, CANVAS); 
+                    selected = CANVAS;
+                } else if(newSelection.equals(LABEL)) {
+                    switch (animCtrl) {
+                       case StartStop:
+                           animatorCtrl.stop();
+                           break;
+                       case PauseResume:
+                           animatorCtrl.pause();
+                           break;
+                    }
+                    cl.show(cards, LABEL); 
+                    selected = LABEL;
                 } else {
-                    animatorCtrl.resume();
+                    throw new RuntimeException("oops .. unexpected item: "+evt);
                 }
-                cl.show(cards, CANVAS); 
-                selected = CANVAS;
-            } else if(s.equals(LABEL)) {
-                if(useAnimStartStop) {
-                    animatorCtrl.stop(); 
-                } else {
-                    animatorCtrl.pause();
-                }
-                cl.show(cards, LABEL); 
-                selected = LABEL;
+                System.err.println("Item Change: "+oldSelected+" -> "+selected+", "+animatorCtrl);                
             } else {
-                throw new RuntimeException("oops .. unexpected item: "+evt);
+                System.err.println("Item Stays: "+selected+", "+animatorCtrl);
             }
-            System.err.println("Item Change "+os+" -> "+selected+", "+animatorCtrl);                
         }
       });
       comboBoxPanel.add(comboBox);            
