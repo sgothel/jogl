@@ -139,6 +139,9 @@
 
         <property name="java.part.awt"
                   value="javax/media/opengl/awt/** jogamp/opengl/**/awt/**"/>
+        
+        <property name="java.part.swt"
+                  value="jogamp/opengl/**/swt/**"/>
 
         <property name="java.part.util"
                   value="com/jogamp/opengl/util/* com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/packrect/** jogamp/opengl/util/*"/>
@@ -180,13 +183,18 @@
            <isset property="setup.noAWT"/> 
         </condition>
 
+        <condition property="java.excludes.swt"
+                   value="${java.part.swt}">
+           <isset property="setup.noSWT"/> 
+        </condition>
+
         <property name="java.excludes.javadoc.packagenames"
                   value="jogamp.opengl.gl2.fixme.*,com.jogamp.audio.windows.waveout.TestSpatialization"/>
 
         <property name="java.excludes.fixme" 
                   value="jogamp/opengl/gl2/fixme/** com/jogamp/audio/windows/waveout/TestSpatialization.java" />
 
-        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.awt}" />
+        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.awt} ${java.excludes.swt}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
     </target>
 
@@ -1516,7 +1524,7 @@
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.glmobile.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.egl} ${java.part.es1} ${java.part.es2}"
-                     excludes="${java.part.awt} ${java.part.es1.dbg} ${java.part.es2.dbg}"/>
+                     excludes="${java.part.awt} ${java.part.swt} ${java.part.es1.dbg} ${java.part.es2.dbg}"/>
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.glmobile.dbg.jar}" filesonly="true">
             <fileset dir="${classes}"
@@ -1532,6 +1540,13 @@
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util.awt}"/>
+        </jar>
+    </target>
+
+    <target name="build-jars-swt-javase" depends="setup-manifestfile" unless="setup.noSWT">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.swt.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.swt}" />
         </jar>
     </target>
 
@@ -1555,11 +1570,11 @@
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.gldesktop.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util.gldesktop}"
-                     excludes="${java.part.awt} ${java.part.util.awt}"/>
+                     excludes="${java.part.awt} ${java.part.util.awt} ${java.part.swt}"/>
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile, build-jars-mobile-javase, build-jars-desktop-javase, build-jars-awt-javase">
+    <target name="build-jars-javase" depends="setup-manifestfile, build-jars-mobile-javase, build-jars-desktop-javase, build-jars-awt-javase, build-jars-swt-javase">
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
