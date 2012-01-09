@@ -671,6 +671,7 @@
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
+        <echo message="java.lib.dir.platform: ${java.lib.dir.platform}" />      
 
         <!-- have to wrap cc task with outofdate, because otherwise cc links a new library
              even when no files have been compiled -->
