@@ -200,8 +200,8 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                     // set PFD if not set yet
                     int pfdID = -1;
                     boolean set = false;
-                    if ( 1 > ( pfdID = GDI.GetPixelFormat(hdc) ) ) {
-                        if (!GDI.SetPixelFormat(hdc, config.getPixelFormatID(), config.getPixelFormat())) {
+                    if ( 1 > ( pfdID = WGLUtil.GetPixelFormat(hdc) ) ) {
+                        if (!WGLUtil.SetPixelFormat(hdc, config.getPixelFormatID(), config.getPixelFormat())) {
                             throw new GLException("Unable to set pixel format " + config.getPixelFormatID() +
                                                   " for device context " + toHexString(hdc) +
                                                   ": error code " + GDI.GetLastError());
@@ -311,7 +311,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
 
         WGLGLCapabilities pixelFormatCaps = null; // chosen or preset PFD ID's caps
         boolean pixelFormatSet = false; // indicates a preset PFD ID [caps]
-        final int presetPFDID = extHDC ? -1 : GDI.GetPixelFormat(hdc) ;
+        final int presetPFDID = extHDC ? -1 : WGLUtil.GetPixelFormat(hdc) ;
         if ( 1 <= presetPFDID ) {
             // Pixelformat already set by either
             //  - a previous preselectGraphicsConfiguration() call on the same HDC,
@@ -433,7 +433,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         WGLGLCapabilities pixelFormatCaps = null; // chosen or preset PFD ID's caps
         boolean pixelFormatSet = false; // indicates a preset PFD ID [caps]
 
-        if ( !extHDC && 1 <= ( pfdID = GDI.GetPixelFormat(hdc) ) ) {
+        if ( !extHDC && 1 <= ( pfdID = WGLUtil.GetPixelFormat(hdc) ) ) {
             // Pixelformat already set by either
             //  - a previous preselectGraphicsConfiguration() call on the same HDC,
             //  - the graphics driver, copying the HDC's pixelformat to the new one,
@@ -457,7 +457,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             // 1st choice: get GLCapabilities based on users GLCapabilities setting recommendedIndex as preferred choice
             PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
             pfd = WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(capsChosen, pfd);
-            pfdID = GDI.ChoosePixelFormat(hdc, pfd);
+            pfdID = WGLUtil.ChoosePixelFormat(hdc, pfd);
             int recommendedIndex = -1 ;
             if( 1 <= pfdID ) {
                 // seek index ..

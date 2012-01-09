@@ -77,22 +77,22 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
 
   protected final void swapBuffersImpl() {
     // single-buffer is already filtered out @ GLDrawableImpl#swapBuffers()        
-    long startTime = 0;
+    final long t0;
     if (PROFILING) {
-      startTime = System.currentTimeMillis();
+      t0 = System.currentTimeMillis();
+    } else {
+      t0 = 0;
     }
 
-    if (!GDI.SwapBuffers(getHandle()) && (GDI.GetLastError() != GDI.ERROR_SUCCESS)) {
+    if (!WGLUtil.SwapBuffers(getHandle()) && (GDI.GetLastError() != GDI.ERROR_SUCCESS)) {
       throw new GLException("Error swapping buffers");
     }
 
     if (PROFILING) {
-      long endTime = System.currentTimeMillis();
-      profilingSwapBuffersTime += (endTime - startTime);
-      int ticks = PROFILING_TICKS;
-      if (++profilingSwapBuffersTicks == ticks) {
-        System.err.println("SwapBuffers calls: " + profilingSwapBuffersTime + " ms / " + ticks + "  calls (" +
-                           ((float) profilingSwapBuffersTime / (float) ticks) + " ms/call)");
+      profilingSwapBuffersTime += System.currentTimeMillis() - t0;
+      if (++profilingSwapBuffersTicks == PROFILING_TICKS) {
+        System.err.println("SwapBuffers calls: " + profilingSwapBuffersTime + " ms / " + PROFILING_TICKS + "  calls (" +
+                           ((float) profilingSwapBuffersTime / (float) PROFILING_TICKS) + " ms/call)");
         profilingSwapBuffersTime = 0;
         profilingSwapBuffersTicks = 0;
       }

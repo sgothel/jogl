@@ -161,7 +161,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
             throw new GLException("Error: HDC is null");
         }
     
-        if (!GDI.SetPixelFormat(hdc, caps.getPFDID(), caps.getPFD())) {
+        if (!WGLUtil.SetPixelFormat(hdc, caps.getPFDID(), caps.getPFD())) {
             throw new GLException("Unable to set pixel format " + caps +
                                   " for device context " + toHexString(hdc) +
                                   ": error code " + GDI.GetLastError());
@@ -610,7 +610,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         }
         PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor();
 
-        if (GDI.DescribePixelFormat(hdc, pfdID, PIXELFORMATDESCRIPTOR.size(), pfd) == 0) {
+        if (WGLUtil.DescribePixelFormat(hdc, pfdID, PIXELFORMATDESCRIPTOR.size(), pfd) == 0) {
             // remove displayable bits, since pfdID is non displayable
             drawableTypeBits = drawableTypeBits & ~(GLGraphicsConfigurationUtil.WINDOW_BIT | GLGraphicsConfigurationUtil.BITMAP_BIT);
             if( 0 == drawableTypeBits ) {
@@ -629,7 +629,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
     //
 
     static int[] wglAllGDIPFIDs(long hdc) {
-        int numFormats = GDI.DescribePixelFormat(hdc, 1, 0, null);
+        int numFormats = WGLUtil.DescribePixelFormat(hdc, 1, 0, null);
         if (numFormats == 0) {
             throw new GLException("DescribePixelFormat: No formats - HDC 0x" + Long.toHexString(hdc) +
                                   ", LastError: " + GDI.GetLastError());
@@ -736,7 +736,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
     pfd.setNSize((short) PIXELFORMATDESCRIPTOR.size());
     pfd.setNVersion((short) 1);
     if(0 != hdc && 1 <= pfdID) {
-        if (GDI.DescribePixelFormat(hdc, pfdID, PIXELFORMATDESCRIPTOR.size(), pfd) == 0) {
+        if (WGLUtil.DescribePixelFormat(hdc, pfdID, PIXELFORMATDESCRIPTOR.size(), pfd) == 0) {
             // Accelerated pixel formats that are non displayable
             if(DEBUG) {
                 System.err.println("Info: Non displayable pixel format " + pfdID + " of device context: error code " + GDI.GetLastError());

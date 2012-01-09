@@ -222,6 +222,7 @@
 
     <target name="java.generate.windowlib" if="windowlib.os.cfg">
         <echo message="Generating Windowing Lib implementation class" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes}/${window.os.system}/window-lib.c"
                  outputRootDir="${build.nativewindow}"
                  config="${windowlib.os.cfg}"
@@ -240,6 +241,7 @@
            -        handle different drives in an effective manner. -->
         <echo message="Generating JAWT interface class" />
         <echo message="java.home.dir=${java.home.dir}" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${jawt.platform.header}"
                  outputRootDir="${build.nativewindow}"
                  config="${jawt.cfg}"
@@ -271,6 +273,8 @@
                  classpathref="gluegen.classpath" />
                  
         <!-- Use the GlueGen task to generate the Java files -->
+
+        <antcall target="java.generate.cleantemp" inheritRefs="true" />
 
         <echo message="Generating platform-specifics: X11" />
         <antcall target="java.generate.platforms" inheritRefs="true">
@@ -887,11 +891,26 @@
       -->
     <target name="clean" description="Remove all build products" depends="declare.common">
         <delete includeEmptyDirs="true" quiet="true">
+            <fileset dir="${tempdir}" />
             <fileset dir="${build.nativewindow}" />
             <fileset dir="${javadoc}" />
             <fileset dir="${javadoc.spec}" />
             <fileset dir="${javadoc.dev}" />
         </delete>
+        <antcall target="java.generate.cleantemp" inheritRefs="true" />
+    </target>
+
+    <target name="java.generate.cleantemp">
+        <delete includeEmptyDirs="true" quiet="true">
+            <fileset dir="${tempdir}/gensrc" />
+        </delete>
+    </target>
+
+    <target name="java.generate.copy2temp">
+        <copy todir="${tempdir}">
+            <fileset dir="${build.nativewindow}"
+                     includes="gensrc/classes/**" />
+        </copy>
     </target>
 
     <!-- ================================================================== -->

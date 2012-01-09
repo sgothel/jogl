@@ -6,8 +6,10 @@
  *     This file has no copyright assigned and is placed in the Public Domain.
  *     No warranty is given; refer to the file DISCLAIMER.PD within this package.
  *
- * Editions / Removals and a split (wingdi.h -> wingdi.h + winwgl.h) were made by the JogAmp Community, 2010
+ * Editions / Removals and a split (wingdi.h -> wingdi.h + wingdi_types.h + winwgl.h) were made by the JogAmp Community, 2010, 2012
  */
+
+#include "wingdi_types.h"
 
 #ifndef WGL_GDI_VERSION_1_X
 
@@ -58,6 +60,13 @@ WINGDIAPI BOOL  WINAPI wglMakeCurrent(HDC, HGLRC);
 WINGDIAPI BOOL  WINAPI wglShareLists(HGLRC, HGLRC);
 WINGDIAPI PROC  WINAPI wglGetProcAddress(LPCSTR);
 WINGDIAPI BOOL  WINAPI wglSwapLayerBuffers(HDC,UINT);
+
+// Runtime Link GDI/OpenGL-related routines
+WINGDIAPI int   WINAPI wglChoosePixelFormat(HDC, CONST PIXELFORMATDESCRIPTOR *);
+WINGDIAPI int   WINAPI wglDescribePixelFormat(HDC, int, UINT, LPPIXELFORMATDESCRIPTOR);
+WINGDIAPI int   WINAPI wglGetPixelFormat(HDC);
+WINGDIAPI BOOL  WINAPI wglSetPixelFormat(HDC, int, CONST PIXELFORMATDESCRIPTOR *);
+WINGDIAPI BOOL  WINAPI wglSwapBuffers(HDC);
 
 /* --- FIXME: need to handle these entry points! 
 WINGDIAPI HGLRC WINAPI wglCreateLayerContext(HDC, int);

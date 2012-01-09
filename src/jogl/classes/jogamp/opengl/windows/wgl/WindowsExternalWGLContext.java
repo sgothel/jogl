@@ -85,7 +85,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     }
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
     WindowsWGLGraphicsConfiguration cfg;
-    final int pfdID = GDI.GetPixelFormat(hdc);
+    final int pfdID = WGLUtil.GetPixelFormat(hdc);
     if (0 == pfdID) {
         // This could have happened if the HDC was released right after the GL ctx made current (SWT),
         // WinXP-32bit will not be able to use this HDC afterwards.
