@@ -95,7 +95,7 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
       }
 
       canvas.addGLEventListener(new GearsES2(1));
-      if(Platform.OS_TYPE == Platform.OSType.WINDOWS) {
+      /* if(Platform.OS_TYPE == Platform.OSType.WINDOWS) {
           canvas.addGLEventListener(new GLEventListener() {
             public void init(GLAutoDrawable drawable) { } 
             public void dispose(GLAutoDrawable drawable) { }
@@ -104,13 +104,13 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
                 long hdc = win.getSurfaceHandle();
                 long hdw = win.getWindowHandle();
                 long hdw_hdc = GDI.WindowFromDC(hdc);
-                // System.err.println("*** hdc 0x"+Long.toHexString(hdc)+", hdw(hdc) 0x"+Long.toHexString(hdw_hdc)+", hdw 0x"+Long.toHexString(hdw) + " - " + Thread.currentThread().getName() + ", " + animatorCtrl);
+                System.err.println("*** hdc 0x"+Long.toHexString(hdc)+", hdw(hdc) 0x"+Long.toHexString(hdw_hdc)+", hdw 0x"+Long.toHexString(hdw) + " - " + Thread.currentThread().getName() + ", " + animatorCtrl);
                 // System.err.println(drawable.getNativeSurface().toString());
             }
             public void reshape(GLAutoDrawable drawable, int x, int y, int width,
                     int height) { }
           });
-      }
+      } */
 
       final JFrame frame = new JFrame();
       frame.setTitle(getSimpleTestName());
@@ -133,6 +133,7 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
             if(!newSelection.equals(selected)) {
                 final String oldSelected = selected;
                 if(newSelection.equals(CANVAS)) {
+                    cl.show(cards, CANVAS); 
                     switch (animCtrl) {
                        case StartStop:
                            animatorCtrl.start();
@@ -141,7 +142,6 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
                            animatorCtrl.resume();
                            break;
                     }
-                    cl.show(cards, CANVAS); 
                     selected = CANVAS;
                 } else if(newSelection.equals(LABEL)) {
                     switch (animCtrl) {
