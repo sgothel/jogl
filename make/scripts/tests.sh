@@ -56,7 +56,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.MainThread"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug=all"
-    D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Animator -Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch"
+    #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Animator -Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.ExtensionAvailabilityCache"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile -Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.debug.GLProfile"
@@ -125,9 +125,12 @@ function jrun() {
         X_ARGS="-Djava.awt.headless=false"
     else
         export CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
-        echo CLASSPATH $CLASSPATH
         X_ARGS="-Djava.awt.headless=true"
     fi
+    if [ $swton -eq 1 ] ; then
+        export CLASSPATH=$CLASSPATH:$JOGL_SWT_CLASSPATH
+    fi
+    echo CLASSPATH $CLASSPATH
     if [ $MOSX_MT -eq 1 ] ; then
         X_ARGS="-XstartOnFirstThread $X_ARGS"
         if [ $swton -eq 0 ] ; then
@@ -241,11 +244,13 @@ function testswt() {
 #
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn $*
+#testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTGLCanvas01GLn $*
+testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWTGLCanvas01GLn $*
 
 #
 # newt.awt (testawt)
 #
-testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
+#testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper
 #testawt com.jogamp.opengl.test.junit.newt.TestEventSourceNotAWTBug
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
