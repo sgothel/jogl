@@ -29,8 +29,6 @@
 
 package javax.media.opengl;
 
-import java.nio.*;
-
 /**
  * <P>The base interface from which all GL profiles derive, providing
  * checked conversion down to concrete profiles, access to the
