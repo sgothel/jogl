@@ -27,6 +27,8 @@
  */
 package com.jogamp.opengl.swt;
 
+import java.util.List;
+
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.ProxySurface;
@@ -61,8 +63,11 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
+import com.jogamp.opengl.JoglVersion;
 
 /**
  * Native SWT Canvas implementing GLAutoDrawable
@@ -151,16 +156,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    /*
     * Disposes of OpenGL resources
     */
-   private final Runnable disposeGLAction = new Runnable() {
+   private final Runnable postDisposeGLAction = new Runnable() {
       public void run() {
-         drawableHelper.dispose(GLCanvas.this);
-
-         if (null != context) {
-            context.makeCurrent(); // implicit wait for lock ..
-            context.destroy();
-            context = null;
-         }
-
+         context = null;         
          if (null != drawable) {
             drawable.setRealized(false);
             drawable = null;
@@ -168,9 +166,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       }
    };
 
-   private final Runnable makeCurrentAndDisposeGLAction = new Runnable() {
+   private final Runnable disposeOnEDTGLAction = new Runnable() {
       public void run() {
-         drawableHelper.invokeGL(drawable, context, disposeGLAction, null);
+         drawableHelper.disposeGL(GLCanvas.this, drawable, context, postDisposeGLAction);
       }
    };
 
@@ -201,10 +199,12 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     * @param shareWith
     *           Optional GLContext to share state (textures, vbos, shaders, etc.) with.
     */
-   public GLCanvas(final Composite parent, final int style, final GLCapabilities caps,
-         final GLCapabilitiesChooser chooser, final GLContext shareWith) {
+   public GLCanvas(final Composite parent, final int style, GLCapabilitiesImmutable caps,
+                   final GLCapabilitiesChooser chooser, final GLContext shareWith) {
       /* NO_BACKGROUND required to avoid clearing bg in native SWT widget (we do this in the GL display) */
       super(parent, style | SWT.NO_BACKGROUND);
+      
+      GLProfile.initSingleton(); // ensure JOGL is completly initialized
 
       SWTAccessor.setRealized(this, true);
 
@@ -214,14 +214,15 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       nativeWindowHandle = SWTAccessor.getWindowHandle(this);
 
       /* Select default GLCapabilities if none was provided, otherwise clone provided caps to ensure safety */
-      final GLCapabilitiesImmutable fixedCaps = (caps == null) ? new GLCapabilities(GLProfile.getDefault(device))
-            : (GLCapabilitiesImmutable) caps.cloneMutable();
-      glCapsRequested = fixedCaps;
+      if(null == caps) {
+          caps = new GLCapabilities(GLProfile.getDefault(device));
+      }
+      glCapsRequested = caps;
       
-      final GLDrawableFactory glFactory = GLDrawableFactory.getFactory(fixedCaps.getGLProfile());
+      final GLDrawableFactory glFactory = GLDrawableFactory.getFactory(caps.getGLProfile());
 
       /* Create a NativeWindow proxy for the SWT canvas */
-      proxySurface = glFactory.createProxySurface(device, nativeWindowHandle, fixedCaps, chooser);
+      proxySurface = glFactory.createProxySurface(device, nativeWindowHandle, caps, chooser);
 
       /* Associate a GL surface with the proxy */
       drawable = glFactory.createGLDrawable(proxySurface);
@@ -428,20 +429,23 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
                // can't remove us from animator for recreational addNotify()
                animatorPaused = animator.pause();
             }
-            if (Threading.isSingleThreaded() && !Threading.isOpenGLThread()) {
-               runInDesignatedGLThread(makeCurrentAndDisposeGLAction);
-            } else if (context.isCreated()) {
-               drawableHelper.invokeGL(drawable, context, disposeGLAction, null);
+            if(context.isCreated()) {
+                if (Threading.isSingleThreaded() && !Threading.isOpenGLThread()) {
+                   runInDesignatedGLThread(disposeOnEDTGLAction);
+                } else if (context.isCreated()) {
+                   drawableHelper.disposeGL(GLCanvas.this, drawable, context, postDisposeGLAction);
+                }
             }
 
             if (animatorPaused) {
                animator.resume();
             }
          }
-         if (display.getThread() == Thread.currentThread())
+         if (display.getThread() == Thread.currentThread()) {
             disposeGraphicsDeviceAction.run();
-         else
+         } else {
             display.syncExec(disposeGraphicsDeviceAction);
+         }
       } finally {
          lock.unlock();
       }
@@ -512,38 +516,37 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    
    public static void main(final String[] args) {
-      final Display display = new Display();
-      final Shell shell = new Shell(display);
-      shell.setSize(800,600);
-      shell.setLayout(new FillLayout());
+       System.err.println(VersionUtil.getPlatformInfo());
+       System.err.println(GlueGenVersion.getInstance());
+       // System.err.println(NativeWindowVersion.getInstance());
+       System.err.println(JoglVersion.getInstance());
 
-      final GLCanvas canvas = new GLCanvas(shell,
-            0, null, null, null);
+       final GLDrawableFactory factory = GLDrawableFactory.getDesktopFactory();
+       final List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(null);
+       for(int i=0; i<availCaps.size(); i++) {
+           System.err.println(availCaps.get(i));
+       }
 
-      canvas.addGLEventListener(new GLEventListener() {
-         
-         public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
-            System.out.println("Reshape");
-         }
-         
-         public void init(final GLAutoDrawable drawable) {
-            System.out.println("Init");
-         }
-         
-         public void dispose(final GLAutoDrawable drawable) {
-            System.out.println("Dispose");
-         }
-         
-         public void display(final GLAutoDrawable drawable) {
-            System.out.println("Display");
-         }
-      });
-      shell.setSize(500, 500);
-      shell.open();
-      while (!shell.isDisposed()) {
-         if (!display.readAndDispatch())
-            display.sleep();
-      }
-      display.dispose();
+       final GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault(GLProfile.getDefaultDesktopDevice()) );
+       final Display display = new Display();
+       final Shell shell = new Shell(display);
+       shell.setSize(128,128);
+       shell.setLayout(new FillLayout());
+
+       final GLCanvas canvas = new GLCanvas(shell, 0, caps, null, null);
+
+       canvas.addGLEventListener(new GLEventListener() {
+
+           public void init(final GLAutoDrawable drawable) {
+               GL gl = drawable.getGL();
+               System.err.println(JoglVersion.getGLInfo(gl, null));
+           }
+           public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {}                 
+           public void display(final GLAutoDrawable drawable) {}
+           public void dispose(final GLAutoDrawable drawable) {}         
+       });
+       shell.open();
+       canvas.display();
+       display.dispose();
    }
 }
