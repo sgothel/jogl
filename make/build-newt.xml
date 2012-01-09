@@ -311,7 +311,7 @@
       </linker>
 
       <linker id="linker.cfg.macosx.newt" extends="linker.cfg.macosx">
-        <linkerarg value="-framework" />
+        <linkerarg value="-weak_framework" />
         <linkerarg value="Cocoa" />
       </linker>
 

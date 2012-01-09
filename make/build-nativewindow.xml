@@ -452,9 +452,9 @@
       </linker>
       
       <linker id="linker.cfg.macosx.nativewindow" extends="linker.cfg.macosx">
-        <linkerarg value="-framework" />
+        <linkerarg value="-weak_framework" />
         <linkerarg value="QuartzCore" />
-        <linkerarg value="-framework" />
+        <linkerarg value="-weak_framework" />
         <linkerarg value="Cocoa" />
         <linkerarg value="-framework" />
         <linkerarg value="JavaNativeFoundation" />
