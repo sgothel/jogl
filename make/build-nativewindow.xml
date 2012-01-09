@@ -458,8 +458,7 @@
         <linkerarg value="Cocoa" />
         <linkerarg value="-framework" />
         <linkerarg value="JavaNativeFoundation" />
-        <linkerarg value="-F" />
-        <linkerarg value="${java.osx.frameworks.dir}" />
+        <linkerarg value="-F${java.osx.frameworks.dir}" />
       </linker>
 
       <linker id="linker.cfg.hpux.nativewindow" extends="linker.cfg.hpux">
