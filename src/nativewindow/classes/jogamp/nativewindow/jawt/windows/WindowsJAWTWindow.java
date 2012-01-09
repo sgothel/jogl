@@ -117,6 +117,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
   }
 
   protected void unlockSurfaceImpl() throws NativeWindowException {
+    drawable = 0; // invalid HDC
     if(null!=ds) {
         if (null!=dsi) {
             ds.FreeDrawingSurfaceInfo(dsi);
