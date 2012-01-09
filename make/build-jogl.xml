@@ -141,7 +141,7 @@
                   value="javax/media/opengl/awt/** jogamp/opengl/**/awt/**"/>
         
         <property name="java.part.swt"
-                  value="jogamp/opengl/**/swt/**"/>
+                  value="com/jogamp/opengl/**/swt/**"/>
 
         <property name="java.part.util"
                   value="com/jogamp/opengl/util/* com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/packrect/** jogamp/opengl/util/*"/>
