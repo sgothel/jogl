@@ -71,6 +71,10 @@ import com.jogamp.opengl.JoglVersion;
 
 /**
  * Native SWT Canvas implementing GLAutoDrawable
+ * <p>
+ * FIXME: Still needs AWT for threading impl., 
+ *        ie. will issue a 'wrong thread' error if runs in headless mode!
+ * </p>
  */
 public class GLCanvas extends Canvas implements GLAutoDrawable {
 

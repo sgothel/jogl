@@ -56,9 +56,13 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * <p> 
  * Uses JOGL's new SWT GLCanvas.
  * </p>
+ * <p>
+ * Holds AWT in it's test name, since our impl. still needs the AWT threading, 
+ * see {@link GLCanvas}.
+ * </p>
  * @author Wade Walker, et.al.
  */
-public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
+public class TestSWTJOGLGLCanvas01GLnAWT extends UITestCase {
 
     static int duration = 250;
 
@@ -173,6 +177,6 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
             }
         }
         System.out.println("durationPerTest: "+duration);
-        org.junit.runner.JUnitCore.main(TestSWTJOGLGLCanvas01GLn.class.getName());
+        org.junit.runner.JUnitCore.main(TestSWTJOGLGLCanvas01GLnAWT.class.getName());
     }
 }

@@ -398,7 +398,7 @@
         </for>
     </target>
 
-    <target name="junit.run.swt.awt" depends="test.compile" description="Runs all SWT_AWT tests." if="isSWTRuntimeAvailable">
+    <target name="junit.run.swt.awt" depends="test.compile" description="Runs all SWT AWT tests." if="isSWTRuntimeAvailable">
       <!-- Test*SWT*AWT* -->
       <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
           <env key="${system.env.library.path}" path="${obj.all.paths}"/>
