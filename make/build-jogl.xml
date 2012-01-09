@@ -1181,8 +1181,44 @@
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux.jogl.x11" />
     </target>
+    
+    <target name="c.configure.linux.hppa" if="isLinuxHppa">
+      <echo message="Linux.HPPA" />
+      <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.os"                    value="linker.cfg.linux.jogl.x11" />
+    </target>
+    
+    <target name="c.configure.linux.mips" if="isLinuxMips">
+      <echo message="Linux.MIPS" />
+      <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.os"                    value="linker.cfg.linux.jogl.x11" />
+    </target>
+    
+    <target name="c.configure.linux.mipsel" if="isLinuxMipsel">
+      <echo message="Linux.MIPSEL" />
+      <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.os"                    value="linker.cfg.linux.jogl.x11" />
+    </target>
+    
+    <target name="c.configure.linux.ppc" if="isLinuxPpc">
+      <echo message="Linux.PPC" />
+      <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.os"                    value="linker.cfg.linux.jogl.x11" />
+    </target>
 
-    <target name="c.configure.linux" depends="c.configure.linux.armv7,c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.ia64,c.configure.x11" if="isLinux" />
+    <target name="c.configure.linux.s390" if="isLinuxs390">
+      <echo message="Linux.S390" />
+      <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.os"                    value="linker.cfg.linux.jogl.x11" />
+    </target>
+
+    <target name="c.configure.linux.sparc" if="isLinuxSparc">
+      <echo message="Linux.SPARC" />
+      <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.os"                    value="linker.cfg.linux.jogl.x11" />
+    </target>
+
+    <target name="c.configure.linux" depends="c.configure.linux.armv7,c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.ia64,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.x11" if="isLinux" />
 
     <target name="c.configure.android" if="isAndroid">
       <echo message="Android" />

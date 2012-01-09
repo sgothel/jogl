@@ -368,13 +368,73 @@
       <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
     </target>
 
+    <target name="c.configure.linux.hppa" if="isLinuxHppa">
+      <echo message="Linux.hppa" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.newt.x11"
+                                                            else="linker.cfg.linux">
+          <isset property="isX11" />
+      </condition>
+      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+    </target>
+
+    <target name="c.configure.linux.mips" if="isLinuxMips">
+      <echo message="Linux.mips" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.newt.x11"
+                                                            else="linker.cfg.linux">
+          <isset property="isX11" />
+      </condition>
+      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+    </target>
+
+    <target name="c.configure.linux.mipsel" if="isLinuxMipsel">
+      <echo message="Linux.mips" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.newt.x11"
+                                                            else="linker.cfg.linux">
+          <isset property="isX11" />
+      </condition>
+      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+    </target>
+
+    <target name="c.configure.linux.ppc" if="isLinuxPpc">
+      <echo message="Linux.ppc" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.newt.x11"
+                                                            else="linker.cfg.linux">
+          <isset property="isX11" />
+      </condition>
+      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+    </target>
+
+    <target name="c.configure.linux.s390" if="isLinuxs390">
+      <echo message="Linux.S390" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.newt.x11"
+                                                            else="linker.cfg.linux">
+          <isset property="isX11" />
+      </condition>
+      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+    </target>
+
+    <target name="c.configure.linux.sparc" if="isLinuxSparc">
+      <echo message="Linux.sparc" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.newt.x11"
+                                                            else="linker.cfg.linux">
+          <isset property="isX11" />
+      </condition>
+      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+    </target>
+
     <target name="c.configure.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.newt.x11" />
     </target>
 
-    <target name="c.configure.linux" depends="c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.armv7,c.configure.linux.ia64,c.configure.x11" if="isLinux"/>
+    <target name="c.configure.linux" depends="c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.armv7,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.linux.ia64,c.configure.x11" if="isLinux"/>
 
     <target name="c.configure.android" if="isAndroid">
       <echo message="Android" />
