@@ -536,7 +536,6 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
        final GLCanvas canvas = new GLCanvas(shell, 0, caps, null, null);
 
        canvas.addGLEventListener(new GLEventListener() {
-
            public void init(final GLAutoDrawable drawable) {
                GL gl = drawable.getGL();
                System.err.println(JoglVersion.getGLInfo(gl, null));

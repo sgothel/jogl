@@ -57,8 +57,11 @@ import com.jogamp.opengl.test.junit.jogl.demos.gl2.OneTriangle;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
- * Tests that a basic SWT app can open without crashing under different GL profiles. Uses the SWT GL canvas.
- * @author Wade Walker
+ * Tests that a basic SWT app can open without crashing under different GL profiles.
+ * <p> 
+ * Uses the SWT GLCanvas <code>org.eclipse.swt.opengl.GLCanvas</code>.
+ * </p>
+ * @author Wade Walker, et.al.
  */
 public class TestSWT01GLn extends UITestCase {
 

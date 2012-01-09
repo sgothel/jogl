@@ -61,8 +61,11 @@ import jogamp.nativewindow.swt.SWTAccessor;
 import org.eclipse.swt.widgets.Canvas;
 
 /**
- * Tests that a basic SWT app can open without crashing under different GL profiles. Uses the SWT GL canvas.
- * @author Wade Walker
+ * Tests that a basic SWT app can open without crashing under different GL profiles. 
+ * <p> 
+ * Uses JOGL's SWTAccessor only.
+ * </p>
+ * @author Wade Walker, et.al.
  */
 public class TestSWT02GLn extends UITestCase {
 
