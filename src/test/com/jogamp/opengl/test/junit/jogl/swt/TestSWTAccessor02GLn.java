@@ -67,7 +67,7 @@ import org.eclipse.swt.widgets.Canvas;
  * </p>
  * @author Wade Walker, et.al.
  */
-public class TestSWT02GLn extends UITestCase {
+public class TestSWTAccessor02GLn extends UITestCase {
 
     static int duration = 250;
 
@@ -260,6 +260,6 @@ public class TestSWT02GLn extends UITestCase {
             }
         }
         System.out.println("durationPerTest: "+duration);
-        org.junit.runner.JUnitCore.main(TestSWT02GLn.class.getName());
+        org.junit.runner.JUnitCore.main(TestSWTAccessor02GLn.class.getName());
     }
 }
