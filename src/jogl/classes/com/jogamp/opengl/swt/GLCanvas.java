@@ -57,6 +57,7 @@ import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
@@ -186,6 +187,11 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    };
 
    /**
+    * Storage for the client area rectangle so that it may be accessed from outside of the SWT thread.
+    */
+   private volatile Rectangle clientArea;
+
+   /**
     * Creates a new SWT GLCanvas.
     * 
     * @param parent
@@ -211,6 +217,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       GLProfile.initSingleton(); // ensure JOGL is completly initialized
 
       SWTAccessor.setRealized(this, true);
+
+      clientArea = GLCanvas.this.getClientArea();
 
       /* Get the nativewindow-Graphics Device associated with this control (which is determined by the parent Composite) */
       device = SWTAccessor.getDevice(this);
@@ -247,6 +255,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       addControlListener(new ControlAdapter() {
          @Override
          public void controlResized(final ControlEvent arg0) {
+            clientArea = GLCanvas.this.getClientArea();
             /* Mark for OpenGL reshape next time the control is painted */
             sendReshape = true;
          }
@@ -381,7 +390,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    }
 
    public int getHeight() {
-      return getClientArea().height;
+      final Rectangle clientArea = this.clientArea;
+      if (clientArea == null) return 0;
+      return clientArea.height;
    }
 
    public NativeSurface getNativeSurface() {
@@ -395,7 +406,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    }
 
    public int getWidth() {
-      return getClientArea().width;
+      final Rectangle clientArea = this.clientArea;
+      if (clientArea == null) return 0;
+      return clientArea.width;
    }
 
    public boolean isRealized() {
