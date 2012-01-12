@@ -376,20 +376,20 @@ NSOpenGLPixelFormat* createPixelFormat(int* iattrs, int niattrs, int* ivalues) {
   // http://developer.apple.com/documentation/Cocoa/Reference/ApplicationKit/ObjC_classic/Classes/NSOpenGLPixelFormat.html
   NSOpenGLPixelFormatAttribute attribs[256];
 
+  DBG_PRINT("createPixelFormat.0: attrs %d: ", niattrs);
   int idx = 0;
   int i;
   for (i = 0; i < niattrs && iattrs[i]>0; i++) {
     int attr = iattrs[i];
+    DBG_PRINT("%d: %d, ", attr, ivalues[i]);
     switch (attr) {
+      case NSOpenGLPFAAccelerated:
+        // ignored - allow non accelerated profiles, or see NSOpenGLPFANoRecovery
+        break;
+
       case NSOpenGLPFANoRecovery:
         if (ivalues[i] != 0) {
           attribs[idx++] = NSOpenGLPFANoRecovery;
-        }
-        break;
-
-      case NSOpenGLPFAAccelerated:
-        if (ivalues[i] != 0) {
-          attribs[idx++] = NSOpenGLPFAAccelerated;
         }
         break;
 
@@ -445,10 +445,8 @@ NSOpenGLPixelFormat* createPixelFormat(int* iattrs, int niattrs, int* ivalues) {
   attribs[idx++] = 0;
 
   NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
-  if (fmt == nil) {
-    // should we fallback to defaults or not?
-    fmt = [NSOpenGLView defaultPixelFormat];
-  }
+  // if(fmt == nil) { fallback to a [NSOpenGLView defaultPixelFormat] crashed (SIGSEGV) on 10.6.7/NV }
+  DBG_PRINT("createPixelFormat.X: pfmt %p\n", fmt);
 
   [pool release];
   return fmt;
@@ -510,16 +508,19 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
                     Bool opaque,
                     int* viewNotReady)
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
     getRendererInfo();
     
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    DBG_PRINT("createContext.0: share %p, view %p, isBackingLayer %d, pixfmt %p, opaque %d\n",
+        share, view, (int)isBackingLayerView, fmt, opaque);
 
     if (view != NULL) {
         Bool viewReady = true;
 
         if(!isBackingLayerView) {
             if ([view lockFocusIfCanDraw] == NO) {
-                DBG_PRINT("createContext [view lockFocusIfCanDraw] failed\n");
+                DBG_PRINT("createContext.1 [view lockFocusIfCanDraw] failed\n");
                 viewReady = false;
             }
         }
@@ -529,7 +530,7 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
                 if(!isBackingLayerView) {
                     [view unlockFocus];
                 }
-                DBG_PRINT("createContext view.frame size %dx%d\n", (int)frame.size.width, (int)frame.size.height);
+                DBG_PRINT("createContext.2 view.frame size %dx%d\n", (int)frame.size.width, (int)frame.size.height);
                 viewReady = false;
             }
         }
@@ -542,6 +543,7 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
             }
 
             // the view is not ready yet
+            DBG_PRINT("createContext.X: view not ready yet\n");
             [pool release];
             return NULL;
         }
@@ -562,6 +564,7 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
       }
     }
 
+    DBG_PRINT("createContext.X: ctx: %p\n", ctx);
     [pool release];
     return ctx;
 }

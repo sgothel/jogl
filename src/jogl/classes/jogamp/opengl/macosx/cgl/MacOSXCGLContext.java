@@ -366,7 +366,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       destroyImpl();
       ((MacOSXCGLDrawable)drawable).setOpenGLMode(mode);
       if (DEBUG) {
-        System.err.println("Switching context mode " + openGLMode + " -> " + mode);
+        System.err.println("MacOSXCGLContext: Switching context mode " + openGLMode + " -> " + mode);
       }
       initOpenGLImpl(mode);
       openGLMode = mode;
@@ -414,11 +414,15 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         long pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2NSPixelFormat(chosenCaps, ctp, major, minor);
         if (pixelFormat == 0) {
-          throw new GLException("Unable to allocate pixel format with requested GLCapabilities");
+          if(DEBUG) {
+                System.err.println("Unable to allocate pixel format with requested GLCapabilities: "+chosenCaps);
+          }
+          return 0;
         }
         config.setChosenPixelFormat(pixelFormat);
         if(DEBUG) {
             System.err.println("NS create OSX>=lion "+isLionOrLater);
+            System.err.println("NS create backendType: "+drawable.getOpenGLMode());
             System.err.println("NS create backingLayerHost: "+backingLayerHost);
             System.err.println("NS create share: "+share);
             System.err.println("NS create chosenCaps: "+chosenCaps);

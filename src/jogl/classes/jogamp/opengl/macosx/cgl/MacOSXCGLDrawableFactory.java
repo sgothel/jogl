@@ -210,6 +210,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
             }    
             final GLCapabilities caps = new GLCapabilities(glp);
             caps.setRedBits(5); caps.setGreenBits(5); caps.setBlueBits(5); caps.setAlphaBits(0);
+            caps.setDepthBits(5);
             caps.setDoubleBuffered(false);
             caps.setOnscreen(false);
             caps.setPBuffer(true);

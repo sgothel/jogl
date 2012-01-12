@@ -106,7 +106,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   }
 
   protected long getNSViewHandle() {
-      return GLBackendType.NSOPENGL == openGLMode ? getHandle() : null;
+      return GLBackendType.NSOPENGL == openGLMode ? getHandle() : 0;
   }
   
   protected void registerContext(MacOSXCGLContext ctx) {
@@ -151,7 +151,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
     
       destroyImpl();
       if (DEBUG) {
-        System.err.println("Switching context mode " + openGLMode + " -> " + mode);
+        System.err.println("MacOSXCGLDrawable: Switching context mode " + openGLMode + " -> " + mode);
       }
       initOpenGLImpl(mode);
       openGLMode = mode;

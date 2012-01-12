@@ -78,10 +78,10 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
     }
     
     static final int[] cglInternalAttributeToken = new int[] {
-        CGL.kCGLPFAOpenGLProfile,
-        CGL.kCGLPFAColorFloat,
+        CGL.kCGLPFAOpenGLProfile,    // >= lion
+        CGL.NSOpenGLPFAAccelerated,  // query only (prefer accelerated, but allow non accelerated), ignored for createPixelformat 
         CGL.NSOpenGLPFANoRecovery,
-        CGL.NSOpenGLPFAAccelerated,
+        CGL.kCGLPFAColorFloat,
         CGL.NSOpenGLPFAPixelBuffer,
         CGL.NSOpenGLPFADoubleBuffer,
         CGL.NSOpenGLPFAStereo,
@@ -109,17 +109,14 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
               case CGL.kCGLPFAOpenGLProfile: 
                 ivalues[idx] = MacOSXCGLContext.GLProfile2CGLOGLProfileValue(ctp, major, minor);
                 break;
+              case CGL.NSOpenGLPFANoRecovery:
+                ivalues[idx] = caps.getHardwareAccelerated() ? 1 : 0;
+                break;
+                  
               case CGL.kCGLPFAColorFloat:
                 ivalues[idx] = caps.getPbufferFloatingPointBuffers() ? 1 : 0;
                 break;
 
-              case CGL.NSOpenGLPFANoRecovery:
-                ivalues[idx] = caps.getHardwareAccelerated() ? 1 : 0;
-                break;
-              case CGL.NSOpenGLPFAAccelerated:
-                ivalues[idx] = caps.getHardwareAccelerated() ? 1 : 0;
-                break;
-                  
               case CGL.NSOpenGLPFAPixelBuffer:
                 ivalues[idx] = caps.isPBuffer() ? 1 : 0;
                 break;
@@ -287,14 +284,14 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         for (int i = 0; i < len; i++) {
           int attr = cglInternalAttributeToken[i+off];
           switch (attr) {
-              case CGL.kCGLPFAColorFloat:
-                caps.setPbufferFloatingPointBuffers(ivalues[i] != 0);
-                break;
-
               case CGL.NSOpenGLPFAAccelerated:
                 caps.setHardwareAccelerated(ivalues[i] != 0);
                 break;
                 
+              case CGL.kCGLPFAColorFloat:
+                caps.setPbufferFloatingPointBuffers(ivalues[i] != 0);
+                break;
+
               case CGL.NSOpenGLPFAPixelBuffer:
                 caps.setPBuffer(ivalues[i] != 0);
                 break;

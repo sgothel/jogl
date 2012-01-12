@@ -51,7 +51,7 @@ function jrun() {
     shift
 
     #D_ARGS="-Djogl.debug.ExtensionAvailabilityCache -Djogl.debug=all -Dnativewindow.debug=all -Djogamp.debug.ProcAddressHelper=true -Djogamp.debug.NativeLibrary=true -Djogamp.debug.NativeLibrary.Lookup=true"
-    #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.MainThread"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
@@ -180,7 +180,7 @@ function testswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT $*
@@ -245,7 +245,7 @@ function testswt() {
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTGLCanvas01GLn $*
-testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWTGLCanvas01GLn $*
+#testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWTGLCanvas01GLn $*
 
 #
 # newt.awt (testawt)
