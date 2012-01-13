@@ -67,8 +67,6 @@ import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLProfile;
 
 public abstract class GLContextImpl extends GLContext {
-  public static final boolean TRACE_SWITCH = Debug.isPropertyDefined("jogl.debug.GLContext.TraceSwitch", true);
-  
   /**
    * Context full qualified name: display_type + display_connection + major + minor + ctp.
    * This is the key for all cached GL ProcAddressTables, etc, to support multi display/device setups.
@@ -242,18 +240,24 @@ public abstract class GLContextImpl extends GLContext {
     release(false);
   }
   private void release(boolean force) throws GLException {
+    if(TRACE_SWITCH) {
+        System.err.println("GLContext.ContextSwitch: - release() - "+Thread.currentThread().getName()+": force: "+force+", "+lock);
+    }
     if ( !lock.isOwner() ) {
-      throw new GLException("Context not current on current thread");
+      throw new GLException("Context not current on current thread "+Thread.currentThread().getName()+": "+this);
     }
     final boolean actualRelease = force || lock.getHoldCount() == 1 ;
-    try {
+    try {        
         if( actualRelease ) {
-            setCurrent(null);
             if (contextHandle != 0) { // allow dbl-release
                 releaseImpl();
             }
         }
     } finally {
+      // exception prone ..
+      if( actualRelease ) {
+          setCurrent(null);
+      }
       drawable.unlockSurface();
       lock.unlock();
       if(TRACE_SWITCH) {
@@ -276,7 +280,7 @@ public abstract class GLContextImpl extends GLContext {
           throw new GLException("XXX: "+lock);
       }
       if (DEBUG || TRACE_SWITCH) {
-          System.err.println("GLContextImpl.destroy.0: " + toHexString(contextHandle) +
+          System.err.println("GLContextImpl.destroy.0 - "+Thread.currentThread().getName()+": " + toHexString(contextHandle) +
                   ", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
       }
       if (contextHandle != 0) {

@@ -231,11 +231,18 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                         }
                     } catch (GLException gle) {
                         if (DEBUG) {
-                            System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: makeCurrent failed");
+                            System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: makeCurrent catched exception:");
                             gle.printStackTrace();
                         }
                     } finally {
-                        context.destroy();
+                        try {
+                            context.destroy();
+                        } catch (GLException gle) {
+                            if (DEBUG) {
+                                System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: destroy catched exception:");
+                                gle.printStackTrace();
+                            }                            
+                        }
                     }
                 }
                 drawable.destroy();
@@ -266,7 +273,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     } catch (GLException gle) {
         if(DEBUG) {
-            System.err.println("Catched Exception while MaxOSXCGL Shared Resource initialization");
+            System.err.println("Catched Exception while MaxOSXCGL Shared Resource initialization:");
             gle.printStackTrace();
         }
     }

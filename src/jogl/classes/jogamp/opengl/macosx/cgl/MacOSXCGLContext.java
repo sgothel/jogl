@@ -536,7 +536,14 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
 
     public boolean release(long ctx) {
-      gl.glFinish(); // w/o glFinish() OSX < 10.7 (NVidia driver) may freeze 
+      try {
+          gl.glFinish(); // w/o glFinish() OSX < 10.7 (NVidia driver) may freeze
+      } catch (GLException gle) {
+          if(DEBUG) {
+            System.err.println("MacOSXCGLContext.NSOpenGLImpl.release: INFO: glFinish() catched exception:");
+            gle.printStackTrace();              
+          }
+      }
       final boolean res = CGL.clearCurrentContext(ctx);
       final long cglCtx = CGL.getCGLContext(ctx);
       if(0 == cglCtx) {
@@ -640,7 +647,14 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
 
     public boolean release(long ctx) {
-      gl.glFinish(); // w/o glFinish() OSX < 10.7 (NVidia driver) may freeze 
+      try {
+          gl.glFinish(); // w/o glFinish() OSX < 10.7 (NVidia driver) may freeze
+      } catch (GLException gle) {
+          if(DEBUG) {
+            System.err.println("MacOSXCGLContext.CGLImpl.release: INFO: glFinish() catched exception:");
+            gle.printStackTrace();              
+          }
+      }
       int err = CGL.CGLSetCurrentContext(0);
       if(DEBUG && CGL.kCGLNoError != err) {
           System.err.println("CGL: Could not release current context: err 0x"+Integer.toHexString(err)+": "+this);

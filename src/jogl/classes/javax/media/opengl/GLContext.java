@@ -69,7 +69,8 @@ import jogamp.opengl.GLContextImpl;
     refer to a given context. */
 public abstract class GLContext {
   public static final boolean DEBUG = Debug.debug("GLContext");
-      
+  
+  public static final boolean TRACE_SWITCH;       
   /** Reflects property jogl.debug.DebugGL. If true, the debug pipeline is enabled at context creation. */
   public final static boolean DEBUG_GL;
   /** Reflects property jogl.debug.TraceGL. If true, the trace pipeline is enabled at context creation. */
@@ -79,6 +80,7 @@ public abstract class GLContext {
       final AccessControlContext acl = AccessController.getContext();
       DEBUG_GL = Debug.isPropertyDefined("jogl.debug.DebugGL", true, acl);
       TRACE_GL = Debug.isPropertyDefined("jogl.debug.TraceGL", true, acl);
+      TRACE_SWITCH = Debug.isPropertyDefined("jogl.debug.GLContext.TraceSwitch", true, acl);
   }
   
   /** Indicates that the context was not made current during the last call to {@link #makeCurrent makeCurrent}. */
@@ -295,6 +297,9 @@ public abstract class GLContext {
    * new GLContext implementations; not for use by end users.
    */
   protected static void setCurrent(GLContext cur) {
+    if(TRACE_SWITCH) {
+       System.err.println("GLContext.ContextSwitch: - setCurrent() - "+Thread.currentThread().getName()+": "+cur);
+    }
     currentContext.set(cur);
   }
   
