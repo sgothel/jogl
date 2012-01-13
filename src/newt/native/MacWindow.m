@@ -44,6 +44,10 @@
 
 #import <stdio.h>
 
+#ifdef DBG_PERF
+    #include "timespec.h"
+#endif
+
 static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
 static const char * const ClazzAnyCstrName = "<init>";
 static const char * const ClazzNamePointCstrSignature = "(II)V";
@@ -315,11 +319,60 @@ static long GetDictionaryLong(CFDictionaryRef theDict, const void* key)
 
 /*
  * Class:     jogamp_newt_driver_macosx_MacScreen
+ * Method:    getScreenSizeMM0
+ * Signature: (I)[I
+ */
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_MacScreen_getScreenSizeMM0
+  (JNIEnv *env, jobject obj, jint scrn_idx)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+#ifdef DBG_PERF
+    struct timespec t0, t1, td;
+    long td_ms;
+    timespec_now(&t0);
+#endif
+
+    NSScreen *screen = NewtScreen_getNSScreenByIndex((int)scrn_idx);
+#ifdef DBG_PERF
+    timespec_now(&t1); timespec_subtract(&td, &t1, &t0); td_ms = timespec_milliseconds(&td);
+    fprintf(stderr, "MacScreen_getScreenSizeMM0.1: %ld ms\n", td_ms); fflush(NULL);
+#endif
+
+    CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+#ifdef DBG_PERF
+    timespec_now(&t1); timespec_subtract(&td, &t1, &t0); td_ms = timespec_milliseconds(&td);
+    fprintf(stderr, "MacScreen_getScreenSizeMM0.2: %ld ms\n", td_ms); fflush(NULL);
+#endif
+
+    CGSize screenDim = CGDisplayScreenSize(display);
+#ifdef DBG_PERF
+    timespec_now(&t1); timespec_subtract(&td, &t1, &t0); td_ms = timespec_milliseconds(&td);
+    fprintf(stderr, "MacScreen_getScreenSizeMM0.3: %ld ms\n", td_ms); fflush(NULL);
+#endif
+
+    jint prop[ 2 ];
+    prop[0] = (jint) screenDim.width;
+    prop[1] = (jint) screenDim.height;
+
+    jintArray properties = (*env)->NewIntArray(env, 2);
+    if (properties == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size 2");
+    }
+    (*env)->SetIntArrayRegion(env, properties, 0, 2, prop);
+    
+    [pool release];
+
+    return properties;
+}
+
+/*
+ * Class:     jogamp_newt_driver_macosx_MacScreen
  * Method:    getScreenMode0
- * Signature: (II)[I
+ * Signature: (IIII)[I
  */
 JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_MacScreen_getScreenMode0
-  (JNIEnv *env, jobject obj, jint scrn_idx, jint mode_idx)
+  (JNIEnv *env, jobject obj, jint scrn_idx, jint mode_idx, jint widthMM, jint heightMM)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
@@ -360,7 +413,6 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_MacScreen_getScreenMo
     }
     // mode = CGDisplayModeRetain(mode); // 10.6 on CGDisplayModeRef
 
-    CGSize screenDim = CGDisplayScreenSize(display);
     int mWidth = CGDDGetModeWidth(mode);
     int mHeight = CGDDGetModeHeight(mode);
 
@@ -383,8 +435,8 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_MacScreen_getScreenMo
     prop[propIndex++] = mWidth;
     prop[propIndex++] = mHeight;
     prop[propIndex++] = CGDDGetModeBitsPerPixel(mode);
-    prop[propIndex++] = (jint) screenDim.width;
-    prop[propIndex++] = (jint) screenDim.height;
+    prop[propIndex++] = widthMM;
+    prop[propIndex++] = heightMM;
     prop[propIndex++] = CGDDGetModeRefreshRate(mode);
     prop[propIndex++] = ccwRot;
     prop[propIndex - NUM_SCREEN_MODE_PROPERTIES_ALL] = ( -1 < mode_idx ) ? propIndex-1 : propIndex ; // count == NUM_SCREEN_MODE_PROPERTIES_ALL

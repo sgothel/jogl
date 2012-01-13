@@ -38,16 +38,24 @@ import java.util.List;
 
 import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Point;
 
 import jogamp.newt.ScreenImpl;
 
+import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.util.ScreenModeUtil;
 
 public class MacScreen extends ScreenImpl {
+    
+    // caching native CGDisplayScreenSize() results, since it's ridiculous slow (~6 ms each call)
+    private static IntObjectHashMap/*<int, DimensionImmutable>*/ scrnIdx2Dimension;
+    
     static {
         MacDisplay.initSingleton();
+        scrnIdx2Dimension = new IntObjectHashMap();
+        scrnIdx2Dimension.setKeyNotFoundValue(null);
     }
 
     public MacScreen() {
@@ -63,7 +71,18 @@ public class MacScreen extends ScreenImpl {
     private static native int getHeightImpl0(int scrn_idx);
     
     private int[] getScreenModeIdx(int idx) {
-        int[] modeProps = getScreenMode0(screen_idx, idx);
+        // caching native CGDisplayScreenSize() results, since it's ridiculous slow (~6 ms each call)
+        DimensionImmutable dim = (DimensionImmutable) scrnIdx2Dimension.get(screen_idx);
+        if(null == dim) {
+            int[] res = getScreenSizeMM0(screen_idx);
+            if(null == res || 0 == res.length) {
+                return null;
+            }
+            dim = new Dimension(res[0], res[1]);
+            scrnIdx2Dimension.put(screen_idx, dim);
+        }
+
+        int[] modeProps = getScreenMode0(screen_idx, idx, dim.getWidth(), dim.getHeight());
         if (null == modeProps || 0 == modeProps.length) {
             return null;
         }
@@ -117,7 +136,8 @@ public class MacScreen extends ScreenImpl {
         virtualSize.setWidth(getWidthImpl0(screen_idx));
         virtualSize.setHeight(getHeightImpl0(screen_idx));
     }
-    
-    private native int[] getScreenMode0(int screen_index, int mode_index);
+
+    private native int[] getScreenSizeMM0(int screen_idx);
+    private native int[] getScreenMode0(int screen_index, int mode_index, int widthMM, int heightMM);
     private native boolean setScreenMode0(int screen_index, int mode_idx);
 }
