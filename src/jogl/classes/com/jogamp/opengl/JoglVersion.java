@@ -30,10 +30,10 @@ package com.jogamp.opengl;
 
 import com.jogamp.common.GlueGenVersion;
 import javax.media.opengl.*;
+
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.JogampVersion;
-import com.jogamp.nativewindow.NativeWindowVersion;
 import java.util.jar.Manifest;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 
@@ -89,10 +89,12 @@ public class JoglVersion extends JogampVersion {
         sb.append(Platform.getNewline());
         sb.append("GL            ").append(gl);
         sb.append(Platform.getNewline());
-        sb.append("GL_VENDOR     ").append(gl.glGetString(gl.GL_VENDOR));
+        sb.append("GL_VENDOR     ").append(gl.glGetString(GL.GL_VENDOR));
         sb.append(Platform.getNewline());
-        sb.append("GL_VERSION    ").append(gl.glGetString(gl.GL_VERSION));
+        sb.append("GL_RENDERER    ").append(gl.glGetString(GL.GL_RENDERER));
         sb.append(Platform.getNewline());
+        sb.append("GL_VERSION    ").append(gl.glGetString(GL.GL_VERSION));
+        sb.append(Platform.getNewline());        
         sb.append("GL_EXTENSIONS ");
         sb.append(Platform.getNewline());
         sb.append("              ").append(ctx.getGLExtensionsString());

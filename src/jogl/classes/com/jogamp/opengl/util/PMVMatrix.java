@@ -64,7 +64,7 @@ public class PMVMatrix implements GLMatrixFunc {
      *                        In most Java implementations, direct NIO buffers have no backing array
      *                        and hence the Java computation will be throttled down by direct IO get/put 
      *                        operations.</p> 
-     *                        <p>Depending on the application, ie. weather the Java computation or
+     *                        <p>Depending on the application, ie. whether the Java computation or
      *                        JNI invocation and hence native data transfer part is heavier, 
      *                        this flag shall be set to <code>true</code> or <code>false</code></p>.
      */
