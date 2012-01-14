@@ -15,8 +15,8 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT %*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 4000 -x 10 -y 10 -width 100 -height 100 -screen 0
-REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 40000 -width 100 -height 100 -screen 0 %*
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWTCardLayoutAnimatorStartStopBug532 %*
+scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 40000 -width 100 -height 100 -screen 0 %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWTCardLayoutAnimatorStartStopBug532 %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT -time 5000
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT -time 5000
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01
@@ -85,7 +85,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDeb
 
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
-scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT
+REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT
 
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01
