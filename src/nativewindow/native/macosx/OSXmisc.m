@@ -235,11 +235,6 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
     // CALayer* layer = [[CALayer alloc] init];
     CALayer* layer = [CALayer layer];
 
-    // no animations for add/remove/swap sublayers etc 
-    [layer removeAnimationForKey: kCAOnOrderIn];
-    [layer removeAnimationForKey: kCAOnOrderOut];
-    [layer removeAnimationForKey: kCATransition];
-
     // initial dummy size !
     CGRect lRect = [layer frame];
     lRect.origin.x = 0;
@@ -285,6 +280,11 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
         // simple 1:1 layout !
         [subLayer setFrame:lRectRoot];
         [rootLayer addSublayer:subLayer];
+
+        // no animations for add/remove/swap sublayers etc 
+        // doesn't work: [layer removeAnimationForKey: kCAOnOrderIn, kCAOnOrderOut, kCATransition]
+        [rootLayer removeAllAnimations];
+        [subLayer removeAllAnimations];
     }];
     DBG_PRINT("CALayer::AddCASublayer0.X: %p . %p (refcnt %d)\n", rootLayer, subLayer, (int)[subLayer retainCount]);
     JNF_COCOA_EXIT(env);

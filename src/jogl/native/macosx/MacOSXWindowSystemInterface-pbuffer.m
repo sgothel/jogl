@@ -102,11 +102,6 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
     pthread_mutex_init(&renderLock, &renderLockAttr); // recursive
     pthread_cond_init(&renderSignal, NULL); // no attribute
 
-    // no animations for add/remove/swap sublayers etc 
-    [self removeAnimationForKey: kCAOnOrderIn];
-    [self removeAnimationForKey: kCAOnOrderOut];
-    [self removeAnimationForKey: kCATransition];
-
     pbuffer = p;
     [pbuffer retain];
 
@@ -161,7 +156,6 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
     shallDraw = NO;
 
     CGRect lRect = [self frame];
-
     DBG_PRINT("MyNSOpenGLLayer::init %p, ctx %p, pfmt %p, pbuffer %p, opaque %d, pbuffer %dx%d -> tex %dx%d, frame: %lf/%lf %lfx%lf (refcnt %d)\n", 
         self, _ctx, _fmt, pbuffer, opaque, [pbuffer pixelsWide], [pbuffer pixelsHigh], texWidth, texHeight,
         lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height, (int)[self retainCount]);
