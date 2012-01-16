@@ -271,7 +271,7 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
     @Override
     protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
         if( !isOffscreenInstance ) {                
-            return setPointerVisible0(getWindowHandle(), pointerVisible);
+            return setPointerVisible0(getWindowHandle(), hasFocus(), pointerVisible);
         } // else may need offscreen solution ? FIXME
         return false;
     }
@@ -381,7 +381,7 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
     private native void setFrameTopLeftPoint0(long parentWindowHandle, long window, int x, int y);
     private native void setAlwaysOnTop0(long window, boolean atop);
     private static native Object getLocationOnScreen0(long windowHandle, int src_x, int src_y);
-    private static native boolean setPointerVisible0(long windowHandle, boolean visible);
+    private static native boolean setPointerVisible0(long windowHandle, boolean hasFocus, boolean visible);
     private static native boolean confinePointer0(long windowHandle, boolean confine);
     private static native void warpPointer0(long windowHandle, int x, int y);
     

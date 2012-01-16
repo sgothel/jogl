@@ -129,11 +129,25 @@
 - (NSPoint) newtClientWinPos2OSXScreenPos: (NSPoint) p;
 - (NSPoint) getLocationOnScreen: (NSPoint) p;
 - (NSPoint) screenPos2NewtClientWinPos: (NSPoint) p;
+- (BOOL) isMouseInside;
 
 - (void) cursorHide:(BOOL)v;
 - (void) setMouseVisible:(BOOL)v;
 - (void) setMouseConfined:(BOOL)v;
 - (void) setMousePosition:(NSPoint)p;
+
+- (void) mouseEntered: (NSEvent*) theEvent;
+- (void) mouseExited: (NSEvent*) theEvent;
+- (void) mouseMoved: (NSEvent*) theEvent;
+- (void) scrollWheel: (NSEvent*) theEvent;
+- (void) mouseDown: (NSEvent*) theEvent;
+- (void) mouseDragged: (NSEvent*) theEvent;
+- (void) mouseUp: (NSEvent*) theEvent;
+- (void) rightMouseDown: (NSEvent*) theEvent;
+- (void) rightMouseDragged: (NSEvent*) theEvent;
+- (void) rightMouseUp: (NSEvent*) theEvent;
+- (void) otherMouseDown: (NSEvent*) theEvent;
+- (void) otherMouseUp: (NSEvent*) theEvent;
 
 - (BOOL) becomeFirstResponder;
 - (BOOL) resignFirstResponder;

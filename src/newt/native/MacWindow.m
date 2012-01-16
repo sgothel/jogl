@@ -1043,10 +1043,11 @@ JNIEXPORT jobject JNICALL Java_jogamp_newt_driver_macosx_MacWindow_getLocationOn
  * Signature: (JZ)Z
  */
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setPointerVisible0
-  (JNIEnv *env, jclass clazz, jlong window, jboolean mouseVisible)
+  (JNIEnv *env, jclass clazz, jlong window, jboolean hasFocus, jboolean mouseVisible)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
-    [mWin setMouseVisible: ( JNI_TRUE == mouseVisible ) ? YES : NO];
+    [mWin setMouseVisible: ( JNI_TRUE == mouseVisible ) ? YES : NO 
+                 hasFocus: ( JNI_TRUE == hasFocus ) ? YES : NO];
     return JNI_TRUE;
 }
 

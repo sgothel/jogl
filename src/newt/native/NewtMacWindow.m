@@ -463,8 +463,17 @@ static jmethodID windowRepaintID = NULL;
     // NSRect rS = [win convertRectFromScreen: r]; // 10.7
     NSPoint oS = [self convertScreenToBase: r.origin];
     oS.y = viewFrame.size.height - oS.y; // y-flip
-
     return oS;
+}
+
+- (BOOL) isMouseInside
+{
+    NSView* view = [self contentView];
+    NSRect viewFrame = [view frame];
+    NSPoint l1 = [NSEvent mouseLocation];
+    NSPoint l0 = [self screenPos2NewtClientWinPos: l1];
+    return viewFrame.origin.x <= l0.x && l0.x < (viewFrame.origin.x+viewFrame.size.width) &&
+           viewFrame.origin.y <= l0.y && l0.y < (viewFrame.origin.y+viewFrame.size.height) ;
 }
 
 - (BOOL) canBecomeKeyWindow
@@ -624,17 +633,20 @@ static jint mods2JavaMods(NSUInteger mods)
     }
 }
 
-- (void) setMouseVisible:(BOOL)v
+- (void) setMouseVisible:(BOOL)v hasFocus:(BOOL)focus
 {
     mouseVisible = v;
-    DBG_PRINT( "setMouseVisible: confined %d, visible %d\n", mouseConfined, mouseVisible);
-    if(YES == mouseInside) {
+    mouseInside = [self isMouseInside];
+    DBG_PRINT( "setMouseVisible: confined %d, visible %d (current: %d), mouseInside %d, hasFocus %d\n", 
+        mouseConfined, mouseVisible, !cursorIsHidden, mouseInside, focus);
+    if(YES == focus && YES == mouseInside) {
         [self cursorHide: !mouseVisible];
     }
 }
 
 - (void) cursorHide:(BOOL)v
 {
+    DBG_PRINT( "cursorHide: %d -> %d\n", cursorIsHidden, v);
     if(v) {
         if(!cursorIsHidden) {
             [NSCursor hide];
@@ -662,15 +674,13 @@ static jint mods2JavaMods(NSUInteger mods)
     CGPoint pt = { p.x, screenRect.size.height - p.y }; // y-flip (CG is top-left origin)
     CGEventRef ev = CGEventCreateMouseEvent (NULL, kCGEventMouseMoved, pt, kCGMouseButtonLeft);
     CGEventPost (kCGHIDEventTap, ev);
-    NSPoint l0 = [NSEvent mouseLocation];
-    [self screenPos2NewtClientWinPos: l0];
 }
 
 - (void) mouseEntered: (NSEvent*) theEvent
 {
     DBG_PRINT( "mouseEntered: confined %d, visible %d\n", mouseConfined, mouseVisible);
     mouseInside = YES;
-    [self setMouseVisible: mouseVisible];
+    [self cursorHide: !mouseVisible];
     if(NO == mouseConfined) {
         [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_ENTERED];
     }
@@ -886,12 +896,17 @@ static jint mods2JavaMods(NSUInteger mods)
 - (void) windowDidBecomeKey: (NSNotification *) notification
 {
     DBG_PRINT( "*************** windowDidBecomeKey\n");
+    mouseInside = [self isMouseInside];
+    if(YES == mouseInside) {
+        [self cursorHide: !mouseVisible];
+    }
     [self focusChanged: YES];
 }
 
 - (void) windowDidResignKey: (NSNotification *) notification
 {
     DBG_PRINT( "*************** windowDidResignKey\n");
+    // Implicit mouse exit by OS X
     [self focusChanged: NO];
 }
 
