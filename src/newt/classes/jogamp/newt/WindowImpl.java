@@ -1584,7 +1584,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void requestFocus(boolean wait) {
-        if(isNativeValid() && !focusAction()) {
+        if(!hasFocus() && isNativeValid() && !focusAction()) {
             runOnEDTIfAvail(wait, requestFocusAction);
         }
     }
@@ -1743,8 +1743,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         display.dispatchMessagesNative(); // status up2date                                                        
                         WindowImpl.this.waitForSize(w, h, false, TIMEOUT_NATIVEWINDOW);
                         display.dispatchMessagesNative(); // status up2date                                                        
-                        requestFocusInt(true);
-                        display.dispatchMessagesNative(); // status up2date
                         
                         if(DEBUG_IMPLEMENTATION) {
                             System.err.println("Window fs done: " + WindowImpl.this);
@@ -1761,6 +1759,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public boolean setFullscreen(boolean fullscreen) {
         runOnEDTIfAvail(true, new FullScreenActionImpl(fullscreen));
+        if(isVisible()) {
+            // Request focus 'later' allowing native WM to complete event handling,
+            // this is required especially on X11 to guarantee a focused fullscreen window.
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) { }
+            requestFocus(true);
+        }
         return this.fullscreen;
     }
 

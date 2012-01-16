@@ -263,7 +263,7 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, Display *dpy,
         // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
         XGetWindowAttributes(dpy, w, &xwa);
         if(xwa.map_state == IsViewable) {
-            DBG_PRINT( "X11: XSetInputFocus dpy %p,win %pd\n", dpy, (void*)w);
+            DBG_PRINT( "X11: XSetInputFocus dpy %p,win %p\n", dpy, (void*)w);
             XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
         }
     }
