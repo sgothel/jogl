@@ -30,6 +30,8 @@ package jogamp.newt.awt.event;
 
 import java.awt.KeyboardFocusManager;
 
+import javax.media.nativewindow.NativeWindow;
+
 import jogamp.newt.driver.DriverUpdatePosition;
 
 import com.jogamp.newt.event.awt.AWTAdapter;
@@ -43,8 +45,11 @@ public class AWTParentWindowAdapter
     extends AWTWindowAdapter 
     implements java.awt.event.HierarchyListener
 {
-    public AWTParentWindowAdapter(com.jogamp.newt.Window downstream) {
+    NativeWindow downstreamParent;
+    
+    public AWTParentWindowAdapter(NativeWindow downstreamParent, com.jogamp.newt.Window downstream) {
         super(downstream);
+        this.downstreamParent = downstreamParent;
     }
 
     public AWTAdapter addTo(java.awt.Component awtComponent) {
@@ -61,13 +66,17 @@ public class AWTParentWindowAdapter
         // forward focus to NEWT child
         final com.jogamp.newt.Window newtChild = getNewtWindow();
         final boolean isOnscreen = newtChild.isNativeValid() && newtChild.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
+        final boolean isParent = downstreamParent == newtChild.getParent();
+        final boolean isFullscreen = newtChild.isFullscreen();
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("AWT: focusGained: onscreen "+ isOnscreen+", "+e);
+            System.err.println("AWT: focusGained: onscreen "+ isOnscreen+", "+e+", isParent: "+isParent+", isFS "+isFullscreen);
         }
-        if(isOnscreen) {
-            KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+        if(isParent) {
+            if(isOnscreen && !isFullscreen) {
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+            }
+            newtChild.requestFocus(false);
         }
-        newtChild.requestFocus(false);
     }
 
     public void focusLost(java.awt.event.FocusEvent e) {
