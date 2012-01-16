@@ -93,7 +93,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected boolean fullscreen = false, hasFocus = false;    
     protected int width = 128, height = 128; // client-area size w/o insets, default: may be overwritten by user
     protected int x = 64, y = 64; // client-area pos w/o insets
-    protected boolean autoPosition = true; // default: true (allow WM to choose if not set by user)
+    protected boolean autoPosition = true; // default: true (allow WM to choose top-level position, if not set by user)
     protected Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
         
     protected int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen client-area size/pos w/o insets
@@ -277,9 +277,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             NativeSurface.LOCK_SURFACE_NOT_READY >= parentWindow.lockSurface() ) {
             throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
         }        
-        if( ( 0>x || 0>y ) && null != parentWindow ) {
-            // min. child window position is 0/0
-            x = 0; y = 0;
+        if(null != parentWindow ) {
+            if( autoPosition ) {
+                // child position default to 0/0, no auto position
+                x = 0; y = 0;
+                autoPosition = false;
+            } else  if( 0>x || 0>y ) {
+                // min. child window position is 0/0
+                x = 0; y = 0;
+            }         
         }
         try {
             if(validateParentWindowHandle()) {
