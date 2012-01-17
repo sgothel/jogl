@@ -129,13 +129,26 @@
 - (NSPoint) newtClientWinPos2OSXScreenPos: (NSPoint) p;
 - (NSPoint) getLocationOnScreen: (NSPoint) p;
 - (NSPoint) screenPos2NewtClientWinPos: (NSPoint) p;
-- (BOOL) isMouseInside;
 
+- (BOOL) isMouseInside;
 - (void) cursorHide:(BOOL)v;
-- (void) setMouseVisible:(BOOL)v;
+- (void) setMouseVisible:(BOOL)v hasFocus:(BOOL)focus;
 - (void) setMouseConfined:(BOOL)v;
 - (void) setMousePosition:(NSPoint)p;
 
+- (void) sendKeyEvent: (NSEvent*) event eventType: (jint) evType;
+- (void) sendMouseEvent: (NSEvent*) event eventType: (jint) evType;
+- (void) focusChanged: (BOOL) gained;
+
+- (BOOL) becomeFirstResponder;
+- (BOOL) resignFirstResponder;
+- (BOOL) canBecomeKeyWindow;
+- (void) becomeKeyWindow;
+- (void) resignKeyWindow;
+- (void) windowDidBecomeKey: (NSNotification *) notification;
+- (void) windowDidResignKey: (NSNotification *) notification;
+- (void) keyDown: (NSEvent*) theEvent;
+- (void) keyUp: (NSEvent*) theEvent;
 - (void) mouseEntered: (NSEvent*) theEvent;
 - (void) mouseExited: (NSEvent*) theEvent;
 - (void) mouseMoved: (NSEvent*) theEvent;
@@ -148,13 +161,5 @@
 - (void) rightMouseUp: (NSEvent*) theEvent;
 - (void) otherMouseDown: (NSEvent*) theEvent;
 - (void) otherMouseUp: (NSEvent*) theEvent;
-
-- (BOOL) becomeFirstResponder;
-- (BOOL) resignFirstResponder;
-- (void) becomeKeyWindow;
-- (void) resignKeyWindow;
-- (void) windowDidBecomeKey: (NSNotification *) notification;
-- (void) windowDidResignKey: (NSNotification *) notification;
-- (void) focusChanged: (BOOL) gained;
 
 @end

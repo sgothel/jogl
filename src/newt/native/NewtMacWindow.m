@@ -476,11 +476,47 @@ static jmethodID windowRepaintID = NULL;
            viewFrame.origin.y <= l0.y && l0.y < (viewFrame.origin.y+viewFrame.size.height) ;
 }
 
-- (BOOL) canBecomeKeyWindow
+- (void) setMouseVisible:(BOOL)v hasFocus:(BOOL)focus
 {
-    // Even if the window is borderless, we still want it to be able
-    // to become the key window to receive keyboard events
-    return YES;
+    mouseVisible = v;
+    mouseInside = [self isMouseInside];
+    DBG_PRINT( "setMouseVisible: confined %d, visible %d (current: %d), mouseInside %d, hasFocus %d\n", 
+        mouseConfined, mouseVisible, !cursorIsHidden, mouseInside, focus);
+    if(YES == focus && YES == mouseInside) {
+        [self cursorHide: !mouseVisible];
+    }
+}
+
+- (void) cursorHide:(BOOL)v
+{
+    DBG_PRINT( "cursorHide: %d -> %d\n", cursorIsHidden, v);
+    if(v) {
+        if(!cursorIsHidden) {
+            [NSCursor hide];
+            cursorIsHidden = YES;
+        }
+    } else {
+        if(cursorIsHidden) {
+            [NSCursor unhide];
+            cursorIsHidden = NO;
+        }
+    }
+}
+
+- (void) setMouseConfined:(BOOL)v
+{
+    mouseConfined = v;
+    DBG_PRINT( "setMouseConfined: confined %d, visible %d\n", mouseConfined, mouseVisible);
+}
+
+- (void) setMousePosition:(NSPoint)p
+{
+    NSScreen* screen = [self screen];
+    NSRect screenRect = [screen frame];
+
+    CGPoint pt = { p.x, screenRect.size.height - p.y }; // y-flip (CG is top-left origin)
+    CGEventRef ev = CGEventCreateMouseEvent (NULL, kCGEventMouseMoved, pt, kCGMouseButtonLeft);
+    CGEventPost (kCGHIDEventTap, ev);
 }
 
 static jint mods2JavaMods(NSUInteger mods)
@@ -545,17 +581,6 @@ static jint mods2JavaMods(NSUInteger mods)
     if (shallBeDetached) {
         (*jvmHandle)->DetachCurrentThread(jvmHandle);
     }
-}
-
-- (void) keyDown: (NSEvent*) theEvent
-{
-    [self sendKeyEvent: theEvent eventType: EVENT_KEY_PRESSED];
-}
-
-- (void) keyUp: (NSEvent*) theEvent
-{
-    [self sendKeyEvent: theEvent eventType: EVENT_KEY_RELEASED];
-    [self sendKeyEvent: theEvent eventType: EVENT_KEY_TYPED];
 }
 
 - (void) sendMouseEvent: (NSEvent*) event eventType: (jint) evType
@@ -633,47 +658,91 @@ static jint mods2JavaMods(NSUInteger mods)
     }
 }
 
-- (void) setMouseVisible:(BOOL)v hasFocus:(BOOL)focus
+- (void) focusChanged: (BOOL) gained
 {
-    mouseVisible = v;
+    DBG_PRINT( "focusChanged: gained %d\n", gained);
+    NSView* nsview = [self contentView];
+    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
+        return;
+    }
+    NewtView* view = (NewtView *) nsview;
+    jobject javaWindowObject = [view getJavaWindowObject];
+    if (javaWindowObject == NULL) {
+        DBG_PRINT("focusChanged: null javaWindowObject\n");
+        return;
+    }
+    int shallBeDetached = 0;
+    JavaVM *jvmHandle = [view getJVMHandle];
+    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
+    if(NULL==env) {
+        DBG_PRINT("focusChanged: null JNIEnv\n");
+        return;
+    }
+
+    (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_FALSE, (gained == YES) ? JNI_TRUE : JNI_FALSE);
+
+    if (shallBeDetached) {
+        (*jvmHandle)->DetachCurrentThread(jvmHandle);
+    }
+}
+
+- (BOOL) becomeFirstResponder
+{
+    DBG_PRINT( "*************** becomeFirstResponder\n");
+    return [super becomeFirstResponder];
+}
+
+- (BOOL) resignFirstResponder
+{
+    DBG_PRINT( "*************** resignFirstResponder\n");
+    return [super resignFirstResponder];
+}
+
+- (BOOL) canBecomeKeyWindow
+{
+    // Even if the window is borderless, we still want it to be able
+    // to become the key window to receive keyboard events
+    return YES;
+}
+
+- (void) becomeKeyWindow
+{
+    DBG_PRINT( "*************** becomeKeyWindow\n");
+    [super becomeKeyWindow];
+}
+
+- (void) resignKeyWindow
+{
+    DBG_PRINT( "*************** resignKeyWindow\n");
+    [super resignKeyWindow];
+}
+
+- (void) windowDidBecomeKey: (NSNotification *) notification
+{
+    DBG_PRINT( "*************** windowDidBecomeKey\n");
     mouseInside = [self isMouseInside];
-    DBG_PRINT( "setMouseVisible: confined %d, visible %d (current: %d), mouseInside %d, hasFocus %d\n", 
-        mouseConfined, mouseVisible, !cursorIsHidden, mouseInside, focus);
-    if(YES == focus && YES == mouseInside) {
+    if(YES == mouseInside) {
         [self cursorHide: !mouseVisible];
     }
+    [self focusChanged: YES];
 }
 
-- (void) cursorHide:(BOOL)v
+- (void) windowDidResignKey: (NSNotification *) notification
 {
-    DBG_PRINT( "cursorHide: %d -> %d\n", cursorIsHidden, v);
-    if(v) {
-        if(!cursorIsHidden) {
-            [NSCursor hide];
-            cursorIsHidden = YES;
-        }
-    } else {
-        if(cursorIsHidden) {
-            [NSCursor unhide];
-            cursorIsHidden = NO;
-        }
-    }
+    DBG_PRINT( "*************** windowDidResignKey\n");
+    // Implicit mouse exit by OS X
+    [self focusChanged: NO];
 }
 
-- (void) setMouseConfined:(BOOL)v
+- (void) keyDown: (NSEvent*) theEvent
 {
-    mouseConfined = v;
-    DBG_PRINT( "setMouseConfined: confined %d, visible %d\n", mouseConfined, mouseVisible);
+    [self sendKeyEvent: theEvent eventType: EVENT_KEY_PRESSED];
 }
 
-- (void) setMousePosition:(NSPoint)p
+- (void) keyUp: (NSEvent*) theEvent
 {
-    NSScreen* screen = [self screen];
-    NSRect screenRect = [screen frame];
-
-    CGPoint pt = { p.x, screenRect.size.height - p.y }; // y-flip (CG is top-left origin)
-    CGEventRef ev = CGEventCreateMouseEvent (NULL, kCGEventMouseMoved, pt, kCGMouseButtonLeft);
-    CGEventPost (kCGHIDEventTap, ev);
+    [self sendKeyEvent: theEvent eventType: EVENT_KEY_RELEASED];
+    [self sendKeyEvent: theEvent eventType: EVENT_KEY_TYPED];
 }
 
 - (void) mouseEntered: (NSEvent*) theEvent
@@ -867,75 +936,6 @@ static jint mods2JavaMods(NSUInteger mods)
         DBG_PRINT( "*************** windowWillClose (skip)\n");
     }
     [pool release];
-}
-
-- (BOOL) becomeFirstResponder
-{
-    DBG_PRINT( "*************** becomeFirstResponder\n");
-    return [super becomeFirstResponder];
-}
-
-- (BOOL) resignFirstResponder
-{
-    DBG_PRINT( "*************** resignFirstResponder\n");
-    return [super resignFirstResponder];
-}
-
-- (void) becomeKeyWindow
-{
-    DBG_PRINT( "*************** becomeKeyWindow\n");
-    [super becomeKeyWindow];
-}
-
-- (void) resignKeyWindow
-{
-    DBG_PRINT( "*************** resignKeyWindow\n");
-    [super resignKeyWindow];
-}
-
-- (void) windowDidBecomeKey: (NSNotification *) notification
-{
-    DBG_PRINT( "*************** windowDidBecomeKey\n");
-    mouseInside = [self isMouseInside];
-    if(YES == mouseInside) {
-        [self cursorHide: !mouseVisible];
-    }
-    [self focusChanged: YES];
-}
-
-- (void) windowDidResignKey: (NSNotification *) notification
-{
-    DBG_PRINT( "*************** windowDidResignKey\n");
-    // Implicit mouse exit by OS X
-    [self focusChanged: NO];
-}
-
-- (void) focusChanged: (BOOL) gained
-{
-    DBG_PRINT( "focusChanged: gained %d\n", gained);
-    NSView* nsview = [self contentView];
-    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
-        return;
-    }
-    NewtView* view = (NewtView *) nsview;
-    jobject javaWindowObject = [view getJavaWindowObject];
-    if (javaWindowObject == NULL) {
-        DBG_PRINT("focusChanged: null javaWindowObject\n");
-        return;
-    }
-    int shallBeDetached = 0;
-    JavaVM *jvmHandle = [view getJVMHandle];
-    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
-    if(NULL==env) {
-        DBG_PRINT("focusChanged: null JNIEnv\n");
-        return;
-    }
-
-    (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_FALSE, (gained == YES) ? JNI_TRUE : JNI_FALSE);
-
-    if (shallBeDetached) {
-        (*jvmHandle)->DetachCurrentThread(jvmHandle);
-    }
 }
 
 @end

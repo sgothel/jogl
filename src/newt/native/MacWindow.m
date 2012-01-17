@@ -473,9 +473,10 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacScreen_setScreenMod
     CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
 
     CFArrayRef availableModes = CGDisplayAvailableModes(display);
+#ifdef VERBOSE_ON
     CFIndex numberOfAvailableModes = CFArrayGetCount(availableModes);
     CFIndex numberOfAvailableModesRots = ROTMODES_PER_REALMODE * numberOfAvailableModes;
-
+#endif
     CFDictionaryRef mode = (CFDictionaryRef)CFArrayGetValueAtIndex(availableModes, mode_idx / ROTMODES_PER_REALMODE);
     // mode = CGDisplayModeRetain(mode); // 10.6 on CGDisplayModeRef
 
