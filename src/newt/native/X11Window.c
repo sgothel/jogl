@@ -169,16 +169,21 @@ static Window NewtWindows_getParent (Display *dpy, Window w) {
     }
     return 0; // Error
 }
-static Status NewtWindows_getParentPosition (Display *dpy, Window w, int *x_return, int *y_return) {
+static void NewtWindows_setCWAbove(Display *dpy, Window w) {
+    XWindowChanges xwc;
+    memset(&xwc, 0, sizeof(XWindowChanges));
+    xwc.stack_mode = Above;
+    XConfigureWindow(dpy, w, CWStackMode, &xwc);
+    XSync(dpy, False);
+}
+static Status NewtWindows_getWindowPositionRelative2Parent (Display *dpy, Window w, int *x_return, int *y_return) {
     Window root_return;
     unsigned int width_return, height_return;
     unsigned int border_width_return;
     unsigned int depth_return;
-    Window parent = NewtWindows_getParent(dpy, w);
 
-    if(0 != parent) {
-        XGetGeometry(dpy, parent, &root_return, x_return, y_return, &width_return, 
-                               &height_return, &border_width_return, &depth_return);
+    if(0 !=  XGetGeometry(dpy, w, &root_return, x_return, y_return, &width_return, 
+                                  &height_return, &border_width_return, &depth_return)) {
         return 1; // OK
     }
     return 0; // Error
@@ -224,53 +229,6 @@ static Status NewtWindows_getFrameExtends(Display *dpy, Window window, int *left
 
     return 1; // Ok
 }
-Status NewtWindows_updateInsets(JNIEnv *env, jobject jwindow, Display *dpy, Window window, int *left, int *right, int *top, int *bottom) {
-    if(0 != NewtWindows_getFrameExtends(dpy, window, left, right, top, bottom)) {
-        DBG_PRINT( "NewtWindows_updateInsets: insets by _NET_FRAME_EXTENTS [ l %d, r %d, t %d, b %d ]\n",
-            *left, *right, *top, *bottom);
-        (*env)->CallVoidMethod(env, jwindow, insetsChangedID, JNI_FALSE, *left, *right, *top, *bottom);
-        return 1; // OK
-    } else if(0 != NewtWindows_getParentPosition (dpy, window, left, top)) {
-        *right = *left; *bottom = *left;
-        DBG_PRINT( "NewtWindows_updateInsets: insets by parent position [ l %d, r %d, t %d, b %d ]\n",
-            *left, *right, *top, *bottom);
-        (*env)->CallVoidMethod(env, jwindow, insetsChangedID, JNI_FALSE, *left, *right, *top, *bottom);
-        return 1; // OK
-    }
-    return 0; // Error
-}
-
-static void NewtWindows_setCWAbove(Display *dpy, Window w) {
-    XWindowChanges xwc;
-    memset(&xwc, 0, sizeof(XWindowChanges));
-    xwc.stack_mode = Above;
-    XConfigureWindow(dpy, w, CWStackMode, &xwc);
-    XSync(dpy, False);
-}
-
-static void NewtWindows_requestFocus (JNIEnv *env, jobject window, Display *dpy, Window w, jboolean force) {
-    XWindowAttributes xwa;
-    Window focus_return;
-    int revert_to_return;
-
-    XSync(dpy, False);
-    XGetInputFocus(dpy, &focus_return, &revert_to_return);
-    DBG_PRINT( "X11: requestFocus dpy %p,win %p, force %d, hasFocus %d\n", dpy, (void*)w, force, focus_return==w);
-
-    if( JNI_TRUE==force || focus_return!=w) {
-        DBG_PRINT( "X11: XRaiseWindow dpy %p, win %p\n", dpy, (void*)w);
-        XRaiseWindow(dpy, w);
-        NewtWindows_setCWAbove(dpy, w);
-        // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
-        XGetWindowAttributes(dpy, w, &xwa);
-        DBG_PRINT( "X11: XSetInputFocus dpy %p,win %p, isViewable %d\n", dpy, (void*)w, (xwa.map_state == IsViewable));
-        if(xwa.map_state == IsViewable) {
-            XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
-        }
-    }
-    DBG_PRINT( "X11: requestFocus dpy %p,win %p, force %d - FIN\n", dpy, (void*)w, force);
-    XSync(dpy, False);
-}
 
 #define DECOR_USE_MWM 1     // works for known WMs
 // #define DECOR_USE_EWMH 1 // haven't seen this to work (NORMAL->POPUP, never gets undecorated)
@@ -306,6 +264,29 @@ static void NewtWindows_setDecorations (Display *dpy, Window w, Bool decorated) 
 #endif
 
     XSync(dpy, False);
+}
+
+static Bool NewtWindows_hasDecorations (Display *dpy, Window w) {
+    Bool decor = False;
+
+#ifdef DECOR_USE_MWM
+    Atom _MOTIF_WM_HINTS = XInternAtom( dpy, "_MOTIF_WM_HINTS", False );
+    unsigned char *wm_data;
+    Atom wm_type;
+    int wm_format;
+    unsigned long wm_nitems, wm_bytes_after;
+ 
+    if( Success == XGetWindowProperty(dpy, w, _MOTIF_WM_HINTS, 0, PROP_MWM_HINTS_ELEMENTS, False, AnyPropertyType, 
+                                      &wm_type, &wm_format, &wm_nitems, &wm_bytes_after, &wm_data) ) {
+        if(wm_type != None) {
+            // unsigned long mwmhints[PROP_MWM_HINTS_ELEMENTS] = { MWM_HINTS_DECORATIONS, 0, decorated, 0, 0 }; // flags, functions, decorations, input_mode, status
+            unsigned long *hints = (unsigned long *) wm_data;
+            decor = ( 0 != (hints[0] & MWM_HINTS_DECORATIONS) ) && ( 0 != hints[2] );
+        }
+    }
+#endif
+
+    return decor;
 }
 
 static void NewtWindows_setNormalWindowEWMH (Display *dpy, Window w) {
@@ -429,6 +410,56 @@ static Bool NewtWindows_setFullscreenEWMH (Display *dpy, Window root, Window w, 
     DBG_PRINT( "X11: reconfigureWindow0 FULLSCREEN EWMH ON %d, ewmhMask 0x%X, ewmhFlags 0x%X, visible %d: %d\n", 
         enable, ewmhMask, ewmhFlags, isVisible, res);
     return res;
+}
+
+
+Status NewtWindows_updateInsets(JNIEnv *env, jobject jwindow, Display *dpy, Window window, int *left, int *right, int *top, int *bottom) {
+    if(0 != NewtWindows_getFrameExtends(dpy, window, left, right, top, bottom)) {
+        DBG_PRINT( "NewtWindows_updateInsets: insets by _NET_FRAME_EXTENTS [ l %d, r %d, t %d, b %d ]\n",
+            *left, *right, *top, *bottom);
+        (*env)->CallVoidMethod(env, jwindow, insetsChangedID, JNI_FALSE, *left, *right, *top, *bottom);
+        return 1; // OK
+    }
+
+    Bool hasDecor = NewtWindows_hasDecorations (dpy, window);
+    if(hasDecor) {
+        // The following logic only works if window is top-level _and_ the WM
+        // has 'decorated' our client window w/ another parent window _within_ the actual 'framed' window.
+        Window parent = NewtWindows_getParent(dpy, window);
+        if(0 != NewtWindows_getWindowPositionRelative2Parent (dpy, parent, left, top)) {
+            *right = *left; *bottom = *top;
+            DBG_PRINT( "NewtWindows_updateInsets: insets by parent position [ l %d, r %d, t %d, b %d ]\n",
+                *left, *right, *top, *bottom);
+            (*env)->CallVoidMethod(env, jwindow, insetsChangedID, JNI_FALSE, *left, *right, *top, *bottom);
+            return 1; // OK
+        }
+    }
+    DBG_PRINT( "NewtWindows_updateInsets: cannot determine insets - hasDecor %d\n", hasDecor);
+    return 0; // Error
+}
+
+static void NewtWindows_requestFocus (JNIEnv *env, jobject window, Display *dpy, Window w, jboolean force) {
+    XWindowAttributes xwa;
+    Window focus_return;
+    int revert_to_return;
+
+    XSync(dpy, False);
+    XGetInputFocus(dpy, &focus_return, &revert_to_return);
+    DBG_PRINT( "X11: requestFocus dpy %p,win %p, force %d, hasFocus %d\n", dpy, (void*)w, force, focus_return==w);
+
+    if( JNI_TRUE==force || focus_return!=w) {
+        DBG_PRINT( "X11: XRaiseWindow dpy %p, win %p\n", dpy, (void*)w);
+        XRaiseWindow(dpy, w);
+        NewtWindows_setCWAbove(dpy, w);
+        // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
+        XGetWindowAttributes(dpy, w, &xwa);
+        DBG_PRINT( "X11: XSetInputFocus dpy %p,win %p, isViewable %d\n", dpy, (void*)w, (xwa.map_state == IsViewable));
+        if(xwa.map_state == IsViewable) {
+            XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
+        }
+    }
+    DBG_PRINT( "X11: requestFocus dpy %p,win %p, force %d - FIN\n", dpy, (void*)w, force);
+    XSync(dpy, False);
 }
 
 /**
@@ -602,10 +633,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
     // we can pre-map the window here to be able to gather the insets and position.
     {
         XEvent event;
-        int left, right, top, bottom;
+        int left=0, right=0, top=0, bottom=0;
 
         XMapWindow(dpy, window);
         XIfEvent( dpy, &event, WaitForMapNotify, (XPointer) window ); // wait to get proper insets values
+
+        XSync(dpy, False);
 
         // send insets before visibility, allowing java code a proper sync point!
         NewtWindows_updateInsets(env, jwindow, dpy, window, &left, &right, &top, &bottom);
