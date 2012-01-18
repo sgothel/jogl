@@ -104,6 +104,7 @@
 @interface NewtMacWindow : NSWindow 
 #endif
 {
+    BOOL isFullscreenWindow;
     BOOL mouseConfined;
     BOOL mouseVisible;
     BOOL mouseInside;
@@ -119,7 +120,8 @@
        styleMask: (NSUInteger) windowStyle
        backing: (NSBackingStoreType) bufferingType
        defer: (BOOL) deferCreation
-       screen:(NSScreen *)screen;
+       screen:(NSScreen *)screen
+       isFullscreenWindow:(BOOL)isfs;
 
 - (void) updateInsets: (JNIEnv*) env;
 - (void) attachToParent: (NSWindow*) parent;

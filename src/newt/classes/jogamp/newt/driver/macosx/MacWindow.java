@@ -296,10 +296,13 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
         final int keyCode2 = MacKeyUtil.validateKeyCode(keyCode, keyChar);
-        if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.sendKeyEvent "+Thread.currentThread().getName()+" char: 0x"+Integer.toHexString(keyChar)+", code 0x"+Integer.toHexString(keyCode)+" -> 0x"+Integer.toHexString(keyCode2));
-        // only deliver keyChar on key Typed events, harmonizing platform behavior
-        keyChar = KeyEvent.EVENT_KEY_TYPED == eventType ? keyChar : (char)-1;
-        super.sendKeyEvent(eventType, modifiers, keyCode2, keyChar);        
+        final boolean valid = validateKeyEvent(eventType, modifiers, keyCode);
+        if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.sendKeyEvent "+Thread.currentThread().getName()+" char: 0x"+Integer.toHexString(keyChar)+", code 0x"+Integer.toHexString(keyCode)+" -> 0x"+Integer.toHexString(keyCode2)+", valid "+valid);
+        if(valid) {
+            // only deliver keyChar on key Typed events, harmonizing platform behavior
+            keyChar = KeyEvent.EVENT_KEY_TYPED == eventType ? keyChar : (char)-1;
+            super.sendKeyEvent(eventType, modifiers, keyCode2, keyChar);
+        }
     }
     
     @Override
@@ -307,11 +310,36 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
         final int keyCode2 = MacKeyUtil.validateKeyCode(keyCode, keyChar);
-        if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.enqueueKeyEvent "+Thread.currentThread().getName()+" char: 0x"+Integer.toHexString(keyChar)+", code 0x"+Integer.toHexString(keyCode)+" -> 0x"+Integer.toHexString(keyCode2));
-        // only deliver keyChar on key Typed events, harmonizing platform behavior
-        keyChar = KeyEvent.EVENT_KEY_TYPED == eventType ? keyChar : (char)-1;
-        super.enqueueKeyEvent(wait, eventType, modifiers, keyCode2, keyChar);
+        final boolean valid = validateKeyEvent(eventType, modifiers, keyCode);
+        if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.enqueueKeyEvent "+Thread.currentThread().getName()+" char: 0x"+Integer.toHexString(keyChar)+", code 0x"+Integer.toHexString(keyCode)+" -> 0x"+Integer.toHexString(keyCode2)+", valid "+valid);
+        if(valid) {
+            // only deliver keyChar on key Typed events, harmonizing platform behavior
+            keyChar = KeyEvent.EVENT_KEY_TYPED == eventType ? keyChar : (char)-1;
+            super.enqueueKeyEvent(wait, eventType, modifiers, keyCode2, keyChar);
+        }
     }
+
+    private int keyDownModifiers = 0;
+    private int keyDownCode = 0;
+    
+    private boolean validateKeyEvent(int eventType, int modifiers, int keyCode) {
+        switch(eventType) {
+            case KeyEvent.EVENT_KEY_PRESSED:
+                keyDownModifiers = modifiers;
+                keyDownCode = keyCode;
+                return true;
+            case KeyEvent.EVENT_KEY_RELEASED:
+                return keyDownModifiers == modifiers && keyDownCode == keyCode;
+            case KeyEvent.EVENT_KEY_TYPED:
+                final boolean matchKeyDown = keyDownModifiers == modifiers && keyDownCode == keyCode;
+                keyDownModifiers = 0;
+                keyDownCode = 0;
+                return matchKeyDown;
+            default:
+                throw new NativeWindowException("Unexpected key event type " + eventType);
+        }
+    }
+    
 
     //----------------------------------------------------------------------
     // Internals only

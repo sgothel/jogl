@@ -238,10 +238,14 @@ static jmethodID windowRepaintID = NULL;
     DBG_PRINT("*************** dirtyRect: %p %lf/%lf %lfx%lf\n", 
         javaWindowObject, dirtyRect.origin.x, dirtyRect.origin.y, dirtyRect.size.width, dirtyRect.size.height);
 
+    if(NULL==javaWindowObject) {
+        DBG_PRINT("drawRect: null javaWindowObject\n");
+        return;
+    }
     int shallBeDetached = 0;
     JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
     if(NULL==env) {
-        DBG_PRINT("viewDidHide: null JNIEnv\n");
+        DBG_PRINT("drawRect: null JNIEnv\n");
         return;
     }
 
@@ -258,6 +262,10 @@ static jmethodID windowRepaintID = NULL;
 
 - (void) viewDidHide
 {
+    if(NULL==javaWindowObject) {
+        DBG_PRINT("viewDidHide: null javaWindowObject\n");
+        return;
+    }
     int shallBeDetached = 0;
     JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
     if(NULL==env) {
@@ -276,10 +284,14 @@ static jmethodID windowRepaintID = NULL;
 
 - (void) viewDidUnhide
 {
+    if(NULL==javaWindowObject) {
+        DBG_PRINT("viewDidUnhide: null javaWindowObject\n");
+        return;
+    }
     int shallBeDetached = 0;
     JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
     if(NULL==env) {
-        DBG_PRINT("viewDidHide: null JNIEnv\n");
+        DBG_PRINT("viewDidUnhide: null JNIEnv\n");
         return;
     }
 
@@ -328,12 +340,14 @@ static jmethodID windowRepaintID = NULL;
        backing: (NSBackingStoreType) bufferingType
        defer: (BOOL) deferCreation
        screen:(NSScreen *)screen
+       isFullscreenWindow:(BOOL)isfs
 {
     id res = [super initWithContentRect: contentRect
                     styleMask: windowStyle
                     backing: bufferingType
                     defer: deferCreation
                     screen: screen];
+    isFullscreenWindow = isfs;
     // Why is this necessary? Without it we don't get any of the
     // delegate methods like resizing and window movement.
     [self setDelegate: self];
@@ -389,8 +403,10 @@ static jmethodID windowRepaintID = NULL;
 {
     DBG_PRINT( "detachFromParent.1\n");
     [self setParentWindow: nil];
-    DBG_PRINT( "detachFromParent.2\n");
-    [parent removeChildWindow: self];
+    if(NULL != parent) {
+        DBG_PRINT( "detachFromParent.2\n");
+        [parent removeChildWindow: self];
+    }
     DBG_PRINT( "detachFromParent.X\n");
 }
 
@@ -713,8 +729,10 @@ static jint mods2JavaMods(NSUInteger mods)
 
 - (void) resignKeyWindow
 {
-    DBG_PRINT( "*************** resignKeyWindow\n");
-    [super resignKeyWindow];
+    DBG_PRINT( "*************** resignKeyWindow: isFullscreen %d\n", (int)isFullscreenWindow);
+    if(!isFullscreenWindow) {
+        [super resignKeyWindow];
+    }
 }
 
 - (void) windowDidBecomeKey: (NSNotification *) notification

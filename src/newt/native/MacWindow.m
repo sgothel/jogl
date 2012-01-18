@@ -578,7 +578,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
                                                styleMask: (NSUInteger) styleMask
                                                backing: (NSBackingStoreType) bufferingType
                                                defer: NO
-                                               screen: myScreen];
+                                               screen: myScreen
+                                               isFullscreenWindow: fullscreen];
     [myWindow setReleasedWhenClosed: YES]; // default
     [myWindow setPreservesContentDuringLiveResize: NO];
 
@@ -697,6 +698,19 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_close0
     NSWindow* pWin = [mWin parentWindow];
     DBG_PRINT( "windowClose.0 - %p,%d view %p,%d, parent %p\n", 
         mWin, getRetainCount(mWin), mView, getRetainCount(mView), pWin);
+
+    if(NULL!=mView) {
+        jobject javaWindowObject = [mView getJavaWindowObject];
+        if( false == [mView getDestroyNotifySent] ) {
+            [mView setDestroyNotifySent: true];
+        } else if(NULL!=javaWindowObject) {
+            DBG_PRINT( "windowClose.Error: javaWindowObject not NULL (%p), destroyNotifySent==true\n", javaWindowObject);
+        }
+        if(NULL!=javaWindowObject) {
+            (*env)->DeleteGlobalRef(env, javaWindowObject);
+            [mView setJavaWindowObject: NULL];
+        }
+    }
 
 NS_DURING
     if(NULL!=mView) {
