@@ -78,6 +78,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 {
     public static final boolean DEBUG_TEST_REPARENT_INCOMPATIBLE = Debug.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
     
+    /** Timeout of queued events (repaint and resize) */
+    static final long QUEUED_EVENT_TO = 1200; // ms    
+    
     private volatile long windowHandle = 0; // lifecycle critical
     private volatile boolean visible = false; // lifecycle critical
     private RecursiveLock windowLock = LockFactory.createRecursiveLock();  // Window instance wide lock
@@ -97,6 +100,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
         
     protected int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen client-area size/pos w/o insets
+    protected NativeWindow nfs_parent = null;          // non fullscreen parent, in case explicit reparenting is performed (offscreen)
     protected String title = "Newt Window";
     protected boolean undecorated = false;
     protected boolean alwaysOnTop = false;
@@ -109,7 +113,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     private ReparentActionRecreate reparentActionRecreate = new ReparentActionRecreate();
 
-    private RequestFocusAction requestFocusAction = new RequestFocusAction();
     private FocusRunnable focusAction = null;
     private KeyListener keyboardFocusHandler = null;
 
@@ -302,10 +305,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     confinePointerImpl(pointerConfined);
                     if(waitForVisible(true, false)) {
                         if(isFullscreen()) {
-                            fullscreen = false;
-                            FullScreenActionImpl fsa = new FullScreenActionImpl(true);
-                            fsa.run();
+                            synchronized(fullScreenAction) {
+                                fullscreen = false; // trigger a state change
+                                fullScreenAction.init(true);
+                                fullScreenAction.run();
+                            }
                         }
+                        // harmonize focus behavior for all platforms: focus on creation
+                        requestFocusInt(isFullscreen() /* skipFocusAction */, true/* force */);
+                        ((DisplayImpl) screen.getDisplay()).dispatchMessagesNative(); // status up2date
                     }
                 }
             }
@@ -1180,7 +1188,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                 ok = WindowImpl.this.waitForSize(width, height, false, TIMEOUT_NATIVEWINDOW);
                             }
                             if(ok) {
-                                requestFocusInt(true);
+                                requestFocusInt(false /* skipFocusAction */, true/* force */);
                                 display.dispatchMessagesNative(); // status up2date                                
                             }
                         }
@@ -1566,14 +1574,22 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         d.runOnEDTIfAvail(wait, task);
     }
 
-    private class RequestFocusAction implements Runnable {
+    private Runnable requestFocusAction = new Runnable() {
         public final void run() {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.RequestFocusAction: ("+getThreadName()+"): "+hasFocus+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.RequestFocusAction: force 0 - ("+getThreadName()+"): "+hasFocus+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
             WindowImpl.this.requestFocusImpl(false);
         }
-    }
+    };
+    private Runnable requestFocusActionForced = new Runnable() {
+        public final void run() {
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("Window.RequestFocusAction: force 1 - ("+getThreadName()+"): "+hasFocus+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+            }
+            WindowImpl.this.requestFocusImpl(true);
+        }
+    };
 
     public final boolean hasFocus() {
         return hasFocus;
@@ -1584,14 +1600,23 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void requestFocus(boolean wait) {
-        if(!hasFocus() && isNativeValid() && !focusAction()) {
-            runOnEDTIfAvail(wait, requestFocusAction);
+        requestFocus(wait /* wait */, false /* skipFocusAction */, false /* force */);
+    }
+    
+    private void requestFocus(boolean wait, boolean skipFocusAction, boolean force) {
+        if( isNativeValid() &&
+            ( force || !hasFocus() ) &&
+            ( skipFocusAction || !focusAction() ) ) {
+            runOnEDTIfAvail(wait, force ? requestFocusActionForced : requestFocusAction);
         }
     }
     
     /** Internal request focus on current thread */
-    private void requestFocusInt(boolean force) {
-        if(!focusAction()) {
+    private void requestFocusInt(boolean skipFocusAction, boolean force) {
+        if( skipFocusAction || !focusAction() ) {
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("Window.RequestFocusInt: force "+force+" - ("+getThreadName()+"): "+hasFocus+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+            }
             requestFocusImpl(force);
         }        
     }
@@ -1661,113 +1686,132 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     private class FullScreenActionImpl implements Runnable {
         boolean fullscreen;
+        boolean nativeFullscreenChange;
 
-        private FullScreenActionImpl (boolean fullscreen) {
+        private FullScreenActionImpl() { }
+        
+        public void init(boolean fullscreen) {
             this.fullscreen = fullscreen;
-        }
+            this.nativeFullscreenChange = isNativeValid() && isFullscreen() != fullscreen ;
+        }                
+        public boolean nativeFullscreenChange() { return nativeFullscreenChange; } 
+        public boolean nativeFullscreenOn() { return nativeFullscreenChange && fullscreen; }
+        public boolean nativeFullscreenOff() { return nativeFullscreenChange && !fullscreen; }
 
         public final void run() {
             windowLock.lock();
             try {
-              if(WindowImpl.this.fullscreen != fullscreen) {
-                final boolean nativeFullscreenChange = isNativeValid() && 
-                                                       isFullscreen() != fullscreen ;
-                  
                 // set current state
                 WindowImpl.this.fullscreen = fullscreen;
 
-                if( nativeFullscreenChange ) {
-                    int x,y,w,h;
+                int x,y,w,h;
+                
+                if(fullscreen) {
+                    nfs_x = WindowImpl.this.x;
+                    nfs_y = WindowImpl.this.y;
+                    nfs_width = WindowImpl.this.width;
+                    nfs_height = WindowImpl.this.height;
+                    x = screen.getX(); 
+                    y = screen.getY();
+                    w = screen.getWidth();
+                    h = screen.getHeight();
+                } else {
+                    x = nfs_x;
+                    y = nfs_y;
+                    w = nfs_width;
+                    h = nfs_height;
                     
-                    if(fullscreen) {
-                        nfs_x = WindowImpl.this.x;
-                        nfs_y = WindowImpl.this.y;
-                        nfs_width = WindowImpl.this.width;
-                        nfs_height = WindowImpl.this.height;
-                        x = screen.getX(); 
-                        y = screen.getY();
-                        w = screen.getWidth();
-                        h = screen.getHeight();
-                    } else {
-                        x = nfs_x;
-                        y = nfs_y;
-                        w = nfs_width;
-                        h = nfs_height;
-                        
-                        if(null!=parentWindow) {
-                            // reset position to 0/0 within parent space
-                            x = 0;
-                            y = 0;
-        
-                            // refit if size is bigger than parent
-                            if( w > parentWindow.getWidth() ) {
-                                w = parentWindow.getWidth();
-                            }
-                            if( h > parentWindow.getHeight() ) {
-                                h = parentWindow.getHeight();
-                            }
+                    if(null!=parentWindow) {
+                        // reset position to 0/0 within parent space
+                        x = 0;
+                        y = 0;
+    
+                        // refit if size is bigger than parent
+                        if( w > parentWindow.getWidth() ) {
+                            w = parentWindow.getWidth();
                         }
-                    }
-                    if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated()+", "+screen);
-                    }
-
-                    DisplayImpl display = (DisplayImpl) screen.getDisplay();
-                    display.dispatchMessagesNative(); // status up2date
-                    boolean wasVisible = isVisible();
-                    
-                    // Lock parentWindow only during reparenting (attempt)
-                    final NativeWindow parentWindowLocked;
-                    if( null != parentWindow ) {
-                        parentWindowLocked = parentWindow;
-                        if( NativeSurface.LOCK_SURFACE_NOT_READY >= parentWindowLocked.lockSurface() ) {
-                            throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
-                        }
-                    } else {
-                        parentWindowLocked = null;
-                    }
-                    try {
-                        reconfigureWindowImpl(x, y, w, h, 
-                                              getReconfigureFlags( ( ( null != parentWindowLocked ) ? FLAG_CHANGE_PARENTING : 0 ) | 
-                                                                   FLAG_CHANGE_FULLSCREEN | FLAG_CHANGE_DECORATION, wasVisible) ); 
-                    } finally {
-                        if(null!=parentWindowLocked) {
-                            parentWindowLocked.unlockSurface();
-                        }
-                    }
-                    display.dispatchMessagesNative(); // status up2date
-                    
-                    if(wasVisible) {
-                        setVisibleImpl(true, x, y, w, h);
-                        WindowImpl.this.waitForVisible(true, false);
-                        display.dispatchMessagesNative(); // status up2date                                                        
-                        WindowImpl.this.waitForSize(w, h, false, TIMEOUT_NATIVEWINDOW);
-                        display.dispatchMessagesNative(); // status up2date                                                        
-                        
-                        if(DEBUG_IMPLEMENTATION) {
-                            System.err.println("Window fs done: " + WindowImpl.this);
+                        if( h > parentWindow.getHeight() ) {
+                            h = parentWindow.getHeight();
                         }
                     }
                 }
-              }    
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated()+", "+screen);
+                }
+
+                DisplayImpl display = (DisplayImpl) screen.getDisplay();
+                display.dispatchMessagesNative(); // status up2date
+                boolean wasVisible = isVisible();
+                
+                // Lock parentWindow only during reparenting (attempt)
+                final NativeWindow parentWindowLocked;
+                if( null != parentWindow ) {
+                    parentWindowLocked = parentWindow;
+                    if( NativeSurface.LOCK_SURFACE_NOT_READY >= parentWindowLocked.lockSurface() ) {
+                        throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
+                    }
+                } else {
+                    parentWindowLocked = null;
+                }
+                try {
+                    reconfigureWindowImpl(x, y, w, h, 
+                                          getReconfigureFlags( ( ( null != parentWindowLocked ) ? FLAG_CHANGE_PARENTING : 0 ) | 
+                                                               FLAG_CHANGE_FULLSCREEN | FLAG_CHANGE_DECORATION, wasVisible) ); 
+                } finally {
+                    if(null!=parentWindowLocked) {
+                        parentWindowLocked.unlockSurface();
+                    }
+                }
+                display.dispatchMessagesNative(); // status up2date
+                
+                if(wasVisible) {
+                    setVisibleImpl(true, x, y, w, h);
+                    WindowImpl.this.waitForVisible(true, false);
+                    display.dispatchMessagesNative(); // status up2date                                                        
+                    WindowImpl.this.waitForSize(w, h, false, TIMEOUT_NATIVEWINDOW);
+                    display.dispatchMessagesNative(); // status up2date                                                        
+                    
+                    if(DEBUG_IMPLEMENTATION) {
+                        System.err.println("Window fs done: " + WindowImpl.this);
+                    }
+                }
             } finally {
                 windowLock.unlock();
             }
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
     }
+    private FullScreenActionImpl fullScreenAction = new FullScreenActionImpl();
 
     public boolean setFullscreen(boolean fullscreen) {
-        runOnEDTIfAvail(true, new FullScreenActionImpl(fullscreen));
-        if(isVisible()) {
-            // Request focus 'later' allowing native WM to complete event handling,
-            // this is required especially on X11 to guarantee a focused fullscreen window.
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) { }
-            requestFocus(true);
+        synchronized(fullScreenAction) {
+            fullScreenAction.init(fullscreen);
+            if( fullScreenAction.nativeFullscreenChange() ) {               
+                if(fullScreenAction.nativeFullscreenOn() && 
+                   isOffscreenInstance(WindowImpl.this, parentWindow)) { 
+                    // enable fullscreen on offscreen instance
+                    if(null != parentWindow) {
+                        nfs_parent = parentWindow;
+                        reparentWindow(null, true);
+                    } else {
+                        throw new InternalError("Offscreen instance w/o parent unhandled");
+                    }
+                }
+                
+                runOnEDTIfAvail(true, fullScreenAction);
+                
+                if(fullScreenAction.nativeFullscreenOff() && null != nfs_parent) {
+                    // disable fullscreen on offscreen instance
+                    reparentWindow(nfs_parent, true);
+                    nfs_parent = null;
+                }
+                
+                if(isVisible()) {         
+                    requestFocus(true /* wait */, this.fullscreen /* skipFocusAction */, true /* force */);
+                }
+            }
+            return this.fullscreen;                
         }
-        return this.fullscreen;
     }
 
     private class ScreenModeListenerImpl implements ScreenModeListener {
@@ -1853,11 +1897,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     // make sure only one repaint event is queued
                     if(!repaintQueued) {
                         repaintQueued=true;
+                        final boolean discardTO = QUEUED_EVENT_TO <= System.currentTimeMillis()-e.getWhen();
                         if(DEBUG_IMPLEMENTATION) {
-                            System.err.println("Window.consumeEvent: queued "+e);
+                            System.err.println("Window.consumeEvent: "+Thread.currentThread().getName()+" - queued "+e+", discard-to "+discardTO);
                             // Thread.dumpStack();
-                        }
-                        return false;
+                        }                                                
+                        return discardTO; // discardTO:=true -> consumed
                     }
                     return true;
                 }
@@ -1868,11 +1913,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             case WindowEvent.EVENT_WINDOW_RESIZED:
                 // queue event in case window is locked, ie in operation
                 if( isWindowLocked() ) {
+                    final boolean discardTO = QUEUED_EVENT_TO <= System.currentTimeMillis()-e.getWhen();
                     if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window.consumeEvent: queued "+e);
+                        System.err.println("Window.consumeEvent: "+Thread.currentThread().getName()+" - queued "+e+", discard-to "+discardTO);
                         // Thread.dumpStack();
                     }
-                    return false;
+                    return discardTO; // discardTO:=true -> consumed
                 }
                 break;
             default:

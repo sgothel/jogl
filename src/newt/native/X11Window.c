@@ -253,6 +253,7 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, Display *dpy,
     Window focus_return;
     int revert_to_return;
 
+    XSync(dpy, False);
     XGetInputFocus(dpy, &focus_return, &revert_to_return);
     DBG_PRINT( "X11: requestFocus dpy %p,win %p, force %d, hasFocus %d\n", dpy, (void*)w, force, focus_return==w);
 
@@ -262,8 +263,8 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, Display *dpy,
         NewtWindows_setCWAbove(dpy, w);
         // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
         XGetWindowAttributes(dpy, w, &xwa);
+        DBG_PRINT( "X11: XSetInputFocus dpy %p,win %p, isViewable %d\n", dpy, (void*)w, (xwa.map_state == IsViewable));
         if(xwa.map_state == IsViewable) {
-            DBG_PRINT( "X11: XSetInputFocus dpy %p,win %p\n", dpy, (void*)w);
             XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
         }
     }
@@ -683,6 +684,15 @@ static Bool WaitForReparentNotify( Display *dpy, XEvent *event, XPointer arg ) {
 }
 #endif
 
+/**
+ * KDE cause lost input focus in fullscreen mode.
+ * Using 'XGrabKeyboard(..)' would prevent the loss,
+ * but also would disable WM task switcher etc.
+ *
+ * #define FS_GRAB_KEYBOARD 1
+ *
+ */
+
 /*
  * Class:     jogamp_newt_driver_x11_X11Window
  * Method:    reconfigureWindow0
@@ -730,6 +740,17 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
         Bool enable = TST_FLAG_CHANGE_FULLSCREEN(flags) ? TST_FLAG_IS_FULLSCREEN(flags) : TST_FLAG_IS_ALWAYSONTOP(flags) ;
         if( NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHFlags, isVisible, enable) ) {
             NewtDisplay_displayDispatchErrorHandlerEnable(0, env);
+            #ifdef FS_GRAB_KEYBOARD
+            if(TST_FLAG_CHANGE_FULLSCREEN(flags)) {
+                if(TST_FLAG_IS_FULLSCREEN(flags)) {
+                    XGrabKeyboard(dpy, w, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+                } else {
+                    XUngrabKeyboard(dpy, CurrentTime);
+                }
+            } else if(TST_FLAG_CHANGE_ALWAYSONTOP(flags) && !TST_FLAG_IS_ALWAYSONTOP(flags)) {
+                XUngrabKeyboard(dpy, CurrentTime);
+            }
+            #endif
             return;
         }
     }
@@ -744,6 +765,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
     if( fsEWMHFlags && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && !TST_FLAG_IS_FULLSCREEN(flags) ) || 
                          ( TST_FLAG_CHANGE_ALWAYSONTOP(flags) && !TST_FLAG_IS_ALWAYSONTOP(flags) ) ) ) { // FS off
         NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHFlags, isVisible, False);
+        #ifdef FS_GRAB_KEYBOARD
+        XUngrabKeyboard(dpy, CurrentTime);
+        #endif
     }
 
     if( TST_FLAG_CHANGE_PARENTING(flags) && !TST_FLAG_HAS_PARENT(flags) ) {
@@ -791,6 +815,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
     if( fsEWMHFlags && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && TST_FLAG_IS_FULLSCREEN(flags) ) || 
                          ( TST_FLAG_CHANGE_ALWAYSONTOP(flags) && TST_FLAG_IS_ALWAYSONTOP(flags) ) ) ) { // FS on
         NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHFlags, isVisible, True);
+        #ifdef FS_GRAB_KEYBOARD
+        if(TST_FLAG_CHANGE_FULLSCREEN(flags) && TST_FLAG_IS_FULLSCREEN(flags)) {
+            XGrabKeyboard(dpy, w, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+        }
+        #endif
     }
 
     NewtDisplay_displayDispatchErrorHandlerEnable(0, env);
