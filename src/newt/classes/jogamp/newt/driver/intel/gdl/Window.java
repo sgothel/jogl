@@ -64,7 +64,7 @@ public class Window extends jogamp.newt.WindowImpl {
         synchronized(Window.class) {
             setWindowHandle(nextWindowHandle++); // just a marker
 
-            surfaceHandle = CreateSurface(aDevice.getHandle(), getScreen().getWidth(), getScreen().getHeight(), x, y, width, height);
+            surfaceHandle = CreateSurface(aDevice.getHandle(), getScreen().getWidth(), getScreen().getHeight(), getX(), getY(), getWidth(), getHeight());
             if (surfaceHandle == 0) {
                 throw new NativeWindowException("Error creating window");
             }
@@ -138,10 +138,8 @@ public class Window extends jogamp.newt.WindowImpl {
     private        native void SetBounds0(long surfaceHandle, int scrn_width, int scrn_height, int x, int y, int width, int height);
 
     private void updateBounds(int x, int y, int width, int height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+        definePosition(x, y);
+        defineSize(width, height);
     }
 
     private long   surfaceHandle;

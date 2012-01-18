@@ -34,7 +34,6 @@
 package jogamp.newt.driver.kd;
 
 import jogamp.newt.*;
-import jogamp.newt.driver.intel.gdl.Display;
 import jogamp.opengl.egl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.util.Insets;
@@ -102,8 +101,8 @@ public class KDWindow extends WindowImpl {
             }
             // int _x=(x>=0)?x:this.x;
             // int _y=(x>=0)?y:this.y;
-            width=(width>0)?width:this.width;
-            height=(height>0)?height:this.height;
+            width=(width>0)?width:getWidth();
+            height=(height>0)?height:getHeight();
             if(width>0 || height>0) {
                 setSize0(eglWindowHandle, width, height);
             }
@@ -145,8 +144,8 @@ public class KDWindow extends WindowImpl {
 
     @Override
     protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
-        if(fullscreen) {
-            ((KDScreen)getScreen()).sizeChanged(width, height);
+        if(isFullscreen()) {
+            ((KDScreen)getScreen()).sizeChanged(getWidth(), getHeight());
         }
         super.sizeChanged(defer, newWidth, newHeight, force);
     }

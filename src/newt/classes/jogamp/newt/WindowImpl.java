@@ -93,17 +93,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private AbstractGraphicsConfiguration config = null; // control access due to delegation
     protected CapabilitiesImmutable capsRequested = null;
     protected CapabilitiesChooser capabilitiesChooser = null; // default null -> default
-    protected boolean fullscreen = false, hasFocus = false;    
-    protected int width = 128, height = 128; // client-area size w/o insets, default: may be overwritten by user
-    protected int x = 64, y = 64; // client-area pos w/o insets
-    protected boolean autoPosition = true; // default: true (allow WM to choose top-level position, if not set by user)
-    protected Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
+    private boolean fullscreen = false, hasFocus = false;    
+    private int width = 128, height = 128; // client-area size w/o insets, default: may be overwritten by user
+    private int x = 64, y = 64; // client-area pos w/o insets
+    private boolean autoPosition = true; // default: true (allow WM to choose top-level position, if not set by user)
+    private Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
         
-    protected int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen client-area size/pos w/o insets
-    protected NativeWindow nfs_parent = null;          // non fullscreen parent, in case explicit reparenting is performed (offscreen)
-    protected String title = "Newt Window";
-    protected boolean undecorated = false;
-    protected boolean alwaysOnTop = false;
+    private int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen client-area size/pos w/o insets
+    private NativeWindow nfs_parent = null;          // non fullscreen parent, in case explicit reparenting is performed (offscreen)
+    private String title = "Newt Window";
+    private boolean undecorated = false;
+    private boolean alwaysOnTop = false;
     private boolean pointerVisible = true;
     private boolean pointerConfined = false;
     private LifecycleHook lifecycleHook = null;
@@ -125,8 +125,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private int  mouseButtonPressed = 0;  // current pressed mouse button number
     private long lastMousePressed = 0;    // last time when a mouse button was pressed
     private int  lastMouseClickCount = 0; // last mouse button click count
-    protected boolean mouseInWindow = false;// mouse entered window - is inside the window (may be synthetic)
-    protected Point lastMousePosition = new Point();
+    private boolean mouseInWindow = false;// mouse entered window - is inside the window (may be synthetic)
+    private Point lastMousePosition = new Point();
 
     private ArrayList<KeyListener> keyListeners = new ArrayList<KeyListener>();
 
@@ -279,16 +279,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if( null != parentWindow && 
             NativeSurface.LOCK_SURFACE_NOT_READY >= parentWindow.lockSurface() ) {
             throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
-        }        
-        if(null != parentWindow ) {
-            if( autoPosition ) {
-                // child position default to 0/0, no auto position
-                x = 0; y = 0;
-                autoPosition = false;
-            } else  if( 0>x || 0>y ) {
-                // min. child window position is 0/0
-                x = 0; y = 0;
-            }         
+        }
+        
+        // child window: position defaults to 0/0, no auto position, no negative position
+        if( null != parentWindow && ( autoPosition || 0>getX() || 0>getY() ) ) {                
+            definePosition(0, 0);
         }
         try {
             if(validateParentWindowHandle()) {
@@ -727,7 +722,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
               }
             }
             if(!isNativeValid() && visible) {
-                if( 0<width*height ) {
+                if( 0<getWidth()*getHeight() ) {
                     nativeWindowCreated = createNative();
                     madeVisible = nativeWindowCreated;
                 }
@@ -735,7 +730,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 WindowImpl.this.visible = true;                
             } else if(WindowImpl.this.visible != visible) {
                 if(isNativeValid()) {
-                    setVisibleImpl(visible, x, y, width, height);
+                    setVisibleImpl(visible, getX(), getY(), getWidth(), getHeight());
                     WindowImpl.this.waitForVisible(visible, true);
                     madeVisible = visible;
                 }
@@ -756,7 +751,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
               }
             }
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window setVisible: END ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+", nativeWindowCreated: "+nativeWindowCreated+", madeVisible: "+madeVisible);
+                System.err.println("Window setVisible: END ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+", nativeWindowCreated: "+nativeWindowCreated+", madeVisible: "+madeVisible);
             }
         } finally {
             windowLock.unlock();
@@ -778,7 +773,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }    
     public void setVisible(boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window setVisible: START ("+getThreadName()+") "+x+"/"+y+" "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
+            System.err.println("Window setVisible: START ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
             Thread.dumpStack();
         }
         runOnEDTIfAvail(true, new VisibleAction(visible));
@@ -789,10 +784,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         windowLock.lock();
         try {
             int visibleAction = 0; // 1 invisible, 2 visible (create)
-            if ( !fullscreen && ( width != WindowImpl.this.width || WindowImpl.this.height != height ) ) {
+            if ( !fullscreen && ( getWidth() != width || getHeight() != height ) ) {
                 recreate = isNativeValid() && !getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window setSize: START "+WindowImpl.this.width+"x"+WindowImpl.this.height+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible+", recreate "+recreate);
+                    System.err.println("Window setSize: START "+getWidth()+"x"+getHeight()+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible+", recreate "+recreate);
                 }
                 if(recreate) {
                     // will trigger visibleAction:=2 -> create if wasVisible
@@ -803,21 +798,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }                
                 if ( isNativeValid() && 0>=width*height && visible ) {
                     visibleAction=1; // invisible
-                    WindowImpl.this.width = 0;
-                    WindowImpl.this.height = 0;
+                    defineSize(0, 0);
                 } else if ( !isNativeValid() && 0<width*height && visible ) {
                     visibleAction = 2; // visible (create)
-                    WindowImpl.this.width = width;
-                    WindowImpl.this.height = height;
+                    defineSize(width, height);
                 } else if ( isNativeValid() ) {
                     // this width/height will be set by windowChanged, called by the native implementation
-                    reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(0, isVisible()));
+                    reconfigureWindowImpl(getX(), getY(), width, height, getReconfigureFlags(0, isVisible()));
                 } else {
-                    WindowImpl.this.width = width;
-                    WindowImpl.this.height = height;
+                    defineSize(width, height);
                 }
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window setSize: END "+WindowImpl.this.width+"x"+WindowImpl.this.height+", visibleAction "+visibleAction);
+                    System.err.println("Window setSize: END "+getWidth()+"x"+getHeight()+", visibleAction "+visibleAction);
                 }                    
                 switch(visibleAction) {
                     case 1: setVisibleActionImpl(false); break;
@@ -990,10 +982,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         
         private void reparent() {
             // mirror pos/size so native change notification can get overwritten
-            int x = WindowImpl.this.x;
-            int y = WindowImpl.this.y;
-            int width = WindowImpl.this.width;
-            int height = WindowImpl.this.height;
+            int x = getX();
+            int y = getY();
+            int width = getWidth();
+            int height = getHeight();
             boolean wasVisible;
 
             windowLock.lock();
@@ -1136,10 +1128,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                 if( ACTION_NATIVE_CREATION_PENDING == reparentAction ) {
                     // make size and position persistent for proper recreation
-                    WindowImpl.this.x = x;
-                    WindowImpl.this.y = y;
-                    WindowImpl.this.width = width;
-                    WindowImpl.this.height = height;
+                    definePosition(x, y);
+                    defineSize(width, height);
                     return;
                 }
 
@@ -1197,10 +1187,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if(!ok || !wasVisible) {
                         // make size and position persistent manual, 
                         // since we don't have a WM feedback (invisible or recreation)
-                        WindowImpl.this.x = x;
-                        WindowImpl.this.y = y;
-                        WindowImpl.this.width = width;
-                        WindowImpl.this.height = height;                        
+                        definePosition(x, y);
+                        defineSize(width, height);
                     }
                     
                     if(!ok) {
@@ -1298,10 +1286,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     // Change decoration on active window
                       
                     // Mirror pos/size so native change notification can get overwritten
-                    final int x = WindowImpl.this.x;
-                    final int y = WindowImpl.this.y;
-                    final int width = WindowImpl.this.width;
-                    final int height = WindowImpl.this.height;
+                    final int x = getX();
+                    final int y = getY();
+                    final int width = getWidth();
+                    final int height = getHeight();
 
                     if( isNativeValid() ) {
                         DisplayImpl display = (DisplayImpl) screen.getDisplay();
@@ -1347,10 +1335,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     // Change decoration on active window
                       
                     // Mirror pos/size so native change notification can get overwritten
-                    final int x = WindowImpl.this.x;
-                    final int y = WindowImpl.this.y;
-                    final int width = WindowImpl.this.width;
-                    final int height = WindowImpl.this.height;
+                    final int x = getX();
+                    final int y = getY();
+                    final int width = getWidth();
+                    final int height = getHeight();
 
                     if( isNativeValid() ) {
                         DisplayImpl display = (DisplayImpl) screen.getDisplay();
@@ -1412,7 +1400,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(!setVal) {
                 if(confine) {
                     requestFocus();
-                    warpPointer(width/2, height/2);
+                    warpPointer(getWidth()/2, getHeight()/2);
                 }
                 setVal = confinePointerImpl(confine);
                 if(confine) {
@@ -1459,6 +1447,27 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return y;
     }
 
+    protected final boolean autoPosition() { return autoPosition; }
+    
+    /** Sets the position fields {@link #x} and {@link #y} to the given values and {@link #autoPosition} to false. */ 
+    protected final void definePosition(int x, int y) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("definePosition: "+this.x+"/"+this.y+" -> "+x+"/"+y);
+            // Thread.dumpStack();
+        }
+        autoPosition = false;
+        this.x = x; this.y = y;
+    }
+
+    /** Sets the size fields {@link #width} and {@link #height} to the given values. */ 
+    protected final void defineSize(int width, int height) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("defineSize: "+this.width+"x"+this.height+" -> "+width+"x"+height);
+            // Thread.dumpStack();
+        }
+        this.width = width; this.height = height;
+    }
+    
     public final boolean isVisible() {
         return visible;
     }
@@ -1533,8 +1542,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     "\n, ParentWindowHandle "+toHexString(parentWindowHandle)+" ("+(0!=getParentWindowHandle())+")"+
                     "\n, WindowHandle "+toHexString(getWindowHandle())+
                     "\n, SurfaceHandle "+toHexString(getSurfaceHandle())+ " (lockedExt window "+isWindowLockedByOtherThread()+", surface "+isSurfaceLockedByOtherThread()+")"+
-                    "\n, Pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
-                    "\n, Visible "+isVisible()+
+                    "\n, Pos "+getX()+"/"+getY()+" (auto "+autoPosition()+"), size "+getWidth()+"x"+getHeight()+
+                    "\n, Visible "+isVisible()+", focus "+hasFocus()+
                     "\n, Undecorated "+undecorated+" ("+isUndecorated()+")"+
                     "\n, AlwaysOnTop "+alwaysOnTop+", Fullscreen "+fullscreen+
                     "\n, WrappedWindow "+getWrappedWindow()+
@@ -1656,16 +1665,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             windowLock.lock();
             try {
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window setPosition: "+WindowImpl.this.x+"/"+WindowImpl.this.y+" -> "+x+"/"+y+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle));
+                    System.err.println("Window setPosition: "+getX()+"/"+getY()+" -> "+x+"/"+y+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle));
                 }
-                if ( WindowImpl.this.x != x || WindowImpl.this.y != y ) {
+                if ( getX() != x || getY() != y ) {
                     if(!fullscreen) {
                         if(0!=windowHandle) {
                             // this.x/this.y will be set by sizeChanged, triggered by windowing event system
-                            reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(0, isVisible()));
+                            reconfigureWindowImpl(x, y, getWidth(), getHeight(), getReconfigureFlags(0, isVisible()));
                         } else {
-                            WindowImpl.this.x = x;
-                            WindowImpl.this.y = y;
+                            definePosition(x, y);
                         }
                     }
                 }
@@ -1683,7 +1691,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public void setTopLevelPosition(int x, int y) {
         setPosition(x + getInsets().getLeftWidth(), y + getInsets().getTopHeight());
     }
-
+    
     private class FullScreenActionImpl implements Runnable {
         boolean fullscreen;
         boolean nativeFullscreenChange;
@@ -1707,10 +1715,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 int x,y,w,h;
                 
                 if(fullscreen) {
-                    nfs_x = WindowImpl.this.x;
-                    nfs_y = WindowImpl.this.y;
-                    nfs_width = WindowImpl.this.width;
-                    nfs_height = WindowImpl.this.height;
+                    nfs_x = getX();
+                    nfs_y = getY();
+                    nfs_width = getWidth();
+                    nfs_height = getHeight();
                     x = screen.getX(); 
                     y = screen.getY();
                     w = screen.getWidth();
@@ -1976,11 +1984,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 y = lastMousePosition.getY();
             }
             // clip coordinates to window dimension
-            x = Math.min(Math.max(x,  0), width-1);
-            y = Math.min(Math.max(y,  0), height-1);
+            x = Math.min(Math.max(x,  0), getWidth()-1);
+            y = Math.min(Math.max(y,  0), getHeight()-1);
             mouseInWindow = eventType == MouseEvent.EVENT_MOUSE_ENTERED;
         }
-        if(x<0||y<0||x>=width||y>=height) {
+        if(x<0||y<0||x>=getWidth()||y>=getHeight()) {
             return; // .. invalid ..
         }
         if(DEBUG_MOUSE_EVENT) {
@@ -2366,15 +2374,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     /** Triggered by implementation's WM events to update the client-area size w/o insets/decorations. */ 
     protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
-        if(force || width != newWidth || height != newHeight) {
+        if(force || getWidth() != newWidth || getHeight() != newHeight) {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.sizeChanged: ("+getThreadName()+"): (defer: "+defer+") force "+force+", "+width+"x"+height+" -> "+newWidth+"x"+newHeight+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.sizeChanged: ("+getThreadName()+"): (defer: "+defer+") force "+force+", "+getWidth()+"x"+getHeight()+" -> "+newWidth+"x"+newHeight+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
             if(0>newWidth || 0>newHeight) {
                 throw new NativeWindowException("Illegal width or height "+newWidth+"x"+newHeight+" (must be >= 0)");
             }
-            width = newWidth;
-            height = newHeight;
+            defineSize(newWidth, newHeight);
             if(isNativeValid()) {
                 if(!defer) {
                     sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
@@ -2411,18 +2418,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     
     /** Triggered by implementation's WM events to update the position. */ 
     protected void positionChanged(boolean defer, int newX, int newY) {
-        autoPosition = false;
-        if ( x != newX || y != newY ) {
+        if ( getX() != newX || getY() != newY ) {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.positionChanged: ("+getThreadName()+"): (defer: "+defer+") "+x+"/"+y+" -> "+newX+"/"+newY+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.positionChanged: ("+getThreadName()+"): (defer: "+defer+") "+getX()+"/"+getY()+" -> "+newX+"/"+newY+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
-            x = newX;
-            y = newY;
+            definePosition(newX, newY);
             if(!defer) {
                 sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
             } else {
                 enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_MOVED);
             }
+        } else {
+            autoPosition = false; // ensure it's off even w/ same position            
         }
     }
 
@@ -2477,8 +2484,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * Triggered by implementation's WM events to update the content
      */ 
     protected void windowRepaint(boolean defer, int x, int y, int width, int height) {
-        width = ( 0 >= width ) ? this.width : width;
-        height = ( 0 >= height ) ? this.height : height;
+        width = ( 0 >= width ) ? getWidth() : width;
+        height = ( 0 >= height ) ? getHeight() : height;
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.windowRepaint "+getThreadName()+" (defer: "+defer+") "+x+"/"+y+" "+width+"x"+height);
         }

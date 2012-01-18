@@ -67,7 +67,7 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
         setGraphicsConfiguration(cfg);
-        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_VISIBILITY, true));        
+        reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), getReconfigureFlags(FLAG_CHANGE_VISIBILITY, true));        
         if (0 == getWindowHandle()) {
             throw new NativeWindowException("Error creating window");
         }
@@ -247,8 +247,8 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
         
     @Override
     protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
-        if(width != newWidth || height != newHeight) {
-            final Point p0S = getTopLevelLocationOnScreen(x, y);            
+        if(getWidth() != newWidth || getHeight() != newHeight) {
+            final Point p0S = getTopLevelLocationOnScreen(getX(), getY());            
             setFrameTopLeftPoint0(getParentWindowHandle(), getWindowHandle(), p0S.getX(), p0S.getY());               
         }
         super.sizeChanged(defer, newWidth, newHeight, force);

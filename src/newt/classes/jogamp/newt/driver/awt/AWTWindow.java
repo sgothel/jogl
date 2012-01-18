@@ -59,13 +59,12 @@ public class AWTWindow extends WindowImpl {
         this(null);
     }
 
-    public static Class[] getCustomConstructorArgumentTypes() {
-        return new Class[] { Container.class } ;
+    public static Class<?>[] getCustomConstructorArgumentTypes() {
+        return new Class<?>[] { Container.class } ;
     }
 
     public AWTWindow(Container container) {
         super();
-        title = "AWT NewtWindow";
         this.container = container;
         if(container instanceof Frame) {
             frame = (Frame) container;
@@ -99,10 +98,8 @@ public class AWTWindow extends WindowImpl {
             owningFrame=true;
         } else {
             owningFrame=false;
-            width = container.getWidth();
-            height = container.getHeight();
-            x = container.getX();
-            y = container.getY();
+            defineSize(container.getWidth(), container.getHeight());
+            definePosition(container.getX(), container.getY());            
         }
         if(null!=frame) {
             frame.setTitle(getTitle());
@@ -117,11 +114,11 @@ public class AWTWindow extends WindowImpl {
 
         // canvas.addComponentListener(listener);
         container.add(canvas, BorderLayout.CENTER);
-        container.setSize(width, height);
-        container.setLocation(x, y);
+        container.setSize(getWidth(), getHeight());
+        container.setLocation(getX(), getY());
         new AWTWindowAdapter(this).addTo(container); // fwd all AWT Window events to here
 
-        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_VISIBILITY | FLAG_CHANGE_DECORATION, true));
+        reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), getReconfigureFlags(FLAG_CHANGE_VISIBILITY | FLAG_CHANGE_DECORATION, true));
         // throws exception if failed ..
         
         setWindowHandle(1); // just a marker ..
@@ -221,15 +218,13 @@ public class AWTWindow extends WindowImpl {
         @Override
         public void windowMoved(com.jogamp.newt.event.WindowEvent e) {
             if(null!=container) {
-                x = container.getX();
-                y = container.getY();
+                definePosition(container.getX(), container.getY());
             }
         }
         @Override
         public void windowResized(com.jogamp.newt.event.WindowEvent e) {
             if(null!=canvas) {
-                width = canvas.getWidth();
-                height = canvas.getHeight();
+                defineSize(canvas.getWidth(), canvas.getHeight());
             }
         }
     }

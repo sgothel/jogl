@@ -35,7 +35,6 @@ package jogamp.newt.driver.broadcom.egl;
 
 import jogamp.opengl.egl.*;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -62,7 +61,7 @@ public class Window extends jogamp.newt.WindowImpl {
         setGraphicsConfiguration(cfg);
         setSizeImpl(getScreen().getWidth(), getScreen().getHeight());
 
-        setWindowHandle(realizeWindow(true, width, height));
+        setWindowHandle(realizeWindow(true, getWidth(), getHeight()));
         if (0 == getWindowHandle()) {
             throw new NativeWindowException("Error native Window Handle is null");
         }
@@ -81,8 +80,7 @@ public class Window extends jogamp.newt.WindowImpl {
             // n/a in BroadcomEGL
             System.err.println("BCEGL Window.setSizeImpl n/a in BroadcomEGL with realized window");
         } else {
-            this.width = width;
-            this.height = height;
+            defineSize(width, height);
         }
     }
 
@@ -101,8 +99,7 @@ public class Window extends jogamp.newt.WindowImpl {
                 // n/a in BroadcomEGL
                 System.err.println("BCEGL Window.setSizeImpl n/a in BroadcomEGL with realized window");
             } else {
-                this.width=(width>0)?width:this.width;
-                this.height=(height>0)?height:this.height;
+                defineSize((width>0)?width:getWidth(), (height>0)?height:getHeight());
             }
         }
         if(x>=0 || y>=0) {
@@ -152,8 +149,7 @@ public class Window extends jogamp.newt.WindowImpl {
     }
 
     private void windowCreated(int cfgID, int width, int height) {
-        this.width = width;
-        this.height = height;
+        defineSize(width, height);
         GLCapabilitiesImmutable capsReq = (GLCapabilitiesImmutable) getGraphicsConfiguration().getRequestedCapabilities();
         final AbstractGraphicsConfiguration cfg = EGLGraphicsConfiguration.create(capsReq, getScreen().getGraphicsScreen(), cfgID);
         if (null == cfg) {

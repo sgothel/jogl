@@ -177,19 +177,18 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         // sh.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
         
         // default size -> TBD ! 
-        this.width = 0;
-        this.height = 0;
+        defineSize(0, 0);
     }
     
     public SurfaceView getAndroidView() { return androidView; }
     
     public void setAndroidWindow(android.view.Window window) { 
-        System.err.println("setandroidWindow: "+window+", "+width+"x"+height);
+        System.err.println("setandroidWindow: "+window+", "+getWidth()+"x"+getHeight());
         androidWindow = window;
         androidWindowConfigurationPreCreate();
-        if(width>0 && height>0 && !isFullscreen()) {
+        if(getWidth()>0 && getHeight()>0 && !isFullscreen()) {
             if(null != androidWindow) {
-                androidWindow.setLayout(width, height);
+                androidWindow.setLayout(getWidth(), getHeight());
             }
         }
     }
@@ -205,7 +204,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     @Override
     protected void createNativeImpl() {
         Log.d(MD.TAG, "createNativeImpl 0 - surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
-                    ", format "+format+", "+x+"/"+y+" "+width+"x"+height+" - "+Thread.currentThread().getName());
+                    ", format "+format+", "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - "+Thread.currentThread().getName());
         Thread.dumpStack();
         if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("Window parenting not supported (yet)");
@@ -328,7 +327,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     //
     
     public void surfaceCreated(SurfaceHolder holder) {    
-        Log.d(MD.TAG, "surfaceCreated: "+x+"/"+y+" "+width+"x"+height);
+        Log.d(MD.TAG, "surfaceCreated: "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
     }
 
     public void surfaceChanged(SurfaceHolder aHolder, int aFormat, int aWidth, int aHeight) {
@@ -347,9 +346,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
             getScreen().getCurrentScreenMode(); // if ScreenMode changed .. trigger ScreenMode event
         }
 
-        if(0>x || 0>y) {
-            x = 0;
-            y = 0;
+        if(0>getX() || 0>getY()) {
             positionChanged(false, 0, 0);
         }
         
@@ -365,7 +362,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     
             Log.d(MD.TAG, "surfaceRealized: isValid: "+surface.isValid()+
                           ", new surfaceHandle 0x"+Long.toHexString(surfaceHandle)+", format: "+format+
-                          ", "+x+"/"+y+" "+nWidth+"x"+nHeight+", visible: "+isVisible());
+                          ", "+getX()+"/"+getY()+" "+nWidth+"x"+nHeight+", visible: "+isVisible());
     
             if(isVisible()) {
                setVisible(true); 

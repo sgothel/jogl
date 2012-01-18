@@ -115,7 +115,7 @@ public class WindowsWindow extends WindowImpl {
         final int flags = getReconfigureFlags(0, true) & 
                           ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;
         setWindowHandle(CreateWindow0(display.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
-                                      getParentWindowHandle(), x, y, width, height, autoPosition, flags)); 
+                                      getParentWindowHandle(), getX(), getY(), getWidth(), getHeight(), autoPosition(), flags)); 
         if (getWindowHandle() == 0) {
             throw new NativeWindowException("Error creating window");
         }
@@ -220,7 +220,7 @@ public class WindowsWindow extends WindowImpl {
             public void run() {
                 final Point p0 = getLocationOnScreenImpl(0, 0);
                 res[0] = Boolean.valueOf(confinePointer0(getWindowHandle(), confine, 
-                        p0.getX(), p0.getY(), p0.getX()+width, p0.getY()+height));
+                        p0.getX(), p0.getY(), p0.getX()+getWidth(), p0.getY()+getHeight()));
             }
         });
         return res[0].booleanValue();
