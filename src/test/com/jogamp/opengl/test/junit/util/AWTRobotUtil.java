@@ -37,6 +37,7 @@ import java.awt.KeyboardFocusManager;
 import java.awt.Robot;
 import java.awt.Toolkit;
 
+import javax.media.nativewindow.NativeWindow;
 import javax.media.opengl.awt.GLCanvas;
 
 import org.junit.Assert;
@@ -51,6 +52,20 @@ public class AWTRobotUtil {
     public static final int POLL_DIVIDER   = 20; // TO/20
     public static final int TIME_SLICE   = TIME_OUT / POLL_DIVIDER ;
     public static Integer AWT_CLICK_TO = null; 
+    
+    public static void clearAWTFocus(Robot robot) throws InterruptedException, InvocationTargetException, AWTException {
+        if(null == robot) {
+            robot = new Robot();
+            robot.setAutoWaitForIdle(true);
+        }
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                System.err.println("******** clearAWTFocus.0");
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+            }});
+        robot.delay(ROBOT_DELAY);
+        System.err.println("******** clearAWTFocus.X");
+    }
     
     public static java.awt.Point getCenterLocation(Object obj, boolean onTitleBarIfWindow) 
         throws InterruptedException, InvocationTargetException {
@@ -99,9 +114,10 @@ public class AWTRobotUtil {
      *
      * @return True if the Window became the global focused Window within TIME_OUT
      */
-    public static boolean toFront(Robot robot, final java.awt.Window window)
+    public static boolean toFrontAndRequestFocus(Robot robot, final java.awt.Window window)
         throws AWTException, InterruptedException, InvocationTargetException {
 
+        // just for event tracing ..
         AWTWindowFocusAdapter winFA = new AWTWindowFocusAdapter("window");
         window.addWindowFocusListener(winFA);
         
@@ -110,7 +126,7 @@ public class AWTRobotUtil {
             robot.setAutoWaitForIdle(true);
         }
         java.awt.Point p0 = getCenterLocation(window, false);
-        System.err.println("robot pos: "+p0);
+        System.err.println("toFront: robot pos: "+p0);
         robot.mouseMove( (int) p0.getX(), (int) p0.getY() );
         robot.delay(ROBOT_DELAY);
 
@@ -123,11 +139,18 @@ public class AWTRobotUtil {
         robot.delay(ROBOT_DELAY);
 
         int wait;
-        for (wait=0; wait<POLL_DIVIDER && !winFA.focusGained(); wait++) {
+        for (wait=0; wait<POLL_DIVIDER && !window.hasFocus(); wait++) {
             Thread.sleep(TIME_SLICE);
         }
+        final boolean success = wait<POLL_DIVIDER;
         window.removeWindowFocusListener(winFA);
-        return wait<POLL_DIVIDER;
+        if(!success) {
+            System.err.println("*** AWTRobotUtil.toFrontAndRequestFocus() UI failure");
+            System.err.println("*** window: "+window);
+            System.err.println("*** window.hasFocus(): "+window.hasFocus());
+            Thread.dumpStack();
+        }
+        return success;
     }
 
     /**
@@ -143,7 +166,7 @@ public class AWTRobotUtil {
         }
 
         java.awt.Point p0 = getCenterLocation(obj, onTitleBarIfWindow);
-        System.err.println("robot pos: "+p0);
+        System.err.println("centerMouse: robot pos: "+p0+", onTitleBarIfWindow: "+onTitleBarIfWindow);
 
         robot.mouseMove( (int) p0.getX(), (int) p0.getY() );
         robot.delay(ROBOT_DELAY);
@@ -190,9 +213,11 @@ public class AWTRobotUtil {
                 javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
                         comp.requestFocus();
+                        System.err.println("requestFocus: AWT Component");
                     }});
             } else {
                 win.requestFocus();
+                System.err.println("requestFocus: NEWT Component");
             }
         } else {
             final int mouseButton = java.awt.event.InputEvent.BUTTON1_MASK;    
@@ -201,7 +226,9 @@ public class AWTRobotUtil {
             robot.waitForIdle();
             robot.mousePress(mouseButton);
             robot.mouseRelease(mouseButton);
-            robot.delay( getClickTimeout(obj) + 1 );                
+            final int d = getClickTimeout(obj) + 1;
+            robot.delay( d );                
+            System.err.println("requestFocus: click, d: "+d+" ms");
         }
     }
 
@@ -275,10 +302,27 @@ public class AWTRobotUtil {
             hasFocus = waitForFocus(waitForFocus, gain, lost);
         }
         if(!hasFocus) {
-            System.err.println("requestFocus: "+requestFocus);
-            System.err.println("waitForFocus: "+waitForFocus);
-            System.err.println("gain: "+gain);
-            System.err.println("lost: "+lost);
+            System.err.print("*** AWTRobotUtil.assertRequestFocusAndWait() ");
+            if(gain.focusGained() && !lost.focusLost()) {
+                // be error tolerant here, some impl. may lack focus-lost events (OS X) 
+                System.err.println("minor UI failure");
+                hasFocus = true;
+            } else {
+                System.err.println("major UI failure");
+            }
+            if(requestFocus instanceof Component) {
+                System.err.println("*** requestFocus.hasFocus() - AWT: "+((Component)requestFocus).hasFocus());
+            } else if(requestFocus instanceof NativeWindow) {
+                System.err.println("*** requestFocus.hasFocus() -  NW: "+((NativeWindow)requestFocus).hasFocus());
+            }
+            if(waitForFocus instanceof Component) {
+                System.err.println("*** waitForFocus.hasFocus() - AWT: "+((Component)waitForFocus).hasFocus());
+            } else if(waitForFocus instanceof NativeWindow) {
+                System.err.println("*** waitForFocus.hasFocus() -  NW: "+((NativeWindow)waitForFocus).hasFocus());
+            }
+            System.err.println("*** gain: "+gain);
+            System.err.println("*** lost: "+lost);
+            Thread.dumpStack();            
         }
         Assert.assertTrue("Did not gain focus", hasFocus);
     }

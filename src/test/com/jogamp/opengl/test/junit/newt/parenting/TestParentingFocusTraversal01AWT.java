@@ -191,7 +191,9 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
             }});
         Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true));
         Assert.assertEquals(newtCanvasAWT1.getNativeWindow(),glWindow1.getParent());
-                        
+        AWTRobotUtil.clearAWTFocus(robot);
+        Assert.assertTrue(AWTRobotUtil.toFrontAndRequestFocus(robot, frame1));
+        
         Assert.assertEquals(true, animator1.isAnimating());
         Assert.assertEquals(false, animator1.isPaused());
         Assert.assertNotNull(animator1.getThread());
@@ -203,7 +205,6 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
             // initial focus on bWest
             //        
             AWTRobotUtil.assertRequestFocusAndWait(robot, cWest, cWest, bWestFA, null);
-            Assert.assertEquals(true,  bWestFA.focusGained());
             Thread.sleep(durationPerTest/numFocus);
                     
             //

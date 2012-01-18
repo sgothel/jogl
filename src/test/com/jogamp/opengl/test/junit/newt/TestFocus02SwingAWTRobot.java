@@ -156,7 +156,10 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
             public void run() {
                 jFrame1.setVisible(true);
             } } );
-        Assert.assertTrue(AWTRobotUtil.toFront(robot, jFrame1));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(jFrame1, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, true));                
+        AWTRobotUtil.clearAWTFocus(robot);
+        Assert.assertTrue(AWTRobotUtil.toFrontAndRequestFocus(robot, jFrame1));
 
         int wait=0;
         while(wait<awtWaitTimeout/10 && glWindow1.getTotalFPSFrames()<1) { Thread.sleep(awtWaitTimeout/100); wait++; }
@@ -167,7 +170,6 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         // Continuous animation ..
         Animator animator1 = new Animator(glWindow1);
         animator1.start();
-        AWTRobotUtil.assertRequestFocusAndWait(robot, jFrame1, jFrame1, jFrame1FA, null);
 
         Thread.sleep(durationPerTest); // manual testing
         
@@ -176,13 +178,9 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         System.err.println("FOCUS AWT  Button Outer request");
         EventCountAdapterUtil.reset(eventCountAdapters);
         AWTRobotUtil.assertRequestFocusAndWait(robot, buttonNorthOuter, buttonNorthOuter, buttonNorthOuterFA, jFrame1FA);
-        Assert.assertEquals(true,  buttonNorthOuterFA.focusGained());
-        Assert.assertEquals(false, jFrame1FA.focusGained());
-        Assert.assertEquals(true,  jFrame1FA.focusLost());
         Assert.assertEquals(false, glWindow1FA.focusGained());
         Assert.assertEquals(false, newtCanvasAWTFA.focusGained());
         Assert.assertEquals(false, buttonNorthInnerFA.focusGained());
-        Assert.assertEquals(false, jFrame1FA.focusGained());
         System.err.println("FOCUS AWT  Button Outer sync");
         AWTRobotUtil.assertKeyType(robot, java.awt.event.KeyEvent.VK_A, 2, buttonNorthOuter, buttonNorthOuterKA);
         AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1, 
@@ -195,12 +193,8 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         System.err.println("FOCUS NEWT Canvas/GLWindow request");
         EventCountAdapterUtil.reset(eventCountAdapters);
         AWTRobotUtil.assertRequestFocusAndWait(robot, newtCanvasAWT, newtCanvasAWT.getNEWTChild(), glWindow1FA, buttonNorthOuterFA);
-        Assert.assertEquals(true,  glWindow1FA.focusGained());
-        Assert.assertEquals(false, buttonNorthOuterFA.focusGained());
-        Assert.assertEquals(true,  buttonNorthOuterFA.focusLost());        
         Assert.assertEquals(false, newtCanvasAWTFA.focusGained());
         Assert.assertEquals(false, buttonNorthInnerFA.focusGained());
-        Assert.assertEquals(false, buttonNorthOuterFA.focusGained());
         Assert.assertEquals(false, jFrame1FA.focusGained());
         System.err.println("FOCUS NEWT Canvas/GLWindow sync");
         AWTRobotUtil.assertKeyType(robot, java.awt.event.KeyEvent.VK_A, 2, glWindow1, glWindow1KA);
@@ -216,9 +210,6 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         System.err.println("FOCUS AWT  Button request");
         EventCountAdapterUtil.reset(eventCountAdapters);
         AWTRobotUtil.assertRequestFocusAndWait(robot, buttonNorthInner, buttonNorthInner, buttonNorthInnerFA, glWindow1FA);
-        Assert.assertEquals(true,  buttonNorthInnerFA.focusGained());
-        Assert.assertEquals(false, glWindow1FA.focusGained());
-        Assert.assertEquals(true,  glWindow1FA.focusLost());        
         Assert.assertEquals(false, newtCanvasAWTFA.focusGained());
         Assert.assertEquals(false, buttonNorthOuterFA.focusGained());
         Assert.assertEquals(false, jFrame1FA.focusGained());
@@ -235,9 +226,6 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         EventCountAdapterUtil.reset(eventCountAdapters);
         AWTRobotUtil.assertRequestFocusAndWait(robot, newtCanvasAWT, newtCanvasAWT.getNEWTChild(), glWindow1FA, buttonNorthInnerFA);
         Assert.assertTrue(AWTRobotUtil.waitForFocusCount(false, newtCanvasAWTFA));
-        Assert.assertEquals(true,  glWindow1FA.focusGained());
-        Assert.assertEquals(false, buttonNorthInnerFA.focusGained());
-        Assert.assertEquals(true,  buttonNorthInnerFA.focusLost());
         Assert.assertEquals(false, newtCanvasAWTFA.focusGained());
         Assert.assertEquals(false, buttonNorthOuterFA.focusGained());
         Assert.assertEquals(false, jFrame1FA.focusGained());

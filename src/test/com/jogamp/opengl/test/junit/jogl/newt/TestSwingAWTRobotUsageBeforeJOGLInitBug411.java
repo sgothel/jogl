@@ -157,7 +157,9 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         robot = new Robot();
         robot.setAutoWaitForIdle(true);
 
-        AWTRobotUtil.toFront(robot, frame);
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
+        AWTRobotUtil.clearAWTFocus(robot);        
+        AWTRobotUtil.toFrontAndRequestFocus(robot, frame);
         AWTRobotUtil.requestFocus(robot, button);
 
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.setup(): Before JOGL init");
@@ -195,7 +197,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
             }
         });
 
-        AWTRobotUtil.toFront(robot, frame);
+        AWTRobotUtil.toFrontAndRequestFocus(robot, frame);
 
         drawable.addGLEventListener(new GearsES2());
 
@@ -214,6 +216,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         drawable.addGLEventListener(new SwingGLAction());
 
         Point p0 = canvas.getLocationOnScreen();
+        p0.translate(10,10);
         robot.mouseMove( (int) ( p0.getX() + .5 ) ,
                          (int) ( p0.getY() + .5 ) );
         robot.mousePress(InputEvent.BUTTON1_MASK);
