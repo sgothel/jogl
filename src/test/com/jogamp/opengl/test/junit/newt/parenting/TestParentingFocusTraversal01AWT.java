@@ -195,7 +195,7 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
         Assert.assertTrue(AWTRobotUtil.toFrontAndRequestFocus(robot, frame1));
         
         Assert.assertEquals(true, animator1.isAnimating());
-        Assert.assertEquals(false, animator1.isPaused());
+        // Assert.assertEquals(false, animator1.isPaused());
         Assert.assertNotNull(animator1.getThread());
           
         if(manual) {

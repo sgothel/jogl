@@ -70,6 +70,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   protected Component component;
   private AWTGraphicsConfiguration config; // control access due to delegation
   private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
+  private RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
 
   // lifetime: valid after lock but may change with each 1st lock, purges after invalidate
   private boolean isApplet;
@@ -230,8 +231,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   // NativeSurface
   //
 
-  private RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
-
   private void determineIfApplet() {
     Component c = component;
     while(!isApplet && null != c) {
@@ -252,6 +251,17 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   protected abstract JAWT fetchJAWTImpl() throws NativeWindowException;
   protected abstract int lockSurfaceImpl() throws NativeWindowException;
 
+  protected void dumpJAWTInfo() {
+      if(null != jawt) {
+          System.err.println("JAWT version: 0x"+Integer.toHexString(jawt.getCachedVersion())+
+                             ", CA_LAYER: "+ JAWTUtil.isJAWTUsingOffscreenLayer(jawt)+
+                             ", isLayeredSurface "+isOffscreenLayerSurfaceEnabled()+", bounds "+bounds+", insets "+insets);
+      } else {
+          System.err.println("JAWT n/a, bounds "+bounds+", insets "+insets);
+      }
+      // Thread.dumpStack();
+  }
+    
   public final int lockSurface() throws NativeWindowException {
     surfaceLock.lock();
     int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?

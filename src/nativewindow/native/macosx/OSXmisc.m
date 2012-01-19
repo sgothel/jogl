@@ -232,8 +232,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    // CALayer* layer = [[CALayer alloc] init];
-    CALayer* layer = [CALayer layer];
+    CALayer* layer = [[CALayer alloc] init];
+    DBG_PRINT("CALayer::CreateCALayer.0: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
 
     // initial dummy size !
     CGRect lRect = [layer frame];
@@ -242,7 +242,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
     lRect.size.width = 32;
     lRect.size.height = 32;
     [layer setFrame: lRect];
-    DBG_PRINT("CALayer::CreateCALayer0: %p %lf/%lf %lfx%lf\n", layer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+    DBG_PRINT("CALayer::CreateCALayer.1: %p %lf/%lf %lfx%lf\n", layer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+    DBG_PRINT("CALayer::CreateCALayer.X: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
 
     [pool release];
 
@@ -308,7 +309,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RemoveCASublayer0
     [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
         [subLayer removeFromSuperlayer];
     }];
-    DBG_PRINT("CALayer::RemoveCASublayer0.X: %p . %p (refcnt %d)\n", rootLayer, subLayer, (int)[subLayer retainCount]);
+    DBG_PRINT("CALayer::RemoveCASublayer0.X: %p . %p\n", rootLayer, subLayer);
     JNF_COCOA_EXIT(env);
 }
 
@@ -327,7 +328,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyCALayer0
     [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
         [layer release]; // performs release!
     }];
-    DBG_PRINT("CALayer::DestroyCALayer0.X: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
+    DBG_PRINT("CALayer::DestroyCALayer0.X: %p\n", layer);
     JNF_COCOA_EXIT(env);
 }
 
@@ -433,10 +434,43 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
     CALayer* layer = (CALayer*) (intptr_t) caLayer;
     [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
         id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
-        DBG_PRINT("CALayer::attachJAWTSurfaceLayer: %p -> %p\n", surfaceLayers.layer, layer);
-        surfaceLayers.layer = [layer autorelease];
+        DBG_PRINT("CALayer::attachJAWTSurfaceLayer: %p -> %p (refcnt %d)\n", surfaceLayers.layer, layer, (int)[layer retainCount]);
+        surfaceLayers.layer = layer; // already incr. retain count
+        DBG_PRINT("CALayer::attachJAWTSurfaceLayer.X: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
     }];
     JNF_COCOA_EXIT(env);
     return JNI_TRUE;
 }
+
+/*
+ * Class:     Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
+ * Method:    DetachJAWTSurfaceLayer
+ * Signature: (JJ)Z
+JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_DetachJAWTSurfaceLayer0
+  (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
+{
+    JNF_COCOA_ENTER(env);
+    JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
+    if (NULL == dsi) {
+        NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
+        return JNI_FALSE;
+    }
+    CALayer* layer = (CALayer*) (intptr_t) caLayer;
+    {
+        id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
+        if(layer != surfaceLayers.layer) {
+            NativewindowCommon_throwNewRuntimeException(env, "Attached layer %p doesn't match given layer %p\n", surfaceLayers.layer, layer);
+            return JNI_FALSE;
+        }
+    }
+    // [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
+        id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
+        DBG_PRINT("CALayer::detachJAWTSurfaceLayer: (%p) %p -> NULL\n", layer, surfaceLayers.layer);
+        surfaceLayers.layer = NULL;
+        [layer release];
+    // }];
+    JNF_COCOA_EXIT(env);
+    return JNI_TRUE;
+}
+ */
 
