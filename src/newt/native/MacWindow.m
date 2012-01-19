@@ -737,7 +737,8 @@ NS_ENDHANDLER
     // This probably happens b/c it sends events to the main loop
     // but our resources are gone ?!
     // However, issuing a simple release seems to work quite well.
-    [mWin release];
+    // [mWin release];
+    [mWin performSelectorOnMainThread:@selector(release) withObject:nil waitUntilDone:NO];
 
     DBG_PRINT( "windowClose.X - %p,%d view %p,%d, parent %p\n", 
         mWin, getRetainCount(mWin), mView, getRetainCount(mView), pWin);
